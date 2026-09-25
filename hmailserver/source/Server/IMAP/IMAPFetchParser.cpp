@@ -387,11 +387,14 @@ namespace HM
             {
                // FULL
                // Macro equivalent to: (FLAGS INTERNALDATE RFC822.SIZE ENVELOPE BODY)
+               //
+               // BODY - the non-extensible form - as the macro says, not
+               // BODYSTRUCTURE, which is what FULL used to answer with.
                show_flags_ = true;
                show_internal_date_ = true;
                show_rfcsize_ = true;
                show_envelope_ = true;
-               show_body_structure_ = true;
+               show_body_structure_NonExtensible = true;
                break;
             }
             case RFC822HEADER:
@@ -611,6 +614,13 @@ namespace HM
              oPart.SetShowBodyContent(true);
              set_seen_ = true;
          }
+
+         // RFC 3501 6.4.5: every BODY[<section>] sets \Seen - HEADER,
+         // HEADER.FIELDS and MIME as well as the text and the content. Only
+         // those two did, so BODY[HEADER] left the message unread (imaptest's
+         // fetch-body). BODY.PEEK and RFC822.HEADER come through
+         // ParseBODY_PEEK, which puts the flag back as it was.
+         set_seen_ = true;
          
          sBody = sBody.TrimLeft(_T("."));
          sBody = sBody.TrimRight(_T("."));

@@ -31,7 +31,13 @@ namespace HM
       // filtered to folders carrying a special-use attribute (selection option
       // SPECIAL-USE), and/or annotate the \Subscribed attribute (return option
       // SUBSCRIBED).
-      static String GetIMAPFolderListExtended(__int64 iAccountID, std::shared_ptr<IMAPFolders> pStartFolders, const String &sWildcard, const String &sPrefix, bool bOnlySubscribed, bool bAnnotateSubscribed, bool bOnlySpecialUse, bool *pAnyFolderVisible = nullptr);
+      //
+      // pRecursiveMatchPatterns, where supplied, is RFC 5258's RECURSIVEMATCH with
+      // SUBSCRIBED: every pattern of the command (reference prepended). A mailbox
+      // that matches this listing's pattern and has a subscribed descendant that
+      // none of those patterns matches is listed - subscribed or not - with the
+      // CHILDINFO extended data item, ("CHILDINFO" ("SUBSCRIBED")).
+      static String GetIMAPFolderListExtended(__int64 iAccountID, std::shared_ptr<IMAPFolders> pStartFolders, const String &sWildcard, const String &sPrefix, bool bOnlySubscribed, bool bAnnotateSubscribed, bool bOnlySpecialUse, bool *pAnyFolderVisible = nullptr, const std::vector<String> *pRecursiveMatchPatterns = nullptr);
 
       // The "* LIST (\Noselect \HasChildren) ..." line (with terminating CRLF)
       // for a namespace root the client cannot select - "#Users" - or "" when
@@ -56,7 +62,8 @@ namespace HM
             only_subscribed_(false),
             annotate_subscribed_(false),
             only_special_use_(false),
-            emit_as_list_(true)
+            emit_as_list_(true),
+            recursive_match_patterns_(nullptr)
          {
          }
 
@@ -73,6 +80,10 @@ namespace HM
 
          // True for "* LIST" output, false for "* LSUB" output.
          bool emit_as_list_;
+
+         // LIST-EXTENDED RECURSIVEMATCH (with SUBSCRIBED): every pattern of the
+         // command. Null when the option was not given.
+         const std::vector<String> *recursive_match_patterns_;
 
          // Folder database id -> RFC 6154 designation bitmask, resolved once for the
          // whole mailbox before the walk starts. Deliberately empty when listing
@@ -91,6 +102,14 @@ namespace HM
       static int GetDesignations_(std::shared_ptr<IMAPFolder> currentFolder, const ListRequest_ &request);
 
       static bool FolderWildcardMatch_(const String &sFolderName, const String &sWildcard, const String &hierarchyDelimiter_);
+
+      // Whether the account may see (has the lookup right on) this folder.
+      static bool IsFolderVisible_(__int64 iAccountID, std::shared_ptr<IMAPFolder> folder);
+
+      // Whether a folder below sParentPath is subscribed and visible and matched by
+      // none of the patterns - the test both LSUB's "%" parent (RFC 3501 6.3.9) and
+      // RECURSIVEMATCH's CHILDINFO (RFC 5258 3) are built on.
+      static bool HasSubscribedDescendantOutside_(__int64 iAccountID, std::shared_ptr<IMAPFolders> folders, const String &sParentPath, const std::vector<String> &patterns, const String &hierarchyDelimiter, size_t depth);
       static void AdjustCaseToClientCase_(String &sPath, const String &sWildcard, const String &hierarchyDelimiter);
 
    };

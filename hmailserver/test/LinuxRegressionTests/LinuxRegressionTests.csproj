@@ -173,6 +173,7 @@
     <Compile Include="..\RegressionTests\IMAP\Folders.cs" Link="IMAP\Folders.cs" />
     <Compile Include="..\RegressionTests\IMAP\FullTextSearch.cs" Link="IMAP\FullTextSearch.cs" />
     <Compile Include="..\RegressionTests\IMAP\HierarchyDelimiter.cs" Link="IMAP\HierarchyDelimiter.cs" />
+    <Compile Include="..\RegressionTests\IMAP\ImapTestCompliance.cs" Link="IMAP\ImapTestCompliance.cs" />
     <Compile Include="..\RegressionTests\IMAP\ListStatus.cs" Link="IMAP\ListStatus.cs" />
     <Compile Include="..\RegressionTests\IMAP\MasterUserImpersonation.cs" Link="IMAP\MasterUserImpersonation.cs" />
     <Compile Include="..\RegressionTests\IMAP\MessageUids.cs" Link="IMAP\MessageUids.cs" />

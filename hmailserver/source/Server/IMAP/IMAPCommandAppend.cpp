@@ -122,59 +122,10 @@ namespace HM
             ? "REPLACE Command requires at least 3 parameters."
             : "APPEND Command requires at least 2 parameter.");
 
-      if (isReplace)
-      {
-         std::shared_ptr<IMAPFolder> pCurrentFolder = pConnection->GetCurrentFolder();
-         if (!pCurrentFolder)
-            return IMAPResult(IMAPResult::ResultBad, "REPLACE is only valid in the selected state.");
-
-         if (pConnection->GetCurrentFolderReadOnly())
-            return IMAPResult(IMAPResult::ResultNo, "REPLACE command on read-only folder.");
-
-         // Removing the replaced message needs the same permission EXPUNGE does.
-         if (!pConnection->CheckPermission(pCurrentFolder, ACLPermission::PermissionExpunge))
-            return IMAPResult(IMAPResult::ResultBad, "ACL: Expunge permission denied (Required for REPLACE command).");
-
-         String sTarget = pParser->Word(1)->Value();
-
-         for (int i = 0; i < sTarget.GetLength(); i++)
-         {
-            wchar_t ch = sTarget.GetAt(i);
-            if (ch < '0' || ch > '9')
-               return IMAPResult(IMAPResult::ResultBad, "REPLACE target must be a message number.");
-         }
-
-         __int64 target = _ttoi64(sTarget.c_str());
-         if (target <= 0)
-            return IMAPResult(IMAPResult::ResultBad, "REPLACE target must be a message number.");
-
-         auto currentMessages = MessagesContainer::Instance()->GetMessages(pCurrentFolder->GetAccountID(), pCurrentFolder->GetID());
-
-         // Resolved against this session's view, like every other message number: the
-         // number the client sent means the message it was last told is there.
-         std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
-         IMAPViewEntry entry;
-         int sequence = 0;
-
-         bool found = view && (replaceUsesUid
-            ? view->GetEntryByUID((unsigned int) target, sequence, entry)
-            : view->GetEntryBySequence((int) target, entry));
-
-         if (found)
-            replace_target_ = currentMessages->GetCopyByDBID(entry.message_id);
-
-         if (!replace_target_)
-            return IMAPResult(IMAPResult::ResultNo, "No such message.");
-      }
-
-         // Create a new mailbox
-      String sFolderName = pParser->GetParamValue(pArgument, (int) folderParamIndex);
-      if (!pParser->Word(folderWordIndex)->Clammerized())
-         IMAPFolder::UnescapeFolderString(sFolderName);
-
-      if (pParser->ParantheziedWord())
-         flags_to_set_ = pParser->ParantheziedWord()->Value();
-
+      // The literal is read first, before anything that can refuse the command:
+      // a refusal of a {n+} literal has to consume the octets the client is
+      // already sending (RefuseWithLiteral_), and only the size says how many.
+      //
       // last word.
       std::shared_ptr<IMAPSimpleWord> pWord = pParser->Word(pParser->WordCount()-1);
 
@@ -234,17 +185,86 @@ namespace HM
       if (declaredSize <= 0)
          return IMAPResult(IMAPResult::ResultBad, "Empty message not permitted.");
 
+      // A fresh command: forget everything a previous APPEND on this connection
+      // left behind. Before the first refusal below, which may set some of it.
+      pending_messages_.clear();
+      command_failed_ = false;
+      failure_response_.Empty();
+      continuation_line_.Empty();
+      receive_state_ = ReceivingLiteral;
+      write_failed_ = false;
+      append_buffer_.Empty();
+      current_message_.reset();
+      destination_folder_.reset();
+      replace_mode_ = isReplace;
+
+      if (isReplace)
+      {
+         std::shared_ptr<IMAPFolder> pCurrentFolder = pConnection->GetCurrentFolder();
+         if (!pCurrentFolder)
+            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultBad, "REPLACE is only valid in the selected state."), nonSynchronizingLiteral, declaredSize);
+
+         if (pConnection->GetCurrentFolderReadOnly())
+            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "REPLACE command on read-only folder."), nonSynchronizingLiteral, declaredSize);
+
+         // Removing the replaced message needs the same permission EXPUNGE does.
+         // NO, not BAD: the command is well formed and the server declines it
+         // (RFC 4314 - a missing right is refused NO).
+         if (!pConnection->CheckPermission(pCurrentFolder, ACLPermission::PermissionExpunge))
+            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for REPLACE command)."), nonSynchronizingLiteral, declaredSize);
+
+         String sTarget = pParser->Word(1)->Value();
+
+         bool targetIsNumber = !sTarget.IsEmpty();
+         for (int i = 0; i < sTarget.GetLength(); i++)
+         {
+            wchar_t ch = sTarget.GetAt(i);
+            if (ch < '0' || ch > '9')
+               targetIsNumber = false;
+         }
+
+         __int64 target = targetIsNumber ? _ttoi64(sTarget.c_str()) : 0;
+         if (target <= 0)
+            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultBad, "REPLACE target must be a message number."), nonSynchronizingLiteral, declaredSize);
+
+         auto currentMessages = MessagesContainer::Instance()->GetMessages(pCurrentFolder->GetAccountID(), pCurrentFolder->GetID());
+
+         // Resolved against this session's view, like every other message number: the
+         // number the client sent means the message it was last told is there.
+         std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
+         IMAPViewEntry entry;
+         int sequence = 0;
+
+         bool found = view && (replaceUsesUid
+            ? view->GetEntryByUID((unsigned int) target, sequence, entry)
+            : view->GetEntryBySequence((int) target, entry));
+
+         if (found)
+            replace_target_ = currentMessages->GetCopyByDBID(entry.message_id);
+
+         if (!replace_target_)
+            return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "No such message."), nonSynchronizingLiteral, declaredSize);
+      }
+
+         // Create a new mailbox
+      String sFolderName = pParser->GetParamValue(pArgument, (int) folderParamIndex);
+      if (!pParser->Word(folderWordIndex)->Clammerized())
+         IMAPFolder::UnescapeFolderString(sFolderName);
+
+      if (pParser->ParantheziedWord())
+         flags_to_set_ = pParser->ParantheziedWord()->Value();
+
       // Locate the parameter containing the date to set.
       // Can't use pParser->QuotedWord() since there may
       // be many quoted words in the command. Start past the folder name, which
       // may itself be quoted.
       for (size_t i = folderWordIndex + 1; i < pParser->WordCount(); i++)
       {
-         std::shared_ptr<IMAPSimpleWord> pWord = pParser->Word(i);
+         std::shared_ptr<IMAPSimpleWord> pDateWord = pParser->Word(i);
 
-         if (pWord->Quoted())
+         if (pDateWord->Quoted())
          {
-            create_time_to_set_ = pWord->Value();
+            create_time_to_set_ = pDateWord->Value();
 
             // date-day-fixed  = (SP DIGIT) / 2DIGIT
             //   ; Fixed-format version of date-day
@@ -256,25 +276,16 @@ namespace HM
 
       destination_folder_ = pConnection->GetFolderByFullPath(sFolderName);
       if (!destination_folder_)
-         return IMAPResult(IMAPResult::ResultNo, "[TRYCREATE] Folder could not be found.");
+         return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "[TRYCREATE] Folder could not be found."), nonSynchronizingLiteral, declaredSize);
 
+      // NO, not BAD: a missing right is a refusal of a well-formed command
+      // (RFC 4314 section 4), and BAD tells the client its command was broken.
       if (!pConnection->CheckPermission(destination_folder_, ACLPermission::PermissionInsert))
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Insert permission denied (Required for APPEND command).");
-
-      // A fresh command: forget everything a previous APPEND on this connection
-      // left behind.
-      pending_messages_.clear();
-      command_failed_ = false;
-      failure_response_.Empty();
-      continuation_line_.Empty();
-      receive_state_ = ReceivingLiteral;
-      write_failed_ = false;
-      append_buffer_.Empty();
-      replace_mode_ = isReplace;
+         return RefuseWithLiteral_(pConnection, IMAPResult(IMAPResult::ResultNo, "ACL: Insert permission denied (Required for APPEND command)."), nonSynchronizingLiteral, declaredSize);
 
       IMAPResult prepareResult = ValidateAndPrepareMessage_(pConnection, declaredSize);
       if (prepareResult.GetResult() != IMAPResult::ResultOK)
-         return prepareResult;
+         return RefuseWithLiteral_(pConnection, prepareResult, nonSynchronizingLiteral, declaredSize);
 
       pConnection->SetReceiveBinary(true);
 
@@ -282,6 +293,57 @@ namespace HM
       // literal's octets are already on their way (RFC 7888).
       if (!nonSynchronizingLiteral)
          pConnection->SendAsciiData("+ Ready for literal data\r\n");
+
+      return IMAPResult();
+   }
+
+   IMAPResult
+   IMAPCommandAppend::RefuseWithLiteral_(std::shared_ptr<IMAPConnection> pConnection, const IMAPResult &refusal, bool nonSynchronizingLiteral, __int64 declaredSize)
+   {
+      // Whatever was prepared for this command is dropped either way.
+      KillCurrentMessage_();
+      current_message_.reset();
+      replace_target_.reset();
+      replace_mode_ = false;
+
+      if (!nonSynchronizingLiteral || declaredSize <= 0)
+      {
+         destination_folder_.reset();
+         return refusal;
+      }
+
+      // A {n+} literal larger than this account may store is not read at all:
+      // RFC 7888 section 4 lets the server close the connection instead, with
+      // TOOBIG (section 5) - reading it only to throw it away would hand any
+      // client a way to keep a connection busy for as long as it likes. The
+      // limit is the configured maximum message size (the one APPENDLIMIT
+      // advertises), and never under 1 MB, so a small refused message is still
+      // read and answered NO on a connection that stays open.
+      const __int64 refusedLiteralFloorBytes = (__int64) 1024 * 1024;
+      __int64 refusedLiteralLimitBytes = GetEffectiveAppendLimitBytes(pConnection->GetAccount());
+      if (refusedLiteralLimitBytes < refusedLiteralFloorBytes)
+         refusedLiteralLimitBytes = refusedLiteralFloorBytes;
+
+      if (declaredSize > refusedLiteralLimitBytes)
+      {
+         destination_folder_.reset();
+         pConnection->SendAsciiData(current_tag_ + " BAD [TOOBIG] The literal is larger than this server accepts.\r\n");
+         pConnection->Logout("* BYE [TOOBIG] The literal is larger than this server accepts.\r\n");
+         return IMAPResult(IMAPResult::ResultOKSupressRead, "");
+      }
+
+      // The octets are already on their way. They are read and discarded - no
+      // current message, so nothing is written - and the refusal is sent when
+      // the command's final CRLF arrives (FinalizeCommand_), exactly as a later
+      // message of a MULTIAPPEND refused under {n+} is handled. Without this the
+      // message's lines were read as IMAP commands: a refused APPEND of a
+      // message containing the line "x DELETE INBOX" would have run it.
+      String refusalWord = refusal.GetResult() == IMAPResult::ResultBad ? _T(" BAD ") : _T(" NO ");
+      FailCommand_(current_tag_ + refusalWord + refusal.GetMessage() + _T("\r\n"));
+
+      bytes_left_to_receive_ = (size_t) declaredSize;
+      receive_state_ = ReceivingLiteral;
+      pConnection->SetReceiveBinary(true);
 
       return IMAPResult();
    }
@@ -466,9 +528,8 @@ namespace HM
          AnsiString residue = continuation_line_.substr(lineEnd + 2);
          continuation_line_.Empty();
 
-         // Bytes after the CRLF are the next literal's octets (or, after the
-         // final CRLF, pipelined data the finalize path discards with the
-         // buffer, exactly as the single-message APPEND always has).
+         // Bytes after the CRLF are the next literal's octets or, after the
+         // command's final CRLF, whatever the client pipelined behind it.
          if (!residue.empty())
             append_buffer_.Add((const BYTE*) residue.c_str(), residue.size());
 
@@ -478,6 +539,22 @@ namespace HM
             continue;
 
          // The command completed (or failed terminally): back to line mode.
+         //
+         // What is left in the buffer arrived after the command's final CRLF, so
+         // it is the client's next command - or several, and the start of a
+         // literal - sent without waiting for this one's answer, which both
+         // RFC 3501 (5.5) and RFC 7888 allow. mbsync pipelines APPENDs exactly
+         // like this. It used to be thrown away with the buffer, and the commands
+         // in it were never answered: mbsync stored one message and then waited
+         // until it timed out. It is handed back to the connection as though it
+         // had just arrived, ahead of anything still in the socket, and read as
+         // command text. The paths that stop on a protocol error empty the
+         // buffer first: where the framing is lost, nothing after it is trusted.
+         if (append_buffer_.GetSize() > 0)
+            pConnection->InjectPipelinedBytes(append_buffer_.GetBuffer(), append_buffer_.GetSize());
+
+         append_buffer_.Empty();
+
          pConnection->EnqueueRead();
          return;
       }
@@ -551,17 +628,17 @@ namespace HM
          return;
       }
 
-      // The stored file ends with CRLF, exactly as it always has: the
-      // pre-MULTIAPPEND code consumed the command's terminating CRLF in binary
-      // mode and wrote it into the file, and consumers of message files rely on
-      // the terminator - header parsing of a headers-only message included,
-      // which is how its absence was caught (the SORT-by-Date fixture).
-      if (!write_failed_)
-      {
-         const BYTE crlfTerminator[2] = { '\r', '\n' };
-         WriteData_(pConnection, crlfTerminator, 2);
-      }
-
+      // The stored file is the literal, byte for byte. It used to have the
+      // command's terminating CRLF written after it - inherited from the code
+      // before MULTIAPPEND, which read that CRLF in binary mode with the
+      // message - so every appended message came back two octets longer than
+      // the client sent it: RFC822.SIZE, BODY[] and BODY[TEXT] all said so, and
+      // a client comparing sizes after a sync (imaptest, mbsync) saw a
+      // different message. RFC 3501 6.3.11 appends the literal, not the
+      // literal and a line break. A message that does not end with a line
+      // break - a header block with no body, as the SORT-by-Date fixture
+      // appends - still parses: MimeField::Load takes a last field that runs
+      // to the end of the data.
       if (write_failed_)
       {
          // The message data never reached disk. Fail the whole command:
@@ -832,6 +909,11 @@ namespace HM
             KillCurrentMessage_();
             current_message_.reset();
 
+            // A client waiting for the continuation has sent nothing after this
+            // line; anything here would be the literal it should not have sent
+            // yet, and must not be read as commands.
+            append_buffer_.Empty();
+
             pConnection->SetReceiveBinary(false);
 
             String refusal = prepareResult.GetResult() == IMAPResult::ResultBad ? _T(" BAD ") : _T(" NO ");
@@ -969,7 +1051,8 @@ namespace HM
    // or - if anything failed along the way - none of them (RFC 3502).
    //---------------------------------------------------------------------------
    {
-      append_buffer_.Empty();
+      // append_buffer_ is left alone: what is in it now came after the final
+      // CRLF, and ParseBinary hands it back to the connection.
       pConnection->SetReceiveBinary(false);
 
       if (command_failed_)

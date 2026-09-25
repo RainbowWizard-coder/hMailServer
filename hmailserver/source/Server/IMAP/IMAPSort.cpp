@@ -7,6 +7,8 @@
 #include "IMAPSort.h"
 #include "IMAPSortParser.h"
 #include "IMAPConnection.h"
+#include "IMAPAddressList.h"
+#include "IMAPThread.h"
 
 #include "../Common/Persistence/PersistentMessageMetaData.h"
 #include "../Common/BO/Message.h"
@@ -16,14 +18,7 @@
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/MessageStore.h"
 
-#ifdef HM_PLATFORM_POSIX
-// The three answers CompareStringW gives, under their Windows names and with
-// their Windows values, because the comparison in IMAPSortHeaderField is
-// written against them and reads better left that way.
-static const int CSTR_LESS_THAN = 1;
-static const int CSTR_EQUAL = 2;
-static const int CSTR_GREATER_THAN = 3;
-#endif
+#include <algorithm>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -32,248 +27,252 @@ static const int CSTR_GREATER_THAN = 3;
 
 namespace HM
 {
-   IMAPSort::IMAPSort(void) 
+   namespace
+   {
+      // A date as a key that sorts as text: "YYYY-MM-DD HH:MM:SS", every field
+      // zero-padded, or "" for none.
+      String DateSortKey_(const DateTime &date)
+      {
+         if (date.GetStatus() != DateTime::valid)
+            return String();
+
+         return Time::GetTimeStampFromDateTime(date);
+      }
+
+      // The internal date - INTERNALDATE, "arrival" - as a key.
+      String ArrivalSortKey_(std::shared_ptr<Message> message)
+      {
+         return DateSortKey_(Time::GetDateFromSystemDate(message->GetCreateTime()));
+      }
+
+      // RFC 5256 section 2.1 compares with the i;ascii-casemap collation: a-z
+      // are folded to A-Z and nothing else is, so "é" and "É" stay distinct
+      // whatever the locale's ToUpper would make of them.
+      String AsciiCaseMap_(const String &value)
+      {
+         String folded;
+
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            wchar_t c = value.GetAt(i);
+
+            if (c >= 'a' && c <= 'z')
+               c = (wchar_t) (c - 'a' + 'A');
+
+            folded += c;
+         }
+
+         return folded;
+      }
+
+      // One message's keys, one per sort criterion, and the sequence number that
+      // breaks the last tie.
+      struct SortEntry
+      {
+         std::pair<int, std::shared_ptr<Message> > message;
+         std::vector<String> keys;
+      };
+   }
+
+   IMAPSort::IMAPSort(void)
    {
    }
 
    IMAPSort::~IMAPSort(void)
    {
    }
- 
-   class IMAPSortSize {
-   public:
-      //Return true if s1 < s2; otherwise, return false.
-      bool operator()(const std::pair<int, std::shared_ptr<Message> > p1, const std::pair<int, std::shared_ptr<Message> >  p2)
-      {
-         return p1.second->GetSize() < p2.second->GetSize();
-      }
-   };   
-
-   class IMAPSortCachedDateTime {
-   public:
-      IMAPSortCachedDateTime(std::map<__int64, DateTime> &map) :
-         date_time_info_(map)
-      {
-      }
-
-      //Return true if s1 < s2; otherwise, return false.
-      bool operator()(const std::pair<int, std::shared_ptr<Message> > p1, const std::pair<int, std::shared_ptr<Message> >  p2)
-      {
-         DateTime dt1 = date_time_info_[p1.second->GetID()];
-         DateTime dt2 = date_time_info_[p2.second->GetID()];
-         return (dt1 < dt2) == TRUE;
-      }
-
-   private:
-      std::map<__int64, DateTime> &date_time_info_;
-   };   
-
-   class IMAPSortHeaderField 
-   {
-   public:
-      IMAPSortHeaderField(std::map<__int64, String> &mapHeaderFields, String character_set) :
-         _mapHeaderFields(mapHeaderFields),
-         character_set_(character_set)
-      {
-         
-      }
-
-      //Return true if s1 < s2; otherwise, return false.
-      bool operator()(const std::pair<int, std::shared_ptr<Message> > p1, const std::pair<int, std::shared_ptr<Message> >  p2)
-      {
-         String sHeader1 = _mapHeaderFields[p1.second->GetID()];
-         String sHeader2 = _mapHeaderFields[p2.second->GetID()];
-         
-         int compare_result = 0;
-
-         if (character_set_.CompareNoCase(_T("US-ASCII")) == 0)
-         {
-            AnsiString ansi_1 = sHeader1;
-            AnsiString ansi_2 = sHeader2;
-
-            return ansi_1 < ansi_2;
-         }
-         else
-         {
-            // Use UTF8 as default.
-#ifdef HM_PLATFORM_POSIX
-            // CompareStringW with NORM_IGNORECASE is a case-insensitive
-            // comparison in the system's locale; wcscasecmp is that comparison
-            // here, in the locale the process is running in. It answers the sign
-            // of the difference rather than Windows' 1, 2 and 3, so the result is
-            // mapped onto the three values the code below tests for.
-            //
-            // The two are not identical and this is the one place it shows: the
-            // Windows call folds case across the whole of Unicode, while
-            // wcscasecmp folds whatever the process locale knows how to fold -
-            // ASCII only under the "C" locale. A SORT of non-ASCII subjects can
-            // therefore order differently between the two builds. It is honest
-            // and it is not silent: it is written down here, and getting it right
-            // needs a collation library, which is a decision larger than this
-            // file. wcscasecmp also cannot fail, so the error branch below is
-            // simply never taken on this platform.
-            const int difference = ::wcscasecmp(sHeader1, sHeader2);
-            compare_result = difference < 0 ? CSTR_LESS_THAN : (difference == 0 ? CSTR_EQUAL : CSTR_GREATER_THAN);
-#else
-            compare_result = CompareStringW(LOCALE_SYSTEM_DEFAULT, NORM_IGNORECASE, sHeader1, -1, sHeader2, -1);
-#endif
-         }
-
-         if (compare_result == 0)
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5019, "IMAPSortHeaderField::operator()", "An error occurred while sorting. Check system locale settings.");
-
-         if (compare_result == CSTR_LESS_THAN)
-            return true;
-         else
-            return false;  
-      }
-   private:
-
-      std::map<__int64, String> &_mapHeaderFields;
-      String character_set_;
-   };   
-  
-
 
    bool
    IMAPSort::Sort(std::shared_ptr<IMAPConnection> pConnection, std::vector<std::pair<int, std::shared_ptr<Message> > > &vecMessages, String character_set, std::shared_ptr<IMAPSortParser> pParser,
                   const std::function<bool()> &abortRequested)
    {
-      // Sort messages according to the sort criteria
+      // RFC 5256 section 3. Every criterion in the list takes part: the first
+      // decides, a tie goes to the second, and so on, and when every criterion
+      // ties "the order in which the two messages appear in the mailbox (that is,
+      // by sequence number)" decides. REVERSE "only reverses a single criterion,
+      // and does not affect the implicit "sequence number" sort criterion".
+      //
+      // What this replaces sorted by the LAST criterion alone - "(ARRIVAL REVERSE
+      // SIZE)" was a size sort - with std::sort, which leaves ties in no defined
+      // order, and applied REVERSE by reversing the finished list, which reversed
+      // the ties along with it. imaptest's sort tests found all three.
+      //
+      // The keys are also the RFC's rather than the raw headers': SUBJECT is the
+      // base subject (2.1), FROM, TO and CC the mailbox part of the first address
+      // - "[IMAP] addr-mailbox of the first "From" address" - not the header text
+      // with a leading quote trimmed off, and DATE the sent date with INTERNALDATE
+      // standing in when there is none (2.2). Strings compare with a-z folded to
+      // A-Z and nothing else (AsciiCaseMap_), which is the i;ascii-casemap
+      // collation RFC 5256 prescribes whatever the charset.
 
       std::vector<std::pair<bool,String> > vecSortTypes = pParser->GetSortTypes();
 
-      // The skip-to-last walk below starts by evaluating begin() + 1, which on an
-      // EMPTY vector is one past a null end() - the comparison never matches, the
-      // iterator runs away, and the loop never terminates. In a release build
-      // (_ITERATOR_DEBUG_LEVEL 0) that is an unkillable connection thread at 100%
-      // of a core rather than a crash. The command layer now refuses an empty sort
-      // list outright; this guard stays because the hang is severe and the cost of
+      // The command layer refuses an empty list; this stays because the cost of
       // being certain is one comparison.
-      if (vecSortTypes.empty())
+      if (vecSortTypes.empty() || vecMessages.empty())
          return true;
 
-      auto iterSortType = vecSortTypes.begin();
-      // Skip to the last.
-      while (iterSortType + 1 != vecSortTypes.end())
-         iterSortType++;
+      std::vector<SortField> fields;
+      std::vector<bool> ascending;
 
-      if (iterSortType != vecSortTypes.end())
+      for (const std::pair<bool, String> &sortType : vecSortTypes)
       {
-         std::pair<bool,String> st = (*iterSortType);
-
-         String sHeaderField = st.second;
-         SortField sortField = GetSortField_(sHeaderField);
-
-         PersistentMessageMetaData messageMetaData;
-
-         std::map<__int64, String > databaseMetaData;
-
-         bool loadDBCache =  
-            (sortField == From ||
-            sortField == Subject ||
-            sortField == To ||
-            sortField == CC ||
-            sortField == Date) && 
-            Configuration::Instance()->GetMessageIndexing();
-
-         if (loadDBCache && vecMessages.size() > 0)
-         {
-            int accountID = (int) vecMessages[0].second->GetAccountID();
-            int folderID = (int) vecMessages[0].second->GetFolderID();
-
-            messageMetaData.GetMetaData(accountID, folderID, sHeaderField, databaseMetaData);
-         }
-
-         std::map<__int64, String> mapHeaderFields;
-         
-         if (sortField == Subject ||
-             sortField == CC ||
-             sortField == From ||
-             sortField == To ||
-             sortField == Date)
-         {
-            if (!CacheHeaderFields_(pConnection, vecMessages, databaseMetaData, sortField, mapHeaderFields, abortRequested))
-               return false;
-         }
-         
-         if (sortField == Arrival) 
-         {
-            // The message are already sorted on arrival date, since we're doing
-            // a sort by messageid when we read the message list from the database.
-            // Hence no reason to resort ...
-            // Or may be not.
-            // We can't assume that the order in the database is the same as the
-            // arrival date. For example, if a message is copied from one folder
-            // to another, the message receives a higher db id, but the arrival 
-            // date is still the same.
-
-            // Cache dates for all messages.
-            std::map<__int64, DateTime> mapDateTimeInfo;
-            auto iterMessage = vecMessages.begin();
-            while (iterMessage != vecMessages.end())
-            {
-               // Fetch message.
-               std::shared_ptr<Message> p1 = (*iterMessage).second;
-
-               // Retrieve the message date and convert it to a DateTime.
-               DateTime dt1 = Time::GetDateFromSystemDate(p1->GetCreateTime());
-
-               // Cache the date connected to the message.
-               mapDateTimeInfo[p1->GetID()] = dt1;
-
-               // Continue with the next message.
-               iterMessage++;
-            }
-         
-            std::sort(vecMessages.begin(), vecMessages.end(), IMAPSortCachedDateTime(mapDateTimeInfo));
-
-         }
-         else if (sortField == Size)
-         {
-            std::sort(vecMessages.begin(), vecMessages.end(), IMAPSortSize());
-         }
-         else if (sortField == Subject ||
-                  sortField == CC ||
-                  sortField == From ||
-                  sortField == To)
-         {
-            std::sort(vecMessages.begin(), vecMessages.end(), IMAPSortHeaderField(mapHeaderFields, character_set));
-         }
-         else if (sortField == Date)
-         {
-            // Cache dates for all messages. This is faster than sorting the strings.
-            std::map<__int64, DateTime> mapDateTimeInfo;
-            auto iterMessage = vecMessages.begin();
-            
-            while (iterMessage != vecMessages.end())
-            {
-               // Fetch message.
-               std::shared_ptr<Message> p1 = (*iterMessage).second;
-               String headerValue = mapHeaderFields[p1->GetID()];
-               
-               DateTime dt1 = Time::GetDateFromSystemDate(headerValue);
-
-               // Cache the date connected to the message.
-               mapDateTimeInfo[p1->GetID()] = dt1;
-
-               // Continue with the next message.
-               iterMessage++;
-            }
-
-            std::sort(vecMessages.begin(), vecMessages.end(), IMAPSortCachedDateTime(mapDateTimeInfo));
-         }
-
-
-         if (st.first == false && sortField != Unknown)
-         {
-            // Reversed order:
-            std::reverse(vecMessages.begin(), vecMessages.end());
-         }
-         
-
-         iterSortType++;
+         fields.push_back(GetSortField_(sortType.second));
+         ascending.push_back(sortType.first);
       }
+
+      // With message indexing on, the indexed header values stand in for the
+      // file read, as before.
+      std::map<SortField, std::map<__int64, String> > databaseMetaData;
+
+      if (Configuration::Instance()->GetMessageIndexing())
+      {
+         const int accountID = (int) vecMessages[0].second->GetAccountID();
+         const int folderID = (int) vecMessages[0].second->GetFolderID();
+
+         for (size_t i = 0; i < fields.size(); i++)
+         {
+            SortField field = fields[i];
+
+            if (field != From && field != Subject && field != To && field != CC && field != Date)
+               continue;
+
+            if (databaseMetaData.find(field) != databaseMetaData.end())
+               continue;
+
+            PersistentMessageMetaData messageMetaData;
+            messageMetaData.GetMetaData(accountID, folderID, vecSortTypes[i].second, databaseMetaData[field]);
+         }
+      }
+
+      std::vector<SortEntry> entries;
+      entries.reserve(vecMessages.size());
+
+      for (const std::pair<int, std::shared_ptr<Message> > &messagePair : vecMessages)
+      {
+         SortEntry entry;
+         entry.message = messagePair;
+
+         std::shared_ptr<Message> message = messagePair.second;
+
+         // The header, read once for this message and only when a criterion needs
+         // what the index does not hold.
+         bool headerLoaded = false;
+         MimeHeader oHeader;
+
+         for (size_t i = 0; i < fields.size(); i++)
+         {
+            SortField field = fields[i];
+            String key;
+
+            if (field == Arrival)
+            {
+               key = ArrivalSortKey_(message);
+            }
+            else if (field == Size)
+            {
+               // Zero-padded, so the sizes sort as text.
+               key.Format(_T("%010d"), message->GetSize());
+            }
+            else if (field == Unknown)
+            {
+               // Every message ties on a criterion nobody knows.
+            }
+            else
+            {
+               String fieldValue;
+               bool fromIndex = false;
+
+               auto indexed = databaseMetaData.find(field);
+               if (indexed != databaseMetaData.end())
+               {
+                  auto value = indexed->second.find(message->GetID());
+                  if (value != indexed->second.end())
+                  {
+                     fieldValue = value->second;
+                     fromIndex = true;
+                  }
+               }
+
+               AnsiString rawValue;
+
+               if (!fromIndex)
+               {
+                  if (!headerLoaded)
+                  {
+                     // Asked BEFORE the read, so the caller's ceiling stops the next
+                     // file rather than being consulted once every file is read.
+                     if (abortRequested && abortRequested())
+                        return false;
+
+                     AnsiString sHeader = MessageStore::LoadHeader(pConnection->GetAccountOwningCurrentFolder(), message);
+                     oHeader.Load(sHeader, sHeader.GetLength());
+                     headerLoaded = true;
+                  }
+
+                  const String &fieldName = vecSortTypes[i].second;
+                  const char *raw = oHeader.GetRawFieldValue(fieldName);
+
+                  if (raw)
+                     rawValue = raw;
+
+                  fieldValue = oHeader.GetUnicodeFieldValue(AnsiString(fieldName));
+               }
+               else
+               {
+                  rawValue = AnsiString(fieldValue);
+               }
+
+               if (field == Subject)
+               {
+                  key = IMAPThread::GetBaseSubject(fieldValue);
+               }
+               else if (field == From || field == To || field == CC)
+               {
+                  key = String(IMAPAddressList::GetFirstMailbox(rawValue).c_str());
+               }
+               else if (field == Date)
+               {
+                  // The index holds the sent date as a date already; a header holds
+                  // it as text. Either way INTERNALDATE stands in when it cannot be
+                  // read.
+                  DateTime sentDate = fromIndex
+                     ? Time::GetDateFromSystemDate(fieldValue)
+                     : Time::GetDateTimeFromMimeHeader(fieldValue);
+
+                  key = DateSortKey_(sentDate);
+
+                  if (key.IsEmpty() || fieldValue.IsEmpty())
+                     key = ArrivalSortKey_(message);
+               }
+
+               key = AsciiCaseMap_(key);
+            }
+
+            entry.keys.push_back(key);
+         }
+
+         entries.push_back(entry);
+      }
+
+      std::stable_sort(entries.begin(), entries.end(),
+         [&ascending](const SortEntry &left, const SortEntry &right)
+         {
+            for (size_t i = 0; i < ascending.size(); i++)
+            {
+               const int compare = left.keys[i].Compare(right.keys[i]);
+
+               if (compare == 0)
+                  continue;
+
+               return ascending[i] ? compare < 0 : compare > 0;
+            }
+
+            return left.message.first < right.message.first;
+         });
+
+      for (size_t i = 0; i < entries.size(); i++)
+         vecMessages[i] = entries[i].message;
 
       return true;
    }
@@ -303,116 +302,5 @@ namespace HM
          sortField = Unknown;
 
       return sortField;
-   }
-
-
-   bool
-   IMAPSort::CacheHeaderFields_(std::shared_ptr<IMAPConnection> pConnection,
-                                const std::vector<std::pair<int, std::shared_ptr<Message> > > &vecMessages, 
-                                const std::map<__int64, String > &databaseMetaData, 
-                                SortField &sortField,
-                                std::map<__int64, String> &mapHeaderFields,
-                                const std::function<bool()> &abortRequested)
-   {
-      mapHeaderFields.clear();
-
-      String sHeaderField;
-
-      switch (sortField)
-      {
-      case From:
-         sHeaderField = "From";
-         break;
-      case Subject:
-         sHeaderField = "Subject";
-         break;
-      case To:
-         sHeaderField = "To";
-         break;
-      case CC:
-         sHeaderField = "CC";
-         break;
-      case Date:
-         sHeaderField = "Date";
-         break;      
-      }
-
-      // Cache the header field for all messages.
-      bool bTrimLeadingSpecialCharacters = (sortField == From || sortField == To || sortField == CC);
-
-      std::vector<std::pair<int, std::shared_ptr<Message> > >::const_iterator iter = vecMessages.begin();
-      std::vector<std::pair<int, std::shared_ptr<Message> > >::const_iterator iterEnd = vecMessages.end();
-
-      for (; iter != iterEnd; iter++)
-      {
-         // Asked BEFORE the read, so the caller's ceiling stops the next file
-         // rather than being consulted once every file has already been read.
-         if (abortRequested && abortRequested())
-            return false;
-
-         // Fetch message.
-         const std::shared_ptr<Message> p1 = (*iter).second;
-
-         String sFieldValue = "";
-
-         // Read message and parse out the value from the header.
-         std::map<__int64, String >::const_iterator dbMetaIter = databaseMetaData.find(p1->GetID());
-         
-         if (dbMetaIter == databaseMetaData.end())
-         {
-            AnsiString sHeader = MessageStore::LoadHeader(pConnection->GetAccountOwningCurrentFolder(), p1);
-
-            MimeHeader oHeader;oHeader.Load(sHeader, sHeader.GetLength());
-            sFieldValue = oHeader.GetUnicodeFieldValue(sHeaderField);
-
-            if (sortField == Date)
-            {
-               DateTime dt = Time::GetDateTimeFromMimeHeader(sFieldValue);
-
-               // Validity, not emptiness. The comment further down has claimed
-               // "missing or cannot be parsed" since 2010, and the code only ever
-               // handled missing: an unparseable Date comes back as an INVALID
-               // DateTime whose raw value is the 1899 OLE epoch, which stringifies
-               // to a perfectly non-empty timestamp - so the fallback never fired
-               // and the most malformed message in the mailbox sorted to the very
-               // front. Found by the adversarial pass over THREAD, which inherited
-               // exactly this shape and fixed it; this brings SORT level.
-               if (dt.GetStatus() != DateTime::valid)
-                  sFieldValue = p1->GetCreateTime();
-               else
-                  sFieldValue = Time::GetTimeStampFromDateTime(dt);
-            }
-         }
-         else
-         {
-            sFieldValue = (*dbMetaIter).second;
-         }
-
-         if (sortField == Date && sFieldValue.IsEmpty())
-         {
-             /*
-              * RFC 5256 "2.2. Sent Date" chapter. If the sent date cannot be determined (a Date: header is missing or cannot be parsed), 
-              * the INTERNALDATE for that message is used as the sent date.
-              */
-            sFieldValue = p1->GetCreateTime();
-         }
-
-         // Convert the string to upper case. The sorting should be
-         // case insensitive. Otherwise b will come before A.
-         sFieldValue.ToUpper();
-
-         // Remove leading ". If we sort on From, "Test" should come in 
-         // same position as Test. (quotes / no quotes)
-         if (bTrimLeadingSpecialCharacters)
-         {
-            sFieldValue.TrimLeft(_T("\""));
-            sFieldValue.TrimLeft(_T("<"));
-         }
-
-         // Cache the header
-         mapHeaderFields[p1->GetID()] = sFieldValue;
-      }
-
-      return true;
    }
 }

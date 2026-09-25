@@ -25,6 +25,49 @@
 
 namespace HM
 {
+   namespace
+   {
+      boost::recursive_mutex folder_creation_time_mutex;
+      unsigned int last_issued_folder_uidvalidity = 0;
+
+      // A new folder's creation time, which is its UIDVALIDITY (the time in
+      // seconds), never one this process has issued already. Two folders made
+      // within the same second had the same UIDVALIDITY - and so did a mailbox
+      // deleted and made again under the same name, which RFC 3501 2.3.1.1 forbids:
+      // the new mailbox "must assign a new UIDVALIDITY value", or a client keeps
+      // the old mailbox's UIDs and applies them to the new one's messages
+      // (imaptest's uidvalidity test). A second later than the clock says, where
+      // needed, costs nothing anybody reads.
+      //
+      // Known and accepted: making N folders within one second (an import, a
+      // migration) puts the last one's creation time up to N seconds ahead of
+      // the clock, and the next folders follow it until the clock catches up.
+      // The value is only a creation time shown to administrators and a
+      // UIDVALIDITY compared for equality, so the drift is harmless; a counter
+      // of its own would need a column, which this row does not add.
+      DateTime NextFolderCreationTime_()
+      {
+         DateTime creationTime = DateTime::GetCurrentTime();
+
+         boost::lock_guard<boost::recursive_mutex> guard(folder_creation_time_mutex);
+
+         unsigned int uidValidity = creationTime.ToInt();
+
+         if (uidValidity <= last_issued_folder_uidvalidity)
+         {
+            DateTimeSpan step;
+            step.SetDateTimeSpan(0, 0, 0, (int) (last_issued_folder_uidvalidity - uidValidity + 1));
+
+            creationTime = creationTime + step;
+            uidValidity = creationTime.ToInt();
+         }
+
+         last_issued_folder_uidvalidity = uidValidity;
+
+         return creationTime;
+      }
+   }
+
    PersistentIMAPFolder::PersistentIMAPFolder()
    {
 
@@ -195,7 +238,7 @@ namespace HM
 
          DateTime creationTime = pFolder->GetCreationTime();
          if (pFolder->GetCreationTime().GetStatus() == DateTime::invalid)
-            pFolder->SetCreationTime(DateTime::GetCurrentTime());
+            pFolder->SetCreationTime(NextFolderCreationTime_());
 
          // This column is always updated by GetUniqueMessageID below
          // but we still need to create it.

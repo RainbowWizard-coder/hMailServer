@@ -433,9 +433,15 @@ namespace RegressionTests.IMAP
 
          Assert.AreEqual("1 3", simulator.Sort("(SUBJECT) UTF-8 ALL HEADER SUBJECT \"Test1\""));
          Assert.AreEqual("2", simulator.Sort("(SUBJECT) UTF-8 ALL HEADER SUBJECT \"TestA\""));
-         Assert.AreEqual("3 1", simulator.Sort("(REVERSE SUBJECT) UTF-8 ALL HEADER SUBJECT \"Test1\""));
+
+         // Messages 1 and 3 have the same subject, so they tie, and RFC 5256
+         // section 3 breaks a tie by sequence number whatever REVERSE says:
+         // "REVERSE only reverses a single criterion, and does not affect the
+         // implicit "sequence number" sort criterion". This asserted "3 1" while
+         // REVERSE reversed the finished list; imaptest's sort tests found it.
+         Assert.AreEqual("1 3", simulator.Sort("(REVERSE SUBJECT) UTF-8 ALL HEADER SUBJECT \"Test1\""));
          Assert.AreEqual("2", simulator.Sort("(REVERSE SUBJECT) UTF-8 ALL HEADER SUBJECT \"TestA\""));
-         Assert.AreEqual("3 1", simulator.Sort("(REVERSE SUBJECT) UTF-8 ALL (HEADER SUBJECT) \"Test1\""));
+         Assert.AreEqual("1 3", simulator.Sort("(REVERSE SUBJECT) UTF-8 ALL (HEADER SUBJECT) \"Test1\""));
          Assert.AreEqual("2", simulator.Sort("(REVERSE SUBJECT) UTF-8 ALL (HEADER SUBJECT) \"TestA\""));
       }
 

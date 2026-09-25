@@ -85,6 +85,10 @@ namespace HM
          CTEmailId = 49,
          CTThreadId = 50,
 
+         // RFC 3501 6.4.4: BCC, a base search key that was never parsed - a
+         // SEARCH BCC was answered "BAD Unrecognized search key".
+         CTBCC = 51,
+
          CTSubCriteria = 100
       };
 

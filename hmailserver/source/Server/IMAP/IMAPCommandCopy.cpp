@@ -45,8 +45,11 @@ namespace HM
 
       std::shared_ptr<IMAPSimpleCommandParser> pParser = std::shared_ptr<IMAPSimpleCommandParser>(new IMAPSimpleCommandParser());
       pParser->Parse(pArgument);
+      // No "\r\n" in a result's text: the connection ends the tagged line
+      // itself, and the text's own line break put an empty line after it,
+      // which a client reads as a malformed response.
       if (pParser->ParamCount() != 2)
-         return IMAPResult(IMAPResult::ResultBad, "Command requires 2 parameters.\r\n");
+         return IMAPResult(IMAPResult::ResultBad, "Command requires 2 parameters.");
 
       String sMailNo = pParser->GetParamValue(pArgument, 0);
       String sFolderName = pParser->GetParamValue(pArgument, 1);
@@ -58,14 +61,21 @@ namespace HM
 
       if (!pFolder)
       {
-         // Nope, doesn't exist.
-         return IMAPResult(IMAPResult::ResultNo, "Can't find mailbox with that name.\r\n");
+         // Nope, doesn't exist. RFC 3501 6.4.7: "[TRYCREATE]" says so, so a
+         // client may create the mailbox and try again - the comment above said
+         // it was sent, and it was not.
+         return IMAPResult(IMAPResult::ResultNo, "[TRYCREATE] Can't find mailbox with that name.");
       }
 
       IMAPResult result = pCopy->DoForMails(pConnection, sMailNo, pArgument);
 
       if (result.GetResult() == IMAPResult::ResultOK)
-          pConnection->SendAsciiData(pArgument->Tag() + " OK " + pCopy->GetUIDPlusResponseCode() + "COPY completed\r\n");
+      {
+         // The other sessions are told before the OK, so that one asked next
+         // already knows of the copies (SubmitDelayedChangeNotification).
+         pConnection->SubmitDelayedChangeNotification();
+         pConnection->SendAsciiData(pArgument->Tag() + " OK " + pCopy->GetUIDPlusResponseCode() + "COPY completed\r\n");
+      }
 
       return result;
    }

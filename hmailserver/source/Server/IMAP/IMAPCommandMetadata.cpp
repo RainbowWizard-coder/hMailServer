@@ -453,7 +453,7 @@ namespace HM
             }
 
             if (folder && !pConnection->CheckPermission(folder, ACLPermission::PermissionWriteOthers))
-               return IMAPResult(IMAPResult::ResultBad, "ACL: Write permission denied (Required to set shared metadata).");
+               return IMAPResult(IMAPResult::ResultNo, "ACL: Write permission denied (Required to set shared metadata).");
          }
       }
 

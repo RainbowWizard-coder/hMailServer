@@ -910,12 +910,9 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
-         // If a delayed notification has been specified by the command, submit it now.
-         if (delayed_change_notification_)
-         {
-            Application::Instance()->GetNotificationServer()->SendNotification(notification_client_, delayed_change_notification_);
-            delayed_change_notification_.reset();
-         }
+         // If a delayed notification has been specified by the command, and the
+         // command has not submitted it itself, submit it now.
+         SubmitDelayedChangeNotification();
 
          postReceive = true;
       }
@@ -1472,6 +1469,82 @@ namespace HM
    }
 
    void
+   IMAPConnection::OnCondstoreEnablingCommand()
+   {
+      if (condstore_enabled_)
+         return;
+
+      condstore_enabled_ = true;
+
+      // With no mailbox selected there is nothing to report; SELECT will, now
+      // that CONDSTORE is on.
+      std::shared_ptr<IMAPFolder> folder = GetCurrentFolder();
+      if (!folder)
+         return;
+
+      String sHighestModSeq;
+      sHighestModSeq.Format(_T("* OK [HIGHESTMODSEQ %I64d] Highest\r\n"), folder->GetCurrentModSeq());
+      SendAsciiData(sHighestModSeq);
+   }
+
+   void
+   IMAPConnection::SetAnnouncedKeywords(const std::vector<String> &keywords)
+   {
+      StateLock lock(state_mutex_);
+
+      announced_keywords_.clear();
+      announced_keywords_lowered_.clear();
+
+      for (const String &keyword : keywords)
+      {
+         String lowered = keyword;
+         lowered.ToLower();
+
+         if (announced_keywords_lowered_.insert(lowered).second)
+            announced_keywords_.push_back(keyword);
+      }
+   }
+
+   void
+   IMAPConnection::AnnounceKeywords(const std::vector<String> &keywords)
+   {
+      String sFlags;
+
+      {
+         StateLock lock(state_mutex_);
+
+         bool anyNew = false;
+
+         for (const String &keyword : keywords)
+         {
+            String lowered = keyword;
+            lowered.ToLower();
+
+            if (announced_keywords_lowered_.insert(lowered).second)
+            {
+               announced_keywords_.push_back(keyword);
+               anyNew = true;
+            }
+         }
+
+         if (!anyNew)
+            return;
+
+         // The whole list, as SELECT gives it: a FLAGS response replaces the
+         // client's idea of the mailbox's flags, it does not add to it.
+         sFlags = _T("* FLAGS (\\Deleted \\Seen \\Draft \\Answered \\Flagged");
+
+         for (const String &keyword : announced_keywords_)
+            sFlags += _T(" ") + keyword;
+
+         sFlags += _T(")\r\n");
+      }
+
+      // Outside the lock, as every other send is.
+      SendAsciiData(sFlags);
+   }
+
+   void
    IMAPConnection::SetIsIdling(bool bNewVal)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -1491,6 +1564,18 @@ namespace HM
    {
       StateLock lock(state_mutex_);
       return is_idling_;
+   }
+
+   void
+   IMAPConnection::SubmitDelayedChangeNotification()
+   {
+      if (!delayed_change_notification_)
+         return;
+
+      std::shared_ptr<ChangeNotification> notification = delayed_change_notification_;
+      delayed_change_notification_.reset();
+
+      Application::Instance()->GetNotificationServer()->SendNotification(notification_client_, notification);
    }
 
    void

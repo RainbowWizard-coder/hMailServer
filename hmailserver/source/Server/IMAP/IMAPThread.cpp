@@ -200,6 +200,12 @@ namespace HM
       }
 
       // Matches "[...]" *WSP at position, answering the position after it, or -1.
+      // A blob holds no bracket of either kind (RFC 5256: subj-blob = "["
+      // *BLOBCHAR "]", BLOBCHAR any CHAR but "[" and "]"), so "[fwd: [x] y]" is
+      // not one. Taking the first "]" whatever came before it made the step-4
+      // strip turn "[fwd: [fwd: re: [fwd: babylon]]]" into "]]", and SORT
+      // (SUBJECT) put it after "[xyz]" instead of beside "b" (imaptest's
+      // sort-subject).
       int
       MatchSubjBlob_(const String &value, int position)
       {
@@ -208,6 +214,10 @@ namespace HM
 
          int close = value.Find(_T("]"), position + 1);
          if (close < 0)
+            return -1;
+
+         int nested = value.Find(_T("["), position + 1);
+         if (nested >= 0 && nested < close)
             return -1;
 
          int after = close + 1;
@@ -328,6 +338,21 @@ namespace HM
             {
                leaderChanged = false;
 
+               // Step 3's subj-leader is "(*subj-blob subj-refwd) / WSP": leading
+               // white space comes off too. Unwrapping "[fwd: ...]" in step 5
+               // leaves some, and with it in front nothing below matched, so the
+               // second of two nested wrappers was never unwrapped.
+               int leading = 0;
+               while (leading < value.GetLength() && IsWsp_(value.GetAt(leading)))
+                  leading++;
+
+               if (leading > 0)
+               {
+                  value = value.Mid(leading);
+                  leaderChanged = true;
+                  continue;
+               }
+
                // Step 3: *subj-blob subj-refwd ":". The blobs are only consumed if
                // the "re/fwd:" that licenses them actually follows - "[x] hello" is
                // a step-4 blob, not half a leader.
@@ -382,45 +407,64 @@ namespace HM
          return value;
       }
 
-      // The date a container sorts by: its own sent date, or - for a dummy that
-      // survived pruning into the root set - its first child's, which by that point
-      // is its earliest. RFC 5256 section 2.2 with the fallback the caller already
-      // resolved into sent_date.
-      DateTime
-      SortDate_(ThreadContainer *node)
+      // The message a container sorts as: itself, or - for a dummy that survived
+      // pruning - its first child, which the children's own sort has already made
+      // its earliest ("sort its children by sent date and then use the first child
+      // for the top-level sort", RFC 5256 section 3).
+      ThreadContainer *
+      SortMessage_(ThreadContainer *node)
       {
-         if (node->message)
-            return node->sent_date;
+         ThreadContainer *current = node;
+         int steps = 0;
 
-         if (!node->children.empty())
-            return node->children.front()->sent_date;
+         while (current && !current->message && !current->children.empty() && steps <= kMaxThreadDepth)
+         {
+            current = current->children.front();
+            steps++;
+         }
 
-         return DateTime();
+         return (current && current->message) ? current : nullptr;
       }
 
-      // Ascending by date; ties keep mailbox order, which std::stable_sort
-      // guarantees because the containers were created in mailbox order.
+      // Ascending by sent date (RFC 5256 2.2, with the fallback the caller already
+      // resolved into sent_date), and "when comparing two sent dates that match
+      // exactly, the order in which the two messages appear in the mailbox (that
+      // is, by sequence number) is used as a tie-breaker". The tie used to be left
+      // to std::stable_sort, which keeps whatever order the containers happened to
+      // be in - creation order under REFERENCES, base-subject order under
+      // ORDEREDSUBJECT - so equal dates came out in an order nothing specified.
       struct AscendingBySentDate
       {
          bool operator()(ThreadContainer *left, ThreadContainer *right) const
          {
-            DateTime dl = SortDate_(left);
-            DateTime dr = SortDate_(right);
+            ThreadContainer *leftMessage = SortMessage_(left);
+            ThreadContainer *rightMessage = SortMessage_(right);
+
+            DateTime dl = leftMessage ? leftMessage->sent_date : DateTime();
+            DateTime dr = rightMessage ? rightMessage->sent_date : DateTime();
 
             if (dl < dr)
                return true;
 
-            return false;
+            if (dr < dl)
+               return false;
+
+            const int sl = leftMessage ? leftMessage->sequence : 0;
+            const int sr = rightMessage ? rightMessage->sequence : 0;
+
+            return sl < sr;
          }
       };
 
+      // Children before parents, so that a dummy's first child is its earliest by
+      // the time the dummy itself is placed among its siblings.
       void
       SortChildrenRecursively_(ThreadContainer *node)
       {
-         std::stable_sort(node->children.begin(), node->children.end(), AscendingBySentDate());
-
          for (ThreadContainer *child : node->children)
             SortChildrenRecursively_(child);
+
+         std::stable_sort(node->children.begin(), node->children.end(), AscendingBySentDate());
       }
 
       // RFC 5256's pruning walk. virtualRoot's children are the root set; a dummy
@@ -549,6 +593,13 @@ namespace HM
             }
          }
       }
+   }
+
+   String
+   IMAPThread::GetBaseSubject(const String &subject)
+   {
+      bool isReplyOrForward = false;
+      return CalculateBaseSubject_(subject, isReplyOrForward);
    }
 
    bool
@@ -720,13 +771,26 @@ namespace HM
          // RFC: an existing parent from somebody else's References line is broken
          // in favour of what the message says about itself.
          //
-         // Checked BEFORE the detach, so a refused link leaves the container where
-         // it already was rather than orphaning it: at the depth limit the message
-         // keeps whatever placement it had instead of being cut loose.
-         if (previous && CanLink_(previous, container))
+         // RFC 5256 1.B: "break the current parent/child link before creating the
+         // new correct one", and "do not create the parent/child link if creating
+         // that link would introduce a loop". The break comes first, so a link
+         // refused because it would close a loop still leaves the message cut
+         // from the parent somebody else's References gave it - imaptest's thread
+         // test, where the message a reply's References placed under the root
+         // turns out to be that reply's parent: (3 2)(1), not (1 3 2). Only a link
+         // refused for the depth limit keeps the placement it had, rather than
+         // cut loose at a depth the stack must never reach.
+         if (previous)
          {
-            DetachFromParent_(container);
-            AttachChild_(previous, container);
+            if (IsSelfOrAncestor_(container, previous))
+            {
+               DetachFromParent_(container);
+            }
+            else if (CanLink_(previous, container))
+            {
+               DetachFromParent_(container);
+               AttachChild_(previous, container);
+            }
          }
          else if (references.empty())
          {
@@ -851,9 +915,15 @@ namespace HM
       }
       else
       {
-         // ORDEREDSUBJECT: sort by base subject then date, and each run of one
-         // subject becomes a flat chain - every message the child of the one
-         // before it, which renders as the RFC's "(174 175 176 178)" shape.
+         // ORDEREDSUBJECT (RFC 5256 section 3): "sorted by base subject and then by
+         // the sent date", each run of one base subject a thread. "The top level
+         // or "root" ... contains the first message of every thread ... The second
+         // message of a thread is the child of the first message, and subsequent
+         // messages of the thread are siblings of the second message and hence
+         // children of the message at the root" - the RFC's own example is
+         // "(174 (175)(176)(178)(181)(180))". Each message used to be made the
+         // child of the one before it, a chain, "(174 175 176 178 181 180)": a
+         // different tree, with every reply nested one deeper than the last.
          std::stable_sort(searchedContainers.begin(), searchedContainers.end(),
             [](ThreadContainer *left, ThreadContainer *right)
             {
@@ -865,29 +935,30 @@ namespace HM
                if (left->sent_date < right->sent_date)
                   return true;
 
-               return false;
+               if (right->sent_date < left->sent_date)
+                  return false;
+
+               return left->sequence < right->sequence;
             });
 
-         ThreadContainer *chainHead = nullptr;
-         ThreadContainer *chainTail = nullptr;
+         ThreadContainer *threadRoot = nullptr;
 
          for (ThreadContainer *container : searchedContainers)
          {
-            if (!chainHead || container->base_subject_key != chainHead->base_subject_key)
+            if (!threadRoot || container->base_subject_key != threadRoot->base_subject_key)
             {
                AttachChild_(&virtualRoot, container);
-               chainHead = container;
-               chainTail = container;
+               threadRoot = container;
             }
             else
             {
-               AttachChild_(chainTail, container);
-               chainTail = container;
+               AttachChild_(threadRoot, container);
             }
          }
 
-         // Threads in date order of their first message; the messages inside each
-         // chain are already in date order from the sort above.
+         // "Finally, the threads are sorted by the sent date of the first message
+         // in the thread" - sequence breaking ties, as everywhere. The children of
+         // each root are in date order already from the sort above.
          std::stable_sort(virtualRoot.children.begin(), virtualRoot.children.end(),
                           AscendingBySentDate());
       }

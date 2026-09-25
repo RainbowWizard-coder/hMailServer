@@ -216,17 +216,17 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("An IMAP APPEND is stored as a container, with its large part held once, and FETCH hands back exactly the bytes that were appended - the literal and the CRLF APPEND has always written after it. Negative control: with compression off the file is those bytes.")]
+      [Description("An IMAP APPEND is stored as a container, with its large part held once, and FETCH hands back exactly the bytes that were appended - the literal, byte for byte. Negative control: with compression off the file is those bytes.")]
       public void AnAppendedMessageIsStoredCompressedAndFetchedExactly()
       {
          Account account = AddAccount("appended");
          string attachment = Attachment(300, 12);
          string raw = Message(account.Address, "Appended", TextBody("appendword", 400), attachment);
 
-         // IMAPCommandAppend writes a CRLF after every literal, and always has
-         // ("The stored file ends with CRLF, exactly as it always has"): the
-         // stored message is the literal and that CRLF.
-         string stored = raw + "\r\n";
+         // The stored message is the literal, byte for byte (RFC 3501 6.3.11).
+         // IMAPCommandAppend wrote a CRLF after every literal until the row "IMAP
+         // that passes imaptest", and this test asserted that CRLF.
+         string stored = raw;
 
          SetCompression(false, 256);
          Append(account.Address, raw);
@@ -1354,7 +1354,7 @@ namespace RegressionTests.Infrastructure
       // of bytes here, and the socket is written and read in it.
       private static readonly Encoding Bytes8 = Encoding.GetEncoding("ISO-8859-1");
 
-      /// <summary>APPEND raw bytes with literal8 (~{n}); the message as stored, the bytes and the CRLF APPEND writes.</summary>
+      /// <summary>APPEND raw bytes with literal8 (~{n}); the message as stored, which is the literal's bytes exactly.</summary>
       private static byte[] AppendRaw(string address, string folder, byte[] message)
       {
          using (var client = new System.Net.Sockets.TcpClient("127.0.0.1", ImapPort))
@@ -1377,10 +1377,8 @@ namespace RegressionTests.Infrastructure
             RawSend(stream, "a3 LOGOUT\r\n");
          }
 
-         byte[] stored = new byte[message.Length + 2];
+         byte[] stored = new byte[message.Length];
          Array.Copy(message, stored, message.Length);
-         stored[message.Length] = (byte) '\r';
-         stored[message.Length + 1] = (byte) '\n';
          return stored;
       }
 

@@ -53,9 +53,11 @@ namespace HM
          IMAPFolder::UnescapeFolderString(sFolderName);
       }
       
+      // NO, not BAD: a mailbox that does not exist is a well-formed command the
+      // server declines (RFC 3501 7.1.2); BAD is for one it cannot parse.
       std::shared_ptr<IMAPFolder> pSelectedFolder = pConnection->GetFolderByFullPath(sFolderName);
       if (!pSelectedFolder)
-         return IMAPResult(IMAPResult::ResultBad, "Folder could not be found.");
+         return IMAPResult(IMAPResult::ResultNo, "Folder could not be found.");
 
      ACLManager aclManager;
       std::shared_ptr<ACLPermission> pPermission = aclManager.GetPermissionForFolder(pConnection->GetAccount()->GetID(), pSelectedFolder);

@@ -969,6 +969,7 @@ EXIT 0
     <ClCompile Include="..\IMAP\FolderListCreator.cpp" />
     <ClCompile Include="..\IMAP\IMAPSpecialUse.cpp" />
     <ClCompile Include="..\IMAP\IMAPACLHelper.cpp" />
+    <ClCompile Include="..\IMAP\IMAPAddressList.cpp" />
     <ClCompile Include="..\Imap\IMAPCommand.cpp" />
     <ClCompile Include="..\Imap\IMAPCommandAppend.cpp" />
     <ClCompile Include="..\Imap\IMAPCommandAuthenticate.cpp" />
@@ -1878,6 +1879,7 @@ EXIT 0
     <ClInclude Include="..\IMAP\FolderListCreator.h" />
     <ClInclude Include="..\IMAP\IMAPSpecialUse.h" />
     <ClInclude Include="..\IMAP\IMAPACLHelper.h" />
+    <ClInclude Include="..\IMAP\IMAPAddressList.h" />
     <ClInclude Include="..\Imap\IMAPCommand.h" />
     <ClInclude Include="..\Imap\IMAPCommandAppend.h" />
     <ClInclude Include="..\Imap\IMAPCommandAuthenticate.h" />

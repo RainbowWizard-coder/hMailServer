@@ -46,7 +46,31 @@ namespace HM
       String CreateEnvelopeStructure_(MimeHeader& oHeader);
       String GetPartStructure_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion);
       String IteratePartRecursive_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion);
-      String CreateEmailStructure_(const String &sField);
+
+      // RFC 3501 7.4.2: an ENVELOPE address list - "(" 1*address ")" - for one
+      // header field, or NIL when the field is absent or holds no address.
+      String CreateAddressListStructure_(MimeHeader& oHeader, const char *fieldName);
+
+      // An envelope string: quoted, and encoded where it cannot be sent as it is.
+      // The "N" form answers NIL for an empty value.
+      static String EnvelopeString_(const AnsiString &value);
+      static String EnvelopeNString_(const AnsiString &value);
+
+      // RFC 3501 7.4.2: body-fld-lines, the size of a body in text lines.
+      static long CountTextLines_(const AnsiString &content);
+
+      // Where a message's text begins, in its own bytes: after the first empty
+      // line; 2 for a message that opens with one (an empty header), and the
+      // whole length for one that has none (all header, no text).
+      static size_t TextStartOf_(const char *data, size_t size);
+
+      // A section of raw bytes - the whole, the header or the text - with the
+      // client's <start.count> applied, into a buffer.
+      std::shared_ptr<ByteBuffer> RawSection_(const char *data, size_t size, bool header, bool text, IMAPFetchParser::BodyPart &oPart);
+
+      // The FLAGS data item for a message; includeSeen adds \Seen where this
+      // FETCH is about to set it.
+      static String CreateFlagsItem_(std::shared_ptr<Message> pMessage, bool includeSeen);
       std::shared_ptr<MimeBody>GetMessagePartByPartNo_(std::shared_ptr<MimeBody>pBody, long iPartNo);
 
       std::shared_ptr<ByteBuffer> GetByteBufferByBodyPart_(const String &messageFileName, std::shared_ptr<MimeBody> pBodyPart, IMAPFetchParser::BodyPart &oPart);

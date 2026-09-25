@@ -56,9 +56,12 @@ namespace HM
          IMAPFolder::UnescapeFolderString(sFolderName);
       }
 
+      // RFC 3501 6.4.7: a destination that does not exist is refused NO with
+      // [TRYCREATE], so the client can create it and try again. It was BAD,
+      // which tells the client its command was malformed.
       std::shared_ptr<IMAPFolder> pFolder = pConnection->GetFolderByFullPath(sFolderName);
       if (!pFolder)
-         return IMAPResult(IMAPResult::ResultBad, "The folder could not be found.");
+         return IMAPResult(IMAPResult::ResultNo, "[TRYCREATE] The folder could not be found.");
 
       // The quota that matters is the DESTINATION folder owner's, because that
       // is the mailbox the copy will occupy - for an ordinary folder that is the
@@ -78,18 +81,18 @@ namespace HM
 
       // Check if the user has permission to insert into the destination folder.
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionInsert))
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Insert permission denied (Required for MOVE command).");
+         return IMAPResult(IMAPResult::ResultNo, "ACL: Insert permission denied (Required for MOVE command).");
 
       std::shared_ptr<Message> pNewMessage = PersistentMessage::CopyToIMAPFolder(pOldMessage, pFolder);
 
       if (!pNewMessage)
-         return IMAPResult(IMAPResult::ResultBad, "Failed to move message");
+         return IMAPResult(IMAPResult::ResultNo, "Failed to move message");
 
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionWriteSeen))
          pNewMessage->SetFlagSeen(false);
 
       if (!PersistentMessage::SaveObject(pNewMessage))
-         return IMAPResult(IMAPResult::ResultBad, "Failed to save moved message.");
+         return IMAPResult(IMAPResult::ResultNo, "Failed to save moved message.");
 
       // A move into or out of the user's own Junk folder is a lesson for spamd
       // (SpamAssassinLearnOnMove): decided here, delivered off this thread.
@@ -116,7 +119,22 @@ namespace HM
       // Remember the message so that it can be expunged from the source folder.
       moved_message_uids_.push_back(pOldMessage->GetUID());
 
+      if (pSourceFolder && pFolder->GetID() == pSourceFolder->GetID())
+         copies_in_selected_.push_back(pNewMessage->GetID());
+
       return IMAPResult();
+   }
+
+   void
+   IMAPMove::SendUIDPlusResponse(std::shared_ptr<IMAPConnection> pConnection)
+   {
+      // "[COPYUID <validity> <source> <destination>] ", or empty.
+      String sUidPlus = GetUIDPlusResponseCode();
+
+      if (sUidPlus.IsEmpty())
+         return;
+
+      pConnection->SendAsciiData(_T("* OK ") + sUidPlus + _T("Moved UIDs.\r\n"));
    }
 
    void
@@ -168,6 +186,31 @@ namespace HM
       pConnection->RemoveRecentMessages(deleted_message_ids);
 
       String sResponse = IMAPNotificationClient::FormatExpungeResponses(pConnection, expunged_sequences, expunged_uids);
+
+      // A move into the selected mailbox itself leaves a new copy of each
+      // message there. It is reported now, after the EXPUNGEs, as an APPEND to
+      // the selected mailbox reports its message - not left for the next
+      // command, which is where it used to come. imaptest's move test found it:
+      // "MOVE 1 <the mailbox>" answered the EXPUNGE and no EXISTS. The copies
+      // are this session's \Recent, as an appended message is.
+      if (!copies_in_selected_.empty())
+      {
+         view->AppendNewMessages(messages);
+
+         for (__int64 copyId : copies_in_selected_)
+         {
+            pConnection->AddRecentMessage(copyId);
+
+            // Claimed here, so off the shared collection: another session with
+            // the mailbox open must not report the same message as \Recent too.
+            std::shared_ptr<Message> copy = messages->GetItemByDBID((unsigned __int64) copyId);
+            if (copy)
+               copy->SetFlagRecent(false);
+         }
+
+         sResponse += IMAPNotificationClient::GenerateExistsString(view->GetMessageCount());
+         sResponse += IMAPNotificationClient::GenerateRecentString((int) pConnection->GetRecentMessageCount());
+      }
 
       if (!sResponse.IsEmpty())
          pConnection->SendAsciiData(sResponse);

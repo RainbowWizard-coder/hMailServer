@@ -1779,7 +1779,9 @@ namespace RegressionTests.IMAP
          simulator.Logon("delete@example.test", "test");
          var result = simulator.ExamineFolder("NonexistantFolder");
 
-         Assert.IsTrue(result.Contains("BAD Folder could not be found."));
+         // NO, not BAD: the command is well formed and the mailbox is simply not
+         // there (RFC 3501 6.3.1, 6.3.2). imaptest found SELECT answering BAD.
+         Assert.IsTrue(result.Contains("NO Folder could not be found."), result);
       }
 
       [Test]

@@ -25,6 +25,11 @@ namespace HM
       // whole, case-insensitive token.
       static bool HasOption_(const String &sParenContent, const String &sOption);
 
+      // True when every option in the parenthesised list is one of the known ones.
+      // An option's own parenthesised argument - STATUS (MESSAGES) - is passed
+      // over, not read as options.
+      static bool OptionsAreKnown_(const String &sParenContent, const std::vector<String> &knownOptions);
+
       // RFC 5819 (LIST-STATUS): builds the "* STATUS ..." line that follows one
       // "* LIST ..." line, or "" for mailboxes that get none (\Noselect, no read
       // permission, lookup failure).

@@ -232,11 +232,15 @@ namespace RegressionTests.IMAP
       }
 
       /// <summary>
-      ///    ORDEREDSUBJECT is the flat approximation: one chain per base subject,
-      ///    date-ordered within, threads ordered by their first message.
+      ///    ORDEREDSUBJECT is the flat approximation: one thread per base subject,
+      ///    its first message the root and every later one a child of that root
+      ///    (RFC 5256 section 3, "(174 (175)(176)(178)(181)(180))"), threads
+      ///    ordered by their first message. This asserted "(1 3 4)(2)", a chain,
+      ///    until imaptest's thread-orderedsubject tests showed the chain was the
+      ///    server's shape and not the RFC's.
       /// </summary>
       [Test]
-      [Description("ORDEREDSUBJECT groups by base subject into flat chains.")]
+      [Description("ORDEREDSUBJECT groups by base subject: the first message is the root, the rest its children.")]
       public void OrderedSubjectGroupsIntoFlatChains()
       {
          Account account = CreateAccount();
@@ -250,9 +254,9 @@ namespace RegressionTests.IMAP
          string tree = RunThread(account, "THREAD ORDEREDSUBJECT US-ASCII ALL");
 
          // "Re:"/"RE:" strip to the same base subject case-insensitively, so 1, 3
-         // and 4 are one flat chain in date order; 2 stands alone and follows in
-         // date order of thread roots.
-         Assert.AreEqual("(1 3 4)(2)", tree);
+         // and 4 are one thread: 1 at its root, 3 and 4 its children in date
+         // order. 2 stands alone and follows in date order of thread roots.
+         Assert.AreEqual("(1 (3)(4))(2)", tree);
       }
 
       /// <summary>

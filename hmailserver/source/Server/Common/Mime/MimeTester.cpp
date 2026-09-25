@@ -641,6 +641,76 @@ namespace HM
 
          return seen.size() == (size_t) (threadCount * boundariesPerThread);
       }
+
+      AnsiString QPDecode(const char* input)
+      {
+         MimeCodeQP coder;
+         coder.SetInput(input, (int)strlen(input), false);
+         AnsiString output;
+         coder.GetOutput(output);
+         return output;
+      }
+
+      bool TestQPDecodeDeletesTrailingWhitespace()
+      {
+         // RFC 2045 6.7 rule 3: white space at the end of an encoded line is not data.
+         return QPDecode("hello  \r\nbar\t\r\n") == "hello\r\nbar\r\n";
+      }
+
+      bool TestQPDecodeSoftBreakAfterWhitespace()
+      {
+         // Rule 5, with rule 3 applied first: "= " at the end of a line is a soft
+         // break, and so is "=" followed by nothing but white space.
+         return QPDecode("foo = \t\r\nbar\r\nfoo\t \t= \r\n=62\r\n") == "foo bar\r\nfoo\t \tb\r\n";
+      }
+
+      bool TestQPDecodeImaptestPart()
+      {
+         // The quoted-printable part of imaptest's fetch-binary-mime-qp test: 65
+         // octets decoded, where this decoder used to produce 76.
+         const char* encoded =
+            "hello  \r\nbar=\r\n\r\nfoo\t=\r\nbar\r\nfoo\t \t= \r\n=62\r\nfoo = \t\r\nbar\r\n"
+            "foo =\r\n=62\r\nfoo  \r\nbar=\r\n\r\nfoo_bar\r\n";
+         AnsiString decoded = QPDecode(encoded);
+         return decoded == "hello\r\nbar\r\nfoo\tbar\r\nfoo\t \tb\r\nfoo bar\r\nfoo b\r\nfoo\r\nbar\r\nfoo_bar\r\n" &&
+                decoded.GetLength() == 65;
+      }
+
+      bool TestQPDecodeKeepsInvalidEscape()
+      {
+         // An "=" that starts no escape is data; it is not dropped with what follows.
+         return QPDecode("a=zb=3D=4") == "a=zb==4";
+      }
+
+      bool TestHeaderWithoutFinalCrlf()
+      {
+         // A message stored exactly as an IMAP APPEND literal gave it need not end
+         // with a line break. Its last field is still a field.
+         MimeHeader header;
+         const char* headers = "Subject: first\r\nDate: Wed, 15 Dec 2010 13:00:00 +0000";
+         header.Load(headers, strlen(headers));
+
+         const char *date = header.GetRawFieldValue("Date");
+         if (!date || AnsiString(date) != "Wed, 15 Dec 2010 13:00:00 +0000")
+            return false;
+
+         const char *subject = header.GetRawFieldValue("Subject");
+         if (!subject || AnsiString(subject) != "first")
+            return false;
+
+         // Written back, the field is a whole line again.
+         AnsiString stored;
+         header.Store(stored);
+         return stored == "Subject: first\r\nDate: Wed, 15 Dec 2010 13:00:00 +0000\r\n\r\n";
+      }
+
+      bool TestUnterminatedTextWithoutFieldNameIsNoField()
+      {
+         MimeHeader header;
+         const char* headers = "no colon here";
+         header.Load(headers, strlen(headers));
+         return header.GetFieldCount() == 0;
+      }
    }
 
    MimeTester::MimeTester(void)
@@ -748,6 +818,24 @@ namespace HM
 
       if (!TestGeneratedBoundariesAreUniqueAcrossThreads())
          HM_TEST_FAILED();
+
+      if (!TestQPDecodeDeletesTrailingWhitespace())
+         throw;
+
+      if (!TestQPDecodeSoftBreakAfterWhitespace())
+         throw;
+
+      if (!TestQPDecodeImaptestPart())
+         throw;
+
+      if (!TestQPDecodeKeepsInvalidEscape())
+         throw;
+
+      if (!TestHeaderWithoutFinalCrlf())
+         throw;
+
+      if (!TestUnterminatedTextWithoutFieldNameIsNoField())
+         throw;
 
    }
 }

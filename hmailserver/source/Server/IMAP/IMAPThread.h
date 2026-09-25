@@ -45,6 +45,11 @@ namespace HM
       // something to silently substitute a different algorithm for.
       static bool ParseAlgorithm(const String &name, Algorithm &algorithm);
 
+      // RFC 5256 section 2.1: the base subject - every "Re:", "Fwd:", "[list]"
+      // and "(fwd)" layer removed - which SORT (SUBJECT) sorts by as THREAD
+      // groups by it. Not upper-cased.
+      static String GetBaseSubject(const String &subject);
+
       // Builds the response body - the "(2)(3 6 (4 23)(44 7 96))" part, with its
       // leading space, or an empty string when nothing matched.
       //

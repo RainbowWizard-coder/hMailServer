@@ -37,13 +37,21 @@ namespace HM
       String sFolderName = pParser->GetParamValue(pArgument, 0);
       String sFlags = pParser->GetParamValue(pArgument, 1);
 
+      // NO, not BAD, for both refusals below: BAD says the command was malformed
+      // (RFC 3501 7.1.3), and a mailbox that does not exist or may not be read
+      // is a well-formed command the server declines (7.1.2; RFC 4314 section 4).
       std::shared_ptr<IMAPFolder> pTheFolder = pConnection->GetFolderByFullPath(sFolderName);
       if (!pTheFolder)
-         return IMAPResult(IMAPResult::ResultBad, "Folder could not be found.");
+         return IMAPResult(IMAPResult::ResultNo, "Folder could not be found.");
 
       // Check if ther user has access to read this folder.
       if (!pConnection->CheckPermission(pTheFolder, ACLPermission::PermissionRead))
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Read permission denied (Required for STATUS command).");
+         return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for STATUS command).");
+
+      // RFC 7162 section 3.1: STATUS (HIGHESTMODSEQ) is a CONDSTORE-enabling
+      // command; with a mailbox selected, that mailbox's HIGHESTMODSEQ is due.
+      if (sFlags.FindNoCase(_T("HIGHESTMODSEQ")) >= 0)
+         pConnection->OnCondstoreEnablingCommand();
 
       String sResponse = CreateStatusLine(pConnection, pTheFolder, sFolderName, sFlags);
 

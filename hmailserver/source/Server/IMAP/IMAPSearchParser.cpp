@@ -42,6 +42,8 @@ namespace HM
          return CTFrom;
       else if (sTmp == _T("cc"))
          return CTCC;
+      else if (sTmp == _T("bcc"))
+         return CTBCC;
       else if (sTmp == _T("to"))
          return CTTo;
       else if (sTmp == _T("senton"))
@@ -477,6 +479,7 @@ namespace HM
          ct == IMAPSearchCriteria::CTTo ||
          ct == IMAPSearchCriteria::CTFrom ||
          ct == IMAPSearchCriteria::CTCC ||
+         ct == IMAPSearchCriteria::CTBCC ||
          ct == IMAPSearchCriteria::CTSince || 
          ct == IMAPSearchCriteria::CTBefore ||
          ct == IMAPSearchCriteria::CTLarger ||
@@ -488,6 +491,24 @@ namespace HM
 
          if (iCurrentWord > (int) pSimpleParser->WordCount() - 1)
             return IMAPResult(IMAPResult::ResultBad, "Syntax error. Missing value.");
+
+         // RFC 7162 3.1.5: MODSEQ may name a metadata item before the value -
+         // MODSEQ "/flags/\\seen" all 620162338 - and the value is the LAST of
+         // the three. It used to be taken from the first, the quoted entry name,
+         // which reads as 0 and matched every message, while "all" and the
+         // number were parsed as the search keys ALL and a sequence set - so the
+         // search answered for message 620162338 alone. This server keeps one
+         // mod-sequence per message, not one per flag, so the entry name and its
+         // type are passed over and the message's own mod-sequence compared,
+         // which is the RFC's permitted approximation (a message's mod-sequence
+         // is never lower than that of any of its metadata items).
+         if (ct == IMAPSearchCriteria::CTModSeq && pSimpleParser->Word(iCurrentWord)->Quoted())
+         {
+            iCurrentWord += 2;
+
+            if (iCurrentWord > (int) pSimpleParser->WordCount() - 1)
+               return IMAPResult(IMAPResult::ResultBad, "Syntax error. MODSEQ entry without a value.");
+         }
 
          std::shared_ptr<IMAPSimpleWord> pWord = pSimpleParser->Word(iCurrentWord);
 
@@ -675,6 +696,7 @@ namespace HM
       case IMAPSearchCriteria::CTFrom:
       case IMAPSearchCriteria::CTTo:
       case IMAPSearchCriteria::CTCC:
+      case IMAPSearchCriteria::CTBCC:
          return true;
       default:
          return false;

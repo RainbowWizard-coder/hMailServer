@@ -42,16 +42,20 @@ namespace HM
       if (pConnection->GetCurrentFolderReadOnly())
          return IMAPResult(IMAPResult::ResultNo, "MOVE command on read-only folder.");
 
+      // NO: a missing right refuses a well-formed command (RFC 4314 section 4).
       if (!pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionExpunge))
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Expunge permission denied (Required for MOVE command).");
+         return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for MOVE command).");
 
       std::shared_ptr<IMAPMove> pMove = std::shared_ptr<IMAPMove>(new IMAPMove());
       pMove->SetIsUID(false);
 
       std::shared_ptr<IMAPSimpleCommandParser> pParser = std::shared_ptr<IMAPSimpleCommandParser>(new IMAPSimpleCommandParser());
       pParser->Parse(pArgument);
+      // No "\r\n" in a result's text: the connection ends the tagged line
+      // itself, and the text's own line break put an empty line after it,
+      // which a client reads as a malformed response.
       if (pParser->ParamCount() != 2)
-         return IMAPResult(IMAPResult::ResultBad, "Command requires 2 parameters.\r\n");
+         return IMAPResult(IMAPResult::ResultBad, "Command requires 2 parameters.");
 
       String sMailNo = pParser->GetParamValue(pArgument, 0);
       String sFolderName = pParser->GetParamValue(pArgument, 1);
@@ -61,15 +65,19 @@ namespace HM
       std::shared_ptr<IMAPFolder> pFolder = pConnection->GetFolderByFullPath(sFolderName);
 
       if (!pFolder)
-         return IMAPResult(IMAPResult::ResultNo, "[TRYCREATE] Can't find mailbox with that name.\r\n");
+         return IMAPResult(IMAPResult::ResultNo, "[TRYCREATE] Can't find mailbox with that name.");
 
       IMAPResult result = pMove->DoForMails(pConnection, sMailNo, pArgument);
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
-         String sUidPlus = pMove->GetUIDPlusResponseCode();
+         // RFC 6851 section 4.3: COPYUID in an untagged OK BEFORE the EXPUNGE
+         // responses, not in the tagged OK after them - a client would otherwise
+         // be told a message is gone before it learns where it went.
+         pMove->SendUIDPlusResponse(pConnection);
          pMove->ExpungeMovedMessages(pConnection);
-         pConnection->SendAsciiData(pArgument->Tag() + " OK " + sUidPlus + "MOVE completed\r\n");
+         pConnection->SubmitDelayedChangeNotification();
+         pConnection->SendAsciiData(pArgument->Tag() + " OK MOVE completed\r\n");
       }
 
       return result;

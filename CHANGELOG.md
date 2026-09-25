@@ -121,6 +121,15 @@ operator documents named below are in `hmailserver/docs`, which has 71 more of t
     with `next_before_id`, which `before_id` continues from, and `complete` is false with a
     `next_before_id` whenever an answer is not the end. Hits are newest first across every folder by message
     id, where they were folder by folder ([Performance.md](hmailserver/docs/Performance.md)).
+12. **IMAP answers as the RFCs say, where Dovecot's imaptest found it did not.** A client that relied on the
+    old answers sees these: a mailbox that does not exist, or a right the account lacks, is refused `NO`
+    rather than `BAD`, and a failed SELECT or EXAMINE leaves no mailbox selected; an unknown LIST selection
+    or return option is `BAD`; every `BODY[<section>]` without `.PEEK` sets `\Seen`, `BODY[HEADER]` and
+    `BODY[1.MIME]` included; SORT uses every criterion, REVERSE reverses only its own, ties go to sequence
+    order and strings fold ASCII letters only, and THREAD ORDEREDSUBJECT and REFERENCES build the RFC's
+    trees, so both can order messages differently; and an APPEND stores the literal byte for byte, where it
+    used to add a CRLF, so RFC822.SIZE of a newly appended message is two octets smaller than the same
+    message appended before.
 
 ### Delivery and SMTP
 

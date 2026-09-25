@@ -420,18 +420,45 @@ namespace HM
       while (pszStart < pszLimit && (*pszStart == ' ' || *pszStart == '\t'))
          pszStart++;
       pszEnd = pszStart;
+
+      // The CRLF that ends the field, not counted in its value. None when the
+      // field is the last thing in the data and no line break follows it.
+      size_t terminatorLength = 2;
+
       do
       {
-         pszEnd = FindString(pszEnd, "\r\n", pszLimit);
-         if (!pszEnd)
-            return 0;
-         pszEnd += 2;
+         const char *pszLineEnd = FindString(pszEnd, "\r\n", pszLimit);
+         if (!pszLineEnd)
+         {
+            // hMailServer: a named field that runs to the end of the data is the
+            // last field of a header with no line break after it. It is taken as
+            // it stands rather than dropped: a message is stored exactly as an
+            // IMAP APPEND literal gave it (RFC 3501 6.3.11), and a literal need
+            // not end with CRLF - "Date: ..." and nothing else is a message whose
+            // Date a SORT must still find. Data with no field name in it is not
+            // a field, and stays refused as before.
+            if (name_.empty())
+               return 0;
+
+            pszEnd = pszLimit;
+            terminatorLength = 0;
+            break;
+         }
+
+         pszEnd = pszLineEnd + 2;
          // pszEnd can now be exactly pszLimit, and the continuation test below reads
          // through it. A folded field is only continued by a byte that exists.
       } while (pszEnd < pszLimit && (*pszEnd == '\t' || *pszEnd == ' '));  // linear-white-space
 
       // Capture the raw line before any processing (includes folding and trailing \r\n)
       raw_line_.assign(pszFieldStart, pszEnd - pszFieldStart);
+
+      // A field taken without its line break (above) is still written back as a
+      // whole line: Store appends the header's closing CRLF straight after the
+      // last field, and would otherwise run the two together.
+      if (terminatorLength == 0)
+         raw_line_.append("\r\n");
+
       modified_ = false;
       is_new_ = false;
 
@@ -444,7 +471,7 @@ namespace HM
       // 8-bit clean - kept only the bytes before it, while raw_line_ above (assigned
       // with a length) kept all of them. The two then disagreed about what the header
       // said, and the value that everything downstream matches on was the shorter one.
-      const size_t valueLength = static_cast<size_t>(pszEnd - pszStart) - 2;
+      const size_t valueLength = static_cast<size_t>(pszEnd - pszStart) - terminatorLength;
       value_.assign(pszStart, valueLength);
 
       // We need to unfold the field value

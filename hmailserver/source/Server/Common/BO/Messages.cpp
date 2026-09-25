@@ -444,6 +444,42 @@ namespace HM
 
    }
 
+   std::set<__int64>
+   Messages::ClaimRecentMessageIDs()
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(_mutex);
+
+      std::set<__int64> claimed = GetRecentMessageIDs();
+
+      if (claimed.empty())
+         return claimed;
+
+      for (std::shared_ptr<Message> message : vecObjects)
+         message->SetFlagRecent(false);
+
+      // In the database as well, as RemoveRecentFlags does, for a collection
+      // loaded afresh later - but only up to the last message claimed. This runs
+      // whenever mail arrives in a mailbox a session has open, not only at
+      // SELECT, and a message saved after this collection was last refreshed has
+      // a higher id: it keeps its \Recent for the session notified of it next,
+      // rather than losing it to a claim that never saw it.
+      if (account_id_ != -1 && folder_id_ != -1)
+      {
+         String sql = "update hm_messages set messageflags = messageflags & ~ @FLAGS where messageaccountid = @ACCOUNTID and messagefolderid = @FOLDERID and messageid <= @MAXID";
+
+         SQLCommand updateCommand;
+         updateCommand.AddParameter("@FLAGS", Message::FlagRecent);
+         updateCommand.AddParameter("@ACCOUNTID", account_id_);
+         updateCommand.AddParameter("@FOLDERID", folder_id_);
+         updateCommand.AddParameter("@MAXID", *claimed.rbegin());
+         updateCommand.SetQueryString(sql);
+
+         Application::Instance()->GetDBManager()->Execute(updateCommand);
+      }
+
+      return claimed;
+   }
+
    bool
    Messages::PreSaveObject(std::shared_ptr<Message> pMessage, XNode *node)
    {

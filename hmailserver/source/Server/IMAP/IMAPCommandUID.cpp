@@ -37,6 +37,21 @@ namespace HM
 {
    namespace
    {
+      // A UID from a client's set, as an unsigned 32-bit number: _ttoi could not
+      // hold one above INT_MAX, and "1:4294967295" is a set clients send.
+      unsigned int ParseUidOfSet_(const String &text)
+      {
+         const __int64 value = _ttoi64(text);
+
+         if (value <= 0)
+            return 0;
+
+         if (value > (__int64) 0xFFFFFFFFu)
+            return 0xFFFFFFFFu;
+
+         return (unsigned int) value;
+      }
+
       // Parses an IMAP UID sequence-set (e.g. "1,3:5,8:*") into inclusive [first,last]
       // ranges. starValue is what "*" stands for: normally the largest UID in the
       // mailbox, but see the VANISHED call site for why it is sometimes unbounded.
@@ -58,8 +73,8 @@ namespace HM
 
                // RFC 3501: "*" is valid on either side of the colon, and a range is
                // valid in either order.
-               unsigned int start = (first == _T("*")) ? starValue : (unsigned int) _ttoi(first);
-               unsigned int end = (second == _T("*")) ? starValue : (unsigned int) _ttoi(second);
+               unsigned int start = (first == _T("*")) ? starValue : ParseUidOfSet_(first);
+               unsigned int end = (second == _T("*")) ? starValue : ParseUidOfSet_(second);
 
                if (end < start)
                {
@@ -76,7 +91,7 @@ namespace HM
             }
             else
             {
-               unsigned int uid = (unsigned int) _ttoi(part);
+               unsigned int uid = ParseUidOfSet_(part);
                ranges.push_back(std::pair<unsigned int, unsigned int>(uid, uid));
             }
          }
@@ -142,7 +157,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "MOVE command on read-only folder.");
 
          if (!pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionExpunge))
-            return IMAPResult(IMAPResult::ResultBad, "ACL: Expunge permission denied (Required for MOVE command).");
+            return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for MOVE command).");
 
          std::shared_ptr<IMAPMove> pMove = std::shared_ptr<IMAPMove>(new IMAPMove());
          pMove->SetIsUID(true);
@@ -168,9 +183,11 @@ namespace HM
 
          if (result.GetResult() == IMAPResult::ResultOK)
          {
-            String sUidPlus = pMove->GetUIDPlusResponseCode();
+            // RFC 6851 section 4.3, as for MOVE: COPYUID before the expunges.
+            pMove->SendUIDPlusResponse(pConnection);
             pMove->ExpungeMovedMessages(pConnection);
-            pConnection->SendAsciiData(sTag + " OK " + sUidPlus + "UID MOVE completed\r\n");
+            pConnection->SubmitDelayedChangeNotification();
+            pConnection->SendAsciiData(sTag + " OK UID MOVE completed\r\n");
          }
 
          return result;
@@ -253,7 +270,7 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "No folder selected.");
 
          if (!pConnection->CheckPermission(pCurFolder, ACLPermission::PermissionExpunge))
-            return IMAPResult(IMAPResult::ResultBad, "ACL: Expunge permission denied (Required for UID EXPUNGE command).");
+            return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for UID EXPUNGE command).");
 
          String sUidSet = pParser->Word(2)->Value();
 
@@ -482,6 +499,9 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
+         // UID COPY's notification goes to the other sessions before the OK,
+         // as COPY's does.
+         pConnection->SubmitDelayedChangeNotification();
          pConnection->SendAsciiData(pArgument->Tag() + " OK " + command_->GetUIDPlusResponseCode() + command_->GetConditionalStoreResponseCode() + "UID completed\r\n");
       }
 

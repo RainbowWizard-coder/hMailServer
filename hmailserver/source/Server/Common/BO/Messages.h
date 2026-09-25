@@ -84,6 +84,13 @@ namespace HM
 
       void RemoveRecentFlags();
 
+      // RFC 3501 2.3.2: \Recent belongs to "the first session to have been
+      // notified about this message". The ids of the messages carrying it, taken
+      // off them under the collection lock - in memory and in the database, as
+      // RemoveRecentFlags does, though in the database only up to the highest id
+      // claimed - so that exactly one session claims each.
+      std::set<__int64> ClaimRecentMessageIDs();
+
       __int64 GetAccountID() {return account_id_; }
       __int64 GetFolderID() {return folder_id_; }
 

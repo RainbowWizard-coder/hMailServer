@@ -28,6 +28,10 @@ namespace HM
    private:
 
       bool MatchesHeaderCriteria_(const String &fileName,std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria);
+
+      // RFC 3501 6.4.4: FROM, TO, CC and BCC match "the envelope structure's"
+      // field - its addresses, parsed - not the header's raw text.
+      bool MatchesAddressCriteria_(const String &fileName, std::shared_ptr<IMAPSearchCriteria> pCriteria, const String &sHeaderField);
       bool MatchesUIDCriteria_(std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria);
       bool MatchesSequenceSetCriteria_(std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria, int index);
       bool MatchesTEXTCriteria_(const String &fileName, std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria);
@@ -50,6 +54,11 @@ namespace HM
       bool MatchesSMALLERCriteria_(std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria);
 
       String GetHeaderValue_(const String &fileName, std::shared_ptr<Message> pMessage, const String &sHeaderField);
+
+      // Every occurrence of a header field, as the header has it (undecoded). A
+      // field may be repeated, and a HEADER search matches any of them.
+      void GetRawHeaderValues_(const String &fileName, const String &sHeaderField, std::vector<AnsiString> &rawValues);
+      void EnsureMimeHeader_(const String &fileName);
       
       
       bool DoesMessageMatch_(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPSearchCriteria> pParentCriteria, const String &fileName, std::shared_ptr<Message> pMessage, int index);
@@ -84,7 +93,7 @@ namespace HM
 
       // What "*" stands for in a search key that carries a sequence set. Captured once
       // for the mailbox being searched, before the per-message matching starts.
-      int max_uid_;
+      __int64 max_uid_;
       int message_count_;
 
       // Absolute ceiling on one search. search_start_tick_ is taken once at the top

@@ -163,6 +163,27 @@ namespace HM
       // extensions on for this session via ENABLE (or a CONDSTORE-enabling command).
       bool GetCondstoreEnabled() const { return condstore_enabled_; }
       void SetCondstoreEnabled(bool bNewVal) { condstore_enabled_ = bNewVal; }
+
+      // RFC 7162 section 3.1: a CONDSTORE-enabling command other than ENABLE and
+      // SELECT/EXAMINE (CONDSTORE) - FETCH MODSEQ or CHANGEDSINCE, SEARCH MODSEQ,
+      // STORE UNCHANGEDSINCE, STATUS (HIGHESTMODSEQ). The first one switches
+      // CONDSTORE on, and with a mailbox selected the server "MUST" then report
+      // that mailbox's HIGHESTMODSEQ: sent here, as an untagged OK, ahead of the
+      // command's own responses. Later calls do nothing.
+      void OnCondstoreEnablingCommand();
+
+      // RFC 3501 7.2.6: the keywords this session has been told the selected
+      // mailbox's messages may carry - set by SELECT and EXAMINE from the FLAGS
+      // response they send.
+      void SetAnnouncedKeywords(const std::vector<String> &keywords);
+
+      // Called before a FETCH response carries keywords. Any this session has
+      // not been told of yet are announced now, in an untagged FLAGS naming every
+      // keyword it knows: a client must not meet a keyword it was never told
+      // exists, and imaptest's checking load reported exactly that ("Keyword
+      // used without being in FLAGS") when another session - or this one's own
+      // STORE - created a keyword after SELECT.
+      void AnnounceKeywords(const std::vector<String> &keywords);
       bool GetQResyncEnabled() const { return qresync_enabled_; }
       void SetQResyncEnabled(bool bNewVal) { qresync_enabled_ = bNewVal; }
 
@@ -230,6 +251,14 @@ namespace HM
       String GetQResyncChangedFetch(__int64 sinceModSeq);
 
       void SetDelayedChangeNotification(std::shared_ptr<ChangeNotification> pNotification);
+
+      // Hands the delayed notification, if there is one, to the other sessions
+      // now. COPY and MOVE call it before their tagged OK: the sessions are told
+      // synchronously, so one that runs a command after seeing the OK already
+      // has the new messages to report. Submitted after the OK, as every command's
+      // notification used to be, a NOOP from another session could run first and
+      // answer without the EXISTS (imaptest's copy test, under load).
+      void SubmitDelayedChangeNotification();
 
       // credential is a SignInStore::Credential - which of the account's
       // credentials this connection authenticated with - and credentialName the
@@ -355,6 +384,12 @@ namespace HM
 
       // RFC 5182 (SEARCHRES): UIDs saved by the last "SEARCH RETURN (SAVE)".
       std::vector<__int64> saved_search_result_;
+
+      // RFC 3501 7.2.6: the keywords announced in the untagged FLAGS for the
+      // selected mailbox, as sent, and lower-cased for comparison. Guarded by
+      // state_mutex_: another connection's thread reports flag changes here.
+      std::vector<String> announced_keywords_;
+      std::set<String> announced_keywords_lowered_;
 
       // RFC 5802/7677 (SCRAM-SHA-256): in-progress SASL conversation, or null.
       std::shared_ptr<ScramSha256> scram_session_;

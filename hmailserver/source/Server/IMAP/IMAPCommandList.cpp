@@ -62,16 +62,37 @@ namespace HM
       // "(SPECIAL-USE)".
       bool bOnlySubscribed = false;
       bool bOnlySpecialUse = false;
+      bool bRecursiveMatch = false;
       if (pParser->Word(iIdx)->Paranthezied())
       {
          String sSelection = pParser->Word(iIdx)->Value();
+
+         // RFC 5258 section 3: a selection option the server does not know is a
+         // protocol error, BAD - it used to be ignored, and the client got a
+         // listing it had not asked for as though it had.
+         std::vector<String> selectionOptions;
+         selectionOptions.push_back(_T("SUBSCRIBED"));
+         selectionOptions.push_back(_T("REMOTE"));
+         selectionOptions.push_back(_T("RECURSIVEMATCH"));
+         selectionOptions.push_back(_T("SPECIAL-USE"));
+
+         if (!OptionsAreKnown_(sSelection, selectionOptions))
+            return IMAPResult(IMAPResult::ResultBad, "Unknown LIST selection option.");
 
          bOnlySubscribed = HasOption_(sSelection, _T("SUBSCRIBED"));
 
          // RFC 6154 section 4.1: return only mailboxes that have a special use.
          bOnlySpecialUse = HasOption_(sSelection, _T("SPECIAL-USE"));
 
-         // REMOTE / RECURSIVEMATCH are accepted but have no effect (no remote folders).
+         // RFC 5258 section 3: RECURSIVEMATCH "MUST NOT occur as the only selection
+         // option (or only with REMOTE)... The server MUST return BAD tagged
+         // response in such case." REMOTE has no effect here: there are no remote
+         // mailboxes.
+         bRecursiveMatch = HasOption_(sSelection, _T("RECURSIVEMATCH"));
+
+         if (bRecursiveMatch && !bOnlySubscribed && !bOnlySpecialUse)
+            return IMAPResult(IMAPResult::ResultBad, "RECURSIVEMATCH requires another selection option.");
+
          iIdx++;
       }
 
@@ -100,6 +121,17 @@ namespace HM
          if (iIdx < iWordCount && pParser->Word(iIdx)->Paranthezied())
          {
             String sReturn = pParser->Word(iIdx)->Value();
+
+            // RFC 5258 section 3, as for the selection options: a return option
+            // the server does not know is BAD.
+            std::vector<String> returnOptions;
+            returnOptions.push_back(_T("SUBSCRIBED"));
+            returnOptions.push_back(_T("CHILDREN"));
+            returnOptions.push_back(_T("SPECIAL-USE"));
+            returnOptions.push_back(_T("STATUS"));
+
+            if (!OptionsAreKnown_(sReturn, returnOptions))
+               return IMAPResult(IMAPResult::ResultBad, "Unknown LIST return option.");
 
             if (HasOption_(sReturn, _T("SUBSCRIBED")))
                bAnnotateSubscribed = true;
@@ -169,6 +201,14 @@ namespace HM
       String sResult;
       bool bAllPatternsEmpty = true;
 
+      // RECURSIVEMATCH asks about descendants that NONE of the command's patterns
+      // reaches (RFC 5258 section 3), so each listing needs all of them.
+      std::vector<String> allFolderSpecifiers;
+      for (const String &sPattern : patterns)
+         allFolderSpecifiers.push_back(sReferenceName.GetLength() > 0 ? sReferenceName + sPattern : sPattern);
+
+      const std::vector<String> *pRecursiveMatchPatterns = bRecursiveMatch ? &allFolderSpecifiers : nullptr;
+
       for (const String &sWildcards : patterns)
       {
          if (!sWildcards.IsEmpty())
@@ -181,8 +221,8 @@ namespace HM
          String sPatternResult;
          if (bExtended)
          {
-            sPatternResult = FolderListCreator::GetIMAPFolderListExtended(pConnection->GetAccount()->GetID(), pFolders, folderSpecifier, "", bOnlySubscribed, bAnnotateSubscribed, bOnlySpecialUse) +
-                             FolderListCreator::GetIMAPFolderListExtended(pConnection->GetAccount()->GetID(), pPublicFolders, folderSpecifier, sPublicFolderName, bOnlySubscribed, bAnnotateSubscribed, bOnlySpecialUse);
+            sPatternResult = FolderListCreator::GetIMAPFolderListExtended(pConnection->GetAccount()->GetID(), pFolders, folderSpecifier, "", bOnlySubscribed, bAnnotateSubscribed, bOnlySpecialUse, nullptr, pRecursiveMatchPatterns) +
+                             FolderListCreator::GetIMAPFolderListExtended(pConnection->GetAccount()->GetID(), pPublicFolders, folderSpecifier, sPublicFolderName, bOnlySubscribed, bAnnotateSubscribed, bOnlySpecialUse, nullptr, pRecursiveMatchPatterns);
          }
          else
          {
@@ -211,7 +251,7 @@ namespace HM
 
             bool bOwnerVisible = false;
             if (bExtended)
-               sPatternResult += FolderListCreator::GetIMAPFolderListExtended(pConnection->GetAccount()->GetID(), pOwnerFolders, folderSpecifier, sOwnerPrefix, bOnlySubscribed, bAnnotateSubscribed, bOnlySpecialUse, &bOwnerVisible);
+               sPatternResult += FolderListCreator::GetIMAPFolderListExtended(pConnection->GetAccount()->GetID(), pOwnerFolders, folderSpecifier, sOwnerPrefix, bOnlySubscribed, bAnnotateSubscribed, bOnlySpecialUse, &bOwnerVisible, pRecursiveMatchPatterns);
             else
                sPatternResult += FolderListCreator::GetIMAPFolderList(pConnection->GetAccount()->GetID(), pOwnerFolders, folderSpecifier, sOwnerPrefix, &bOwnerVisible);
 
@@ -369,6 +409,61 @@ namespace HM
       }
 
       return false;
+   }
+
+   bool
+   IMAPCommandLIST::OptionsAreKnown_(const String &sParenContent, const std::vector<String> &knownOptions)
+   {
+      int depth = 0;
+      String token;
+
+      // One past the end as well, to finish the last token.
+      for (int i = 0; i <= sParenContent.GetLength(); i++)
+      {
+         const wchar_t ch = i < sParenContent.GetLength() ? sParenContent.GetAt(i) : (wchar_t) ' ';
+
+         if (ch == '(')
+         {
+            depth++;
+            continue;
+         }
+
+         if (ch == ')')
+         {
+            if (depth > 0)
+               depth--;
+            continue;
+         }
+
+         if (depth > 0)
+            continue;
+
+         if (ch != ' ')
+         {
+            token += ch;
+            continue;
+         }
+
+         if (token.IsEmpty())
+            continue;
+
+         bool known = false;
+         for (const String &option : knownOptions)
+         {
+            if (token.CompareNoCase(option) == 0)
+            {
+               known = true;
+               break;
+            }
+         }
+
+         if (!known)
+            return false;
+
+         token.Empty();
+      }
+
+      return true;
    }
 
    void

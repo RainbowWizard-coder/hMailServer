@@ -1151,9 +1151,10 @@ namespace RegressionTests.IMAP
 
          var whole = FetchWhole(sim, "TEXT", "BODY[TEXT]");
 
-         // BODY[TEXT] is re-serialized from the parsed MIME tree rather than read from
-         // the file, so this is deliberately a floor rather than an exact figure: the
-         // point is only that there is enough of it to chunk several times.
+         // BODY[TEXT] is read from the file now (it was re-serialized from the parsed
+         // MIME tree), but this stays a floor rather than an exact figure: the point
+         // is only that there is enough of it to chunk several times. ImapTestCompliance
+         // pins the exact bytes.
          Assert.IsTrue(whole.Length > 50000,
             "The fixture body is about 100 KB, so BODY[TEXT] should be of that order. Got " + whole.Length + ".");
 

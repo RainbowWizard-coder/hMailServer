@@ -12,6 +12,7 @@
 #include "IMAPThread.h"
 #include "IMAPConfiguration.h"
 #include "IMAPListLookup.h"
+#include "IMAPAddressList.h"
 
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/BO/Account.h"
@@ -209,6 +210,70 @@ namespace HM
       // scanning if ever reached another way.
       thread_local SearchIndexFilter *current_search_index_filter = nullptr;
 
+      // RFC 7162 section 3.1: a SEARCH with a MODSEQ key enables CONDSTORE.
+      bool UsesModSeqKey_(std::shared_ptr<IMAPSearchCriteria> criteria)
+      {
+         if (!criteria)
+            return false;
+
+         if (criteria->GetType() == IMAPSearchCriteria::CTModSeq)
+            return true;
+
+         for (std::shared_ptr<IMAPSearchCriteria> subCriteria : criteria->GetSubCriterias())
+         {
+            if (UsesModSeqKey_(subCriteria))
+               return true;
+         }
+
+         return false;
+      }
+
+      // RFC 3501 6.4.4: SENTBEFORE, SENTON and SENTSINCE compare the date of the
+      // Date header "disregarding time and timezone" - the calendar date the
+      // sender wrote, "Sat, 24 Mar 2007 23:00:00 +0200" being the 24th wherever
+      // the server is. They were compared as the moment converted to UTC, time
+      // included, so SENTON never matched at all (a date string was compared
+      // with the client's differently spelt one) and SENTBEFORE took the 24th
+      // at 23:00 for "before the 24th". False when the header has no usable
+      // date.
+      bool SentDateOf_(const String &dateHeader, DateTime &sentDate)
+      {
+         String value = dateHeader;
+         value.Replace(_T(","), _T(" "));
+         value.Replace(_T("\t"), _T(" "));
+
+         std::vector<String> words;
+         for (String part : StringParser::SplitString(value, _T(" ")))
+         {
+            part.Trim();
+            if (!part.IsEmpty())
+               words.push_back(part);
+         }
+
+         size_t first = 0;
+
+         // The day of the week is optional.
+         if (first < words.size() && !(words[first].GetAt(0) >= '0' && words[first].GetAt(0) <= '9'))
+            first++;
+
+         if (first + 3 > words.size())
+            return false;
+
+         const int day = _ttoi(words[first]);
+         const int month = (int) Time::GetMonthIndex(words[first + 1]);
+         int year = _ttoi(words[first + 2]);
+
+         // RFC 5322 4.3: two-digit years.
+         if (year >= 0 && year <= 49)
+            year += 2000;
+         else if (year >= 50 && year <= 99)
+            year += 1900;
+
+         sentDate.SetDate(year, month, day);
+
+         return sentDate.GetStatus() == DateTime::valid;
+      }
+
       class SearchIndexFilterScope
       {
       public:
@@ -363,6 +428,11 @@ namespace HM
       if (is_sort_ && !pParser->GetSortParser())
          return IMAPResult(IMAPResult::ResultBad, "Incorrect search commands.");
 
+      // RFC 7162 section 3.1: MODSEQ is a CONDSTORE-enabling search key, and the
+      // first enabling command reports HIGHESTMODSEQ before the result.
+      if (UsesModSeqKey_(pParser->GetCriteria()))
+         pConnection->OnCondstoreEnablingCommand();
+
       // RFC 5256's sort-criteria list is 1*sort-criterion, so an empty one is a
       // protocol error rather than "sort by nothing". Rejected here as well as
       // guarded inside IMAPSort::Sort, because the two commands that produce an
@@ -406,12 +476,17 @@ namespace HM
       std::map<__int64, std::shared_ptr<Message> > messagesById = pCurFolder->GetMessages()->GetCopyByIds(entry_ids);
 
       message_count_ = (int) entries.size();
-      max_uid_ = (int) view->GetHighestUID();
+      max_uid_ = (__int64) view->GetHighestUID();
 
       std::vector<String> sMatchingVec;
       // RFC 5182 (SEARCHRES): UIDs of the matched messages in ascending order, used when SAVE
       // is requested. Captured regardless of UID/sequence mode so "$" stays stable.
       std::vector<__int64> sMatchingUids;
+
+      // The same matches as numbers - UIDs or sequence numbers, as the response
+      // gives them - and their mod-sequences, for the ESEARCH response.
+      std::vector<__int64> matchingNumbers;
+      std::vector<__int64> matchingModSeqs;
       if (!entries.empty())
       {
          // Iterate through the messages and see which ones match.
@@ -505,6 +580,9 @@ namespace HM
 
             sMatchingVec.push_back(sID);
             sMatchingUids.push_back((__int64) pMessage->GetUID());
+
+            matchingNumbers.push_back(is_uid_ ? (__int64) pMessage->GetUID() : (__int64) index);
+            matchingModSeqs.push_back(pMessage->GetModSeq());
          }
 
       }
@@ -537,8 +615,11 @@ namespace HM
             if (esearch_max_)
                sResponse += " MAX " + sMatchingVec.back();
 
+            // "Always returned using the sequence-set syntax" (RFC 4731 3.1), and
+            // the compact form of it - "1:6", not "1,2,3,4,5,6" - which is the
+            // point of a set, what Dovecot sends and what imaptest expects.
             if (esearch_all_)
-               sResponse += " ALL " + StringParser::JoinVector(sMatchingVec, ",");
+               sResponse += " ALL " + IMAPConnection::CompactUidSet(matchingNumbers);
          }
 
          if (esearch_count_)
@@ -548,11 +629,29 @@ namespace HM
             sResponse += sCount;
          }
 
-         // RFC 7162: report the highest mod-sequence of the matched messages.
+         // RFC 4731 3.2 (and RFC 7162 3.1.10): "If the SEARCH/UID SEARCH command
+         // contained a single MIN or MAX result option, the MODSEQ result option
+         // contains the mod-sequence for the found message", with MIN and MAX
+         // the higher of the two, and "otherwise ... the highest mod-sequence for
+         // all messages being returned". It was always the highest of all the
+         // matches.
          if (modseq_search_ && !sMatchingVec.empty())
          {
+            __int64 reportedModSeq = highest_modseq_;
+
+            if (!esearch_all_ && !esearch_count_ && (esearch_min_ || esearch_max_))
+            {
+               reportedModSeq = 0;
+
+               if (esearch_min_ && matchingModSeqs.front() > reportedModSeq)
+                  reportedModSeq = matchingModSeqs.front();
+
+               if (esearch_max_ && matchingModSeqs.back() > reportedModSeq)
+                  reportedModSeq = matchingModSeqs.back();
+            }
+
             String sModSeq;
-            sModSeq.Format(_T(" MODSEQ %I64d"), highest_modseq_);
+            sModSeq.Format(_T(" MODSEQ %I64d"), reportedModSeq);
             sResponse += sModSeq;
          }
 
@@ -738,22 +837,25 @@ namespace HM
             }
          case IMAPSearchCriteria::CTFrom:
             {
-               pCriteria->SetHeaderField("From");
-               if (!MatchesHeaderCriteria_(fileName, pMessage, pCriteria))
+               if (!MatchesAddressCriteria_(fileName, pCriteria, "From"))
                   bMessageIsMatchingCriteria = false;
                break;
             }
          case IMAPSearchCriteria::CTTo:
             {
-               pCriteria->SetHeaderField("To");
-               if (!MatchesHeaderCriteria_(fileName, pMessage, pCriteria))
+               if (!MatchesAddressCriteria_(fileName, pCriteria, "To"))
                   bMessageIsMatchingCriteria = false;
                break;
             }
          case IMAPSearchCriteria::CTCC:
             {
-               pCriteria->SetHeaderField("CC");
-               if (!MatchesHeaderCriteria_(fileName, pMessage, pCriteria))
+               if (!MatchesAddressCriteria_(fileName, pCriteria, "CC"))
+                  bMessageIsMatchingCriteria = false;
+               break;
+            }
+         case IMAPSearchCriteria::CTBCC:
+            {
+               if (!MatchesAddressCriteria_(fileName, pCriteria, "BCC"))
                   bMessageIsMatchingCriteria = false;
                break;
             }
@@ -1204,41 +1306,53 @@ namespace HM
    bool
    IMAPCommandSEARCH::MatchesSENTONCriteria_(const String &fileName, std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria)
    {
-      String sDateHeader = GetHeaderValue_(fileName, pMessage, "Date");
-      sDateHeader = Time::GetIMAPDateFromMimeHeader(sDateHeader);
+      // The calendar date the sender wrote (SentDateOf_), the same day as the
+      // one asked for. A message without a usable Date header matches none of
+      // SENTBEFORE, SENTON and SENTSINCE - its sent date is not known.
+      DateTime dtSentDate;
+      DateTime dtCriteria = Time::GetDateFromIMAP(pCriteria->GetText());
 
-      if (sDateHeader == pCriteria->GetText())
-         return pCriteria->GetPositive();
-      else
-         return !pCriteria->GetPositive();
+      bool bMatch = false;
+
+      if (SentDateOf_(GetHeaderValue_(fileName, pMessage, "Date"), dtSentDate) &&
+          dtSentDate.GetYear() == dtCriteria.GetYear() &&
+          dtSentDate.GetMonth() == dtCriteria.GetMonth() &&
+          dtSentDate.GetDay() == dtCriteria.GetDay())
+         bMatch = true;
+
+      return bMatch == pCriteria->GetPositive();
    }
 
    bool
    IMAPCommandSEARCH::MatchesSENTBEFORECriteria_(const String &fileName, std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria)
    {
-      String sDateHeader = GetHeaderValue_(fileName, pMessage, "Date");
-
-      DateTime dtSentDate = Time::GetDateFromMimeHeader(sDateHeader);
+      // Strictly before the day asked for - the day itself is not "before".
+      DateTime dtSentDate;
       DateTime dtCriteria = Time::GetDateFromIMAP(pCriteria->GetText());
 
-      if (dtSentDate <= dtCriteria)
-         return pCriteria->GetPositive();
-      else
-         return !pCriteria->GetPositive();
+      // Statements rather than an assignment from the comparison: the DateTime
+      // operators return BOOL, and /WX refuses the narrowing.
+      bool bMatch = false;
+
+      if (SentDateOf_(GetHeaderValue_(fileName, pMessage, "Date"), dtSentDate) && dtSentDate < dtCriteria)
+         bMatch = true;
+
+      return bMatch == pCriteria->GetPositive();
    }
 
    bool
    IMAPCommandSEARCH::MatchesSENTSINCECriteria_(const String &fileName, std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria)
    {
-      String sDateHeader = GetHeaderValue_(fileName, pMessage, "Date");
-
-      DateTime dtSentDate = Time::GetDateFromMimeHeader(sDateHeader);
+      // On or after the day asked for.
+      DateTime dtSentDate;
       DateTime dtCriteria = Time::GetDateFromIMAP(pCriteria->GetText());
 
-      if (dtSentDate >= dtCriteria)
-         return pCriteria->GetPositive();
-      else
-         return !pCriteria->GetPositive();
+      bool bMatch = false;
+
+      if (SentDateOf_(GetHeaderValue_(fileName, pMessage, "Date"), dtSentDate) && dtSentDate >= dtCriteria)
+         bMatch = true;
+
+      return bMatch == pCriteria->GetPositive();
    }
 
    bool
@@ -1455,7 +1569,7 @@ namespace HM
    {
       std::vector<String> split = pCriteria->GetSequenceSet();
 
-      bool found = IMAPListLookup::IsItemInList(split, (int) pMessage->GetUID(), max_uid_);
+      bool found = IMAPListLookup::IsItemInList(split, (__int64) pMessage->GetUID(), max_uid_);
 
       if (pCriteria->GetPositive())
          return found;
@@ -1468,7 +1582,7 @@ namespace HM
    {
       std::vector<String> split = pCriteria->GetSequenceSet();
 
-      bool found = IMAPListLookup::IsItemInList(split, index, message_count_);
+      bool found = IMAPListLookup::IsItemInList(split, (__int64) index, (__int64) message_count_);
 
       if (pCriteria->GetPositive())
          return found;
@@ -1480,15 +1594,76 @@ namespace HM
    bool
    IMAPCommandSEARCH::MatchesHeaderCriteria_(const String &fileName, std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria)
    {
+      // RFC 3501 6.4.4, HEADER: "Messages that have a header with the specified
+      // field-name ... and that contains the specified string in the text of
+      // the header". A message without the field does not match - not even
+      // HEADER x "", which is how a client asks whether the field exists; the
+      // missing field used to read as "" and match. And a repeated field
+      // matches on any of its occurrences, not the first alone.
       String sHeaderField = pCriteria->GetHeaderField();
       String sTextToFind = pCriteria->GetText();
 
-      String sHeaderFieldValue = GetHeaderValue_(fileName, pMessage, sHeaderField);
+      std::vector<AnsiString> rawValues;
+      GetRawHeaderValues_(fileName, sHeaderField, rawValues);
 
-      if (sHeaderFieldValue.ContainsNoCase(sTextToFind))
-         return pCriteria->GetPositive();
-      else
-         return !pCriteria->GetPositive();
+      const AnsiString sFieldName = sHeaderField;
+
+      bool bMatch = false;
+
+      for (const AnsiString &rawValue : rawValues)
+      {
+         String sValue = MimeHeader::GetUnicodeFieldValue(sFieldName, rawValue);
+
+         if (sValue.ContainsNoCase(sTextToFind))
+         {
+            bMatch = true;
+            break;
+         }
+      }
+
+      return bMatch == pCriteria->GetPositive();
+   }
+
+   bool
+   IMAPCommandSEARCH::MatchesAddressCriteria_(const String &fileName, std::shared_ptr<IMAPSearchCriteria> pCriteria, const String &sHeaderField)
+   {
+      // RFC 3501 6.4.4: FROM <string> matches "the envelope structure's FROM
+      // field" - the addresses as ENVELOPE gives them, parsed. It used to be a
+      // substring of the raw header text, so "user@domain.org" missed
+      // "<user (comment)@ (comment) domain.org>", a display name written as a
+      // comment - "user@domain.org (Real Name)" - was never a name, and a
+      // group's name was never found. Each address is matched as
+      // "Name <mailbox@host>", and each group by its name. "" matches any
+      // message that has the field, as for HEADER.
+      std::vector<AnsiString> rawValues;
+      GetRawHeaderValues_(fileName, sHeaderField, rawValues);
+
+      String sTextToFind = pCriteria->GetText();
+
+      bool bMatch = false;
+
+      for (const AnsiString &rawValue : rawValues)
+      {
+         if (sTextToFind.IsEmpty())
+         {
+            bMatch = true;
+            break;
+         }
+
+         for (const String &text : IMAPAddressList::GetSearchTexts(rawValue))
+         {
+            if (text.ContainsNoCase(sTextToFind))
+            {
+               bMatch = true;
+               break;
+            }
+         }
+
+         if (bMatch)
+            break;
+      }
+
+      return bMatch == pCriteria->GetPositive();
    }
 
    bool
@@ -1505,25 +1680,45 @@ namespace HM
          return message_data_->GetFieldValue(sHeaderField);
       }
 
-      if (!mime_header_)
-      {
-         // Load header
-         AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
-
-         // A HEADER search outside the five indexed fields (date, from, subject, to,
-         // cc) is a full scan of the mailbox as well, so it is charged too - but only
-         // for the header it actually read, not for the whole message. That is what
-         // keeps the byte ceiling from firing on a cheap header search over a large
-         // mailbox while still bounding one.
-         bytes_examined_ += (unsigned __int64) sHeader.GetLength();
-
-         mime_header_ = std::shared_ptr<MimeHeader>(new MimeHeader);
-         mime_header_->Load(sHeader, sHeader.GetLength(), true);
-      }
+      EnsureMimeHeader_(fileName);
 
       AnsiString sHeaderFieldStr = sHeaderField;
       return mime_header_->GetUnicodeFieldValue(sHeaderFieldStr);
 
+   }
+
+   void
+   IMAPCommandSEARCH::EnsureMimeHeader_(const String &fileName)
+   {
+      if (mime_header_)
+         return;
+
+      // Load header
+      AnsiString sHeader = PersistentMessage::LoadHeader(fileName);
+
+      // A HEADER search outside the five indexed fields (date, from, subject, to,
+      // cc) is a full scan of the mailbox as well, so it is charged too - but only
+      // for the header it actually read, not for the whole message. That is what
+      // keeps the byte ceiling from firing on a cheap header search over a large
+      // mailbox while still bounding one.
+      bytes_examined_ += (unsigned __int64) sHeader.GetLength();
+
+      mime_header_ = std::shared_ptr<MimeHeader>(new MimeHeader);
+      mime_header_->Load(sHeader, sHeader.GetLength(), true);
+   }
+
+   void
+   IMAPCommandSEARCH::GetRawHeaderValues_(const String &fileName, const String &sHeaderField, std::vector<AnsiString> &rawValues)
+   {
+      EnsureMimeHeader_(fileName);
+
+      const AnsiString sWanted = sHeaderField;
+
+      for (MimeField &field : mime_header_->Fields())
+      {
+         if (sWanted.CompareNoCase(field.GetName()) == 0)
+            rawValues.push_back(field.GetValue());
+      }
    }
 
 }

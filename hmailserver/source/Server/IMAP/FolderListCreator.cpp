@@ -51,13 +51,14 @@ namespace HM
    }
 
    String
-   FolderListCreator::GetIMAPFolderListExtended(__int64 iAccountID, std::shared_ptr<IMAPFolders> pStartFolders, const String &sWildcard, const String &sPrefix, bool bOnlySubscribed, bool bAnnotateSubscribed, bool bOnlySpecialUse, bool *pAnyFolderVisible)
+   FolderListCreator::GetIMAPFolderListExtended(__int64 iAccountID, std::shared_ptr<IMAPFolders> pStartFolders, const String &sWildcard, const String &sPrefix, bool bOnlySubscribed, bool bAnnotateSubscribed, bool bOnlySpecialUse, bool *pAnyFolderVisible, const std::vector<String> *pRecursiveMatchPatterns)
    {
       ListRequest_ request;
       request.emit_as_list_ = true;
       request.only_subscribed_ = bOnlySubscribed;
       request.annotate_subscribed_ = bAnnotateSubscribed;
       request.only_special_use_ = bOnlySpecialUse;
+      request.recursive_match_patterns_ = bOnlySubscribed ? pRecursiveMatchPatterns : nullptr;
 
       return Create_(iAccountID, pStartFolders, sWildcard, sPrefix, request, pAnyFolderVisible);
    }
@@ -135,14 +136,8 @@ namespace HM
 
       for(std::shared_ptr<IMAPFolder> currentFolder : pStartFolders->GetSnapshot())
       {
-         // Check if the user has access to this folder. Otherwise just skip it. The
-         // lookup right is asked of ACLManager as any other: on the account's own
-         // tree and the public tree it is CheckPermission (everything visible when
-         // enforcement is off), under "#Users" it is a right the owner granted.
-         bool visible = currentFolder->GetAccountID() != 0 && currentFolder->GetAccountID() != iAccountID
-            ? ACLManager::CheckDelegatedRight(iAccountID, currentFolder, ACLPermission::PermissionLookup)
-            : ACLManager::CheckPermission(iAccountID, currentFolder, ACLPermission::PermissionLookup);
-         if (!visible)
+         // Check if the user has access to this folder. Otherwise just skip it.
+         if (!IsFolderVisible_(iAccountID, currentFolder))
          {
             continue;
          }
@@ -163,7 +158,49 @@ namespace HM
          // Do we match?
          if (FolderWildcardMatch_(sFullPath, sWildcard, hierarchyDelimiter))
          {
-            String sFolderLine = CreateFolderLine_(currentFolder, hasSubFolders, sFullPath, sWildcard, true, hierarchyDelimiter, request);
+            // CreateFolderLine_ escapes and quotes the path it is given in place.
+            String sLinePath = sFullPath;
+            String sFolderLine = CreateFolderLine_(currentFolder, hasSubFolders, sLinePath, sWildcard, true, hierarchyDelimiter, request);
+
+            if (request.only_subscribed_ && hasSubFolders)
+            {
+               if (!request.emit_as_list_)
+               {
+                  // RFC 3501 6.3.9: "if "foo/bar" ... is subscribed but "foo" is
+                  // not. A "%" wildcard to LSUB must return foo, not foo/bar, in
+                  // the LSUB response, and it MUST be flagged with the \Noselect
+                  // attribute." LSUB listed nothing at that level, so a client
+                  // walking its subscriptions one level at a time never found
+                  // them.
+                  std::vector<String> thisPattern;
+                  thisPattern.push_back(sWildcard);
+
+                  if (sFolderLine.IsEmpty() && !currentFolder->GetIsSubscribed() &&
+                      HasSubscribedDescendantOutside_(iAccountID, subFolders, sFullPath, thisPattern, hierarchyDelimiter, 0))
+                  {
+                     String sParentPath = sFullPath;
+                     sFolderLine = CreateFolderLine_(std::shared_ptr<IMAPFolder>(), true, sParentPath, sWildcard, false, hierarchyDelimiter, request);
+                  }
+               }
+               else if (request.recursive_match_patterns_ &&
+                        HasSubscribedDescendantOutside_(iAccountID, subFolders, sFullPath, *request.recursive_match_patterns_, hierarchyDelimiter, 0))
+               {
+                  // RFC 5258 section 3, RECURSIVEMATCH: the mailbox is returned,
+                  // subscribed itself or not, and says that a descendant the
+                  // patterns do not reach is subscribed.
+                  if (sFolderLine.IsEmpty())
+                  {
+                     ListRequest_ unfiltered = request;
+                     unfiltered.only_subscribed_ = false;
+
+                     String sParentPath = sFullPath;
+                     sFolderLine = CreateFolderLine_(currentFolder, hasSubFolders, sParentPath, sWildcard, true, hierarchyDelimiter, unfiltered);
+                  }
+
+                  if (!sFolderLine.IsEmpty())
+                     sFolderLine += _T(" (\"CHILDINFO\" (\"SUBSCRIBED\"))");
+               }
+            }
 
             if (!sFolderLine.IsEmpty())
                vecMatchingFolders.push_back(sFolderLine);
@@ -291,75 +328,113 @@ namespace HM
    bool
    FolderListCreator::FolderWildcardMatch_(const String &sFolderName, const String &sWildcard, const String &hierarchyDelimiter)
    {
-      // Convert the wildcard path to internal format.
-      std::vector<String> vecWildcardPath = StringParser::SplitString(sWildcard, hierarchyDelimiter);
-      std::vector<String> vecExistingPath = StringParser::SplitString(sFolderName, hierarchyDelimiter);
+      // RFC 3501 6.3.8: "*" matches zero or more characters at this position,
+      // "%" the same except the hierarchy delimiter; everything else stands for
+      // itself, compared without case as mailbox names are here.
+      //
+      // The matcher this replaces consumed greedily and never backed up: a "*"
+      // swallowed the rest of the name, so it only worked as the LAST
+      // character. "INBOX.*test4", "*test", "%3.%" and "%t*4" matched nothing,
+      // and a LIST, an LSUB or a LIST-EXTENDED pattern list that used one
+      // silently left mailboxes out (imaptest's list, listext and subscribe).
+      //
+      // This one is the textbook table: row i says which prefixes of the name
+      // the first i pattern characters can match. One row at a time, so the
+      // cost is the product of the two lengths - bounded, whatever the
+      // pattern, which a backtracking matcher fed "*%*%*%..." would not be.
+      const int patternLength = sWildcard.GetLength();
+      const int nameLength = sFolderName.GetLength();
+      const wchar_t delimiter = hierarchyDelimiter.IsEmpty() ? (wchar_t) 0 : hierarchyDelimiter.GetAt(0);
 
-      String sTempWildcard = StringParser::JoinVector(vecWildcardPath, hierarchyDelimiter);
+      std::vector<char> previous((size_t) nameLength + 1, 0);
+      std::vector<char> current((size_t) nameLength + 1, 0);
 
+      // The empty pattern matches the empty name only.
+      previous[0] = 1;
 
-      long lRealFolderPos = 0;
-
-      for (int i = 0; i < sTempWildcard.GetLength(); i++)
+      for (int i = 1; i <= patternLength; i++)
       {
-         wchar_t sCurWildcardChar = sTempWildcard.GetAt(i);
+         const wchar_t patternChar = sWildcard.GetAt(i - 1);
 
-         if (lRealFolderPos >= sFolderName.GetLength())
+         if (patternChar == '*')
          {
-            // Folder INBOX should match INBOX*.
-            if ((sCurWildcardChar == '*' || sCurWildcardChar == '%') && 
-               sTempWildcard.GetLength() == i + 1)
-               return true;
-
-            return false;
+            // Zero characters, or one more than a match already covered.
+            current[0] = previous[0];
+            for (int j = 1; j <= nameLength; j++)
+               current[j] = (previous[j] || current[j - 1]) ? 1 : 0;
+         }
+         else if (patternChar == '%')
+         {
+            // The same, never across a delimiter.
+            current[0] = previous[0];
+            for (int j = 1; j <= nameLength; j++)
+            {
+               const bool extends = current[j - 1] && sFolderName.GetAt(j - 1) != delimiter;
+               current[j] = (previous[j] || extends) ? 1 : 0;
+            }
+         }
+         else
+         {
+            current[0] = 0;
+            for (int j = 1; j <= nameLength; j++)
+            {
+               const bool same = towupper((wint_t) sFolderName.GetAt(j - 1)) == towupper((wint_t) patternChar);
+               current[j] = (previous[j - 1] && same) ? 1 : 0;
+            }
          }
 
-         while (lRealFolderPos < sFolderName.GetLength())
-         {
-
-            wchar_t sCurRealCharacter = sFolderName.GetAt(lRealFolderPos);
-
-            // Check if the current char matches the current wildcard char.
-            if (sCurWildcardChar == '*')
-            {
-               // the current wildcard character is a *. we got a match.
-               lRealFolderPos++;
-               continue;
-            }
-
-            if (sCurWildcardChar == '%')
-            {
-               if (sCurRealCharacter == hierarchyDelimiter.GetAt(0))
-               {
-                  break;
-               }
-               else
-               {
-                  lRealFolderPos++;
-                  continue;
-               }
-            }
-
-            if (toupper(sCurRealCharacter) == toupper(sCurWildcardChar))
-            {
-               // the current wildcard char matches the current char exactly.
-               lRealFolderPos++;
-               break;
-            }
-
-            // The wildcard character doesn't match the current character in the existing folder.
-            return false;
-
-
-
-         }
-
+         previous.swap(current);
       }
 
-      if (lRealFolderPos < sFolderName.GetLength())
+      return previous[(size_t) nameLength] != 0;
+   }
+
+   bool
+   FolderListCreator::IsFolderVisible_(__int64 iAccountID, std::shared_ptr<IMAPFolder> folder)
+   {
+      // The lookup right is asked of ACLManager as any other: on the account's own
+      // tree and the public tree it is CheckPermission (everything visible when
+      // enforcement is off), under "#Users" it is a right the owner granted.
+      return folder->GetAccountID() != 0 && folder->GetAccountID() != iAccountID
+         ? ACLManager::CheckDelegatedRight(iAccountID, folder, ACLPermission::PermissionLookup)
+         : ACLManager::CheckPermission(iAccountID, folder, ACLPermission::PermissionLookup);
+   }
+
+   bool
+   FolderListCreator::HasSubscribedDescendantOutside_(__int64 iAccountID, std::shared_ptr<IMAPFolders> folders, const String &sParentPath, const std::vector<String> &patterns, const String &hierarchyDelimiter, size_t depth)
+   {
+      if (!folders || depth > (size_t) IMAPFolder::MaxFolderDepth)
          return false;
 
-      return true;
+      for (std::shared_ptr<IMAPFolder> folder : folders->GetSnapshot())
+      {
+         if (!IsFolderVisible_(iAccountID, folder))
+            continue;
+
+         const String sPath = sParentPath + hierarchyDelimiter + folder->GetFolderName();
+
+         if (folder->GetIsSubscribed())
+         {
+            bool matched = false;
+
+            for (const String &pattern : patterns)
+            {
+               if (FolderWildcardMatch_(sPath, pattern, hierarchyDelimiter))
+               {
+                  matched = true;
+                  break;
+               }
+            }
+
+            if (!matched)
+               return true;
+         }
+
+         if (HasSubscribedDescendantOutside_(iAccountID, folder->GetSubFolders(), sPath, patterns, hierarchyDelimiter, depth + 1))
+            return true;
+      }
+
+      return false;
    }
 
    void

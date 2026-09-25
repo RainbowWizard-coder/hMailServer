@@ -23,7 +23,7 @@ namespace HM
 
    }
    bool
-   IMAPListLookup::IsItemInList(const std::vector<String> &vecItems, int item, int maxItem)
+   IMAPListLookup::IsItemInList(const std::vector<String> &vecItems, __int64 item, __int64 maxItem)
    {
       for(const String &sCur : vecItems)
       {
@@ -37,8 +37,8 @@ namespace HM
             // RFC 3501: "*" is the largest value in use - on EITHER side of the
             // colon - and a range is valid in either order, so "*:1" is the whole
             // mailbox and "3:1" is the same set as "1:3".
-            int lower = sFirstPart == _T("*") ? maxItem : _ttoi(sFirstPart);
-            int upper = sSecondPart == _T("*") ? maxItem : _ttoi(sSecondPart);
+            __int64 lower = sFirstPart == _T("*") ? maxItem : _ttoi64(sFirstPart);
+            __int64 upper = sSecondPart == _T("*") ? maxItem : _ttoi64(sSecondPart);
 
             if (upper < lower)
                std::swap(lower, upper);
@@ -48,7 +48,7 @@ namespace HM
          }
          else
          {
-            int foundItem = sCur == _T("*") ? maxItem : _ttoi(sCur);
+            __int64 foundItem = sCur == _T("*") ? maxItem : _ttoi64(sCur);
 
             if (foundItem == item)
                return true;

@@ -44,8 +44,9 @@ namespace HM
       if (!pCurFolder)
          return IMAPResult(IMAPResult::ResultNo, "No folder selected.");
 
+      // NO: a missing right refuses a well-formed command (RFC 4314 section 4).
       if (!pConnection->CheckPermission(pCurFolder, ACLPermission::PermissionExpunge))
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Expunge permission denied (Required for EXPUNGE command).");
+         return IMAPResult(IMAPResult::ResultNo, "ACL: Expunge permission denied (Required for EXPUNGE command).");
 
       std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
 

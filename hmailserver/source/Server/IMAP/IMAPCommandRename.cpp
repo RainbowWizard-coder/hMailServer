@@ -45,9 +45,11 @@ namespace HM
       String sOldFolderName = pParser->GetParamValue(pArgument, 0);
       String sNewFolderName = pParser->GetParamValue(pArgument, 1);
             
+      // NO, not BAD: a mailbox that does not exist is a well-formed command the
+      // server declines (RFC 3501 7.1.2); BAD is for one it cannot parse.
       std::shared_ptr<IMAPFolder> pFolderToRename = pConnection->GetFolderByFullPath(sOldFolderName);
       if (!pFolderToRename)
-         return IMAPResult(IMAPResult::ResultBad, "Folder could not be found.");
+         return IMAPResult(IMAPResult::ResultNo, "Folder could not be found.");
 
       // Decided on the RESOLVED folder, not the path text. The historical check in
       // ConfirmPossibleToRename compares the path against the single word "INBOX",

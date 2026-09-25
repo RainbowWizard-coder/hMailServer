@@ -18,6 +18,26 @@
 
 namespace HM
 {
+   namespace
+   {
+      // A UID from a client's set. UIDs are unsigned 32-bit numbers, and one
+      // above INT_MAX - "1:4294967295", the whole range, is a set clients send -
+      // went through _ttoi, which cannot hold it. Anything past the largest UID
+      // there can be is that UID.
+      unsigned int ParseSetUid_(const String &text)
+      {
+         const __int64 value = _ttoi64(text);
+
+         if (value <= 0)
+            return 0;
+
+         if (value > (__int64) 0xFFFFFFFFu)
+            return 0xFFFFFFFFu;
+
+         return (unsigned int) value;
+      }
+   }
+
    IMAPCommandRangeAction::IMAPCommandRangeAction() :
       is_uid_(false),
       uidplus_dest_uidvalidity_(0)
@@ -169,16 +189,23 @@ namespace HM
             // RFC 3501: "*" is the largest UID in use - on either side of the colon, and
             // a range is valid in either order, so "*:1" is the whole mailbox and a bare
             // "*" is the last message. An empty mailbox has no largest UID, so "*" must
-            // match nothing there. As the END of a range it is left unbounded rather
-            // than pinned to the largest UID, so "5:*" also reaches a message the view
-            // took in after the client last asked.
+            // match nothing there.
+            //
+            // It is the largest UID on the RIGHT of the colon too. It used to be left
+            // unbounded there, which made "<uidnext>:*" the empty range from UIDNEXT
+            // upwards - but RFC 3501 6.4.8 is explicit that "a UID range of 559:*
+            // always includes the UID of the last message in the mailbox, even if 559
+            // is higher than any assigned UID value", and clients rely on it: that is
+            // how they ask for "anything new" and learn the last UID when nothing is.
+            // The view holds exactly the messages this session knows, and highestUid
+            // is the view's own, so no message the view took in is left out by it.
             if ((firstIsStar || secondIsStar) && highestUid == 0)
                continue;
 
             if (lColonPos >= 0)
             {
-               unsigned int startUid = firstIsStar ? highestUid : (unsigned int) _ttoi(sFirstPart);
-               unsigned int endUid = secondIsStar ? 0xFFFFFFFFu : (unsigned int) _ttoi(sSecondPart);
+               unsigned int startUid = firstIsStar ? highestUid : ParseSetUid_(sFirstPart);
+               unsigned int endUid = secondIsStar ? highestUid : ParseSetUid_(sSecondPart);
 
                if (endUid < startUid)
                   std::swap(startUid, endUid);
@@ -188,7 +215,7 @@ namespace HM
             }
             else
             {
-               unsigned int uid = firstIsStar ? highestUid : (unsigned int) _ttoi(sCur);
+               unsigned int uid = firstIsStar ? highestUid : ParseSetUid_(sCur);
 
                if (uid == 0)
                   continue;

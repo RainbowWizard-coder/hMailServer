@@ -60,6 +60,14 @@ namespace HM
       IMAPResult ValidateAndPrepareMessage_(std::shared_ptr<IMAPConnection> pConnection, __int64 declaredSize);
       void FinalizeCommand_(std::shared_ptr<IMAPConnection> pConnection);
       void FailCommand_(const String &response);
+
+      // A refusal of the first message, once its literal size is known. For a
+      // synchronizing literal the refusal is simply the answer - the client is
+      // waiting for a continuation and sends nothing more. For a {n+} literal the
+      // octets are already on their way, so they are consumed, stored nowhere,
+      // and the refusal is sent when the command's line ends (RFC 7888 section
+      // 4); otherwise they would be read as command lines.
+      IMAPResult RefuseWithLiteral_(std::shared_ptr<IMAPConnection> pConnection, const IMAPResult &refusal, bool nonSynchronizingLiteral, __int64 declaredSize);
       void CleanupPendingMessages_();
 
       bool TruncateBuffer_(const std::shared_ptr<IMAPConnection> pConnection );
@@ -106,6 +114,10 @@ namespace HM
 
       std::vector<PendingMessage> pending_messages_;
 
+      // Everything received in binary mode and not yet consumed: the literal's
+      // octets, the command line after it and - once the command's final CRLF
+      // has gone by - whatever the client pipelined behind the command, which
+      // ParseBinary hands back to the connection to be read as command text.
       ByteBuffer append_buffer_;
       std::shared_ptr<IMAPFolder> destination_folder_;
       std::shared_ptr<Message> current_message_;

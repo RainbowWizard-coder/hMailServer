@@ -6,16 +6,18 @@
 #include "IMAPFetch.h"
 #include "IMAPFetchParser.h"
 #include "IMAPConnection.h"
+#include "IMAPFolderView.h"
 
 #include "../Common/Application/FolderManager.h"
 #include "../Common/BO/IMAPFolder.h"
 #include "../Common/BO/Message.h"
 #include "../Common/BO/MessageData.h"
+#include "../Common/BO/Messages.h"
 #include "../Common/Mime/MimeCode.h"
 #include "../Common/Util/Charset.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Unicode.h"
-#include "../Common/Util/Parsing/AddresslistParser.h"
+#include "IMAPAddressList.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/BO/ACLPermission.h"
 
@@ -79,6 +81,11 @@ namespace HM
 
             return parseResult;
          }
+
+         // RFC 7162 section 3.1: MODSEQ and CHANGEDSINCE enable CONDSTORE, and the
+         // first enabling command reports HIGHESTMODSEQ before any FETCH line.
+         if (parser_->GetShowModSeq() || parser_->GetHasChangedSince())
+            pConnection->OnCondstoreEnablingCommand();
       }
 
       // RFC 7162 (CONDSTORE): with a CHANGEDSINCE modifier, only return messages whose
@@ -99,6 +106,28 @@ namespace HM
 
       if (willReadMessageFile)
       {
+         // A file that is not there may belong to a message another session
+         // has expunged since this command resolved it - the deleting session
+         // removes the row and the file together. EnsureFileExistance would
+         // then write a "file missing" placeholder and save the row again for
+         // a message that no longer exists: the HM5026 errors of the lab's
+         // imaptest load, several clients working on one mailbox. Such a
+         // message is left out, like one expunged before the command began,
+         // and this session hears of the expunge at its next opportunity
+         // (RFC 2180 4.1.3). Asked only when the file is missing, so the
+         // ordinary FETCH pays nothing for it.
+         std::shared_ptr<IMAPFolder> pFolder = pConnection->GetCurrentFolder();
+
+         if (pFolder && !MessageStore::Exists(messageFileName) &&
+             !pFolder->GetMessages()->GetItemByDBID((unsigned __int64) pMessage->GetID()))
+         {
+            std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
+            if (view)
+               view->MarkVanished(pMessage->GetID());
+
+            return IMAPResult();
+         }
+
          // Ensure that the data file exists.
          // The folder's owner, not the reader - same reason as the path built
          // above. Asking under the reader's directory would find nothing and
@@ -123,6 +152,22 @@ namespace HM
       }
 
       MimeHeader oMimeHeader;
+
+      // Whether this FETCH sets \Seen (a non-PEEK BODY[], RFC822, RFC822.TEXT
+      // ...). Decided before anything is written, so that a FLAGS item in the
+      // same response already shows it, and so that a response without one can
+      // carry it (RFC 3501 6.4.5: "if this causes the flags to change, they
+      // SHOULD be included as part of the FETCH responses"). The flag itself is
+      // still stored at the end, once the data has gone out.
+      bool seenWillBeSet = false;
+      if (parser_->GetSetSeenFlag() && !pConnection->GetCurrentFolderReadOnly() && !pMessage->GetFlagSeen())
+         seenWillBeSet = pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionWriteSeen);
+
+      // RFC 3501 7.2.6: a keyword is announced in an untagged FLAGS before a
+      // FETCH uses it. Done here, before any of this response is written - an
+      // untagged FLAGS in the middle of a FETCH response would break it.
+      if (parser_->GetShowFlags() || seenWillBeSet)
+         pConnection->AnnounceKeywords(pMessage->GetKeywordList());
 
       // Time to output this...
       String sOutput;
@@ -155,46 +200,7 @@ namespace HM
       }
 
       if (parser_->GetShowFlags())
-      {
-         String sTemp = "FLAGS (";
-
-         std::set<String> setFlags;
-         
-         if (pMessage->GetFlagSeen())
-            setFlags.insert("Seen");
-         if (pMessage->GetFlagDeleted())
-            setFlags.insert("Deleted");
-         if (pMessage->GetFlagFlagged())
-            setFlags.insert("Flagged");
-         if (pMessage->GetFlagDraft())
-            setFlags.insert("Draft");
-         if (pMessage->GetFlagAnswered())
-            setFlags.insert("Answered");
-            
-         auto iter = setFlags.begin();
-         auto iterEnd = setFlags.end();
-
-         for (; iter != iterEnd; iter++)
-         {
-            if (iter != setFlags.begin())
-               sTemp += " ";
-
-            sTemp += "\\" + (*iter);
-         }
-
-         // The keywords after the system flags, as stored.
-         std::vector<String> keywords = pMessage->GetKeywordList();
-         for (size_t i = 0; i < keywords.size(); i++)
-         {
-            if (!setFlags.empty() || i > 0)
-               sTemp += " ";
-            sTemp += keywords[i];
-         }
-
-         sTemp += ")";
-
-         AppendOutput_(sOutput, sTemp);
-      }
+         AppendOutput_(sOutput, CreateFlagsItem_(pMessage, seenWillBeSet));
 
 
       if (parser_->GetShowInternalDate())
@@ -420,28 +426,72 @@ namespace HM
          }
       }
      
-      if (parser_->GetSetSeenFlag() && !pConnection->GetCurrentFolderReadOnly())
+      if (seenWillBeSet)
       {
-         // Check if ther user has access to set the Seen flag, otherwise 
-         bool bMayChangeSeen = pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionWriteSeen);
-
          // Since the user has looked at the email, we should set the Seen flag.
-         if (bMayChangeSeen && !pMessage->GetFlagSeen())
-         {  
-            // Update seen flag in the cached copy of the message...
-            pMessage->SetFlagSeen(true);
+         // Update seen flag in the cached copy of the message...
+         pMessage->SetFlagSeen(true);
 
-            Application::Instance()->GetFolderManager()->UpdateMessageFlags(
-               (int) pConnection->GetCurrentFolder()->GetAccountID(), 
-               (int) pConnection->GetCurrentFolder()->GetID(),
-               pMessage->GetID(), pMessage->GetFlags());
-         }
+         Application::Instance()->GetFolderManager()->UpdateMessageFlags(
+            (int) pConnection->GetCurrentFolder()->GetAccountID(),
+            (int) pConnection->GetCurrentFolder()->GetID(),
+            pMessage->GetID(), pMessage->GetFlags());
+
+         // The change is part of this response when the client did not ask for
+         // FLAGS itself (RFC 3501 6.4.5), as imaptest and Dovecot expect.
+         if (!parser_->GetShowFlags())
+            AppendOutput_(sOutput, CreateFlagsItem_(pMessage, true));
       }
 
       sOutput += ")\r\n";
       SendAndReset_(pConnection, sOutput);
 
       return IMAPResult();
+   }
+
+   String
+   IMAPFetch::CreateFlagsItem_(std::shared_ptr<Message> pMessage, bool includeSeen)
+   {
+      String sTemp = "FLAGS (";
+
+      std::set<String> setFlags;
+
+      if (pMessage->GetFlagSeen() || includeSeen)
+         setFlags.insert("Seen");
+      if (pMessage->GetFlagDeleted())
+         setFlags.insert("Deleted");
+      if (pMessage->GetFlagFlagged())
+         setFlags.insert("Flagged");
+      if (pMessage->GetFlagDraft())
+         setFlags.insert("Draft");
+      if (pMessage->GetFlagAnswered())
+         setFlags.insert("Answered");
+
+      auto iter = setFlags.begin();
+      auto iterEnd = setFlags.end();
+
+      for (; iter != iterEnd; iter++)
+      {
+         if (iter != setFlags.begin())
+            sTemp += " ";
+
+         sTemp += "\\" + (*iter);
+      }
+
+      // The keywords after the system flags, as stored. DoAction has announced
+      // them to this session already.
+      std::vector<String> keywords = pMessage->GetKeywordList();
+
+      for (size_t i = 0; i < keywords.size(); i++)
+      {
+         if (!setFlags.empty() || i > 0)
+            sTemp += " ";
+         sTemp += keywords[i];
+      }
+
+      sTemp += ")";
+
+      return sTemp;
    }
 
    void
@@ -620,18 +670,11 @@ namespace HM
          if (pBinaryPart->IsEncapsulatedRFC822Message())
          {
             // The "content" of a message/rfc822 part is the whole inner message,
-            // headers and all - Store with headers, as BODY[N] does.
-            try
-            {
-               std::shared_ptr<MimeBody> pEncapsulated = pBinaryPart->LoadEncapsulatedMessage();
-               pEncapsulated->Store(content, true);
-            }
-            catch (...)
-            {
-               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5060, "IMAPFetch::GetByteBufferByBodyPart_",
-                  "Error loading encapsulated message for a BINARY fetch.");
-               return pOutBuf;
-            }
+            // headers and all: the part's own bytes, as BODY[N] serves them. It
+            // was the inner message parsed and written out again, which dropped
+            // a multipart's epilogue - BINARY.SIZE[2] came out 19 octets short in
+            // imaptest's fetch-binary-mime.
+            content = pBinaryPart->GetContent();
          }
          else if (pBinaryPart->IsMultiPart())
          {
@@ -694,18 +737,11 @@ namespace HM
          if (pBodyPart->IsEncapsulatedRFC822Message())
          {
             // BODY[2] on message/rfc822: the "body" of this MIME entity is the full
-            // inner RFC2822 message. Load it and Store with headers=true so the inner
-            // message's RFC2822 headers (From, Subject, etc.) are included.
-            try
-            {
-               pBodyPart = pBodyPart->LoadEncapsulatedMessage();
-               pBodyPart->Store(body, true);
-            }
-            catch (...)
-            {
-               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5060, "IMAPFetch::GetByteBufferByBodyPart_", "Error loading encapsulated message for BODY[N] fetch.");
-               return pOutBuf;
-            }
+            // inner RFC2822 message, headers included - which is exactly the
+            // part's content, byte for byte. It used to be the inner message
+            // loaded and stored again, so a multipart inside lost its epilogue
+            // and the section came back shorter than BODYSTRUCTURE said it was.
+            body = pBodyPart->GetContent();
          }
          else
          {
@@ -715,6 +751,42 @@ namespace HM
          GetBytesToSend_(body.GetLength(), oPart, iByteStart, iByteCount);
          pOutBuf->Add((BYTE*) body.GetBuffer() + iByteStart, iByteCount);
          return pOutBuf;
+      }
+
+      // BODY[TEXT] and BODY[HEADER] of the message itself - and RFC822.TEXT and
+      // RFC822.HEADER, which are the same sections - are served from the file,
+      // the source BODY[] is served from: the header up to and including its
+      // blank line, and every byte after it. They were rebuilt from the parsed
+      // MIME tree, which is not the message. A multipart's text lost its
+      // epilogue and had its boundary lines spelt afresh, and the header came
+      // back with its folded fields unfolded - so HEADER and TEXT no longer
+      // added up to BODY[] and RFC822.SIZE, and a client comparing them
+      // (imaptest's fetch-body tests) was handed a different message.
+      if (oPart.GetName().IsEmpty() && (oPart.GetShowBodyText() || oPart.GetShowBodyHeader()))
+      {
+         AnsiString message;
+         if (!MessageStore::ReadAll(messageFileName, message))
+            return pOutBuf;
+
+         const std::string &bytes = message;
+         return RawSection_(bytes.data(), bytes.size(), oPart.GetShowBodyHeader(), oPart.GetShowBodyText(), oPart);
+      }
+
+      // The same for a message/rfc822 part: its HEADER and TEXT (RFC 3501
+      // 6.4.5, "BODY[1.TEXT]") come from the encapsulated message's own bytes,
+      // which are the part's content, rather than from the inner message parsed
+      // and written out again - that lost a multipart's epilogue and respelt its
+      // boundary lines.
+      if (!oPart.GetName().IsEmpty() && (oPart.GetShowBodyText() || oPart.GetShowBodyHeader()))
+      {
+         std::shared_ptr<MimeBody> pNamedPart = GetBodyPartByRecursiveIdentifier_(pBodyPart, oPart.GetName(), false);
+
+         if (pNamedPart && pNamedPart->IsEncapsulatedRFC822Message())
+         {
+            const AnsiString &content = pNamedPart->GetContent();
+            const std::string &bytes = content;
+            return RawSection_(bytes.data(), bytes.size(), oPart.GetShowBodyHeader(), oPart.GetShowBodyText(), oPart);
+         }
       }
 
       // First make sure that we got the right part of it.
@@ -938,19 +1010,27 @@ namespace HM
    String
    IMAPFetch::CreateEnvelopeStructure_(MimeHeader& oHeader)
    {
-      // BEGIN ENVELOPE
+      // RFC 3501 7.4.2. Every member is an nstring or an address list, and a
+      // header that is absent is NIL - not "", which says the header is there
+      // and empty. The Subject and Date were always sent quoted, "" when the
+      // message had none, which a client then showed as an empty subject
+      // rather than as a message with no subject.
       String sResult;
       sResult += "(";
-      
+
       MimeField *pField = 0;
 
       {  // BEGIN DATE
-         
+
          pField = oHeader.GetField("Date");
-         String sDate;
-         if (pField)
+
+         if (!pField)
          {
-            sDate = pField->GetValue();
+            sResult += "NIL";
+         }
+         else
+         {
+            String sDate = pField->GetValue();
 
             // Time for some ugly code. Outlook Express 6.0
             // doesn't seem to base64-decode the Date-part
@@ -968,116 +1048,49 @@ namespace HM
             int iStartPara = sDate.Find(_T("("));
             if (iStartPara >= 0)
                sDate = sDate.Mid(0, iStartPara-1);
-      
+
             // Make sure no quotes are included in the date.
 
             sDate.Replace(_T("\""), _T(""));
 
             sDate = Charset::Encode(sDate);
 
-            
+            sResult += "\"" + sDate + "\"";
          }
-
-         sResult += "\"" + sDate + "\"";
       }  // END DATE
 
       {  // BEGIN SUBJECT
 
          pField = oHeader.GetField("Subject");
-         String sSubject;
-         if (pField)
-            sSubject = Charset::GetIMAPEncoded(pField->GetValue());
 
-         sResult += " \"" + sSubject +"\"";
+         if (!pField)
+            sResult += " NIL";
+         else
+            sResult += " \"" + Charset::GetIMAPEncoded(pField->GetValue()) + "\"";
+
       }  //END SUBJECT
 
-      {  // BEGIN FROM
-         pField = oHeader.GetField("From");
-         String sFrom;
-         if (pField)
-            sFrom = pField->GetValue();
+      // The address members. "If the Sender or Reply-To lines are absent in the
+      // [RFC-2822] header, or are present but empty, the server sets the
+      // corresponding member of the envelope to be the same value as the from
+      // member" (RFC 3501 7.4.2) - present but empty included, which the code
+      // before this missed: "Sender:" with nothing after it was sent as NIL.
+      String sFrom = CreateAddressListStructure_(oHeader, "From");
 
-         if (sFrom.IsEmpty())
-            sResult += " NIL";
-         else
-            sResult += " " + CreateEmailStructure_(sFrom);
-      }  //END FROM
+      String sSender = CreateAddressListStructure_(oHeader, "Sender");
+      if (sSender == _T("NIL"))
+         sSender = sFrom;
 
-      {  // BEGIN SENDER
-         pField = oHeader.GetField("Sender");
-         if (!pField)
-            pField = oHeader.GetField("From");
+      String sReplyTo = CreateAddressListStructure_(oHeader, "Reply-To");
+      if (sReplyTo == _T("NIL"))
+         sReplyTo = sFrom;
 
-         String sSender;
-         if (pField)
-            sSender = pField->GetValue();
-
-         if (sSender.IsEmpty())
-            sResult += " NIL";
-         else
-            sResult += " " + CreateEmailStructure_(sSender);
-      }  //END SENDER
-
-      {  // BEGIN REPLY-TO
-
-         String sReplyTo;
-
-         pField = oHeader.GetField("Reply-To");
-         if (!pField)
-            pField = oHeader.GetField("From");
-         
-         if (pField)
-            sReplyTo = pField->GetValue();
-          
-         if (sReplyTo.IsEmpty())
-            sResult += " NIL";
-         else
-            sResult += " " + CreateEmailStructure_(sReplyTo);
-
-      }  //END REPLY-TO
-
-      {  // BEGIN TO
-         String sTo;
-
-         pField = oHeader.GetField("To");
-         if (pField)
-            sTo = pField->GetValue();
-
-         if (sTo.IsEmpty())
-            sResult += " NIL";
-         else 
-            sResult += " " +  CreateEmailStructure_(sTo);
-
-      }  //END TO
-
-      {  // BEGIN CC
-         
-         String sCC;
-
-         pField = oHeader.GetField("CC");
-         if (pField)
-            sCC = pField->GetValue();
-
-         if (sCC.IsEmpty())
-            sResult += " NIL";
-         else         
-            sResult += " " + CreateEmailStructure_(sCC);
-
-      }  //END CC
-
-      {  // BEGIN BCC
-         String sBCC;
-
-         pField = oHeader.GetField("BCC");
-         if (pField)
-            sBCC = pField->GetValue();
-
-         if (sBCC.IsEmpty())
-            sResult += " NIL";
-         else
-            sResult += " " + CreateEmailStructure_(sBCC);
-
-      }  //END BCC
+      sResult += " " + sFrom;
+      sResult += " " + sSender;
+      sResult += " " + sReplyTo;
+      sResult += " " + CreateAddressListStructure_(oHeader, "To");
+      sResult += " " + CreateAddressListStructure_(oHeader, "CC");
+      sResult += " " + CreateAddressListStructure_(oHeader, "BCC");
 
       {  // BEGIN IN-REPLY-TO
          String sInReplyTo;
@@ -1111,8 +1124,169 @@ namespace HM
       sResult += ")";
 
       return sResult;
+   }
 
+   String
+   IMAPFetch::CreateAddressListStructure_(MimeHeader& oHeader, const char *fieldName)
+   {
+      MimeField *pField = oHeader.GetField(fieldName);
+      if (!pField)
+         return _T("NIL");
 
+      std::vector<IMAPAddress> addresses = IMAPAddressList::Parse(pField->GetValue());
+      if (addresses.empty())
+         return _T("NIL");
+
+      // "(" 1*address ")" - the addresses follow each other with no space
+      // between them, as the grammar has it.
+      String sResult = _T("(");
+
+      for (const IMAPAddress &address : addresses)
+      {
+         if (address.kind == IMAPAddress::KindGroupEnd)
+         {
+            sResult += _T("(NIL NIL NIL NIL)");
+            continue;
+         }
+
+         if (address.kind == IMAPAddress::KindGroupStart)
+         {
+            sResult += _T("(NIL NIL ") + EnvelopeString_(address.mailbox) + _T(" NIL)");
+            continue;
+         }
+
+         // (name route mailbox host). The name is NIL when the address has
+         // none - it used to be the address itself, which made every client
+         // show "user@example.com <user@example.com>" for a bare address.
+         sResult += _T("(") + EnvelopeNString_(address.personal_name) + _T(" ") +
+                    EnvelopeNString_(address.route) + _T(" ") +
+                    EnvelopeString_(address.mailbox) + _T(" ") +
+                    EnvelopeString_(address.host) + _T(")");
+      }
+
+      sResult += _T(")");
+
+      return sResult;
+   }
+
+   String
+   IMAPFetch::EnvelopeString_(const AnsiString &value)
+   {
+      // Printable US-ASCII goes as an IMAP quoted string, its quote and
+      // backslash characters escaped (RFC 3501 4.3) - a quoted local part such
+      // as "john doe"@x keeps its quotes that way. Anything else is encoded as
+      // the other envelope strings are.
+      // Indexed through c_str(): AnsiString's operator[] is ambiguous with a
+      // size_t on clang.
+      const char *data = value.c_str();
+      const size_t length = value.size();
+
+      bool printableAscii = true;
+      for (size_t i = 0; i < length; i++)
+      {
+         const unsigned char c = (unsigned char) data[i];
+         if (c < 0x20 || c > 0x7E)
+         {
+            printableAscii = false;
+            break;
+         }
+      }
+
+      if (!printableAscii)
+         return _T("\"") + Charset::GetIMAPEncoded(String(value.c_str())) + _T("\"");
+
+      String quoted = _T("\"");
+      for (size_t i = 0; i < length; i++)
+      {
+         const char c = data[i];
+         if (c == '"' || c == '\\')
+            quoted += _T("\\");
+         quoted += (wchar_t) (unsigned char) c;
+      }
+      quoted += _T("\"");
+
+      return quoted;
+   }
+
+   String
+   IMAPFetch::EnvelopeNString_(const AnsiString &value)
+   {
+      if (value.IsEmpty())
+         return _T("NIL");
+
+      return EnvelopeString_(value);
+   }
+
+   size_t
+   IMAPFetch::TextStartOf_(const char *data, size_t size)
+   {
+      if (size >= 2 && data[0] == '\r' && data[1] == '\n')
+         return 2;
+
+      for (size_t i = 0; i + 3 < size; i++)
+      {
+         if (data[i] == '\r' && data[i + 1] == '\n' && data[i + 2] == '\r' && data[i + 3] == '\n')
+            return i + 4;
+      }
+
+      return size;
+   }
+
+   std::shared_ptr<ByteBuffer>
+   IMAPFetch::RawSection_(const char *data, size_t size, bool header, bool text, IMAPFetchParser::BodyPart &oPart)
+   {
+      std::shared_ptr<ByteBuffer> pOutBuf = std::shared_ptr<ByteBuffer>(new ByteBuffer);
+
+      const size_t textStart = TextStartOf_(data, size);
+
+      const char *sectionStart = data;
+      size_t sectionLength = size;
+
+      if (text)
+      {
+         sectionStart = data + textStart;
+         sectionLength = size - textStart;
+      }
+      else if (header)
+      {
+         sectionLength = textStart;
+      }
+
+      int iSectionStart = 0;
+      int iSectionCount = 0;
+      GetBytesToSend_((int) sectionLength, oPart, iSectionStart, iSectionCount);
+
+      if (iSectionCount > 0)
+         pOutBuf->Add((const BYTE*) sectionStart + iSectionStart, iSectionCount);
+
+      return pOutBuf;
+   }
+
+   long
+   IMAPFetch::CountTextLines_(const AnsiString &content)
+   {
+      // A line is what a line break ends, and a last line without one still
+      // counts: "hello\r\n" is one line, as is "hello", and nothing is none.
+      // "Number of line breaks plus one" said two for the first, so every
+      // text part and every message/rfc822 part was reported a line longer
+      // than it is.
+      const size_t length = content.size();
+      if (length == 0)
+         return 0;
+
+      const char *data = content.c_str();
+
+      long lines = 0;
+      for (size_t i = 0; i < length; i++)
+      {
+         if (data[i] == '\n')
+            lines++;
+      }
+
+      if (data[length - 1] != '\n')
+         lines++;
+
+      return lines;
    }
 
    String
@@ -1192,12 +1366,14 @@ namespace HM
          sBodyParams.Format(_T("(\"CHARSET\" \"%s\")"), sCharset.c_str());
       }
       
-      // Make sure that the subject is encoded. If the subject isn't
-      // encoded, and it contains a ", it will not be parsed properly.
-      MimeField *pField = oPart->GetField("Subject");
-      String sSubject;
+      // body-fld-desc is the part's Content-Description (RFC 3501 7.4.2). It
+      // was the part's Subject, so a single-part message - whose part header
+      // is the message header - reported its own subject as its description.
+      // Encoded as the envelope's strings are: a quote would otherwise end it.
+      MimeField *pField = oPart->GetField(CMimeConst::ContentDescription());
+      String sDescription;
       if (pField)
-         sSubject = Charset::GetIMAPEncoded(pField->GetValue());
+         sDescription = Charset::GetIMAPEncoded(pField->GetValue());
 
       String sEncoding = oPart->GetTransferEncoding();
       String sContentID = oPart->GetRawFieldValue("Content-ID");
@@ -1216,10 +1392,10 @@ namespace HM
       else
          sResult += " \"" + sContentID + "\"";
       
-      if (sSubject.IsEmpty())
+      if (sDescription.IsEmpty())
          sResult += " NIL";
       else
-         sResult += " \"" + sSubject + "\"";
+         sResult += " \"" + sDescription + "\"";
 
       // RFC 3501 states 7bit should have quotes
       // Missing quotes around 7bit causes problems with Thunderbird
@@ -1251,9 +1427,9 @@ namespace HM
             String sEnvelope = CreateEnvelopeStructure_(oHeader);
             String sBodyStructure = IteratePartRecursive_(pBody, includeExtensionData, iRecursion);
 
-            AnsiString contentString = (const char*) pBody->GetContent();
-
-            long lLines = contentString.NumberOf("\n") + 1;
+            // The lines of the encapsulated message - header and body, which is
+            // this part's own content - not of the inner message's body alone.
+            long lLines = CountTextLines_(oPart->GetContent());
 
             String sLines;
             sLines.Format(_T("%d"), lLines);
@@ -1283,8 +1459,7 @@ namespace HM
          size after any decoding.
          */
 
-         AnsiString sData = (const char*) oPart->GetContent();
-         long lLines = sData.NumberOf("\n") + 1;
+         long lLines = CountTextLines_(oPart->GetContent());
 
          String sTemp;
          sTemp.Format(_T(" %d"), lLines);
@@ -1314,68 +1489,6 @@ namespace HM
       return sResult;
    }
    
-   String 
-   IMAPFetch::CreateEmailStructure_(const String &sField)
-   {
-      // The input will (hopefully) look like this:
-      // "Christopher Holloway" <chris.holloway@progressiverobot.com>
-      // The output should look like:
-      // ((\"personal name\" NIL \"ey\" \"\"))
-      // 
-
-      if (sField.IsEmpty())
-      {
-         return "(\"\" NIL \"\" \"\")";
-      }
-
-      String sResult = "(";
-
-      // First remove the newline characters.
-      
-      std::shared_ptr<AddresslistParser> pParser = std::shared_ptr<AddresslistParser>(new AddresslistParser());
-      std::vector<std::shared_ptr<Address> > vecAddresses = pParser->ParseList(sField);
-      auto iterElement = vecAddresses.begin();
-
-      while (iterElement != vecAddresses.end())
-      {
-         String sName = (*iterElement)->sPersonalName;
-         String sMailboxName = (*iterElement)->sMailboxName;
-         String sDomainName = (*iterElement)->sDomainName;
-
-         String sThisAddress;
-
-         if (sName.IsEmpty() && sMailboxName.IsEmpty() && sDomainName.IsEmpty())
-         {
-            sThisAddress = "NIL";
-            if (vecAddresses.size() == 1)
-            {
-               // Empty address specified. Strange, but according to RFC.
-               return sThisAddress;
-            }
-
-         }
-         else
-         {
-            String sOutName = Charset::GetIMAPEncoded(sName);
-            String sOutMailboxName = Charset::GetIMAPEncoded(sMailboxName);
-            String sOutDomainName = Charset::GetIMAPEncoded(sDomainName);
-
-            sThisAddress.Format(_T("(\"%s\" NIL \"%s\" \"%s\")"), sOutName.c_str(), sOutMailboxName.c_str(), sOutDomainName.c_str());
-         }
-
-         if (sResult.GetLength() > 1)
-            sResult += " ";
-
-         sResult += sThisAddress;
-
-         iterElement++;
-      }
-
-      sResult += ")";
-
-      return sResult;
-
-   }
 
    std::shared_ptr<MimeBody> 
    IMAPFetch::LoadMimeBody_(std::shared_ptr<IMAPFetchParser> pParser, const String &fileName)
@@ -1462,6 +1575,14 @@ namespace HM
          {
             // If we're loading something else than the first main part.
             return true;
+         }
+
+         if (oBodyPart.GetShowBodyText() || oBodyPart.GetShowBodyHeader())
+         {
+            // The message's own TEXT and HEADER are read from the file as BODY[]
+            // is (GetByteBufferByBodyPart_), so a parse would be spent for
+            // nothing - once per chunk for a client that fetches in pieces.
+            return false;
          }
 
          if (oBodyPart.GetShowBodyFull())

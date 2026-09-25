@@ -75,6 +75,9 @@ namespace HM
       if (pParser->ParamCount() < 1)
          return IMAPResult(IMAPResult::ResultBad, "EXAMINE Command requires at least 1 parameter.");
 
+      // RFC 3501 6.3.2, as SELECT: a failed EXAMINE leaves no mailbox selected.
+      pConnection->CloseCurrentFolder();
+
       // Fetch the folder
       String sFolderName = pParser->GetParamValue(pArgument, 0);
       std::shared_ptr<IMAPFolder> pSelectedFolder = pConnection->GetFolderByFullPath(sFolderName);
@@ -84,21 +87,19 @@ namespace HM
          // Also the answer for a shared ("#Users") path the caller lacks the
          // lookup right on: resolution refuses those before this command sees a
          // folder, so "no rights" and "no such folder" are indistinguishable.
-         return IMAPResult(IMAPResult::ResultBad, "Folder could not be found.");
+         //
+         // NO, not BAD - as SELECT (RFC 3501 6.3.2 answers a failed EXAMINE
+         // with NO; BAD is for a malformed command).
+         return IMAPResult(IMAPResult::ResultNo, "Folder could not be found.");
       }
 
       if (!pConnection->CheckPermission(pSelectedFolder, ACLPermission::PermissionRead))
       {
          // RFC 4314: a mailbox the user may look up but not read fails with NO.
          // Delegated folders only resolve at all with the lookup right, so their
-         // existence is not a secret on this branch.
-         bool bIsDelegatedFolder = pSelectedFolder->GetAccountID() != 0 &&
-                                   pSelectedFolder->GetAccountID() != pConnection->GetAccount()->GetID();
-
-         if (bIsDelegatedFolder)
-            return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for EXAMINE command).");
-
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Read permission denied (Required for EXAMINE command).");
+         // existence is not a secret on this branch. A public folder is refused
+         // the same way; it was refused BAD.
+         return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for EXAMINE command).");
       }
 
       // Close the previously selected folder before loading this one, so that
@@ -134,6 +135,7 @@ namespace HM
       // RFC 3501: FLAGS lists the flags a message in the mailbox may carry -
       // the five system flags and every keyword any message here has.
       String sKeywordsInUse;
+      std::vector<String> keywordsInUse;
       {
          std::set<String> seenLowered;
          for (int i = 0; messages && i < messages->GetCount(); i++)
@@ -147,11 +149,18 @@ namespace HM
                String lowered = list[k];
                lowered.ToLower();
                if (seenLowered.insert(lowered).second)
+               {
                   sKeywordsInUse += _T(" ") + list[k];
+                  keywordsInUse.push_back(list[k]);
+               }
             }
          }
       }
       sResponse += _T("* FLAGS (\\Deleted \\Seen \\Draft \\Answered \\Flagged") + sKeywordsInUse + _T(")\r\n");
+
+      // What this session has now been told the mailbox's keywords are; one
+      // created later is announced before a FETCH first carries it.
+      pConnection->SetAnnouncedKeywords(keywordsInUse);
 
       sRespTemp.Format(_T("* OK [UIDVALIDITY %d] current uidvalidity\r\n"), pSelectedFolder->GetCreationTime().ToInt());
       sResponse += sRespTemp;

@@ -682,6 +682,7 @@
     <Compile Include="IMAP\Fetch.cs" />
     <Compile Include="IMAP\PartialFetchChunking.cs" />
     <Compile Include="IMAP\SequenceSets.cs" />
+    <Compile Include="IMAP\ImapTestCompliance.cs" />
     <Compile Include="SMTP\AbortedTransfers.cs" />
     <Compile Include="SMTP\RecipientVerification.cs" />
     <Compile Include="Infrastructure\AbortedSessions.cs" />

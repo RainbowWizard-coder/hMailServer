@@ -56,9 +56,11 @@ namespace HM
 
       String sIdentifier = pParser->Word(2)->Value();
       
+      // NO, not BAD: a mailbox that does not exist is a well-formed command the
+      // server declines (RFC 3501 7.1.2); BAD is for one it cannot parse.
       std::shared_ptr<IMAPFolder> pFolder = pConnection->GetFolderByFullPath(sFolderName);
       if (!pFolder)
-         return IMAPResult(IMAPResult::ResultBad, "Folder could not be found.");
+         return IMAPResult(IMAPResult::ResultNo, "Folder could not be found.");
 
       // Check if the user has access to delete ACL for this folder
       if (!pConnection->CheckPermission(pFolder, ACLPermission::PermissionAdminister))

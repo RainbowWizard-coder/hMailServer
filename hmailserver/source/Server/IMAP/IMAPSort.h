@@ -41,9 +41,6 @@ namespace HM
 
    private:
 
-      bool CacheHeaderFields_(std::shared_ptr<IMAPConnection> pConnection, const std::vector<std::pair<int, std::shared_ptr<Message> > > &vecMessages, const std::map<__int64, String > &databaseMetaData, SortField &sortField, std::map<__int64, String> &mapHeaderFields,
-                              const std::function<bool()> &abortRequested);
-
       SortField GetSortField_(AnsiString sHeaderField);
    };
 }

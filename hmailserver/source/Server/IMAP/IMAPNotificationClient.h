@@ -10,6 +10,7 @@ namespace HM
 {
    class IMAPConnection;
    class ChangeNotification;
+   class Messages;
 
    class IMAPNotificationClient : public NotificationClient,
                                   public std::enable_shared_from_this<IMAPNotificationClient>
@@ -38,6 +39,9 @@ namespace HM
       void UnsubscribeMessageChanges();
 
    private:
+
+      // Takes, for this session, the \Recent of the messages that just arrived.
+      static void ClaimRecentMessages_(std::shared_ptr<IMAPConnection> connection, std::shared_ptr<Messages> pMessages);
 
       void CacheChangeNotification_(std::shared_ptr<ChangeNotification> pChangeNotification);
       void SendChangeNotification_(std::shared_ptr<ChangeNotification> pChangeNotification);

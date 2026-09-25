@@ -78,9 +78,20 @@ namespace HM
       if (pParser->ParamCount() < 1)
          return IMAPResult(IMAPResult::ResultBad, "SELECT Command requires at least 1 parameter.");
 
+      // NO rather than BAD for every refusal below: BAD says the command itself
+      // was malformed (RFC 3501 7.1.3), and a mailbox that does not exist, cannot
+      // be selected or may not be read is a well-formed command the server
+      // declines - "NO - select failure, now in authenticated state: no such
+      // mailbox, can't access mailbox" (6.3.1; RFC 9051 6.3.2; RFC 4314 4).
+      // imaptest's first run stopped on the BAD for a missing mailbox.
+      // RFC 3501 6.3.1: "If the client is permitted to modify the mailbox ...
+      // a failed SELECT" leaves the session in the authenticated state - the
+      // mailbox selected before is closed whether this one opens or not.
+      pConnection->CloseCurrentFolder();
+
       String sFolderName = pParser->GetParamValue(pArgument, 0);
       if (sFolderName == Configuration::Instance()->GetIMAPConfiguration()->GetIMAPPublicFolderName())
-         return IMAPResult(IMAPResult::ResultBad, "SELECT Only sub folders of the root shared folder can be selected.");
+         return IMAPResult(IMAPResult::ResultNo, "SELECT Only sub folders of the root shared folder can be selected.");
 
       std::shared_ptr<IMAPFolder> pSelectedFolder = pConnection->GetFolderByFullPath(sFolderName);
       if (!pSelectedFolder)
@@ -89,7 +100,7 @@ namespace HM
          // caller lacks the lookup right on: resolution refuses those before
          // this command ever sees a folder, so "no rights" and "no such folder"
          // are indistinguishable here by construction.
-         return IMAPResult(IMAPResult::ResultBad, "Folder could not be found.");
+         return IMAPResult(IMAPResult::ResultNo, "Folder could not be found.");
       }
 
       // A folder that belongs to another account - reached through the "#Users"
@@ -106,11 +117,9 @@ namespace HM
       {
          // RFC 4314: for a mailbox the user may look up but not read, SELECT
          // fails with NO. The folder's existence is not a secret at this point -
-         // the lookup right already made it visible in LIST.
-         if (bIsDelegatedFolder)
-            return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for SELECT command).");
-
-         return IMAPResult(IMAPResult::ResultBad, "ACL: Read permission denied (Required for SELECT command).");
+         // the lookup right already made it visible in LIST. A public folder is
+         // refused the same way; it was refused BAD.
+         return IMAPResult(IMAPResult::ResultNo, "ACL: Read permission denied (Required for SELECT command).");
       }
 
       // Close the previously selected folder before loading this one, so that
@@ -147,6 +156,7 @@ namespace HM
       // RFC 3501: FLAGS lists the flags a message in the mailbox may carry -
       // the five system flags and every keyword any message here has.
       String sKeywordsInUse;
+      std::vector<String> keywordsInUse;
       {
          std::set<String> seenLowered;
          for (int i = 0; messages && i < messages->GetCount(); i++)
@@ -160,11 +170,18 @@ namespace HM
                String lowered = list[k];
                lowered.ToLower();
                if (seenLowered.insert(lowered).second)
+               {
                   sKeywordsInUse += _T(" ") + list[k];
+                  keywordsInUse.push_back(list[k]);
+               }
             }
          }
       }
       sResponse += _T("* FLAGS (\\Deleted \\Seen \\Draft \\Answered \\Flagged") + sKeywordsInUse + _T(")\r\n");
+
+      // What this session has now been told the mailbox's keywords are; one
+      // created later is announced before a FETCH first carries it.
+      pConnection->SetAnnouncedKeywords(keywordsInUse);
 
       sRespTemp.Format(_T("* OK [UIDVALIDITY %d] current uidvalidity\r\n"), pSelectedFolder->GetCreationTime().ToInt());
       sResponse += sRespTemp;

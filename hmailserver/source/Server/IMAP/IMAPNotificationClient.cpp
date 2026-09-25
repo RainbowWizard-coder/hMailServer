@@ -181,6 +181,8 @@ namespace HM
                if (view)
                   view->AppendNewMessages(pMessages);
 
+               ClaimRecentMessages_(connection, pMessages);
+
                lastExists = view ? view->GetMessageCount() : pMessages->GetCount();
                lastRecent = (int)connection->GetRecentMessageCount();
                break;
@@ -284,6 +286,8 @@ namespace HM
             if (view)
                view->AppendNewMessages(pMessages);
 
+            ClaimRecentMessages_(connection, pMessages);
+
             SendEXISTS_(view ? view->GetMessageCount() : pMessages->GetCount());
             SendRECENT_((int)connection->GetRecentMessageCount());
             break;
@@ -315,6 +319,23 @@ namespace HM
             break;
          }
       }
+   }
+
+   void
+   IMAPNotificationClient::ClaimRecentMessages_(std::shared_ptr<IMAPConnection> connection, std::shared_ptr<Messages> pMessages)
+   {
+      // RFC 3501 2.3.2: a message is \Recent to "the first session to have been
+      // notified about this message", and a session with the mailbox selected is
+      // notified here. Only SELECT used to claim new messages, so a session that
+      // already had the mailbox open when mail arrived - by delivery, or a COPY
+      // from another session - answered "* 0 RECENT" for it, and the session
+      // that selected the mailbox next was told the message was recent instead.
+      // A read-only session (EXAMINE) claims nothing, as its SELECT does not.
+      if (connection->GetCurrentFolderReadOnly())
+         return;
+
+      for (__int64 messageId : pMessages->ClaimRecentMessageIDs())
+         connection->AddRecentMessage(messageId);
    }
 
    String
@@ -395,6 +416,10 @@ namespace HM
 
          if (!pMessage)
             continue;
+
+         // A keyword another session set may be new to this one: it is announced
+         // in an untagged FLAGS before the FETCH that carries it (RFC 3501 7.2.6).
+         connection->AnnounceKeywords(pMessage->GetKeywordList());
 
          connection->SendAsciiData(IMAPStore::GetMessageFlags(pMessage, sequence, connection->GetCondstoreEnabled()));
       }

@@ -5,9 +5,11 @@
 #include "stdafx.h"
 #include "IMAPStore.h"
 #include "IMAPConnection.h"
+#include "IMAPFolderView.h"
 
 #include "../Common/Application/FolderManager.h"
 #include "../Common/BO/Message.h"
+#include "../Common/BO/Messages.h"
 #include "../Common/BO/IMAPFolder.h"
 #include "../Common/BO/ACLPermission.h"
 #include "../Common/Sieve/SieveParser.h"
@@ -48,7 +50,13 @@ namespace HM
 
       // RFC 7162 (CONDSTORE): parse the optional "(UNCHANGEDSINCE <modseq>)" modifier once.
       if (!modifier_parsed_)
+      {
          ParseModifier_(pArgument->Command());
+
+         // RFC 7162 section 3.1: UNCHANGEDSINCE is a CONDSTORE-enabling command.
+         if (has_unchangedsince_)
+            pConnection->OnCondstoreEnablingCommand();
+      }
 
       // MODSEQ is reported in STORE responses when CONDSTORE is enabled or a conditional
       // STORE is in progress.
@@ -198,8 +206,31 @@ namespace HM
 
       if (!result)
       {
+         // A message another session expunged after this command resolved it -
+         // the folder's collection no longer holds it, so there are no flags to
+         // store. That is the race imaptest's checking load found, four clients
+         // on one mailbox answered "NO Unable to store message flags". It is
+         // treated as a message expunged before the command began (RFC 2180
+         // 4.2.1 lets the server ignore it): left out, and reported to this
+         // session at the next opportunity. Any other failure is still NO.
+         std::shared_ptr<IMAPFolder> pFolder = pConnection->GetCurrentFolder();
+
+         if (pFolder && !pFolder->GetMessages()->GetItemByDBID((unsigned __int64) pMessage->GetID()))
+         {
+            std::shared_ptr<IMAPFolderView> view = pConnection->GetCurrentFolderView();
+            if (view)
+               view->MarkVanished(pMessage->GetID());
+
+            return IMAPResult();
+         }
+
          return IMAPResult(IMAPResult::ResultNo, "Unable to store message flags.");
       }
+
+      // RFC 3501 7.2.6: a keyword this STORE created is announced in an untagged
+      // FLAGS before a FETCH response carries it - and even when none does
+      // (FLAGS.SILENT), since the mailbox's flags have changed either way.
+      pConnection->AnnounceKeywords(pMessage->GetKeywordList());
 
       if (!bSilent)
       {

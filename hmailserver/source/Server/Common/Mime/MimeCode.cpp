@@ -328,37 +328,88 @@ namespace HM
 
    void MimeCodeQP::Decode(AnsiString &output)
    {
+      // RFC 2045 section 6.7, a line at a time, because two of its rules are
+      // about where a line ends:
+      //
+      //  - rule 3: white space at the end of an encoded line is not data. It
+      //    "must be deleted" when decoding, since a transport may have added
+      //    it; data white space before a line break is always encoded (=20,
+      //    =09). This decoder kept it, so "hello  " decoded with its spaces.
+      //  - rule 5: an "=" at the end of a line - after that white space is
+      //    gone, so "= " as well as "=" - is a soft line break, and the break
+      //    is not data. Only "=" immediately followed by CRLF was recognised,
+      //    so "foo = \r\n" decoded with its line break and a stray space.
+      //
+      // Both showed in FETCH BINARY[] and BINARY.SIZE[] (RFC 3516), which
+      // serve this decoder's output as the part's content: imaptest's
+      // quoted-printable part decoded to 76 octets where it is 65.
+      //
+      // An "=" that starts no valid escape is kept as it stands (rule 1's
+      // robustness note) rather than dropped with the character after it, and
+      // a line break is copied as the input spelled it - CRLF, or a bare LF in
+      // content that was never canonicalised.
       const unsigned char* pbData = input_;
       const unsigned char* pbEnd = input_ + input_size_;
 
       while (pbData < pbEnd)
       {
-         unsigned char ch = *pbData++;
-         if (ch == '=')
-         {
-            if (pbData+2 > pbEnd)
-               break;            // invalid endcoding
-            ch = *pbData++;
-            if (CMimeChar::IsHexDigit(ch))
-            {
-               ch -= ch > '9' ? 0x37 : '0';
-               unsigned char charToAdd = ch << 4;
-               ch = *pbData++;
-               ch -= ch > '9' ? 0x37 : '0';
-               charToAdd |= ch & 0x0f;
+         // The line's content and the break after it, if any.
+         const unsigned char* pbContentEnd = pbData;
+         while (pbContentEnd < pbEnd && *pbContentEnd != '\n' &&
+                !(*pbContentEnd == '\r' && pbContentEnd + 1 < pbEnd && pbContentEnd[1] == '\n'))
+            pbContentEnd++;
 
-               output.append(1, charToAdd);
-            }
-            else if (ch == '\r' && *pbData == '\n')
-               pbData++;         // Soft Line Break, eat it
-            else              // invalid endcoding, let it go
-               output.append(1, ch);
-         }
-         else
+         size_t breakLength = 0;
+         if (pbContentEnd < pbEnd)
+            breakLength = (*pbContentEnd == '\r') ? 2 : 1;
+
+         // Rule 3: trailing white space is transport padding.
+         const unsigned char* pbTrimmedEnd = pbContentEnd;
+         while (pbTrimmedEnd > pbData && (pbTrimmedEnd[-1] == ' ' || pbTrimmedEnd[-1] == '\t'))
+            pbTrimmedEnd--;
+
+         bool softBreak = false;
+
+         const unsigned char* pbChar = pbData;
+         while (pbChar < pbTrimmedEnd)
          {
-            output.append(1, ch);
+            unsigned char ch = *pbChar++;
+
+            if (ch != '=')
+            {
+               output.append(1, (char) ch);
+               continue;
+            }
+
+            if (pbChar == pbTrimmedEnd)
+            {
+               // Rule 5: the last thing on the line - a soft line break.
+               softBreak = true;
+               break;
+            }
+
+            if (pbTrimmedEnd - pbChar >= 2 &&
+                CMimeChar::IsHexDigit(pbChar[0]) && CMimeChar::IsHexDigit(pbChar[1]))
+            {
+               unsigned char high = pbChar[0];
+               unsigned char low = pbChar[1];
+
+               high = (unsigned char) (high > '9' ? ((high & 0xDF) - 'A' + 10) : (high - '0'));
+               low = (unsigned char) (low > '9' ? ((low & 0xDF) - 'A' + 10) : (low - '0'));
+
+               output.append(1, (char) (((high & 0x0f) << 4) | (low & 0x0f)));
+               pbChar += 2;
+               continue;
+            }
+
+            // Not an escape: the "=" is data.
+            output.append(1, (char) ch);
          }
-            
+
+         if (!softBreak && breakLength > 0)
+            output.append((const char*) pbContentEnd, breakLength);
+
+         pbData = pbContentEnd + breakLength;
       }
    }
 
