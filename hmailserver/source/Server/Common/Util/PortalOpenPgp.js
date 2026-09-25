@@ -2004,6 +2004,7 @@
     }
 
     let opened = null;
+    let openedByPassword = false;
     let lastError = '';
     for (const packet of sessions) {
       if (packet.tag === TAG.PKESK) {
@@ -2017,7 +2018,7 @@
       }
       else {
         for (const password of passwords || []) {
-          try { opened = await readSkesk(packet.body, password); break; }
+          try { opened = await readSkesk(packet.body, password); openedByPassword = true; break; }
           catch (e) { lastError = e && e.message ? e.message : String(e); }
         }
       }
@@ -2028,10 +2029,24 @@
       throw new Error(lastError || (ids.length ? ('this message is encrypted to ' + ids.join(', ') + ', and no key here is one of them') : 'no password opened this message'));
     }
     out.symAlgorithm = opened.symAlgorithm;
-    let plain;
-    if (bodyPacket.tag === TAG.SEIPD) { plain = await openSeipd(bodyPacket.body, opened.symAlgorithm, opened.sessionKey); }
-    else { out.integrityProtected = false; plain = openSed(bodyPacket.body, opened.symAlgorithm, opened.sessionKey); }
-    return readOpenedPackets_(readPackets(plain), keys, out);
+    try {
+      let plain;
+      if (bodyPacket.tag === TAG.SEIPD) { plain = await openSeipd(bodyPacket.body, opened.symAlgorithm, opened.sessionKey); }
+      else { out.integrityProtected = false; plain = openSed(bodyPacket.body, opened.symAlgorithm, opened.sessionKey); }
+      return await readOpenedPackets_(readPackets(plain), keys, out);
+    }
+    catch (e) {
+      // A session key a password gave is not proof that the password was right.
+      // A wrong one decrypts a version 4 SKESK's session key to noise, and one
+      // time in 256 the noise's first octet is the algorithm number whose key
+      // length fits, so readSkesk hands back a key; and an SKESK that carries no
+      // session key of its own - gpg -c's - hands back whatever the password
+      // derives, with nothing to check it against. Either way it is the body
+      // that refuses the key. The error is marked so that a caller who opened
+      // with a password alone (openProtected) can say which it was.
+      if (openedByPassword && e && typeof e === 'object') { e.sessionKeyFromPassword = true; }
+      throw e;
+    }
   }
 
   // What is inside, once the encryption is off: a literal, perhaps compressed,
@@ -2312,7 +2327,17 @@
   // password is not right" for all of it: a wrong password and a damaged
   // message are not the reader's to tell apart.
   async function openProtected(input, password) {
-    const opened = await decryptBytes(input, [], [String(password || '')]);
+    let opened;
+    try { opened = await decryptBytes(input, [], [String(password || '')]); }
+    catch (e) {
+      // No key is offered, so a session key can only have come from the
+      // password; if the message then did not open with it, the password was
+      // wrong - or the message is damaged, which the reader is not the one to
+      // tell apart either. Without this, a wrong password answered "the
+      // session key is not this message's" one time in 256 (decryptBytes).
+      if (e && e.sessionKeyFromPassword) { throw new Error('wrong passphrase'); }
+      throw e;
+    }
     // decryptBytes reads a bare literal - no encryption at all - and the old
     // unprotected data packet, and says so in two flags a reader could
     // ignore. A message that was never encrypted, or was encrypted without

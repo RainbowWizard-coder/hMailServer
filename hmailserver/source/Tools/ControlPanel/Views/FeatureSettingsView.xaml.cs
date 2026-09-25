@@ -1905,7 +1905,7 @@ namespace hMailServer.ControlPanel.Views
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day (UpdateCheckEnabled)") },
                      new TextSetting { Key = "UpdateCheckHours", Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
                      new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
-                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Feed URL (empty = this project's GitHub releases; set for a mirror)"), Placeholder = "https://api.github.com/repos/Progressiverobot/hmailserver/releases" },
+                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.example.net/hmailserver/releases" },
                      new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)"), Placeholder = "proxy.example.net:3128" },
                      new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
                      new TextSetting
@@ -1921,7 +1921,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "UpdateRequireAuthenticode",
                         Default = false,
                         Label = L("Also require a valid Authenticode signature on the installer"),
-                        Blurb = L("Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with \"the installer carries no Authenticode signature\" and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional.")
+                        Blurb = L("This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way.")
                      },
                      new TextSetting { Key = "UpdateServiceWaitSeconds", Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back"), Placeholder = "180" },
                      new TextSetting

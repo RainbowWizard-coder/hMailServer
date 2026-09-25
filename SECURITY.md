@@ -150,8 +150,9 @@ inventoried in [hmailserver/docs/ThirdPartyBinaries.md](hmailserver/docs/ThirdPa
 from the project's `build-inputs-1` release are checked against a recorded SHA-256 whenever
 `build/get-installer-binaries.ps1` places them, the MSVC runtime is checked by version, and the ADO type
 libraries, which are Windows' own files, are checked only for presence, with their hash reported. The
-`build-inputs-1` release was published on GitHub and is unreachable while GitHub is
-([CONTRIBUTING.md](CONTRIBUTING.md#prerequisites) says what that means for a new build machine).
+script still downloads from the `build-inputs-1` release's GitHub address, which is unreachable; the release is
+re-published on GitLab byte for byte, and [CONTRIBUTING.md](CONTRIBUTING.md#prerequisites) says how a new build
+machine uses that copy.
 
 OpenSSL, Boost and libpq are built from source by `libraries/build-*.ps1`, at the versions `hMailServer.vcxproj`
 pins, and each script checks the SHA-256 of the source archive it downloads.
@@ -163,8 +164,8 @@ the .NET dependency graph (`build/merge-native-dependencies-into-sbom.ps1`).
 ## Vulnerability management policy
 
 What is checked, on what, and what happens when it finds something. On GitHub these checks were automatic and
-blocking. GitHub has been unavailable since 18 September 2026 and no CI runs on GitLab yet, so for now the
-thresholds below are held by hand, and what actually runs is stated under each heading. A finding that is not
+blocking. GitHub has been unavailable since 18 September 2026, and GitLab CI runs the project's own checkers
+and none of these, so for now the thresholds below are held by hand, and what actually runs is stated under each heading. A finding that is not
 fixed is suppressed only with a written reason.
 
 ### Dependencies (software composition analysis)

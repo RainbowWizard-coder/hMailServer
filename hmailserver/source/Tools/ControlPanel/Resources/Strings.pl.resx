@@ -3794,9 +3794,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Falls back to the ACME certificate" xml:space="preserve">
     <value>W razie braku używa certyfikatu ACME</value>
   </data>
-  <data name="Feed URL (empty = this project's GitHub releases; set for a mirror)" xml:space="preserve">
-    <value>Adres URL źródła (puste = wydania GitHub tego projektu; należy ustawić dla kopii lustrzanej)</value>
-  </data>
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Pobierz politykę MTA-STS dla {0} przez HTTPS i pokaż, co jest udostępniane</value>
   </data>
@@ -4638,9 +4635,6 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>N_ie umieszczaj tego konta w katalogu</value>
-  </data>
-  <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
-    <value>Tę opcję należy pozostawić wyłączoną, o ile nie buduje się i nie podpisuje własnych instalatorów. Wydania tego projektu nie są jeszcze podpisane Authenticode, więc jej włączenie powoduje odrzucenie każdego istniejącego wydania: pobieranie zatrzymuje się z komunikatem „the installer carries no Authenticode signature” i żadnej aktualizacji nie da się już nigdy zainstalować. Podpis Sigstore, który każde wydanie faktycznie ma, jest sprawdzany tak czy inaczej i nie jest opcjonalny.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Pozostawione puste, każe serwerowi użyć filtra dostarczonego z programem, pokazanego na szaro - najpierw objectCategory, ponieważ jest indeksowany w Active Directory, a następnie sAMAccountName, ponieważ to właśnie przechowuje karta Katalog konta. %u to nazwa użytkownika konta w Active Directory, %d jego domena AD, %m jego pełny adres pocztowy; wszystkie trzy są zabezpieczane znakami ucieczki przed podstawieniem, więc wroga nazwa logowania nie może przepisać filtra. Filtr, który pasuje do więcej niż jednego wpisu, celowo nie uwierzytelnia nikogo.</value>
@@ -6129,8 +6123,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Open the full _guide (DiagnosingStalledMail.md)" xml:space="preserve">
     <value>Otwórz pełny p_rzewodnik (DiagnosingStalledMail.md)</value>
   </data>
-  <data name="Open the full guide on GitHub" xml:space="preserve">
-    <value>Otwórz pełny przewodnik w serwisie GitHub</value>
+  <data name="Open the full guide in a web browser" xml:space="preserve">
+    <value>Otwórz pełny przewodnik w przeglądarce internetowej</value>
   </data>
   <data name="Open the live logs" xml:space="preserve">
     <value>Otwórz dzienniki na żywo</value>
@@ -9900,6 +9894,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
     <value>To hasło występuje w opublikowanym wycieku danych, więc byłoby jednym z pierwszych wypróbowanych na tym koncie. Wybierz inne.</value>
   </data>
+  <data name="This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way." xml:space="preserve">
+    <value>Instalatory tego projektu są od wersji 6.3.1 podpisywane Authenticode przez Progressive Robot Ltd za pośrednictwem Azure Artifact Signing; wydania starsze niż 6.3.1 nie mają podpisu i ta opcja je odrzuca. Przy pobieraniu instalatora sprawdza, czy Windows ufa podpisowi - WinVerifyTrust względem zaufanych certyfikatów głównych tego komputera, bez sprawdzania odwołania - a nie, kto go złożył: to zadanie podpisu Sigstore, który ma każde wydanie i który jest sprawdzany tak czy inaczej.</value>
+  </data>
   <data name="This range _expires" xml:space="preserve">
     <value>_Ten zakres wygasa</value>
   </data>
@@ -10199,6 +10196,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Aktualizuj</value>
+  </data>
+  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
+    <value>Adres URL źródła aktualizacji (puste = wbudowane źródło; należy ustawić dla kopii lustrzanej)</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Zaktualizowano</value>

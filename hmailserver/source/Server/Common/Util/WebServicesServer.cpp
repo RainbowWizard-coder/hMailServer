@@ -86,7 +86,7 @@ namespace HM
 
       // The human-readable policy the machine-readable file points at.
       const char *SecurityTxtPolicyUrl =
-         "https://github.com/Progressiverobot/hmailserver/blob/master/.github/SECURITY.md";
+         "https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/SECURITY.md";
 
       // How long the two RFC 6764 redirect targets are cached for. They are
       // read straight out of hMailServer.ini rather than from IniFileSettings

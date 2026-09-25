@@ -1,0 +1,197 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The checks GitLab runs on a push and on a merge request.
+#
+# Three jobs, all in one stage:
+#
+#   checkers    every build/check-*.py that needs nothing but Python and git, the
+#               self-tests, the generators' --check, and the two that rewrite a
+#               committed file (check-deck-parity.py and generate-portal-languages.py)
+#               held to the file staying as it was committed;
+#   harnesses   the Control Deck's and the webmail's scripts run in Node against a
+#               small DOM and a recorded server, and the webmail's S/MIME and OpenPGP
+#               modules against OpenSSL and GnuPG;
+#   sign-off    on a merge request from a fork, every commit carries a Signed-off-by
+#               trailer naming its author (CONTRIBUTING.md, "Sign-off").
+#
+# What is not here, and is still run by hand (CONTRIBUTING.md, "The checkers"): the
+# builds, both regression suites, check-package-manifests.py (it needs manifests
+# rendered by a PowerShell script from a released installer), the PowerShell checks
+# (check-schema-versions.ps1, check-db-scripts.ps1, which needs SQL Server Compact,
+# check-roadmap.ps1, generate-settings-index.ps1), editorconfig-checker and dotnet
+# format. The Linux build and the Linux suite belong to the Roadmap2 row "The release
+# chain off a single forge".
+#
+# Every script is started through python3, node or bash by name. The tree checks out
+# CRLF on every platform (.gitattributes), and a shebang line ending in a carriage
+# return names an interpreter that does not exist.
+
+stages:
+  - check
+
+# One pipeline per change: a merge request's pipeline when the branch has an open
+# merge request, the branch's own pipeline otherwise (master included), and none for
+# a tag.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+default:
+  # A newer push to the same branch makes this pipeline's answer moot.
+  interruptible: true
+
+variables:
+  # None of the checks reads history; the sign-off job asks for all of it.
+  GIT_DEPTH: "1"
+  PYTHONUTF8: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+
+checkers:
+  stage: check
+  image: python:3.13-slim-trixie
+  timeout: 20 minutes
+  before_script:
+    # git for the two "is the committed file still what this writes" steps below.
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends git > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - |
+      failed=""
+      check() {
+        echo ""
+        echo "\$ $*"
+        if "$@"; then
+          :
+        else
+          failed="$failed
+        $*"
+        fi
+      }
+      # The file as committed, or the difference and a failure.
+      unchanged() {
+        if git diff --quiet -- "$@"; then
+          return 0
+        fi
+        git --no-pager diff --stat -- "$@"
+        git --no-pager diff -- "$@" > /tmp/unchanged.diff || true
+        head -n 80 /tmp/unchanged.diff
+        echo "Out of date: run the script named above and commit what it writes."
+        return 1
+      }
+      deck_parity() {
+        python3 build/check-deck-parity.py > /dev/null && unchanged hmailserver/docs/DeckParity.md
+      }
+      portal_languages() {
+        python3 build/generate-portal-languages.py && unchanged hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp
+      }
+
+      for script in build/check-*.py; do
+        case "$script" in
+          # Needs the manifests make-package-manifests.ps1 renders from a released
+          # installer, and checks that installer's URL on the release host.
+          build/check-package-manifests.py) continue ;;
+          # Need node: the harnesses job runs them.
+          build/check-deck-script.py|build/check-portal-script.py) continue ;;
+          # Rewrites hmailserver/docs/DeckParity.md: deck_parity below.
+          build/check-deck-parity.py) continue ;;
+        esac
+        check python3 "$script"
+      done
+
+      # The negative controls: each breaks its rules in a copy and proves the check
+      # still reports it, so a check that has stopped seeing the source fails too.
+      for name in authz-choke-point collection-iteration com-error-info com-shared-copies \
+                  help-map password-choice-sites role-choke-point; do
+        check python3 "build/check-$name.py" --self-test
+      done
+
+      # Generated source is what its generator writes now.
+      check python3 build/add-license-headers.py --check
+      for name in help-pages portal-page portal-smime portal-openpgp settings-defaults profiles; do
+        check python3 "build/generate-$name.py" --check
+      done
+      check portal_languages
+      check deck_parity
+
+      # The Linux version stamps against Version.h.
+      check bash build/check-linux-version-stamp.sh
+
+      # And nothing above rewrote anything else.
+      check unchanged .
+
+      echo ""
+      if [ -n "$failed" ]; then
+        echo "Failed:$failed"
+        exit 1
+      fi
+      echo "Every check passed."
+
+harnesses:
+  stage: check
+  image: node:22-trixie-slim
+  timeout: 20 minutes
+  before_script:
+    # python3 starts the two page harnesses, openssl is the other side of the S/MIME
+    # check, and gpg the other side of the OpenPGP one (without it that check runs
+    # its committed fixtures only and says which half it skipped).
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends python3 openssl gnupg > /dev/null
+  script:
+    - node --version
+    - python3 build/check-deck-script.py
+    - python3 build/check-portal-script.py
+    - node build/check-portal-smime.js
+    - node build/check-portal-openpgp.js
+
+sign-off:
+  stage: check
+  image: python:3.13-slim-trixie
+  timeout: 10 minutes
+  variables:
+    GIT_DEPTH: "0"
+  # Outside contributors' merge requests come from forks. The maintainers' own
+  # commits are exempt, as they were under the GitHub check: they push to branches
+  # of this project, and those merge requests do not run this job.
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID != $CI_MERGE_REQUEST_PROJECT_ID
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends git > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - |
+      base="$CI_MERGE_REQUEST_DIFF_BASE_SHA"
+      head="${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}"
+      if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2> /dev/null; then
+        echo "The merge request's base commit ($base) is not in this clone; nothing can be checked."
+        exit 1
+      fi
+      missing=0
+      for sha in $(git rev-list --reverse "$base..$head"); do
+        author=$(git log -1 --format='%ae' "$sha" | tr 'A-Z' 'a-z')
+        subject=$(git log -1 --format='%s' "$sha" | cut -c1-100)
+        # The trailer must name the commit's author: a sign-off by somebody else
+        # certifies nothing about the person who wrote the change.
+        trailers=$(git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$sha" | tr 'A-Z' 'a-z')
+        case "$trailers" in
+          *"<$author>"*)
+            echo "ok       $(echo "$sha" | cut -c1-12) $subject" ;;
+          *)
+            echo "MISSING  $(echo "$sha" | cut -c1-12) $subject - no Signed-off-by for $author"
+            missing=$((missing + 1)) ;;
+        esac
+      done
+      if [ "$missing" -gt 0 ]; then
+        echo ""
+        echo "$missing commit(s) have no Developer Certificate of Origin sign-off by their author."
+        echo "Add one with 'git commit --amend -s' for the last commit, or 'git rebase --signoff'"
+        echo "for several, and push again. What it certifies: https://developercertificate.org/"
+        exit 1
+      fi
+      echo "Every commit carries its author's sign-off."

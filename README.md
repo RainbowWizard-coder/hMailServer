@@ -145,7 +145,7 @@ Technology
 | Extensibility | COM/IDispatch API, plus a REST administration API |
 | Schema | Database version 6031, upgradeable from every earlier hMailServer release |
 
-**Quality gates.** Every release ships SPDX and CycloneDX SBOMs (Syft). On GitHub, until 18 September 2026, the repository ran CodeQL analysis, Dependabot CVE alerts with grouped update pull requests, a dependency-review gate on pull requests, an installer smoke test that installs the built installer on a clean machine and verifies the service comes up, and a monthly comparison against the original upstream repository so nothing landing there is missed. None of those runs on GitLab yet; [CONTRIBUTING.md](CONTRIBUTING.md#the-checkers) lists the checks run by hand instead.
+**Quality gates.** Every release ships SPDX and CycloneDX SBOMs (Syft). On GitHub, until 18 September 2026, the repository ran CodeQL analysis, Dependabot CVE alerts with grouped update pull requests, a dependency-review gate on pull requests, an installer smoke test that installs the built installer on a clean machine and verifies the service comes up, and a monthly comparison against the original upstream repository so nothing landing there is missed. None of those runs on GitLab yet. GitLab CI runs the project's own checkers, the Deck's and the webmail's harnesses and the sign-off of a merge request from a fork on every push and merge request; [CONTRIBUTING.md](CONTRIBUTING.md#the-checkers) lists them and the checks still run by hand.
 
 Administration
 ==============
@@ -201,7 +201,7 @@ with clang or GCC from `hmailserver/source/Server/CMakeLists.txt`, links as one
 AArch64, with a `PKGBUILD` for Arch and an AppImage script beside them. All 496
 core translation units compile for both architectures; `build/linux-tu-census.sh` counts
 them, and the Linux workflow on GitHub (`.github/workflows/linux-build.yml`) failed when one
-stopped. Until CI runs on GitLab the census is run by hand.
+stopped. GitLab CI does not build for Linux yet, so the census is run by hand.
 
 What is proven, against PostgreSQL 18: `hmailserver --create-database` builds
 the schema, the server starts under systemd as the `hmailserver` user, an
@@ -644,9 +644,9 @@ Administration and monitoring:
    UpdateSigningIdentity=        ; the workflow the signing certificate must name (empty = this repository's
                                  ; sign-release workflow); UpdateSigningIssuer= the OIDC issuer (empty = GitHub's);
                                  ; UpdateSourceRepository= the repository it must record (empty = this one, - = any)
-   UpdateRequireAuthenticode=0   ; 1: the installer must also carry an Authenticode signature Windows trusts.
-                              ; Leave it off. No release of this project is Authenticode-signed yet, so 1
-                              ; refuses every release there is and no update can be applied at all.
+   UpdateRequireAuthenticode=0   ; 1: the installer must also carry an Authenticode signature Windows trusts
+                              ; (WinVerifyTrust at download, no revocation check, no publisher pin). The
+                              ; installers have been signed since 6.3.1; earlier ones carry none, and 1 refuses them.
    UpdateServiceWaitSeconds=180  ; how long the update helper gives the service to come back after the
                                  ; installer has run before it reinstalls the previous version
    UpdateAutoDownload=0          ; 1: fetch and verify a newer release's installer as soon as the check finds it

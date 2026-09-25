@@ -5,7 +5,7 @@ This guide covers the case where mail is not moving and the server appears
 healthy: no crash, no error, the service is running, and the logs seem to stop
 mid-transaction. It exists because that exact shape of problem took three
 releases to track down
-([discussion #18](https://github.com/Progressiverobot/hmailserver/discussions/18)),
+(GitHub discussion 18, on the project's former home),
 almost entirely because the server used to be silent about it.
 
 It is no longer silent. Read this before opening an issue — the answer is
@@ -230,7 +230,7 @@ If the above does not identify it, open an issue with:
 3. Which scanners and event scripts are enabled.
 4. Whether the message eventually arrives, arrives twice, or never arrives.
 
-See [SUPPORT.md](../../.github/SUPPORT.md).
+See [SUPPORT.md](../../SUPPORT.md).
 
 Verified against the code
 -------------------------

@@ -188,8 +188,8 @@ every one of them. The callers are of three kinds:
   an account's folder - where a stored message will be - is held to the same rule and
   listed the same way; the object-storage and encryption-at-rest rows audit that list,
   since each such path is a place a key-based backend hands a temporary file to instead.
-  The checker runs in the style workflow and, so that it runs at all while no CI does,
-  in `MessageStoreFormat.TheSeamCheckerPasses`, which runs it in the suite.
+  The checker runs in GitLab CI's checkers job on every push and merge request, and in
+  `MessageStoreFormat.TheSeamCheckerPasses`, which runs it in the suite.
 
 The store is a **chain of stages over a backend**. The backend, `MessageStoreBackend`,
 is where the bytes live, and the local file system is the one there is: exists, size,

@@ -372,19 +372,24 @@ suspect one of these three before believing the parser suddenly got worse.
 The nightly job
 ---------------
 
-Since 15 September 2026 `.github/workflows/fuzz-nightly.yml` runs the three
-harnesses every night at 02:10 UTC on a hosted Windows runner (and on demand,
-with the minutes per harness and the workers as inputs): the native
+From 15 September 2026 `.github/workflows/fuzz-nightly.yml` ran the three
+harnesses every night at 02:10 UTC on a GitHub-hosted Windows runner (and on
+demand, with the minutes per harness and the workers as inputs): the native
 dependencies restored from their caches, the harnesses built with the runner's
 clang-cl, every kept input and every committed reproducer replayed first, then
-each harness for forty minutes with two workers. The corpus is kept in the
-Actions cache under a key that carries the run id, so every night saves a new
-entry and the next night restores the newest - the corpus grows, which is the
-point of a job that never stops. A crash, a hang or a violated invariant fails
-the job and the reproducer lands as an artifact of the run (`fuzz-findings-<run
-id>`, kept thirty days); the section above says what to do with it. The release
-checklist's timed run on the release tree stays: it is the same harness, on a
-tree that has to be right that day.
+each harness for forty minutes with two workers. The corpus was kept in the
+Actions cache under a key that carried the run id, so every night saved a new
+entry and the next night restored the newest - the corpus grew, which is the
+point of a job that never stops. A crash, a hang or a violated invariant failed
+the job and the reproducer landed as an artifact of the run (`fuzz-findings-<run
+id>`, kept thirty days); the section above says what to do with it.
+
+It has not run since GitHub suspended the project's account on 18 September
+2026. GitLab reads nothing under `.github/`, and a nightly run needs a Windows
+runner with clang-cl, which the project does not have on GitLab. Until it has
+one, the fuzzing a change gets is the run somebody starts by hand with
+`run-fuzz.ps1`, and the release checklist's timed run on the release tree - the
+same harness, on a tree that has to be right that day.
 
 What is not covered yet
 -----------------------

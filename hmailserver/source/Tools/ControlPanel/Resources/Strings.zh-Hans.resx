@@ -3794,9 +3794,6 @@
   <data name="Falls back to the ACME certificate" xml:space="preserve">
     <value>回退到 ACME 证书</value>
   </data>
-  <data name="Feed URL (empty = this project's GitHub releases; set for a mirror)" xml:space="preserve">
-    <value>源 URL（留空 = 本项目的 GitHub 发行版；使用镜像时请填写）</value>
-  </data>
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>通过 HTTPS 获取 {0} 的 MTA-STS 策略并显示所提供的内容</value>
   </data>
@@ -4638,9 +4635,6 @@
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>不要把此帐户列入通讯录 (_I)</value>
-  </data>
-  <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
-    <value>除非您自己构建安装程序并为其签名，否则请让此项保持关闭。本项目的发行版尚未经过 Authenticode 签名，因此打开它会拒绝现有的每一个发行版：下载会以“the installer carries no Authenticode signature”停止，而且再也无法安装任何更新。而每个发行版确实都带有的 Sigstore 签名，无论如何都会被检查，并且不是可选的。</value>
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>留空时，服务器使用灰色显示的出厂过滤器 - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
@@ -6129,8 +6123,8 @@
   <data name="Open the full _guide (DiagnosingStalledMail.md)" xml:space="preserve">
     <value>打开完整指南(_G)（DiagnosingStalledMail.md）</value>
   </data>
-  <data name="Open the full guide on GitHub" xml:space="preserve">
-    <value>在 GitHub 上打开完整指南</value>
+  <data name="Open the full guide in a web browser" xml:space="preserve">
+    <value>在 Web 浏览器中打开完整指南</value>
   </data>
   <data name="Open the live logs" xml:space="preserve">
     <value>打开实时日志</value>
@@ -9900,6 +9894,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
     <value>此密码出现在一次公开的数据泄露中，因此会是针对此账户最先尝试的密码之一。请另选一个。</value>
   </data>
+  <data name="This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way." xml:space="preserve">
+    <value>本项目的安装程序自 6.3.1 起由 Progressive Robot Ltd 通过 Azure Artifact Signing 进行 Authenticode 签名；6.3.1 之前的发行版没有签名，此项会拒绝它们。下载安装程序时，它检查的是 Windows 是否信任该签名（针对本机受信任根证书的 WinVerifyTrust，不检查吊销），而不是谁签的名：那是 Sigstore 签名的职责，每个发行版都带有它，并且无论如何都会被检查。</value>
+  </data>
   <data name="This range _expires" xml:space="preserve">
     <value>此范围会过期(_E)</value>
   </data>
@@ -10199,6 +10196,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Update" xml:space="preserve">
     <value>更新</value>
+  </data>
+  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
+    <value>更新源 URL（留空 = 内置的源；使用镜像时请填写）</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>已更新</value>

@@ -3794,9 +3794,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Falls back to the ACME certificate" xml:space="preserve">
     <value>Falder tilbage til ACME-certifikatet</value>
   </data>
-  <data name="Feed URL (empty = this project's GitHub releases; set for a mirror)" xml:space="preserve">
-    <value>Feed-URL (tom = dette projekts GitHub-udgivelser; angiv den for et spejl)</value>
-  </data>
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Hent MTA-STS-politikken for {0} over HTTPS, og vis, hvad der serveres</value>
   </data>
@@ -4638,9 +4635,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>_Udelad denne konto fra adressebogen</value>
-  </data>
-  <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
-    <value>Lad denne være slået fra, medmindre du bygger dine egne installationsprogrammer og signerer dem. Dette projekts udgivelser er endnu ikke Authenticode-signerede, så at slå den til afviser hver eneste udgivelse, der findes: downloaden stopper med "installationsprogrammet bærer ingen Authenticode-signatur", og ingen opdatering kan nogensinde installeres. Sigstore-signaturen, som hver udgivelse rent faktisk bærer, kontrolleres under alle omstændigheder og er ikke valgfri.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Står feltet tomt, bruger serveren det medfølgende filter, der vises med gråt - objectCategory først, fordi det er indekseret i Active Directory, og sAMAccountName, fordi det er det, kontoens Katalog-fane gemmer. %u er kontoens Active Directory-brugernavn, %d dens AD-domæne, %m dens fulde mailadresse; alle tre escapes før indsættelsen, så et fjendtligt pålogningsnavn ikke kan omskrive filtret. Et filter, der matcher mere end én post, godkender ingen, med vilje.</value>
@@ -6129,8 +6123,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Open the full _guide (DiagnosingStalledMail.md)" xml:space="preserve">
     <value>Åbn den fulde _vejledning (DiagnosingStalledMail.md)</value>
   </data>
-  <data name="Open the full guide on GitHub" xml:space="preserve">
-    <value>Åbn den fulde vejledning på GitHub</value>
+  <data name="Open the full guide in a web browser" xml:space="preserve">
+    <value>Åbn den fulde vejledning i en webbrowser</value>
   </data>
   <data name="Open the live logs" xml:space="preserve">
     <value>Åbn de levende logs</value>
@@ -9900,6 +9894,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
     <value>Denne adgangskode optræder i et offentliggjort datalæk, så den ville være blandt de første, der blev prøvet mod denne konto. Vælg en anden.</value>
   </data>
+  <data name="This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way." xml:space="preserve">
+    <value>Dette projekts installationsprogrammer har været Authenticode-signerede siden 6.3.1, af Progressive Robot Ltd via Azure Artifact Signing; udgivelserne før 6.3.1 bærer ingen signatur, og denne indstilling afviser dem. Når et installationsprogram hentes, kontrollerer den, at Windows har tillid til signaturen - WinVerifyTrust mod denne computers betroede rodcertifikater, uden kontrol af tilbagekaldelse - og ikke, hvem der har lavet den: det er Sigstore-signaturens opgave, som hver udgivelse bærer, og som kontrolleres under alle omstændigheder.</value>
+  </data>
   <data name="This range _expires" xml:space="preserve">
     <value>Dette interval _udløber</value>
   </data>
@@ -10199,6 +10196,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Opdatering</value>
+  </data>
+  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
+    <value>URL til opdateringsfeed (tom = det indbyggede feed; angiv den for et spejl)</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Opdateret</value>

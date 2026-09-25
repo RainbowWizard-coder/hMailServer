@@ -20,8 +20,13 @@ This fork is distributed as follows, and every conclusion below depends on these
 facts staying true:
 
 * AGPLv3, source public, no paid edition, no paid support, no hosted service.
-* Released as an installer and source on GitHub. No charge, no licence key, no
-  mandatory registration, no telemetry.
+* Released as an installer and source on GitLab
+  (<https://gitlab.com/Progressiverobot/hmailserver>), and on GitHub until GitHub
+  suspended the project's account on 18 September 2026; every release up to 6.3.3
+  is re-published on GitLab, byte for byte, with its original signatures. No
+  charge, no licence key, no mandatory registration, no telemetry. Where the
+  project is hosted is not one of the review triggers below, and the move changed
+  nothing else on this list.
 * Maintained by one individual, not a company or foundation.
 * Donations, sponsorship and paid consulting: **none currently**, and see the
   triggers below before that changes.
@@ -129,29 +134,41 @@ Not because either instrument compels it, but because they are the right shape
 for a security-relevant product and they would be prerequisites if scope ever
 changed:
 
-* SPDX and CycloneDX SBOMs attached to every release
+* SPDX and CycloneDX SBOMs attached to every release up to 6.3.3
   ([`sbom.yml`](../../.github/workflows/sbom.yml)), including the native
   dependencies — OpenSSL, Boost and libpq — that a source-tree scan does not see.
   That matters for exactly the purpose an SBOM has: without them, anyone checking a
   release against a CVE feed would have concluded this server does not link OpenSSL.
-* An inventory of **every binary committed to the repository** — 40 files, each
-  with a SHA-256, an upstream, a version, a licence and a reason it is in the
-  tree ([`third-party-binaries.json`](third-party-binaries.json), explained in
-  [ThirdPartyBinaries.md](ThirdPartyBinaries.md)). Checked on every push and
-  pull request by
+* **No executable binary is committed to the repository.** Forty were until 11
+  September 2026. The ones the build still needs are fetched at build time from the
+  project's `build-inputs-1` release and checked against a SHA-256, gathered from
+  the build machine's Visual Studio and checked by version, copied from Windows
+  itself, or generated from this repository's own IDL, and every one is
+  inventoried with an upstream, a version, a licence and the reason the build
+  needs it ([`third-party-binaries.json`](third-party-binaries.json),
+  explained in [ThirdPartyBinaries.md](ThirdPartyBinaries.md)). Until 18 September
+  2026 every push and pull request ran
   [`verify-binary-provenance.yml`](../../.github/workflows/verify-binary-provenance.yml),
-  which fails the build if a committed binary changes hash *or* if one appears
-  that the inventory does not describe. The SBOM answers "what does this link
+  which failed if a binary appeared that the inventory did not describe, or one it
+  lists as fetched was committed after all. The SBOM answers "what does this link
   against"; this answers the separate question "what unreviewable files are in
   the source tree, and who made them".
-* **Every release asset signed**, with Sigstore cosign, keyless via OIDC, the
-  signature recorded in the public Rekor transparency log and verified in the same
-  job so a malformed bundle cannot reach a user
+* **Every release asset up to 6.3.3 signed**, with Sigstore cosign, keyless via
+  OIDC, the signature recorded in the public Rekor transparency log and verified in
+  the same job so a malformed bundle cannot reach a user
   ([`sign-release.yml`](../../.github/workflows/sign-release.yml)). Keyless
   deliberately: for a single-maintainer project a long-lived signing key held in CI
   is itself the thing most worth stealing.
+* **The Windows installer Authenticode-signed since 6.3.1** (11 September 2026),
+  with Azure Artifact Signing against a certificate profile issued to Progressive
+  Robot Ltd, by the `authenticode` job of the same workflow
+  ([RELEASE.md](../../RELEASE.md), *Authenticode*). Cosign and Authenticode are
+  complementary rather than alternatives — SmartScreen and the UAC prompt read
+  Authenticode and know nothing about Sigstore. The Linux packages carry no
+  Authenticode, and the releases before 6.3.1 stay unsigned because a published
+  release is immutable.
 * A documented security policy and private disclosure route
-  ([SECURITY.md](../../.github/SECURITY.md)), plus a machine-readable `security.txt`
+  ([SECURITY.md](../../SECURITY.md)), plus a machine-readable `security.txt`
   (RFC 9116) served at `/.well-known/security.txt` by the web services listener.
   The same listener serves the other well-known paths this server answers:
   `/.well-known/acme-challenge/`, `/.well-known/mta-sts.txt`,
@@ -159,7 +176,8 @@ changed:
   `/.well-known/openpgpkey/` - the OpenPGP Web Key Directory, which publishes
   public keys only and is off until an administrator, a domain and an account
   each say otherwise ([OpenPGP.md](OpenPGP.md)).
-* Static analysis, CodeQL and OpenSSF Scorecard in CI; a full regression suite
+* Static analysis with CodeQL, and OpenSSF Scorecard, on every push to master on
+  GitHub until 18 September 2026; neither runs on GitLab yet. A full regression suite
   gating every release.
 * Release notes that name unfixed known issues rather than omitting them.
 * Security-update distribution with integrity verification, shipped in 6.2.28
@@ -169,12 +187,16 @@ changed:
   configured window after a backup. The Roadmap's Product Liability Directive row
   was closed on 7 September 2026 against this document's determination.
 
-Still outstanding, and tracked in [Roadmap.md](../../Roadmap.md): **Authenticode**
-signing of the installer. Cosign and Authenticode are complementary rather than
-alternatives — SmartScreen and the UAC prompt care about Authenticode and know
-nothing about Sigstore, so a downloaded installer is verifiable by anyone who checks
-and Windows still shows an unknown-publisher warning. Azure Trusted Signing is the
-realistic route.
+What the release half of this list now depends on: the SBOMs, the Sigstore
+signatures, the Authenticode signature and the provenance check are all made by
+GitHub Actions workflows, the Azure identity that signs the installer was reached
+through GitHub Actions' secrets, and an installed server accepts an update only
+when its Sigstore bundle names that workflow's GitHub identity. None of the
+workflows has run since GitHub suspended the project's account on 18 September
+2026, so until they run somewhere else a release can be re-hosted but not cut:
+the releases up to 6.3.3 are on GitLab with their original signatures, and no
+later one can be signed either way. Moving the chain off a single forge is its own
+row in [Roadmap2.md](../../Roadmap2.md), *The release chain off a single forge*.
 
 What in this document is checkable, and what is not
 --------------------------------------------------
@@ -197,6 +219,19 @@ asset, then `verify-blob` in the same job), `.github/workflows/codeql.yml`,
 `.github/workflows/verify-binary-provenance.yml` (run against this tree: 40
 manifest entries, 40 binaries found, 0 unlisted, every hash matching the bytes
 stored in git), `.github/SECURITY.md`, and
-`WebServicesServer`'s `/.well-known/security.txt` handler. This half is the one to
-re-read before quoting the page: the signing line was wrong for a while precisely
-because a capability shipped and the paragraph saying it had not was never revisited.
+`WebServicesServer`'s `/.well-known/security.txt` handler.
+
+Re-checked 25 September 2026, for the move off GitHub: no tracked file is a binary
+by the provenance workflow's own detector (its extension set, and its PE, ELF and
+OLE sniff over `git ls-files`); every one of the manifest's 35 entries is marked as
+not in git - 22 fetched, 10 gathered, 2 system, 1 generated - and none is tracked;
+the `build-inputs-1` release is on GitLab with the three assets the manifest
+hashes; `SECURITY.md` is at the repository root, and the `Policy:` line of the
+served `security.txt` names it there on GitLab. The workflows named above are in
+the tree, and none of them runs on GitLab.
+
+This half is the one to re-read before quoting the page. A signing line in it has
+been wrong twice for the same reason - a capability shipped and the paragraph
+saying it had not was never revisited - the second time the Authenticode
+paragraph, which called the signing outstanding for two weeks after 6.3.1 shipped
+signed.

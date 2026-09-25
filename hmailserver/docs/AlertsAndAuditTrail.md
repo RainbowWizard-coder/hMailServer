@@ -236,7 +236,7 @@ administrator, and what the server does on the thread afterwards - an auto-ban r
 written after a failed logon the script refused, say - is recorded as nobody's, which
 means it is not recorded.
 
-`build/check-audit-choke-point.py` runs in the *Coding style* workflow and fails
+`build/check-audit-choke-point.py` runs in GitLab CI's checkers job and fails
 it if a caller outside those three appears, if any of the chokepoints goes away,
 if `RecordEvent` is called anywhere but the five call sites where a lockout is
 lifted or any of those goes away, if a COM method that persists something neither

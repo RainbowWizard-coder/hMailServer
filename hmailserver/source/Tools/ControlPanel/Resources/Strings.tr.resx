@@ -3794,9 +3794,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Falls back to the ACME certificate" xml:space="preserve">
     <value>ACME sertifikasına geri döner</value>
   </data>
-  <data name="Feed URL (empty = this project's GitHub releases; set for a mirror)" xml:space="preserve">
-    <value>Besleme URL'si (boş = bu projenin GitHub sürümleri; bir yansı için ayarlayın)</value>
-  </data>
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>{0} için MTA-STS ilkesini HTTPS üzerinden getir ve sunulanı göster</value>
   </data>
@@ -4638,9 +4635,6 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>Bu _hesabı rehbere dahil etme</value>
-  </data>
-  <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
-    <value>Kendi kurulum programlarınızı üretip imzalamıyorsanız bunu kapalı bırakın. Bu projenin sürümleri henüz Authenticode ile imzalanmıyor; bu yüzden bunu açmak var olan her sürümü reddeder: indirme "the installer carries no Authenticode signature" iletisiyle durur ve hiçbir güncelleştirme hiçbir zaman uygulanamaz. Her sürümün gerçekten taşıdığı Sigstore imzası ise her durumda denetlenir ve isteğe bağlı değildir.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Boş bırakıldığında sunucu, gri renkte gösterilen ürünle gelen filtreyi kullanır - önce objectCategory, çünkü Active Directory'de indekslidir; sonra sAMAccountName, çünkü hesabın Dizin sekmesinin sakladığı budur. %u hesabın Active Directory kullanıcı adı, %d AD etki alanı, %m tam posta adresidir; üçü de yerine konmadan önce kaçış işlemi görür; bu yüzden düşmanca bir oturum açma adı filtreyi yeniden yazamaz. Birden fazla girdiyle eşleşen bir filtre bilinçli olarak hiç kimsenin kimliğini doğrulamaz.</value>
@@ -6129,8 +6123,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open the full _guide (DiagnosingStalledMail.md)" xml:space="preserve">
     <value>_Tam kılavuzu aç (DiagnosingStalledMail.md)</value>
   </data>
-  <data name="Open the full guide on GitHub" xml:space="preserve">
-    <value>Tam kılavuzu GitHub'da aç</value>
+  <data name="Open the full guide in a web browser" xml:space="preserve">
+    <value>Tam kılavuzu bir web tarayıcısında aç</value>
   </data>
   <data name="Open the live logs" xml:space="preserve">
     <value>Canlı günlükleri aç</value>
@@ -9900,6 +9894,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
     <value>Bu parola yayımlanmış bir veri sızıntısında yer alıyor, bu yüzden bu hesaba karşı ilk denenecekler arasında olur. Başka bir parola seçin.</value>
   </data>
+  <data name="This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way." xml:space="preserve">
+    <value>Bu projenin kurulum programları 6.3.1'den beri Progressive Robot Ltd tarafından Azure Artifact Signing ile Authenticode imzalıdır; 6.3.1'den önceki sürümler imza taşımaz ve bu ayar onları reddeder. Bir kurulum programı indirildiğinde, Windows'un imzaya güvenip güvenmediğini denetler - bu makinenin güvenilen kök sertifikalarına karşı WinVerifyTrust, iptal denetimi olmadan -, imzayı kimin attığını değil: o, her sürümün taşıdığı ve her durumda denetlenen Sigstore imzasının işidir.</value>
+  </data>
   <data name="This range _expires" xml:space="preserve">
     <value>_Bu aralığın süresi dolar</value>
   </data>
@@ -10199,6 +10196,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Güncelleştir</value>
+  </data>
+  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
+    <value>Güncelleştirme beslemesi URL'si (boş = yerleşik besleme; bir yansı için ayarlayın)</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Güncellendi</value>

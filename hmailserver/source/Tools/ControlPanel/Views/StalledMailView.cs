@@ -29,7 +29,7 @@ namespace hMailServer.ControlPanel.Views
    public class StalledMailView : UserControl, IPageLifecycle
    {
       private const string GuideUrl =
-         "https://github.com/Progressiverobot/hmailserver/blob/master/hmailserver/docs/DiagnosingStalledMail.md";
+         "https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/hmailserver/docs/DiagnosingStalledMail.md";
 
       // The two buttons of the debug-logging card: the one that would change
       // nothing is disabled, so the state reads off the buttons as well as the line.
@@ -220,7 +220,7 @@ namespace hMailServer.ControlPanel.Views
          var content = (StackPanel)card.Content;
 
          var open = new Wpf.Ui.Controls.Button { Content = L("Open the full _guide (DiagnosingStalledMail.md)"), Margin = new Thickness(0, 6, 8, 0) };
-         AutomationProperties.SetName(open, L("Open the full guide on GitHub"));
+         AutomationProperties.SetName(open, L("Open the full guide in a web browser"));
          open.Click += (s, e) => OpenGuide();
          content.Children.Add(open);
          return card;

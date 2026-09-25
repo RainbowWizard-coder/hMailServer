@@ -1,49 +1,92 @@
 Third-party binaries
 ====================
 
-This repository contains 40 committed binary files — DLLs, two MSIs, an EXE and
-two type libraries. A committed binary is a file nobody can review. It arrives
-in a pull request as `Binary files differ`, and from that point on the only
-thing anyone knows about it is its name.
+This repository commits no executable binary. Until 11 September 2026 it held
+forty - DLLs, two MSIs, an EXE and two type libraries - and a committed binary
+is a file nobody can review: it arrives in a change as `Binary files differ`,
+and from then on the only thing anyone knows about it is its name. Since that
+day the build obtains the ones it still needs when it runs, and five that
+nothing needed were deleted.
 
-This document is the record of what each one is, where it came from, why it is
-here, and whether it should be. The machine-readable half is
-[third-party-binaries.json](third-party-binaries.json), and the
-`Binary provenance` workflow
-([.github/workflows/verify-binary-provenance.yml](../../.github/workflows/verify-binary-provenance.yml))
-fails the build if the two ever disagree with the tree.
+This document is the record of each of those build inputs: what it is, where it
+comes from, how the build gets it and checks it, and why the build needs it. The
+machine-readable half is [third-party-binaries.json](third-party-binaries.json),
+and `build/get-installer-binaries.ps1` is the script that reads it and puts the
+files in place.
 
 The division of labour between the two files is deliberate. The JSON holds the
 SHA-256 hashes and is the only place they appear; this document explains and
-never repeats them. Two copies of forty hashes would diverge, and the copy
-people read would be the wrong one.
+never repeats them. Two copies of the hashes would diverge, and the copy people
+read would be the wrong one.
 
 The short version
 -----------------
 
 | | |
 |---|---|
-| Committed binaries | 40 |
-| Should be deleted outright — nothing references them | **3** |
-| Byte-identical duplicates of another committed file | **10** |
-| Genuinely required in the tree | 13 |
-| Required today, but a removal or refresh candidate | 13 |
-| Generated from this repository's own source | 1 |
+| Executable binaries committed to the repository | **0** |
+| Fetched from the project's `build-inputs-1` release, checked against a SHA-256 | 22 |
+| Gathered from the build machine's Visual Studio, checked by version | 10 |
+| Copied from the build machine's own Windows | 2 |
+| Generated from this repository's own IDL | 1 |
+| Deleted on 11 September 2026, because nothing loaded them | 5 |
 
-Thirteen of the forty — a third — are there by accident rather than by need.
-None of the three unused ones is loaded by anything: they are the residue of
-an x86 installer branch that was deleted, a downloader that is declared and
-never called, and a copy of a Windows 2000 system DLL.
+The thirty-five are the manifest's entries; every one is marked as not in git,
+and git ignores every path they are placed at. What the tree still carries is
+binary only in the plain sense and is not code: the Fat Cow icon library under
+`libraries/fat_cow_icons` (its images and the archive they came in), the images
+beside these documents, and the OpenPGP fixtures under `build/fixtures/openpgp`.
+None has an executable's extension or a PE, ELF or OLE header, so none is a
+binary to the check described below, and none is in the manifest.
+
+Where the build gets them
+-------------------------
+
+`build/get-installer-binaries.ps1` handles four kinds, named by each entry's
+`disposition`:
+
+* **fetched** - downloaded from the `build-inputs-1` release, which holds the
+  exact bytes that were committed before 11 September 2026, and checked against
+  the manifest's SHA-256 before it is placed. Three release assets: 7-Zip's
+  console, an archive of the MariaDB client and its nine plugins (placed twice,
+  see below), and the SQL Server Compact 4.0 SP1 x64 runtime. A release rather
+  than the vendors' URLs, because two of the three have no stable first-party
+  download left.
+* **gathered** - the MSVC runtime, copied from the build machine's Visual Studio
+  (`%VCToolsRedistDir%\x64\Microsoft.VC145.CRT`) and checked by major and minor
+  version against the toolset that built the server, since a runtime pinned to
+  yesterday's bytes would be the wrong runtime after a Visual Studio update.
+* **system** - the ADO 2.8 type libraries the server `#import`s, copied from the
+  build machine's Windows. `-SystemOnly` places these two and nothing else, and a
+  clean clone's server does not compile without them.
+* **generated** - `Interop.hMailServer.dll`, made by
+  `build/generate-com-wrapper.ps1`, which `build.ps1` and `build-tools.ps1` run
+  themselves.
+
+The download address in the script (`$releaseBase`) is still GitHub's, which has
+answered 404 since GitHub suspended the project's account on 18 September 2026.
+The same release is re-published on GitLab, byte for byte, as
+<https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>, and
+pointing the script there belongs to the Roadmap2 row *The release chain off a
+single forge*. Until then, download the three assets from that page into the
+script's cache (`%LOCALAPPDATA%\hmailserver\build-inputs`, or the folder given to
+`-Cache`): the script checks each against the manifest's hash and uses it
+without downloading anything.
+
+The server, the tools, the Control Panel and the test assembly compile without
+the fetched and gathered files. The installer and a regression bench need them.
+`build/get-installer-binaries.ps1 -Verify` checks that every fetched, gathered
+and system file is in place and matches, and changes nothing.
 
 What the build already does right
 ---------------------------------
 
-The three largest and most security-relevant native dependencies — OpenSSL,
-Boost and PostgreSQL's libpq — are **not** in this repository at all. They live
+The three largest and most security-relevant native dependencies - OpenSSL,
+Boost and PostgreSQL's libpq - have never been in this repository. They live
 outside the tree under `%hMailServerLibs%`, and
 [post-build.bat](../source/Server/hMailServer/post-build.bat) copies the built
-DLLs into the output directory. That is why Scorecard does not flag them, and
-it is the model the rest of this list should be judged against.
+DLLs into the output directory. Since 11 September 2026 every other binary the
+build uses has followed the same model.
 
 Two native dependencies are in the tree by design. zlib 1.3.1 is vendored as source
 under `hmailserver/source/Server/zlib` (its own LICENSE beside it, the text also
@@ -72,41 +115,38 @@ binary, so it is outside this inventory too; `build/native-dependencies.ps1` doe
 it, reading the version from `quickjs/VERSION` (the one place the CMake build reads it
 from as well), so the SBOM names it.
 
-It is worth being precise about one thing. The three scripts that build those
-libraries - `libraries/build-openssl.ps1`, `build-boost.ps1` and
-`build-pgsql.ps1` - do download: each fetches one source archive from the
-project's own release server, verifies it against a SHA-256 pinned in the
-script, and builds it outside the tree. Nothing they fetch is committed, and no
-script in this repository fetches any of the 40 files below. Every one of those
-is committed, and every one of them is used directly from the tree.
-
-So the answer to "which of these could simply be fetched instead of committed"
-is: mechanically, none are today. The interesting question is which *should*
-move to the out-of-tree model, and that is answered per component below.
+The three scripts that build OpenSSL, Boost and libpq -
+`libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1` - download
+too: each fetches one source archive from that library's own release server,
+verifies it against a SHA-256 pinned in the script, and builds it outside the
+tree. Nothing they fetch is committed.
 
 Policy
 ------
 
-**1. A binary may be committed only if it is listed in
-`third-party-binaries.json`.** CI enforces this. An entry must give the
-SHA-256, the component and version, the publisher, the licence, where upstream
-it came from, what uses it, and why it cannot be obtained another way.
+**1. No binary is committed.** A file the build needs that is not source is
+obtained at build time - fetched, gathered, copied from Windows or generated -
+and listed in `third-party-binaries.json` with the SHA-256 where it has one, the
+component and version, the publisher, the licence, where upstream it came from,
+what uses it, and why the build needs it.
 
-**2. Changing a committed binary means changing its manifest entry in the same
-commit.** The hash check turns an unreviewable binary diff into a reviewable
+**2. Changing a build input means changing its manifest entry in the same
+commit.** A fetched file's hash is what turns a new download into a reviewable
 text diff. That text diff is the review.
 
 **3. Prefer, in this order:**
 
-1. Not committing it — take it from the toolchain or from `%hMailServerLibs%`
-   at build time, as OpenSSL, Boost and libpq already are.
-2. Committing the vendor's *signed* original and extracting at build time, so
-   the signature is the provenance rather than a hash we wrote down ourselves.
-3. Committing the file with a recorded hash and upstream URL — this document.
+1. Taking it from the toolchain, from Windows or from `%hMailServerLibs%` at
+   build time, as the MSVC runtime, the ADO type libraries, OpenSSL, Boost and
+   libpq are.
+2. Fetching the vendor's *signed* original, so that the signature is the
+   provenance rather than a hash we wrote down ourselves.
+3. Fetching the file from the project's own release with a recorded hash and
+   upstream - this document.
 
 **4. A binary with no publisher, no version resource and no known upstream is
-not acceptable long-term.** There is exactly one of those, and it is named
-below rather than quietly tolerated.
+not acceptable.** The one there was, `ISC.dll`, was replaced on 11 September 2026
+by the installer's own Pascal.
 
 **5. Record what you verified, not what you assume.** Every version, publisher
 and signature status in the manifest was read out of the files themselves.
@@ -116,26 +156,27 @@ rather than inventing a link.
 Authenticode: what is actually signed
 -------------------------------------
 
-Twelve of the forty carry a valid Authenticode signature. Twenty-eight do not.
+Eleven of the thirty-five carry a valid Authenticode signature. Twenty-four do not.
 
 | Signed by | Files |
 |---|---|
 | `CN=Microsoft Windows Software Compatibility Publisher` | 10 (the MSVC runtime) |
-| `CN=Microsoft Corporation` | 2 (the SQL CE MSIs) |
-| *unsigned* | 28 |
+| `CN=Microsoft Corporation` | 1 (the SQL CE x64 MSI) |
+| *unsigned* | 24 |
 
-The twenty MariaDB Connector/C DLLs are unsigned, which is why the recorded
-hash matters most for exactly those files: there is no other way to tell that
-the `libmysql.dll` in this tree is the one MariaDB shipped. The two `.tlb`
-files cannot carry an Authenticode signature at all — a type library is not a
-signable image format — so their entry is a hash and nothing else by necessity.
+The twenty MariaDB Connector/C DLLs (ten files, placed twice) are unsigned, which
+is why the recorded hash matters most for exactly those files: there is no other
+way to tell that the `libmysql.dll` the build placed is the one MariaDB shipped.
+The two `.tlb` files cannot carry an Authenticode signature at all - a type
+library is not a signable image format - and they are Windows' own; the
+generated interop wrapper is this project's and unsigned.
 
-For the twelve that *are* signed, a signature check is stronger than a hash pin
-and survives a legitimate vendor patch bump. The Linux CI job here does not do
-it, because `Get-AuthenticodeSignature` is Windows-only; since 12 September 2026
-a Windows job of the same workflow checks every *fetched* signed file against
-the signer the manifest records, and the gathered MSVC runtime files stay a
-hash and a recorded signer - see "Not yet done" below.
+For the signed files a signature check is stronger than a hash pin and survives a
+legitimate vendor patch bump. The gathered MSVC runtime is checked by version
+rather than by hash, and its signer is recorded in the manifest; the SQL CE MSI is
+checked by hash. Until 18 September 2026 a Windows job of the provenance workflow
+also fetched the build inputs and checked that the MSI's signature was valid and
+its signer the one recorded - see "What checks it" below.
 
 The inventory
 -------------
@@ -143,98 +184,94 @@ The inventory
 Grouped by component. Per-file hashes are in
 [third-party-binaries.json](third-party-binaries.json).
 
-### Delete these — nothing loads them
+### Fetched from `build-inputs-1`
 
-| Component | Files | Finding |
+| Component | Files | Note |
 |---|---|---|
-| `installation/System Files/dnsapi.dll` | 1 | Windows 2000 DNS Client API, file version 5.00.2195.6680. No `.iss` file references it and no build step copies it. It was there for `RMSPF.cpp`, the vendored SPF library, which called `LoadLibrary("DNSAPI.DLL")` — that resolved against System32 and never loaded this copy anyway, and since 15 September 2026 there is no such call at all: the RFC 7208 evaluator that replaced the library resolves through this server's own `DNSResolver` and RMSPF is deleted. A 23-year-old OS DLL, committed, shipped nowhere, and now not even nominally anyone's — and a DLL-planting hazard the day someone "helpfully" copies it next to the executable. |
-| `installation/isxdl.dll` | 1 | ISX Download DLL 5.1.5.0. `hMailServerInnoExtension.iss` lines 97–119 declare all eight of its exports; **not one is called**. It is still packed into the installer. Deleting it removes an unsigned, unmaintained HTTP downloader from a payload that runs with installer privileges. |
-| `installation/SQLCE/SSCERuntime_x86-ENU.msi` | 1 | Microsoft SQL Server Compact 4.0 SP1 (x86). The installer is x64-only, and the comment at `hMailServerInnoExtension.iss` line 839 records that the x86 branch was removed. Never staged, never executed. 8.7 MB. |
+| MariaDB Connector/C 3.4.9 (`libmysql.dll` and nine plugins) | 20 | The MySQL/MariaDB client. `MySQLInterface.cpp` builds a path beside the running executable and loads `libmysql.dll` from there at runtime, together with the nine authentication plugins found through `MYSQL_PLUGIN_DIR`. Without the full plugin set, common MySQL 8 and MariaDB account types cannot authenticate. Placed twice from the same archive: under `libraries/mariadb-connector-c-3.4.9/`, which the post-build step copies beside the server, and under `installation/Extras/`, which the installer ships. The second copy is redundant - repointing `section_files_common.iss` at `libraries/` would remove it - and the manifest says so. Provenance: see below. |
+| SQL Server Compact 4.0 SP1 x64 (`installation/SQLCE/SSCERuntime_x64-ENU.msi`) | 1 | The built-in database backend. Identity read from the MSI itself: "Microsoft SQL Server Compact 4.0 SP1 x64 ENU", Microsoft Corporation, built 2012-04-06, validly signed. **Microsoft has withdrawn the download**, so the release copy is the archive of record - there is no upstream left to fetch it from. |
+| 7-Zip standalone console (`installation/Extras/7za.exe`) | 1 | 7-Zip **19.00**, from 2019; upstream is 26.02. Run from `{app}\Bin` by `Compression::GetExecutableFullPath_()` on Windows (the Linux packages use the system's archiver). Nothing here says 19.00 is exploitable, but a seven-year-old unsigned executable that the server invokes is the build input most overdue a refresh: update it, publish it as a new build-inputs release, and re-record the hash. |
 
-### Byte-identical duplicates
+### Gathered from the build machine
 
-| Component | Files | Finding |
+| Component | Files | Note |
 |---|---|---|
-| `installation/Extras/libmysql.dll` and `Extras/plugin/*.dll` | 10 | Verified byte-for-byte identical to the ten files under `libraries/mariadb-connector-c-3.4.9/`. The build copies from `libraries/`; the installer ships from `Extras/`. One of the two copies is redundant, and `libraries/` is the right home for a vendored dependency. Repointing `section_files_common.iss` at `libraries/` removes ten of these forty alerts and, more importantly, removes the possibility of the two copies drifting apart unnoticed. |
+| MSVC v145 runtime (`installation/Microsoft.VC145.CRT/`) | 10 | Version 14.51, validly signed by Microsoft. Shipped beside the server so a target machine needs no separate redistributable. Copied from the Visual Studio that built the server, so the shipped runtime tracks the build machine's patch level. |
 
-### Required in the tree
+### Copied from Windows
 
-| Component | Files | Why it stays |
+| Component | Files | Note |
 |---|---|---|
-| MariaDB Connector/C 3.4.9 (`libraries/mariadb-connector-c-3.4.9/`) | 10 | The MySQL/MariaDB client. `MySQLInterface.cpp` builds a path beside the running executable and loads `libmysql.dll` from there at runtime, together with the nine authentication plugins found through `MYSQL_PLUGIN_DIR`. Without the full plugin set, common MySQL 8 and MariaDB account types cannot authenticate. This *could* be fetched from the vendor at build time with a hash check; the argument against is that it would put a network dependency in the path of every build for a file that changes once a year. Recorded provenance is the better trade. |
-| ADO 2.8 type libraries (`libraries/msado28/`) | 0 | `#import`ed at compile time by `stdafx.h` to generate the ADO wrappers the server compiles against. Not in git since 11 September 2026: they are Windows' own files, and `build/get-installer-binaries.ps1` copies them from `%CommonProgramFiles%\System\ado` (the manifest's `system` kind; `-SystemOnly` is what the hosted server build runs). The copy varies with the Windows build, so the manifest records a hash for reference and the regression suite is the proof. Nothing of them is redistributed: no ADO type library is in git or in the installer (the only `.tlb` the installer carries is the server's own `hMailServer.tlb`), and what the server carries is the interface definitions `#import` generated from the build machine's own copy of a Windows component, as any program built against ADO does. |
-| SQL Server Compact 4.0 SP1 x64 (`installation/SQLCE/`) | 1 | The built-in database backend. Identity read from the MSI itself: "Microsoft SQL Server Compact 4.0 SP1 x64 ENU", Microsoft Corporation, built 2012-04-06, validly signed. **Microsoft has withdrawn the download**, so this copy is the archive of record — there is no upstream left to fetch it from. This is the clearest case in the list for a committed binary. |
-
-### Required today, but review them
-
-| Component | Files | Why it is on notice |
-|---|---|---|
-| MSVC v145 runtime (`installation/Microsoft.VC145.CRT/`) | 10 | Version 14.51.36231.0, validly signed by Microsoft. Shipped beside the server so a target machine needs no separate redistributable. **This is the strongest candidate for moving out of the tree**: every machine that can build this project already has these files at `%VCToolsRedistDir%\x64\Microsoft.VC*.CRT`, so the installer could copy them at build time and ten binaries would leave the repository. The cost is that the shipped runtime then tracks the build machine's Visual Studio patch level — which is arguably more correct, not less. |
-| `installation/Extras/7za.exe` | 1 | 7-Zip standalone console **19.00**, from 2019. Upstream is 26.02. Run from `{app}\Bin` by `Compression::GetExecutableFullPath_()`. Nothing here says 19.00 is exploitable, but a seven-year-old unsigned executable that the server invokes is the committed binary most overdue a refresh. Update it, re-record the hash, and note that the upstream URL is now a GitHub release (`ip7z/7zip`) rather than 7-zip.org. |
-| `installation/System Files/ATL/atl70.dll` | 1 | ATL 7.0 runtime from Visual Studio .NET 2003, installed to `{sys}`. Nothing in this tree links ATL 7.0, and `section_files_common.iss` line 11 already says it "looks vestigial on a v145 build". It is still referenced by the installer, so removing it needs an install test on a clean machine rather than a deletion. |
-| `installation/ISC.dll` | 1 | **The weakest provenance in the repository.** A 45 KB unsigned native DLL with no version resource, no company string, no product string and no known upstream, loaded by the installer to call `CheckPorts()` (`hMailServerInnoExtension.iss` line 94, called at line 695). It is genuinely used, so it cannot simply be deleted — but "an unattributed binary that runs during installation" is the one entry on this list that should not survive to the next release. Replace it with Inno Setup Pascal code, or rebuild it from source that lives in this repository. |
+| ADO 2.8 type libraries (`libraries/msado28/`) | 2 | `#import`ed at compile time by `stdafx.h` to generate the ADO wrappers the server compiles against. Windows' own files, copied from `%CommonProgramFiles%\System\ado` and its x86 twin. The copy varies with the Windows build, so the manifest records a hash for reference only and the regression suite is the proof. Nothing of them is redistributed: no ADO type library is in the installer (the only `.tlb` it carries is the server's own `hMailServer.tlb`), and what the server carries is the interface definitions `#import` generated from the build machine's own copy of a Windows component, as any program built against ADO does. |
 
 ### Ours, not third-party
 
 | Component | Files | Note |
 |---|---|---|
-| `source/Tools/Interop/Interop.hMailServer.dll` | 0 | TlbImp output from *this project's* own `hMailServer.idl`. Not in git since 11 September 2026: `build/generate-com-wrapper.ps1` makes it from the server build's type library, or from the IDL alone with MIDL, and `build.ps1`, `build-tools.ps1` and the CI workflows all run it. It stays in the manifest as `generated` so the provenance check refuses it if it is ever committed again; it has no hash there because TlbImp output is not byte-reproducible (a fresh module id per run). [Interop/README.md](../source/Tools/Interop/README.md). |
+| `source/Tools/Interop/Interop.hMailServer.dll` | 1 | TlbImp output from *this project's* own `hMailServer.idl`. `build/generate-com-wrapper.ps1` makes it from the server build's type library, or from the IDL alone with MIDL. It stays in the manifest as `generated` so that it is refused if it is ever committed again; it has no hash there because TlbImp output is not byte-reproducible (a fresh module id per run). [Interop/README.md](../source/Tools/Interop/README.md). |
 
-What CI checks
+### Deleted on 11 September 2026
+
+| File | Why it went |
+|---|---|
+| `installation/System Files/dnsapi.dll` | A Windows 2000 DNS Client API, 5.00.2195.6680, that no installer line and no build step used, and a DLL-planting hazard the day someone copied it beside the executable. |
+| `installation/isxdl.dll` | ISX Download DLL 5.1.5.0. The installer declared its exports and called none of them. |
+| `installation/SQLCE/SSCERuntime_x86-ENU.msi` | SQL Server Compact 4.0 SP1 for x86. The installer is x64 only. |
+| `installation/System Files/ATL/atl70.dll` | The ATL 7.0 runtime from Visual Studio .NET 2003. Nothing on a v145 build links it. |
+| `installation/ISC.dll` | An unsigned 45 KB DLL with no version resource and no known upstream, loaded by the installer for one port check. Replaced by a WinSock bind test in the installer's own `[Code]`, with the same answer for the same three ports. |
+
+What checks it
 --------------
 
-The `Binary provenance` workflow runs on every push and pull request to master
-and answers two questions:
+The `Binary provenance` workflow
+([.github/workflows/verify-binary-provenance.yml](../../.github/workflows/verify-binary-provenance.yml))
+ran on every push and pull request to master on GitHub until 18 September 2026,
+and answered three questions:
 
-1. **Has a listed binary changed or gone missing?** Hard failure. If the change
-   was intentional, the manifest entry is updated in the same commit — which is
-   precisely the review moment a binary diff otherwise denies you.
-2. **Has a binary appeared that nobody wrote down?** Hard failure. Adding a DLL
+1. **Has a file the manifest marks as not in git been committed after all?**
+   Hard failure: the build fetches, gathers or generates it.
+2. **Is a fetched or gathered file on disk different from the manifest?** Hard
+   failure.
+3. **Has a binary appeared that nobody wrote down?** Hard failure. Adding a DLL
    to a Windows project takes two seconds and is invisible in review.
 
-Files still carrying a `remove-*` disposition are reported as warnings, not
-failures, so the list above stays visible in CI without blocking anyone.
-
-The detector matches Scorecard's: the extension set from Scorecard's
+Its detector matched OpenSSF Scorecard's: the extension set from Scorecard's
 `checks/raw/binary_artifact.go`, plus a content sniff for PE, ELF and OLE
-headers. That second half is not belt-and-braces — an extension-only scan over
-this tree finds 38 files, the magic-byte scan finds 40, and Scorecard reports
-40. The two extras are the `.tlb` type libraries.
+headers, because an extension-only scan misses a PE image with another
+extension (the `.tlb` type libraries were two). A Windows job of the same
+workflow fetched the build inputs, checked their hashes, and checked the
+signature of every fetched file the manifest records as signed.
+
+It does not run on GitLab, and nothing there runs it yet. By hand,
+`build/get-installer-binaries.ps1 -Verify` answers the second question for what
+is in place on the machine; the other two have no script outside the workflow.
 
 Updating the manifest
 ---------------------
 
-When you add, update or remove a committed binary:
+When you add, update or remove a build input:
 
-1. Make the change to the file.
-2. Update its entry in `third-party-binaries.json` — `sha256`, `size`,
-   `version`, `upstream`, and `authenticode` if the signing status changed.
-   Get the hash with
+1. Publish the new file as an asset of a new `build-inputs-<n>` release, leaving
+   the old one as it is, or change where it is gathered from.
+2. Update its entry in `third-party-binaries.json` - `sha256`, `size`,
+   `version`, `upstream`, `source`, and `authenticode` if the signing status
+   changed - and the `build_inputs` hash of the release asset.
+   Get a hash with
    `(Get-FileHash <path> -Algorithm SHA256).Hash.ToLower()`.
 3. Update the relevant row in this document if the reasoning changed.
-4. Push. The workflow will tell you if the three disagree.
+4. Run `build/get-installer-binaries.ps1`, then again with `-Verify`.
 
-Do not "fix" a failure by copying the hash CI printed into the manifest without
-knowing why it changed. That is the one move that turns this whole mechanism
-into decoration.
+Do not "fix" a failure by copying a hash the script printed into the manifest
+without knowing why it changed. That is the one move that turns this whole
+mechanism into decoration.
 
 Relationship to OpenSSF Scorecard
 ---------------------------------
 
-Scorecard's `Binary-Artifacts` check reports one alert per committed binary —
-40 of them here — and has no per-file suppression. It does, however, support
-maintainer annotations: a `scorecard.yml` file (also honoured at
-`.github/scorecard.yml`) whose `remediated` reason exists for exactly this
-case, described upstream as "a binary is needed but it is signed or has
-provenance". An annotated check is skipped when Scorecard writes its SARIF, so
-the alerts stop being reported.
-
-**That annotation has deliberately not been added yet.** Thirteen of the forty
-are duplicates or dead files. Annotating the check today would say "assessed,
-provenance recorded" about thirteen files whose correct disposition is
-deletion, and the tooling would stop mentioning them. The annotation becomes
-true — and should be added — once the `remove-unused` and `remove-duplicate`
-entries above are gone.
+Scorecard's `Binary-Artifacts` check reported one alert per committed binary -
+forty of them until 11 September 2026 - and has no per-file suppression. With no
+binary committed there is nothing left for it to report, and no maintainer
+annotation to add. Scorecard ran on GitHub and does not run on GitLab.
 
 Provenance established for the Connector/C files
 ------------------------------------------------
@@ -272,10 +309,14 @@ Not yet done
 
 Honest list of what this document does not cover.
 
-- **CI re-verifies Authenticode only for the fetched files.** The Binary
-  provenance workflow's Windows job downloads the build inputs, checks their
-  hashes, and for every fetched file the manifest records as signed (the SQL
-  CE runtime) checks that the signature is valid and the signer is the one
-  recorded. The ten MSVC runtime files are gathered from the build machine's
-  own Visual Studio, which a hosted runner does not have at the tree's
-  version, so their signer is recorded in the manifest and checked there.
+- **The fetched files are downloaded from GitHub's address**, which answers 404.
+  The release is on GitLab; the script is not pointed at it yet (the release-chain
+  row), so a clean machine fetches them by hand, as above.
+- **Nothing re-verifies anything automatically.** The provenance workflow and its
+  Windows signature job ran on GitHub only.
+- **7-Zip is 19.00.** The refresh needs a new build-inputs release.
+- **The Connector/C files are placed twice.** One installer line pointed at
+  `libraries/` removes the second copy.
+- **The MSVC runtime's signature is recorded, not checked.** A hosted runner does
+  not have the tree's Visual Studio, so the gathered files' signer was checked by
+  hand when the manifest was written.

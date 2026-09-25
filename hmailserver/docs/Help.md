@@ -30,7 +30,7 @@ The table ends with a build tag, the first sixteen hex digits of the SHA-256
 of every page's text, which the routes serve as the ETag. Today that is 71
 documents and 1.1 MB of text, which is 1.2 MB of generated C++ and about
 1.1 MB in the binary; `--check` fails when the unit is behind the documents,
-and the style workflow runs it on every pull request.
+and GitLab CI's checkers job runs it on every push and merge request.
 
 The Control Panel talks to the server over COM only and must work with no
 REST listener, so it carries its own copy: the same files, embedded as
@@ -88,7 +88,7 @@ from every surface without being listed as reference-only - and nothing
 listed as reference-only is mapped. `--self-test` is its negative control:
 the same check over a copy of the maps with an entry naming a heading that
 is not there, and another naming a document that is not, which must fail.
-The style workflow runs both, beside `generate-help-pages.py --check`.
+GitLab CI's checkers job runs both, beside `generate-help-pages.py --check`.
 
 The panes
 ---------
@@ -173,7 +173,7 @@ What is tested
 --------------
 
 * `build/check-help-map.py`, with `--self-test` as its negative control, and
-  `build/generate-help-pages.py --check`, both in the style workflow.
+  `build/generate-help-pages.py --check`, both in GitLab CI's checkers job.
 * `RegressionTests/API/RestApiHelp.cs`: the list answers every document with
   its headings, as the repository's files have them; a page answers its
   markdown byte for byte with the file in the tree, as `text/markdown` with

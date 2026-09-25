@@ -341,6 +341,44 @@ function gpgStatus(home, args, input, passphrase) {
     'and the attachment, byte for byte');
   const wrongPassword = await pgp.openProtected(protectedArmor, 'not the password').then(function () { return ''; }, function (e) { return e.message; });
   check(wrongPassword === 'wrong passphrase', 'a wrong password is refused as "wrong passphrase", so the page can say so and nothing else: ' + wrongPassword);
+  // The check above is a gamble one time in 256: a wrong password decrypts the
+  // session key packet to noise, and when the noise's first octet happens to be
+  // the algorithm number whose key length fits, the packet hands back a key
+  // and it is the body that refuses it. Made certain here: a session key packet
+  // that 'not the password' really does open, to a key that is not this
+  // message's, in front of the real message's body.
+  const noiseKey = new Uint8Array(nodeCrypto.randomBytes(32));
+  const chancePass = pgp.armor('MESSAGE', pgp.concat([await pgp.writeSkesk('not the password', pgp.SYM.AES256, noiseKey),
+    pgp.writePacket(pgp.TAG.SEIPD, protectedPackets[1].body)]));
+  const bodyRefused = await pgp.decryptBytes(chancePass, [], ['not the password']).then(function () { return ''; }, function (e) { return e.message; });
+  check(bodyRefused !== '' && bodyRefused !== 'wrong passphrase',
+    'the one time in 256 made certain: the session key packet opens with the wrong password and the body refuses the key: ' + bodyRefused);
+  const chanceRefused = await pgp.openProtected(chancePass, 'not the password').then(function () { return ''; }, function (e) { return e.message; });
+  check(chanceRefused === 'wrong passphrase', 'and the reading page still answers "wrong passphrase": ' + chanceRefused);
+  // gpg -c's shape: a session key packet with no session key of its own, so
+  // the key is whatever the password derives and nothing checks it before the
+  // body does. That was "the session key is not this message's" every time.
+  const bareS2k = { type: 3, hash: pgp.HASH.SHA256, salt: new Uint8Array(nodeCrypto.randomBytes(8)), coded: 96 };
+  const derivedKey = await pgp.s2kDerive(bareS2k, 'the-password', 32);
+  const bareSkesk = pgp.writePacket(pgp.TAG.SKESK, pgp.concat([new Uint8Array([4, pgp.SYM.AES256, bareS2k.type, bareS2k.hash]), bareS2k.salt, new Uint8Array([bareS2k.coded])]));
+  const derivedLiteral = pgp.writePacket(pgp.TAG.LITERAL, pgp.concat([new Uint8Array([0x62, 0]), new Uint8Array([0, 0, 0, 0]),
+    pgp.utf8('Subject: Derived from the password\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nNo session key of its own.\r\n')]));
+  // RFC 4880 section 5.13: the prefix, the packets and the MDC packet's header,
+  // then its SHA-1 over all three, under CFB with a zero IV and no resync.
+  const mdcPrefix = new Uint8Array(18);
+  mdcPrefix.set(nodeCrypto.randomBytes(16), 0);
+  mdcPrefix[16] = mdcPrefix[14];
+  mdcPrefix[17] = mdcPrefix[15];
+  const mdcCovered = pgp.concat([mdcPrefix, derivedLiteral, new Uint8Array([0xd3, 0x14])]);
+  const mdcSha = new Uint8Array(nodeCrypto.createHash('sha1').update(Buffer.from(mdcCovered)).digest());
+  const derivedCipher = nodeCrypto.createCipheriv('aes-256-cfb', Buffer.from(derivedKey), Buffer.alloc(16));
+  const derivedBody = new Uint8Array(Buffer.concat([derivedCipher.update(Buffer.from(pgp.concat([mdcCovered, mdcSha]))), derivedCipher.final()]));
+  const gpgShape = pgp.armor('MESSAGE', pgp.concat([bareSkesk, pgp.writePacket(pgp.TAG.SEIPD, pgp.concat([new Uint8Array([1]), derivedBody]))]));
+  const gpgShapeOpened = await pgp.openProtected(gpgShape, 'the-password').then(function (r) { return r; }, function (e) { return { error: e.message }; });
+  check(!gpgShapeOpened.error && gpgShapeOpened.subject === 'Derived from the password',
+    'a session key packet with no session key of its own (gpg -c\'s) opens with its password: ' + (gpgShapeOpened.error || 'opened'));
+  const gpgShapeWrong = await pgp.openProtected(gpgShape, 'not the password').then(function () { return ''; }, function (e) { return e.message; });
+  check(gpgShapeWrong === 'wrong passphrase', 'and a wrong password, which nothing can check before the body, is "wrong passphrase" every time: ' + gpgShapeWrong);
   const noPassword = await pgp.protectedMessage({ headers: {}, text: 'x', password: '' }).then(function () { return ''; }, function (e) { return e.message; });
   check(noPassword === 'a password is needed', 'and nothing is made without a password');
   // The reading page fails closed: a message that was never encrypted - a

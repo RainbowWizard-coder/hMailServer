@@ -3794,9 +3794,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Falls back to the ACME certificate" xml:space="preserve">
     <value>Recurre al certificado ACME</value>
   </data>
-  <data name="Feed URL (empty = this project's GitHub releases; set for a mirror)" xml:space="preserve">
-    <value>URL de la fuente (vacío = las versiones de GitHub de este proyecto; indíquela para una réplica)</value>
-  </data>
   <data name="Fetch the MTA-STS policy for {0} over HTTPS and show what is served" xml:space="preserve">
     <value>Obtener la política MTA-STS de {0} por HTTPS y mostrar lo que se sirve</value>
   </data>
@@ -4638,9 +4635,6 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>No _incluir esta cuenta en el directorio</value>
-  </data>
-  <data name="Leave this off unless you build your own installers and sign them. This project's releases are not Authenticode-signed yet, so turning it on refuses every release there is: the download stops with &quot;the installer carries no Authenticode signature&quot; and no update can ever be applied. The Sigstore signature, which every release does carry, is checked either way and is not optional." xml:space="preserve">
-    <value>Déjelo desactivado a menos que usted compile sus propios instaladores y los firme. Las versiones de este proyecto todavía no están firmadas con Authenticode, así que activarlo rechaza todas las versiones que existen: la descarga se detiene con "el instalador no lleva ninguna firma Authenticode" y no puede aplicarse nunca ninguna actualización. La firma Sigstore, que todas las versiones sí llevan, se comprueba en ambos casos y no es opcional.</value>
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Si se deja vacío, el servidor usa el filtro de fábrica mostrado en gris - objectCategory primero porque está indexado en Active Directory, y sAMAccountName porque es lo que guarda la pestaña Directorio de la cuenta. %u es el nombre de usuario de Active Directory de la cuenta, %d su dominio de AD, %m su dirección de correo completa; los tres se escapan antes de sustituirse, así que un nombre de inicio de sesión hostil no puede reescribir el filtro. Un filtro que coincide con más de una entrada no autentica a nadie, por diseño.</value>
@@ -6129,8 +6123,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="Open the full _guide (DiagnosingStalledMail.md)" xml:space="preserve">
     <value>Abrir la _guía completa (DiagnosingStalledMail.md)</value>
   </data>
-  <data name="Open the full guide on GitHub" xml:space="preserve">
-    <value>Abrir la guía completa en GitHub</value>
+  <data name="Open the full guide in a web browser" xml:space="preserve">
+    <value>Abrir la guía completa en un navegador web</value>
   </data>
   <data name="Open the live logs" xml:space="preserve">
     <value>Abrir los registros en vivo</value>
@@ -9900,6 +9894,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="This password appears in a published data breach, so it would be among the first tried against this account. Choose a different one." xml:space="preserve">
     <value>Esta contraseña aparece en una filtración de datos publicada, así que estaría entre las primeras que se probarían contra esta cuenta. Elija otra.</value>
   </data>
+  <data name="This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way." xml:space="preserve">
+    <value>Los instaladores de este proyecto están firmados con Authenticode desde la 6.3.1, por Progressive Robot Ltd mediante Azure Artifact Signing; las versiones anteriores a la 6.3.1 no llevan firma, y esta opción las rechaza. Cuando se descarga un instalador, comprueba que Windows confía en la firma - WinVerifyTrust contra las raíces de confianza de este equipo, sin comprobar la revocación - y no quién la hizo: eso le corresponde a la firma Sigstore, que llevan todas las versiones y que se comprueba en ambos casos.</value>
+  </data>
   <data name="This range _expires" xml:space="preserve">
     <value>Este rango _caduca</value>
   </data>
@@ -10199,6 +10196,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="Update" xml:space="preserve">
     <value>Actualizar</value>
+  </data>
+  <data name="Update feed URL (empty = the built-in feed; set for a mirror)" xml:space="preserve">
+    <value>URL de la fuente de actualizaciones (vacío = la fuente integrada; indíquela para una réplica)</value>
   </data>
   <data name="Updated" xml:space="preserve">
     <value>Actualizado</value>

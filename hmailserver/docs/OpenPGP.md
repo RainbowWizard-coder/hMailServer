@@ -849,10 +849,11 @@ a detached signature; a message encrypted and signed to GnuPG's own key; and a
 revocation certificate. Both directions, against an implementation that is not
 this one.
 
-The fixtures are committed under `build/fixtures/openpgp/`, so the style workflow
-needs no GnuPG at all; `build/make-openpgp-fixtures.sh` remakes them where GnuPG
-2.4 is. **The secret keys in that directory are test keys and their passphrase is
-in the README beside them**; their addresses are in the `.test` top-level domain,
+The fixtures are committed under `build/fixtures/openpgp/`, so the check needs no
+GnuPG at all; GitLab CI's harnesses job installs GnuPG, so it runs the other half
+too. `build/make-openpgp-fixtures.sh` remakes the fixtures where GnuPG 2.4 is.
+**The secret keys in that directory are test keys and their passphrase is in the
+README beside them**; their addresses are in the `.test` top-level domain,
 which can never be delivered to.
 
 `API/RestApiOpenPgpKeys` proves the server's half — the store, the refusals, the

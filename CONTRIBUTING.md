@@ -13,9 +13,11 @@ change is held to, and how a change reaches `master`. By taking part you agree t
 **The project's home is GitLab since 22 September 2026:
 <https://gitlab.com/Progressiverobot/hmailserver>.** GitHub has been unavailable to the project since
 18 September 2026, so every link to github.com/Progressiverobot - in older notes, commit messages and
-documents - answers 404. **Nothing runs automatically on GitLab yet.** There is no CI configuration, so every
-check in this file is run by hand: by you before you open a merge request, and by the maintainer before a
-change lands.
+documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitlab-ci.yml`) on every push and
+every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,
+and the sign-off of a merge request from a fork. **The builds, both regression suites and the Windows-only
+checks are still run by hand**: by you before you open a merge request, and by the maintainer before a change
+lands. [The checkers](#the-checkers) says which is which.
 
 Contents:
 
@@ -77,6 +79,7 @@ The tree:
 | `libraries/` | The scripts that build OpenSSL, Boost and libpq, and vendored third-party code |
 | `fuzz/` | The libFuzzer harnesses |
 | `.gitlab/` | The issue and merge-request templates GitLab offers |
+| `.gitlab-ci.yml` | The checks GitLab CI runs on a push and a merge request ([the checkers](#the-checkers)) |
 | `.github/` | GitHub's workflows, templates and settings, kept in case GitHub returns. GitLab reads none of it and none of it runs. Two files there are not GitHub's: `allowed_signers`, the SSH keys release tags are signed with, and `hmailserver.openvex.json`, the project's VEX document |
 
 ## Reporting, asking and proposing
@@ -171,10 +174,14 @@ third-party files the installer carries (7-Zip's `7za.exe`, the MariaDB client a
 SQL Server Compact 4.0 runtime), and a second copy of the MariaDB client and its plugins under
 `libraries\mariadb-connector-c-3.4.9\`, which the post-build step copies beside the server.
 `build\get-installer-binaries.ps1` downloads them from the project's `build-inputs-1` release and checks
-each against the SHA-256 in `hmailserver/docs/third-party-binaries.json`. That release was published on GitHub,
-and its download URL (`$releaseBase` in the script) is unreachable while GitHub is. Until the files are
-re-hosted, ask on an issue if you need them. The server, the tools, the Control Panel and the test assembly
-compile without them; a regression bench and the installer need them.
+each against the SHA-256 in `hmailserver/docs/third-party-binaries.json`. The script still downloads from the
+release's GitHub address (`$releaseBase`), which is unreachable; the same release is re-published on GitLab, byte
+for byte, at <https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>. Download its three
+assets into the script's cache, `%LOCALAPPDATA%\hmailserver\build-inputs`, and the script checks each against the
+manifest and uses it without downloading anything
+([ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md#where-the-build-gets-them)). The server, the
+tools, the Control Panel and the test assembly compile without them; a regression bench and the installer need
+them.
 
 Some build steps reach other projects' GitHub repositories: `libraries\build-openssl.ps1` downloads the OpenSSL
 release archive from OpenSSL's, `build-appimage.sh` downloads linuxdeploy from its own, and `build-pgsql.ps1`
@@ -320,10 +327,23 @@ reads.
 
 ## The checkers
 
-**No CI runs on GitLab**, so these are how a change is checked. Run them from the repository root, before you
-open a merge request, and say in it which ones you ran. Most of them used to run in the GitHub workflow
-`.github/workflows/style.yml`, on Linux under `python3`; they need nothing but Python unless their row says
-otherwise. **Rewrites** marks a mode that changes files.
+**What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, in three
+jobs. *checkers* (a Python image with git) runs every Python checker below except `check-package-manifests.py`,
+the seven `--self-test` modes, `add-license-headers.py --check`, every generator's `--check`,
+`generate-portal-languages.py` and `check-deck-parity.py` held to the files they write staying as committed, and
+`check-linux-version-stamp.sh`, and it reports every failure at the end rather than stopping at the first.
+*harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`, `check-portal-script.py`,
+`check-portal-smime.js` and `check-portal-openpgp.js`. *sign-off* runs on a merge request from a fork (see
+[Sign-off](#sign-off)). Each script is started as `python3 build/...`, `node build/...` or `bash build/...`,
+never by its shebang, because the tree checks out CRLF.
+
+**What stays by hand:** the builds, the Windows and the Linux regression suites, `check-package-manifests.py`,
+the PowerShell checks (`check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-roadmap.ps1`,
+`generate-settings-index.ps1`), `editorconfig-checker` and `dotnet format`. Run those from the repository root
+before you open a merge request, and say in it which ones you ran; the ones CI runs are worth running first too,
+since they take a few minutes here and a round trip there. They need nothing but Python unless their row says
+otherwise, and ran on Linux under `python3` in the GitHub workflow `.github/workflows/style.yml` before they ran
+on GitLab. **Rewrites** marks a mode that changes files.
 
 ### Python checkers
 
@@ -621,8 +641,8 @@ As practised on `master`:
   Roadmap2 row and the schema step where there is one - "SCIM provisioning - the Roadmap2 row, schema 6095 to
   6096." and then what it does. The body is prose: what was built, why it is built that way, what the review
   found, and how it was proven - the tests, the checkers and the gate run.
-* **Say what you ran.** Until CI exists on GitLab, the commit message and the merge request are the only record
-  of which checks passed.
+* **Say what you ran.** GitLab CI records the checks it runs; for the builds, the suites and the checks run by
+  hand, the commit message and the merge request are the only record of what passed.
 * A commit that adds a key to a bootstrap section of `hMailServer.ini` says so, and why, in its message.
 * A commit that flips a Roadmap2 row carries the counter line with it.
 * The history is linear: `master` has had no merge commit since 15 September 2026.
@@ -640,8 +660,11 @@ distributed under AGPL-3.0-or-later.
 
 Sign-off is required of every commit in a merge request from someone outside the project. The maintainers'
 own commits are exempt, as they were under the GitHub check (`.github/workflows/dco.yml`), which is why most
-commits on `master` carry none. **Nothing on GitLab enforces it yet: the maintainer checks it at review.** A commit that lacks it is
-fixed with `git commit --amend -s` (or `git rebase --signoff` for several) and a push.
+commits on `master` carry none. **GitLab CI checks it**: the *sign-off* job runs on a merge request whose
+source branch is in a fork, and fails unless every commit from the merge request's base to its head carries a
+`Signed-off-by` trailer with the commit's author email (compared without regard to case). A merge request from a
+branch of this project does not run it. A commit that lacks it is fixed with `git commit --amend -s` (or
+`git rebase --signoff` for several) and a push.
 
 ## Merge requests
 

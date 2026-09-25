@@ -24,7 +24,7 @@
 
 [Unit]
 Description=hMailServer live update - waits for the server to ask for an apply
-Documentation=https://github.com/Progressiverobot/hmailserver
+Documentation=https://gitlab.com/Progressiverobot/hmailserver
 
 [Path]
 PathExists=/run/hmailserver/apply-request

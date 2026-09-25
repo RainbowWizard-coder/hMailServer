@@ -24,7 +24,7 @@
 
 [Unit]
 Description=hMailServer live update - applies a verified package or AppImage
-Documentation=https://github.com/Progressiverobot/hmailserver
+Documentation=https://gitlab.com/Progressiverobot/hmailserver
 # Not After= or Requires= hmailserver.service: this unit stops and starts that
 # one itself, and an ordering against it would refuse to run while it is
 # stopping - which is the moment this runs.
