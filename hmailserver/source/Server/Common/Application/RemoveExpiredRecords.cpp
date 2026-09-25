@@ -13,6 +13,7 @@
 #include "../Util/ApiSends.h"
 #include "../Util/MessageTrace.h"
 #include "../Util/RestApiServer.h"
+#include "../Util/MailboxKeys.h"
 
 #include <ctime>
 
@@ -38,6 +39,22 @@ namespace HM
    // Remove old records from the greylist
    //---------------------------------------------------------------------------()
    {
+      // The mailbox keys of accounts encrypted at rest (Util/MailboxKeys.h)
+      // that no session holds and their owner has not used for
+      // MailboxKeyIdleMinutes: closed, and written over in memory. Every
+      // minute, so that a key is not open for much longer than the setting
+      // says - and FIRST, touching no database, so that a step below that
+      // throws does not keep every idle key open for as long as it goes on
+      // throwing.
+      try
+      {
+         MailboxKeys::CloseIdle();
+      }
+      catch (...)
+      {
+         LOG_APPLICATION("RemoveExpiredRecords: the idle mailbox keys could not be closed this minute; the next run tries again.");
+      }
+
       // This is what un-bans an address once its auto-ban expires, and its result was
       // discarded - the mirror image of the auto-ban save that was also unchecked.
       // A failure here does not fail open, it fails *closed* and stays that way: the

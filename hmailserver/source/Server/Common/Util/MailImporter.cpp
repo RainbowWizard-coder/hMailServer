@@ -14,6 +14,8 @@
 
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
+#include "../Util/MailboxCrypto.h"
+#include "../Util/MailboxKeys.h"
 
 #include "Parsing/AddresslistParser.h"
 #include "../../SMTP/RecipientParser.h"
@@ -164,20 +166,23 @@ namespace HM
             return false;
          }
 
-         if (!MessageStore::PlaceWorkingFile(newFullPath))
-            return false;
       }
 
       std::shared_ptr<Message> pMessage = std::shared_ptr<Message> (new Message);
       pMessage->SetPartialFileName(partialFileName);
 
-      // Set message size: after placing, what the store holds, which answers the
-      // message's own size.
-      pMessage->SetSize(MessageStore::FileSize(newFullPath));
-
+      // Read BEFORE it is placed, while the file is the importer's plain
+      // message: placed in a mailbox encrypted at rest it is encrypted to the
+      // account's key, which is usually closed when an administrator imports,
+      // and the date, the sender and the recipients below could not be read
+      // back - the file would be left a container with no row.
       std::shared_ptr<MessageData> pMsgData = std::shared_ptr<MessageData>(new MessageData());
       if (!pMsgData->LoadFromMessage(newFullPath, pMessage))
          return false;
+
+      // The message's own size, read while the file is the message: what the
+      // store answers for it once it is placed, too.
+      pMessage->SetSize(MessageStore::FileSize(newFullPath));
 
       // Check what we should set the internal date to.
       String sReceivedHeader = GetInternalDate_(pMsgData);
@@ -255,9 +260,56 @@ namespace HM
          }
       }
 
+      // Into an account: placed now, after everything that can refuse the
+      // import but the save - encrypted to the account's key when its mailbox
+      // is encrypted at rest, compressed when MessageStoreCompression is on. A
+      // refusal keeps the file as it was: it is the only copy there is. And a
+      // save that then fails puts the file back as it was, so that the next run
+      // imports it again, rather than meeting a container with no row, which
+      // it refuses for good (HM7354) - and, for a keyed mailbox, whose key an
+      // import usually finds closed, could never be read back to be imported.
+      AnsiString original;
+      bool restorable = false;
+      if (iAccountID > 0)
+      {
+         std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(iAccountID);
+
+         // Asked once, and placed by the same answer: a switch-on between two
+         // questions would encrypt a file whose original was not kept.
+         std::string publicKey;
+         const MailboxKeys::Encryption encryption = owner ? MailboxKeys::EncryptionFor(owner, publicKey) : MailboxKeys::EncryptionNone;
+         restorable = encryption == MailboxKeys::EncryptionOn || Configuration::Instance()->GetMessageStoreCompression();
+
+         unsigned __int64 size = 0;
+         if (restorable && MessageStore::Backend().Size(newFullPath, size) && size <= MessageStoreFormat::MaximumOriginalBytes &&
+             !MessageStore::Backend().ReadAll(newFullPath, original, 0))
+            return false;
+
+         MessageStore::PlaceRefusal refusal = MessageStore::PlaceAccepted;
+         if (!MessageStore::PlaceWorkingFileAs(owner, newFullPath, encryption, publicKey, true, refusal))
+         {
+            MailboxCrypto::Forget(original);
+            return false;
+         }
+      }
+
       // Add the object to the database.
       if (!PersistentMessage::SaveObject(pMessage))
+      {
+         if (restorable && !original.empty())
+         {
+            if (!MessageStore::Backend().WriteAtomically(newFullPath, original))
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, MailboxKeys::CodePlace, "MailImporter::Import",
+                  "The message " + newFullPath + " was stored for an import and its row could not be saved, and the file could not be put back as it was: it holds the stored form, which a later import refuses.");
+            }
+         }
+
+         MailboxCrypto::Forget(original);
          return false;
+      }
+
+      MailboxCrypto::Forget(original);
 
       // A session with the folder open holds its message list in the cache and
       // would not see the import until something else refreshed it - the Import
@@ -503,12 +555,19 @@ namespace HM
          return ImportFailed;
       }
 
+      // The header, read while the file is the source server's plain message:
+      // once placed in a mailbox encrypted at rest it is encrypted to a key
+      // that is usually closed during a migration, and the row would be saved
+      // without its sender or its date. Read again after placing when it could
+      // not be read now (a message that begins with the container's magic).
+      AnsiString headerText = PersistentMessage::LoadHeader(destination, false);
+
       // Stored as a delivery stores a message (Persistence/MessageStore.h): the
       // source server's bytes are the message whatever they begin with - wrapped
       // when they begin with the mark of a container, never taken for one - and
       // compressed when MessageStoreCompression is on. One the store refuses
       // (HM7353) was never placed, counted nothing, and goes.
-      if (!MessageStore::PlaceWorkingFile(destination))
+      if (!MessageStore::PlaceWorkingFileFor(owner, destination))
       {
          MessageStore::DiscardWorkingFile(destination);
          problem = _T("the message begins with the bytes that mark a container of the message store and could not be stored as the message it is");
@@ -533,7 +592,8 @@ namespace HM
       message->SetKeywordList(kept);
 
       MimeHeader header;
-      AnsiString headerText = PersistentMessage::LoadHeader(destination, false);
+      if (headerText.IsEmpty())
+         headerText = PersistentMessage::LoadHeader(destination, false);
       if (!headerText.IsEmpty())
          header.Load(headerText.GetBuffer(), headerText.GetLength(), false);
 

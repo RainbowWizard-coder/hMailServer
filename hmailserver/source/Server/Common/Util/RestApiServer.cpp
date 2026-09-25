@@ -87,6 +87,7 @@
 #include "ConfidentialMessages.h"
 #include "ProtectedMessages.h"
 #include "ZeroAccess.h"
+#include "MailboxKeys.h"
 #include "ContactGroups.h"
 #include <iterator>
 #include <list>
@@ -434,6 +435,12 @@ namespace HM
          // dropping its mail connections, and so that the session list and the
          // device list name the same thing.
          AnsiString device;
+
+         // The opening of the account's mailbox key the session was made under
+         // (MailboxKeys::OpenEpoch), 0 when it was not open or the mailbox is
+         // not encrypted at rest: a keyed account's session is good only while
+         // this is the opening that is current (AuthenticateSessionToken_).
+         unsigned __int64 key_epoch = 0;
 
          // The address the session began on, for the bind-to-address policy, and
          // the domain whose policy governs it (empty for the administrator's own
@@ -2017,6 +2024,11 @@ namespace HM
             return BuildResponse_(403, "{\"error\":\"a request that changes something must carry X-Requested-With: hMailServer when it is authenticated by a session cookie or a session token\"}");
          }
 
+         // A session whose mailbox's encryption at rest is not known just now
+         // is neither let in nor ended: 503, and the page tries again.
+         if (caller.result == AuthenticationFailed && caller.mailbox_key_unknown)
+            return BuildResponse_(503, "{\"error\":\"whether this mailbox is encrypted at rest could not be read just now; try again in a moment\",\"code\":\"mailbox_key\"}");
+
          if (caller.result == AuthenticationFailed && scimPath)
             return BuildScimError_(401, "", _T("authentication failed: /scim/ answers to an api key presented as a bearer token"), "WWW-Authenticate: Bearer realm=\"hMailServer\"\r\n");
 
@@ -2117,6 +2129,20 @@ namespace HM
                return BuildScimError_(403, "", String(refusalReason));
 
             return BuildForbiddenResponse_(refusalReason);
+         }
+
+         // A mailbox encrypted at rest opens only with its own password
+         // (MailboxKeys.h): an app password - over Basic, or holding a session
+         // started with one - reaches none of the account's own routes, whether
+         // the key happens to be open or not, as IMAP, POP3 and the webmail's
+         // sign-in refuse it. A refusal after the decision, never a grant: the
+         // choke point above has allowed the route, and this narrows it for
+         // this one credential.
+         if (caller.result == AuthenticatedAsAccount && caller.via_app_password && caller.account && IsSelfServiceRoute_(route.kind))
+         {
+            const String keyRefusal = MailboxKeys::SessionRefusal(caller.account, SignInStore::CredentialAppPassword);
+            if (!keyRefusal.IsEmpty())
+               return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 403), "{\"error\":\"" + JsonEscape_(Utf8_(keyRefusal)) + "\",\"code\":\"mailbox_key\"}");
          }
 
          // The audit trail's identity chokepoint for REST, and the only one:
@@ -2421,6 +2447,14 @@ namespace HM
          case RouteAccountReviewPut:
          case RouteAccountReviewUnlock:
             return HandleAccountReview_(caller, route, GetRequestBody_(request));
+         case RouteAccountMailboxEncryptionGet:
+         case RouteAccountMailboxEncryptionPut:
+         case RouteAccountMailboxEncryptionForfeit:
+         case RouteAccountMailboxEncryptionRecover:
+         case RouteDomainMailboxRecoveryGet:
+         case RouteDomainMailboxRecoveryPut:
+         case RouteDomainMailboxRecoveryDelete:
+            return HandleMailboxEncryption_(caller, route, GetRequestBody_(request));
          case RouteSetupChecklist:
             return HandleSetupChecklist_(route);
          case RouteSampleDomainGet:
@@ -3047,6 +3081,9 @@ namespace HM
 
          case RouteMeZeroAccessDelete:
             return HandleMeZeroAccessDelete_(caller);
+
+         case RouteMeMailboxEncryption:
+            return HandleMeMailboxEncryption_(caller);
 
          case RouteMeRecall:
             return HandleMeRecall_(caller, GetRequestBody_(request));
@@ -3859,6 +3896,14 @@ namespace HM
       if (path == "/api/v1/me/zero-access/rewrap" && method == "PUT")
       {
          route.kind = RouteMeZeroAccessRewrap;
+         return;
+      }
+
+      // Mailbox encryption at rest (RestApiMailboxKeys.cpp): the account's own
+      // view of it. Nothing here writes: the administrator switches it.
+      if (path == "/api/v1/me/mailbox-encryption" && method == "GET")
+      {
+         route.kind = RouteMeMailboxEncryption;
          return;
       }
 
@@ -4769,6 +4814,21 @@ namespace HM
          }
       }
 
+      // A domain's recovery key for mailbox encryption at rest
+      // (RestApiMailboxKeys.cpp): read, made or replaced, removed.
+      if ((method == "GET" || method == "PUT" || method == "DELETE") && path.StartsWith(domainsPrefix) && path.EndsWith("/mailbox-recovery"))
+      {
+         AnsiString domainName = path.Mid(domainsPrefix.GetLength(), path.GetLength() - domainsPrefix.GetLength() - AnsiString("/mailbox-recovery").GetLength());
+         if (!domainName.IsEmpty() && domainName.Find("/") < 0)
+         {
+            route.kind = method == "GET" ? RouteDomainMailboxRecoveryGet
+                       : method == "PUT" ? RouteDomainMailboxRecoveryPut
+                       : RouteDomainMailboxRecoveryDelete;
+            route.identifier = domainName;
+            return;
+         }
+      }
+
       if ((method == "PUT" || method == "DELETE") && path.StartsWith(domainsPrefix) && path.Find("/rules/") > 0)
       {
          const AnsiString rest = path.Mid(domainsPrefix.GetLength());
@@ -4871,6 +4931,31 @@ namespace HM
                route.kind = RouteAccountReviewGet;
             else if (!unlock && method == "PUT")
                route.kind = RouteAccountReviewPut;
+            else
+               return;
+            route.identifier = address;
+            return;
+         }
+      }
+
+      // An account's mailbox key for encryption at rest (RestApiMailboxKeys
+      // .cpp): read, switched on or off, forfeited, and recovered with the
+      // domain's passphrase.
+      if (path.StartsWith(accountsPrefix) && (path.EndsWith("/mailbox-encryption") || path.EndsWith("/mailbox-encryption/recover")))
+      {
+         const bool recover = path.EndsWith("/mailbox-encryption/recover");
+         const AnsiString suffix = recover ? "/mailbox-encryption/recover" : "/mailbox-encryption";
+         AnsiString address = path.Mid(accountsPrefix.GetLength(), path.GetLength() - accountsPrefix.GetLength() - suffix.GetLength());
+         if (!address.IsEmpty() && address.Find("/") < 0)
+         {
+            if (recover && method == "POST")
+               route.kind = RouteAccountMailboxEncryptionRecover;
+            else if (!recover && method == "GET")
+               route.kind = RouteAccountMailboxEncryptionGet;
+            else if (!recover && method == "PUT")
+               route.kind = RouteAccountMailboxEncryptionPut;
+            else if (!recover && method == "DELETE")
+               route.kind = RouteAccountMailboxEncryptionForfeit;
             else
                return;
             route.identifier = address;
@@ -7343,6 +7428,13 @@ namespace HM
       case RouteReviewDiscard:
       case RouteAccountReviewPut:
       case RouteAccountReviewUnlock:
+      // A mailbox key switched, forfeited or recovered - the last sets a
+      // password - and a domain's recovery key made, replaced or removed.
+      case RouteAccountMailboxEncryptionPut:
+      case RouteAccountMailboxEncryptionForfeit:
+      case RouteAccountMailboxEncryptionRecover:
+      case RouteDomainMailboxRecoveryPut:
+      case RouteDomainMailboxRecoveryDelete:
       // A check writes what it found and starts a propagation clock; the rest move
       // keys, and the run moves every domain's rotation.
       case RouteDkimRotationStart:
@@ -8120,6 +8212,23 @@ namespace HM
       case RouteSmimeCaRevoke:
          return RolePermission::ManageAccounts;
 
+      // Mailbox encryption at rest (RestApiMailboxKeys.cpp). Reading whether an
+      // account's mailbox is encrypted is reading the account, and so is
+      // reading the domain's recovery key - its fingerprint and hint, never its
+      // private half - which exists for the domain's accounts: the Deck's card
+      // for it stands beside theirs. Switching a key, forfeiting it, opening it
+      // with the domain's passphrase to set a password, and making or removing
+      // the recovery key are administering the domain's accounts.
+      case RouteAccountMailboxEncryptionGet:
+      case RouteDomainMailboxRecoveryGet:
+         return RolePermission::ViewAccounts;
+      case RouteAccountMailboxEncryptionPut:
+      case RouteAccountMailboxEncryptionForfeit:
+      case RouteAccountMailboxEncryptionRecover:
+      case RouteDomainMailboxRecoveryPut:
+      case RouteDomainMailboxRecoveryDelete:
+         return RolePermission::ManageAccounts;
+
       // Setting somebody's password, as a route of its own rather than as a
       // field of the account update: a help-desk role can only be this narrow
       // if the one thing it is allowed to do is a route of its own.
@@ -8563,6 +8672,20 @@ namespace HM
       case RouteRoleAssign:
       case RouteRoleUnassign:
          return StringParser::ExtractDomain(String(route.identifier));
+
+      // Mailbox encryption at rest: an account's key is named by its address,
+      // a domain's recovery key by the domain's name. Left out of this list a
+      // credential confined to one domain could forfeit or recover a mailbox
+      // key - which sets a password - in another.
+      case RouteAccountMailboxEncryptionGet:
+      case RouteAccountMailboxEncryptionPut:
+      case RouteAccountMailboxEncryptionForfeit:
+      case RouteAccountMailboxEncryptionRecover:
+         return StringParser::ExtractDomain(String(route.identifier));
+      case RouteDomainMailboxRecoveryGet:
+      case RouteDomainMailboxRecoveryPut:
+      case RouteDomainMailboxRecoveryDelete:
+         return String(route.identifier);
 
       case RouteAccountDelete:
          // The reason the whole mechanism exists. The account to delete is named
@@ -12108,6 +12231,7 @@ namespace HM
       case RouteMeZeroAccessPut:
       case RouteMeZeroAccessRewrap:
       case RouteMeZeroAccessDelete:
+      case RouteMeMailboxEncryption:
       case RouteMeFolderEmpty:
       case RouteMeMessageSource:
       case RouteMeMessageHtml:
@@ -12342,6 +12466,18 @@ namespace HM
       if (!PersistentAccount::ReadObject(mutableAccount, account->GetID()) || mutableAccount->GetID() == 0)
          return BuildResponse_(500, "{\"error\":\"the account could not be read\"}");
 
+      // A mailbox encrypted at rest (MailboxKeys.h): the current password, just
+      // proved, opens its key when it is closed, and the key is wrapped by the
+      // new one, stored when the account is. Before the history is recorded,
+      // so that a refusal leaves nothing behind.
+      {
+         MailboxKeys::OnPasswordLogon(account, currentPassword);
+
+         String keyRefusal;
+         if (!MailboxKeys::PrepareForNewPassword(mutableAccount, newPassword, keyRefusal))
+            return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 409), "{\"error\":\"" + JsonEscape_(Utf8_(keyRefusal)) + "\",\"code\":\"mailbox_key\"}");
+      }
+
       PasswordHistory::Record(mutableAccount);
 
       int preferredHashAlgorithm = IniFileSettings::Instance()->GetPreferredHashAlgorithm();
@@ -12498,6 +12634,7 @@ namespace HM
       AnsiString credentialStamp;
       AnsiString supportBy;
       AnsiString device;
+      unsigned __int64 keyEpoch = 0;
 
       // The policy is re-read at every request rather than remembered from
       // sign-in, so that shortening an idle timeout or turning a switch on
@@ -12583,6 +12720,7 @@ namespace HM
             viaAppPassword = it->via_app_password;
             supportBy = it->support_by;
             device = it->device;
+            keyEpoch = it->key_epoch;
             break;
          }
       }
@@ -12628,6 +12766,41 @@ namespace HM
       {
          RevokeSessionsForAccount_(accountId, "");
          return false;
+      }
+
+      // A mailbox encrypted at rest (MailboxKeys.h): a session is good while the
+      // opening of the key it was made under is the one that is current - not
+      // merely while some key is open. One whose key has closed since - idle
+      // past MailboxKeyIdleMinutes, or a restart - or that was made before the
+      // mailbox was encrypted at all is over, and ended here with every other
+      // session of the account made under an earlier opening: none of them can
+      // read the mailbox, and one left standing would come back to life, with
+      // no password asked, the moment something else opened the key. A session
+      // made under the opening that is current is not ended with them - a
+      // stale session's request never ends one signed in a moment ago. The
+      // page signs in again, with the password that opens it. Every request of
+      // the person's own session keeps the key open; a support session's, or
+      // one started with an app password, does not (MailboxKeys::FindOpenKey).
+      // When whether the mailbox is encrypted is not known, the request is
+      // answered 503 and nothing is ended.
+      const MailboxKeys::Keyed keyed = MailboxKeys::KeyedState(accountId);
+      if (keyed == MailboxKeys::KeyedUnknown)
+      {
+         caller.mailbox_key_unknown = true;
+         return false;
+      }
+
+      if (keyed == MailboxKeys::KeyedYes || keyed == MailboxKeys::KeyedDamaged)
+      {
+         const unsigned __int64 opening = MailboxKeys::OpenEpoch(accountId);
+         if (opening == 0 || opening != keyEpoch)
+         {
+            RevokeSessionsOutsideOpening_(accountId, presentedHash);
+            return false;
+         }
+
+         if (supportBy.IsEmpty() && !viaAppPassword)
+            MailboxKeys::Touch(accountId);
       }
 
       caller.result = AuthenticatedAsAccount;
@@ -12691,6 +12864,21 @@ namespace HM
       std::shared_ptr<const Account> account = caller.account;
       if (!administrator && !account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // A mailbox encrypted at rest (MailboxKeys.h) is a session only with its
+      // key open and on its own password: a sign-in with the password opened
+      // it on the way here, and a passkey, a single sign-on or an app password
+      // cannot open it - refused with the sentence, as IMAP refuses them.
+      if (!administrator)
+      {
+         const int credential = caller.via_passkey ? SignInStore::CredentialPasskey
+                              : caller.via_single_sign_on ? SignInStore::CredentialSingleSignOn
+                              : caller.via_app_password ? SignInStore::CredentialAppPassword
+                              : SignInStore::CredentialPassword;
+         const String keyRefusal = MailboxKeys::SessionRefusal(account, credential);
+         if (!keyRefusal.IsEmpty())
+            return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 403), "{\"error\":\"" + JsonEscape_(Utf8_(keyRefusal)) + "\",\"code\":\"mailbox_key\"}");
+      }
 
       // The bearer form, ?bearer=1: the token is answered in the body and no
       // cookie is set, for a page that already holds one account's cookie and
@@ -12764,6 +12952,10 @@ namespace HM
       const SessionPolicy resolved = ResolvePolicy_(administrator, administrator ? 0 : account->GetID(),
          administrator ? String() : StringParser::ExtractDomain(account->GetAddress()));
 
+      // The opening of the mailbox key this session is made under - the one
+      // the password sign-in on the way here opened, or found open.
+      const unsigned __int64 keyEpoch = administrator ? 0 : MailboxKeys::OpenEpoch(account->GetID());
+
       {
          std::lock_guard<std::mutex> guard(browser_sessions_mutex);
 
@@ -12819,6 +13011,7 @@ namespace HM
          session.credential_stamp = credentialStamp;
          session.via_app_password = caller.via_app_password;
          session.bearer = bearer;
+         session.key_epoch = keyEpoch;
          session.created_at = now;
          session.last_seen_at = now;
          session.device = AnsiString(device);
@@ -13002,6 +13195,30 @@ namespace HM
                // that names an account means the administrator.
                return !session.administrator && session.account_id == accountId &&
                       (keepTokenHash.IsEmpty() || !ConstantTimeEquals(session.token_hash, keepTokenHash));
+            }),
+         browser_sessions.end());
+   }
+
+   void
+   RestApiServer::RevokeSessionsOutsideOpening_(__int64 accountId, const AnsiString &presentedHash)
+   {
+      std::lock_guard<std::mutex> guard(browser_sessions_mutex);
+
+      // Read under the table's lock: a session made under the opening that is
+      // current is in the table by now, or is made after this, with it.
+      const unsigned __int64 current = MailboxKeys::OpenEpoch(accountId);
+
+      browser_sessions.erase(
+         std::remove_if(browser_sessions.begin(), browser_sessions.end(),
+            [accountId, current, &presentedHash](const BrowserSession &session)
+            {
+               if (session.administrator || session.account_id != accountId)
+                  return false;
+
+               if (ConstantTimeEquals(session.token_hash, presentedHash))
+                  return true;
+
+               return current == 0 || session.key_epoch != current;
             }),
          browser_sessions.end());
    }
@@ -15885,6 +16102,11 @@ namespace HM
       // Resolved before the lock (ResolvePolicy_).
       const SessionPolicy resolved = ResolvePolicy_(false, account->GetID(), StringParser::ExtractDomain(account->GetAddress()));
 
+      // A keyed mailbox's support session lives under the opening of its key
+      // that is current, and ends with it; opened while the key is closed, its
+      // first request ends it.
+      const unsigned __int64 keyEpoch = MailboxKeys::OpenEpoch(account->GetID());
+
       {
          std::lock_guard<std::mutex> guard(browser_sessions_mutex);
          const ULONGLONG now = GetTickCount64();
@@ -15895,6 +16117,7 @@ namespace HM
          session.account_id = account->GetID();
          session.administrator = false;
          session.support_by = caller.identity;
+         session.key_epoch = keyEpoch;
          session.created_at = now;
          session.last_seen_at = now;
          session.device = AnsiString(supportDevice);
@@ -17390,8 +17613,22 @@ namespace HM
       // As on a send, so a draft sent later by the schedule, or opened in another client, shows its images.
       InlineImageParts::FromDataUrls(messageData);
 
-      if (!messageData.Write(fileName))
-         return BuildResponse_(500, "{\"error\":\"the draft could not be written\"}");
+      // A draft is the person's own words: in a mailbox encrypted at rest it is
+      // encrypted to the account's key in memory and written encrypted - never
+      // in the clear on the disk - and not written at all when it cannot be
+      // (MessageData::WriteToMailbox).
+      bool encryptionUnknown = false;
+      bool keyDamaged = false;
+      if (!messageData.WriteToMailbox(fileName, account, encryptionUnknown, keyDamaged))
+      {
+         if (encryptionUnknown)
+            return BuildResponse_(503, "{\"error\":\"whether this mailbox is encrypted at rest could not be read just now, and the draft is not written in the clear on a guess; try again in a moment\",\"code\":\"mailbox_key\"}");
+
+         if (keyDamaged)
+            return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(MailboxKeys::DamagedSentence())) + "\",\"code\":\"mailbox_key\"}");
+
+         return BuildResponse_(500, "{\"error\":\"the draft could not be written; see the error log\"}");
+      }
 
       draft->SetSize((int) MessageStore::FileSize(fileName));
 
@@ -17531,9 +17768,10 @@ namespace HM
    }
 
    // The attachments a body names - name, type, data (base64) - added to the
-   // message the way COM's Attachments.Add adds a file: each is written under
-   // its own name in a directory of its own in the temp folder, read from
-   // there, and the directory removed. Returns 0, or the status to answer.
+   // message as COM's Attachments.Add adds a file, but from memory: nothing is
+   // written to the temp folder, so a draft or a Sent copy of a mailbox
+   // encrypted at rest never has an attachment in the clear on the disk
+   // (Attachments::AddFromMemory). Returns 0, or the status to answer.
    int
    RestApiServer::AddAttachmentsFromJson_(MessageData &messageData, const AnsiString &requestBody, AnsiString &error,
                                           const char *nameKey, const char *typeKey)
@@ -17572,17 +17810,7 @@ namespace HM
          if (type.IsEmpty() || type.Find(_T("/")) < 0 || type.Find(_T("\r")) >= 0 || type.Find(_T("\n")) >= 0 || type.GetLength() > 100)
             type = _T("application/octet-stream");
 
-         String directory = IniFileSettings::Instance()->GetTempDirectory() + FileUtilities::PathSeparator + GUIDCreator::GetGUID();
-         if (!FileUtilities::CreateDirectory(directory))
-         {
-            error = "{\"error\":\"the attachment could not be written\"}";
-            return 500;
-         }
-
-         String path = directory + FileUtilities::PathSeparator + name;
-         bool added = FileUtilities::WriteToFile(path, bytes) && messageData.GetAttachments()->Add(path, type);
-
-         FileUtilities::DeleteDirectory(directory, true);
+         const bool added = messageData.GetAttachments()->AddFromMemory(name, bytes, type);
 
          if (!added)
          {
@@ -17980,6 +18208,7 @@ namespace HM
       openApiJson += OpenApiOpenPgpKeysPaths_();
       openApiJson += OpenApiProtectedPaths_();
       openApiJson += OpenApiZeroAccessPaths_();
+      openApiJson += OpenApiMailboxEncryptionPaths_();
       openApiJson += OpenApiContactGroupsPaths_();
       openApiJson += OpenApiAddressBookPaths_();
       openApiJson += OpenApiOfflinePaths_();

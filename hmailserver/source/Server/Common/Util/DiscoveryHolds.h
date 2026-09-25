@@ -36,6 +36,9 @@
 //                              account or domain is held
 //   MailboxMove                an account held, directly or through its domain,
 //                              is not moved to another domain
+//   MailboxKeys::Forfeit       a held account's mailbox key - the only way to
+//                              its mail encrypted at rest - is not removed
+//                              (DELETE .../mailbox-encryption?confirm=forfeit)
 //   PersistentAccount          the account's deletion, and the deletion of all
 //                              of its messages at once, are refused
 //   PersistentDomain           the domain's deletion is refused while it or any

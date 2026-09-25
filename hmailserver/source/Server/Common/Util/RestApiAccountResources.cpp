@@ -125,6 +125,7 @@
 #include "../Persistence/PersistentACLPermission.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
+#include "MailboxKeys.h"
 #include "../Tracking/ChangeNotification.h"
 #include "../Tracking/NotificationServer.h"
 #include "../../IMAP/IMAPConfiguration.h"
@@ -1185,8 +1186,19 @@ namespace
       String directory = FileUtilities::GetFilePath(fileName);
       if (!FileUtilities::Exists(directory) && !FileUtilities::CreateDirectory(directory))
          return Refusal(bridge, 500, "the account's directory could not be made");
-      if (!FileUtilities::WriteToFile(fileName, text))
-         return Refusal(bridge, 500, "the message could not be written");
+      // Encrypted to the account's key in memory when its mailbox is encrypted
+      // at rest - never written in the clear there - and written as it is
+      // otherwise; not written at all when it must not be (MessageStore.h).
+      MessageStore::PlaceRefusal refusal = MessageStore::PlaceAccepted;
+      if (!MessageStore::WriteForAccount(account, message, text, refusal))
+      {
+         MessageStore::DiscardWorkingFile(fileName);
+         if (refusal == MessageStore::PlaceRefusedDamaged)
+            return Refusal(bridge, 409, MailboxKeys::DamagedSentence());
+         if (refusal == MessageStore::PlaceRefusedUnknown)
+            return Refusal(bridge, 503, "whether this mailbox is encrypted at rest could not be read just now, and the message is not written in the clear on a guess; try again in a moment");
+         return Refusal(bridge, 500, "the message could not be written; see the error log");
+      }
 
       message->SetSize((int) MessageStore::FileSize(fileName));
       // A message in a folder is a delivered one, as InterfaceMessage::Save

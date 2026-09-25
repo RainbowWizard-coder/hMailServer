@@ -100,6 +100,7 @@ ALLOWED = {
         ROLE_CPP,
         ROLE_H,
         "Common/Util/RestApiRoles.cpp",      # the assignment and the password reset
+        "Common/Util/RestApiMailboxKeys.cpp", # the mailbox key recovery, which sets a password as the reset does
         "Common/Util/RestApiRoutes.cpp",     # the account update
         "Common/Util/RestApiScim.cpp",       # SCIM's changes to an account: a key may not take over one whose authority it lacks
         "COM/InterfaceApplication.cpp",      # AssignRole and ResetPassword

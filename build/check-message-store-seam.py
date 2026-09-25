@@ -81,7 +81,8 @@ LISTED = {
       "Message.Filename answers the stored file's path, which is a container when the store compresses "
       "(docs/MessageStore.md says so); Message.Save rewrites the message through MessageData::Write"),
    "Common/AntiSpam/SpamAssassin/SpamAssassinLearner.cpp": (1,
-      "spamd is handed a plain file by path, through MessageStore::PlainFileFor"),
+      "spamd is handed a plain file by path, through MessageStore::PlainFileFor - which writes none for a message of a "
+      "mailbox encrypted at rest, so such a move teaches spamd nothing"),
    "Common/BO/MessageData.cpp": (1,
       "MessageData::LoadFromMessage(account, message) is the store's MIME loader: it resolves the pair and reads "
       "through MessageStore"),
@@ -111,7 +112,8 @@ LISTED = {
    "Common/Util/PushNotifier.cpp": (2,
       "the note carries the name to PersistentMessage::LoadHeader, for the subject a push shows"),
    "Common/Util/RecoverableStore.cpp": (1,
-      "the recover-deleted store keeps the file as it is stored, through MessageStore::CopyStored"),
+      "the recover-deleted store keeps the file through MessageStore::CopyIntoAccount: as it is stored, or encrypted to "
+      "the account's key when its mailbox is encrypted at rest"),
    "Common/Util/RestApiAccountResources.cpp": (2,
       "the message resource reports the stored path as COM's Message.Filename does, and reads the header and the "
       "original bytes through PersistentMessage::LoadHeader and MessageStore::ReadAll"),
@@ -139,34 +141,40 @@ WORKING_SYMBOL = "MessageStore::WorkingFile("
 # rest - audit: each is a place a key-based backend hands a local file to.
 LISTED_WORKING = {
    "Common/Application/MailboxRestore.cpp": (2,
-      "the name a restored message is copied to from the archive, through MessageStore::CopyStored, which counts "
-      "what it references - and a fresh name when that one is taken"),
+      "the name a restored message is copied to from the archive, through MessageStore::CopyIntoAccount, which counts "
+      "what it references and encrypts it to the account's key when its mailbox is encrypted at rest - and a fresh "
+      "name when that one is taken"),
    "Common/BO/MessageData.cpp": (1,
       "MessageDataTester writes its self-test message for a row it then saves"),
    "Common/Util/ConfidentialMessages.cpp": (1,
-      "the owner's copy of a kept confidential message, made through MessageStore::CopyStored"),
+      "the owner's copy of a kept confidential message, made through MessageStore::CopyIntoAccount - encrypted to the "
+      "owner's key when the mailbox is encrypted at rest"),
    "Common/Util/ExternalSenderTagger.cpp": (1,
       "tags the delivery copy by path before it is placed"),
    "Common/Util/ImpersonationCheck.cpp": (1,
       "reads the delivery copy's header by path before it is placed"),
    "Common/Util/MailImporter.cpp": (1,
-      "the account folder a migrated message is moved into, and placed there through MessageStore::PlaceWorkingFile"),
+      "the account folder a migrated message is moved into, and placed there through MessageStore::PlaceWorkingFileFor, "
+      "encrypted to the account's key when its mailbox is encrypted at rest"),
    "Common/Util/RecoverableStore.cpp": (1,
-      "the name a recovered message is put back under, through MessageStore::CopyStored"),
+      "the name a recovered message is put back under, through MessageStore::CopyIntoAccount - encrypted to the "
+      "account's key when its mailbox is encrypted at rest"),
    "Common/Util/RestApiAccountResources.cpp": (1,
       "a message written into a folder over REST for a new row, its line ends made CRLF - so no bare LF, and so never "
-      "the container's magic, whose last byte is one"),
+      "the container's magic, whose last byte is one - through MessageStore::WriteForAccount, which encrypts it in "
+      "memory when the mailbox is encrypted at rest"),
    "Common/Util/RestApiScheduled.cpp": (1,
-      "an .eml put into a folder over REST for a new row, its line ends made CRLF as above"),
+      "an .eml put into a folder over REST for a new row, its line ends made CRLF as above, and written as above"),
    "Common/Util/RestApiServer.cpp": (1,
-      "the webmail's draft, written by MessageData, which never writes a message that begins with the magic"),
+      "the webmail's draft, written by MessageData::WriteToMailbox, which never writes a message that begins with the "
+      "magic, and encrypts it in memory when the mailbox is encrypted at rest"),
    "Common/Util/ZeroAccess.cpp": (1,
       "a zero-access mailbox's Sent copy, sealed by path by this server's own writer"),
    "ExternalFetcher/IMAPClientConnection.cpp": (1,
       "the account folder the IMAP mirror files a collected message into, placed there through "
-      "MessageStore::PlaceWorkingFile"),
+      "MessageStore::PlaceWorkingFileFor"),
    "IMAP/IMAPCommandAppend.cpp": (1,
-      "the file APPEND writes the literal into, placed through MessageStore::PlaceWorkingFile when it is complete"),
+      "the file APPEND writes the literal into, placed through MessageStore::PlaceWorkingFileFor when it is complete"),
    "SMTP/LocalDelivery.cpp": (16,
       "the delivery copy, read and rewritten by path by the rules, Sieve, the forward and the seal, placed through "
       "PlaceCopy_ and discarded through MessageStore::DiscardWorkingFile when it is not"),
@@ -184,8 +192,10 @@ REQUIRED = [
     "the working-file door is gone, so the queue and delivery sites have nowhere to ask"),
    ("Common/Persistence/PersistentMessage.cpp", "if (!MessageStore::CopyOriginal(sourceFile, destinationFile))",
     "CopyToQueue no longer gives the queue the original bytes - the scanners, SpamAssassin and the event scripts read the queue file as RFC 822"),
-   ("Common/Persistence/PersistentMessage.cpp", "if (!MessageStore::CopyStored(sourceFile, destinationFile))",
-    "CopyToIMAPFolder no longer copies through the store, so a copy is not counted as a name of what it references"),
+   ("Common/Persistence/PersistentMessage.cpp", "if (!MessageStore::CopyIntoAccount(sourceFile, destinationFile, destinationAccount))",
+    "CopyToIMAPFolder no longer copies through the store, so a copy is not counted as a name of what it references - "
+    "and a copy between a mailbox encrypted at rest and another is left under a key its new owner cannot open, or in "
+    "the clear in an encrypted mailbox"),
    ("Common/Persistence/PersistentMessage.cpp", "bool bResult = MessageStore::Remove(messageFile);",
     "a message's file is deleted around the store, so what it alone referenced is never let go of"),
    ("POP3/POP3Connection.h", "MessageStoreReader current_file_;",
@@ -200,25 +210,82 @@ REQUIRED = [
     "a calendar reply filed at delivery is no longer read through the store"),
    ("SMTP/LocalDelivery.cpp", "accountLevelMessage->SetSize(MessageStore::Size(account, accountLevelMessage));",
     "a delivered copy's size is no longer the message's size"),
-   ("SMTP/LocalDelivery.cpp", "if (!PlaceCopy_(account, accountLevelMessage))",
+   ("SMTP/LocalDelivery.cpp", "if (!PlaceCopy_(account, accountLevelMessage, refusal))",
     "a delivered copy is no longer stored in the store's form - so compression and de-duplication never happen, and a "
     "copy that begins with the magic is kept to be read as a container"),
    ("SMTP/LocalDelivery.cpp", "if (!MessageStore::PlaceWorkingFile(copy, changed))",
     "the first DeliveryHardLinks copy is no longer placed where it is, so a container is written beside the queue again"),
    ("SMTP/LocalDelivery.cpp", "MessageStore::DiscardWorkingFile(MessageStore::WorkingFile(account, accountLevelMessage));",
     "a delivery copy that was never placed is removed through Remove, which lets go of what its first bytes claim"),
-   ("IMAP/IMAPCommandAppend.cpp", "if (!MessageStore::PlaceWorkingFile(message_file_name_))",
+   ("IMAP/IMAPCommandAppend.cpp", "if (!MessageStore::PlaceWorkingFileFor(messageOwner, message_file_name_, false, refusal))",
     "an appended message is no longer stored in the store's form, and a literal that begins with the magic is kept to "
-    "be read as a container - naming, and on EXPUNGE letting go of, blobs other accounts share"),
+    "be read as a container - naming, and on EXPUNGE letting go of, blobs other accounts share; and one appended to a "
+    "mailbox encrypted at rest is kept in the clear"),
    ("IMAP/IMAPCommandAppend.cpp", "MessageStore::DiscardWorkingFile(message_file_name_);",
     "an APPEND the store refused is removed through Remove, which lets go of what its first bytes claim"),
-   ("ExternalFetcher/IMAPClientConnection.cpp", "if (!MessageStore::PlaceWorkingFile(fileName))",
+   ("ExternalFetcher/IMAPClientConnection.cpp", "if (!MessageStore::PlaceWorkingFileFor(owner, fileName))",
     "the IMAP mirror files a remote server's literal without placing it, so one that begins with the magic is read as "
-    "a container"),
-   ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFile(destination))",
+    "a container, and one for a mailbox encrypted at rest is kept in the clear"),
+   ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFileFor(owner, destination))",
     "a migrated message is filed without placing it, so one that begins with the magic is read as a container"),
-   ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFile(newFullPath))",
+   ("Common/Util/MailImporter.cpp", "if (!MessageStore::PlaceWorkingFileAs(owner, newFullPath, encryption, publicKey, true, refusal))",
     "an imported file is adopted without placing it"),
+   ("Common/Util/MailImporter.cpp", "if (!MessageStore::Backend().WriteAtomically(newFullPath, original))",
+    "an import whose row could not be saved leaves its file in the stored form, which every later import refuses (HM7354) "
+    "- for a mailbox encrypted at rest, a message nobody can read back to import"),
+   # Mailbox encryption at rest (docs/EncryptionAtRest.md): the doors that keep
+   # an encrypted mailbox's messages out of the clear, and its words out of the
+   # index.
+   ("SMTP/LocalDelivery.cpp", "if (MailboxKeys::EncryptionFor(account, encryptionKey) != MailboxKeys::EncryptionNone)",
+    "a delivery shares one hard-linked file between a mailbox encrypted at rest and others, and the copy that has to be "
+    "under one account's key is everybody's file"),
+   ("Common/BO/MessageData.cpp", "if (!WriteEncrypted_(fileName, source_->GetEncryptedTo(), MailboxKeys::CodeReEncrypt))",
+    "a rewrite of an encrypted mailbox's message - COM's Message.Save, a rule's - is written in the clear"),
+   ("Common/BO/MessageData.cpp", "? mime_mail_->LoadFromMemory(source_->GetOriginal(), message_file_name_, source_->GetEncryptedTo().empty())",
+    "MessageData parses a container from a file, which for a mailbox encrypted at rest is a plaintext copy on the disk "
+    "for every search, preview, webmail view, rule and script that reads it"),
+   ("Common/Persistence/MessageStore.cpp", "if (read && !MessageStoreFormat::EncryptedTo(header).empty())",
+    "a plain copy of a message of a mailbox encrypted at rest is written to the temporary directory for another process"),
+   ("Common/Util/RestApiServer.cpp", "if (!messageData.WriteToMailbox(fileName, account, encryptionUnknown, keyDamaged))",
+    "a webmail draft of a mailbox encrypted at rest is written in the clear"),
+   ("Common/Util/RestApiServer.cpp", "const bool added = messageData.GetAttachments()->AddFromMemory(name, bytes, type);",
+    "a webmail draft's or Sent copy's attachments are written to the temporary directory in the clear on their way into "
+    "a mailbox encrypted at rest"),
+   ("COM/InterfaceMessage.cpp", "GetMessageData_()->WriteToMailbox(fileName, account)",
+    "a message COM adds to a folder of a mailbox encrypted at rest (Messages.Add, then Save) is written in the clear"),
+   ("Common/Scripting/ScriptBinding.cpp", "holder->Data()->WriteToMailbox(fileName, account)",
+    "a message an event script adds to a folder of a mailbox encrypted at rest is written in the clear"),
+   ("Common/Util/RestApiAccountResources.cpp", "if (!MessageStore::WriteForAccount(account, message, text, refusal))",
+    "a message put into a folder of a mailbox encrypted at rest over REST is written in the clear"),
+   ("Common/Util/RestApiScheduled.cpp", "if (!MessageStore::WriteForAccount(account, message, text, refusal))",
+    "an .eml put into a folder of a mailbox encrypted at rest over REST is written in the clear"),
+   ("Common/Application/MailboxRestore.cpp", "if (!MessageStore::CopyIntoAccount(source, destination, account))",
+    "a mailbox restore puts a message archived before the switch-on back in the clear into a mailbox encrypted at rest"),
+   ("Common/Util/RecoverableStore.cpp", "if (!MessageStore::CopyIntoAccount(source, target, account))",
+    "a deleted item of a mailbox encrypted at rest - one a legal hold keeps, above all - is kept in the clear"),
+   ("Common/Util/RecoverableStore.cpp", "if (!MessageStore::CopyIntoAccount(kept, fileName, account))",
+    "a deleted item is put back in the clear into a mailbox encrypted at rest"),
+   ("Common/Application/MessageIndexer.cpp", "const MailboxKeys::Keyed keyed = MailboxKeys::KeyedState(messageToIndex.AccountID);",
+    "the full-text index stores the words of a mailbox encrypted at rest, in the clear, beside the files that hide them"),
+   ("Common/Application/MessageIndexer.cpp", "if (MailboxKeys::KeyedState(accountId) == MailboxKeys::KeyedYes || MailboxKeys::KeyedState(accountId) == MailboxKeys::KeyedDamaged)",
+    "an indexer pass that read no key just before a switch-on leaves standing the words it wrote after it"),
+   ("SMTP/LocalDelivery.cpp", "held_for_keys_.push_back(pRecipient);",
+    "a delivery to a mailbox whose encryption at rest is not known is made on a guess, or refused, rather than held in "
+    "the queue for a later attempt"),
+   ("SMTP/SMTPDeliverer.cpp", "messageRescheduled = LocalDelivery::HoldForRetry(pMessage, localDeliverer.GetHeldForKeys(), messageRescheduled, saErrorMessages);",
+    "local recipients held because their mailbox's encryption at rest is not known are dropped with the queue row "
+    "rather than tried again"),
+   ("Common/Persistence/MessageStore.cpp", "const String fileName = String(entry->path().filename().wstring());",
+    "the start's sweep reads the whole path for its marks, and zeroes or removes every message of a keyed mailbox whose "
+    "name, domain or data directory carries one"),
+   ("SMTP/LocalDelivery.cpp", "if (encryption == MailboxKeys::EncryptionDamaged)",
+    "a delivery to a mailbox whose key row holds no key waits through every retry, answered as if the database had "
+    "not answered, rather than being refused at once with the way out"),
+   ("Common/Application/Application.cpp", "MailboxKeys::Start();",
+    "the keyed set is not read at the start, and a plaintext an encryption cut short by a crash moved aside stays "
+    "beside a keyed mailbox's file for good"),
+   ("Common/Persistence/PersistentMessageMetaData.cpp", "NOT IN (SELECT akaccountid FROM hm_accountkeys)",
+    "the sort's copy of the headers - From, To, Cc, Subject - is written for a mailbox encrypted at rest, in the clear"),
    ("Common/Util/MailImporter.cpp", "MessageStoreFormat::HasMagic(start.data(), start.size())",
     "an imported file that begins with the magic is adopted, and read as a container nobody counted"),
    ("Common/BO/MessageData.cpp", "if (MessageStoreFormat::HasMagic(start.c_str(), (size_t) start.GetLength()))",
@@ -232,7 +299,7 @@ REQUIRED = [
     "a compressed message's header is read as the container's bytes - the rules, the sort and the search see garbage"),
    ("Common/Persistence/PersistentMessage.cpp", "return MessageStore::ReadBodyOfContainer(fileName);",
     "a compressed message's body is read as the container's bytes"),
-   ("Common/BO/MessageData.cpp", "plain_copy_ = std::shared_ptr<MessageStorePlainCopy>(new MessageStorePlainCopy(message_file_name_));",
+   ("Common/BO/MessageData.cpp", "source_ = std::shared_ptr<MessageStoreParseSource>(new MessageStoreParseSource(message_file_name_));",
     "MessageData parses a compressed message's container as if it were RFC 822"),
    ("Common/Application/BackupExecuter.cpp", "MessageStoreBlobs::DeletionHold keepBlobs(true);",
     "a restore that deletes every domain lets the blobs the restored messages reference be deleted under them"),

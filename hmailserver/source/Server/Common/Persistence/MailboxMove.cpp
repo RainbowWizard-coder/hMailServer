@@ -24,6 +24,7 @@
 #include "../Sieve/SieveStorage.h"
 #include "../Util/AuditTrail.h"
 #include "../Util/DiscoveryHolds.h"
+#include "../Util/MailboxKeys.h"
 #include "../Util/StorePath.h"
 #include "../Util/Time.h"
 #include "../Util/Unicode.h"
@@ -296,6 +297,29 @@ namespace HM
       {
          errorMessage = DiscoveryHolds::MoveRefusal(oldAddress, newDomainName);
          return false;
+      }
+
+      // A mailbox key (docs/EncryptionAtRest.md) is sealed to its DOMAIN'S
+      // recovery key: moved to another domain it would stay sealed to the old
+      // domain's, which no recovery of the new domain can open, which the old
+      // domain could then remove, and which would stop the new domain from ever
+      // replacing its own. So a keyed mailbox - its key switched on or not -
+      // stays in its domain; a rename inside it goes ahead, since the key and
+      // its seal stay with it. Every door comes through here, as for a hold.
+      // Asked of the keyed set (MailboxKeys::HasKey), and refused for now when
+      // it cannot say.
+      if (targetDomain->GetID() != oldDomainID)
+      {
+         bool unknown = false;
+         const bool keyed = MailboxKeys::HasKey(account->GetID(), unknown);
+         if (keyed || unknown)
+         {
+            errorMessage = unknown
+               ? Formatter::Format("Whether {0} has a mailbox key could not be read just now, so it is not moved to another domain until it can be; try again in a moment.", oldAddress)
+               : Formatter::Format("{0} is encrypted at rest, and its key is sealed to the recovery key of its own domain, which {1} cannot open. A mailbox encrypted at rest stays in its domain: to move it, put its mail back in the clear (hmailserver --decrypt-store --account) and remove its key (DELETE /api/v1/accounts/{0}/mailbox-encryption?confirm=forfeit) first. A rename inside its domain is not refused.",
+                                   oldAddress, newDomainName);
+            return false;
+         }
       }
 
       // The address must be free, as an account, an alias or a distribution

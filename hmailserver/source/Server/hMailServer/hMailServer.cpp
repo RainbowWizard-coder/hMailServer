@@ -406,7 +406,9 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    // The message store walked (Common/Persistence/MessageStoreMaintenance.h):
    // --measure-store, --compress-store [--decompress] and --recount-store, the
    // first two with an optional --account <address> or --domain <name>, found
-   // anywhere on the line as the profile verb's switches are.
+   // anywhere on the line as the profile verb's switches are; and the two walks
+   // of mailbox encryption at rest, --encrypt-store and --decrypt-store, which
+   // take the same two.
    int storeVerb = 0;
    String storeAccount;
    bool storeAccountGiven = false;
@@ -420,6 +422,10 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          storeVerb = HM::MessageStoreMaintenance::VerbCompress;
       else if (vecParams[index].CompareNoCase(_T("--recount-store")) == 0)
          storeVerb = HM::MessageStoreMaintenance::VerbRecount;
+      else if (vecParams[index].CompareNoCase(_T("--encrypt-store")) == 0)
+         storeVerb = HM::MessageStoreMaintenance::VerbEncrypt;
+      else if (vecParams[index].CompareNoCase(_T("--decrypt-store")) == 0)
+         storeVerb = HM::MessageStoreMaintenance::VerbDecrypt;
       else if (vecParams[index].CompareNoCase(_T("--account")) == 0)
       {
          storeAccountGiven = true;

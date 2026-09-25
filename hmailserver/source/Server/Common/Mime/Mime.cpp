@@ -1300,31 +1300,9 @@ namespace HM
             size_t nLoaded = Load(pFileContents->GetCharBuffer(), pFileContents->GetSize() - 1, index, part_loaded);
 
             // Record source file and body offset for body preservation during save.
-            // For multipart messages, last_multipart_end_ mirrors what the parser
-            // actually consumed for the closing boundary, including the trailing
-            // CRLF when present in the source file. For simple messages, use the
-            // full Load() return value.
             source_file_ = pszFilename;
-            body_byte_offset_ = last_header_size_;
-            body_byte_end_ = (last_multipart_end_ > 0) ? last_multipart_end_ : nLoaded;
-
-            // Some SMTP senders unconditionally append \r\n before the dot terminator
-            // even when the message already ends with \r\n, resulting in a spurious blank
-            // line at the end of the stored file. Strip it so re-serialization does not
-            // alter the body (which would invalidate DKIM body hashes).
-            // Detection: body ends with \r\n\r\n (content's own final \r\n + the extra one).
-            if (last_multipart_end_ == 0 && body_byte_end_ > body_byte_offset_ + 4)
-            {
-               const char* buf = pFileContents->GetCharBuffer();
-               size_t end = body_byte_end_;
-               if (buf[end-1] == '\n' && buf[end-2] == '\r' &&
-                   buf[end-3] == '\n' && buf[end-4] == '\r')
-               {
-                  body_byte_end_ -= 2;
-               }
-            }
-
-            body_modified_ = false;
+            source_bytes_.reset();
+            RecordBodyBounds_(pFileContents->GetCharBuffer(), nLoaded);
          }
          catch (...)
          {
@@ -1346,6 +1324,81 @@ namespace HM
             // damage.
             return MimeLoadResult::ParseFailed;
          }
+      }
+
+      return MimeLoadResult::Loaded;
+   }
+
+   void MimeBody::RecordBodyBounds_(const char *bytes, size_t loaded)
+   {
+      // For multipart messages, last_multipart_end_ mirrors what the parser
+      // actually consumed for the closing boundary, including the trailing
+      // CRLF when present in the source. For simple messages, use the full
+      // Load() return value.
+      body_byte_offset_ = last_header_size_;
+      body_byte_end_ = (last_multipart_end_ > 0) ? last_multipart_end_ : loaded;
+
+      // Some SMTP senders unconditionally append \r\n before the dot terminator
+      // even when the message already ends with \r\n, resulting in a spurious blank
+      // line at the end of the stored file. Strip it so re-serialization does not
+      // alter the body (which would invalidate DKIM body hashes).
+      // Detection: body ends with \r\n\r\n (content's own final \r\n + the extra one).
+      if (last_multipart_end_ == 0 && body_byte_end_ > body_byte_offset_ + 4)
+      {
+         size_t end = body_byte_end_;
+         if (bytes[end-1] == '\n' && bytes[end-2] == '\r' &&
+             bytes[end-3] == '\n' && bytes[end-4] == '\r')
+         {
+            body_byte_end_ -= 2;
+         }
+      }
+
+      body_modified_ = false;
+   }
+
+   MimeLoadResult
+      MimeBody::LoadFromMemory(const std::shared_ptr<const std::string> &message, const String &name, bool keepAsideOnFailure)
+   {
+      FreeBuffer();
+
+      if (!message)
+         return MimeLoadResult::ParseFailed;
+
+      if (message->empty())
+         return MimeLoadResult::Loaded;
+
+      try
+      {
+         // Load reads up to a terminating NUL, which a file's text read adds
+         // past its end and c_str() guarantees here.
+         size_t index = 0;
+         bool part_loaded = false;
+         size_t nLoaded = Load(message->c_str(), message->size(), index, part_loaded);
+
+         source_file_ = "";
+         source_bytes_ = message;
+         RecordBodyBounds_(message->data(), nLoaded);
+      }
+      catch (...)
+      {
+         // Copied aside as LoadFromFile copies its file - unless these bytes
+         // are held in memory because they must not be on the disk in the
+         // clear, when the stored file, which is under its key, is what there
+         // is to look at.
+         String keptAt = _T("(not copied: the message is held in memory only, and is not written to the disk in the clear)");
+         if (keepAsideOnFailure)
+         {
+            const String directory = FileUtilities::Combine(IniFileSettings::Instance()->GetLogDirectory(), "Problematic messages");
+            const String path = FileUtilities::Combine(directory, FileUtilities::GetFileNameFromFullPath(name));
+            if ((FileUtilities::Exists(directory) || FileUtilities::CreateDirectory(directory)) &&
+                FileUtilities::WriteToFile(path, AnsiString(message->data(), message->size())))
+               keptAt = path;
+         }
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4228, "MimeBody::LoadFromMemory",
+            Formatter::Format("An unknown error occurred while loading message. File: {0}. Backuped to: {1}", name, keptAt));
+
+         return MimeLoadResult::ParseFailed;
       }
 
       return MimeLoadResult::Loaded;
@@ -1378,26 +1431,36 @@ namespace HM
    {
       body = "";
 
+      // Loaded from memory (LoadFromMemory): the same offsets, into those bytes,
+      // which nothing can truncate or replace underneath us.
+      if (source_bytes_)
+         return BodyFromSource_(source_bytes_->data(), source_bytes_->size(), body);
+
       File oFile;
       if (!oFile.Open(source_file_, File::OTReadOnly))
          return false;
 
       std::shared_ptr<ByteBuffer> contents = oFile.ReadTextFile();
-      if (!contents)
+      if (!contents || contents->GetSize() == 0)
          return false;
 
-      // The file is shorter than the offset the parse recorded, so this is not the file
-      // that was parsed - it has been truncated or replaced underneath us. A header-only
-      // message does NOT arrive here: GetSize() counts the null terminator, so for one of
-      // those GetSize() is body_byte_offset_ + 1.
-      if (contents->GetSize() <= body_byte_offset_)
+      // GetSize() counts the null terminator ReadTextFile adds.
+      return BodyFromSource_(contents->GetCharBuffer(), contents->GetSize() - 1, body);
+   }
+
+   bool MimeBody::BodyFromSource_(const char *bytes, size_t length, AnsiString &body) const
+   {
+      body = "";
+
+      // The source is shorter than the offset the parse recorded, so this is not what
+      // was parsed - it has been truncated or replaced underneath us. A header-only
+      // message does NOT arrive here: its length is body_byte_offset_ exactly.
+      if (length < body_byte_offset_)
          return false;
 
       // Use body_byte_end_ to copy only the bytes the MIME parser actually consumed,
       // which excludes any trailing garbage bytes beyond the parsed message.
-      size_t end = (body_byte_end_ > 0 && body_byte_end_ <= contents->GetSize() - 1)
-                   ? body_byte_end_
-                   : contents->GetSize() - 1;  // -1 to exclude null terminator
+      size_t end = (body_byte_end_ > 0 && body_byte_end_ <= length) ? body_byte_end_ : length;
 
       // A zero-length body. Legitimate, and the one case that must NOT be read as a
       // failure - which is the whole reason this function no longer signals through an
@@ -1405,8 +1468,7 @@ namespace HM
       if (end <= body_byte_offset_)
          return true;
 
-      body = AnsiString(contents->GetCharBuffer() + body_byte_offset_,
-                        end - body_byte_offset_);
+      body = AnsiString(bytes + body_byte_offset_, end - body_byte_offset_);
       return true;
    }
 
@@ -1414,10 +1476,56 @@ namespace HM
    bool MimeBody::SaveAllToFile(const AnsiString & pszFilename)
    {
       LOG_DEBUG(Formatter::Format("Rewriting message file {0}.", String(pszFilename)));
-      // If body content was not modified and we have a source file, serialize only
-      // headers (using raw_line_ for unmodified fields) and copy body from disk.
+
+      AnsiString fullMessage;
+      bool preserved = false;
+      size_t headerSize = 0;
+      size_t bodySize = 0;
+      if (!SerializeAll_(String(pszFilename), fullMessage, preserved, headerSize, bodySize))
+         return false;
+
+      // Atomically, and the body was read into memory, so the source file -
+      // normally this very file - is finished with before the rename.
+      bool result = FileUtilities::WriteToFileAtomically(pszFilename, fullMessage);
+      if (result && preserved)
+      {
+         // Update source tracking so subsequent saves also use the fast path
+         source_file_ = pszFilename;
+         source_bytes_.reset();
+         body_byte_offset_ = headerSize;
+         body_byte_end_ = headerSize + bodySize;
+      }
+      return result;
+   }
+
+   bool MimeBody::SaveAllToMemory(const String &name, std::shared_ptr<const std::string> &message)
+   {
+      message.reset();
+
+      AnsiString fullMessage;
+      bool preserved = false;
+      size_t headerSize = 0;
+      size_t bodySize = 0;
+      if (!SerializeAll_(name, fullMessage, preserved, headerSize, bodySize))
+         return false;
+
+      // The source is left as it was: the body it holds is the body just
+      // copied, at the offsets recorded, so a later save reads it the same.
+      message = std::shared_ptr<const std::string>(new std::string(fullMessage.c_str(), (size_t) fullMessage.GetLength()));
+      return true;
+   }
+
+   bool MimeBody::SerializeAll_(const String &target, AnsiString &output, bool &preserved, size_t &headerSize, size_t &bodySize)
+   {
+      preserved = false;
+      headerSize = 0;
+      bodySize = 0;
+      output = "";
+
+      // If body content was not modified and we have a source, serialize only
+      // headers (using raw_line_ for unmodified fields) and copy body from it.
       // This preserves exact byte sequences required for DKIM signature validity.
-      if (!body_modified_ && !IsAnyChildModified() && !source_file_.IsEmpty())
+      if (!body_modified_ && !IsAnyChildModified() && (!source_file_.IsEmpty() || source_bytes_))
       {
          AnsiString headerBuffer;
          MimeHeader::Store(headerBuffer);  // includes trailing blank line \r\n
@@ -1435,33 +1543,24 @@ namespace HM
          AnsiString bodyFromDisk;
          if (!ReadBodyFromSourceFile(bodyFromDisk))
          {
+            const String source = source_bytes_ ? String(_T("the message held in memory")) : String(source_file_);
             ErrorManager::Instance()->ReportError(ErrorManager::High, 6000, "MimeBody::SaveAllToFile",
                Formatter::Format("The message body could not be read back from {0} while rewriting the message to {1}. The message has been left unchanged; had it been written it would have lost its body. The file is most likely held open by another process.",
-                  String(source_file_), String(pszFilename)));
+                  source, target));
 
             return false;
          }
 
-         // Atomically, and the body was read into memory above, so the source
-         // file - normally this very file - is finished with before the rename.
-         AnsiString fullMessage = headerBuffer + bodyFromDisk;
-         bool result = FileUtilities::WriteToFileAtomically(pszFilename, fullMessage);
-         if (result)
-         {
-            // Update source tracking so subsequent saves also use the fast path
-            size_t newHeaderSize = (size_t)headerBuffer.GetLength();
-            size_t newBodySize = (size_t)bodyFromDisk.GetLength();
-            source_file_ = pszFilename;
-            body_byte_offset_ = newHeaderSize;
-            body_byte_end_ = newHeaderSize + newBodySize;
-         }
-         return result;
+         output = headerBuffer + bodyFromDisk;
+         headerSize = (size_t)headerBuffer.GetLength();
+         bodySize = (size_t)bodyFromDisk.GetLength();
+         preserved = true;
+         return true;
       }
 
-      // Fallback: full re-serialization (body was modified or no source file available)
-      AnsiString buffer;
-      Store(buffer);
-      return FileUtilities::WriteToFileAtomically(pszFilename, buffer);
+      // Fallback: full re-serialization (body was modified or no source available)
+      Store(output);
+      return true;
    }
 
    // initialize the content (attachment) by reading from a file
@@ -1476,13 +1575,19 @@ namespace HM
       if (!pUnencodedBuffer)
          return false;
 
-      // Encode the file, to base64 or likewise.
+      return ReadFromMemory(AnsiString((const char*) pUnencodedBuffer->GetCharBuffer(), pUnencodedBuffer->GetSize()),
+                            FileUtilities::GetFileNameFromFullPath(pszFilename));
+   }
+
+   bool MimeBody::ReadFromMemory(const AnsiString &bytes, const String &fileName)
+   {
+      // Encode the content, to base64 or likewise.
       //
       // unique_ptr rather than a bare delete at the end, because there was no delete
       // at the end: this coder was leaked on every call, and GetOutput below can throw
       // on a large attachment, which would leak it even if there had been one.
       std::unique_ptr<MimeCodeBase> pCoder(MimeEnvironment::CreateCoder(GetTransferEncoding()));
-      pCoder->SetInput((const char*) pUnencodedBuffer->GetCharBuffer(), pUnencodedBuffer->GetSize(), true);
+      pCoder->SetInput(bytes.data(), bytes.size(), true);
 
       // Copy the buffer
       body_modified_ = true;
@@ -1491,7 +1596,7 @@ namespace HM
       AnsiString sCharset = "utf-8";
 
       // Set params to this
-      String sFileName = FileUtilities::GetFileNameFromFullPath(pszFilename);
+      String sFileName = fileName;
       AnsiString sEncodedValue = MIMEUnicodeEncoder::EncodeValue(sCharset, sFileName);
 
       SetName(sEncodedValue);          // set 'name' parameter:      
@@ -1667,6 +1772,7 @@ namespace HM
       FreeBuffer();
       MimeHeader::Clear();
       source_file_ = "";
+      source_bytes_.reset();
       body_byte_offset_ = 0;
       body_byte_end_ = 0;
       body_modified_ = false;

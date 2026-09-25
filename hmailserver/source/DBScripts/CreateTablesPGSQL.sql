@@ -61,6 +61,10 @@ select hm_drop_table('hm_smimeissued');
 
 select hm_drop_table('hm_smimeca');
 
+select hm_drop_table('hm_accountkeys');
+
+select hm_drop_table('hm_domainrecovery');
+
 select hm_drop_table('hm_pgpring');
 
 select hm_drop_table('hm_protectedmessages');
@@ -2203,6 +2207,42 @@ ALTER TABLE hm_zeroaccess ADD CONSTRAINT fk_hm_zeroaccess_account FOREIGN KEY (z
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ZeroAccessAllowed', '', 0);
 
+create table hm_accountkeys
+(
+	akid serial not null primary key,
+	akaccountid int not null,
+	akenabled int not null,
+	akpublic varchar(64) not null,
+	akpassword varchar(512) not null,
+	akrecovery varchar(512) not null,
+	akrecoverypublic varchar(64) not null,
+	akpending varchar(2000) not null,
+	akcreated bigint not null,
+	akchanged bigint not null
+);
+
+CREATE UNIQUE INDEX idx_hm_accountkeys_account ON hm_accountkeys (akaccountid);
+
+ALTER TABLE hm_accountkeys ADD CONSTRAINT fk_hm_accountkeys_account FOREIGN KEY (akaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+create table hm_domainrecovery
+(
+	drid serial not null primary key,
+	drdomainid int not null,
+	drpublic varchar(64) not null,
+	drsealed varchar(512) not null,
+	drhint varchar(255) not null,
+	drcreated bigint not null,
+	drprevpublic varchar(64) not null,
+	drprevsealed varchar(512) not null
+);
+
+CREATE UNIQUE INDEX idx_hm_domainrecovery_domain ON hm_domainrecovery (drdomainid);
+
+ALTER TABLE hm_domainrecovery ADD CONSTRAINT fk_hm_domainrecovery_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MailboxKeyIdleMinutes', '', 15);
+
 create table hm_recall
 (
 	recallid serial not null primary key,
@@ -2801,4 +2841,4 @@ CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6098);
+insert into hm_dbversion values (6099);

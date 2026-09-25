@@ -14,7 +14,10 @@
 #include "HttpServer.h"
 #include "RecoverableStore.h"
 #include "DiscoveryHolds.h"
+#include "MailboxKeys.h"
 #include "../BO/Account.h"
+#include "../Mime/Mime.h"
+#include "../Persistence/PersistentMessage.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -46,17 +49,40 @@ namespace HM
          if (!RecoverableStore::List(account->GetID(), entries))
             return BuildResponse_(500, "{\"error\":\"the deleted items could not be read\"}");
 
+         // A mailbox encrypted at rest keeps no subject or sender of a deleted
+         // item in the database (RecoverableStore::Keep): they are read from
+         // the kept copy, which opens while the key does - for the newest 200,
+         // since each is a decryption.
+         const bool readKept = MailboxKeys::IsKeyed(account->GetID()) && MailboxKeys::IsOpen(account->GetID());
+         int keptRead = 0;
+
          AnsiString body = "{\"items\":[";
          for (size_t i = 0; i < entries.size(); i++)
          {
             const RecoverableStore::Entry &entry = entries[i];
+
+            String subject = entry.subject;
+            String from = entry.from;
+            if (readKept && subject.IsEmpty() && from.IsEmpty() && keptRead < 200)
+            {
+               keptRead++;
+               const AnsiString header = PersistentMessage::LoadHeader(RecoverableStore::KeptFile(entry), false);
+               if (!header.IsEmpty())
+               {
+                  MimeHeader mimeHeader;
+                  mimeHeader.Load(header.c_str(), header.GetLength(), true);
+                  subject = mimeHeader.GetUnicodeFieldValue("Subject");
+                  from = mimeHeader.GetUnicodeFieldValue("From");
+               }
+            }
+
             AnsiString numbers;
             numbers.Format("{\"id\":%I64d,\"folder_id\":%I64d,\"size\":%d,\"seen\":%hs,\"deleted\":%I64d,",
                entry.id, entry.folder_id, entry.size, (entry.flags & 1) ? "true" : "false", entry.deleted);
             body += (i ? "," : "") + numbers;
             body += "\"folder\":\"" + JsonEscape_(Utf8_(entry.folder)) + "\"";
-            body += ",\"subject\":\"" + JsonEscape_(Utf8_(entry.subject)) + "\"";
-            body += ",\"from\":\"" + JsonEscape_(Utf8_(entry.from)) + "\"}";
+            body += ",\"subject\":\"" + JsonEscape_(Utf8_(subject)) + "\"";
+            body += ",\"from\":\"" + JsonEscape_(Utf8_(from)) + "\"}";
          }
          // held: a legal hold covers the account, so what is listed stays - a
          // copy of every message it deletes is kept, whatever days says, and

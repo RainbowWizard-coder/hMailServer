@@ -1005,7 +1005,13 @@ namespace HM
             destination = MessageStore::WorkingFile(account, message);
          }
 
-         if (!MessageStore::CopyStored(source, destination))
+         // As the mailbox stores mail now (docs/EncryptionAtRest.md): a file
+         // under the account's key, or of a mailbox that is not encrypted, is
+         // copied as it was stored; one archived before the account's mailbox
+         // was encrypted at rest is encrypted to its key on the way in, never
+         // put back in the clear. One encrypted to a key the account no longer
+         // has - forfeited and made again - cannot be opened, and fails.
+         if (!MessageStore::CopyIntoAccount(source, destination, account))
          {
             outcome_.failed++;
             failedHere++;

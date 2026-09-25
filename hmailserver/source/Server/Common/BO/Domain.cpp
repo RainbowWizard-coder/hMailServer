@@ -19,6 +19,7 @@
 #include "JournalRule.h"
 #include "JournalRules.h"
 #include "../Util/OrganisationCa.h"
+#include "../Util/MailboxKeys.h"
 
 #include "../../SMTP/SMTPVacationMessageCreator.h"
 #include "../Util/RestrictedDelivery.h"
@@ -311,6 +312,14 @@ namespace HM
       if (!OrganisationCa::XMLStore(pNode, id_))
          return false;
 
+      // The domain's recovery key for mailbox encryption at rest
+      // (hm_domainrecovery, schema 6099): its public half, and its private half
+      // wrapped by the administrator's passphrase, which opens on any machine. A
+      // restore deletes the domain and the foreign key takes the row, and every
+      // account key the archive brings back is sealed to it (MailboxKeys.h).
+      if (!MailboxKeys::XMLStoreDomain(pNode, id_))
+         return false;
+
       // The domain's own values of the settings with levels (hm_settingoverrides,
       // scope domain): the levels its dedicated columns above do not hold. A
       // restore deletes the domain and its rows with it, so the archive is where
@@ -573,6 +582,11 @@ namespace HM
       // issued to by the address the archive carries. A part that cannot be put
       // back is said in the error log and the restore carries on.
       if (!OrganisationCa::XMLLoad(pNode, id_))
+         return false;
+
+      // Under the domain's new id; a row the archive holds that is not a key is
+      // said in the error log and left out (MailboxKeys::XMLLoadDomain).
+      if (!MailboxKeys::XMLLoadDomain(pNode, id_))
          return false;
 
       // Under the domain's new id. A row this build refuses is left out and

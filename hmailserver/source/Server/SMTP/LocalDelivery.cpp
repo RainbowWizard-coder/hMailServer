@@ -38,6 +38,7 @@
 
 #include "../Common/Util/ExternalSenderTagger.h"
 #include "../Common/Util/ImpersonationCheck.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/AWStats.h"
 #include "../Common/Util/TraceHeaderWriter.h"
 #include "../Common/Util/MessageUtilities.h"
@@ -121,13 +122,64 @@ namespace HM
 
          if (pCheckAccount)
          {
+            // A mailbox whose encryption at rest is not known now - the
+            // accounts' keys not read since the start, or its key row holding
+            // no key - is neither delivered to on a guess nor refused: its row
+            // stays, and so does its place in the message until the loop is
+            // over, so that no later recipient takes the message's file for
+            // its own copy; then it is held for a later attempt (HoldForRetry,
+            // from SMTPDeliverer). What is read here is what the store falls
+            // back to when it asks again (PlaceCopy_).
+            std::string encryptionKey;
+            const MailboxKeys::Encryption encryption = MailboxKeys::EncryptionFor(pCheckAccount, encryptionKey);
+            if (encryption == MailboxKeys::EncryptionUnknown)
+            {
+               LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: not delivered to {1} yet: whether its mailbox is encrypted at rest is not known now; it is held in the queue and tried again.",
+                  original_message_->GetID(), pCheckAccount->GetAddress()));
+
+               held_for_keys_.push_back(pRecipient);
+               iterRecipient++;
+               continue;
+            }
+
             // DSN (RFC 3461): does this recipient want a failure notification?
             int notify = pRecipient->GetDSNNotify();
             bool suppressFailureDsn = (notify != MessageRecipient::DSNNotifyDefault) &&
                                       ((notify & MessageRecipient::DSNNotifyFailure) == 0);
 
-            // Local recipient has been found. Deliver to it.
-            DeliverToLocalAccount_(pCheckAccount, vecRecipients.size(), saErrorMessages, pRecipient->GetOriginalAddress(), messageReused, suppressFailureDsn);
+            if (encryption == MailboxKeys::EncryptionDamaged)
+            {
+               // A mailbox whose key row holds no key takes nothing until an
+               // administrator acts, and waiting through the retries would not
+               // change that: the sender is told at once, with the sentence
+               // that names the way out, and no copy is made - no rule, no
+               // forward, no auto-reply runs for a message that cannot be kept.
+               // Class 4, 4.3.0, as this server's other failures of its own
+               // are told: the address is not a bad one, and a list manager
+               // must not strike it.
+               LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: not delivered to {1}: its mailbox's key row holds no key; the sender is told.",
+                  original_message_->GetID(), pCheckAccount->GetAddress()));
+
+               // The whole of it for the administrator, in the error log.
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, MailboxKeys::CodePlace, "LocalDelivery::Perform",
+                  Formatter::Format("Message {0} was not delivered to {1}, and its sender is told: {2}",
+                     original_message_->GetID(), pCheckAccount->GetAddress(), MailboxKeys::DamagedSentence()));
+
+               if (!suppressFailureDsn)
+               {
+                  saErrorMessages.push_back(DeliveryFailure(pCheckAccount->GetAddress(), _T("4.3.0"),
+                     Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: {1} The server administrator should check the hMailServer error log.\r\n\r\n",
+                        pCheckAccount->GetAddress(), DamagedReportFor(original_message_->GetFromAddress()))));
+               }
+            }
+            else
+            {
+               encryption_before_ = encryption;
+               key_before_ = encryptionKey;
+
+               // Local recipient has been found. Deliver to it.
+               DeliverToLocalAccount_(pCheckAccount, vecRecipients.size(), saErrorMessages, pRecipient->GetOriginalAddress(), messageReused, suppressFailureDsn);
+            }
          }
          else
          {
@@ -152,6 +204,19 @@ namespace HM
          iterRecipient = vecRecipients.erase(iterRecipient);
       }
 
+      // The held recipients off the message, their rows kept (HoldForRetry).
+      for (const std::shared_ptr<MessageRecipient> &held : held_for_keys_)
+      {
+         for (auto live = vecRecipients.begin(); live != vecRecipients.end(); ++live)
+         {
+            if (*live == held)
+            {
+               vecRecipients.erase(live);
+               break;
+            }
+         }
+      }
+
       // The template's name goes; the content stays under the recipients' names.
       if (!shared_template_.IsEmpty())
       {
@@ -170,8 +235,112 @@ namespace HM
    }
 
    bool
-   LocalDelivery::PlaceCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message)
+   LocalDelivery::HoldForRetry(std::shared_ptr<Message> message, const std::vector<std::shared_ptr<MessageRecipient> > &held,
+                               bool alreadyRescheduled, std::vector<DeliveryFailure> &failures)
    {
+      if (!message || held.empty())
+         return alreadyRescheduled;
+
+      // Rescheduled already, for an outside recipient's deferral: the held
+      // rows stay in the database with the message, and are tried on its next
+      // pass with the rest.
+      if (alreadyRescheduled)
+         return true;
+
+      std::shared_ptr<SMTPConfiguration> smtp = Configuration::Instance()->GetSMTPConfiguration();
+      const long retries = smtp ? smtp->GetNoOfRetries() : 0;
+      long minutes = smtp ? smtp->GetMinutesBetweenTry() : 60;
+
+      // The queue's quick retries first, where it has them, as an outside
+      // recipient's deferral takes them: a read of the keys that failed at a
+      // start is most often over in moments, and local mail should not wait
+      // the full interval behind it.
+      const int quickRetries = IniFileSettings::Instance()->GetQuickRetries();
+      const int quickMinutes = IniFileSettings::Instance()->GetQuickRetriesMinutes();
+      if (quickRetries > 0 && quickMinutes > 0 && (int) message->GetNoOfRetries() < quickRetries)
+         minutes = quickMinutes;
+
+      if (minutes < 1)
+         minutes = 1;
+
+      if ((long) message->GetNoOfRetries() < retries)
+      {
+         // Counted and rescheduled, and unlocked so that a later delivery
+         // thread picks it up - or, when the counted write will not land twice,
+         // rescheduled uncounted with the first-pass mark, so that the next
+         // pass does not sign, seal and mirror it again (PersistentMessage::
+         // RescheduleHeld). Said once when it was not counted.
+         const PersistentMessage::HeldReschedule outcome = PersistentMessage::RescheduleHeld(message, minutes);
+         if (outcome == PersistentMessage::RescheduledUncounted)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 6106, "LocalDelivery::HoldForRetry",
+               Formatter::Format("Message {0} holds local recipients whose mailbox's encryption at rest is not known, and its retry could not be counted; it is tried again in {1} minute(s) without the try counted, marked so that it is not signed, sealed or mirrored a second time.",
+                  message->GetID(), (int) minutes));
+         }
+         else if (outcome == PersistentMessage::RescheduleFailed)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 6106, "LocalDelivery::HoldForRetry",
+               Formatter::Format("Message {0} holds local recipients whose mailbox's encryption at rest is not known, and could not be rescheduled: the database took neither the retry nor the first-pass mark. It is unlocked and taken again at once, and its signing, sealing and mirroring may run a second time.",
+                  message->GetID()));
+         }
+
+         LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: {1} local recipient(s) held because whether their mailbox is encrypted at rest is not known now; tried again in {2} minute(s), try {3} of {4}.",
+            message->GetID(), (int) held.size(), (int) minutes, (int) message->GetNoOfRetries() + 1, (int) retries));
+         return true;
+      }
+
+      // The retries are spent. The sender is told, as for any failure of this
+      // server's own that outlasted them: 4.3.0, the mail system - this
+      // server's - and not the recipient's mailbox, which a list manager
+      // downstream must not strike.
+      for (const std::shared_ptr<MessageRecipient> &recipient : held)
+      {
+         const int notify = recipient->GetDSNNotify();
+         const bool suppressFailureDsn = notify != MessageRecipient::DSNNotifyDefault &&
+                                         (notify & MessageRecipient::DSNNotifyFailure) == 0;
+
+         if (!suppressFailureDsn)
+         {
+            failures.push_back(DeliveryFailure(recipient->GetAddress(), _T("4.3.0"),
+               Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: Whether the recipient's mailbox is encrypted at rest could not be read from this server's database, so the message was not stored on a guess; it was tried again until the retries ran out. The server administrator should check the hMailServer error log.\r\n\r\n",
+                  recipient->GetAddress())));
+         }
+
+         if (!PersistentMessageRecipient::DeleteObject(recipient))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6106, "LocalDelivery::HoldForRetry",
+               Formatter::Format("Message {0} has run out of retries for {1}, and that recipient could not be removed from the database.",
+                  message->GetID(), recipient->GetAddress()));
+         }
+      }
+
+      LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: whether {1} local recipient(s)' mailboxes are encrypted at rest could not be read after {2} tries; the sender is told.",
+         message->GetID(), (int) held.size(), (int) message->GetNoOfRetries() + 1));
+
+      return false;
+   }
+
+   String
+   LocalDelivery::DamagedReportFor(const String &sender)
+   {
+      // Who is one of the organisation's own, decided as the restricted
+      // delivery's report decides it: the sender's domain, through the
+      // domain aliases, hosted here.
+      std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+      const String senderDomain = StringParser::ExtractDomain(aliases ? aliases->ApplyAliasesOnAddress(sender) : sender);
+      const bool senderIsLocal = !senderDomain.IsEmpty() && CacheContainer::Instance()->GetDomain(senderDomain);
+
+      if (senderIsLocal)
+         return MailboxKeys::DamagedSentence();
+
+      return _T("The recipient's mailbox cannot receive mail at the moment.");
+   }
+
+   bool
+   LocalDelivery::PlaceCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, MessageStore::PlaceRefusal &refusal)
+   {
+      refusal = MessageStore::PlaceAccepted;
+
       // A copy that is still a name of the delivery template: nothing between
       // the link and here rewrote it (a rewrite is a new file under this name),
       // so it is the template's bytes. The first such copy is placed where it
@@ -194,7 +363,10 @@ namespace HM
             {
                bool changed = false;
                if (!MessageStore::PlaceWorkingFile(copy, changed))
+               {
+                  refusal = MessageStore::PlaceRefusedContent;
                   return false;
+               }
 
                // Rewritten in the stored form, the copy is a file of its own now
                // and the next recipients' names become names of it. Left as it
@@ -209,7 +381,23 @@ namespace HM
          }
       }
 
-      return MessageStore::Place(account, message);
+      // Asked again at placing - a switch-on since the loop read it is
+      // honoured - and what the loop read stands in when this cannot say: the
+      // loop held every recipient it could not read it for, so a copy made is
+      // never refused for not knowing.
+      std::string publicKey;
+      MailboxKeys::Encryption encryption = MailboxKeys::EncryptionNone;
+      if (message->GetAccountID() == account->GetID())
+      {
+         encryption = MailboxKeys::EncryptionFor(account, publicKey);
+         if (encryption == MailboxKeys::EncryptionUnknown && encryption_before_ != MailboxKeys::EncryptionUnknown)
+         {
+            encryption = encryption_before_;
+            publicKey = key_before_;
+         }
+      }
+
+      return MessageStore::PlaceAs(account, message, encryption, publicKey, refusal);
    }
 
    bool
@@ -237,6 +425,13 @@ namespace HM
       // key - after the filters, and a file shared with other recipients
       // cannot be rewritten for one of them.
       if (account->GetZeroAccess())
+         return false;
+
+      // Nor can a copy for a mailbox encrypted at rest, which is stored under
+      // its own account's key and no other (MailboxKeys.h) - nor one whose
+      // encryption could not be read, which the store will refuse anyway.
+      std::string encryptionKey;
+      if (MailboxKeys::EncryptionFor(account, encryptionKey) != MailboxKeys::EncryptionNone)
          return false;
 
       return true;
@@ -472,10 +667,16 @@ namespace HM
       //
       // One the store refuses is not kept at all: its bytes begin with the mark
       // of a container and could not be stored as the message they are (HM7353
-      // says why), and kept they would be read as a container they are not. It
-      // was never placed, so it counted nothing; it goes as it came, and the
-      // sender is told, as for a copy that could not be saved.
-      if (!PlaceCopy_(account, accountLevelMessage))
+      // says why), and kept they would be read as a container they are not -
+      // or the mailbox is encrypted at rest and the message could not be
+      // stored encrypted (HM7365), and kept it would be in the clear. It was
+      // never placed, so it counted nothing; it goes as it came, and the
+      // sender is told, as for a copy that could not be saved. Never for not
+      // knowing whether the mailbox is encrypted: Perform held such a
+      // recipient before its copy was made, and PlaceCopy_ falls back to what
+      // Perform read.
+      MessageStore::PlaceRefusal refusal = MessageStore::PlaceAccepted;
+      if (!PlaceCopy_(account, accountLevelMessage, refusal))
       {
          MessageStore::DiscardWorkingFile(MessageStore::WorkingFile(account, accountLevelMessage));
 
@@ -487,12 +688,38 @@ namespace HM
 
          if (!suppressFailureDsn)
          {
-            // RFC 3463 5.6.0, "other or undefined media error": what cannot be
-            // stored is the message's content, and sending it again will not
-            // change that.
-            saErrorMessages.push_back(DeliveryFailure(account->GetAddress(), _T("5.6.0"),
-               Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: The message could not be stored in the recipient's mailbox: its first bytes are the ones this server uses to mark a stored container, and it could not be stored as the message it is. The server administrator should check the hMailServer error log.\r\n\r\n",
-                  account->GetAddress())));
+            // What the store said the refusal was, not asked again: RFC 3463
+            // 5.6.0, "other or undefined media error", when what cannot be
+            // stored is the message's content - larger than an encrypted
+            // mailbox's message can be, or bytes that cannot be kept as the
+            // message they are - and sending it again will not change that;
+            // 4.3.0 when what failed is this server's own encrypted write, as
+            // the zero-access seal and a failed save are told: the recipient's
+            // mailbox is fine, and a list manager must not strike it.
+            String information;
+            bool temporary = false;
+            switch (refusal)
+            {
+            case MessageStore::PlaceRefusedTooLarge:
+               information = _T("The message could not be stored in the recipient's mailbox, which is encrypted at rest: it is larger than a message there can be, and it is not kept in the clear.");
+               break;
+            case MessageStore::PlaceRefusedWrite:
+            case MessageStore::PlaceRefusedUnknown:
+               information = _T("The message could not be stored in the recipient's mailbox, which is encrypted at rest: the encrypted copy could not be written, and it is not kept in the clear.");
+               temporary = true;
+               break;
+            case MessageStore::PlaceRefusedDamaged:
+               information = DamagedReportFor(original_message_->GetFromAddress());
+               temporary = true;
+               break;
+            default:
+               information = _T("The message could not be stored in the recipient's mailbox: its first bytes are the ones this server uses to mark a stored container, and it could not be stored as the message it is.");
+               break;
+            }
+
+            saErrorMessages.push_back(DeliveryFailure(account->GetAddress(), temporary ? _T("4.3.0") : _T("5.6.0"),
+               Formatter::Format("{0}\r\n   Error Type: SMTP\r\n   Error Description: Delivery failed\r\n   Additional information: {1} The server administrator should check the hMailServer error log.\r\n\r\n",
+                  account->GetAddress(), information)));
          }
 
          return;

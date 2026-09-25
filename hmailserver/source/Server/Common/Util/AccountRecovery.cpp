@@ -9,6 +9,7 @@
 #include "PasswordBreachCheck.h"
 #include "PasswordHistory.h"
 #include "PasswordPolicy.h"
+#include "MailboxKeys.h"
 #include "PasswordValidator.h"
 #include "RestApiServer.h"
 #include "Time.h"
@@ -980,6 +981,21 @@ namespace HM
          }
       }
 
+      // A mailbox encrypted at rest (MailboxKeys.h) whose key is closed - which
+      // it is, for somebody who has forgotten the password - cannot take a new
+      // password from a link: nothing could wrap the key by it, and the mail
+      // would stay unreadable. Refused before the link is spent, with the
+      // sentence that sends the person to their administrator.
+      {
+         String keyRefusal;
+         if (!MailboxKeys::CanWrapNewPassword(account->GetID(), keyRefusal))
+         {
+            problem = keyRefusal;
+            status = MailboxKeys::RefusalStatus(keyRefusal, 409);
+            return CompleteRefused;
+         }
+      }
+
       // The link is spent here, before the password is written: a reset that
       // fails on the write must not leave a link somebody can try again, and a
       // reset that succeeds must not leave one at all.
@@ -993,6 +1009,17 @@ namespace HM
          problem = _T("the account could not be read; try again in a minute");
          status = 500;
          return CompleteFailed;
+      }
+
+      // The key wrapped by the new password, stored with the account.
+      {
+         String keyRefusal;
+         if (!MailboxKeys::PrepareForNewPassword(mutableAccount, newPassword, keyRefusal))
+         {
+            problem = keyRefusal;
+            status = MailboxKeys::RefusalStatus(keyRefusal, 409);
+            return CompleteFailed;
+         }
       }
 
       PasswordHistory::Record(mutableAccount);

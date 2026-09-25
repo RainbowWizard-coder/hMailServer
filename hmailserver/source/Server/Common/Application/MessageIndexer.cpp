@@ -15,6 +15,7 @@
 #include "../Persistence/PersistentMessageMetaData.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentMessageIndex.h"
+#include "../Util/MailboxKeys.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -193,7 +194,12 @@ namespace HM
          if (!PersistentMessageIndex::GetMessagesInRange(low, high, messages))
             return true;
 
-         if (!IndexFullTextMessages_(messages))
+         // A message skipped for a mailbox whose encryption was not known is
+         // passed: without the complete-marker it is read at every search, and
+         // the reconciliation finds it - so one account the server cannot tell
+         // about never holds the backfill up.
+         bool skipped = false;
+         if (!IndexFullTextMessages_(messages, skipped))
             return true;
 
          if (!PersistentMessageIndex::SetBackfillCursor(high))
@@ -221,8 +227,17 @@ namespace HM
          return true;
       }
 
-      if (!IndexFullTextMessages_(unindexed))
+      bool skipped = false;
+      if (!IndexFullTextMessages_(unindexed, skipped))
          return true;
+
+      // What could not be told about is asked again at the next reconciliation,
+      // a minute on at the soonest, not at once.
+      if (skipped)
+      {
+         full_text_reconcile_active_ = false;
+         return true;
+      }
 
       // A full batch means there may be more to heal; an emptier one means
       // this reconciliation is done.
@@ -231,7 +246,7 @@ namespace HM
    }
 
    bool
-   MessageIndexer::IndexFullTextMessages_(const std::vector<PersistentMessageIndex::IndexableMessage> &messages)
+   MessageIndexer::IndexFullTextMessages_(const std::vector<PersistentMessageIndex::IndexableMessage> &messages, bool &skipped)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // Reads, tokenises and stores the terms for a batch of messages. The text
@@ -244,9 +259,54 @@ namespace HM
    {
       const size_t maxTerms = (size_t) IniFileSettings::Instance()->GetIndexerFullTextMaxTokensPerMessage();
 
+      // The accounts this batch stored words of, and the second look at them:
+      // an account switched to encryption at rest while this batch read its
+      // messages - the "no key" below read just before the switch-on put it in
+      // the keyed set - has what the batch stored of its words dropped again.
+      // The switch-on drops the index after it puts the account in the set,
+      // and this asks the set after the words were written: one of the two
+      // comes after the other, so nothing is left standing (docs/
+      // EncryptionAtRest.md, "The index"). Asked of the set in memory, which
+      // costs nothing where no account is keyed, and on every way out of this
+      // function - a batch that stops part way wrote words too. Not known is
+      // not keyed here: a batch that could not tell skipped those messages.
+      std::set<__int64> termsWritten;
+      skipped = false;
+      struct SecondLook
+      {
+         std::set<__int64> &accounts;
+         ~SecondLook()
+         {
+            try
+            {
+               for (__int64 accountId : accounts)
+               {
+                  if (MailboxKeys::KeyedState(accountId) == MailboxKeys::KeyedYes || MailboxKeys::KeyedState(accountId) == MailboxKeys::KeyedDamaged)
+                     MailboxKeys::ForgetIndex(accountId);
+               }
+            }
+            catch (...)
+            {
+               // A destructor, on the way out of a batch: the next batch's look
+               // at the account, or the switch-on's own drop, stands.
+            }
+         }
+      } secondLook = { termsWritten };
+
       for (const PersistentMessageIndex::IndexableMessage &messageToIndex : messages)
       {
          boost::this_thread::interruption_point();
+
+         // Whether the mailbox is encrypted at rest not known just now: the
+         // message is left unindexed - neither its words nor the overflow
+         // marker, which would stand for good - and read at every search until
+         // a later pass can tell (the callers, above).
+         const MailboxKeys::Keyed keyed = MailboxKeys::KeyedState(messageToIndex.AccountID);
+         if (keyed == MailboxKeys::KeyedUnknown)
+         {
+            skipped = true;
+            continue;
+         }
 
          std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message);
          message->SetID(messageToIndex.MessageID);
@@ -258,7 +318,19 @@ namespace HM
 
          std::shared_ptr<MessageData> messageData = std::shared_ptr<MessageData>(new MessageData());
 
-         if (messageData->LoadFromMessage(messageToIndex.FileName, message))
+         // A mailbox encrypted at rest (Util/MailboxKeys.h) has no term of its
+         // text stored anywhere: the table is not under the account's key, and
+         // a term is the word it is. Every message of such an account gets the
+         // overflow marker instead - a candidate for every search, which reads
+         // it while the key is open, exactly as the index-less server always
+         // searched - whether its key happens to be open now or not; and so does
+         // one whose key row holds no key, whose files may be under the key it
+         // held.
+         if (keyed == MailboxKeys::KeyedYes || keyed == MailboxKeys::KeyedDamaged)
+         {
+            overflowed = true;
+         }
+         else if (messageData->LoadFromMessage(messageToIndex.FileName, message))
          {
             // Header first; body and HTML body directly concatenated after
             // it, with nothing in between. SEARCH BODY scans GetBody() +
@@ -327,6 +399,9 @@ namespace HM
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6260, "MessageIndexer::IndexFullTextMessages_", errorMessage);
             return false;
          }
+
+         if (!terms.empty())
+            termsWritten.insert(messageToIndex.AccountID);
       }
 
       return true;
@@ -359,9 +434,37 @@ namespace HM
             return;
          }
 
+         // The accounts this batch wrote the sort's copy of headers for, and
+         // the second look at them, as for the words: an account switched to
+         // encryption at rest after the query left it in has what this batch
+         // wrote dropped again - asked of the keyed set, on every way out of
+         // the batch. The query leaves such an account out from then on.
+         std::set<__int64> accounts;
+         struct SecondLook
+         {
+            std::set<__int64> &accounts;
+            ~SecondLook()
+            {
+               try
+               {
+                  for (__int64 accountId : accounts)
+                  {
+                     if (MailboxKeys::KeyedState(accountId) == MailboxKeys::KeyedYes || MailboxKeys::KeyedState(accountId) == MailboxKeys::KeyedDamaged)
+                        MailboxKeys::ForgetIndex(accountId);
+                  }
+               }
+               catch (...)
+               {
+                  // A destructor, on the way out of a batch.
+               }
+            }
+         } secondLook = { accounts };
+
          for(std::shared_ptr<PersistentMessageMetaData::MessageInfo> messageToIndex : messagesToIndex)
          {
             boost::this_thread::interruption_point();
+
+            accounts.insert(messageToIndex->AccountID);
 
             AnsiString headerText = PersistentMessage::LoadHeader(messageToIndex->FileName, false);
 
@@ -396,6 +499,7 @@ namespace HM
                return;
             }
          }
+
       }
       iIndexRunCount++;
    }

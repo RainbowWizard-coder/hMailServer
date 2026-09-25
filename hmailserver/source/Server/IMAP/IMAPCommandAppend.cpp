@@ -17,6 +17,7 @@
 #include "../Common/Application/EffectiveSetting.h"
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/MessageStore.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Tracking/NotificationServer.h"
 #include "../Common/Util/ByteBuffer.h"
@@ -584,13 +585,27 @@ namespace HM
       // with: one that begins with the mark of a container is wrapped, never
       // taken for one - and refused, like a write that failed, when it cannot
       // be wrapped (HM7353). Never placed, it counted nothing, and it goes
-      // without letting go of anything.
-      if (!MessageStore::PlaceWorkingFile(message_file_name_))
+      // without letting go of anything. In a mailbox encrypted at rest it is
+      // encrypted to the owner's key, and refused (HM7365) rather than kept in
+      // the clear when it cannot be (MessageStore.h).
+      std::shared_ptr<const Account> messageOwner;
+      if (destination_folder_ && !destination_folder_->IsPublicFolder())
+         messageOwner = pConnection->GetAccountOwningFolder(destination_folder_);
+
+      MessageStore::PlaceRefusal refusal = MessageStore::PlaceAccepted;
+      if (!MessageStore::PlaceWorkingFileFor(messageOwner, message_file_name_, false, refusal))
       {
          MessageStore::DiscardWorkingFile(message_file_name_);
          current_message_.reset();
 
-         FailCommand_(current_tag_ + " NO APPEND failed - the message could not be stored on the server.\r\n");
+         // Whether the mailbox is encrypted at rest not known just now: the
+         // client keeps its copy and tries again (RFC 5530 UNAVAILABLE).
+         if (refusal == MessageStore::PlaceRefusedDamaged)
+            FailCommand_(current_tag_ + " NO [CONTACTADMIN] APPEND failed - " + MailboxKeys::DamagedSentence() + "\r\n");
+         else if (refusal == MessageStore::PlaceRefusedUnknown)
+            FailCommand_(current_tag_ + " NO [UNAVAILABLE] APPEND failed - whether this mailbox is encrypted at rest could not be read just now, and the message is not stored in the clear on a guess. Try again in a moment.\r\n");
+         else
+            FailCommand_(current_tag_ + " NO APPEND failed - the message could not be stored on the server.\r\n");
          return;
       }
 

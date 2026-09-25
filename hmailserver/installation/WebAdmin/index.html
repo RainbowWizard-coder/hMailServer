@@ -1135,6 +1135,10 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="accountmove")moveAccount();
   else if(d.act==="recoveryclear")clearRecovery();
   else if(d.act==="recoverycodesclear")clearRecoveryCodes();
+  else if(d.act==="mkeyon")setMailboxKey(true);
+  else if(d.act==="mkeyoff")setMailboxKey(false);
+  else if(d.act==="mkeyrecover")recoverMailboxKey();
+  else if(d.act==="mrecsave")saveMailboxRecovery();
   else if(d.act==="accountdirsave")saveAccountDirectory();
   else if(d.act==="aliases")showAliases(d.domain);
   else if(d.act==="aliasnew")createAlias(d.domain);
@@ -2447,7 +2451,7 @@ async function createDomain(){
 async function openDomain(name){
   const existing=cache.domains.filter(d=>d.name===name)[0];
   if(!existing)return;
-  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",traps:[],trapHits:[],trapError:"",rotation:null,rotationError:"",smimeCa:null,smimeCaError:""};
+  editing={kind:"domain",name:name,values:JSON.parse(JSON.stringify(existing)),aliases:[],aliasError:"",senders:[],senderError:"",traps:[],trapHits:[],trapError:"",rotation:null,rotationError:"",smimeCa:null,smimeCaError:"",mailboxRecovery:null,mailboxRecoveryError:""};
   // The settings with levels are not in the listing: the domain itself answers
   // them. Its own try: a server from before them answers none, and the editor
   // opens all the same.
@@ -2471,7 +2475,43 @@ async function openDomain(name){
   // answers nothing here and the editor opens all the same.
   try{await reloadSmimeAuthority();}
   catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.smimeCaError=e.message;}
+  // The domain's recovery key for mailbox encryption at rest: its own try, so
+  // that a server from before it answers nothing here and the editor opens.
+  try{editing.mailboxRecovery=await api("/api/v1/domains/"+encodeURIComponent(name)+"/mailbox-recovery");}
+  catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}editing.mailboxRecoveryError=e.message;}
   renderDomainEditor();
+}
+/* A domain's recovery key for mailbox encryption at rest (docs/
+   EncryptionAtRest.md): what opens an encrypted mailbox of the domain when its
+   password is lost. Made or replaced here; never shown, and its passphrase
+   never stored - the hint is all that is kept of it. */
+function mailboxRecoveryHtml(){
+  const r=editing.mailboxRecovery;
+  if(!r)return '<div class="note">'+escHtml(editing.mailboxRecoveryError||"")+'</div>';
+  const state=r.exists?tf("A recovery key is kept: {0}, sealing {1} accounts' keys.",r.fingerprint,String(r.accounts||0))
+    :t("No recovery key: no account of this domain can be encrypted at rest until one is made.");
+  return `<p class="note">${t("The key that opens this domain's encrypted mailboxes when a password is lost. Its private half is kept wrapped by a passphrase this server never stores: keep the passphrase somewhere else. Replacing it needs the current passphrase.")}</p>
+    <p class="note">${escHtml(state)}</p>
+    ${r.exists&&r.replacement_unfinished?'<p class="note" id="mrecUnfinished">'+t("The last replacement of this key did not finish: some accounts are still sealed to the key it replaced. They open with the current passphrase all the same; replace the key again, giving the current passphrase, to finish it.")+'</p>':""}
+    ${r.exists&&r.hint?'<p class="note">'+escHtml(tf("Hint: {0}",r.hint))+'</p>':""}
+    <div class="row" style="gap:12px;flex-wrap:wrap" data-enter="mrecsave">
+      ${r.exists?`<input id="mrecCurrent" type="password" autocomplete="off" placeholder="${t("The current passphrase")}" aria-label="${t("The current passphrase")}" style="flex:1;min-width:180px">`:""}
+      <input id="mrecPassphrase" type="password" autocomplete="off" placeholder="${t("A new passphrase, 12 characters or more")}" aria-label="${t("A new passphrase, 12 characters or more")}" style="flex:1;min-width:180px">
+      <input id="mrecHint" maxlength="255" placeholder="${t("A hint for the passphrase (optional)")}" aria-label="${t("A hint for the passphrase (optional)")}" style="flex:1;min-width:180px">
+      <button class="btn" data-act="mrecsave">${r.exists?t("Replace the recovery key"):t("Make the recovery key")}</button>
+    </div>
+    <div class="err" id="err_mrec"></div>`;
+}
+async function saveMailboxRecovery(){
+  setErr("err_mrec","");
+  const body={passphrase:$("#mrecPassphrase").value,hint:$("#mrecHint").value.trim()};
+  const current=$("#mrecCurrent");
+  if(current&&current.value)body.current_passphrase=current.value;
+  try{
+    editing.mailboxRecovery=await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/mailbox-recovery",{method:"PUT",body:JSON.stringify(body)});
+    toast(t("The recovery key was saved."));
+    $("#mailboxRecovery").innerHTML=mailboxRecoveryHtml();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mrec",e.message);}
 }
 async function reloadDomainAliases(){
   editing.aliases=asList(await api("/api/v1/domains/"+encodeURIComponent(editing.name)+"/domain-aliases"),"aliases");
@@ -2549,6 +2589,10 @@ function renderDomainEditor(){
   // The domain's own S/MIME authority after its DKIM key: both are the domain
   // vouching for its mail, and both are made and rotated here.
   cards.push(`<div class="sect"><h2>${t("S/MIME authority")}</h2><div class="card flat" id="smimeAuthority">${smimeAuthorityHtml()}</div></div>`);
+  // The recovery key of the domain's mailboxes encrypted at rest, after the
+  // other keys the domain holds.
+  if(may("manage_accounts"))
+    cards.push(`<div class="sect"><h2>${t("Mailbox recovery key")}</h2><div class="card flat" id="mailboxRecovery">${mailboxRecoveryHtml()}</div></div>`);
   cards.push(`<div class="sect"><h2>${t("Setting levels")}</h2><div class="card flat" id="domainLevels">${levelsHtml("domain")}</div></div>`);
   $("#content").innerHTML=`<div class="view">
     <button class="btn ghost sm" data-act="cancel">${t("‹ All domains")}</button>
@@ -3059,6 +3103,9 @@ async function openAccount(address,domain){
   // role that may read an account but not this is answered 403, and the editor
   // must still open.
   try{editing.directory=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/directory");}catch(e){editing.directory=null;}
+  // Whether the mailbox is encrypted at rest, on its own route and with its
+  // own try, for the same reason.
+  try{editing.mailboxKey=await api("/api/v1/accounts/"+encodeURIComponent(address)+"/mailbox-encryption");}catch(e){editing.mailboxKey=null;}
   renderAccountEditor();
 }
 function renderAccountEditor(){
@@ -3073,6 +3120,7 @@ function renderAccountEditor(){
     ${cards}
     ${may("manage_accounts")?recoveryCardHtml():""}
     ${zeroAccessCardHtml()}
+    ${may("manage_accounts")?mailboxKeyCardHtml():""}
     ${directoryCardHtml()}
     ${may("manage_accounts")?moveCardHtml():""}
     <div class="sect"><h2>${t("Setting levels")}</h2><div class="card flat" id="accountLevels">${levelsHtml("account")}</div></div>
@@ -3098,6 +3146,60 @@ function zeroAccessCardHtml(){
         ?t("On: every message delivered to this account is encrypted, after the filters have run, to the account's own OpenPGP key. This server cannot read, search, export or recover its mail, and neither can you: the message source and the export answer 403, search sees the headers only, IMAP and POP hand out the ciphertext. Only the person can switch it off, from the webmail, and switching it off decrypts nothing already stored.")
         :t("Off: mail is stored as it arrives. The person switches it on from the webmail's Security page, once zero-access mailboxes are allowed under Settings, OpenPGP; nothing here can switch it on for them.")}</p>
     </div></div>`;
+}
+/* Mailbox encryption at rest (docs/EncryptionAtRest.md), over
+   /api/v1/accounts/{address}/mailbox-encryption: the state, the switch, and the
+   recovery that opens the key with the domain's passphrase to set a new
+   password. Unlike zero access above it is the administrator's switch: the
+   server holds this key while the person is signed in, and the domain's
+   recovery key opens it when a password is lost. */
+function mailboxKeyCardHtml(){
+  const k=editing.mailboxKey;
+  if(!k)return "";
+  const state=!k.keyed?t("Off: mail is stored as it arrives.")
+    :!k.enabled?t("Off for new mail. What was stored encrypted stays encrypted, and the key stays to read it.")
+    :k.pending?t("On. The key waits for the person's first sign-in with their password, which wraps it.")
+    :k.open?t("On. The key is open: the person is signed in.")
+    :t("On. The key is closed until the person signs in with their password.");
+  /* recovery_current is false when the key's recovery copy is sealed to a
+     recovery key the domain no longer has - a database edited by hand, a
+     restore that mixed archives: the recovery below cannot open it. */
+  const stale=k.keyed&&k.domain_recovery&&k.recovery_current===false
+    ?`<p class="note" id="mkeyStale">${t("The domain's recovery key does not open this mailbox: its key is sealed to a recovery key the domain no longer has. The recovery below will be refused; the person's own password is the only way in.")}</p>`:"";
+  const recover=k.keyed?`<div class="row" style="gap:12px;flex-wrap:wrap;margin-top:10px" data-enter="mkeyrecover">
+        <input id="mkeyPassphrase" type="password" autocomplete="off" placeholder="${t("The domain's recovery passphrase")}" aria-label="${t("The domain's recovery passphrase")}" style="flex:1;min-width:200px">
+        <input id="mkeyPassword" type="password" autocomplete="new-password" placeholder="${t("A new password for the account")}" aria-label="${t("A new password for the account")}" style="flex:1;min-width:200px">
+        <button class="btn" data-act="mkeyrecover">${t("Recover the mailbox")}</button></div>`:"";
+  return `<div class="sect"><h2>${t("Encryption at rest")}</h2>
+    <div class="card">
+      <p class="note">${t("The mailbox's messages are stored encrypted to a key of its own, which opens when the person signs in with their password and closes when they have gone. It protects the files and their backups, not the mail from this server: while the key is open the server reads it. The domain needs a recovery key first, and IMAP and POP3 then accept only the account's own password.")}</p>
+      <p class="note">${escHtml(state)}</p>
+      ${stale}
+      <div class="row">${k.enabled
+        ?`<button class="btn ghost" data-act="mkeyoff">${t("Switch encryption off")}</button>`
+        :`<button class="btn" data-act="mkeyon"${k.zero_access||!k.domain_recovery?" disabled":""}>${t("Switch encryption on")}</button>`}</div>
+      ${recover}
+      <div class="err" id="err_mkey"></div>
+    </div></div>`;
+}
+async function setMailboxKey(on){
+  setErr("err_mkey","");
+  try{
+    editing.mailboxKey=await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/mailbox-encryption",{method:"PUT",body:JSON.stringify({enabled:on})});
+    toast(on?t("Encryption at rest switched on"):t("Encryption at rest switched off"));
+    renderAccountEditor();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mkey",e.message);}
+}
+async function recoverMailboxKey(){
+  setErr("err_mkey","");
+  const passphrase=$("#mkeyPassphrase").value,password=$("#mkeyPassword").value;
+  if(!passphrase||!password){setErr("err_mkey",t("Both the domain's recovery passphrase and a new password are needed."));return;}
+  try{
+    await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/mailbox-encryption/recover",{method:"POST",body:JSON.stringify({passphrase:passphrase,password:password})});
+    toast(t("The mailbox was recovered: the new password opens it."));
+    editing.mailboxKey=await api("/api/v1/accounts/"+encodeURIComponent(editing.address)+"/mailbox-encryption");
+    renderAccountEditor();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_mkey",refusalText(e));}
 }
 /* What an administrator may know about an account's recovery address, which is
    less than the account knows and deliberately so: whether one is set, whether

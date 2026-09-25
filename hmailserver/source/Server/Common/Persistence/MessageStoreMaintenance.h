@@ -27,6 +27,22 @@
 //        it is too high and a row nothing references removed: the one recount
 //        that lowers, and so the one that runs only with the server stopped.
 //
+//   hmailserver --encrypt-store [--account <address> | --domain <name>]
+//        every stored file of a mailbox encrypted at rest (Util/MailboxKeys.h)
+//        that is not encrypted yet - mail stored before the switch was thrown -
+//        rewritten encrypted to the account's key, which needs only its public
+//        half: compressed first when MessageStoreCompression is on, never
+//        holding a part once. Each name is rewritten on its own, since a file
+//        several accounts' names share cannot be under one account's key: the
+//        other names keep the file they had.
+//
+//   hmailserver --decrypt-store (--account <address> | --domain <name>)
+//        the reverse, for one account or one domain: every file encrypted to an
+//        account's key put back as plain RFC 822. The key is opened with the
+//        domain's recovery passphrase, read from the environment variable
+//        HMAILSERVER_RECOVERY_PASSPHRASE - never from the command line, which
+//        every user of the machine can read.
+//
 // The rewrite and the recount are refused beside a running server: on Windows by
 // asking the service controller (hMailServer.cpp), on Linux by a lock the server
 // takes for as long as it runs (TakeStoreLock). Exit 4.
@@ -48,7 +64,9 @@ namespace HM
          VerbMeasure = 1,
          VerbCompress = 2,
          VerbDecompress = 3,
-         VerbRecount = 4
+         VerbRecount = 4,
+         VerbEncrypt = 5,
+         VerbDecrypt = 6
       };
 
       // The command-line verbs, over the whole store, one account, or one
@@ -62,12 +80,13 @@ namespace HM
       // public folder.
       struct StoredFile
       {
-         StoredFile() : message_id(0), size(0), zero_access(false) {}
+         StoredFile() : message_id(0), size(0), zero_access(false), account_id(0) {}
          __int64 message_id;
          __int64 size;          // the row's messagesize
          String account;        // empty for a public folder
          String path;
          bool zero_access;
+         __int64 account_id;    // 0 for a public folder
       };
 
       // Every stored file, one account's, or one domain's accounts' - the
@@ -78,6 +97,12 @@ namespace HM
 
       // The files the recover-deleted store keeps, which reference blobs too.
       static void ListKeptFiles(std::vector<String> &files);
+
+      // The same kept copies (hm_recoverable) as stored files of their accounts
+      // - one account's, one domain's accounts', or every account's - for the
+      // encryption walks: a mailbox encrypted at rest has its deleted items
+      // encrypted and decrypted with its mail (docs/EncryptionAtRest.md).
+      static bool ListKeptFilesOf(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem);
 
       // Every blob's count set from the stored files and the kept copies. exact
       // lowers and removes as well as raises - the command line's, with the

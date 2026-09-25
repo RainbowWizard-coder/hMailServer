@@ -513,6 +513,9 @@ namespace HM
          RouteMeZeroAccessPut,
          RouteMeZeroAccessRewrap,
          RouteMeZeroAccessDelete,
+         // Mailbox encryption at rest (RestApiMailboxKeys.cpp): whether the
+         // signed-in account's mailbox is encrypted, and its key open.
+         RouteMeMailboxEncryption,
          RouteMeRecall,
          RouteMeMessageReceipt,
          RouteMeMessageUnsubscribe,
@@ -946,6 +949,18 @@ namespace HM
          RouteAccountReviewGet,
          RouteAccountReviewPut,
          RouteAccountReviewUnlock,
+         // Mailbox encryption at rest (RestApiMailboxKeys.cpp,
+         // Util/MailboxKeys.h): an account's key read, switched on or off,
+         // forfeited, and opened with its domain's recovery passphrase to set
+         // a new password; a domain's recovery key read, made or replaced,
+         // and removed.
+         RouteAccountMailboxEncryptionGet,
+         RouteAccountMailboxEncryptionPut,
+         RouteAccountMailboxEncryptionForfeit,
+         RouteAccountMailboxEncryptionRecover,
+         RouteDomainMailboxRecoveryGet,
+         RouteDomainMailboxRecoveryPut,
+         RouteDomainMailboxRecoveryDelete,
          // The reports (RestApiReports.cpp): what happened on this server,
          // per domain and per day, aggregated from the message trace, the
          // metric history and the message store. Read-only. The sections
@@ -1206,6 +1221,12 @@ namespace HM
          // mail as the account but does not mint or revoke credentials or
          // end the account holder's browser sessions.
          bool via_app_password = false;
+
+         // Set, with result left failed, when the credential was a session
+         // whose mailbox's encryption at rest is not known just now
+         // (MailboxKeys::KeyedUnknown): answered 503 rather than 401, and
+         // the session is neither let in nor ended.
+         bool mailbox_key_unknown = false;
 
          // That app password's name, where one was used - the label its owner
          // gave it, and nothing derived from the secret. Recorded against the
@@ -1907,6 +1928,13 @@ namespace HM
       HttpResponse HandleSessionCreate_(const Caller &caller, const AnsiString &request, const AnsiString &query);
       HttpResponse HandleSessionDelete_(const Caller &caller);
       static void RevokeSessionsForAccount_(__int64 accountId, const AnsiString &keepTokenHash);
+
+      // A keyed account's session whose key's opening is not the current one
+      // (MailboxKeys::OpenEpoch): that session ended, and every other of the
+      // account made under an earlier opening - never one made under the
+      // opening that is current, read under the table's lock, so that a stale
+      // session's request never ends a session signed in a moment ago.
+      static void RevokeSessionsOutsideOpening_(__int64 accountId, const AnsiString &presentedHash);
       static void ClearBrowserSessions_();
       static HttpResponse HandlePortalScript_();
       static HttpResponse HandlePortalManifest_();
@@ -2111,6 +2139,13 @@ namespace HM
       // for review, releasing or discarding one, and an account's review state.
       HttpResponse HandleAccountReview_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiAccountReviewPaths_();
+
+      // Mailbox encryption at rest (RestApiMailboxKeys.cpp, Util/MailboxKeys.h):
+      // an account's key and its domain's recovery key, and the account's own
+      // view of whether its mailbox is encrypted.
+      HttpResponse HandleMailboxEncryption_(const Caller &caller, const Route &route, const AnsiString &requestBody);
+      static HttpResponse HandleMeMailboxEncryption_(const Caller &caller);
+      static AnsiString OpenApiMailboxEncryptionPaths_();
 
       // Attachments opened somewhere safe (RestApiSandbox.cpp): what is held
       // for a sandbox's verdict, and delivering or discarding one of them.

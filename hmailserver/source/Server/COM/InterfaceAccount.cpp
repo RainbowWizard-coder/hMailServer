@@ -19,6 +19,7 @@
 #include "../Common/Util/PasswordPolicy.h"
 #include "../Common/Util/PasswordBreachCheck.h"
 #include "../Common/Util/PasswordHistory.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/AccountRecovery.h"
@@ -312,6 +313,16 @@ STDMETHODIMP InterfaceAccount::EnrolTOTP(BSTR *pVal)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
+      // A second factor makes an app password the only credential where none
+      // is asked - IMAP, POP3, SMTP, ManageSieve, DAV - and a mailbox encrypted
+      // at rest opens only with its own password: every client would be shut
+      // out (docs/EncryptionAtRest.md). The two are not put on one account.
+      const HM::MailboxKeys::Keyed keyed = HM::MailboxKeys::KeyedState(object_->GetID());
+      if (keyed == HM::MailboxKeys::KeyedUnknown)
+         return COMError::GenerateError("Whether this mailbox is encrypted at rest could not be read just now, so no second factor was enrolled. Try again in a moment.");
+      if (keyed == HM::MailboxKeys::KeyedYes || keyed == HM::MailboxKeys::KeyedDamaged)
+         return COMError::GenerateError("This mailbox is encrypted at rest, which opens only with the account's own password; a second factor would make app passwords the only credential its mail clients could sign in with, and none of them would open it. Nothing was enrolled.");
+
       HM::AnsiString secret = HM::Totp::GenerateSecret();
 
       if (secret.IsEmpty())
@@ -437,6 +448,14 @@ STDMETHODIMP InterfaceAccount::put_Password(BSTR newVal)
 
       if (!HM::PasswordBreachCheck::IsAcceptable(object_->GetAddress(), newVal, breachRefusal, breachReason, breachStatus))
          return COMError::GenerateError(breachRefusal);
+
+      // A mailbox encrypted at rest (Common/Util/MailboxKeys.h): its key wrapped by
+      // the new password, stored when the account is saved - or the change
+      // refused while the key is closed, since a password set then would open
+      // nothing. The recovery route is the way to set one then.
+      HM::String keyRefusal;
+      if (!HM::MailboxKeys::PrepareForNewPassword(object_, newVal, keyRefusal))
+         return COMError::GenerateError(keyRefusal);
 
       // Recorded BEFORE the new hash replaces the old one, because the thing being
       // recorded IS the old one.

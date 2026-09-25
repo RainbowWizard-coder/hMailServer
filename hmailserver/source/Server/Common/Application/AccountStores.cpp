@@ -12,6 +12,7 @@
 #include "../Util/Encoding/Base64.h"
 #include "../Util/Time.h"
 #include "../Util/Unicode.h"
+#include "../Util/MailboxKeys.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -108,6 +109,16 @@ namespace HM
       // delivery can be encrypted for. A restore that dropped it would leave
       // the switch on and no key beside it, and every delivery refused.
       { _T("hm_zeroaccess"), 0 },
+
+      // The mailbox key of an account encrypted at rest (schema 6099,
+      // Util/MailboxKeys.h): its public half, the private half wrapped by the
+      // account's password and sealed to its domain's recovery key, and the
+      // copy under this machine's key while it waits for a first sign-in. The
+      // worst loss there is after the OpenPGP ring's: every message the archive
+      // brings back for the account is encrypted to this key, and nothing else
+      // opens it. The domain's recovery key it is sealed to is carried by the
+      // domain (MailboxKeys::XMLStoreDomain).
+      { _T("hm_accountkeys"), 0 },
 
       // The password reuse history (schema 6019). Hashes, like the account
       // password beside them. A restore that dropped these would silently let
@@ -308,6 +319,17 @@ namespace HM
       { _T("hm_zeroaccess"), _T("zasecret"),         AccountStores::RoleText },
       { _T("hm_zeroaccess"), _T("zarecovery"),       AccountStores::RoleText },
       { _T("hm_zeroaccess"), _T("zaenabledat"),      AccountStores::RoleNumber },
+
+      { _T("hm_accountkeys"), _T("akid"),            AccountStores::RoleIdentity },
+      { _T("hm_accountkeys"), _T("akaccountid"),     AccountStores::RoleAccount },
+      { _T("hm_accountkeys"), _T("akenabled"),       AccountStores::RoleNumber },
+      { _T("hm_accountkeys"), _T("akpublic"),        AccountStores::RoleText },
+      { _T("hm_accountkeys"), _T("akpassword"),      AccountStores::RoleText },
+      { _T("hm_accountkeys"), _T("akrecovery"),      AccountStores::RoleText },
+      { _T("hm_accountkeys"), _T("akrecoverypublic"), AccountStores::RoleText },
+      { _T("hm_accountkeys"), _T("akpending"),       AccountStores::RoleText },
+      { _T("hm_accountkeys"), _T("akcreated"),       AccountStores::RoleNumber },
+      { _T("hm_accountkeys"), _T("akchanged"),       AccountStores::RoleNumber },
 
       { _T("hm_maskedaddresses"), _T("maid"),        AccountStores::RoleIdentity },
       { _T("hm_maskedaddresses"), _T("maaccountid"), AccountStores::RoleAccount },
@@ -1486,6 +1508,27 @@ namespace HM
    bool
    AccountStores::XMLLoad(Account &account, XNode *accountNode)
    {
+      // hm_accountkeys may be written below, and a restore that stops part way
+      // may have written it too: the keyed set is read again at its next
+      // question on every way out of here (MailboxKeys.h), so a keyed account
+      // restored is never taken for one that is not, which would store its
+      // new mail in the clear and let an app password into it.
+      struct InvalidateKeysOnExit
+      {
+         __int64 account_id;
+         ~InvalidateKeysOnExit()
+         {
+            try
+            {
+               MailboxKeys::Invalidate(account_id);
+            }
+            catch (...)
+            {
+               // A destructor: the next start reads the set whole in any case.
+            }
+         }
+      } invalidateKeys = { account.GetID() };
+
       XNode *storesNode = accountNode->GetChild(StoresElement);
 
       // An archive written before this existed. Nothing to restore, and nothing to

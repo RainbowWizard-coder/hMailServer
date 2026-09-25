@@ -12,7 +12,7 @@ namespace HM
    class Attachments;
 
    class MimeBody;
-   class MessageStorePlainCopy;
+   class MessageStoreParseSource;
 
    class MessageData  
    {
@@ -87,7 +87,28 @@ namespace HM
 
       bool GetHasBodyType(const String &sBodyType);
 
+      // The message written to fileName. A rewrite of the stored file this was
+      // read from - or last wrote - when that file is encrypted at rest (docs/
+      // EncryptionAtRest.md) is encrypted again to the same key, in memory,
+      // and written beside it and renamed over it: its plaintext never reaches
+      // the disk, and a rewrite that cannot be encrypted is not made (HM7362).
       bool Write(const String &fileName);
+
+      // The message written to fileName encrypted to publicKey, from memory:
+      // never in the clear on the disk. False, reported (HM7365), when it
+      // could not be.
+      bool WriteEncrypted(const String &fileName, const std::string &publicKey);
+
+      // What a writer of a NEW message into a folder of account's mailbox
+      // writes with - COM's Message.Save and the script binding's for a
+      // message added to a folder, the webmail's draft: encrypted in memory to
+      // the account's key when its mailbox is encrypted at rest, and Write
+      // otherwise. False when nothing may be kept - including when whether the
+      // mailbox is encrypted is not known (HM7365), which unknown says, so that
+      // the caller answers it as the temporary refusal it is, and when the
+      // mailbox's key row holds no key, which damaged says.
+      bool WriteToMailbox(const String &fileName, std::shared_ptr<const Account> account);
+      bool WriteToMailbox(const String &fileName, std::shared_ptr<const Account> account, bool &unknown, bool &damaged);
 
       // Write, and report it if it fails, naming what the caller was trying to write.
       //
@@ -150,11 +171,26 @@ namespace HM
       // refuse rather than replace the message on disk with nothing. See Write.
       bool load_failed_;
 
-      // The message as the plain file that was parsed (Persistence/MessageStore.h):
-      // the stored file itself, or a temporary copy of the bytes of one the store
-      // keeps in another form, kept for as long as this is, because MimeBody's
-      // rewrite copies the body from the file it parsed.
-      std::shared_ptr<MessageStorePlainCopy> plain_copy_;
+      // What was parsed (Persistence/MessageStore.h): the stored file itself, or
+      // the original bytes of one the store keeps in another form, held in
+      // memory for as long as this is - never a copy on the disk - because
+      // MimeBody's rewrite copies the body from what it parsed.
+      std::shared_ptr<MessageStoreParseSource> source_;
+
+      // A file this wrote encrypted (WriteEncrypted), and the key: a later
+      // Write to it is encrypted again, as a rewrite of an encrypted source is.
+      String encrypted_file_;
+      std::string encrypted_to_;
+
+      // Write's refusals before anything is written: a failed load, a message
+      // that would begin with the container's magic, a directory that cannot
+      // be made.
+      bool CheckWritable_(const String &fileName);
+
+      // The message serialized in memory, encrypted to publicKey and written
+      // beside fileName, then renamed over it. code is what a failure is
+      // reported as: 7362 for a rewrite, 7365 for a new message.
+      bool WriteEncrypted_(const String &fileName, const std::string &publicKey, int code);
    };
 
    class MessageDataTester

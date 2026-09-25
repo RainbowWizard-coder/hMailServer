@@ -2123,6 +2123,35 @@ namespace HM
             iterFailed++;
          }
 
+         // The recipients whose retries are spent are done with: their rows go
+         // now, as a delivered or permanently refused recipient's do. The
+         // message is usually deleted after this pass, and its rows with it -
+         // but not when something else keeps it in the queue (local
+         // recipients held while their mailbox's encryption is not known, a
+         // posting the list manager could not read), and a row left then was
+         // tried again on the next pass: another report, or a delivery after
+         // the sender had been told it failed.
+         {
+            std::shared_ptr<MessageRecipients> recipients = original_message_->GetRecipients();
+            if (recipients)
+            {
+               // owned by this call: the recipients of the message this delivery holds, read, not changed
+               const std::vector<std::shared_ptr<MessageRecipient> > spent = recipients->GetVector();
+               for (const std::shared_ptr<MessageRecipient> &recipient : spent)
+               {
+                  if (mapFailedDueToNonFatalError.find(recipient->GetAddress()) == mapFailedDueToNonFatalError.end())
+                     continue;
+
+                  if (!PersistentMessageRecipient::DeleteObject(recipient))
+                  {
+                     ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6105, "ExternalDelivery::RescheduleDelivery_",
+                        Formatter::Format("Delivery of message {0} to {1} was given up when its retries ran out, and the sender is told; the recipient's row could not be removed from the database. That matters only when something else keeps the message in the queue - local recipients held, a posting the list manager could not read - and then this recipient is tried again on the next pass; otherwise the message, and the row with it, is deleted after this pass.",
+                           original_message_->GetID(), recipient->GetAddress()));
+                  }
+               }
+            }
+         }
+
          LOG_DEBUG("Message not rescheduled for later delivery.")
 
         return false;

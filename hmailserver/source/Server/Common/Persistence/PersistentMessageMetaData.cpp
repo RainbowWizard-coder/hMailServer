@@ -53,8 +53,13 @@ namespace HM
             oldestMessageToIndex = 0;
 
          // Only pick the last iIndexerQuickLimit records... very quick compared to full
+         //
+         // Never a message of a mailbox encrypted at rest (Util/MailboxKeys.h):
+         // the sort's copy of its From, To, Cc and Subject would be those
+         // headers in the clear beside a file that hides them. SORT reads such
+         // a message's header from the message, while its key is open.
          String whereClause;
-         whereClause.Format(_T("hm_messages.messagetype = 2 AND hm_messages.messageid > %d AND hm_message_metadata.metadata_id IS NULL"), oldestMessageToIndex);
+         whereClause.Format(_T("hm_messages.messagetype = 2 AND hm_messages.messageid > %d AND hm_message_metadata.metadata_id IS NULL AND hm_messages.messageaccountid NOT IN (SELECT akaccountid FROM hm_accountkeys)"), oldestMessageToIndex);
          statement.SetWhereClause(whereClause);
          statement.SetAdditionalSQL("LEFT JOIN hm_accounts ON hm_messages.messageaccountid = hm_accounts.accountid LEFT JOIN hm_message_metadata ON hm_messages.messageid = hm_message_metadata.metadata_messageid ");
       } 
@@ -64,7 +69,7 @@ namespace HM
          int iIndexerFullLimit = IniFileSettings::Instance()->GetIndexerFullLimit();
 
          // Otherwise do the old/standard way (pick iIndexerFullLimit records max)
-         statement.SetWhereClause("messagetype = 2 AND NOT EXISTS (SELECT metadata_messageid FROM hm_message_metadata WHERE hm_messages.messagetype = 2 and hm_messages.messageid = hm_message_metadata.metadata_messageid)");
+         statement.SetWhereClause("messagetype = 2 AND NOT EXISTS (SELECT metadata_messageid FROM hm_message_metadata WHERE hm_messages.messagetype = 2 and hm_messages.messageid = hm_message_metadata.metadata_messageid) AND hm_messages.messageaccountid NOT IN (SELECT akaccountid FROM hm_accountkeys)");
          statement.SetAdditionalSQL("left join hm_accounts on hm_messages.messageaccountid = hm_accounts.accountid");
          statement.SetTopRows(iIndexerFullLimit);
       }

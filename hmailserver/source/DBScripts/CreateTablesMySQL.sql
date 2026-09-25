@@ -82,6 +82,10 @@ drop table if exists hm_smimeissued;
 
 drop table if exists hm_smimeca;
 
+drop table if exists hm_accountkeys;
+
+drop table if exists hm_domainrecovery;
+
 drop table if exists hm_pgpring;
 
 drop table if exists hm_protectedmessages;
@@ -2335,6 +2339,46 @@ ALTER TABLE hm_zeroaccess ADD CONSTRAINT fk_hm_zeroaccess_account FOREIGN KEY (z
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ZeroAccessAllowed', '', 0);
 
+create table hm_accountkeys
+(
+	akid int auto_increment not null, primary key(`akid`), unique(`akid`),
+	akaccountid int not null,
+	akenabled int not null,
+	akpublic varchar(64) not null,
+	akpassword varchar(512) not null,
+	akrecovery varchar(512) not null,
+	akrecoverypublic varchar(64) not null,
+	akpending varchar(2000) not null,
+	akcreated bigint not null,
+	akchanged bigint not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_accountkeys_account ON hm_accountkeys (akaccountid);
+
+ALTER TABLE hm_accountkeys ENGINE=InnoDB;
+
+ALTER TABLE hm_accountkeys ADD CONSTRAINT fk_hm_accountkeys_account FOREIGN KEY (akaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE;
+
+create table hm_domainrecovery
+(
+	drid int auto_increment not null, primary key(`drid`), unique(`drid`),
+	drdomainid int not null,
+	drpublic varchar(64) not null,
+	drsealed varchar(512) not null,
+	drhint varchar(255) not null,
+	drcreated bigint not null,
+	drprevpublic varchar(64) not null,
+	drprevsealed varchar(512) not null
+) DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX idx_hm_domainrecovery_domain ON hm_domainrecovery (drdomainid);
+
+ALTER TABLE hm_domainrecovery ENGINE=InnoDB;
+
+ALTER TABLE hm_domainrecovery ADD CONSTRAINT fk_hm_domainrecovery_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE;
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MailboxKeyIdleMinutes', '', 15);
+
 create table hm_recall
 (
 	recallid int auto_increment not null, primary key(`recallid`), unique(`recallid`),
@@ -2985,4 +3029,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6098);
+insert into hm_dbversion values (6099);

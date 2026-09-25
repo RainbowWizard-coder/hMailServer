@@ -315,6 +315,11 @@ namespace HM
       // HM5015 every time.
       property_set_->EnsureLong(PROPERTY_ZERO_ACCESS_ALLOWED, 0);
 
+      // Mailbox encryption at rest: an open key closes fifteen minutes after
+      // its last use once no session holds it. Schema 6099 seeds the same row;
+      // this is here because every sweep reads it.
+      property_set_->EnsureLong(PROPERTY_MAILBOX_KEY_IDLE_MINUTES, 15);
+
       // The quota policy's two server-wide shares. Both 0, which is the server
       // as it has always been: no grace past a mailbox's limit, and no point at
       // which an account stops being able to send. A domain that sets its own
@@ -2289,6 +2294,18 @@ namespace HM
    Configuration::SetZeroAccessAllowed(bool allowed)
    {
       GetSettings()->SetLong(PROPERTY_ZERO_ACCESS_ALLOWED, allowed ? 1 : 0);
+   }
+
+   int
+   Configuration::GetMailboxKeyIdleMinutes()
+   {
+      return ClampSetting(GetSettings()->GetLong(PROPERTY_MAILBOX_KEY_IDLE_MINUTES), 1, 1440);
+   }
+
+   void
+   Configuration::SetMailboxKeyIdleMinutes(int minutes)
+   {
+      GetSettings()->SetLong(PROPERTY_MAILBOX_KEY_IDLE_MINUTES, minutes < 1 ? 1 : (minutes > 1440 ? 1440 : minutes));
    }
 
    int

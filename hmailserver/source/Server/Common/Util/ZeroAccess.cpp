@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "ZeroAccess.h"
+#include "MailboxKeys.h"
 #include "OpenPgpKey.h"
 #include "OpenPgpRing.h"
 #include "OpenPgpWriter.h"
@@ -366,6 +367,25 @@ namespace HM
       if (Get(account->GetID(), existing) || account->GetZeroAccess())
       {
          problem = "zero access is already on for this mailbox; switch it off first";
+         status = 409;
+         return false;
+      }
+
+      // Encryption at rest (MailboxKeys.h) is this server holding the mailbox's
+      // key while its owner is signed in; zero access is this server never
+      // holding it. The two are different promises, and are never made on one
+      // mailbox - MailboxKeys::Enable refuses a zero-access mailbox the same way.
+      const MailboxKeys::Keyed keyed = MailboxKeys::KeyedState(account->GetID());
+      if (keyed == MailboxKeys::KeyedUnknown)
+      {
+         problem = "whether this mailbox is encrypted at rest could not be read just now; try again in a moment";
+         status = 503;
+         return false;
+      }
+
+      if (keyed == MailboxKeys::KeyedYes || keyed == MailboxKeys::KeyedDamaged)
+      {
+         problem = "this mailbox is encrypted at rest, with a key this server holds while you are signed in; zero access is a different promise, and the two are not made on one mailbox - your administrator can switch encryption at rest off and remove its key first";
          status = 409;
          return false;
       }

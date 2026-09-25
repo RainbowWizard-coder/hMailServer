@@ -20,6 +20,8 @@
 #include "../Threading/Task.h"
 #include "../Threading/WorkQueue.h"
 #include "../Util/GUIDCreator.h"
+#include "../Util/MailboxCrypto.h"
+#include "../Util/MailboxKeys.h"
 #include "../Util/Unicode.h"
 
 #include <boost/filesystem.hpp>
@@ -27,6 +29,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdio>
+#include <cstdlib>
 #include <ctime>
 #include <map>
 #include <set>
@@ -160,15 +163,51 @@ namespace HM
 
       struct WalkCounts
       {
-         WalkCounts() : rewritten(0), unchanged(0), shared_left(0), zero_access(0), failed(0), before(0), after(0) {}
+         WalkCounts() : rewritten(0), unchanged(0), shared_left(0), zero_access(0), encrypted(0), failed(0), before(0), after(0) {}
          int rewritten;
          int unchanged;
          int shared_left;
          int zero_access;
+         int encrypted;      // left: a mailbox encrypted at rest, whose files the encrypt and decrypt verbs rewrite
          int failed;
          unsigned __int64 before;
          unsigned __int64 after;
       };
+
+      // Whether a stored file belongs to a mailbox encrypted at rest - one with
+      // a key, switched on or not - or is itself encrypted to a key. Either way
+      // it is --encrypt-store's and --decrypt-store's, never the compress walk's:
+      // compressing a file of such a mailbox in the clear would leave it in the
+      // clear, and decompressing an encrypted one needs its key.
+      bool IsEncryptedMailboxFile(const MessageStoreMaintenance::StoredFile &file)
+      {
+         std::string publicKey;
+         if (MessageStore::IsEncrypted(file.path, publicKey))
+            return true;
+
+         return file.account_id > 0 && MailboxKeys::IsKeyed(file.account_id);
+      }
+
+      // The domain's recovery passphrase, from the environment and never from
+      // the command line, which every user of the machine can read.
+      AnsiString RecoveryPassphraseFromEnvironment()
+      {
+#ifdef HM_PLATFORM_POSIX
+         const char *value = ::getenv("HMAILSERVER_RECOVERY_PASSPHRASE");
+         return value ? AnsiString(value) : AnsiString();
+#else
+         wchar_t buffer[1024];
+         const DWORD capacity = (DWORD) (sizeof(buffer) / sizeof(buffer[0]));
+         const DWORD length = ::GetEnvironmentVariableW(L"HMAILSERVER_RECOVERY_PASSPHRASE", buffer, capacity);
+         if (length == 0 || length >= capacity)
+            return AnsiString();
+
+         AnsiString utf8;
+         Unicode::WideToMultiByte(String(buffer), utf8);
+         SecureZeroMemory(buffer, sizeof(buffer));
+         return utf8;
+#endif
+      }
 
       // One file, with all of its names: rewritten once beside the first name,
       // read back and compared, then every name made a name of the new file.
@@ -455,6 +494,15 @@ namespace HM
                counts.zero_access++;
                continue;
             }
+
+            // A mailbox encrypted at rest: --encrypt-store and --decrypt-store
+            // are its walk, and this one leaves it as it is.
+            if (IsEncryptedMailboxFile(files[i]))
+            {
+               counts.encrypted++;
+               continue;
+            }
+
             walked.push_back(files[i]);
          }
 
@@ -487,8 +535,219 @@ namespace HM
          Print(false, Formatter::Format("  {0} left as they were ({1}), {2} shared with names outside the walk and left, {3} in zero-access mailboxes left, {4} failed.",
             counts.unchanged, decompress ? String(_T("plain already")) : String(_T("compressed already, or not made smaller")),
             counts.shared_left, counts.zero_access, counts.failed));
+         if (counts.encrypted > 0)
+            Print(false, Formatter::Format("  {0} in mailboxes encrypted at rest left: --encrypt-store and --decrypt-store rewrite those.", counts.encrypted));
 
          return counts.failed == 0 ? 0 : 1;
+      }
+
+      // One name of a stored file rewritten on its own: written beside itself,
+      // checked, and renamed over the name. Another name of the same file - a
+      // DeliveryHardLinks copy in another mailbox - keeps the file it had,
+      // which is what a file several accounts share has to do when one of them
+      // is encrypted. What the old file referenced is let go of for this name.
+      bool RewriteName(const String &name, bool encrypt, const std::string &publicKey, WalkCounts &counts)
+      {
+         unsigned __int64 before = 0;
+         MessageStore::StoredFileSize64(name, before);
+
+         std::vector<MessageStoreReference> oldReferences;
+         if (!MessageStore::GetReferences(name, oldReferences))
+         {
+            Print(true, "  " + name + ": its header is not one this server reads; left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         std::string original;
+         String problem;
+         if (!MessageStore::ReadOriginal(name, original, problem))
+         {
+            Print(true, "  " + name + ": could not be read (" + problem + "); left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         const String staged = name + _T(".store-") + GUIDCreator::GetGUID();
+
+         bool written = false;
+         if (encrypt)
+            written = MessageStore::WriteEncryptedContainer(original, staged, publicKey, problem);
+         else
+         {
+            // Back in the clear, and read back through the store and compared.
+            std::string check;
+            written = MessageStore::Backend().WriteAtomically(staged, AnsiString(original.data(), original.size())) &&
+                      MessageStore::ReadOriginal(staged, check, problem) && check == original;
+            if (!written && problem.IsEmpty())
+               problem = _T("the plain message could not be written beside it and read back");
+            MailboxCrypto::Forget(check);
+         }
+
+         MailboxCrypto::Forget(original);
+
+         if (!written)
+         {
+            MessageStore::DiscardWorkingFile(staged);
+            Print(true, "  " + name + ": could not be rewritten (" + problem + "); left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         unsigned __int64 after = 0;
+         MessageStore::StoredFileSize64(staged, after);
+
+         if (!MessageStore::Rename(staged, name))
+         {
+            MessageStore::DiscardWorkingFile(staged);
+            Print(true, "  " + name + ": the rewritten file could not be renamed over its name; left as it is.");
+            counts.failed++;
+            return false;
+         }
+
+         // This name no longer references what the old file held once; the
+         // new file references nothing.
+         if (!oldReferences.empty())
+            MessageStoreBlobs::Release(oldReferences);
+
+         counts.rewritten++;
+         counts.before += before;
+         counts.after += after;
+         return true;
+      }
+
+      int Encrypt(const std::vector<MessageStoreMaintenance::StoredFile> &files, const String &scope)
+      {
+         WalkCounts counts;
+         int notKeyed = 0;
+
+         std::map<__int64, std::string> keys;
+         for (size_t i = 0; i < files.size(); i++)
+         {
+            const MessageStoreMaintenance::StoredFile &file = files[i];
+
+            // A public folder is nobody's mailbox, and a zero-access mailbox's
+            // mail is under the person's own OpenPGP key.
+            if (file.account_id <= 0 || file.zero_access)
+            {
+               notKeyed++;
+               continue;
+            }
+
+            std::map<__int64, std::string>::iterator known = keys.find(file.account_id);
+            if (known == keys.end())
+            {
+               MailboxKeys::Row row;
+               keys[file.account_id] = MailboxKeys::GetRow(file.account_id, row) ? row.public_key : std::string();
+               known = keys.find(file.account_id);
+            }
+
+            if (known->second.empty())
+            {
+               notKeyed++;
+               continue;
+            }
+
+            std::string encryptedTo;
+            if (MessageStore::IsEncrypted(file.path, encryptedTo))
+            {
+               if (encryptedTo == known->second)
+               {
+                  counts.unchanged++;
+                  continue;
+               }
+
+               Print(true, "  " + file.path + ": encrypted to a key that is not the account's; left as it is.");
+               counts.failed++;
+               continue;
+            }
+
+            RewriteName(file.path, true, known->second, counts);
+         }
+
+         // The rows of the walked accounts' deleted items: no subject or sender
+         // kept in the clear beside copies that are encrypted now - as
+         // RecoverableStore::Keep keeps none for a keyed mailbox.
+         for (std::map<__int64, std::string>::const_iterator key = keys.begin(); key != keys.end(); ++key)
+         {
+            if (key->second.empty())
+               continue;
+
+            SQLCommand blank("update hm_recoverable set rcsubject = @SUBJECT, rcfrom = @SENDER where rcaccountid = @ACCOUNTID");
+            blank.AddParameter("@SUBJECT", String());
+            blank.AddParameter("@SENDER", String());
+            blank.AddParameter("@ACCOUNTID", key->first);
+            if (!Application::Instance()->GetDBManager()->Execute(blank))
+               Print(true, "  The subjects and senders of the deleted items of an account could not be emptied; they stay in the database.");
+         }
+
+         Print(false, Formatter::Format("Encrypted {0} stored files in {1}: ", counts.rewritten, scope) +
+            Formatter::Format("{0} bytes before, {1} after.", Bytes(counts.before), Bytes(counts.after)));
+         Print(false, Formatter::Format("  {0} encrypted already, {1} not in a mailbox with a key (a public folder, a zero-access mailbox, or no key), {2} failed.",
+            counts.unchanged, notKeyed, counts.failed));
+
+         return counts.failed == 0 ? 0 : 1;
+      }
+
+      int Decrypt(const std::vector<MessageStoreMaintenance::StoredFile> &files, const String &scope, const AnsiString &passphrase)
+      {
+         WalkCounts counts;
+
+         // Each account's key opened once, with the domain's passphrase, in this
+         // process only; a passphrase that opens none of them changes nothing.
+         std::map<__int64, std::string> opened;
+         std::map<__int64, bool> refused;
+         for (size_t i = 0; i < files.size(); i++)
+         {
+            const __int64 accountId = files[i].account_id;
+            if (accountId <= 0 || opened.find(accountId) != opened.end() || refused.find(accountId) != refused.end())
+               continue;
+
+            if (!MailboxKeys::IsKeyed(accountId))
+               continue;
+
+            std::string publicKey;
+            std::string privateKey;
+            String problem;
+            if (!MailboxKeys::OpenPrivateWithRecovery(accountId, passphrase, publicKey, privateKey, problem))
+            {
+               Print(true, "  " + files[i].account + ": its key could not be opened (" + problem + "); its files are left as they are.");
+               refused[accountId] = true;
+               continue;
+            }
+
+            MailboxKeys::OpenFor(accountId, publicKey, privateKey);
+            MailboxCrypto::Forget(privateKey);
+            opened[accountId] = publicKey;
+         }
+
+         int plain = 0;
+         for (size_t i = 0; i < files.size(); i++)
+         {
+            std::string encryptedTo;
+            if (!MessageStore::IsEncrypted(files[i].path, encryptedTo))
+            {
+               plain++;
+               continue;
+            }
+
+            std::map<__int64, std::string>::const_iterator key = opened.find(files[i].account_id);
+            if (key == opened.end() || key->second != encryptedTo)
+            {
+               Print(true, "  " + files[i].path + ": encrypted to a key that was not opened; left as it is.");
+               counts.failed++;
+               continue;
+            }
+
+            RewriteName(files[i].path, false, std::string(), counts);
+         }
+
+         Print(false, Formatter::Format("Decrypted {0} stored files in {1}: ", counts.rewritten, scope) +
+            Formatter::Format("{0} bytes before, {1} after.", Bytes(counts.before), Bytes(counts.after)));
+         Print(false, Formatter::Format("  {0} were not encrypted, {1} failed. Switch the mailbox's encryption off before the server starts again, or new mail is encrypted to the key once more; once nothing is encrypted to it, the key can be removed.",
+            plain, counts.failed + (int) refused.size()));
+
+         return counts.failed == 0 && refused.empty() ? 0 : 1;
       }
    }
 
@@ -568,8 +827,88 @@ namespace HM
             file.size = recordset->GetInt64Value("messagesize");
             file.account = recordset->GetStringValue("accountaddress");
             file.zero_access = recordset->GetLongValue("accountzeroaccess") == 1;
+            file.account_id = recordset->GetInt64Value("messageaccountid");
             file.path = PersistentMessage::GetFileName(file.account, message);
             files.push_back(file);
+         }
+
+         recordset->MoveNext();
+      }
+
+      return true;
+   }
+
+   bool
+   MessageStoreMaintenance::ListKeptFilesOf(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem)
+   {
+      files.clear();
+
+      std::shared_ptr<DatabaseConnectionManager> db = Application::Instance()->GetDBManager();
+      if (!db)
+      {
+         problem = _T("the database is not open");
+         return false;
+      }
+
+      __int64 accountId = 0;
+      __int64 domainId = 0;
+
+      if (!accountAddress.IsEmpty())
+      {
+         std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
+         if (!PersistentAccount::ReadObject(account, accountAddress))
+         {
+            problem = "there is no account " + accountAddress;
+            return false;
+         }
+         accountId = account->GetID();
+      }
+      else if (!domainName.IsEmpty())
+      {
+         std::shared_ptr<Domain> domain = std::shared_ptr<Domain>(new Domain());
+         if (!PersistentDomain::ReadObject(domain, domainName))
+         {
+            problem = "there is no domain " + domainName;
+            return false;
+         }
+         domainId = domain->GetID();
+      }
+
+      String sql = _T("select r.rcaccountid, r.rcfile, r.rcsize, a.accountaddress, a.accountzeroaccess ")
+                   _T("from hm_recoverable r inner join hm_accounts a on r.rcaccountid = a.accountid");
+      if (accountId > 0)
+         sql += _T(" where r.rcaccountid = @ACCOUNTID");
+      else if (domainId > 0)
+         sql += _T(" where a.accountdomainid = @DOMAINID");
+
+      SQLCommand command(sql);
+      if (accountId > 0)
+         command.AddParameter("@ACCOUNTID", accountId);
+      else if (domainId > 0)
+         command.AddParameter("@DOMAINID", domainId);
+
+      std::shared_ptr<DALRecordset> recordset = db->OpenRecordset(command);
+      if (!recordset)
+      {
+         problem = _T("the deleted items could not be read");
+         return false;
+      }
+
+      const String root = FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), _T("Recoverable"));
+
+      while (!recordset->IsEOF())
+      {
+         const String relative = recordset->GetStringValue("rcfile");
+         if (!relative.IsEmpty())
+         {
+            StoredFile file;
+            file.size = recordset->GetInt64Value("rcsize");
+            file.account = recordset->GetStringValue("accountaddress");
+            file.zero_access = recordset->GetLongValue("accountzeroaccess") == 1;
+            file.account_id = recordset->GetInt64Value("rcaccountid");
+            file.path = FileUtilities::Combine(root, relative);
+            if (FileUtilities::Exists(file.path))
+               files.push_back(file);
          }
 
          recordset->MoveNext();
@@ -873,6 +1212,27 @@ namespace HM
    MessageStoreMaintenance::RunCommand(Verb verb, const String &accountAddress, const String &domainName)
    {
       const String verbName = verb == VerbMeasure ? String(_T("measure")) : (verb == VerbRecount ? String(_T("recount")) : String(_T("rewrite")));
+
+      // The domain's passphrase, before anything is opened: --decrypt-store
+      // covers one account or one domain, whose recovery key the passphrase
+      // opens, and reads it from the environment only.
+      AnsiString passphrase;
+      if (verb == VerbDecrypt)
+      {
+         if (accountAddress.IsEmpty() && domainName.IsEmpty())
+         {
+            Print(true, "--decrypt-store covers one account (--account <address>) or one domain (--domain <name>): a recovery passphrase opens one domain's keys. Nothing was changed.");
+            return 2;
+         }
+
+         passphrase = RecoveryPassphraseFromEnvironment();
+         if (passphrase.IsEmpty())
+         {
+            Print(true, "--decrypt-store needs the domain's recovery passphrase in the environment variable HMAILSERVER_RECOVERY_PASSPHRASE - never on the command line, where every user of the machine can read it. Nothing was changed.");
+            return 2;
+         }
+      }
+
       if (!OpenForCommand(verbName))
          return 2;
 
@@ -920,11 +1280,31 @@ namespace HM
             break;
          }
 
+         // A mailbox encrypted at rest has its deleted items - the copies the
+         // recover-deleted store keeps - encrypted and decrypted with its mail,
+         // so that a copy kept before the switch is not left in the clear.
+         if (verb == VerbEncrypt || verb == VerbDecrypt)
+         {
+            std::vector<StoredFile> kept;
+            if (!ListKeptFilesOf(accountAddress, domainName, kept, problem))
+            {
+               Print(true, "The deleted items could not be listed: " + problem + ". Nothing was changed.");
+               result = 1;
+               break;
+            }
+
+            files.insert(files.end(), kept.begin(), kept.end());
+         }
+
          const String scope = !accountAddress.IsEmpty() ? accountAddress :
                               (!domainName.IsEmpty() ? String(_T("the domain ")) + domainName : String(_T("the whole store")));
 
          if (verb == VerbMeasure)
             result = Measure(files, scope);
+         else if (verb == VerbEncrypt)
+            result = Encrypt(files, scope);
+         else if (verb == VerbDecrypt)
+            result = Decrypt(files, scope, passphrase);
          else
             result = Rewrite(files, scope, verb == VerbDecompress);
       } while (false);

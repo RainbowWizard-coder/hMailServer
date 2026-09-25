@@ -17,6 +17,7 @@
 // Test
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
+#include "../Util/MailboxKeys.h"
 #include "../../SMTP/RecipientParser.h"
 
 #define XHMAILSERVER_LOOPCOUNT _T("X-hMailServer-LoopCount")
@@ -69,18 +70,21 @@ namespace HM
       mime_mail_ = std::shared_ptr<MimeBody>(new MimeBody);
       load_failed_ = true;
 
-      // The file that is parsed: the message's own, or for a message the store
-      // keeps in another form a plain copy of its bytes (MessageStore.h). A stored
-      // file that cannot be read is refused there, with the reason in the error
-      // log, and is not treated as a message being composed.
-      plain_copy_ = std::shared_ptr<MessageStorePlainCopy>(new MessageStorePlainCopy(message_file_name_));
-      if (!plain_copy_->IsReady())
+      // What is parsed: the message's own file, or for a message the store keeps
+      // in another form its original bytes, decoded into memory and never
+      // written out (MessageStore.h) - so that reading a message of a mailbox
+      // encrypted at rest puts none of it on the disk. A stored file that
+      // cannot be read is refused there, with the reason in the error log, and
+      // is not treated as a message being composed.
+      source_ = std::shared_ptr<MessageStoreParseSource>(new MessageStoreParseSource(message_file_name_));
+      if (!source_->IsReady())
          return false;
 
-      const String parsedFile = plain_copy_->GetPath();
+      encrypted_file_ = String();
+      encrypted_to_.clear();
 
       const int MaxSize = 1024*1024 * 80; // we'll ignore messages larger than 80MB.
-      if (FileUtilities::FileSize(parsedFile) > MaxSize)
+      if (source_->InMemory() ? source_->GetOriginal()->size() > (size_t) MaxSize : FileUtilities::FileSize(message_file_name_) > MaxSize)
          return false;
 
       bool bNewMessage = false;
@@ -100,7 +104,14 @@ namespace HM
          // here. It races, as any such test does; losing the race means treating a
          // file that has just been deleted as a new message, which is exactly what
          // happened before, so the race cannot make anything worse.
-         switch (mime_mail_->LoadFromFile(parsedFile))
+         // A container's bytes are parsed where they are, in memory; one of a
+         // mailbox encrypted at rest is never copied aside to "Problematic
+         // messages" in the clear when the parse fails.
+         const MimeLoadResult loaded = source_->InMemory()
+            ? mime_mail_->LoadFromMemory(source_->GetOriginal(), message_file_name_, source_->GetEncryptedTo().empty())
+            : mime_mail_->LoadFromFile(message_file_name_);
+
+         switch (loaded)
          {
          case MimeLoadResult::Loaded:
             break;
@@ -130,9 +141,15 @@ namespace HM
             String sFileNameExclPath = FileUtilities::GetFileNameFromFullPath(message_file_name_);
 
             // The bytes that were parsed, which are the message's whatever form
-            // the store keeps it in.
+            // the store keeps it in - and never, in the clear, a message of a
+            // mailbox encrypted at rest, whose stored file is what to look at.
             String sMessageBackupPath = FileUtilities::Combine(FileUtilities::Combine(IniFileSettings::Instance()->GetLogDirectory(), "Problematic messages"), sFileNameExclPath);
-            FileUtilities::Copy(parsedFile, sMessageBackupPath, true);
+            if (!source_->InMemory())
+               FileUtilities::Copy(message_file_name_, sMessageBackupPath, true);
+            else if (source_->GetEncryptedTo().empty())
+               FileUtilities::WriteToFile(sMessageBackupPath, AnsiString(source_->GetOriginal()->data(), source_->GetOriginal()->size()));
+            else
+               sMessageBackupPath = _T("(not copied: the mailbox is encrypted at rest)");
 
             String sErrorMessage;
             sErrorMessage.Format(_T("An unknown error occurred while loading message. File: %s. Backuped to: %s"), message_file_name_.c_str(), sMessageBackupPath.c_str());
@@ -989,6 +1006,147 @@ namespace HM
    bool
    MessageData::Write(const String &fileName)
    {
+      if (!CheckWritable_(fileName))
+         return false;
+
+      // A rewrite of what is stored encrypted at rest - the stored file this was
+      // read from, or one this wrote encrypted - is encrypted again to the same
+      // key, in memory, and written beside the stored file and renamed over it:
+      // a rewrite (COM's Message.Save, a script's, a rule's on a stored
+      // message) never puts the message on the disk in the clear, and one that
+      // cannot be encrypted is not made (HM7362), leaving the stored file as it
+      // was.
+      if (source_ && source_->InMemory() && !source_->GetEncryptedTo().empty() && fileName == message_file_name_)
+      {
+         if (!WriteEncrypted_(fileName, source_->GetEncryptedTo(), MailboxKeys::CodeReEncrypt))
+            return false;
+
+         // The container named no part held once (an encrypted one never
+         // does); said all the same, as for any container written over.
+         source_->StoredFileReplaced();
+         return true;
+      }
+
+      if (!encrypted_file_.IsEmpty() && fileName == encrypted_file_)
+         return WriteEncrypted_(fileName, encrypted_to_, MailboxKeys::CodeReEncrypt);
+
+      if (!mime_mail_->SaveAllToFile(fileName))
+      {
+         // The size below used to be taken from the file even when the write had
+         // failed. For a message being written for the first time that is a size of
+         // zero - the file is not there - which makes PersistentMessage::AddObject
+         // refuse the row as "zero bytes" and the message is dropped without a word
+         // about the real cause; for a rewrite in place it is whatever survived on
+         // disk. Either way the row stops describing the message. Leave the size alone
+         // and report the write, which the callers that ignore the return value would
+         // otherwise turn into silence.
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 6011, "MessageData::Write",
+            "Failed to write the message file " + fileName + ". The message data was not stored.");
+         return false;
+      }
+
+      // The stored file this was read from, written over by the plain message: a
+      // file the store kept in another form referenced parts held once, and this
+      // name no longer does (MessageStore.h).
+      if (source_ && source_->InMemory() && fileName == message_file_name_)
+         source_->StoredFileReplaced();
+
+      if (message_)
+      {
+         message_->SetSize(MessageStore::FileSize(fileName));
+      }
+
+      return true;
+   }
+
+   bool
+   MessageData::WriteEncrypted(const String &fileName, const std::string &publicKey)
+   {
+      if (!CheckWritable_(fileName))
+         return false;
+
+      return WriteEncrypted_(fileName, publicKey, MailboxKeys::CodePlace);
+   }
+
+   bool
+   MessageData::WriteToMailbox(const String &fileName, std::shared_ptr<const Account> account)
+   {
+      bool unknown = false;
+      bool damaged = false;
+      return WriteToMailbox(fileName, account, unknown, damaged);
+   }
+
+   bool
+   MessageData::WriteToMailbox(const String &fileName, std::shared_ptr<const Account> account, bool &unknown, bool &damaged)
+   {
+      unknown = false;
+      damaged = false;
+
+      std::string publicKey;
+      const MailboxKeys::Encryption encryption = account && message_ && message_->GetAccountID() == account->GetID()
+         ? MailboxKeys::EncryptionFor(account, publicKey)
+         : MailboxKeys::EncryptionNone;
+
+      if (encryption == MailboxKeys::EncryptionOn)
+         return WriteEncrypted(fileName, publicKey);
+
+      if (encryption == MailboxKeys::EncryptionUnknown)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, MailboxKeys::CodePlace, "MessageData::WriteToMailbox",
+            "The message " + fileName + " was not written now: whether its mailbox is encrypted at rest is not known, and it is not written in the clear on a guess.");
+         unknown = true;
+         return false;
+      }
+
+      if (encryption == MailboxKeys::EncryptionDamaged)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, MailboxKeys::CodePlace, "MessageData::WriteToMailbox",
+            "The message " + fileName + " was not written: " + MailboxKeys::DamagedSentence());
+         damaged = true;
+         return false;
+      }
+
+      return Write(fileName);
+   }
+
+   bool
+   MessageData::WriteEncrypted_(const String &fileName, const std::string &publicKey, int code)
+   {
+      std::shared_ptr<const std::string> serialized;
+      if (!mime_mail_->SaveAllToMemory(fileName, serialized) || !serialized)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 6011, "MessageData::Write",
+            "Failed to write the message file " + fileName + ". The message data was not stored.");
+         return false;
+      }
+
+      String problem;
+      bool written = false;
+      if ((unsigned __int64) serialized->size() > MessageStoreFormat::MaximumOriginalBytes)
+         problem = _T("it is larger than an encrypted container holds (64 MB)");
+      else
+         written = MessageStore::WriteEncryptedContainer(*serialized, fileName, publicKey, problem);
+
+      if (!written)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, code, "MessageData::Write",
+            "The message " + fileName + " is in a mailbox encrypted at rest and could not be written encrypted: " + problem +
+            ". It was not written, in the clear or otherwise" + (code == MailboxKeys::CodeReEncrypt ? String(_T("; the stored message is as it was.")) : String(_T("."))));
+         return false;
+      }
+
+      encrypted_file_ = fileName;
+      encrypted_to_ = publicKey;
+
+      if (message_)
+         message_->SetSize(MessageStore::FileSize(fileName));
+
+      return true;
+   }
+
+   bool
+   MessageData::CheckWritable_(const String &fileName)
+   {
       // A MessageData whose load failed holds an empty MimeBody, and writing that over
       // a message file replaces the message with a couple of bytes of nothing. It is
       // reachable: LoadFromMessage answers false for a message above the 80 MB parser
@@ -1032,32 +1190,6 @@ namespace HM
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6011, "MessageData::Write",
             "Failed to write the message file " + fileName + " because its directory could not be created.");
          return false;
-      }
-
-      if (!mime_mail_->SaveAllToFile(fileName))
-      {
-         // The size below used to be taken from the file even when the write had
-         // failed. For a message being written for the first time that is a size of
-         // zero - the file is not there - which makes PersistentMessage::AddObject
-         // refuse the row as "zero bytes" and the message is dropped without a word
-         // about the real cause; for a rewrite in place it is whatever survived on
-         // disk. Either way the row stops describing the message. Leave the size alone
-         // and report the write, which the callers that ignore the return value would
-         // otherwise turn into silence.
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 6011, "MessageData::Write",
-            "Failed to write the message file " + fileName + ". The message data was not stored.");
-         return false;
-      }
-
-      // The stored file this was read from, written over by the plain message: a
-      // file the store kept in another form referenced parts held once, and this
-      // name no longer does (MessageStore.h).
-      if (plain_copy_ && plain_copy_->IsTemporary() && fileName == message_file_name_)
-         plain_copy_->StoredFileReplaced();
-
-      if (message_)
-      {
-         message_->SetSize(MessageStore::FileSize(fileName));
       }
 
       return true;

@@ -17,6 +17,7 @@ namespace HM
    class Account;
    class ScramSha256;
    class GssapiAcceptor;
+   class MailboxKeyHold;
 
    class POP3Connection : public TCPConnection
    {
@@ -160,6 +161,11 @@ namespace HM
       String password_;
 
       std::shared_ptr<const Account> account_;
+
+      // The session's hold on its account's mailbox key, when the mailbox is
+      // encrypted at rest (Common/Util/MailboxKeys.h): the key stays open for
+      // as long as the session holds the maildrop.
+      std::shared_ptr<MailboxKeyHold> mailbox_key_hold_;
 
       ConnectionState current_state_;
 

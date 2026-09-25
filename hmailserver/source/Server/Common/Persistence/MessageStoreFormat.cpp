@@ -7,6 +7,8 @@
 #include "MessageStoreFormat.h"
 
 #include "../Util/Assert.h"
+#include "../Util/MailboxCrypto.h"
+#include "../Util/MailboxKeys.h"
 
 #include "../../zlib/zlib.h"
 
@@ -240,6 +242,55 @@ namespace HM
          }
 
          return true;
+      }
+
+      // ---- The encryption stage ---------------------------------------------------
+
+      // What the encryption stage binds besides the two public keys: the
+      // header's own facts about the message before the stage - the magic,
+      // the version, the flags, the original's size - and every stage under
+      // it with its parameters. Built the same way when a container is
+      // written and when it is read, from the fields and not from the header's
+      // bytes, since the header's length and the stage's own parameters are
+      // not known until the stage has run.
+      std::string StageContext(unsigned __int64 originalSize, unsigned char flags,
+                               const std::vector<std::pair<unsigned char, std::string> > &innerStages)
+      {
+         std::string context("HMS stage 3 context");
+         context.push_back('\0');
+         context.append(reinterpret_cast<const char *>(MagicBytes), MessageStoreFormat::MagicLength);
+         context.push_back((char) MessageStoreFormat::Version);
+         context.push_back((char) flags);
+         PutU64(context, originalSize);
+         context.push_back((char) innerStages.size());
+         for (size_t i = 0; i < innerStages.size(); i++)
+         {
+            context.push_back((char) innerStages[i].first);
+            context.push_back((char) innerStages[i].second.size());
+            context += innerStages[i].second;
+         }
+         return context;
+      }
+
+      // The server's own open keys, when a caller gives no finder of its own.
+      bool FindOpenKey(const std::string &recipientPublic, std::string &privateKey, String &problem)
+      {
+         return MailboxKeys::FindOpenKey(recipientPublic, privateKey, problem);
+      }
+
+      // The encryption stage at index undone: the body decrypted with the key
+      // that opens it, the tag checked.
+      bool OpenKeyStage(const MessageStoreHeader &header, size_t index, const std::string &body,
+                        const MailboxCrypto::KeyFinder &keys, std::string &out, String &problem)
+      {
+         const std::vector<std::pair<unsigned char, std::string> > inner(header.stages.begin(), header.stages.begin() + index);
+         const std::string context = StageContext(header.original_size, header.flags, inner);
+
+         if (keys)
+            return MailboxCrypto::OpenStage(header.stages[index].second, context, body, keys, out, problem);
+
+         const MailboxCrypto::KeyFinder server = FindOpenKey;
+         return MailboxCrypto::OpenStage(header.stages[index].second, context, body, server, out, problem);
       }
 
       // ---- The MIME walk --------------------------------------------------------
@@ -588,6 +639,9 @@ namespace HM
          return false;
       }
 
+      bool deflated = false;
+      bool encrypted = false;
+
       for (unsigned int i = 0; i < stageCount; i++)
       {
          if (at + 2 > header.header_length)
@@ -606,7 +660,35 @@ namespace HM
             return false;
          }
 
-         if (id != StageDeflate)
+         // The encryption to the account's key is always the last stage: a
+         // stage after it would be one run over ciphertext, which nothing here
+         // writes.
+         if (encrypted)
+         {
+            problem = _T("it names a stage after its encryption stage, which is always the last");
+            return false;
+         }
+
+         if (id == StageDeflate)
+         {
+            if (deflated)
+            {
+               problem = _T("it names deflate twice");
+               return false;
+            }
+            deflated = true;
+         }
+         else if (id == StageAccountKey)
+         {
+            const std::string parameters = bytes.substr(at, parameterLength);
+            if (MailboxCrypto::StageRecipient(parameters).empty())
+            {
+               problem = _T("its encryption stage's parameters are not ones this server reads");
+               return false;
+            }
+            encrypted = true;
+         }
+         else
          {
             problem.Format(_T("it names stage %d, which this server does not know"), (int) id);
             return false;
@@ -658,7 +740,41 @@ namespace HM
          header.references.push_back(reference);
       }
 
+      // An encrypted container holds its whole message, under its account's
+      // key, and carries no digest of it in the clear (the header comment says
+      // why): one that names a part held once, or a digest, is not one this
+      // server wrote.
+      if (encrypted)
+      {
+         if (!header.references.empty())
+         {
+            problem = _T("it is encrypted and names a part held once, which an encrypted container never does");
+            return false;
+         }
+
+         if (header.sha256 != std::string(32, '\0'))
+         {
+            problem = _T("it is encrypted and carries a digest of its message, which an encrypted container never does");
+            return false;
+         }
+      }
+
       return true;
+   }
+
+   bool
+   MessageStoreFormat::IsEncrypted(const MessageStoreHeader &header)
+   {
+      return !header.stages.empty() && header.stages.back().first == StageAccountKey;
+   }
+
+   std::string
+   MessageStoreFormat::EncryptedTo(const MessageStoreHeader &header)
+   {
+      if (!IsEncrypted(header))
+         return std::string();
+
+      return MailboxCrypto::StageRecipient(header.stages.back().second);
    }
 
    bool
@@ -670,6 +786,14 @@ namespace HM
          return Deflate(in, level, out, problem);
       }
 
+      // The encryption stage needs a key and the header it binds, which a
+      // stage alone is not given: EncodeEncrypted applies it.
+      if (id == StageAccountKey)
+      {
+         problem = _T("the encryption stage is applied with its account's key, by EncodeEncrypted");
+         return false;
+      }
+
       problem.Format(_T("stage %d is not one this server can apply"), (int) id);
       return false;
    }
@@ -679,6 +803,13 @@ namespace HM
    {
       if (id == StageDeflate)
          return Inflate(in, expected, out, problem);
+
+      // As above: Decode and DecodeStart undo it, with the header.
+      if (id == StageAccountKey)
+      {
+         problem = _T("the encryption stage is undone with its account's key, by Decode");
+         return false;
+      }
 
       problem.Format(_T("stage %d is not one this server can undo"), (int) id);
       return false;
@@ -767,8 +898,74 @@ namespace HM
    }
 
    bool
+   MessageStoreFormat::EncodeEncrypted(const std::string &original, bool compress, const std::string &recipientPublic,
+                                       std::string &container, String &problem)
+   {
+      container.clear();
+
+      if ((unsigned __int64) original.size() > MaximumOriginalBytes)
+      {
+         problem = _T("the message is larger than a container holds");
+         return false;
+      }
+
+      // Compression first: ciphertext does not compress.
+      std::vector<std::pair<unsigned char, std::string> > stages;
+      std::string body = original;
+
+      if (compress)
+      {
+         const std::string parameters(1, (char) DeflateLevel);
+         std::string deflated;
+         if (!ApplyStage(StageDeflate, parameters, body, deflated, problem))
+            return false;
+
+         stages.push_back(std::make_pair((unsigned char) StageDeflate, parameters));
+         body.swap(deflated);
+      }
+
+      // No references, so no flag; the context binds the size and the stage
+      // under this one.
+      const unsigned char flags = 0;
+      const std::string context = StageContext((unsigned __int64) original.size(), flags, stages);
+
+      std::string parameters;
+      std::string cipher;
+      if (!MailboxCrypto::SealStage(recipientPublic, context, body, parameters, cipher, problem))
+         return false;
+
+      MailboxCrypto::Forget(body);
+      stages.push_back(std::make_pair((unsigned char) StageAccountKey, parameters));
+
+      std::string header(reinterpret_cast<const char *>(MagicBytes), MagicLength);
+      header.push_back((char) Version);
+      header.push_back((char) flags);
+      PutU16(header, 0);
+      PutU32(header, 0);   // the header's length, filled in below
+      PutU64(header, (unsigned __int64) original.size());
+      header += std::string(32, '\0');   // no digest of the message in the clear
+
+      header.push_back((char) stages.size());
+      for (size_t i = 0; i < stages.size(); i++)
+      {
+         header.push_back((char) stages[i].first);
+         header.push_back((char) stages[i].second.size());
+         header += stages[i].second;
+      }
+
+      PutU32(header, 0);   // no references
+
+      const unsigned int length = (unsigned int) header.size();
+      for (int i = 0; i < 4; i++)
+         header[12 + i] = (char) ((length >> (8 * i)) & 0xFF);
+
+      container = header + cipher;
+      return true;
+   }
+
+   bool
    MessageStoreFormat::Decode(const std::string &container, const BlobReader &blob, std::string &original,
-                              MessageStoreHeader &header, String &problem)
+                              MessageStoreHeader &header, String &problem, const MailboxCrypto::KeyFinder &keys)
    {
       original.clear();
 
@@ -781,13 +978,22 @@ namespace HM
 
       const size_t restLength = (size_t) (header.original_size - referenced);
 
-      // The stages undone in the reverse order.
+      // The stages undone in the reverse order: the encryption, which is
+      // always the last, first - its output is the body under it, as long as
+      // its input - and then deflate, whose output is the rest.
       std::string body = container.substr(header.header_length);
       for (size_t i = header.stages.size(); i > 0; i--)
       {
-         // Only the last stage undone gives the rest's own length; an inner
-         // one would carry its own. There is one stage today.
          std::string undone;
+
+         if (header.stages[i - 1].first == StageAccountKey)
+         {
+            if (!OpenKeyStage(header, i - 1, body, keys, undone, problem))
+               return false;
+            body.swap(undone);
+            continue;
+         }
+
          if (!UndoStage(header.stages[i - 1].first, header.stages[i - 1].second, body, restLength, undone, problem))
             return false;
          body.swap(undone);
@@ -833,7 +1039,10 @@ namespace HM
          return false;
       }
 
-      if (Sha256(original.data(), original.size()) != header.sha256)
+      // An encrypted container carries no digest: its tag, checked above,
+      // refused every changed byte of what it holds, and its size is checked
+      // just before this.
+      if (!IsEncrypted(header) && Sha256(original.data(), original.size()) != header.sha256)
       {
          problem = _T("what it gives back does not match the SHA-256 its header carries");
          return false;
@@ -843,7 +1052,8 @@ namespace HM
    }
 
    bool
-   MessageStoreFormat::DecodeStart(const std::string &container, size_t maximum, std::string &start, String &problem)
+   MessageStoreFormat::DecodeStart(const std::string &container, size_t maximum, std::string &start, String &problem,
+                                   const MailboxCrypto::KeyFinder &keys)
    {
       start.clear();
 
@@ -866,9 +1076,23 @@ namespace HM
       if ((unsigned __int64) wanted > header.original_size)
          wanted = (size_t) header.original_size;
 
-      const std::string body = container.substr(header.header_length);
+      std::string body = container.substr(header.header_length);
 
-      if (header.stages.empty())
+      // The encryption, always the last stage, undone whole first: its tag
+      // covers the whole body, so it cannot be read a part at a time, and
+      // the body under it is then read as an unencrypted container's is.
+      std::vector<std::pair<unsigned char, std::string> > stages = header.stages;
+      if (IsEncrypted(header))
+      {
+         std::string opened;
+         if (!OpenKeyStage(header, stages.size() - 1, body, keys, opened, problem))
+            return false;
+
+         body.swap(opened);
+         stages.pop_back();
+      }
+
+      if (stages.empty())
       {
          if (body.size() != restLength)
          {
@@ -881,10 +1105,9 @@ namespace HM
          return true;
       }
 
-      // One stage today, deflate; a chain of several would need each inner
-      // stage undone to its end in turn, which the encryption row's stage will
-      // have to say.
-      if (header.stages.size() != 1 || header.stages[0].first != StageDeflate)
+      // Deflate, the one stage under the encryption: its stream read to its
+      // end and checked, only the start kept.
+      if (stages.size() != 1 || stages[0].first != StageDeflate)
       {
          problem = _T("its stages cannot be read a part at a time");
          return false;
@@ -954,5 +1177,164 @@ namespace HM
       Assert::IsTrue(Encode(odd, std::vector<MessageStoreReference>(), false, container, problem));
       Assert::IsTrue(Decode(container, blob, decoded, header, problem));
       Assert::IsTrue(decoded == odd && header.stages.empty());
+
+      // Encrypted to an account's key (stage 3), deflated first and not: the
+      // container names no reference and carries no digest, holds no byte of
+      // the message in the clear, and gives the message back byte for byte -
+      // whole and its start - only to the account's key.
+      std::string accountPrivate;
+      std::string accountPublic;
+      Assert::IsTrue(MailboxCrypto::GenerateKeyPair(accountPrivate, accountPublic));
+      std::string otherPrivate;
+      std::string otherPublic;
+      Assert::IsTrue(MailboxCrypto::GenerateKeyPair(otherPrivate, otherPublic));
+
+      const MailboxCrypto::KeyFinder accountKey = [&accountPrivate, &accountPublic] (const std::string &recipient, std::string &key, String &) {
+         if (recipient != accountPublic) return false;
+         key = accountPrivate;
+         return true;
+      };
+      const MailboxCrypto::KeyFinder otherKey = [&otherPrivate] (const std::string &, std::string &key, String &) {
+         key = otherPrivate;
+         return true;
+      };
+      const MailboxCrypto::KeyFinder noKey = [] (const std::string &, std::string &, String &why) {
+         why = _T("the key is not open");
+         return false;
+      };
+
+      // A container rebuilt from an encrypted one with its header changed - the
+      // stages, the references and the digest given; the size and the body
+      // kept - for ParseHeader's refusals below.
+      const auto rebuilt = [] (const std::string &from, const std::vector<std::pair<unsigned char, std::string> > &stages,
+                               unsigned int referenceCount, const std::string &digest) -> std::string
+      {
+         MessageStoreHeader parsed;
+         String why;
+         if (!ParseHeader(from, parsed, why))
+            return std::string();
+
+         std::string header(reinterpret_cast<const char *>(MagicBytes), MagicLength);
+         header.push_back((char) Version);
+         header.push_back((char) (referenceCount > 0 ? FlagReferences : 0));
+         PutU16(header, 0);
+         PutU32(header, 0);
+         PutU64(header, parsed.original_size);
+         header += digest;
+
+         header.push_back((char) stages.size());
+         for (size_t i = 0; i < stages.size(); i++)
+         {
+            header.push_back((char) stages[i].first);
+            header.push_back((char) stages[i].second.size());
+            header += stages[i].second;
+         }
+
+         // A reference that lies inside the message, so that the one refusal
+         // meant is the one met.
+         PutU32(header, referenceCount);
+         for (unsigned int i = 0; i < referenceCount; i++)
+         {
+            PutU64(header, 0);
+            PutU64(header, 1);
+            header += std::string(32, '\x01');
+         }
+
+         const unsigned int length = (unsigned int) header.size();
+         for (int i = 0; i < 4; i++)
+            header[12 + i] = (char) ((length >> (8 * i)) & 0xFF);
+
+         return header + from.substr(parsed.header_length);
+      };
+
+      for (int compressed = 0; compressed < 2; compressed++)
+      {
+         std::string sealed;
+         Assert::IsTrue(EncodeEncrypted(message, compressed == 1, accountPublic, sealed, problem));
+         Assert::IsTrue(HasMagic(sealed.data(), sealed.size()));
+         Assert::IsTrue(sealed.find("Hello.") == std::string::npos && sealed.find("QUJDREVG") == std::string::npos);
+
+         MessageStoreHeader sealedHeader;
+         Assert::IsTrue(ParseHeader(sealed, sealedHeader, problem));
+         Assert::IsTrue(IsEncrypted(sealedHeader) && EncryptedTo(sealedHeader) == accountPublic);
+         Assert::IsTrue(sealedHeader.references.empty() && sealedHeader.sha256 == std::string(32, '\0'));
+         Assert::IsTrue(sealedHeader.stages.size() == (size_t) (compressed == 1 ? 2 : 1));
+
+         Assert::IsTrue(Decode(sealed, blob, decoded, header, problem, accountKey));
+         Assert::IsTrue(decoded == message);
+         Assert::IsTrue(DecodeStart(sealed, 60, start, problem, accountKey));
+         Assert::IsTrue(start == message.substr(0, 60));
+
+         // Another key, no key, and a changed byte of the body or of the size
+         // the header claims are each refused.
+         Assert::IsFalse(Decode(sealed, blob, decoded, header, problem, otherKey));
+         Assert::IsFalse(Decode(sealed, blob, decoded, header, problem, noKey));
+         Assert::IsFalse(DecodeStart(sealed, 60, start, problem, noKey));
+
+         std::string changed = sealed;
+         changed[changed.size() - 10] = (char) (changed[changed.size() - 10] ^ 0x20);
+         Assert::IsFalse(Decode(changed, blob, decoded, header, problem, accountKey));
+         Assert::IsFalse(DecodeStart(changed, 60, start, problem, accountKey));
+
+         std::string resized = sealed;
+         resized[16] = (char) (resized[16] ^ 0x01);
+         Assert::IsFalse(Decode(resized, blob, decoded, header, problem, accountKey));
+
+         // A byte only the tag's associated data protects: the deflate stage's
+         // level (bytes 56 to 59 are the count, the id, the length and the
+         // level), which neither ParseHeader nor Inflate reads - so only the
+         // binding of the stages under the encryption refuses it.
+         if (compressed == 1)
+         {
+            std::string relevelled = sealed;
+            Assert::IsTrue((unsigned char) relevelled[57] == (unsigned char) StageDeflate && relevelled[58] == 1);
+            relevelled[59] = (char) (relevelled[59] ^ 0x01);
+            Assert::IsTrue(ParseHeader(relevelled, header, problem));
+            Assert::IsFalse(Decode(relevelled, blob, decoded, header, problem, accountKey));
+            Assert::IsFalse(DecodeStart(relevelled, 60, start, problem, accountKey));
+         }
+
+         // ParseHeader's refusals of an encrypted container this server never
+         // writes: a stage after the encryption, the encryption twice, deflate
+         // twice, one that names a part held once, and one carrying a digest.
+         // The control: the same header rebuilt unchanged parses and opens.
+         const std::vector<std::pair<unsigned char, std::string> > sealedStages = sealedHeader.stages;
+         const std::pair<unsigned char, std::string> encryption = sealedStages.back();
+         const std::pair<unsigned char, std::string> deflate((unsigned char) StageDeflate, std::string(1, (char) DeflateLevel));
+         const std::string noDigest(32, '\0');
+
+         const std::string unchanged = rebuilt(sealed, sealedStages, 0, noDigest);
+         Assert::IsTrue(unchanged == sealed);
+         Assert::IsTrue(Decode(unchanged, blob, decoded, header, problem, accountKey) && decoded == message);
+
+         std::vector<std::pair<unsigned char, std::string> > stages = sealedStages;
+         stages.push_back(deflate);
+         Assert::IsFalse(ParseHeader(rebuilt(sealed, stages, 0, noDigest), header, problem));
+         Assert::IsTrue(problem.Find(_T("after its encryption stage")) >= 0);
+
+         stages = sealedStages;
+         stages.push_back(encryption);
+         Assert::IsFalse(ParseHeader(rebuilt(sealed, stages, 0, noDigest), header, problem));
+         Assert::IsTrue(problem.Find(_T("after its encryption stage")) >= 0);
+
+         if (compressed == 1)
+         {
+            stages = sealedStages;
+            stages.insert(stages.begin(), deflate);
+            Assert::IsFalse(ParseHeader(rebuilt(sealed, stages, 0, noDigest), header, problem));
+            Assert::IsTrue(problem.Find(_T("deflate twice")) >= 0);
+         }
+
+         Assert::IsFalse(ParseHeader(rebuilt(sealed, sealedStages, 1, noDigest), header, problem));
+         Assert::IsTrue(problem.Find(_T("names a part held once")) >= 0);
+
+         std::string digest = noDigest;
+         digest[0] = (char) 1;
+         Assert::IsFalse(ParseHeader(rebuilt(sealed, sealedStages, 0, digest), header, problem));
+         Assert::IsTrue(problem.Find(_T("carries a digest")) >= 0);
+      }
+
+      MailboxCrypto::Forget(accountPrivate);
+      MailboxCrypto::Forget(otherPrivate);
    }
 }

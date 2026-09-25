@@ -39,6 +39,7 @@
 #include "PasswordPolicy.h"
 #include "PasswordHistory.h"
 #include "PasswordBreachCheck.h"
+#include "MailboxKeys.h"
 #include "Time.h"
 #include "AccountLockout.h"
 #include "CompromiseDetector.h"
@@ -450,6 +451,16 @@ namespace HM
          AnsiString body;
          body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", JsonEscape_(Utf8_(breachRefusal)).c_str(), breachReason.c_str());
          return BuildResponse_(breachStatus, body);
+      }
+
+      // A mailbox encrypted at rest (MailboxKeys.h): its key wrapped by the new
+      // password, stored when the account is saved - or the reset refused while
+      // the key is closed, naming the recovery route, which is the reset an
+      // encrypted mailbox has.
+      {
+         String keyRefusal;
+         if (!MailboxKeys::PrepareForNewPassword(account, String(password), keyRefusal))
+            return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 409), "{\"error\":\"" + JsonEscape_(Utf8_(keyRefusal)) + "\",\"code\":\"mailbox_key\"}");
       }
 
       PasswordHistory::Record(account);

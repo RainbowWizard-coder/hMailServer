@@ -9,6 +9,7 @@
 
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/BO/Account.h"
 #include "../Common/BO/SecurityRange.h"
 
@@ -83,6 +84,14 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "Invalid user name or password. Please use full email address as user name.");
          else
             return IMAPResult(IMAPResult::ResultNo, "Invalid user name or password.");
+      }
+
+      // A mailbox encrypted at rest opens only with its own password, and a
+      // session is made only with its key open (Common/Util/MailboxKeys.h).
+      {
+         const String keyRefusal = MailboxKeys::SessionRefusal(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword);
+         if (!keyRefusal.IsEmpty())
+            return IMAPResult(IMAPResult::ResultNo, MailboxKeys::ImapRefusal(keyRefusal));
       }
 
       // Load mail boxes

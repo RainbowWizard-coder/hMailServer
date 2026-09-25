@@ -7,6 +7,7 @@
 #include "DiscoveryHolds.h"
 #include "FileUtilities.h"
 #include "GUIDCreator.h"
+#include "MailboxKeys.h"
 #include "ZeroAccess.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
@@ -145,7 +146,11 @@ namespace HM
       relative = FileUtilities::Combine(relative, guid + _T(".eml"));
       const String target = FileUtilities::Combine(Root(), relative);
 
-      if (!MessageStore::CopyStored(source, target))
+      // Kept as the mailbox keeps its mail: a mailbox encrypted at rest's copy
+      // encrypted to its key - the stored container as it is, or a delivery
+      // copy caught before it was stored, encrypted in memory - and never in
+      // the clear (docs/EncryptionAtRest.md); any other as it is stored.
+      if (!MessageStore::CopyIntoAccount(source, target, account))
       {
          if (held)
          {
@@ -187,7 +192,15 @@ namespace HM
          }
       }
 
-      AnsiString header = PersistentMessage::LoadHeader(source, false);
+      // What the list of deleted items shows - but not for a mailbox encrypted
+      // at rest, whose subjects and senders would be in the database in the
+      // clear beside files that hide them: the list reads them from the kept
+      // copy while the key is open (RestApiRecoverable).
+      const bool keyed = MailboxKeys::IsKeyed(account->GetID());
+
+      AnsiString header;
+      if (!keyed)
+         header = PersistentMessage::LoadHeader(source, false);
       MimeHeader mimeHeader;
       mimeHeader.Load(header.c_str(), header.GetLength(), true);
 
@@ -199,8 +212,8 @@ namespace HM
       statement.AddColumn("rcfolder", Clip(PathOf(folders, message->GetFolderID()), 255));
       statement.AddColumn("rcfile", relative);
       statement.AddColumn("rcsize", (int) message->GetSize());
-      statement.AddColumn("rcsubject", Clip(mimeHeader.GetUnicodeFieldValue("Subject"), 255));
-      statement.AddColumn("rcfrom", Clip(mimeHeader.GetUnicodeFieldValue("From"), 255));
+      statement.AddColumn("rcsubject", keyed ? String() : Clip(mimeHeader.GetUnicodeFieldValue("Subject"), 255));
+      statement.AddColumn("rcfrom", keyed ? String() : Clip(mimeHeader.GetUnicodeFieldValue("From"), 255));
       statement.AddColumn("rcflags", (int) message->GetFlags());
       statement.AddColumnInt64("rcdeleted", (__int64) time(nullptr));
       statement.SetIdentityColumn("rcid");
@@ -325,7 +338,10 @@ namespace HM
          problem = _T("the account's directory could not be made");
          return false;
       }
-      if (!MessageStore::CopyStored(kept, fileName))
+      // Back as the mailbox stores mail now: a copy kept before its mailbox was
+      // encrypted at rest is encrypted to its key on the way in, never put
+      // back in the clear (docs/EncryptionAtRest.md).
+      if (!MessageStore::CopyIntoAccount(kept, fileName, account))
       {
          problem = _T("the message could not be written back");
          return false;

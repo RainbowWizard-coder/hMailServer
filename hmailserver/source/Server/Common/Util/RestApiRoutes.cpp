@@ -51,6 +51,7 @@
 #include "PasswordBreachCheck.h"
 #include "RestrictedDelivery.h"
 #include "PasswordHistory.h"
+#include "MailboxKeys.h"
 #include "Time.h"
 #include "Unicode.h"
 #include "../Application/IniFileSettings.h"
@@ -1540,6 +1541,13 @@ namespace HM
 
          if (!PasswordBreachCheck::IsAcceptable(account->GetAddress(), password, breachRefusal, breachReason, breachStatus))
             return BuildResponse_(breachStatus, ErrorBodyWithReason(quote, breachRefusal, breachReason));
+
+         // A mailbox encrypted at rest (MailboxKeys.h): its key wrapped by the
+         // new password, stored when the account is saved - or the change
+         // refused while the key is closed, naming the recovery route.
+         String keyRefusal;
+         if (!MailboxKeys::PrepareForNewPassword(account, password, keyRefusal))
+            return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 409), ErrorBody(quote, keyRefusal));
 
          PasswordHistory::Record(account);
 

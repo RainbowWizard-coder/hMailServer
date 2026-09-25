@@ -14,14 +14,20 @@
 #include "../Util/ByteBuffer.h"
 #include "../Util/File.h"
 #include "../Util/GUIDCreator.h"
+#include "../Util/MailboxCrypto.h"
+#include "../Util/MailboxKeys.h"
+
+#include <boost/filesystem.hpp>
 
 #include <algorithm>
 #include <climits>
 #include <cstring>
 #include <ctime>
+#include <fstream>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #ifdef HM_PLATFORM_POSIX
 #include <sys/stat.h>
@@ -421,6 +427,15 @@ namespace HM
       {
       public:
 
+         // Moved on by every Clear: what a decode began before a clear is not
+         // kept after it (Keep), since the key it was opened with may be the
+         // one that closed.
+         unsigned __int64 Generation()
+         {
+            boost::mutex::scoped_lock lock(lock_);
+            return generation_;
+         }
+
          std::shared_ptr<const std::string> Find(const String &name, const AnsiString &identity, unsigned __int64 storedSize)
          {
             boost::mutex::scoped_lock lock(lock_);
@@ -436,12 +451,16 @@ namespace HM
             return found->second.original;
          }
 
-         void Keep(const String &name, const AnsiString &identity, unsigned __int64 storedSize, const std::shared_ptr<const std::string> &original)
+         void Keep(const String &name, const AnsiString &identity, unsigned __int64 storedSize, const std::shared_ptr<const std::string> &original,
+                   unsigned __int64 generation)
          {
             if (!original || original->size() > MaximumBytes / 2)
                return;
 
             boost::mutex::scoped_lock lock(lock_);
+
+            if (generation != generation_)
+               return;
 
             const __int64 now = (__int64) time(nullptr);
             const std::wstring key = Key_(name);
@@ -476,6 +495,16 @@ namespace HM
                bytes_ -= oldest->second.original->size();
                entries_.erase(oldest);
             }
+         }
+
+         // Everything, at once: a mailbox key closed takes the plaintext it
+         // opened with it (MessageStore::ForgetDecodes).
+         void Clear()
+         {
+            boost::mutex::scoped_lock lock(lock_);
+            entries_.clear();
+            bytes_ = 0;
+            generation_++;
          }
 
       private:
@@ -515,6 +544,7 @@ namespace HM
          boost::mutex lock_;
          std::map<std::wstring, Entry> entries_;
          size_t bytes_ = 0;
+         unsigned __int64 generation_ = 0;
       };
 
       DecodedCache &Decodes()
@@ -529,6 +559,9 @@ namespace HM
       bool DecodedContainer(const String &name, std::shared_ptr<const std::string> &original, String &problem)
       {
          original.reset();
+
+         // Taken before anything is decoded (DecodedCache::Generation).
+         const unsigned __int64 generation = Decodes().Generation();
 
          AnsiString identity;
          unsigned int names = 0;
@@ -557,7 +590,7 @@ namespace HM
          original = decoded;
 
          if (keyed && isContainer)
-            Decodes().Keep(name, identity, storedSize, original);
+            Decodes().Keep(name, identity, storedSize, original, generation);
 
          return true;
       }
@@ -817,12 +850,10 @@ namespace HM
       return true;
    }
 
-   // ---- MessageStorePlainCopy -----------------------------------------------------------
+   // ---- MessageStoreParseSource ---------------------------------------------------------
 
-   MessageStorePlainCopy::MessageStorePlainCopy(const String &messageFile) :
-      path_(messageFile),
-      ready_(true),
-      temporary_(false)
+   MessageStoreParseSource::MessageStoreParseSource(const String &messageFile) :
+      ready_(true)
    {
       bool isContainer = false;
       MessageStoreHeader header;
@@ -843,27 +874,22 @@ namespace HM
       if (!isContainer)
          return;
 
-      bool temporary = false;
-      const String plain = MessageStore::PlainFileFor(messageFile, temporary);
-      if (plain.IsEmpty())
+      // Decoded into memory, checked whole, and held there: never a file.
+      std::shared_ptr<const std::string> original;
+      if (!DecodedContainer(messageFile, original, problem))
       {
+         MessageStore::ReportUnreadable(messageFile, problem);
          ready_ = false;
          return;
       }
 
-      path_ = plain;
-      temporary_ = temporary;
+      original_ = original;
       references_ = header.references;
-   }
-
-   MessageStorePlainCopy::~MessageStorePlainCopy()
-   {
-      if (temporary_)
-         FileUtilities::DeleteFile(path_);
+      encrypted_to_ = MessageStoreFormat::EncryptedTo(header);
    }
 
    void
-   MessageStorePlainCopy::StoredFileReplaced()
+   MessageStoreParseSource::StoredFileReplaced()
    {
       if (references_.empty())
          return;
@@ -910,6 +936,16 @@ namespace HM
    void
    MessageStore::ReportUnreadable(const String &messageFile, const String &problem)
    {
+      // A message of a mailbox encrypted at rest, read while its key is
+      // closed: refused all the same, and not damage - it opens at the
+      // account's next sign-in with its password. Said in the debug log only,
+      // since a delegate's client or a push can ask for such a message often.
+      if (MailboxKeys::IsLockedProblem(problem))
+      {
+         LOG_DEBUG("MessageStore: " + messageFile + " was not read: " + problem + ".");
+         return;
+      }
+
       ReportStoreError(7350, _T("MessageStore"),
          "The stored message " + messageFile + " could not be read: " + problem + ". It is refused rather than read as something it is not, and the file is left as it is.");
    }
@@ -1077,6 +1113,15 @@ namespace HM
       const bool read = ReadStoredHeader(messageFile, isContainer, header, problem);
       if (!isContainer)
          return messageFile;
+
+      // A message of a mailbox encrypted at rest is not written out in the
+      // clear for another process to read (docs/EncryptionAtRest.md): the
+      // caller - SpamAssassin's lesson on a move - goes without it.
+      if (read && !MessageStoreFormat::EncryptedTo(header).empty())
+      {
+         LOG_DEBUG("MessageStore: " + messageFile + " is encrypted at rest, and no plain copy of it is written.");
+         return String();
+      }
 
       std::shared_ptr<const std::string> original;
       if (!read || !DecodedContainer(messageFile, original, problem))
@@ -1459,17 +1504,650 @@ namespace HM
    bool
    MessageStore::Place(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message)
    {
+      PlaceRefusal refusal = PlaceAccepted;
+      return Place(account, message, refusal);
+   }
+
+   bool
+   MessageStore::Place(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, PlaceRefusal &refusal)
+   {
+      // A copy in the account's own folders - not one a rule filed into a
+      // public folder, which is nobody's mailbox - is stored as its mailbox
+      // stores mail (MailboxKeys.h).
+      std::string publicKey;
+      MailboxKeys::Encryption encryption = MailboxKeys::EncryptionNone;
+      if (account && message->GetAccountID() == account->GetID())
+         encryption = MailboxKeys::EncryptionFor(account, publicKey);
+
+      return PlaceAs(account, message, encryption, publicKey, refusal);
+   }
+
+   bool
+   MessageStore::PlaceAs(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message,
+                         MailboxKeys::Encryption encryption, const std::string &publicKey, PlaceRefusal &refusal)
+   {
+      refusal = PlaceAccepted;
+
       const String messageFile = PersistentMessage::GetFileName(account, message);
+
+      // A copy in the account's own folders - not one a rule filed into a
+      // public folder, which is nobody's mailbox.
+      const bool own = account && message->GetAccountID() == account->GetID();
+
+      // A mailbox encrypted at rest (MailboxKeys.h): encrypted to its key,
+      // whatever the bytes begin with - they are the message, and the
+      // container says so - and refused rather than kept in the clear when it
+      // cannot be, or when whether the mailbox is encrypted is not known.
+      if (own && encryption == MailboxKeys::EncryptionOn)
+         return PlaceEncrypted_(messageFile, publicKey, false, refusal);
+
+      if (own && encryption == MailboxKeys::EncryptionUnknown)
+      {
+         Scrub(messageFile);
+         ReportEncryptionUnknown_(messageFile, _T("MessageStore::Place"));
+         refusal = PlaceRefusedUnknown;
+         return false;
+      }
+
+      if (own && encryption == MailboxKeys::EncryptionDamaged)
+      {
+         Scrub(messageFile);
+         ReportEncryptionDamaged_(messageFile, _T("MessageStore::Place"));
+         refusal = PlaceRefusedDamaged;
+         return false;
+      }
 
       // A zero-access mailbox's copy is ciphertext by now (ZeroAccess.h): there
       // is nothing to compress in it and no part to hold once, so it is not
       // compressed - but it is placed like any other, so that bytes beginning
       // with the magic (a message that arrived encrypted is stored as it came)
       // are wrapped rather than taken for a container.
-      const bool zeroAccess = account && account->GetZeroAccess() && message->GetAccountID() == account->GetID();
+      const bool zeroAccess = own && account->GetZeroAccess();
 
       bool changed = false;
-      return PlaceWorkingFile_(messageFile, !zeroAccess && Configuration::Instance()->GetMessageStoreCompression(), changed);
+      if (PlaceWorkingFile_(messageFile, !zeroAccess && Configuration::Instance()->GetMessageStoreCompression(), changed))
+         return true;
+
+      refusal = PlaceRefusedContent;
+      return false;
+   }
+
+   bool
+   MessageStore::WriteForAccount(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, const AnsiString &bytes)
+   {
+      PlaceRefusal refusal = PlaceAccepted;
+      return WriteForAccount(account, message, bytes, refusal);
+   }
+
+   bool
+   MessageStore::WriteForAccount(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, const AnsiString &bytes, PlaceRefusal &refusal)
+   {
+      refusal = PlaceAccepted;
+
+      const String messageFile = PersistentMessage::GetFileName(account, message);
+
+      std::string publicKey;
+      const MailboxKeys::Encryption encryption = account && message->GetAccountID() == account->GetID()
+         ? MailboxKeys::EncryptionFor(account, publicKey)
+         : MailboxKeys::EncryptionNone;
+
+      if (encryption == MailboxKeys::EncryptionNone)
+      {
+         if (FileUtilities::WriteToFile(messageFile, bytes))
+            return true;
+
+         refusal = PlaceRefusedWrite;
+         return false;
+      }
+
+      if (encryption == MailboxKeys::EncryptionUnknown)
+      {
+         ReportEncryptionUnknown_(messageFile, _T("MessageStore::WriteForAccount"));
+         refusal = PlaceRefusedUnknown;
+         return false;
+      }
+
+      if (encryption == MailboxKeys::EncryptionDamaged)
+      {
+         ReportEncryptionDamaged_(messageFile, _T("MessageStore::WriteForAccount"));
+         refusal = PlaceRefusedDamaged;
+         return false;
+      }
+
+      // Encrypted in memory and written encrypted: the plaintext never
+      // reaches the disk.
+      String problem;
+      bool written = false;
+      std::string original(bytes.data(), bytes.size());
+      if ((unsigned __int64) original.size() > MessageStoreFormat::MaximumOriginalBytes)
+      {
+         problem = _T("it is larger than an encrypted container holds (64 MB), and an encrypted mailbox keeps nothing in the clear");
+         refusal = PlaceRefusedTooLarge;
+      }
+      else
+      {
+         written = WriteEncryptedContainer(original, messageFile, publicKey, problem);
+         if (!written)
+            refusal = PlaceRefusedWrite;
+      }
+      MailboxCrypto::Forget(original);
+
+      if (written)
+         return true;
+
+      ReportStoreError(MailboxKeys::CodePlace, _T("MessageStore::WriteForAccount"),
+         "The message " + messageFile + " is for a mailbox encrypted at rest and could not be stored encrypted: " + problem + ". It was not written, in the clear or otherwise.");
+      return false;
+   }
+
+   bool
+   MessageStore::PlaceWorkingFileFor(std::shared_ptr<const Account> owner, const String &messageFile)
+   {
+      return PlaceWorkingFileFor(owner, messageFile, false);
+   }
+
+   bool
+   MessageStore::PlaceWorkingFileFor(std::shared_ptr<const Account> owner, const String &messageFile, bool keepOnRefusal)
+   {
+      PlaceRefusal refusal = PlaceAccepted;
+      return PlaceWorkingFileFor(owner, messageFile, keepOnRefusal, refusal);
+   }
+
+   bool
+   MessageStore::PlaceWorkingFileFor(std::shared_ptr<const Account> owner, const String &messageFile, bool keepOnRefusal, PlaceRefusal &refusal)
+   {
+      std::string publicKey;
+      const MailboxKeys::Encryption encryption = owner ? MailboxKeys::EncryptionFor(owner, publicKey) : MailboxKeys::EncryptionNone;
+      return PlaceWorkingFileAs(owner, messageFile, encryption, publicKey, keepOnRefusal, refusal);
+   }
+
+   bool
+   MessageStore::PlaceWorkingFileAs(std::shared_ptr<const Account> owner, const String &messageFile, MailboxKeys::Encryption encryption,
+                                    const std::string &publicKey, bool keepOnRefusal, PlaceRefusal &refusal)
+   {
+      refusal = PlaceAccepted;
+
+      if (owner)
+      {
+         if (encryption == MailboxKeys::EncryptionOn)
+            return PlaceEncrypted_(messageFile, publicKey, keepOnRefusal, refusal);
+
+         if (encryption == MailboxKeys::EncryptionUnknown)
+         {
+            if (!keepOnRefusal)
+               Scrub(messageFile);
+            ReportEncryptionUnknown_(messageFile, _T("MessageStore::PlaceWorkingFileFor"));
+            refusal = PlaceRefusedUnknown;
+            return false;
+         }
+
+         if (encryption == MailboxKeys::EncryptionDamaged)
+         {
+            if (!keepOnRefusal)
+               Scrub(messageFile);
+            ReportEncryptionDamaged_(messageFile, _T("MessageStore::PlaceWorkingFileFor"));
+            refusal = PlaceRefusedDamaged;
+            return false;
+         }
+      }
+
+      if (PlaceWorkingFile(messageFile))
+         return true;
+
+      refusal = PlaceRefusedContent;
+      return false;
+   }
+
+   void
+   MessageStore::ReportEncryptionDamaged_(const String &messageFile, const String &where)
+   {
+      ReportStoreError(MailboxKeys::CodePlace, where,
+         "The message " + messageFile + " was not stored: " + MailboxKeys::DamagedSentence());
+   }
+
+   void
+   MessageStore::ReportEncryptionUnknown_(const String &messageFile, const String &where)
+   {
+      ReportStoreError(MailboxKeys::CodePlace, where,
+         "The message " + messageFile + " could not be stored now: whether its mailbox is encrypted at rest is not known - its key could not be read from the database, or its key row holds no key - and it is not kept in the clear on a guess. The writer's answer is a temporary one.");
+   }
+
+   bool
+   MessageStore::PlaceEncrypted_(const String &messageFile, const std::string &publicKey, bool keepOnRefusal, PlaceRefusal &refusal)
+   {
+      refusal = PlaceAccepted;
+      String problem;
+
+      unsigned __int64 size = 0;
+      AnsiString bytes;
+      if (!Backend().Size(messageFile, size))
+      {
+         problem = _T("the file is missing or cannot be read");
+         refusal = PlaceRefusedWrite;
+      }
+      else if (size > MessageStoreFormat::MaximumOriginalBytes)
+      {
+         problem = _T("it is larger than an encrypted container holds (64 MB), and an encrypted mailbox keeps nothing in the clear");
+         refusal = PlaceRefusedTooLarge;
+      }
+      else if (!Backend().ReadAll(messageFile, bytes, 0) || (unsigned __int64) bytes.size() > MessageStoreFormat::MaximumOriginalBytes)
+      {
+         problem = _T("the file could not be read whole");
+         refusal = PlaceRefusedWrite;
+      }
+      else
+      {
+         // The whole message under the account's key, no part held once - a
+         // blob other accounts share cannot be under this one's key - and
+         // compressed first when compression is on.
+         std::string original(bytes.data(), bytes.size());
+         std::string container;
+         const bool encoded = MessageStoreFormat::EncodeEncrypted(original, Configuration::Instance()->GetMessageStoreCompression(), publicKey, container, problem);
+         MailboxCrypto::Forget(original);
+
+         // Any failure from here on is this server's - a write, a rename, the
+         // random generator - and a later attempt may not meet it.
+         refusal = PlaceRefusedWrite;
+
+         if (encoded)
+         {
+            // The container beside the plaintext; the plaintext moved aside and
+            // the container renamed into its place; then the plaintext
+            // overwritten with zeros and removed. The name holds the message
+            // at every moment but between the two renames, and holds it
+            // encrypted once this answers; a crash between them leaves the
+            // plaintext and the container beside an empty name, which the
+            // next start puts right (SweepEncryptionLeftovers).
+            const String staged = messageFile + _T(".encrypting-") + GUIDCreator::GetGUID();
+            const String aside = messageFile + _T(".plaintext-") + GUIDCreator::GetGUID();
+
+            if (!Backend().WriteAtomically(staged, AnsiString(container.data(), container.size())))
+               problem = _T("the encrypted message could not be written beside it");
+            else if (!Backend().Move(messageFile, aside))
+               problem = _T("the plaintext could not be moved aside for the encrypted message");
+            else if (!Backend().Move(staged, messageFile))
+            {
+               problem = _T("the encrypted message could not be renamed into its place");
+
+               // Put back under its name, for the caller to discard as a
+               // refused file. When even that fails, the plaintext beside the
+               // name is the refused file: overwritten and removed here, as the
+               // caller would have done - unless it is the only copy there is
+               // (keepOnRefusal: an import's), which stays where it is, named in
+               // the report, and is put back under its name at the next start.
+               if (!Backend().Move(aside, messageFile))
+               {
+                  if (keepOnRefusal)
+                     problem += _T(", nor the message put back under its name: it is at ") + aside;
+                  else
+                  {
+                     Scrub(aside);
+                     Backend().Remove(aside);
+                  }
+               }
+            }
+            else
+            {
+               Scrub(aside);
+               Backend().Remove(aside);
+               return true;
+            }
+
+            Backend().Remove(staged);
+         }
+      }
+
+      // Refused: the caller discards the working file, whose plaintext is
+      // overwritten first - unless it is the only copy there is (an import's).
+      if (!keepOnRefusal)
+         Scrub(messageFile);
+
+      ReportStoreError(MailboxKeys::CodePlace, _T("MessageStore::Place"),
+         "The message " + messageFile + " is for a mailbox encrypted at rest and could not be stored encrypted: " + problem + ". It is refused rather than kept in the clear.");
+      return false;
+   }
+
+   bool
+   MessageStore::IsEncrypted(const String &messageFile, std::string &publicKey)
+   {
+      publicKey.clear();
+
+      bool isContainer = false;
+      MessageStoreHeader header;
+      String problem;
+      if (!ReadStoredHeader(messageFile, isContainer, header, problem) || !isContainer)
+         return false;
+
+      publicKey = MessageStoreFormat::EncryptedTo(header);
+      return !publicKey.empty();
+   }
+
+   bool
+   MessageStore::WriteEncryptedContainer(const std::string &original, const String &storedFile, const std::string &publicKey, String &problem)
+   {
+      std::string container;
+      if (!MessageStoreFormat::EncodeEncrypted(original, Configuration::Instance()->GetMessageStoreCompression(), publicKey, container, problem))
+         return false;
+
+      // Beside the name, read back and compared with what was encrypted -
+      // which EncodeEncrypted opened again in memory before it answered - and
+      // only then renamed over it: the name holds what it held until what
+      // opens is there, and nothing is left beside it when this fails.
+      const String staged = storedFile + _T(".encrypting-") + GUIDCreator::GetGUID();
+      if (!Backend().WriteAtomically(staged, AnsiString(container.data(), container.size())))
+      {
+         Backend().Remove(staged);
+         problem = "the encrypted message could not be written beside " + storedFile;
+         return false;
+      }
+
+      AnsiString written;
+      if (!Backend().ReadAll(staged, written, 0) || written.size() != container.size() ||
+          memcmp(written.data(), container.data(), container.size()) != 0)
+      {
+         Backend().Remove(staged);
+         problem = "what was written beside " + storedFile + " did not read back as it was written";
+         return false;
+      }
+
+      if (!Backend().Move(staged, storedFile))
+      {
+         Backend().Remove(staged);
+         problem = "the encrypted message could not be renamed over " + storedFile;
+         return false;
+      }
+
+      return true;
+   }
+
+   void
+   MessageStore::Scrub(const String &messageFile)
+   {
+      // One name only: a file several names share is every name's, and the
+      // zeros would be too.
+      AnsiString identity;
+      unsigned int names = 0;
+      if (!Backend().Identity(messageFile, identity, names) || names != 1)
+         return;
+
+      unsigned __int64 length = 0;
+      if (!Backend().Size(messageFile, length) || length == 0)
+         return;
+
+      // In place, without truncating: a file opened to be rewritten keeps its
+      // blocks, which is what overwriting them means - as ZeroAccess::Scrub
+      // does. Truncating first would free them and put the zeros elsewhere.
+#ifdef HM_PLATFORM_POSIX
+      const AnsiString narrow = messageFile.c_str();
+      std::fstream over(narrow.c_str(), std::ios::in | std::ios::out | std::ios::binary);
+#else
+      std::fstream over(messageFile.c_str(), std::ios::in | std::ios::out | std::ios::binary);
+#endif
+      if (!over)
+         return;
+
+      const std::vector<char> zeros(65536, '\0');
+      unsigned __int64 left = length;
+      while (left > 0 && over)
+      {
+         const size_t chunk = left < (unsigned __int64) zeros.size() ? (size_t) left : zeros.size();
+         over.write(&zeros[0], (std::streamsize) chunk);
+         left -= (unsigned __int64) chunk;
+      }
+
+      over.flush();
+      over.close();
+   }
+
+   namespace
+   {
+      // A braced GUID as GUIDCreator writes it: {8-4-4-4-12}, hex digits.
+      bool IsBracedGuid(const String &text)
+      {
+         if (text.GetLength() != 38 || text[0] != '{' || text[37] != '}')
+            return false;
+
+         for (int i = 1; i < 37; i++)
+         {
+            const int c = (int) text[i];
+            if (i == 9 || i == 14 || i == 19 || i == 24)
+            {
+               if (c != '-')
+                  return false;
+               continue;
+            }
+
+            if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')))
+               return false;
+         }
+
+         return true;
+      }
+
+      // A leftover's FILE NAME, <name><mark><GUID>, split at the last mark:
+      // true only when the name part is not empty and the part after the mark
+      // is exactly a braced GUID.
+      bool IsLeftoverName(const String &fileName, const String &mark)
+      {
+         const size_t at = fileName.rfind(mark);
+         if (at == String::npos || at == 0)
+            return false;
+
+         return IsBracedGuid(fileName.Mid((int) (at + mark.GetLength())));
+      }
+
+      struct Leftover
+      {
+         String path;   // the leftover itself
+         String name;   // the stored file it was beside: the path, less the mark and the GUID
+      };
+   }
+
+   void
+   MessageStore::SweepEncryptionLeftovers(const std::vector<String> &directories)
+   {
+      const String plainMark = _T(".plaintext-");
+      const String stagedMark = _T(".encrypting-");
+      const int suffixLength = 38;
+
+      int scrubbed = 0;
+      int restored = 0;
+      int putBack = 0;
+      int removed = 0;
+
+      for (const String &directory : directories)
+      {
+         // One directory at a time, and one that cannot be walked - a name the
+         // file system's conversion refuses, a directory gone meanwhile - is
+         // reported and passed: the rest are still swept.
+         try
+         {
+            std::vector<Leftover> asides;
+            std::vector<Leftover> staged;
+
+            boost::system::error_code error;
+            const boost::filesystem::path rootPath(std::wstring(directory.c_str()));
+            if (!boost::filesystem::is_directory(rootPath, error) || error)
+               continue;
+
+            for (boost::filesystem::recursive_directory_iterator entry(rootPath, error);
+                 !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
+            {
+               boost::system::error_code fileError;
+               if (!boost::filesystem::is_regular_file(entry->path(), fileError) || fileError)
+                  continue;
+
+               // The file's own name, never the directories above it: a mailbox,
+               // a domain or a data directory may be named with either mark. A
+               // name the conversion refuses skips that file alone - never the
+               // leftovers already found in the directory.
+               try
+               {
+                  const String fileName = String(entry->path().filename().wstring());
+                  const bool aside = IsLeftoverName(fileName, plainMark);
+                  const bool stagedCopy = !aside && IsLeftoverName(fileName, stagedMark);
+                  if (!aside && !stagedCopy)
+                     continue;
+
+                  Leftover leftover;
+                  leftover.path = String(entry->path().wstring());
+                  leftover.name = leftover.path.Mid(0, leftover.path.GetLength() - (aside ? plainMark : stagedMark).GetLength() - suffixLength);
+
+                  if (aside)
+                     asides.push_back(leftover);
+                  else
+                     staged.push_back(leftover);
+               }
+               catch (...)
+               {
+                  continue;
+               }
+            }
+
+            for (const Leftover &aside : asides)
+            {
+               // Cut short between the two renames: the name is empty, and the
+               // container staged beside it is the message, encrypted and whole
+               // (it was written, atomically, before the plaintext was moved).
+               if (!Backend().Exists(aside.name))
+               {
+                  for (std::vector<Leftover>::iterator candidate = staged.begin(); candidate != staged.end(); ++candidate)
+                  {
+                     if (candidate->name == aside.name && Backend().Move(candidate->path, aside.name))
+                     {
+                        staged.erase(candidate);
+                        restored++;
+                        break;
+                     }
+                  }
+               }
+
+               if (Backend().Exists(aside.name))
+               {
+                  Scrub(aside.path);
+                  Backend().Remove(aside.path);
+                  scrubbed++;
+               }
+               else if (Backend().Move(aside.path, aside.name))
+               {
+                  // Nothing else holds this message: back under its name as it
+                  // was, never overwritten - whatever wrote it sees it again.
+                  putBack++;
+               }
+            }
+
+            // A container staged for a name that holds its message already: a
+            // rewrite or a placing cut short before its rename.
+            for (const Leftover &leftover : staged)
+            {
+               if (Backend().Remove(leftover.path))
+                  removed++;
+            }
+         }
+         catch (...)
+         {
+            ReportStoreError(MailboxKeys::CodeSweep, _T("MessageStore::SweepEncryptionLeftovers"),
+               "The directory " + directory + " of a mailbox encrypted at rest could not be swept for what an encryption cut short left beside its files; it is swept again at the next start.");
+         }
+      }
+
+      if (scrubbed + restored + putBack + removed > 0)
+      {
+         LOG_APPLICATION(Formatter::Format("Mailbox encryption at rest: an encryption cut short had left files beside keyed mailboxes' messages; {0} plaintext copies were overwritten and removed, {1} encrypted messages renamed into their names, {2} messages put back under their names as they were, and {3} staged copies removed.",
+            scrubbed, restored, putBack, removed));
+      }
+   }
+
+   bool
+   MessageStore::CopyIntoAccount(const String &from, const String &to, std::shared_ptr<const Account> destination)
+   {
+      std::string sourceKey;
+      IsEncrypted(from, sourceKey);
+
+      // A destination whose encryption is not known gets no copy: it might be
+      // a mailbox that keeps nothing in the clear. The destination's own key -
+      // switched on or not - is the keyed set's, as the encryption is, so a
+      // read of the database that fails cannot make a message under that key
+      // look like one to put in the clear.
+      std::string destinationKey;
+      const MailboxKeys::Encryption destinationEncryption = MailboxKeys::EncryptionFor(destination, destinationKey);
+      std::string destinationOwnKey;
+      const MailboxKeys::Keyed destinationKeyed = destination ? MailboxKeys::KeyOf(destination->GetID(), destinationOwnKey) : MailboxKeys::KeyedNo;
+
+      if (destinationEncryption == MailboxKeys::EncryptionUnknown || destinationKeyed == MailboxKeys::KeyedUnknown)
+      {
+         ReportStoreError(MailboxKeys::CodeCopy, _T("MessageStore::CopyIntoAccount"),
+            "The stored message " + from + " could not be copied to " + to + ": whether the mailbox it goes into is encrypted at rest could not be read from the database.");
+         return false;
+      }
+
+      if (destinationEncryption == MailboxKeys::EncryptionDamaged || destinationKeyed == MailboxKeys::KeyedDamaged)
+      {
+         ReportStoreError(MailboxKeys::CodeCopy, _T("MessageStore::CopyIntoAccount"),
+            "The stored message " + from + " could not be copied to " + to + ": " + MailboxKeys::DamagedSentence());
+         return false;
+      }
+
+      const bool encryptForDestination = destinationEncryption == MailboxKeys::EncryptionOn;
+
+      // The same file for both ends: a copy within one mailbox, or between two
+      // that are not encrypted. A copy of a message encrypted to the
+      // destination's own key stays encrypted to it, whether the destination
+      // still encrypts new mail or not.
+
+      if ((!sourceKey.empty() && sourceKey == destinationOwnKey) || (sourceKey.empty() && !encryptForDestination))
+         return CopyStored(from, to);
+
+      // Anything else is re-encoded: out from under the source's key, which
+      // must be open, and into the destination's form.
+      std::string original;
+      String problem;
+      if (!ReadOriginal(from, original, problem))
+      {
+         // Braced: LOG_DEBUG is a macro with an if of its own.
+         if (MailboxKeys::IsLockedProblem(problem))
+         {
+            LOG_DEBUG("MessageStore: " + from + " was not copied to " + to + ": " + problem + ".");
+         }
+         else
+         {
+            ReportStoreError(MailboxKeys::CodeCopy, _T("MessageStore::CopyIntoAccount"),
+               "The stored message " + from + " could not be copied to " + to + ": " + problem + ".");
+         }
+         return false;
+      }
+
+      bool copied = false;
+      if (encryptForDestination)
+         copied = WriteEncryptedContainer(original, to, destinationKey, problem);
+      else
+      {
+         // Out of an encrypted mailbox into one that is not, or into a public
+         // folder: the message as it arrived, placed as that mailbox places it.
+         copied = Backend().WriteAtomically(to, AnsiString(original.data(), original.size())) && PlaceWorkingFile(to);
+         if (!copied)
+         {
+            DiscardWorkingFile(to);
+            problem = _T("the copy could not be written");
+         }
+      }
+
+      MailboxCrypto::Forget(original);
+
+      if (!copied)
+      {
+         ReportStoreError(MailboxKeys::CodeCopy, _T("MessageStore::CopyIntoAccount"),
+            "The stored message " + from + " could not be copied to " + to + ": " + problem + ".");
+         return false;
+      }
+
+      return true;
+   }
+
+   void
+   MessageStore::ForgetDecodes()
+   {
+      Decodes().Clear();
    }
 
    bool

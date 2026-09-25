@@ -145,6 +145,7 @@ Every one of these is decided **before** the first byte is moved.
 | The domain being moved into is at its maximum number of accounts | The account's own save asks that of new accounts only, by an id of zero, and an account arriving from another domain has an id — so moving mailboxes in could otherwise take a domain past a limit that creating one there could not. |
 | The domain being moved into would exceed its maximum total size | The same reason. Both are asked only where the move crosses domains. |
 | An account, an alias or a distribution list already at the new address | Each said by name, so you know which of the three to go and look at. |
+| The mailbox is encrypted at rest, and the move is to another domain | Its key is sealed to its own domain's recovery key, which the other domain's cannot stand in for: moved, it could never be recovered, and would stop the new domain replacing its own recovery key. `409`. A rename inside the domain is not refused. Put its mail back in the clear and remove its key first ([EncryptionAtRest.md](EncryptionAtRest.md)). |
 | The address the account is already at | Nothing to do. A change of *capitalisation* alone is allowed, and moves no directory. |
 | The mailbox is in use | See below. |
 | Message file names are still full paths | An installation that predates hMailServer 5.4's partial paths cannot have a mailbox renamed at all: the paths would go on naming the directory this is about to empty. Run the Data Directory Synchronizer first. |

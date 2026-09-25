@@ -34,6 +34,7 @@
 #include "../BO/MessageRecipients.h"
 #include "../BO/ServerMessages.h"
 #include "../Cache/CacheContainer.h"
+#include "../Application/IniFileSettings.h"
 #include "../Mime/Mime.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
@@ -966,15 +967,37 @@ namespace HM
       std::shared_ptr<SMTPConfiguration> smtp = Configuration::Instance()->GetSMTPConfiguration();
       const long retries = smtp ? smtp->GetNoOfRetries() : 0;
       long minutes = smtp ? smtp->GetMinutesBetweenTry() : 60;
+
+      // The queue's quick retries first, where it has them, as an outside
+      // recipient's deferral and local delivery's hold take them.
+      const int quickRetries = IniFileSettings::Instance()->GetQuickRetries();
+      const int quickMinutes = IniFileSettings::Instance()->GetQuickRetriesMinutes();
+      if (quickRetries > 0 && quickMinutes > 0 && (int) message->GetNoOfRetries() < quickRetries)
+         minutes = quickMinutes;
+
       if (minutes < 1)
          minutes = 1;
 
       if ((long) message->GetNoOfRetries() < retries)
       {
-         PersistentMessage::SetNextTryTime(message->GetID(), true, minutes);
-
-         // Unlocked, so that a later delivery thread picks it up.
-         PersistentMessage::UnlockObject(message);
+         // Counted and rescheduled, and unlocked so that a later delivery
+         // thread picks it up - or, when the counted write will not land twice,
+         // rescheduled uncounted with the first-pass mark, so that the next
+         // pass does not sign, seal and mirror it again (PersistentMessage::
+         // RescheduleHeld). Said once when it was not counted.
+         const PersistentMessage::HeldReschedule outcome = PersistentMessage::RescheduleHeld(message, minutes);
+         if (outcome == PersistentMessage::RescheduledUncounted)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7250, "ListManager::HoldForRetry",
+               Formatter::Format("Posting {0} could not be read for its list, and its retry could not be counted; it is tried again in {1} minute(s) without the try counted, marked so that it is not signed, sealed or mirrored a second time.",
+                  message->GetID(), (int) minutes));
+         }
+         else if (outcome == PersistentMessage::RescheduleFailed)
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7250, "ListManager::HoldForRetry",
+               Formatter::Format("Posting {0} could not be read for its list and could not be rescheduled: the database took neither the retry nor the first-pass mark. It is unlocked and taken again at once, and its signing, sealing and mirroring may run a second time.",
+                  message->GetID()));
+         }
 
          LOG_APPLICATION(Formatter::Format("ListManager: posting {0} could not be read for its list and is tried again in {1} minute(s), try {2} of {3}.",
             message->GetID(), (int) minutes, (int) message->GetNoOfRetries() + 1, (int) retries));

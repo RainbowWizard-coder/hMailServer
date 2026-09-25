@@ -448,8 +448,17 @@ STDMETHODIMP InterfaceMessage::Save()
    
       // Save the message to disk.
       const HM::String fileName = HM::PersistentMessage::GetFileName(account, object_);
-   
-      if (!GetMessageData_()->Write(fileName))
+
+      // A new message for a folder of an account's mailbox (case 2 below) is
+      // written as the mailbox stores mail: encrypted in memory to the
+      // account's key when the mailbox is encrypted at rest, and never in the
+      // clear there (MessageData::WriteToMailbox, docs/EncryptionAtRest.md).
+      // Anything else is written as it always was; a rewrite of a stored
+      // message that is encrypted is encrypted again by Write itself.
+      const bool intoMailbox = object_->GetState() == HM::Message::Created && object_->GetFolderID() != 0 && account;
+      const bool written = intoMailbox ? GetMessageData_()->WriteToMailbox(fileName, account) : GetMessageData_()->Write(fileName);
+
+      if (!written)
       {
          return COMError::GenerateError("Unable to write to message file.");
       }

@@ -786,9 +786,14 @@ namespace HM
             holder->Data()->SetSentTime(sentTime);
          }
 
-         const String fileName = PersistentMessage::GetFileName(AccountOf_(message), message);
+         std::shared_ptr<const Account> account = AccountOf_(message);
+         const String fileName = PersistentMessage::GetFileName(account, message);
 
-         if (!holder->Data()->Write(fileName))
+         // As COM's Save writes it: a new message for a folder of a mailbox
+         // encrypted at rest is encrypted in memory, never written in the clear.
+         const bool intoMailbox = message->GetState() == Message::Created && message->GetFolderID() != 0 && account;
+         const bool written = intoMailbox ? holder->Data()->WriteToMailbox(fileName, account) : holder->Data()->Write(fileName);
+         if (!written)
             return JS_ThrowInternalError(ctx, "%s", "Unable to write to message file.");
 
          switch (message->GetState())

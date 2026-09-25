@@ -176,7 +176,8 @@ every one of them. The callers are of three kinds:
 * **Stored files** are read through the store's doors: its reader (IMAP `FETCH` and
   POP3 read through it), `ReadAll`, `ReadRange`, `LoadMime`, `FileSize`, and the two
   loaders that go through them, `PersistentMessage::LoadHeader`/`LoadBody` and
-  `MessageData::LoadFromMessage`. They are copied (`CopyStored`, `CopyOriginal`),
+  `MessageData::LoadFromMessage` - which parses a container from memory, never from a
+  plain copy on the disk. They are copied (`CopyStored`, `CopyOriginal`),
   renamed, linked and removed through the store, which is what keeps the counts of
   the blobs right.
 * **Listed** sites must have the stored file's name itself - `Message.Filename`, the
@@ -223,7 +224,7 @@ in the order listed. The stages:
 |---|---|---|
 | 1 | deflate, zlib-wrapped so the Adler-32 is checked (the vendored zlib 1.3.1) | the level, one byte (6) |
 | 2 | reserved for zstd | |
-| 3 | reserved for the account-key encryption of the *Mailbox encryption at rest* row, run after compression | |
+| 3 | encryption to the account's key, *Mailbox encryption at rest* ([EncryptionAtRest.md](EncryptionAtRest.md)), always the last stage, run after compression. A container with it names no reference, and its SHA-256 field is 32 zeros | 93 bytes: the version (1), the account's X25519 public key, the ephemeral public key made for the file, the AES-256-GCM nonce and tag |
 
 The reader checks the magic, the version, that the header's lengths agree with each
 other and with the file, every stage id, that the references lie in order inside the
@@ -344,13 +345,14 @@ What is thinner than it could be
 What the next rows build on
 ---------------------------
 
-**Mailbox encryption at rest** is stage 3, run after compression: the container
-already names its stages, so an encrypted message is one more entry in the list and
-no new format. What it inherits and must decide is the blobs: **a blob shared between
-accounts cannot be encrypted under one account's key.** Either the encryption row
-holds parts once only within one account, or it encrypts blobs under a key that is
-not an account's - and then the server can read them, which is the thing that row is
-for. The index it builds has the same question to answer.
+**Mailbox encryption at rest** is stage 3, run after compression, and is built
+([EncryptionAtRest.md](EncryptionAtRest.md)): an encrypted message is one more entry in
+the list of stages and no new format. It answered the blob question this way: **a blob
+shared between accounts cannot be encrypted under one account's key**, and a key that is
+not an account's is one the server can always use, so an encrypted mailbox holds no part
+once - every part stays inside the message's own container, compressed and encrypted with
+it. The index holds none of its words. `--compress-store` and `--decompress` leave an
+encrypted mailbox's files to that row's `--encrypt-store` and `--decrypt-store`.
 
 **Object storage** is a second `MessageStoreBackend`. A name is a local path today and
 becomes a key; `WriteAtomically` becomes a put; `Link` answers false where the store

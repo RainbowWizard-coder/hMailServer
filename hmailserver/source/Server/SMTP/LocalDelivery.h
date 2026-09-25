@@ -5,11 +5,14 @@
 #pragma once
 
 #include "../Common/Sieve/SieveEvaluator.h"
+#include "../Common/Persistence/MessageStore.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "DeliveryFailure.h"
 
 namespace HM
 {
    class Message;
+   class MessageRecipient;
    class RuleResult;
 
    class LocalDelivery
@@ -19,6 +22,32 @@ namespace HM
       ~LocalDelivery(void);
 
       bool Perform(std::vector<DeliveryFailure> &saErrorMessages);
+
+      // The local recipients Perform held rather than delivered: whether the
+      // mailbox is encrypted at rest was not known (MailboxKeys::KeyedUnknown -
+      // the accounts' keys not read since the start, or a key row that holds
+      // no key). Their rows are left in the database, and they are taken off
+      // the message once the loop is over, so that no later recipient took the
+      // message's file for its own copy meanwhile.
+      const std::vector<std::shared_ptr<MessageRecipient> > &GetHeldForKeys() const { return held_for_keys_; }
+
+      // The held recipients: when the message is already rescheduled (an
+      // external recipient's deferral) they go with it; otherwise the message
+      // is rescheduled here, on the SMTP retry schedule, while it has retries
+      // left - as ListManager::HoldForRetry does for a posting it could not
+      // read - and when it has none each is reported to the sender as a class
+      // 4 failure (4.3.0, this server's) and its row removed. True when the
+      // message stays in the queue. Never a bounce while retries are left,
+      // never a message discarded, never one stored in the clear.
+      static bool HoldForRetry(std::shared_ptr<Message> message, const std::vector<std::shared_ptr<MessageRecipient> > &held,
+                               bool alreadyRescheduled, std::vector<DeliveryFailure> &failures);
+
+      // What the sender of a message to a mailbox whose key row holds no key
+      // is told: a sender this server hosts - the organisation's own - the
+      // sentence with the way out (MailboxKeys::DamagedSentence); anybody else
+      // only that the mailbox cannot take mail now, and nothing of how it is
+      // stored or how an administrator mends it. The error log has the whole.
+      static String DamagedReportFor(const String &sender);
 
    private:
       
@@ -209,8 +238,15 @@ namespace HM
       // first copy that is still a name of the template above is placed where it
       // is, and each later one is made a name of that placed file, so the
       // recipients go on sharing one file. False when the store refuses the copy
-      // (MessageStore::Place), which is then not to be kept.
-      bool PlaceCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message);
+      // (MessageStore::PlaceAs), which is then not to be kept, with what the
+      // refusal was. The mailbox's encryption is asked again at placing, and
+      // what Perform read before the copy was made stands in when that cannot
+      // say - a recipient Perform could not read it for was held - so a copy
+      // is never refused for not knowing.
+      bool PlaceCopy_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, MessageStore::PlaceRefusal &refusal);
+      MailboxKeys::Encryption encryption_before_ = MailboxKeys::EncryptionNone;
+      std::string key_before_;
+      std::vector<std::shared_ptr<MessageRecipient> > held_for_keys_;
       String placed_template_;
       bool placed_template_failed_ = false;
 

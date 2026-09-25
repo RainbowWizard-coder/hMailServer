@@ -458,7 +458,11 @@ namespace HM
       copy->SetState(Message::Delivered);
 
       const String fileName = MessageStore::WorkingFile(owner, copy);
-      if (!MessageStore::CopyStored(keptPath, fileName))
+
+      // Into the owner's mailbox as the mailbox stores what it keeps: encrypted
+      // to its key when it is encrypted at rest (MessageStore::CopyIntoAccount),
+      // else the kept file's bytes as they are.
+      if (!MessageStore::CopyIntoAccount(keptPath, fileName, owner))
          return none;
 
       copy->SetSize((int) MessageStore::FileSize(fileName));

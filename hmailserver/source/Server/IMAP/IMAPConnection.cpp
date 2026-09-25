@@ -15,6 +15,7 @@
 #include "../Common/Application/TimeoutCalculator.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/SessionFollow.h"
 
 // Business data/storage
@@ -590,6 +591,11 @@ namespace HM
    {
       account_ = account;
 
+      // A mailbox encrypted at rest reaches here only with its key open
+      // (MailboxKeys::SessionRefusal, asked by every sign-in before this); the
+      // session holds it open until it ends.
+      mailbox_key_hold_ = MailboxKeys::Hold(account->GetID());
+
       // The client, recorded, and this connection registered against it: a
       // revoke of that device drops the connection where it stands rather than
       // waiting for the client to reconnect. IMAP carries no user agent - the ID
@@ -643,7 +649,8 @@ namespace HM
       CloseCurrentFolder();
 
       std::shared_ptr<const Account> account;
-      SetAccount_(account),
+      SetAccount_(account);
+      mailbox_key_hold_.reset();
 
       SendAsciiData(goodbyeMessage);
 
@@ -663,6 +670,7 @@ namespace HM
       CloseCurrentFolder();
 
       account_.reset();
+      mailbox_key_hold_.reset();
       imap_folders_.reset();
       public_imap_folders_.reset();
       ClearRecentMessages();
@@ -828,6 +836,18 @@ namespace HM
 
          // Remove command
          return true;
+      }
+
+      // A session signed in before its mailbox was encrypted at rest holds no
+      // key: it is ended at its next command, as the switch-on ended the ones
+      // it could reach (RestApiMailboxKeys.cpp) - it would otherwise read,
+      // decrypted, mail its credential could never have opened. A session of a
+      // keyed mailbox always holds its key (Login, after SessionRefusal).
+      if (account_ && !mailbox_key_hold_ &&
+          (MailboxKeys::KeyedState(account_->GetID()) == MailboxKeys::KeyedYes || MailboxKeys::KeyedState(account_->GetID()) == MailboxKeys::KeyedDamaged))
+      {
+         Logout(_T("* BYE [UNAVAILABLE] This mailbox has been encrypted at rest since this session began. Sign in again with the account's own password.\r\n"));
+         return false;
       }
 
       if (sCommandTag.IsEmpty() || sCommandValue.IsEmpty())

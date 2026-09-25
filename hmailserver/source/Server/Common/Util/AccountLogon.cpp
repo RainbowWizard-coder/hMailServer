@@ -10,6 +10,7 @@
 #include "AutoBanFirewall.h"
 #include "../Application/IniFileSettings.h"
 #include "PasswordValidator.h"
+#include "MailboxKeys.h"
 #include "../Persistence/PersistentLogonFailure.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PersistentSecurityRange.h"
@@ -109,12 +110,27 @@ namespace HM
          return empty;
       }
 
-      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, matchedAppPassword, matchedAppPasswordName, secondFactor);
+      // Whether an app password matched is asked here too, whatever the caller
+      // asked: only the account's own password opens its mailbox key.
+      bool viaAppPassword = false;
+      std::shared_ptr<const Account> account = PasswordValidator::ValidatePassword(masqname, username, password, &viaAppPassword, matchedAppPasswordName, secondFactor);
+      if (matchedAppPassword)
+         *matchedAppPassword = viaAppPassword;
+
       if (account)
       {
          PersistentAccount::UpdateLastLogonTime(account);
          AccountLockout::Instance()->RecordSuccess(username);
          ServerStatus::Instance()->OnAuthenticationSucceeded();
+
+         // Mailbox encryption at rest (MailboxKeys.h): the one moment the
+         // account's own password is in hand, which is what opens its key -
+         // not an app password, and not another account's password signing in
+         // as this one (an authorisation identity that is not the name that
+         // authenticated, RFC 4616).
+         if (!viaAppPassword && (masqname.IsEmpty() || masqname.CompareNoCase(username) == 0))
+            MailboxKeys::OnPasswordLogon(account, password);
+
          return account;
       }
 

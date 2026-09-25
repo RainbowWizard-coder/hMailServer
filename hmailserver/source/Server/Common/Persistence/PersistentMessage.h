@@ -65,6 +65,25 @@ namespace HM
       // and Message::FlagFirstPassDone set in the same statement, so that the
       // steps gated on "first pass" are not repeated on the next one.
       static bool SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes);
+
+      // A held message rescheduled - LocalDelivery::HoldForRetry's recipients
+      // whose mailbox's encryption is not known, ListManager::HoldForRetry's
+      // posting it could not read. The counted reschedule, tried a second time
+      // when the first write fails; when neither lands, the uncounted one with
+      // the first-pass mark in the same statement (SetNextTryTimeUncounted),
+      // and the mark set on the object too - so that the next pass does not
+      // sign, seal or mirror it again. Unlocked in every case: a message left
+      // locked waits, seen by nobody, for the next start, and is given its
+      // first pass again then. The answer says which write landed; the caller
+      // reports anything but the first, once.
+      enum HeldReschedule
+      {
+         RescheduledCounted,
+         RescheduledUncounted,
+         RescheduleFailed
+      };
+
+      static HeldReschedule RescheduleHeld(std::shared_ptr<Message> message, long lNoOfMinutes);
       static void EnsureFileExistance(std::shared_ptr<const Account> account, std::shared_ptr<Message> pMessage);
       
       static bool MoveFileToPublicFolder(const String &sourceLocation, std::shared_ptr<Message> pMessage);

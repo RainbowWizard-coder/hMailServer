@@ -589,6 +589,7 @@ namespace HM
       const String sourceFile = GetFileName(sourceAddress, sourceMessage);
 
       String destinationFile;
+      std::shared_ptr<const Account> destinationAccount;
 
       if (destinationFolder->IsPublicFolder())
       {
@@ -599,8 +600,7 @@ namespace HM
          // The copy belongs under the account that owns the DESTINATION folder,
          // which is the owner for a delegated folder and the caller for an
          // ordinary one.
-         std::shared_ptr<const Account> destinationAccount =
-            CacheContainer::Instance()->GetAccount(destinationFolder->GetAccountID());
+         destinationAccount = CacheContainer::Instance()->GetAccount(destinationFolder->GetAccountID());
 
          if (!destinationAccount)
             return std::shared_ptr<Message>();
@@ -608,9 +608,13 @@ namespace HM
          destinationFile = GetFileName(destinationAccount->GetAddress(), messageCopy, AccountFolder);
       }
 
-      // As stored: a copy into another folder is another name for the same
-      // stored message, and the store counts it (MessageStore.h).
-      if (!MessageStore::CopyStored(sourceFile, destinationFile))
+      // As stored when both folders' mailboxes store it alike: a copy into
+      // another folder is another name for the same stored message, and the
+      // store counts it (MessageStore.h). Between a mailbox encrypted at rest
+      // and one that is not, or another one's key, the copy is re-encoded for
+      // the mailbox it goes into - never left under a key its owner cannot
+      // open, never left in the clear in an encrypted mailbox.
+      if (!MessageStore::CopyIntoAccount(sourceFile, destinationFile, destinationAccount))
       {
          std::shared_ptr<Message> pEmpty;
          return pEmpty;
@@ -987,6 +991,26 @@ namespace HM
       command.AddParameter("@MESSAGEID", iMessageID);
 
       return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   PersistentMessage::HeldReschedule
+   PersistentMessage::RescheduleHeld(std::shared_ptr<Message> message, long lNoOfMinutes)
+   {
+      HeldReschedule outcome = RescheduleFailed;
+
+      if (SetNextTryTime(message->GetID(), true, lNoOfMinutes) || SetNextTryTime(message->GetID(), true, lNoOfMinutes))
+      {
+         outcome = RescheduledCounted;
+      }
+      else
+      {
+         message->SetFirstPassDone(true);
+         if (SetNextTryTimeUncounted(message->GetID(), lNoOfMinutes))
+            outcome = RescheduledUncounted;
+      }
+
+      UnlockObject(message);
+      return outcome;
    }
 
    bool

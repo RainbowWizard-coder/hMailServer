@@ -36,7 +36,12 @@ namespace HM
       // left to do, so the caller knows whether to wait the full minute or
       // only pause briefly between passes.
       bool IndexFullTextBatch_();
-      bool IndexFullTextMessages_(const std::vector<PersistentMessageIndex::IndexableMessage> &messages);
+      // False when a save failed. skipped says a message was left unindexed
+      // because whether its mailbox is encrypted at rest was not known: the
+      // backfill goes past it - the reconciliation finds it later, as it finds
+      // any message without the complete-marker - and the reconciliation waits
+      // its minute rather than asking again at once.
+      bool IndexFullTextMessages_(const std::vector<PersistentMessageIndex::IndexableMessage> &messages, bool &skipped);
 
       boost::thread workerThread_;
       int iIndexRunCount;

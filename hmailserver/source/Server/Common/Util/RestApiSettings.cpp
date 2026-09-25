@@ -1046,6 +1046,11 @@ namespace
         "The smallest MIME part, in KB once decoded, held once as a blob while message_store_compression is on; 0 holds nothing once. 0 to 65536; 256 by default.",
         ROW_NUMBER(Config()->GetMessageStoreDedupMinKB()), ROW_SET(Config()->SetMessageStoreDedupMinKB((int) v.number)),
         [] (const Value &v) { return (v.number < 0 || v.number > 65536) ? String(_T("message_store_dedup_min_kb must be between 0 and 65536.")) : String(); } },
+      // Mailbox encryption at rest (Util/MailboxKeys.h, docs/EncryptionAtRest.md).
+      { "mailbox_key_idle_minutes", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How many minutes the mailbox key of an account encrypted at rest stays open after its last use once no IMAP or POP3 session holds it. A sign-in with the account's password opens it; while it is open the server reads the account's mail; once it closes, the mail is readable again only after the next sign-in with the password. 1 to 1440; 15 by default.",
+        ROW_NUMBER(Config()->GetMailboxKeyIdleMinutes()), ROW_SET(Config()->SetMailboxKeyIdleMinutes((int) v.number)),
+        [] (const Value &v) { return (v.number < 1 || v.number > 1440) ? String(_T("mailbox_key_idle_minutes must be between 1 and 1440.")) : String(); } },
 
       // Message recall within the server (Util/MessageRecall.h).
       { "recall_days", KindInteger, ReadWrite, EffectNow, nullptr,

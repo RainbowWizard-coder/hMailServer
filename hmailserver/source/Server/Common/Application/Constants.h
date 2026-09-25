@@ -434,6 +434,10 @@
 // consequence an installation should choose with its eyes open. Allowing it
 // switches nobody on; each person does that from the Security page.
 #define PROPERTY_ZERO_ACCESS_ALLOWED            _T("ZeroAccessAllowed")
+// Mailbox encryption at rest (docs/EncryptionAtRest.md, Util/MailboxKeys.h):
+// how many minutes an account's mailbox key stays open after its last use once
+// no IMAP or POP3 session holds it. 15; 1 to 1440.
+#define PROPERTY_MAILBOX_KEY_IDLE_MINUTES       _T("MailboxKeyIdleMinutes")
 // WebhookMaxPerMinute is the ceiling a subscription that names no ceiling of
 // its own is held to. Past it events are DROPPED rather than queued, and the
 // count of what was dropped is reported: a queue that grows without bound is
@@ -1029,4 +1033,24 @@
 //      as it always has until compression is turned on, and reads a store of
 //      either form whatever the setting says.
 //      (6097 is the eDiscovery row's step, built beside this one.)
-#define REQUIRED_DB_VERSION            6098
+
+// 6099 adds hm_accountkeys and hm_domainrecovery (Util/MailboxKeys.h,
+//      docs/EncryptionAtRest.md): mailbox encryption at rest. hm_accountkeys
+//      is one row per account an administrator switched on: akaccountid
+//      (unique, cascading with the account), akenabled (new mail is encrypted
+//      to the key), akpublic (the X25519 public key, base64), akpassword (the
+//      private key wrapped by the account's password with Argon2id and
+//      AES-256-GCM - empty until the first sign-in), akrecovery (the private
+//      key sealed to the domain's recovery key) and akrecoverypublic (which
+//      recovery key), akpending (the private key under this machine's own key,
+//      from the switch-on until the first sign-in with the password wraps it,
+//      then empty), akcreated and akchanged (seconds since 1970).
+//      hm_domainrecovery is one row per domain: drdomainid (unique, cascading
+//      with the domain), drpublic, drsealed (the private half wrapped by the
+//      administrator's passphrase, which is never stored), drhint and
+//      drcreated. It also seeds MailboxKeyIdleMinutes (15). Nothing is
+//      encrypted until somebody switches an account on, so an upgraded server
+//      stores and reads every message as it did.
+//      (6098 is the storage compression row's step; the step after this one
+//      is another row's.)
+#define REQUIRED_DB_VERSION            6099

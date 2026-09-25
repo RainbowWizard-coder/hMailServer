@@ -82,7 +82,10 @@ namespace HM
 
       // spamd is sent a plain file: the stored one when it is plain, else a
       // temporary copy of its original bytes that the task removes once spamd
-      // has had it (Persistence/MessageStore.h).
+      // has had it (Persistence/MessageStore.h) - and none at all for a message
+      // of a mailbox encrypted at rest, which is never written out in the clear
+      // for another process (docs/EncryptionAtRest.md): such a move teaches
+      // spamd nothing.
       bool temporary = false;
       const String messageFile = MessageStore::PlainFileFor(PersistentMessage::GetFileName(destinationOwner, copy), temporary);
       if (messageFile.IsEmpty())

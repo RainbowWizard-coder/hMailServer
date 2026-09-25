@@ -40,24 +40,42 @@
 //    1   deflate (zlib 1.3.1's, zlib-wrapped so the adler32 is checked);
 //        parameter: the level, one byte.
 //    2   reserved for zstd.
-//    3   reserved for the account-key encryption the "Mailbox encryption at
-//        rest" row adds, run after compression.
+//    3   encryption to the account's key (docs/EncryptionAtRest.md,
+//        Util/MailboxCrypto.h), always the last stage, run after compression.
+//        Parameters, 93 bytes: the stage's version (1), the account's X25519
+//        public key (32), the ephemeral public key made for this file (32),
+//        the AES-256-GCM nonce (12) and tag (16). The body's key is the
+//        HKDF-SHA256 of the two keys' agreement; the associated data is the
+//        magic, the version, the flags, the original's size, the stages
+//        under this one and both public keys, so none of those can be changed
+//        without the tag refusing it. A container with this stage names no
+//        references - an encrypted mailbox holds no part once, since a blob
+//        another account shares cannot be under this account's key - and its
+//        SHA-256 field is 32 zeros: a digest of the message in the clear
+//        would confirm a guess at what the file holds, and the tag already
+//        refuses every changed byte.
 //
 // What the reader checks: the magic, the version, that the header's own
-// lengths agree with each other and with the file, the stage ids, that the
-// references lie in order inside the original, that each blob is there with
-// the length and the hash its reference names, that the stages give back
-// exactly the bytes the size says, and last that the SHA-256 of the whole is
-// the one the header carries. A container that fails any of it is refused with
-// the reason - never read as something else. A read of the header alone
+// lengths agree with each other and with the file, the stage ids and their
+// order, that the references lie in order inside the original, that each blob
+// is there with the length and the hash its reference names, that the stages
+// give back exactly the bytes the size says, and last that the SHA-256 of the
+// whole is the one the header carries - or, for an encrypted container, that
+// the tag verifies. A container that fails any of it is refused with the
+// reason - never read as something else. A read of the header alone
 // (DecodeStart) checks all of it but the blobs and the SHA-256 of the whole,
 // which need every part: the deflate stream is read to its end, so damage to
-// anything the container holds itself is refused there too.
+// anything the container holds itself is refused there too. An encrypted
+// container is read only with its account's key open (MailboxKeys.h); without
+// it, the read is refused with the sentence MailboxKeys::IsLockedProblem
+// recognises, which is not damage and is not reported as damage.
 
 #pragma once
 
 #include <functional>
 #include <string>
+
+#include "../Util/MailboxCrypto.h"
 
 namespace HM
 {
@@ -92,7 +110,7 @@ namespace HM
       {
          StageDeflate = 1,
          StageZstd = 2,          // reserved
-         StageAccountKey = 3,    // reserved: "Mailbox encryption at rest"
+         StageAccountKey = 3,    // encryption to the account's key: "Mailbox encryption at rest"
       };
 
       enum Constants
@@ -133,11 +151,26 @@ namespace HM
       static bool Encode(const std::string &original, const std::vector<MessageStoreReference> &references, bool compress,
                          std::string &container, String &problem);
 
+      // A container for the original bytes encrypted to an account's public
+      // key (stage 3), deflated first when compress is set, with no part held
+      // once and no SHA-256 of the message. The encryption is checked by
+      // decrypting it again in memory before this answers true.
+      static bool EncodeEncrypted(const std::string &original, bool compress, const std::string &recipientPublic,
+                                  std::string &container, String &problem);
+
+      // Whether a parsed header's last stage is the encryption to an account's
+      // key, and that key's public half (empty when it is not).
+      static bool IsEncrypted(const MessageStoreHeader &header);
+      static std::string EncryptedTo(const MessageStoreHeader &header);
+
       // The original bytes from a whole container. blob reads a referenced
-      // part by its reference, checking its length and hash itself.
+      // part by its reference, checking its length and hash itself. keys finds
+      // the private key an encrypted container needs; left empty, it is the
+      // server's own open keys (MailboxKeys::FindOpenKey).
       typedef std::function<bool(const MessageStoreReference &reference, std::string &bytes, String &problem)> BlobReader;
       static bool Decode(const std::string &container, const BlobReader &blob, std::string &original,
-                         MessageStoreHeader &header, String &problem);
+                         MessageStoreHeader &header, String &problem,
+                         const MailboxCrypto::KeyFinder &keys = MailboxCrypto::KeyFinder());
 
       // The first bytes of the original, up to maximum, from a whole container,
       // without reading a blob: the top-level header is always before the first
@@ -146,8 +179,10 @@ namespace HM
       // stream must give exactly the bytes left once the parts are taken away,
       // end there with its Adler-32 right and leave nothing over - but only the
       // first bytes are kept. The blobs and the SHA-256 of the whole, which need
-      // every part, are checked when the whole is read (Decode).
-      static bool DecodeStart(const std::string &container, size_t maximum, std::string &start, String &problem);
+      // every part, are checked when the whole is read (Decode). An encrypted
+      // container is decrypted whole first, which checks its tag.
+      static bool DecodeStart(const std::string &container, size_t maximum, std::string &start, String &problem,
+                              const MailboxCrypto::KeyFinder &keys = MailboxCrypto::KeyFinder());
 
       // The parts of a message worth holding once: every leaf of its MIME tree
       // whose body is at least minimumBytes decoded (base64 counted as the bytes

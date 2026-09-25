@@ -161,6 +161,12 @@ ALLOWED = {
       "Common/Util/RestApiAccountRecovery.cpp",     # a recovery address set or cleared, and a set of recovery codes made
       "Common/Util/RestApiDirectory.cpp",           # somebody's directory opt-out set or cleared by another hand
       "Common/Util/RestApiAddressBooks.cpp",        # DELETE /api/v1/accounts/{address}/address-books/{id}/shares/{target}
+      # Mailbox encryption at rest: an account's key switched on or off,
+      # forfeited or recovered, and a domain's recovery key made, replaced or
+      # removed. The two tables are key material a sign-in writes with no actor,
+      # so they are not audited row by row, and each administrator's act is
+      # recorded here once, naming the account or the domain.
+      "Common/Util/RestApiMailboxKeys.cpp",
       # A setting profile applied, reverted or its way back discarded - from REST,
       # COM and hmailserver --apply-profile alike, which all reach Profiles: thirty
       # settings changed as one act, recorded once with the counts beside the row
@@ -288,6 +294,9 @@ REQUIRED = [
    ("Common/Util/SignInStore.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("device"), record.device, _T("revoked"), detail);',
     "a device revoked is no longer recorded - hm_signins is not an audited table (a sign-in would be recorded on every authentication) and the sessions and connections a revoke ends leave no row at all, so the strongest thing anybody can do about a client they do not recognise would be the one thing the trail did not hold"),
+   ("Common/Util/RestApiMailboxKeys.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("mailbox-key-recovered"),',
+    "a mailbox key opened with the domain's recovery key, and a new password set for the account, is no longer recorded - hm_accountkeys is not audited row by row, so the one act that lets an administrator into an encrypted mailbox would leave nothing but an application-log line"),
    ("Common/Util/RestApiAddressBooks.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("address-book-share-removed"),',
     "a share of somebody's address book removed by an administrator is no longer recorded - hm_addressbookshares is the account's own table and is not audited, so the statement chokepoint does not record the delete, and an operator undoing a person's own sharing decision would leave no trace"),
@@ -513,6 +522,8 @@ NOT_AUDITED = {
    "hm_smimekeys": "an account's own S/MIME certificates, kept for it by the portal.",
    "hm_pgpring": "an account's own OpenPGP keys and its correspondents' public keys, kept for it by the webmail; the secret half is encrypted where this server cannot see it.",
    "hm_zeroaccess": "a zero-access mailbox's two sealed copies of its own key and the derivation parameters, kept for it by the webmail; the person's own, written by the self-service routes, and this server can open neither copy.",
+   "hm_accountkeys": "an account's mailbox key for encryption at rest, in its wrapped and sealed forms: key material, written by a sign-in with the account's password (the first wrap, a wrap made again) with no actor on the thread, and by the administrator's routes, each of which records its act through AuditTrail::RecordEvent in RestApiMailboxKeys.cpp - naming the account, and never the key, which a row recorded whole would put in the trail.",
+   "hm_domainrecovery": "a domain's recovery key for encryption at rest: its public half and its private half wrapped by a passphrase this server never stores. Made, replaced and removed only by the administrator's routes, each recorded through AuditTrail::RecordEvent in RestApiMailboxKeys.cpp naming the domain - a row recorded whole would copy the wrapped key into the trail, for anybody who reads it to guess the passphrase against.",
    "hm_recall": "message recall within the server: one row per local recipient of a message an account sent, written at acceptance and delivery, marked by the account's own recall and ended by the sweep; traffic.",
    "hm_sandboxholds": "the files of a message held for a sandbox's verdict, written by the delivery thread and the sandbox's poller with no actor and ended with the hold; traffic. An administrator releasing or discarding a held message over REST is recorded through AuditTrail::RecordEvent, naming the message, since a release delivers mail the server was waiting to judge.",
    "hm_sandboxverdicts": "the verdicts a sandbox gave, by SHA-256, written by the sandbox's poller with no actor and swept when they expire; traffic.",

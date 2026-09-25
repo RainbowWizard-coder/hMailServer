@@ -33,6 +33,7 @@
 #include "../Util/Languages.h"
 #include "../Util/Utilities.h"
 #include "../Util/MetricsServer.h"
+#include "../Util/MailboxKeys.h"
 #include "../Util/RateLimiter.h"
 #include "../Util/JwksKeySet.h"
 #include "../Util/DiscoverySearch.h"
@@ -555,6 +556,12 @@ namespace HM
       ServerStatus::Instance()->SetState(ServerStatus::StateStarting);
 
       SpamProtection::Instance()->Load();
+
+      // Which accounts are keyed, read before any listener or delivery asks,
+      // and what an encryption a crash cut short left beside a keyed mailbox's
+      // files put right (Util/MailboxKeys.h). A server with no keyed account
+      // reads the empty table and nothing more.
+      MailboxKeys::Start();
 
       // Before io_service_, so that no listener can ever accept a connection on a
       // context whose session queues do not exist yet.

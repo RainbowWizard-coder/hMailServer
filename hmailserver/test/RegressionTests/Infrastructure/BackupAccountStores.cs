@@ -601,6 +601,76 @@ namespace RegressionTests.Infrastructure
          }
       }
 
+      // -------------------------------------------------------- hm_accountkeys
+
+      [Test]
+      [Description("hm_accountkeys, and the domain's recovery key beside it (hm_domainrecovery, carried by the domain): a mailbox encrypted at rest keeps its key, still sealed to its domain's recovery key and wrapped by the password, through a backup and a restore - and the message the archive brings back is still an encryption container, and opens with the account's password")]
+      public void TheMailboxKeyComesBack()
+      {
+         string admin = BasicAuth("Administrator", AdminPassword);
+         string domainName = _address.Substring(_address.IndexOf('@') + 1);
+
+         Response recovery = Rest("PUT", "/api/v1/domains/" + domainName + "/mailbox-recovery", admin,
+            "{\"passphrase\":\"a passphrase kept elsewhere\",\"hint\":\"the safe in the office\"}");
+         Assert.AreEqual(201, recovery.Status, "Body: " + recovery.Body);
+         string recoveryFingerprint = Regex.Match(recovery.Body, "\"fingerprint\":\"([0-9a-f]{16})\"").Groups[1].Value;
+         Assert.IsNotEmpty(recoveryFingerprint, "Body: " + recovery.Body);
+
+         try
+         {
+            Response on = Rest("PUT", "/api/v1/accounts/" + _address + "/mailbox-encryption", admin, "{\"enabled\":true}");
+            Assert.AreEqual(201, on.Status, "Body: " + on.Body);
+            string fingerprint = Regex.Match(on.Body, "\"fingerprint\":\"([0-9a-f]{16})\"").Groups[1].Value;
+            Assert.IsNotEmpty(fingerprint, "Body: " + on.Body);
+
+            // A message stored encrypted, and one sign-in with the password, so
+            // that the key the archive carries is wrapped by it rather than held
+            // for the first sign-in under this machine's key.
+            string marker = "kept-at-rest-" + Guid.NewGuid().ToString("N").Substring(0, 10);
+            SmtpClientSimulator.StaticSend("sender@example.test", _address, "Encrypted " + marker, "Brought back by the restore: " + marker);
+            ImapClientSimulator.AssertMessageCount(_address, UserPassword, "INBOX", 1);
+            StringAssert.Contains("\"pending\":false", Rest("GET", "/api/v1/accounts/" + _address + "/mailbox-encryption", admin).Body,
+               "The sign-in did not wrap the key by the password.");
+
+            BackupDeleteAndRestore();
+
+            Response state = Rest("GET", "/api/v1/accounts/" + _address + "/mailbox-encryption", admin);
+            Assert.AreEqual(200, state.Status, "Body: " + state.Body);
+            StringAssert.Contains("\"enabled\":true", state.Body, "The account comes back encrypting its mail.");
+            // The same key, above all: every message the archive brought back is
+            // encrypted to it, and nothing else opens them.
+            StringAssert.Contains("\"fingerprint\":\"" + fingerprint + "\"", state.Body, "The account's mailbox key did not come back as it was.");
+            StringAssert.Contains("\"recovery_current\":true", state.Body, "The key is not sealed to the recovery key the domain has after the restore.");
+
+            Response restored = Rest("GET", "/api/v1/domains/" + domainName + "/mailbox-recovery", admin);
+            Assert.AreEqual(200, restored.Status, "Body: " + restored.Body);
+            StringAssert.Contains("\"fingerprint\":\"" + recoveryFingerprint + "\"", restored.Body, "The domain's recovery key did not come back as it was.");
+            StringAssert.Contains("\"hint\":\"the safe in the office\"", restored.Body);
+
+            // The message came back as it was stored - an encryption container
+            // with nothing of it in the clear - and the restored key, opened by
+            // the password's wrap the archive carried, opens it.
+            string storedFile = _application.Domains.get_ItemByName(domainName).Accounts.get_ItemByAddress(_address)
+               .IMAPFolders.get_ItemByName("INBOX").Messages[0].Filename;
+            byte[] bytes = File.ReadAllBytes(storedFile);
+            Assert.IsTrue(bytes.Length > 57 && bytes[0] == 0x89 && bytes[1] == (byte) 'H' && bytes[2] == (byte) 'M' && bytes[3] == (byte) 'S',
+               "The restored message is not a container.");
+            Assert.AreEqual(-1, Encoding.ASCII.GetString(bytes).IndexOf(marker, StringComparison.Ordinal), "The restored message is in the clear.");
+
+            var imap = new ImapClientSimulator();
+            Assert.IsTrue(imap.ConnectAndLogon(_address, UserPassword), "The password does not sign in after the restore.");
+            Assert.IsTrue(imap.SelectFolder("INBOX"));
+            string fetched = imap.SendSingleCommand("A55 FETCH 1 BODY.PEEK[]");
+            imap.Disconnect();
+            StringAssert.Contains("Brought back by the restore: " + marker, fetched, "The restored message does not open with the account's password.");
+         }
+         finally
+         {
+            Rest("DELETE", "/api/v1/accounts/" + _address + "/mailbox-encryption?confirm=forfeit", admin);
+            Rest("DELETE", "/api/v1/domains/" + domainName + "/mailbox-recovery", admin);
+         }
+      }
+
       // ---------------------------------------------- hm_calendars/-objects
 
       [Test]

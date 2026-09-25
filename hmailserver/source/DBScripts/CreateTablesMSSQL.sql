@@ -53,6 +53,8 @@ if exists (select * from sysobjects where id = object_id('hm_recall') and object
 if exists (select * from sysobjects where id = object_id('hm_smimekeys') and objectproperty(id, 'isusertable') = 1) drop table hm_smimekeys
 if exists (select * from sysobjects where id = object_id('hm_smimeissued') and objectproperty(id, 'isusertable') = 1) drop table hm_smimeissued
 if exists (select * from sysobjects where id = object_id('hm_smimeca') and objectproperty(id, 'isusertable') = 1) drop table hm_smimeca
+if exists (select * from sysobjects where id = object_id('hm_accountkeys') and objectproperty(id, 'isusertable') = 1) drop table hm_accountkeys
+if exists (select * from sysobjects where id = object_id('hm_domainrecovery') and objectproperty(id, 'isusertable') = 1) drop table hm_domainrecovery
 if exists (select * from sysobjects where id = object_id('hm_accounts') and objectproperty(id, 'isusertable') = 1) drop table hm_accounts 
 
 if exists (select * from sysobjects where id = object_id('hm_imapfolders') and objectproperty(id, 'isusertable') = 1) drop table hm_imapfolders 
@@ -2466,6 +2468,46 @@ ALTER TABLE hm_zeroaccess ADD CONSTRAINT fk_hm_zeroaccess_account FOREIGN KEY (z
 
 insert into hm_settings (settingname, settingstring, settinginteger) values ('ZeroAccessAllowed', '', 0)
 
+create table hm_accountkeys
+(
+	akid int identity(1,1) not null,
+	akaccountid int not null,
+	akenabled int not null,
+	akpublic nvarchar(64) not null,
+	akpassword nvarchar(512) not null,
+	akrecovery nvarchar(512) not null,
+	akrecoverypublic nvarchar(64) not null,
+	akpending nvarchar(2000) not null,
+	akcreated bigint not null,
+	akchanged bigint not null
+)
+
+ALTER TABLE hm_accountkeys ADD CONSTRAINT hm_accountkeys_pk PRIMARY KEY NONCLUSTERED (akid)
+
+CREATE UNIQUE INDEX idx_hm_accountkeys_account ON hm_accountkeys (akaccountid)
+
+ALTER TABLE hm_accountkeys ADD CONSTRAINT fk_hm_accountkeys_account FOREIGN KEY (akaccountid) REFERENCES hm_accounts (accountid) ON DELETE CASCADE
+
+create table hm_domainrecovery
+(
+	drid int identity(1,1) not null,
+	drdomainid int not null,
+	drpublic nvarchar(64) not null,
+	drsealed nvarchar(512) not null,
+	drhint nvarchar(255) not null,
+	drcreated bigint not null,
+	drprevpublic nvarchar(64) not null,
+	drprevsealed nvarchar(512) not null
+)
+
+ALTER TABLE hm_domainrecovery ADD CONSTRAINT hm_domainrecovery_pk PRIMARY KEY NONCLUSTERED (drid)
+
+CREATE UNIQUE INDEX idx_hm_domainrecovery_domain ON hm_domainrecovery (drdomainid)
+
+ALTER TABLE hm_domainrecovery ADD CONSTRAINT fk_hm_domainrecovery_domain FOREIGN KEY (drdomainid) REFERENCES hm_domains (domainid) ON DELETE CASCADE
+
+insert into hm_settings (settingname, settingstring, settinginteger) values ('MailboxKeyIdleMinutes', '', 15)
+
 create table hm_recall
 (
 	recallid int identity(1,1) not null,
@@ -3124,4 +3166,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6098)
+insert into hm_dbversion values (6099)

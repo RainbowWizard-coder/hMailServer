@@ -27,6 +27,7 @@ namespace HM
    class IMailboxChangeClient;
    class ScramSha256;
    class GssapiAcceptor;
+   class MailboxKeyHold;
 
    class IMAPClientCommand
    {
@@ -324,6 +325,11 @@ namespace HM
 
       bool AnswerCommand(std::shared_ptr<IMAPClientCommand> command);
       std::shared_ptr<const Account> account_;
+
+      // The session's hold on its account's mailbox key, when the mailbox is
+      // encrypted at rest (Common/Util/MailboxKeys.h): the key stays open for
+      // as long as the session is signed in.
+      std::shared_ptr<MailboxKeyHold> mailbox_key_hold_;
 
       std::shared_ptr<IMAPFolders> imap_folders_;
       std::shared_ptr<IMAPFolders> public_imap_folders_;

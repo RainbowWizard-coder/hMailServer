@@ -155,6 +155,7 @@ logdevice server
 logformat server
 logging server
 LogonAttemptsWithinMinutes server
+MailboxKeyIdleMinutes server
 maxdelivertythreads server
 maximapconnections server
 maximumincorrectcommands server

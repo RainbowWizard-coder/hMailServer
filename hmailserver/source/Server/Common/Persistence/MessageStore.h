@@ -38,7 +38,9 @@
 //               Read through the doors here - LoadHeader, the reader, ReadAll,
 //               ReadRange, LoadMime, FileSize - or through the two readers
 //               outside this class that go through them (PersistentMessage::
-//               LoadHeader and MessageData::LoadFromMessage), and copied,
+//               LoadHeader, and MessageData::LoadFromMessage through
+//               MessageStoreParseSource, which parses a container from memory
+//               and never writes its message to a file), and copied,
 //               moved and deleted through the doors here, never by path.
 //
 //   listed      The places that must have the stored file's name itself: COM's
@@ -79,6 +81,7 @@
 #include <string>
 
 #include "MessageStoreFormat.h"
+#include "../Util/MailboxKeys.h"
 
 namespace HM
 {
@@ -206,34 +209,45 @@ namespace HM
       bool open_;
    };
 
-   // A stored message as a plain file, for as long as this lives: the stored
-   // file itself when it is plain, else a temporary copy of the original bytes,
-   // removed when this is. What MessageData parses, so that its fast rewrite,
-   // which copies the body from the file it parsed, copies the message's bytes.
-   class MessageStorePlainCopy
+   // What MessageData parses: the stored file itself, by its path, when it is
+   // plain (or not there yet, a message being composed); else the container's
+   // original bytes, decoded into memory and held for as long as this lives -
+   // never written to a file, so that reading a message of a mailbox
+   // encrypted at rest (docs/EncryptionAtRest.md) puts nothing of it on the
+   // disk. MessageData's fast rewrite, which copies an unchanged body from
+   // what it parsed, copies it from these bytes.
+   class MessageStoreParseSource
    {
    public:
-      explicit MessageStorePlainCopy(const String &messageFile);
-      ~MessageStorePlainCopy();
+      explicit MessageStoreParseSource(const String &messageFile);
 
-      MessageStorePlainCopy(const MessageStorePlainCopy &) = delete;
-      MessageStorePlainCopy &operator=(const MessageStorePlainCopy &) = delete;
+      MessageStoreParseSource(const MessageStoreParseSource &) = delete;
+      MessageStoreParseSource &operator=(const MessageStoreParseSource &) = delete;
 
       // False when the stored file is a container that could not be read; the
-      // reason is in the error log (HM7350).
+      // reason is in the error log (HM7350), or in the debug log for a
+      // mailbox whose key is closed.
       bool IsReady() const { return ready_; }
-      bool IsTemporary() const { return temporary_; }
-      const String &GetPath() const { return path_; }
 
-      // The stored file has been written over by a plain one: what the
-      // container referenced is let go of. Once.
+      // A container's original bytes; null for a plain file, which is parsed
+      // from its path.
+      const std::shared_ptr<const std::string> &GetOriginal() const { return original_; }
+      bool InMemory() const { return original_ != nullptr; }
+
+      // The stored file has been written over: what the container referenced
+      // is let go of. Once.
       void StoredFileReplaced();
 
+      // The public key the stored file was encrypted to, when it was: a
+      // rewrite is encrypted to it again, in memory, and never written in the
+      // clear (MessageData::Write).
+      const std::string &GetEncryptedTo() const { return encrypted_to_; }
+
    private:
-      String path_;
       bool ready_;
-      bool temporary_;
+      std::shared_ptr<const std::string> original_;
       std::vector<MessageStoreReference> references_;
+      std::string encrypted_to_;
    };
 
    class MessageStore
@@ -297,7 +311,8 @@ namespace HM
       // hand one to another process by path: the file itself when it is
       // plain, else a temporary copy of the original bytes, in which case
       // temporary is set and the caller deletes it. Empty when neither can be
-      // had.
+      // had - and always for a file encrypted to a mailbox's key, whose
+      // message is never written out in the clear (docs/EncryptionAtRest.md).
       static String PlainFileFor(const String &messageFile, bool &temporary);
 
       // A copy as the file is stored - a copy into another folder, one the
@@ -341,6 +356,61 @@ namespace HM
       // link them.
       static bool Relink(const String &storedFile, const String &name);
 
+      // ---- Encryption at rest (docs/EncryptionAtRest.md, Util/MailboxKeys.h) ------
+      //
+      // A container encrypted to an account's key names no blob and is read
+      // only while that key is open. Every door above reads it as the message
+      // then, and refuses it - without calling it damage - while the key is
+      // closed; its size, its header and its references (none) are read
+      // without the key.
+
+      // Whether the stored file is encrypted, and to which public key.
+      static bool IsEncrypted(const String &messageFile, std::string &publicKey);
+
+      // The original bytes, held in memory, encrypted to publicKey and written
+      // beside storedFile under a temporary name - compressed first when
+      // MessageStoreCompression is on - read back and compared byte for byte
+      // with what was encrypted, and only then renamed over storedFile. When it
+      // fails nothing is left beside it and what storedFile held is as it was.
+      // The walk's door (--encrypt-store), MessageData's for a rewrite or a new
+      // message, and a copy's. The plaintext never reaches the disk here.
+      static bool WriteEncryptedContainer(const std::string &original, const String &storedFile, const std::string &publicKey, String &problem);
+
+      // A working file's bytes overwritten with zeros where they are: the
+      // plaintext of a message for a mailbox encrypted at rest, once it has
+      // been stored encrypted or refused. What a filesystem, a snapshot or an
+      // SSD keeps of blocks written over is theirs (docs/EncryptionAtRest.md).
+      // A file with more than one name is left alone: the zeros would be every
+      // name's.
+      static void Scrub(const String &messageFile);
+
+      // What an encryption cut short by a crash left beside the files of a
+      // mailbox encrypted at rest, under each of these directories (the keyed
+      // accounts' own, from MailboxKeys::Start, before anything is delivered):
+      // a plaintext moved aside (<name>.plaintext-<GUID>) is overwritten with
+      // zeros and removed once the name holds the message - the container
+      // staged beside it (<name>.encrypting-<GUID>) renamed into the name first
+      // when the name is empty - and put back under the name, never overwritten,
+      // when nothing else holds the message; a staged container the name does
+      // not need is removed. Only a FILE NAME is read, never the path above it
+      // - a mailbox, a domain or a data directory may be named with either
+      // mark - and only one whose name part is not empty and whose part after
+      // the last mark is exactly a braced GUID, as GUIDCreator writes it; any
+      // other file is left alone. A directory that cannot be walked is
+      // reported and passed. Said in the application log when it found any.
+      static void SweepEncryptionLeftovers(const std::vector<String> &directories);
+
+      // A copy into a folder of the account destination owns (a public folder
+      // when it is null): as stored when both ends have the same key or
+      // neither has one, else re-encoded - the original read (with the
+      // source's key, which must be open) and stored as the destination's
+      // mailbox stores it. CopyToIMAPFolder's door.
+      static bool CopyIntoAccount(const String &from, const String &to, std::shared_ptr<const Account> destination);
+
+      // What was decoded a moment ago, forgotten: a key that closes takes the
+      // plaintext of the messages it opened with it.
+      static void ForgetDecodes();
+
       // ---- By message ----------------------------------------------------------
 
       static AnsiString LoadHeader(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, bool reportError = true);
@@ -367,9 +437,68 @@ namespace HM
       // then the caller refuses the message and removes the file with
       // DiscardWorkingFile, never Remove. changed says whether the file was
       // rewritten, which DeliveryHardLinks asks.
+      //
+      // A message placed in a folder of an account whose mailbox is encrypted at
+      // rest (MailboxKeys::EncryptionFor) is encrypted to the account's key,
+      // compressed first when compression is on, and never holds a part once,
+      // and the plaintext it was is overwritten with zeros (Scrub). One that
+      // cannot be - larger than a container holds, a write that failed, or a
+      // mailbox whose encryption could not be read - is REFUSED (false,
+      // HM7365) rather than kept in the clear, its plaintext overwritten.
       static bool Place(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message);
+
+      // What a refused Place, PlaceWorkingFileFor or WriteForAccount was, for
+      // the caller's answer: a delivery's status, an APPEND's response, a
+      // route's.
+      enum PlaceRefusal
+      {
+         PlaceAccepted,          // not refused
+         PlaceRefusedContent,    // it begins with the mark of a container and could not be wrapped (HM7353): its own bytes, which another attempt will not change
+         PlaceRefusedTooLarge,   // for a mailbox encrypted at rest, and larger than a container holds (64 MB): the same
+         PlaceRefusedWrite,      // for a mailbox encrypted at rest, and the encrypted copy could not be written, or the file read: this server's, for now
+         PlaceRefusedUnknown,    // whether the mailbox is encrypted at rest is not known (MailboxKeys::KeyedUnknown): this server's, for now
+         PlaceRefusedDamaged     // the mailbox's key row holds no key (MailboxKeys::KeyedDamaged): until an administrator acts
+      };
+
+      static bool Place(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, PlaceRefusal &refusal);
+
+      // Place, with the mailbox's encryption given rather than asked: local
+      // delivery's, which read it before it made the copy and holds a
+      // recipient it could not read it for (LocalDelivery::HoldForRetry), and
+      // asks again at placing - falling back to what it read before only when
+      // the second read cannot say.
+      static bool PlaceAs(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message,
+                          MailboxKeys::Encryption encryption, const std::string &publicKey, PlaceRefusal &refusal);
       static bool PlaceWorkingFile(const String &messageFile);
       static bool PlaceWorkingFile(const String &messageFile, bool &changed);
+
+      // PlaceWorkingFile for a file in a folder the owner has - APPEND, the
+      // IMAP mirror, a migration, an import - encrypted to the owner's key when
+      // its mailbox is encrypted at rest, and the plaintext then overwritten
+      // with zeros (Scrub) - also when it is refused, since the caller then
+      // discards it - unless keepOnRefusal: the Import Tool's file, the only
+      // copy there is, stays as it was for the administrator. A null owner is
+      // a public folder.
+      static bool PlaceWorkingFileFor(std::shared_ptr<const Account> owner, const String &messageFile);
+      static bool PlaceWorkingFileFor(std::shared_ptr<const Account> owner, const String &messageFile, bool keepOnRefusal);
+      static bool PlaceWorkingFileFor(std::shared_ptr<const Account> owner, const String &messageFile, bool keepOnRefusal, PlaceRefusal &refusal);
+
+      // PlaceWorkingFileFor with the owner's encryption given rather than
+      // asked (MailboxKeys::EncryptionFor): the importer's, which asks once and
+      // keeps what it placed by the same answer.
+      static bool PlaceWorkingFileAs(std::shared_ptr<const Account> owner, const String &messageFile, MailboxKeys::Encryption encryption,
+                                     const std::string &publicKey, bool keepOnRefusal, PlaceRefusal &refusal);
+
+      // For the writers that put a message in a mailbox without placing it -
+      // a message or an .eml put into a folder over REST: the bytes written
+      // under the message's working file, encrypted to the account's key in
+      // memory when its mailbox is encrypted at rest - so the plaintext never
+      // reaches the disk - and otherwise as they are, as those writers have
+      // always written them. False when they could not be written, or must not
+      // be: whether the mailbox is encrypted could not be read, or the
+      // message could not be stored encrypted (HM7365, reported).
+      static bool WriteForAccount(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, const AnsiString &bytes);
+      static bool WriteForAccount(std::shared_ptr<const Account> account, std::shared_ptr<const Message> message, const AnsiString &bytes, PlaceRefusal &refusal);
 
       // A stored file's original bytes, and the reason when they cannot be had.
       // The whole container is checked, blobs and SHA-256 included, and read
@@ -401,6 +530,17 @@ namespace HM
 
       static PlaceOutcome PlaceFile_(const String &messageFile, bool compress, unsigned __int64 dedupMinimumBytes, String &problem);
       static bool PlaceWorkingFile_(const String &messageFile, bool compress, bool &changed);
+
+      // The working file encrypted to publicKey in place, and its plaintext
+      // overwritten with zeros; false, reported, when it could not be and
+      // must not be kept, with the refusal - and the plaintext overwritten
+      // then too unless keepOnRefusal.
+      static bool PlaceEncrypted_(const String &messageFile, const std::string &publicKey, bool keepOnRefusal, PlaceRefusal &refusal);
+
+      // HM7365 for a message whose mailbox's encryption could not be read, and
+      // for one whose mailbox's key row holds no key.
+      static void ReportEncryptionUnknown_(const String &messageFile, const String &where);
+      static void ReportEncryptionDamaged_(const String &messageFile, const String &where);
 
       static bool Encode_(const std::string &original, bool compress, unsigned __int64 dedupMinimumBytes,
                           std::string &container, std::vector<MessageStoreReference> &references, String &problem);

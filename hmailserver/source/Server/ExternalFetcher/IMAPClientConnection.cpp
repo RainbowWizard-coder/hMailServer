@@ -1137,9 +1137,11 @@ namespace HM
       // MessageStore.h): the remote server's literal, spooled as it came, is the
       // message whatever it begins with - wrapped when it begins with the mark
       // of a container, never taken for one - and compressed when
-      // MessageStoreCompression is on. One the store refuses (HM7353) was never
-      // placed, counted nothing, and goes; it is still on the remote server.
-      if (!MessageStore::PlaceWorkingFile(fileName))
+      // MessageStoreCompression is on - and encrypted to the owner's key when
+      // its mailbox is encrypted at rest. One the store refuses (HM7353,
+      // HM7365) was never placed, counted nothing, and goes; it is still on
+      // the remote server.
+      if (!MessageStore::PlaceWorkingFileFor(owner, fileName))
       {
          MessageStore::DiscardWorkingFile(fileName);
          return false;

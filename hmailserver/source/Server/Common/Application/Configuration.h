@@ -552,6 +552,11 @@ namespace HM
       // (docs/ZeroAccess.md). Off by default; allowing it switches nobody on.
       bool GetZeroAccessAllowed();
       void SetZeroAccessAllowed(bool allowed);
+
+      // How many minutes an account's mailbox key stays open after its last
+      // use once no session holds it (Util/MailboxKeys.h). 1 to 1440, 15.
+      int GetMailboxKeyIdleMinutes();
+      void SetMailboxKeyIdleMinutes(int minutes);
       bool GetOpenPGPLookupWkd();
       void SetOpenPGPLookupWkd(bool enabled);
       bool GetOpenPGPLookupKeyserver();

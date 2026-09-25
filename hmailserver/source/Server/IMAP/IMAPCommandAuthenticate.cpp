@@ -12,6 +12,7 @@
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/Util/Crypt.h"
@@ -186,6 +187,14 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "Invalid authentication token.");
          }
 
+         // A mailbox encrypted at rest opens only with its own password, and a
+         // session is made only with its key open (Common/Util/MailboxKeys.h).
+         {
+            const String keyRefusal = MailboxKeys::SessionRefusal(pAccount, SignInStore::CredentialToken);
+            if (!keyRefusal.IsEmpty())
+               return IMAPResult(IMAPResult::ResultNo, MailboxKeys::ImapRefusal(keyRefusal));
+         }
+
          pConnection->Login(pAccount, SignInStore::CredentialToken, String());
 
          String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";
@@ -259,6 +268,14 @@ namespace HM
             }
 
             return IMAPResult(IMAPResult::ResultNo, "The client certificate does not identify an account.");
+         }
+
+         // A mailbox encrypted at rest opens only with its own password, and a
+         // session is made only with its key open (Common/Util/MailboxKeys.h).
+         {
+            const String keyRefusal = MailboxKeys::SessionRefusal(pAccount, SignInStore::CredentialCertificate);
+            if (!keyRefusal.IsEmpty())
+               return IMAPResult(IMAPResult::ResultNo, MailboxKeys::ImapRefusal(keyRefusal));
          }
 
          pConnection->Login(pAccount, SignInStore::CredentialCertificate, String());
@@ -398,6 +415,21 @@ namespace HM
          return IMAPResult(IMAPResult::ResultNo, "Invalid user name or password.");
       }
 
+      // A mailbox encrypted at rest opens only with its own password, and a
+      // session is made only with its key open (Common/Util/MailboxKeys.h).
+      // Another account signing in as this one - the master user, an authzid
+      // that is not the authcid - proved its own password, not this one's: it
+      // is refused whether the owner's key happens to be open or not, and so
+      // never holds that key open after the owner has gone.
+      {
+         const bool masquerade = authzid.GetLength() > 0 && authzid.CompareNoCase(authcid) != 0;
+         const int credential = masquerade ? (int) MailboxKeys::CredentialMasquerade
+                              : (viaAppPassword ? (int) SignInStore::CredentialAppPassword : (int) SignInStore::CredentialPassword);
+         const String keyRefusal = MailboxKeys::SessionRefusal(pAccount, credential);
+         if (!keyRefusal.IsEmpty())
+            return IMAPResult(IMAPResult::ResultNo, MailboxKeys::ImapRefusal(keyRefusal));
+      }
+
       // Load mail boxes
       pConnection->Login(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
 
@@ -493,6 +525,14 @@ namespace HM
          }
          return IMAPResult(IMAPResult::ResultNo, state == GssapiAcceptor::Done ? "The Kerberos principal does not identify an account." : "AUTHENTICATE failed.");
       }
+      // A mailbox encrypted at rest opens only with its own password, and a
+      // session is made only with its key open (Common/Util/MailboxKeys.h).
+      {
+         const String keyRefusal = MailboxKeys::SessionRefusal(pAccount, SignInStore::CredentialSingleSignOn);
+         if (!keyRefusal.IsEmpty())
+            return IMAPResult(IMAPResult::ResultNo, MailboxKeys::ImapRefusal(keyRefusal));
+      }
+
       pConnection->Login(pAccount, SignInStore::CredentialSingleSignOn, String());
       pConnection->SendAsciiData(pArgument->Tag() + " OK AUTHENTICATE completed\r\n");
       return IMAPResult();
@@ -614,6 +654,14 @@ namespace HM
       // SCRAM proves the ACCOUNT's own password - an app password cannot be used
       // with it, because its hash is not one SCRAM can derive from (see
       // PasswordValidator) - so the credential is never in doubt here.
+      // A mailbox encrypted at rest opens only with its own password, and a
+      // session is made only with its key open (Common/Util/MailboxKeys.h).
+      {
+         const String keyRefusal = MailboxKeys::SessionRefusal(pAccount, SignInStore::CredentialPassword);
+         if (!keyRefusal.IsEmpty())
+            return IMAPResult(IMAPResult::ResultNo, MailboxKeys::ImapRefusal(keyRefusal));
+      }
+
       pConnection->Login(pAccount, SignInStore::CredentialPassword, String());
 
       String sResponse = pArgument->Tag() + " OK AUTHENTICATE completed\r\n";

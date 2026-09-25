@@ -30,6 +30,7 @@
 #include "../Util/CompromiseDetector.h"
 #include "../Util/OrganisationCa.h"
 #include "../Util/DiscoveryHolds.h"
+#include "../Util/MailboxKeys.h"
 #include "PersistenceMode.h"
 
 #include "../Util/File.h"
@@ -232,6 +233,12 @@ namespace HM
       // happened, because DeleteObject's return value is all the caller sees.
       if (bRet)
       {
+         // Its mailbox key, when it has one, closed and written over in memory,
+         // and the account out of the keyed set - now that its row is gone, and
+         // the key row with it through its foreign key: a delete that fails
+         // leaves the set saying what the table does (MailboxKeys.h).
+         MailboxKeys::ForgetAccount(iID);
+
          // Delete folder from data directory
          String sDomainName = StoreDirectoryName(StringParser::ExtractDomain(pAccount->GetAddress()));
          String sMailbox = StoreDirectoryName(StringParser::ExtractAddress(pAccount->GetAddress()));
@@ -694,6 +701,10 @@ namespace HM
       {
          pAccount->SetID((long) iDBID);
 
+         // A new account has no mailbox key, whatever an account that once had
+         // this id had (MailboxKeys::NewAccount).
+         MailboxKeys::NewAccount(pAccount->GetID());
+
          if (createInbox)
          {
             if (!CreateInbox(*pAccount))
@@ -740,6 +751,12 @@ namespace HM
       // freshly-written strong hash as an unencrypted one.
       if (bRetVal)
          ClearPasswordUpgradePending_(pAccount->GetID());
+
+      // A password set on this object that the mailbox key was wrapped by
+      // (MailboxKeys::PrepareForNewPassword): stored now that the account is,
+      // so that the key is never wrapped by a password the account has not got.
+      if (bRetVal)
+         MailboxKeys::StorePreparedWrap(pAccount);
 
       return bRetVal;
    }

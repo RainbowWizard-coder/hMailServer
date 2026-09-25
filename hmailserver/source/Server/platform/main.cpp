@@ -225,6 +225,14 @@ namespace
          "  --recount-store\n"
          "                    rebuild the counts of the parts the store holds once\n"
          "                    from the stored files; the same conditions.\n"
+         "  --encrypt-store [--account <address> | --domain <name>]\n"
+         "                    encrypt to its account's key every stored file of a\n"
+         "                    mailbox encrypted at rest that is not encrypted yet\n"
+         "                    (docs/EncryptionAtRest.md); the same conditions.\n"
+         "  --decrypt-store (--account <address> | --domain <name>)\n"
+         "                    the reverse, with the domain's recovery passphrase\n"
+         "                    in HMAILSERVER_RECOVERY_PASSPHRASE; the same\n"
+         "                    conditions.\n"
          "  --verify-update <file>\n"
          "                    check a downloaded release file - a package or an\n"
          "                    AppImage - against the Sigstore bundle beside it\n"
@@ -1012,6 +1020,16 @@ int main(int argc, char *argv[])
       if (argument == "--recount-store")
       {
          store_verb = HM::MessageStoreMaintenance::VerbRecount;
+         continue;
+      }
+      if (argument == "--encrypt-store")
+      {
+         store_verb = HM::MessageStoreMaintenance::VerbEncrypt;
+         continue;
+      }
+      if (argument == "--decrypt-store")
+      {
+         store_verb = HM::MessageStoreMaintenance::VerbDecrypt;
          continue;
       }
       if (argument == "--decompress")

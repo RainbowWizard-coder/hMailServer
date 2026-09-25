@@ -25,6 +25,7 @@
 #include "../Common/Util/CompromiseDetector.h"
 #include "../Common/Util/Crypt.h"
 #include "../Common/Util/PasswordHistory.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/PasswordBreachCheck.h"
 #include "../Common/Util/PasswordPolicy.h"
 #include "../Common/Util/Time.h"
@@ -859,6 +860,12 @@ STDMETHODIMP InterfaceApplication::ResetPassword(BSTR Address, BSTR Password)
 
       if (!HM::PasswordBreachCheck::IsAcceptable(account->GetAddress(), password, breachRefusal, breachReason, breachStatus))
          return COMError::GenerateError(breachRefusal);
+
+      // A mailbox encrypted at rest (Common/Util/MailboxKeys.h): its key wrapped by
+      // the new password, or the reset refused while the key is closed.
+      HM::String keyRefusal;
+      if (!HM::MailboxKeys::PrepareForNewPassword(account, password, keyRefusal))
+         return COMError::GenerateError(keyRefusal);
 
       HM::PasswordHistory::Record(account);
 

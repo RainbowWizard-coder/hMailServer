@@ -218,6 +218,15 @@ namespace HM
       bool GetZeroAccess() const { return zero_access_; }
       void SetZeroAccess(bool newVal) { zero_access_ = newVal; }
 
+      // Mailbox encryption at rest (Util/MailboxKeys.h): the account's mailbox
+      // key wrapped by a password that is being set on this object, made by
+      // MailboxKeys::PrepareForNewPassword and stored by PersistentAccount::
+      // SaveObject once the account is saved, so that the key is never wrapped
+      // by a password the account does not have. Held on this object only:
+      // never a column, never copied, never in a backup.
+      AnsiString GetMailboxKeyWrap() const { return mailbox_key_wrap_; }
+      void SetMailboxKeyWrap(const AnsiString &newVal) { mailbox_key_wrap_ = newVal; }
+
       // Restricted delivery (schema 6084, Util/RestrictedDelivery.h): 0 follows
       // the domain's list of named domains, 1 is restricted even when the
       // domain names nothing (the account is then confined to its own
@@ -309,6 +318,8 @@ namespace HM
       AdminLevel admin_level_;
 
       AnsiString last_logon_time_;
+
+      AnsiString mailbox_key_wrap_;
    };
 
 }

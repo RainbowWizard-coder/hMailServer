@@ -29,6 +29,7 @@
 #include "../SQL/DALRecordset.h"
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
+#include "MailboxKeys.h"
 #include "../Application/Application.h"
 #include "../Application/ScheduledMailTask.h"
 #include "../BO/ACLPermission.h"
@@ -432,8 +433,19 @@ namespace HM
       String directory = FileUtilities::GetFilePath(fileName);
       if (!FileUtilities::Exists(directory) && !FileUtilities::CreateDirectory(directory))
          return BuildResponse_(500, "{\"error\":\"the account's directory could not be made\"}");
-      if (!FileUtilities::WriteToFile(fileName, text))
-         return BuildResponse_(500, "{\"error\":\"the message could not be written\"}");
+      // Encrypted to the account's key in memory when its mailbox is encrypted
+      // at rest - never written in the clear there - and written as it is
+      // otherwise; not written at all when it must not be (MessageStore.h).
+      MessageStore::PlaceRefusal refusal = MessageStore::PlaceAccepted;
+      if (!MessageStore::WriteForAccount(account, message, text, refusal))
+      {
+         MessageStore::DiscardWorkingFile(fileName);
+         if (refusal == MessageStore::PlaceRefusedDamaged)
+            return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(MailboxKeys::DamagedSentence())) + "\",\"code\":\"mailbox_key\"}");
+         if (refusal == MessageStore::PlaceRefusedUnknown)
+            return BuildResponse_(503, "{\"error\":\"whether this mailbox is encrypted at rest could not be read just now, and the message is not written in the clear on a guess; try again in a moment\",\"code\":\"mailbox_key\"}");
+         return BuildResponse_(500, "{\"error\":\"the message could not be written; see the error log\"}");
+      }
       message->SetSize((int) MessageStore::FileSize(fileName));
       message->SetFlagSeen(false);
       // A message in a folder is a delivered one; the store refuses to save one

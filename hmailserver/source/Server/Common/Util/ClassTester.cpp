@@ -49,6 +49,7 @@
 #include "../../SMTP/WarmupPlanTester.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "../Persistence/MessageStoreFormat.h"
+#include "MailboxCrypto.h"
 #include "../../SMTP/DeliveryReportParser.h"
 #include "../../SMTP/ComplaintTracker.h"
 #include "DomainReports.h"
@@ -418,6 +419,14 @@ namespace HM
       // magic kept as a container with no stages. Functions of values only.
       OutputDebugString(_T("hMailServer: Testing MessageStoreFormat\n"));
       MessageStoreFormat::Test();
+
+      // Mailbox encryption at rest (docs/EncryptionAtRest.md): X25519 against
+      // RFC 7748's vector, HKDF-SHA256 against RFC 5869's, and every seal and
+      // wrap round-tripped with its refusals - another key, a wrong secret, a
+      // changed byte, a copy made for another purpose. The container's own
+      // encryption stage is in MessageStoreFormat's test above.
+      OutputDebugString(_T("hMailServer: Testing MailboxCrypto\n"));
+      MailboxCrypto::Test();
 
       // Parameter substitution matters most on the two backends the bench does not
       // usually run: MySQL and PostgreSQL report GetSupportsCommandParameters() as

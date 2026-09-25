@@ -78,6 +78,18 @@ namespace HM
       if (!FileUtilities::Exists(sFilename))
          return false;
 
+      return AddPart_(contentType, [&sFilename](std::shared_ptr<MimeBody> part) { return part->ReadFromFile(sFilename); });
+   }
+
+   bool
+   Attachments::AddFromMemory(const String &fileName, const AnsiString &bytes, const String &contentType)
+   {
+      return AddPart_(contentType, [&fileName, &bytes](std::shared_ptr<MimeBody> part) { return part->ReadFromMemory(bytes, fileName); });
+   }
+
+   bool
+   Attachments::AddPart_(const String &contentType, const std::function<bool(std::shared_ptr<MimeBody>)> &read)
+   {
       // Always created as a part the message cannot mistake for its own body.
       // CreatePart reads the type it is given: "text/plain" and "text/html"
       // mean "this is the body", and it rebuilds the message around that - so
@@ -87,7 +99,7 @@ namespace HM
       std::shared_ptr<MimeBody> pAttachment = msg_data_->CreatePart("application/octet-stream");
       pAttachment->SetTransferEncoding("base64");
 
-      if (!pAttachment->ReadFromFile(sFilename))
+      if (!read(pAttachment))
          return false;
 
       if (!contentType.IsEmpty() && contentType.CompareNoCase(_T("application/octet-stream")) != 0)

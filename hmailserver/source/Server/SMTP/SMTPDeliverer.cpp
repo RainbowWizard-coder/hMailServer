@@ -460,6 +460,15 @@ namespace HM
          ComplaintTracker::RecordDeliveryPass(pMessage);
       }
 
+      // The local recipients whose mailbox's encryption at rest was not known
+      // (LocalDelivery::GetHeldForKeys): held as the list postings below are -
+      // the message stays in the queue for them, with its outside recipients'
+      // deferral or on the retry schedule of its own, and the sender is told
+      // only when the retries run out. Never a bounce while retries are left,
+      // never a discard.
+      if (!localDeliverer.GetHeldForKeys().empty())
+         messageRescheduled = LocalDelivery::HoldForRetry(pMessage, localDeliverer.GetHeldForKeys(), messageRescheduled, saErrorMessages);
+
       // The postings the list manager could not read: the message stays in the
       // queue for them - with its outside recipients' deferral when it has one,
       // or on the retry schedule of its own - and when the retries run out the

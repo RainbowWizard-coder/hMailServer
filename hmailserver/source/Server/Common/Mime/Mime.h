@@ -29,6 +29,7 @@
 
 #include <string>
 #include <list>
+#include <memory>
 using namespace std;
 
 // RFC 1521 - Mechanisms for Specifying and Describing the Format of Internet Message Bodies
@@ -484,6 +485,12 @@ namespace HM
       // operations for 'image/audio/vedio/application' (attachment) media
       bool IsAttachment() const;
       bool ReadFromFile(const String &pszFilename);
+
+      // The part's content from bytes in memory, named fileName: what
+      // ReadFromFile does with a file's bytes, with nothing written anywhere -
+      // the webmail's attachments, which for a mailbox encrypted at rest must
+      // not pass through the disk in the clear.
+      bool ReadFromMemory(const AnsiString &bytes, const String &fileName);
       bool WriteToFile(const String  &sFilename);
       // The content with its transfer encoding removed, in memory.
       bool GetDecodedContent(AnsiString &decoded);
@@ -506,6 +513,22 @@ namespace HM
       void RemoveAttachment(std::shared_ptr<MimeBody> pAttachment);
       MimeLoadResult LoadFromFile(const AnsiString &pszFilename);
       bool SaveAllToFile(const AnsiString &pszFilename);
+
+      // A message held in memory - one the message store decoded and never
+      // wrote out, a mailbox encrypted at rest's above all (docs/
+      // EncryptionAtRest.md) - parsed as LoadFromFile parses a file's bytes,
+      // and kept as the source an unchanged body is copied from on a rewrite,
+      // as LoadFromFile keeps its file. keepAsideOnFailure copies the bytes to
+      // "Problematic messages" when the parse throws, as LoadFromFile copies
+      // its file; false for bytes that must never reach the disk in the clear.
+      // name is for the error log.
+      MimeLoadResult LoadFromMemory(const std::shared_ptr<const std::string> &message, const String &name, bool keepAsideOnFailure);
+
+      // The whole message as SaveAllToFile would write it, into memory and
+      // nowhere else: the header and, when nothing of the body changed, the
+      // body copied from the source it was loaded from. False, reported, when
+      // that source could not be read. name is for the error log.
+      bool SaveAllToMemory(const String &name, std::shared_ptr<const std::string> &message);
 
       String GetCleanContentType() const;
       bool IsAnyChildModified() const;
@@ -562,6 +585,7 @@ namespace HM
       BodyList::iterator find_;
 
       AnsiString source_file_;          // Path of file this was loaded from
+      std::shared_ptr<const std::string> source_bytes_;   // Or the bytes, when they were never a file (LoadFromMemory)
       size_t body_byte_offset_ = 0;    // Byte offset where body starts in source file (after headers + blank line)
       size_t body_byte_end_ = 0;       // Byte offset one past last meaningful body byte (end of closing boundary marker)
       bool body_modified_ = false;     // True if any body content was changed
@@ -575,6 +599,19 @@ namespace HM
       // to be indistinguishable from - see the comment on the definition. An empty body
       // with a true return is legitimate: a header-only message has no body.
       bool ReadBodyFromSourceFile(AnsiString &body) const;
+
+      // The body between the offsets the parse recorded, out of the source's
+      // bytes (length of them, no terminating NUL counted): false when they
+      // are shorter than the header the parse read.
+      bool BodyFromSource_(const char *bytes, size_t length, AnsiString &body) const;
+
+      // What SaveAllToFile writes and SaveAllToMemory answers. preserved says
+      // the body was copied from the source, whose header and body sizes are
+      // then headerSize and bodySize. target is for the error log.
+      bool SerializeAll_(const String &target, AnsiString &output, bool &preserved, size_t &headerSize, size_t &bodySize);
+
+      // Where the body is in the bytes a parse has just read (loaded of them).
+      void RecordBodyBounds_(const char *bytes, size_t loaded);
 
       String GenerateFileNameFromEncapsulatedSubject(bool unicode) const;
    };

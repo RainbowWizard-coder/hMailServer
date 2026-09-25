@@ -56,6 +56,7 @@
 #include "PasswordPolicy.h"
 #include "PasswordHistory.h"
 #include "PasswordBreachCheck.h"
+#include "MailboxKeys.h"
 #include "SignInStore.h"
 #include "DiscoveryHolds.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
@@ -1882,6 +1883,15 @@ namespace
       if (!isNew && PasswordHistory::IsReuse(account, password))
          return ScimRefuse(refusal, 400, "invalidValue", _T("This password has been used recently on this account. Choose one that has not."));
 
+      // A mailbox encrypted at rest (MailboxKeys.h) whose key is closed cannot
+      // take a password nothing could wrap its key by.
+      String keyRefusal;
+      if (!isNew && !MailboxKeys::CanWrapNewPassword(account->GetID(), keyRefusal))
+      {
+         const int status = MailboxKeys::RefusalStatus(keyRefusal, 400);
+         return ScimRefuse(refusal, status, status == 400 ? "mutability" : "", keyRefusal);
+      }
+
       String breachRefusal;
       AnsiString breachReason;
       int breachStatus = 0;
@@ -1894,6 +1904,11 @@ namespace
    // The configured hash and the age clock, on the object the caller saves.
    void ScimSetPasswordHash(std::shared_ptr<Account> account, const String &password)
    {
+      // A mailbox encrypted at rest: its key wrapped by the password, stored
+      // when the account is saved (ScimJudgePassword asked whether it can be).
+      String keyRefusal;
+      MailboxKeys::PrepareForNewPassword(account, password, keyRefusal);
+
       const int preferredHashAlgorithm = IniFileSettings::Instance()->GetPreferredHashAlgorithm();
       account->SetPassword(Crypt::Instance()->EnCrypt(password, (Crypt::EncryptionType) preferredHashAlgorithm));
       account->SetPasswordEncryption(preferredHashAlgorithm);
@@ -1944,8 +1959,14 @@ namespace
    // password - as they were read. The address is not among them: a rename
    // that happened stays, and is reported. left names what could not be put
    // back.
+   //
+   // keyBefore, when the account's mailbox is encrypted at rest and the change
+   // set a password: the key's wraps as they were before it, put back with the
+   // password - the key wrapped only by the password being taken back would
+   // otherwise open with nothing the account has (MailboxKeys::RestoreWraps).
    bool ScimPutBack(std::shared_ptr<Account> account, const Account &before,
-                    const std::vector<std::shared_ptr<Alias> > &removed, const std::vector<std::shared_ptr<Alias> > &made, String &left)
+                    const std::vector<std::shared_ptr<Alias> > &removed, const std::vector<std::shared_ptr<Alias> > &made,
+                    const MailboxKeys::Row *keyBefore, String &left)
    {
       bool whole = true;
 
@@ -1979,6 +2000,11 @@ namespace
       if (!PersistentAccount::SaveObject(account, saveError, true, PersistenceModeNormal))
       {
          left += (left.IsEmpty() ? String() : String(_T(", "))) + _T("the account's names, switch, external id and password");
+         whole = false;
+      }
+      else if (keyBefore && !MailboxKeys::RestoreWraps(account->GetID(), *keyBefore))
+      {
+         left += (left.IsEmpty() ? String() : String(_T(", "))) + _T("the mailbox key's wrap under the password put back");
          whole = false;
       }
 
@@ -2182,11 +2208,17 @@ namespace
                      oldAddress, change.address, moveError));
             }
 
+            // Whether the mailbox has a key not known just now: for now.
+            if (moveError.Find(_T("could not be read just now")) >= 0)
+               return ScimRefuse(refusal, 503, "", moveError);
+
             const bool taken = moveError.Find(_T("already exists")) >= 0;
             const bool conflict = taken || !MailboxMove::InUseReason(account).IsEmpty() ||
                                   moveError.Find(_T("maximum number of accounts")) >= 0 ||
                                   moveError.Find(_T("maximum size for the domain")) >= 0 ||
-                                  moveError.Find(_T("legal hold")) >= 0;
+                                  moveError.Find(_T("legal hold")) >= 0 ||
+                                  moveError.Find(_T("encrypted at rest")) >= 0 ||
+                                  moveError.Find(_T("has a mailbox key")) >= 0;
 
             return ScimRefuse(refusal, conflict ? 409 : 400, taken ? "uniqueness" : (conflict ? "" : "invalidValue"), moveError);
          }
@@ -2194,6 +2226,11 @@ namespace
          renamed = true;
          LOG_APPLICATION(_T("REST API: SCIM ") + scim.identity + _T(" renamed ") + oldAddress + _T(": ") + MailboxMove::Describe(outcome));
       }
+
+      // The mailbox key's wraps as they are before the password changes, for a
+      // put-back to put back with the password (ScimPutBack).
+      MailboxKeys::Row keyBefore;
+      const bool keyedBefore = change.password_given && MailboxKeys::GetRow(account->GetID(), keyBefore);
 
       if (change.password_given)
          ScimSetPasswordHash(account, change.password);
@@ -2255,7 +2292,7 @@ namespace
       if (failed)
       {
          String left;
-         const bool putBack = ScimPutBack(account, *before, removed, made, left);
+         const bool putBack = ScimPutBack(account, *before, removed, made, keyedBefore ? &keyBefore : nullptr, left);
          return ScimFailedPartWay(scim, oldAddress, account->GetAddress(), renamed, putBack, left, refusal);
       }
 

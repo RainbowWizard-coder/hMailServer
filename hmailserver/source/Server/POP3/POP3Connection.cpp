@@ -10,6 +10,7 @@
 #include "../Common/Util/File.h"
 #include "../Common/Util/AccountLogon.h"
 #include "../Common/Util/SignInStore.h"
+#include "../Common/Util/MailboxKeys.h"
 #include "../Common/Util/SessionFollow.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/Util/Pop3LoginDelay.h"
@@ -362,6 +363,18 @@ namespace HM
          sCommand = Request;
 
       POP3Command command = GetCommand(current_state_, sCommand);
+
+      // A session signed in before its mailbox was encrypted at rest holds no
+      // key: it is ended at its next command, as the switch-on ended the ones
+      // it could reach (RestApiMailboxKeys.cpp) - it would otherwise read,
+      // decrypted, mail its credential could never have opened. A session of
+      // a keyed mailbox always holds its key (HandleSuccessfulLogin_).
+      if (current_state_ == TRANSACTION && account_ && !mailbox_key_hold_ &&
+          (MailboxKeys::KeyedState(account_->GetID()) == MailboxKeys::KeyedYes || MailboxKeys::KeyedState(account_->GetID()) == MailboxKeys::KeyedDamaged))
+      {
+         EnqueueWrite_("-ERR [SYS/PERM] This mailbox has been encrypted at rest since this session began. Sign in again with the account's own password.");
+         return ResultDisconnect;
+      }
 
       switch (command)
       {
@@ -781,6 +794,22 @@ namespace HM
    POP3Connection::ParseResult
    POP3Connection::HandleSuccessfulLogin_(int credential, const String &credentialName)
    {
+      // A mailbox encrypted at rest opens only with its own password, and a
+      // session is made only with its key open (Common/Util/MailboxKeys.h).
+      // The credentials were right, so this is not [AUTH]: RFC 3206's SYS/PERM
+      // says the refusal will stand until something on the server changes -
+      // and SYS/TEMP, when whether the mailbox is encrypted is not known just
+      // now, that it will not.
+      {
+         const String keyRefusal = MailboxKeys::SessionRefusal(account_, credential);
+         if (!keyRefusal.IsEmpty())
+         {
+            account_.reset();
+            EnqueueWrite_((MailboxKeys::IsTemporaryRefusal(keyRefusal) ? _T("-ERR [SYS/TEMP] ") : _T("-ERR [SYS/PERM] ")) + keyRefusal);
+            return ResultNormalResponse;
+         }
+      }
+
       // RFC 2449 section 6.5. The credentials were correct; this account has simply
       // come back too soon.
       //
@@ -835,6 +864,9 @@ namespace HM
       }
 
       mailbox_locked_ = true;
+
+      // Held open for as long as the maildrop is (SessionRefusal above).
+      mailbox_key_hold_ = MailboxKeys::Hold(account_->GetID());
 
       if (!Application::Instance()->GetFolderManager()->GetInboxMessages((int) account_->GetID(), messages_))
       {
@@ -1892,6 +1924,7 @@ namespace HM
          mailbox_locked_ = false;
       }
 
+      mailbox_key_hold_.reset();
       account_.reset();
    }
 

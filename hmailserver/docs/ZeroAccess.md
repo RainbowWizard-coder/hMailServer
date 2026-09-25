@@ -14,6 +14,13 @@ the browser derives from the account password with Argon2id, and sealed under a
 recovery key the person wrote down before the switch was thrown. This is the Proton
 model, and it is written down here as the trade-offs it is.
 
+**Not encryption at rest.** A mailbox the administrator encrypts at rest
+([EncryptionAtRest.md](EncryptionAtRest.md)) is stored encrypted to a key this server
+holds while the person is signed in, and reads, searches and serves as usual; this is a
+mailbox the server never holds the key to. The two are different promises and are never
+made on one mailbox: the switch-on here is refused (409) for a mailbox that has a mailbox
+key, and encryption at rest is refused for a zero-access mailbox.
+
 What it costs, said before the switch
 -------------------------------------
 

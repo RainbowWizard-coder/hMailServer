@@ -1664,6 +1664,10 @@ const state = {
       { id: 8, message_id: 9002, account: 'anna@example.com', sender: 'anna@example.com', recipients: 'three@stranger.example', subject: HOSTILE, size: 2048, held: 1758060060, source: 'webmail',
         reason: 'submitted while the account was locked for review' }
    ],
+   // Mailbox encryption at rest (RestApiMailboxKeys.cpp): each account's key
+   // and each domain's recovery key, made as the page asks for them.
+   mailboxKeys: {},
+   mailboxRecovery: {},
    reviewAccounts: {
       'anna@example.com': { address: 'anna@example.com', mode: 'enforce', exempt: false, sensitivity: 'default', locked: true, locked_at: 1758060000, score: 4, signals: 'volume, recipients',
          reason: '31 messages in the last hour against a busiest hour of 4 in 30 days; 28 of the 31 recipients in the last hour are addresses the account has never written to',
@@ -3132,6 +3136,40 @@ function answer(method, path, headers, raw) {
       return json(200, { reset: true });
    }
    if (/^\/api\/v1\/accounts\/[^/]+\/unlock$/.test(path) && method === 'POST') { return json(200, { unlocked: true }); }
+   // Mailbox encryption at rest (RestApiMailboxKeys.cpp): an account's key -
+   // read, switched, recovered with the domain's passphrase - and a domain's
+   // recovery key, as the routes answer them.
+   if (/^\/api\/v1\/accounts\/[^/]+\/mailbox-encryption(\/recover)?$/.test(path)) {
+      const address = segment(path, 4);
+      const key = state.mailboxKeys[address] || (state.mailboxKeys[address] = { enabled: false, keyed: false, open: false, pending: false, fingerprint: '', created: 0, changed: 0, zero_access: false, domain_recovery: true, recovery_current: false });
+      if (/\/recover$/.test(path) && method === 'POST') {
+         if (!parsed || parsed.passphrase !== 'the right passphrase') { return json(403, { error: 'the passphrase does not open the domain\'s recovery key', code: 'mailbox_key' }); }
+         key.open = true;
+         key.pending = false;
+         return json(200, { recovered: true });
+      }
+      if (method === 'PUT') {
+         if (parsed && parsed.enabled) {
+            Object.assign(key, { keyed: true, enabled: true, pending: true, open: true, fingerprint: '0123456789abcdef', recovery_current: true });
+            return json(201, key);
+         }
+         key.enabled = false;
+         return json(200, key);
+      }
+      if (method === 'GET') { return json(200, key); }
+   }
+   if (/^\/api\/v1\/domains\/[^/]+\/mailbox-recovery$/.test(path)) {
+      const name = segment(path, 4);
+      const recovery = state.mailboxRecovery[name] || (state.mailboxRecovery[name] = { exists: false, accounts: 0 });
+      if (method === 'PUT') {
+         if (!parsed || !parsed.passphrase || parsed.passphrase.length < 12) { return json(400, { error: 'passphrase: at least 12 characters' }); }
+         if (recovery.exists && !parsed.current_passphrase) { return json(409, { error: 'current_passphrase: the domain has a recovery key, and replacing it needs the passphrase that opens it' }); }
+         const made = !recovery.exists;
+         Object.assign(recovery, { exists: true, fingerprint: 'fedcba9876543210', hint: parsed.hint || '', created: 1790000000 });
+         return json(made ? 201 : 200, recovery);
+      }
+      if (method === 'GET') { return json(200, recovery); }
+   }
    if (/^\/api\/v1\/accounts\/[^/]+\/review$/.test(path) && (method === 'GET' || method === 'PUT')) {
       const reviewed = state.reviewAccounts[segment(path, 4)];
       if (!reviewed) { return json(404, { error: 'no such account' }); }
@@ -4298,6 +4336,72 @@ async function main() {
    click(act('accounts', { domain: 'example.com' }));
    await flush();
 
+   // ---- encryption at rest (RestApiMailboxKeys.cpp): the account's key card,
+   // the switch, and the recovery that opens the key with the domain's
+   // passphrase to set a new password
+   before = requests.length;
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   check('the account editor reads whether the mailbox is encrypted at rest, and says it is off, with no recovery to offer',
+      called(before, 'GET', '/api/v1/accounts/anna%40example.com/mailbox-encryption').length === 1 &&
+      content().textContent.indexOf('Encryption at rest') >= 0 && content().textContent.indexOf('Off: mail is stored as it arrives.') >= 0 &&
+      content().querySelectorAll('button[data-act="mkeyrecover"]').length === 0, paths(before));
+   before = requests.length;
+   click(act('mkeyon'));
+   await flush();
+   posted = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/mailbox-encryption');
+   check('Switch encryption on puts enabled true and draws the key waiting for the first sign-in, with the switch-off and the recovery offered',
+      JSON.stringify(posted) === '{"enabled":true}' && toastText() === 'Encryption at rest switched on' &&
+      content().textContent.indexOf('waits for the person') >= 0 && act('mkeyoff') !== null && act('mkeyrecover') !== null &&
+      document.getElementById('mkeyStale') === null,
+      JSON.stringify(posted) + ' ' + toastText());
+   before = requests.length;
+   click(act('mkeyrecover'));
+   await flush();
+   check('the recovery with nothing typed is refused by the page, and nothing is sent',
+      called(before, 'POST', /mailbox-encryption\/recover/).length === 0 &&
+      document.getElementById('err_mkey').textContent === 'Both the domain\'s recovery passphrase and a new password are needed.',
+      document.getElementById('err_mkey').textContent);
+   setValue('mkeyPassphrase', 'a wrong passphrase');
+   setValue('mkeyPassword', 'New-Passw0rd!');
+   click(act('mkeyrecover'));
+   await flush();
+   check('a passphrase that does not open the recovery key is refused in the server\'s own words',
+      document.getElementById('err_mkey').textContent.indexOf('does not open') >= 0, document.getElementById('err_mkey').textContent);
+   setValue('mkeyPassphrase', 'the right passphrase');
+   setValue('mkeyPassword', 'New-Passw0rd!');
+   before = requests.length;
+   click(act('mkeyrecover'));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/accounts/anna%40example.com/mailbox-encryption/recover');
+   check('the recovery posts the passphrase and the new password, and the key is drawn open',
+      posted !== null && posted.passphrase === 'the right passphrase' && posted.password === 'New-Passw0rd!' &&
+      toastText() === 'The mailbox was recovered: the new password opens it.' && content().textContent.indexOf('The key is open') >= 0,
+      JSON.stringify(posted) + ' ' + toastText());
+   before = requests.length;
+   click(act('mkeyoff'));
+   await flush();
+   posted = lastBody(before, 'PUT', '/api/v1/accounts/anna%40example.com/mailbox-encryption');
+   check('Switch encryption off puts enabled false and says that what is encrypted stays so',
+      JSON.stringify(posted) === '{"enabled":false}' && toastText() === 'Encryption at rest switched off' &&
+      content().textContent.indexOf('What was stored encrypted stays encrypted') >= 0, JSON.stringify(posted) + ' ' + toastText());
+
+   // A key whose recovery copy the domain's recovery key does not open - the
+   // server answers recovery_current false - is said so on the card, since
+   // the recovery form beside it would be refused.
+   state.mailboxKeys['anna@example.com'].recovery_current = false;
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
+   click(act('accountedit', { address: 'anna@example.com' }));
+   await flush();
+   check('a key the domain\'s recovery key does not open is said so on the account card',
+      document.getElementById('mkeyStale') !== null &&
+      document.getElementById('mkeyStale').textContent.indexOf('does not open this mailbox') >= 0,
+      document.getElementById('mkeyStale') ? document.getElementById('mkeyStale').textContent : 'no note');
+   state.mailboxKeys['anna@example.com'].recovery_current = true;
+   click(act('accounts', { domain: 'example.com' }));
+   await flush();
+
    // ---- renaming a mailbox, and moving one to another domain
    moveBlockedReason = 'A POP3 session is holding the mailbox of anna@example.com.';
    before = requests.length;
@@ -5020,6 +5124,47 @@ async function main() {
    click(act('domainsave'));
    await flush();
    check('saving a domain with nothing changed sends nothing', called(before, 'PUT', /domains/).length === 0 && toastText() === 'Nothing changed', toastText());
+
+   // ---- the domain's recovery key for mailbox encryption at rest
+   // (RestApiMailboxKeys.cpp): read with the domain, made, then replaced
+   const recoveryBox = () => document.getElementById('mailboxRecovery');
+   check('the domain editor reads the domain\'s mailbox recovery key and says there is none',
+      called(openedAt, 'GET', '/api/v1/domains/example.com/mailbox-recovery').length === 1 && recoveryBox() !== null &&
+      recoveryBox().textContent.indexOf('No recovery key') >= 0 && act('mrecsave').textContent === 'Make the recovery key' &&
+      document.getElementById('mrecCurrent') === null, recoveryBox() ? recoveryBox().textContent.slice(0, 200) : 'no card');
+   setValue('mrecPassphrase', 'short');
+   click(act('mrecsave'));
+   await flush();
+   check('a passphrase the server refuses is shown under the card', document.getElementById('err_mrec').textContent.indexOf('12 characters') >= 0,
+      document.getElementById('err_mrec').textContent);
+   setValue('mrecPassphrase', 'a passphrase kept elsewhere');
+   setValue('mrecHint', 'the safe in the office');
+   before = requests.length;
+   click(act('mrecsave'));
+   await flush();
+   posted = lastBody(before, 'PUT', '/api/v1/domains/example.com/mailbox-recovery');
+   check('Make the recovery key puts the passphrase and the hint, and the card shows the key, the hint and the replacement',
+      JSON.stringify(posted) === '{"passphrase":"a passphrase kept elsewhere","hint":"the safe in the office"}' && toastText() === 'The recovery key was saved.' &&
+      recoveryBox().textContent.indexOf('fedcba9876543210') >= 0 && recoveryBox().textContent.indexOf('the safe in the office') >= 0 &&
+      act('mrecsave').textContent === 'Replace the recovery key' && document.getElementById('mrecCurrent') !== null &&
+      document.getElementById('mrecUnfinished') === null,
+      JSON.stringify(posted) + ' ' + toastText());
+   setValue('mrecCurrent', 'a passphrase kept elsewhere');
+   setValue('mrecPassphrase', 'another passphrase kept elsewhere');
+   // The server says a replacement did not finish (MailboxKeys::SetRecovery):
+   // the card says what that means and how to finish it.
+   state.mailboxRecovery['example.com'].replacement_unfinished = true;
+   before = requests.length;
+   click(act('mrecsave'));
+   await flush();
+   posted = lastBody(before, 'PUT', '/api/v1/domains/example.com/mailbox-recovery');
+   check('Replace the recovery key sends the current passphrase beside the new one',
+      posted !== null && posted.current_passphrase === 'a passphrase kept elsewhere' && posted.passphrase === 'another passphrase kept elsewhere',
+      JSON.stringify(posted));
+   check('a replacement that did not finish is said so on the recovery card, with how to finish it',
+      document.getElementById('mrecUnfinished') !== null &&
+      document.getElementById('mrecUnfinished').textContent.indexOf('did not finish') >= 0,
+      recoveryBox() ? recoveryBox().textContent.slice(0, 300) : 'no card');
 
    // ---- one value, three levels: the domain's
    const levelsBox = () => document.getElementById('domainLevels');
