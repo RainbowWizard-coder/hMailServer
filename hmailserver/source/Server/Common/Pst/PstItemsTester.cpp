@@ -618,6 +618,11 @@ namespace HM
          size_t fixedEnd = 0;
          const std::string weekly = Weekly(fixedEnd);
 
+         // Where weekly's fixed part ends. fixedEnd itself is written again by
+         // every Recurrence() below, so the offsets into weekly are taken from
+         // this copy.
+         const size_t weeklyEnd = fixedEnd;
+
          PstRecurrence recurrence;
          std::string problem;
          Expect(PstItems::ParseRecurrence(weekly, 1252, recurrence, problem), "[MS-OXOCAL]'s recurrence blob is read.");
@@ -681,12 +686,27 @@ namespace HM
          many = counted;
          Put(many, 42, Le32(0x40000000));
          Expect(refused(many), "A changed-occurrence count past what the blob holds is refused.");
+         // weekly's one exception ends its fixed part: start, end and original
+         // start (4 each), OverrideFlags (2), SubjectLength (2), SubjectLength2
+         // (2) and "Moved" (5), LocationLength (2), LocationLength2 (2) and
+         // "Room 2" (6), then ReservedBlock1Size (4).
+         const size_t subjectLength = weeklyEnd - 4 - 6 - 2 - 2 - 5 - 2 - 2;
+         const size_t subjectLength2 = subjectLength + 2;
+         const size_t exceptionCount = weeklyEnd - 4 - (4 + 4 + 4 + 2 + 2 + 2 + 5 + 2 + 2 + 6) - 2;
+         Expect(PstFormat::U16(weekly, subjectLength, "test") == 6 && PstFormat::U16(weekly, subjectLength2, "test") == 5 &&
+                PstFormat::U16(weekly, exceptionCount, "test") == 1,
+                "The offsets name weekly's own fields: SubjectLength 6, SubjectLength2 5, ExceptionCount 1.");
+
          many = weekly;
-         Put(many, fixedEnd - 4 - (4 + 4 + 4 + 2 + 2 + 2 + 5 + 2 + 2 + 6) - 2, Le16(0xFFFF));
+         Put(many, exceptionCount, Le16(0xFFFF));
          Expect(refused(many), "An exception count past what the blob holds is refused.");
          many = weekly;
-         Put(many, fixedEnd - 4 - 6 - 2 - 2 - 5 - 2, Le16(9));
+         Put(many, subjectLength2, Le16(9));
          Expect(refused(many), "A subject longer than its own length says is refused.");
+         many = weekly;
+         Put(many, subjectLength, Le16(4));
+         Expect(refused(many) && problem.find("two lengths that do not agree") != std::string::npos,
+                "... and so is one whose SubjectLength is shorter than SubjectLength2, by the check itself.");
 
          // [MS-OXOCAL] 2.2.1.44.5: as many exceptions as changed occurrences.
          std::vector<uint32_t> twoDates;

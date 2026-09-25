@@ -1137,6 +1137,10 @@ namespace RegressionTests.API
          CollectionAssert.AreEqual(new[] { "First", "Fourth", "Tail first" },
             Events(address, "20240301T000000Z", "20240401T000000Z").Select(e => Text(e, "summary")).OrderBy(n => n).ToList(),
             "The first event, the one after the refused ones, and the Tail's first arrived.");
+
+         // HM7411, each pause and each run's first give-up: read, and the
+         // error log emptied for the next test.
+         CustomAsserts.AssertReportedError("HM7411", "counted not_saved");
       }
 
       // ------------------------------------------------------------ the steps
