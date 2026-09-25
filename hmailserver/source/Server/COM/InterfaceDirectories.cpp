@@ -13,6 +13,17 @@ InterfaceDirectories::InterfaceDirectories() :
 
 }
 
+// [Directories] lives in hMailServer.INI, which the Windows service's own account
+// may not write (docs/ServiceAccount.md). The folders are how the server finds
+// everything else, and the elevated /GrantServiceAccess reads them, so a change is
+// an administrator's, made in the file itself; one outside the program folder is
+// then approved for the service before it is granted.
+static HM::String DirectoryRefusal_()
+{
+   return HM::IniFileSettings::InitializationFileRefusal(_T("The folder"),
+      _T("An administrator changes [Directories] in the file with an editor run as an administrator, approves a folder outside the program folder for the service - hMailServer.exe --approve-modify \"<folder>\" /GrantServiceAccess, or Grant access on the Control Panel's Windows service account card - and restarts the service."));
+}
+
 STDMETHODIMP InterfaceDirectories::get_ProgramDirectory(BSTR *pVal)
 {
    try
@@ -37,6 +48,9 @@ STDMETHODIMP InterfaceDirectories::put_ProgramDirectory(BSTR newVal)
 
       if (!ini_file_settings_)
          return GetAccessDenied();
+
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DirectoryRefusal_());
 
       ini_file_settings_->SetProgramDirectory(newVal);
       return S_OK;
@@ -72,6 +86,9 @@ STDMETHODIMP InterfaceDirectories::put_DatabaseDirectory(BSTR newVal)
       if (!ini_file_settings_)
          return GetAccessDenied();
 
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DirectoryRefusal_());
+
       ini_file_settings_->SetDatabaseDirectory(newVal);
       return S_OK;
    }
@@ -105,6 +122,9 @@ STDMETHODIMP InterfaceDirectories::put_DataDirectory(BSTR newVal)
 
       if (!ini_file_settings_)
          return GetAccessDenied();
+
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DirectoryRefusal_());
 
       ini_file_settings_->SetDataDirectory(newVal);
       return S_OK;
@@ -140,6 +160,9 @@ STDMETHODIMP InterfaceDirectories::put_LogDirectory(BSTR newVal)
       if (!ini_file_settings_)
          return GetAccessDenied();
 
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DirectoryRefusal_());
+
       ini_file_settings_->SetLogDirectory(newVal);
       return S_OK;
    }
@@ -174,6 +197,9 @@ STDMETHODIMP InterfaceDirectories::put_TempDirectory(BSTR newVal)
       if (!ini_file_settings_)
          return GetAccessDenied();
 
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DirectoryRefusal_());
+
       ini_file_settings_->SetTempDirectory(newVal);
       return S_OK;
    }
@@ -207,6 +233,9 @@ STDMETHODIMP InterfaceDirectories::put_EventDirectory(BSTR newVal)
 
       if (!ini_file_settings_)
          return GetAccessDenied();
+
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DirectoryRefusal_());
 
       ini_file_settings_->SetEventDirectory(newVal);
       return S_OK;

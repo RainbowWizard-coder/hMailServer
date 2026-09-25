@@ -33,13 +33,25 @@ namespace HM
    /// is the class that makes that true of the 241 keys already in the file.
    ///
    /// WHY THE FILE IS STILL WRITTEN. Because some readers cannot go to the
-   /// database, and one of them by definition never can: hMailServer.exe /Register
-   /// reads [Settings] ServiceAccountName and ServiceAccountPassword with no
-   /// database open at all, because registering the service is what happens before
-   /// there is one. So every row is written into the file as well, and the file
-   /// remains a complete, readable copy of the configuration - a cache, not a
-   /// store. An administrator can still read it; what they can no longer do is
-   /// change a setting by editing it.
+   /// database: the server itself when the table cannot be read (Synchronize's
+   /// fallback), the installer, which reads ShutdownDrainSeconds to stop the
+   /// service, and an administrator reading the file. So every row is written into
+   /// the file as well, and the file remains a readable copy of the configuration
+   /// - a cache, not a store. An administrator can still read it; what they can no
+   /// longer do is change a setting by editing it. (hMailServer.exe /Register used
+   /// to be one of those readers, for ServiceAccountName; it takes the account from
+   /// its command line only now - see ServiceManager.)
+   ///
+   /// WHEN THE FILE CANNOT BE WRITTEN. Under the Windows service's own account,
+   /// NT SERVICE\hMailServer, it never can: that account is deliberately given no
+   /// write to hMailServer.INI (docs/ServiceAccount.md), because the file also
+   /// holds [Database], [Directories] and [Security], which elevated commands
+   /// read. Then nothing here tries (IniFileSettings::InitializationFileWritable):
+   /// the rows are the settings, in use as ever, the [Settings] copy stays as the
+   /// last account that could write it left it, and that is said once in the
+   /// application log rather than reported as an error at every start and save.
+   /// Each row's filevalue records what the file really holds, so a stale copy is
+   /// never mistaken for an edit, and an edit is named once, not at every start.
    ///
    /// THE MERGE, which is no longer three-way. Each row still remembers what the
    /// file held when the two last agreed (inisettingfilevalue), but that is now
@@ -70,9 +82,10 @@ namespace HM
    /// which applies it, because it has to apply even when this table cannot be
    /// read at all.
    ///
-   /// filevalue is only advanced when the file write SUCCEEDS. If the service
-   /// account cannot write the ini, the row stays marked as un-synchronised and
-   /// the next start tries again, rather than recording a lie.
+   /// filevalue is only advanced when the file write SUCCEEDS. If a write that
+   /// was tried fails, the row stays marked as un-synchronised and the next start
+   /// tries again, rather than recording a lie; if the file is read-only to this
+   /// account, nothing is tried and filevalue is what the file holds.
    /// </summary>
    class IniSettingStore
    {
@@ -155,8 +168,9 @@ namespace HM
       ///
       /// True with the file write having failed is a real outcome and is reported
       /// rather than swallowed: the value IS stored and WILL be used, but until the
-      /// file can be written the handful of readers that go to it directly - notably
-      /// hMailServer.exe /Register, which has no database - keep seeing the old one.
+      /// file can be written the handful of readers that go to it directly keep
+      /// seeing the old one. A file this account may not write - the Windows
+      /// service's own account's case - is not tried at all, and said once.
       ///
       /// Note what this does NOT do: it does not make the value take effect in the
       /// running process. IniFileSettings::WriteSettingsValue, which every door to
@@ -180,6 +194,12 @@ namespace HM
       /// table has never seen and is ADOPTED, so dropping the row first and then
       /// failing to remove the line would put the setting straight back at the next
       /// start, after reporting success.
+      ///
+      /// When the file may not be written and still has the line, that residue
+      /// cannot be avoided, so the row is KEPT, holding the setting's default: the
+      /// server treats it as returned to its default, and the next start does not
+      /// adopt the line. A key this build does not read has no default to hold and
+      /// is refused with a sentence, as the file-only key is.
       /// </summary>
       static bool RemoveSetting(const String &name);
 
@@ -337,6 +357,21 @@ namespace HM
       /// pepper and no pepper are the same thing to Crypt, so either is "no value".
       /// </summary>
       static bool ReadFileValue_(const String &name, String &value);
+
+      /// <summary>
+      /// Whether the [Settings] section of the file has a line for name at all,
+      /// and its value. Unlike ReadFileValue_, a line with an empty value is a
+      /// line: it is what a removal would have to take out.
+      /// </summary>
+      static bool FileLine_(const String &name, String &value);
+
+      /// <summary>
+      /// Said once per process, the first time an administrator's change finds
+      /// hMailServer.INI read-only: that the database holds the value and uses it,
+      /// that the file's copy is not refreshed, and why that is right under the
+      /// Windows service's own account (docs/ServiceAccount.md).
+      /// </summary>
+      static void NoteReadOnlyFile_();
 
       /// <summary>
       /// The audit trail's record of one administrative change to a [Settings] key:

@@ -684,6 +684,178 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>
+      /// A button on the Windows service account card that runs hMailServer.exe as
+      /// an administrator, after the elevation prompt, and shows what it said
+      /// (docs/ServiceAccount.md): Grant access, and the two moves. The account is
+      /// passed on /Register's command line, the only place /Register takes it from
+      /// - never ServiceAccountName, which the service and hMailServer
+      /// administrators can write. The move to NT SERVICE\hMailServer is made only
+      /// after a grant that ended cleanly, and the grant runs with --confirm: a
+      /// folder or key file the configuration names outside the service's folders
+      /// is asked about, by the elevated program itself, before anything is
+      /// approved. It carries no Key - it edits nothing, saves nothing, and the
+      /// settings index has nothing to find in it - and works only on the server
+      /// itself, whose folders these are.
+      /// </summary>
+      private class ServiceAccountActionSetting : Setting
+      {
+         public enum Action
+         {
+            Grant,
+            MoveToOwnAccount,
+            MoveToLocalSystem
+         }
+
+         public Action Does;
+         public string ButtonText;
+         public string AutomationId;
+
+         protected override bool InSettingsSection => false;
+
+         public override FrameworkElement CreateEditor(IniFeatureStore store)
+         {
+            string executable = ServerExecutable_(store);
+            bool here = ServerSession.IsLocalSession && executable != null;
+
+            var button = new Wpf.Ui.Controls.Button   // per setting: no access key, the rows are reached with the arrow keys
+            {
+               Content = ButtonText,
+               IsEnabled = here,
+               HorizontalAlignment = HorizontalAlignment.Left
+            };
+            SetAid(button, AutomationId);
+            AutomationProperties.SetName(button, Label);
+
+            button.Click += async (s, e) =>
+            {
+               button.IsEnabled = false;
+               try
+               {
+                  (int exitCode, string said, string error) outcome = await Task.Run(() => RunElevated_(executable, Does));
+                  if (outcome.error != null)
+                     MessageBox.Show(F("hMailServer.exe could not be run: {0}", outcome.error), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                  else if (outcome.exitCode != 0)
+                     MessageBox.Show(F("hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):\n\n{1}", outcome.exitCode, outcome.said), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                  else if (Does == Action.Grant)
+                     MessageBox.Show(F("hMailServer.exe /GrantServiceAccess finished:\n\n{0}", outcome.said), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Information);
+                  else
+                  {
+                     string account = Does == Action.MoveToOwnAccount ? "NT SERVICE\\hMailServer" : "LocalSystem"; // no-loc
+                     MessageBox.Show(F("The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.\n\n{1}", account, outcome.said),
+                        L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Information);
+                  }
+               }
+               finally
+               {
+                  button.IsEnabled = true;
+               }
+            };
+
+            return Row(button, Label, button, here ? Blurb : L("Open the Control Panel on the server itself to change the account the service runs as or grant it its folders."));
+         }
+
+         /// <summary>Nothing to save: this row edits nothing.</summary>
+         public override void Save(IniFeatureStore store)
+         {
+         }
+
+         /// <summary>
+         /// hMailServer.exe beside hMailServer.INI, where the installer puts both;
+         /// else the service's own registration; null when neither names one that
+         /// is there.
+         /// </summary>
+         private static string ServerExecutable_(IniFeatureStore store)
+         {
+            if (store.IsAvailable)
+            {
+               string beside = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(store.IniPath) ?? "", "hMailServer.exe"); // no-loc
+               if (System.IO.File.Exists(beside))
+                  return beside;
+            }
+
+            WindowsServiceInfo service = WindowsServiceInfo.Query();
+            string registered = service.Exists ? WindowsServiceInfo.ExecutableFrom(service.PathName) : null;
+            return registered != null && System.IO.File.Exists(registered) ? registered : null;
+         }
+
+         /// <summary>
+         /// The command line cmd.exe runs, elevated. The move to the virtual
+         /// account is two commands joined by &amp;&amp;, so that /Register runs
+         /// only when the grant ended in 0 - every folder reached, or confirmed.
+         /// </summary>
+         private static string CommandFor_(string executable, Action action, string report)
+         {
+            string exe = "\"" + executable + "\""; // no-loc
+            string into = " > \"" + report + "\" 2>&1"; // no-loc
+            string onto = " >> \"" + report + "\" 2>&1"; // no-loc
+            switch (action)
+            {
+               case Action.MoveToOwnAccount:
+                  return exe + " --confirm /GrantServiceAccess" + into + " && " + exe + " --service-account virtual /Register" + onto; // no-loc
+               case Action.MoveToLocalSystem:
+                  return exe + " --service-account localsystem /Register" + into; // no-loc
+               default:
+                  return exe + " --confirm /GrantServiceAccess" + into; // no-loc
+            }
+         }
+
+         /// <summary>
+         /// Runs the command elevated, its lines into a file of this session's own,
+         /// and hands back its exit code and what it said - or why it could not be
+         /// run. The elevated process is cmd.exe so that the verb's output has
+         /// somewhere to go: a program started through the elevation prompt has no
+         /// handles this process can read.
+         /// </summary>
+         private static (int exitCode, string said, string error) RunElevated_(string executable, Action action)
+         {
+            string report = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "hMailServer-service-account-" + Guid.NewGuid().ToString("N") + ".txt"); // no-loc
+            try
+            {
+               var start = new System.Diagnostics.ProcessStartInfo
+               {
+                  FileName = System.IO.Path.Combine(Environment.SystemDirectory, "cmd.exe"), // no-loc
+                  Arguments = "/s /c \"" + CommandFor_(executable, action, report) + "\"", // no-loc
+                  UseShellExecute = true,
+                  Verb = "runas", // no-loc
+                  WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+               };
+
+               int exitCode;
+               using (var process = System.Diagnostics.Process.Start(start))
+               {
+                  if (process == null)
+                     return (-1, "", null);
+                  process.WaitForExit();
+                  exitCode = process.ExitCode;
+               }
+
+               string said = System.IO.File.Exists(report) ? System.IO.File.ReadAllText(report, System.Text.Encoding.UTF8).Trim() : "";
+               return (exitCode, said, null);
+            }
+            catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+            {
+               return (-1, "", L("the elevation prompt was cancelled."));
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               return (-1, "", ex.GetBaseException().Message);
+            }
+            finally
+            {
+               try
+               {
+                  if (System.IO.File.Exists(report))
+                     System.IO.File.Delete(report);
+               }
+               catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException)
+               {
+                  // A report left in this session's temp folder costs nothing.
+               }
+            }
+         }
+      }
+
       /// <summary>What one computed warning has decided to say, or null for nothing.</summary>
       private class WarningState
       {
@@ -779,17 +951,15 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The service account line: what Windows is running the service as, against
-      /// what the INI asks for.
+      /// The service account line: what Windows is running the service as.
       ///
       /// This is the "show the state, not the switch" rule applied to the one
-      /// setting on the page whose effect is not the server's to deliver.
-      /// ServiceAccountName is consumed by ServiceManager::RegisterService and
-      /// never read again, so an administrator who types an account here, saves,
-      /// and restarts the service gets no change and no error - the service simply
-      /// keeps logging on as whoever it logged on as before. Only the Service
-      /// Control Manager knows the truth, so the truth is what is reported, in
-      /// every case including the ones where it cannot be determined.
+      /// setting on the card whose effect is not the server's to deliver. Only the
+      /// Service Control Manager knows the truth, so the truth is what is reported,
+      /// in every case including the ones where it cannot be determined. There is
+      /// nothing to compare it with any more: ServiceAccountName, which /Register
+      /// used to read, is not read (docs/ServiceAccount.md), and the account is
+      /// changed with the buttons below.
       /// </summary>
       private WarningState ComputeServiceAccountState_()
       {
@@ -805,7 +975,6 @@ namespace hMailServer.ControlPanel.Views
          }
 
          WindowsServiceInfo service = serviceInfo_ ??= WindowsServiceInfo.Query();
-         string configured = LiveText_("ServiceAccountName", "").Trim();
 
          if (!service.Exists)
          {
@@ -814,51 +983,20 @@ namespace hMailServer.ControlPanel.Views
                Level = StatusLevel.Information,
                Text = service.Error != null
                   ? F("The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}", service.Error)
-                  : L("Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered.")
+                  : L("Windows does not report an hMailServer service on this machine, so there is no account to show or move yet.")
             };
          }
 
-         string running = WindowsServiceInfo.DescribeAccount(service.StartName);
-         string register = "\"" + WindowsServiceInfo.ExecutableFrom(service.PathName) + "\" /Register"; // no-loc
-         string howToApply = F("To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail.", register);
-
-         if (configured.Length == 0)
-         {
-            // Nothing requested. Whether that is fine depends entirely on what the
-            // service is already running as, so the answer is about the SCM value.
-            //
-            // Note what is NOT said here: that an empty value means LocalSystem. It
-            // means that only on the CreateService path, and this branch is only
-            // reached when the service already exists - so ReconfigureService_ is
-            // what would run, and there an empty value means "leave the account
-            // alone". Saying "empty = LocalSystem" would invite somebody to clear
-            // the box to undo a least-privilege account and get no change at all.
-            bool localSystem = string.Equals(
-               WindowsServiceInfo.Canonical(service.StartName, Environment.MachineName), "localsystem",
-               StringComparison.OrdinalIgnoreCase);
-
-            return new WarningState
-            {
-               Level = localSystem ? StatusLevel.Information : StatusLevel.Good,
-               Text = localSystem
-                  ? F("The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\\hMailServer needs no password - and then re-registering the service is what changes it.", running)
-                  : F("The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means \"leave the account as it is\" - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly.", service.StartName)
-            };
-         }
-
-         if (WindowsServiceInfo.SameAccount(configured, service.StartName, Environment.MachineName))
-         {
-            return new WarningState
-            {
-               Level = StatusLevel.Good,
-               Text = F("The service is running as {0}, which is the account requested above. Nothing further is needed.", service.StartName)
-            };
-         }
+         bool localSystem = string.Equals(
+            WindowsServiceInfo.Canonical(service.StartName, Environment.MachineName), "localsystem",
+            StringComparison.OrdinalIgnoreCase);
 
          return new WarningState
          {
-            Level = StatusLevel.Warning,
-            Text = F("Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. ", running, configured) + howToApply
+            Level = localSystem ? StatusLevel.Information : StatusLevel.Good,
+            Text = localSystem
+               ? F("The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\\hMailServer below contains that.", WindowsServiceInfo.DescribeAccount(service.StartName))
+               : F("The service is running as {0}, which is not LocalSystem, so it is already contained.", service.StartName)
          };
       }
 
@@ -2261,38 +2399,44 @@ namespace hMailServer.ControlPanel.Views
                cards_.Add(new CardDef
                {
                   // The clearest case on this page of the rule that a setting whose
-                  // effect happens outside the program has to say so. These two are
-                  // read once, by ServiceManager::RegisterService, and the running
-                  // service never looks at them again - so between saving here and
-                  // running the registration, this page and the Service Control
-                  // Manager disagree, and only one of them is what the machine
-                  // actually does. Hence the live readout of the SCM below, and the
-                  // exact command rather than a description of one.
+                  // effect happens outside the program has to say so. The account
+                  // is the Service Control Manager's, so the card reads it from
+                  // there, and changes it with buttons that run the registration
+                  // itself, elevated, with the account on its command line - the
+                  // only place /Register takes it from (docs/ServiceAccount.md).
                   Title = L("Windows service account"),
-                  Blurb = L("Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\\hMailServer."),
+                  Blurb = L("Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer."),
                   Settings =
                   {
-                     new TextSetting
+                     // No ServiceAccountName or ServiceAccountPassword editor any
+                     // more. /Register took the account from them; it takes it
+                     // from its command line now, which these buttons pass, and
+                     // an account with a password is set in services.msc
+                     // (docs/ServiceAccount.md). The keys are still read, and a
+                     // stored password is raised on the External setup page.
+                     new ServiceAccountActionSetting
                      {
-                        Key = "ServiceAccountName",
-                        // NOT "empty = LocalSystem". Empty means LocalSystem only on
-                        // the CreateService path, which runs when no hMailServer
-                        // service exists yet. On any machine that already has one -
-                        // which is every machine this page can read the SCM on -
-                        // ServiceManager takes ReconfigureService_, where an empty
-                        // value becomes NULL and ChangeServiceConfig is told to
-                        // leave the logon account alone. Clearing the box to go back
-                        // to LocalSystem therefore does nothing at all, silently.
-                        Label = L("Account for the service to log on as (empty = leave the current account unchanged)"),
-                        Placeholder = "NT SERVICE\\hMailServer", // no-loc
-                        Blurb = L("Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means \"leave the account as it is\". To return to LocalSystem, set this to LocalSystem explicitly and re-register.")
+                        Does = ServiceAccountActionSetting.Action.Grant,
+                        ButtonText = L("Grant access…"),
+                        AutomationId = "ServiceAccountGrant",
+                        Label = L("Folders the service account needs"),
+                        Blurb = L("Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission.")
                      },
-                     new SecretSetting
+                     new ServiceAccountActionSetting
                      {
-                        Key = "ServiceAccountPassword",
-                        Label = L("Password for that account (leave empty for NT SERVICE\\ and gMSA accounts)"),
-                        Hint = L("Not needed for a virtual or managed account"),
-                        Blurb = L("Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on.")
+                        Does = ServiceAccountActionSetting.Action.MoveToOwnAccount,
+                        ButtonText = L("Move to NT SERVICE\\hMailServer…"),
+                        AutomationId = "ServiceAccountMoveToOwn",
+                        Label = L("Run the service as its own account"),
+                        Blurb = L("Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted.")
+                     },
+                     new ServiceAccountActionSetting
+                     {
+                        Does = ServiceAccountActionSetting.Action.MoveToLocalSystem,
+                        ButtonText = L("Move to LocalSystem…"),
+                        AutomationId = "ServiceAccountMoveToLocalSystem",
+                        Label = L("Run the service as LocalSystem"),
+                        Blurb = L("Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted.")
                      }
                   },
                   Warnings =
@@ -2307,28 +2451,19 @@ namespace hMailServer.ControlPanel.Views
                         Aid = "ServiceAccountGrants",
                         Compute = () =>
                         {
-                           // Only worth saying once an account has been named: for
-                           // LocalSystem none of it applies, and a permanent notice
-                           // about work that is not needed is noise.
-                           if (string.IsNullOrWhiteSpace(LiveText_("ServiceAccountName", "")))
+                           // Only while the service runs as an account of its own:
+                           // for LocalSystem none of it applies, and a permanent
+                           // notice about work that is not needed is noise.
+                           if (!ServerSession.IsLocalSession)
+                              return null;
+                           WindowsServiceInfo service = serviceInfo_ ??= WindowsServiceInfo.Query();
+                           if (!service.Exists || string.Equals(WindowsServiceInfo.Canonical(service.StartName, Environment.MachineName), "localsystem", StringComparison.OrdinalIgnoreCase))
                               return null;
 
-                           // "Read access to the program folder" was wrong, and wrong
-                           // in a way that breaks things quietly. hMailServer.INI
-                           // lives in that folder, and the service process writes to
-                           // it: hMailServer.exe is the out-of-process COM server, so
-                           // every settings write executes under the service account.
-                           // With read-only rights those writes fail silently -
-                           // WriteIniSetting_ discards WritePrivateProfileString's
-                           // result and SetAdministratorPassword returns S_OK anyway -
-                           // so an administrator changes the administration password,
-                           // is told it worked, and the old one comes back at the next
-                           // restart. Following this card's own advice was what caused
-                           // it.
                            return new WarningState
                            {
                               Level = StatusLevel.Information,
-                              Text = L("Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the \"Log on as a service\" right (secpol.msc > Local Policies > User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start.")
+                              Text = L("What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\\hMailServer is set in services.msc and needs the \"Log on as a service\" right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start.")
                            };
                         }
                      }

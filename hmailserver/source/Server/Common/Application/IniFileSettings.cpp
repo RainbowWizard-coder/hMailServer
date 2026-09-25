@@ -17,6 +17,8 @@
 #include "../Util/DiskSpace.h"
 #include "../Util/Utilities.h"
 #include "../Util/FileUtilities.h"
+#include "../Util/ServiceAccount.h"
+#include "../Util/Unicode.h"
 
 // The Win32 profile API - GetPrivateProfileString and the three calls
 // beside it - lives in kernel32 and has no POSIX equivalent, so the POSIX
@@ -25,6 +27,8 @@
 // this line and binds the same calls to <windows.h> as it always has.
 #ifdef HM_PLATFORM_POSIX
 #include "../Util/IniFile.h"
+#include <cerrno>
+#include <unistd.h>
 #endif
 
 #ifdef _DEBUG
@@ -426,14 +430,14 @@ namespace HM
       // Existing legacy values are always still readable.
       v.protect_stored_secrets_with_dpapi_ = ReadIniSettingInteger_("Settings", "ProtectStoredSecretsWithDPAPI", 1) == 1;
 
-      // Optional least-privilege Windows service account for the hMailServer service.
-      // Empty (the default) leaves the service running under LocalSystem, exactly as
-      // before. Set ServiceAccountName to run under a dedicated account - the
-      // recommended choice is the password-less virtual account "NT SERVICE\hMailServer"
-      // (leave ServiceAccountPassword empty for virtual/managed accounts). The chosen
-      // account must be granted "Log on as a service" plus access to the hMailServer
-      // program, data and database directories. Takes effect when the service is
-      // (re)registered.
+      // RETIRED, and read only so that a value an earlier version stored is still
+      // shown for what it is. These two used to decide the Windows service's
+      // account at hMailServer.exe /Register; they no longer do. /Register runs
+      // elevated, and these are written by others - a row of the settings store,
+      // which the service and hMailServer administrators write - so the account
+      // comes from /Register's command line alone (--service-account; see
+      // ServiceManager.h and docs/ServiceAccount.md), and an account with a
+      // password is set in services.msc. Nothing reads the getters any more.
       v.service_account_name_ = ReadIniSettingString_("Settings", "ServiceAccountName", "");
       v.service_account_password_ = ReadIniSettingString_("Settings", "ServiceAccountPassword", "");
 
@@ -1896,16 +1900,63 @@ namespace HM
       return administrator_password_;
    }
 
-   void 
+   bool
    IniFileSettings::SetAdministratorPassword(const String &sNewPassword)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Updates the main hMailServer administration password found in hMailServer.ini
+   // Updates the main hMailServer administration password found in hMailServer.ini.
+   // False when the file could not be written, in which case the running process
+   // keeps the password it had: the one it would read back at the next start.
    //---------------------------------------------------------------------------()
    {
-      administrator_password_ = HM::Crypt::Instance()->EnCrypt(sNewPassword, HM::Crypt::ETPBKDF2);
+      const String hash = HM::Crypt::Instance()->EnCrypt(sNewPassword, HM::Crypt::ETPBKDF2);
 
-      WriteIniSetting_("Security", "AdministratorPassword", administrator_password_);
+      if (!WritePrivateProfileString(_T("Security"), _T("AdministratorPassword"), hash, GetInitializationFile()))
+         return false;
+
+      WritePrivateProfileString(nullptr, nullptr, nullptr, GetInitializationFile());
+      administrator_password_ = hash;
+      return true;
+   }
+
+   bool
+   IniFileSettings::InitializationFileWritable()
+   {
+      const String file = GetInitializationFile();
+      if (file.IsEmpty())
+         return false;
+
+#ifdef HM_PLATFORM_POSIX
+      AnsiString narrow;
+      Unicode::WideToMultiByte(file, narrow);
+      if (::access(narrow.c_str(), W_OK) == 0)
+         return true;
+      return errno != EACCES && errno != EROFS && errno != EPERM;
+#else
+      // FILE_WRITE_DATA and nothing else, with every sharing mode, so that the
+      // open itself cannot collide with anybody reading or writing the file.
+      HANDLE handle = CreateFileW(file.c_str(), FILE_WRITE_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+         nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+      if (handle != INVALID_HANDLE_VALUE)
+      {
+         CloseHandle(handle);
+         return true;
+      }
+
+      const DWORD error = GetLastError();
+      return error != ERROR_ACCESS_DENIED && error != ERROR_WRITE_PROTECT;
+#endif
+   }
+
+   String
+   IniFileSettings::InitializationFileRefusal(const String &what, const String &insteadDo)
+   {
+      String account = ServiceAccount::ProcessAccountName();
+      if (account.IsEmpty())
+         account = _T("the account the server runs as");
+
+      return Formatter::Format(_T("{0} is kept in {1}, and {2} may not write that file. That is deliberate: the file says how the server reaches its database and who may administer it, and commands an administrator runs elevated read it, so a service that could rewrite it could choose both (docs/ServiceAccount.md). Nothing was changed. {3}"),
+         what, GetInitializationFile(), account, insteadDo);
    }
 
    String

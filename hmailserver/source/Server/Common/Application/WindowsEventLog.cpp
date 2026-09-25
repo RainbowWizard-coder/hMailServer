@@ -272,50 +272,24 @@ namespace HM
 
       boost::call_once(registered, []()
       {
-         HKEY key = nullptr;
+         // Read first, and with read access only: a registration already there -
+         // the one hMailServer.exe /Register makes, elevated, or an
+         // administrator's own - is all this needs, and a service that is not
+         // LocalSystem could not open the key for writing even to find that out.
+         HKEY existing = nullptr;
+         if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, EVENT_SOURCE_KEY,
+               0, KEY_QUERY_VALUE, &existing) == ERROR_SUCCESS)
+         {
+            DWORD valueType = 0;
+            const bool present = RegQueryValueEx(existing, _T("EventMessageFile"), nullptr, &valueType, nullptr, nullptr) == ERROR_SUCCESS;
+            RegCloseKey(existing);
+            if (present)
+               return;
+         }
 
-         LONG result = RegCreateKeyEx(HKEY_LOCAL_MACHINE, EVENT_SOURCE_KEY,
-            0, nullptr, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE | KEY_SET_VALUE, nullptr, &key, nullptr);
-
+         const LONG result = (LONG) WindowsEventLog::RegisterSource();
          if (result != ERROR_SUCCESS)
-         {
             registration_failure = result;
-            return;
-         }
-
-         // Never overwrite an existing registration - an installer, or an
-         // administrator pointing the source at a message file of their own,
-         // outranks this fallback.
-         DWORD valueType = 0;
-         if (RegQueryValueEx(key, _T("EventMessageFile"), nullptr, &valueType, nullptr, nullptr) != ERROR_SUCCESS)
-         {
-            // The %SystemRoot% form is what goes into the registry (the value is
-            // REG_EXPAND_SZ and survives relocation); the expanded form is only
-            // for checking the file is actually there.
-            TCHAR windowsDirectory[MAX_PATH] = { 0 };
-
-            if (GetWindowsDirectory(windowsDirectory, MAX_PATH) > 0)
-            {
-               const String relativePath = _T("\\Microsoft.NET\\Framework64\\v4.0.30319\\EventLogMessages.dll");
-               String expandedPath = String(windowsDirectory) + relativePath;
-
-               if (FileUtilities::Exists(expandedPath))
-               {
-                  String storedPath = String(_T("%SystemRoot%")) + relativePath;
-
-                  RegSetValueEx(key, _T("EventMessageFile"), 0, REG_EXPAND_SZ,
-                     (const BYTE*) storedPath.c_str(),
-                     (DWORD) ((storedPath.GetLength() + 1) * sizeof(TCHAR)));
-               }
-            }
-
-            DWORD typesSupported = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
-
-            RegSetValueEx(key, _T("TypesSupported"), 0, REG_DWORD,
-               (const BYTE*) &typesSupported, sizeof(typesSupported));
-         }
-
-         RegCloseKey(key);
       });
 
       if (registration_failure != ERROR_SUCCESS)
@@ -351,6 +325,58 @@ namespace HM
       // RegDeleteKey removes a key with no subkeys, and the source's key holds
       // only its two values.
       RegDeleteKey(HKEY_LOCAL_MACHINE, EVENT_SOURCE_KEY);
+#endif
+   }
+
+   long
+   WindowsEventLog::RegisterSource()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return 0;
+#else
+      HKEY key = nullptr;
+
+      LONG result = RegCreateKeyEx(HKEY_LOCAL_MACHINE, EVENT_SOURCE_KEY,
+         0, nullptr, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE | KEY_SET_VALUE, nullptr, &key, nullptr);
+
+      if (result != ERROR_SUCCESS)
+         return result;
+
+      // Never overwrite an existing registration - an installer, or an
+      // administrator pointing the source at a message file of their own,
+      // outranks this fallback.
+      DWORD valueType = 0;
+      if (RegQueryValueEx(key, _T("EventMessageFile"), nullptr, &valueType, nullptr, nullptr) != ERROR_SUCCESS)
+      {
+         // The %SystemRoot% form is what goes into the registry (the value is
+         // REG_EXPAND_SZ and survives relocation); the expanded form is only
+         // for checking the file is actually there.
+         TCHAR windowsDirectory[MAX_PATH] = { 0 };
+
+         if (GetWindowsDirectory(windowsDirectory, MAX_PATH) > 0)
+         {
+            const String relativePath = _T("\\Microsoft.NET\\Framework64\\v4.0.30319\\EventLogMessages.dll");
+            String expandedPath = String(windowsDirectory) + relativePath;
+
+            if (FileUtilities::Exists(expandedPath))
+            {
+               String storedPath = String(_T("%SystemRoot%")) + relativePath;
+
+               RegSetValueEx(key, _T("EventMessageFile"), 0, REG_EXPAND_SZ,
+                  (const BYTE*) storedPath.c_str(),
+                  (DWORD) ((storedPath.GetLength() + 1) * sizeof(TCHAR)));
+            }
+         }
+
+         DWORD typesSupported = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
+
+         RegSetValueEx(key, _T("TypesSupported"), 0, REG_DWORD,
+            (const BYTE*) &typesSupported, sizeof(typesSupported));
+      }
+
+      RegCloseKey(key);
+
+      return ERROR_SUCCESS;
 #endif
    }
 

@@ -454,10 +454,10 @@ namespace HM
       ///      The table wins; a key edited in the file is named in the error log and
       ///      not applied; a key the table has never seen is adopted. The values are
       ///      written back INTO the file as well, so every reader that goes to it
-      ///      directly keeps seeing the right one - notably hMailServer.exe
-      ///      /Register, which reads ServiceAccountName and ServiceAccountPassword
-      ///      with no database open at all, because registering the service is what
-      ///      happens before there is one.
+      ///      directly keeps seeing the right one - unless the file is read-only to
+      ///      the account the service runs as, which the Windows service's own
+      ///      account is, on purpose; then the table's values are used and the
+      ///      file's copy is left as it is (IniSettingStore.h).
       ///   2. [SettingsOverride] from the file is applied over the result and every
       ///      key in it is named in the error log. This is the door for a database
       ///      that is unreachable or holds a value that will not let the server
@@ -555,6 +555,31 @@ namespace HM
       /// </summary>
       static void SetInitializationFile(const String &file);
 
+      /// <summary>
+      /// Whether this process may write hMailServer.INI. False under the Windows
+      /// service's own low-privilege account, which is given no write to the file
+      /// on purpose (docs/ServiceAccount.md): it holds how the server reaches its
+      /// database and how an administrator is let in, and elevated commands read
+      /// it, so a service that could rewrite it could choose all of that. The
+      /// database is the settings store, and the [Settings] copy in the file is
+      /// then simply not refreshed (IniSettingStore).
+      ///
+      /// Asked of the file each time - opened for writing and closed at once,
+      /// which changes nothing - so that an administrator's change to its
+      /// permissions is seen without a restart. True for any answer but "access
+      /// denied" or "read-only": a write that then fails for another reason says
+      /// so itself.
+      /// </summary>
+      static bool InitializationFileWritable();
+
+      /// <summary>
+      /// The sentence a change that has to be written into hMailServer.INI is
+      /// refused with when the file is not writable: what is kept there, that the
+      /// account the service runs as may not write the file and why, and what an
+      /// administrator does instead.
+      /// </summary>
+      static String InitializationFileRefusal(const String &what, const String &insteadDo);
+
       bool GetDatabaseSettingsExists();
 
       String GetDatabaseProvider() const { return database_provider_; }
@@ -574,7 +599,8 @@ namespace HM
       void SetDatabasePort(long lNewValue);
       void SetIsInternalDatabase(bool newValue);
 
-      void SetAdministratorPassword(const String &sNewPassword);
+      // False when the hash could not be written into the file.
+      bool SetAdministratorPassword(const String &sNewPassword);
       String GetAdministratorPassword();
 
       // The administrator credential's second factor: a base32 TOTP secret kept

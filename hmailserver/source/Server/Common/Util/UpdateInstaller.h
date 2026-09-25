@@ -64,6 +64,20 @@ namespace HM
       static String HelperSourcePath();
       static String OutcomePath();
 
+      // Whether this service may apply an update itself. On Windows the helper
+      // runs the installer as the service's own account, and the installer takes
+      // an administrator; LocalSystem is one, and the virtual account
+      // NT SERVICE\hMailServer a new installation runs as is not
+      // (docs/ServiceAccount.md). So under such an account the update is checked
+      // here and installed by an administrator, and why says so: download it from
+      // the release page (releaseUrl) and check its Authenticode signature - never
+      // the copy in the Updates folder, which the service can write. No scheduled
+      // task running as SYSTEM stands in for it: a service that could make SYSTEM
+      // run a file it had written would have given back what the account took
+      // away. Always true on POSIX, where the packaged path unit runs the helper
+      // as root on the service's request.
+      static bool CanApplyHere(const String &releaseUrl, String &why);
+
    private:
       static bool EnsureRollbackImage_(const String &runningVersion, String &rollbackPath, String &why);
 

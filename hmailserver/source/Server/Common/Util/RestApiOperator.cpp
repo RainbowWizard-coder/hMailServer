@@ -275,10 +275,23 @@ namespace HM
       if (route.kind == RouteAdminSecondFactorGet)
          return BuildResponse_(200, AnsiString("{\"enrolled\":") + (ini->IsAdministratorTotpEnrolled() ? "true" : "false") + "}");
 
+      // [Security] lives in hMailServer.INI, which the Windows service's own
+      // account may not write (docs/ServiceAccount.md): 409, with what to do.
+      if (!IniFileSettings::InitializationFileWritable())
+      {
+#ifdef HM_PLATFORM_POSIX
+         const String insteadDo = _T("To turn it off, root deletes AdministratorTotpSecret from [Security] in the file and restarts the service. Enrolling one needs a file the service's account may write, which the packages do not give it.");
+#else
+         const String insteadDo = _T("To turn it off, an administrator deletes AdministratorTotpSecret from [Security] in the file with an editor run as an administrator and restarts the service. To enrol one, move the service to LocalSystem for the enrolment (hMailServer.exe --service-account localsystem /Register from an elevated prompt, restart the service), enrol, then move it back (hMailServer.exe --service-account virtual /Register, restart).");
+#endif
+         const String refusal = IniFileSettings::InitializationFileRefusal(_T("The administrator's second factor"), insteadDo);
+         return BuildResponse_(409, "{\"error\":\"" + JsonEscape_(Utf8_(refusal)) + "\"}");
+      }
+
       if (route.kind == RouteAdminSecondFactorDisable)
       {
          if (!ini->SetAdministratorTotpSecret(String()))
-            return BuildResponse_(500, "{\"error\":\"The secret could not be removed from hMailServer.INI. The account the server runs as needs write access to that file.\"}");
+            return BuildResponse_(500, "{\"error\":\"The secret could not be removed from hMailServer.INI. Nothing has been changed; see the hMailServer error log.\"}");
 
          LOG_APPLICATION(_T("The administrator's second factor was disabled over the REST API."));
          return BuildResponse_(200, "{\"enrolled\":false}");
@@ -300,7 +313,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"The random number generator failed, so no second factor was enrolled. Nothing has been stored.\"}");
 
       if (!ini->SetAdministratorTotpSecret(String(secret)))
-         return BuildResponse_(500, "{\"error\":\"The secret could not be written to hMailServer.INI. The account the server runs as needs write access to that file.\"}");
+         return BuildResponse_(500, "{\"error\":\"The secret could not be written to hMailServer.INI. Nothing has been changed; see the hMailServer error log.\"}");
 
       // The URI carries the secret, and this answer is the only moment it
       // leaves the server. Enforced from this moment: the next logon with the
@@ -326,8 +339,8 @@ namespace HM
          "\"responses\":{\"200\":{\"description\":\"removed (the count), include_archive, include_logs, and held (what a legal hold kept in place)\"},\"400\":{\"description\":\"No address, or include_archive not a boolean\"},\"500\":{\"description\":\"A store could not be cleared\"}}}}"
          ",\"/api/v1/administrator/second-factor\":{"
          "\"get\":{\"summary\":\"Whether the administrator password has a second factor\",\"description\":\"enrolled: true when a one-time code is asked for beside the administrator password. The administrator password's alone.\",\"responses\":{\"200\":{\"description\":\"enrolled\"}}},"
-         "\"post\":{\"summary\":\"Enrol a second factor on the administrator password\",\"description\":\"Generates the secret, stores it, and answers the otpauth URI an authenticator app scans - the only moment the secret leaves the server. Enforced from this moment. Refused with 409 while no administrator password is set, and while a factor is already enrolled: disable it first, because a second enrolment would replace the secret every authenticator app holds. What Settings.EnrolAdministratorTOTP does over COM.\",\"responses\":{\"200\":{\"description\":\"enrolled: true and uri\"},\"409\":{\"description\":\"No administrator password, or already enrolled\"},\"500\":{\"description\":\"The secret could not be stored\"}}},"
-         "\"delete\":{\"summary\":\"Disable the administrator password's second factor\",\"description\":\"The next logon needs the password alone. What Settings.DisableAdministratorTOTP does over COM.\",\"responses\":{\"200\":{\"description\":\"enrolled: false\"},\"500\":{\"description\":\"The secret could not be removed\"}}}}";
+         "\"post\":{\"summary\":\"Enrol a second factor on the administrator password\",\"description\":\"Generates the secret, stores it, and answers the otpauth URI an authenticator app scans - the only moment the secret leaves the server. Enforced from this moment. Refused with 409 while no administrator password is set, and while a factor is already enrolled: disable it first, because a second enrolment would replace the secret every authenticator app holds; and while hMailServer.INI, where the secret is kept, is read-only to the account the service runs as - the Windows service's own account (docs/ServiceAccount.md) - with the sentence saying what an administrator does instead. What Settings.EnrolAdministratorTOTP does over COM.\",\"responses\":{\"200\":{\"description\":\"enrolled: true and uri\"},\"409\":{\"description\":\"No administrator password, already enrolled, or hMailServer.INI read-only to the service\"},\"500\":{\"description\":\"The secret could not be stored\"}}},"
+         "\"delete\":{\"summary\":\"Disable the administrator password's second factor\",\"description\":\"The next logon needs the password alone. Refused with 409 while hMailServer.INI is read-only to the account the service runs as, with the sentence saying what an administrator does instead. What Settings.DisableAdministratorTOTP does over COM.\",\"responses\":{\"200\":{\"description\":\"enrolled: false\"},\"409\":{\"description\":\"hMailServer.INI read-only to the service\"},\"500\":{\"description\":\"The secret could not be removed\"}}}}";
 
       return AnsiString(paths);
    }

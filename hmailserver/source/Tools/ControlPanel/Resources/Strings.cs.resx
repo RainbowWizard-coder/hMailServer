@@ -632,8 +632,8 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Samostatné heslo pro jednoho poštovního klienta. Ztráta notebooku pak znamená odvolat zde jeden řádek, místo abyste měnili heslo účtu a přenastavovali všechny ostatní klienty.</value>
   </data>
-  <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
-    <value>Heslo účtu služby je v hMailServer.INI uloženo v otevřeném textu – nastavení DPAPI se na ně nevztahuje, protože krok registrace je nemá odkud jinud přečíst. Nyní, když je služba zaregistrována, si Windows uchovávají vlastní kopii, takže hodnotu vymažte na stránce Limity serveru a expertní nastavení. Virtuální účet (NT SERVICE\hMailServer) nebo skupinový spravovaný účet služby tuto otázku odstraní úplně.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Heslo servisního účtu z dřívější verze je uloženo v hMailServer.INI jako prostý text a nic ho už nečte: služba se registruje instalačním programem nebo tlačítky na kartě Servisní účet Windows a Windows si uchovává vlastní kopii každého hesla. Odstraňte řádek ServiceAccountPassword z hMailServer.INI editorem se zvýšenými oprávněními a nastavení příkazem DELETE /api/v1/settings/ini/ServiceAccountPassword, aby zmizela i kopie v databázi.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Podíl spojení, nikdy víc než vláken doručování: účty jedné hostované domény ani veškerá přeposílaná pošta dohromady nemohou obsadit všechna doručovací vlákna. Objem řídí limit odesílání na účet; tohle jím není.</value>
@@ -835,9 +835,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximální velikost cache účtů (KB, nuluje se při restartu služby)</value>
-  </data>
-  <data name="Account for the service to log on as (empty = leave the current account unchanged)" xml:space="preserve">
-    <value>Účet, pod kterým se má služba přihlašovat (prázdné = ponechat současný účet beze změny)</value>
   </data>
   <data name="Account to add" xml:space="preserve">
     <value>Účet k přidání</value>
@@ -1799,9 +1796,6 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically." xml:space="preserve">
     <value>Vestavěná integrace s Let's Encrypt: certifikáty se automaticky vydávají, obnovují, přiřazují k TLS portům a načítají za běhu.</value>
-  </data>
-  <data name="By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that." xml:space="preserve">
-    <value>Ve výchozím nastavení běží služba jako LocalSystem, což je nejprivilegovanější účet na tomto počítači, takže cokoli, na co lze dosáhnout přes SMTP, IMAP nebo POP3, je dosažitelné s plnou kontrolou nad počítačem. Vyhrazený účet to omezí.</value>
   </data>
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Přeskočit při úspěšném SPF</value>
@@ -3872,6 +3866,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Folders" xml:space="preserve">
     <value>Složky</value>
   </data>
+  <data name="Folders the service account needs" xml:space="preserve">
+    <value>Složky, které účet služby potřebuje</value>
+  </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Řídí se doménou</value>
   </data>
@@ -3997,6 +3994,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
     <value>Chování při řádném vypnutí pro bezobslužný / clusterovaný provoz. (Uchovávání logů je na stránce Logování.)</value>
+  </data>
+  <data name="Grant access…" xml:space="preserve">
+    <value>Udělit přístup…</value>
+  </data>
+  <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Udělí složky jako Udělit přístup - nejprve se zeptá na každou složku nebo soubor klíče, které konfigurace uvádí mimo ně - a zaregistruje službu jako NT SERVICE\hMailServer, jen pokud to skončí bez chyb. Služba si ponechá starý účet, dokud se nerestartuje.</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
@@ -5316,6 +5319,12 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Přesunout do IMAP složky</value>
   </data>
+  <data name="Move to LocalSystem…" xml:space="preserve">
+    <value>Přejít na LocalSystem…</value>
+  </data>
+  <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
+    <value>Přejít na NT SERVICE\hMailServer…</value>
+  </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Přesunutí zprávy do složky označené Junk ji nahlásí sa-learn jako spam a přesunutí zpět ven ji nahlásí jako ham, takže se filtr učí z toho, co lidé stejně už dělají, místo ze zvláštního rituálu, který nikdo neprovádí. Ve výchozím stavu vypnuto: sa-learn se spouští při každém přesunu a uživatel, který si do Junk odkládá newslettery, učí filtr, že newslettery jsou spam pro každého, komu skener slouží.</value>
   </data>
@@ -5733,12 +5742,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not a PEM certificate" xml:space="preserve">
     <value>Není to certifikát ve formátu PEM</value>
   </data>
-  <data name="Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. " xml:space="preserve">
-    <value>Zatím se neuplatnilo. Služba běží jako {0}, zatímco tato stránka žádá {1}. Toto nastavení se čte jen při registraci služby, takže jeho uložení zde samo o sobě nic nezmění – ani po restartu.</value>
-  </data>
-  <data name="Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service." xml:space="preserve">
-    <value>Neuplatněno. hMailServer.INI žádá {0}, ale služba běží jako {1}. Toto nastavení se čte jen při registraci služby, takže se po restartu neprojeví – spusťte hMailServer.exe /Register z příkazového řádku se zvýšenými právy a poté restartujte službu.</value>
-  </data>
   <data name="Not checked" xml:space="preserve">
     <value>Nezkontrolováno</value>
   </data>
@@ -5759,9 +5762,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Not needed" xml:space="preserve">
     <value>Není potřeba</value>
-  </data>
-  <data name="Not needed for a virtual or managed account" xml:space="preserve">
-    <value>U virtuálního nebo spravovaného účtu není potřeba</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Nepublikováno</value>
@@ -5970,6 +5970,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Na stránce Zálohování nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
   </data>
+  <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
+    <value>Na stránce Limity serveru a expertní nastavení, karta Servisní účet Windows: Přejít na NT SERVICE\hMailServer udělí službě její složky - nejprve se zeptá na každou složku nebo soubor klíče, které konfigurace uvádí mimo ně - a přesune ji; potom službu restartujte. Opětovné spuštění instalačního programu nabídne stejnou volbu. Externí databáze s ověřováním Windows potřebuje také přihlášení pro tento účet.</value>
+  </data>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Na stránce Profily nastavení porovnejte čtyři profily s tímto serverem a použijte ten vhodný; co nahradí, se uschová, aby to šlo vrátit.</value>
   </data>
@@ -6113,6 +6116,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Otevřít na _wiki</value>
+  </data>
+  <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
+    <value>Otevřete Control Panel přímo na serveru, chcete-li změnit účet služby nebo jí udělit její složky.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Otevřít doručovací frontu</value>
@@ -6356,9 +6362,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Heslo (volitelné – pouze pro test skutečného přihlášení)</value>
-  </data>
-  <data name="Password for that account (leave empty for NT SERVICE\ and gMSA accounts)" xml:space="preserve">
-    <value>Heslo tohoto účtu (u účtů NT SERVICE\ a gMSA nechte prázdné)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Hash hesla pro nová nebo změněná hesla účtů</value>
@@ -6993,6 +6996,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Zaregistrujte tento server jako aplikaci u poskytovatele identity, stáhněte veřejný podpisový klíč poskytovatele jako soubor PEM a nasměrujte na něj OAuth2PublicKeyFile v hMailServer.ini (nebo pro HS256 nastavte OAuth2HmacSecret). Nastavte OAuth2Issuer a OAuth2Audience na hodnoty, které poskytovatel vkládá do svých tokenů, jinak je ověření odmítne.</value>
   </data>
+  <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Znovu zaregistruje službu jako LocalSystem, což potřebuje instalace aktualizace za běhu ze serveru nebo zápis pravidel brány firewall pro automatické blokování. Služba si ponechá starý účet, dokud se nerestartuje.</value>
+  </data>
   <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinicializovat server nyní? Všechny služby se zastaví a znovu spustí na místě, takže připojení klienti se odpojí a připojí znovu.</value>
   </data>
@@ -7476,6 +7482,12 @@ Pokračovat?</value>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Spusťte vestavěné kontroly připojení a konfigurace.</value>
   </data>
+  <data name="Run the service as LocalSystem" xml:space="preserve">
+    <value>Spouštět službu jako LocalSystem</value>
+  </data>
+  <data name="Run the service as its own account" xml:space="preserve">
+    <value>Spouštět službu pod vlastním účtem</value>
+  </data>
   <data name="Running" xml:space="preserve">
     <value>Běží</value>
   </data>
@@ -7484,6 +7496,9 @@ Pokračovat?</value>
   </data>
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Spouští skripty událostí (OnAcceptMessage, OnDeliveryStart...) ze složky Events; samotný skript se upravuje na stránce Skripty událostí. Engine se po uložení znovu načte.</value>
+  </data>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Spustí hMailServer.exe /GrantServiceAccess jako správce poté, co se Windows zeptá: NT SERVICE\hMailServer dostane Změnu na vlastní složky Data, Logs, Temp a Database složky programu a na složky, které schválil správce, a Čtení na složku programu - nikdy na hMailServer.INI. Složka, kterou konfigurace uvádí jinde, například později nastavená složka záloh nebo archivu, se schválí až po otázce, která ji jmenuje; soubory klíčů mimo tyto složky se vypíší. Lze jej kdykoli spustit znovu a nikomu neodebere oprávnění.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Provede tytéž kroky, které provádí server, ve stejném pořadí, s hodnotami v editorech výše tak, jak jsou: připojí se, zabezpečí přenos, provede bind servisními přihlašovacími údaji, vyhledá uživatele – a jen pokud je níže zadáno heslo, provede bind jako tento uživatel, aby to prokázal. Heslo se použije jednou a nikdy se neukládá a test odmítne spustit jakoukoli konfiguraci, která by heslo poslala po síti nechráněné. Jedna poctivá výhrada: test běží z tohoto počítače, takže firewall, který zachází s tímto počítačem a se službou hMailServer různě, může způsobit, že se ti dva neshodnou.</value>
@@ -7715,9 +7730,6 @@ Pokračovat?</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Uloženo. Platná hodnota je zobrazena u každého nastavení.</value>
-  </data>
-  <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
-    <value>Uložení této hodnoty službu pod jiný účet nepřevede: čte se při REGISTRACI služby, takže se projeví teprve poté, co proběhne příkaz uvedený ve stavovém řádku níže. Ani vymazáním pole se služba zpět pod LocalSystem nevrátí – u již zaregistrované služby znamená prázdná hodnota „ponechat účet beze změny“. Chcete-li se vrátit k LocalSystem, zadejte sem výslovně LocalSystem a proveďte registraci znovu.</value>
   </data>
   <data name="Saving…" xml:space="preserve">
     <value>Ukládání…</value>
@@ -8226,9 +8238,6 @@ Pokračovat?</value>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Nastavte nové heslo pro správu serveru.</value>
   </data>
-  <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
-    <value>Nastavte účet na stránce Limity serveru a expertní nastavení – NT SERVICE\hMailServer žádné heslo nepotřebuje – a poté ve zvýšeném příkazovém řádku spusťte hMailServer.exe /Register a restartujte službu. Tomuto účtu udělte oprávnění „Přihlásit se jako služba“ (secpol.msc &gt; Místní zásady &gt; Přiřazení uživatelských práv), právo číst složku programu a úplné řízení složek s daty, logy a databází. Externí databáze pro něj potřebuje i vlastní přihlášení.</value>
-  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Nastaveno, ale nepotvrzeno: {0}. Dokud držitel účtu nepoužije odkaz, který tam byl poslán, adresa neslouží k ničemu.</value>
   </data>
@@ -8601,9 +8610,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Úložiště:</value>
-  </data>
-  <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
-    <value>Ukládá se do hMailServer.INI přesně tak, jak je zadáno – přepínač DPAPI výše se na ně nevztahuje a krok registrace ve Správci řízení služeb je nemá odkud jinud přečíst. To je nejsilnější důvod použít místo toho NT SERVICE\hMailServer nebo skupinový spravovaný účet služby: ani jeden nemá heslo, které by se muselo ukládat. Pokud sem přesto heslo zadáte, po provedení registrace je zase vymažte – SCM si od té chvíle uchovává vlastní kopii.</value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>Ukládá se do hMailServer.ini jako ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount a ScheduledBackupMaxAgeDays.</value>
@@ -9698,26 +9704,19 @@ Odpovídá vlastní resolver serveru - tentýž, který používá doručování
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Servisní účet nelze přečíst: {0}</value>
   </data>
-  <data name="The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer." xml:space="preserve">
-    <value>Služba běží jako {0} a žádný jiný účet není požadován. To je výchozí stav a funguje; na tomto seznamu je proto, že přechod na vyhrazený účet je největší jednotlivé snížení toho, co má kompromitace poštovního serveru cenu, a zevnitř hMailServeru ho nelze provést.</value>
+  <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
+    <value>Služba je zaregistrována, aby se od příštího spuštění přihlašovala jako {0}. Restartujte službu hMailServer - v services.msc nebo příkazy net stop hMailServer a net start hMailServer -, aby se změna projevila.
+
+{1}</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged." xml:space="preserve">
-    <value>Služba běží jako {0}, což není LocalSystem, takže už je ohraničená. V hMailServer.INI není požadován žádný účet, takže opětovná registrace služby by to nechala beze změny.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\hMailServer below contains that." xml:space="preserve">
+    <value>Služba běží jako {0}, nejprivilegovanější účet v počítači: chyba dosažitelná přes SMTP, IMAP nebo POP3 by měla plnou kontrolu nad počítačem. Přejít na NT SERVICE\hMailServer níže to omezí.</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means &quot;leave the account as it is&quot; - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly." xml:space="preserve">
-    <value>Služba běží jako {0}, což není LocalSystem, takže už je ohraničená. Výše není požadováno nic a u již registrované služby prázdná hodnota znamená „účet nechat, jak je“ - opětovná registrace by ji tedy zpět na LocalSystem nepřesunula. K tomu nastavte pole výslovně na LocalSystem.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\hMailServer, the account a new installation uses, contains that." xml:space="preserve">
+    <value>Služba běží jako {0}, nejvíce privilegovaný účet na počítači: chyba dosažitelná přes SMTP, IMAP nebo POP3 by měla plnou kontrolu nad počítačem. NT SERVICE\hMailServer, účet, který používá nová instalace, to omezuje.</value>
   </data>
-  <data name="The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done." xml:space="preserve">
-    <value>Služba běží jako {0}, což je účet nakonfigurovaný v hMailServer.INI. Krok registrace byl proveden.</value>
-  </data>
-  <data name="The service is running as {0}, which is the account requested above. Nothing further is needed." xml:space="preserve">
-    <value>Služba běží jako {0}, což je účet požadovaný výše. Nic dalšího není potřeba.</value>
-  </data>
-  <data name="The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\hMailServer needs no password - and then re-registering the service is what changes it." xml:space="preserve">
-    <value>Služba běží jako {0}. To je výchozí stav a funguje, ale každá část hMailServeru obrácená do sítě běží s ním. Změní to pojmenování účtu výše - NT SERVICE\hMailServer nepotřebuje žádné heslo - a následná opětovná registrace služby.</value>
-  </data>
-  <data name="The service is running as {0}. The requested account could not be read: {1}" xml:space="preserve">
-    <value>Služba běží jako {0}. Požadovaný účet nešlo přečíst: {1}</value>
+  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained." xml:space="preserve">
+    <value>Služba běží jako {0}, což není LocalSystem, takže je již omezena.</value>
   </data>
   <data name="The service was restarted but the Control Panel could not reconnect to it: {0}&#10;&#10;It will keep trying as you use the application." xml:space="preserve">
     <value>Služba byla restartována, ale Control Panel se k ní nemohl znovu připojit: {0}
@@ -9984,9 +9983,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
     <value>Vlákna vyhrazená, aby asynchronní fronta nemohla vyhladovět</value>
   </data>
-  <data name="Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the &quot;Log on as a service&quot; right (secpol.msc &gt; Local Policies &gt; User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>U tohoto účtu musí platit tři věci, než pod ním služba nastartuje, a žádnou z nich nelze udělat odsud. Potřebuje právo „Přihlásit se jako služba“ (secpol.msc &gt; Místní zásady &gt; Přiřazení uživatelských práv, nebo vaše doménová zásada). Potřebuje plné řízení nad složkou dat, složkou logů a - u vestavěné databáze - složkou databáze, plus přístup pro čtení ke složce programu A pro zápis k hMailServer.INI v ní, protože služba si tam zapisuje vlastní nastavení; pokud je ten soubor pro účet jen ke čtení, uložená nastavení se při příštím restartu ztratí bez jakékoli chyby. A u externí databáze potřebuje cokoli, co ten server vyžaduje, což u MSSQL s integrovaným zabezpečením znamená vlastní login. Služba, která se nemůže přihlásit, hlásí chybu 1069 v logu událostí Windows a nespustí se.</value>
-  </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Prahy a akce</value>
   </data>
@@ -10034,9 +10030,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="To" xml:space="preserve">
     <value>Komu</value>
-  </data>
-  <data name="To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail." xml:space="preserve">
-    <value>K uplatnění otevřete příkazový řádek se zvýšenými oprávněními a spusťte:  {0}   - a pak restartujte službu hMailServer. Registrace už registrované služby ji překonfiguruje na místě; nevytvoří druhou a nesáhne na vaši poštu.</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Endpoint tokenu (https)</value>
@@ -10428,6 +10421,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Co záloha obsahuje, plán, ověření každého archivu a obnovení.</value>
   </data>
+  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Co mění vlastní účet. hMailServer.INI je pro něj záměrně jen pro čtení: heslo správce, jeho druhý faktor, složky a databáze se mění tak, jak Control Panel řekne při pokusu, a nastavení zůstávají jako vždy v databázi. Později nastavená složka mimo složku programu - složka záloh nebo archivu - je dosažitelná, jakmile ji Udělit přístup schválí. Jiný účet než NT SERVICE\hMailServer se nastavuje v services.msc a potřebuje právo „Přihlásit se jako služba“; externí databáze s ověřováním Windows pro něj potřebuje přihlášení. Služba, která se nemůže přihlásit, hlásí chybu 1069 v protokolu událostí Windows a nespustí se.</value>
+  </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Co lze vyjednat</value>
   </data>
@@ -10593,8 +10589,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Které verze TLS a šifry bude tento server vyjednávat a zda ověřuje certifikát serveru, kterému doručuje.</value>
   </data>
-  <data name="Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\hMailServer." xml:space="preserve">
-    <value>Pod kterým účtem Windows se služba hMailServer přihlašuje. Ve výchozím stavu je to LocalSystem - nejprivilegovanější účet na počítači - takže chyba dosažitelná přes SMTP, IMAP nebo POP3 je dosažitelná s plnou kontrolou nad počítačem. Běh služby pod vyhrazeným účtem je největší jednotlivé snížení toho, co má kompromitace cenu, a doporučený je bezheslový virtuální účet NT SERVICE\hMailServer.</value>
+  <data name="Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer." xml:space="preserve">
+    <value>Pod jakým účtem Windows se služba hMailServer přihlašuje. Nová instalace používá NT SERVICE\hMailServer, vlastní virtuální účet, který nepotřebuje heslo a dosáhne jen na složky, které mu byly uděleny; instalace aktualizovaná ze starší verze si ponechává LocalSystem, nejvíce privilegovaný účet na počítači, dokud se nepřesune - a pod LocalSystem by chyba dosažitelná přes SMTP, IMAP nebo POP3 měla plnou kontrolu nad počítačem.</value>
   </data>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Které adresy se smějí připojit, které smějí přeposílat bez ověření a které se musí nejdřív ověřit.</value>
@@ -10710,11 +10706,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Windows display language" xml:space="preserve">
     <value>Jazyk zobrazení Windows</value>
   </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is no service to re-register yet." xml:space="preserve">
-    <value>Windows na tomto počítači nehlásí žádnou službu hMailServer, takže zatím není žádná služba k opětovné registraci.</value>
-  </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered." xml:space="preserve">
-    <value>Windows na tomto počítači nehlásí žádnou službu hMailServer, takže toto nastavení zatím nemá na co se uplatnit. Čte se při registraci služby.</value>
+  <data name="Windows does not report an hMailServer service on this machine, so there is no account to show or move yet." xml:space="preserve">
+    <value>Windows v tomto počítači nehlásí žádnou službu hMailServer, takže zatím není žádný účet k zobrazení ani přesunu.</value>
   </data>
   <data name="Windows service account" xml:space="preserve">
     <value>Servisní účet Windows</value>
@@ -11582,6 +11575,19 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI nebyl na tomto počítači nalezen. Tato nastavení lze upravovat pouze přímo na serveru; test připojení s hodnotami zadanými zde přesto funguje.</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess nedokončil svou práci (návratový kód {0}):
+
+{1}</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess finished:&#10;&#10;{0}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess skončil:
+
+{0}</value>
+  </data>
+  <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
+    <value>hMailServer.exe nelze spustit: {0}</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>Nastavení BackupMessagesDBOnly v hMailServer.ini. Záloha pak zaznamená, které zprávy existují, ale ne jejich obsah, a obnovení očekává, že soubory jsou stále v datové složce. Platí pro zálohování i obnovení.</value>

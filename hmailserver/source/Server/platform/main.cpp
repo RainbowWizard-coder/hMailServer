@@ -1266,11 +1266,18 @@ int main(int argc, char *argv[])
          return 2;
       }
 
-      HM::IniFileSettings::Instance()->SetAdministratorPassword(HM::String(password.c_str()));
+      const bool written = HM::IniFileSettings::Instance()->SetAdministratorPassword(HM::String(password.c_str()));
 
       // Overwrite this process's copy. It costs nothing, and the alternative is
       // a password sitting in a heap block until the process exits.
       std::fill(password.begin(), password.end(), '\0');
+
+      if (!written)
+      {
+         std::fprintf(stderr, "The administrator password could not be written to %s; nothing was changed. Run this as an account that may write that file.\n",
+            HM::AnsiString(HM::IniFileSettings::Instance()->GetInitializationFile()).c_str());
+         return 1;
+      }
 
       std::printf("The administrator password was written to %s as a PBKDF2 hash.\n",
          HM::AnsiString(HM::IniFileSettings::Instance()->GetInitializationFile()).c_str());

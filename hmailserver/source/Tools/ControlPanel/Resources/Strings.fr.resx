@@ -632,8 +632,8 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Un mot de passe distinct pour un client de messagerie. Perdre un portable revient alors à révoquer une ligne ici, plutôt qu'à changer le mot de passe du compte et à reconfigurer tous les autres clients.</value>
   </data>
-  <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
-    <value>Un mot de passe de compte de service est stocké en clair dans hMailServer.INI - le réglage DPAPI ne le couvre pas, parce que l'étape d'enregistrement n'a nulle part ailleurs où le lire. Maintenant que le service est enregistré, Windows en garde sa propre copie, effacez donc la valeur sur la page Limites du serveur et réglages experts. Un compte virtuel (NT SERVICE\hMailServer) ou un compte de service géré de groupe évite entièrement la question.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Un mot de passe de compte de service d'une version antérieure est stocké en clair dans hMailServer.INI, et plus rien ne le lit : le service est inscrit par le programme d'installation ou par les boutons de la carte Compte de service Windows, et Windows garde sa propre copie de tout mot de passe. Supprimez la ligne ServiceAccountPassword de hMailServer.INI avec un éditeur élevé, et le réglage avec DELETE /api/v1/settings/ini/ServiceAccountPassword, pour que la copie de la base de données disparaisse aussi.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Une part des connexions, jamais plus que les threads de livraison : les comptes d'un domaine hébergé, ou tout le courrier relayé ensemble, ne peuvent pas occuper tous les threads de livraison. La limite d'envoi par compte contrôle le volume ; ceci non.</value>
@@ -835,9 +835,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Taille max. du cache des comptes (Ko, remis à zéro au redémarrage du service)</value>
-  </data>
-  <data name="Account for the service to log on as (empty = leave the current account unchanged)" xml:space="preserve">
-    <value>Compte sous lequel le service ouvre sa session (vide = laisser le compte actuel inchangé)</value>
   </data>
   <data name="Account to add" xml:space="preserve">
     <value>Compte à ajouter</value>
@@ -1799,9 +1796,6 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically." xml:space="preserve">
     <value>Intégration Let's Encrypt intégrée : les certificats sont émis, renouvelés, attribués aux ports TLS et rechargés à chaud automatiquement.</value>
-  </data>
-  <data name="By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that." xml:space="preserve">
-    <value>Par défaut le service s'exécute en tant que LocalSystem, le compte le plus privilégié de la machine, donc tout ce qui est atteignable via SMTP, IMAP ou POP3 l'est avec le contrôle total de l'ordinateur. Un compte dédié contient cela.</value>
   </data>
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Contourner en cas de succès SPF</value>
@@ -3872,6 +3866,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Folders" xml:space="preserve">
     <value>Dossiers</value>
   </data>
+  <data name="Folders the service account needs" xml:space="preserve">
+    <value>Dossiers dont le compte de service a besoin</value>
+  </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Suit le domaine</value>
   </data>
@@ -3997,6 +3994,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
     <value>Comportement d'arrêt en douceur pour l'exploitation sans surveillance / en cluster. (La rétention des journaux est sur la page Journalisation.)</value>
+  </data>
+  <data name="Grant access…" xml:space="preserve">
+    <value>Accorder l'accès…</value>
+  </data>
+  <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Accorde les dossiers comme Accorder l'accès - en demandant d'abord pour chaque dossier ou fichier de clé que la configuration nomme en dehors d'eux - et n'inscrit le service en tant que NT SERVICE\hMailServer que si cela se termine proprement. Le service garde son ancien compte jusqu'à son redémarrage.</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
@@ -5316,6 +5319,12 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Déplacer vers un dossier IMAP</value>
   </data>
+  <data name="Move to LocalSystem…" xml:space="preserve">
+    <value>Passer à LocalSystem…</value>
+  </data>
+  <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
+    <value>Passer à NT SERVICE\hMailServer…</value>
+  </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Déplacer un message dans le dossier désigné Junk le signale à sa-learn comme spam, et l'en ressortir le signale comme ham, si bien que le filtre apprend de ce que les gens font déjà plutôt que d'un rituel séparé que personne n'accomplit. Désactivé par défaut : cela exécute sa-learn à chaque déplacement, et un utilisateur qui range des newsletters dans Junk apprend au filtre que les newsletters sont du spam pour tous ceux que l'analyseur dessert.</value>
   </data>
@@ -5733,12 +5742,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Not a PEM certificate" xml:space="preserve">
     <value>Pas un certificat PEM</value>
   </data>
-  <data name="Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. " xml:space="preserve">
-    <value>Pas encore appliqué. Le service s'exécute sous {0}, alors que cette page demande {1}. Ce réglage n'est lu qu'au moment où le service est enregistré : l'enregistrer ici ne change donc rien à lui seul - pas même après un redémarrage. </value>
-  </data>
-  <data name="Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service." xml:space="preserve">
-    <value>Non appliqué. hMailServer.INI demande {0} mais le service s'exécute sous {1}. Ce réglage n'est lu qu'au moment où le service est enregistré : il ne prendra donc pas effet à un redémarrage - exécutez hMailServer.exe /Register depuis une invite de commandes élevée, puis redémarrez le service.</value>
-  </data>
   <data name="Not checked" xml:space="preserve">
     <value>Non vérifié</value>
   </data>
@@ -5759,9 +5762,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Not needed" xml:space="preserve">
     <value>Pas nécessaire</value>
-  </data>
-  <data name="Not needed for a virtual or managed account" xml:space="preserve">
-    <value>Pas nécessaire pour un compte virtuel ou géré</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Non publié</value>
@@ -5970,6 +5970,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Sur la page Sauvegarde, définissez le dossier où la sauvegarde est écrite, sur un disque autre que celui du magasin de messages.</value>
   </data>
+  <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
+    <value>Sur la page Limites du serveur et réglages experts, carte Compte de service Windows : Passer à NT SERVICE\hMailServer accorde au service ses dossiers - en demandant d'abord pour chaque dossier ou fichier de clé que la configuration nomme en dehors d'eux - et le déplace ; redémarrez ensuite le service. Relancer le programme d'installation propose le même choix. Une base de données externe avec authentification Windows a aussi besoin d'une connexion pour ce compte.</value>
+  </data>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Sur la page Profils de paramètres, comparez les quatre à ce serveur et appliquez celui qui convient ; ce qu'il remplace est conservé pour pouvoir être rétabli.</value>
   </data>
@@ -6113,6 +6116,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Ouvrir sur le _wiki</value>
+  </data>
+  <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
+    <value>Ouvrez le Control Panel sur le serveur lui-même pour changer le compte du service ou lui accorder ses dossiers.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Ouvrir la file de livraison</value>
@@ -6356,9 +6362,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Mot de passe (facultatif - uniquement pour tester une vraie connexion)</value>
-  </data>
-  <data name="Password for that account (leave empty for NT SERVICE\ and gMSA accounts)" xml:space="preserve">
-    <value>Mot de passe de ce compte (laisser vide pour les comptes NT SERVICE\ et gMSA)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Hachage de mot de passe pour les mots de passe de compte nouveaux ou modifiés</value>
@@ -6993,6 +6996,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Enregistrez ce serveur comme application auprès du fournisseur d'identité, téléchargez la clé publique de signature du fournisseur sous forme de fichier PEM, et faites pointer OAuth2PublicKeyFile dans hMailServer.ini dessus (ou définissez OAuth2HmacSecret pour HS256). Définissez OAuth2Issuer et OAuth2Audience aux valeurs que le fournisseur met dans ses jetons, sinon la validation les rejettera.</value>
   </data>
+  <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Inscrit de nouveau le service en tant que LocalSystem, ce dont ont besoin l'installation d'une mise à jour à chaud depuis le serveur ou l'écriture de règles de pare-feu pour le bannissement automatique. Le service garde son ancien compte jusqu'à son redémarrage.</value>
+  </data>
   <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Réinitialiser le serveur maintenant ? Tous les services s'arrêtent et redémarrent sur place, donc les clients connectés sont déconnectés puis se reconnectent.</value>
   </data>
@@ -7476,6 +7482,12 @@ Continuer ?</value>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Exécuter les vérifications intégrées de connectivité et de configuration.</value>
   </data>
+  <data name="Run the service as LocalSystem" xml:space="preserve">
+    <value>Exécuter le service en tant que LocalSystem</value>
+  </data>
+  <data name="Run the service as its own account" xml:space="preserve">
+    <value>Exécuter le service sous son propre compte</value>
+  </data>
   <data name="Running" xml:space="preserve">
     <value>En cours d'exécution</value>
   </data>
@@ -7484,6 +7496,9 @@ Continuer ?</value>
   </data>
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Exécute les scripts d'événements (OnAcceptMessage, OnDeliveryStart...) du dossier Events ; le script lui-même se modifie sur la page Scripts d'événements. Le moteur se recharge quand vous enregistrez.</value>
+  </data>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Exécute hMailServer.exe /GrantServiceAccess en tant qu'administrateur, après la demande de Windows : NT SERVICE\hMailServer reçoit Modification sur les dossiers Data, Logs, Temp et Database propres au dossier du programme et sur les dossiers qu'un administrateur a approuvés, et Lecture sur le dossier du programme - jamais sur hMailServer.INI. Un dossier que la configuration nomme ailleurs, comme un dossier de sauvegarde ou d'archive défini plus tard, n'est approuvé qu'après une question qui le nomme ; les fichiers de clé en dehors de ces dossiers sont listés. Il peut être relancé à tout moment et ne retire l'autorisation de personne.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Exécute les mêmes étapes que le serveur, dans le même ordre, en utilisant les valeurs des éditeurs ci-dessus telles qu'elles sont : se connecter, protéger le transport, lier l'identifiant de service, rechercher l'utilisateur - et, seulement si un mot de passe est saisi ci-dessous, se lier en tant que cet utilisateur pour le prouver. Le mot de passe est utilisé une fois et jamais stocké, et le test refuse d'exécuter toute configuration qui mettrait un mot de passe non protégé sur le réseau. Une réserve honnête : le test s'exécute depuis cet ordinateur, un pare-feu qui traite cette machine et le service hMailServer différemment peut donc les faire diverger.</value>
@@ -7715,9 +7730,6 @@ Continuer ?</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Enregistré. La valeur en vigueur est indiquée à côté de chaque paramètre.</value>
-  </data>
-  <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
-    <value>Enregistrer ceci ne déplace pas le service : la valeur est lue quand le service est ENREGISTRÉ, elle ne prend donc effet qu'une fois exécutée la commande de la ligne d'état ci-dessous. L'effacer ne ramène pas non plus le service à LocalSystem - sur un service déjà enregistré, une valeur vide signifie « laisser le compte tel quel ». Pour revenir à LocalSystem, indiquez explicitement LocalSystem ici et réenregistrez le service.</value>
   </data>
   <data name="Saving…" xml:space="preserve">
     <value>Enregistrement…</value>
@@ -8226,9 +8238,6 @@ Continuer ?</value>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Définir un nouveau mot de passe d'administration du serveur.</value>
   </data>
-  <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
-    <value>Définissez un compte sur la page Limites du serveur et réglages experts - NT SERVICE\hMailServer n'a besoin d'aucun mot de passe - puis, depuis une invite de commandes élevée, exécutez hMailServer.exe /Register et redémarrez le service. Accordez à ce compte le droit « Ouvrir une session en tant que service » (secpol.msc &gt; Stratégies locales &gt; Attribution des droits utilisateur), l'accès en lecture au dossier du programme, et le contrôle total des dossiers de données, de journaux et de base de données. Une base de données externe a besoin d'un identifiant de connexion pour elle aussi.</value>
-  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Définie mais non confirmée : {0}. Tant que le titulaire ne suit pas le lien qui y a été envoyé, elle ne sert à rien.</value>
   </data>
@@ -8601,9 +8610,6 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Magasin : </value>
-  </data>
-  <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
-    <value>Stocké dans hMailServer.INI exactement tel qu'il est saisi - le commutateur DPAPI ci-dessus ne le couvre pas, et l'étape d'enregistrement du Gestionnaire de contrôle des services n'a nulle part ailleurs où le lire. C'est la meilleure raison d'utiliser plutôt NT SERVICE\hMailServer ou un compte de service géré de groupe : ni l'un ni l'autre n'a de mot de passe à stocker. Si vous en définissez tout de même un ici, effacez-le une fois l'enregistrement exécuté - le SCM en garde sa propre copie à partir de ce moment.</value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>Stocké dans hMailServer.ini sous ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount et ScheduledBackupMaxAgeDays.</value>
@@ -9698,26 +9704,19 @@ C'est le propre résolveur du serveur qui répond - le même que celui qu'utilis
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Le compte de service ne peut pas être lu : {0}</value>
   </data>
-  <data name="The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer." xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}, et aucun autre compte n'est demandé. C'est la valeur par défaut et cela fonctionne ; c'est sur cette liste parce que passer à un compte dédié est ce qui réduit le plus ce que vaut une compromission du serveur de messagerie, et cela ne peut pas être fait depuis hMailServer.</value>
+  <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
+    <value>Le service est inscrit pour ouvrir sa session en tant que {0} à partir de son prochain démarrage. Redémarrez le service hMailServer - dans services.msc, ou avec net stop hMailServer puis net start hMailServer - pour que cela prenne effet.
+
+{1}</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged." xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}, qui n'est pas LocalSystem : il est donc déjà confiné. Aucun compte n'est demandé dans hMailServer.INI, ré-enregistrer le service laisserait donc cela inchangé.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\hMailServer below contains that." xml:space="preserve">
+    <value>Le service s'exécute en tant que {0}, le compte le plus privilégié de la machine : une faille accessible par SMTP, IMAP ou POP3 aurait le contrôle total de l'ordinateur. Passer à NT SERVICE\hMailServer ci-dessous limite cela.</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means &quot;leave the account as it is&quot; - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly." xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}, qui n'est pas LocalSystem : il est donc déjà confiné. Rien n'est demandé ci-dessus, et sur un service déjà enregistré une valeur vide signifie « laisser le compte tel qu'il est » - ré-enregistrer ne le ramènerait donc pas à LocalSystem. Pour cela, mettez explicitement LocalSystem dans la case.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\hMailServer, the account a new installation uses, contains that." xml:space="preserve">
+    <value>Le service s'exécute en tant que {0}, le compte le plus privilégié de la machine : une faille accessible par SMTP, IMAP ou POP3 aurait le contrôle total de l'ordinateur. NT SERVICE\hMailServer, le compte qu'utilise une nouvelle installation, limite cela.</value>
   </data>
-  <data name="The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done." xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}, qui est le compte configuré dans hMailServer.INI. L'étape d'enregistrement a été faite.</value>
-  </data>
-  <data name="The service is running as {0}, which is the account requested above. Nothing further is needed." xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}, qui est le compte demandé ci-dessus. Rien de plus n'est nécessaire.</value>
-  </data>
-  <data name="The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\hMailServer needs no password - and then re-registering the service is what changes it." xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}. C'est la valeur par défaut et cela fonctionne, mais toute la partie de hMailServer exposée au réseau s'exécute avec. Nommer un compte ci-dessus - NT SERVICE\hMailServer n'a besoin d'aucun mot de passe - puis ré-enregistrer le service, voilà ce qui change cela.</value>
-  </data>
-  <data name="The service is running as {0}. The requested account could not be read: {1}" xml:space="preserve">
-    <value>Le service s'exécute en tant que {0}. Le compte demandé n'a pas pu être lu : {1}</value>
+  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained." xml:space="preserve">
+    <value>Le service s'exécute en tant que {0}, qui n'est pas LocalSystem : il est donc déjà confiné.</value>
   </data>
   <data name="The service was restarted but the Control Panel could not reconnect to it: {0}&#10;&#10;It will keep trying as you use the application." xml:space="preserve">
     <value>Le service a été redémarré mais le Control Panel n'a pas pu s'y reconnecter : {0}
@@ -9984,9 +9983,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
     <value>Threads réservés pour que la file asynchrone ne puisse pas être privée de ressources</value>
   </data>
-  <data name="Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the &quot;Log on as a service&quot; right (secpol.msc &gt; Local Policies &gt; User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Trois choses doivent être vraies de ce compte avant que le service démarre sous son identité, et aucune ne peut être faite d'ici. Il lui faut le droit « Ouvrir une session en tant que service » (secpol.msc &gt; Stratégies locales &gt; Attribution des droits utilisateur, ou votre stratégie de domaine). Il lui faut le contrôle total du dossier de données, du dossier de journaux et - pour la base de données intégrée - du dossier de base de données, plus un accès en lecture au dossier du programme ET un accès en écriture à hMailServer.INI qui s'y trouve, parce que le service y écrit ses propres réglages ; si ce fichier est en lecture seule pour le compte, les réglages enregistrés sont perdus au redémarrage suivant, sans aucune erreur. Et pour une base de données externe, il lui faut tout ce qu'exige ce serveur-là, ce qui pour MSSQL avec la sécurité intégrée signifie une connexion à lui. Un service qui ne peut pas ouvrir de session signale l'erreur 1069 dans le journal d'événements Windows et ne démarre pas.</value>
-  </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Seuils et actions</value>
   </data>
@@ -10034,9 +10030,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="To" xml:space="preserve">
     <value>À</value>
-  </data>
-  <data name="To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail." xml:space="preserve">
-    <value>Pour l'appliquer, ouvrez une invite de commandes en tant qu'administrateur et exécutez :  {0}   - puis redémarrez le service hMailServer. Enregistrer un service déjà enregistré le reconfigure sur place ; cela n'en crée pas un second et cela ne touche pas à votre courrier.</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Point d'accès de jeton (https)</value>
@@ -10428,6 +10421,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Ce que contient une sauvegarde, la planification, la vérification de chaque archive, et la restauration.</value>
   </data>
+  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Ce que change un compte propre. hMailServer.INI lui est en lecture seule, volontairement : le mot de passe administrateur, son second facteur, les dossiers et la base de données se changent comme le Control Panel l'indique quand vous essayez, et les réglages restent dans la base de données comme toujours. Un dossier défini plus tard en dehors du dossier du programme - un dossier de sauvegarde ou d'archive - est atteint dès qu'Accorder l'accès l'approuve. Un compte autre que NT SERVICE\hMailServer se définit dans services.msc et a besoin du droit « Ouvrir une session en tant que service » ; une base de données externe avec authentification Windows a besoin d'une connexion pour lui. Un service qui ne peut pas ouvrir de session signale l'erreur 1069 dans le journal des événements Windows et ne démarre pas.</value>
+  </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Ce qui peut être négocié</value>
   </data>
@@ -10593,8 +10589,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Quelles versions de TLS et quels chiffrements ce serveur négociera, et s'il vérifie le certificat du serveur auquel il livre.</value>
   </data>
-  <data name="Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\hMailServer." xml:space="preserve">
-    <value>Le compte Windows sous lequel le service hMailServer ouvre une session. Par défaut, c'est LocalSystem - le compte le plus privilégié de la machine - si bien qu'une faille atteignable par SMTP, IMAP ou POP3 est atteignable avec le contrôle total de l'ordinateur. Exécuter le service sous un compte dédié est ce qui réduit le plus ce que vaut une compromission, et le compte recommandé est le compte virtuel sans mot de passe NT SERVICE\hMailServer.</value>
+  <data name="Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer." xml:space="preserve">
+    <value>Le compte Windows sous lequel le service hMailServer ouvre sa session. Une nouvelle installation utilise NT SERVICE\hMailServer, un compte virtuel qui lui est propre, sans mot de passe, et qui n'atteint que les dossiers qui lui sont accordés ; une installation mise à niveau depuis une version antérieure garde LocalSystem, le compte le plus privilégié de la machine, jusqu'à ce qu'on la déplace - et sous LocalSystem, une faille accessible par SMTP, IMAP ou POP3 aurait le contrôle total de l'ordinateur.</value>
   </data>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Quelles adresses peuvent se connecter, lesquelles peuvent relayer sans s'authentifier, et lesquelles doivent d'abord s'authentifier.</value>
@@ -10710,11 +10706,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Windows display language" xml:space="preserve">
     <value>Langue d'affichage de Windows</value>
   </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is no service to re-register yet." xml:space="preserve">
-    <value>Windows ne signale aucun service hMailServer sur cette machine : il n'y a donc pas encore de service à ré-enregistrer.</value>
-  </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered." xml:space="preserve">
-    <value>Windows ne signale aucun service hMailServer sur cette machine : ce réglage n'a donc encore rien à quoi s'appliquer. Il est lu au moment de l'enregistrement du service.</value>
+  <data name="Windows does not report an hMailServer service on this machine, so there is no account to show or move yet." xml:space="preserve">
+    <value>Windows ne signale aucun service hMailServer sur cette machine : il n'y a donc encore aucun compte à afficher ou à changer.</value>
   </data>
   <data name="Windows service account" xml:space="preserve">
     <value>Compte de service Windows</value>
@@ -11582,6 +11575,19 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI n'a pas été trouvé sur cette machine. Ces réglages ne peuvent être modifiés que sur le serveur lui-même ; le test de connexion fonctionne quand même avec les valeurs saisies ici.</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess n'a pas terminé son travail (code de sortie {0}) :
+
+{1}</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess finished:&#10;&#10;{0}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess a terminé :
+
+{0}</value>
+  </data>
+  <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
+    <value>hMailServer.exe n'a pas pu être exécuté : {0}</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>Réglage BackupMessagesDBOnly de hMailServer.ini. La sauvegarde enregistre alors quels messages existent mais pas leur contenu, et une restauration s'attend à ce que les fichiers soient encore dans le dossier de données. S'applique à la sauvegarde et à la restauration.</value>

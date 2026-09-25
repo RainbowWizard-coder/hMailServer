@@ -25,7 +25,8 @@
 // credential may. Only sign_in_plain has one.
 //
 // The items, in the order a new server meets them: profile, domain, account,
-// submission, sign_in_tls, spf, dkim, dmarc, backup, second_factor. The profile item is first
+// submission, sign_in_tls, spf, dkim, dmarc, backup, second_factor, and last the
+// account the server runs as, service_account (docs/ServiceAccount.md). The profile item is first
 // because a profile sets thirty of the settings the rest of the first hour is
 // spent finding (Application/Profiles.h, docs/Profiles.md); it asks for one on a
 // young server - fewer than ten accounts, the sample domain's not counted - that
@@ -82,6 +83,13 @@
 //   backup_set               Backups go to {0}.
 //   second_factor_on         The administrator's password is backed by a one-time code.
 //   second_factor_off        The administrator signs in with a password alone.
+//   service_account_local_system  The service runs as LocalSystem ... (Windows)
+//   service_account_root     The server runs as root ... (POSIX)
+//   service_account_own      The service runs as {0}.
+//   autoban_firewall_not_permitted  AutoBanFirewall is on, but {0} cannot write
+//                            firewall rules ... (Windows)
+//   update_apply_by_administrator  {0} cannot run an installer ... (Windows,
+//                            not_needed: it says how updates are installed)
 //
 // WHAT COUNTS
 //
@@ -133,6 +141,7 @@
 #include "SetupChecklist.h"
 
 #include "FileUtilities.h"
+#include "ServiceAccount.h"
 #include "Unicode.h"
 #include "../Application/Configuration.h"
 #include "../Application/IniFileSettings.h"
@@ -251,7 +260,12 @@ namespace HM
             { "backup_folder_missing", "The backup destination {0} does not exist on the server." },
             { "backup_set", "Backups go to {0}." },
             { "second_factor_on", "The administrator's password is backed by a one-time code." },
-            { "second_factor_off", "The administrator signs in with a password alone." }
+            { "second_factor_off", "The administrator signs in with a password alone." },
+            { "service_account_local_system", "The service runs as LocalSystem, the most privileged account on the machine, so a flaw reachable through SMTP, IMAP or POP3 would have full control of it. The virtual account a new installation uses contains that; running the installer again, or the Control Panel, moves the service to it." },
+            { "service_account_root", "The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own." },
+            { "service_account_own", "The service runs as {0}." },
+            { "autoban_firewall_not_permitted", "AutoBanFirewall is on, but {0} cannot write Windows Defender Firewall rules: banned addresses are refused by the server and not blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand." },
+            { "update_apply_by_administrator", "{0} cannot run an installer, so updates are checked, downloaded and verified here and an administrator installs them." }
          };
 
          for (const auto &entry : texts)
@@ -805,6 +819,39 @@ namespace HM
       else
          Add(secondFactor, StateActionNeeded, "second_factor_off");
       items.push_back(secondFactor);
+
+      // The account the server runs as, judged from this process's own token
+      // rather than from what the service manager was asked for
+      // (docs/ServiceAccount.md). LocalSystem - root on POSIX - is action_needed
+      // as the profile's absence is: a recommendation that works either way, and
+      // the account an upgraded Windows installation keeps. What an account that
+      // is not an administrator cannot do is said beside it, where a setting
+      // depends on it.
+      Item serviceAccount;
+      serviceAccount.key = "service_account";
+      {
+         const AnsiString account = Utf8(ServiceAccount::ProcessAccountName());
+#ifdef HM_PLATFORM_POSIX
+         if (ServiceAccount::ProcessIsMostPrivileged())
+            Add(serviceAccount, StateActionNeeded, "service_account_root");
+         else
+            Add(serviceAccount, StateDone, "service_account_own", { account });
+#else
+         if (ServiceAccount::ProcessIsMostPrivileged())
+            Add(serviceAccount, StateActionNeeded, "service_account_local_system");
+         else
+            Add(serviceAccount, StateDone, "service_account_own", { account });
+
+         if (!ServiceAccount::ProcessIsAdministrator())
+         {
+            if (IniFileSettings::Instance()->GetAutoBanFirewallEnabled())
+               Add(serviceAccount, StateActionNeeded, "autoban_firewall_not_permitted", { account });
+            if (IniFileSettings::Instance()->GetUpdateCheckEnabled())
+               Add(serviceAccount, StateNotNeeded, "update_apply_by_administrator", { account });
+         }
+#endif
+      }
+      items.push_back(serviceAccount);
 
       int done = 0;
       int actionNeeded = 0;

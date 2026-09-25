@@ -632,8 +632,8 @@
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>供一个邮件客户端单独使用的密码。这样，丢失一台笔记本电脑只需在此撤销一行，而不必更改账户密码并重新配置其他所有客户端。</value>
   </data>
-  <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
-    <value>服务账户密码以明文形式存储在 hMailServer.INI 中 - DPAPI 设置并不涵盖它，因为注册步骤没有别的地方可以读取它。既然服务已经注册，Windows 会自行保留一份副本，因此请在“服务器限制与专家设置”页上清除该值。使用虚拟账户（NT SERVICE\hMailServer）或组托管服务账户可以彻底避免这个问题。</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>早期版本的服务账户密码以明文形式保存在 hMailServer.INI 中，而且已不再被任何程序读取：服务由安装程序或“Windows 服务账户”卡片上的按钮注册，Windows 会自行保存每个密码的副本。请用以管理员身份运行的编辑器从 hMailServer.INI 中删除 ServiceAccountPassword 行，并用 DELETE /api/v1/settings/ini/ServiceAccountPassword 删除该设置，使数据库中的副本也一并删除。</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>这是连接的份额，永远不超过投递线程数：一个托管域名的账户，或全部中继邮件加在一起，都不能占用所有投递线程。控制数量的是每账户发送上限；这不是。</value>
@@ -835,9 +835,6 @@
   </data>
   <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>账户缓存最大大小（KB，重启服务后重置）</value>
-  </data>
-  <data name="Account for the service to log on as (empty = leave the current account unchanged)" xml:space="preserve">
-    <value>服务用来登录的账户（留空 = 保持当前账户不变）</value>
   </data>
   <data name="Account to add" xml:space="preserve">
     <value>要添加的账户</value>
@@ -1799,9 +1796,6 @@
   </data>
   <data name="Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically." xml:space="preserve">
     <value>内置的 Let's Encrypt 集成：证书会自动颁发、续期、分配给 TLS 端口并热重载。</value>
-  </data>
-  <data name="By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that." xml:space="preserve">
-    <value>默认情况下服务以 LocalSystem 运行，这是本机上权限最高的账户，因此凡是能通过 SMTP、IMAP 或 POP3 触及的东西，都能以对计算机的完全控制权触及。专用账户可以把这种影响限制住。</value>
   </data>
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>SPF 通过时绕过</value>
@@ -3872,6 +3866,9 @@
   <data name="Folders" xml:space="preserve">
     <value>文件夹</value>
   </data>
+  <data name="Folders the service account needs" xml:space="preserve">
+    <value>服务账户需要的文件夹</value>
+  </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>沿用域设置</value>
   </data>
@@ -3997,6 +3994,12 @@
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
     <value>用于无人值守/集群运行的正常关闭行为。（日志保留在“日志记录”页。）</value>
+  </data>
+  <data name="Grant access…" xml:space="preserve">
+    <value>授予访问权限…</value>
+  </data>
+  <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>像“授予访问权限”一样授予文件夹——先询问配置在其外指定的每个文件夹或密钥文件——只有在此过程顺利完成时才将服务注册为 NT SERVICE\hMailServer。服务在重新启动前保留原来的账户。</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>灰名单</value>
@@ -5316,6 +5319,12 @@
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>移动到 IMAP 文件夹</value>
   </data>
+  <data name="Move to LocalSystem…" xml:space="preserve">
+    <value>切换到 LocalSystem…</value>
+  </data>
+  <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
+    <value>切换到 NT SERVICE\hMailServer…</value>
+  </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>把邮件移入指定为 Junk 的文件夹，会向 sa-learn 报告它是垃圾邮件；把邮件再移出来，则报告它是正常邮件。这样过滤器就能从人们本来就在做的事情中学习，而不是从一套没人会执行的单独仪式中学习。默认关闭：它每移动一次就运行一次 sa-learn，而一个把新闻邮件归入 Junk 的用户，是在教过滤器：对该扫描器所服务的所有人来说，新闻邮件都是垃圾邮件。</value>
   </data>
@@ -5733,12 +5742,6 @@
   <data name="Not a PEM certificate" xml:space="preserve">
     <value>不是 PEM 证书</value>
   </data>
-  <data name="Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. " xml:space="preserve">
-    <value>尚未应用。服务正以 {0} 运行，而本页要求的是 {1}。此设置只在注册服务时读取，因此仅在此处保存不会改变任何东西 - 即使重启也不会。 </value>
-  </data>
-  <data name="Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service." xml:space="preserve">
-    <value>未应用。hMailServer.INI 要求 {0}，但服务正以 {1} 运行。此设置只在注册服务时读取，因此重启后不会生效 - 请从提升权限的命令提示符运行 hMailServer.exe /Register，然后重启服务。</value>
-  </data>
   <data name="Not checked" xml:space="preserve">
     <value>未检查</value>
   </data>
@@ -5759,9 +5762,6 @@
   </data>
   <data name="Not needed" xml:space="preserve">
     <value>不需要</value>
-  </data>
-  <data name="Not needed for a virtual or managed account" xml:space="preserve">
-    <value>虚拟账户或托管账户不需要</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>未发布</value>
@@ -5970,6 +5970,9 @@
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>在备份页面设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
   </data>
+  <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
+    <value>在“服务器限制和专家设置”页面的“Windows 服务账户”卡片上：“切换到 NT SERVICE\hMailServer”会授予服务其文件夹（先询问配置在其外指定的每个文件夹或密钥文件）并切换服务；然后重新启动服务。再次运行安装程序也会提供相同的选择。使用 Windows 身份验证的外部数据库还需要为该账户建立登录名。</value>
+  </data>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>在“配置方案列表”页面上将这四个方案与此服务器比较，并应用合适的一个；它所替换的值会被保留以便恢复。</value>
   </data>
@@ -6113,6 +6116,9 @@
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>在 Wiki 中打开(_W)</value>
+  </data>
+  <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
+    <value>请在服务器本机上打开控制面板，以更改服务运行所用的账户或授予其文件夹。</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>打开投递队列</value>
@@ -6356,9 +6362,6 @@
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>密码（可选 - 仅用于测试真实登录）</value>
-  </data>
-  <data name="Password for that account (leave empty for NT SERVICE\ and gMSA accounts)" xml:space="preserve">
-    <value>该账户的密码（NT SERVICE\ 和 gMSA 账户请留空）</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>新密码或已更改的账户密码所用的密码哈希</value>
@@ -6993,6 +6996,9 @@
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>在身份提供方处把本服务器注册为一个应用程序，把提供方的公开签名密钥下载为 PEM 文件，并让 hMailServer.ini 中的 OAuth2PublicKeyFile 指向它（若使用 HS256，则改为设置 OAuth2HmacSecret）。请把 OAuth2Issuer 和 OAuth2Audience 设置为提供方写进其令牌中的值，否则验证会拒绝这些令牌。</value>
   </data>
+  <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>将服务重新注册为 LocalSystem，从服务器安装实时更新或为自动封禁写入防火墙规则都需要这样做。服务在重新启动前保留原来的账户。</value>
+  </data>
   <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>现在重新初始化服务器吗？所有服务会就地停止并重新启动，因此已连接的客户端会断开并重新连接。</value>
   </data>
@@ -7476,6 +7482,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>运行内置的连通性和配置检查。</value>
   </data>
+  <data name="Run the service as LocalSystem" xml:space="preserve">
+    <value>以 LocalSystem 运行服务</value>
+  </data>
+  <data name="Run the service as its own account" xml:space="preserve">
+    <value>以服务自己的账户运行服务</value>
+  </data>
   <data name="Running" xml:space="preserve">
     <value>正在运行</value>
   </data>
@@ -7484,6 +7496,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>从 Events 文件夹运行事件脚本（OnAcceptMessage、OnDeliveryStart...）；脚本本身在“事件脚本”页上编辑。保存时引擎会重新加载。</value>
+  </data>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>在 Windows 询问后，以管理员身份运行 hMailServer.exe /GrantServiceAccess：NT SERVICE\hMailServer 获得程序文件夹自身的 Data、Logs、Temp 和 Database 文件夹以及管理员已批准的文件夹的修改权限，以及程序文件夹的读取权限——但绝不包括 hMailServer.INI。配置在其他位置指定的文件夹（例如之后设置的备份或存档文件夹）只有在指明它的询问之后才会被批准；这些文件夹之外的密钥文件会被列出。可以随时再次运行，且不会移除任何人的权限。</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>按服务器所用的相同顺序执行相同的步骤，并直接使用上面各编辑框中当前的值：连接、保护传输、绑定服务凭据、搜索用户 - 并且只有在下面输入了密码时，才以该用户的身份绑定来加以证实。密码只使用一次，绝不存储，而且只要某项配置会让密码不加保护地经过网络，测试就会拒绝运行。有一点必须坦白说明：测试是从这台计算机上运行的，因此如果防火墙对这台机器和 hMailServer 服务区别对待，两者的结果就可能不一致。</value>
@@ -7715,9 +7730,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>已保存。每项设置旁显示其生效值。</value>
-  </data>
-  <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
-    <value>保存此项不会移动服务: 它在服务被注册时读取，因此只有在运行下方状态行中的命令之后才会生效。清空它也不会把服务移回 LocalSystem - 对已注册的服务来说，空值意味着“保持账户不变”。要恢复为 LocalSystem，请明确将此项设为 LocalSystem 并重新注册。</value>
   </data>
   <data name="Saving…" xml:space="preserve">
     <value>正在保存…</value>
@@ -8226,9 +8238,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Set a new server administration password." xml:space="preserve">
     <value>设置新的服务器管理密码。</value>
   </data>
-  <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
-    <value>在“服务器限制和专家设置”页设置一个账户 - NT SERVICE\hMailServer 不需要密码 - 然后从提升权限的命令提示符运行 hMailServer.exe /Register 并重启服务。授予该账户“作为服务登录”权限 (secpol.msc &gt; 本地策略 &gt; 用户权限分配)、对程序文件夹的读取权限，以及对数据、日志和数据库文件夹的完全控制权。外部数据库还需要为它创建一个登录名。</value>
-  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>已设置但未确认：{0}。在所有者打开发送到该地址的链接之前，它不会被用于任何用途。</value>
   </data>
@@ -8601,9 +8610,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Store: " xml:space="preserve">
     <value>存储:</value>
-  </data>
-  <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
-    <value>按原样存储在 hMailServer.INI 中 - 上面的 DPAPI 开关不覆盖它，服务控制管理器的注册步骤也没有其他地方可以读取它。这是改用 NT SERVICE\hMailServer 或组托管服务账户的最有力理由: 两者都没有需要存储的密码。如果您确实在此设置了密码，请在注册运行后再次清空 - 从那时起 SCM 会保留自己的副本。</value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>以 ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount 和 ScheduledBackupMaxAgeDays 存储在 hMailServer.ini 中。</value>
@@ -9698,26 +9704,19 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>无法读取服务账户: {0}</value>
   </data>
-  <data name="The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer." xml:space="preserve">
-    <value>服务正以 {0} 身份运行，且未请求其他账户。这是默认值，也能工作；它出现在此列表中，是因为改用专用账户是降低邮件服务器被攻陷所值代价的最大单项措施，而这无法在 hMailServer 内部完成。</value>
+  <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
+    <value>服务已注册为从下次启动起以 {0} 身份登录。请重新启动 hMailServer 服务（在 services.msc 中，或使用 net stop hMailServer 和 net start hMailServer）使其生效。
+
+{1}</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged." xml:space="preserve">
-    <value>服务正以 {0} 身份运行，它不是 LocalSystem，因此已经受到限制。hMailServer.INI 中未请求任何账户，因此重新注册服务不会改变这一点。</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\hMailServer below contains that." xml:space="preserve">
+    <value>服务正以本机权限最高的账户 {0} 运行：通过 SMTP、IMAP 或 POP3 可触及的漏洞将完全控制这台计算机。下方的“切换到 NT SERVICE\hMailServer”可以控制这一风险。</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means &quot;leave the account as it is&quot; - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly." xml:space="preserve">
-    <value>服务正以 {0} 身份运行，它不是 LocalSystem，因此已经受到限制。上面未请求任何内容，而对已注册的服务来说，空值意味着“保持账户不变” - 因此重新注册不会把它改回 LocalSystem。要那样做，请把此框明确设为 LocalSystem。</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\hMailServer, the account a new installation uses, contains that." xml:space="preserve">
+    <value>服务正以 {0} 运行，这是本机权限最高的账户：可通过 SMTP、IMAP 或 POP3 触及的漏洞将完全控制这台计算机。新安装使用的账户 NT SERVICE\hMailServer 可以限制这一点。</value>
   </data>
-  <data name="The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done." xml:space="preserve">
-    <value>服务正以 {0} 身份运行，这是 hMailServer.INI 中配置的账户。注册步骤已完成。</value>
-  </data>
-  <data name="The service is running as {0}, which is the account requested above. Nothing further is needed." xml:space="preserve">
-    <value>服务正以 {0} 身份运行，这是上面请求的账户。无需再做任何事。</value>
-  </data>
-  <data name="The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\hMailServer needs no password - and then re-registering the service is what changes it." xml:space="preserve">
-    <value>服务正以 {0} 身份运行。这是默认值，也能工作，但 hMailServer 中面向网络的每个部分都以它运行。在上面指定一个账户 - NT SERVICE\hMailServer 不需要密码 - 然后重新注册服务，就能改变这一点。</value>
-  </data>
-  <data name="The service is running as {0}. The requested account could not be read: {1}" xml:space="preserve">
-    <value>服务正以 {0} 身份运行。无法读取所请求的账户: {1}</value>
+  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained." xml:space="preserve">
+    <value>服务正以非 LocalSystem 的 {0} 运行，因此已受到限制。</value>
   </data>
   <data name="The service was restarted but the Control Panel could not reconnect to it: {0}&#10;&#10;It will keep trying as you use the application." xml:space="preserve">
     <value>服务已重启，但控制面板无法重新连接到它: {0}
@@ -9984,9 +9983,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
     <value>预留的线程，使异步队列不会被饿死</value>
   </data>
-  <data name="Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the &quot;Log on as a service&quot; right (secpol.msc &gt; Local Policies &gt; User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>该账户必须满足三个条件，服务才能以它启动，而这三个条件都无法在此处完成。它需要“作为服务登录”权限 (secpol.msc &gt; 本地策略 &gt; 用户权限分配，或您的域策略)。它需要对数据文件夹、日志文件夹以及 - 对于内置数据库 - 数据库文件夹的完全控制权，外加对程序文件夹的读取权限和对其中 hMailServer.INI 的写入权限，因为服务会把自己的设置写在那里；如果该文件对此账户是只读的，保存的设置会在下次重启时丢失且没有任何错误。而对于外部数据库，它需要那台服务器所要求的任何东西，对于使用集成安全性的 MSSQL 来说，这意味着一个自己的登录名。无法登录的服务会在 Windows 事件日志中报告错误 1069，并且不会启动。</value>
-  </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>阈值和操作</value>
   </data>
@@ -10034,9 +10030,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="To" xml:space="preserve">
     <value>收件人</value>
-  </data>
-  <data name="To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail." xml:space="preserve">
-    <value>要应用它，请打开提升权限的命令提示符并运行:  {0}   - 然后重启 hMailServer 服务。注册一个已注册的服务会就地重新配置它；不会创建第二个服务，也不会碰您的邮件。</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>令牌端点 (https)</value>
@@ -10428,6 +10421,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>备份包含什么、计划、对每个存档的验证以及还原。</value>
   </data>
+  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>使用自己的账户会带来的变化。hMailServer.INI 对它是有意设为只读的：管理员密码、其第二因素、文件夹和数据库按您尝试时控制面板给出的方式更改，设置仍像往常一样保存在数据库中。之后在程序文件夹之外设置的文件夹（备份或存档文件夹）在“授予访问权限”批准后即可访问。NT SERVICE\hMailServer 以外的账户在 services.msc 中设置，并需要“作为服务登录”权限；使用 Windows 身份验证的外部数据库需要为它建立登录名。无法登录的服务会在 Windows 事件日志中报告错误 1069，并且不会启动。</value>
+  </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>可协商的内容</value>
   </data>
@@ -10593,8 +10589,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>本服务器将协商哪些 TLS 版本和密码套件，以及它是否验证所投递服务器的证书。</value>
   </data>
-  <data name="Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\hMailServer." xml:space="preserve">
-    <value>hMailServer 服务以哪个 Windows 账户登录。默认是 LocalSystem - 机器上权限最高的账户 - 因此通过 SMTP、IMAP 或 POP3 可触及的缺陷，就是以对计算机的完全控制权可触及的。以专用账户运行服务是降低被攻陷所值代价的最大单项措施，推荐使用无密码的虚拟账户 NT SERVICE\hMailServer。</value>
+  <data name="Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer." xml:space="preserve">
+    <value>hMailServer 服务用来登录的 Windows 账户。新安装使用 NT SERVICE\hMailServer，这是它自己的虚拟账户，不需要密码，只能访问授予它的文件夹；从早期版本升级的安装会保留 LocalSystem（本机权限最高的账户），直到被迁移。在 LocalSystem 下，可通过 SMTP、IMAP 或 POP3 触及的漏洞将完全控制这台计算机。</value>
   </data>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>哪些地址可以连接，哪些可以不经身份验证中继，哪些必须先通过身份验证。</value>
@@ -10710,11 +10706,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Windows display language" xml:space="preserve">
     <value>Windows 显示语言</value>
   </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is no service to re-register yet." xml:space="preserve">
-    <value>Windows 没有报告本机上有 hMailServer 服务，因此还没有可重新注册的服务。</value>
-  </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered." xml:space="preserve">
-    <value>Windows 没有报告本机上有 hMailServer 服务，因此此设置还没有可应用的对象。它在服务注册时读取。</value>
+  <data name="Windows does not report an hMailServer service on this machine, so there is no account to show or move yet." xml:space="preserve">
+    <value>Windows 未报告此计算机上有 hMailServer 服务，因此还没有可显示或切换的账户。</value>
   </data>
   <data name="Windows service account" xml:space="preserve">
     <value>Windows 服务账户</value>
@@ -11582,6 +11575,19 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>在本机上未找到 hMailServer.INI。这些设置只能在服务器本机上编辑；连接测试仍然可以用此处输入的值运行。</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess 未完成其工作（退出代码 {0}）：
+
+{1}</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess finished:&#10;&#10;{0}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess 已完成：
+
+{0}</value>
+  </data>
+  <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
+    <value>无法运行 hMailServer.exe：{0}</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini 设置 BackupMessagesDBOnly。这样备份只记录存在哪些邮件，而不记录它们的内容，还原时则要求这些文件仍然留在数据文件夹中。适用于备份和还原。</value>

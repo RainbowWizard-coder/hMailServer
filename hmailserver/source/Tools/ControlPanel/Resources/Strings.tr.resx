@@ -632,8 +632,8 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Tek bir posta istemcisi için ayrı bir parola. Böylece bir dizüstü bilgisayarın kaybı, hesap parolasını değiştirip diğer bütün istemcileri yeniden yapılandırmak yerine burada tek bir satırı iptal etmek anlamına gelir.</value>
   </data>
-  <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
-    <value>hMailServer.INI dosyasında bir hizmet hesabı parolası düz metin olarak saklanıyor - DPAPI ayarı bunu kapsamaz, çünkü kayıt adımının okuyabileceği başka bir yer yoktur. Hizmet artık kaydedildiğine göre Windows kendi kopyasını saklar; bu yüzden değeri Sunucu sınırları ve uzman ayarları sayfasında temizleyin. Sanal bir hesap (NT SERVICE\hMailServer) veya grup tarafından yönetilen bir hizmet hesabı bu sorunu tümüyle ortadan kaldırır.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Önceki bir sürümden kalan bir hizmet hesabı parolası hMailServer.INI içinde düz metin olarak saklanıyor ve artık hiçbir şey onu okumuyor: hizmet, yükleyici tarafından veya Windows hizmet hesabı kartındaki düğmelerle kaydedilir ve Windows her parolanın kendi kopyasını tutar. ServiceAccountPassword satırını yükseltilmiş bir düzenleyiciyle hMailServer.INI dosyasından, ayarı da DELETE /api/v1/settings/ini/ServiceAccountPassword ile silin; böylece veritabanındaki kopya da gider.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Bağlantılardan bir pay, hiçbir zaman teslimat iş parçacıklarından fazla değil: barındırılan bir alan adının hesapları ya da aktarılan tüm postalar birlikte her teslimat iş parçacığını tutamaz. Hacmi hesap başına gönderme sınırı denetler; bu değil.</value>
@@ -835,9 +835,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Hesap önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
-  </data>
-  <data name="Account for the service to log on as (empty = leave the current account unchanged)" xml:space="preserve">
-    <value>Hizmetin oturum açacağı hesap (boş = mevcut hesabı değiştirme)</value>
   </data>
   <data name="Account to add" xml:space="preserve">
     <value>Eklenecek hesap</value>
@@ -1799,9 +1796,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically." xml:space="preserve">
     <value>Yerleşik Let's Encrypt tümleştirmesi: sertifikalar otomatik olarak verilir, yenilenir, TLS portlarına atanır ve çalışırken yeniden yüklenir.</value>
-  </data>
-  <data name="By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that." xml:space="preserve">
-    <value>Varsayılan olarak hizmet, makinedeki en ayrıcalıklı hesap olan LocalSystem olarak çalışır; bu yüzden SMTP, IMAP veya POP3 üzerinden erişilebilen her şeye bilgisayarın tam denetimiyle erişilebilir. Ayrılmış bir hesap bunu sınırlar.</value>
   </data>
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>SPF başarılıysa atla</value>
@@ -3872,6 +3866,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Folders" xml:space="preserve">
     <value>Klasörler</value>
   </data>
+  <data name="Folders the service account needs" xml:space="preserve">
+    <value>Hizmet hesabının gereksindiği klasörler</value>
+  </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Etki alanını izler</value>
   </data>
@@ -3997,6 +3994,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
     <value>Gözetimsiz / kümelenmiş çalışma için düzgün kapatma davranışı. (Günlük saklama, Günlükleme sayfasındadır.)</value>
+  </data>
+  <data name="Grant access…" xml:space="preserve">
+    <value>Erişim ver…</value>
+  </data>
+  <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Klasörleri Erişim ver gibi verir - yapılandırmanın bunların dışında adlandırdığı her klasörü veya anahtar dosyasını önce sorarak - ve hizmeti yalnızca bu sorunsuz biterse NT SERVICE\hMailServer olarak kaydeder. Hizmet yeniden başlatılana kadar eski hesabını korur.</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>Greylisting</value>
@@ -5316,6 +5319,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>IMAP klasörüne taşı</value>
   </data>
+  <data name="Move to LocalSystem…" xml:space="preserve">
+    <value>LocalSystem'e geçir…</value>
+  </data>
+  <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
+    <value>NT SERVICE\hMailServer'a geçir…</value>
+  </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Bir iletiyi \Junk olarak belirlenmiş klasöre taşımak onu sa-learn'e spam olarak bildirir, oradan geri çıkarmak ise ham olarak bildirir; böylece filtre, kimsenin yerine getirmediği ayrı bir tören yerine insanların zaten yaptıklarından öğrenir. Varsayılan olarak kapalıdır: her taşımada sa-learn'i çalıştırır ve haber bültenlerini Junk klasörüne koyan bir kullanıcı, filtreye haber bültenlerinin tarayıcının hizmet ettiği herkes için spam olduğunu öğretmiş olur.</value>
   </data>
@@ -5733,12 +5742,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not a PEM certificate" xml:space="preserve">
     <value>PEM sertifikası değil</value>
   </data>
-  <data name="Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. " xml:space="preserve">
-    <value>Henüz uygulanmadı. Hizmet {0} olarak çalışıyor, bu sayfa ise {1} istiyor. Bu ayar yalnızca hizmet kaydedilirken okunur; bu yüzden burada kaydetmek tek başına hiçbir şeyi değiştirmez - yeniden başlatmadan sonra bile.</value>
-  </data>
-  <data name="Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service." xml:space="preserve">
-    <value>Uygulanmadı. hMailServer.INI {0} istiyor ama hizmet {1} olarak çalışıyor. Bu ayar yalnızca hizmet kaydedilirken okunur; bu yüzden yeniden başlatmada geçerli olmayacak - yükseltilmiş bir Komut İstemi'nden hMailServer.exe /Register çalıştırın, sonra hizmeti yeniden başlatın.</value>
-  </data>
   <data name="Not checked" xml:space="preserve">
     <value>Denetlenmedi</value>
   </data>
@@ -5759,9 +5762,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Not needed" xml:space="preserve">
     <value>Gerekmiyor</value>
-  </data>
-  <data name="Not needed for a virtual or managed account" xml:space="preserve">
-    <value>Sanal ya da yönetilen bir hesap için gerekmez</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Yayımlanmamış</value>
@@ -5970,6 +5970,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Yedekleme sayfasında yedeğin yazılacağı klasörü, ileti deposunun bulunduğu diskten farklı bir diskte ayarlayın.</value>
   </data>
+  <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
+    <value>Sunucu sınırları ve uzman ayarları sayfasında, Windows hizmet hesabı kartı: NT SERVICE\hMailServer'a geçir hizmete klasörlerini verir - yapılandırmanın bunların dışında adlandırdığı her klasörü veya anahtar dosyasını önce sorarak - ve onu taşır; ardından hizmeti yeniden başlatın. Yükleyiciyi yeniden çalıştırmak aynı seçimi sunar. Windows kimlik doğrulamalı harici bir veritabanı da bu hesap için bir oturum açma kaydı ister.</value>
+  </data>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Ayar profilleri sayfasında dördünü bu sunucuyla karşılaştırın ve uyanı uygulayın; yerine koyduğu şey, geri alınabilmesi için saklanır.</value>
   </data>
@@ -6113,6 +6116,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>_Wikide aç</value>
+  </data>
+  <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
+    <value>Hizmetin çalıştığı hesabı değiştirmek veya ona klasörlerini vermek için Denetim Masası'nı sunucunun kendisinde açın.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Teslim kuyruğunu aç</value>
@@ -6356,9 +6362,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Parola (isteğe bağlı - yalnızca gerçek bir oturum açmayı sınamak için)</value>
-  </data>
-  <data name="Password for that account (leave empty for NT SERVICE\ and gMSA accounts)" xml:space="preserve">
-    <value>O hesabın parolası (NT SERVICE\ ve gMSA hesapları için boş bırakın)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Yeni ya da değiştirilen hesap parolaları için parola karması</value>
@@ -6993,6 +6996,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Bu sunucuyu kimlik sağlayıcısında bir uygulama olarak kaydedin, sağlayıcının genel imzalama anahtarını bir PEM dosyası olarak indirin ve hMailServer.ini içindeki OAuth2PublicKeyFile'ı ona yöneltin (ya da HS256 için OAuth2HmacSecret'ı ayarlayın). OAuth2Issuer ve OAuth2Audience'ı sağlayıcının belirteçlerine koyduğu değerlere ayarlayın, yoksa doğrulama onları reddeder.</value>
   </data>
+  <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Hizmeti yeniden LocalSystem olarak kaydeder; sunucudan canlı güncelleme yüklemek veya otomatik engelleme için güvenlik duvarı kuralları yazmak bunu gerektirir. Hizmet yeniden başlatılana kadar eski hesabını korur.</value>
+  </data>
   <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Sunucu şimdi yeniden başlatılsın (Reinitialize) mı? Her hizmet yerinde durup yeniden başlar, bu yüzden bağlı istemcilerin bağlantısı kesilir ve yeniden bağlanırlar.</value>
   </data>
@@ -7476,6 +7482,12 @@ Devam edilsin mi?</value>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Yerleşik bağlanabilirlik ve yapılandırma denetimlerini çalıştırın.</value>
   </data>
+  <data name="Run the service as LocalSystem" xml:space="preserve">
+    <value>Hizmeti LocalSystem olarak çalıştır</value>
+  </data>
+  <data name="Run the service as its own account" xml:space="preserve">
+    <value>Hizmeti kendi hesabıyla çalıştır</value>
+  </data>
   <data name="Running" xml:space="preserve">
     <value>Çalışıyor</value>
   </data>
@@ -7484,6 +7496,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Olay betiklerini (OnAcceptMessage, OnDeliveryStart...) Events klasöründen çalıştırır; betiğin kendisi Olay betikleri sayfasında düzenlenir. Motor siz kaydettiğinizde yeniden yüklenir.</value>
+  </data>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Windows sorduktan sonra hMailServer.exe /GrantServiceAccess komutunu yönetici olarak çalıştırır: NT SERVICE\hMailServer, program klasörünün kendi Data, Logs, Temp ve Database klasörlerinde ve bir yöneticinin onayladığı klasörlerde Değiştirme, program klasöründe Okuma izni alır - hMailServer.INI'de asla. Yapılandırmanın başka bir yerde adlandırdığı bir klasör, örneğin sonradan ayarlanan bir yedekleme veya arşiv klasörü, ancak onu adlandıran bir sorudan sonra onaylanır; bu klasörlerin dışındaki anahtar dosyaları listelenir. İstenildiği zaman yeniden çalıştırılabilir ve kimsenin iznini kaldırmaz.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Sunucunun çalıştırdığı adımların aynısını, aynı sırayla, yukarıdaki düzenleyicilerdeki değerleri olduğu hâliyle kullanarak çalıştırır: bağlan, aktarımı koru, hizmet kimlik bilgisiyle bind yap, kullanıcıyı ara - ve yalnızca aşağıya bir parola yazılmışsa, kanıtlamak için o kullanıcı olarak bind yap. Parola bir kez kullanılır ve asla saklanmaz; sınama, bir parolayı ağa korumasız çıkaracak hiçbir yapılandırmayı çalıştırmayı reddeder. Dürüst bir uyarı: sınama bu bilgisayardan çalışır; bu yüzden bu makineye ve hMailServer hizmetine farklı davranan bir güvenlik duvarı ikisinin farklı sonuç vermesine yol açabilir.</value>
@@ -7715,9 +7730,6 @@ Devam edilsin mi?</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Kaydedildi. Geçerli değer her ayarın yanında gösterilir.</value>
-  </data>
-  <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
-    <value>Bunu kaydetmek hizmeti taşımaz: hizmet KAYDEDİLİRKEN okunur, bu yüzden yalnızca aşağıdaki durum satırındaki komut çalıştırıldıktan sonra etkili olur. Temizlemek de hizmeti LocalSystem'e geri taşımaz - zaten kayıtlı bir hizmette boş bir değer "hesabı olduğu gibi bırak" anlamına gelir. LocalSystem'e dönmek için bunu açıkça LocalSystem olarak ayarlayın ve yeniden kaydedin.</value>
   </data>
   <data name="Saving…" xml:space="preserve">
     <value>Kaydediliyor…</value>
@@ -8226,9 +8238,6 @@ Devam edilsin mi?</value>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Yeni bir sunucu yönetim parolası ayarlayın.</value>
   </data>
-  <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
-    <value>Sunucu sınırları ve uzman ayarları sayfasında bir hesap ayarlayın - NT SERVICE\hMailServer parola gerektirmez - ardından yükseltilmiş bir Komut İstemi'nden hMailServer.exe /Register çalıştırın ve hizmeti yeniden başlatın. O hesaba "Hizmet olarak oturum aç" (secpol.msc &gt; Yerel İlkeler &gt; Kullanıcı Hakları Ataması), program klasörüne okuma erişimi ve veri, günlük ve veritabanı klasörlerine tam denetim verin. Dış bir veritabanı ayrıca onun için bir oturum açma adı gerektirir.</value>
-  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Ayarlandı ama doğrulanmadı: {0}. Hesap sahibi oraya gönderilen bağlantıyı açana kadar hiçbir işe yaramaz.</value>
   </data>
@@ -8601,9 +8610,6 @@ Devam edilsin mi?</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Depo:</value>
-  </data>
-  <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
-    <value>hMailServer.INI'de tam yazıldığı gibi saklanır - yukarıdaki DPAPI anahtarı bunu kapsamaz ve Hizmet Denetim Yöneticisi'nin kayıt adımının bunu okuyacağı başka bir yer yoktur. Bunun yerine NT SERVICE\hMailServer veya grup yönetimli bir hizmet hesabı kullanmanın en güçlü nedeni budur: ikisinin de saklanacak parolası yoktur. Buraya bir tane yazarsanız, kayıt çalıştırıldıktan sonra yeniden temizleyin - SCM o andan itibaren kendi kopyasını tutar.</value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>hMailServer.ini'de ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount ve ScheduledBackupMaxAgeDays olarak saklanır.</value>
@@ -9698,26 +9704,19 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Hizmet hesabı okunamıyor: {0}</value>
   </data>
-  <data name="The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer." xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor ve başka bir hesap istenmiyor. Bu varsayılandır ve çalışır; bu listede olmasının nedeni, ayrılmış bir hesaba geçmenin posta sunucusunun ele geçirilmesinin değerini en çok düşüren tek adım olması ve hMailServer'ın içinden yapılamamasıdır.</value>
+  <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
+    <value>Hizmet, bir sonraki başlatmadan itibaren {0} olarak oturum açacak şekilde kaydedildi. Etkili olması için hMailServer hizmetini yeniden başlatın - services.msc içinde veya net stop hMailServer ve net start hMailServer ile.
+
+{1}</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged." xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor; bu LocalSystem değil, yani zaten sınırlandırılmış. hMailServer.INI'de hesap istenmiyor; bu yüzden hizmeti yeniden kaydetmek bunu değiştirmez.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\hMailServer below contains that." xml:space="preserve">
+    <value>Hizmet, makinedeki en ayrıcalıklı hesap olan {0} olarak çalışıyor: SMTP, IMAP veya POP3 üzerinden ulaşılabilen bir açık bilgisayarın tam denetimini ele geçirirdi. Aşağıdaki NT SERVICE\hMailServer'a geçir bunu sınırlar.</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means &quot;leave the account as it is&quot; - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly." xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor; bu LocalSystem değil, yani zaten sınırlandırılmış. Yukarıda hiçbir şey istenmiyor ve zaten kayıtlı bir hizmette boş bir değer "hesabı olduğu gibi bırak" anlamına gelir - bu yüzden yeniden kaydetmek onu LocalSystem'e geri taşımaz. Bunun için kutuyu açıkça LocalSystem olarak ayarlayın.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\hMailServer, the account a new installation uses, contains that." xml:space="preserve">
+    <value>Hizmet, makinedeki en ayrıcalıklı hesap olan {0} olarak çalışıyor: SMTP, IMAP veya POP3 üzerinden ulaşılabilen bir açık, bilgisayarın tam denetimini ele geçirir. Yeni bir kurulumun kullandığı hesap olan NT SERVICE\hMailServer bunu sınırlar.</value>
   </data>
-  <data name="The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done." xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor; bu, hMailServer.INI'de yapılandırılan hesap. Kayıt adımı yapılmış.</value>
-  </data>
-  <data name="The service is running as {0}, which is the account requested above. Nothing further is needed." xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor; bu, yukarıda istenen hesap. Başka bir şey gerekmiyor.</value>
-  </data>
-  <data name="The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\hMailServer needs no password - and then re-registering the service is what changes it." xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor. Bu varsayılandır ve çalışır, ancak hMailServer'ın ağa bakan her parçası onunla çalışır. Yukarıda bir hesap adlandırmak - NT SERVICE\hMailServer parola gerektirmez - ve sonra hizmeti yeniden kaydetmek bunu değiştirir.</value>
-  </data>
-  <data name="The service is running as {0}. The requested account could not be read: {1}" xml:space="preserve">
-    <value>Hizmet {0} olarak çalışıyor. İstenen hesap okunamadı: {1}</value>
+  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained." xml:space="preserve">
+    <value>Hizmet LocalSystem olmayan {0} olarak çalışıyor, yani zaten sınırlandırılmış.</value>
   </data>
   <data name="The service was restarted but the Control Panel could not reconnect to it: {0}&#10;&#10;It will keep trying as you use the application." xml:space="preserve">
     <value>Hizmet yeniden başlatıldı, ancak Denetim Masası ona yeniden bağlanamadı: {0}
@@ -9984,9 +9983,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
     <value>Zaman uyumsuz kuyruğun aç kalmaması için ayrılan iş parçacıkları</value>
   </data>
-  <data name="Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the &quot;Log on as a service&quot; right (secpol.msc &gt; Local Policies &gt; User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Hizmetin o hesap altında başlaması için o hesapla ilgili üç şeyin doğru olması gerekir ve hiçbiri buradan yapılamaz. "Hizmet olarak oturum aç" hakkına ihtiyacı vardır (secpol.msc &gt; Yerel İlkeler &gt; Kullanıcı Hakları Ataması veya etki alanı ilkeniz). Veri klasörü, günlük klasörü ve - yerleşik veritabanı için - veritabanı klasörü üzerinde tam denetime, ayrıca program klasörüne okuma erişimine VE içindeki hMailServer.INI'ye yazma erişimine ihtiyacı vardır, çünkü hizmet kendi ayarlarını oraya yazar; o dosya hesap için salt okunursa kaydedilen ayarlar bir sonraki yeniden başlatmada hata olmadan kaybolur. Dış bir veritabanı için de o sunucunun gerektirdiği her neyse ona ihtiyacı vardır; tümleşik güvenlikli MSSQL için bu kendi oturum açma adı demektir. Oturum açamayan bir hizmet Windows olay günlüğünde 1069 hatası bildirir ve başlamaz.</value>
-  </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Eşikler ve eylemler</value>
   </data>
@@ -10034,9 +10030,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="To" xml:space="preserve">
     <value>Kime</value>
-  </data>
-  <data name="To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail." xml:space="preserve">
-    <value>Uygulamak için yükseltilmiş bir Komut İstemi açın ve şunu çalıştırın:  {0}   - sonra hMailServer hizmetini yeniden başlatın. Zaten kayıtlı bir hizmeti kaydetmek onu yerinde yeniden yapılandırır; ikinci bir hizmet oluşturmaz ve postanıza dokunmaz.</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Belirteç uç noktası (https)</value>
@@ -10428,6 +10421,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Bir yedeğin neler içerdiği, zamanlama, her arşivin doğrulanması ve geri yükleme.</value>
   </data>
+  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Kendi hesabının değiştirdikleri. hMailServer.INI bu hesap için bilerek salt okunurdur: yönetici parolası, ikinci faktörü, klasörler ve veritabanı, denediğinizde Denetim Masası'nın söylediği şekilde değiştirilir ve ayarlar her zamanki gibi veritabanında tutulur. Program klasörünün dışında sonradan ayarlanan bir klasöre - bir yedekleme veya arşiv klasörüne - Erişim ver onu onayladığı anda ulaşılır. NT SERVICE\hMailServer dışındaki bir hesap services.msc içinde ayarlanır ve "Hizmet olarak oturum aç" hakkına ihtiyaç duyar; Windows kimlik doğrulamalı harici bir veritabanı onun için bir oturum açma kaydı ister. Oturum açamayan bir hizmet Windows olay günlüğüne 1069 hatasını yazar ve başlamaz.</value>
+  </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Neyin uzlaşılabileceği</value>
   </data>
@@ -10593,8 +10589,8 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Bu sunucunun hangi TLS sürümlerini ve şifreleri uzlaşacağı ve teslim ettiği sunucunun sertifikasını doğrulayıp doğrulamadığı.</value>
   </data>
-  <data name="Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\hMailServer." xml:space="preserve">
-    <value>hMailServer hizmetinin hangi Windows hesabıyla oturum açtığı. Varsayılan olarak bu LocalSystem'dir - makinedeki en ayrıcalıklı hesap - bu yüzden SMTP, IMAP veya POP3 üzerinden erişilebilen bir kusur, bilgisayarın tam denetimiyle erişilebilir. Hizmeti ayrılmış bir hesap olarak çalıştırmak, bir ele geçirmenin değerini en çok düşüren tek adımdır ve önerilen hesap parolasız sanal hesap NT SERVICE\hMailServer'dır.</value>
+  <data name="Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer." xml:space="preserve">
+    <value>hMailServer hizmetinin oturum açtığı Windows hesabı. Yeni bir kurulum, parola gerektirmeyen ve yalnızca kendisine verilen klasörlere ulaşan kendine ait bir sanal hesap olan NT SERVICE\hMailServer'ı kullanır; önceki bir sürümden yükseltilen bir kurulum, taşınana kadar makinedeki en ayrıcalıklı hesap olan LocalSystem'i korur - ve LocalSystem altında SMTP, IMAP veya POP3 üzerinden ulaşılabilen bir açık bilgisayarın tam denetimini ele geçirir.</value>
   </data>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Hangi adreslerin bağlanabileceği, hangilerinin kimlik doğrulamadan aktarabileceği ve hangilerinin önce kimlik doğrulaması yapması gerektiği.</value>
@@ -10710,11 +10706,8 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Windows display language" xml:space="preserve">
     <value>Windows görüntüleme dili</value>
   </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is no service to re-register yet." xml:space="preserve">
-    <value>Windows bu makinede bir hMailServer hizmeti bildirmiyor; bu yüzden henüz yeniden kaydedilecek hizmet yok.</value>
-  </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered." xml:space="preserve">
-    <value>Windows bu makinede bir hMailServer hizmeti bildirmiyor; bu yüzden bu ayarın henüz uygulanacağı bir şey yok. Hizmet kaydedilirken okunur.</value>
+  <data name="Windows does not report an hMailServer service on this machine, so there is no account to show or move yet." xml:space="preserve">
+    <value>Windows bu makinede bir hMailServer hizmeti bildirmiyor, bu yüzden henüz gösterilecek veya taşınacak bir hesap yok.</value>
   </data>
   <data name="Windows service account" xml:space="preserve">
     <value>Windows hizmet hesabı</value>
@@ -11582,6 +11575,19 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI bu makinede bulunamadı. Bu ayarlar yalnızca sunucunun kendisinde düzenlenebilir; bağlantı sınaması buraya yazılan değerlerle yine çalışır.</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess işini bitirmedi (çıkış kodu {0}):
+
+{1}</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess finished:&#10;&#10;{0}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess bitti:
+
+{0}</value>
+  </data>
+  <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
+    <value>hMailServer.exe çalıştırılamadı: {0}</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini ayarı BackupMessagesDBOnly. Yedekleme o zaman hangi iletilerin var olduğunu kaydeder ama içeriklerini kaydetmez ve geri yükleme dosyaların hâlâ veri klasöründe olmasını bekler. Yedekleme ve geri yüklemeye uygulanır.</value>

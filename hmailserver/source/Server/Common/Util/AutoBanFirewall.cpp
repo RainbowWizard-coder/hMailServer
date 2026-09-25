@@ -11,6 +11,7 @@
 #include "../Threading/WorkQueue.h"
 
 #include "ProcessLauncher.h"
+#include "ServiceAccount.h"
 #include "VariantDateTime.h"
 #include "Parsing/StringParser.h"
 #include "../Application/IniFileSettings.h"
@@ -55,6 +56,8 @@ namespace HM
       std::set<String> g_windowsRules;
       bool g_windowsRulesKnown = false;
       bool g_windowsUnavailableReported = false;
+      // That the service's account may not write firewall rules, said once.
+      bool g_windowsAccountReported = false;
 
       // Hooks: the addresses each command has been told "ban" for. Empty at
       // start-up on purpose - the process cannot know what a hook did before it
@@ -657,6 +660,49 @@ namespace HM
       // never had the setting on, and it must not touch COM or the firewall.
       if (!enabled && g_windowsRulesKnown && g_windowsRules.empty())
          return;
+
+      // Writing a firewall rule takes an administrator, and no narrower right
+      // exists to grant: LocalSystem is one, and the virtual account a new
+      // installation runs as is not (docs/ServiceAccount.md). Refused, said
+      // once, and not attempted - a failed Add per ban and a failed Remove per
+      // minute would say the same thing hundreds of times. What a service
+      // running as LocalSystem left behind is still found, and named, so that it
+      // is not a lockout nobody knows about.
+      if (!ServiceAccount::ProcessIsAdministrator())
+      {
+         if (enabled && !g_windowsAccountReported)
+         {
+            g_windowsAccountReported = true;
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7460, "AutoBanFirewall::Synchronise",
+               "AutoBanFirewall is on, but this service runs as " + ServiceAccount::ProcessAccountName() +
+               ", which cannot write Windows Defender Firewall rules - that takes an administrator. Banned addresses are refused by the server itself and are NOT blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand. Reported once.");
+         }
+
+         if (!g_windowsRulesKnown)
+         {
+            ComScope readScope;
+            CComPtr<INetFwRules> readRules;
+            String readError;
+            if (OpenRules(readRules, readError) && EnumerateOurRules(readRules, g_windowsRules, readError))
+            {
+               g_windowsRulesKnown = true;
+               if (!g_windowsRules.empty())
+               {
+                  ErrorManager::Instance()->ReportError(ErrorManager::High, 7461, "AutoBanFirewall::Synchronise",
+                     "Windows Defender Firewall holds " + StringParser::IntToString((int) g_windowsRules.size()) +
+                     " auto-ban rule(s) of this server's, left by a run as LocalSystem, and this service runs as " + ServiceAccount::ProcessAccountName() +
+                     ", which cannot remove them: each blocks its address until an administrator removes it (Get-NetFirewallRule -Group \"" + String(RuleGroup()) +
+                     "\" | Remove-NetFirewallRule). Reported once.");
+               }
+            }
+            else
+            {
+               // Unreadable: nothing is known, and nothing is asked again.
+               g_windowsRulesKnown = true;
+            }
+         }
+         return;
+      }
 
       ComScope com;
 

@@ -594,8 +594,13 @@ STDMETHODIMP InterfaceUtilities::MakeDependent(BSTR sOtherService)
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
    
-      HM::ServiceManager oManager; 
-      oManager.MakeDependentOn(sOtherService);
+      // A service that is not LocalSystem may not change its own entry
+      // (docs/ServiceAccount.md), and says so, with the command, rather than
+      // answering S_OK for a change it did not make.
+      HM::ServiceManager oManager;
+      HM::String error;
+      if (!oManager.MakeDependentOn(sOtherService, error))
+         return COMError::GenerateError(error);
       return S_OK;
    }
    catch (...)

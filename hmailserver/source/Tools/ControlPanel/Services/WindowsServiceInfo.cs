@@ -12,19 +12,20 @@ namespace hMailServer.ControlPanel.Services
    /// What Windows itself says about the hMailServer service: the account it runs
    /// under, how it starts, and where its binary is.
    ///
-   /// This exists because <c>ServiceAccountName</c> in hMailServer.INI is not a
-   /// setting the running service reads - it is an instruction consumed once, by
-   /// <c>ServiceManager::RegisterService</c>, when the service is registered or
-   /// re-registered. Between typing a value and running that registration, the INI
-   /// says one thing and the service runs as another, and the INI is the half an
-   /// administrator can see. Reading the Service Control Manager is how the Control
-   /// Panel can show the state rather than the request.
+   /// This exists because the account is the Service Control Manager's, not a
+   /// setting the running service reads: <c>hMailServer.exe /Register</c> sets it
+   /// from its command line (docs/ServiceAccount.md). <c>ServiceAccountName</c> in
+   /// hMailServer.INI used to be that instruction, and an earlier version's value
+   /// may still be there saying one thing while the service runs as another.
+   /// Reading the Service Control Manager is how the Control Panel shows the
+   /// state rather than a request.
    ///
    /// Read-only, and through WMI rather than a new P/Invoke because
    /// <see cref="IniFeatureStore"/> already queries Win32_Service the same way, so
    /// this adds no dependency. Querying a service's configuration needs no
-   /// elevation; changing it does, which is exactly why the GUI reports and does
-   /// not attempt the change.
+   /// elevation; changing it does, which is why the Windows service account card
+   /// changes it through hMailServer.exe run after the elevation prompt, and this
+   /// class only reads.
    /// </summary>
    public sealed class WindowsServiceInfo
    {

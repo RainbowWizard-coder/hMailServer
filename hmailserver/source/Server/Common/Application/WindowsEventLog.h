@@ -159,6 +159,13 @@ namespace HM
       // HKLM\SYSTEM\CurrentControlSet\Services\EventLog. Called by hMailServer.exe
       // /Unregister, last. Nothing on POSIX, where syslog has no registration.
       static void UnregisterSource();
+      // Registers the event source under HKLM, pointing at the message file
+      // the RENDERING section names, unless an EventMessageFile is there
+      // already. Called by hMailServer.exe /Register, which runs elevated: a
+      // service that is not LocalSystem (docs/ServiceAccount.md) cannot write
+      // HKLM, and finds the source registered and writes nothing. ERROR_SUCCESS,
+      // or the Windows error of the write that failed. Nothing on POSIX.
+      static long RegisterSource();
 
    private:
 

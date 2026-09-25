@@ -75,6 +75,24 @@ What the upgrade touches
   never had it. It is unused either way, and its presence is not a sign of a partial
   upgrade.
 
+The account the service runs as
+-------------------------------
+
+An upgrade keeps the account the service runs as - LocalSystem, for an
+installation that began before 25 September 2026 - unless the installer's
+*Service account* page is answered otherwise; a new installation runs it as the
+virtual account `NT SERVICE\hMailServer`. The page offers the way each side, and
+`/serviceaccount=virtual|localsystem|keep` does the same for a silent upgrade.
+A move is made after the database is upgraded, and only once the service's folders
+are granted cleanly: an attended installation asks about any folder or key file
+the configuration names outside the program folder, a silent one leaves the
+service on LocalSystem when there is one. Under the virtual account the live
+update is checked and an administrator installs it from the release page, since
+the service cannot run an installer itself, and `hMailServer.INI` is read-only to
+the service - the administrator password is then changed with
+`hMailServer.exe /SetAdministratorPassword`. [ServiceAccount.md](ServiceAccount.md)
+has the rest.
+
 Doing it
 --------
 

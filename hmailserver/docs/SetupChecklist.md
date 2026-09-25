@@ -1,7 +1,7 @@
 # The first-hour checklist
 
 What a new server still needs before it is a mail server anybody can use, judged
-by the server itself rather than by whoever is reading the documentation. Ten
+by the server itself rather than by whoever is reading the documentation. Eleven
 items, in the order a new installation meets them:
 
 | Key | Item | Done when |
@@ -16,6 +16,7 @@ items, in the order a new installation meets them:
 | `dmarc` | A DMARC record | every active domain has a TXT record beginning `v=DMARC1` at `_dmarc.<domain>` |
 | `backup` | A backup destination | the backup destination is set and the folder exists on the server |
 | `second_factor` | A second factor for the administrator | the administrator password is enrolled with a one-time code |
+| `service_account` | The account the server runs as | the server runs as an account that is not the most privileged one on the machine - not LocalSystem on Windows, not root on Linux ([ServiceAccount.md](ServiceAccount.md)). Judged from the server's own token. The most privileged account is action needed as the missing profile is: a recommendation, the account an upgraded Windows installation keeps, never an error. Under an account that is not an administrator, what it cannot do is said beside it while the setting that needs it is on |
 
 Each item is in one of four states, and an item is as bad as its worst finding:
 
@@ -74,7 +75,14 @@ prerequisites they already had. The panel asks the server for the list without
 DNS lookups, so that its window is not held for the resolver's timeout, and
 looks the SPF and DMARC records up itself off the window thread, as it already
 did for DKIM; the server's DKIM item is left out there, because the panel's own
-DKIM item verifies the record against the key file.
+DKIM item verifies the record against the key file, and so is its
+`service_account` item, because the panel's own reads the service manager and
+says what the service runs as, and raises a service account password an earlier
+version left in `hMailServer.INI`.
+
+**On the Control Deck's dashboard**, the `service_account` item's findings that
+need action are shown as information, with a way to the checklist, while the
+server runs as LocalSystem or root.
 
 ## The document
 
@@ -148,6 +156,11 @@ too. The Control Panel shows the item and opens its IP ranges page.
 | `backup_set` | folder | Backups go to {0}. |
 | `second_factor_on` | | The administrator's password is backed by a one-time code. |
 | `second_factor_off` | | The administrator signs in with a password alone. |
+| `service_account_local_system` | | The service runs as LocalSystem, the most privileged account on the machine, so a flaw reachable through SMTP, IMAP or POP3 would have full control of it. The virtual account a new installation uses contains that; running the installer again, or the Control Panel, moves the service to it. (Windows) |
+| `service_account_root` | | The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own. (Linux) |
+| `service_account_own` | account | The service runs as {0}. (done) |
+| `autoban_firewall_not_permitted` | account | AutoBanFirewall is on, but {0} cannot write Windows Defender Firewall rules: banned addresses are refused by the server and not blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand. (Windows, action needed) |
+| `update_apply_by_administrator` | account | {0} cannot run an installer, so updates are checked, downloaded and verified here and an administrator installs them. (Windows, while the update check is on; not_needed - it says how updates are installed) |
 
 The three record items look the first twenty active domains up; the rest are
 counted in `domains_not_looked_up`, and the Deck's DNS records view checks any
@@ -161,10 +174,11 @@ not asked to wait for all of them.
 is the route; `InterfaceUtilities::GetSetupChecklist` the COM method; the Deck's
 view is `renderChecklist` in `installation/WebAdmin/index.html`; the Control
 Panel's items are `ExternalSetupChecks.FirstHourItems`. The regression fixture is
-`test/RegressionTests/API/RestApiSetupChecklist.cs`: the ten items in order,
+`test/RegressionTests/API/RestApiSetupChecklist.cs`: the eleven items in order,
 the records looked up in the suite's own zone for two domains, the skipped lookup
 saying so, the submission port judged with a certificate that exists and with the
 self-signed one a new installation makes, the passwords item's fix sent as the
-finding gives it and withheld while a listener has no TLS, and the backup
-destination judged on disk. The Deck's button is
+finding gives it and withheld while a listener has no TLS, the backup destination
+judged on disk, and the account the server runs as judged from its own token and,
+beside the server, against what `sc.exe qc` reports. The Deck's button is
 `build/deck-script-test.js`'s.

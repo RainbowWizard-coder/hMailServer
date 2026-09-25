@@ -632,8 +632,8 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Erillinen salasana yhtä sähköpostiohjelmaa varten. Kannettavan katoaminen tarkoittaa silloin yhden rivin kumoamista täällä sen sijaan, että tilin salasana vaihdettaisiin ja kaikki muut ohjelmat määritettäisiin uudelleen.</value>
   </data>
-  <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
-    <value>Palvelutilin salasana on tallennettu hMailServer.INI-tiedostoon selväkielisenä – DPAPI-asetus ei kata sitä, koska rekisteröintivaiheella ei ole muuta paikkaa mistä lukea se. Nyt kun palvelu on rekisteröity, Windows säilyttää oman kopionsa, joten tyhjennä arvo Palvelimen rajat ja lisäasetukset -sivulla. Virtuaalitili (NT SERVICE\hMailServer) tai ryhmänhallittu palvelutili välttää koko kysymyksen.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Aiemman version palvelutilin salasana on tallennettu selväkielisenä hMailServer.INI-tiedostoon, eikä mikään enää lue sitä: palvelu rekisteröidään asennusohjelmalla tai Windows-palvelutili-kortin painikkeilla, ja Windows pitää jokaisesta salasanasta oman kopionsa. Poista ServiceAccountPassword-rivi hMailServer.INI-tiedostosta korotetuilla oikeuksilla toimivalla editorilla ja asetus komennolla DELETE /api/v1/settings/ini/ServiceAccountPassword, jotta myös tietokannan kopio häviää.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Osuus yhteyksistä, ei koskaan enempää kuin toimitussäikeitä: yhden isännöidyn toimialueen tilit tai kaikki välitetty posti yhdessä eivät voi varata jokaista toimitussäiettä. Tilikohtainen lähetysraja hallitsee määrää; tämä ei.</value>
@@ -835,9 +835,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Tilivälimuistin enimmäiskoko (KB, nollautuu palvelun uudelleenkäynnistyksessä)</value>
-  </data>
-  <data name="Account for the service to log on as (empty = leave the current account unchanged)" xml:space="preserve">
-    <value>Tili jolla palvelu kirjautuu (tyhjä = säilytä nykyinen tili ennallaan)</value>
   </data>
   <data name="Account to add" xml:space="preserve">
     <value>Lisättävä tili</value>
@@ -1799,9 +1796,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically." xml:space="preserve">
     <value>Sisäänrakennettu Let's Encrypt -integraatio: varmenteet myönnetään, uusitaan, liitetään TLS-portteihin ja ladataan uudelleen lennossa automaattisesti.</value>
-  </data>
-  <data name="By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that." xml:space="preserve">
-    <value>Oletuksena palvelu toimii LocalSystem-tilillä, koneen etuoikeutetuimmalla tilillä, joten kaikki SMTP:n, IMAP:n tai POP3:n kautta tavoitettava on tavoitettavissa tietokoneen täysillä oikeuksilla. Erillinen tili rajaa sen.</value>
   </data>
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Ohita, kun SPF läpäisee</value>
@@ -3872,6 +3866,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Folders" xml:space="preserve">
     <value>Kansiot</value>
   </data>
+  <data name="Folders the service account needs" xml:space="preserve">
+    <value>Kansiot, joita palvelutili tarvitsee</value>
+  </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Noudattaa verkkotunnusta</value>
   </data>
@@ -3997,6 +3994,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
     <value>Hallittu sammutus valvomatonta / klusteroitua käyttöä varten. (Lokien säilytys on Lokitus-sivulla.)</value>
+  </data>
+  <data name="Grant access…" xml:space="preserve">
+    <value>Myönnä käyttöoikeus…</value>
+  </data>
+  <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Myöntää kansiot kuten Myönnä käyttöoikeus - kysyen ensin jokaisesta kansiosta tai avaintiedostosta, jonka määritys nimeää niiden ulkopuolelta - ja rekisteröi palvelun NT SERVICE\hMailServer -tiliksi vain, jos se päättyy ongelmitta. Palvelu pitää vanhan tilinsä, kunnes se käynnistetään uudelleen.</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>Harmaalistaus</value>
@@ -5316,6 +5319,12 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Siirrä IMAP-kansioon</value>
   </data>
+  <data name="Move to LocalSystem…" xml:space="preserve">
+    <value>Siirrä LocalSystemiin…</value>
+  </data>
+  <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
+    <value>Siirrä NT SERVICE\hMailServeriin…</value>
+  </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Viestin siirtäminen Junk-kansioksi määritettyyn kansioon ilmoittaa sen sa-learnille roskapostina, ja viestin siirtäminen sieltä pois ilmoittaa sen asiallisena postina (ham), joten suodatin oppii siitä, mitä ihmiset jo tekevät, eikä erillisestä rituaalista, jota kukaan ei suorita. Oletuksena pois päältä: se ajaa sa-learnin jokaista siirtoa kohden, ja käyttäjä, joka arkistoi uutiskirjeet Junk-kansioon, opettaa suodattimelle, että uutiskirjeet ovat roskapostia kaikille, joita tarkistin palvelee.</value>
   </data>
@@ -5733,12 +5742,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not a PEM certificate" xml:space="preserve">
     <value>Ei PEM-varmenne</value>
   </data>
-  <data name="Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. " xml:space="preserve">
-    <value>Ei vielä käytössä. Palvelu toimii tilillä {0}, kun taas tämä sivu pyytää tiliä {1}. Tämä asetus luetaan vain palvelua rekisteröitäessä, joten sen tallentaminen täällä ei yksin muuta mitään - ei edes uudelleenkäynnistyksen jälkeen.</value>
-  </data>
-  <data name="Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service." xml:space="preserve">
-    <value>Ei käytössä. hMailServer.INI pyytää tiliä {0}, mutta palvelu toimii tilillä {1}. Tämä asetus luetaan vain palvelua rekisteröitäessä, joten se ei tule voimaan uudelleenkäynnistyksessä - aja hMailServer.exe /Register korotetusta komentokehotteesta ja käynnistä sitten palvelu uudelleen.</value>
-  </data>
   <data name="Not checked" xml:space="preserve">
     <value>Ei tarkistettu</value>
   </data>
@@ -5759,9 +5762,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Not needed" xml:space="preserve">
     <value>Ei tarvita</value>
-  </data>
-  <data name="Not needed for a virtual or managed account" xml:space="preserve">
-    <value>Ei tarvita virtuaaliselle tai hallitulle tilille</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Ei julkaistu</value>
@@ -5970,6 +5970,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Aseta sivulla Varmuuskopio kansio, johon varmuuskopio kirjoitetaan, eri levylle kuin viestivarasto.</value>
   </data>
+  <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
+    <value>Sivulla Palvelimen rajat ja asiantuntija-asetukset, kortti Windows-palvelutili: Siirrä NT SERVICE\hMailServeriin myöntää palvelulle sen kansiot - kysyen ensin jokaisesta kansiosta tai avaintiedostosta, jonka määritys nimeää niiden ulkopuolelta - ja siirtää sen; käynnistä palvelu sitten uudelleen. Asennusohjelman suorittaminen uudelleen tarjoaa saman valinnan. Ulkoinen tietokanta Windows-todennuksella tarvitsee myös kirjautumisen tilille.</value>
+  </data>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Vertaa sivulla Asetusprofiilit neljää tähän palvelimeen ja ota sopiva käyttöön; sen korvaama säilytetään, jotta sen voi palauttaa.</value>
   </data>
@@ -6113,6 +6116,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Avaa _wikissä</value>
+  </data>
+  <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
+    <value>Avaa Control Panel itse palvelimella vaihtaaksesi palvelun tilin tai myöntääksesi sille sen kansiot.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Avaa toimitusjono</value>
@@ -6356,9 +6362,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Salasana (valinnainen - vain todellisen kirjautumisen testaamiseen)</value>
-  </data>
-  <data name="Password for that account (leave empty for NT SERVICE\ and gMSA accounts)" xml:space="preserve">
-    <value>Tuon tilin salasana (jätä tyhjäksi NT SERVICE\- ja gMSA-tileille)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Salasanatiiviste uusille tai vaihdetuille tilien salasanoille</value>
@@ -6993,6 +6996,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Rekisteröi tämä palvelin sovellukseksi identiteetintarjoajalle, lataa tarjoajan julkinen allekirjoitusavain PEM-tiedostona ja osoita hMailServer.ini-tiedoston OAuth2PublicKeyFile siihen (tai aseta OAuth2HmacSecret HS256:lle). Aseta OAuth2Issuer ja OAuth2Audience arvoihin, jotka tarjoaja laittaa tokeneihinsa, tai tarkistus hylkää ne.</value>
   </data>
+  <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Rekisteröi palvelun uudelleen LocalSystem-tiliksi, mitä palvelimelta asennettava live-päivitys tai automaattisen eston palomuurisääntöjen kirjoittaminen tarvitsee. Palvelu pitää vanhan tilinsä, kunnes se käynnistetään uudelleen.</value>
+  </data>
   <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Alustetaanko palvelin uudelleen nyt? Kaikki palvelut pysähtyvät ja käynnistyvät uudelleen paikallaan, joten yhdistetyt asiakkaat katkaistaan ja ne yhdistävät uudelleen.</value>
   </data>
@@ -7476,6 +7482,12 @@ Jatketaanko?</value>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Aja sisäänrakennetut yhteys- ja määritystarkistukset.</value>
   </data>
+  <data name="Run the service as LocalSystem" xml:space="preserve">
+    <value>Suorita palvelu LocalSystem-tilinä</value>
+  </data>
+  <data name="Run the service as its own account" xml:space="preserve">
+    <value>Suorita palvelu omalla tilillään</value>
+  </data>
   <data name="Running" xml:space="preserve">
     <value>Käynnissä</value>
   </data>
@@ -7484,6 +7496,9 @@ Jatketaanko?</value>
   </data>
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Ajaa tapahtumakomentosarjat (OnAcceptMessage, OnDeliveryStart...) Events-kansiosta; itse komentosarjaa muokataan Tapahtumakomentosarjat-sivulla. Moottori latautuu uudelleen, kun tallennat.</value>
+  </data>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Suorittaa hMailServer.exe /GrantServiceAccess -komennon järjestelmänvalvojana Windowsin kysyttyä: NT SERVICE\hMailServer saa Muokkaa-oikeuden ohjelmakansion omiin kansioihin Data, Logs, Temp ja Database sekä kansioihin, jotka järjestelmänvalvoja on hyväksynyt, ja Lue-oikeuden ohjelmakansioon - ei koskaan hMailServer.INI-tiedostoon. Kansio, jonka määritys nimeää muualta, kuten myöhemmin asetettu varmuuskopio- tai arkistokansio, hyväksytään vasta kysymyksen jälkeen, joka nimeää sen; näiden kansioiden ulkopuoliset avaintiedostot luetellaan. Sen voi suorittaa uudelleen milloin tahansa, eikä se poista kenenkään oikeuksia.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Ajaa samat vaiheet, jotka palvelin ajaa, samassa järjestyksessä, yllä olevien editorien nykyisillä arvoilla: yhdistä, suojaa siirto, sido palvelutunnistetieto, hae käyttäjä - ja vain jos alla on kirjoitettu salasana, sido tuona käyttäjänä sen todistamiseksi. Salasanaa käytetään kerran eikä sitä koskaan tallenneta, ja testi kieltäytyy ajamasta mitään määritystä, joka laittaisi salasanan verkkoon suojaamattomana. Yksi rehellinen varauma: testi ajetaan tältä tietokoneelta, joten palomuuri, joka kohtelee tätä konetta ja hMailServer-palvelua eri tavalla, voi saada nämä kaksi erimielisiksi.</value>
@@ -7715,9 +7730,6 @@ Jatketaanko?</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Tallennettu. Voimassa oleva arvo näkyy kunkin asetuksen vieressä.</value>
-  </data>
-  <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
-    <value>Tämän tallentaminen ei siirrä palvelua: se luetaan, kun palvelu REKISTERÖIDÄÄN, joten se tulee voimaan vasta, kun alla olevan tilarivin komento on ajettu. Tyhjentäminen ei myöskään siirrä palvelua takaisin LocalSystemiin - jo rekisteröidyllä palvelulla tyhjä arvo tarkoittaa "jätä tili ennalleen". Palataksesi LocalSystemiin aseta tähän nimenomaisesti LocalSystem ja rekisteröi uudelleen.</value>
   </data>
   <data name="Saving…" xml:space="preserve">
     <value>Tallennetaan…</value>
@@ -8226,9 +8238,6 @@ Jatketaanko?</value>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Aseta uusi palvelimen hallintasalasana.</value>
   </data>
-  <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
-    <value>Aseta tili Palvelimen rajat ja asiantuntija-asetukset -sivulla - NT SERVICE\hMailServer ei tarvitse salasanaa - ja aja sitten korotetusta komentokehotteesta hMailServer.exe /Register ja käynnistä palvelu uudelleen. Myönnä tuolle tilille oikeus "Kirjaudu palveluna" (secpol.msc &gt; Paikalliset käytännöt &gt; Käyttäjän oikeuksien määrittäminen), lukuoikeus ohjelmakansioon ja täydet oikeudet data-, loki- ja tietokantakansioihin. Ulkoinen tietokanta tarvitsee lisäksi kirjautumistunnuksen sille.</value>
-  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Asetettu mutta vahvistamatta: {0}. Ennen kuin tilinhaltija seuraa sinne lähetettyä linkkiä, sitä ei käytetä mihinkään.</value>
   </data>
@@ -8601,9 +8610,6 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Varasto:</value>
-  </data>
-  <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
-    <value>Tallennetaan hMailServer.INI-tiedostoon täsmälleen kirjoitetussa muodossa - yllä oleva DPAPI-kytkin ei kata sitä, eikä Service Control Managerin rekisteröintivaiheella ole muuta paikkaa, josta lukea se. Se on vahvin syy käyttää sen sijaan tiliä NT SERVICE\hMailServer tai ryhmähallittua palvelutiliä: kummallakaan ei ole tallennettavaa salasanaa. Jos asetat sellaisen tähän, tyhjennä se uudelleen, kun rekisteröinti on ajettu - SCM säilyttää siitä lähtien oman kopionsa.</value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>Tallennetaan hMailServer.ini-tiedostoon nimillä ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount ja ScheduledBackupMaxAgeDays.</value>
@@ -9698,26 +9704,19 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Palvelutiliä ei voi lukea: {0}</value>
   </data>
-  <data name="The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer." xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}, eikä muuta tiliä ole pyydetty. Tämä on oletus, ja se toimii; se on tällä listalla, koska siirtyminen erilliseen tiliin on suurin yksittäinen vähennys siihen, minkä arvoinen postipalvelimen murtaminen on, eikä sitä voi tehdä hMailServerin sisältä.</value>
+  <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
+    <value>Palvelu on rekisteröity kirjautumaan tilinä {0} seuraavasta käynnistyksestä alkaen. Käynnistä hMailServer-palvelu uudelleen - services.msc-työkalussa tai komennoilla net stop hMailServer ja net start hMailServer - jotta muutos tulee voimaan.
+
+{1}</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged." xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}, joka ei ole LocalSystem, joten se on jo rajattu. hMailServer.INI-tiedostossa ei pyydetä tiliä, joten palvelun uudelleenrekisteröinti jättäisi sen ennalleen.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\hMailServer below contains that." xml:space="preserve">
+    <value>Palvelu toimii tilillä {0}, koneen etuoikeutetuimmalla tilillä: SMTP:n, IMAPin tai POP3:n kautta tavoitettava virhe saisi täyden hallinnan tietokoneeseen. Alla oleva Siirrä NT SERVICE\hMailServeriin rajaa sen.</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means &quot;leave the account as it is&quot; - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly." xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}, joka ei ole LocalSystem, joten se on jo rajattu. Yllä ei pyydetä mitään, ja jo rekisteröidyllä palvelulla tyhjä arvo tarkoittaa "jätä tili ennalleen" - joten uudelleenrekisteröinti ei siirtäisi sitä takaisin LocalSystemiin. Tee se asettamalla kenttään nimenomaisesti LocalSystem.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\hMailServer, the account a new installation uses, contains that." xml:space="preserve">
+    <value>Palvelu toimii tilillä {0}, koneen etuoikeutetuimmalla tilillä: SMTP:n, IMAP:n tai POP3:n kautta tavoitettava vika saisi tietokoneen täyden hallinnan. NT SERVICE\hMailServer, uuden asennuksen käyttämä tili, rajaa tämän.</value>
   </data>
-  <data name="The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done." xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}, joka on hMailServer.INI-tiedostoon määritetty tili. Rekisteröintivaihe on tehty.</value>
-  </data>
-  <data name="The service is running as {0}, which is the account requested above. Nothing further is needed." xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}, joka on yllä pyydetty tili. Muuta ei tarvita.</value>
-  </data>
-  <data name="The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\hMailServer needs no password - and then re-registering the service is what changes it." xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}. Se on oletus, ja se toimii, mutta jokainen verkkoon päin oleva hMailServerin osa toimii sillä. Tilin nimeäminen yllä - NT SERVICE\hMailServer ei tarvitse salasanaa - ja palvelun uudelleenrekisteröinti sen jälkeen on se, mikä muuttaa asian.</value>
-  </data>
-  <data name="The service is running as {0}. The requested account could not be read: {1}" xml:space="preserve">
-    <value>Palvelu toimii tilillä {0}. Pyydettyä tiliä ei voitu lukea: {1}</value>
+  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained." xml:space="preserve">
+    <value>Palvelu toimii tilillä {0}, joka ei ole LocalSystem, joten se on jo rajattu.</value>
   </data>
   <data name="The service was restarted but the Control Panel could not reconnect to it: {0}&#10;&#10;It will keep trying as you use the application." xml:space="preserve">
     <value>Palvelu käynnistettiin uudelleen, mutta Control Panel ei saanut siihen uudelleen yhteyttä: {0}
@@ -9984,9 +9983,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
     <value>Säikeet, jotka on varattu, jotta asynkroninen jono ei jää nälkään</value>
   </data>
-  <data name="Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the &quot;Log on as a service&quot; right (secpol.msc &gt; Local Policies &gt; User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Kolmen asian on pidettävä paikkansa tuosta tilistä, ennen kuin palvelu käynnistyy sillä, eikä yhtäkään niistä voi tehdä täältä. Se tarvitsee oikeuden "Kirjaudu palveluna" (secpol.msc &gt; Paikalliset käytännöt &gt; Käyttäjän oikeuksien määrittäminen tai toimialuekäytäntösi). Se tarvitsee täydet oikeudet datakansioon, lokikansioon ja - sisäänrakennetun tietokannan tapauksessa - tietokantakansioon sekä lukuoikeuden ohjelmakansioon JA kirjoitusoikeuden sen sisällä olevaan hMailServer.INI-tiedostoon, koska palvelu kirjoittaa omat asetuksensa sinne; jos tiedosto on tilille vain luku -tilassa, tallennetut asetukset katoavat seuraavassa uudelleenkäynnistyksessä ilman virhettä. Ja ulkoista tietokantaa varten se tarvitsee sen, mitä se palvelin vaatii, mikä MSSQL:lle integroidulla suojauksella tarkoittaa omaa kirjautumistunnusta. Palvelu, joka ei voi kirjautua, raportoi virheen 1069 Windowsin tapahtumalokiin eikä käynnisty.</value>
-  </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Kynnysarvot ja toiminnot</value>
   </data>
@@ -10034,9 +10030,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="To" xml:space="preserve">
     <value>Vastaanottaja</value>
-  </data>
-  <data name="To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail." xml:space="preserve">
-    <value>Ota se käyttöön avaamalla korotettu komentokehote ja suorittamalla:  {0}   - ja käynnistä sitten hMailServer-palvelu uudelleen. Jo rekisteröidyn palvelun rekisteröinti määrittää sen uudelleen paikallaan; se ei luo toista eikä koske postiisi.</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Tokenin päätepiste (https)</value>
@@ -10428,6 +10421,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Mitä varmuuskopio sisältää, aikataulu, jokaisen arkiston tarkistus ja palautus.</value>
   </data>
+  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Mitä oma tili muuttaa. hMailServer.INI on sille tarkoituksella vain luku -tilassa: järjestelmänvalvojan salasana, sen toinen tekijä, kansiot ja tietokanta muutetaan niin kuin Control Panel kertoo, kun yrität, ja asetukset pysyvät tietokannassa kuten aina. Myöhemmin asetettu kansio ohjelmakansion ulkopuolella - varmuuskopio- tai arkistokansio - tavoitetaan heti, kun Myönnä käyttöoikeus hyväksyy sen. Muu tili kuin NT SERVICE\hMailServer asetetaan services.msc-työkalussa, ja se tarvitsee oikeuden "Kirjaudu palveluna"; ulkoinen tietokanta Windows-todennuksella tarvitsee sille kirjautumisen. Palvelu, joka ei pysty kirjautumaan, ilmoittaa virheen 1069 Windowsin tapahtumalokiin eikä käynnisty.</value>
+  </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Mistä voidaan neuvotella</value>
   </data>
@@ -10593,8 +10589,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Mitä TLS-versioita ja salauksia tämä palvelin neuvottelee ja tarkistaako se sen palvelimen varmenteen, jolle se toimittaa.</value>
   </data>
-  <data name="Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\hMailServer." xml:space="preserve">
-    <value>Millä Windows-tilillä hMailServer-palvelu kirjautuu. Oletuksena se on LocalSystem - koneen etuoikeutetuin tili -, joten SMTP:n, IMAP:n tai POP3:n kautta tavoitettava vika on tavoitettavissa tietokoneen täysillä oikeuksilla. Palvelun ajaminen erillisellä tilillä on suurin yksittäinen vähennys siihen, minkä arvoinen murtautuminen on, ja suositeltu tili on salasanaton virtuaalitili NT SERVICE\hMailServer.</value>
+  <data name="Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer." xml:space="preserve">
+    <value>Millä Windows-tilillä hMailServer-palvelu kirjautuu. Uusi asennus käyttää tiliä NT SERVICE\hMailServer, omaa virtuaalitiliä, joka ei tarvitse salasanaa ja tavoittaa vain sille myönnetyt kansiot; aiemmasta versiosta päivitetty asennus säilyttää LocalSystem-tilin, koneen etuoikeutetuimman tilin, kunnes se siirretään - ja LocalSystem-tilillä SMTP:n, IMAP:n tai POP3:n kautta tavoitettava vika saisi tietokoneen täyden hallinnan.</value>
   </data>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Mitkä osoitteet saavat yhdistää, mitkä saavat välittää todentamatta ja minkä on todennuttava ensin.</value>
@@ -10710,11 +10706,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Windows display language" xml:space="preserve">
     <value>Windowsin näyttökieli</value>
   </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is no service to re-register yet." xml:space="preserve">
-    <value>Windows ei ilmoita hMailServer-palvelua tällä koneella, joten uudelleenrekisteröitävää palvelua ei vielä ole.</value>
-  </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered." xml:space="preserve">
-    <value>Windows ei ilmoita hMailServer-palvelua tällä koneella, joten tälle asetukselle ei vielä ole mitään, mihin sitä soveltaa. Se luetaan, kun palvelu rekisteröidään.</value>
+  <data name="Windows does not report an hMailServer service on this machine, so there is no account to show or move yet." xml:space="preserve">
+    <value>Windows ei ilmoita tällä koneella hMailServer-palvelua, joten näytettävää tai siirrettävää tiliä ei vielä ole.</value>
   </data>
   <data name="Windows service account" xml:space="preserve">
     <value>Windows-palvelutili</value>
@@ -11582,6 +11575,19 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI-tiedostoa ei löytynyt tältä koneelta. Näitä asetuksia voi muokata vain palvelimella itsellään; yhteystesti toimii silti tähän kirjoitetuilla arvoilla.</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess ei saanut työtään valmiiksi (lopetuskoodi {0}):
+
+{1}</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess finished:&#10;&#10;{0}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess valmistui:
+
+{0}</value>
+  </data>
+  <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
+    <value>hMailServer.exe-tiedostoa ei voitu suorittaa: {0}</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini-asetus BackupMessagesDBOnly. Varmuuskopio tallentaa silloin, mitä viestejä on olemassa, mutta ei niiden sisältöä, ja palautus odottaa tiedostojen olevan yhä datakansiossa. Koskee varmuuskopiointia ja palautusta.</value>

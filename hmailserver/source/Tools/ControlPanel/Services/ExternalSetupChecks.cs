@@ -509,7 +509,10 @@ namespace hMailServer.ControlPanel.Services
       /// DKIM item uses - and rendered from the finding codes, so that the sentence
       /// is this panel's in every language while the judgement is the server's. The
       /// server's DKIM item is left out: the DKIM item below verifies the record
-      /// against the key file, which the server's presence check does not.
+      /// against the key file, which the server's presence check does not. So is
+      /// its service_account item, which FirstHourItem does not know: the service
+      /// account item below reads the service manager and hMailServer.INI and says
+      /// what was asked for beside what the service runs as.
       /// </summary>
       private List<SetupItem> FirstHourItems()
       {
@@ -734,24 +737,24 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// The Windows account the service logs on as.
       ///
-      /// It belongs on this checklist for the reason the checklist exists: saving
-      /// ServiceAccountName changes nothing by itself. The value is read once, by
-      /// ServiceManager::RegisterService, which runs only from
-      /// <c>hMailServer.exe /Register</c> - so between saving it and running that
-      /// command, elevated, the configuration and the machine disagree and the
-      /// machine wins. The account also needs a privilege and a set of file rights
-      /// that are granted in Windows, not here.
+      /// It belongs on this checklist because it is decided outside hMailServer:
+      /// the Service Control Manager holds it, /Register sets it from its command
+      /// line alone (docs/ServiceAccount.md) - never from ServiceAccountName, which
+      /// the service and hMailServer administrators can write - and the account
+      /// needs file rights that are granted in Windows, by Grant access.
       ///
       /// The state is read from the Service Control Manager rather than inferred,
-      /// so this reports what the service IS running as, not what was asked for.
+      /// so this reports what the service IS running as. A service account
+      /// password an earlier version stored in hMailServer.INI is raised: it is a
+      /// Windows credential in plain text that nothing reads any more.
       /// </summary>
       private SetupItem ServiceAccountItem(IniFeatureStore ini, bool iniReadable, string iniExcuse, bool local)
       {
          var item = new SetupItem
          {
             Title = L("Windows service account - a least-privilege account needs granting outside hMailServer"),
-            Purpose = L("By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that."),
-            Action = L("Set an account on the Server limits & expert settings page - NT SERVICE\\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account \"Log on as a service\" (secpol.msc > Local Policies > User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well."),
+            Purpose = L("Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer."),
+            Action = L("On the Server limits & expert settings page, card Windows service account: Move to NT SERVICE\\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well."),
             Page = "hardening"
          };
 
@@ -769,67 +772,33 @@ namespace hMailServer.ControlPanel.Services
             item.Add(SetupItemState.CannotTell,
                service.Error != null
                   ? F("The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}", service.Error)
-                  : L("Windows does not report an hMailServer service on this machine, so there is no service to re-register yet."));
+                  : L("Windows does not report an hMailServer service on this machine, so there is no account to show or move yet."));
             item.AggregateFromFindings();
             return item;
          }
 
-         string configured = iniReadable ? ini.Read("ServiceAccountName", "").Trim() : "";
          bool runningAsLocalSystem = string.Equals(
             WindowsServiceInfo.Canonical(service.StartName, Environment.MachineName), "localsystem",
             StringComparison.OrdinalIgnoreCase);
 
-         if (!iniReadable)
+         if (runningAsLocalSystem)
          {
-            // The SCM half is still knowable and is the half that matters, so this
-            // degrades to a partial answer rather than to nothing at all.
-            item.Add(runningAsLocalSystem ? SetupItemState.ActionNeeded : SetupItemState.Done,
-               F("The service is running as {0}. The requested account could not be read: {1}", WindowsServiceInfo.DescribeAccount(service.StartName), iniExcuse));
-            item.AggregateFromFindings();
-            return item;
-         }
-
-         if (configured.Length == 0)
-         {
-            if (runningAsLocalSystem)
-            {
-               item.Add(SetupItemState.ActionNeeded,
-                  F("The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer.", WindowsServiceInfo.DescribeAccount(service.StartName)));
-            }
-            else
-            {
-               item.Add(SetupItemState.Done,
-                  F("The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged.", service.StartName));
-            }
-         }
-         else if (WindowsServiceInfo.SameAccount(configured, service.StartName, Environment.MachineName))
-         {
-            item.Add(SetupItemState.Done,
-               F("The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done.", service.StartName));
+            item.Add(SetupItemState.ActionNeeded,
+               F("The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\\hMailServer, the account a new installation uses, contains that.", WindowsServiceInfo.DescribeAccount(service.StartName)));
          }
          else
          {
-            item.Add(SetupItemState.ActionNeeded,
-               F("Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service.", configured, WindowsServiceInfo.DescribeAccount(service.StartName)));
+            item.Add(SetupItemState.Done,
+               F("The service is running as {0}, which is not LocalSystem, so it is already contained.", service.StartName));
          }
 
-         if (configured.Length > 0 && ini.Read("ServiceAccountPassword", "").Trim().Length > 0)
+         if (iniReadable && ini.Read("ServiceAccountPassword", "").Trim().Length > 0)
          {
-            // ActionNeeded, not CannotTell. This finding is a fact the panel just
-            // established by reading the value's length - the one thing it is not is
-            // unknown, and CannotTell means unknown everywhere else in this file.
-            //
-            // The ranking is what made it actively harmful. AggregateFromFindings
-            // takes Max over the enum, where CannotTell (2) outranks Done (1) but
-            // ranks below ActionNeeded (3). So a service correctly re-registered
-            // under the configured account, carrying a leftover plaintext password,
-            // aggregated to "Cannot tell": the completed prerequisite was reported
-            // as unverifiable AND the leftover secret was never raised as an action.
-            // One state, both halves wrong.
-            //
-            // Only emptiness is tested; the value is never read into the UI.
+            // ActionNeeded, not CannotTell: a fact the panel just established by
+            // reading the value's length. Only emptiness is tested; the value is
+            // never read into the UI.
             item.Add(SetupItemState.ActionNeeded,
-               L("A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits & expert settings page. A virtual account (NT SERVICE\\hMailServer) or a group managed service account avoids the question entirely."));
+               L("A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too."));
          }
 
          item.AggregateFromFindings();

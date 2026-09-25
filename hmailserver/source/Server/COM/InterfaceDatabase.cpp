@@ -475,6 +475,15 @@ STDMETHODIMP InterfaceDatabase::UtilGetFileNameByMessageID(hyper lMessageID, BST
    }
 }
 
+// What a database change is refused with while hMailServer.INI is read-only to
+// the service's account: the installer's way, which sets the database up while
+// the service still runs as LocalSystem and moves it afterwards, or the file.
+static HM::String DatabaseRefusal_()
+{
+   return HM::IniFileSettings::InitializationFileRefusal(_T("How the server reaches its database"),
+      _T("Set the database up while the service runs as LocalSystem, as the installer does: from an elevated prompt in the Bin folder, hMailServer.exe --service-account localsystem /Register, restart the service, run DBSetup.exe, then hMailServer.exe --confirm /GrantServiceAccess and hMailServer.exe --service-account virtual /Register, and restart it again. Or change [Database] in the file with an editor run as an administrator and restart the service."));
+}
+
 STDMETHODIMP InterfaceDatabase::CreateInternalDatabase()
 {
    try
@@ -484,7 +493,13 @@ STDMETHODIMP InterfaceDatabase::CreateInternalDatabase()
 
       if (!GetIsServerAdmin())
          return GetAccessDenied();
-   
+
+      // [Database] lives in hMailServer.INI, which the Windows service's own
+      // account may not write (docs/ServiceAccount.md). Refused before anything
+      // is created, so that no database is made that the file cannot name.
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DatabaseRefusal_());
+
       // Make sure we have the latest settings.
       ini_file_settings_->LoadSettings();
    
@@ -573,7 +588,13 @@ STDMETHODIMP InterfaceDatabase::CreateExternalDatabase(eDBtype ServerType, BSTR 
 
       if (!GetIsServerAdmin())
          return GetAccessDenied();
-   
+
+      // [Database] lives in hMailServer.INI, which the Windows service's own
+      // account may not write (docs/ServiceAccount.md). Refused before anything
+      // is created, so that no database is made that the file cannot name.
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DatabaseRefusal_());
+
       const HM::String sEmpty;
       const HM::String sServerName = ServerName;
       const HM::String sDatabaseName = DatabaseName;
@@ -658,7 +679,13 @@ STDMETHODIMP InterfaceDatabase::SetDefaultDatabase(eDBtype ServerType, BSTR Serv
    {
       if (!GetIsServerAdmin())
          return GetAccessDenied();
-   
+
+      // [Database] lives in hMailServer.INI, which the Windows service's own
+      // account may not write (docs/ServiceAccount.md). Refused before anything
+      // is created, so that no database is made that the file cannot name.
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(DatabaseRefusal_());
+
       HM::String sEmpty;
       HM::String sServerName = ServerName;
       HM::String sDatabaseName = DatabaseName;

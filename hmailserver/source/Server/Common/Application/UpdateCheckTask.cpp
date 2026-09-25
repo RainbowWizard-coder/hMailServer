@@ -219,6 +219,24 @@ namespace HM
       if (!open)
          return;
 
+      // A service that cannot run an installer - one moved off LocalSystem
+      // (docs/ServiceAccount.md) - leaves the verified installer to an
+      // administrator, and takes no backup for an apply that cannot happen.
+      // Said once per process: the window stays open for a quarter hour after
+      // quarter hour.
+      String refusal;
+      if (!UpdateInstaller::CanApplyHere(snapshot.release_url, refusal))
+      {
+         static bool said = false;
+         if (!said)
+         {
+            said = true;
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7463, "UpdateCheckTask::DoWork",
+               Formatter::Format(_T("The update window ({0}) is open and hMailServer {1} is verified, but it is not applied unattended: {2}"), windowText, snapshot.available_version, refusal));
+         }
+         return;
+      }
+
       if (settings->GetUpdateBackupBeforeApply() && !BackupBeforeApply_(snapshot.available_version))
          return;
 

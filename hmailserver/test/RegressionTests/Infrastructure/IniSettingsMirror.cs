@@ -140,9 +140,9 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual("stored-over-com", _application.Settings.GetIniSetting(ProbeKey),
             "A setting written over COM did not survive a restart of the service.");
 
-         // And it is in the file too, because that is what keeps hMailServer.exe
-         // /Register - which reads ServiceAccountName with no database open at all -
-         // seeing the right value.
+         // And it is in the file too - on a server whose account may write it, as
+         // the suite's LocalSystem service may - because that is what keeps the
+         // readers that go to the file directly seeing the right value.
          Assert.AreEqual("stored-over-com", IniFileSetting.Read(ProbeKey),
             "The stored value did not reach hMailServer.INI, so nothing that reads the file directly would see it.");
       }

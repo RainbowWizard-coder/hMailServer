@@ -52,6 +52,7 @@
 #include "../../SMTP/WarmupPlanTester.h"
 #include "SnmpTester.h"
 #include "../Persistence/SchemaUpgrader.h"
+#include "ServiceAccount.h"
 #include "../Persistence/MessageStoreFormat.h"
 #include "MailboxCrypto.h"
 #include "../../SMTP/DeliveryReportParser.h"
@@ -240,6 +241,20 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SchemaUpgrader\n"));
       SchemaUpgraderTester schemaUpgraderTester;
       schemaUpgraderTester.Test();
+
+#ifndef HM_PLATFORM_POSIX
+      // The grant hMailServer.exe /GrantServiceAccess makes (docs/ServiceAccount.md),
+      // on a directory of the tester's own and a SID of its own: made, made again
+      // with nothing changed, the DACL it leaves, inherited by the files in it,
+      // an administrator's own entry kept, a protected file granted without
+      // losing its protection, a hard-linked file and a path through a link
+      // refused. Which folders a grant may reach - a [Directories] value naming
+      // Bin among them - and the logon /Register passes for each
+      // --service-account. The service SID against the one Windows publishes.
+      OutputDebugString(_T("hMailServer: Testing ServiceAccount\n"));
+      ServiceAccountTester serviceAccountTester;
+      serviceAccountTester.Test();
+#endif
 
       // The settings block swapped under load: a thousand publishes and more while
       // this thread reads a String getter ten thousand times, every read one of the

@@ -14,8 +14,11 @@
 #include "hMailServer.h"
 
 #include "../Common/Util/ServiceManager.h"
-// For the LoadSettings call in the /Register branch: the service account the
-// registration installs is read from here, and nothing else on that path loads it.
+#include "../Common/Util/ServiceAccount.h"
+#include "../Common/Util/Unicode.h"
+#include "../Common/Application/WindowsEventLog.h"
+// For the LoadSettings call in the /Register branch, which the error log and
+// the event source need; the account is never read from the file (below).
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/NewInstallDefaults.h"
@@ -30,7 +33,14 @@
 #include "../Common/SQL/DALConnectionFactory.h"
 #include "../Common/SQL/DatabaseSettings.h"
 
+#include <algorithm>
 #include <cstdio>
+#include <string>
+#include <shellapi.h>
+
+// CommandLineToArgvW, for the switches that take a folder, which may have
+// spaces in it.
+#pragma comment(lib, "shell32.lib")
 
 // #define VLD_START_DISABLED
 // #include "C:\Temp\vld-10\vldapi.h"
@@ -337,6 +347,120 @@ static int UpgradeDatabaseFromCommandLine()
 }
 
 
+// A sentence of the server's, to the verb's error handle in UTF-8.
+static void WriteVerbError(const HM::String &text)
+{
+   HM::AnsiString narrow;
+   HM::Unicode::WideToMultiByte(text + _T("\r\n"), narrow);
+   WriteVerbError(narrow.c_str());
+}
+
+// The switches of /GrantServiceAccess (HM::ServiceAccount::GrantOptions),
+// read with the command line's own quoting - the split on spaces below would
+// cut a folder with a space in it. False, with why, for a switch without the
+// folder it takes.
+static bool ReadGrantOptions(HM::ServiceAccount::GrantOptions &options, HM::String &why)
+{
+   int count = 0;
+   LPWSTR *arguments = CommandLineToArgvW(GetCommandLineW(), &count);
+   if (arguments == nullptr)
+   {
+      why = _T("The command line could not be read.");
+      return false;
+   }
+
+   bool read = true;
+   for (int index = 1; index < count && read; index++)
+   {
+      const HM::String argument = arguments[index];
+      if (argument.CompareNoCase(_T("--confirm")) == 0)
+         options.confirm = true;
+      else if (argument.CompareNoCase(_T("--report-only")) == 0)
+         options.reportOnly = true;
+      else if (argument.CompareNoCase(_T("--approve-modify")) == 0 || argument.CompareNoCase(_T("--approve-read")) == 0)
+      {
+         const bool modify = argument.CompareNoCase(_T("--approve-modify")) == 0;
+         const HM::String folder = index + 1 < count ? HM::String(arguments[index + 1]) : HM::String();
+         if (folder.IsEmpty() || folder.Left(1) == _T("/") || folder.Left(2) == _T("--"))
+         {
+            why = HM::Formatter::Format(_T("{0} needs the folder it approves, in quotes when it has a space in it; for example {0} \"D:\\Mail Backups\". Nothing was changed."), argument);
+            read = false;
+            break;
+         }
+         options.approve.push_back(std::make_pair(folder, modify ? (DWORD) HM::ServiceAccount::RightsModify : (DWORD) HM::ServiceAccount::RightsReadExecute));
+         index++;
+      }
+   }
+
+   LocalFree(arguments);
+   return read;
+}
+
+// hMailServer.exe /SetAdministratorPassword: the administrator password,
+// read from standard input and written into hMailServer.INI as the PBKDF2
+// hash the Control Panel's card writes - the Windows side of
+// hmailserver --set-admin-password. It exists because the Windows service's
+// own account may not write the file (docs/ServiceAccount.md), so the card
+// cannot change the password through the service; an administrator changes
+// it here, and restarts the service. Standard input, not an argument, so that
+// the password is in no process list or shell history:
+//
+//    $p = Read-Host -AsSecureString 'New administrator password'
+//    [Net.NetworkCredential]::new('', $p).Password | & '.\hMailServer.exe' /SetAdministratorPassword
+//
+// Exit 0 written, 1 not written, 2 no password given, 3 the file cannot be
+// written by this account.
+static int SetAdministratorPasswordFromInput()
+{
+   HM::IniFileSettings::Instance()->LoadSettings();
+
+   if (!HM::IniFileSettings::InitializationFileWritable())
+   {
+      WriteVerbError(HM::Formatter::Format(_T("{0} cannot be written by this account: run this from an elevated prompt. Nothing was changed."), HM::IniFileSettings::GetInitializationFile()));
+      return 3;
+   }
+
+   HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+   std::string line;
+   if (input != NULL && input != INVALID_HANDLE_VALUE)
+   {
+      char character = 0;
+      DWORD read = 0;
+      while (line.size() < 4096 && ReadFile(input, &character, 1, &read, NULL) && read == 1 && character != '\n')
+         line += character;
+   }
+
+   while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+      line.pop_back();
+
+   if (line.empty())
+   {
+      WriteVerbError("No password was given on standard input; nothing was changed. From PowerShell: $p = Read-Host -AsSecureString 'New administrator password'; [Net.NetworkCredential]::new('', $p).Password | & '.\\hMailServer.exe' /SetAdministratorPassword\r\n");
+      return 2;
+   }
+
+   HM::String password;
+   HM::Unicode::MultiByteToWide(HM::AnsiString(line.c_str()), password);
+   std::fill(line.begin(), line.end(), '\0');
+
+   const bool written = HM::IniFileSettings::Instance()->SetAdministratorPassword(password);
+   password.assign(password.GetLength(), _T('\0'));
+
+   if (!written)
+   {
+      WriteVerbError(HM::Formatter::Format(_T("The administrator password could not be written to {0}; nothing was changed."), HM::IniFileSettings::GetInitializationFile()));
+      return 1;
+   }
+
+   HM::AnsiString said;
+   HM::Unicode::WideToMultiByte(HM::Formatter::Format(_T("The administrator password was written to {0} as a PBKDF2 hash. Restart the hMailServer service for it to take effect.\r\n"), HM::IniFileSettings::GetInitializationFile()), said);
+   HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+   DWORD written_ = 0;
+   if (output && output != INVALID_HANDLE_VALUE)
+      WriteFile(output, said.c_str(), (DWORD) said.GetLength(), &written_, NULL);
+   return 0;
+}
+
 extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
                                 LPTSTR lpCmdLine, int nShowCmd)
 {
@@ -463,6 +587,29 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          storeVerb = HM::MessageStoreMaintenance::VerbDecompress;
    }
 
+   // --service-account virtual|localsystem|keep|DOMAIN\name$, beside /Register:
+   // the account the installer's page or the Control Panel chose
+   // (docs/ServiceAccount.md), found anywhere on the line as the other switches
+   // are. One word each, so that nothing with a space in it - NT
+   // SERVICE\hMailServer - has to survive the split on spaces above. Without it
+   // /Register keeps the account a service has, and makes a new one
+   // LocalSystem. It is the ONLY place the account comes from: never
+   // ServiceAccountName in hMailServer.INI, which others write (ServiceManager.h).
+   bool serviceAccountGiven = false;
+   String serviceAccountWord;
+   for (size_t index = 0; index < vecParams.size(); index++)
+   {
+      if (vecParams[index].CompareNoCase(_T("--service-account")) == 0)
+      {
+         serviceAccountGiven = true;
+         for (size_t next = index + 1; next < vecParams.size() && serviceAccountWord.IsEmpty(); next++)
+         {
+            if (!vecParams[next].IsEmpty())
+               serviceAccountWord = vecParams[next];
+         }
+      }
+   }
+
    _AtlModule.InitializeCom();
 
    // /Unregister is decided before anything below registers anything, because it
@@ -502,24 +649,10 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    if (bRegisterService)
    {
       /*
-         The settings have to be loaded before the service is registered, and
-         nothing on this path had loaded them.
-
-         ServiceManager::RegisterService and ReconfigureService_ both call
-         IniFileSettings::GetServiceAccountName() / GetServiceAccountPassword()
-         to decide which account the service logs on as. Those fields are
-         assigned in exactly one place - IniFileSettings::LoadSettings - and the
-         only caller of it is Application::InitInstance, which this branch never
-         reaches: /Register also sets bRegisterTypelib, so control returns a few
-         lines below.
-
-         The result was that ServiceAccountName had never worked, by any route.
-         The registration read a default-constructed empty String, passed NULL
-         for lpServiceStartName, and CreateService therefore installed the
-         service as LocalSystem while ChangeServiceConfig was told "no change" -
-         so an administrator could set the value, run the documented command any
-         number of times, and the account would never move. There was no error,
-         because from the SCM's point of view nothing was asked for.
+         The settings are loaded for where the error log is, which a failed
+         registration writes to. They used to be loaded for ServiceAccountName
+         and ServiceAccountPassword, which decided the account; they no longer
+         do (ServiceManager.h says why), and nothing on this path reads them.
 
          LoadSettings is safe here. It reads hMailServer.ini and nothing else -
          GetInitializationFile derives the path from the binary's own directory -
@@ -530,10 +663,40 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
       // --- Register the hMailServer service.
       HM::ServiceManager hSCM;
+
+      if (serviceAccountGiven)
+      {
+         HM::ServiceManager::AccountChoice choice = HM::ServiceManager::AccountManaged;
+         if (serviceAccountWord.CompareNoCase(_T("virtual")) == 0)
+            choice = HM::ServiceManager::AccountVirtual;
+         else if (serviceAccountWord.CompareNoCase(_T("localsystem")) == 0)
+            choice = HM::ServiceManager::AccountLocalSystem;
+         else if (serviceAccountWord.CompareNoCase(_T("keep")) == 0)
+            choice = HM::ServiceManager::AccountKeep;
+
+         // Checked before anything is registered, so that a word that is none
+         // of them is said and changes nothing.
+         HM::ServiceManager::Logon logon;
+         HM::String refusal;
+         if (!HM::ServiceManager::LogonFor(choice, _T("hMailServer"), serviceAccountWord, logon, refusal))
+         {
+            AttachVerbOutput();
+            WriteVerbError(refusal);
+            return -1;
+         }
+
+         hSCM.SetAccountChoice(choice, serviceAccountWord);
+      }
+
       if (!hSCM.RegisterService("hMailServer", "hMailServer"))
       {
          return -1;
       }
+
+      // The event source, while this is elevated: a service that is not
+      // LocalSystem cannot write HKLM, and finds the source already there
+      // (WindowsEventLog::RegisterSource).
+      HM::WindowsEventLog::RegisterSource();
    }
 
    if (bRegisterTypelib)
@@ -638,6 +801,36 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       // transaction on its own connection, and a running server would hold
       // a schema it does not know.
       iRet = UpgradeDatabaseFromCommandLine();
+   }
+   else if (sLastParam.CompareNoCase(_T("/GrantServiceAccess")) == 0)
+   {
+      // What the service's own identity, NT SERVICE\hMailServer, needs in order
+      // to run as something less than LocalSystem: Modify on the program
+      // folder's own Data, Logs, Temp and Database folders and on the folders
+      // an administrator approved, Read on the program's own folders - and nothing a
+      // configuration the service can write names (Common/Util/
+      // ServiceAccount.h, docs/ServiceAccount.md). Run elevated by the installer
+      // and by the Control Panel's button; beside a running service as well as
+      // a stopped one, since it changes permissions and nothing the service
+      // holds. One line per grant goes where the other verbs' lines go. The
+      // exit codes are ServiceAccount::RunGrantCommand's.
+      AttachVerbOutput();
+
+      HM::ServiceAccount::GrantOptions grantOptions;
+      HM::String grantOptionsWhy;
+      if (!ReadGrantOptions(grantOptions, grantOptionsWhy))
+      {
+         WriteVerbError(grantOptionsWhy);
+         iRet = 1;
+      }
+      else
+         iRet = HM::ServiceAccount::RunGrantCommand(grantOptions);
+   }
+   else if (sLastParam.CompareNoCase(_T("/SetAdministratorPassword")) == 0)
+   {
+      // See SetAdministratorPasswordFromInput.
+      AttachVerbOutput();
+      iRet = SetAdministratorPasswordFromInput();
    }
    else if (sLastParam.CompareNoCase(_T("--apply-environment")) == 0)
    {

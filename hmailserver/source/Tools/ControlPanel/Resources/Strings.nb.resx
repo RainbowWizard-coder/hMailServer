@@ -632,8 +632,8 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A separate password for one mail client. Losing a laptop then means revoking one line here, rather than changing the account password and reconfiguring every other client." xml:space="preserve">
     <value>Et eget passord for én e-postklient. Å miste en bærbar maskin betyr da å trekke tilbake én linje her, i stedet for å endre kontopassordet og konfigurere hver eneste andre klient på nytt.</value>
   </data>
-  <data name="A service account password is stored in hMailServer.INI in plain text - the DPAPI setting does not cover it, because the registration step has nowhere else to read it from. Now that the service has been registered, Windows keeps its own copy, so clear the value on the Server limits &amp; expert settings page. A virtual account (NT SERVICE\hMailServer) or a group managed service account avoids the question entirely." xml:space="preserve">
-    <value>Et passord for tjenestekontoen er lagret i klartekst i hMailServer.INI - DPAPI-innstillingen dekker det ikke, fordi registreringstrinnet ikke har noe annet sted å lese det fra. Nå som tjenesten er registrert, beholder Windows sin egen kopi, så tøm verdien på siden Servergrenser og ekspertinnstillinger. En virtuell konto (NT SERVICE\hMailServer) eller en gruppeadministrert tjenestekonto unngår spørsmålet helt.</value>
+  <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
+    <value>Et tjenestekontopassord fra en tidligere versjon er lagret i klartekst i hMailServer.INI, og ingenting leser det lenger: tjenesten registreres av installasjonsprogrammet eller med knappene på kortet Windows-tjenestekonto, og Windows beholder sin egen kopi av ethvert passord. Slett linjen ServiceAccountPassword fra hMailServer.INI med et redigeringsprogram med forhøyede rettigheter, og innstillingen med DELETE /api/v1/settings/ini/ServiceAccountPassword, slik at også databasens kopi forsvinner.</value>
   </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>En andel av tilkoblingene, aldri flere enn leveringstrådene: kontoene i ett driftet domene, eller all videresendt post til sammen, kan ikke oppta alle leveringstrådene. Sendegrensen per konto styrer volumet; dette gjør ikke det.</value>
@@ -835,9 +835,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Account cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maks størrelse på kontohurtigbuffer (KB, nullstilles ved omstart av tjenesten)</value>
-  </data>
-  <data name="Account for the service to log on as (empty = leave the current account unchanged)" xml:space="preserve">
-    <value>Konto som tjenesten skal logge på som (tom = la gjeldende konto stå uendret)</value>
   </data>
   <data name="Account to add" xml:space="preserve">
     <value>Konto som skal legges til</value>
@@ -1799,9 +1796,6 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically." xml:space="preserve">
     <value>Innebygd Let's Encrypt-integrasjon: sertifikater utstedes, fornyes, tilordnes TLS-porter og lastes inn på nytt automatisk uten omstart.</value>
-  </data>
-  <data name="By default the service runs as LocalSystem, the most privileged account on the machine, so anything reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. A dedicated account contains that." xml:space="preserve">
-    <value>Som standard kjører tjenesten som LocalSystem, den mest privilegerte kontoen på maskinen, så alt som kan nås gjennom SMTP, IMAP eller POP3, kan nås med full kontroll over datamaskinen. En dedikert konto avgrenser det.</value>
   </data>
   <data name="Bypass on SPF success" xml:space="preserve">
     <value>Hopp over ved SPF-godkjenning</value>
@@ -3872,6 +3866,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Folders" xml:space="preserve">
     <value>Mapper</value>
   </data>
+  <data name="Folders the service account needs" xml:space="preserve">
+    <value>Mapper tjenestekontoen trenger</value>
+  </data>
   <data name="Follows the domain" xml:space="preserve">
     <value>Følger domenet</value>
   </data>
@@ -3997,6 +3994,12 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)" xml:space="preserve">
     <value>Oppførsel ved ordnet avslutning for ubemannet / klynget drift. (Loggoppbevaring er på siden Logging.)</value>
+  </data>
+  <data name="Grant access…" xml:space="preserve">
+    <value>Gi tilgang…</value>
+  </data>
+  <data name="Grants the folders as Grant access does - asking about any folder or key file the configuration names outside them - and registers the service as NT SERVICE\hMailServer only if that ends cleanly. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Gir mappene slik Gi tilgang gjør - og spør først om hver mappe eller nøkkelfil som konfigurasjonen nevner utenfor dem - og registrerer tjenesten som NT SERVICE\hMailServer bare hvis det ender uten feil. Tjenesten beholder den gamle kontoen til den startes på nytt.</value>
   </data>
   <data name="Greylisting" xml:space="preserve">
     <value>Grålisting</value>
@@ -5316,6 +5319,12 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Move to IMAP folder" xml:space="preserve">
     <value>Flytt til IMAP-mappe</value>
   </data>
+  <data name="Move to LocalSystem…" xml:space="preserve">
+    <value>Bytt til LocalSystem…</value>
+  </data>
+  <data name="Move to NT SERVICE\hMailServer…" xml:space="preserve">
+    <value>Bytt til NT SERVICE\hMailServer…</value>
+  </data>
   <data name="Moving a message into the folder designated Junk reports it to sa-learn as spam, and moving one back out reports it as ham, so the filter learns from what people already do rather than from a separate ritual nobody performs. Off by default: it runs sa-learn per move, and a user who files newsletters in Junk is teaching the filter that newsletters are spam for everyone the scanner serves." xml:space="preserve">
     <value>Å flytte en melding inn i mappen som er utpekt som Junk, rapporterer den til sa-learn som spam, og å flytte en ut igjen rapporterer den som ham, slik at filteret lærer av det folk allerede gjør, i stedet for av et eget rituale ingen utfører. Av som standard: det kjører sa-learn per flytting, og en bruker som legger nyhetsbrev i Junk, lærer filteret at nyhetsbrev er spam for alle skanneren betjener.</value>
   </data>
@@ -5733,12 +5742,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not a PEM certificate" xml:space="preserve">
     <value>Ikke et PEM-sertifikat</value>
   </data>
-  <data name="Not applied yet. The service is running as {0}, while this page asks for {1}. This setting is read only when the service is registered, so saving it here changes nothing on its own - not even after a restart. " xml:space="preserve">
-    <value>Ikke tatt i bruk ennå. Tjenesten kjører som {0}, mens denne siden ber om {1}. Denne innstillingen leses bare når tjenesten registreres, så å lagre den her endrer ingenting av seg selv - ikke engang etter en omstart.</value>
-  </data>
-  <data name="Not applied. hMailServer.INI asks for {0} but the service is running as {1}. This setting is read only when the service is registered, so it will not take effect on a restart - run hMailServer.exe /Register from an elevated Command Prompt, then restart the service." xml:space="preserve">
-    <value>Ikke tatt i bruk. hMailServer.INI ber om {0}, men tjenesten kjører som {1}. Denne innstillingen leses bare når tjenesten registreres, så den trer ikke i kraft ved en omstart - kjør hMailServer.exe /Register fra en forhøyet ledetekst, og start deretter tjenesten på nytt.</value>
-  </data>
   <data name="Not checked" xml:space="preserve">
     <value>Ikke kontrollert</value>
   </data>
@@ -5759,9 +5762,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Not needed" xml:space="preserve">
     <value>Ikke nødvendig</value>
-  </data>
-  <data name="Not needed for a virtual or managed account" xml:space="preserve">
-    <value>Ikke nødvendig for en virtuell eller administrert konto</value>
   </data>
   <data name="Not published" xml:space="preserve">
     <value>Ikke publisert</value>
@@ -5970,6 +5970,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Angi på siden Sikkerhetskopi mappen sikkerhetskopien skrives til, på en annen disk enn den meldingslageret ligger på.</value>
   </data>
+  <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
+    <value>På siden Servergrenser og ekspertinnstillinger, kortet Windows-tjenestekonto: Bytt til NT SERVICE\hMailServer gir tjenesten mappene sine - og spør først om hver mappe eller nøkkelfil som konfigurasjonen nevner utenfor dem - og flytter den; start deretter tjenesten på nytt. Å kjøre installasjonsprogrammet igjen gir det samme valget. En ekstern database med Windows-godkjenning trenger også en pålogging for kontoen.</value>
+  </data>
   <data name="On the Setting profiles page, compare the four with this server and apply the one that fits; what it replaces is kept, so that it can be put back." xml:space="preserve">
     <value>Sammenlign de fire med denne serveren på siden Innstillingsprofiler, og bruk den som passer; det den erstatter, tas vare på slik at det kan settes tilbake.</value>
   </data>
@@ -6113,6 +6116,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Open on the _wiki" xml:space="preserve">
     <value>Åpne på _wikien</value>
+  </data>
+  <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
+    <value>Åpne Control Panel på selve serveren for å bytte kontoen tjenesten kjører som, eller gi den mappene sine.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Åpne leveringskøen</value>
@@ -6356,9 +6362,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Passord (valgfritt - bare for å teste en reell pålogging)</value>
-  </data>
-  <data name="Password for that account (leave empty for NT SERVICE\ and gMSA accounts)" xml:space="preserve">
-    <value>Passord for den kontoen (la stå tomt for NT SERVICE\- og gMSA-kontoer)</value>
   </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Passordhash for nye eller endrede kontopassord</value>
@@ -6993,6 +6996,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
     <value>Registrer denne serveren som en applikasjon hos identitetsleverandøren, last ned leverandørens offentlige signeringsnøkkel som en PEM-fil, og pek OAuth2PublicKeyFile i hMailServer.ini mot den (eller sett OAuth2HmacSecret for HS256). Sett OAuth2Issuer og OAuth2Audience til verdiene leverandøren legger i tokenene sine, ellers avviser valideringen dem.</value>
   </data>
+  <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
+    <value>Registrerer tjenesten som LocalSystem igjen, noe installasjon av en liveoppdatering fra serveren eller skriving av brannmurregler for den automatiske utestengingen krever. Tjenesten beholder den gamle kontoen til den startes på nytt.</value>
+  </data>
   <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinitialisere serveren nå? Alle tjenester stopper og starter igjen på stedet, så tilkoblede klienter kobles fra og kobler til på nytt.</value>
   </data>
@@ -7476,6 +7482,12 @@ Fortsette?</value>
   <data name="Run the built-in connectivity and configuration checks." xml:space="preserve">
     <value>Kjør de innebygde tilkoblings- og konfigurasjonskontrollene.</value>
   </data>
+  <data name="Run the service as LocalSystem" xml:space="preserve">
+    <value>Kjør tjenesten som LocalSystem</value>
+  </data>
+  <data name="Run the service as its own account" xml:space="preserve">
+    <value>Kjør tjenesten under en egen konto</value>
+  </data>
   <data name="Running" xml:space="preserve">
     <value>Kjører</value>
   </data>
@@ -7484,6 +7496,9 @@ Fortsette?</value>
   </data>
   <data name="Runs event scripts (OnAcceptMessage, OnDeliveryStart...) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save." xml:space="preserve">
     <value>Kjører hendelsesskript (OnAcceptMessage, OnDeliveryStart...) fra Events-mappen; selve skriptet redigeres på siden Hendelsesskript. Motoren lastes på nytt når du lagrer.</value>
+  </data>
+  <data name="Runs hMailServer.exe /GrantServiceAccess as an administrator, after Windows asks: NT SERVICE\hMailServer is given Modify on the program folder's own Data, Logs, Temp and Database folders and on the folders an administrator has approved, and Read on the program folder - never hMailServer.INI. A folder the configuration names elsewhere, such as a backup or archive folder set later, is approved only after a question that names it; key files outside those folders are listed. It can be run again at any time, and removes nobody else's permission." xml:space="preserve">
+    <value>Kjører hMailServer.exe /GrantServiceAccess som administrator, etter at Windows har spurt: NT SERVICE\hMailServer får Endre på programmappens egne mapper Data, Logs, Temp og Database og på mappene en administrator har godkjent, og Lese på programmappen - aldri på hMailServer.INI. En mappe konfigurasjonen nevner andre steder, for eksempel en sikkerhetskopi- eller arkivmappe angitt senere, godkjennes først etter et spørsmål som nevner den; nøkkelfiler utenfor disse mappene listes opp. Den kan kjøres igjen når som helst og fjerner ingen andres tillatelse.</value>
   </data>
   <data name="Runs the same steps the server runs, in the same order, using the values in the editors above as they stand: connect, protect the transport, bind the service credential, search for the user - and, only if a password is typed below, bind as that user to prove it. The password is used once and never stored, and the test refuses to run any configuration that would put a password on the network unprotected. One honest caveat: the test runs from this computer, so a firewall that treats this machine and the hMailServer service differently can make the two disagree." xml:space="preserve">
     <value>Kjører de samme trinnene serveren kjører, i samme rekkefølge, med verdiene i redigeringsfeltene ovenfor slik de står: koble til, beskytte transporten, binde tjenestelegitimasjonen, søke etter brukeren - og, bare hvis et passord er skrevet inn nedenfor, binde som den brukeren for å bevise det. Passordet brukes én gang og lagres aldri, og testen nekter å kjøre enhver konfigurasjon som ville sende et passord ubeskyttet over nettverket. Ett ærlig forbehold: testen kjører fra denne datamaskinen, så en brannmur som behandler denne maskinen og hMailServer-tjenesten forskjellig, kan få de to til å være uenige.</value>
@@ -7715,9 +7730,6 @@ Fortsette?</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Lagret. Det som gjelder, vises ved siden av hver innstilling.</value>
-  </data>
-  <data name="Saving this does not move the service: it is read when the service is REGISTERED, so it takes effect only after the command in the status line below has been run. Clearing it does not move the service back to LocalSystem either - on an already-registered service an empty value means &quot;leave the account as it is&quot;. To return to LocalSystem, set this to LocalSystem explicitly and re-register." xml:space="preserve">
-    <value>Å lagre dette flytter ikke tjenesten: det leses når tjenesten REGISTRERES, så det får først virkning etter at kommandoen i statuslinjen nedenfor er kjørt. Å tømme det flytter heller ikke tjenesten tilbake til LocalSystem - på en allerede registrert tjeneste betyr en tom verdi "la kontoen være som den er". For å gå tilbake til LocalSystem, sett dette eksplisitt til LocalSystem og registrer på nytt.</value>
   </data>
   <data name="Saving…" xml:space="preserve">
     <value>Lagrer…</value>
@@ -8226,9 +8238,6 @@ Fortsette?</value>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Sett et nytt serveradministrasjonspassord.</value>
   </data>
-  <data name="Set an account on the Server limits &amp; expert settings page - NT SERVICE\hMailServer needs no password - then, from an elevated Command Prompt, run hMailServer.exe /Register and restart the service. Grant that account &quot;Log on as a service&quot; (secpol.msc &gt; Local Policies &gt; User Rights Assignment), read access to the program folder, and full control of the data, log and database folders. An external database needs a login for it as well." xml:space="preserve">
-    <value>Sett en konto på siden Servergrenser og ekspertinnstillinger - NT SERVICE\hMailServer trenger ikke passord - og kjør så, fra en ledetekst med forhøyede rettigheter, hMailServer.exe /Register og start tjenesten på nytt. Gi den kontoen "Logg på som en tjeneste" (secpol.msc &gt; Lokale policyer &gt; Tilordning av brukerrettigheter), lesetilgang til programmappen og full kontroll over data-, logg- og databasemappene. En ekstern database trenger også en pålogging for den.</value>
-  </data>
   <data name="Set but not confirmed: {0}. Until the account holder follows the link sent to it, it is used for nothing." xml:space="preserve">
     <value>Satt, men ikke bekreftet: {0}. Inntil kontoinnehaveren følger lenken som ble sendt dit, brukes den til ingenting.</value>
   </data>
@@ -8601,9 +8610,6 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Lager:</value>
-  </data>
-  <data name="Stored in hMailServer.INI exactly as typed - the DPAPI switch above does not cover it, and there is nowhere else for the Service Control Manager's registration step to read it from. That is the strongest reason to use NT SERVICE\hMailServer or a group managed service account instead: neither has a password to store. If you do set one here, clear it again once the registration has been run - the SCM keeps its own copy from then on." xml:space="preserve">
-    <value>Lagret i hMailServer.INI nøyaktig som skrevet - DPAPI-bryteren ovenfor dekker den ikke, og det finnes ingen andre steder Service Control Managers registreringstrinn kan lese den fra. Det er den sterkeste grunnen til å bruke NT SERVICE\hMailServer eller en group managed service account i stedet: ingen av dem har et passord å lagre. Hvis du setter ett her, tøm det igjen når registreringen er kjørt - SCM beholder sin egen kopi fra da av.</value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>Lagret i hMailServer.ini som ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount og ScheduledBackupMaxAgeDays.</value>
@@ -9698,26 +9704,19 @@ Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Tjenestekontoen kan ikke leses: {0}</value>
   </data>
-  <data name="The service is running as {0}, and no other account is requested. This is the default and it works; it is on this list because moving to a dedicated account is the single largest reduction in what a compromise of the mail server is worth, and it cannot be done from inside hMailServer." xml:space="preserve">
-    <value>Tjenesten kjører som {0}, og ingen annen konto er forespurt. Dette er standarden, og det fungerer; det står på denne listen fordi å flytte til en dedikert konto er den største enkeltreduksjonen av hva en kompromittering av postserveren er verdt, og det kan ikke gjøres fra innsiden av hMailServer.</value>
+  <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
+    <value>Tjenesten er registrert for å logge på som {0} fra neste oppstart. Start hMailServer-tjenesten på nytt - i services.msc, eller med net stop hMailServer og net start hMailServer - for at det skal tre i kraft.
+
+{1}</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. No account is requested in hMailServer.INI, so re-registering the service would leave that unchanged." xml:space="preserve">
-    <value>Tjenesten kjører som {0}, som ikke er LocalSystem, så den er allerede avgrenset. Ingen konto er forespurt i hMailServer.INI, så å registrere tjenesten på nytt ville la det være uendret.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. Move to NT SERVICE\hMailServer below contains that." xml:space="preserve">
+    <value>Tjenesten kjører som {0}, den mest privilegerte kontoen på maskinen: en feil som kan nås via SMTP, IMAP eller POP3, ville hatt full kontroll over datamaskinen. Bytt til NT SERVICE\hMailServer nedenfor begrenser det.</value>
   </data>
-  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained. Nothing is requested above, and on an already-registered service an empty value means &quot;leave the account as it is&quot; - so re-registering would not move it back to LocalSystem. To do that, set the box to LocalSystem explicitly." xml:space="preserve">
-    <value>Tjenesten kjører som {0}, som ikke er LocalSystem, så den er allerede avgrenset. Ingenting er forespurt ovenfor, og på en allerede registrert tjeneste betyr en tom verdi "la kontoen være som den er" - så omregistrering ville ikke flytte den tilbake til LocalSystem. For å gjøre det, sett feltet eksplisitt til LocalSystem.</value>
+  <data name="The service is running as {0}, the most privileged account on the machine: a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer. NT SERVICE\hMailServer, the account a new installation uses, contains that." xml:space="preserve">
+    <value>Tjenesten kjører som {0}, den mest privilegerte kontoen på maskinen: en feil som kan nås via SMTP, IMAP eller POP3, ville ha full kontroll over datamaskinen. NT SERVICE\hMailServer, kontoen en ny installasjon bruker, begrenser det.</value>
   </data>
-  <data name="The service is running as {0}, which is the account configured in hMailServer.INI. The registration step has been done." xml:space="preserve">
-    <value>Tjenesten kjører som {0}, som er kontoen konfigurert i hMailServer.INI. Registreringstrinnet er utført.</value>
-  </data>
-  <data name="The service is running as {0}, which is the account requested above. Nothing further is needed." xml:space="preserve">
-    <value>Tjenesten kjører som {0}, som er kontoen forespurt ovenfor. Ingenting mer trengs.</value>
-  </data>
-  <data name="The service is running as {0}. That is the default and it works, but every part of hMailServer that faces the network runs with it. Naming an account above - NT SERVICE\hMailServer needs no password - and then re-registering the service is what changes it." xml:space="preserve">
-    <value>Tjenesten kjører som {0}. Det er standarden, og det fungerer, men hver del av hMailServer som vender mot nettverket, kjører med den. Å navngi en konto ovenfor - NT SERVICE\hMailServer trenger ikke passord - og deretter registrere tjenesten på nytt er det som endrer det.</value>
-  </data>
-  <data name="The service is running as {0}. The requested account could not be read: {1}" xml:space="preserve">
-    <value>Tjenesten kjører som {0}. Den forespurte kontoen kunne ikke leses: {1}</value>
+  <data name="The service is running as {0}, which is not LocalSystem, so it is already contained." xml:space="preserve">
+    <value>Tjenesten kjører som {0}, som ikke er LocalSystem, så den er allerede begrenset.</value>
   </data>
   <data name="The service was restarted but the Control Panel could not reconnect to it: {0}&#10;&#10;It will keep trying as you use the application." xml:space="preserve">
     <value>Tjenesten ble startet på nytt, men Control Panel kunne ikke koble til den igjen: {0}
@@ -9984,9 +9983,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Threads reserved so the async queue cannot be starved" xml:space="preserve">
     <value>Tråder reservert slik at den asynkrone køen ikke kan sultes ut</value>
   </data>
-  <data name="Three things have to be true of that account before the service will start under it, and none of them can be done from here. It needs the &quot;Log on as a service&quot; right (secpol.msc &gt; Local Policies &gt; User Rights Assignment, or your domain policy). It needs full control of the data folder, the log folder and - for the built-in database - the database folder, plus read access to the program folder AND write access to hMailServer.INI inside it, because the service writes its own settings there; if that file is read-only to the account, saved settings are lost at the next restart with no error. And for an external database it needs whatever that server requires, which for MSSQL with integrated security means a login of its own. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
-    <value>Tre ting må være sanne om den kontoen før tjenesten starter under den, og ingen av dem kan gjøres herfra. Den trenger rettigheten "Logg på som en tjeneste" (secpol.msc &gt; Lokale policyer &gt; Tilordning av brukerrettigheter, eller domenepolicyen din). Den trenger full kontroll over datamappen, loggmappen og - for den innebygde databasen - databasemappen, pluss lesetilgang til programmappen OG skrivetilgang til hMailServer.INI inne i den, fordi tjenesten skriver sine egne innstillinger der; er den filen skrivebeskyttet for kontoen, går lagrede innstillinger tapt ved neste omstart uten noen feil. Og for en ekstern database trenger den det den serveren krever, som for MSSQL med integrert sikkerhet betyr en egen pålogging. En tjeneste som ikke kan logge på, rapporterer feil 1069 i Windows-hendelsesloggen og starter ikke.</value>
-  </data>
   <data name="Thresholds &amp; actions" xml:space="preserve">
     <value>Terskler og handlinger</value>
   </data>
@@ -10034,9 +10030,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="To" xml:space="preserve">
     <value>Til</value>
-  </data>
-  <data name="To apply it, open an elevated Command Prompt and run:  {0}   - then restart the hMailServer service. Registering an already-registered service reconfigures it in place; it does not create a second one and it does not touch your mail." xml:space="preserve">
-    <value>For å ta det i bruk, åpne en ledetekst med forhøyede rettigheter og kjør:  {0}   - og start så hMailServer-tjenesten på nytt. Å registrere en allerede registrert tjeneste rekonfigurerer den på stedet; det oppretter ikke en ny og rører ikke posten din.</value>
   </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Token-endepunkt (https)</value>
@@ -10428,6 +10421,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Hva en sikkerhetskopi inneholder, tidsplanen, verifisering av hvert arkiv og gjenoppretting.</value>
   </data>
+  <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
+    <value>Hva en egen konto endrer. hMailServer.INI er skrivebeskyttet for den, med vilje: administratorpassordet, den andre faktoren, mappene og databasen endres slik Control Panel sier når du prøver, og innstillinger lagres i databasen som alltid. En mappe angitt senere utenfor programmappen - en sikkerhetskopi- eller arkivmappe - nås så snart Gi tilgang godkjenner den. En annen konto enn NT SERVICE\hMailServer angis i services.msc og trenger rettigheten "Logg på som tjeneste"; en ekstern database med Windows-godkjenning trenger en pålogging for den. En tjeneste som ikke kan logge på, rapporterer feil 1069 i Windows-hendelsesloggen og starter ikke.</value>
+  </data>
   <data name="What can be negotiated" xml:space="preserve">
     <value>Hva som kan forhandles</value>
   </data>
@@ -10593,8 +10589,8 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to." xml:space="preserve">
     <value>Hvilke TLS-versjoner og chiffer denne serveren vil forhandle, og om den verifiserer sertifikatet til serveren den leverer til.</value>
   </data>
-  <data name="Which Windows account the hMailServer service logs on as. By default that is LocalSystem - the most privileged account on the machine - so a flaw reachable through SMTP, IMAP or POP3 is reachable with full control of the computer. Running the service as a dedicated account is the single largest reduction in what a compromise is worth, and the recommended one is the password-less virtual account NT SERVICE\hMailServer." xml:space="preserve">
-    <value>Hvilken Windows-konto hMailServer-tjenesten logger på som. Som standard er det LocalSystem - den mest privilegerte kontoen på maskinen - så en feil som kan nås gjennom SMTP, IMAP eller POP3, kan nås med full kontroll over datamaskinen. Å kjøre tjenesten som en dedikert konto er den største enkeltreduksjonen av hva en kompromittering er verdt, og den anbefalte er den passordløse virtuelle kontoen NT SERVICE\hMailServer.</value>
+  <data name="Which Windows account the hMailServer service logs on as. A new installation uses NT SERVICE\hMailServer, a virtual account of its own that needs no password and reaches only the folders it is granted; an installation upgraded from an earlier version keeps LocalSystem, the most privileged account on the machine, until it is moved - and under LocalSystem a flaw reachable through SMTP, IMAP or POP3 would have full control of the computer." xml:space="preserve">
+    <value>Hvilken Windows-konto hMailServer-tjenesten logger på som. En ny installasjon bruker NT SERVICE\hMailServer, en egen virtuell konto som ikke trenger passord og bare når mappene den er gitt; en installasjon som er oppgradert fra en tidligere versjon, beholder LocalSystem, den mest privilegerte kontoen på maskinen, til den flyttes - og under LocalSystem ville en feil som kan nås via SMTP, IMAP eller POP3, ha full kontroll over datamaskinen.</value>
   </data>
   <data name="Which addresses may connect, which may relay without authenticating, and which must authenticate first." xml:space="preserve">
     <value>Hvilke adresser som kan koble til, hvilke som kan relaye uten å autentisere, og hvilke som må autentisere først.</value>
@@ -10710,11 +10706,8 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Windows display language" xml:space="preserve">
     <value>Windows-visningsspråk</value>
   </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is no service to re-register yet." xml:space="preserve">
-    <value>Windows rapporterer ingen hMailServer-tjeneste på denne maskinen, så det er ingen tjeneste å registrere på nytt ennå.</value>
-  </data>
-  <data name="Windows does not report an hMailServer service on this machine, so there is nothing for this setting to apply to yet. It is read when the service is registered." xml:space="preserve">
-    <value>Windows rapporterer ingen hMailServer-tjeneste på denne maskinen, så det er ingenting denne innstillingen kan gjelde for ennå. Den leses når tjenesten registreres.</value>
+  <data name="Windows does not report an hMailServer service on this machine, so there is no account to show or move yet." xml:space="preserve">
+    <value>Windows rapporterer ingen hMailServer-tjeneste på denne maskinen, så det finnes ennå ingen konto å vise eller bytte.</value>
   </data>
   <data name="Windows service account" xml:space="preserve">
     <value>Windows-tjenestekonto</value>
@@ -11582,6 +11575,19 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here." xml:space="preserve">
     <value>hMailServer.INI ble ikke funnet på denne maskinen. Disse innstillingene kan bare redigeres på selve serveren; tilkoblingstesten virker fortsatt med verdiene som er skrevet inn her.</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess did not finish its work (exit code {0}):&#10;&#10;{1}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess fullførte ikke arbeidet sitt (avslutningskode {0}):
+
+{1}</value>
+  </data>
+  <data name="hMailServer.exe /GrantServiceAccess finished:&#10;&#10;{0}" xml:space="preserve">
+    <value>hMailServer.exe /GrantServiceAccess er ferdig:
+
+{0}</value>
+  </data>
+  <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
+    <value>hMailServer.exe kunne ikke kjøres: {0}</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini-innstillingen BackupMessagesDBOnly. Sikkerhetskopien registrerer da hvilke meldinger som finnes, men ikke innholdet deres, og en gjenoppretting forventer at filene fortsatt ligger i datamappen. Gjelder sikkerhetskopiering og gjenoppretting.</value>

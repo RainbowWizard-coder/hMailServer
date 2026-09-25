@@ -9596,8 +9596,14 @@ namespace HM
       //  - hMailServer.ini itself is owned by IniFileSettings, which caches its
       //    values at InitInstance and would need to change to hold a list; a
       //    separate file needs no change there at all.
-      //  - The service account already has write access to that directory (it
-      //    writes hMailServer.ini), and the directory is not web-served.
+      //  - The directory is not web-served. LocalSystem may write in it; a
+      //    service account that is not (docs/ServiceAccount.md) may not create
+      //    files there, so hMailServer.exe /GrantServiceAccess makes this file,
+      //    empty, and grants the account Modify on it - on this file alone, and
+      //    never on hMailServer.ini, which elevated commands read. The service
+      //    may write this one because nothing elevated takes a path, an account
+      //    or a command from it: it holds key hashes the REST listener checks,
+      //    and the service could mint a key through its own API anyway.
       //  - The file is read on every authentication attempt, so adding or
       //    revoking a key takes effect immediately: no restart, no rebuild.
       //
@@ -10215,7 +10221,12 @@ namespace HM
       String section = String(ApiKeySectionPrefix) + id;
       String storeFile = GetApiKeyStoreFile();
 
-      if (!FileUtilities::Exists(storeFile))
+      // Asked before anything is written: a store that is not there cannot be
+      // made by the Windows service's own account, which may not make files in
+      // the program folder (docs/ServiceAccount.md), and the answer says so.
+      const bool storeWasMissing = !FileUtilities::Exists(storeFile);
+
+      if (storeWasMissing)
       {
          // Explain the file inside the file. This is the only place an
          // administrator will go looking, and LoadKeys_ ignores ';' lines. A
@@ -10291,7 +10302,9 @@ namespace HM
          WritePrivateProfileString(section, nullptr, nullptr, storeFile);
          WritePrivateProfileString(nullptr, nullptr, nullptr, storeFile);
 
-         return BuildResponse_(500, "{\"error\":\"failed to store the key\"}");
+         return BuildResponse_(500, storeWasMissing
+            ? AnsiString("{\"error\":\"failed to store the key: the key store, hMailServerApiKeys.ini beside hMailServer.INI, is not there, and the account the service runs as may not make files in the program folder. Run Grant access on the Control Panel's Windows service account card, or hMailServer.exe /GrantServiceAccess from an elevated prompt, which makes it; then make the key again.\"}")
+            : AnsiString("{\"error\":\"failed to store the key\"}"));
       }
 
       // The scope is in the log line as well as the response: which keys are

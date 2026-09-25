@@ -14,6 +14,8 @@
 #include "../Util/AuditTrail.h"
 #include "EnvironmentSettings.h"
 
+#include <atomic>
+
 // The Win32 profile API - GetPrivateProfileString and the three calls beside
 // it - lives in kernel32 and has no POSIX equivalent, so the POSIX build
 // declares those four functions here and implements them over the INI file
@@ -262,6 +264,40 @@ namespace HM
    }
 
    bool
+   IniSettingStore::FileLine_(const String &name, String &value)
+   {
+      value = String();
+
+      String iniFile = IniFileSettings::GetInitializationFile();
+      if (iniFile.IsEmpty())
+         return false;
+
+      // A default no line can hold - a control character the profile API keeps
+      // as it is - tells a missing key from an empty one.
+      const String absent = _T("\x01hm-no-line\x01");
+      const DWORD bufferSize = 4096;
+      TCHAR current[bufferSize];
+      GetPrivateProfileString(_T("Settings"), name.c_str(), absent.c_str(), current, bufferSize, iniFile.c_str());
+
+      if (absent.Compare(String(current)) == 0)
+         return false;
+
+      value = String(current);
+      return true;
+   }
+
+   void
+   IniSettingStore::NoteReadOnlyFile_()
+   {
+      static std::atomic<bool> said(false);
+      if (said.exchange(true))
+         return;
+
+      LOG_APPLICATION(Formatter::Format(_T("IniSettingStore: {0} is read-only to the account the service runs as, which is how a service account of its own is meant to run - NT SERVICE\\hMailServer on Windows, the packages' hmailserver user on Linux (docs/ServiceAccount.md). Settings changed from now on are stored in the database, which is the settings store, and are in use; the [Settings] copy in the file is not refreshed, and says nothing about what the server is running on."),
+         IniFileSettings::GetInitializationFile()));
+   }
+
+   bool
    IniSettingStore::IsWithheld_(const String &name)
    {
       // Asked only for an administrator's change, the one the audit trail records
@@ -339,7 +375,7 @@ namespace HM
          _T("[Directories], [Database] and [Security] are NOT settings: they are how the database is reached and how an administrator is let in without one, and they stay here.");
 
       String iniFile = IniFileSettings::GetInitializationFile();
-      if (iniFile.IsEmpty())
+      if (iniFile.IsEmpty() || !IniFileSettings::InitializationFileWritable())
          return;
 
       const DWORD bufferSize = 4096;
@@ -389,12 +425,19 @@ namespace HM
       std::map<String, String> iniValues;
       ReadIniSection_(_T("Settings"), iniValues);
 
+      // Asked once for the whole reconcile. False under the Windows service's own
+      // account, which may not write the file (IniFileSettings.h): then nothing
+      // below tries, the rows are used as they are, and the file's copy is left
+      // as the last account that could write it left it.
+      const bool fileWritable = IniFileSettings::InitializationFileWritable();
+
       std::vector<String> edited;
       std::vector<String> adopted;
       std::vector<String> writtenToFile;
       std::vector<String> restoredToFile;
       std::vector<String> unwritable;
       std::vector<String> keptInFileOnly;
+      std::vector<String> olderInFile;
 
       // 1. Everything the file has.
       //
@@ -428,14 +471,14 @@ namespace HM
             {
                const String &storedValue = (*row).second.first;
 
-               if (fileNow.Compare(storedValue) == 0 || WriteIniValue_(_T("Settings"), name, storedValue))
+               if (fileNow.Compare(storedValue) == 0 || (fileWritable && WriteIniValue_(_T("Settings"), name, storedValue)))
                {
                   if (DeleteRow_(name))
                      keptInFileOnly.push_back(name);
                }
                else
                {
-                  unwritable.push_back(name);
+                  (fileWritable ? unwritable : olderInFile).push_back(name);
                   resolvedValues[name] = storedValue;
                }
             }
@@ -497,6 +540,19 @@ namespace HM
             continue;
          }
 
+         if (!fileWritable)
+         {
+            // The line cannot be put back. An edit is acknowledged - filevalue
+            // takes what the file holds now - so that it is named in this start's
+            // HM5804 and not at every start after it; a copy that is merely older
+            // than the row is left as it is and counted.
+            if (fileEdited)
+               UpdateRow_(name, storedValue, fileNow);
+            else
+               olderInFile.push_back(name);
+            continue;
+         }
+
          if (WriteIniValue_(_T("Settings"), name, storedValue))
          {
             UpdateRow_(name, storedValue, storedValue);
@@ -531,16 +587,23 @@ namespace HM
 
          if (IsFileOnlyName(name))
          {
-            if (WriteIniValue_(_T("Settings"), name, storedValue) && DeleteRow_(name))
+            if (fileWritable && WriteIniValue_(_T("Settings"), name, storedValue) && DeleteRow_(name))
             {
                keptInFileOnly.push_back(name);
             }
             else
             {
-               unwritable.push_back(name);
+               (fileWritable ? unwritable : olderInFile).push_back(name);
                resolvedValues[name] = storedValue;
             }
 
+            continue;
+         }
+
+         if (!fileWritable)
+         {
+            olderInFile.push_back(name);
+            resolvedValues[name] = storedValue;
             continue;
          }
 
@@ -561,16 +624,29 @@ namespace HM
 
       if (!edited.empty())
       {
+         const String putBack = fileWritable
+            ? String(_T("The file has been put back to what is stored."))
+            : String(_T("The file is read-only to the account the service runs as, so the edit is left in it and is not named again."));
+
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5804, "IniSettingStore::Synchronize",
-            Formatter::Format("These settings were edited in hMailServer.INI, but the database is the settings store and the stored value has been used instead: {0}. The file has been put back to what is stored. Change a setting in the Control Panel, over the REST API or with hmctl; if this file has to win - because the database is unreachable or wrong - put the key in a [SettingsOverride] section, which is applied at every start and says so in this log.",
-               StringParser::JoinVector(edited, _T(", "))));
+            Formatter::Format(_T("These settings were edited in hMailServer.INI, but the database is the settings store and the stored value has been used instead: {0}. {1} Change a setting in the Control Panel, over the REST API or with hmctl; if this file has to win - because the database is unreachable or wrong - put the key in a [SettingsOverride] section, which is applied at every start and says so in this log."),
+               StringParser::JoinVector(edited, _T(", ")), putBack));
       }
 
       if (!unwritable.empty())
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5803, "IniSettingStore::Synchronize",
-            Formatter::Format("These settings could not be written into hMailServer.INI: {0}. The server is using the stored values, so the settings themselves are right, but hMailServer.exe /Register and anything else that reads the file directly will see the old ones until the account the service runs as has write access to it.",
+            Formatter::Format("These settings could not be written into hMailServer.INI: {0}. The server is using the stored values, so the settings themselves are right; the file's copy, which is read only while the database cannot be, keeps the old ones until a later start can write it.",
                StringParser::JoinVector(unwritable, _T(", "))));
+      }
+
+      if (!fileWritable)
+      {
+         // Once per start, and not as an error: this is how the service's own
+         // account is meant to run.
+         LOG_APPLICATION(Formatter::Format(_T("IniSettingStore: {0} is read-only to the account the service runs as, which is how a service account of its own is meant to run - NT SERVICE\\hMailServer on Windows, the packages' hmailserver user on Linux (docs/ServiceAccount.md). The database is the settings store and its values are in use; the [Settings] copy in the file is not refreshed. {1} setting(s) there are older than the stored values{2}"),
+            IniFileSettings::GetInitializationFile(), StringParser::IntToString((int) olderInFile.size()),
+            olderInFile.empty() ? String(_T(".")) : String(_T(": ")) + StringParser::JoinVector(olderInFile, _T(", ")) + _T(".")));
       }
 
       if (!keptInFileOnly.empty())
@@ -790,6 +866,14 @@ namespace HM
 
          const bool withheld = IsWithheld_(name);
 
+         if (!IniFileSettings::InitializationFileWritable())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5806, "IniSettingStore::WriteSetting",
+               IniFileSettings::InitializationFileRefusal(name,
+                  _T("It is the one setting kept in the file and nowhere else, so that a copy of the database is not enough to attack the password hashes. An administrator sets it in the [Settings] section with an editor run as an administrator and restarts the service.")));
+            return false;
+         }
+
          if (!WriteIniValue_(_T("Settings"), name, value))
             return false;
 
@@ -835,6 +919,19 @@ namespace HM
       // is real: a file write that fails below does not undo it, and says so.
       RecordChange_(name, wasStored, previousValue, true, value, withheld);
 
+      // A file this account may not write is not tried - the service's own
+      // account is given no write to it (IniFileSettings.h) - and that is said
+      // once, not at every save. filevalue takes what the file really holds, for
+      // the same reason as on the failure path below.
+      if (!IniFileSettings::InitializationFileWritable())
+      {
+         String fileHolds;
+         FileLine_(name, fileHolds);
+         UpdateRow_(name, value, fileHolds);
+         NoteReadOnlyFile_();
+         return true;
+      }
+
       // The cache second, and a failure here does not fail the write: the value is
       // stored and is what the server will use. Said out loud rather than swallowed,
       // because "it saved, but /Register still sees the old service account" is
@@ -843,7 +940,7 @@ namespace HM
       if (!WriteIniValue_(_T("Settings"), name, value))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5806, "IniSettingStore::WriteSetting",
-            Formatter::Format("The setting '{0}' was stored in the database, which is the settings store, but hMailServer.INI could not be written. The setting itself is correct and will be used; hMailServer.exe /Register and anything else reading the file directly will see the old value until the account the service runs as has write access to it.", name));
+            Formatter::Format("The setting '{0}' was stored in the database, which is the settings store, but hMailServer.INI could not be written. The setting itself is correct and will be used; the file's copy, which is read only while the database cannot be, keeps the old value until a later start can write it.", name));
 
          // filevalue must go back to what the file really holds, NOT stay at the
          // value the insert or update above optimistically put there. It is the one
@@ -897,7 +994,40 @@ namespace HM
 
       String iniFile = IniFileSettings::GetInitializationFile();
 
-      if (!iniFile.IsEmpty())
+      // A file the service's account may not write (IniFileSettings.h). With no
+      // line to take out, the row is dropped as ever. With one, dropping the row
+      // would have the next start adopt the line and put the setting back, so a
+      // key this build reads keeps a row holding its default - which is what a
+      // removal means to the server - and anything else is refused with a
+      // sentence, as the one file-only key is.
+      String fileHolds;
+      if (!iniFile.IsEmpty() && FileLine_(name, fileHolds) && !IniFileSettings::InitializationFileWritable())
+      {
+         String defaultValue;
+         bool isInteger = false;
+         if (IsFileOnlyName(name) || !DefaultFor(name, defaultValue, isInteger))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5806, "IniSettingStore::RemoveSetting",
+               IniFileSettings::InitializationFileRefusal(Formatter::Format(_T("The line for '{0}'"), name),
+                  _T("An administrator deletes the line from the [Settings] section with an editor run as an administrator, then removes the setting again.")));
+            return false;
+         }
+
+         const bool kept = wasStored
+            ? UpdateRow_(name, defaultValue, fileHolds)
+            : InsertRow_(name, defaultValue, fileHolds);
+         if (!kept)
+            return false;
+
+         NoteReadOnlyFile_();
+         LOG_APPLICATION(Formatter::Format(_T("IniSettingStore: '{0}' was returned to its default, {1}. Its line in hMailServer.INI could not be taken out - the file is read-only to the account the service runs as - so the setting is stored with that value instead of being removed, which the server treats the same."),
+            name, defaultValue.IsEmpty() ? String(_T("(empty)")) : defaultValue));
+
+         RecordChange_(name, wasStored, previousValue, false, String(), withheld);
+         return true;
+      }
+
+      if (!iniFile.IsEmpty() && IniFileSettings::InitializationFileWritable())
       {
          if (WritePrivateProfileString(_T("Settings"), name.c_str(), nullptr, iniFile.c_str()) == FALSE)
             return false;
@@ -974,6 +1104,11 @@ namespace HM
          return false;
 
       std::vector<String> writeFailures;
+      std::vector<String> notWritten;
+
+      // As in Synchronize: the service's own account may not write the file, and
+      // is not made to try (IniFileSettings.h).
+      const bool fileWritable = IniFileSettings::InitializationFileWritable();
 
       for (int i = 0; i < pNode->GetChildCount(); i++)
       {
@@ -995,7 +1130,13 @@ namespace HM
             {
                // Braces: LOG_APPLICATION expands to an if of its own, so a bare
                // else after it would pair with the macro.
-               if (WriteIniValue_(_T("Settings"), name, value))
+               if (!fileWritable)
+               {
+                  ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5805, "IniSettingStore::XMLLoad",
+                     IniFileSettings::InitializationFileRefusal(name,
+                        _T("The archive carried a value for it and the file has none. An administrator puts the value in the [Settings] section with an editor run as an administrator and restarts the service; until then, passwords hashed with it do not verify.")));
+               }
+               else if (WriteIniValue_(_T("Settings"), name, value))
                {
                   LOG_APPLICATION(Formatter::Format("IniSettingStore: the archive carried {0}, which this server keeps in hMailServer.INI only; the file had none, so the archived value has been written into the file and not into the database.", name));
                }
@@ -1018,12 +1159,16 @@ namespace HM
          // did not happen would tell the next Synchronize that the two agree, and the
          // restored setting would sit in the table for ever without ever reaching the
          // file that every direct reader - and /Register - actually reads.
-         bool written = WriteIniValue_(_T("Settings"), name, value);
+         bool written = fileWritable && WriteIniValue_(_T("Settings"), name, value);
 
          if (!written)
-            writeFailures.push_back(name);
+            (fileWritable ? writeFailures : notWritten).push_back(name);
 
-         String fileValue = written ? value : String();
+         // What the file really holds when it was not written - not an empty
+         // string, which the next start would read as an edit of every line.
+         String fileValue = value;
+         if (!written)
+            FileLine_(name, fileValue);
 
          // NOT recorded in the audit trail, and not by oversight. A restore runs as a
          // BackupTask on the maintenance work queue, and the audit actor is
@@ -1049,9 +1194,12 @@ namespace HM
       if (!writeFailures.empty())
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5805, "IniSettingStore::XMLLoad",
-            Formatter::Format("These settings were restored into the database but could not be written to hMailServer.INI: {0}. The account the service runs as needs write access to that file; until it has, the restored values will be written on a later start rather than lost.",
+            Formatter::Format("These settings were restored into the database but could not be written to hMailServer.INI: {0}. The database holds them and they are in use; the file's copy is written at a later start rather than lost.",
                StringParser::JoinVector(writeFailures, _T(", "))));
       }
+
+      if (!notWritten.empty())
+         NoteReadOnlyFile_();
 
       return true;
    }

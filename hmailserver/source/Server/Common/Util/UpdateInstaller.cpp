@@ -8,6 +8,7 @@
 #include "UpdateChecker.h"
 #include "UpdateDownloader.h"
 #include "SigstoreVerifier.h"
+#include "ServiceAccount.h"
 #include "FileUtilities.h"
 #include "Unicode.h"
 #include "../Application/Application.h"
@@ -159,6 +160,35 @@ namespace HM
       if (slash < 0)
          return _T("");
       return path.Left(slash + 1) + HELPER_NAME;
+#endif
+   }
+
+   bool
+   UpdateInstaller::CanApplyHere(const String &releaseUrl, String &why)
+   {
+      why.Empty();
+
+#ifdef HM_PLATFORM_POSIX
+      (void) releaseUrl;
+      return true;
+#else
+      if (ServiceAccount::ProcessIsAdministrator())
+         return true;
+
+      // The copy this server downloaded is NOT offered to be run. It is in the
+      // Updates folder of the data directory, which the service itself may
+      // write, and "verified" is the service's own word for it: an
+      // administrator told to run it elevated would be running whatever a
+      // compromised service put there - exactly the trust docs/ServiceAccount.md
+      // refuses to a SYSTEM task that installs what the service names. So the
+      // administrator is sent to the release itself, and to the signature
+      // Windows checks, which the service cannot forge.
+      const String account = ServiceAccount::ProcessAccountName();
+      why = Formatter::Format(_T("This service runs as {0}, which cannot run an installer - that takes an administrator - so it checks for updates and an administrator installs them (docs/ServiceAccount.md). "),
+         account.IsEmpty() ? String(_T("an account that is not an administrator")) : account);
+      why += Formatter::Format(_T("Download the installer from the release page ({0}), check that Get-AuthenticodeSignature reports its signature Valid, then run it as an administrator. The copy this server downloaded is in a folder the service can write, so it is not the one to run."),
+         releaseUrl.IsEmpty() ? String(_T("the one the update check names")) : releaseUrl);
+      return false;
 #endif
    }
 
@@ -561,6 +591,15 @@ namespace HM
       if (kind == UpdateChecker::InstallNone)
       {
          error = _T("This server was not installed from a .deb, an .rpm or an AppImage, so no release artefact could replace it; install the new version the way this one was installed.");
+         return false;
+      }
+#else
+      // Before the verification, the rollback image and the drain: none of them
+      // is worth doing for an installer this service cannot run.
+      String refusal;
+      if (!CanApplyHere(snapshot.release_url, refusal))
+      {
+         error = refusal;
          return false;
       }
 #endif

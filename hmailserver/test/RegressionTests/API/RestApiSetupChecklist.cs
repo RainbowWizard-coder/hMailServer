@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.SSL;
@@ -17,12 +19,11 @@ namespace RegressionTests.API
 {
    /// <summary>
    ///    The first-hour checklist: GET /api/v1/setup/checklist and
-   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Ten
+   ///    Utilities.GetSetupChecklist, the same document over REST and over COM. Eleven
    ///    items - a setting profile, a domain, an account, TLS on the submission port, passwords only
-   ///    over TLS, SPF, DKIM, DMARC, a backup destination and a second factor on the administrator
-   ///    password - each
-   ///    done, action_needed, cannot_tell or not_needed, with findings that carry a
-   ///    code, its arguments and an English sentence.
+   ///    over TLS, SPF, DKIM, DMARC, a backup destination, a second factor on the administrator
+   ///    password and the account the server runs as - each done, action_needed, cannot_tell or
+   ///    not_needed, with findings that carry a code, its arguments and an English sentence.
    ///
    ///    What is tested is that the judgement is the server's and is made from what
    ///    the server can see: the records are looked up in the suite's own zone, the
@@ -102,7 +103,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Ten items in the order a new server meets them - a setting profile first - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
+      [Description("Eleven items in the order a new server meets them - a setting profile first, the account the server runs as last - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
       public void TenItemsEachWithAState()
       {
          JsonDocument document = Get(Path);
@@ -132,7 +133,7 @@ namespace RegressionTests.API
             counted++;
          }
 
-         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "spf", "dkim", "dmarc", "backup", "second_factor" }, keys);
+         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "spf", "dkim", "dmarc", "backup", "second_factor", "service_account" }, keys);
 
          int summed = root.GetProperty("done").GetInt32() + root.GetProperty("action_needed").GetInt32() +
                       root.GetProperty("cannot_tell").GetInt32() + root.GetProperty("not_needed").GetInt32();
@@ -384,7 +385,110 @@ namespace RegressionTests.API
          StringAssert.Contains("administrator", FirstText(document.RootElement, "second_factor"));
       }
 
+      [Test]
+      [Description("The account the server runs as is judged from its own token (docs/ServiceAccount.md): LocalSystem, or root on Linux, needs action and names no account; any other account is done and named, in the sentence as well. Where this process can ask the service manager - the Windows suite, beside the server - the finding agrees with the account the service is registered as, which on the bench is LocalSystem; and an administrator's account says nothing of what only a lesser account cannot do.")]
+      public void TheServiceAccountIsJudgedFromTheServersOwnToken()
+      {
+         JsonDocument document = Get(Path + "?dns=0");
+         JsonElement root = document.RootElement;
+         JsonElement finding = FirstFinding(root, "service_account");
+         string code = finding.GetProperty("code").GetString();
+         List<string> args = FirstArgs(root, "service_account");
+
+         switch (code)
+         {
+            case "service_account_local_system":
+            case "service_account_root":
+               ClassicAssert.AreEqual("action_needed", finding.GetProperty("state").GetString(), "The most privileged account is a thing to do, as the missing profile is.");
+               ClassicAssert.AreEqual("action_needed", StateOf(root, "service_account"));
+               ClassicAssert.IsEmpty(args, "The most privileged account is named by the code, not by an argument.");
+               StringAssert.Contains(code == "service_account_root" ? "root" : "LocalSystem", finding.GetProperty("text").GetString());
+               break;
+            case "service_account_own":
+               ClassicAssert.AreEqual("done", finding.GetProperty("state").GetString());
+               ClassicAssert.AreEqual(1, args.Count, "The account is named.");
+               ClassicAssert.IsNotEmpty(args[0], "The account is named.");
+               StringAssert.Contains(args[0], finding.GetProperty("text").GetString());
+               break;
+            default:
+               Assert.Fail("The service_account item opens with " + code + ", which is none of the three: " + Item(root, "service_account"));
+               break;
+         }
+
+         // An administrator - LocalSystem - can write firewall rules and run an
+         // installer, so neither refusal is said for it, whatever is switched on.
+         if (code == "service_account_local_system")
+         {
+            foreach (JsonElement other in Item(root, "service_account").GetProperty("findings").EnumerateArray())
+            {
+               string otherCode = other.GetProperty("code").GetString();
+               ClassicAssert.AreNotEqual("autoban_firewall_not_permitted", otherCode, "LocalSystem may write firewall rules.");
+               ClassicAssert.AreNotEqual("update_apply_by_administrator", otherCode, "LocalSystem may run an installer.");
+            }
+         }
+
+         // The service manager's own answer, where this process can ask it.
+         string registered = RegisteredLogonAccount();
+         if (registered != null && code != "service_account_root")
+         {
+            bool localSystem = string.Equals(registered, "LocalSystem", StringComparison.OrdinalIgnoreCase) ||
+                               string.Equals(registered, @".\LocalSystem", StringComparison.OrdinalIgnoreCase) ||
+                               string.Equals(registered, @"NT AUTHORITY\SYSTEM", StringComparison.OrdinalIgnoreCase);
+            ClassicAssert.AreEqual(localSystem ? "service_account_local_system" : "service_account_own", code,
+               "The service is registered to log on as " + registered + ", and the checklist says " + code + ".");
+         }
+      }
+
       // ----------------------------------------------------------------- helpers
+
+      // The account the hMailServer service is registered to log on as, as
+      // sc.exe qc reports it, when the server is this machine, this machine is
+      // Windows - the Windows suite - and the service is what is running. Null
+      // anywhere else: a console server started with /Debug, which a debugger or
+      // a coverage run drives, runs as whoever started it while the stopped
+      // service is still registered as LocalSystem, and the two would disagree
+      // about nothing the checklist got wrong. Null too when it cannot be read.
+      private static string RegisteredLogonAccount()
+      {
+         if (Environment.OSVersion.Platform != PlatformID.Win32NT || TestPorts.Host != "127.0.0.1")
+            return null;
+
+         string state = ServiceControl("query hMailServer");
+         if (state == null || !Regex.IsMatch(state, @"STATE\s*:\s*4\s+RUNNING", RegexOptions.IgnoreCase))
+            return null;
+
+         string configuration = ServiceControl("qc hMailServer");
+         if (configuration == null)
+            return null;
+
+         Match match = Regex.Match(configuration, @"SERVICE_START_NAME\s*:\s*(\S.*?)\s*$", RegexOptions.Multiline);
+         return match.Success ? match.Groups[1].Value : null;
+      }
+
+      // What sc.exe says to arguments; null when it cannot be run.
+      private static string ServiceControl(string arguments)
+      {
+         try
+         {
+            var start = new ProcessStartInfo(System.IO.Path.Combine(Environment.SystemDirectory, "sc.exe"), arguments)
+            {
+               UseShellExecute = false,
+               RedirectStandardOutput = true,
+               CreateNoWindow = true
+            };
+
+            using (Process process = Process.Start(start))
+            {
+               string output = process.StandardOutput.ReadToEnd();
+               process.WaitForExit(10000);
+               return output;
+            }
+         }
+         catch (Exception e) when (e is System.ComponentModel.Win32Exception || e is InvalidOperationException)
+         {
+            return null;
+         }
+      }
 
       private static JsonDocument Get(string path)
       {

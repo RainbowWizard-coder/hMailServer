@@ -820,6 +820,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\DmarcRptStore.cpp" />
     <ClCompile Include="..\Common\Util\TlsRptStore.cpp" />
     <ClCompile Include="..\Common\Util\ServiceManager.cpp" />
+    <ClCompile Include="..\Common\Util\ServiceAccount.cpp" />
     <ClCompile Include="..\Common\Util\DisclaimerAdder.cpp" />
     <ClCompile Include="..\Common\Util\InlineImageParts.cpp" />
     <ClCompile Include="..\Common\Util\ExternalSenderTagger.cpp" />
@@ -1720,6 +1721,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ServerStatus.h" />
     <ClInclude Include="..\Common\Util\SecureCompare.h" />
     <ClInclude Include="..\Common\Util\ServiceManager.h" />
+    <ClInclude Include="..\Common\Util\ServiceAccount.h" />
     <ClInclude Include="..\Common\Util\DisclaimerAdder.h" />
     <ClInclude Include="..\Common\Util\InlineImageParts.h" />
     <ClInclude Include="..\Common\Util\ExternalSenderTagger.h" />

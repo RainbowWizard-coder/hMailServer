@@ -126,7 +126,7 @@ already cached stays until its TTL runs out.
 
 | Key | Why |
 |---|---|
-| `ServiceAccountName`, `ServiceAccountPassword` | Read by `hMailServer.exe /Register`, which runs with no database open; the service logs on as the account it was registered with. A change takes a registration (`/Register`, or the installer) and then a restart. A reinitialise keeps the value the process started with, so the key stays pending across one. The pending list clears at the next start whether or not the service was re-registered - the **Service account** card on the Hardening page says which account the service actually runs as. |
+| `ServiceAccountName`, `ServiceAccountPassword` | Retired: no longer read by anything - `hMailServer.exe /Register` takes the account from its command line alone ([ServiceAccount.md](ServiceAccount.md)). Still marked restart, so a value stored is shown as pending until the next start, which is all it ever does now; the **Windows service account** card on the Hardening page says which account the service actually runs as, and changes it. |
 | every `[Database]`, `[Directories]`, `[Security]` and `[GUILanguages]` key | The bootstrap: read from the file before the database is open - at a start, at a reinitialise (which reconnects the database from `[Database]`), and when COM's `Settings.Directories` asks - and never by a save's reload. They are not in the settings store, so they are never listed as pending; the Control Panel marks its `[Database]` rows **After a restart**, and a page's save counts a changed one as waiting. |
 
 ### Keys marked now because a subscriber re-latches them

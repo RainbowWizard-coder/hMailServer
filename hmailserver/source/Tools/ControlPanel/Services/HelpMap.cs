@@ -131,7 +131,7 @@ namespace hMailServer.ControlPanel.Services
             ["performance"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
             ["advanced"] = new HelpTarget("ChangedFromStock.md"),
             ["scripts"] = new HelpTarget("EventScripts.md", "Which language, where"),
-            ["hardening"] = new HelpTarget("ChangedFromStock.md", "A value the file is forcing"),
+            ["hardening"] = new HelpTarget("ServiceAccount.md"),
             ["about"] = new HelpTarget("Upgrading.md"),
          });
 

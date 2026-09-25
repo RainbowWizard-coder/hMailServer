@@ -20,6 +20,23 @@ var
   g_bNewDatabase: Boolean;
   g_bNewDatabaseKnown: Boolean;
 
+  // The account the service runs as (docs/ServiceAccount.md), on a page of its
+  // own: NT SERVICE\hMailServer, a virtual account, for a new installation; the
+  // account it already has for an upgrade, with the way to the other. Passed to
+  // hMailServer.exe --service-account virtual|localsystem|keep /Register, and
+  // /serviceaccount= for a silent installation. The account the service had
+  // before this installation touched it is read once, as the database type is.
+  g_pageServiceAccount: TInputOptionWizardPage;
+  g_szServiceAccountBefore: String;
+  g_bServiceAccountKnown: Boolean;
+
+  // Set when the service account could not be granted its folders on an
+  // installation whose service already runs as something other than
+  // LocalSystem - the one grant failure that fails the installation, and says
+  // so in its own words rather than the database's.
+  g_bGrantFailed: Boolean;
+  g_bMssqlSentenceAdded: Boolean;
+
 // The NT-service specific parts of the scrit below is taken
 // from the innosetup extension knowledgebase.
 // Author: Silvio Iaccarino silvio.iaccarino(at)de.adp.com
@@ -825,6 +842,132 @@ begin
    end;
 end;
 
+// The account the hMailServer service is registered to log on as, from its entry
+// in the registry, as it was before this installation registered anything; '' when
+// there was no service - a new installation. Read once, as IsNewDatabase is.
+function GetServiceAccountBefore(): String;
+var
+   szAccount: String;
+begin
+   if not g_bServiceAccountKnown then
+   begin
+      if not RegQueryStringValue(HKLM, 'SYSTEM\CurrentControlSet\Services\hMailServer', 'ObjectName', szAccount) then
+         szAccount := '';
+      g_szServiceAccountBefore := Trim(szAccount);
+      g_bServiceAccountKnown := true;
+   end;
+   Result := g_szServiceAccountBefore;
+end;
+
+// Whether this installation creates the service rather than finding one.
+function IsNewService(): Boolean;
+begin
+   Result := (GetServiceAccountBefore() = '');
+end;
+
+function IsLocalSystemAccount(Account: String): Boolean;
+begin
+   Result := (CompareText(Account, 'LocalSystem') = 0) or (CompareText(Account, '.\LocalSystem') = 0) or
+             (CompareText(Account, 'NT AUTHORITY\SYSTEM') = 0);
+end;
+
+// The account chosen for the service: virtual (NT SERVICE\hMailServer),
+// localsystem or keep. On the page, or with /serviceaccount= for a silent
+// installation, which is itself the choice; otherwise what the page offers first:
+// the virtual account for a new installation, the account the service has for an
+// upgrade. Anything else given with /serviceaccount= is ignored, and said in the
+// setup log.
+function GetServiceAccountChoice(): String;
+var
+   szChoice: String;
+begin
+   if IsNewService() then
+      Result := 'virtual'
+   else
+      Result := 'keep';
+
+   szChoice := Lowercase(Trim(ExpandConstant('{param:serviceaccount|}')));
+   if (szChoice = 'virtual') or (szChoice = 'localsystem') or (szChoice = 'keep') then
+   begin
+      Result := szChoice;
+      Exit;
+   end;
+   if szChoice <> '' then
+      Log('/serviceaccount=' + szChoice + ' is none of virtual, localsystem or keep, and is ignored.');
+
+   if WizardSilent() or (g_pageServiceAccount = nil) then
+      Exit;
+
+   if (g_pageServiceAccount.SelectedValueIndex = 1) then
+   begin
+      if IsNewService() then
+         Result := 'localsystem'
+      else if IsLocalSystemAccount(GetServiceAccountBefore()) then
+         Result := 'virtual'
+      else
+         Result := 'localsystem';
+   end;
+end;
+
+// Whether the service runs as something other than LocalSystem once it is
+// registered with the choice - which is when its folders have to be granted to it.
+// An upgrade that keeps LocalSystem is not granted anything: nothing would use the
+// grants, and the first grant of a large message store takes minutes.
+function ServiceNeedsGrants(Choice: String): Boolean;
+begin
+   if Choice = 'virtual' then
+      Result := true
+   else if Choice = 'localsystem' then
+      Result := false
+   else
+      Result := (GetServiceAccountBefore() <> '') and (IsLocalSystemAccount(GetServiceAccountBefore()) = false);
+end;
+
+// Whether the service is moved to the virtual account AFTER the database step:
+// a new installation, or an upgrade of a LocalSystem service, that chose it. The
+// database step writes [Database] into hMailServer.INI through the service -
+// DBSetup and DBSetupQuick reach it over COM - and sets the dependency on a
+// local database server, and the virtual account may do neither: it is given no
+// write to the file and no right to change its own service entry
+// (docs/ServiceAccount.md). So the service is registered as LocalSystem, or kept
+// on it, for that step, and moved once it is done - by then the database names
+// every key file, and the grant can list those outside its folders before the
+// move is made.
+function MoveServiceAfterDatabase(Choice: String): Boolean;
+begin
+   Result := (Choice = 'virtual') and (IsNewService() or IsLocalSystemAccount(GetServiceAccountBefore()));
+end;
+
+// The account the service is registered with before the database step.
+function FirstRegistrationChoice(Choice: String): String;
+begin
+   if MoveServiceAfterDatabase(Choice) then
+   begin
+      if IsNewService() then
+         Result := 'localsystem'
+      else
+         Result := 'keep';
+   end
+   else
+      Result := Choice;
+end;
+
+// The sentence the move page adds when the database is SQL Server reached with
+// Windows authentication: the moved service signs in to it as
+// NT SERVICE\hMailServer, which has no login there until one is made.
+function MssqlIntegratedSentence(): String;
+var
+   szIniFile: String;
+begin
+   Result := '';
+   szIniFile := GetInifile();
+   if szIniFile = '' then
+      Exit;
+   if (CompareText(GetIniString('Database', 'Type', '', szIniFile), 'MSSQL') = 0) and
+      (Trim(GetIniString('Database', 'Username', '', szIniFile)) = '') then
+      Result := ' The database is SQL Server with Windows authentication: before moving, give the account a login there - CREATE LOGIN [NT SERVICE\hMailServer] FROM WINDOWS, and a user in the hMailServer database - or the service cannot open it.';
+end;
+
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
    Result := false;
@@ -860,6 +1003,13 @@ begin
      if (PageID = g_pageProfile.ID) then
      begin
        if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
+          Result := true;
+     end;
+
+     // The service account page: whenever the server is installed, new or upgraded.
+     if (PageID = g_pageServiceAccount.ID) then
+     begin
+       if (IsComponentSelected('server') = false) then
           Result := true;
      end;
 
@@ -904,6 +1054,7 @@ procedure CreateWizardPages();
 var
    moreInfoLink : TNewStaticText;
    intro : TNewStaticText;
+   szAccount : String;
 
 begin
    g_pageDBType := CreateCustomPage(wpSelectComponents, 'Select database server type', 'Choose where hMailServer stores its data');
@@ -984,6 +1135,40 @@ begin
    g_pageProfile.Add('An outbound relay - closes IMAP and POP3, suppresses addresses that bounce, and keeps three months of delivery trace');
    g_pageProfile.Add('A high-volume sender - the relay, with more deliveries at once, per-destination ceilings and the feedback loops read; closes IMAP and POP3');
    g_pageProfile.SelectedValueIndex := 0;
+
+   // The account the service runs as (docs/ServiceAccount.md). The page says which
+   // applies - the virtual account for a new installation, the service's own account
+   // for an upgrade - and the second choice is always the way to the other one,
+   // LocalSystem included. Setup grants the account its folders before the service
+   // is started (hMailServer.exe /GrantServiceAccess).
+   szAccount := GetServiceAccountBefore();
+   if IsNewService() then
+   begin
+      g_pageServiceAccount := CreateInputOptionPage(g_pageProfile.ID, 'Service account', 'Which account should the hMailServer service run as?',
+         'hMailServer reads mail from anybody on the internet, so the less its account may do, the less a flaw in it is worth. ' +
+         'NT SERVICE\hMailServer is a virtual account of its own: no password, and it reaches only the folders setup grants it. ' +
+         'LocalSystem, which earlier versions used, is the most privileged account on this computer. The Control Panel can move the service later.', True, False);
+      g_pageServiceAccount.Add('NT SERVICE\hMailServer - a virtual account of its own (recommended)');
+      g_pageServiceAccount.Add('LocalSystem - the most privileged account, as earlier versions ran it');
+   end
+   else if IsLocalSystemAccount(szAccount) then
+   begin
+      g_pageServiceAccount := CreateInputOptionPage(g_pageProfile.ID, 'Service account', 'The hMailServer service runs as LocalSystem',
+         'An upgrade keeps the account the service runs as: here LocalSystem, the most privileged account on this computer. ' +
+         'NT SERVICE\hMailServer, a virtual account of its own, reaches only the folders setup grants it; a live update is then installed by an administrator, and the auto-ban cannot write firewall rules. ' +
+         'Moving it grants the folders once the database is upgraded, and asks first about any folder or key file the configuration names outside them; running setup again, or the Control Panel, moves it back.', True, False);
+      g_pageServiceAccount.Add('Keep LocalSystem');
+      g_pageServiceAccount.Add('Move it to NT SERVICE\hMailServer, and grant that account its folders');
+   end
+   else
+   begin
+      g_pageServiceAccount := CreateInputOptionPage(g_pageProfile.ID, 'Service account', 'The hMailServer service runs as ' + szAccount,
+         'An upgrade keeps the account the service runs as, and grants it its folders again for anything this version added. ' +
+         'To go back to LocalSystem, the most privileged account on this computer, choose it below; running setup again moves it back.', True, False);
+      g_pageServiceAccount.Add('Keep ' + szAccount);
+      g_pageServiceAccount.Add('Move it back to LocalSystem');
+   end;
+   g_pageServiceAccount.SelectedValueIndex := 0;
 
 end;
 
@@ -1182,17 +1367,25 @@ end;
 
 // Creates (or reconfigures) the hMailServer service. Returns False when the
 // service is not there afterwards, in which case there is no point starting it.
-function RegisterHMailServerService() : Boolean;
+function RegisterHMailServerService(szAccountChoice: String) : Boolean;
 	var
 		ResultCode: Integer;
+		szParameters: String;
 begin
 	Result := true;
+
+	// The account to register with (FirstRegistrationChoice, or virtual for the
+	// move): the virtual account, LocalSystem, or the account the service already
+	// has. One word each, so that NT SERVICE\hMailServer never has to survive the
+	// command line. /Register takes the account from here and nowhere else.
+	szParameters := '--service-account ' + szAccountChoice + ' /Register';
+	Log('Registering the hMailServer service: hMailServer.exe ' + szParameters);
 
 	// As with the type library: hMailServer.exe returns -1 when CreateService or
 	// ChangeServiceConfig fails, and ignoring it meant an installation with no
 	// service at all still ended on "Completed" - the following "net START
 	// hMailServer" failed too, and its result was ignored as well.
-	if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '/Register', '',  SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+	if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), szParameters, '',  SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
 	begin
 		SuppressibleMsgBox('The hMailServer service could not be created.' + #13#10 + SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
 		Result := false;
@@ -1202,7 +1395,7 @@ begin
 	if (ResultCode <> 0) then
 	begin
 		SuppressibleMsgBox('The hMailServer service could not be created (hMailServer.exe /Register returned ' + IntToStr(ResultCode) + ').' + #13#10#13#10 +
-		       'Check the hMailServer error log, then run "hMailServer.exe /Register" as an administrator from the ' +
+		       'Check the hMailServer error log, then run "hMailServer.exe --service-account ' + szAccountChoice + ' /Register" as an administrator from the ' +
 		       'hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
 		Result := false;
 		Exit;
@@ -1238,6 +1431,146 @@ begin
 		Log('sc.exe start returned ' + IntToStr(ResultCode) + '; the database step starts the hMailServer service itself, and an old database is reported as HM5011.')
 	else
 		Log('Started the hMailServer service for the database upgrade (--for-database-upgrade).');
+end;
+
+// Runs hMailServer.exe /GrantServiceAccess (Common/Util/ServiceAccount.h), which
+// grants the service's own identity, NT SERVICE\hMailServer, the program
+// folder's own Data, Logs, Temp and Database folders and the folders an
+// administrator approved, and Read on the program's own folders - never a folder
+// because hMailServer.INI or the database names it, and never hMailServer.INI.
+// In an attended installation it runs with --confirm: when the configuration
+// names folders nobody approved, or key files outside the grants, the verb
+// itself asks in a box of its own - elevated, as this installer is - before it
+// approves or grants anything, and No changes nothing. A silent installation
+// cannot be asked, and a move then waits for an administrator (exit 4). What the
+// verb said goes into the setup log, line for line. False when it could not be
+// run at all; ResultCode is its exit code otherwise.
+function RunGrantServiceAccess(var ResultCode: Integer) : Boolean;
+	var
+		szReport: String;
+		szSwitches: String;
+		szSaid: AnsiString;
+begin
+	Result := true;
+	szReport := ExpandConstant('{tmp}\grant-service-access.txt');
+	szSwitches := '';
+	if not WizardSilent() then
+		szSwitches := '--confirm ';
+
+	if (Exec(ExpandConstant('{cmd}'), '/s /c ""' + ExpandConstant('{app}\Bin\hMailServer.exe') + '" ' + szSwitches + '/GrantServiceAccess > "' + szReport + '" 2>&1"',
+	         '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+	begin
+		Log('hMailServer.exe /GrantServiceAccess could not be run: ' + SysErrorMessage(ResultCode));
+		Result := false;
+		Exit;
+	end;
+
+	if LoadStringFromFile(szReport, szSaid) then
+		Log('hMailServer.exe ' + szSwitches + '/GrantServiceAccess returned ' + IntToStr(ResultCode) + ':' + #13#10 + String(szSaid))
+	else
+		Log('hMailServer.exe ' + szSwitches + '/GrantServiceAccess returned ' + IntToStr(ResultCode) + ' and wrote nothing to ' + szReport + '.');
+end;
+
+// Why a grant run did not end in 0, in a sentence for a message box.
+function GrantOutcomeSentence(ResultCode: Integer): String;
+begin
+	case ResultCode of
+		1: Result := 'a grant failed - the report says which, and why';
+		2: Result := 'hMailServer.exe is not in the Bin folder of this installation';
+		3: Result := 'it was not run as an administrator';
+		4: Result := 'the configuration names folders no administrator has approved for the service, or key and certificate files outside the folders it is granted, and a silent installation does not approve them';
+		5: Result := 'the configuration names a folder that is never granted to the service - one in the program folder beside its own Data, Logs, Temp and Database folders, or in Windows, Program Files or a user profile - so the configuration has to change first';
+		6: Result := 'you answered No';
+	else
+		Result := 'it returned ' + IntToStr(ResultCode);
+	end;
+end;
+
+// For an installation whose service already runs as something other than
+// LocalSystem: its folders granted again, for anything this version added,
+// before the database step starts it. A failure fails the installation - the
+// service may not start - in words of its own (g_bGrantFailed).
+function GrantServiceAccess() : Boolean;
+	var
+		ResultCode: Integer;
+begin
+	Result := true;
+
+	if (RunGrantServiceAccess(ResultCode) = false) then
+	begin
+		SuppressibleMsgBox('The hMailServer service account could not be granted its folders: hMailServer.exe could not be run.' + #13#10#13#10 +
+		       'Run "hMailServer.exe --confirm /GrantServiceAccess" as an administrator from the hMailServer Bin folder, then start the service.', mbError, MB_OK, IDOK);
+		g_bGrantFailed := true;
+		Result := false;
+		Exit;
+	end;
+
+	if (ResultCode = 0) or (ResultCode = 4) then
+		Exit;
+
+	SuppressibleMsgBox('The hMailServer service account was not granted all of its folders: ' + GrantOutcomeSentence(ResultCode) + '.' + #13#10#13#10 +
+	       'The service may not start until it is. Run "hMailServer.exe --confirm /GrantServiceAccess" as an administrator from the hMailServer Bin folder to see what it says and to retry, ' +
+	       'or run this setup again and choose LocalSystem.', mbError, MB_OK, IDOK);
+	if (ResultCode <> 6) then
+	begin
+		g_bGrantFailed := true;
+		Result := false;
+	end;
+end;
+
+// Stops the service the database step started, with a bound, and waits for its
+// process to exit (StopHMailServerAndWaitForExit): the account is changed and the
+// folders granted only once nothing of the old process holds them. False when it
+// is still running.
+function StopServiceForMove() : Boolean;
+begin
+	Result := true;
+	if (IsServiceRunning('hMailServer') = false) then
+		Exit;
+
+	Result := StopHMailServerAndWaitForExit(90000);
+end;
+
+// The move to NT SERVICE\hMailServer, after the database step
+// (MoveServiceAfterDatabase): the service stopped, its folders granted - with
+// the question the verb asks when the configuration names anything outside them
+// - and only then registered as the virtual account. Anything short of a clean
+// grant leaves the service on LocalSystem, working, and says why; the
+// installation still succeeds.
+procedure MoveServiceToVirtualAccount();
+	var
+		ResultCode: Integer;
+		szWhy: String;
+begin
+	if (StopServiceForMove() = false) then
+	begin
+		SuppressibleMsgBox('The hMailServer service was not moved to NT SERVICE\hMailServer: it did not stop within 90 seconds, and it is moved only while stopped. It runs as LocalSystem, as before.' + #13#10#13#10 +
+		       'Move it later from the Control Panel (Windows service account), or run this setup again.', mbInformation, MB_OK, IDOK);
+		Exit;
+	end;
+
+	szWhy := '';
+	if (RunGrantServiceAccess(ResultCode) = false) then
+		szWhy := 'hMailServer.exe could not be run'
+	else if (ResultCode <> 0) then
+		szWhy := GrantOutcomeSentence(ResultCode);
+
+	if szWhy <> '' then
+	begin
+		SuppressibleMsgBox('The hMailServer service was not moved to NT SERVICE\hMailServer, and runs as LocalSystem, as before: the grant of its folders did not complete - ' +
+		       szWhy + '.' + #13#10#13#10 +
+		       'Move it later from the Control Panel (Windows service account), which shows what the grant says, or run this setup again.', mbInformation, MB_OK, IDOK);
+		Exit;
+	end;
+
+	if (RegisterHMailServerService('virtual') = false) then
+	begin
+		// RegisterHMailServerService has said why. Registering again with keep
+		// changes nothing, and the service is still LocalSystem's.
+		Exit;
+	end;
+
+	Log('The hMailServer service now runs as NT SERVICE\hMailServer.');
 end;
 
 
@@ -1347,7 +1680,20 @@ begin
          ProgressPage.SetText('Creating the hMailServer service...', '');
          ProgressPage.SetProgress(3,6);
 
-         bServiceRegistered := RegisterHMailServerService();
+         // The account for the database step (FirstRegistrationChoice): a
+         // service to be moved to the virtual account is LocalSystem's until the
+         // database is made or upgraded, and moved after it.
+         bServiceRegistered := RegisterHMailServerService(FirstRegistrationChoice(GetServiceAccountChoice()));
+
+         // Before anything starts the service - the database step below does, over
+         // COM - a service that already runs as something other than LocalSystem
+         // is granted its folders again (ServiceNeedsGrants).
+         if bServiceRegistered and ServiceNeedsGrants(GetServiceAccountChoice()) and (MoveServiceAfterDatabase(GetServiceAccountChoice()) = false) then
+         begin
+            ProgressPage.SetText('Granting the service account its folders...', 'On a large message store this takes a few minutes.');
+            if (GrantServiceAccess() = false) then
+               Result := false;
+         end;
 
          ProgressPage.SetText('Initializing hMailServer database...', '');
          ProgressPage.SetProgress(4,6);
@@ -1445,6 +1791,15 @@ begin
             end;
          end;
 
+         // The move to the virtual account, once the database is there.
+         // Not after a database step that failed: the service stays LocalSystem's,
+         // where DBSetup can be run again, and is moved from the Control Panel.
+         if bServiceRegistered and Result and MoveServiceAfterDatabase(GetServiceAccountChoice()) then
+         begin
+            ProgressPage.SetText('Moving the service to NT SERVICE\hMailServer...', 'Granting its folders; on a large message store this takes a few minutes.');
+            MoveServiceToVirtualAccount();
+         end;
+
          ProgressPage.SetText('Starting the hMailServer service...', '');
          ProgressPage.SetProgress(5,6);
 
@@ -1486,8 +1841,9 @@ begin
          // installed and - depending on how far it got - no service, no database and
          // nothing on screen saying which step failed or what to run by hand.
          SuppressibleMsgBox('A post-installation step failed:' + #13#10 + GetExceptionMessage + #13#10#13#10 +
-                'The hMailServer program files are installed. To finish by hand, from the hMailServer Bin folder: ' +
-                'run "hMailServer.exe /Register", then DBSetup.exe, then start the hMailServer service.', mbError, MB_OK, IDOK);
+                'The hMailServer program files are installed. To finish by hand, from an elevated prompt in the hMailServer Bin folder: ' +
+                'run "hMailServer.exe --service-account localsystem /Register", then DBSetup.exe, then - to move the service to its own account - ' +
+                '"hMailServer.exe --confirm /GrantServiceAccess" and "hMailServer.exe --service-account virtual /Register", then start the hMailServer service.', mbError, MB_OK, IDOK);
          Result := false;
       end;
    finally
@@ -1604,6 +1960,29 @@ begin
 
 end;
 
+// The move page says, when the database is SQL Server reached with Windows
+// authentication, that the moved service needs a login there. Read when the
+// page is shown, because the settings file is found from the folder chosen on
+// an earlier page.
+procedure CurPageChanged(CurPageID: Integer);
+var
+   szSentence: String;
+begin
+   // Nested rather than joined with or: the page does not exist in a silent
+   // installation, and its ID must not be read then.
+   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then
+      Exit;
+   if (CurPageID <> g_pageServiceAccount.ID) then
+      Exit;
+   if IsNewService() or (IsLocalSystemAccount(GetServiceAccountBefore()) = false) then
+      Exit;
+
+   szSentence := MssqlIntegratedSentence();
+   if szSentence <> '' then
+      g_pageServiceAccount.SubCaptionLabel.Caption := g_pageServiceAccount.SubCaptionLabel.Caption + szSentence;
+   g_bMssqlSentenceAdded := true;
+end;
+
 function NextButtonClick(CurPage : Integer): boolean;
 var
    hWnd: Integer;
@@ -1661,6 +2040,10 @@ begin
 	   // installation writes one (IsNewDatabase).
 	   IsNewDatabase();
 
+	   // And the account the service ran as, before this installation registers
+	   // it again (GetServiceAccountBefore).
+	   GetServiceAccountBefore();
+
 	   // Move hMailServer.ini before files are copied
 	   MoveIni();
 	end;
@@ -1681,7 +2064,12 @@ begin
 	    // it into a failed install with a non-zero exit code; the specific
 	    // message has already been shown by RunPostInstallTasks itself.
 	    if (RunPostInstallTasks() = false) then
-	      RaiseException('The hMailServer database could not be created or upgraded. See the message above; run DBSetupQuick.exe from the hMailServer Bin folder to retry.');
+	    begin
+	      if g_bGrantFailed then
+	        RaiseException('The hMailServer service account could not be granted its folders. See the message above; run "hMailServer.exe --confirm /GrantServiceAccess" as an administrator from the hMailServer Bin folder to retry.')
+	      else
+	        RaiseException('The hMailServer database could not be created or upgraded. See the message above; run DBSetupQuick.exe from the hMailServer Bin folder to retry.');
+	    end;
 	  end
 	 else
 	 begin

@@ -1099,6 +1099,16 @@ STDMETHODIMP InterfaceSettings::SetSMTPRelayerPassword(BSTR newVal)
    }
 }
 
+// The administrator's second factor is kept under [Security] in hMailServer.INI,
+// which the Windows service's own account may not write (docs/ServiceAccount.md).
+// Turning it off is an edit an administrator can make; enrolling one needs the
+// server to hand out a new secret and store it, which only an account that may
+// write the file can do.
+static HM::String SecondFactorInstead_()
+{
+   return _T("To turn it off, an administrator deletes AdministratorTotpSecret from [Security] in the file with an editor run as an administrator and restarts the service. To enrol one, move the service to LocalSystem for the enrolment (hMailServer.exe --service-account localsystem /Register from an elevated prompt, restart the service), enrol, then move it back (hMailServer.exe --service-account virtual /Register, restart).");
+}
+
 STDMETHODIMP InterfaceSettings::SetAdministratorPassword(BSTR newVal)
 {
    try
@@ -1110,8 +1120,15 @@ STDMETHODIMP InterfaceSettings::SetAdministratorPassword(BSTR newVal)
 
       if (!GetIsServerAdmin())
          return GetAccessDenied();
-      
-   
+
+      // [Security] lives in hMailServer.INI, which the Windows service's own
+      // account may not write (docs/ServiceAccount.md): a service that could
+      // would choose who administers it. Asked first, so that a password that
+      // cannot be stored is not sent to the breach check either.
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(HM::IniFileSettings::InitializationFileRefusal(_T("The administrator password"),
+            _T("An administrator sets it from an elevated prompt in the Bin folder with hMailServer.exe /SetAdministratorPassword, which asks for it, and restarts the service.")));
+
       // The administrator credential is held to the breach check as a mailbox
       // password is (the mailbox policy has never applied to it). What cannot be
       // reached from here is hmailserver --set-admin-password, which runs with no
@@ -1124,7 +1141,8 @@ STDMETHODIMP InterfaceSettings::SetAdministratorPassword(BSTR newVal)
       if (!HM::PasswordBreachCheck::IsAcceptable(_T("the administrator"), HM::String(newVal), breachRefusal, breachReason, breachStatus))
          return COMError::GenerateError(breachRefusal);
 
-      ini_file_settings_->SetAdministratorPassword(newVal);
+      if (!ini_file_settings_->SetAdministratorPassword(newVal))
+         return COMError::GenerateError("The administrator password could not be written to hMailServer.INI, so it has not been changed. See the hMailServer error log.");
 
       return S_OK;
    }
@@ -1150,13 +1168,16 @@ STDMETHODIMP InterfaceSettings::EnrolAdministratorTOTP(BSTR *pVal)
       if (ini_file_settings_->GetAdministratorPassword().IsEmpty())
          return COMError::GenerateError("Set the administrator password first. A second factor protects a password, and there is none to protect.");
 
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(HM::IniFileSettings::InitializationFileRefusal(_T("The administrator's second factor"), SecondFactorInstead_()));
+
       HM::AnsiString secret = HM::Totp::GenerateSecret();
 
       if (secret.IsEmpty())
          return COMError::GenerateError("The random number generator failed, so no second factor was enrolled. Nothing has been stored. See the hMailServer error log.");
 
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String(secret)))
-         return COMError::GenerateError("The secret could not be written to hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.");
+         return COMError::GenerateError("The secret could not be written to hMailServer.INI. Nothing has been changed; see the hMailServer error log.");
 
       // The URI carries the secret, and this is the only moment it leaves the
       // server. Enforced from this moment: the session that enrolled stays
@@ -1181,8 +1202,11 @@ STDMETHODIMP InterfaceSettings::DisableAdministratorTOTP()
       if (!GetIsServerAdmin())
          return GetAccessDenied();
 
+      if (!HM::IniFileSettings::InitializationFileWritable())
+         return COMError::GenerateError(HM::IniFileSettings::InitializationFileRefusal(_T("The administrator's second factor"), SecondFactorInstead_()));
+
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String()))
-         return COMError::GenerateError("The secret could not be removed from hMailServer.INI. The account the server runs as needs write access to that file. Nothing has been changed.");
+         return COMError::GenerateError("The secret could not be removed from hMailServer.INI. Nothing has been changed; see the hMailServer error log.");
 
       return S_OK;
    }

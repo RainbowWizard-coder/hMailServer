@@ -1311,6 +1311,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="checklistagain")render();
   else if(d.act==="checklistfix")applyChecklistFix(d.i);
   else if(d.act==="checklistgo"){const to=document.querySelector('#nav button[data-view="'+d.to+'"]');if(to&&!to.hidden)to.click();}
+  else if(d.act==="checklistopen"){const b=Array.from(document.querySelectorAll("#nav button[data-view]")).filter(x=>x.dataset.view==="checklist")[0];if(b&&!b.hidden)b.click();}
   else if(d.act==="profileshow"){profileShown_=d.name;render();}
   else if(d.act==="profilehide"){profileShown_="";render();}
   else if(d.act==="profileapply")applyProfile(d.name,Number(d.changes)||0,d.needs==="1",d.token||"");
@@ -2267,6 +2268,7 @@ async function renderDash(update){
         <div class="card kpi"><div class="v" id="sesPop3" data-v="0">0</div><div class="l">${t("POP3 sessions")}</div></div>
       </div>
     </div>
+    <div class="card flat view" id="accountNote" hidden></div>
     <div class="sect view" id="storeSect" hidden><h2>${t("Message store")}</h2>
       <div class="grid g4">
         <div class="card kpi"><div class="v" id="storeLogical">—</div><div class="l">${t("Message size")}</div></div>
@@ -2283,6 +2285,24 @@ async function renderDash(update){
   animateNum($("#sesSmtp"),s.sessions.smtp);
   animateNum($("#sesImap"),s.sessions.imap);
   animateNum($("#sesPop3"),s.sessions.pop3);
+  // The account the server runs as (docs/ServiceAccount.md): said here, as
+  // information and never as an error, while it is the most privileged one on
+  // the machine - LocalSystem, or root - with anything that account cannot do,
+  // from the checklist's own item without its DNS lookups. Asked when the
+  // dashboard is drawn, not at every refresh; an older server, or a role that
+  // may not read the checklist, leaves it hidden.
+  if(!update&&may("view_configuration")&&$("#accountNote")){
+    let list=null;
+    try{list=await api("/api/v1/setup/checklist?dns=0");}catch(_){list=null;}
+    const item=list&&Array.isArray(list.items)?list.items.filter(x=>x.key==="service_account")[0]:null;
+    const said=item&&item.state==="action_needed"?(item.findings||[]).filter(f=>f.state==="action_needed"):[];
+    if(said.length&&$("#accountNote")){
+      $("#accountNote").innerHTML='<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap"><span class="pill" data-level="info"><span class="mark">●</span>'+escHtml(t(CHECKLIST_TITLE.service_account))+'</span>'+
+        '<button class="btn ghost sm" data-act="checklistopen">'+escHtml(t("Checklist"))+'</button></div>'+
+        said.map(f=>'<p class="note">'+escHtml(checklistText(f))+'</p>').join("");
+      $("#accountNote").hidden=false;
+    }
+  }
   const states={0:K("Unknown"),1:K("Stopped"),2:K("Starting"),3:K("Running"),4:K("Stopping"),5:K("Draining")};
   $("#kpiState").innerHTML=s.state===3?'<span class="badge good">'+t("Running")+'</span>':'<span class="badge warn">'+escHtml(states[s.state]?t(states[s.state]):tf("State {0}",s.state))+'</span>';
   // The message store (GET /api/v1/store, docs/MessageStore.md): what the
@@ -7332,13 +7352,14 @@ async function verifyAuditChain(){
    reputation_watch_lists) and so live on the Settings page with every other one;
    this view is the answer and the button that asks again. */
 /* The first-hour checklist: ten items the server judges itself (SetupChecklist.cpp),
-   the first of them a setting profile (docs/Profiles.md).
+   the first of them a setting profile (docs/Profiles.md), the last the account the
+   server runs as (docs/ServiceAccount.md), which the dashboard names as well.
    Every finding carries a code and its arguments beside the server's English
    sentence, so the sentence is rendered from the catalogue here and the server's
    own is the fallback for a code this page does not know. */
 const CHECKLIST_TITLE={profile:K("A profile for this server"),domain:K("A domain"),account:K("An account"),submission:K("TLS on the submission port"),
   sign_in_tls:K("Passwords only over TLS"),spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
-  second_factor:K("A second factor for the administrator")};
+  second_factor:K("A second factor for the administrator"),service_account:K("The account the server runs as")};
 const CHECKLIST_PURPOSE={
   profile:K("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
   domain:K("Mail is addressed to a domain, so the server needs one before it can receive anything."),
@@ -7349,7 +7370,8 @@ const CHECKLIST_PURPOSE={
   dkim:K("DKIM signs outgoing mail so receivers can verify it left this domain unchanged; the public key has to be published in DNS."),
   dmarc:K("DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it."),
   backup:K("The backup writes the database and the message store to a folder; until one is set there is no backup."),
-  second_factor:K("The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough.")};
+  second_factor:K("The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough."),
+  service_account:K("The server reads mail from anybody on the internet; the less its account may do, the less a flaw in it is worth to an attacker.")};
 const CHECKLIST_STATE={done:K("Done"),action_needed:K("Action needed"),cannot_tell:K("Cannot tell"),not_needed:K("Not needed")};
 const CHECKLIST_TEXT={
   profile_none:K("No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made."),
@@ -7388,7 +7410,12 @@ const CHECKLIST_TEXT={
   backup_folder_missing:K("The backup destination {0} does not exist on the server."),
   backup_set:K("Backups go to {0}."),
   second_factor_on:K("The administrator's password is backed by a one-time code."),
-  second_factor_off:K("The administrator signs in with a password alone.")};
+  second_factor_off:K("The administrator signs in with a password alone."),
+  service_account_local_system:K("The service runs as LocalSystem, the most privileged account on the machine, so a flaw reachable through SMTP, IMAP or POP3 would have full control of it. The virtual account a new installation uses contains that; running the installer again, or the Control Panel, moves the service to it."),
+  service_account_root:K("The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own."),
+  service_account_own:K("The service runs as {0}."),
+  autoban_firewall_not_permitted:K("AutoBanFirewall is on, but {0} cannot write Windows Defender Firewall rules: banned addresses are refused by the server and not blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand."),
+  update_apply_by_administrator:K("{0} cannot run an installer, so updates are checked, downloaded and verified here and an administrator installs them.")};
 function checklistLevel(state){
   if(state==="done")return "good";
   if(state==="action_needed")return "warn";

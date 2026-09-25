@@ -515,6 +515,161 @@ namespace RegressionTests.Installation
             "sc.exe failure is invoked without a restart action.");
       }
 
+      /// <summary>
+      ///    The body of one [Code] function or procedure of hMailServerInnoExtension.iss:
+      ///    from its header to the "end;" that closes it at the start of a line.
+      /// </summary>
+      private static string CodeBody(string extension, string name)
+      {
+         Match header = Regex.Match(extension, @"^(?:function|procedure)\s+" + Regex.Escape(name) + @"\s*\(", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+         Assert.IsTrue(header.Success, name + " is not defined in hMailServerInnoExtension.iss.");
+
+         Match close = Regex.Match(extension.Substring(header.Index), @"^end;", RegexOptions.Multiline);
+         Assert.IsTrue(close.Success, name + " has no end.");
+         return extension.Substring(header.Index, close.Index + close.Length);
+      }
+
+      [Test]
+      [Description("A new installation registers the service as the virtual account NT SERVICE\\hMailServer, an upgrade keeps the account the service has, the page offers the way to LocalSystem in every case, and a silent installation takes /serviceaccount= (docs/ServiceAccount.md).")]
+      public void TestNewInstallationDefaultsToTheVirtualAccount()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+
+         string choice = CodeBody(extension, "GetServiceAccountChoice");
+         Assert.IsTrue(Regex.IsMatch(choice, @"if\s+IsNewService\(\)\s+then\s+Result\s*:=\s*'virtual'\s+else\s+Result\s*:=\s*'keep'", RegexOptions.IgnoreCase),
+            "GetServiceAccountChoice does not default a new installation to the virtual account and an upgrade to the account the service has. " +
+            "An upgrade that moved an existing service would change what it can reach without anybody choosing it.");
+         StringAssert.Contains("{param:serviceaccount|}", choice,
+            "A silent installation has no page, so /serviceaccount= is its only way to choose.");
+         foreach (string word in new[] { "'virtual'", "'localsystem'", "'keep'" })
+            StringAssert.Contains(word, choice, "GetServiceAccountChoice does not know " + word + ".");
+
+         // IsNewService is read from the service's own entry, before this
+         // installation registers anything.
+         string before = CodeBody(extension, "GetServiceAccountBefore");
+         StringAssert.Contains(@"SYSTEM\CurrentControlSet\Services\hMailServer", before);
+         StringAssert.Contains("'ObjectName'", before);
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "CurStepChanged"), @"ssInstall[\s\S]*GetServiceAccountBefore\(\)", RegexOptions.IgnoreCase),
+            "The account the service had is not read at ssInstall, before the registration changes it.");
+
+         // The page: three forms, each with a second choice that leads away from the
+         // first, LocalSystem among them.
+         string pages = CodeBody(extension, "CreateWizardPages");
+         Assert.AreEqual(3, Regex.Matches(pages, @"g_pageServiceAccount\s*:=\s*CreateInputOptionPage\(").Count,
+            "The service account page is not made in its three forms: a new installation, an upgrade of a LocalSystem service, and an upgrade of a service with an account of its own.");
+         StringAssert.Contains("'NT SERVICE\\hMailServer - a virtual account of its own (recommended)'", pages);
+         StringAssert.Contains("'LocalSystem - the most privileged account, as earlier versions ran it'", pages);
+         StringAssert.Contains("'Move it back to LocalSystem'", pages,
+            "An upgrade of a service that is not LocalSystem is offered no way back to it.");
+         Assert.IsTrue(Regex.IsMatch(pages, @"g_pageServiceAccount\.SelectedValueIndex\s*:=\s*0"),
+            "The page's first choice - the virtual account, or the account the service has - is not the default.");
+
+         // What the page chose reaches the server, as one word before /Register -
+         // first the account the database step runs under, then, for a move, the
+         // virtual account.
+         string register = CodeBody(extension, "RegisterHMailServerService");
+         Assert.IsTrue(Regex.IsMatch(register, @"'--service-account\s*'\s*\+\s*szAccountChoice\s*\+\s*'\s*/Register'"),
+            "RegisterHMailServerService does not pass the account it is given to hMailServer.exe /Register.");
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "RunPostInstallTasks"), @"RegisterHMailServerService\(\s*FirstRegistrationChoice\(\s*GetServiceAccountChoice\(\)\s*\)\s*\)"),
+            "RunPostInstallTasks does not register the service with the account the page chose, as the database step needs it.");
+
+         // And the server knows each word the installer can pass.
+         string server = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer\hMailServer.cpp");
+         StringAssert.Contains("_T(\"--service-account\")", server, "hMailServer.exe does not read --service-account.");
+         foreach (string word in new[] { "virtual", "localsystem", "keep" })
+         {
+            StringAssert.Contains("serviceAccountWord.CompareNoCase(_T(\"" + word + "\"))", server,
+               "The installer passes --service-account " + word + " and hMailServer.exe does not know it; /Register would refuse and there would be no service.");
+         }
+
+         // /Register takes the account from its command line and nowhere else:
+         // ServiceAccountName is a row of the settings store, which the service
+         // and hMailServer administrators write, and a registration that read it
+         // would let either make the next elevated /Register give the service
+         // LocalSystem back (docs/ServiceAccount.md).
+         string manager = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\ServiceManager.cpp");
+         Assert.IsFalse(manager.Contains("GetServiceAccountName") || manager.Contains("GetServiceAccountPassword"),
+            "ServiceManager reads the service account from hMailServer.INI again.");
+         Assert.IsFalse(server.Contains("GetServiceAccountName"),
+            "hMailServer.exe reads the service account from hMailServer.INI again.");
+      }
+
+      [Test]
+      [Description("A service moved to the virtual account is moved after the database step, which writes hMailServer.INI and the service's dependencies through a LocalSystem service, and only after a grant that ended cleanly - with the question the grant asks in an attended installation; one that already runs as another account is granted its folders again before the database step, and a grant that fails there fails the installation in its own words.")]
+      public void TestTheServiceAccountIsGrantedItsFoldersBeforeTheServiceStarts()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string tasks = CodeBody(extension, "RunPostInstallTasks");
+
+         int registered = tasks.IndexOf("RegisterHMailServerService(FirstRegistrationChoice(", StringComparison.Ordinal);
+         int granted = tasks.IndexOf("GrantServiceAccess()", StringComparison.Ordinal);
+         int database = tasks.IndexOf("DBSetupQuick.exe", StringComparison.Ordinal);
+         int moved = tasks.IndexOf("MoveServiceToVirtualAccount()", StringComparison.Ordinal);
+         int started = tasks.IndexOf("'START hMailServer'", StringComparison.Ordinal);
+
+         Assert.GreaterOrEqual(registered, 0, "RunPostInstallTasks no longer registers the service.");
+         Assert.GreaterOrEqual(granted, 0, "RunPostInstallTasks does not grant a service that already has an account of its own its folders.");
+         Assert.GreaterOrEqual(moved, 0, "RunPostInstallTasks does not move the service to the virtual account.");
+         Assert.Less(registered, granted, "The folders are granted before the service is registered.");
+         Assert.Less(granted, database,
+            "A service that already runs as an account of its own is granted its folders after DBSetupQuick, which reaches the server over COM and so starts the service.");
+         Assert.Less(database, moved,
+            "The service is moved to the virtual account before the database step, which writes [Database] into hMailServer.INI through the service - a file the virtual account may not write.");
+         Assert.Less(moved, started, "The service is moved after it is started, so it runs as the old account until the next start.");
+
+         Assert.IsTrue(Regex.IsMatch(tasks, @"if\s+bServiceRegistered\s+and\s+ServiceNeedsGrants\(GetServiceAccountChoice\(\)\)\s+and\s+\(MoveServiceAfterDatabase\(GetServiceAccountChoice\(\)\)\s*=\s*false\)\s+then", RegexOptions.IgnoreCase),
+            "The grant before the database step is not tied to a service that already runs as an account of its own.");
+         Assert.IsTrue(Regex.IsMatch(tasks, @"if\s*\(\s*GrantServiceAccess\(\)\s*=\s*false\s*\)\s*then\s*Result\s*:=\s*false", RegexOptions.IgnoreCase),
+            "A grant that fails does not fail the installation, which then ends on Completed with a service that may not start.");
+         Assert.IsTrue(Regex.IsMatch(tasks, @"if\s+bServiceRegistered\s+and\s+Result\s+and\s+MoveServiceAfterDatabase\(GetServiceAccountChoice\(\)\)\s+then", RegexOptions.IgnoreCase),
+            "The move is not tied to a database step that succeeded.");
+
+         string needs = CodeBody(extension, "ServiceNeedsGrants");
+         Assert.IsTrue(Regex.IsMatch(needs, @"Choice\s*=\s*'localsystem'\s+then\s+Result\s*:=\s*false", RegexOptions.IgnoreCase),
+            "A service registered as LocalSystem is granted folders it has no use for - and the first grant of a large message store takes minutes.");
+
+         // Moved after the database: a new installation, or an upgrade of a
+         // LocalSystem service, registered as LocalSystem - or kept on it - first.
+         string after = CodeBody(extension, "MoveServiceAfterDatabase");
+         Assert.IsTrue(Regex.IsMatch(after, @"Choice\s*=\s*'virtual'\)\s*and\s*\(IsNewService\(\)\s+or\s+IsLocalSystemAccount\(GetServiceAccountBefore\(\)\)\)", RegexOptions.IgnoreCase),
+            "MoveServiceAfterDatabase does not cover a new installation and an upgrade of a LocalSystem service that chose the virtual account.");
+         string first = CodeBody(extension, "FirstRegistrationChoice");
+         Assert.IsTrue(Regex.IsMatch(first, @"if\s+IsNewService\(\)\s+then\s+Result\s*:=\s*'localsystem'\s+else\s+Result\s*:=\s*'keep'", RegexOptions.IgnoreCase),
+            "A service to be moved is not registered as LocalSystem, or kept on it, for the database step.");
+
+         // The move: the grant first, and the registration only on its 0.
+         string move = CodeBody(extension, "MoveServiceToVirtualAccount");
+         int moveGrant = move.IndexOf("RunGrantServiceAccess(ResultCode)", StringComparison.Ordinal);
+         int moveRegister = move.IndexOf("RegisterHMailServerService('virtual')", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(moveGrant, 0, "The move does not grant the folders.");
+         Assert.Less(moveGrant, moveRegister, "The service is registered as the virtual account before its folders are granted.");
+         Assert.IsTrue(Regex.IsMatch(move, @"else\s+if\s*\(\s*ResultCode\s*<>\s*0\s*\)\s*then", RegexOptions.IgnoreCase),
+            "The move goes ahead after a grant that did not end in 0 - listed folders not approved, key files outside the grants, a refusal, or No.");
+         StringAssert.Contains("StopServiceForMove()", move, "The service is not stopped before it is moved.");
+
+         // Asked in an attended installation, never in a silent one.
+         string run = CodeBody(extension, "RunGrantServiceAccess");
+         StringAssert.Contains("/GrantServiceAccess", run);
+         Assert.IsTrue(Regex.IsMatch(run, @"if\s+not\s+WizardSilent\(\)\s+then\s+szSwitches\s*:=\s*'--confirm\s*'", RegexOptions.IgnoreCase),
+            "An attended installation does not let the grant ask about the folders and key files the configuration names outside the grants.");
+
+         foreach (string name in new[] { "GrantServiceAccess", "MoveServiceToVirtualAccount", "RunGrantServiceAccess" })
+         {
+            Assert.IsFalse(Regex.IsMatch(CodeBody(extension, name), @"(?<!Suppressible)MsgBox\("),
+               name + " uses a message box that /SUPPRESSMSGBOXES does not suppress, which a silent installation waits on for ever.");
+         }
+
+         // A grant that fails the installation says so, not that the database did.
+         StringAssert.Contains("g_bGrantFailed", CodeBody(extension, "CurStepChanged"),
+            "A failed grant ends the installation with the database's message.");
+
+         // And the server has the verb and the switches the installer and the
+         // Control Panel pass.
+         string server = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer\hMailServer.cpp");
+         foreach (string word in new[] { "_T(\"/GrantServiceAccess\")", "_T(\"--confirm\")", "_T(\"--approve-modify\")", "_T(\"--approve-read\")", "_T(\"--report-only\")" })
+            StringAssert.Contains(word, server, "hMailServer.exe does not know " + word + ".");
+      }
+
       [Test]
       [Description("The service stop the installer performs before replacing files is bounded, and a failure to stop blocks the install.")]
       public void TestServiceStopIsBoundedAndBlocking()

@@ -126,6 +126,15 @@ EXEMPT = {
       "administrator a way to break their own server on purpose.",
    "SimulateSpoolWriteFailure":
       "A fault-injection switch for the regression suite, as above.",
+   "ServiceAccountName":
+      "Retired: hMailServer.exe /Register takes the service's account from its command "
+      "line alone (docs/ServiceAccount.md), because this row is written by the service "
+      "and by hMailServer administrators. The Control Panel's Windows service account "
+      "card changes the account with buttons that pass it; an editor would change nothing.",
+   "ServiceAccountPassword":
+      "Retired with ServiceAccountName, and a Windows credential in plain text besides: "
+      "an account with a password is set in services.msc. The External setup page asks "
+      "for a stored one to be deleted.",
 }
 
 # Sections read outside IniFileSettings today. Each is a gap - it is invisible to
