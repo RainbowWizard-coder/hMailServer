@@ -480,7 +480,12 @@ namespace HM
 
                walked += _T("\\") + part;
 
-               HANDLE handle = CreateFileW(walked.c_str(), FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+               // FILE_LIST_DIRECTORY as well as the attributes: a handle that asks
+               // for attributes alone takes no part in Windows' share-access check,
+               // so its refusal to share delete binds nobody, and the folder could
+               // be removed or renamed from under it (the internal suite's
+               // ServiceAccount test found exactly that on the batch36 bench).
+               HANDLE handle = CreateFileW(walked.c_str(), FILE_READ_ATTRIBUTES | FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
                   FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
                if (handle == INVALID_HANDLE_VALUE)
                {

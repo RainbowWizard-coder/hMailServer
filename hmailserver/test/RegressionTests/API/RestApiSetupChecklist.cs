@@ -190,7 +190,7 @@ namespace RegressionTests.API
          {
             ClassicAssert.IsFalse(com.RootElement.GetProperty("dns_looked_up").GetBoolean());
             ClassicAssert.AreEqual("record_not_looked_up", FirstCode(com.RootElement, "spf"));
-            ClassicAssert.AreEqual(10, com.RootElement.GetProperty("items").GetArrayLength());
+            ClassicAssert.AreEqual(11, com.RootElement.GetProperty("items").GetArrayLength());
          }
 
          using (JsonDocument com = JsonDocument.Parse(_application.Utilities.GetSetupChecklist(true)))
