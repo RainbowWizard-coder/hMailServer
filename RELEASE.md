@@ -190,7 +190,10 @@ gate lands on `master` by fast-forward, with no pull request.
 11. **Installer**: ISCC on `hMailServer64.iss`. Three prerequisites the script
    does not check: `$env:hMailServerLibs` must point at the library tree,
    `build\get-dotnet-runtime.ps1` must have populated `installation\DotNet\`
-   with the desktop runtime the installer carries, and
+   with the desktop runtime the installer carries - the one release
+   `hmailserver/docs/third-party-binaries.json` pins, checked against the
+   SHA-512 Microsoft publishes for it (`-Verify` checks the file in place, and
+   refuses an older download left from before the pin) - and
    `build\get-installer-binaries.ps1` must have placed the third-party binaries
    - the MSVC runtime gathered from Visual Studio, the ADO type libraries copied
    from Windows, and 7-Zip, the MariaDB client and the SQL Server Compact

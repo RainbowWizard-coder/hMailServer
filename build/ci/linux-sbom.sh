@@ -61,4 +61,8 @@ pwsh -NoProfile -Command '
   Write-Host "Both SBOMs list all $($expected.Count) native dependencies:"
   $expected | ForEach-Object { Write-Host ("  " + $_.purl) }
 '
+# And every input the build pins - by version and by hash - named in both, which the
+# purl check above does not hold to (build/check-sbom-inputs.py).
+python3 build/check-sbom-inputs.py --sbom "$out/hmailserver.spdx.json" --sbom "$out/hmailserver.cyclonedx.json"
+
 ls -la "$out"

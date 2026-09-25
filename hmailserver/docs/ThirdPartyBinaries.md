@@ -92,8 +92,9 @@ Two native dependencies are in the tree by design. zlib 1.3.1 is vendored as sou
 under `hmailserver/source/Server/zlib` (its own LICENSE beside it, the text also
 under `docs/Licenses/`) and compiled straight into `hMailServer.exe` for IMAP
 COMPRESS=DEFLATE - new in 6.2.28.
-Source, not a binary, so it is outside this inventory; it is not yet listed by
-`build/native-dependencies.ps1`, so the SBOM does not name it either.
+Source, not a binary, so it is outside this inventory; since 25 September 2026
+`build/native-dependencies.ps1` lists it, reading the version from `zlib.h`'s
+`ZLIB_VERSION`, so the SBOM names it.
 
 QuickJS 2025-04-26, Fabrice Bellard's JavaScript engine (MIT), is vendored as source
 under `hmailserver/source/Server/quickjs` - the engine and the four libraries it needs,
@@ -272,6 +273,86 @@ Scorecard's `Binary-Artifacts` check reported one alert per committed binary -
 forty of them until 11 September 2026 - and has no per-file suppression. With no
 binary committed there is nothing left for it to report, and no maintainer
 annotation to add. Scorecard ran on GitHub and does not run on GitLab.
+
+Every build input, and its pin
+------------------------------
+
+Read on 25 September 2026 from every download under `build/`, `libraries/` and
+the Linux packaging. An input is *pinned* when the build refuses any bytes but
+the ones recorded for it, and *named* when the SBOM lists it.
+`build/check-sbom-inputs.py` fails when an input pinned in
+`third-party-binaries.json`, `build/native-dependencies.ps1`,
+`build/get-installer-binaries.ps1`, `build/get-dotnet-runtime.ps1` or found by
+the Linux `CMakeLists.txt` is missing from the SBOM's component list, or is
+there at another version or with another hash; `--sbom` holds a finished SPDX or
+CycloneDX document to the same rule.
+
+| Input | Fetched by, from | Pinned by | In the SBOM |
+|---|---|---|---|
+| OpenSSL 4.0.2, Boost 1.92.0 and PostgreSQL 18.3's libpq, as source | `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, from each project's own release server (OpenSSL's is its GitHub releases) | The archive's SHA-256, in the script; the version, by the include paths in `hMailServer.vcxproj` | Yes, at the include paths' version |
+| zlib 1.3.1 and QuickJS 2025-04-26 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
+| 7-Zip 19.00, MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release (the script still names its GitHub address; the copy on GitLab is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
+| The MSVC v145 runtime, 14.51.36231.0 | The same script, from the build machine's Visual Studio | Its version (major.minor), against the toolset | Yes, by version, since 25 September 2026 |
+| The .NET Desktop Runtime 10.0.12 | `build/get-dotnet-runtime.ps1`, from builds.dotnet.microsoft.com | The SHA-512 in Microsoft's release metadata, in `third-party-binaries.json`. Until 25 September 2026: whatever aka.ms/dotnet/10.0 served that day, if it was larger than 40 MB | Yes, with the SHA-512, since 25 September 2026 |
+| The Linux packages' libraries: glibc, libstdc++, OpenSSL 3.0 or later, zlib, libpq, OpenLDAP, and Boost 1.83 or later (static) | The distribution, and the build image's Boost | Not pinned: the Linux build's log records the versions it built against (RELEASE.md, step 8) | Yes, by name and with no version, since 25 September 2026 |
+| NuGet packages | `dotnet restore --locked-mode` | The committed `packages.lock.json` files | Yes, by Syft |
+
+Not pinned, and why:
+
+* **The AppImage tools.** `hmailserver/source/Server/platform/packaging/build-appimage.sh`
+  downloads linuxdeploy and its AppImage plugin from their GitHub releases'
+  `continuous` tag, which moves, and checks no hash; the plugin's runtime is
+  inside every AppImage built. A pin needs a release and a hash read from a
+  copy, and this project cannot reach GitHub. It is the input most in need of
+  one.
+* **The Public Suffix List.** `build/generate-public-suffix-list.ps1` downloads
+  the current list from publicsuffix.org, as its maintainers ask. What the
+  build compiles is the generated `PublicSuffixListData.h`, committed with the
+  list's own VERSION and COMMIT lines, so the review of that diff is the pin;
+  `-ListFile` regenerates it from a saved copy.
+* **The container image's packages.** The Dockerfile pins `ubuntu:24.04` by
+  digest and installs `ca-certificates` and `libcap2-bin` from the archive at
+  whatever version it has that day.
+* **The toolchains.** Visual Studio (toolset v145, which the project names),
+  the Windows SDK, Inno Setup 6 - whose setup loader is part of every
+  installer - Strawberry Perl, Meson, Ninja and winflexbison are installed on
+  the build machine, not fetched by a script. Only the .NET SDK is pinned, by
+  `global.json`.
+* **What the GitHub workflows fetched.** They have not run since
+  18 September 2026. The two inputs they left unpinned were the SLSA generator,
+  referenced by tag because its verifier requires it (`sign-release.yml`), and
+  wingetcreate's `latest` (`package-managers.yml`, which refused it unless its
+  Authenticode signature was valid).
+* **Not inputs.** `build/make-package-manifests.ps1` downloads the release's own
+  installer to record its hash in the winget and Chocolatey manifests, and
+  `build/check-package-manifests.py` fetches the winget schema to validate them;
+  neither goes into anything the build makes. Windows' own ADO type library
+  (`system` above) and the three SQL Server Compact 3.5 OLE DB headers committed
+  under `libraries/mssqlce3.5` are compiled against as the Windows SDK's headers
+  are and are never redistributed, so they are not in the SBOM; the runtime the
+  headers describe is, as SQL Server Compact.
+
+### Moving the .NET runtime pin
+
+The installer's runtime moves when Microsoft ships a servicing release of .NET
+10 worth taking - a security release above all - and never by itself:
+
+1. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\show-dotnet-runtime-pin.ps1 -Version 10.0.N`
+   (the channel's latest without `-Version`) reads Microsoft's release metadata
+   from builds.dotnet.microsoft.com and dotnetcli.blob.core.windows.net,
+   refuses to answer when the two disagree, and prints the release's date, the
+   CVEs it names, its address and its SHA-512.
+2. Copy `version`, `sha512` and `source` into the entry for
+   `hmailserver/installation/DotNet/windowsdesktop-runtime-10.0-win-x64.exe`
+   in `third-party-binaries.json`, and the release into its `upstream`.
+3. `build\get-dotnet-runtime.ps1` downloads it, checks it and replaces the old
+   file; `-Verify` checks the file in place.
+4. `python build/check-sbom-inputs.py` and `build\test-get-dotnet-runtime.ps1`.
+5. Commit the entry by itself, saying which release it is and why.
+
+A new major version is a different change: the `<TargetFramework>` of the tools,
+`global.json`, `DOTNET_MAJOR` and `DOTNET_CHANNEL` in `hMailServer64.iss`, and
+the file's path in `get-dotnet-runtime.ps1` and here, together.
 
 Provenance established for the Connector/C files
 ------------------------------------------------

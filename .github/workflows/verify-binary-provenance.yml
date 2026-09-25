@@ -72,12 +72,14 @@ jobs:
           foreach ($artifact in $manifest.artifacts) {
              $listed[$artifact.path] = $true
 
-             if ($artifact.disposition -in @('fetched', 'gathered', 'generated', 'system')) {
+             if ($artifact.disposition -in @('fetched', 'gathered', 'downloaded', 'generated', 'system')) {
                 # Not in git by design: build/get-installer-binaries.ps1 puts a
-                # fetched or gathered file in place and verifies it, and
-                # build/generate-com-wrapper.ps1 makes a generated one. Here the
-                # only failure is its being tracked after all, or - for the two
-                # kinds that have a hash - present with the wrong bytes.
+                # fetched or gathered file in place and verifies it,
+                # build/get-dotnet-runtime.ps1 does the same for the downloaded
+                # .NET runtime, and build/generate-com-wrapper.ps1 makes a
+                # generated one. Here the only failure is its being tracked after
+                # all, or - for the kinds that have a hash - present with the
+                # wrong bytes.
                 if ($trackedSet.ContainsKey($artifact.path)) {
                    $problems.Add("TRACKED   $($artifact.path)`n          Marked '$($artifact.disposition)' but committed. Remove it from git; the build fetches, gathers or generates it.")
                 }
@@ -86,6 +88,15 @@ jobs:
                 # A system file is Windows' own and varies with the Windows build;
                 # its hash is recorded for reference only.
                 if ($artifact.disposition -in @('generated', 'system')) { continue }
+                # The downloaded runtime is pinned by the SHA-512 its vendor
+                # publishes, and has no SHA-256 of its own.
+                if ($artifact.disposition -eq 'downloaded') {
+                   if ((Test-Path -LiteralPath $artifact.path -PathType Leaf) -and
+                       (Get-FileHash -LiteralPath $artifact.path -Algorithm SHA512).Hash.ToLower() -ne ([string]$artifact.sha512).ToLower()) {
+                      $problems.Add("CHANGED   $($artifact.path)`n          A downloaded file on disk does not match the manifest's sha512.")
+                   }
+                   continue
+                }
                 if (Test-Path -LiteralPath $artifact.path -PathType Leaf) {
                    $actual = (Get-FileHash -LiteralPath $artifact.path -Algorithm SHA256).Hash.ToLower()
                    if ($actual -ne ([string]$artifact.sha256).ToLower()) {

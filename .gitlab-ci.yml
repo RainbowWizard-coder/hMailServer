@@ -162,7 +162,7 @@ checkers:
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
       for name in authz-choke-point collection-iteration com-error-info com-shared-copies \
-                  help-map password-choice-sites role-choke-point; do
+                  help-map mysql-charset password-choice-sites role-choke-point sbom-inputs; do
         check python3 "build/check-$name.py" --self-test
       done
       # The update feed's generator, against canned answers: no network, one loopback

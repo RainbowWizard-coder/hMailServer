@@ -133,7 +133,10 @@ jobs:
       # Boost Asio - so anyone checking a release against a CVE feed, which is the whole
       # purpose of shipping an SBOM, would have concluded this server does not link
       # OpenSSL. Versions come from the include paths in hMailServer.vcxproj, which is what
-      # the compiler is actually given and so cannot be stale while the build works.
+      # the compiler is actually given and so cannot be stale while the build works. The
+      # same step adds the vendored zlib and QuickJS, what the Windows installer carries
+      # (third-party-binaries.json, with each file's pinned hash) and the Linux packages'
+      # system libraries (build/native-dependencies.ps1 says where each is read from).
       - name: Add the native dependencies Syft cannot see
         shell: pwsh
         run: |
@@ -142,23 +145,13 @@ jobs:
 
       # Fails the job rather than shipping a silently incomplete SBOM. The whole defect
       # this workflow just fixed was an absence nobody noticed, so the absence is now
-      # something CI notices.
-      - name: Verify both SBOMs name every native dependency
-        shell: pwsh
-        run: |
-          $expected = (./build/native-dependencies.ps1 | ConvertFrom-Json)
-          $failed = $false
-          foreach ($file in @('hmailserver.spdx.json', 'hmailserver.cyclonedx.json')) {
-            $content = Get-Content $file -Raw
-            foreach ($dependency in $expected) {
-              if ($content -notmatch [regex]::Escape($dependency.purl)) {
-                Write-Host "::error file=$file::$file does not list $($dependency.purl)"
-                $failed = $true
-              }
-            }
-          }
-          if ($failed) { exit 1 }
-          Write-Host "Both SBOMs list all $($expected.Count) native dependencies."
+      # something CI notices. Since 25 September 2026 the check reads what the build
+      # pins by itself - third-party-binaries.json, the native-dependencies table,
+      # get-installer-binaries.ps1, get-dotnet-runtime.ps1 and CMakeLists.txt - rather
+      # than asking native-dependencies.ps1 what it meant to add, and holds both
+      # documents to it: every input named, at its pinned version, with its pinned hash.
+      - name: Verify both SBOMs name every pinned build input
+        run: python3 build/check-sbom-inputs.py --sbom hmailserver.spdx.json --sbom hmailserver.cyclonedx.json
 
       - name: Upload the SBOMs as artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

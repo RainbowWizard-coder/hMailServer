@@ -337,9 +337,18 @@ credible.
 - **Memory safety is mitigated, not guaranteed.** This is a large C++
   codebase with a pre-authentication attack surface. The controls in §6 raise
   the cost of exploitation; they do not make it impossible.
-- **Statement coverage is not uniform.** The .NET Control Panel is measured
-  for coverage in CI; the native server is not currently measured, so the
-  regression suite's coverage of the C++ code is not quantified.
+- **Coverage is measured once, by hand, and below the bar.** The native
+  server's line coverage was measured on 15 September 2026: 73.48% (67,790 of
+  92,260 lines under `hmailserver/source/Server`), by OpenCppCoverage 0.9.9
+  over the whole Windows regression suite, run against the 6.3.3 shipping
+  binary as a console server ([CHANGELOG.md](CHANGELOG.md), *Unreleased*,
+  *Build and tests*; `test_statement_coverage80` in
+  [Roadmap.md](Roadmap.md)). That is line coverage only - the tool has no
+  branch mode, so branch coverage is not quantified - and below the 80% the
+  OpenSSF silver level asks. The script that ran it is not in the repository,
+  so the figure is not repeated for each release. The .NET Control Panel's
+  coverage was collected by CI on GitHub (`ci.yml`) until 18 September 2026 and
+  is not collected on GitLab yet.
 - **Reproducibility has been shown on one toolchain only.** Since 22 August
   2026 two clean Release builds of the same tree produce a byte-identical
   `hMailServer.exe` (`/Brepro`, `/d1trimfile`, `/pdbaltpath`,

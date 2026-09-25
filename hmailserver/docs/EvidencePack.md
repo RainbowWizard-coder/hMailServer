@@ -226,26 +226,19 @@ withdrawn pre-release 6.2.22-pre4 and -pre5, which -pre6 superseded
 `.github/workflows/sbom.yml`: Syft over the release tag's tree, after a check
 that the tree is the tag's, and `build/merge-native-dependencies-into-sbom.ps1`
 adds the native libraries Syft cannot see, which `build/native-dependencies.ps1`
-reads from `hMailServer.vcxproj`: OpenSSL 4.0.2, Boost 1.92.0 and PostgreSQL
-18.3's libpq, and QuickJS 2025-04-26 from its `VERSION` file. The job fails if
-either SBOM lacks one of them.
-
-What the SBOM does not list:
-
-* **zlib 1.3.1**, vendored as source and compiled into `hMailServer.exe`
-  ([ThirdPartyBinaries.md](ThirdPartyBinaries.md) says so, and
-  `native-dependencies.ps1` does not name it).
-* **The files the Windows installer carries but git does not**: 7-Zip 19.00,
-  MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1, the MSVC runtime and
-  the .NET Desktop Runtime. They are fetched or copied when the installer is
-  built, so Syft never sees them. All but the .NET runtime are inventoried with
-  their hashes in [third-party-binaries.json](third-party-binaries.json)
-  (below).
-* **The Linux packages' libraries.** The native versions are read from the
-  Windows project. The Linux build links the distribution's OpenSSL (3.0 or
-  later), zlib, libpq and LDAP library, and the build image's Boost, statically
-  (`find_package` in `CMakeLists.txt`); the build log records their versions
-  ([RELEASE.md](../../RELEASE.md), step 8).
+reads from `hMailServer.vcxproj` and the tree: OpenSSL 4.0.2, Boost 1.92.0,
+PostgreSQL 18.3's libpq, QuickJS 2025-04-26 from its `VERSION` file, and zlib
+1.3.1, vendored as source; the files the Windows installer carries but git does
+not - the .NET Desktop Runtime 10.0.12 (pinned by version and SHA-512), 7-Zip,
+MariaDB Connector/C 3.4.9, the MSVC runtime and SQL Server Compact 4.0 SP1, each
+with the version and hash [third-party-binaries.json](third-party-binaries.json)
+pins; and, for the Linux packages, the distribution's glibc, OpenSSL, zlib, Boost,
+libpq, OpenLDAP and libstdc++, by name (their versions are the distribution's,
+and the build log records them - [RELEASE.md](../../RELEASE.md), step 8). The job
+fails if either SBOM lacks one of them, and `build/check-sbom-inputs.py --sbom`
+holds both documents to every pinned input's version and hash. On GitLab the
+`linux-sbom` job does the same for `master`, `batch*` branches and tags
+([ContinuousIntegration.md](ContinuousIntegration.md)).
 
 ### Reproducible builds
 
@@ -339,15 +332,16 @@ workflow that signed it, and the cosign command in SECURITY.md verifies it
 without contacting GitHub.
 
 Until that row is done, **no new release can be signed or published.** The
-signing, SBOM, provenance and packaging workflows are GitHub Actions; an
-installed server's update check reads a GitHub address that has answered 404
-since (`UpdateChecker.cpp`), and its live update accepts only a bundle signed
-by the GitHub workflow identity (`SigstoreVerifier.cpp`); the package manager
-manifests and the container image name GitHub hosts. The row moves the
-signing and packaging to GitLab CI or a machine the project controls, serves
-the feed from a hostname the project owns, and makes the update's trust a list
-that keeps the GitHub identity for the releases already published. That work is
-in progress on its own branch and not yet in this tree.
+signing, provenance and packaging workflows are GitHub Actions, and the package
+manager manifests and the container image name GitHub hosts. Half of the row is
+in this tree: an installed server's update check reads the project's own feed,
+https://updates.progressiverobot.com, published from GitLab Pages
+([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two
+signers - the GitHub workflow identity for the releases up to 6.3.3, and this
+project's GitLab CI pipeline for the ones after (`SigstoreVerifier.cpp`). No
+release has been signed on GitLab yet; moving the signing and the packaging is
+the half still to do. A server from 6.2.28 to 6.3.3 still reads GitHub's
+address until one line of its settings points it at the feed (UpdateFeed.md).
 
 Vulnerability handling
 ----------------------
@@ -711,12 +705,13 @@ Not in place, in one list
 * A new release: none can be signed or published until the release chain moves
   off GitHub, and the live update in installed servers trusts only the GitHub
   signing identity.
-* CI on GitLab: being introduced; every check is run by hand until it is.
+* CI on GitLab blocking on the security scans: they run on the project's own
+  runner but do not fail a pipeline yet ([ContinuousIntegration.md](ContinuousIntegration.md)).
 * CodeQL, the dependency review and the nightly fuzzing: none has run since
   18 September 2026.
 * Fuzz harnesses beyond MIME.
-* The SBOM's coverage of zlib, the installer's fetched files and the Linux
-  packages' system libraries; a pinned, hashed .NET Desktop Runtime.
+* Versions for the Linux packages' system libraries in the SBOM, which names
+  them without one.
 * An independent rebuild confirming a released binary.
 * Active-active operation.
 * Any audit, certification or attestation.

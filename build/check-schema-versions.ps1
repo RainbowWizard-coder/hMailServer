@@ -17,7 +17,10 @@
      * the schema probes in Tools\DBUpdater\SchemaVerification.cs
 
    Every one of those is edited by hand, by a different person, on the day a
-   column is added. Nothing was checking them. This checks them.
+   column is added. Nothing was checking them. This checks them. It also holds
+   the one place the version is stated to a reader, the Schema row of README.md's
+   Technology table, to REQUIRED_DB_VERSION: it said 6031 for seventy schema
+   steps before anybody noticed (25 September 2026).
 
    The check that matters most is the [IGNORE-ERRORS] one. Three of the four
    dialects mark their ALTER TABLE statements with that marker so that re-running
@@ -83,6 +86,19 @@ function Get-SchemaModel
    if ($constantsText -match '(?m)^\s*#define\s+REQUIRED_DB_VERSION\s+(\d+)')
    {
       $requiredVersion = [int] $Matches[1]
+   }
+
+   # The Schema row of README.md's Technology table: -1 when there is no README,
+   # 0 when the row no longer states a version.
+   $readme = Join-Path $Root 'README.md'
+   $readmeVersion = -1
+   if (Test-Path -LiteralPath $readme)
+   {
+      $readmeVersion = 0
+      if ((Get-Content -Raw -LiteralPath $readme) -match '(?m)^\|\s*Schema\s*\|\s*Database version (\d+)')
+      {
+         $readmeVersion = [int] $Matches[1]
+      }
    }
 
    $steps = @()
@@ -166,6 +182,7 @@ function Get-SchemaModel
 
    return @{
       RequiredVersion = $requiredVersion
+      ReadmeVersion   = $readmeVersion
       Steps           = $steps
       NamedVersions   = $namedVersions
       Probes          = $probes
@@ -360,6 +377,21 @@ function Test-SchemaModel
       }
    }
 
+   # 8. The version a reader is told. README.md's Technology table states it, and a
+   #    schema step that moves REQUIRED_DB_VERSION moves that row in the same change.
+   if ($Model.ReadmeVersion -eq -1)
+   {
+      $problems += 'README.md could not be read, so the schema version it states cannot be checked.'
+   }
+   elseif ($Model.ReadmeVersion -eq 0)
+   {
+      $problems += 'README.md''s Technology table no longer states the schema version ("| Schema | Database version NNNN, ..."); put the row back, with REQUIRED_DB_VERSION.'
+   }
+   elseif ($Model.RequiredVersion -ne 0 -and $Model.ReadmeVersion -ne $Model.RequiredVersion)
+   {
+      $problems += ('README.md''s Technology table says database version {0}, but REQUIRED_DB_VERSION is {1}. Change the Schema row to {1} in the same change as the schema step.' -f $Model.ReadmeVersion, $Model.RequiredVersion)
+   }
+
    return $problems
 }
 
@@ -373,6 +405,7 @@ function New-ModelForSelfTest
    # one probe, and create-tables text containing the probed column.
    $model = @{
       RequiredVersion = 6006
+      ReadmeVersion   = 6006
       Steps           = @(@{ From = 0; To = 5001 }, @{ From = 5001; To = 6006 })
       NamedVersions   = @(0, 5001, 6006)
       Probes          = @(@{ Version = 6006; Describes = 'hm_t.hm_c'; Table = 'hm_t'; Column = 'hm_c'; Statement = 'select hm_c from hm_t where 1 = 0' })
@@ -386,7 +419,11 @@ function New-ModelForSelfTest
                            PGSQL = @{ Exists = $true; Stamped = @(6006); IgnoreErrors = $false }
                            MSSQLCE = @{ Exists = $true; Stamped = @(6006); IgnoreErrors = $false } }
       }
-      CreateText      = @{ MSSQL = 'create table hm_t ( hm_c int )'; MySQL = 'create table hm_t ( hm_c int )'; PGSQL = 'create table hm_t ( hm_c int )' }
+      # Each stamps a fresh database at REQUIRED_DB_VERSION, as rule 3b asks; without
+      # the insert the healthy model failed its own self-test from the day 3b was added.
+      CreateText      = @{ MSSQL = 'create table hm_t ( hm_c int ) insert into hm_dbversion values (6006)'
+                           MySQL = 'create table hm_t ( hm_c int ); insert into hm_dbversion values (6006);'
+                           PGSQL = 'create table hm_t ( hm_c int ); insert into hm_dbversion values (6006);' }
    }
 
    return $model
@@ -444,6 +481,14 @@ function Invoke-SelfTest
       @{ Name = 'a probed column absent from create-tables'
          Expect = 'a fresh install would fail the same probe'
          Break = { param($m) $m.CreateText.PGSQL = 'create table hm_t ( something_else int )' } }
+
+      @{ Name = 'README.md stating an older schema version'
+         Expect = 'README.md''s Technology table says database version 6005'
+         Break = { param($m) $m.ReadmeVersion = 6005 } }
+
+      @{ Name = 'README.md no longer stating the schema version'
+         Expect = 'no longer states the schema version'
+         Break = { param($m) $m.ReadmeVersion = 0 } }
    )
 
    $failures = 0

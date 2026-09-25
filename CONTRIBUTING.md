@@ -410,6 +410,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-project-items.py` | No file listed twice in a project, and every listed file exists | |
 | `check-roadmap2.py` | The counter line at the top of `Roadmap2.md` equals the rows' marks | **Rewrites** the counter with `--write` |
 | `check-role-choke-point.py` | `RoleManager` is the only decider of what a credential may do; every `RouteKind` is classified | `--self-test` |
+| `check-sbom-inputs.py` | Every input the build pins - in `third-party-binaries.json`, `native-dependencies.ps1`, `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1`, and every library `CMakeLists.txt` finds - is in the SBOM's component list, at its pinned version and with its pinned hash | `--self-test`; `--sbom FILE` (repeatable) holds a finished SPDX or CycloneDX document to it. Runs `native-dependencies.ps1` when `pwsh` or `powershell` is present, and reads its tables when neither is |
 | `check-setting-levels.py` | A setting with domain or account levels is read only through `EffectiveSetting`, and its marks agree with `build/settings-levels.txt` | Proves its own negative controls on every run |
 | `check-settings-rows.py` | Every database setting gets a row on a database made before it | |
 | `check-sql-parameters.py` | Each placeholder use has its own parameter, added in order | |
@@ -442,9 +443,10 @@ something which already exists.
 
 | Check | What it holds | How to run it |
 |---|---|---|
-| `build\check-schema-versions.ps1` | The five lists that describe the schema chain agree: `REQUIRED_DB_VERSION`, DBUpdater's `LoadScripts` and `GetDatabaseVersionName`, four upgrade scripts per step, and a probe for every step whose `ALTER` is marked `[IGNORE-ERRORS]` | **PowerShell 7 (`pwsh`)**; it dies under 5.1. `-SelfTest` checks the checks |
+| `build\check-schema-versions.ps1` | The five lists that describe the schema chain agree: `REQUIRED_DB_VERSION`, DBUpdater's `LoadScripts` and `GetDatabaseVersionName`, four upgrade scripts per step, and a probe for every step whose `ALTER` is marked `[IGNORE-ERRORS]`; and the Schema row of README.md's Technology table states `REQUIRED_DB_VERSION` | **PowerShell 7 (`pwsh`)**; it dies under 5.1. `-SelfTest` checks the checks |
 | `build\check-db-scripts.ps1` | A throwaway SQL CE database builds from `CreateTablesMSSQL.sql` with the server's own splitting rules, every DBUpdater probe succeeds against it (and a negative control fails), and every Compact upgrade script holds one statement per command | **Windows PowerShell 5.1 (`powershell.exe`)**; SQL CE's native components will not load under PowerShell 7. Needs SQL Server Compact 4.0 installed, and skips itself without it |
 | `build\check-roadmap.ps1` | `Roadmap.md`'s counts agree with its tick boxes | `pwsh`. After any edit to `Roadmap.md` |
+| `build\test-get-dotnet-runtime.ps1` | `get-dotnet-runtime.ps1` places the pinned .NET Desktop Runtime and nothing else: a file whose SHA-512 is not the pinned one is refused, on disk or downloaded, and a pin that is not one (a moving link, no SHA-512, another channel) is refused | Either PowerShell, and no network: a loopback listener serves the downloads. After any change to the script or to the pin |
 | `node build/check-portal-smime.js` | The webmail's S/MIME module against OpenSSL, both ways | Node 20 or later and `openssl` on `PATH` |
 | `node build/check-portal-openpgp.js` | The webmail's OpenPGP module against GnuPG's fixtures, and back to `gpg` when it is present | Node 20 or later; `gpg` optional |
 | `bash build/check-linux-version-stamp.sh` | The Linux stamps (the PKGBUILD's `pkgver`) agree with `Version.h` | Git Bash, WSL or Linux |

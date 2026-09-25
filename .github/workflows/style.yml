@@ -224,6 +224,18 @@ jobs:
           python3 build/check-com-shared-copies.py
           python3 build/check-com-shared-copies.py --self-test
 
+      # Every input the build pins - third-party-binaries.json, the native
+      # dependencies, what get-installer-binaries.ps1 places, the .NET runtime
+      # get-dotnet-runtime.ps1 pins, the libraries CMakeLists.txt finds - is one
+      # the SBOM names, at its pinned version and with its pinned hash. The runner
+      # has pwsh, so native-dependencies.ps1 is run and its output checked; the
+      # self-test proves an input left out, a wrong version and a wrong hash are
+      # each refused.
+      - name: Every pinned build input is named in the SBOM
+        run: |
+          python3 build/check-sbom-inputs.py
+          python3 build/check-sbom-inputs.py --self-test
+
       # A message's bytes are reached through the message store
       # (Persistence/MessageStore.h): the stored file's path comes from
       # PersistentMessage::GetFileName only in the store and in the listed
