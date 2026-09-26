@@ -346,8 +346,11 @@ cannot drift apart. `IniSettingStore::IsProtectedName`.
 which since schema 6042 is the server's copy of the row ([SettingsApply.md](SettingsApply.md))
 - hold the same envelope. Everything that reads a `[Settings]` value reads it opened: the
 settings loader, COM's `GetIniSetting`, `GET /api/v1/settings/ini/{name}`, the pending list,
-and `hMailServer.exe /Register`, which reads `ServiceAccountPassword` from the file with no
-database open (`IniFileSettings::ResolveString_`). A save of the value already stored keeps
+and whatever reads the file's copy with no database open - the bootstrap, a server whose
+table cannot be read, and `hMailServer.exe /Register`, which loads the settings for where its
+error log is (`IniFileSettings::ResolveString_`). `/Register` no longer reads
+`ServiceAccountPassword`: it takes the service's account from its command line alone
+([ServiceAccount.md](ServiceAccount.md#register-takes-the-account-from-its-command-line)). A save of the value already stored keeps
 its envelope, so a settings page that writes every field it shows does not rewrite every
 secret on it; an envelope written back as it is - a profile's way back, a test putting back
 what it read - is stored as it is. A value forced from `[SettingsOverride]` is read as
@@ -400,7 +403,8 @@ An older server does not know `HMK1:` envelopes. Rolling back restores the pre-u
 database, whose rows are as written, but the `[Settings]` lines of each machine's
 `hMailServer.ini` stay sealed until that older server's first reconcile puts the rows back
 into the file - and its `/Register`, which the older installer runs, reads
-`ServiceAccountPassword` from the file before that, hands Windows the envelope as the
+`ServiceAccountPassword` from the file before that (up to 6.3.3 it did; this version's does
+not), hands Windows the envelope as the
 password, and the service cannot log on. Restore the pre-upgrade `hMailServer.ini` with the
 database, or set `ServiceAccountPassword` again once the older version runs and register the
 service again ([Upgrading.md](Upgrading.md#rolling-back)).

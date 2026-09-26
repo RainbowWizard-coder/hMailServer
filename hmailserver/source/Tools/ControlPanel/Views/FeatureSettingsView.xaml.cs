@@ -2372,7 +2372,15 @@ namespace hMailServer.ControlPanel.Views
                   // are each read with a plain ReadIniSettingString_, so this
                   // switch has never touched one of them. The database password is
                   // the only INI value it governs, and only at the moment it is
-                  // set, through IniFileSettings::SetPassword.
+                  // set, through IniFileSettings::SetPassword. Since 6.3.4 it
+                  // governs a second kind as well: the [Settings] secrets
+                  // (IniSettingStore::IsProtectedName - SRSSecret, BATVSecret,
+                  // the OAuth2 and metrics secrets, ServiceAccountPassword,
+                  // GssapiServicePassword) and an account's second factor are
+                  // sealed under the stored-secrets key while it is on, and
+                  // opened back at the next start when it is off
+                  // (docs/SecretsAtRest.md). PasswordPepper alone stays as
+                  // written, so the field's blurb names both kinds and the pepper.
                   Title = L("Stored secret protection"),
                   // "Turn it off to restore a backup onto a different machine" was
                   // the one reason this card gave, and it was misdirection: no
@@ -2392,7 +2400,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "ProtectStoredSecretsWithDPAPI",
                         Default = true,
                         Label = L("Protect stored secrets with Windows DPAPI"),
-                        Blurb = L("It covers exactly five things, and each is re-enveloped only when it is next saved rather than at start-up: the database password in hMailServer.INI, the SMTP relayer password, each route's authentication password, each external fetch account's password, and each SSL certificate's private-key passphrase. It does NOT cover the other secrets in hMailServer.INI - the SRS and BATV secrets, the OAuth2 HMAC secret, the password pepper, the metrics bearer token, the metrics HTTP Basic password and the Windows service account password are all stored as you typed them. Protecting those is the file's own permissions: hMailServer.INI should be readable only by Administrators and by the account the service runs as.")
+                        Blurb = L("It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as.")
                      }
                   }
                });

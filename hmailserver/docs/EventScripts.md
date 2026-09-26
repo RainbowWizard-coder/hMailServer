@@ -139,7 +139,10 @@ only the apostrophe was, and a password ending its string with `\'` ran the code
 after it; for VBScript the quote is doubled. A rule's "Run function" name is written
 into the call as it is, so a name that is not a plain identifier - ASCII letters,
 digits, `_` and `$`, not starting with a digit - is refused (HM5018) and nothing is
-run.
+run. On Linux the JavaScript engine never puts the name into source text: it looks the
+handler up by name, only when the name is a plain identifier (`ScriptBinding.cpp`,
+`IsIdentifier_`), so such a name finds no function, nothing is run, and the ERROR log
+has a Script Error line saying it is not a function defined in the event script.
 
 ---
 
@@ -408,6 +411,7 @@ is that the script cannot reach past the objects it is given.
 | An event that reaches a script loaded, while scripting was off, in a language this build does not run - in practice a rule's "Run function" | HM5018, once per load |
 | On Windows, an event whose call was built for VBScript while a reload installed JScript, or the reverse | HM5018, once per load; that one event is skipped rather than run in the other language |
 | On Windows, a rule's "Run function" whose name is not a plain identifier | HM5018, each time the rule matches; the function is not run |
+| On Linux, a rule's "Run function" whose name is not a plain identifier | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |
 
 The load is all or nothing on every engine: a script that does not compile installs
 nothing, and whatever was loaded before stays in force - so a typo in a reload never

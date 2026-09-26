@@ -435,7 +435,7 @@ says why each of the three. What it means for the upgrade:
   holds as many characters as it did. A fresh database keeps the declared types; the
   server reads both alike.
 
-**Scripts that change the configuration over COM.** From the release after 6.3.3, a
+**Scripts that change the configuration over COM.** Since 6.3.4, a
 COM change to a route (and a route's addresses), an incoming relay, a DNS black
 list, a SURBL server, a remote domain policy, a server message, a blocked
 attachment, an SSL certificate or a group takes effect when the object's `Save()` is

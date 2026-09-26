@@ -13,9 +13,14 @@ active-active row will share.
 system, and a server that never names a store reads and writes exactly as it did: it
 asks one setting every five seconds and nothing else.
 
-**Built 25 September 2026, not yet compiled or run on the bench.** The requests were
-proved against MinIO and Azurite (below, *How it was proved*); the server and its
-fixture run when the branch is folded and gated.
+**Built 25 September 2026, and run against the lab the same day.** The requests were
+proved against MinIO and Azurite (below, *How it was proved*). The server was compiled
+and gated in batch37, and its fixture run from the laptop against the lab on `linix`:
+the batch's first fixture run found one defect of the server's and three of the
+tests', and after their fixes (93806de9b) the ObjectStorage, SecretsAtRest and EnvironmentConfiguration
+fixtures passed 42 of 42; with the teardown fixed for a bench with no lab (f81eb664e),
+ObjectStorage and EnvironmentConfiguration passed 28 of 28 against the lab, and the
+eight ObjectStorage tests were skipped, naming what was missing, without it.
 
 
 What goes to the store, and what stays
@@ -403,7 +408,9 @@ What is thinner than it could be
   a name the committer holds: every rewrite of a stored message renames a new file over the
   name, and the writers that write into a file in place write working files and new names,
   which are handed over only once their rows are saved.
-* **Not yet compiled or run against the bench**; see *How it was proved*.
+* **The fixture runs only where the lab is.** The second Windows bench has no
+  `HMAILSERVER_OBJECTSTORE_LAB`, so a gate there skips it; it has run from the laptop
+  against the lab on `linix` (25 September 2026, above), and not in the Linux suite.
 
 
 Errors

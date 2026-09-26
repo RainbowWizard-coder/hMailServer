@@ -23,7 +23,7 @@ each line), decided key by key from the code that reads it:
 |---|---|---|
 | `now` | A save applies it. Every reader asks for the value when it uses it, or a subscriber takes the new one when the store changes. | 211 |
 | `reinitialize` | It is bound into something the servers build when they start - a listener, a TLS context, a work queue's size, the database pool's connections - so it waits for a reinitialise: the Control Panel's **Apply now**, the Deck's **Apply now**, `POST /api/v1/server/reinitialize`, `Application.Reinitialize` over COM. | 28 |
-| `restart` | It is read once per process, before the database is open or where nothing can rebuild it in place, so it waits for the service to be restarted. | 28 (2 `[Settings]` keys and the 26 bootstrap keys) |
+| `restart` | It is read once per process, before the database is open or where nothing can rebuild it in place, so it waits for the service to be restarted. | 31 (2 `[Settings]` keys and the 29 bootstrap keys: 20 `[Database]`, 5 `[Directories]`, 3 `[Security]`, 1 `[GUILanguages]`) |
 
 `build/check-ini-coverage.py` requires the mark on every line - a line without one
 fails with a sentence saying what the three mean - and writes it into

@@ -193,8 +193,11 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
     fetched from 7-zip.org, in place of 19.00, which predates the fixes for CVE-2023-31102 and CVE-2025-55188
     ([Backup.md](hmailserver/docs/Backup.md)).
 20. **Event scripts: a rule's Run function action names a plain function.** A name that is not ASCII letters,
-    digits, `_` and `$`, not starting with a digit, is refused as `HM5018` each time the rule fires, on either
-    language, where it used to be written into the script's call as it was. On a JScript server every value a
+    digits, `_` and `$`, not starting with a digit, is refused as `HM5018` each time the rule fires, in either
+    Windows language, VBScript or JScript, where it used to be written into the script's call as it was. On Linux,
+    whose JavaScript engine looks a handler up by name instead of building a call, such a name is never evaluated
+    and finds no function: nothing is run, and the ERROR log has a Script Error line, not `HM5018`
+    ([EventScripts.md](hmailserver/docs/EventScripts.md)). On a JScript server every value a
     handler is given - a password, a remote UID, an error text - now arrives exactly as it was, backslashes
     included (see the fix under Security and identity).
 

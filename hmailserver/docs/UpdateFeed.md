@@ -123,10 +123,15 @@ checks](#what-a-server-built-after-633-checks)).
   verify against the old server's own signer, so a server on 6.2.28 can go to
   6.3.3 by the live update as before, with a rollback image.
 - **The first release signed on GitLab will not install through an old
-  server's live update.** Releases after 6.3.3 are to be signed by this
+  server's live update.** The releases after 6.3.4 are to be signed by this
   project's GitLab CI pipeline for their `v*` tag, since nothing can be signed
-  on GitHub any more; none has been yet. An old server's check will find such
-  a release, but its download will be refused: "The certificate names
+  on GitHub any more; none has been yet. 6.3.4 itself was built and
+  Authenticode-signed by hand and carries no Sigstore bundle, so no server
+  installs it by the live update: one offered it says it cannot be verified and
+  downloads nothing (`UpdateDownloader.cpp`; the feed's check lets it through
+  by name, `UNSIGNED_BY_DESIGN` in `build/generate-update-feed.py`). It is
+  installed by hand, as below. An old server's check will find a release
+  signed on GitLab, but its download will be refused: "The certificate names
   https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v...,
   not this repository's release workflow." Nothing is installed, and the server
   runs on as it was.
@@ -142,7 +147,7 @@ checks](#what-a-server-built-after-633-checks)).
   AppImage.
 - **After it, the new version trusts both signers** and reads this feed without
   being told. The `UpdateFeedUrl` line can go, although leaving it changes
-  nothing, since it names the same feed. From the release after 6.3.3 the
+  nothing, since it names the same feed. Since 6.3.4 the
   `[Settings]` values are kept in the database, and a line edited in the file
   is put back (`HM5804`), so clear the value in the Control Panel, with `DELETE
   /api/v1/settings/ini/UpdateFeedUrl` over REST or, on Linux, with `hmailserver
@@ -416,7 +421,7 @@ with no redirect.
 
 | Address | What it is | Who reads it |
 |---|---|---|
-| `/releases/latest` | The newest release that is not a pre-release, one release object | The stable channel's built-in address, from the release after 6.3.3 |
+| `/releases/latest` | The newest release that is not a pre-release, one release object | The stable channel's built-in address, since 6.3.4 |
 | `/releases.json` | Every release, newest first, a list | The pre-release channel's built-in address, and the value of `UpdateFeedUrl` above |
 | `/releases/tags/v<version>` | One release | The rollback's lookup, for either of the two above |
 | `/releases/` | A page showing the same list | A browser, or a client that followed the redirect |
@@ -504,5 +509,5 @@ Settings
 
 This adds no setting. `UpdateFeedUrl`, `UpdateAutoDownload` and the three trust
 settings above are the `[Settings]` keys the live update has read since 6.2.28,
-and nothing about them moves here. From the release after 6.3.3, all
+and nothing about them moves here. Since 6.3.4, all
 `[Settings]` values live in the database, and this changes none of them.

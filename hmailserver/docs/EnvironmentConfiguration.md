@@ -24,7 +24,7 @@ One rule, and no table to keep:
 | Variable | Sets |
 |---|---|
 | `HM_SETTING_<key>` | the `[Settings]` key `<key>` - one of the 241 keys `build/ini-settings-baseline.txt` lists, matched without case and stored in its own spelling. `HM_SETTING_MaxSubmissionsPerIPPerMinute=30` |
-| `HM_PROPERTY_<name>` | the `hm_settings` row `<name>` - one `SettingsDefaults.h` lists with the column this build reads it by, 250 of them, and `backupencryptionpassphrase`, which is read both ways (the text is the passphrase, the number whether one is set) and is written through the setter that keeps the two together. `HM_PROPERTY_maxmessagesize=20480` |
+| `HM_PROPERTY_<name>` | the `hm_settings` row `<name>` - one `SettingsDefaults.h` lists with the column this build reads it by, 305 of them, and `backupencryptionpassphrase`, which is read both ways (the text is the passphrase, the number whether one is set) and is written through the setter that keeps the two together. `HM_PROPERTY_maxmessagesize=20480` |
 | `HM_SETTING_<key>_FILE`, `HM_PROPERTY_<name>_FILE` | the same, the value read from the file the variable names - a Kubernetes Secret or a Compose secret mounted as a file. The file's trailing line breaks are stripped (a file made with `echo` ends in one); a byte order mark is dropped; the text must be UTF-8 without a NUL, and at most 64 KB. |
 
 The prefixes and `_FILE` are written in capitals; the name after the prefix is

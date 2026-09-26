@@ -412,7 +412,7 @@ What is not covered yet
 
 * **HTML**, reached through the HTML-to-text conversion and message rewriting.
 * **iCalendar and vCard**, reached through attachment handling - and, since
-  CardDAV (6.3.3) and CalDAV (15 September 2026, in the tree), reached directly
+  CardDAV (6.3.3) and CalDAV (6.3.4), reached directly
   by an authenticated `PUT` of a card or a calendar object, which is a shorter
   path to `Common/Util/VCard.cpp` and `Common/Util/ICalendar.cpp` than an
   attachment is. `ICalendar` is the more exposed of the two: it parses a

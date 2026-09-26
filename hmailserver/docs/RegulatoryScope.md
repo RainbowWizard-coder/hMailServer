@@ -188,8 +188,13 @@ changed:
 * Security-update distribution with integrity verification, shipped in 6.2.28
   (8 September 2026): the server can check the release feed,
   fetch a newer installer with its Sigstore bundle, verify the bundle in-process
-  against the repository's release-workflow identity, and apply it inside a
-  configured window after a backup. The Roadmap's Product Liability Directive row
+  against the release signers compiled into it, and apply it inside a
+  configured window after a backup. A server up to 6.3.3 trusts one signer, the
+  repository's GitHub release workflow; a server built after 6.3.3 trusts that
+  workflow for the releases up to 6.3.3 and this project's GitLab CI pipeline
+  for the later ones, at the project's present path and at the group's it is to
+  move to (`SigstoreVerifier.cpp`,
+  [UpdateFeed.md](UpdateFeed.md#what-a-server-built-after-633-checks)). The Roadmap's Product Liability Directive row
   was closed on 7 September 2026 against this document's determination.
 
 What the release half of this list now depends on: up to 6.3.3 the SBOMs, the

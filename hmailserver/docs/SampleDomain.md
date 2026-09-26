@@ -19,7 +19,7 @@ One command makes it, and one takes it away and says what it removed.
     DELETE /api/v1/setup/sample-domain
 
 There is a button as well: on the Control Panel's Welcome page, and on the
-Control Deck's Checklist view, under the eleven first-hour items. Both show what
+Control Deck's Checklist view, under the twelve first-hour items. Both show what
 is in the sample once it is there, and both turn into a Remove button.
 
 What it makes

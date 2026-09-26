@@ -671,9 +671,13 @@ What is thinner than the row
   overwritten with zeros in place, which a copy-on-write filesystem, a snapshot or an SSD
   may not honour; a copy dropped before it is placed, and memory, are freed, not
   overwritten.
-* **Not yet run against a bench**, like every row built in parallel on 24 September
-  2026: the fixture `RegressionTests/Infrastructure/EncryptionAtRest.cs` runs when the
-  branch is folded into a batch and gated.
+* **Run on Windows, not on Linux.** The fixture
+  `RegressionTests/Infrastructure/EncryptionAtRest.cs` first ran on 25 September 2026 on
+  the folded batch35, with the inbound webhook's fixtures: 113 of 115 passed, and the two
+  failures were the tests' own - a bounce's quoted-printable text read raw, and IMAP SASL
+  never switched on - fixed in 2e19cb336. It needs no lab, so it is in every full Windows
+  gate since; batch37's, run on 25 September 2026 across the laptop and the second bench,
+  had no failure of it. It is not in the Linux suite.
 
 
 Tests

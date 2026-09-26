@@ -359,8 +359,9 @@ downloaded**, with the export's id, the search's, the size and the SHA-256.
 
 PST is Outlook's own file format (MS-PST): a database of pages, blocks and
 B-trees, published but large, and writing it correctly is a project of its own.
-This server neither reads PST ([Migration.md](Migration.md), *From Outlook*,
-brings Outlook's mail in through Outlook over IMAP) nor writes it. An EML file is
+This server reads PST, to bring a file's mail, contacts and calendars into an account
+(a migration of kind `pst`, [Migration.md](Migration.md), *Outlook data files*), but
+it does not write it, and a discovery export is never a PST. An EML file is
 the message as it travelled, which every review tool reads, and an mbox is the
 same messages in one file. An examiner who needs PST converts the EML files with
 a third-party EML-to-PST converter; the manifest's SHA-256s let them show that
@@ -461,7 +462,7 @@ changes.
 
 ## What it does not do
 
-* **No PST** (above).
+* **No PST export** (above).
 * **No text from attachments but `text/*`**, and at most 1 MB of it a message;
   nothing past 80 MB a message is read.
 * **No sender or recipient criterion**: words over the whole header, and people

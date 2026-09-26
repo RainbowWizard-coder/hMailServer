@@ -54,8 +54,8 @@ Contents:
 | The forum | <https://www.hmailserver.co.uk/> |
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
 
-The latest release is **6.3.3, published on 15 September 2026**. Anything this repository describes that
-arrived after it is in the tree after 6.3.3 and not yet released.
+The latest release is **6.3.4, published on 26 September 2026**. Anything this repository describes that
+arrived after it is in the tree after 6.3.4 and not yet released.
 
 The documents at the repository root:
 
@@ -659,7 +659,7 @@ And, for any new setting:
 * The documents at the repository root, `hmailserver/docs/README.md` and the wiki are not compiled into
   anything. The wiki copies several of the root documents; a change to one of those is a wiki change too.
 * House style: British English, plain declarative prose, and every claim true of the tree it describes. Nothing
-  after 6.3.3 is written with a version number until it is released: it is "in the tree after 6.3.3, not yet
+  after 6.3.4 is written with a version number until it is released: it is "in the tree after 6.3.4, not yet
   released".
 
 ### Roadmap2 rows
