@@ -202,6 +202,12 @@ namespace HM
          return true;
       }
 
+      // Wake the delivery manager, as the redirect below and a rule's forward
+      // do: the copy is queued from inside the delivery of the original, after
+      // the manager last read the queue, and untold it waited for the manager's
+      // next look, up to a minute later.
+      DeliveryQueue::StartDelivery();
+
       bool bKeepOriginal = pRecipientAccount->GetForwardKeepOriginal();
 
       return bKeepOriginal;

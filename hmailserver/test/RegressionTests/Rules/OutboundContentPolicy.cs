@@ -462,6 +462,12 @@ namespace RegressionTests.Rules
             // Until 26 September 2026 the notice was skipped: the guard that
             // keeps a server rule's notice to one per message read the try
             // count, and the recipient's own rule had never run before.
+            // No AssertRecipientsInDeliveryQueue first, on purpose: it kicks the
+            // queue. The notice is queued from inside the delivery, after the
+            // delivery manager last read the queue, and it arrives inside this
+            // wait only because the rule tells the manager it is there. Untold,
+            // it waited for the manager's next look, a minute later - which is
+            // how this test first failed.
             Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
             string notice = Decoded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
             StringAssert.Contains("Subject: Policy notice: Tell the sender", notice);

@@ -339,6 +339,10 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   attempt too - it was skipped, as the server's once-per-message notice is
   ([MailFlowRules.md](hmailserver/docs/MailFlowRules.md), [OutboundShaping.md](hmailserver/docs/OutboundShaping.md),
   [OutboundContentPolicy.md](hmailserver/docs/OutboundContentPolicy.md)).
+- Fixed: a mail flow rule's forward, copy, reply or notice to the sender, and an account's own forwarding, no
+  longer wait up to a minute in the queue. Each is queued from inside the delivery of the message that caused
+  it, after the delivery manager last read the queue, and the manager was not told of it, so it sat there until
+  something else woke the manager, a minute later at the latest.
 - Fixed: one domain's mail flow rules no longer act on another domain's recipients. A domain's rules ran on the
   whole of every message with a recipient in the domain, and on every message whose envelope sender claimed the
   domain, authenticated or not, so one tenant's delete or reject removed a message for another tenant's

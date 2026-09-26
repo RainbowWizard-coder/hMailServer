@@ -35,6 +35,7 @@
 #include "../Common/Persistence/MessageStore.h"
 
 #include "RecipientParser.h"
+#include "DeliveryQueue.h"
 
 #include "SMTPConfiguration.h"
 
@@ -66,6 +67,23 @@ namespace HM
          line.Replace(_T("\r"), _T(" "));
          line.Replace(_T("\n"), _T(" "));
          return line;
+      }
+
+      // A message a rule queues - a forward, a copy, a reply, a notice to the
+      // sender - is written from inside a delivery. The delivery manager reads
+      // the queue again only when it is told to or once a minute, and it last
+      // read it when it handed out the message being delivered, before this
+      // one existed: untold, the new message waited up to that minute. Telling
+      // it delivers nothing itself - it wakes the manager, which reads the
+      // queue as it always does, and a drain's pause still holds. The
+      // delivery-failure report (SMTPDeliverer::SubmitErrorLog_) and the
+      // out-of-office reply tell it too. This is the Sieve redirect's way,
+      // which, when the servers are stopping and the manager is already gone,
+      // tells nobody and leaves the message for the next start, and not
+      // Application::SubmitPendingEmail's, which reports a High error then.
+      void DeliverQueuedMessageNow_()
+      {
+         DeliveryQueue::StartDelivery();
       }
    }
 
@@ -703,6 +721,8 @@ namespace HM
          return;
       }
 
+      DeliverQueuedMessageNow_();
+
       LOG_APPLICATION(Formatter::Format("RuleApplier - Message {0}: the sender {1} has been sent a notice naming the rule \"{2}\"{3}.",
          pOriginalMessage->GetID(), sender, ruleName, notSent ? String(_T(", saying the message was not sent")) : String()));
    }
@@ -961,7 +981,10 @@ namespace HM
          FileUtilities::DeleteFile(newFileName);
 
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6082, "RuleApplier::ApplyAction_Forward", "Could not forward message; the forwarded copy could not be saved. The file has been removed rather than left on disk with nothing referring to it.");
+         return;
       }
+
+      DeliverQueuedMessageNow_();
    }
 
    void 
@@ -1052,7 +1075,10 @@ namespace HM
          FileUtilities::DeleteFile(newMessageFileName);
 
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6083, "RuleApplier::ApplyAction_Copy", "Could not copy message; the copy could not be saved. The file has been removed rather than left on disk with nothing referring to it.");
+         return;
       }
+
+      DeliverQueuedMessageNow_();
    }
 
    void 
@@ -1179,7 +1205,10 @@ namespace HM
          FileUtilities::DeleteFile(newMessageFileName);
 
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6084, "RuleApplier::ApplyAction_Reply", "Could not send the rule-generated reply; it could not be saved. The file has been removed rather than left on disk with nothing referring to it.");
+         return;
       }
+
+      DeliverQueuedMessageNow_();
    }
 
    bool
