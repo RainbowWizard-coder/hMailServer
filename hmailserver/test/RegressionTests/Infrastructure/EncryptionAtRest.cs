@@ -522,7 +522,7 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("A delegate reading a shared folder of a mailbox encrypted at rest while its owner's key is closed is refused NO [UNAVAILABLE] for everything that reads the message - ENVELOPE, BODYSTRUCTURE, HEADER, TEXT, the whole - with no untagged FETCH, and a non-PEEK section does not set \\Seen. They were answered OK with NILs and empty strings, which a client caches by UID for good. What needs no file (UID, FLAGS, RFC822.SIZE) is still answered. Negative control: with the owner signed in the same FETCH hands the delegate the message.")]
+      [Description("A delegate reading a shared folder of a mailbox encrypted at rest while its owner's key is closed is refused NO [UNAVAILABLE] for everything that reads the message - ENVELOPE, BODYSTRUCTURE, HEADER, TEXT, the whole - with no untagged FETCH, and a non-PEEK section does not set \\Seen. They were answered OK with NILs and empty strings, which a client caches by UID for good. What needs no file (UID, FLAGS, RFC822.SIZE) is still answered, and the refusals leave nothing in the error log - a closed key is not a fault. Negative control: with the owner signed in the same FETCH hands the delegate the message.")]
       public void ADelegatesFetchWhileTheOwnersKeyIsClosedIsRefusedNotBlank()
       {
          MakeRecoveryKey();
@@ -562,6 +562,11 @@ namespace RegressionTests.Infrastructure
          string flags = imap.SendSingleCommand("F3 FETCH 1 (FLAGS)");
          StringAssert.DoesNotContain("\\Seen", flags, "A refused BODY[TEXT] set \\Seen on the owner's message: " + flags);
          imap.Disconnect();
+
+         // A closed key is not a fault: the store says it in the debug log only.
+         // BODYSTRUCTURE's full load reported each refusal again as a critical
+         // HM10001 in the error log, where the next fixture's set-up found it.
+         CustomAsserts.AssertNoReportedError();
          ClassicAssert.IsFalse(KeyState(owner).GetProperty("open").GetBoolean(), "The delegate's reading opened the owner's key.");
 
          // The owner signed in: the key is open, and the delegate reads the message.

@@ -1602,6 +1602,11 @@ namespace HM
          // that it is now on the record instead of invisible. Making that function throw
          // as documented changes the failure semantics of every FETCH and wants a test of
          // its own; it is written up against the ignored-return-values row.
+         //
+         // Except where the store refused the read - damage, or a mailbox encrypted at
+         // rest whose key is closed: that is marked on the thread
+         // (MessageStore::Unreadable), and DoAction refuses the message from the mark
+         // before anything of it is sent, so no blank goes out for those.
          if (bLoadFullMail)
          {
             if (MessageStore::LoadMime(fileName, *pMimeBody) != MimeLoadResult::Loaded)
@@ -1617,7 +1622,19 @@ namespace HM
       }
       catch (...)
       {
-         ReportCriticalError_(fileName, "ERROR HM10001 - IMAP FETCH: Error when loading MIME message.");
+         // A read the store refused has been said already, by the store, at the
+         // level it chose (MessageStore::ReportUnreadable): damage as HM7350,
+         // naming the file and the reason, and a closed key of a mailbox
+         // encrypted at rest in the debug log only. A closed key is not a fault:
+         // it opens at the owner's next sign-in with the password, and a
+         // delegate's client asks for such a message often - every BODYSTRUCTURE
+         // of a shared folder while its owner is signed out. Reported again here
+         // it was a critical error for each of those, in the log an administrator
+         // is told to watch. DoAction refuses both from the same mark: NO
+         // [UNAVAILABLE] for the closed key, and the damaged message left out of
+         // the range with the command ending NO.
+         if (!MessageStore::Unreadable())
+            ReportCriticalError_(fileName, "ERROR HM10001 - IMAP FETCH: Error when loading MIME message.");
       }
 
       return pMimeBody;
