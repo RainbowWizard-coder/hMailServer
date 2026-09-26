@@ -1410,3 +1410,2193 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
+
+  # The entries from here to the end of the file are the static-analysis, semgrep and
+  # semgrep-sast findings of the 6.3.4 release scan (the scans of c76ff7e49 made on linix for
+  # the release, ~/release-6.3.4/c76ff7e49/scans) that held the release: 263 static-analysis, 4
+  # semgrep and 19 semgrep-sast, 286 in all. Each was read on 26 September 2026 by one AI
+  # review agent and checked by a second trying to refute it, under the owner's delegation;
+  # they were not read line by line by the owner, so their reviewed-by names the owner, who
+  # delegated the reading, not a reader. All but one were judged not a defect. The one
+  # judged a real defect, build/scan-secrets.py's world-writable work directory (semgrep,
+  # 88902ff8399da6639dd9), is of low severity, harmless to the release as its reason says,
+  # and accepted until the next batch fixes it. They expire after six months, on 26 March
+  # 2027: the 6.3.5 baselines are to replace them.
+
+  # hmailserver/source/Server/Common/AntiSpam/SpamTrapMonitor.cpp
+  - scan: static-analysis
+    finding: a20d41e89a6e088891f5
+    what: 'SPF::Test(connecting, sender, heloHost, explanation)'
+    reason: 'The order matches the callee: SPF::Test is declared (SMTP/SPF/SPF.h) as Test(sSenderIP, sSenderEmail, sHeloHost, sExplanation), and here connecting is String(address.ToString()) (line 483) and sender is Lower(envelopeSender) (line 484). The rule only matched on names.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Application/AccountStores.cpp
+  - scan: static-analysis
+    finding: b0a7c3ff90ff6b9d6e2f
+    what: 'catch (...) in ~InvalidateKeysOnExit inside AccountStores::XMLLoad'
+    reason: 'It is the destructor of a scope guard that runs on every exit, including unwinding from an exception, where a throw would terminate the process. It calls MailboxKeys::Invalidate(account_id), which forwards to InvalidateAll (MailboxKeys.cpp:823-836): a lock_guard on the file-static std::mutex KeyedLock(), never held by the restore, and three field assignments, so only a std::system_error from the lock could reach the catch.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Application/MessageIndexer.cpp
+  - scan: static-analysis
+    finding: d0b0ca1a85950b88dfc9
+    what: 'SecondLook destructor''s empty catch in IndexFullTextMessages_'
+    reason: 'This is deliberate and commented: ~SecondLook is a destructor that also runs while a boost::thread_interrupted from the loop''s interruption_point unwinds, so a second exception out of it would call std::terminate. MailboxKeys::ForgetIndex (MailboxKeys.cpp:2201) ignores Execute''s result and does not throw on a failed delete, so the catch meets only bad_alloc or an interruption while it waits for a connection.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7156f10cf1bfe259ed44
+    what: Two branches that set overflowed = true
+    reason: 'In IndexFullTextMessages_ both clones set overflowed = true, and that is right for each case: a keyed or damaged-key account (tested first, so LoadFromMessage never reads an encrypted mailbox''s text for terms), and a message LoadFromMessage cannot read. Merging them as keyed || !LoadFromMessage(...) would behave the same through short-circuiting, so the split is only so that each branch carries its own comment; no behaviour is wrong.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7b67c2e57cb1b94346fa
+    what: 'SecondLook destructor''s empty catch in IndexMessages_'
+    reason: 'This is deliberate and commented: ~SecondLook in IndexMessages_ is a destructor that also runs while a boost::thread_interrupted from the loop''s interruption_point unwinds, so an exception out of it would call std::terminate. MailboxKeys::ForgetIndex ignores Execute''s result and does not throw on a failed delete, so only bad_alloc or an interruption reach the catch.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Application/MigrationJobPst.cpp
+  - scan: static-analysis
+    finding: d31126421264473753b0
+    what: 'snprintf(text, 64, IMAP internal date) return ignored in MigrationJob::PstInternalDate'
+    reason: 'MigrationJob::PstInternalDate returns early on 453 unless seconds comes from FileTimeToUnix, is at least EarliestInternalDate (347155200) and is at most now + 86400, where the caller passes MigrationStore::Now() = time(nullptr). After the OS UTC offset (Time::GetUTCRelationMinutes) is added, UnixToCivil gives a 4-digit year and month 1..12, so months[(month - 1) % 12] is in range. The widest string, like ''31-Dec-9999 23:59:59 +1400'', is 26 characters, far inside text[64], and snprintf is bounded in any case.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Application/MigrationJobPstItems.cpp
+  - scan: static-analysis
+    finding: 9ccfdc5b6f8c032fd635
+    what: MaxItemBytes = 1024 * 1024
+    reason: 'MaxItemBytes in MigrationJobPstItems.cpp''s anonymous namespace is the int literal product 1024 * 1024 = 1,048,576, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Application/NewInstallDefaults.cpp
+  - scan: static-analysis
+    finding: 037627595483733d5bfd
+    what: implicit widening to long long of 24 * 60 * 60
+    reason: 'MarkLifetimeSeconds = 24 * 60 * 60 in NewInstallDefaults.cpp: a product of literals, 86400, far inside int before it widens to __int64.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: add7f1b4325001f00440
+    what: 'uninitialized record type: ''parts'''
+    reason: 'UtcDay in NewInstallDefaults.cpp: memset(&parts, 0, sizeof(parts)) zeroes ''struct tm parts'' on the very next line, and gmtime_r or _gmtime64_s then fills it. The function returns an empty String when that call fails.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 91b10384c86acdf85eef
+    what: return value of fputs disregarded in Print_
+    reason: 'NewInstallDefaults::Print_ (POSIX branch) fputs an informational line of the --apply-new-install-defaults verb to stdout/stderr. Print_ is void and the verb''s result is its return code, so a failed console write leaves nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c82af791bae66049cec1
+    what: return value of fflush disregarded in Print_
+    reason: 'NewInstallDefaults::Print_ (POSIX branch) flushes stdout/stderr after the line. A failed flush leaves nothing to recover; the verb''s result is its return code.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Mime/Mime.cpp
+  - scan: static-analysis
+    finding: d5e742f12fec45b41ae0
+    what: return value of sprintf_s disregarded in SetBoundary
+    reason: 'MimeHeader::SetBoundary: sprintf_s(buf, 80, "__=_Part_Boundary_%03d_%06d.%06d", ...) writes into char buf[80]. partNumber is (fetch_add % 9) + 1, so 1..9, and both numbers come from uniform_int_distribution<int>(0, 999999), so the output is always 18+3+1+6+1+6 = 35 characters plus the NUL and cannot truncate or fail. The POSIX shim in hm_platform.h (vsprintf_s) is size-bounded as well.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Mime/MimeTester.cpp
+  - scan: static-analysis
+    finding: f1bbd9885357bc3cf157
+    what: (size_t)(threadCount * boundariesPerThread) in TestGeneratedBoundariesAreUniqueAcrossThreads
+    reason: 'In TestGeneratedBoundariesAreUniqueAcrossThreads threadCount is ''const int = 8'' and boundariesPerThread is initialized to 200 and never assigned again (the threads capture it by value), so the int product is 1600, far inside int. The cast to size_t loses nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/MessageStore.cpp
+  - scan: static-analysis
+    finding: ce8a6e1bf3f24f1bff6a
+    what: (int) text[i] of a possibly signed char in IsBracedGuid
+    reason: 'In IsBracedGuid (MessageStore.cpp) c is compared only with ''-'' and the ASCII ranges ''0''-''9'', ''A''-''F'' and ''a''-''f'', all positive; on Linux, where String''s element is a signed char, a byte of 0x80 or above becomes a negative int that matches none of them, so the function returns false, the right answer for a name that is not a GUID. The length is checked to be exactly 38 before indexing 1..36, and c is never used as an index or passed to a ctype function.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/MessageStoreMaintenance.cpp
+  - scan: static-analysis
+    finding: 721669b67293637648f3
+    what: '::getenv("HMAILSERVER_RECOVERY_PASSPHRASE") in RecoveryPassphraseFromEnvironment (POSIX)'
+    reason: 'getenv is unsafe only against a concurrent setenv, putenv, unsetenv or clearenv. git grep over hmailserver/source at v6.3.4 finds none of them, and quickjs-libc.c, the file that holds QuickJS''s std.setenv, is not in the tree, so no event script can change the environment either. RecoveryPassphraseFromEnvironment copies the returned pointer into an AnsiString in the same statement.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/MessageStoreObjectClient.cpp
+  - scan: static-analysis
+    finding: 5c2abf2813b86ab1989e
+    what: AnswerBytes = 8 * 1024 * 1024
+    reason: 'AnswerBytes in MessageStoreObjectClient.cpp''s anonymous namespace is the int literal product 8 * 1024 * 1024 = 8,388,608, far below INT_MAX, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5d6b796b0e62e7618c4c
+    what: FirstReadBytes = 1024 * 1024
+    reason: 'FirstReadBytes in MessageStoreObjectClient.cpp''s anonymous namespace is the int literal product 1024 * 1024 = 1,048,576, far below INT_MAX, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: de24c356b902a32e1cb4
+    what: WindowReadBytes = 8 * 1024 * 1024
+    reason: 'WindowReadBytes in MessageStoreObjectClient.cpp''s anonymous namespace is the int literal product 8 * 1024 * 1024 = 8,388,608, far below INT_MAX, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0cb8ff6588b6766b1772
+    what: PauseMilliseconds = 10 * 1000
+    reason: 'PauseMilliseconds in MessageStoreObjectClient.cpp''s anonymous namespace is the int literal product 10 * 1000 = 10,000, so nothing overflows before it widens to long long.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: e7a6947f09a173115cda
+    what: ConfirmedMilliseconds = 60 * 1000
+    reason: 'ConfirmedMilliseconds in MessageStoreObjectClient.cpp''s anonymous namespace is the int literal product 60 * 1000 = 60,000, so nothing overflows before it widens to long long.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f57ef63dff0239a7a27f
+    what: ReportDue compares now - previous with 60 * 1000
+    reason: In ReportDue the int product is the literal 60 * 1000 = 60,000; the left side is the long long difference of two NowMs() readings, so the comparison is done in long long and nothing overflows.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0186ef1f9de51897cd28
+    what: TimeoutFor divides by 1024 * 1024
+    reason: In TimeoutFor the int product is the literal divisor 1024 * 1024 = 1,048,576; bytes / MiB, 2 * that and + 15 are size_t arithmetic that cannot wrap (SIZE_MAX / 2^20 * 2 + 15 < SIZE_MAX), and the result is clamped to 120 before the cast to int.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: d3e32737661fdafd85df
+    what: 'UtcSeconds: minute * 60 in int'
+    reason: UtcSeconds is called only from IsoTimeOf and Rfc1123TimeOf, which read minute with DigitsAt(text, at, 2) and return 0 when it is negative, so minute is 0-99 and minute * 60 is at most 5,940.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: e4dd60ae3e495af2dca3
+    what: 'UtcSeconds: hour * 3600 in int'
+    reason: UtcSeconds is called only from IsoTimeOf and Rfc1123TimeOf, which read hour with DigitsAt(text, at, 2) (two decimal digits or -1) and return 0 when it is negative, so hour is 0-99 and hour * 3600 is at most 356,400 before it is added to the __int64 days * 86400.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 08337460952c1d254117
+    what: 'DecimalOf ignores snprintf''s return'
+    reason: 'DecimalOf formats one unsigned long long with %llu into char text[32]: at most 20 digits and the NUL, so snprintf never truncates and has no other failure for a fixed integer format; the buffer is always terminated.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 9e7fcf14179c240f7b55
+    what: 'AzureBlobObjectClient::Put ignores snprintf''s return for the block id'
+    reason: 'In AzureBlobObjectClient::Put, "hmsblock-%06d" of an int is at most 9 + 11 characters and the NUL in char id[32], so snprintf never truncates. The ids stay the same length (Azure''s rule) while block < 1,000,000, i.e. below 16 TB at PartBytes = 16 MB (MessageStoreObjectClient.h:121), far past Azure''s own 50,000-block limit.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/MessageStoreObjectClient.h
+  - scan: static-analysis
+    finding: ef907c315028f41145ab
+    what: 'MessageStoreObjectClient::PartBytes = 16 * 1024 * 1024 computed in int'
+    reason: 'MessageStoreObjectClient::PartBytes is a compile-time product of literals, 16 * 1024 * 1024 = 16777216, far below INT_MAX. There is no overflow before the widening to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 260d67a3d43647e3717a
+    what: 'Request() : max_response(1024 * 1024) computed in int'
+    reason: The Request constructor in MessageStoreObjectClient.h initializes max_response with the literal product 1024 * 1024 = 1048576, far below INT_MAX. Nothing overflows before the widening to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/MessageStoreObjects.cpp
+  - scan: static-analysis
+    finding: d78e27007e4a2c70379d
+    what: implicit widening to long long of an int multiplication
+    reason: 'SettingsMilliseconds = 5 * 1000 in MessageStoreObjects.cpp''s anonymous namespace: a compile-time product of two literals, 5000, far inside int, so nothing overflows before it widens to long long.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: a504c493e972920b0a78
+    what: implicit widening to long long of an int multiplication
+    reason: 'CacheMilliseconds = 30 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of two literals, 30000, far inside int before it widens.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 39cd558d7b7eb8961e34
+    what: implicit widening to size_t of an int multiplication
+    reason: 'FirstWindowBytes = 1024 * 1024 (anonymous namespace, MessageStoreObjects.cpp): a product of two literals, 1048576, far inside int before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: b5fe67bdb024fa231b3b
+    what: implicit widening to size_t of an int multiplication
+    reason: 'ReadWindowBytes = 8 * 1024 * 1024 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 8388608, far inside int before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 79c3db735ce5ae085dff
+    what: implicit widening to long long of an int multiplication
+    reason: 'WriteDelayMilliseconds = 30 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 30000, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: baba35a37c94ef33870d
+    what: implicit widening to long long of an int multiplication
+    reason: 'DrainMilliseconds = 50 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 50000, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 402a450b916057a83931
+    what: implicit widening to long long of an int multiplication
+    reason: 'RetryFirstMilliseconds = 30 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 30000, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 6f48b4b59e1fcc725f4d
+    what: implicit widening to long long of an int multiplication
+    reason: 'RetryLongestMilliseconds = 15 * 60 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 900000, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 28c2517bf75fe211e68c
+    what: implicit widening to long long of an int multiplication
+    reason: 'PendingReportMilliseconds = 60 * 60 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 3600000, far below INT_MAX (2147483647).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: bd72dedf28cf75337fd5
+    what: implicit widening to long long of an int multiplication
+    reason: 'DrainStuckMilliseconds = 10 * 60 * 1000 (anonymous namespace, MessageStoreObjects.cpp): a product of literals, 600000, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 11b5fbbb9e9041e4fa8c
+    what: 'uninitialized record type: ''status'''
+    reason: 'LocalStampOf (POSIX branch): ''struct stat status'' is filled by ::stat(narrow.c_str(), &status) on the next line. The function returns an empty stamp when stat fails (or the file is not S_ISREG) before any field is read, so no field is read unless stat wrote it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7c00c3a5fdda3340e7f4
+    what: return value of fputs disregarded
+    reason: 'Print() in MessageStoreObjects.cpp (POSIX branch) is called only from the copy verb (RunCopyCommand and its helpers) to write a diagnostic line to stdout/stderr. Print is void and a failed console write leaves nothing to recover or report to; the verb''s result is its exit code, not this text.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 6ccb6bdf2666443fd3e4
+    what: return value of fflush disregarded
+    reason: 'Print() in MessageStoreObjects.cpp (POSIX branch) flushes stdout/stderr after the copy verb''s diagnostic line. A failed flush leaves nothing to do, because the verb''s outcome is its exit code, not this output.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: bee5ca8975899c55c29b
+    what: '''signed char'' to ''int'' conversion of name[data.GetLength()]'
+    reason: 'MessageStoreObjectBackend::RelativeOf: name is String = CStdStr<wchar_t> (StdString.h:4125), and wchar_t is a signed 32-bit character type on Linux, which the check''s isAnyCharacter/isSignedInteger matcher reports under the fixed text ''signed char''. The index is in range because ''name.GetLength() <= data.GetLength() + 1'' returns false above. The value is compared only with ASCII ''\\'' and ''/'', which no negative or non-ASCII value equals, so such a name is correctly refused.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 908ccdeb9d2012866db4
+    what: implicit widening to long long of an int multiplication
+    reason: 'MessageStoreObjectBackend::HoldTree: NowMs() + 120 * 1000. The product of literals, 120000, is far inside int before it widens to long long for the addition.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0cec356e89f0804d04e4
+    what: implicit widening to time_t of an int multiplication
+    reason: 'SweepSetAside_: std::time(nullptr) - 24 * 60 * 60. The product of literals, 86400, is far inside int before it widens to time_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5d693588682d3608e835
+    what: empty catch(...) in DrainCommits_
+    reason: 'DrainCommits_ rethrows boost::thread_interrupted and deliberately swallows everything else so that passes_ is decremented after the catch. Drain_ erases a pending_ entry only after CommitNow_ returns for it, and its InFlight local releases every held name during unwinding, so a throw leaves each name on the list and on disk; after a throw past the rename, the next pass returns CommitGone for an object already put, and SweepSetAside_ removes the aside file. The only throws that can arrive are allocation failures, because HttpsClient catches std::exception and PutFile_ catches File::Open, so no deterministic poison name can stall the committer.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: d51e9d5c728909838893
+    what: exception may be thrown in ~InFlight
+    reason: '~InFlight: the only throw clang-tidy traces is boost::lock_error from scoped_lock on backend_.pending_lock_, a member of the function-local static backend (TheBackend()) that outlives every pass. boost::mutex::lock throws only when pthread_mutex_lock on that live default mutex fails, which means a broken process, and terminate from the implicitly noexcept destructor is the right answer. Drain_ declares ''held'' before every inner scoped_lock, so each lock is released before ~InFlight takes pending_lock_, even during unwinding, and there is no self-deadlock; std::set<String>::erase does not throw.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0123997eaf8f3be0b901
+    what: empty catch(...) around the commit journal append
+    reason: 'AppendJournal_ deliberately wraps File::Open/Write in catch(...) under journal_lock_. EnqueueCommit_ has already put the name on pending_ in memory, so a failed append only means that a restart before the commit finds the file on the local disk instead, as the comment says. Throwing would fail a caller whose write already succeeded.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 124260780b9ea0b61486
+    what: repeated branch body (return CommitChanged) in CommitNow_
+    reason: 'CommitNow_''s checks after the put are ''after != before'' (the file changed during the put) and ''ClientFor() != client || !KeyOf(...) || keyNow != key'' (the settings named another store or prefix). They are different conditions that deliberately give the same result, CommitChanged, so Drain_ requeues the name after WriteDelayMilliseconds; the second carries its own comment.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: bd985cef33b20236f1c3
+    what: '''signed char'' to ''int'' conversion of name[root.GetLength()]'
+    reason: 'UnderTree_: name is String = CStdStr<wchar_t>, whose signed 32-bit wchar_t on Linux the check reports as ''signed char''. The index is in range because ''name.GetLength() <= root.GetLength() + 1'' returns false first. The value is compared only with ASCII ''\\'' and ''/'', which no negative or non-ASCII value equals.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: da4fe02d3465796456d2
+    what: exception may be thrown in ~HoldTree
+    reason: '~HoldTree calls TheBackend().ReleaseTree(directory_) only when held_ is set, which happens after the constructor''s HoldTree on the same function-local static backend. The traced throw is boost::lock_error from scoped_lock on the live pending_lock_, raised only by a failing pthread_mutex_lock (a broken process, where terminate from the noexcept destructor is right), or bad_alloc from TrimSeparators'' copy, which means running out of memory in a destructor and is likewise terminal. No HoldTree holder holds pending_lock_ when it is destroyed.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 6c59776cfbfa628369e4
+    what: implicit widening to long long of an int multiplication
+    reason: 'MessageStoreObjects::ReportMissing: now - last < 60 * 1000. The product of literals, 60000, is far inside int before it widens.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/NameChanger.cpp
+  - scan: static-analysis
+    finding: b611cee71f5dbafec7e5
+    what: 'MessageStore::MoveTree(oldDirectoryName, newDirectoryName, ...) in RenameAccount'
+    reason: 'MessageStore::MoveTree is declared (MessageStore.h:305) as MoveTree(fromDirectory, toDirectory, moved, problem), and NameChanger::RenameAccount moves the objects from the old mailbox directory to the new one, so old->from and new->to is correct and the name-similarity heuristic misreads it. In the domain cascade, where both names are the same directory, MessageStoreObjects::MoveTree returns true at ''if (fromPrefix == toPrefix)'' before listing, copying or removing anything, and PrefixOf ends each prefix with a separator, so it cannot touch a sibling mailbox either.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0883e0e5e07ab34b8948
+    what: 'RenameDirectory_(newDirectoryName, oldDirectoryName, ignored) in RenameAccount''s failure path'
+    reason: 'In NameChanger::RenameAccount this call runs only after MoveTree failed, and it puts the mailbox directory back from the new name to the old, so it is reversed against RenameDirectory_(oldDirectory, newDirectory, ...) on purpose. When both names are the same directory, RenameDirectory_ refuses because the destination exists, or returns true at ''Nothing to rename'' when it does not, both harmless, and the result goes to ''ignored''.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 45eb26123b1f32d1dc4f
+    what: 'RenameDirectory_(newDirectory, oldDirectory, ignored) in RenameDomainDataDirectory_''s failure path'
+    reason: 'In NameChanger::RenameDomainDataDirectory_ this runs only after MessageStore::MoveTree failed, following the old->new RenameDirectory_ at line 257 that copied the tree and deleted the old one, so it moves the domain directory back from the new name to the old. The arguments are reversed against RenameDirectory_(oldDirectory, newDirectory, ...) on purpose, as the put-back the comment at line 261 describes.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7b67df2e57dfccde6f35
+    what: 'RenameDirectory_(newDirectory, oldDirectory, ignored) in MoveMailbox_''s failure path'
+    reason: 'In NameChanger::MoveMailbox_ this runs only when MessageStore::MoveTree failed after the directory was renamed old->new at line 290, and it moves the directory back new->old. The reversed order against RenameDirectory_''s (oldDirectory, newDirectory) parameters is the intended rollback, and MoveMailboxesOutOfReservedDirectory_ uses MoveMailbox_(to, from) the same way for its own put-back.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/PersistentMessage.cpp
+  - scan: static-analysis
+    finding: 4160d57ee59f13cfec7c
+    what: headerRead = 64 * 1024 computed in int in HeaderOfObject
+    reason: In HeaderOfObject (PersistentMessage.cpp) headerRead is the literal product 64 * 1024 = 65536, far below INT_MAX. Nothing overflows before the widening to unsigned __int64.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Persistence/SchemaUpgrader.cpp
+  - scan: static-analysis
+    finding: 3a29b77ba239361d051c
+    what: 'NamedUpgradeLock destructor''s empty catch'
+    reason: 'This is deliberate: ~NamedUpgradeLock is a destructor and must not throw. MySQLConnection::TryExecute catches internally and reports failure only through its return (MySQLConnection.cpp 429-507), so only std::bad_alloc can reach this catch. A release_lock that fails because the connection broke fails because the session ended, and GET_LOCK dies with the session. The one case left, bad_alloc on a live pooled connection (DatabaseConnectionManager::UpgradeSchema returns it to the pool), would at worst make another walker wait out its 4-hour GET_LOCK and stop with the named error, with no damage to data.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstFile.cpp
+  - scan: static-analysis
+    finding: 26db2d67dfaaaa770e08
+    what: 'snprintf(text, 32, "%llu", value) return ignored in Number (PstFile.cpp)'
+    reason: In Number (PstFile.cpp), an unsigned long long prints as at most 20 digits plus NUL, 21 bytes, which fits text[32], so snprintf can neither truncate nor fail.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 3ef8a84715c77831d04f
+    what: 'snprintf(text, 32, "0x%llx", value) return ignored in HexNumber (PstFile.cpp)'
+    reason: 'In HexNumber (PstFile.cpp) the output is ''0x'' plus at most 16 hex digits plus NUL, 19 bytes, which fits text[32], so snprintf can neither truncate nor fail.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstFileAnsi.cpp
+  - scan: static-analysis
+    finding: 25208e35b3a5889e0db0
+    what: 'AnsiNumber ignores snprintf''s return'
+    reason: 'AnsiNumber formats one unsigned long long with %llu into char text[32]: at most 20 digits and the NUL, so snprintf never truncates and has no failure to act on.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 364a70dd2bd9a254f561
+    what: 'AnsiHex ignores snprintf''s return'
+    reason: 'AnsiHex formats one unsigned long long as 0x%llx into char text[32]: at most 2 + 16 characters and the NUL, so snprintf never truncates and has no failure to act on.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstFormat.cpp
+  - scan: static-analysis
+    finding: 16fe8e1fbfd93992819a
+    what: CrcTable constructor does not initialize entries
+    reason: 'CrcTable''s constructor in PstFormat.cpp assigns entries[i] for every i in 0..255 in its loop. Table() returns the fully constructed function-local static const, so no entry is ever read uninitialized.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 25c0299a30f39d54931b
+    what: '''signed char'' to uint32_t conversion of text[i]'
+    reason: 'PstFormat::WideToUtf8: text is std::wstring, so text[i] is a wchar_t holding a code unit or code point, not a signed char; a cast through unsigned char would truncate it. A negative 32-bit wchar_t on Linux becomes a value of 0x80000000 or more, which AppendUtf8 turns into U+FFFD through its ''codePoint > 0x10FFFF'' test, as it does a lone surrogate.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: eb8a441a5b15e32f93f8
+    what: '''signed char'' to uint32_t conversion of text[i + 1]'
+    reason: 'PstFormat::WideToUtf8: text[i + 1] is a wchar_t, read only when sizeof(wchar_t) == 2 and i + 1 < text.size(). It is combined only when it lies in 0xDC00..0xDFFF; anything else goes to AppendUtf8, which maps out-of-range values and surrogates to U+FFFD.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: ee76c07c335d63ff4889
+    what: return value of snprintf disregarded in Hex32
+    reason: 'PstFormat::Hex32: snprintf(text, sizeof(text), "%x", (unsigned int) value) writes into char text[16]. A uint32_t in hex is at most 8 characters plus the NUL, so it can neither truncate nor fail.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstItems.cpp
+  - scan: static-analysis
+    finding: 92672c70e3236fccc436
+    what: snprintf return ignored in DateTimeText
+    reason: 'DateTimeText formats UnixToCivil''s fields into char[32]; CivilFromDays (PstFormat.cpp:103-114) gives month 1-12 and day 1-31, and UnixToCivil normalises the remainder so hour/minute/second are 0-23/0-59/0-59. Even an 11-character int year makes 11+2+2+1+2+2+2+1 = 23 characters plus the NUL, so the output cannot be truncated and %d has no failure to report.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 50f94bea6925b45b6afb
+    what: snprintf return ignored in DateText
+    reason: 'DateText writes "%04d%02d%02d" into char[16]; month and day come from CivilFromDays (1-12, 1-31, two digits), and the worst int year (INT_MIN, 11 characters) makes 15 characters plus the NUL, exactly 16. Truncation is impossible, so the ignored return carries nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 12442d746204c49bec2b
+    what: snprintf return ignored in ReadableText
+    reason: 'ReadableText writes "%04d-%02d-%02d %02d:%02d UTC" into char[32]; every field but the year is two digits (CivilFromDays and UnixToCivil''s normalised remainder), so with an 11-character year the output is at most 27 characters plus the NUL. It cannot be truncated.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 9163d05a929a10461f9e
+    what: snprintf return ignored in OffsetText
+    reason: 'OffsetText''s callers are TimeZoneComponent (reached only from AppointmentText line 1169 with a zone that ValidZone held to +/-18*60, or the synthesized one) and AppointmentText line 1163 with an offset clamped to +/-14*60 at 1158, so the text is always 5 characters (+HHMM) in char[16]. Even an unbounded int would give at most 1+8+2 = 11 characters, so truncation is impossible.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: bbc517927c0e08dd7905
+    what: snprintf return ignored in Number
+    reason: Number formats a long long with %lld into char[32]; the longest value, LLONG_MIN, is 20 characters plus the NUL. The output is never cut short and the return value tells nothing.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 278b157f1a592c18199a
+    what: snprintf return ignored in Hex16
+    reason: 'Hex16 formats an unsigned int as "0x%x" into char[16]: at most 2+8 = 10 characters plus the NUL. It cannot be truncated.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 4212cb7587d98e9a7584
+    what: time.minute * 60 computed in int in TransitionIn
+    reason: 'PstSystemTime.minute comes only from PstFormat::U16 in SystemTimeAt (line 222), so it is at most 65535 and 65535*60 = 3,932,100; the full int sum in TransitionIn stays below 240 million. ValidTransition also rejects minute > 59 before a zone is marked valid.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5404f228da09074c41e7
+    what: time.hour * 3600 computed in int in TransitionIn
+    reason: 'In production PstSystemTime.hour is set only by SystemTimeAt (PstItems.cpp:221) from PstFormat::U16, so it is at most 65535, and the whole int sum 65535*3600 + 65535*60 + 65535 = 239,923,635 is below INT_MAX before the widening. ValidZone/ValidTransition also reject hour > 23, and TransitionIn is reached only through valid zones (LocalToUtc/UtcToLocal return early on !zone.valid; TimeZoneComponent gets a valid or synthesized zone); only PstItemsTester builds zones by hand.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 732b58518c9524c95087
+    what: empty catch (PstError&) around the ExtendedException read in ParseRecurrence
+    reason: 'Deliberate, as its comment says: the ExtendedException part is optional, so a missing or damaged one leaves the eight-bit subject/location already parsed, and the Unicode texts are assigned only after all their reads and the time check succeed. Nothing in that try charges the budget (only Cursor::U16/U32/Take and Utf16ToUtf8, no budget argument), so no PstBudgetExhausted can be swallowed, and PstStopped (the stop) derives from std::runtime_error, not PstError (PstFormat.h), so it passes through. Nothing reads the cursor after the inner try.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 527ffd15039802682a1a
+    what: '-14 * 60 compared with an int64_t in AppointmentText'
+    reason: '-14 * 60 is a product of two literals, -840, evaluated at compile time; there is no runtime operand that could overflow before the widening.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 786757b2f37af30e1d81
+    what: 14 * 60 compared with an int64_t in AppointmentText
+    reason: 14 * 60 is a product of two literals, 840, the clamp bound for the guessed offset; nothing can overflow.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstItems.h
+  - scan: static-analysis
+    finding: 820734f442a8e276dedf
+    what: MaximumRecurrenceBytes = 1024 * 1024
+    reason: 'PstItems::MaximumRecurrenceBytes is the int literal product 1024 * 1024 = 1,048,576, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8485ab344c1a5c310b7c
+    what: MaximumPhotoBytes = 512 * 1024
+    reason: 'PstItems::MaximumPhotoBytes is the int literal product 512 * 1024 = 524,288, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f63a58e210ee64ae57d7
+    what: MaximumItemTextBytes = 1024 * 1024
+    reason: 'PstItems::MaximumItemTextBytes is the int literal product 1024 * 1024 = 1,048,576, so nothing overflows before it widens to size_t; MigrationJobPstItems.cpp:276 static_asserts that it equals MaxItemBytes.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 355975c321eed9bbce51
+    what: MaximumRtfBytes = 4 * 1024 * 1024
+    reason: 'PstItems::MaximumRtfBytes is the int literal product 4 * 1024 * 1024 = 4,194,304, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstItemsTester.cpp
+  - scan: static-analysis
+    finding: b62d503c7d90eab62ae1
+    what: implicit widening to int64_t of hour * 3600
+    reason: PstItemsTester Utc() computes hour * 3600 in int. Every caller in the tester (Utc, Minutes and FileTime at lines 593-1112) passes a literal hour of 0..23, for example Utc(2024, 3, 25, 9), so the product is at most 82800. This is test-only code with constant inputs.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c5f01f48556472534f35
+    what: implicit widening to int64_t of minute * 60
+    reason: PstItemsTester Utc() computes minute * 60 in int. Callers pass literal minutes of 0 or 30 (the default is 0), so the product is at most 1800. This is test-only code with constant inputs.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 71a7036c273655ce54cc
+    what: implicit widening to size_t of 1024 * 1024
+    reason: 'PstItemsTester (ANSI XXBLOCK test): file.ReadData(26, 1024 * 1024) passes a product of literals, 1048576, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: d550b3c2d696f37f86fb
+    what: implicit widening to size_type of 409 * 20
+    reason: 'PstItemsTester (table-context test): rows.substr(0, 409 * 20) takes a product of literals, 8180, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 57a3425fe6c867e10dd1
+    what: implicit widening to size_type of 409 * 20
+    reason: 'PstItemsTester (table-context test): rows.substr(409 * 20) takes a product of literals, 8180, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: ae52d18d18856e4af3a9
+    what: implicit widening to size_type of 200 * 1024
+    reason: 'PstItemsTester (appointment too_large test): std::string(200 * 1024, ''x'') takes a product of literals, 204800, far inside int.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstLtp.cpp
+  - scan: static-analysis
+    finding: f566f8ba3dd9da31f62f
+    what: 'Entry entry declared without initializer in PstPropertyContext::Read'
+    reason: 'In PstPropertyContext::Read, Entry has exactly two fields, type and value (PstLtp.h:118-122), and 283-284 set both before the copy into entries_ on 285. If U16 or U32 throws PstError on a short record, entry is abandoned and never stored.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: b160ea66181564ed8dcd
+    what: 'Column column declared without initializer in PstTable''s load of TCOLDESCs'
+    reason: 'Column''s five fields (id, type, offset, size and bit; PstLtp.h:161-168) are all set on 518-522, before the bounds check on 524 and the push_back on 527. A throw from U32, U16 or U8 abandons the column before it is stored.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstLtp.h
+  - scan: static-analysis
+    finding: 1efa44406c5e158a26da
+    what: MaximumHeapBytes = 64 * 1024 * 1024
+    reason: A compile-time constant, 67,108,864, below INT_MAX, so the int product cannot overflow before it becomes size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 380cc1cfe63c7c5908c3
+    what: MaximumMatrixBytes = 256 * 1024 * 1024
+    reason: A compile-time constant, 268,435,456, below INT_MAX (2,147,483,647), so the product cannot overflow before it becomes size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c1210585dfdbd6ba59f2
+    what: MaximumCellBytes = 64 * 1024
+    reason: A compile-time constant, 65,536, far inside int; nothing overflows.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstMime.cpp
+  - scan: static-analysis
+    finding: 70882801d8c3b3b42917
+    what: 'snprintf(number, 16, "%d", ++counter_) return ignored in Builder::Boundary (PstMime.cpp)'
+    reason: 'Builder::Boundary prints an int. The widest, -2147483648, is 11 characters plus NUL, which fits number[16], so snprintf can neither truncate nor fail. counter_ belongs to one Builder and grows by one per multipart entity of one message''s build, nowhere near INT_MAX.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: e1177323ae78b6f7ac47
+    what: 'snprintf(suffix, 16, "e%u", index) return ignored in BuildMessage (PstMime.cpp)'
+    reason: 'In BuildMessage the output is ''e'' plus at most 10 digits of an unsigned int plus NUL, 12 bytes, which fits suffix[16], so snprintf can neither truncate nor fail.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 3fc8a8801193289651ba
+    what: 'snprintf(text, 64, RFC 5322 date) return ignored in PstMime::DateText'
+    reason: 'PstMime::DateText''s only non-test caller (PstMime.cpp:306) passes seconds from PstFormat::FileTimeToUnix. A nonzero uint64 FILETIME gives at least -11644473600 (1601), and anything above 253402300799 (9999-12-31) is refused. UnixToCivil normalises a negative remainder and weekday (w += 7), and Hinnant''s CivilFromDays gives month 1..12 for any day count, so days[weekday % 7] and months[(month - 1) % 12] stay in range and the widest text, ''Sun, 31 Dec 9999 23:59:59 +0000'' (31 characters), fits text[64].'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstReaderProcess.cpp
+  - scan: static-analysis
+    finding: 75a6be6abd66650d7ef1
+    what: 'std::strerror in the POSIX ErrorText helper of PstReaderProcess'
+    reason: 'The POSIX ErrorText is called only in the parent, from Spawn_ (1129, 1175, 1183, 1193, 1239, 1332), never between fork and exec. Its errno comes from readlink, pipe2, fcntl, open or fork, or is the 4-byte errno the child wrote after a failed dup2 or execv. Those are real error numbers, for which glibc''s strerror returns a pointer into its constant message table rather than a shared buffer, and the text is copied into a std::string in the same expression.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 9a3ec8b17392cd872bb9
+    what: 'empty catch(std::exception&) in PstReaderProcess::~PstReaderProcess'
+    reason: 'PstReaderProcess::~PstReaderProcess is implicitly noexcept, and Discard_ (both platforms) can throw only std::system_error from a mutex lock or std::bad_alloc from the `how` string, both std::exception, which this catch takes. Catching it lets the rest of the destructor run instead of std::terminate: closing_ is set, the watchdog is woken and joined, the thread handle is closed and GiveSlot_ returns the reader slot.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: cddb081579cfa5f39da5
+    what: 'struct pollfd ready declared without initializer in PstReaderProcess::Read_'
+    reason: 'In PstReaderProcess::Read_, all three pollfd fields (fd, events and revents) are assigned on 1093-1095, before ::poll reads the struct on 1096.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0e69a0d927106ea531d0
+    what: 'struct sigaction defaults declared without initializer in PstReaderProcess::Spawn_'
+    reason: 'In PstReaderProcess::Spawn_, std::memset zeroes `defaults` on 1205, the next statement, and sa_handler = SIG_DFL and sigemptyset(&sa_mask) follow, all before the fork. The child''s sigaction(SIGPIPE, &defaults) on 1254 is its only reader.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: ca05646149c0d5176bdd
+    what: 'struct rlimit none declared without initializer in PstReaderProcess::Spawn_'
+    reason: 'rlimit has exactly two fields, rlim_cur and rlim_max. Spawn_ sets both to 0 on 1212-1213, before the child''s setrlimit(RLIMIT_CORE/RLIMIT_FSIZE, &none) on 1287-1288 reads them.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 54904ef39f0c97874db8
+    what: 'struct rlimit descriptors declared without initializer in PstReaderProcess::Spawn_'
+    reason: 'Spawn_ sets both fields, rlim_cur and rlim_max, to 64 on 1215-1216, before the child''s setrlimit(RLIMIT_NOFILE, &descriptors) on 1289 reads them.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: a467131334ece658c7e7
+    what: 'struct rlimit memory declared without initializer in PstReaderProcess::Spawn_'
+    reason: 'Spawn_ sets both fields, rlim_cur and rlim_max, to AddressSpaceBytes on 1219-1220. That is inside the same HM_PST_READER_NO_ADDRESS_LIMIT guard as the child''s setrlimit(RLIMIT_AS, &memory) on 1291, the only reader.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: da6c2831012e05c09747
+    what: 'struct rlimit current declared without initializer in PstReaderProcess::Spawn_'
+    reason: 'In Spawn_, ::getrlimit(RLIMIT_NOFILE, &current) fills the struct, and current.rlim_cur is read only inside `if (getrlimit(...) == 0)` on 1226. If getrlimit fails, `highest` keeps its initial 65536.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f9583eebe59762c65a0a
+    what: 'sigprocmask in the forked child of PstReaderProcess::Spawn_'
+    reason: 'The call is in the `pid == 0` branch of PstReaderProcess::Spawn_, the child that fork() created. That child has exactly one thread and calls execv on 1296. sigprocmask is async-signal-safe, so it is allowed between fork and exec, and the multithreaded-process caveat the rule is about does not apply.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: bf31641cfde4781b8a21
+    what: 'blocking ::read on the failure pipe in PstReaderProcess::Spawn_ reported as inside a critical section'
+    reason: 'The analyzer''s own path (clang-tidy.txt 27005-27160) enters its ''critical section'' at TakeSlot_''s std::unique_lock on SlotLock() (644), a local released when TakeSlot_ returns, which the analyzer did not model. No lock is held at the read: Spawn_ takes its lock_guard on mutex_ later (1338), in its own block, and its callers hold none (Call_ -> Start_, on a MigrationJob''s thread with a local PstReaderProcess). The read waits only until the child''s execv closes the O_CLOEXEC write end or the child writes its 4-byte errno.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstReaderWire.cpp
+  - scan: static-analysis
+    finding: 12efb879a979e6926890
+    what: 'const size_t piece = 1024 * 1024 in PstWire::ReadFrame'
+    reason: 'In PstWire::ReadFrame, piece is a compile-time product of int constants, 1,048,576, far inside int, so nothing overflows before the widening to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstReaderWire.h
+  - scan: static-analysis
+    finding: 5bc4fe974e709c95bb21
+    what: 'PstWire::MaximumTextBytes = 256 * 1024 computed in int'
+    reason: 'PstWire::MaximumTextBytes is a compile-time product of two literals, 256 * 1024 = 262144, far below INT_MAX. Nothing overflows before the widening to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8d68308801362e7f3263
+    what: 'PstWire::MaximumPasswordBytes = 64 * 1024 computed in int'
+    reason: 'PstWire::MaximumPasswordBytes is a compile-time product of two literals, 64 * 1024 = 65536, far below INT_MAX. The widening to size_t loses nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstReaderWireTester.cpp
+  - scan: static-analysis
+    finding: 7f3c6d2a9d10045a9ef7
+    what: memcpy into the read buffer in the StreamOf lambda (PstReaderWireTester)
+    reason: 'The StreamOf lambda is a PstWire::ReadFunction that returns a byte count, and PstWire::ReadFrame treats the buffer as binary frame bytes (its header array, or payload.resize pieces), never as a C string, so no terminator is expected. count is clamped to length (the buffer''s size) and to the bytes left, so the copy stays in bounds.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f32e48a82777669dcb73
+    what: 'huge[(size_t) (2 + i)] in PstReaderWireTester::Test'
+    reason: 'i runs over 0..3 in the loop on 173, so 2 + i is 2..5, computed in int with nothing lost before the cast. Each index is within the 6-byte string that PstWire::Header always builds: magic, kind and four length bytes.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7e902d7109091c04ac3a
+    what: 'PstWire::Header(0x84, 300u * 1024u * 1024u) in PstReaderWireTester::Test'
+    reason: This is a product of unsigned constants, 314,572,800, well below the 4,294,967,296 limit of unsigned int, so it cannot wrap before the widening to size_t. It is also below MaximumFrameBytes (335,544,320), so Header does not throw.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 28eb29d03e6231578a6a
+    what: 'payload.capacity() <= 4u * 1024u * 1024u in PstReaderWireTester::Test'
+    reason: This is a product of unsigned constants, 4,194,304, far inside unsigned int, so nothing overflows before the comparison with size_type.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstRtf.cpp
+  - scan: static-analysis
+    finding: f850bf517ca71966347c
+    what: memcpy of the preload into the dictionary is not NUL-terminated
+    reason: 'In PstRtf::Decompress, dictionary is the 4,096-byte binary ring buffer of [MS-OXRTFCP]. It is memset to 0 first and never used as a C string. Preload() is a fixed literal of 207 bytes (counted from the source), so the memcpy stays inside the buffer, and write starts at 207 and is always taken % 4096.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstSource.cpp
+  - scan: static-analysis
+    finding: a1a39a23f11b03a555da
+    what: 'struct stat status; in PstFileSource::Open'
+    reason: 'In PstFileSource::Open, ::fstat(descriptor, &status) fills status, and S_ISREG(status.st_mode)/st_size are evaluated only when fstat returned 0, because the || short-circuits on failure and the descriptor is then closed and OpenFailed returned. status is never read uninitialised.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8038759dbd355f97bc05
+    what: 'struct stat status; in PstFileSource::Adopt'
+    reason: 'Same shape as Open: in PstFileSource::Adopt, S_ISREG and st_size are read only after ::fstat returned 0, since the || condition short-circuits on failure. No field is read uninitialised.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 321a9a31459f79fce587
+    what: 'snprintf return ignored in PstFileSource::FinalPath'
+    reason: 'FinalPath returns first if descriptor_ < 0, and "/proc/self/fd/%d" of an int is at most 14 + 11 = 25 characters in char[64], so the link path cannot be truncated. A failure to resolve is handled by the realpath() == nullptr check that follows, which returns an empty path.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstStore.cpp
+  - scan: static-analysis
+    finding: 47961bc6a3558ac600fb
+    what: ShortText = 64 * 1024
+    reason: 'ShortText in PstStore.cpp''s anonymous namespace is the int literal product 64 * 1024 = 65,536, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 465e2fd2b7128dacb5ea
+    what: LongText = 64 * 1024 * 1024
+    reason: 'LongText in PstStore.cpp''s anonymous namespace is the int literal product 64 * 1024 * 1024 = 67,108,864, far below INT_MAX, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: d754f6a739f829c35976
+    what: HeaderText = 4 * 1024 * 1024
+    reason: 'HeaderText in PstStore.cpp''s anonymous namespace is the int literal product 4 * 1024 * 1024 = 4,194,304, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 4b4d1d9b08fa9a60b907
+    what: 'RolesFrom_ passes 64 * 1024 as MultiBinary''s limit'
+    reason: 'In PstStore::RolesFrom_ the limit passed to PstPropertyContext::MultiBinary is the int literal product 64 * 1024 = 65,536, so nothing overflows before it becomes a size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: ca29c7114bcee01fd273
+    what: 'PstStore::Open swallows a PstError reading the root folder'
+    reason: 'This is deliberate and commented. In PstStore::Open a damaged root folder costs only the Drafts and Junk roles: drafts_ and junk_ stay 0, and ListFolders then reads them from the Inbox. PstBudgetExhausted (a PstError) is caught and rethrown first; every PstRefusal is thrown only by PstFile::Open/OpenAnsi_ (PstFile.cpp 79-146, PstFileAnsi.cpp 110-146) and by Open''s own checks outside this try; PstStopped and std::bad_alloc are not PstErrors (PstFormat.h:94) and pass through.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 174a4f7954c3dd54b972
+    what: 'PstStore::Open passes 16 * 1024 * 1024 as the name map''s entry-stream limit'
+    reason: 'In PstStore::Open the limit passed to PstPropertyContext::Bytes for the NAMEID entry stream is the int literal product 16 * 1024 * 1024 = 16,777,216, so nothing overflows before it becomes a size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: cb18204105bba3f04120
+    what: 'PstStore::Open passes 16 * 1024 * 1024 as the name map''s string-stream limit'
+    reason: 'In PstStore::Open the limit passed to PstPropertyContext::Bytes for the NAMEID string stream is the int literal product 16 * 1024 * 1024 = 16,777,216, so nothing overflows before it becomes a size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: dd0630e38742f1df4a7e
+    what: 'PstStore::Open swallows a PstError reading the name-to-id map'
+    reason: 'This is deliberate and commented. In PstStore::Open a damaged name-to-id map costs only keywords_id_ (the categories), never the mail. PstBudgetExhausted is rethrown first; the loop bounds every read (at + 8 <= entries.size(), PstFormat::Fits before U32 and before compare, identifier <= 16 MB so identifier + 4 cannot wrap), so the catch meets only a PstError or PstTooLarge from damaged data, while PstStopped and std::bad_alloc are not PstErrors and pass through.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 72baf4508186b160507b
+    what: Pending top declared without an initializer
+    reason: 'In PstStore::ListFolders, Pending (line 375) has exactly four fields (nid, parent, parentIndex, depth). Lines 416-419 assign all four before stack.push_back(top), and nothing reads it before then.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: bcb7bd8ace51a64f916e
+    what: MaximumFolderPathBytes / (1024 * 1024) in an error sentence
+    reason: 'In PstStore::ListFolders the int product is the literal divisor 1024 * 1024 of the size_t constant MaximumFolderPathBytes (16 MB, PstStore.h:216). It only forms the "16 MB" of the error text, and nothing overflows.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: a9b6cae7b4f446823364
+    what: Pending next declared without an initializer
+    reason: 'In PstStore::ListFolders, lines 524-527 assign all four fields of Pending next (nid, parent, parentIndex, depth) before children.push_back(next), and nothing reads it before then.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstStore.h
+  - scan: static-analysis
+    finding: 5c9dbc238f42c5409b93
+    what: implicit widening to size_t of 128 * 1024 * 1024
+    reason: 'PstStore::MaximumMessageBytes = 128 * 1024 * 1024 (PstStore.h): a product of literals, 134217728, far below INT_MAX.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8273d7c62b514d5359c1
+    what: implicit widening to size_t of 16 * 1024 * 1024
+    reason: 'PstStore::MaximumFolderPathBytes = 16 * 1024 * 1024 (PstStore.h): a product of literals, 16777216, far below INT_MAX.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstStoreItems.cpp
+  - scan: static-analysis
+    finding: 485972d8e268326357b8
+    what: ShortText = 64 * 1024
+    reason: A compile-time constant, 65,536, far inside int, so the int multiplication cannot overflow before the conversion to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c823acf3c3fcabee245f
+    what: BodyText = 256 * 1024
+    reason: A compile-time constant, 262,144, far inside int; nothing overflows before the widening to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 1d3ac6e4b5d8e7f15034
+    what: ShortCeiling = 1024 * 1024
+    reason: A compile-time constant, 1,048,576, far inside int; nothing overflows before the widening to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 68d62c5182a30f35c913
+    what: BodyCeiling = 4 * 1024 * 1024
+    reason: A compile-time constant, 4,194,304, far inside int; nothing overflows before the widening to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f6cef463f9bb0bd5d7db
+    what: snprintf return ignored in PropertyName
+    reason: 'PropertyName formats a uint16_t as "the text property 0x%04X" into char[32]: 20 fixed characters plus at most 4 hex digits is 24, plus the NUL. It cannot be truncated.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: ead8f0d242315f056195
+    what: 'ceiling / (1024 * 1024) in TextOf''s warning'
+    reason: 'The flagged product is the literal divisor 1024*1024 = 1,048,576, a compile-time constant well inside int; it only turns the ceiling into the MB figure of TextOf''s warning text.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: dee3f813feb64cbe60f6
+    what: snprintf return ignored in BirthdayText
+    reason: 'BirthdayText returns early (line 377) unless the year is 1600-4499, and month and day come from UnixToCivil (1-12, 1-31), so "%04d%02d%02d" is exactly 8 characters in char[16]. It cannot be truncated.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: ca1a379b00a86c22634e
+    what: '16 * 1024 * 1024 limit passed to map.Bytes in PstStore::Named_'
+    reason: A literal limit, 16,777,216, well inside int, so nothing overflows before it becomes the size_t limit argument.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 2978ee885d1f9589ef79
+    what: '16 * 1024 * 1024 limit passed to map.Bytes in PstStore::Named_'
+    reason: A literal limit, 16,777,216, well inside int, so nothing overflows before it becomes the size_t limit argument.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 957c09b7440a3eb9691f
+    what: '64 * 1024 limit passed to pc.Bytes in PstStore::ReadAppointment'
+    reason: A literal size limit, 65,536, for the recurring time-zone definition; a compile-time constant far inside int, so nothing can overflow.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7114b3c761290db4aabe
+    what: '64 * 1024 limit passed to pc.Bytes in PstStore::ReadAppointment'
+    reason: 'A literal size limit, 65,536, for the start zone''s definition; a compile-time constant far inside int, so nothing can overflow.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Pst/PstTester.cpp
+  - scan: static-analysis
+    finding: cdae963f437bc4c7d1c7
+    what: 'Child child; declared without an initializer in the tester''s Tree()'
+    reason: In Tree(), all three members of the local POD Child (key, bid, ib) are assigned on lines 308-310, before child is read by Page or pushed into level. No field is read uninitialised, and this is test code.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 1b9d716c3bd03e986eb4
+    what: 'Child child; declared without an initializer in Tree()''s upper-level loop'
+    reason: 'In Tree()''s upper-level loop, key, bid and ib are assigned on lines 326-328 before child is passed to Page or pushed into up. No member is read before it is written; test code.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 514add68380145921c51
+    what: 1024 * 1024 literal limit in a PstFile test
+    reason: 'A literal constant, 1,048,576, passed as ReadData''s limit in test code, far inside int; nothing overflows.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8defcf176a67fb1ed892
+    what: 64 * 1024 literal compared with decoded.capacity() in the RTF test
+    reason: A literal bound, 65,536, in a test assertion; a compile-time constant far inside int, so nothing overflows.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: e894a64b048006666881
+    what: 'std::string(64 * 1024, ''x'') in TestImportRules'
+    reason: A literal length, 65,536, for a test string; a compile-time constant far inside int, so nothing overflows.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 645e0b868a0fe8ca34bd
+    what: snprintf return ignored building the expected internal date in TestImportRules
+    reason: 'The buffer is char[64]; day/hour/minute/second from UnixToCivil are two digits, the year four, the month name three characters from months[(month-1)%12], and the zone is Time::GetUTCRelation''s +HHMM, 26 characters in all, so nothing is truncated. It is test code only: a mismatch fails the Expect, it cannot corrupt memory.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 31c737393a6c583caa45
+    what: snprintf return ignored building the stored date in TestImportRules
+    reason: '"%04d-%02d-%02d %02d:%02d:%02d" of UnixToCivil''s fields for a fixed 2024 timestamp is 19 characters in char[64], so it cannot be truncated; test-only code.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/SQL/DatabaseTls.cpp
+  - scan: static-analysis
+    finding: b8559c3655ca52b966e1
+    what: 'Print_ ignores fputs''s return'
+    reason: 'DatabaseTls::Print_ (POSIX branch) writes the console lines of RunCheckCommand, the command-line database TLS check. A failed write to a closed stdout or stderr has nowhere else to be reported, and the command''s result does not depend on the text being written.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 277486fa0a1bdcc07ce3
+    what: 'Print_ ignores fflush''s return'
+    reason: 'DatabaseTls::Print_ flushes the console line RunCheckCommand just wrote. A failed flush of stdout or stderr has nowhere else to be reported, and the check''s outcome does not depend on it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/TCPIP/LocalIPAddresses.cpp
+  - scan: static-analysis
+    finding: 6394b7549366cc5c8368
+    what: if ((hostinfo = gethostbyname(name)) != NULL && ...)
+    reason: 'In LoadIPAddresses the assignment is intended: parenthesised, explicitly compared with NULL, and && short-circuits before the h_addrtype/h_length checks dereference the hostent. It is not a mistyped ==.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: dc482f214d4d3e80ba5d
+    what: 'gethostbyname in LocalIPAddresses::LoadIPAddresses'
+    reason: 'On Windows Winsock returns the hostent from thread-local storage; on Linux glibc''s static hostent is shared only with other gethostbyname calls, and the only other caller in the tree, Utilities::IsLocalHost, is reached solely from COM InterfaceUtilities and UtilitiesTester via ClassTester (CMakeLists.txt:415: COM and the Windows /Test switch only). LoadIPAddresses itself runs in Configuration::Load (InitInstance, or a CLI verb''s own process) and then in IOService::DoWork (StartServers), one after the other on start, and Application::Reinitialize serialises restarts under reinitialize_mutex_, so two gethostbyname calls never overlap. inet_ntoa (line 50) uses a per-thread buffer in both glibc and Winsock.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/BrandLogo.cpp
+  - scan: static-analysis
+    finding: e663626cb7b50eead0af
+    what: const time_t UnreachableSeconds = 60 * 60 (BrandLogo.cpp)
+    reason: UnreachableSeconds is a compile-time product of two int constants, 3600, which cannot overflow int before the widening to time_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/ClassTester.cpp
+  - scan: static-analysis
+    finding: d9f31821e3cfa4f0f40d
+    what: '(size_t)(2 * keywordsPerWriter) in ClassTester::DoTests'' concurrent-keyword test'
+    reason: 'In the concurrent-STORE keyword test in ClassTester::DoTests, keywordsPerWriter is ''const int keywordsPerWriter = 20'' (line 2138), so 2 * keywordsPerWriter is 40, computed exactly in int. The cast to size_t loses no precision.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/CountryBlocking.cpp
+  - scan: static-analysis
+    finding: 7b40985648f321e57cc8
+    what: IsLogonAllowed swallows an exception reading the domain aliases
+    reason: 'In CountryBlocking::IsLogonAllowed, ObjectCache::GetDomainAliases returns the same cached collection that PasswordValidator::LookupAccount/ValidatePassword map the name with. A database failure does not throw there: DomainAliases::Refresh ignores Collection::DBLoad_''s false, and DBLoad_ swaps its contents in only on success, so both callers agree. Only std::bad_alloc or a shutdown interruption reaches this catch, and then the name as typed is judged (the commented fallback); no client can cause either.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/Crypt.cpp
+  - scan: static-analysis
+    finding: e90f3b130fdb8a656045
+    what: (unsigned int) password[i] Latin-1 check in CharactersAsBytes (Crypt.cpp)
+    reason: In CharactersAsBytes, password is a const String&, so password[i] is a wchar_t code unit, which the rule matches as a signed character type. `unit > 0xFF` needs the full unit as unsigned int to reject characters above Latin-1, and a negative 32-bit value becomes a value above 0xFF and returns false as it should. Casting through unsigned char would map U+0141 to 0x41 and wrongly accept it.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/HttpServer.cpp
+  - scan: static-analysis
+    finding: a24e8009a10f81078543
+    what: struct stat information declared without an initializer
+    reason: 'In HttpBodyFile::Open (POSIX), ::fstat fills information, and it is read (S_ISREG, st_size) only when fstat returned 0: the || short-circuits, and Close() returns false otherwise.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 29a7d3f6336fc64293eb
+    what: WriteChunkBytes = 64 * 1024
+    reason: 'WriteChunkBytes in HttpServer.cpp''s anonymous namespace is the int literal product 64 * 1024 = 65,536, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/HttpServer.h
+  - scan: static-analysis
+    finding: 2bd3600a785a37cadc59
+    what: large_response_bytes = 4 * 1024 * 1024 default
+    reason: A member default from a compile-time constant, 4,194,304, far inside int; nothing overflows before the widening to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 4421cba6e24b5f1d6624
+    what: download_bytes_per_second = 128 * 1024 default
+    reason: A member default from a compile-time constant, 131,072, far inside int; nothing overflows.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/HttpsClient.cpp
+  - scan: static-analysis
+    finding: a68edbd4bc937efd5f78
+    what: 'load_verify_file''s return ignored'
+    reason: 'HttpsClient::Request_ uses the error_code overload of boost::asio::ssl::context::load_verify_file. Its return (BOOST_ASIO_SYNC_OP_VOID) is that same error_code or void, and the next line tests the out-argument loaded and returns false with the message.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/HttpsClient.h
+  - scan: static-analysis
+    finding: 685dd2e768373b032104
+    what: max_response_bytes = 32 * 1024 default argument of RequestPublic
+    reason: The default argument is the literal constant 32,768, far inside int; no overflow is possible.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: fa7f9e5c0065b3ecab42
+    what: max_response_bytes = 1024 * 1024 default argument of RequestNotLinkLocal
+    reason: The default argument is the literal constant 1,048,576, far inside int; no overflow is possible.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/InboundWebhooks.cpp
+  - scan: static-analysis
+    finding: d256caac4585a0812665
+    what: MaxResponseBytes = 16 * 1024
+    reason: 'MaxResponseBytes in InboundWebhooks.cpp''s anonymous namespace is the int literal product 16 * 1024 = 16,384, so nothing overflows before it widens to size_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 4cb993f52248dce8f5d9
+    what: 'TimeText ignores gmtime_s''s return'
+    reason: In TimeText the struct tm is zero-initialised (tm utc = {}) before gmtime_s, so a failure formats a fixed date rather than reading garbage. The only input is delivery.created, which is read back from hm_inboundhookqueue.iqcreated (line 479) after line 1023 wrote it from the clock. Even a tampered value only changes the informational time_utc string beside the numeric time field, a JSON-escaped string with no size or index effect.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8f931ca6189b1dd351a5
+    what: SaveRoute casts a URL character straight to unsigned int
+    reason: 'In InboundWebhooks::SaveRoute, url is a String, which is CStdStr<wchar_t> on both platforms (StdString.h:4125), so url[i] is a whole code point and never a UTF-8 byte; the rule matched Linux''s signed 32-bit wchar_t. Any non-ASCII code point is >= 0x80, and a negative wchar_t would convert to >= 0x80000000, so both fail c < 0x21 || c >= 0x7F and only printable ASCII passes. The rule''s suggested unsigned char cast would be wrong: it would truncate U+0141 to ''A'' and let it pass.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 85b7ce5fd7d4d7cc932d
+    what: struct Rewrite leaves id uninitialized
+    reason: 'In InboundWebhooks::EraseAddress the only Rewrite made is the one in the recordset loop, and its id is assigned from iqid on the next line (2711) before anything else; only such records are pushed and read. The String members have their own constructors.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/MailboxCrypto.cpp
+  - scan: static-analysis
+    finding: 372ff2355a9024f0a56b
+    what: atoi in Number (MailboxCrypto.cpp)
+    reason: 'Before atoi runs, Number (MailboxCrypto.cpp) rejects an empty text or one longer than 9 characters and checks that every character is ''0''-''9'' (72-78). atoi therefore sees 1-9 decimal digits, at most 999,999,999, below INT_MAX, so there is no conversion error for strtol to report, and the result is then checked against [minimum, maximum].'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 1af4b08a7dcf8f72fde5
+    what: 'sprintf_s(buffer, 16, "%d", value) return ignored in NumberText (MailboxCrypto.cpp)'
+    reason: 'In NumberText, the widest int (-2147483648) is 11 characters plus NUL, which fits buffer[16], so neither the Windows sprintf_s nor hm_platform.h''s POSIX wrapper can truncate or fail.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/MailboxKeys.cpp
+  - scan: static-analysis
+    finding: 6a4fc9d828df6ed11e36
+    what: 'sprintf_s(buffer, 8, "\\u%04x", c) return ignored in EscapeJson (MailboxKeys.cpp)'
+    reason: 'In EscapeJson, this branch runs only for an unsigned char c < 0x20, so the output is always exactly \u00XX, 6 characters plus NUL, which fits buffer[8]. Neither the Windows sprintf_s nor hm_platform.h''s POSIX wrapper (vsnprintf, which returns -1 only on truncation) can truncate or fail here.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: efb2555501a38790b9b8
+    what: 'empty catch(...) in MailboxKeyHold::~MailboxKeyHold'
+    reason: '~MailboxKeyHold must not throw, and of its calls only std::mutex::lock can (std::system_error); map::find, the decrement and Now() (time(nullptr)) do not. If the lock failed, the key''s hold count would stay one higher and the key would stay open past its idle time. That changes nobody''s access, because SessionRefusal still refuses masquerade and non-password credentials, and it has no memory or data effect.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 6f67a911bbd8d552fa0c
+    what: 'empty catch(...) wrapping MailboxKeys::OnPasswordLogon'
+    reason: 'MailboxKeys::OnPasswordLogon runs after a sign-in has been proved (AccountLogon.cpp:151, RestApiServer.cpp:13033) and only opens or re-wraps the key as a best effort, so a throw must not fail the login. Access is decided afterwards by SessionRefusal (IMAPCommandLogin.cpp:92, IMAPCommandAuthenticate.cpp:672, POP3Connection.cpp:804, RestApiServer.cpp:13444), which refuses a keyed mailbox whose key is not open. Its only write, StoreWrap (456), sets the password wrap and clears the pending machine copy in one UPDATE, so an exception at any point leaves the key either as it was or wrapped, never lost.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7bf5a05ee3b12c20a5d9
+    what: 'local struct Reseal (account_id, on_previous) with no member initializers in MailboxKeys::SetRecovery'
+    reason: 'In MailboxKeys::SetRecovery the only Reseal object, `reseal` on 1880, has account_id set from row.account_id on 1881 and on_previous set on 1882, the next two statements. Both happen before either field is read (1884, 1889, 1892) and before the struct is stored; the two std::string members construct themselves.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/ObjectStoreSignature.cpp
+  - scan: static-analysis
+    finding: 0a684ab0fd2f5151340a
+    what: 'struct tm ''parts'' declared without initializer in AmzDate'
+    reason: 'In ObjectStoreSignature::AmzDate the declaration is followed on the next line by memset(&parts, 0, sizeof(parts)), and then UtcOf (gmtime_r / gmtime_s) fills it; the function returns an empty string if UtcOf fails. No field is ever read uninitialized.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c52ca98a5f2ce95ff6d9
+    what: snprintf return ignored in AmzDate
+    reason: 'In ObjectStoreSignature::AmzDate snprintf writes "%04d%02d%02dT%02d%02d%02dZ" into char text[32] bounded by sizeof(text): the month, day and time fields come from a successful gmtime and are two digits, and even an 11-character int year gives 23 characters plus the NUL. The only callers pass time(nullptr) (MessageStoreObjectClient.cpp:1088) or the tester''s constant, so it never truncates, and snprintf cannot overflow the bound.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 87521b92cc7933076803
+    what: 'struct tm ''parts'' declared without initializer in Rfc1123Date'
+    reason: 'In ObjectStoreSignature::Rfc1123Date the declaration is followed on the next line by memset(&parts, 0, sizeof(parts)), then UtcOf fills it. A failed UtcOf, or tm_wday/tm_mon outside 0-6/0-11, returns an empty string before any field is used.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f29000a924bc3eb3103e
+    what: snprintf return ignored in Rfc1123Date
+    reason: 'In ObjectStoreSignature::Rfc1123Date snprintf writes "%s, %02d %s %04d %02d:%02d:%02d GMT" into char text[40] bounded by sizeof(text); WeekDays[] and Months[] are three-letter names indexed only after the 0-6/0-11 check on line 259, so the result is at most 36 characters plus the NUL even with an 11-character year. The only caller passes time(nullptr) (MessageStoreObjectClient.cpp:1516), so it never truncates, and snprintf cannot overflow the buffer.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: da955fbfc0ea6c9dbd33
+    what: snprintf return ignored formatting Content-Length in the Azure shared-key string to sign
+    reason: 'In the shared-key signer, snprintf writes "%llu" of request.content_length, declared unsigned long long in ObjectStoreSignature.h:87 so the specifier matches, into char text[32] bounded by sizeof(text). The largest value takes 20 digits plus the NUL, so it never truncates and the ignored return hides nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/OpenPgpRing.cpp
+  - scan: static-analysis
+    finding: bcdf61a9d88c1b0edbe3
+    what: implicit widening to time_t of 60 * 60
+    reason: 'OpenPgpRing UnreachableSeconds = 60 * 60: a product of literals, 3600, far inside int before it widens to time_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/OtelExportChannel.cpp
+  - scan: static-analysis
+    finding: edda5ebfa58a1162006e
+    what: 'struct timeval ''timeout'' declared without initializer in PostJson (POSIX branch)'
+    reason: 'In OtelExportChannel::PostJson both members of struct timeval, tv_sec = 3 and tv_usec = 0, are assigned on the next two lines. Only then does setsockopt read it for SO_SNDTIMEO/SO_RCVTIMEO, so no uninitialized field is ever passed to the kernel.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/PersonExport.cpp
+  - scan: static-analysis
+    finding: f215eaa813cc3176ba5e
+    what: implicit widening to size_t of 256 * 1024 * 1024
+    reason: 'PersonExport MaxMboxBytes = 256 * 1024 * 1024: a product of literals, 268435456, far below INT_MAX.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/PstImportPath.cpp
+  - scan: static-analysis
+    finding: 78f9da5f1b316106dd46
+    what: 'uninitialized record type: ''status'''
+    reason: 'PstImportPath::FinalPathOf (POSIX branch): ''struct stat status'' is filled by ::stat(resolved, &status) on the next line, and the function returns false when stat fails, so st_mode is read only after stat wrote it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/PushNotifier.cpp
+  - scan: static-analysis
+    finding: b6e921ebdcb71ba29f8e
+    what: MaximumAnswerBytes = 32 * 1024 computed in int
+    reason: 'MaximumAnswerBytes in PushNotifier.cpp''s anonymous namespace is the literal product 32 * 1024 = 32768, far below INT_MAX. The widening to size_t loses nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/PushSubscriptions.cpp
+  - scan: static-analysis
+    finding: 1ef05e3b7b935f5d845f
+    what: '(unsigned int) endpoint[i] printable-ASCII check in PushSubscriptions::Save'
+    reason: 'In PushSubscriptions::Save, endpoint is a String copied from subscription.endpoint (212), so endpoint[i] is a whole wchar_t, which the rule matches as a signed character type. The cast to unsigned int keeps every bit, and a negative 32-bit wchar_t becomes a value above 0x7E and is refused by `unit < 0x21 || unit > 0x7E`. Casting through unsigned char would truncate, U+0141 to 0x41 for example, and let a non-ASCII character reach the push request line.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/ResourceBooking.cpp
+  - scan: static-analysis
+    finding: def7c7e0ecd5663ed46e
+    what: SequenceOf uses atoi on SEQUENCE
+    reason: 'In SequenceOf a missing or non-numeric SEQUENCE reads as 0, RFC 5545''s default. An out-of-int value is invalid iCalendar, and both CRTs give it a fixed int (MSVC clamps; glibc''s atoi is (int) strtol), so a sender reaches no ordering it could not reach with an in-range number. Every comparison it feeds (ResourceBooking.cpp 1649-2049, Imip.cpp:314/785) reads both sides with the same parse, and no arithmetic, size, index or allocation uses it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0543e026bf41b01665df
+    what: 'BookingDrain destructor''s catch(...) around ReleaseDrain'
+    reason: 'This is deliberate: ~BookingDrain is a destructor and must not throw. ReleaseDrain (line 2186) only takes the std::mutex queuesGuard and erases from a std::set, so the catch exists only for a std::system_error from the lock. What a drain destroyed unrun leaves stays in hm_bookingqueue for WakeQueued''s sweep.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 4f3e19284210b2766634
+    what: 'WakeQueued''s empty catch(...)'
+    reason: 'This is deliberate and commented: WakeQueued runs every minute from ScheduledMailTask::DoWork (a scheduler task, Application.cpp:1048) and only wakes drains for rows still in hm_bookingqueue, so a failure loses nothing and the next minute asks again. A boost::thread_interrupted swallowed here during shutdown is sent again on every 25 ms pass of WorkQueue::JoinWorkers_ (WorkQueue.cpp:793-810), so the thread still stops.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 85016d70a286cc9707a0
+    what: 'ForgetDecision''s empty catch(...)'
+    reason: 'ResourceBooking.h:217 documents ForgetDecision as Never throws; its callers, CalDavServer.cpp 1296/1310/1398 and RestApiCalendar.cpp 1905/1986/2602, call it after the calendar change is committed, so an exception must not turn a done change into an error. A failure leaves only a stale hm_bookingdecisions row, and AnswerableOrganiser returns it only when it equals the ORGANIZER of the object now being answered for, so it can direct mail to no one that object does not already name.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: df879a4311eb73980cd3
+    what: 'ForgetGoneBookings'' empty catch(...)'
+    reason: 'ResourceBooking.h:222 documents ForgetGoneBookings as Never throws; it is called after a whole calendar was deleted (CalDavServer.cpp:1376, RestApiCalendar.cpp:1427). A failure leaves only stale hm_bookingdecisions rows, which AnswerableOrganiser returns only when they equal the ORGANIZER of the object being answered for, so nothing is sent anywhere it would not have been.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 64e1d2ec9b084bbb1bab
+    what: 'Imip::ReplyObject(declined, attendee, ..., delegateAddress, cutype)'
+    reason: 'The arguments follow Imip::ReplyObject''s declaration (Imip.h:145: invitation, address, name, partstat, sentBy, cutype). In TellOrganiserOfDecline the REPLY''s ATTENDEE is the resource''s own attendee address (ResourceAttendeeOf) and SENT-BY is the delegate, which is what RFC 5546 asks of a delegate answering for the resource; swapping them as the rule suggests would be the bug.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/RestApiAudit.cpp
+  - scan: static-analysis
+    finding: c52798926b2f870f754d
+    what: 'assignment in if condition (member = document.Get("address"))'
+    reason: 'RestApi RouteAlertRuleUpdate: ''(member = document.Get("address")) != nullptr && !JsonText(...)'' is a parenthesised assignment compared explicitly with nullptr, and && short-circuits so member is dereferenced only after that check. JsonValue::Get returns a pointer into the local ''document'', which outlives the use. The idiom is intended, so a field the body leaves out keeps its value.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 63303ed94db6e05e60c1
+    what: 'assignment in if condition (member = document.Get("webhook"))'
+    reason: 'RestApi RouteAlertRuleUpdate: ''(member = document.Get("webhook")) != nullptr && !JsonText(...)'' compares the parenthesised assignment explicitly with nullptr. member->AsString() runs only when member is non-null, and it returns string_, which is empty for a non-string value, so it never faults.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 6a5cf7bc98e6be7f680c
+    what: 'assignment in if condition (member = document.Get("webhook_secret"))'
+    reason: 'RestApi RouteAlertRuleUpdate: ''(member = document.Get("webhook_secret")) != nullptr && !JsonText(...)'' compares the assignment explicitly with nullptr, and member is dereferenced only after that check. An absent secret leaves rule.secret unchanged, as the comment intends.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/RestApiInboundWebhooks.cpp
+  - scan: static-analysis
+    finding: b1a8c11c84c30689cb19
+    what: 'if ((member = body.Get("url")) != nullptr)'
+    reason: 'The assignment is intended: double-parenthesised, explicitly compared with nullptr, and member is the const JsonValue* declared on line 486 for exactly these lookups; member->IsString() is checked before AsString(). It is not a mistyped ==.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: eca87db8457f48727fa8
+    what: 'if ((member = body.Get("secret")) != nullptr && member->IsString())'
+    reason: 'The same intended lookup-and-test: the assignment is parenthesised and compared with nullptr, and && short-circuits before member->IsString() is called on a null. No equality test was meant.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 1ec868e137facd75f506
+    what: 'if ((member = body.Get("max_size_kb")) != nullptr)'
+    reason: 'The intended lookup-and-test pattern, parenthesised and compared with nullptr; member is then checked with IsNumber() and the value range-checked against 0..InboundWebhooks::MaxSizeKb before the (int) cast.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 10788dd71498092648e4
+    what: 'atoi of the delivery list''s limit query parameter'
+    reason: 'In the RouteInboundWebhookDeliveryList case, the atoi result is clamped to 1..1000 on the next lines before anything uses it; a non-number gives 0, which becomes 1. On overflow MSVC''s atoi returns INT_MAX/INT_MIN and glibc''s is (int)strtol (a wrapped int), both of which the clamp bounds, so the worst a bad value does is pick a page of 1 to 1000 rows.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/RestApiServer.cpp
+  - scan: static-analysis
+    finding: cfdb8e383f2c9bedcee0
+    what: RouteDiscoveryExportGet and RouteInboundWebhookDeliveryMessage cases both set ViewMailbox in SecondPermissionFor_
+    reason: 'In RestApiServer::SecondPermissionFor_ both routes hand over mail byte for byte (an eDiscovery export download, a kept inbound-webhook message), so both need RolePermission::ViewMailbox as their second permission. They are separate cases so each carries its own comment giving its reason, and build/check-role-choke-point.py reads this switch as case labels plus one ''permission ='' line. The duplicated ''permission = ViewMailbox; return true;'' is the intended mapping, not a copy-paste slip.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5502c550a559ee837064
+    what: 'local ''Walked one'' declared without initializer in HandleMeSearch_'
+    reason: 'In RestApiServer::HandleMeSearch_''s VisitNewestFirst callback, the struct''s only three fields (id, folder, pruned) are assigned on the three lines right after the declaration. Only then is it copied into ''walk'' with push_back, so no field is read before it is set.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8e0caa5af530a71a5e07
+    what: 'local ''Pick pick'' declared without initializer in HandleMeFolderBulk_'
+    reason: 'In RestApiServer::HandleMeFolderBulk_''s VisitNewestFirst callback, both fields of Pick (id and uid) are assigned on the next two lines. Only then is it copied into ''picks'' with push_back, so neither field is read uninitialized.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/RestApiSettings.cpp
+  - scan: static-analysis
+    finding: ffab7fd0d8571f044eb7
+    what: message_store_object_endpoint check casts a character straight to unsigned int
+    reason: 'In the message_store_object_endpoint validator, url is a String (CStdStr<wchar_t> on both platforms, StdString.h:4125), so url[i] is a whole code point and the rule matched Linux''s signed wchar_t, not a byte. Any non-ASCII code point is >= 0x80, and a negative one converts to >= 0x80000000, so both fail c <= 0x20 || c >= 0x7F. The use side checks again: MessageStoreObjects.cpp trims the value and PlainToken reads it as unsigned char bytes of UTF-8.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 31a4740122f4ebbef419
+    what: message_store_object_sas_token check casts a character straight to unsigned int
+    reason: 'In the message_store_object_sas_token validator, sas is a String (CStdStr<wchar_t>), so sas[i] is a whole code point; any non-ASCII one is >= 0x80, and a negative wchar_t is >= 0x80000000 as unsigned, so both are refused. The row stores v.text untrimmed, but MessageStoreObjects.cpp:315 trims it (TrimmedText of its UTF-8) and AzureBlobObjectClient checks it again with PlainToken (unsigned char bytes, line 1165) before any request uses it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SealedMessage.cpp
+  - scan: static-analysis
+    finding: 5f0b1e82457aa3065a51
+    what: wantedCharacters = 12 * 1024 / 3 * 4
+    reason: A compile-time constant expression, 16,384 base64 characters for 12 KB of packets, far inside int; nothing overflows before the conversion to size_t.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/ServiceAccount.cpp
+  - scan: static-analysis
+    finding: 1026e98d0f6216b83cd9
+    what: implicit widening to size_type of 1024 * 1024
+    reason: 'ServiceAccount::ProcessAccountName: buffer.size() < 1024 * 1024 compares with a product of literals, 1048576, far inside int. At that bound the loop stops doubling, and a further ERANGE returns an empty String through ''error != 0''.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SigstoreVerifier.cpp
+  - scan: static-analysis
+    finding: 4904ed470311a538d47a
+    what: sprintf_s(text, 40, ISO 8601) return ignored in UtcText_ (SigstoreVerifier.cpp)
+    reason: 'UtcText_ normalises rest to 0..86399, and Hinnant''s arithmetic gives month 1..12 and day 1..31; for any __int64 input no intermediate value overflows (|days| is at most about 1.07e14 and era*400 about 3e14). The year cast to int prints in at most 11 characters, so the widest output is 27 characters plus NUL, which fits text[40], and sprintf_s cannot reach its truncation path.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SnmpAgent.cpp
+  - scan: static-analysis
+    finding: 712647f0d9df1b71de8b
+    what: 'udpSocket.open(udp::v6(), error) return value ignored in SnmpAgent::OpenSocket_'
+    reason: 'SnmpAgent::OpenSocket_ calls the error_code overload of open, which returns the same error_code it writes into `error`, and `if (!error)` on 801 tests it before set_option. A failure falls to the IPv4 path (807-817). If that fails too, 833-842 closes the socket, reports 7420 and returns false, and SnmpAgent::Start resets transport_ (884-891).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 98923cc4a9bbedb500a8
+    what: 'udpSocket.set_option(v6_only(false), error) return ignored in SnmpAgent::OpenSocket_'
+    reason: 'This is the error_code overload of set_option in SnmpAgent::OpenSocket_, so the result is in `error`. `if (!error)` on 804 tests it before bind, and `if (error)` on 807 drops to a fresh IPv4 socket when IPV6_V6ONLY cannot be cleared.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 71c4f4e720f1e7f6b5ba
+    what: 'udpSocket.bind(v6 endpoint, error) return ignored in SnmpAgent::OpenSocket_'
+    reason: 'This is the error_code overload of bind in SnmpAgent::OpenSocket_, so the returned value duplicates `error`. `if (error)` on 807 tests it, then closes the socket and reopens it as IPv4, and 833 checks that outcome.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 306dc16fb97f967ebd40
+    what: 'udpSocket.close(ignored) before the IPv4 fallback in SnmpAgent::OpenSocket_'
+    reason: 'The error is discarded on purpose in SnmpAgent::OpenSocket_: the failed v6 socket is closed before the v4 open on 813. Asio''s close (reactive_socket_service_base::close, and win_iocp_socket_service_base::close on Windows) resets the implementation to closed whatever the OS close returned, so the open on 813 cannot fail with already_open. That open''s own result is tested at 815 and 833.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f71ca8315620647acdae
+    what: 'udpSocket.open(udp::v4(), error) return ignored in SnmpAgent::OpenSocket_'
+    reason: 'This is the error_code overload of open in SnmpAgent::OpenSocket_. `error` is cleared on 812, tested on 815 before bind, and tested again on 833, where a failure closes the socket, reports 7420 and returns false.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: fee7826e3a13e3aa37c4
+    what: 'udpSocket.bind(v4 endpoint, error) return ignored in SnmpAgent::OpenSocket_'
+    reason: 'This is the error_code overload of bind in SnmpAgent::OpenSocket_. `if (error)` on 833 checks it, closes the socket, reports 7420 and returns false. SnmpAgent::Start then resets transport_ (886) and returns false without starting worker_, so a failed bind never starts the agent.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f4ad34bdf11c1e53c79c
+    what: 'udpSocket.open(endpoint.protocol(), error) return ignored in SnmpAgent::OpenSocket_ (bind-address branch)'
+    reason: 'This is the error_code overload of open in the bind-address branch of SnmpAgent::OpenSocket_. `if (!error)` on 828 guards the bind, and on failure 833 closes the socket, reports 7420 and returns false.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 124124e21b24070498e1
+    what: 'udpSocket.bind(endpoint, error) return ignored in SnmpAgent::OpenSocket_ (bind-address branch)'
+    reason: 'This is the error_code overload of bind in SnmpAgent::OpenSocket_. `if (error)` on 833 checks it, and a failure closes the socket, reports 7420 and returns false, after which Start resets transport_.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 34ef80bd26730969db46
+    what: 'udpSocket.close(ignored) on the failure path of SnmpAgent::OpenSocket_'
+    reason: 'This is cleanup on a failure path of SnmpAgent::OpenSocket_ that reports the original open or bind error (7420) and returns false. SnmpAgent::Start then resets transport_ (886), destroying the socket, and Asio has already marked it closed whatever close reported, so a close error has nothing left to affect.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5133da08188242036fd8
+    what: 'udpSocket.non_blocking(true, ignored) result ignored in SnmpAgent::OpenSocket_'
+    reason: 'SnmpAgent::OpenSocket_ reaches this line only with a socket already opened and bound (checked at 833), and FIONBIO (ioctlsocket on Windows) does not fail on a valid open socket. Even if it did, the only sender is Answer_''s send_to (1093), an error_code overload. Asio''s sync_sendto would then wait for UDP send-buffer space instead of dropping the reply, with no memory, data or correctness effect.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 73dcaee696ccdb6b3728
+    what: 'transport_->socket.close(ignored) in SnmpAgent::Stop'
+    reason: 'SnmpAgent::Stop closes the socket only after worker_ (976) and refresher_ (982) have been joined, and transport_ is reset on 991. Asio marks the socket closed and releases the descriptor whatever the OS close reports, and during shutdown nothing is left to act on an error.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5f49c2f2aef815324396
+    what: 'empty catch(...) around ReportError in the thread-top handler of SnmpAgent::Run_'
+    reason: 'SnmpAgent::Run_ is the body of std::thread worker_, so an exception escaping it would call std::terminate and end the service (comment on 997). The inner catch(...) covers only the ErrorManager::ReportError call inside the outer catch(...). If reporting itself throws there is nowhere left to report the failure, and rethrowing would terminate the process.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 506bb01fb419dca785cd
+    what: 'empty catch(...) around RefreshDeliveryQueue_ in SnmpAgent::Run_Refresher_'
+    reason: 'Run_Refresher_ is the refresher thread''s body, where an escaping exception would call std::terminate. RefreshDeliveryQueue_ writes queue_depth_ and queue_oldest_age_seconds_ only after the queries, in its last lines under cache_mutex_ (1265-1267), and its lock_guards release on unwind, so a throwing query leaves the previous figures and no lock held. It cleared queue_refresh_requested_ before querying (1236), so the next manager poll asks for a new refresh, which runs at a later tick.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SnmpTester.cpp
+  - scan: static-analysis
+    finding: 24d6a0bc3ae1efeb5fb0
+    what: (size_t) (OwnObjects + FakeObjects) in the GetBulk test
+    reason: OwnObjects and FakeObjects are the const ints 31 and 5 (SnmpTester.cpp lines 650-651), so the int sum is 36 and nothing is lost before the cast; test code.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 7a14fa9e505d0d1c1805
+    what: (size_t) (OwnObjects + FakeObjects) in the SNMPv2c capped-answer test
+    reason: The same constant sum, 31 + 5 = 36 from the const ints at lines 650-651, so no precision can be lost before the widening; test code.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SnmpUsm.cpp
+  - scan: static-analysis
+    finding: a4278034bf5e795e52a6
+    what: (size_t)(written + final) after int addition in Encrypt
+    reason: 'SnmpUsm::Encrypt refuses length > 0x7FFFFFFF above. EVP_EncryptUpdate in AES-128-CFB128, a stream mode with padding off, writes exactly length bytes and Final writes 0, so the int sum is non-negative and at most INT_MAX before the cast. Any other value would only make the ''== length'' test fail closed.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 3eef7b0c0a545baa1511
+    what: (size_t)(written + final) after int addition in Decrypt
+    reason: 'SnmpUsm::Decrypt checks length <= 0x7FFFFFFF above. CFB128''s update output equals the input length and Final adds 0, so the int sum can neither overflow nor go negative before the cast, and a mismatch would fail the ''== length'' test.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/StoredSecrets.cpp
+  - scan: static-analysis
+    finding: 93d5caebe312005b5c59
+    what: return value of fprintf to stderr disregarded
+    reason: 'ReportFromAnyProcess_ in StoredSecrets.cpp fprintfs an ''HM<code>: <message>'' line to stderr only when the verb runs as root (geteuid() == 0), and the message is passed as a %s argument, not as the format. A failed write to stderr has nowhere else to report to, and the function returns either way.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0afa7c6de6ae05f15900
+    what: SealedFactor does not initialize id
+    reason: 'SealedFactor is a local struct in the stored-secrets forget-key path. Its only instance is declared inside the recordset loop, where factor.id is assigned from GetInt64Value("accountid") (with address and stored) before the factor is pushed and before the update loop reads it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SyslogSink.cpp
+  - scan: static-analysis
+    finding: 0215e1e464607c47eb92
+    what: socket.close(ignored) return value discarded in WithinDeadline_
+    reason: 'This is Boost.Asio''s error_code overload: the error goes into ignored and the returned value is that same error_code, dropped on purpose after the deadline passed. Asio''s close cancels pending operations with operation_aborted (epoll reactor deregister_descriptor before the OS close; closesocket under IOCP), so the io.run() that follows still runs the handler and WithinDeadline_ returns false whatever close reports; no SO_LINGER is set here, so closesocket has no would-block case.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/Unicode.cpp
+  - scan: static-analysis
+    finding: 90d98feae9891ecdf1db
+    what: '(unsigned int) text[i] in Unicode::IsWidenedUtf8'
+    reason: 'In Unicode::IsWidenedUtf8, text is a String = CStdStr<wchar_t> (StdString.h:4125), so text[i] is a wchar_t code unit. The check matches any signed character type, which includes Linux''s 32-bit signed wchar_t, and its message always says ''signed char''. Casting through unsigned char would truncate the unit, while the whole unit as unsigned int is what `unit > 0xFF` needs; a negative wchar_t becomes a value above 0x7FFFFFFF and returns false, the right answer.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5601578f58eb8b7351f4
+    what: '(unsigned int) text[i] as the UTF-8 lead byte in Unicode::IsWidenedUtf8'
+    reason: text[i] is a wchar_t, which the rule matches as a signed character type, not a signed char byte. This loop runs only after the loop at 339-346 has returned false for any unit above 0xFF, so every value here is 0..0xFF and the cast is exact.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 8ead7bf13b595a24925f
+    what: '(unsigned int) text[i + k] as a UTF-8 trail byte in Unicode::IsWidenedUtf8'
+    reason: text[i + k] is a wchar_t that the first loop (339-346) has proven to be 0..0xFF. i + k stays below length because 392 returns false when i + trail >= length. The value is compared exactly against 0x80..0xBF, or the narrower range for the first trail byte.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 63fed1449d52ea2571ad
+    what: '(unsigned int) text[i] in the surrogate repair loop of Unicode::ToUtf8'
+    reason: 'In Unicode::ToUtf8, text[i] is a wchar_t, and the whole unit as unsigned int is what the 0xD800-0xDFFF tests need; casting through unsigned char would truncate 0xD800 to 0x00 and break the repair. A negative Linux wchar_t becomes a value above 0x7FFFFFFF, is not a surrogate and passes to WideToMultiByte, which leaves the result empty on failure (455-456).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: fcf8bd4b8e9342479037
+    what: '(unsigned int) text[i] in Unicode::HasUnpairedSurrogate'
+    reason: 'In Unicode::HasUnpairedSurrogate, text[i] is a wchar_t code unit (String = CStdStr<wchar_t>), and the surrogate-range comparisons (0xD800-0xDBFF, 0xD800-0xDFFF) need the whole unit as unsigned int. A negative 32-bit value becomes a value above 0x7FFFFFFF, is not a surrogate and is correctly not counted. Casting through unsigned char would truncate the unit and be wrong.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 2037c2b4d094d651d037
+    what: '(unsigned int) text[i + 1] low-surrogate test in Unicode::HasUnpairedSurrogate'
+    reason: text[i + 1] is a wchar_t, read only after `i + 1 < length` is checked on 469. The whole unit as unsigned int is compared exactly against 0xDC00-0xDFFF, so a negative or large value is simply not a low surrogate.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/IMAP/IMAPAddressList.cpp
+  - scan: static-analysis
+    finding: 84b13d02515658f27a82
+    what: 'EnvelopeToken''s implicit constructor leaves ''kind'' uninitialized'
+    reason: EnvelopeToken is created only in TokenizeAddressList_ (lines 117, 140, 179, 190), and each site assigns token.kind (Quoted, Comment, Special, Atom) on the line after the declaration, before the token is pushed into the vector. IsSpecialToken_, PhraseOf_, ParseAddrSpec_, ParseMailbox_ and Parse read kind only from tokens in that vector.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f2eb7e563b5f6f354d7f
+    what: ''','' and '';''-in-group branches both ''break'' in IMAPAddressList::Parse'
+    reason: 'In IMAPAddressList::Parse a '','' always ends an element, while a '';'' ends one only when inGroup, so the conditions differ and both correctly stop the scan with ''break''; a '';'' outside a group falls through and the scan goes on. After the loop, line 453 tests tokens[end] for '';'', which can be there only from the in-group branch, to emit the group end, so the two cases are told apart there.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/IMAP/IMAPCommandAppend.cpp
+  - scan: static-analysis
+    finding: 18c3842ecf376e9ca983
+    what: catch (...) {} around KillCurrentMessage_ in ~IMAPCommandAppend
+    reason: 'The catch is in ~IMAPCommandAppend, which must not throw: an exception escaping a destructor during connection teardown calls std::terminate and takes the service down. KillCurrentMessage_ is best-effort cleanup of an abandoned APPEND (FileUtilities::DeleteFile of the temp file, then RemoveAppendMarker_), and if a step failed the marker stays, so the file is reclaimed by the marker sweep after the process''s held set is gone, never lost silently as live data.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/IMAP/IMAPStore.cpp
+  - scan: static-analysis
+    finding: 10e30ff941ac49d01b5c
+    what: 'pConnection->GetCurrentFolder()->GetAccountID() dereferenced unchecked in IMAPStore::DoAction'
+    reason: 'IMAPStore::DoAction is reached only through IMAPCommandStore::ExecuteCommand and IMAPCommandUID::ExecuteCommand (the STORE branch), and both return ''NO No folder selected'' when GetCurrentFolder() is null before DoForMails runs. current_folder_ is cleared only by CloseCurrentFolder/SetCurrentFolder, called from this connection''s own commands (SELECT, EXAMINE, CLOSE, UNSELECT, LOGOUT, UNAUTHENTICATE, the encrypted-at-rest Logout in AnswerCommand) or its destructor; commands run one at a time (ParseData -> AnswerCommand, then EnqueueRead) and the notification client on another thread only reads the folder under state_mutex_. So it cannot become null during the STORE, and the pFolder check at line 260 is only defensive.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: de23911c4abab3ef9125
+    what: 'pConnection->GetCurrentFolder()->GetID() dereferenced unchecked in IMAPStore::DoAction'
+    reason: 'This is the same argument list as line 231: IMAPCommandStore::ExecuteCommand and IMAPCommandUID::ExecuteCommand refuse STORE when GetCurrentFolder() is null. Only this connection''s own serialized commands (ParseData -> AnswerCommand, the next read enqueued only after it returns) and its destructor reset current_folder_, and DoAction holds a shared_ptr to the connection, so it stays non-null while DoAction runs. The later ''if (pFolder && ...)'' is defensive.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/SMTP/RuleApplier.cpp
+  - scan: static-analysis
+    finding: 6fe52ee850adfc97df40
+    what: 'uninitialized record type: ''scope'''
+    reason: 'RuleApplier::DomainRuleScopes (sending-domain loop): DomainRuleScope has exactly two fields, domain_id and whole_message (RuleApplier.h:62-66). Both are assigned on the two lines after ''DomainRuleScope scope;'' and before push_back.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: fdac21bb18796e83e64c
+    what: 'uninitialized record type: ''scope'''
+    reason: 'RuleApplier::DomainRuleScopes (recipient-domain loop): both fields of DomainRuleScope, domain_id = entry.first and whole_message = entry.second == total, are assigned before scopes.push_back(scope).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/platform/main.cpp
+  - scan: static-analysis
+    finding: f352a24e2bd4798ba9e1
+    what: 'fprintf return ignored in CreateDatabase''s ''database was not marked as new'' message'
+    reason: 'In CreateDatabase this std::fprintf(stderr, <literal>, AnsiString(markError).c_str()) reports that NewInstallDefaults::MarkCreated failed; the comment above it says neither failure fails the create, so the outcome is already fixed by MarkCreated''s return. A failed write to stderr has nowhere else to be reported and changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c827be0afc0905800cd1
+    what: 'fprintf return ignored in CreateDatabase''s ''marker could not be written'' message'
+    reason: 'In CreateDatabase this literal-format std::fprintf to stderr follows FileUtilities::WriteToFile of the first-start marker returning false; the result is known from WriteToFile and, by design, does not change the create''s exit status. The %s arguments are AnsiString c_str() values, never null, and the stderr character count has nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 49497f3bed87474745a6
+    what: 'struct stat ''directory'' declared without initializer in PrepareServiceKeyFile'
+    reason: 'In PrepareServiceKeyFile ::stat(dataDirectory.c_str(), &directory) fills the struct on the next line, and the || short-circuit reads S_ISDIR(directory.st_mode) only when stat returned 0. The failure path returns false without reading any field, and st_uid/st_gid are read only after that check passed.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: cc1d3c72df2efd66c96e
+    what: 'fprintf return ignored in PrepareServiceKeyFile''s ''data directory could not be examined'' message'
+    reason: 'In PrepareServiceKeyFile this literal-format std::fprintf to stderr precedes ''return false'', which carries the failure to OpenDatabaseForKeyVerb and the verb''s exit code. A failed diagnostic write changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: aaee4481a2e6daa2736c
+    what: 'fprintf return ignored in PrepareServiceKeyFile''s ''data directory belongs to root'' message'
+    reason: 'In PrepareServiceKeyFile this literal-format std::fprintf to stderr (two concatenated literals, one %s) is followed by ''return false'', which is how the refusal reaches the caller and the exit code. The ignored character count of a stderr diagnostic changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 3cfafc1585fbdf46048d
+    what: fprintf return ignored in PrepareServiceKeyFile after CreateKeyFileFor fails
+    reason: 'In PrepareServiceKeyFile the DataProtector::CreateKeyFileFor failure is returned as false right after this literal-format std::fprintf to stderr. The message''s own success has no effect on that result.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: c1e40b3752277143ebbc
+    what: fprintf return ignored in ConfigurationIsWritable
+    reason: 'In ConfigurationIsWritable the literal-format std::fprintf to stderr explains an access(W_OK) failure that the function then returns as false; its second %s, asRoot, is one of three string literals its callers pass. A failed write to stderr cannot alter the result.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 5ea3a4a2f4678bf287ea
+    what: 'fprintf return ignored in OpenDatabaseForKeyVerb''s schema-version message'
+    reason: 'In OpenDatabaseForKeyVerb the literal-format std::fprintf to stderr prints two ints (ReadSchemaVersion''s int and REQUIRED_DB_VERSION, the int literal 6104) and the function returns false immediately after. The result is carried by that return, not the message.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 6b6d25a13ba2e2b8baf6
+    what: 'fprintf return ignored in OpenDatabaseForKeyVerb''s ''could not open the database'' message'
+    reason: 'In OpenDatabaseForKeyVerb the Application::OpenDatabase failure is returned as false right after this literal-format std::fprintf to stderr. The diagnostic''s own success changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 883a11fdcf8c807214ee
+    what: 'fprintf return ignored in CreateStoredSecretsKey (''No stored-secrets key was made'')'
+    reason: 'In CreateStoredSecretsKey this literal std::fprintf to stderr is followed by ''return 1'', the exit status that carries the failure. A failed write to stderr has nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 09791ab4aaa807bd37ce
+    what: fprintf return ignored in CreateStoredSecretsKey after CreateKey fails
+    reason: 'In CreateStoredSecretsKey the StoredSecrets::CreateKey failure is returned as exit status 1 right after this literal-format std::fprintf to stderr. The message''s success does not affect the outcome.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: df3712fe651b8fda45d4
+    what: 'fprintf return ignored in ExportStoredSecretsKey (''already exists'')'
+    reason: 'In ExportStoredSecretsKey the refusal to overwrite an existing file is returned as exit status 2 right after this literal-format std::fprintf to stderr, before the database is opened or anything is written. A failed diagnostic write changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 2a4aad34fe10e627cae2
+    what: fprintf return ignored in ExportStoredSecretsKey after ExportText fails
+    reason: 'In ExportStoredSecretsKey the StoredSecrets::ExportText failure is returned as exit status 1 after this std::fprintf(stderr, "%s. Nothing was written.\n", ...), whose format is a literal and whose argument is data. The message''s own success has no effect.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 06cb13cf8abb729b26a7
+    what: fprintf return ignored in ExportStoredSecretsKey after WriteNew fails
+    reason: 'In ExportStoredSecretsKey the ProtectedFile::WriteNew failure is returned as exit status 1 after this literal-format std::fprintf to stderr; the key text was already zeroed above it. Nothing depends on the diagnostic''s character count.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 0fe8e81fded1976539b8
+    what: 'fprintf return ignored in ExportStoredSecretsKey (''export could not be recorded'')'
+    reason: 'In ExportStoredSecretsKey this literal std::fprintf to stderr is a warning after the key file was written; the function returns 0 by design since the export itself succeeded, and the unrecorded export leaves the setup checklist still asking for one. A failed write to stderr has nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 28070ec51800ea3f9347
+    what: 'fprintf return ignored in ImportStoredSecretsKey (''does not exist'')'
+    reason: 'In ImportStoredSecretsKey the missing file is returned as exit status 2 right after this literal-format std::fprintf to stderr. The diagnostic''s success has no effect on the outcome.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 2f751048ff5e553999c8
+    what: 'fprintf return ignored in ImportStoredSecretsKey (''The key was not imported'')'
+    reason: 'In ImportStoredSecretsKey the OpenDatabaseForKeyVerb failure is returned as exit status 1 after this literal std::fprintf to stderr. A failed write to stderr changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 804dbb3f72add897cae2
+    what: fprintf return ignored in ImportStoredSecretsKey after ImportText fails
+    reason: 'In ImportStoredSecretsKey the StoredSecrets::ImportText failure is returned as exit status 1 after this literal-format std::fprintf to stderr. The message''s own success is irrelevant to the result.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 043e184294b8b4fa5f1a
+    what: fprintf return ignored in ForgetSealedSecrets usage message
+    reason: 'In ForgetSealedSecrets an empty or ''--''-prefixed key id is refused with exit status 2 after this literal std::fprintf to stderr, before the lock, the configuration or the database is touched. A failed diagnostic write changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: b9cb8fe1e1599e1f8773
+    what: fprintf return ignored in ForgetSealedSecrets when the store lock is held
+    reason: 'In ForgetSealedSecrets the format is one of two string literals chosen by ''taken == 1'', each with exactly one %s matched by AnsiString(lockProblem).c_str(), and the refusal is returned as exit status 4 right after. The stderr write''s success does not affect that.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: fb7ba46f49ec634223bd
+    what: 'fprintf return ignored in ForgetSealedSecrets (''Nothing was changed'')'
+    reason: 'In ForgetSealedSecrets the OpenDatabaseForKeyVerb failure is returned as exit status 1 after this literal std::fprintf to stderr. Nothing depends on the diagnostic''s return.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 01271cce80e6d2da7dbb
+    what: fprintf return ignored in ForgetSealedSecrets after ForgetLostKey fails
+    reason: 'In ForgetSealedSecrets the StoredSecrets::ForgetLostKey failure is returned as exit status 1 after this std::fprintf(stderr, "%s%s.\n", ...), whose format is a literal and whose arguments (a literal and the problem text) are data. A failed write to stderr has nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 90eea44d9431147bfda8
+    what: 'fprintf return ignored in main''s argument parsing (key verb without a file)'
+    reason: 'In main''s argument loop, --export/--import-stored-secrets-key with no following argument (index + 1 >= argc) is refused with exit status 2 right after this literal-format std::fprintf to stderr, whose %s arguments are the option text as data. The usage message''s success has no effect.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 18aa1f9d64f1791c9c7d
+    what: fprintf return ignored in main when the administrator password could not be written
+    reason: 'In main the IniFileSettings::SetAdministratorPassword failure (''written'' false) is returned as exit status 1 after this literal-format std::fprintf to stderr; the password buffer was already zeroed above it. A failed diagnostic write changes nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: 1012144088289b0a00a6
+    what: fprintf return ignored in main for --if-marked without --apply-new-install-defaults
+    reason: 'In main the bad option combination is refused with exit status 2 right after this literal std::fprintf to stderr, before anything is done. The message''s return value has nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: f74956c144a3363d2caa
+    what: fprintf return ignored in main for both copy-store directions given
+    reason: 'In main giving both --copy-store-to-object-storage and --copy-store-from-object-storage is refused with exit status 2 right after this literal std::fprintf to stderr, before RunCopyCommand. The diagnostic''s success does not matter.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: static-analysis
+    finding: b835502f84e5a5c1ede7
+    what: fprintf return ignored in main for both --account and --domain given
+    reason: 'In main giving both --account and --domain to the store copy is refused with exit status 2 right after this literal std::fprintf to stderr, before RunCopyCommand. A failed write to stderr has nothing to change.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # build/ci/security-gate.py
+  - scan: semgrep
+    finding: 0cccd5575933ed9ec295
+    what: xml.etree.ElementTree.parse of security/dependency-scan/junit.xml in dependency_scan()
+    reason: 'dependency_scan() parses only DEPENDENCY_JUNIT (line 82), which the manual, protected-tag-only release job takes from the same pipeline''s dependency-scan job (needs: artifacts: true); that job''s junit() (build/ci/dependency-scan.py 432-448) writes it with escape/quoteattr and no DOCTYPE, so scanner text cannot add markup. ElementTree never fetches an external entity (a reference to one is an ET.ParseError), the expat in python:3.13-slim-trixie is 2.6 or later and caps entity amplification, and every ParseError or OSError is caught at line 382 and appended to problems, so a malformed or hostile file can only hold the release.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # build/scan-secrets.py
+  - scan: semgrep
+    finding: 88902ff8399da6639dd9
+    what: run_docker() makes its mkdtemp work directory world-writable (0o777) and only then writes the ignore file and the staged-lines stream into it
+    reason: 'A real defect, harmless to 6.3.4 and to be fixed in the next batch. run_docker() makes its mkdtemp work directory 0777 (line 228) before it writes the ignore file and the staged-lines stream into it, and remote_script() does the same on the ssh host after writing them (line 260), so on a POSIX host another local account could, while the scan runs, read the stream (the lines being committed), plant a symlink that the open() at 230/232 follows, or swap report.json for [] so the scan says nothing was found. Harmless here because build/scan-secrets.py is a maintainer''s tool (the pre-commit and pre-push hooks and build/land-via-mr.py; CI runs only its --self-test, which starts no scanner): no installer or Linux package ships it and the server never runs it; the exposure needs a hostile second local account on the POSIX machine that runs the scan; on Windows os.chmod only clears the read-only flag and %TEMP% is per-user; and a report swapped to [] hides nothing from the pipeline''s own secret_detection job, which fails on any finding. The fix: a private 0700 mkdtemp parent with only a 0777 work subdirectory inside it, in both run_docker() and remote_script().'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep
+    finding: ae69f7d5b9ddd25fb168
+    what: 'run_ssh() starts ssh with the host from HM_SECRET_SCAN_SSH and the key from HM_SECRET_SCAN_SSH_KEY, and pipes the remote script to ''sh -s'''
+    reason: 'In run_ssh(), subprocess.run gets an argv list with no local shell. The host (line 270) and key path (line 277) come only from the invoking user''s own environment, which neither git (the hooks) nor the repository sets, and whoever sets them can already set PATH for that user, so no boundary is crossed. In the script piped to ''sh -s'', remote_script() single-quotes every docker argument with '' escaped as ''"''"'' (line 252), container_script quotes every gitleaks argument the same way (line 209) and strips quotes from the tip in the echo text (line 214), and the ignore text and staged stream arrive as base64 inside heredocs with quoted delimiters, which base64 output cannot contain.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep
+    finding: 5204c2209b47035105c1
+    what: run_gitleaks() runs the gitleaks binary named by HM_GITLEAKS (or found on PATH) with gitleaks_arguments()
+    reason: 'In run_gitleaks(), the argv list runs without a shell. After the binary it holds only the mode (''git'' or ''stdin'', from scan()), constant flags, two paths inside its own mkdtemp directory, the repository path, and log_opts. log_opts is the user''s own --range (main refuses a leading ''-''; a later space-separated token, which gitleaks splits out, is still the same user''s argument) or pre_push_ranges'' ranges built from git''s SHA lines and the remote name git passes the hook. HM_GITLEAKS names a program from the invoking user''s own environment, exactly as PATH does for shutil.which, so it crosses no boundary.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/BO/FetchAccount.cpp
+  - scan: semgrep-sast
+    finding: c36efe3308fe27847d47
+    what: 'wcslen of username_/password_ c_str() in FetchAccount::CredentialsAreOneLine'
+    reason: 'In FetchAccount::CredentialsAreOneLine, the argument is the c_str() of an HM::String member (a std::wstring), which is always terminated at its length, so wcslen stops at or before GetLength(). The comparison is deliberate: it refuses a credential with an embedded NUL, which wcslen reports as shorter than the stored length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/SQL/MySQLInterface.cpp
+  - scan: semgrep-sast
+    finding: e19835be736fb094ece8
+    what: 'LoadLibraryEx of libmysql.dll in MySQLInterface::Load (Windows arm)'
+    reason: 'In MySQLInterface::Load, sLibrary is a full path from GetLibraryFileName_ (lines 103-119): GetModuleFileName(NULL) sized in characters, clamped and terminated, cut at the last separator, then ''\\libmysql.dll'' appended. LoadLibraryEx with a full path loads that file or fails, with no search of the current directory or PATH, and LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32 limits the client''s own imports to its folder and System32. Even a failing GetModuleFileName would give ''\\libmysql.dll'', which is either refused as not fully qualified or points at the service''s current drive root (System32''s), where only administrators can create files.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/RestApiPreferences.cpp
+  - scan: semgrep-sast
+    finding: 1c9a3f9c879f9359c73b
+    what: strlen of the reserved preference name in the file-local SameKey
+    reason: 'In SameKey, strlen is applied only to ''name'', and its only callers (lines 270-271) pass the literals "support_allowed" and "support_last". The request-controlled key is a std::string, whose size() is compared with that length before key[i] or name[i] is read.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/SealedMessage.cpp
+  - scan: semgrep-sast
+    finding: 28425aac92eaadd5a3e6
+    what: strlen of the armour-line literal in the file-local LineIs helper
+    reason: 'In LineIs, strlen is applied only to ''literal'', and its three callers pass string literals: ''-----BEGIN PGP MESSAGE-----'' at 252, ''-----END PGP MESSAGE-----'' at 277 and ''-----BEGIN PGP SIGNATURE-----'' at 551. The message line is never strlen''d: memcmp reads it only when length == literalLength, and LineReader::Next (lines 164-179) keeps [line, line+length) inside the part''s content, using memchr bounded by length_ - at_ and returning false once at_ >= length_.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/Utilities.cpp
+  - scan: semgrep-sast
+    finding: 4a2197feb46cd4fd9fd4
+    what: 'memcpy of gethostbyname''s first address into addr.sin_addr in Utilities::IsLocalHost (POSIX arm)'
+    reason: 'In Utilities::IsLocalHost, the copy length is the constant sizeof(addr.sin_addr), 4 bytes, which is the destination''s own size. Line 270 returns false before the copy unless host is non-null, h_addrtype == AF_INET, h_length == sizeof(addr.sin_addr) and h_addr_list[0] is non-null, so the source also holds exactly those 4 bytes, including on an old glibc with ''options inet6''. On POSIX the only caller is UtilitiesTester::TestComputerName_ (InterfaceUtilities is COM, Windows-only), so glibc''s shared static hostent is not raced between the check and the copy.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: 45f52109c541548ee939
+    what: 'memcpy of gethostbyname''s first address into addr.sin_addr in Utilities::IsLocalHost (Windows arm)'
+    reason: 'In Utilities::IsLocalHost, the copy length is the constant sizeof(addr.sin_addr), 4 bytes, the size of the SOCKADDR_IN field it writes. Line 291 returns false before the copy unless host is non-null, h_addrtype == AF_INET, h_length == 4 and h_addr_list[0] is non-null, so source and destination are both 4 bytes whatever a DNS answer or the hostname passed over COM contains. Winsock allocates the hostent per thread, so the entry checked at 291 is the one copied at 294.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/XMLite.cpp
+  - scan: semgrep-sast
+    finding: 894ae3c316480e471ca4
+    what: 'memcpy of the span psz..end into the HM::String buffer in _SetString (XMLite, backup index parser)'
+    reason: 'Destination: in _SetString, line 328 returns on a NULL psz or end or when end <= psz, and lines 336-338 keep len in (0, INT_MAX]. GetBufferSetLength(len) resizes the wstring to exactly len characters (SetBuf, StdString.h:2386-2393), and the memcpy copies exactly len characters. Source: [psz, end) always lies inside the NUL-terminated text. Every end comes from a search starting at psz that stops at a terminator: _tcspbrk results are NULL-checked at 412, 507, 616, 936 and 1038; _tcsenistr''s terminator answer is refused at 592, 658 and 711; _tcsechr/_tcsepbrk stop on the NUL. Every psz advance steps only over characters already read as non-NUL: the openers are matched at their real lengths at 771, 798 and 821 before the += at 614, 677 and 730 (the only callers of those loaders), 1029 checks *(xml+1) before xml += 2, and 467/562 step over a quote only when *xml is non-NUL. escape_value defaults to 0, and XMLiteTester::TestMalformed_ exercises each truncated form.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: 3551f22e9ccfbf1f4bb0
+    what: '_tcslen of the entity-encoded text in tagXMLEntitys_::Ref2Entity(LPCTSTR)'
+    reason: 'In tagXMLEntitys_::Ref2Entity(LPCTSTR), estr is NULL-checked at 2031. Every caller (lines 463, 558, 1004, 1108) passes an HM::String through its c_str() conversion, which is always terminated and stays alive until the returned temporary is assigned, and XRef2Entity has no caller. The decode that len sizes is bounded both ways. Output: Ref2Entity writes at most len characters (ps_end at 1983) plus the NUL into GetBufferSetLength(len + 1). Input: GetEntity(LPTSTR) matches with _tcsncmp over the entry''s ref_len (line 1964), so pes advances by ref_len only after all those characters matched, and never past the terminator. The only table is entityDefault (x_EntityTable at XMLite.cpp:56-62, which PARSEINFO''s constructor sets as entitys), and its ref_len values equal its refs'' lengths.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Server/Common/Util/XMLiteTester.cpp
+  - scan: semgrep-sast
+    finding: a8558d96315b210decba
+    what: _tcslen of the test text initialising length_ in the XMLiteTester Text constructor
+    reason: 'In Text::Text, ''text'' is always a _T("...") string literal, whose terminator the compiler supplies. The callers are ExpectRefused''s literal arguments at lines 119-145 (passed on at 85) and the direct constructions at 151, 167, 174, 181, 188, 197, 211 and 249, all in this file''s anonymous namespace. This is test-only code that ClassTester runs.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: da4b8871aee3d49428e9
+    what: _tcslen of the test text sizing the characters_ allocation in the XMLiteTester Text constructor
+    reason: 'This is the same literal as line 36: in Text::Text, every construction passes a _T("...") literal (lines 85/119-145, 151, 167, 174, 181, 188, 197, 211, 249). The allocation new TCHAR[_tcslen(text) + 1] therefore holds the characters and the terminator that line 39 copies. This is test-only code.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: fb482928484b933f9e60
+    what: memcpy of a test literal into its own allocation in the XMLiteTester Text constructor
+    reason: 'In Text::Text, the destination is new TCHAR[_tcslen(text) + 1] and the copy is (length_ + 1) * sizeof(TCHAR). length_ = _tcslen(text) is initialised first because it is declared first (lines 54-55), so both sizes are the same count, terminator included. Every Text is built from a _T("...") literal (line 85 via ExpectRefused''s literal arguments at 119-145, and 151, 167, 174, 181, 188, 197, 211, 249). This is test-only code that runs from ClassTester.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Tools/ControlPanel/Views/FeatureSettingsView.xaml.cs
+  - scan: semgrep-sast
+    finding: 1de2e83fc5f1a4ed9969
+    what: cmd.exe /d /s /c argument line from CommandFor_ in RunElevated_
+    reason: 'In RunElevated_, only two values reach the line, and CommandFor_ (lines 787-801) double-quotes both, so & | < > ^ in them are literal; ''action'' only chooses among constant switch strings. ''executable'' comes from ServerExecutable_ (lines 768-780): hMailServer.exe beside the INI that IniFeatureStore.Locate finds from HKLM\SOFTWARE\hMailServer InstallLocation or the service''s registered PathName, both writable only by administrators, and File.Exists must be true, which excludes a ''"''. ''report'' is GetTempPath() plus a constant prefix, a GUID and ".txt" (line 812), and TEMP belongs to the user who asks for this elevation; even when a different administrator approves an over-the-shoulder prompt, that user could start cmd.exe elevated with any command line through the same kind of prompt, which shows the command line, so the value gives nothing the prompt does not already give.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: 367dce7d1426591b4bd1
+    what: FileName of the elevated cmd.exe in TryRestartService
+    reason: 'In TryRestartService, FileName is Path.Combine(Environment.SystemDirectory, "cmd.exe"). Environment.SystemDirectory comes from GetSystemDirectoryW, not from the environment, and WorkingDirectory is also System32 (line 3021), so ShellExecuteEx does no search and nothing in the current directory can stand in for cmd.exe. No user or file text reaches this line.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: 3a98ec300b45c7a6ab8c
+    what: Arguments of the elevated cmd.exe (net stop/start hMailServer) in TryRestartService
+    reason: 'In TryRestartService, the argument line is constant text plus ''net'', which is Path.Combine(Environment.SystemDirectory, "net.exe") (line 3016): a GetSystemDirectoryW path with no quote in it, quoted in the line. /d skips Command Processor AutoRun, and with /s cmd removes only the outer pair of quotes, so what runs is exactly ''"<System32>\net.exe" stop hMailServer & "<System32>\net.exe" start hMailServer'', with no value from the user, a file or the server.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+  - scan: semgrep-sast
+    finding: 361005ce906b3d763429
+    what: Process.Start of the elevated restart start info in TryRestartService
+    reason: 'In TryRestartService, this starts the ProcessStartInfo built at lines 3017-3025. Its FileName is System32''s cmd.exe by full path, its WorkingDirectory is System32, and its arguments are constant except for System32''s net.exe path. Nothing variable is interpreted by the shell, and no bare name is searched for.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Tools/ControlPanel/Views/UtilityViews.cs
+  - scan: semgrep-sast
+    finding: 47d0b4bbc1f443936c9c
+    what: 'explorer.exe /select,"<report path>" fallback in OpenReport'
+    reason: 'In OpenReport, explorer.exe is started by full path from Environment.GetFolderPath(SpecialFolder.Windows), a fixed, non-redirectable known folder. Its one argument is ''/select,"'' + reportPath_ + ''"'', parsed by explorer itself and never by cmd. reportPath_ is set (line 707) only from ReadConsistencyReport''s results at 792, 809 and 817, each reached only after File.Exists(path) returned true at 771, and File.Exists is false for a path containing ''"''. The path always ends in the constant MessageStoreConsistencyReport.FileName ''hMailServer_messagestore_consistency.report'', so no trailing backslash can escape the closing quote, and its folder is [Directories] LogFolder from the administrator-owned hMailServer.INI.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Tools/DBSetupQuick/Program.cs
+  - scan: semgrep-sast
+    finding: 20062b00a0cbf9d9e1e1
+    what: Process.Start of DBUpdater in DBSetupQuick.Program.UpgradeDatabase
+    reason: 'In UpgradeDatabase, FileName is Path.Join(AppContext.BaseDirectory, "DBUpdater.exe") (line 38), a full path in the tool''s own Bin folder (the project is not a single-file bundle, so BaseDirectory is not an extraction folder). UseShellExecute is false (line 41), so there is neither a search nor a shell. The arguments are only the constants "/SilentIfOk" and "/silent", added one element at a time to ArgumentList (lines 48 and 52). The administrator password travels in the child''s HM_ADMIN_PASSWORD environment variable (line 68), not on the command line, so no password text is re-split or parsed as a switch.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Tools/DBUpdater/formMain.cs
+  - scan: semgrep-sast
+    finding: f3dd634e540337d2ddca
+    what: Notepad started on the selected upgrade script in listRequiredUpgrades_DoubleClick
+    reason: 'In listRequiredUpgrades_DoubleClick, the program is Path.Combine(Environment.SystemDirectory, "notepad.exe"), a GetSystemDirectoryW path, so there is no search. UseShellExecute keeps its .NET default of false, so no shell is involved. The script path is added as a single ArgumentList element (line 918), which .NET quotes by the CRT rules. It is GetScriptFileName''s Path.Join of the server''s DBScriptDirectory with "Upgrade" + two ints (UpgradeScript.From/To) + "to" + one of the four constant database-type names + ".sql" (lines 643-649). Every list item''s Tag is an UpgradeScript (line 154), so no text from a user or file can add an argument.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
+
+  # hmailserver/source/Tools/Shared/Dialogs/formEnterPassword.cs
+  - scan: semgrep-sast
+    finding: 6632fb30cb0a0a2e7b21
+    what: 'ShellExecute of the fixed wiki URL from the password dialog''s help link'
+    reason: 'In linkWhatIsThis_LinkClicked, the ProcessStartInfo file name is the compile-time constant https URL ''https://gitlab.com/Progressiverobot/hmailserver/-/wikis/Installing-hMailServer#the-wizard-page-by-page'', with no arguments. With UseShellExecute, the only effect is to open the default browser at that address, and no dialog text or other input reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-03-26
