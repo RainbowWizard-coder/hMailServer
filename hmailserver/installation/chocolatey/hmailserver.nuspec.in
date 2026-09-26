@@ -16,17 +16,17 @@
   <metadata>
     <id>hmailserver</id>
     <version>@VERSION@</version>
-    <packageSourceUrl>https://github.com/Progressiverobot/hmailserver/tree/master/hmailserver/installation/chocolatey</packageSourceUrl>
+    <packageSourceUrl>https://gitlab.com/Progressiverobot/hmailserver/-/tree/master/hmailserver/installation/chocolatey</packageSourceUrl>
     <owners>Progressive Robot Ltd</owners>
     <title>hMailServer</title>
     <authors>Christopher Holloway, Progressive Robot Ltd</authors>
-    <projectUrl>https://github.com/Progressiverobot/hmailserver</projectUrl>
+    <projectUrl>https://gitlab.com/Progressiverobot/hmailserver</projectUrl>
     <copyright>Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer by Martin Knafve.</copyright>
-    <licenseUrl>https://github.com/Progressiverobot/hmailserver/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectSourceUrl>https://github.com/Progressiverobot/hmailserver</projectSourceUrl>
-    <docsUrl>https://github.com/Progressiverobot/hmailserver/wiki</docsUrl>
-    <bugTrackerUrl>https://github.com/Progressiverobot/hmailserver/issues</bugTrackerUrl>
+    <projectSourceUrl>https://gitlab.com/Progressiverobot/hmailserver</projectSourceUrl>
+    <docsUrl>https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home</docsUrl>
+    <bugTrackerUrl>https://gitlab.com/Progressiverobot/hmailserver/-/issues</bugTrackerUrl>
     <tags>hmailserver mail mailserver email smtp imap pop3 dkim dmarc spam webmail server admin</tags>
     <summary>A free, open-source mail server for Windows - SMTP, IMAP and POP3, with anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.</summary>
     <description><![CDATA[
@@ -49,8 +49,8 @@ export.
 
 ### What this package does
 
-It downloads the release's Authenticode-signed installer from GitHub, checks it against the SHA-256
-recorded in this package, and runs it unattended. That installs the server, the Control Panel and
+It downloads the release's Authenticode-signed installer from the project's release on GitLab,
+checks it against the SHA-256 recorded in this package, and runs it unattended. That installs the server, the Control Panel and
 the setup tools, and configures the embedded database.
 
 An unattended install leaves the administrator password unset, because the wizard page that asks
@@ -60,7 +60,7 @@ open the Control Panel from the Start menu.
 Uninstalling runs the installer's own uninstaller. It does not delete the message store or the
 database: that is deliberate, and removing them is the administrator's decision to make by hand.
 ]]></description>
-    <releaseNotes>https://github.com/Progressiverobot/hmailserver/releases/tag/@TAG@</releaseNotes>
+    <releaseNotes>https://gitlab.com/Progressiverobot/hmailserver/-/releases/@TAG@</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />

@@ -18,8 +18,9 @@ it:
 
 The two sources produce the same type library byte for byte (checked on 11
 September 2026). `build.ps1` runs the script after the server build,
-`build-tools.ps1` runs it before publishing anything, and the two CI workflows
-and the CodeQL analysis run it before they restore. It writes the wrapper only
+`build-tools.ps1` runs it before publishing anything, and the CI's
+`windows-dotnet` job (`build/ci/windows-dotnet.ps1`) runs it before it restores,
+as the GitHub CI and CodeQL workflows did up to 6.3.3. It writes the wrapper only
 when the type library it would be made from differs from the one recorded in
 `Interop.hMailServer.dll.source-sha256` beside it; the wrapper's own hash cannot
 say whether it is current, since TlbImp stamps a fresh module id on every run.

@@ -16,7 +16,7 @@
 #~                                  `winget upgrade` compares against PackageVersion
 #~   PrivilegesRequired=admin    -> ElevationRequirement: elevatesSelf
 #~
-#~ The silent switches are the installer-smoke workflow's, minus /TYPE=full: on a
+#~ The silent switches are the installer smoke test's, minus /TYPE=full: on a
 #~ FIRST install Inno's default type is "full" anyway (section_types.iss lists it
 #~ first), and on an UPGRADE Inno preselects the components already installed -
 #~ so forcing the full type would quietly add the Control Panel back to a server

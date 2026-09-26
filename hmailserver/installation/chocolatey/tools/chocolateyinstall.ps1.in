@@ -19,7 +19,7 @@ $packageArgs = @{
     checksum64     = '@INSTALLER_SHA256@'
     checksumType64 = 'sha256'
 
-    # The installer-smoke workflow's switches. /SUPPRESSMSGBOXES is not optional:
+    # The installer smoke test's switches. /SUPPRESSMSGBOXES is not optional:
     # without it a database-setup failure shows a message box, silent mode answers
     # it with the default button, and a broken install reports success. /TYPE is
     # deliberately not passed - on a first install Inno's default type is the full
@@ -38,4 +38,4 @@ Write-Host 'hMailServer @VERSION@ is installed. The administrator password is NO
 Write-Host 'unattended install - the wizard page that asks for one is skipped. Set one before'
 Write-Host 'the server is reachable from anywhere but this machine: open the Control Panel'
 Write-Host 'from the Start menu. Documentation:'
-Write-Host 'https://github.com/Progressiverobot/hmailserver/wiki'
+Write-Host 'https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home'
