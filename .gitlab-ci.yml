@@ -53,9 +53,16 @@
 #                         release created (build/ci/release-chain.py);
 #   update-feed           a pipeline on master that runs pages alone, so the feed has the release.
 #
-# And in a pipeline of its own, from a schedule that sets HM_PIPELINE=fuzz:
+# And each in a pipeline of its own, from the pipeline schedule whose description is
+# the word given (the owner makes each; docs/ContinuousIntegration.md says how):
 #
-#   linux-fuzz    linix: the MIME harnesses under libFuzzer (build/ci/linux-fuzz.sh).
+#   linux-fuzz        "fuzz", nightly: linix, the MIME harnesses under libFuzzer
+#                     (build/ci/linux-fuzz.sh);
+#   renovate          "renovate", daily: linix, Renovate's dependency updates;
+#   secret_detection  "security", run once by hand: GitLab's secret detection over
+#                     the whole history (.gitlab/ci/gitlab-security.yml).
+#
+# Any other schedule on master - the update feed's - runs pages alone.
 #
 # Why protected refs only: the two runners are registered ref_protected, so GitLab
 # gives them no job for anything else, and the rules below do not even create one.
@@ -102,34 +109,42 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 default:
-  # A newer push to the same branch makes this pipeline's answer moot.
+  # A newer push to the same branch makes this pipeline's answer moot. The two long
+  # gates, linux-suite and windows-gate, say interruptible: false (as do linux-fuzz,
+  # renovate and the release jobs), and once one of them has started GitLab cancels
+  # nothing of the pipeline: a gate is not cut off half-way, and the pipeline that
+  # started it keeps its answer.
   interruptible: true
 
 variables:
   # None of the checks reads history; the sign-off job asks for all of it.
   GIT_DEPTH: "1"
   # The image release-sign runs cosign in: cosign's own, from Google's registry (never
-  # ghcr.io or GitHub), the -dev tag for its busybox shell, pinned by digest. The digest
-  # below is a placeholder until the owner establishes it (docs/ContinuousIntegration.md,
-  # "The release"); the release job refuses to start the chain while it is.
-  HM_COSIGN_IMAGE: "gcr.io/projectsigstore/cosign:v2.6.1-dev@sha256:PIN-THE-DIGEST"
+  # ghcr.io or GitHub), the -dev tag for its busybox shell, pinned by digest - the
+  # digest of the tag's multi-platform index, as docker inspect gave it on linix on 26
+  # September 2026. cosign 2.6.5, the last release of the 2 line the release scripts
+  # were written for. The image has no /bin/sh: its shell is /busybox/sh, which is on
+  # its PATH as sh, which is how GitLab's runner starts a job's script in it
+  # (docs/ContinuousIntegration.md, "The release").
+  HM_COSIGN_IMAGE: "gcr.io/projectsigstore/cosign:v2.6.5-dev@sha256:76029a0246bcfde96caa72469a62a1094f6e0978dc3f537f5cafd4c5f6c6a417"
   PYTHONUTF8: "1"
   PYTHONDONTWRITEBYTECODE: "1"
 
-# The nightly fuzz pipeline is started by a pipeline schedule that sets
-# HM_PIPELINE=fuzz (docs/ContinuousIntegration.md, "The fuzz schedule"). It runs
-# linux-fuzz and no other job: every job on the shared runners takes these rules,
-# and .own-runners below begins with the same refusal. The same refusal keeps the
-# checks out of every other scheduled pipeline too - the update feed's and
-# Renovate's - each of which runs only the job its own rules name, and out of the
-# downstream pipeline a release starts on master (update-feed, below; its source is
-# "pipeline"), which runs pages alone. Any HM_PIPELINE at all is a pipeline for one
-# job. The feed's pipeline is told apart by its source, not by a variable: a trigger
-# job's variables reach the pipeline it starts as pipeline variables, which GitLab
-# refuses by default in a project made since 17.7.
+# Every scheduled pipeline runs one job, chosen by the schedule's description
+# ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "renovate" renovate,
+# "security" secret_detection, and any other - the update feed's - pages. So every
+# job on the shared runners takes these rules, and .own-runners below begins with
+# the same refusal, which also keeps them out of the downstream pipeline a release
+# starts on master (update-feed, below; its source is "pipeline"), which runs pages
+# alone. A schedule is chosen by its description and not by a variable because the
+# project refuses pipeline variables (ci_pipeline_variables_minimum_override_role
+# no_one_allowed), and GitLab counts a schedule's variables as pipeline variables:
+# it would not save one. The description is a predefined variable, which that does
+# not touch. The feed's pipeline is told apart by its source for the same reason: a
+# trigger job's variables reach the pipeline it starts as pipeline variables.
 .not-a-fuzz-pipeline:
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - when: on_success
 
@@ -296,14 +311,14 @@ sign-off:
 # project's releases and package registry through the public API, with no token and
 # nothing from the commit but the script, so any run publishes what the releases say
 # at that moment. It runs for a push to the default branch, for a v* tag, and for a
-# pipeline schedule on the default branch, which is what picks up a release made or
-# edited after its tag's pipeline ran; a schedule's pipeline runs this job alone, the
-# checks and the own runners' jobs each skipping a pipeline whose source is a schedule
-# (docs/ContinuousIntegration.md, "The update feed", says how the schedule is made).
-# release-publish is followed by update-feed, which starts a downstream pipeline on
-# the default branch (source "pipeline"): this job alone again, once the release exists.
-# Never for a merge request: a fork's code must not publish the feed. On the shared
-# runners, like the checks.
+# pipeline schedule on the default branch (the update feed's, "update feed"), which is
+# what picks up a release made or edited after its tag's pipeline ran; a schedule's
+# pipeline runs this job alone, the checks and the own runners' jobs each skipping a
+# pipeline whose source is a schedule (docs/ContinuousIntegration.md, "The update
+# feed", says how the schedule is made). release-publish is followed by update-feed,
+# which starts a downstream pipeline on the default branch (source "pipeline"): this
+# job alone again, once the release exists. Never for a merge request: a fork's code
+# must not publish the feed. On the shared runners, like the checks.
 pages:
   stage: release
   image: python:3.13-slim-trixie
@@ -312,8 +327,9 @@ pages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
-    # Not the fuzz schedule's pipeline nor Renovate's, each of which runs its one job.
-    - if: $HM_PIPELINE == "fuzz" || $RUN_RENOVATE == "1"
+    # Not the three schedules that each run another job alone: the fuzz schedule's,
+    # Renovate's and the history's secret scan.
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
@@ -332,15 +348,33 @@ pages:
 # project runners registered ref_protected with run_untagged off, and a job reaches
 # one only by its tag. These rules keep every such job out of any pipeline that is not
 # for a protected ref, and out of every merge request pipeline whatever its source.
-# A scheduled pipeline is renovate's alone (below): it must not start the gates.
+# A scheduled pipeline runs the one job its description names (linux-fuzz and renovate
+# here, with rules of their own): it must not start the gates.
+#
+# Nor does a push that changes documentation alone: the jobs here run when the push
+# changes any file but a Markdown file at the root of the tree or under .gitlab/ (the
+# issue and merge request templates). Every other Markdown file counts as code:
+# hmailserver/docs/*.md is compiled into the server (HelpPagesData.cpp) and read by the
+# suites, and the READMEs further down are read by tests and packaging. GitLab matches
+# the paths with Ruby's File.fnmatch (FNM_PATHNAME, FNM_DOTMATCH, FNM_EXTGLOB), which
+# has no "all but": so the first three patterns name every file whose name does not
+# end in ".md", and the fourth every .md below a directory whose name does not begin
+# with a dot. build/check-release-chain.py holds the patterns to that, file by file.
+# A branch's first push, a tag and a pipeline started by hand count every file as
+# changed, so they run everything.
 .own-runners:
   rules:
-    # A fuzz pipeline (HM_PIPELINE=fuzz, from its schedule) runs linux-fuzz and nothing else,
-    # the feed's (source "pipeline", from update-feed) pages alone, and no scheduled
-    # pipeline runs a job here.
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    # A scheduled pipeline (linux-fuzz's, renovate's, the feed's) and the feed's
+    # downstream one (source "pipeline", from update-feed) run no job here.
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+      changes:
+        paths: &not-docs-only
+          - "**/*[!d]"
+          - "**/*[!m]d"
+          - "**/*[!.]md"
+          - "[!.]*/**/*.md"
 
 # The Linux jobs run in an image built ON linix from build/ci/linux.Dockerfile and never
 # pulled: its tag is made from the Dockerfile's own hash, build/check-ci-image.py holds
@@ -373,6 +407,8 @@ linux-suite:
   stage: test
   needs: [linux-build]
   timeout: 3 hours
+  # A later push does not cut the suite off half-way (default:, above).
+  interruptible: false
   services:
     # The same PostgreSQL the Linux suite has always run against, by digest.
     - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
@@ -417,10 +453,14 @@ db-matrix:
   stage: test
   needs: [linux-build]
   timeout: 3 hours
+  # .own-runners' rules, started by hand: the same paths, or a docs-only push would
+  # have this job without the linux-build it needs.
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+      changes:
+        paths: *not-docs-only
       when: manual
       allow_failure: true
   variables:
@@ -449,12 +489,22 @@ db-matrix:
 #
 # HM_GATE_WHERE, empty, is the whole suite in one run; an NUnit --where expression
 # runs that subset instead, which is how a second Windows runner would take half.
+#
+# A bench busy for HM_GATE_LOCK_WAIT_MINUTES (the maintainer's split gate, or another
+# pipeline's) ends the job with exit 10, which is allowed to fail: the pipeline shows a
+# warning, not a failure, and the commit is gated again by retrying the job. Not for a
+# v* tag: a release must not go on without its gate, so there a busy bench is exit 13,
+# a failure like any other. The lock's other refusals are 13 everywhere.
 windows-gate:
   extends: .own-runners
   stage: test
   tags: [bench150]
   needs: []
   timeout: 4 hours
+  # A later push does not cut the suite off half-way, nor leave the bench mid-build.
+  interruptible: false
+  allow_failure:
+    exit_codes: [10]
   variables:
     GIT_STRATEGY: none
     HM_BENCH_DIR: 'C:\bench\hmailserver'
@@ -498,7 +548,10 @@ windows-gate:
       Expand-Archive gate.zip -DestinationPath gate
       $ci = "$env:CI_PROJECT_DIR\gate\build\ci"
       & $shell -NoProfile -ExecutionPolicy Bypass -File "$ci\gate-lock.ps1" -Take -Holder $holder -Path $env:HM_GATE_LOCK -WaitMinutes $env:HM_GATE_LOCK_WAIT_MINUTES
-      if ($LASTEXITCODE -ne 0) { "the gate lock is not ours - no gate"; exit 10 }
+      $taken = $LASTEXITCODE
+      # 1 is gate-lock.ps1's "another holder kept it": a busy bench, a warning (above).
+      if ($taken -eq 1 -and -not $env:CI_COMMIT_TAG) { "the bench is busy - no gate this time; retry the job to gate $sha"; exit 10 }
+      if ($taken -ne 0) { "the gate lock is not ours (gate-lock.ps1 exit $taken) - no gate"; exit 13 }
       $code = 4
       try {
         & $shell -NoProfile -ExecutionPolicy Bypass -File "$ci\windows-gate.ps1" -Commit $sha -BenchDir $bench -ResultsDirectory "$env:CI_PROJECT_DIR\gate-results"
@@ -573,7 +626,7 @@ chart-and-compose:
   image: alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
   timeout: 10 minutes
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - changes:
         - hmailserver/source/Server/platform/packaging/helm/**/*
@@ -619,7 +672,7 @@ update-helper:
   image: ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
   timeout: 10 minutes
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - changes:
         - hmailserver/source/Server/platform/packaging/hmailserver-update
@@ -661,7 +714,7 @@ package-templates:
   image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
   timeout: 10 minutes
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - changes:
         - hmailserver/installation/winget/**/*
@@ -684,7 +737,7 @@ roadmap:
   image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
   timeout: 5 minutes
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - changes:
         - Roadmap.md
@@ -844,13 +897,17 @@ linux-sbom:
 # around its work all the same: a build beside a running suite perturbs the suite, and
 # the maintainer's split gate runs one over SSH outside GitLab. The .NET SDK, Visual
 # Studio's Build Tools (MIDL) and the .NET Framework SDK (TlbImp) are the bench's own,
-# from Microsoft; the packages come from nuget.org, held to the lock files.
+# from Microsoft; the packages come from nuget.org, held to the lock files. A bench
+# still busy after HM_GATE_LOCK_WAIT_MINUTES is exit 10, a warning, as in windows-gate
+# (read that job for why, and why not for a v* tag).
 windows-dotnet:
   extends: .own-runners
   stage: test
   tags: [bench150]
   needs: []
   timeout: 4 hours
+  allow_failure:
+    exit_codes: [10]
   variables:
     HM_GATE_LOCK: 'C:\bench\gate.lock'
     HM_GATE_LOCK_WAIT_MINUTES: "200"
@@ -864,7 +921,9 @@ windows-dotnet:
       $holder = "gitlab-pipeline-$($env:CI_PIPELINE_ID)-job-$($env:CI_JOB_ID)"
       $shell = (Get-Process -Id $PID).Path
       & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\gate-lock.ps1 -Take -Holder $holder -Path $env:HM_GATE_LOCK -WaitMinutes $env:HM_GATE_LOCK_WAIT_MINUTES
-      if ($LASTEXITCODE -ne 0) { "the gate lock is not ours - nothing built"; exit 10 }
+      $taken = $LASTEXITCODE
+      if ($taken -eq 1 -and -not $env:CI_COMMIT_TAG) { "the bench is busy - nothing built this time; retry the job"; exit 10 }
+      if ($taken -ne 0) { "the gate lock is not ours (gate-lock.ps1 exit $taken) - nothing built"; exit 13 }
       $code = 4
       try {
         & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-dotnet.ps1 -ResultsDirectory "$env:CI_PROJECT_DIR\dotnet-results"
@@ -888,9 +947,15 @@ windows-dotnet:
 # fuzz-nightly.yml, on linix: the three MIME harnesses built with clang++ and libFuzzer,
 # every kept input and reproducer replayed, then each fuzzed for HM_FUZZ_MINUTES on the
 # corpus the earlier nights grew, which the runner's cache carries from night to night
-# (build/ci/linux-fuzz.sh). It runs in a pipeline whose HM_PIPELINE is "fuzz" - the
-# schedule docs/ContinuousIntegration.md tells the owner how to create - and nowhere
-# else, and a newer push does not cancel it.
+# (build/ci/linux-fuzz.sh). It runs in the pipeline of the schedule whose description
+# is "fuzz" - docs/ContinuousIntegration.md tells the owner how to create it - and
+# nowhere else, and a newer push does not cancel it. The time box is here, not in the
+# schedule, which carries no variable: a longer or shorter night is a commit.
+#
+# Its artifact is fuzz-results/, each harness's log and, on a finding, the input that
+# found it, kept whether the job passed or not. Developers and above only: an input
+# that crashes the MIME parser may be a working exploit against every server that has
+# not been fixed yet, and the project's jobs are public.
 linux-fuzz:
   extends: .linix
   stage: test
@@ -898,7 +963,7 @@ linux-fuzz:
   timeout: 2 hours
   interruptible: false
   rules:
-    - if: $HM_PIPELINE == "fuzz" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE != "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" && $CI_COMMIT_REF_PROTECTED == "true"
   variables:
     HM_FUZZ_MINUTES: "20"
     HM_FUZZ_JOBS: "2"
@@ -909,6 +974,13 @@ linux-fuzz:
     when: always
   script:
     - bash build/ci/linux-fuzz.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    access: developer
+    paths:
+      - fuzz-results/
+
 # ---------------------------------------------------------------- security scanning
 #
 # What replaced the three GitHub workflows that stopped with the account on 18
@@ -1042,7 +1114,6 @@ repo-hygiene:
     when: always
     expire_in: 30 days
     paths:
-      - fuzz-results/
       - security/repo-hygiene/
     reports:
       junit: security/repo-hygiene/junit.xml
@@ -1053,8 +1124,9 @@ repo-hygiene:
 # and updates its merge requests on GitLab with RENOVATE_TOKEN, and keeps its dashboard
 # issue current. The owner creates the three things it needs once: the token, the
 # masked and protected CI variable RENOVATE_TOKEN that holds it, and a pipeline
-# schedule for master with the variable RUN_RENOVATE=1. A protected variable reaches a
-# protected ref only, and the rules ask for one.
+# schedule for master whose description is "renovate", with no variable (the project
+# refuses a schedule's variables; .not-a-fuzz-pipeline says why). A protected variable
+# reaches a protected ref only, and the rules ask for one.
 #
 # Nothing it downloads comes from GitHub. The advisories behind renovate.json's
 # osvVulnerabilityAlerts are built from OSV's own export on Google Cloud Storage by
@@ -1073,7 +1145,7 @@ renovate:
   # A push to master while it runs does not stop it halfway through its branches.
   interruptible: false
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && $RUN_RENOVATE == "1" && $CI_COMMIT_REF_PROTECTED == "true"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $CI_COMMIT_REF_PROTECTED == "true"
   variables:
     RENOVATE_PLATFORM: gitlab
     RENOVATE_ENDPOINT: $CI_API_V4_URL
@@ -1129,7 +1201,7 @@ renovate:
 # build/check-release-chain.py holds these jobs to that shape.
 .release-rules:
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
 
@@ -1258,7 +1330,7 @@ release:
   timeout: 15 minutes
   interruptible: false
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
       when: manual
@@ -1379,7 +1451,7 @@ release-publish:
   timeout: 30 minutes
   interruptible: false
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
       when: manual

@@ -363,10 +363,11 @@ security-scanning jobs, not yet blocking: *static-analysis* (cppcheck and clang-
 the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
 `dotnet format --verify-no-changes`). A `v*` tag also gets a *release* job, which is a placeholder until the
 release chain is built, and a pipeline schedule runs *linux-fuzz*, the MIME harnesses under libFuzzer, every
-night. The two machines never take a job for a merge request, above all not one from a fork;
+night. The two machines never take a job for a merge request, above all not one from a fork, nor for a push
+that changes nothing but Markdown files at the root or under `.gitlab/`;
 [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) says why, what each old
 GitHub workflow became, where every tool comes from, and how the runners, their image and the bench's gate
-lock work. A scheduled pipeline with `RUN_RENOVATE=1` runs *renovate* on the lab machine and nothing else:
+lock work. The pipeline of the schedule described `renovate` runs *renovate* on the lab machine and nothing else:
 Renovate opens a merge request a week per ecosystem, and one at once for a dependency with a published advisory,
 from a `renovate/*` branch. Such a merge request is reviewed and landed like yours, after the step its
 description names ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)).

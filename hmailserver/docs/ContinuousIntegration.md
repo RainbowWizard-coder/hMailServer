@@ -42,14 +42,14 @@ What runs where
 | `db-matrix` | test | linix | a protected ref, started by hand | The `linux-build` server against MySQL 8.4, MariaDB 11.4 or PostgreSQL 17 in the test lab (`HM_LAB_DB`), the database-sensitive fixtures or the whole suite (`HM_SUITE_FILTER`); `build/lab/db-suite.sh`, [TestLab.md](TestLab.md) |
 | `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
-| `linux-fuzz` | test | linix | a pipeline with `HM_PIPELINE=fuzz`, from its schedule | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`) |
+| `linux-fuzz` | test | linix | the schedule described `fuzz`, and nothing else | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`); its findings are its artifact, for Developers and above |
 | `static-analysis` | test | linix | a protected ref | cppcheck and clang-tidy over the server's C++, held to a baseline ([Security scanning](#security-scanning)) |
 | `semgrep` | test | linix | a protected ref | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline |
 | `ci-image-packages` | test | linix | a protected ref | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | a protected ref | Trivy over the lock files and the CI image, OSV over the vendored libraries |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
 | `semgrep-sast` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline (`.gitlab/ci/gitlab-security.yml`) |
-| `secret_detection` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings (`.gitlab/ci/gitlab-security.yml`) |
+| `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, and collects the six files a release carries (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The installer Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
@@ -58,7 +58,7 @@ What runs where
 | `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
 | `update-feed` | release | (a trigger) | a `v*` tag, after `release-publish` | Starts a downstream pipeline on `master`, passing no variables, which runs `pages` alone |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
-| `renovate` | check | linix | a pipeline schedule for `master` with `RUN_RENOVATE=1`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
+| `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
 and `linux-sbom` start as soon as the pipeline does. They do not wait for the
@@ -96,10 +96,22 @@ Which pipeline runs what
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
 | a `v*` tag | the tag's | all of them but `linux-fuzz`, `semgrep-sast` and `secret_detection` (the commit's `master` pipeline ran them), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
 | any other tag | none | |
-| the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
-| the Renovate schedule (`RUN_RENOVATE=1`, on `master`) | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
-| any other pipeline schedule on `master` (the update feed's) | the schedule's | `pages` alone (see [The update feed](#the-update-feed)) |
+| the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
+| the schedule described `renovate`, on `master` | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
+| the schedule described `security`, on `master`, run once by hand | the schedule's | `secret_detection` alone, over the whole history ([Security scanning](#security-scanning)) |
+| any other pipeline schedule on `master` (the update feed's, `update feed`) | the schedule's | `pages` alone (see [The update feed](#the-update-feed)) |
 | the pipeline `update-feed` starts (on `master`, source `pipeline`) | a downstream pipeline | `pages` alone |
+
+A schedule is told apart by its description, which GitLab gives the pipeline
+as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `renovate` and
+`security` are the three words that start a job of their own, and a schedule
+carries no variable. The project refuses pipeline variables (*Minimum role to
+use pipeline variables* is *No one allowed*), and GitLab counts a schedule's
+variables as pipeline variables: it will not save a schedule that has one. The
+description is a predefined variable, which that setting does not touch, so the
+setting stays as it is; allowing variables to Owners instead would let every
+Owner start any pipeline, a `v*` tag's included, with variables of their
+choosing that override the file's and leave no commit behind.
 
 The four path-bound checks - `chart-and-compose`, `update-helper`,
 `package-templates` and `roadmap` - run when a file they check, or
@@ -107,13 +119,37 @@ The four path-bound checks - `chart-and-compose`, `update-helper`,
 a branch's first push and for a tag GitLab counts every file as changed, so they
 all run then.
 
+**A push that changes only documentation starts nothing on the project's
+machines.** Every job on linix and bench150 (`.own-runners`, and `db-matrix`
+with it) runs only when the push changes a file that is not a Markdown file at
+the root of the tree (`README.md`, `CHANGELOG.md`, `Roadmap2.md` and the rest)
+or under `.gitlab/` (the issue and merge request templates). Every other
+Markdown file counts as code: `hmailserver/docs/*.md` is compiled into the
+server as its help pages (`HelpPagesData.cpp`) and read by both suites, and the
+READMEs further down are read by tests and packaging. The shared runners' checks
+still run for such a push. GitLab matches `rules:changes` paths with Ruby's
+`File.fnmatch`, which has no "all but", so the rule names what does count:
+`**/*[!d]`, `**/*[!m]d` and `**/*[!.]md` (every file whose name does not end in
+`.md`) and `[!.]*/**/*.md` (a Markdown file below a directory whose name does not
+begin with a dot). `build/check-release-chain.py` matches every file of the tree
+against them and fails unless exactly the root's and `.gitlab/`'s Markdown files
+are left out. A branch's first push, a tag and a pipeline started by hand count
+every file as changed, so the gates always run for those.
+
 The `workflow:` rules keep this to one pipeline per change. A branch with an
 open merge request would otherwise run two pipelines, one for the branch and
 one for the merge request. A newer push to the same ref makes an older pipeline
-moot: every job is `interruptible`, so GitLab cancels the older one when the
-project's "auto-cancel redundant pipelines" setting is on, as it is by default.
-`linux-fuzz` is the exception: it is not interruptible, so a push to `master`
-during the night does not cut the night's fuzzing short.
+moot: most jobs are `interruptible`, so GitLab cancels the older pipeline when
+the project's "auto-cancel redundant pipelines" setting is on, as it is by
+default. The two long gates are not: `linux-suite` and `windows-gate` say
+`interruptible: false`, and GitLab's default ("conservative") auto-cancel
+leaves a pipeline alone once a job that is not interruptible has started. So a
+push that lands while a gate runs - three documentation commits after a batch's
+gated one, say - does not cut the gate off half-way or leave bench150 in the
+middle of a build: the older pipeline runs to its answer and the newer one
+queues behind it on the runner. `linux-fuzz`, `renovate` and the release jobs
+are not interruptible either, so a push to `master` during the night does not
+cut the night's fuzzing short.
 
 Landing a batch runs the full gate twice. The gate runs once on the `batch*`
 branch, and again when `master` is fast-forwarded to the same commit. That is
@@ -346,9 +382,19 @@ runner clones nothing, and the job does the following itself:
    timeout, so that `after_script` still runs). It also starts the service again
    if such a job left it stopped.
 
-The job itself adds three exit codes: 10 when the lock stayed another holder's
+The job itself adds four exit codes: 10 when the lock stayed another holder's
 for `HM_GATE_LOCK_WAIT_MINUTES` (90), 11 when the commit could not be fetched,
-and 12 when the commit has no `build/ci`.
+12 when the commit has no `build/ci`, and 13 when the lock could not be taken
+for any other reason, or stayed another holder's in a `v*` tag's pipeline.
+
+**A busy bench is a warning, not a failure.** Exit 10 is
+`allow_failure: exit_codes: [10]`: the pipeline shows the job with a warning
+and stays green, since nothing was wrong with the commit, only with the
+timing. Retrying the job gates it. `windows-dotnet` does the same after its 200
+minutes. A `v*` tag's pipeline turns the same wait into exit 13, a failure,
+because `release` waits for `windows-gate` and `windows-dotnet` and must not be
+startable when the suite never ran; `build/check-release-chain.py` holds both
+jobs to that.
 
 **The whole suite, in one run.** `HM_GATE_WHERE` is empty, and an empty value
 runs every test (3,490 test cases on 25 September 2026). The two halves of the
@@ -400,7 +446,7 @@ build or service. `build/ci/gate-lock.ps1` implements it:
 - **A stale lock**, older than five hours, is taken over, and the takeover is
   logged. Five hours is one hour more than the longest a job may run.
 - The job waits up to 90 minutes for a lock that another holder has, and then
-  gives up with exit 10.
+  gives up with exit 10, a warning (13 for a `v*` tag).
 
 The split gate takes the same lock with the same script. Copy the script to
 the bench next to `remote-gate.ps1`, and put it around the remote half:
@@ -571,29 +617,43 @@ the same dictionary, the same reproducers and the same libFuzzer flags, built by
 Windows). It replays every kept input and every committed reproducer first, then
 fuzzes each harness for `HM_FUZZ_MINUTES` (20) with `HM_FUZZ_JOBS` workers (2),
 on the corpus the earlier nights grew, which the runner's cache carries from one
-night to the next. A finding fails the job and keeps the input in its artifact
-for 30 days; [Fuzzing.md](Fuzzing.md) says what to do with one.
+night to the next. A finding fails the job. The job's artifact is
+`fuzz-results/` - each harness's log and, on a finding, the input libFuzzer
+wrote - kept whether the job passed or failed, for 30 days, and readable by the
+project's Developers and above only (`access: developer`): the project's jobs are
+public, and an input that crashes the MIME parser may work as an exploit
+against every server not yet fixed. For the same reason the job log, which
+anyone can read, names a finding and its kind and no more: the sanitizer's
+report, the place and the input (libFuzzer prints one of up to 256 bytes in
+full) are in the artifact only. [Fuzzing.md](Fuzzing.md) says what to do
+with one.
 
-It runs in a pipeline of its own and nowhere else: its rule asks for
-`HM_PIPELINE` to be `fuzz` on a protected ref, and every other job refuses a
-pipeline where it is. **Creating the schedule is a one-time step for the owner**,
+It runs in a pipeline of its own and nowhere else: its rule asks for a
+scheduled pipeline on a protected ref whose schedule's description is `fuzz`,
+and every other job refuses it (`pages` by that description, the rest because
+it is a schedule's). **Creating the schedule is a one-time step for the owner**,
 in the project's *Build*, *Pipeline schedules*, *New schedule*:
 
-- description `Nightly fuzz`; interval pattern `10 2 * * *` (custom), time zone
-  UTC - 02:10, after the day's pushes, as before;
+- description exactly `fuzz` - the rule compares the whole description, so
+  nothing else goes in the field;
+- interval pattern `10 2 * * *` (custom), time zone UTC - 02:10, after the
+  day's pushes, as before;
 - target branch `master`;
-- one variable, `HM_PIPELINE` = `fuzz`; and, to change the time box,
-  `HM_FUZZ_MINUTES` (three harnesses run in turn: keep it at 35 or less inside
-  the job's two hours) and `HM_FUZZ_JOBS`;
+- no variables: the project refuses them on a schedule ([Which pipeline runs
+  what](#which-pipeline-runs-what)). The time box - `HM_FUZZ_MINUTES` (20; three
+  harnesses run in turn, so keep it at 35 or less inside the job's two hours)
+  and `HM_FUZZ_JOBS` (2) - is in the job in `.gitlab-ci.yml`, and a change to it
+  is a commit;
 - activated.
 
-The schedule runs as the maintainer who owns it, who must be allowed to push to
-`master`, because a scheduled pipeline on a protected branch is that user's.
-The same pipeline can be started by hand from *Run pipeline* on `master` with
-`HM_PIPELINE=fuzz`. It occupies linix for a little over an hour, and a
-protected ref's pipeline that arrives meanwhile waits for it. To start the
-corpus again from the seeds, clear the runner caches (*Pipelines*, *Clear
-runner caches*).
+Then start the first run with the schedule's *Run* button, and check that its
+pipeline holds `linux-fuzz` alone. The schedule runs as the maintainer who owns
+it, who must be allowed to push to `master`, because a scheduled pipeline on a
+protected branch is that user's. *Run pipeline* by hand does not start it: a
+pipeline started that way is not a schedule's. It occupies linix for a little
+over an hour, and a protected ref's pipeline that arrives meanwhile waits for
+it. To start the corpus again from the seeds, clear the runner caches
+(*Pipelines*, *Clear runner caches*).
 
 What the first runs by hand found
 ---------------------------------
@@ -918,21 +978,31 @@ server binary included, for thirty days, and the signed files are kept ninety.
 
 ### What waits for the owner
 
-Each is a one-time step. Until one of the first three is done, the job that
-needs it stops with a sentence naming it, and nothing is signed. The fourth is
+Each is a one-time step. The first is done. Until either of the next two is
+done, the job that needs it stops with a sentence naming it, and nothing is
+signed. The fourth is
 met only at `release-publish`'s first upload, after both signatures are made,
 and GitLab's refusal is what the job reports. The fifth is a setting nothing in
 the pipeline can check, and the one every server's trust in a release rests on.
 
-1. **The cosign image's digest.** `HM_COSIGN_IMAGE` at the top of the CI file
-   ends in `@sha256:PIN-THE-DIGEST`, a placeholder, and `release` refuses to
-   start while it does. Choose a cosign release whose `-dev` tag exists on
-   `gcr.io/projectsigstore/cosign` (the `-dev` image has the busybox shell a job
-   needs; the plain one has no shell), read its digest - `crane digest
-   gcr.io/projectsigstore/cosign:<tag>` or `docker buildx imagetools inspect`
-   on linix - and write both into the variable. Never an image from
-   `ghcr.io`. cosign 2.4 or later is needed for `--new-bundle-format`; the
-   script turns the signing configuration off wherever the version has it.
+1. **The cosign image's digest - done, 26 September 2026.** `HM_COSIGN_IMAGE`
+   is `gcr.io/projectsigstore/cosign:v2.6.5-dev@sha256:76029a0246bcfde96caa72469a62a1094f6e0978dc3f537f5cafd4c5f6c6a417`:
+   cosign 2.6.5, the last release of the 2 line `release-sign.sh` was written
+   for (2.4 or later has `--new-bundle-format`, and 2.6 has
+   `--use-signing-config`, which the script turns off), in its `-dev` image,
+   which has busybox where the plain image has no shell at all. The digest is
+   the tag's multi-platform index, read on linix with `docker pull` and
+   `docker inspect --format '{{index .RepoDigests 0}}'`, and the same digest
+   `gcr.io`'s tag list gives for `v2.6.5-dev`. The image has no `/bin/sh`: its
+   shell is `/busybox/sh`, which is on the image's `PATH` as `sh`, and that is
+   the name GitLab's runner starts a job's script with. In that image on linix,
+   `sh -c 'cosign version'` answered `v2.6.5` (commit 3e82f50a), `sign-blob`
+   offered both flags the script tests for, busybox had every tool the script
+   uses (`cmp`, `grep`, `sed`, `tr`, `wc`, `find`), and `release-sign.sh`
+   parsed and ran up to its first refusal, the missing `release-assets/`. It
+   has not signed anything: that needs a tag's ID token. A new version is a
+   new tag and digest here, never an image from `ghcr.io`, and
+   `build/check-release-chain.py` fails on a tag without its digest.
 2. **Inno Setup 6 and the Artifact Signing Client Tools on bench150**, as
    administrator ([bench150](#bench150)).
 3. **The Azure side of Authenticode**: the federated credential and the five
@@ -1120,10 +1190,13 @@ Each merge request carries its own note of these steps.
    `RENOVATE_TOKEN` and the value to the token. A protected variable reaches only
    a protected ref, and the job asks for one.
 3. **The schedule.** Open Build, then Pipeline schedules, and choose New
-   schedule. Set the description to `Renovate`, a custom interval pattern of
-   `30 2 * * *`, the cron timezone London, and the target branch `master`. Add the
-   variable `RUN_RENOVATE` with the value `1`, leave it Activated, and save. Daily
-   is for the security fixes: the weekly updates wait for Monday's run anyway.
+   schedule. Set the description to exactly `renovate` (the job's rule compares
+   the whole description, so put nothing else in the field), a custom interval
+   pattern of `30 2 * * *`, the cron timezone London, and the target branch
+   `master`. Add no variable: the project refuses a schedule's variables ([Which
+   pipeline runs what](#which-pipeline-runs-what)). Leave it Activated, and save.
+   Daily is for the security fixes: the weekly updates wait for Monday's run
+   anyway.
 4. **Issues** stay enabled on the project (they are by default), for the dashboard.
 5. **The first run.** Start it from the schedule's Run button rather than waiting
    for 02:30. The job log names each branch and merge request. The debug log is the
@@ -1229,7 +1302,7 @@ measured times after the first pipelines.
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
-| `semgrep-sast`, `secret_detection` | not measured | 30 and 20 min | Neither has run. Each counts against the namespace's compute minutes on GitLab's shared runners |
+| `semgrep-sast`, `secret_detection` | not measured | 30 and 30 min | Neither has run on GitLab. Each counts against the namespace's compute minutes on GitLab's shared runners. `secret_detection`'s scan of the whole history took under a minute on linix |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
@@ -1254,7 +1327,9 @@ GitLab's public API and needs no token and no variable. What it publishes is
 what the releases say at that moment, whichever commit ran it.
 
 It runs for a push to `master`, for a `v*` tag, and for a pipeline schedule on
-`master`, and never for a merge request, a `batch*` branch or any other branch.
+`master` (the feed's own is described `update feed`) but the three described
+`fuzz`, `renovate` and `security`, and never for a merge request, a `batch*`
+branch or any other branch.
 A release is created on GitLab after its tag is pushed, so the tag's own run
 of `pages` misses it. A release made by the release jobs ends with
 `update-feed`, which starts a pipeline on `master` running `pages` alone; the
@@ -1270,18 +1345,22 @@ is the downstream pipeline a release's `update-feed` job starts, whose
 `CI_PIPELINE_SOURCE` is `pipeline`, so each of the others says it is not for
 one: `.own-runners` (and so every job on linix and bench150) and
 `.not-a-fuzz-pipeline` (and so `checkers`, `harnesses` and `editorconfig`)
-begin with `- if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" ||
-$CI_PIPELINE_SOURCE == "pipeline"` with `when: never` - any `HM_PIPELINE` at
-all, any schedule and the feed's pipeline - and the four path-bound checks,
-`db-matrix` and the release jobs carry the same rule. The feed's pipeline is
-told apart by its source rather than by a variable because a trigger job's
-variables reach the pipeline it starts as pipeline variables, which GitLab
-refuses by default in a project made since 17.7, and the trigger would fail.
-`build/check-release-chain.py` fails on a job that does not, apart from the few
-whose own rules match nothing on such a pipeline. `pages`
-itself skips the fuzz pipeline and Renovate's, and `renovate` runs in Renovate's alone. Without them each scheduled run would start the whole Windows gate
-on bench150 and the Linux suite on linix. A new job added to the file needs the
-same, or a schedule starts it too.
+begin with `- if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE ==
+"pipeline"` with `when: never` - any schedule and the feed's pipeline - and the
+four path-bound checks, `db-matrix`, the release jobs and GitLab's two scanners
+carry the same rule. The feed's pipeline is told apart by its source rather
+than by a variable because a trigger job's variables reach the pipeline it
+starts as pipeline variables, which GitLab refuses by default in a project made
+since 17.7, and the trigger would fail. `build/check-release-chain.py` fails on
+a job that does not, apart from the few whose own rules match nothing on such a
+pipeline. `pages` itself skips the three schedules described `fuzz`, `renovate`
+and `security`, each of which runs its own job alone (`linux-fuzz`, `renovate`,
+`secret_detection`), and the checker fails if it stops skipping any of them or
+a rule of the file names `HM_PIPELINE` or `RUN_RENOVATE`, the variables that
+chose those pipelines until 26 September 2026 and that the project would refuse.
+Without them each scheduled run would start the whole Windows gate on bench150
+and the Linux suite on linix. A new job added to the file needs the same, or a
+schedule starts it too.
 
 The `checkers` job runs the generator's self-test, which reads the compiled feed
 addresses out of `UpdateChecker.cpp` and serves a tree the way Pages does, so a
@@ -1374,14 +1453,47 @@ included from `.gitlab-ci.yml`): `semgrep-sast`, GitLab's Semgrep analyzer and
 rules over every language of the tree, the server's C and C++ included, and
 `secret_detection`, which looks for a key, token or password in the commits a
 pipeline brings. They run on GitLab's shared runners, for `master` and a merge
-request only, in images from `registry.gitlab.com` pinned by digest; they are
-`allow_failure`, as the templates make them, and hold nothing to a baseline.
-Each leaves its JSON report for Developers and above to download.
+request only, in images from `registry.gitlab.com` pinned by digest. Each
+leaves its JSON report for Developers and above to download.
 `SAST_DISABLED=true` or `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable,
-turns one off. A scan of the whole history is a pipeline on `master` with
-`SECRET_DETECTION_HISTORIC_SCAN=true`; the project refuses variables given to
-a pipeline by hand, so that one is set as a project CI/CD variable for the run
-and removed after it.
+turns one off.
+
+`semgrep-sast` is `allow_failure`, as its template makes it, and holds nothing
+to a baseline. **`secret_detection` fails on a finding.** The template cannot:
+its analyzer exits 0 whatever it finds (it did so on linix with thirty
+findings), and the template marks the job `allow_failure: true`, which would
+show a failure as a warning anyway. So the job runs the analyzer, then reads
+its report, `gl-secret-detection-report.json`, and fails unless its list of
+findings is empty, naming the files; and it is `allow_failure: false`. What was
+read and found not to be a secret is named in `.gitleaksignore` at the root, one
+gitleaks fingerprint a line (`<commit>:<file>:<rule>:<line>`), which gitleaks
+reads from the checkout. A real secret is revoked where it was issued, not
+listed.
+
+**The whole history, once.** A scan of every commit rather than the pushed
+ones is the pipeline of a schedule on `master` described `security`: there
+`secret_detection` runs alone with `SECRET_DETECTION_HISTORIC_SCAN` set by its
+own rule. It is a schedule, not a variable set by hand, because the project
+refuses variables given to a pipeline or a schedule; and not a manual job,
+which would sit in every `master` pipeline and still need a pipeline to start
+in, while `master` is pushed with `ci.skip`. The owner makes it once: *Build*,
+*Pipeline schedules*, *New schedule*, description exactly `security`, any
+interval (it is not left active), target branch `master`, no variables; then
+*Run* it once, and deactivate it. On 26 September 2026 the same scan was run on
+linix in the job's image over a full clone of the project - `master` at
+40c7d3e0c and its 83 tags, among them the upstream hMailServer 5.x tags whose
+history `master` does not contain: 2,214 commits,
+720 MB of changes, under a minute, and thirty findings, each read in its commit
+and none a secret - PEM and OpenPGP armour lines in the server's key-parser
+testers, AWS's documented example key `AKIAIOSFODNN7EXAMPLE` in
+`ObjectStoreSignature.cpp`'s tester, the regression tests' own fixture keys,
+and the sample keys under `hmailserver/test/SSL examples` and Boost's asio
+examples. They are the thirty lines of `.gitleaksignore`; with the file in the
+checkout the scan found nothing, and the job's check passed, and it failed on
+the report of the thirty. The schedule's run on GitLab is still to be made. It
+scans what the job's checkout reaches, which may be less than the clone did (five
+of the thirty are in a commit only the upstream tags reach) but not more while
+`master` is the project's one branch.
 
 **Proved by hand, not yet in a pipeline.** Each job's script was run on linix
 on 25 September 2026, in a container of the job's own image, with the job's own
@@ -1425,7 +1537,7 @@ it too (exit 2).
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version | The gate at merge-request time: a merge request from a fork never reaches linix. GitHub's malware advisories |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree | The checks only GitHub can answer, and the published score (below) |
-| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, on the shared runners for `master` and a merge request: it finds a secret after the push and reports it | The refusal. Push protection is a GitLab Ultimate feature |
+| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, on the shared runners for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
 
 ### The jobs, and where each tool comes from
 

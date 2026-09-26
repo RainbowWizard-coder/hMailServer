@@ -32,13 +32,28 @@
 # On the Free tier each job leaves its report as an artifact that project members
 # with the Developer role or above can download (artifacts:access in the templates);
 # the merge request widget, the pipeline's Security tab and the vulnerability report
-# are GitLab Ultimate. Both jobs are allow_failure, as the templates make them: a
-# finding does not fail a pipeline.
+# are GitLab Ultimate. semgrep-sast is allow_failure, as the template makes it: a
+# finding does not fail a pipeline. secret_detection is not: a secret found fails the
+# job and the pipeline. The template's job cannot do that by itself - the analyzer
+# exits 0 whatever it finds, and the template adds allow_failure: true, which would
+# hide the failure anyway - so the job below runs the analyzer and then reads its
+# report. What was read and is not a secret (test keys, the armour lines the key
+# parsers are tested with, AWS's documented example key) is named in .gitleaksignore
+# at the root, which gitleaks reads from the checkout.
 #
 # When they run: in a merge request's pipeline and in a pipeline for the default
 # branch, and in no other. Never in the fuzz schedule's, Renovate's or the update
 # feed's pipeline, which each run their one job (.not-a-fuzz-pipeline in
 # .gitlab-ci.yml), nor for a v* tag, whose commit master's pipeline scanned already.
+# And secret_detection alone in the pipeline of a schedule on master whose description
+# is "security": there it scans the whole history (SECRET_DETECTION_HISTORIC_SCAN),
+# not only the commits a push brings. That is the one-time scan of the history
+# imported from GitHub: the owner makes the schedule, runs it once from its Run
+# button, and deactivates it until the next time (docs/ContinuousIntegration.md,
+# "Security scanning"). A schedule and not a variable, because the project refuses pipeline
+# variables and a schedule's; a schedule and not a manual job, because a manual job
+# would sit in every pipeline on master, where pushes land with ci.skip, and would
+# need a pipeline to be started in anyway.
 #
 # Where they run: GitLab's shared runners, never linix or bench150. Those two are
 # registered with run_untagged off and take only a job tagged for them, and these
@@ -59,7 +74,7 @@ include:
 
 .gitlab-security-rules:
   rules:
-    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -81,8 +96,36 @@ semgrep-sast:
 secret_detection:
   image: registry.gitlab.com/security-products/secrets:7@sha256:77ac5c87f73b709cad2e4bfb2b255caba7e63fb3c832314b3fb88aaa3c129af7
   needs: []
-  timeout: 20 minutes
+  # The whole history took under a minute on linix (2,214 commits, 720 MB of diffs);
+  # a shared runner's fetch of it is the rest.
+  timeout: 30 minutes
+  # A finding fails the pipeline (above); the template's allow_failure: true would
+  # show it as a warning.
+  allow_failure: false
   rules:
     - if: $SECRET_DETECTION_DISABLED == 'true' || $SECRET_DETECTION_DISABLED == '1'
       when: never
+    # The one-time scan of the whole history: the schedule on master described "security".
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security" && $CI_COMMIT_REF_PROTECTED == "true"
+      variables:
+        SECRET_DETECTION_HISTORIC_SCAN: "true"
     - !reference [.gitlab-security-rules, rules]
+  script:
+    - /analyzer run
+    # The analyzer exits 0 whatever it found: the report says. Its JSON is written on
+    # one line, and an empty "vulnerabilities" list is a clean scan.
+    - |
+      report=gl-secret-detection-report.json
+      if [ ! -s "$report" ]; then
+        echo "The analyzer wrote no $report: nothing was scanned."
+        exit 1
+      fi
+      if grep -Eq '"vulnerabilities" *: *\[ *\]' "$report"; then
+        echo "Secret detection found nothing that .gitleaksignore does not name."
+        exit 0
+      fi
+      found=$(grep -o '"category" *: *"secret_detection"' "$report" | wc -l)
+      echo "Secret detection found $found possible secret(s); the report is this job's artifact, for Developers and above. By file:"
+      grep -o '"file" *: *"[^"]*"' "$report" | sed 's/^"file" *: *//' | sort | uniq -c
+      echo "Revoke a real secret where it was issued (SECURITY.md); name one that is not a secret in .gitleaksignore, which says how."
+      exit 1

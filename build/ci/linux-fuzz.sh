@@ -209,7 +209,12 @@ run() {
   rm -f "$root/$out"/fuzz-*.log
   ( cd "$root/$out" && "$root/fuzz/bin/$target" "${arguments[@]}" "$corpus" "${seeds_for[@]}" ) > "$log" 2>&1
   code=$?
-  grep -h -E '(DONE|INITED|stat::number_of_executed_units|stat::peak_rss_mb|ERROR: (AddressSanitizer|libFuzzer)|^SUMMARY)' "$log" "$root/$out"/fuzz-*.log 2> /dev/null | tail -n 12
+  # What reaches the job log, which is public (the project's jobs are): the counts,
+  # and of a finding its kind alone. A sanitizer's SUMMARY loses where it happened;
+  # the stack, the place and the input stay in $out, the job's artifact, which only
+  # Developers and above can read (.gitlab-ci.yml, linux-fuzz).
+  grep -h -E '(DONE|INITED|stat::number_of_executed_units|stat::peak_rss_mb|ERROR: (AddressSanitizer|libFuzzer)|^SUMMARY)' "$log" "$root/$out"/fuzz-*.log 2> /dev/null \
+    | sed -E 's/^(SUMMARY: (AddressSanitizer|UndefinedBehaviorSanitizer|MemorySanitizer): [A-Za-z-]+) .*/\1/' | tail -n 12
   for worker in "$root/$out"/fuzz-*.log; do
     [ -f "$worker" ] && mv "$worker" "$root/$out/$target-$how-$(basename "$worker")"
   done
@@ -222,8 +227,13 @@ run() {
     ls -la "$artifacts"
     mkdir -p "$root/$out/artifacts/$target"
     cp "$artifacts"/* "$root/$out/artifacts/$target/" 2> /dev/null || true
-    # A worker's report is in its own log, not in the parent's.
-    grep -l -E 'ERROR: (AddressSanitizer|libFuzzer)' "$log" "$root/$out/$target-$how"-fuzz-*.log 2> /dev/null | head -n 1 | xargs -r tail -n 60
+    # A worker's report is in its own log, not in the parent's. Named, not printed:
+    # the report ends with the input itself (libFuzzer prints one of up to 256 bytes
+    # in hex and in Base64), and an input that crashes the parser may be an exploit.
+    local report
+    report=$(grep -l -E 'ERROR: (AddressSanitizer|libFuzzer)' "$log" "$root/$out/$target-$how"-fuzz-*.log 2> /dev/null | head -n 1)
+    echo "The sanitizer's report is $out/${report##*/}, and the input $out/artifacts/$target/, in the job's artifact"
+    echo "(Developers and above): the job log is public, so neither is printed here."
     echo "Reproduce it with one execution: fuzz/bin/$target <that file> (fuzz/run-fuzz.ps1 -Reproduce on Windows),"
     echo "then read hmailserver/docs/Fuzzing.md, \"What to do with a finding\"."
     return 1

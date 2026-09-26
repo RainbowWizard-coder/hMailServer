@@ -255,8 +255,14 @@ reason.
 - The repository holds no credential that opens anything: no token, no password, no signing key. The
   certificates and private keys under `hmailserver/test/SSL examples` are throwaway fixtures the regression suite
   uses to exercise TLS, trusted by nothing outside it.
-- On GitHub, secret scanning with push protection refused a push that carried a real secret. Nothing scans pushes
-  to GitLab yet.
+- On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab nothing
+  refuses the push itself (push protection is GitLab Ultimate): the `secret_detection` job scans the commits a
+  push to `master` or a merge request brings, after the push, and fails the pipeline on a finding that
+  `.gitleaksignore` does not name. It has not run on GitLab yet: `master` is still pushed with `ci.skip`. The
+  whole history was scanned once, on 26 September 2026, with the job's own image on the project's Linux machine:
+  thirty findings, each read and none a secret (test fixtures, the key parsers' test armour, AWS's documented
+  example key), which `.gitleaksignore` names. The same scan on GitLab is a schedule the owner runs once
+  ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Security scanning").
 - The one credential the release automation needed, for the Azure identity that Authenticode-signs the
   installer, was held in GitHub Actions' secrets; the identity itself is in Azure. Release signatures are keyless
   (Sigstore, bound to the workflow's own identity), so there is no signing key to protect. Release tags are signed

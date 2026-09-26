@@ -17,8 +17,8 @@ refuses it. This checker holds them to each other. It fails when:
   * release-sign is not a job of this file with an ID token for Sigstore (aud
     sigstore), is a trigger (a child or downstream pipeline's token carries no
     ci_config_ref_uri, and Fulcio issues it no certificate), or runs in an image
-    that is not cosign's own from gcr.io pinned by digest - the one placeholder
-    the file ships with until the digest is established is reported as a NOTE;
+    that is not cosign's own from gcr.io pinned by digest (a tag with the
+    placeholder PIN-THE-DIGEST in place of its digest included);
   * build/ci/release-sign.sh stops naming the bundle format and the log a server
     reads (--new-bundle-format, Rekor v1 at rekor.sigstore.dev, the signing
     configuration off, hashedrekord 0.0.1), or counts another number of files than
@@ -44,11 +44,30 @@ refuses it. This checker holds them to each other. It fails when:
     the same name could otherwise take past;
   * update-feed is not a trigger of this project's master that passes no
     variables, or a job other than pages would run in the pipeline it starts: that
-    pipeline's source is "pipeline", and every job refuses it (and any HM_PIPELINE,
-    and a schedule), except the few whose own rules can only match something else,
-    each named here with why. Its pipeline is told apart by its source because a
-    trigger job's variables reach the downstream pipeline as pipeline variables,
-    which GitLab refuses by default in a project made since 17.7.
+    pipeline's source is "pipeline", and every job refuses it (and a schedule),
+    except the few whose own rules can only match something else, each named here
+    with why. Its pipeline is told apart by its source because a trigger job's
+    variables reach the downstream pipeline as pipeline variables, which GitLab
+    refuses by default in a project made since 17.7;
+  * a scheduled pipeline is not chosen by its schedule's description: linux-fuzz,
+    renovate and secret_detection (.gitlab/ci/gitlab-security.yml, the whole
+    history) each run for the schedule described "fuzz", "renovate" or "security"
+    and pages refuses those three; or a rule of either file still names
+    HM_PIPELINE or RUN_RENOVATE, the variables that chose them before, which the
+    project would refuse on a schedule - one way in;
+  * the jobs on the project's own runners do not skip a push that changes
+    documentation alone, or skip one that changes anything else: the rules:changes
+    paths of .own-runners (which db-matrix shares) are matched against every file
+    of the tree as GitLab matches them, and must leave out exactly the Markdown
+    files at the root and under .gitlab/ - hmailserver/docs/*.md is compiled into
+    the server;
+  * linux-suite or windows-gate can be cancelled by a later push (interruptible),
+    or a gate that lets a busy bench's exit 10 pass (allow_failure: exit_codes)
+    can do so in a v* tag's pipeline, where release would then start without it;
+  * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
+    for Developers only (a reproducer may be an exploit), or another job claims it;
+  * secret_detection lets a finding pass: it must be allow_failure: false and read
+    its report after the analyzer, which exits 0 whatever it finds.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -59,16 +78,19 @@ import importlib.util
 import io
 import os
 import re
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILES = {
     "ci": ".gitlab-ci.yml",
+    "security": os.path.join(".gitlab", "ci", "gitlab-security.yml"),
     "sign": os.path.join("build", "ci", "release-sign.sh"),
     "verify": os.path.join("build", "ci", "release-verify.sh"),
     "authenticode": os.path.join("build", "ci", "windows-authenticode.ps1"),
     "installer": os.path.join("build", "ci", "windows-installer.ps1"),
     "verifier": os.path.join("hmailserver", "source", "Server", "Common", "Util", "SigstoreVerifier.cpp"),
+    "fuzz": os.path.join("build", "ci", "linux-fuzz.sh"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sign", "release-verify",
@@ -79,16 +101,28 @@ RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release
 # them either.
 EXEMPT = {
     "pages": ("$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH", "the feed pipeline's one job"),
-    "linux-fuzz": ('$HM_PIPELINE == "fuzz" &&', "only the fuzz pipeline"),
-    "renovate": ('$CI_PIPELINE_SOURCE == "schedule" &&', "only Renovate's schedule"),
+    "linux-fuzz": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" &&', "only the fuzz schedule"),
+    "renovate": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" &&', "only Renovate's schedule"),
     "sign-off": ('$CI_PIPELINE_SOURCE == "merge_request_event" &&', "only a merge request"),
     "installer-smoke": ("($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)", "only a v* tag or a batch* branch"),
 }
 TAG_ONLY = '$CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"'
-# What every job but EXEMPT's begins its rules with, when: never: the fuzz schedule's
-# pipeline and any other HM_PIPELINE, every scheduled pipeline, and the feed's
-# downstream pipeline, whose CI_PIPELINE_SOURCE is "pipeline".
-REFUSAL = '$HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"'
+# What every job but EXEMPT's begins its rules with, when: never: every scheduled
+# pipeline, and the feed's downstream pipeline, whose CI_PIPELINE_SOURCE is "pipeline".
+REFUSAL = '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"'
+# The schedules that each run one job of their own, by their description, and the
+# file the job is in. pages, which runs for every other schedule on master, refuses these.
+ONE_JOB_SCHEDULES = {"fuzz": ("linux-fuzz", "ci"), "renovate": ("renovate", "ci"), "security": ("secret_detection", "security")}
+# The variables that chose those pipelines until 26 September 2026. The project refuses
+# them on a schedule, and a rule that still reads one is a second way in.
+OLD_ROUTES = ("HM_PIPELINE", "RUN_RENOVATE")
+# The YAML anchor of .own-runners' rules:changes paths, which db-matrix names too.
+NOT_DOCS_ONLY = "not-docs-only"
+# The long gates, which a later push must not cancel half-way.
+NOT_INTERRUPTIBLE = ("linux-suite", "windows-gate")
+# How a gate that lets a busy bench pass (allow_failure: exit_codes) keeps a v* tag's
+# pipeline from doing so: the bench's "busy" exits 10 only outside a tag.
+BUSY_GUARD = "$taken -eq 1 -and -not $env:CI_COMMIT_TAG"
 # The jobs whose artifacts release collects; it waits for every other gate without them.
 COLLECTED = ["linux-build", "linux-sbom", "windows-installer"]
 COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE)
@@ -114,6 +148,61 @@ def _load(relative, name):
 def read(relative):
     with io.open(os.path.join(ROOT, relative), encoding="utf-8") as f:
         return f.read().replace("\r\n", "\n")
+
+
+def docs_only(path):
+    """The Markdown files a push may change without starting the project's own
+    runners: at the root of the tree, and under .gitlab/ (the issue and merge request
+    templates). Every other one counts as code: hmailserver/docs/*.md is compiled
+    into the server, and the READMEs further down are read by tests and packaging."""
+    return path.endswith(".md") and ("/" not in path or path.startswith(".gitlab/"))
+
+
+def glob_regex(glob):
+    """A rules:changes path as GitLab matches it - Ruby's File.fnmatch with
+    FNM_PATHNAME, FNM_DOTMATCH and FNM_EXTGLOB - for what the patterns here use:
+    "**/" is any number of directories, none included; "*" and "?" stay inside one
+    name and match a leading dot; "[!...]" is one character not in the set, never a
+    "/". Braces, the one thing FNM_EXTGLOB adds, are refused rather than guessed at."""
+    out, i = "", 0
+    while i < len(glob):
+        if glob.startswith("**/", i):
+            out += "(?:[^/]*/)*"
+            i += 3
+        elif glob[i] == "*":
+            out += "[^/]*"
+            i += 1
+        elif glob[i] == "?":
+            out += "[^/]"
+            i += 1
+        elif glob[i] == "[":
+            end = glob.index("]", i + 2)
+            body = glob[i + 1:end]
+            if body[0] in "!^":
+                out += "[^" + re.escape(body[1:]) + "/]"
+            else:
+                out += "[" + re.escape(body) + "]"
+            i = end + 1
+        elif glob[i] in "{}":
+            raise ValueError("%s: braces are not read here" % glob)
+        else:
+            out += re.escape(glob[i])
+            i += 1
+    return re.compile("^" + out + "$")
+
+
+def tree_files():
+    """Every file of the tree, as git names it: what a push can change."""
+    try:
+        listed = subprocess.run(["git", "-C", ROOT, "ls-files", "-z"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True).stdout
+        return [name for name in listed.decode("utf-8").split("\0") if name]
+    except (OSError, subprocess.CalledProcessError):
+        found = []
+        for base, dirs, files in os.walk(ROOT):
+            dirs[:] = [d for d in dirs if d != ".git"]
+            for name in files:
+                found.append(os.path.relpath(os.path.join(base, name), ROOT).replace(os.sep, "/"))
+        return found
 
 
 def blocks(ci):
@@ -230,8 +319,8 @@ def check(texts, chain, feed):
     # The rules every release job runs under: a protected v* tag, never a merge request.
     release_rules = jobs.get(".release-rules", "")
     if TAG_ONLY not in release_rules or 'merge_request_event' not in release_rules or REFUSAL not in release_rules:
-        problems.append(".release-rules no longer holds the release jobs to a protected v* tag, refusing merge requests, any "
-                        "HM_PIPELINE, a schedule and the feed's pipeline (%s)" % REFUSAL)
+        problems.append(".release-rules no longer holds the release jobs to a protected v* tag, refusing merge requests, "
+                        "a schedule and the feed's pipeline (%s)" % REFUSAL)
     for name in RELEASE_JOBS:
         text = rules_text(name, jobs)
         if TAG_ONLY not in text:
@@ -280,8 +369,8 @@ def check(texts, chain, feed):
     if not image:
         problems.append("the CI file's variables define no HM_COSIGN_IMAGE")
     elif PLACEHOLDER_COSIGN.match(image.group(1)):
-        notes.append("HM_COSIGN_IMAGE is still the placeholder %s: the release job refuses to start the chain until the digest "
-                     "is established (docs/ContinuousIntegration.md, 'The release')" % image.group(1))
+        problems.append("HM_COSIGN_IMAGE is the placeholder %s again: it was pinned on 26 September 2026, and a release job "
+                        "refuses a tag without its digest (docs/ContinuousIntegration.md, 'What waits for the owner')" % image.group(1))
     elif not PINNED_COSIGN.match(image.group(1)):
         problems.append("HM_COSIGN_IMAGE is %s: cosign comes from gcr.io/projectsigstore/cosign pinned by digest, never ghcr.io or GitHub" % image.group(1))
     # A project or pipeline CI/CD variable of the same name replaces the file's value
@@ -416,13 +505,114 @@ def check(texts, chain, feed):
                 problems.append("%s is exempt from the refusal because it runs for %s, but its rules no longer say %s" % (name, why, needle))
             continue
         if not re.search(r"- if: " + re.escape(REFUSAL) + r"[^\n]*\n\s+when: never", rules):
-            problems.append("%s would run in the feed's pipeline (source pipeline, on master), a schedule's or the fuzz pipeline: "
+            problems.append("%s would run in the feed's pipeline (source pipeline, on master) or a schedule's: "
                             "its rules must begin with - if: %s, when: never" % (name, REFUSAL))
+
+    # The schedules: each chosen by its description, one way in.
+    security = texts["security"]
+    security_jobs = blocks(security)
+    for description, (job, where) in sorted(ONE_JOB_SCHEDULES.items()):
+        chosen = '$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "%s"' % description
+        owner = jobs if where == "ci" else security_jobs
+        if chosen not in owner.get(job, ""):
+            problems.append("%s does not run for the schedule described \"%s\" (%s): a schedule carries no variable on this "
+                            "project, so its description is what chooses the job" % (job, description, chosen))
+        refused = re.search(r'- if: \$CI_PIPELINE_SOURCE == "schedule" && \(([^\n]*)\)\n\s+when: never', jobs["pages"])
+        if not refused or '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "%s"' % description not in refused.group(1):
+            problems.append("pages would run in the pipeline of the schedule described \"%s\" too, which is %s's alone: "
+                            "it refuses a schedule of that description, when: never" % (description, job))
+    for key, found in (("ci", jobs), ("security", security_jobs)):
+        for name, text in sorted(found.items()):
+            for old in OLD_ROUTES:
+                if "$" + old in text:
+                    problems.append("%s in %s still reads $%s: a schedule is chosen by its description alone (the project "
+                                    "refuses a schedule's variables), and one way in is all there is" % (name, FILES[key], old))
+
+    # A push that changes documentation alone starts nothing on the project's own
+    # runners, and one that changes anything else starts everything there.
+    anchor = re.search(r"^        paths: &%s\s*\n((?:          - \"[^\"\n]+\"\s*\n)+)" % NOT_DOCS_ONLY, jobs.get(".own-runners", "") + "\n",
+                       re.MULTILINE)
+    if not anchor:
+        problems.append(".own-runners has no rules:changes paths: &%s under its protected-ref rule: a push that changes only "
+                        "documentation would start the gates" % NOT_DOCS_ONLY)
+    else:
+        patterns = re.findall(r'- "([^"\n]+)"', anchor.group(1))
+        try:
+            compiled = [glob_regex(p) for p in patterns]
+        except ValueError as error:
+            compiled = []
+            problems.append(".own-runners' paths: %s" % error)
+        if compiled:
+            skipped_code = [f for f in texts["tree"] if not docs_only(f) and not any(c.match(f) for c in compiled)]
+            started_by_docs = [f for f in texts["tree"] if docs_only(f) and any(c.match(f) for c in compiled)]
+            if skipped_code:
+                problems.append(".own-runners' paths match none of %d file(s) that are not documentation, so a push changing only "
+                                "those would skip the gates: %s" % (len(skipped_code), ", ".join(skipped_code[:8])))
+            if started_by_docs:
+                problems.append(".own-runners' paths match %d Markdown file(s) at the root or under .gitlab/, so a push changing "
+                                "only documentation would start the gates: %s" % (len(started_by_docs), ", ".join(started_by_docs[:8])))
+            if not any(f.startswith("hmailserver/docs/") and f.endswith(".md") for f in texts["tree"]):
+                problems.append("the tree has no hmailserver/docs/*.md to check the paths against")
+    for name in sorted(jobs):
+        if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in ("linux-fuzz", "renovate"):
+            continue
+        if not re.search(r"^  tags: \[(linix|bench150)\]", inherited(name, jobs), re.MULTILINE):
+            continue
+        rules = rules_text(name, jobs)
+        if "paths: &%s" % NOT_DOCS_ONLY not in rules and "paths: *%s" % NOT_DOCS_ONLY not in rules:
+            problems.append("%s runs on the project's own runners for a push that changes only documentation: its rules "
+                            "must be .own-runners', or name paths: *%s" % (name, NOT_DOCS_ONLY))
+
+    # The long gates are not cut off by a later push, and a busy bench is a warning
+    # only where no release can follow.
+    for name in NOT_INTERRUPTIBLE:
+        if not re.search(r"^  interruptible: false\s*$", jobs.get(name, ""), re.MULTILINE):
+            problems.append("%s can be cancelled half-way by a later push: it says interruptible: false" % name)
+    for name in gates(jobs):
+        if re.search(r"^  allow_failure:\s*\n\s+exit_codes:", inherited(name, jobs), re.MULTILINE) and BUSY_GUARD not in jobs[name]:
+            problems.append("%s lets an exit code fail without failing the pipeline, and release waits for it: that code must "
+                            "never come from a v* tag's pipeline (%s)" % (name, BUSY_GUARD))
+
+    # The fuzz job keeps what it finds, for the project's members only.
+    fuzz = jobs.get("linux-fuzz", "")
+    kept = re.search(r"^  artifacts:\s*\n((?:    .*\n?)+)", fuzz, re.MULTILINE)
+    kept = kept.group(1) if kept else ""
+    if "- fuzz-results/" not in kept or "when: always" not in kept or "access: developer" not in kept:
+        problems.append("linux-fuzz does not keep fuzz-results/ as its artifact whatever the result (when: always) for "
+                        "Developers only (access: developer): a crash's reproducer would be lost, or public")
+    for name, text in sorted(jobs.items()):
+        if name != "linux-fuzz" and "fuzz-results/" in text:
+            problems.append("%s claims fuzz-results/, which linux-fuzz alone writes" % name)
+    # Nor does its log, which anyone can read, carry a finding: libFuzzer ends its report
+    # with the input (up to 256 bytes in hex and Base64), and a sanitizer's SUMMARY names
+    # the place. The script prints the kind alone and names the report.
+    finding = re.search(r"FINDING \(exit \$code\)(.*?)\n    return 1\n", texts["fuzz"], re.DOTALL)
+    if not finding or re.search(r"\b(tail|cat|xargs|less|xxd|od)\b", finding.group(1)):
+        problems.append("build/ci/linux-fuzz.sh prints a finding's report into the job log, which is public: the input and "
+                        "the place belong in fuzz-results/, the Developers-only artifact")
+    if "s/^(SUMMARY: (AddressSanitizer|UndefinedBehaviorSanitizer|MemorySanitizer): [A-Za-z-]+) .*/\\1/" not in texts["fuzz"]:
+        problems.append("build/ci/linux-fuzz.sh prints a sanitizer's SUMMARY whole into the public job log: the place of a "
+                        "finding not yet fixed stays in the artifact")
+
+    # Secret detection fails on a finding.
+    detection = security_jobs.get("secret_detection", "")
+    if not re.search(r"^  allow_failure: false\s*$", detection, re.MULTILINE):
+        problems.append("secret_detection does not say allow_failure: false: GitLab's template makes it true, and a secret "
+                        "found would be a warning")
+    if "- /analyzer run" not in detection or "\"vulnerabilities\" *: *\\[ *\\]" not in detection or "exit 1" not in detection:
+        problems.append("secret_detection does not read its report after the analyzer, which exits 0 whatever it finds: "
+                        "the job must fail unless the report's vulnerabilities are []")
+    if not re.search(r'== "security"[^\n]*\n\s+variables:\s*\n\s+SECRET_DETECTION_HISTORIC_SCAN: "true"', detection):
+        problems.append("secret_detection does not scan the whole history for the schedule described \"security\"")
+    if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
+        problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
     return problems, notes
 
 
 def load_texts():
-    return dict((key, read(relative)) for key, relative in FILES.items())
+    texts = dict((key, read(relative)) for key, relative in FILES.items())
+    texts["tree"] = tree_files()
+    return texts
 
 
 def self_test(chain, feed):
@@ -462,7 +652,7 @@ def self_test(chain, feed):
     broken("Sigstore before Authenticode", "ci", "    - job: release-authenticode\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN",
            "  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN", "release-sign does not need release-authenticode")
     broken("a job that would run in the feed's pipeline", "ci", '.not-a-fuzz-pipeline:\n  rules:\n    - if: ' + REFUSAL,
-           '.not-a-fuzz-pipeline:\n  rules:\n    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule"', "checkers would run in the feed's pipeline")
+           '.not-a-fuzz-pipeline:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule"', "checkers would run in the feed's pipeline")
     broken("the feed's pipeline marked by a variable", "ci", "  inherit:\n    variables: false\n  trigger:",
            "  inherit:\n    variables: false\n  variables:\n    HM_PIPELINE: feed\n  trigger:", "update-feed passes variables")
     broken("the file's variables passed to the feed's pipeline", "ci", "  inherit:\n    variables: false\n  trigger:", "  trigger:",
@@ -473,7 +663,48 @@ def self_test(chain, feed):
            "release brings linux-suite's artifacts")
     broken("a new gate release does not wait for", "ci", "\nlinux-cross:\n", "\nlinux-cross-2:\n  extends: .linix\n  script: [true]\n\nlinux-cross:\n",
            "release does not need linux-cross-2")
-    broken("a release job for a branch", "ci", ".release-rules:\n  rules:\n    - if: $HM_PIPELINE", ".release-rules:\n  rules:\n    - if: $HM_PIPELINE_X", ".release-rules no longer holds")
+    broken("a release job for a branch", "ci", '.release-rules:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule"',
+           '.release-rules:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "scheduled"', ".release-rules no longer holds")
+    # The schedules.
+    broken("the fuzz job chosen by a variable again", "ci", '$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" &&',
+           '$CI_PIPELINE_SOURCE == "schedule" && $HM_PIPELINE == "fuzz" &&', "linux-fuzz does not run for the schedule described \"fuzz\"")
+    broken("Renovate chosen by a variable as well", "ci", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $CI_COMMIT_REF_PROTECTED',
+           '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $RUN_RENOVATE == "1" && $CI_COMMIT_REF_PROTECTED', "still reads $RUN_RENOVATE")
+    broken("an old route back in a refusal", "security", '    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"',
+           '    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"', "still reads $HM_PIPELINE")
+    broken("pages in the fuzz schedule's pipeline", "ci", '($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || ', "(",
+           "pages would run in the pipeline of the schedule described \"fuzz\"")
+    broken("pages in the history scan's pipeline", "ci", ' || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")', ")",
+           "pages would run in the pipeline of the schedule described \"security\"")
+    broken("the history scan without its schedule", "security", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "security"', '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "secure"',
+           "secret_detection does not run for the schedule described \"security\"")
+    # Documentation-only pushes.
+    broken("the compiled-in documents left out of the paths", "ci", '          - "[!.]*/**/*.md"\n', "",
+           "paths match none of")
+    broken("every Markdown file counted as code", "ci", '          - "[!.]*/**/*.md"\n', '          - "**/*.md"\n',
+           "so a push changing only documentation would start the gates")
+    broken("a job on linix without the paths", "ci", "      changes:\n        paths: *not-docs-only\n      when: manual", "      when: manual",
+           "db-matrix runs on the project's own runners for a push that changes only documentation")
+    broken("a pattern GitLab would read otherwise", "ci", '          - "**/*[!d]"', '          - "**/*{[!d],x}"', "braces are not read here")
+    # The gates.
+    broken("the Windows suite cancelled by a later push", "ci", "  timeout: 4 hours\n  # A later push does not cut the suite off half-way, nor leave the bench mid-build.\n  interruptible: false",
+           "  timeout: 4 hours", "windows-gate can be cancelled half-way")
+    broken("a busy bench let past in a tag's pipeline", "ci", "if ($taken -eq 1 -and -not $env:CI_COMMIT_TAG) { \"the bench is busy - no gate",
+           "if ($taken -eq 1) { \"the bench is busy - no gate", "windows-gate lets an exit code fail")
+    broken("the cosign placeholder back", "ci", 'cosign:v2.6.5-dev@sha256:76029a0246bcfde96caa72469a62a1094f6e0978dc3f537f5cafd4c5f6c6a417"',
+           'cosign:v2.6.5-dev@sha256:PIN-THE-DIGEST"', "is the placeholder")
+    # The fuzz job's findings, and the secret scan's.
+    broken("fuzz findings public", "ci", "    access: developer\n    paths:\n      - fuzz-results/", "    paths:\n      - fuzz-results/",
+           "linux-fuzz does not keep fuzz-results/")
+    broken("a finding's report printed in the public log", "fuzz", "2> /dev/null | head -n 1)\n",
+           "2> /dev/null | head -n 1)\n    tail -n 60 \"$report\"\n", "prints a finding's report into the job log")
+    broken("a finding's place in the public log", "fuzz", "| sed -E 's/^(SUMMARY:", "| cat | sed -E 's/^(SUMMARX:",
+           "prints a sanitizer's SUMMARY whole")
+    broken("fuzz findings claimed by another job", "ci", "    paths:\n      - security/repo-hygiene/", "    paths:\n      - fuzz-results/\n      - security/repo-hygiene/",
+           "repo-hygiene claims fuzz-results/")
+    broken("a secret found as a warning", "security", "  allow_failure: false\n", "", "secret_detection does not say allow_failure: false")
+    broken("the analyzer's exit taken as the verdict", "security", "      if grep -Eq '\"vulnerabilities\" *: *\\[ *\\]' \"$report\"; then", "      if true; then",
+           "secret_detection does not read its report")
     broken("the verifier trusting another file", "verifier", '//.gitlab-ci.yml@refs/tags/v"', '//.gitlab/ci.yml@refs/tags/v"', "GITLAB_IDENTITY_PREFIX")
     broken("the verifier trusting another group path", "verifier", 'GITLAB_GROUP_IDENTITY_PREFIX = "https://gitlab.com/hmailserver/hmailserver//',
            'GITLAB_GROUP_IDENTITY_PREFIX = "https://gitlab.com/hmailserver//', "GITLAB_GROUP_IDENTITY_PREFIX")

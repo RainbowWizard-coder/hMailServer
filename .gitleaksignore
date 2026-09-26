@@ -1,0 +1,53 @@
+# What GitLab's secret detection (the secret_detection job, .gitlab/ci/gitlab-security.yml)
+# found in the history and is not a secret: gitleaks reads this file from the root of the
+# checkout and leaves each finding named here out of its report. One finding a line, as
+# gitleaks prints its fingerprint: <commit>:<file>:<rule>:<line>.
+#
+# A scan of the whole history on 26 September 2026 (the analyzer image the job pins,
+# gitleaks 8.30.1 with GitLab's rules 0.25.1, over a full clone: master at 40c7d3e0c and
+# its tags, the five c71a6de74 lines being upstream history only the 5.x tags reach) found
+# these 30, and each was read in its commit:
+#
+#   - the PEM and OpenPGP armour lines the server's own testers feed the key parsers,
+#     so that a private key is refused (GatewayEncryption.cpp, OpenPgpKey.cpp,
+#     DkimRotationPlan.cpp): a header and a few bytes, no key;
+#   - "AKIAIOSFODNN7EXAMPLE", the access key id of AWS's own Signature Version 4
+#     examples, which ObjectStoreSignature.cpp's tester signs against;
+#   - keys made for the regression tests and used for nothing else (the OpenPGP,
+#     SAML, gateway-encryption and TLS fixtures), and the sample keys under
+#     hmailserver/test/SSL examples and Boost's asio examples, which have been
+#     public since they were first committed.
+#
+# A finding that is not listed here fails the job. Add a line only for something read
+# and found not to be a secret, and say what it is in the commit; a real secret is
+# revoked where it was issued, not listed here (SECURITY.md).
+13c961059ff4fda1a5644c204483165cc3edb670:hmailserver/source/Server/Common/Util/ObjectStoreSignature.cpp:AWS:529
+8fe98184ddd8254ec78933e9bd903d36d94c7edb:hmailserver/test/RegressionTests/API/SamlSignIn.cs:PKCS8 private key:710
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1553
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1556
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PKCS8 private key:1548
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PKCS8 private key:1637
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH private key:1557
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1544
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1557
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1773
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:RSA private key:1556
+1bdc318610d3c9c45c10b27469539ad79659898a:hmailserver/test/RegressionTests/SMTP/GatewayEncryption.cs:PKCS8 private key:82
+2e748ceae80fee444973ecc36becf4134d2e726a:hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:892
+2e748ceae80fee444973ecc36becf4134d2e726a:hmailserver/test/RegressionTests/API/RestApiOpenPgpKeys.cs:PGP private key:114
+2e748ceae80fee444973ecc36becf4134d2e726a:hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:184
+2e748ceae80fee444973ecc36becf4134d2e726a:hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:204
+2e748ceae80fee444973ecc36becf4134d2e726a:hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:290
+c893043d824e2965e3a52848f83104e8147bd288:hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:893
+c893043d824e2965e3a52848f83104e8147bd288:hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:1329
+c893043d824e2965e3a52848f83104e8147bd288:hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:76
+11c0abbd81bf3825bfda51529a72c3e4575d48fd:hmailserver/source/Server/Common/AntiSpam/DKIM/DkimRotationPlan.cpp:PKCS8 private key:673
+f36d28d6332de8456e5294e15d0495057529dceb:hmailserver/test/RegressionTests/Security/TlsAcmeDeployment.cs:PKCS8 private key:52
+6cc10cc99443dce31f9b8c2e31f56da0ead696d4:hmailserver/test/RegressionTests/Security/TlsCertificateValidity.cs:RSA private key:66
+fe45f43c3db6c40dfdb42c57f3db2cc312d53af1:hmailserver/test/SSL examples/example.key:PKCS8 private key:1
+fe45f43c3db6c40dfdb42c57f3db2cc312d53af1:hmailserver/test/SSL examples/example.key.org:RSA private key:1
+c71a6de74c8e169d03ee71e0be29fbd00fc639f8:hmailserver/test/SSL examples/WithPassword/server.key:RSA private key:1
+c71a6de74c8e169d03ee71e0be29fbd00fc639f8:hmailserver/test/SSL examples/example.key.org:RSA private key:1
+c71a6de74c8e169d03ee71e0be29fbd00fc639f8:hmailserver/test/SSL examples/example.key:RSA private key:1
+c71a6de74c8e169d03ee71e0be29fbd00fc639f8:libraries/boost_1_52_0/libs/asio/example/ssl/ca.pem:RSA private key:14
+c71a6de74c8e169d03ee71e0be29fbd00fc639f8:libraries/boost_1_52_0/libs/asio/example/ssl/server.pem:RSA private key:14
