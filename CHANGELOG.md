@@ -400,7 +400,9 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
 - Fixed: on SQL Server and SQL Server Compact a room's record of whom it accepted a booking from was keyed on the
   UID under a collation that ignores case and width, so a booking whose UID differed from another's only that way
   replaced the other's record, and a delegate's later decline of the first booking told its organiser nothing. The
-  UID is now compared exactly on every database.
+  UID is now compared exactly on every database, so the first booking keeps its record; the second, which the
+  unique index there takes for the same UID, goes unrecorded, and the application log says that a delegate's later
+  answer about it will tell nobody.
 - **Delegated mailboxes named in the Autodiscover answer**, in Exchange's `AlternativeMailbox` element and only
   to a request signed in as the delegate. Outlook reads that element for an Exchange account and not for an IMAP
   one, so for IMAP clients the mechanism that works is still the `#Users` namespace, which Thunderbird and
@@ -1320,21 +1322,21 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   cross-compile, sanitizer build and SBOMs, and the update feed passed; `harnesses` and `update-helper` failed on
   the shared runners, `linux-suite` and both database upgrade gates on `linix`, `windows-gate` and
   `windows-dotnet` on `bench150`, and `dependency-scan`, `repo-hygiene`, `semgrep` and `static-analysis`, which
-  may fail without failing the pipeline. Every one of those failures was the tree's or the job's, not a fault of
-  the server's, and 6.3.4 fixes them: the helper job checked the systemd units on a checkout the runner makes
-  world-writable; the portal harness depended on the runner's time zone; the CI image had no 7-Zip, which the
-  suite's backup tests need; three tests assumed the SMTP port, the order two messages land in, and an INI
-  section to be a setting; the upgrade gate wound a new database back to 6029 by reading the later steps, and
-  now starts from the create scripts of 6029 themselves and compares what it upgrades to with a new database,
-  which found two columns of `hm_bouncecounts` the create scripts left without the default the 6055 step gives
-  them (they now have it); GitLab refused two scans' reports, each two files of one type, and each now uploads
-  one; `repo-hygiene` found six images not pinned by digest and a password written in the file for the upgrade
-  gate's own database, and judged a job by whether it extends `.own-runners` rather than by the rules it runs by;
-  and Semgrep's findings beyond its baseline are fixed or suppressed with the reason. Of `static-analysis`'s
-  findings beyond its baseline, the two that were defects are fixed (above); the others have not yet been read
-  into its baseline, so that job still fails. The owner's edit of the README on `master` started a second
-  pipeline, which failed on `harnesses` the same way. No pipeline has run on the fixed tree yet
-  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
+  may fail without failing the pipeline. Each failure was the tree's or the job's, not a fault of the server's, but
+  for two of the findings `static-analysis` reported; and 6.3.4 fixes each but that job's: the helper job checked
+  the systemd units on a checkout the runner makes world-writable; the portal harness depended on the runner's time
+  zone; the CI image had no 7-Zip, which the suite's backup tests need; three tests assumed the SMTP port, the
+  order two messages land in, and an INI section to be a setting; the upgrade gate wound a new database back to
+  6029 by reading the later steps, and now starts from the create scripts of 6029 themselves and compares what it
+  upgrades to with a new database, which found two columns of `hm_bouncecounts` the create scripts left without the
+  default the 6055 step gives them (they now have it); GitLab refused two scans' reports, each two files of one
+  type, and each now uploads one; `repo-hygiene` found six images not pinned by digest and a password written in
+  the file for the upgrade gate's own database, and judged a job by whether it extends `.own-runners` rather than
+  by the rules it runs by; and each finding Semgrep reported beyond its baseline is fixed, or suppressed with the
+  reason. Of the findings `static-analysis` reported beyond its baseline, the two that were defects of the server's
+  are fixed (above); the others have not yet been read into its baseline, so that job still fails. The owner's edit
+  of the README on `master` started a second pipeline, which failed on `harnesses` the same way. No pipeline has
+  run on the fixed tree yet ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
 - **The CI after its first review on GitLab.** The fuzz, Renovate, whole-history secret scan and export pipelines
   are chosen by their schedule's description - `fuzz`, `renovate`, `security`, `export` - since the project
   refuses pipeline variables and GitLab counts a schedule's as such; only the update feed's schedule exists yet.
