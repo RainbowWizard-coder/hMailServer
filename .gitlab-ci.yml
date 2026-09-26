@@ -87,6 +87,8 @@ include:
   - local: .gitlab/ci/container-image.yml
   # The signed apt and dnf repositories, added to the feed's site; it turns pages' own deployment off.
   - local: .gitlab/ci/package-repos.yml
+  # The weekly export of what a push mirror does not carry, on linix (docs/Mirroring.md).
+  - local: .gitlab/ci/forge-export.yml
 
 stages:
   - check

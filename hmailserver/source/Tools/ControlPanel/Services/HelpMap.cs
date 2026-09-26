@@ -165,6 +165,7 @@ namespace hMailServer.ControlPanel.Services
          "MessageRecall.md",
          "MessageStore.md",
          "MigratingDatabaseBackend.md",
+         "Mirroring.md",
          "ObjectStorage.md",
          "OutboundContentPolicy.md",
          "OutboundShaping.md",

@@ -53,6 +53,7 @@ Contents:
 | The issue board | <https://gitlab.com/Progressiverobot/hmailserver/-/boards> |
 | The forum | <https://www.hmailserver.co.uk/> |
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
+| Copies off GitLab | The repository by a push mirror to a second forge, and the issues, merge requests, releases and wiki by the weekly `forge-export` job: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for setting both up |
 
 The latest release is **6.3.4, published on 26 September 2026**. Anything this repository describes that
 arrived after it is in the tree after 6.3.4 and not yet released.
@@ -400,6 +401,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-deck-parity.py` | A census of the desktop Control Panel's writes against the REST API and the Deck | **Rewrites** `hmailserver/docs/DeckParity.md` by default; `--no-doc` prints only; `--strict` exits 1 when anything is missing. After a change, run it and commit `DeckParity.md` if it moved |
 | `check-deck-script.py` | Runs the Deck's script against a small DOM and a recorded server | Needs `node`; `--extract-only` does without |
 | `check-environment-names.py` | Every `HM_SETTING_` and `HM_PROPERTY_` name in the container files and documents is a real setting | |
+| `check-forge-export.py` | The weekly `forge-export` job runs for the `export` schedule alone, on linix, with its artifact for Developers only and no token in any CI file, and `build/ci/forge-export.py` passes its self-test ([Mirroring.md](hmailserver/docs/Mirroring.md)) | Proves its own negative controls on every run |
 | `check-help-map.py` | Every page of the three surfaces has help, and every help entry names a real document and heading | `--self-test` |
 | `check-ini-coverage.py` | Every `[Settings]` key the server reads has a Control Panel editor or a recorded reason for having none, no new `[Settings]` key appears (see [a new setting](#a-new-setting-goes-in-the-database)), and no section beyond the three it records is read around `IniFileSettings` | **Rewrites** `build/ini-settings-baseline.txt` and `IniSettingsBaseline.h` with `--write-baseline`, for a key legitimately removed |
 | `check-installer-scripts.py` | The Windows installer runs each uninstall step once, waits for the server's process before it replaces or deletes a file, marks every file that process loads `uninsrestartdelete`, and starts the service for an upgrade's database step with the argument the server reads; `hMailServer.exe /Unregister` creates nothing and removes the event source | Proves its own negative controls on every run |

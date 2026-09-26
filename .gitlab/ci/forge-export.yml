@@ -1,0 +1,83 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What a push mirror to a second forge does not carry, exported once a week:
+# included from .gitlab-ci.yml. hmailserver/docs/Mirroring.md says why, what the
+# mirror carries, and the owner's steps.
+#
+#   forge-export   linix: build/ci/forge-export.py writes one archive of the issues
+#                  (confidential ones too) and the merge requests with their notes, the
+#                  labels, milestones, boards and releases as JSON, and the wiki's git
+#                  repository as a bundle; and, when HM_EXPORT_FULL_TOKEN is set,
+#                  downloads GitLab's own project export as well.
+#
+# When it runs: in the pipeline of the schedule whose description is "export", on
+# master, and in no other. The schedule sets no variable (the project refuses pipeline
+# variables: ci_pipeline_variables_minimum_override_role is no_one_allowed); the
+# description is what selects the job (in this file the fuzz and Renovate schedules
+# are still selected by a variable of theirs). The rest of .gitlab-ci.yml's jobs
+# refuse a scheduled pipeline, but for pages, which runs in any schedule's pipeline
+# on master but the fuzz and Renovate ones: then this pipeline renders and deploys
+# the update feed too, which changes nothing the feed's own schedule would not. Once
+# pages refuses schedules by their description, "export" belongs in that list, so
+# that this pipeline runs forge-export alone.
+#
+# The tokens: HM_EXPORT_TOKEN (required; read_api and read_repository) and
+# HM_EXPORT_FULL_TOKEN (optional; api, a Maintainer's), CI/CD variables of the
+# project, protected and masked. Nothing here names a value. Without the first the
+# job fails, saying where the steps are, before it asks GitLab anything, and the
+# schedule's owner is told of the failed pipeline.
+#
+# Where the result goes, and why there:
+#
+#   the artifact   the week's archive of the issues, releases and wiki (6.1 MiB on
+#                  26 September 2026), kept 13 weeks. Developers and above only
+#                  (access: developer): the project is public, so are its artifacts
+#                  otherwise, and the archive holds the confidential issues. The job
+#                  log is public, and the script writes counts to it, never a title.
+#   linix's cache  the last four archives of each kind, the project exports among
+#                  them, in the runner's cache volume on linix: off GitLab, which is
+#                  the point. GitLab's own project export (with the repository, 248 MiB
+#                  on 26 September 2026) is kept there only: the namespace may hold
+#                  5,000 MiB, and it held 3,111 MiB then, the releases' files 2,854 of it.
+#   not the package registry: anyone can download from it in a public project, and
+#                  nothing there expires.
+#
+# The image is pinned by digest, as the ported jobs' images on linix are: Docker Hub's
+# python:3.13-slim-trixie as it was on linix on 19 September 2026. git comes from
+# Debian's archive in before_script, as the checkers job takes it.
+
+forge-export:
+  stage: check
+  tags: [linix]
+  image:
+    name: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+    pull_policy: if-not-present
+  needs: []
+  timeout: 1 hour
+  # A push to master while it runs does not cut the week's export short.
+  interruptible: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "export" && $CI_COMMIT_REF_PROTECTED == "true"
+  variables:
+    HM_EXPORT_KEEP: "4"
+  cache:
+    key: forge-export
+    paths:
+      - forge-export-kept/
+    # Saved when the job fails too: a failed project export still adds the week's
+    # archive, and the script renames a file into place only once it is whole.
+    when: always
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends git > /dev/null
+  script:
+    - python3 build/ci/forge-export.py --out forge-export --keep-dir forge-export-kept --keep "$HM_EXPORT_KEEP"
+  artifacts:
+    access: developer
+    # The week's archive is uploaded when the project export fails too.
+    when: always
+    expire_in: 13 weeks
+    paths:
+      - forge-export/
