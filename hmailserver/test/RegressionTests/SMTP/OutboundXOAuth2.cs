@@ -37,6 +37,12 @@ namespace RegressionTests.SMTP
          IniFileSetting.Write(key, value);
       }
 
+      /// <summary>A quoted-printable text with its soft line breaks removed and =20 read as the space it is, so a sentence can be looked for whole.</summary>
+      private static string QuotedPrintableUnfolded(string quotedPrintable)
+      {
+         return quotedPrintable.Replace("=\r\n", "").Replace("=20", " ");
+      }
+
       private Route AddAuthedRoute(int port, eConnectionSecurity security = eConnectionSecurity.eCSNone)
       {
          var route = _settings.Routes.Add();
@@ -141,8 +147,87 @@ namespace RegressionTests.SMTP
 
             CustomAsserts.AssertReportedError("over TLS only");
             CustomAsserts.AssertRecipientsInDeliveryQueue(0, true);
-            StringAssert.Contains("sent over TLS only", Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"),
-               "The bounce does not say why the message was not relayed.");
+
+            // The bounce's human-readable part is UTF-8 quoted-printable, as every
+            // bounce's is, and its 76-character lines break the sentence with a soft
+            // line break ("sent ove=" / "r TLS only"), so it is looked for with the
+            // soft line breaks removed. The delivery-status part is 7bit and says
+            // 4.7.0, the security class the 450 is given.
+            string bounce = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test");
+            StringAssert.Contains("The OAuth2 token for this destination is sent over TLS only, and the connection has no TLS.",
+               QuotedPrintableUnfolded(bounce), "The bounce does not say why the message was not relayed.");
+            StringAssert.Contains("Status: 4.7.0", bounce, "The bounce's delivery status is not the security one.");
+         }
+         finally
+         {
+            WriteSetting("OutboundOAuth2Hosts", "smtp.office365.com");
+            WriteSetting("OutboundOAuth2FixedToken", "");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    A relay that refuses the bearer login - Exchange Online answers 535
+      ///    5.7.3 for a mailbox with SMTP AUTH off, or an app it has not granted -
+      ///    fails the delivery, and the bounce to the message's sender says what
+      ///    this server sent ("hMailServer sent: ..."). The AUTH XOAUTH2 line is
+      ///    the token itself in base64, so it is named there, and in the SMTP log,
+      ///    without its blob, as the password is. Before the fix the bounce quoted
+      ///    the whole line, handing the server's own token - which sends as, and
+      ///    through FetchOAuth2Hosts reads, every mailbox the app registration was
+      ///    granted - to whoever sent the message, and the log kept it too; the
+      ///    "&lt;Token removed&gt;" and the not-contains assertions fail against that code.
+      /// </summary>
+      [Test]
+      [Description("A refused bearer login bounces without the token, and the SMTP log shows the AUTH line without it.")]
+      public void ARefusedBearerLoginKeepsTheTokenOutOfTheBounceAndTheLog()
+      {
+         WriteSetting("OutboundOAuth2Hosts", "localhost");
+         WriteSetting("OutboundOAuth2FixedToken", "refused-bearer-token-67890");
+         _application.Reinitialize();
+
+         try
+         {
+            var smtpServerPort = TestSetup.GetNextFreePort();
+            AddAuthedRoute(smtpServerPort, eConnectionSecurity.eCSSTARTTLSRequired);
+
+            // A local sender, so that the refusal ends in a bounce that is read here.
+            var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "oauth-refused@" + _domain.Name, "test");
+
+            var deliveryResults = new Dictionary<string, int> { ["dummy@oauth-relay.test"] = 250 };
+            string blob;
+
+            using (var server = new SmtpServerSimulator(1, smtpServerPort, eConnectionSecurity.eCSSTARTTLSRequired))
+            {
+               server.XOAuth2Reply = "535 5.7.3 Authentication unsuccessful";
+               server.AddRecipientResult(deliveryResults);
+               server.StartListen();
+
+               SmtpClientSimulator.StaticSend(sender.Address, "dummy@oauth-relay.test", "Refused bearer", "Body");
+
+               server.WaitForCompletion();
+
+               blob = server.XOAuth2Blob;
+               Assert.IsNotEmpty(blob, "The relay never received AUTH XOAUTH2, so this run shows nothing about where the token goes.");
+               Assert.IsFalse((server.MessageData ?? "").Contains("Refused bearer"),
+                  "The message was delivered although the relay refused the login.");
+            }
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0, true);
+
+            // The base64 alphabet is not quoted in quoted-printable, so the blob
+            // without its '=' padding is looked for in the bounce with the soft line
+            // breaks removed - a line holding it is always longer than 76 characters.
+            string token = blob.TrimEnd('=');
+            string bounce = QuotedPrintableUnfolded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
+            StringAssert.Contains("Remote server replied: 535 5.7.3 Authentication unsuccessful", bounce,
+               "The bounce is not the one for the refused login.");
+            StringAssert.Contains("hMailServer sent: AUTH XOAUTH2 <Token removed>", bounce,
+               "The bounce does not say that the bearer login was what the relay refused.");
+            StringAssert.DoesNotContain(token, bounce, "The bounce to the sender carries the server's bearer token.");
+
+            Assert.IsTrue(LogHandler.DefaultLogContains("SENT: AUTH XOAUTH2 ***"), "The SMTP log does not show the bearer login.");
+            StringAssert.DoesNotContain(token, LogHandler.ReadCurrentDefaultLog(), "The SMTP log carries the server's bearer token.");
          }
          finally
          {

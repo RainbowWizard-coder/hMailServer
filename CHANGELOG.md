@@ -551,6 +551,13 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   and so could a domain administrator over COM, which had been open since 6.2.23 Alpha 1. Only a server
   administrator now adds or changes such an account. The fetchers also sent a bearer token without TLS when the account's security was none: they now
   send one over TLS only ([Migration.md](hmailserver/docs/Migration.md)).
+- **Fixed: a relay that refused the OAuth2 login put the server's token in the bounce.** When the relay answered
+  `AUTH XOAUTH2` with a refusal - Exchange Online's `535 5.7.3` for a mailbox with SMTP AUTH off, say - the bounce
+  to the message's sender quoted the line this server had sent, and that line is the token in base64: the
+  server's own, which sends as every mailbox the app registration was granted and, through `FetchOAuth2Hosts`,
+  collects them. The SMTP log kept the line too, and the POP3 collector's log its own. The bounce now reads
+  `hMailServer sent: AUTH XOAUTH2 <Token removed>` and the logs `AUTH XOAUTH2 ***`, as they have always left
+  out a password; open since 6.2.22-pre1.
 - **Fixed: an external account's user name or password could add commands to the collection.** Both are sent in
   command lines - POP3 `USER` and `PASS`, IMAP `LOGIN` - and a CR or LF in either ended the command and sent what
   followed as another, to the host and port the account names; the new Other accounts page let any person set

@@ -131,6 +131,10 @@ namespace RegressionTests.Shared
       // authenticated some other way.
       public string XOAuth2Blob { get; private set; } = "";
 
+      // The reply to AUTH XOAUTH2, success unless a test wants the login refused -
+      // "535 5.7.3 Authentication unsuccessful" is what Exchange Online answers.
+      public string XOAuth2Reply { get; set; } = "235 2.7.0 Authentication successful";
+
       /// <summary>
       ///    The text after the reply code for a recipient, by address, when the
       ///    reply to its RCPT TO should say more than the address - "5.1.1 &lt;x&gt;:
@@ -324,7 +328,7 @@ namespace RegressionTests.Shared
             // the AUTH line itself. Recorded raw so a test can decode it and
             // assert on the exact user and token the client presented.
             XOAuth2Blob = command.Substring("AUTH XOAUTH2".Length).Trim();
-            Send("235 2.7.0 Authentication successful\r\n");
+            Send(XOAuth2Reply + "\r\n");
             return false;
          }
 

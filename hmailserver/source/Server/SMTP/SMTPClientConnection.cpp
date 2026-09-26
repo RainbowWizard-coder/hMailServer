@@ -29,6 +29,20 @@
 
 namespace HM
 {
+   namespace
+   {
+      // The AUTH XOAUTH2 line is the bearer token itself - base64 of
+      // "user=<user>^Aauth=Bearer <token>^A^A" (ProtocolEHLOSent_) - and the
+      // token is this server's own, which sends as every mailbox the app
+      // registration was granted. So, like the password, it is never written
+      // down where this client records what it sent: the SMTP log, and
+      // last_sent_data_, which a failed delivery quotes ("hMailServer sent:")
+      // in the bounce to the message's sender.
+      bool IsBearerLogin(const String &line)
+      {
+         return line.StartsWith(_T("AUTH XOAUTH2 "));
+      }
+   }
 
    SMTPClientConnection::SMTPClientConnection(ConnectionSecurity connection_security,
       boost::asio::io_context& io_context, 
@@ -949,6 +963,10 @@ namespace HM
          // Password has been sent. Remove from log.
          sLogData = "***";
       }
+      else if (IsBearerLogin(sData))
+      {
+         sLogData = "AUTH XOAUTH2 ***";
+      }
 
       // Append
       sLogData = "SENT: " + sLogData;
@@ -965,6 +983,8 @@ namespace HM
 
       if (current_state_ == PASSWORDSENT)
          last_sent_data_ = _T("<Password removed>");
+      else if (IsBearerLogin(sData))
+         last_sent_data_ = _T("AUTH XOAUTH2 <Token removed>");
       else
       {
          last_sent_data_ = sData;         

@@ -86,6 +86,12 @@ namespace RegressionTests.ExternalAccounts
                string decoded = Encoding.UTF8.GetString(Convert.FromBase64String(pop3Server.XOAuth2Blob));
                Assert.AreEqual("user=fetch-user@example.test\u0001auth=Bearer fetch-bearer-98765\u0001\u0001", decoded,
                   "The XOAUTH2 blob is not the shape the provider parses.");
+
+               // The AUTH line is the token itself in base64, so the POP3 client log
+               // shows it without the blob, as it shows PASS.
+               Assert.IsTrue(LogHandler.DefaultLogContains("SENT: AUTH XOAUTH2 ***"), "The POP3 client log does not show the bearer login.");
+               StringAssert.DoesNotContain(pop3Server.XOAuth2Blob.TrimEnd('='), LogHandler.ReadCurrentDefaultLog(),
+                  "The POP3 client log carries the server's bearer token.");
             }
 
             CustomAsserts.AssertRecipientsInDeliveryQueue(0);

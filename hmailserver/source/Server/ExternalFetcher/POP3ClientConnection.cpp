@@ -1249,6 +1249,12 @@ namespace HM
             // Remove password.
             sTemp = "SENT: ***";
          }
+         else if (sLogString.StartsWith(_T("AUTH XOAUTH2 ")))
+         {
+            // The bearer token itself, base64 in the AUTH line (SendUserName_):
+            // removed as the password is, and as the IMAP fetcher's Log_ does.
+            sTemp = "SENT: AUTH XOAUTH2 ***";
+         }
          else
          {
             sTemp = "SENT: " + sLogString;
