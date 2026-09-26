@@ -380,7 +380,7 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("Two IMAP sessions share one key that their LOGINs opened, and hold it past the two idle minutes and a sweep; once both have gone it is still open seventy seconds on - a server closing an unheld key at the next sweep would have closed it - and an administrator's password set a hundred seconds on is not a use of it: it is closed by about three minutes after the owner's last session went, as the idle minutes and one sweep make it, where a password set that kept it open would have held it past 220 seconds. A message delivered while it is closed is encrypted all the same and read at the next sign-in with the new password.")]
+      [Description("Two IMAP sessions share one key that their LOGINs opened, and hold it past the two idle minutes and a sweep; once both have gone it is still open seventy seconds on - a server closing an unheld key at the next sweep would have closed it - and an administrator's password set a hundred and five seconds on is not a use of it: the key is closed no later than the key of a second mailbox, the witness, whose owner's session went just after, and closed before a password set that kept it open would have let it close. Inconclusive, not passed, when the scheduler made no sweep between the witness's idle minutes and that point. A message delivered while it is closed is encrypted all the same and read at the next sign-in with the new password.")]
       public void TwoSessionsShareTheKeyWhichClosesOnceBothHaveGone()
       {
          SetSetting("mailbox_key_idle_minutes", "2");
@@ -389,15 +389,26 @@ namespace RegressionTests.Infrastructure
          string keyed = AddAccount("atrest-idle");
          SwitchOn(keyed);
 
-         // Closed, so that the LOGINs are what open it.
+         // The witness: a second mailbox whose owner's last session goes just
+         // after keyed's last one, so that the sweep which closes its key is a
+         // sweep the test can see (see below).
+         string witness = AddAccount("atrest-idle-witness");
+         SwitchOn(witness);
+
+         // Closed, so that the LOGINs are what open them.
          RestartServerAndReacquireCom();
          ClassicAssert.IsFalse(KeyState(keyed).GetProperty("open").GetBoolean(), "A restart did not close the key.");
+         ClassicAssert.IsFalse(KeyState(witness).GetProperty("open").GetBoolean(), "A restart did not close the witness's key.");
 
          var one = new ImapClientSimulator();
          ClassicAssert.IsTrue(one.ConnectAndLogon(keyed, Password));
          var two = new ImapClientSimulator();
          ClassicAssert.IsTrue(two.ConnectAndLogon(keyed, Password));
          ClassicAssert.IsTrue(KeyState(keyed).GetProperty("open").GetBoolean(), "The key is not open after a password LOGIN.");
+
+         var three = new ImapClientSimulator();
+         ClassicAssert.IsTrue(three.ConnectAndLogon(witness, Password));
+         ClassicAssert.IsTrue(KeyState(witness).GetProperty("open").GetBoolean(), "The witness's key is not open after a password LOGIN.");
 
          one.Logout();
          one.Disconnect();
@@ -411,26 +422,90 @@ namespace RegressionTests.Infrastructure
          two.Disconnect();
          DateTime gone = DateTime.UtcNow;
 
+         // The witness's owner goes now, after keyed's. The server lets a key go
+         // (MailboxKeyHold's destructor sets its last use) before it answers
+         // LOGOUT, and Logout waits for that answer, so keyed's last use is no
+         // later than the witness's.
+         three.Logout();
+         three.Disconnect();
+
          // The idle minutes count from the moment the last session let go: open
          // still, seventy seconds on - past one sweep for certain, so a server
          // closing an unheld key at the next sweep would have closed it.
          SleepUntil(gone.AddSeconds(70));
          ClassicAssert.IsTrue(KeyState(keyed).GetProperty("open").GetBoolean(), "The key closed before its idle minutes were up.");
 
-         // An administrator sets a password a hundred seconds on, which wraps
-         // the open key and is not a use of it: the key still closes two minutes
-         // after the owner's own last use and the sweep after that - by 180
-         // seconds, allowed 205 for the sweep's own time. A password set that
-         // kept it open would hold it to 220 seconds at the least.
-         SleepUntil(gone.AddSeconds(100));
+         // An administrator sets a password a hundred and five seconds on, which
+         // wraps the open key and is not a use of it.
+         //
+         // The arithmetic. The idle clock counts whole seconds (time()), and the
+         // sweep (MailboxKeys::CloseIdle, the first thing RemoveExpiredRecords
+         // does) closes a key once 120 of them have passed since its last use:
+         // never sooner than 119 real seconds after it. The sweep runs once a
+         // minute, but the Scheduler sleeps its minute AFTER it has run every task
+         // that was due (Scheduler.cpp), and ScheduledTask::SetNextRunTime counts
+         // the next run from the one that was due, so the sweep is due at every
+         // tick and sweeps come 60 seconds plus the run time of the tick before
+         // apart. A key last used at L closes somewhere between
+         // L + 119 and L + 180 plus that run time, which has no bound: a fixed
+         // deadline of 205 seconds failed once on bench150. So nothing below is
+         // measured against a deadline.
+         //
+         // Instead the witness. One sweep reads the clock once and closes every
+         // idle key under one lock, and keyed's last use is no later than the
+         // witness's; so, unless something used keyed after the witness's owner
+         // went, keyed closes at the sweep that closes the witness's key or
+         // before it - however late that sweep comes. The only thing that
+         // touches keyed after that is the password set. Read in that order - the
+         // witness first, then keyed - keyed found open once the witness's key
+         // has closed means the password set was a use.
+         //
+         // That tells the two apart only when the witness's key closes before a
+         // password set that was a use would let keyed close. Such a set, sent at
+         // setSent, would put keyed's last use at setSent or later and keep it
+         // open to setSent + 119 at least; the witness's key closes at the first
+         // sweep from about gone + 120. With the set at gone + 105 - some
+         // fourteen seconds before keyed could close of itself, for the set's
+         // own time - the window is gone + 120 to gone + 224, 104 seconds, which
+         // holds a sweep unless the tick before it ran 44 seconds or more. When
+         // it held none, this run cannot tell, and says so: Inconclusive, at the
+         // end, after the rest of the test has run.
+         SleepUntil(gone.AddSeconds(105));
          ClassicAssert.IsTrue(KeyState(keyed).GetProperty("open").GetBoolean(), "The key closed before its idle minutes were up.");
          const string newPassword = "Idle-Passw0rd-112!";
+         DateTime setSent = DateTime.UtcNow;
          (int status, string body) reset = Admin("POST", "/api/v1/accounts/" + keyed + "/password", "{\"password\":\"" + newPassword + "\"}");
          ClassicAssert.AreEqual(200, reset.status, "An administrator's password set was refused while the key was open: " + reset.body);
 
-         WaitFor(() => !KeyState(keyed).GetProperty("open").GetBoolean(),
-            "The key did not close within the idle minutes and the sweep after the last session went - an administrator's password set kept it open.",
-            Math.Max(1, (int) (gone.AddSeconds(205) - DateTime.UtcNow).TotalSeconds));
+         // The witness first, then keyed, every half second. Six minutes is not a
+         // timing assertion: only that the sweep runs at all.
+         bool keyedOpen = true;
+         DateTime keyedRead = DateTime.MinValue;
+         DateTime giveUp = gone.AddSeconds(360);
+         while (true)
+         {
+            if (!KeyState(witness).GetProperty("open").GetBoolean())
+            {
+               keyedOpen = KeyState(keyed).GetProperty("open").GetBoolean();
+               keyedRead = DateTime.UtcNow;
+               break;
+            }
+
+            if (DateTime.UtcNow >= giveUp)
+               Assert.Fail("The witness's key did not close within six minutes of its owner's last session: the idle sweep did not run.");
+            Thread.Sleep(500);
+         }
+
+         ClassicAssert.IsFalse(keyedOpen,
+            "The key was still open after the witness's had closed, though its owner had gone first - an administrator's password set kept it open.");
+
+         // Read closed before setSent + 119, it was closed before a set that was
+         // a use could have let it close. Read later, a sweep had not come in
+         // time, and a set that was a use would have looked the same.
+         bool told = keyedRead < setSent.AddSeconds(119);
+         string untold = "No sweep came between the witness's idle minutes and " + (setSent.AddSeconds(119) - gone).TotalSeconds.ToString("0") +
+            " seconds after the last session went (keyed was read closed at " + (keyedRead - gone).TotalSeconds.ToString("0") +
+            " seconds): the scheduler's ticks ran long, and this run cannot tell whether the password set was a use of the key.";
 
          string marker = Word("numbat");
          new SmtpClientSimulator().Send("sender@example.test", keyed, "While closed", "Delivered while the key was closed: " + marker);
@@ -441,6 +516,9 @@ namespace RegressionTests.Infrastructure
          string fetched = FetchLiteral(keyed, newPassword, "INBOX", 1, "BODY.PEEK[]");
          ClassicAssert.IsNotNull(fetched, "The message delivered while the key was closed could not be read at the next sign-in with the password the administrator set.");
          StringAssert.Contains(marker, fetched);
+
+         if (!told)
+            Assert.Inconclusive(untold);
       }
 
       [Test]

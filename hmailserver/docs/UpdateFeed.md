@@ -425,13 +425,57 @@ with no redirect.
 | `/releases.json` | Every release, newest first, a list | The pre-release channel's built-in address, and the value of `UpdateFeedUrl` above |
 | `/releases/tags/v<version>` | One release | The rollback's lookup, for either of the two above |
 | `/releases/` | A page showing the same list | A browser, or a client that followed the redirect |
-| `/` | A page saying what the site is | A person |
+| `/` | A page saying what the site is, with the download links | A person |
+| `/download/<name>` | A 302 to a file of the newest stable release | A person, a script, a page that links a download |
+| `/download/` | A 302 to that release's page on GitLab | A person |
 
 GitLab Pages serves a file at its path. It answers a directory's path with a
 redirect to the path with a slash, and the path with the slash with the
 directory's `index.html`. It ignores the query string. That is why `/releases`
 and `/releases?per_page=10` are redirects: `releases/` is a directory, because
 `releases/latest` is in it.
+
+### The download links
+
+`/download/<name>` always leads to the release `releases/latest` is: the newest
+stable version. `<name>` is the file's name with its version taken out, the
+same name each release's own permanent link has:
+
+| Name | The file |
+|---|---|
+| `hMailServer-x64.exe` | The Windows installer |
+| `hMailServer-arm64.exe` | The Windows installer for ARM64 |
+| `hmailserver_amd64.deb`, `hmailserver_arm64.deb` | The Debian and Ubuntu packages |
+| `hmailserver.x86_64.rpm`, `hmailserver.aarch64.rpm` | The RPM packages |
+| `hMailServer-x86_64.AppImage`, `hMailServer-aarch64.AppImage` | The AppImages |
+
+Each has its Sigstore bundle beside it at the same name with `.cosign.bundle`
+added, for example `/download/hMailServer-x64.exe.cosign.bundle`. A name has a
+link only when that release carries its file. A name it does not carry answers
+404, never a file of another release. 6.3.4 carries the x64 installer, the amd64
+`.deb` and the x86-64 `.rpm`, and no bundle, so its other names answer 404 until
+a stable release carries them again.
+
+GitLab's own `/-/releases/permalink/latest` is the release with the latest
+`released_at` date. GitLab has no pre-release flag, so a pre-release, or the
+`build-inputs-1` release, published after a stable one would take that link
+over, and so would every link that names a file under it. The `/download/`
+links cannot move that way. They change only when a stable release with a higher
+version is published and the `pages` job runs.
+
+The links are rules in `public/_redirects`, which GitLab Pages reads: one line
+per link, `from to 302`, the target the file's address in the package registry.
+Pages serves a file before a rule, so nothing is written under `public/download/`.
+Pages answers only 301, 302 and 200, and only 301 and 302 with an absolute
+target. It reads at most 1,000 rules and 64 KiB. It ignores a trailing slash, so
+`/download` works too. The rules name the custom domain's paths. On the
+`progressiverobot.gitlab.io` address they would need the project's path in front
+of them, and they are not written for it. At `/_redirects` Pages shows each rule
+and whether it is valid.
+
+The links are for people and scripts. A server does not read them, because it
+follows no redirect. They are HTTPS addresses like the rest of the site and
+work once the site has its certificate (issue #30).
 
 A release is in the shape of GitHub's Releases API, which is what 6.2.28 and
 every later version read, and it has only the fields the server reads:
@@ -490,8 +534,14 @@ python3 build/generate-update-feed.py --self-test
 server builds, on both channels and for the rollback of every release, with a
 copy of the server's parser. It fails when a built-in address gives its
 channel no release, and when the stable release has no Windows installer with
-its bundle. `--check --site` fails when the deployed site is not what the
-releases say now, which is how to tell a stale feed from a current one.
+its bundle. It also follows `_redirects` as Pages does, a file first, and
+checks the download links. Each name the stable release carries must answer a
+302 to that release's own file, and `/download/` a 302 to its page. A name it
+does not carry must not be redirected. A rule Pages would refuse fails, and so
+does a stable release that is a pre-release. `--check --site` fails when the
+deployed site is not what the releases say now, which is how to tell a stale
+feed from a current one. It checks the download links by what they answer,
+because Pages answers `/_redirects` with its page of the rules, not the file.
 `--self-test` needs no network.
 
 The name is a CNAME, `updates` to `progressiverobot.gitlab.io`, served DNS-only

@@ -25,6 +25,24 @@ generic package registry. The files it writes, under public/:
                           on the updates domain
   releases/tags/<tag>     one release object per release: the rollback's lookup
   index.html              a page for a person who opens the address
+  _redirects              GitLab Pages' redirect rules: the stable download
+                          links, below; for people, never a server
+
+The stable download links. /download/<name> answers a 302 to the file of the
+release releases/latest is - the newest stable VERSION - in the package
+registry: /download/hMailServer-x64.exe, /download/hmailserver_amd64.deb,
+/download/hmailserver.x86_64.rpm and the name of every other kind of
+installation installer_names() knows, the version taken out as a release's own
+permanent link takes it (release-chain.py's permalink_name), each with its
+.cosign.bundle beside it. A name gets a rule only when that release carries the
+file, so a missing package is a 404, never another release's. /download/ goes to
+that release's page. GitLab's own permalink/latest follows released_at and has no
+pre-release flag, so a pre-release or the build-inputs release published after
+a stable one takes it over; these do not move until a stable release with a
+higher version is published. Pages serves a file before a rule, answers only
+301, 302 and 200 (and an absolute target only with a 301 or a 302), ignores a
+trailing slash when it matches, and applies the rules to the custom domain's
+paths; the gitlab.io address would need the project's path in front of them.
 
 Every URL the server derives is a FILE there, answered 200 with no redirect,
 because HttpsClient::Request follows none. GitLab Pages serves a path that is a
@@ -366,6 +384,7 @@ def render(releases, files):
         "releases.json": feed_bytes(rendered),
         "releases/index.html": releases_page(rendered).encode("utf-8"),
         "index.html": index_page(latest, rendered).encode("utf-8"),
+        "_redirects": redirects_bytes(redirect_rules(latest)),
     }
     for release in rendered:
         tree["releases/tags/" + release["tag_name"]] = feed_bytes(release)
@@ -413,10 +432,109 @@ It is made from the <a href="{project}/-/releases">project's releases on GitLab<
 </ul>
 <p>A server from 6.2.28 to 6.3.3 still looks for its updates on GitHub. One line in its <code>hMailServer.ini</code> points it here:
 <code>UpdateFeedUrl={site}/releases.json</code>. <a href="{document}">How, and what it changes</a>.</p>
+<h2>Download</h2>
+<p>These links always lead to the newest release that is not a pre-release, now {latest_name}:</p>
+<ul>
+{downloads}
+</ul>
 </body>
 </html>
 """.format(project=e(PROJECT_URL), latest_url=e(latest["html_url"]), latest_name=e(latest["name"]),
-           latest_date=e(latest["published_at"][:10]), count=len(rendered), site=e(SITE), document=e(DOCUMENT_URL))
+           latest_date=e(latest["published_at"][:10]), count=len(rendered), site=e(SITE), document=e(DOCUMENT_URL),
+           downloads="\n".join('<li><a href="{0}"><code>{0}</code></a></li>'.format(e(source))
+                               for source, _, _ in redirect_rules(latest) if not source.endswith(".cosign.bundle")))
+
+
+# ---------------------------------------------------------------- the download links
+
+DOWNLOAD = "/download/"
+
+# gitlab-pages' limits on _redirects (internal/redirects/redirects.go).
+REDIRECTS_MAX_BYTES = 64 * 1024
+REDIRECTS_MAX_RULES = 1000
+
+
+def alias_name(name, version):
+    """A package's name with its version taken out, as release-chain.py's
+    permalink_name makes a release's permanent download name: hMailServer-x64.exe,
+    hmailserver_amd64.deb, hmailserver.x86_64.rpm."""
+    for marker, replacement in (("-%s-1." % version, "."), ("-%s" % version, ""), ("_%s" % version, "")):
+        if marker in name:
+            return name.replace(marker, replacement, 1)
+    return name
+
+
+def download_aliases():
+    """{kind of installation: /download/<name>}, one for every kind installer_names knows."""
+    return dict((platform, DOWNLOAD + alias_name(name, "9.9.9")) for platform, name in installer_names("9.9.9").items())
+
+
+def redirect_rules(latest):
+    """public/_redirects as (from, to, status), from the release object releases/latest
+    is: /download/ to its page, and each download name to its file - the installer
+    and its bundle - where it carries it."""
+    version = latest["tag_name"][1:]
+    urls = dict((a["name"], a["browser_download_url"]) for a in latest["assets"])
+    rules = [(DOWNLOAD, latest["html_url"], 302)]
+    aliases = download_aliases()
+    for platform, name in sorted(installer_names(version).items()):
+        for suffix in ("", ".cosign.bundle"):
+            if name + suffix in urls:
+                rules.append((aliases[platform] + suffix, urls[name + suffix], 302))
+    return rules
+
+
+def redirects_bytes(rules):
+    return "".join("%s %s %d\n" % rule for rule in rules).encode("utf-8")
+
+
+def parse_redirects(content):
+    """(rules, errors) for a _redirects file, as gitlab-pages reads and validates it
+    (internal/redirects/validations.go): each line `from to [status]`, 301 when no
+    status is given; from a path from /; to a path from / or an http(s) URL; the
+    status 200, 301 or 302, and an absolute target never with 200; no query
+    parameters, no force (!). A rule it would refuse is an error here, and so is a
+    splat or a placeholder, which this emulation does not follow."""
+    errors = []
+    if len(content) > REDIRECTS_MAX_BYTES:
+        return [], ["_redirects is %d bytes; Pages reads none of a file over %d" % (len(content), REDIRECTS_MAX_BYTES)]
+    rules = []
+    for number, line in enumerate(content.decode("utf-8").splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split()
+        if len(fields) not in (2, 3):
+            errors.append("_redirects line %d is not `from to [status]`: %s" % (number, line))
+            continue
+        source, target = fields[0], fields[1]
+        status_text = fields[2] if len(fields) == 3 else "301"
+        if not status_text.isdigit():
+            errors.append("_redirects line %d: %s is not a status Pages takes (a ! or a parameter is not supported)" % (number, status_text))
+            continue
+        status = int(status_text)
+        absolute = target.startswith(("http://", "https://"))
+        if not source.startswith("/") or source.startswith(("//", "/\\")) or "?" in source:
+            errors.append("_redirects line %d: %s is not a path from /" % (number, source))
+        elif not (absolute or (target.startswith("/") and not target.startswith(("//", "/\\")))):
+            errors.append("_redirects line %d: %s is neither a path from / nor an http(s) URL" % (number, target))
+        elif status not in (200, 301, 302):
+            errors.append("_redirects line %d: Pages answers only 200, 301 and 302, not %d" % (number, status))
+        elif absolute and status == 200:
+            errors.append("_redirects line %d: Pages rewrites (200) only to a path of its own, not to %s" % (number, target))
+        elif "*" in source + target or re.search(r"/:[A-Za-z]", source + urllib.parse.urlparse(target).path):
+            errors.append("_redirects line %d: a splat or a placeholder, which this emulation does not follow" % number)
+        else:
+            rules.append((source, target, status))
+    if len(rules) > REDIRECTS_MAX_RULES:
+        errors.append("_redirects has %d rules; Pages reads the first %d" % (len(rules), REDIRECTS_MAX_RULES))
+    return rules, errors
+
+
+def redirect_path(path):
+    """gitlab-pages' normalizePath (internal/redirects/helpers.go): a trailing slash
+    does not matter."""
+    return (path[:-1] if path.endswith("/") else path) + "/"
 
 
 # ---------------------------------------------------------------- writing and checking
@@ -489,12 +607,49 @@ def differences(expected, actual, actual_name):
 def check_site(tree, site):
     problems = []
     for relative in sorted(tree):
+        # Pages answers /_redirects with its own page of the rules and whether
+        # each is valid, not with the file: the rules are checked by what they do.
+        if relative == "_redirects":
+            continue
         url = site.rstrip("/") + site_path(relative)
         status, body, _ = fetch_no_redirect(url)
         if status != 200:
             problems.append("%s answered HTTP %d" % (url, status))
         elif body != tree[relative]:
             problems.append("%s is not what the releases say" % url)
+    if "_redirects" in tree:
+        latest = json.loads(tree["releases/latest"].decode("utf-8"))
+
+        def get(path):
+            status, _, headers = fetch_no_redirect(site.rstrip("/") + path)
+            return status, headers
+        problems.extend(check_downloads(latest, get, site.rstrip("/")))
+    return problems
+
+
+def check_downloads(latest, get, where, out=lambda line: None):
+    """The download links, read through get(path) -> (status, headers) and not
+    followed: every name the release object latest carries answers a 302 to that
+    release's own file, /download/ (with its slash or without) a 302 to its page,
+    and a name it does not carry is not sent anywhere. Returns the problems."""
+    problems = []
+    if has_suffix(latest.get("tag_name") or ""):
+        problems.append("the download links would lead to %s, a pre-release" % latest.get("tag_name"))
+    expected = dict((source, target) for source, target, _ in redirect_rules(latest))
+    paths = [DOWNLOAD, DOWNLOAD[:-1]]
+    for alias in sorted(download_aliases().values()):
+        paths += [alias, alias + ".cosign.bundle"]
+    for path in paths:
+        want = expected.get(redirect_path(path)) if path == DOWNLOAD[:-1] else expected.get(path)
+        status, headers = get(path)
+        location = headers.get("location", "")
+        if want is not None:
+            if status != 302 or location != want:
+                problems.append("%s%s answered %d%s, not a 302 to %s" % (where, path, status, " to " + location if location else "", want))
+            else:
+                out("  302 %s%s -> %s" % (where, path, want))
+        elif status in (301, 302, 303, 307, 308):
+            problems.append("%s%s answered %d to %s, though %s does not carry that file" % (where, path, status, location, latest.get("tag_name")))
     return problems
 
 
@@ -616,7 +771,7 @@ def select_release(document, prerelease_channel, platform):
 
 # ---------------------------------------------------------------- GitLab Pages, locally
 
-def pages_resolve(root, url_path):
+def pages_resolve(root, url_path, follow_rules=True):
     """gitlab-pages' reader (internal/serving/disk/reader.go, tryFile) for one
     path: (status, file or None, location or None). The query is not its business."""
     path = urllib.parse.unquote(url_path.split("?", 1)[0])
@@ -633,6 +788,17 @@ def pages_resolve(root, url_path):
         return 200, full, None
     if not path.endswith("/") and os.path.isfile(full + ".html"):
         return 200, full + ".html", None
+    # No file: the first rule of _redirects whose from is the path - a file comes
+    # first, as in gitlab-pages, and a rule it would refuse is skipped.
+    redirects = os.path.join(root, "_redirects")
+    if follow_rules and os.path.isfile(redirects):
+        with open(redirects, "rb") as f:
+            rules, _ = parse_redirects(f.read())
+        for source, target, status in rules:
+            if redirect_path(source) == redirect_path(path):
+                if status == 200:
+                    return pages_resolve(root, target, follow_rules=False)
+                return status, None, target
     return 404, None, None
 
 
@@ -748,6 +914,26 @@ def serve_check(directory, constants, out=print):
             for configured_value in ("", configured):
                 read(by_tag_url(constants, configured_value, stable["version"]), False, by_tag=True)
 
+        out("the download links, which follow releases/latest (_redirects):")
+        redirects = os.path.join(directory, "_redirects")
+        if not os.path.isfile(redirects):
+            problems.append("there is no _redirects, so every /download/ link answers 404")
+        else:
+            with open(redirects, "rb") as f:
+                problems.extend(parse_redirects(f.read())[1])
+        try:
+            with open(os.path.join(directory, "releases", "latest"), "rb") as f:
+                latest = json.loads(f.read().decode("utf-8"))
+            redirect_rules(latest)
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
+            problems.append("releases/latest could not be read for the download links: %r" % e)
+            latest = None
+        if latest is not None:
+            def get(path):
+                status, _, headers = fetch_no_redirect(base + path)
+                return status, headers
+            problems.extend(check_downloads(latest, get, SITE, out))
+
         out("the addresses a server must not be pointed at:")
         for path in ("/releases", "/releases?per_page=10"):
             status, _, headers = fetch_no_redirect(base + path)
@@ -778,7 +964,8 @@ def self_test():
     markup = "hMailServer 6.3.3 <script>alert(1)</script> & co"
     releases = [
         release("v6.3.5-rc1", "Pre-release: hMailServer 6.3.5 RC 1", "2026-10-02T09:00:00.000Z", files_for("6.3.5-rc1")),
-        release("v6.3.4", "hMailServer 6.3.4", "2026-10-01T12:00:00.000+01:00", files_for("6.3.4") + [link("6.3.4", "notes with space+plus.txt")]),
+        release("v6.3.4", "hMailServer 6.3.4", "2026-10-01T12:00:00.000+01:00", files_for("6.3.4") + [
+            link("6.3.4", "notes with space+plus.txt"), link("6.3.4", "hmailserver-6.3.4-1.x86_64.rpm")]),
         release("v6.2.29", "hMailServer 6.2.29", "2026-10-01T12:30:00.000Z", files_for("6.2.29")),
         release("build-inputs-1", "build inputs", "2026-09-11T04:26:16.000Z", []),
         release("v6.3.3", markup, "2026-09-15T01:02:52.000Z", files_for("6.3.3")),
@@ -838,9 +1025,53 @@ def self_test():
     tags = sorted(n for n in tree if n.startswith("releases/tags/"))
     expect(tags == sorted("releases/tags/" + t for t in ("v6.3.5-rc1", "v6.3.4", "v6.2.29", "v6.3.3", "v6.2.22-pre1", "v6.0.0-B4")),
            "a tag file for every server release, none for build-inputs-1 or the upcoming 6.9.0: %s" % tags)
-    expect(set(tree) == set(tags) | {"releases/latest", "releases.json", "releases/index.html", "index.html"}, "the tree is the documented files")
+    expect(set(tree) == set(tags) | {"releases/latest", "releases.json", "releases/index.html", "index.html", "_redirects"},
+           "the tree is the documented files")
     expect(latest["tag_name"] == "v6.3.4", "releases/latest is the highest stable version, not the latest date (6.2.29 was published after 6.3.4): %s"
            % latest["tag_name"])
+
+    # The download links follow releases/latest: not 6.3.5-rc1, the newest by
+    # date, nor 6.2.29, published after 6.3.4, nor build-inputs-1, nor the
+    # upcoming 6.9.0 - the releases permalink/latest would follow. A name 6.3.4
+    # does not carry (the AArch64 packages, the AppImages, the ARM installer) has
+    # no rule, and 6.3.4's other files (the notes) none either.
+    rules, errors = parse_redirects(tree["_redirects"])
+    expect(errors == [], "the _redirects written is one Pages takes: %s" % errors)
+    in_634 = registry + "6.3.4/"
+    expect(rules == [
+        ("/download/", PROJECT_URL + "/-/releases/v6.3.4", 302),
+        ("/download/hmailserver_amd64.deb", in_634 + "hmailserver_6.3.4_amd64.deb", 302),
+        ("/download/hmailserver_amd64.deb.cosign.bundle", in_634 + "hmailserver_6.3.4_amd64.deb.cosign.bundle", 302),
+        ("/download/hmailserver.x86_64.rpm", in_634 + "hmailserver-6.3.4-1.x86_64.rpm", 302),
+        ("/download/hMailServer-x64.exe", in_634 + "hMailServer-6.3.4-x64.exe", 302),
+        ("/download/hMailServer-x64.exe.cosign.bundle", in_634 + "hMailServer-6.3.4-x64.exe.cosign.bundle", 302),
+    ], "a 302 for each file of 6.3.4 a download name stands for, and /download/ to its page: %s" % rules)
+    expect(b'href="/download/hMailServer-x64.exe"' in tree["index.html"] and b".cosign.bundle</code>" not in tree["index.html"],
+           "the page lists the download links, without the bundles")
+    aliases = download_aliases()
+    expect(set(aliases) == set(installer_names("6.3.4")), "a download name for every kind of installation")
+    expect([aliases[p] for p in ("windows", "windows-arm64", "deb-amd64", "deb-arm64", "rpm-x86_64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64")] == [
+        "/download/hMailServer-x64.exe", "/download/hMailServer-arm64.exe", "/download/hmailserver_amd64.deb", "/download/hmailserver_arm64.deb",
+        "/download/hmailserver.x86_64.rpm", "/download/hmailserver.aarch64.rpm", "/download/hMailServer-x86_64.AppImage",
+        "/download/hMailServer-aarch64.AppImage"], "the download names: %s" % aliases)
+    # The names a release's own permanent links have (release-chain.py), so that a
+    # link that read .../permalink/latest/downloads/<name> reads /download/<name>.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("release_chain", os.path.join(ROOT, "build", "ci", "release-chain.py"))
+    chain = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(chain)
+    for platform, name in sorted(installer_names("6.3.5").items()):
+        expect(DOWNLOAD + chain.permalink_name(name, "6.3.5") == aliases[platform],
+               "the download name of %s is its release's permanent name: %s" % (name, chain.permalink_name(name, "6.3.5")))
+
+    # The rules Pages refuses, refused here too.
+    for text, why in ((b"/a https://example.com/x 200\n", "an absolute rewrite"), (b"/a /b 307\n", "a 307"),
+                      (b"a /b 302\n", "a from that is not a path"), (b"/a example.com/b 302\n", "a bare domain"),
+                      (b"/a //example.com/b 302\n", "a protocol-relative target"), (b"/a/* /b/:splat 302\n", "a splat"),
+                      (b"/a /b 302!\n", "a force"), (b"/a /b 302 x=1 y\n", "a parameter"),
+                      (b"/a /b 302\n" * 7000, "a file over 64 KiB"), (b"".join(b"/a%d /b 302\n" % i for i in range(1001)), "a thousand and one rules")):
+        expect(parse_redirects(text)[1] != [], "_redirects with %s is refused" % why)
+    expect(parse_redirects(b"# a comment\n\n/a /b\n") == ([("/a", "/b", 301)], []), "a rule with no status is a 301, and a comment is skipped")
     expect(tree["releases/index.html"].startswith(b"<!DOCTYPE html>") and b"releases.json" in tree["releases/index.html"],
            "releases/ is a page that shows the list")
 
@@ -1015,6 +1246,69 @@ def self_test():
         except FeedError:
             pass
 
+        # The download links, as Pages answers them: a rule where there is no
+        # file, a trailing slash that does not matter, and a 404 for a name the
+        # release does not carry.
+        page = PROJECT_URL + "/-/releases/v6.3.4"
+        expect(pages_resolve(directory, "/download/") == (302, None, page), "/download/ goes to 6.3.4's page")
+        expect(pages_resolve(directory, "/download") == (302, None, page), "and /download too")
+        expect(pages_resolve(directory, "/download/hMailServer-x64.exe") == (302, None, in_634 + "hMailServer-6.3.4-x64.exe"),
+               "/download/hMailServer-x64.exe goes to 6.3.4's installer")
+        expect(pages_resolve(directory, "/download/hMailServer-arm64.exe")[0] == 404, "a name 6.3.4 does not carry is a 404")
+        expect(any("302 %s/download/hMailServer-x64.exe -> %s" % (SITE, in_634 + "hMailServer-6.3.4-x64.exe") in line for line in lines),
+               "serve-check reads the download links: %s" % [l for l in lines if "/download/" in l])
+        with PagesServer(directory) as pages:
+            expect(check_site(tree, "http://127.0.0.1:%d" % pages.port) == [],
+                   "--check --site finds the site that was written as the releases make it, the download links by what they do")
+
+        redirects_path = os.path.join(directory, "_redirects")
+
+        def serve_check_with(content):
+            with open(redirects_path, "wb") as f:
+                f.write(content)
+            try:
+                return serve_check(directory, constants, out=lambda line: None)
+            finally:
+                with open(redirects_path, "wb") as f:
+                    f.write(tree["_redirects"])
+
+        # The installer's link sent to the pre-release.
+        moved = tree["_redirects"].replace(b"6.3.4/hMailServer-6.3.4-x64.exe 302\n", b"6.3.5-rc1/hMailServer-6.3.5-rc1-x64.exe 302\n")
+        expect(moved != tree["_redirects"], "the test changes the installer's rule")
+        problems = serve_check_with(moved)
+        expect(any("/download/hMailServer-x64.exe answered 302" in p and "not a 302 to" in p for p in problems),
+               "serve-check fails when a download link leads anywhere but the stable release's file: %s" % problems)
+        # A rule for a name the release does not carry.
+        problems = serve_check_with(tree["_redirects"] + b"/download/hMailServer-arm64.exe " + in_634.encode() + b"hMailServer-6.3.4-x64.exe 302\n")
+        expect(any("does not carry that file" in p for p in problems), "serve-check fails on a link to a file the release does not carry: %s" % problems)
+        # A rule Pages refuses.
+        problems = serve_check_with(tree["_redirects"] + b"/elsewhere https://example.com/ 200\n")
+        expect(any("rewrites (200) only" in p for p in problems), "serve-check fails on a rule Pages refuses: %s" % problems)
+        # No _redirects at all.
+        os.remove(redirects_path)
+        problems = serve_check(directory, constants, out=lambda line: None)
+        with open(redirects_path, "wb") as f:
+            f.write(tree["_redirects"])
+        expect(any("there is no _redirects" in p for p in problems) and any("/download/hMailServer-x64.exe answered 404" in p for p in problems),
+               "serve-check fails without _redirects: %s" % problems)
+        # A file where a download name is: Pages serves it, and the rule is never read.
+        os.makedirs(os.path.join(directory, "download"))
+        with open(os.path.join(directory, "download", "hMailServer-x64.exe"), "wb") as f:
+            f.write(b"MZ")
+        problems = serve_check(directory, constants, out=lambda line: None)
+        shutil.rmtree(os.path.join(directory, "download"))
+        expect(any("/download/hMailServer-x64.exe answered 200" in p for p in problems),
+               "serve-check fails when a file stands where a download link is: %s" % problems)
+        # A releases/latest that is a pre-release takes the links with it: failed.
+        with open(latest_path, "wb") as f:
+            f.write(tree["releases/tags/v6.3.5-rc1"])
+        problems = serve_check(directory, constants, out=lambda line: None)
+        with open(latest_path, "wb") as f:
+            f.write(tree["releases/latest"])
+        expect(any("the download links would lead to v6.3.5-rc1, a pre-release" in p for p in problems),
+               "serve-check fails when the download links would follow a pre-release: %s" % problems)
+        expect(serve_check(directory, constants, out=lambda line: None) == [], "and the site put back passes")
+
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
@@ -1079,6 +1373,9 @@ def main():
         elif missing:
             print("WARNING: %s carries no %s, so no Windows server can install it; --serve-check fails on it." % (
                 latest["tag_name"], " and no ".join(missing)))
+        linked = set(rule[0] for rule in redirect_rules(latest))
+        absent = sorted(a for a in download_aliases().values() if a not in linked)
+        print("The download links lead to %s%s." % (latest["tag_name"], "; these answer 404, since it does not carry them: " + ", ".join(absent) if absent else ""))
         return 0
     except FeedError as e:
         print("generate-update-feed: %s" % e)
