@@ -936,11 +936,11 @@ has the runbook.
 | Job | Where | What it does |
 |---|---|---|
 | `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
-| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag signed by a key in `.gitlab/allowed_signers` and still points at the commit the pipeline built, `Version.h` says the tag's version, `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb`, the `.rpm`, their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the two SBOMs, checking the sums against the packages (`build/ci/release-chain.py collect`) |
+| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb`, the `.rpm`, their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the two SBOMs, checking the sums against the packages; and refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or the installer or a bundle at all, which only the signing jobs after it make (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | bench150 | Signs the installer through Azure Artifact Signing and requires a valid signature with an RFC 3161 timestamp (`build/ci/windows-authenticode.ps1`) |
 | `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Signs all six files with Sigstore and checks each bundle's format and log entry, and verifies it with cosign (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, and writes the notes' verification section (`build/ci/release-verify.sh`) |
-| `release-publish` | shared runners, by hand | Refuses a release that exists already; uploads the twelve files to the generic package `hmailserver/<version>`, reads them back and holds each to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows, Debian and RPM servers their file and bundle (`build/ci/release-chain.py publish`) |
+| `release-publish` | shared runners, by hand | Refuses a release that exists already, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the twelve files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows, Debian and RPM servers their file and bundle (`build/ci/release-chain.py publish`) |
 | `update-feed` | a trigger | A downstream pipeline on `master`, which runs `pages` alone: every other job refuses a pipeline whose source is `pipeline`. It passes no variables, not even the file's (`inherit: variables: false`), because GitLab takes a trigger job's variables as pipeline variables, which this project refuses at GitLab's default for a project made since 17.7 |
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
@@ -965,6 +965,45 @@ jobs after them do not start.
 federated credential on the app registration in place of a client secret; and
 the upload and the release are the job's own `CI_JOB_TOKEN`. A token lives for
 the job and names the project, the tag and the pipeline.
+
+**Whose tag.** Release tags are created by Christopher Holloway, as
+`Progressiverobot`, alone (GOVERNANCE.md, 26 September 2026), and GitLab's free
+tier cannot hold tag creation to one account: the protected tag rule names a
+role. `release` reads `.gitlab/allowed_signers` from `master`, fetched by name
+(`git show refs/remotes/origin/master:.gitlab/allowed_signers`), because a tag
+on a commit of its own could carry a key of its own in its tree; it takes that
+list only while it holds one key, requires the tag's signature to be that key's
+by its fingerprint as well as by `git verify-tag`, and requires the tagged
+commit to be an ancestor of `master`. In the job's shallow checkout, fetching
+`master` brings its history down to the tagged commit when that is an
+ancestor, which is all `git merge-base --is-ancestor` needs. The checks run as
+the tagged commit has them, so a commit that is not `master`'s could carry a CI
+file or a `release-chain.py` without them: they stop a mistake and a tag made
+without the owner's key. Against a hostile commit, the protected tag rule is
+what holds for the Sigstore signature every server checks, since any pipeline
+of a protected `v*` tag is given a certificate naming that tag; the Azure
+credential made for one tag at a time holds the installer's Authenticode
+signature alone, which a server checks only with `UpdateRequireAuthenticode=1`
+and never on Linux. `master`'s list is only as safe as `master`, which
+Maintainers may push to.
+`build/check-release-chain.py` runs the tag check against a git that answers as
+the job's checkout would, and fails if it takes the tagged tree's list, a tag
+off `master` or a second key.
+
+**A file name is a release's once.** A generic package can hold a name more
+than once, and a download by name is served the newest, so `release` refuses
+before anything is signed when `hmailserver/<version>` holds one of the
+release's files with other bytes; the installer and the bundles, which the
+signing jobs make after it and which a second signing never makes the same
+(a new timestamp, a new certificate), it refuses there at all. The `.deb`, the
+`.rpm`, the sums and the SBOMs may be there with the same bytes, as a
+`release-publish` that stopped part-way leaves them. `release-publish` refuses a
+name held with other bytes before it sends anything, does not send again a
+file held with the same bytes, so a retry of it finishes a publish that
+stopped part-way, and after the upload holds every record of each name to its
+digest. After the release is created, nothing in the pipeline stops someone
+who may write to the registry adding a newer file under a release's name; a
+server still refuses it without a bundle this project's tag pipeline signed.
 
 **Why the tag's own pipeline.** Fulcio names the certificate after the ID
 token's `ci_config_ref_uri`, which a child or downstream pipeline's token does
@@ -992,9 +1031,10 @@ server binary included, for thirty days, and the signed files are kept ninety.
 
 ### What waits for the owner
 
-Each is a one-time step. The first is done. Until either of the next two is
-done, the job that needs it stops with a sentence naming it, and nothing is
-signed. The fourth is
+Each is a one-time step, but for the third's credential, which is made for
+each release's tag. The first two are done. Until the third is done for a
+release's tag, the job that needs it stops with a sentence naming it, and
+nothing is signed. The fourth is
 met only at `release-publish`'s first upload, after both signatures are made,
 and GitLab's refusal is what the job reports. The fifth is a setting nothing in
 the pipeline can check, and the one every server's trust in a release rests on.
@@ -1020,8 +1060,11 @@ the pipeline can check, and the one every server's trust in a release rests on.
 2. **Inno Setup 6 and the Artifact Signing Client Tools on bench150**, as
    administrator ([bench150](#bench150)). Done on 26 September 2026; neither
    job has run with them yet.
-3. **The Azure side of Authenticode**: the federated credential and the five
-   CI/CD variables (RELEASE.md, "Authenticode", has what to create).
+3. **The Azure side of Authenticode**: a federated credential for each
+   release's tag alone, made before the tag is pushed and removed after, and
+   the five CI/CD variables, once (RELEASE.md, "Authenticode", has what to
+   create). Not a flexible credential matching every `v*` tag: any Maintainer
+   can push one, and release tags are the owner's alone.
 4. **The package registry**: on for the project (Settings, General,
    Visibility, Packages). `release-publish` uploads and creates the release
    with `CI_JOB_TOKEN`, which acts with the permissions of whoever started the
@@ -1072,7 +1115,16 @@ been seen working:
   for a multi-project pipeline, which a `trigger: project` of the same project
   makes), and that GitLab Pages deploys from that pipeline;
 - that the generic package upload answers with `file_sha256`, which the job
-  does not rely on: it reads the registry back instead.
+  does not rely on: it reads the registry back instead;
+- that the job token may list the project's packages and their files, which
+  `release` now does before anything is signed and `release-publish` before
+  and after its upload;
+- that fetching `master` in the job's shallow checkout brings its history down
+  to the tagged commit, so that the ancestry check answers yes for a tag on
+  `master`: seen with git 2.50 over `file://`, against a scratch copy whose
+  `master` was this tree's branch (the real `master` has no `.gitlab/allowed_signers` yet),
+  with the real `v6.3.4` tag passing and an unsigned tag off `master` refused;
+  not on GitLab's runners.
 
 Dependency updates
 ------------------

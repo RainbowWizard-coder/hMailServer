@@ -1,6 +1,9 @@
 # Keys that may sign this repository's release tags (git's SSH signature
 # format; see `git help gpg.ssh.allowedSignersFile`). Read by the release job's
-# tag check (build/ci/release-chain.py collect), by the repo-hygiene job
+# tag check (build/ci/release-chain.py collect) as master has it, never as a
+# tag's own tree has it, and taken there only while it lists one key: release
+# tags are the owner's alone (GOVERNANCE.md), and build/check-release-chain.py
+# fails on a second line. Read too by the repo-hygiene job
 # (build/ci/repo-hygiene.py), and usable locally:
 #
 #   git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag vX.Y.Z

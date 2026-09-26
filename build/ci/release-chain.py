@@ -10,18 +10,29 @@ A v* tag's pipeline (.gitlab-ci.yml, the release stage; docs/ContinuousIntegrati
 job. That job runs `collect`; the signing jobs follow it, and `release-publish`, also
 started by hand, runs `publish`:
 
-  collect   the tag is an annotated tag signed by a key in .gitlab/allowed_signers,
-            and it still points at the commit this pipeline built;
+  collect   the tag is an annotated tag, it still points at the commit this
+            pipeline built, and that commit is on master; it is signed by the one
+            key .gitlab/allowed_signers lists as master has it - never as the tag's
+            own tree has it, which a tag on a commit of its own could write - and
+            the job refuses while that list holds more than one key, since release
+            tags are the owner's alone (GOVERNANCE.md, 26 September 2026);
             Version.h says the version the tag names, so every file name made from
             it is the name a server looks for; the cosign image is gcr.io's pinned
             by digest, whatever a CI/CD variable made it, and the Azure settings the Authenticode job reads are all there; and the
             artefacts of the jobs it needs - the Windows installer, the .deb and the
             .rpm with their sums, the two SBOMs - are gathered into one directory
-            under the names a release carries. Nothing leaves the pipeline.
+            under the names a release carries. The package hmailserver/<version>
+            must not hold any of them with other bytes already, nor the installer
+            or a bundle at all: those are made by the signing jobs after this one,
+            and a second signing never makes the same bytes. Nothing leaves the
+            pipeline.
 
   publish   every signed file and its <file>.cosign.bundle uploaded to the generic
             package hmailserver/<version> of this project, read back from the
-            registry and held to the SHA-256 it was signed with, then the GitLab
+            registry and held to the SHA-256 it was signed with - nothing is
+            uploaded while the package holds a file of that name with other bytes,
+            and a file it holds with the same bytes, from an earlier run of the job,
+            is not uploaded again - then the GitLab
             release created with one link per file, named after the file, which is
             what build/generate-update-feed.py and every server require. The notes
             are the version's section of CHANGELOG.md and the verification the
@@ -29,8 +40,8 @@ started by hand, runs `publish`:
             pages job will render it, and the new release must be in it with its
             installer and bundle for Windows, Debian and RPM servers.
 
-Neither asks for a secret: the pipeline's own CI_JOB_TOKEN uploads and creates the
-release, and it is sent as a header and never printed. A release that exists already
+Neither asks for a secret: the pipeline's own CI_JOB_TOKEN reads the registry, uploads
+and creates the release, and it is sent as a header and never printed. A release that exists already
 is refused - a tag is spent once - and so is any project but this one.
 
 Usage, from the repository root:
@@ -40,6 +51,7 @@ Usage, from the repository root:
 """
 
 import argparse
+import base64
 import hashlib
 import importlib.util
 import json
@@ -75,7 +87,16 @@ API_BASE = "https://gitlab.com/api/v4"
 SIGNER_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/"
 SIGNER_ISSUER = "https://gitlab.com"
 VERSION_H = os.path.join("hmailserver", "source", "Server", "Common", "Application", "Version.h")
-ALLOWED_SIGNERS = os.path.join(".gitlab", "allowed_signers")
+ALLOWED_SIGNERS = ".gitlab/allowed_signers"
+# The tag check reads the allow-list from here, fetched by name, and requires the
+# tagged commit to be on it: master is protected, and a tag is not. The tagged
+# tree's own .gitlab/allowed_signers is never read, since a tag on a commit that
+# is not master's could carry a key of its own in it.
+TRUSTED_BRANCH = "master"
+TRUSTED_REF = "refs/remotes/origin/" + TRUSTED_BRANCH
+# What git verify-tag prints for a good SSH signature: the principal and the
+# fingerprint of the key that made it.
+GOOD_SIGNATURE = re.compile(r'Good "git" signature for (\S+) with (\S+) key (SHA256:[A-Za-z0-9+/]+)')
 CHANGELOG = "CHANGELOG.md"
 # The settings release-authenticode reads (build/ci/windows-authenticode.ps1). Names
 # only are ever printed.
@@ -205,14 +226,58 @@ def changelog_section(text, version):
 
 # ---------------------------------------------------------------- collect
 
+def signer_keys(text):
+    """The keys an allowed_signers file lists: (principals, key type, key), one per
+    line that is not blank or a comment. Options such as namespaces="git" may stand
+    between the principals and the key."""
+    keys = []
+    for line in text.replace("\r\n", "\n").split("\n"):
+        fields = line.split()
+        if not fields or fields[0].startswith("#"):
+            continue
+        for index, field in enumerate(fields[1:], 1):
+            if re.match(r"^(ssh-|ecdsa-|sk-)", field) and index + 1 < len(fields):
+                keys.append((fields[0], field, fields[index + 1]))
+                break
+        else:
+            keys.append((fields[0], "", ""))
+    return keys
+
+
+def fingerprint(key):
+    """The SHA256 fingerprint ssh-keygen -l prints for a public key given as base64;
+    nothing for a key that is missing or not base64."""
+    if not key:
+        return ""
+    try:
+        blob = base64.b64decode(key, validate=True)
+    except (ValueError, TypeError):
+        return ""
+    return "SHA256:" + base64.b64encode(hashlib.sha256(blob).digest()).decode("ascii").rstrip("=")
+
+
 def check_tag(root, tag, commit, run=subprocess.run):
-    """The tag is an annotated tag object signed by a key in .gitlab/allowed_signers,
-    and it points at the commit this pipeline built: a tag deleted and made again on
-    another commit after the pipeline started is refused, not signed for."""
+    """The tag is an annotated tag object; it points at the commit this pipeline built,
+    so a tag deleted and made again on another commit after the pipeline started is
+    refused, not signed for; that commit is on master; and the tag is signed by the
+    one key master's .gitlab/allowed_signers lists.
+
+    The allow-list is master's, fetched by name, and never the tagged tree's: a tag
+    on a commit of its own could carry a key of its own in that file. It must list
+    one key, since release tags are the owner's alone (GOVERNANCE.md), and the
+    signature must be that key's by its fingerprint as well as by git's word. This
+    runs as the tagged commit has it, so what it adds is defence in depth - a
+    commit that is not master's can carry another release-chain.py too. Against
+    such a commit the protected tag rule holds the Sigstore signature, and the
+    Azure credential issued for one tag holds the Authenticode signature alone
+    (RELEASE.md)."""
     problems = []
 
     def git(*arguments):
         return run(["git", "-C", root] + list(arguments), capture_output=True, text=True)
+
+    def said(answer):
+        return (answer.stderr or answer.stdout or "exit %d" % answer.returncode).strip()[:400]
 
     git("fetch", "--force", "--no-tags", "origin", "+refs/tags/%s:refs/tags/%s" % (tag, tag))
     kind = git("cat-file", "-t", "refs/tags/" + tag)
@@ -229,9 +294,61 @@ def check_tag(root, tag, commit, run=subprocess.run):
         problems.append("%s points at %s now, and this pipeline built %s: the tag was moved after the pipeline started. "
                         "Nothing has been signed; a release is made by the pipeline of the tag as it stands"
                         % (tag, target or "nothing", commit))
-    verified = git("-c", "gpg.ssh.allowedSignersFile=" + ALLOWED_SIGNERS.replace(os.sep, "/"), "verify-tag", tag)
+
+    # master, fetched by name. In the job's shallow checkout git fetches master's
+    # history down to the tagged commit when it is an ancestor. Another shallow
+    # boundary in the checkout can still hide the way down, so a "no" from a shallow
+    # repository is asked again with master's whole history.
+    fetched = git("fetch", "--no-tags", "origin", "+refs/heads/%s:%s" % (TRUSTED_BRANCH, TRUSTED_REF))
+    if fetched.returncode != 0:
+        problems.append("%s could not be fetched, and the allow-list and the tag's ancestry are read from it: %s"
+                        % (TRUSTED_BRANCH, said(fetched)))
+        return problems
+    if target:
+        ancestry = git("merge-base", "--is-ancestor", target, TRUSTED_REF)
+        if ancestry.returncode == 1 and git("rev-parse", "--is-shallow-repository").stdout.strip() == "true":
+            deepened = git("fetch", "--unshallow", "--no-tags", "origin", "+refs/heads/%s:%s" % (TRUSTED_BRANCH, TRUSTED_REF))
+            if deepened.returncode != 0:
+                problems.append("%s's whole history could not be fetched to ask whether %s is on it: %s"
+                                % (TRUSTED_BRANCH, target, said(deepened)))
+                return problems
+            ancestry = git("merge-base", "--is-ancestor", target, TRUSTED_REF)
+        if ancestry.returncode == 1:
+            problems.append("%s points at %s, which is not on %s: a release is tagged on a commit %s already has "
+                            "(RELEASE.md, 'Tag the release on master')" % (tag, target, TRUSTED_BRANCH, TRUSTED_BRANCH))
+        elif ancestry.returncode != 0:
+            problems.append("git could not say whether %s is on %s: %s" % (target, TRUSTED_BRANCH, said(ancestry)))
+
+    listed = git("show", "%s:%s" % (TRUSTED_REF, ALLOWED_SIGNERS))
+    if listed.returncode != 0:
+        problems.append("%s has no %s to verify the tag against: %s" % (TRUSTED_BRANCH, ALLOWED_SIGNERS, said(listed)))
+        return problems
+    keys = signer_keys(listed.stdout)
+    if len(keys) != 1 or not fingerprint(keys[0][2]):
+        problems.append("%s's %s lists %d key(s)%s: release tags are signed by the owner's key alone (GOVERNANCE.md), so "
+                        "the job takes a list of exactly one" % (TRUSTED_BRANCH, ALLOWED_SIGNERS, len(keys),
+                                                                 "" if len(keys) != 1 else ", and its key is not base64"))
+        return problems
+    principal, _, key = keys[0]
+    wanted = fingerprint(key)
+
+    work = tempfile.mkdtemp(prefix="hm-signers-")
+    try:
+        signers = os.path.join(work, "allowed_signers")
+        with open(signers, "w", encoding="utf-8", newline="\n") as f:
+            f.write(listed.stdout)
+        verified = git("-c", "gpg.ssh.allowedSignersFile=" + signers.replace(os.sep, "/"), "verify-tag", tag)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
     if verified.returncode != 0:
-        problems.append("%s is not signed by a key in %s: %s" % (tag, ALLOWED_SIGNERS, (verified.stderr or verified.stdout).strip()[:400]))
+        problems.append("%s is not signed by the key %s's %s lists (%s, %s): %s" % (
+            tag, TRUSTED_BRANCH, ALLOWED_SIGNERS, principal, wanted, said(verified)))
+        return problems
+    good = GOOD_SIGNATURE.search((verified.stderr or "") + "\n" + (verified.stdout or ""))
+    if not good or good.group(3) != wanted or good.group(1) != principal:
+        problems.append("%s is signed by %s, not by the one key %s's %s lists (%s, %s)" % (
+            tag, "%s with %s" % (good.group(1), good.group(3)) if good else "a key git does not name", TRUSTED_BRANCH,
+            ALLOWED_SIGNERS, principal, wanted))
     return problems
 
 
@@ -253,7 +370,7 @@ def check_sums(sums_path, deb_path, rpm_path):
     return []
 
 
-def collect(root, tag, out, env, run=subprocess.run):
+def collect(root, tag, out, env, run=subprocess.run, api=None):
     """Checks everything the rest of the chain relies on, then gathers the files.
     Returns the problems; the files are copied only when there are none."""
     problems = []
@@ -290,6 +407,9 @@ def collect(root, tag, out, env, run=subprocess.run):
         problems.extend(check_sums(os.path.join(root, places[sums_name(version)]),
                                    os.path.join(root, places[names["deb-amd64"]]),
                                    os.path.join(root, places[names["rpm-x86_64"]])))
+    if not problems:
+        problems.extend(check_registry_before_signing(api, version, dict(
+            (name, sha256_of(os.path.join(root, places[name]))) for name in expected_assets(version))))
     if problems:
         return problems
 
@@ -341,18 +461,64 @@ def message_of(body):
         return body[:200].decode("utf-8", "replace")
 
 
-def registry_record(api, version):
-    """The registry's newest record of every file of hmailserver/<version>."""
+def registry_files(api, version):
+    """Every record the registry holds of each file of hmailserver/<version>, oldest
+    first. A generic package can hold a name more than once, and a download by name
+    is served the newest, so each is read."""
     packages = feed.get_all(api.feed_get, "/packages?package_type=generic&package_name=%s" % PACKAGE)
-    record = {}
+    held = {}
     for package in packages:
         if package.get("name") != PACKAGE or package.get("version") != version:
             continue
         for entry in feed.get_all(api.feed_get, "/packages/%d/package_files" % package["id"]):
-            name = entry.get("file_name")
-            if name not in record or entry.get("id", 0) > record[name].get("id", 0):
-                record[name] = entry
-    return record
+            held.setdefault(entry.get("file_name"), []).append(entry)
+    for entries in held.values():
+        entries.sort(key=lambda e: e.get("id", 0))
+    return held
+
+
+def registry_conflicts(held, digests, version):
+    """The files of digests ({name: sha256}) the registry already holds with other
+    bytes, as problems, and the names it holds with these bytes and no other."""
+    problems = []
+    same = set()
+    for name in sorted(digests):
+        entries = held.get(name) or []
+        other = [e for e in entries if (e.get("file_sha256") or "").lower() != digests[name]]
+        if other:
+            problems.append("the package %s/%s already holds %s with the SHA-256 %s, not %s, this release's: a file name "
+                            "is a release's once, and the link a server downloads by name is served the newest. Nothing "
+                            "has been uploaded (RELEASE.md, 'A tag is spent once')" % (
+                                PACKAGE, version, name, other[0].get("file_sha256") or "unknown", digests[name]))
+        elif entries:
+            same.add(name)
+    return problems, same
+
+
+def check_registry_before_signing(api, version, digests):
+    """collect's look at the registry. The .deb, the .rpm, the sums and the SBOMs are
+    final here, and the registry may hold them only with these bytes, as it does
+    after a release-publish that stopped part-way. The installer and every bundle are
+    made by the jobs after this one (Authenticode, Sigstore), and a second signing
+    never makes the same bytes, so the registry may not hold them at all: such a
+    release is finished by retrying release-publish of the pipeline that signed them."""
+    if api is None:
+        return ["there is no CI_JOB_TOKEN to read the package registry with: collect runs in the release job and nowhere else"]
+    try:
+        held = registry_files(api, version)
+    except (ReleaseError, feed.FeedError) as e:
+        return ["the package registry could not be read, and a release is not signed without knowing what it holds "
+                "under %s/%s: %s" % (PACKAGE, version, e)]
+    installer = feed.installer_names(version)["windows"]
+    final = dict((name, digest) for name, digest in digests.items() if name != installer)
+    problems, _ = registry_conflicts(held, final, version)
+    for name in [installer] + sorted(n + ".cosign.bundle" for n in digests):
+        if held.get(name):
+            problems.append("the package %s/%s already holds %s, which an earlier run's signing made: signing again makes "
+                            "other bytes, which release-publish refuses. Retry release-publish in the pipeline that signed "
+                            "it, or, if that cannot be, the tag is spent (RELEASE.md, 'A tag is spent once')" % (
+                                PACKAGE, version, name))
+    return problems
 
 
 def publish(assets, tag, env, api, notes, verification, render_check=True):
@@ -383,27 +549,36 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
     if status != 404:
         raise ReleaseError("asking whether %s exists answered HTTP %d: %s" % (tag, status, message_of(body)))
 
-    digests = {}
+    digests = dict((name, sha256_of(os.path.join(assets, name))) for name in wanted)
+    # A name the package holds with other bytes is refused before anything is sent;
+    # one it holds with these bytes, from a run of this job that stopped part-way,
+    # is not sent again.
+    conflicts, same = registry_conflicts(registry_files(api, version), digests, version)
+    if conflicts:
+        raise ReleaseError("; ".join(conflicts))
     for name in sorted(wanted):
-        path = os.path.join(assets, name)
-        digests[name] = sha256_of(path)
-        with open(path, "rb") as f:
+        if name in same:
+            say("  %s is in the registry with these bytes already, from an earlier run: not uploaded again" % name)
+            continue
+        with open(os.path.join(assets, name), "rb") as f:
             data = f.read()
         status, body, _ = api.request("PUT", registry_url(version, name) + "?select=package_file", data, "application/octet-stream")
         if status not in (200, 201):
-            raise ReleaseError("uploading %s answered HTTP %d: %s. Nothing is released until every file is up; run the "
-                               "job again" % (name, status, message_of(body)))
+            raise ReleaseError("uploading %s answered HTTP %d: %s. Nothing is released until every file is up; retry "
+                               "this job, which does not send again what is up already" % (name, status, message_of(body)))
         say("  uploaded %s (%d bytes)" % (name, len(data)))
 
-    record = registry_record(api, version)
+    # Every record of each name, since a download by name is served the newest.
+    held = registry_files(api, version)
     for name in sorted(wanted):
-        entry = record.get(name)
-        if entry is None:
+        entries = held.get(name) or []
+        if not entries:
             raise ReleaseError("the registry has no %s in %s/%s after its upload" % (name, PACKAGE, version))
-        if (entry.get("file_sha256") or "").lower() != digests[name]:
-            raise ReleaseError("the registry's %s has the SHA-256 %s, not %s, the file that was signed" % (
-                name, entry.get("file_sha256"), digests[name]))
-    say("the registry holds all %d files with the digests that were signed" % len(wanted))
+        for entry in entries:
+            if (entry.get("file_sha256") or "").lower() != digests[name]:
+                raise ReleaseError("the registry's %s has the SHA-256 %s, not %s, the file that was signed" % (
+                    name, entry.get("file_sha256"), digests[name]))
+    say("the registry holds all %d files with the digests that were signed, and no other" % len(wanted))
 
     description = "# hMailServer %s\n\n%s\n\n%s\n" % (version, notes.strip(), verification.strip())
     payload = {"tag_name": tag, "name": "hMailServer %s" % version, "description": description,
@@ -490,6 +665,18 @@ def self_test():
     except ReleaseError:
         pass
 
+    # The allow-list's keys and their fingerprints. KEY_A is the owner's, from
+    # .gitlab/allowed_signers, with the fingerprint ssh-keygen -l prints for it.
+    key_a = "AAAAC3NzaC1lZDI1NTE5AAAAIIB9HiI7F4JgXDg9DyvL3KSQUlKfygNjVkT2rKf6pOUL"
+    key_b = base64.b64encode(b"\x00\x00\x00\x0bssh-ed25519\x00\x00\x00\x20" + bytes(range(32))).decode("ascii")
+    list_a = "# the owner's\nowner@example.org ssh-ed25519 %s\n" % key_a
+    list_b = "someone@example.org ssh-ed25519 %s\n" % key_b
+    expect(fingerprint(key_a) == "SHA256:bz6MOtUcFMhhzlNiUhIZL0BzitPE875hMk1Yon5huAA", "a key's fingerprint is ssh-keygen's")
+    expect(fingerprint("not base64!") == "" and fingerprint("") == "", "a key that is missing or not base64 has no fingerprint")
+    expect(signer_keys('# c\n\na@b.c,d@e.f namespaces="git" ssh-ed25519 %s comment\n' % key_a) == [("a@b.c,d@e.f", "ssh-ed25519", key_a)],
+           "an allowed_signers line with options is read as its principals and its key")
+    expect(len(signer_keys(list_a + list_b)) == 2 and signer_keys("# only a comment\n") == [], "every key line is counted, no comment")
+
     with tempfile.TemporaryDirectory() as work:
         # A checkout with the jobs' artifacts in it, as `release` sees one.
         root = os.path.join(work, "checkout")
@@ -508,6 +695,9 @@ def self_test():
         rpm = os.path.join(root, sources(version)[names["rpm-x86_64"]])
         sums = "%s  %s\n%s  %s\n" % (sha256_of(deb), names["deb-amd64"], sha256_of(rpm), names["rpm-x86_64"])
         write(sources(version)[sums_name(version)], sums.encode("utf-8"))
+        # The tagged tree's own allow-list names another key than master's: a tag
+        # signed with it must be refused, which it is only if master's is read.
+        write(ALLOWED_SIGNERS, list_b.encode("utf-8"))
 
         built = "c" * 40
         env = {"HM_COSIGN_IMAGE": "gcr.io/projectsigstore/cosign:v2.6.1-dev@sha256:" + "a" * 64, "CI_COMMIT_SHA": built}
@@ -518,53 +708,53 @@ def self_test():
             def __init__(self, code, out="", err=""):
                 self.returncode, self.stdout, self.stderr = code, out, err
 
-        def tag_at(commit):
+        def fake_git(commit=built, on_master=True, master_list=list_a, signed_by=key_a, fetch_master=True, names_key=None,
+                     hidden=False, unshallow=True):
+            """git as the release job's checkout answers it. master's history and its
+            allow-list are there only once master has been fetched by name; with
+            hidden, another shallow boundary hides the way down to the tagged commit
+            until master's whole history is fetched. verify-tag reads whatever
+            allow-list it is given, and a signature is good when that list holds the
+            key the tag was signed with."""
+            state = {"master": False, "whole": False}
+
             def answer(arguments, **kwargs):
                 if "cat-file" in arguments:
                     return Done(0, "tag\n")
+                if "--is-shallow-repository" in arguments:
+                    return Done(0, "false\n" if state["whole"] else "true\n")
                 if "rev-parse" in arguments:
                     return Done(0, commit + "\n")
+                if "fetch" in arguments:
+                    if "+refs/heads/%s:%s" % (TRUSTED_BRANCH, TRUSTED_REF) in arguments:
+                        if not fetch_master or ("--unshallow" in arguments and not unshallow):
+                            return Done(128, "", "fatal: could not read from remote repository")
+                        state["master"] = True
+                        state["whole"] = state["whole"] or "--unshallow" in arguments
+                    return Done(0)
+                if "merge-base" in arguments:
+                    seen = state["master"] and (state["whole"] or not hidden)
+                    return Done(0 if on_master and seen and TRUSTED_REF in arguments else 1)
+                if "show" in arguments:
+                    if state["master"] and arguments[-1] == "%s:%s" % (TRUSTED_REF, ALLOWED_SIGNERS) and master_list is not None:
+                        return Done(0, master_list)
+                    return Done(128, "", "fatal: path '%s' does not exist" % ALLOWED_SIGNERS)
+                if "verify-tag" in arguments:
+                    given = [a.split("=", 1)[1] for a in arguments if a.startswith("gpg.ssh.allowedSignersFile=")]
+                    path = given[0] if given else ""
+                    path = path if os.path.isabs(path) else os.path.join(root, path)
+                    try:
+                        with open(path, encoding="utf-8") as f:
+                            listed = signer_keys(f.read())
+                    except OSError:
+                        return Done(1, "", "error: no allowed signers file")
+                    for principal, _, key in listed:
+                        if key == signed_by:
+                            shown = names_key or key
+                            return Done(0, "", 'Good "git" signature for %s with ED25519 key %s\n' % (principal, fingerprint(shown)))
+                    return Done(1, "", "Could not verify signature.\nno principal matched")
                 return Done(0)
             return answer
-
-        signed_tag = tag_at(built)
-
-        out = os.path.join(work, "release-assets")
-        problems = collect(root, tag, out, env, run=signed_tag)
-        expect(problems == [], "a complete, signed, stamped release is collected: %s" % problems)
-        expect(sorted(os.listdir(out)) == sorted(expected_assets(version)), "under the names a release carries: %s" % (
-            sorted(os.listdir(out)) if os.path.isdir(out) else "nothing"))
-
-        def refused(what, needle, **changes):
-            e = dict(env)
-            e.update(changes.get("env", {}))
-            run = changes.get("run", signed_tag)
-            found = collect(root, changes.get("tag", tag), os.path.join(work, "refused"), e, run=run)
-            expect(any(needle in p for p in found), "%s is refused: %s" % (what, found))
-            expect(not os.path.isdir(os.path.join(work, "refused")), "%s copies nothing" % what)
-
-        refused("a tag Version.h does not name", "Version.h says 6.3.5", tag="v6.3.6")
-        refused("a cosign image left unpinned", "HM_COSIGN_IMAGE", env={"HM_COSIGN_IMAGE": "gcr.io/projectsigstore/cosign:v2.6.1-dev@sha256:PIN-THE-DIGEST"})
-        refused("a cosign image from ghcr.io, pinned, as a CI/CD variable could set it", "not gcr.io/projectsigstore/cosign",
-                env={"HM_COSIGN_IMAGE": "ghcr.io/sigstore/cosign/cosign:v2.6.1-dev@sha256:" + "a" * 64})
-        refused("a tag moved to another commit after the pipeline started", "the tag was moved", run=tag_at("d" * 40))
-        refused("a collect outside a pipeline", "CI_COMMIT_SHA is", env={"CI_COMMIT_SHA": ""})
-        refused("an Azure setting left out", "ARTIFACT_SIGNING_PROFILE", env={"ARTIFACT_SIGNING_PROFILE": " "})
-        refused("a lightweight tag", "is not an annotated tag", run=lambda a, **k: Done(0, "commit\n"))
-        refused("a tag signed by nobody allowed", "is not signed by a key",
-                run=lambda a, **k: Done(0, "tag\n") if "cat-file" in a else Done(1 if "verify-tag" in a else 0, "", "no principal matched"))
-        write(sources(version)[sums_name(version)], ("%s  %s\n" % ("0" * 64, names["deb-amd64"])).encode("utf-8"))
-        refused("a sums file that is not the packages'", "is not the sums of the two packages")
-        write(sources(version)[sums_name(version)], sums.encode("utf-8"))
-        os.remove(os.path.join(root, sources(version)["hmailserver.spdx.json"]))
-        refused("a missing SBOM", "hmailserver.spdx.json is not in this job's artifacts")
-
-        # Publishing, against a registry and a releases API held in memory.
-        signed = os.path.join(work, "release-signed")
-        shutil.copytree(out, signed)
-        for name in expected_assets(version):
-            with open(os.path.join(signed, name + ".cosign.bundle"), "w") as f:
-                f.write('{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json"}')
 
         class FakeGitLab(object):
             def __init__(self):
@@ -572,6 +762,13 @@ def self_test():
                 self.releases = []
                 self.calls = []
                 self.next_id = [100]
+
+            def seed(self, name, data):
+                """A file the registry holds before this run, as an earlier one or someone else left it."""
+                self.next_id[0] += 1
+                self.files.setdefault((PACKAGE, version), []).append({"id": self.next_id[0], "file_name": name, "size": len(data),
+                                                                      "file_sha256": hashlib.sha256(data).hexdigest()})
+                return self
 
             def request(self, method, url, body=None, content_type=None):
                 self.calls.append((method, url.split("?")[0]))
@@ -614,6 +811,81 @@ def self_test():
                     raise feed.FeedError("HTTP %d" % status)
                 return body, headers
 
+        signed_tag = fake_git()
+
+        out = os.path.join(work, "release-assets")
+        problems = collect(root, tag, out, env, run=signed_tag, api=FakeGitLab())
+        expect(problems == [], "a complete release, its tag on master and signed by master's one key, is collected: %s" % problems)
+        gathered = sorted(os.listdir(out)) if os.path.isdir(out) else []
+        expect(gathered == sorted(expected_assets(version)), "under the names a release carries: %s" % (gathered or "nothing"))
+        if not gathered:
+            # So that publishing is still tested when collecting failed.
+            os.makedirs(out, exist_ok=True)
+            for name in expected_assets(version):
+                shutil.copyfile(os.path.join(root, sources(version)[name]), os.path.join(out, name))
+
+        def refused(what, needle, **changes):
+            e = dict(env)
+            e.update(changes.get("env", {}))
+            run = changes.get("run", signed_tag)
+            api = changes["api"] if "api" in changes else FakeGitLab()
+            found = collect(root, changes.get("tag", tag), os.path.join(work, "refused"), e, run=run, api=api)
+            expect(any(needle in p for p in found), "%s is refused: %s" % (what, found))
+            expect(not os.path.isdir(os.path.join(work, "refused")), "%s copies nothing" % what)
+
+        refused("a tag Version.h does not name", "Version.h says 6.3.5", tag="v6.3.6")
+        refused("a cosign image left unpinned", "HM_COSIGN_IMAGE", env={"HM_COSIGN_IMAGE": "gcr.io/projectsigstore/cosign:v2.6.1-dev@sha256:PIN-THE-DIGEST"})
+        refused("a cosign image from ghcr.io, pinned, as a CI/CD variable could set it", "not gcr.io/projectsigstore/cosign",
+                env={"HM_COSIGN_IMAGE": "ghcr.io/sigstore/cosign/cosign:v2.6.1-dev@sha256:" + "a" * 64})
+        refused("a tag moved to another commit after the pipeline started", "the tag was moved", run=fake_git(commit="d" * 40))
+        refused("a collect outside a pipeline", "CI_COMMIT_SHA is", env={"CI_COMMIT_SHA": ""})
+        refused("an Azure setting left out", "ARTIFACT_SIGNING_PROFILE", env={"ARTIFACT_SIGNING_PROFILE": " "})
+        refused("a lightweight tag", "is not an annotated tag", run=lambda a, **k: Done(0, "commit\n"))
+        # The tag's signer, against master's allow-list and not the tagged tree's.
+        refused("a tag on a commit that is not on master", "which is not on master", run=fake_git(on_master=False))
+        refused("a tag not on master, asked again with master's whole history", "which is not on master",
+                run=fake_git(on_master=False, hidden=True))
+        refused("a checkout that cannot fetch master's whole history when a shallow boundary hides the way down",
+                "whole history could not be fetched", run=fake_git(hidden=True, unshallow=False))
+        problems = collect(root, tag, os.path.join(work, "deepened"), env, run=fake_git(hidden=True), api=FakeGitLab())
+        expect(problems == [], "a tag on master whose way down a shallow boundary hides is found with master's whole history: %s" % problems)
+        refused("a tag signed by the key its own tree lists and master does not", "is not signed by the key master's",
+                run=fake_git(signed_by=key_b))
+        refused("a tag signed by a second key master's list gained", "lists 2 key(s)",
+                run=fake_git(master_list=list_a + list_b, signed_by=key_b))
+        refused("master's list of two keys, even for the owner's", "lists 2 key(s)", run=fake_git(master_list=list_a + list_b))
+        refused("master's list with no key", "lists 0 key(s)", run=fake_git(master_list="# nobody\n"))
+        refused("no allow-list on master", "master has no .gitlab/allowed_signers", run=fake_git(master_list=None))
+        refused("master not fetched", "master could not be fetched", run=fake_git(fetch_master=False))
+        refused("git naming another key than the listed one", "not by the one key master's", run=fake_git(names_key=key_b))
+        # The registry, before anything is signed.
+        refused("a collect without the job's token", "there is no CI_JOB_TOKEN", api=None)
+        refused("a .deb the registry holds with other bytes", "already holds %s with the SHA-256" % names["deb-amd64"],
+                api=FakeGitLab().seed(names["deb-amd64"], b"other bytes"))
+        refused("an installer an earlier run's signing left in the registry", "already holds %s, which an earlier run's signing made" % names["windows"],
+                api=FakeGitLab().seed(names["windows"], ("the bytes of %s\n" % names["windows"]).encode("utf-8")))
+        refused("a bundle an earlier run left in the registry", "hmailserver.spdx.json.cosign.bundle, which an earlier run's signing made",
+                api=FakeGitLab().seed("hmailserver.spdx.json.cosign.bundle", b"{}"))
+        held = FakeGitLab()
+        for name in expected_assets(version):
+            if name != names["windows"]:
+                with open(os.path.join(root, sources(version)[name]), "rb") as f:
+                    held.seed(name, f.read())
+        problems = collect(root, tag, os.path.join(work, "again"), env, run=signed_tag, api=held)
+        expect(problems == [], "files the registry holds with the same bytes, from a publish that stopped part-way, are collected again: %s" % problems)
+        write(sources(version)[sums_name(version)], ("%s  %s\n" % ("0" * 64, names["deb-amd64"])).encode("utf-8"))
+        refused("a sums file that is not the packages'", "is not the sums of the two packages")
+        write(sources(version)[sums_name(version)], sums.encode("utf-8"))
+        os.remove(os.path.join(root, sources(version)["hmailserver.spdx.json"]))
+        refused("a missing SBOM", "hmailserver.spdx.json is not in this job's artifacts")
+
+        # Publishing, against a registry and a releases API held in memory.
+        signed = os.path.join(work, "release-signed")
+        shutil.copytree(out, signed)
+        for name in expected_assets(version):
+            with open(os.path.join(signed, name + ".cosign.bundle"), "w") as f:
+                f.write('{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json"}')
+
         publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/"}
         verification = "## Verification\n\nSigned by %s%s." % (SIGNER_IDENTITY_PREFIX, tag)
         api = FakeGitLab()
@@ -638,6 +910,23 @@ def self_test():
             expect("releases/tags/v6.3.5" in tree and latest["tag_name"] == "v6.3.5" and not warnings,
                    "the feed publishes the release as the stable one: %s" % warnings)
 
+        # A retry after a run that stopped part-way: what is up already, with the
+        # same bytes, is not sent again, and the release is made.
+        retried = FakeGitLab()
+        up_already = sorted(os.listdir(signed))[:5]
+        for name in up_already:
+            with open(os.path.join(signed, name), "rb") as f:
+                retried.seed(name, f.read())
+        try:
+            publish(signed, tag, publish_env, retried, section, verification, render_check=False)
+            sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
+            expect(len(sent) == 7 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
+                   "a retry leaves one record of each file")
+            expect(len(retried.releases) == 1, "a retry creates the release")
+        except ReleaseError as e:
+            failures.append("a retry after a publish that stopped part-way is published: %s" % e)
+
         # What publish refuses, having uploaded nothing.
         def refuses(what, needle, assets_dir=signed, env_changes=None, api_object=None):
             e = dict(publish_env)
@@ -655,6 +944,12 @@ def self_test():
         refuses("another project", "not %s" % PROJECT_ID, env_changes={"CI_PROJECT_ID": "1"})
         refuses("another GitLab", "which every release link names", env_changes={"CI_API_V4_URL": "https://gitlab.example.com/api/v4"})
         refuses("a release that exists already", "exists already", api_object=api)
+        refuses("a file name the registry holds with other bytes", "already holds %s with the SHA-256" % names["rpm-x86_64"],
+                api_object=FakeGitLab().seed(names["rpm-x86_64"], b"someone else's package"))
+        with open(os.path.join(signed, names["windows"] + ".cosign.bundle"), "rb") as f:
+            twice = FakeGitLab().seed(names["windows"] + ".cosign.bundle", f.read()).seed(names["windows"] + ".cosign.bundle", b"{}")
+        refuses("a name held twice, once with these bytes and once with others", "already holds %s.cosign.bundle" % names["windows"],
+                api_object=twice)
         unsigned = os.path.join(work, "unsigned")
         shutil.copytree(signed, unsigned)
         os.remove(os.path.join(unsigned, names["windows"] + ".cosign.bundle"))
@@ -672,6 +967,27 @@ def self_test():
                 return FakeGitLab.request(self, method, url, body, content_type)
 
         refuses("a registry that stores other bytes", "not %s" % sha256_of(os.path.join(signed, names["windows"])), api_object=Tampering())
+
+        class Racing(FakeGitLab):
+            """Someone uploads another file under a release's name while the job
+            uploads: just before the job's own upload of it, or just after."""
+            def __init__(self, before):
+                FakeGitLab.__init__(self)
+                self.before = before
+
+            def request(self, method, url, body=None, content_type=None):
+                racing = method == "PUT" and "amd64.deb?" in url
+                if racing and self.before:
+                    self.seed(names["deb-amd64"], b"slipped in")
+                answer = FakeGitLab.request(self, method, url, body, content_type)
+                if racing and not self.before:
+                    self.seed(names["deb-amd64"], b"slipped in")
+                return answer
+
+        refuses("a registry that gains another file of a release's name after the job's upload of it",
+                "the registry's %s has the SHA-256" % names["deb-amd64"], api_object=Racing(False))
+        refuses("a registry that gains another file of a release's name before the job's upload of it, older than the job's",
+                "the registry's %s has the SHA-256" % names["deb-amd64"], api_object=Racing(True))
 
     for failure in failures:
         print("FAILED: " + failure)
@@ -696,7 +1012,8 @@ def main():
     tag = os.environ.get("CI_COMMIT_TAG", "")
     try:
         if args.command == "collect":
-            problems = collect(ROOT, tag, os.path.join(ROOT, args.out), os.environ)
+            token = os.environ.get("CI_JOB_TOKEN", "")
+            problems = collect(ROOT, tag, os.path.join(ROOT, args.out), os.environ, api=GitLab(token) if token else None)
             for problem in problems:
                 print("REFUSED: " + problem)
             if problems:

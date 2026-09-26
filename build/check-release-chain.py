@@ -39,6 +39,18 @@ refuses it. This checker holds them to each other. It fails when:
   * release does not wait for every job that can fail a tag's pipeline (every job
     that is neither allow_failure nor manual, nor one of the few that never runs in
     one), or brings the artifacts of any but the three whose files it collects;
+  * the release job's tag check (build/ci/release-chain.py collect), given a git
+    that answers as the job's checkout would, accepts a tag signed by a key the
+    tagged tree's own .gitlab/allowed_signers lists and master's does not, a tag
+    on a commit that is not on master, or a tag while master's list holds a
+    second key, or refuses a tag master's one key signed on master's history; or
+    the tree's .gitlab/allowed_signers lists more than one key, which the release
+    job refuses as master's (release tags are the owner's alone, GOVERNANCE.md);
+  * collect, given a registry that holds files of the release's version, takes
+    one with other bytes, or the installer or a bundle, which only a signing
+    after it makes, or refuses one with the same bytes; or publish uploads before
+    it has refused a name the registry holds with other bytes, sends again what
+    is up already, or holds only the newest record of a name to the digest;
   * the pinned-image pattern the release job holds HM_COSIGN_IMAGE to at run time
     (build/ci/release-chain.py) is not this checker's, which a CI/CD variable of
     the same name could otherwise take past;
@@ -74,12 +86,17 @@ Usage:
   python build/check-release-chain.py --self-test  each rule broken in a copy, and caught
 """
 
+import base64
 import importlib.util
 import io
+import json
 import os
 import re
 import subprocess
+import shutil
 import sys
+import tempfile
+import urllib.parse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILES = {
@@ -91,6 +108,8 @@ FILES = {
     "installer": os.path.join("build", "ci", "windows-installer.ps1"),
     "verifier": os.path.join("hmailserver", "source", "Server", "Common", "Util", "SigstoreVerifier.cpp"),
     "fuzz": os.path.join("build", "ci", "linux-fuzz.sh"),
+    "chain": os.path.join("build", "ci", "release-chain.py"),
+    "signers": os.path.join(".gitlab", "allowed_signers"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sign", "release-verify",
@@ -304,6 +323,140 @@ def needs(block):
     return found
 
 
+class _Done(object):
+    def __init__(self, code, out="", err=""):
+        self.returncode, self.stdout, self.stderr = code, out, err
+
+
+def _key(seed):
+    """An ed25519 public key, as allowed_signers writes it, that no one holds."""
+    return base64.b64encode(b"\x00\x00\x00\x0bssh-ed25519\x00\x00\x00\x20" + bytes((seed + i) % 256 for i in range(32))).decode("ascii")
+
+
+def probe_tag_check(chain):
+    """chain.check_tag, run against a git that answers as the release job's shallow
+    checkout would: master's history and allow-list are there once master is fetched
+    by name, the tagged tree's own allow-list names another key, and verify-tag
+    reads whichever allow-list it is given."""
+    key_a, key_b = _key(1), _key(101)
+    list_a = "owner@example.org ssh-ed25519 %s\n" % key_a
+    list_b = "someone@example.org ssh-ed25519 %s\n" % key_b
+    commit = "c" * 40
+    problems = []
+    work = tempfile.mkdtemp(prefix="hm-tag-probe-")
+    try:
+        os.makedirs(os.path.join(work, ".gitlab"))
+        with io.open(os.path.join(work, ".gitlab", "allowed_signers"), "w", encoding="utf-8") as f:
+            f.write(list_b)
+
+        def git(on_master=True, master_list=list_a, signed_by=key_a, names_key=None):
+            state = {"master": False}
+
+            def answer(arguments, **kwargs):
+                if "cat-file" in arguments:
+                    return _Done(0, "tag\n")
+                if "rev-parse" in arguments:
+                    return _Done(0, commit + "\n")
+                if "fetch" in arguments:
+                    if "+refs/heads/master:refs/remotes/origin/master" in arguments:
+                        state["master"] = True
+                    return _Done(0)
+                if "merge-base" in arguments:
+                    return _Done(0 if on_master and state["master"] and "refs/remotes/origin/master" in arguments else 1)
+                if "show" in arguments:
+                    if state["master"] and arguments[-1] == "refs/remotes/origin/master:.gitlab/allowed_signers":
+                        return _Done(0, master_list)
+                    return _Done(128, "", "fatal: invalid object name")
+                if "verify-tag" in arguments:
+                    given = [a.split("=", 1)[1] for a in arguments if a.startswith("gpg.ssh.allowedSignersFile=")]
+                    path = given[0] if given else ""
+                    path = path if os.path.isabs(path) else os.path.join(work, path)
+                    try:
+                        with io.open(path, encoding="utf-8") as f:
+                            listed = f.read()
+                    except (OSError, IOError):
+                        return _Done(1, "", "no allowed signers file")
+                    for line in listed.splitlines():
+                        fields = line.split()
+                        if len(fields) >= 3 and fields[2] == signed_by:
+                            return _Done(0, "", 'Good "git" signature for %s with ED25519 key %s\n' % (
+                                fields[0], chain.fingerprint(names_key or signed_by)))
+                    return _Done(1, "", "no principal matched")
+                return _Done(0)
+            return answer
+
+        cases = [
+            ("a tag master's one key signed, on master's history", git(), False),
+            ("a tag signed by a key the tagged tree's own allow-list lists and master's does not", git(signed_by=key_b), True),
+            ("a tag on a commit that is not on master", git(on_master=False), True),
+            ("a tag signed by a second key master's list holds", git(master_list=list_a + list_b, signed_by=key_b), True),
+            ("a tag signed by a key other than the one git was given", git(names_key=key_b), True),
+        ]
+        for what, run, refuse in cases:
+            try:
+                found = chain.check_tag(work, "v9.9.9", commit, run)
+            except Exception as e:  # a probe reports, it does not stop the checker
+                found = None
+                problems.append("build/ci/release-chain.py's tag check fails on %s: %r" % (what, e))
+            if found is None:
+                continue
+            if refuse and not found:
+                problems.append("build/ci/release-chain.py's tag check accepts %s" % what)
+            if not refuse and found:
+                problems.append("build/ci/release-chain.py's tag check refuses %s: %s" % (what, found))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return problems
+
+
+def probe_registry(chain, feed):
+    """chain.check_registry_before_signing, collect's look at the registry, against
+    one that holds files of the version already."""
+    version = "9.9.9"
+    names = feed.installer_names(version)
+    digests = dict((name, "a" * 64) for name in chain.expected_assets(version))
+
+    class Registry(object):
+        def __init__(self, *held):
+            self.files = [{"id": i + 1, "file_name": n, "file_sha256": s} for i, (n, s) in enumerate(held)]
+
+        def feed_get(self, url):
+            path = urllib.parse.urlparse(url).path[len("/api/v4/projects/" + feed.PROJECT_ID):]
+            if path == "/packages":
+                return json.dumps([{"id": 7, "name": chain.PACKAGE, "version": version}]).encode("utf-8"), {}
+            if path == "/packages/7/package_files":
+                return json.dumps(self.files).encode("utf-8"), {}
+            raise feed.FeedError("%s is not asked for here" % path)
+
+    cases = [
+        ("an empty registry", Registry(), False),
+        ("the Linux files, the sums and the SBOMs with the same bytes, as a publish that stopped part-way leaves them",
+         Registry(*[(n, "a" * 64) for n in digests if n != names["windows"]]), False),
+        ("a .deb with other bytes", Registry((names["deb-amd64"], "b" * 64)), True),
+        ("a .deb held twice, the older with other bytes", Registry((names["deb-amd64"], "b" * 64), (names["deb-amd64"], "a" * 64)), True),
+        ("the installer, which Authenticode makes after collect", Registry((names["windows"], "a" * 64)), True),
+        ("a bundle, which Sigstore makes after collect", Registry(("hmailserver.spdx.json.cosign.bundle", "c" * 64)), True),
+    ]
+    problems = []
+    for what, registry, refuse in cases:
+        try:
+            found = chain.check_registry_before_signing(registry, version, digests)
+        except Exception as e:  # a probe reports, it does not stop the checker
+            problems.append("build/ci/release-chain.py's collect fails on a registry holding %s: %r" % (what, e))
+            continue
+        if refuse and not found:
+            problems.append("build/ci/release-chain.py's collect takes a registry holding %s" % what)
+        if not refuse and found:
+            problems.append("build/ci/release-chain.py's collect refuses a registry holding %s: %s" % (what, found))
+    return problems
+
+
+def function_text(source, name):
+    """The text of a top-level function of a Python file."""
+    match = re.search(r"^def %s\(.*?(?=^def |^class |^# -{10,}|\Z)" % re.escape(name), source, re.MULTILINE | re.DOTALL)
+    return match.group(0) if match else ""
+
+
 def check(texts, chain, feed):
     problems = []
     notes = []
@@ -463,6 +616,38 @@ def check(texts, chain, feed):
         problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY_ID is not the project id %s" % feed.PROJECT_ID)
     if not os.path.isfile(os.path.join(ROOT, ".gitlab-ci.yml")):
         problems.append("the CI file is not .gitlab-ci.yml at the root, the file every GitLab certificate names")
+
+    # The release tag: master's allow-list, of one key, and the tagged commit on master.
+    keys = chain.signer_keys(texts["signers"])
+    if len(keys) != 1 or not chain.fingerprint(keys[0][2]):
+        problems.append(".gitlab/allowed_signers lists %d key(s): release tags are the owner's alone (GOVERNANCE.md), and the "
+                        "release job refuses every tag while master's list holds any number but one" % len(keys))
+    if chain.TRUSTED_BRANCH != "master" or chain.TRUSTED_REF != "refs/remotes/origin/master":
+        problems.append("build/ci/release-chain.py reads the allow-list and the tag's ancestry from %s (%s), not from master, "
+                        "the protected branch" % (chain.TRUSTED_BRANCH, chain.TRUSTED_REF))
+    problems.extend(probe_tag_check(chain))
+
+    # The registry: collect refuses what a release cannot be made from; publish refuses
+    # a name held with other bytes before it sends anything, does not send again what
+    # is up with the same bytes, and holds every record of each name to its digest.
+    problems.extend(probe_registry(chain, feed))
+    collect_text = function_text(texts["chain"], "collect")
+    if "check_registry_before_signing(api, version," not in collect_text:
+        problems.append("build/ci/release-chain.py's collect no longer looks at the registry before anything is signed")
+    if "api=GitLab(token) if token else None" not in function_text(texts["chain"], "main"):
+        problems.append("build/ci/release-chain.py's main no longer gives collect the job's token to read the registry with")
+    publish_text = function_text(texts["chain"], "publish")
+    looked = publish_text.find("conflicts, same = registry_conflicts(registry_files(api, version), digests, version)")
+    refused = publish_text.find("    if conflicts:\n        raise ReleaseError")
+    sent = publish_text.find('api.request("PUT"')
+    if looked < 0 or refused < looked or sent < refused:
+        problems.append("build/ci/release-chain.py's publish no longer refuses a name the registry holds with other bytes "
+                        "before it uploads anything")
+    if "        if name in same:\n" not in publish_text or sent < publish_text.find("        if name in same:\n"):
+        problems.append("build/ci/release-chain.py's publish sends again a file the registry holds with the same bytes")
+    if not re.search(r"^        for entry in entries:\n            if \(entry\.get\(\"file_sha256\"\)", publish_text[max(sent, 0):], re.MULTILINE):
+        problems.append("build/ci/release-chain.py's publish no longer holds every record of each name to its digest after "
+                        "the upload: a download by name is served the newest, and another may be older")
 
     # Authenticode.
     authenticode = jobs["release-authenticode"]
@@ -735,6 +920,54 @@ def self_test(chain, feed):
            "whatever the settings")
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
+
+    # The release tag and the registry.
+    owner_line = [l for l in texts["signers"].split("\n") if l.strip() and not l.startswith("#")]
+    if owner_line:
+        broken("a second key in the allow-list", "signers", owner_line[0], owner_line[0] + "\nsomeone@example.org ssh-ed25519 " + _key(7),
+               "lists 2 key(s)")
+    broken("publish uploading before it looks at the registry", "chain", "    if conflicts:\n        raise ReleaseError",
+           "    if False:\n        raise ReleaseError", "before it uploads anything")
+    broken("publish sending again what is up already", "chain", "        if name in same:\n", "        if False:\n", "sends again a file")
+    broken("publish holding the newest record alone", "chain", "        for entry in entries:\n            if (entry.get(\"file_sha256\")",
+           "        for entry in entries[-1:]:\n            if (entry.get(\"file_sha256\")", "every record of each name")
+    broken("collect not looking at the registry", "chain", "problems.extend(check_registry_before_signing(api, version,",
+           "problems.extend(check_nothing(api, version,", "collect no longer looks at the registry")
+    broken("collect without the job's token", "chain", "api=GitLab(token) if token else None", "api=None", "the job's token")
+
+    def patched(what, attribute, value, needle):
+        held = getattr(chain, attribute)
+        setattr(chain, attribute, value)
+        try:
+            found, _ = check(texts, chain, feed)
+        finally:
+            setattr(chain, attribute, held)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+
+    def tree_allow_list(root, tag, commit, run):
+        """The tag check as it was: the tagged tree's own allow-list."""
+        verified = run(["git", "-C", root, "-c", "gpg.ssh.allowedSignersFile=.gitlab/allowed_signers", "verify-tag", tag])
+        return [] if verified.returncode == 0 else ["not signed"]
+
+    held_check = chain.check_tag
+
+    def without(needle):
+        return lambda root, tag, commit, run: [p for p in held_check(root, tag, commit, run) if needle not in p]
+
+    patched("the allow-list read from the tagged tree", "check_tag", tree_allow_list, "the tagged tree's own allow-list")
+    patched("a tag check that asks no ancestry", "check_tag", without("not on master"), "accepts a tag on a commit that is not on master")
+    patched("a tag check that takes a list of two keys", "check_tag", without("key(s)"), "a second key master's list holds")
+    patched("a tag check that takes git's word for the key", "check_tag", without("not by the one key"), "a key other than the one git was given")
+    patched("a tag check that refuses everything", "check_tag", lambda root, tag, commit, run: ["no"], "refuses a tag master's one key signed")
+    patched("the allow-list read from another branch", "TRUSTED_BRANCH", "main", "not from master")
+    patched("collect taking whatever the registry holds", "check_registry_before_signing", lambda api, version, digests: [], "collect takes a registry holding")
+    held_registry = chain.check_registry_before_signing
+    patched("collect taking an installer already signed", "check_registry_before_signing",
+            lambda api, version, digests: [p for p in held_registry(api, version, digests) if "earlier run's signing" not in p],
+            "holding the installer")
+    patched("collect refusing the same bytes", "check_registry_before_signing",
+            lambda api, version, digests: held_registry(api, version, dict((n, "f" * 64) for n in digests)), "collect refuses a registry holding the Linux files")
 
     for failure in failures:
         print("FAILED: " + failure)

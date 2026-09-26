@@ -394,8 +394,9 @@ first release is to be checked against the list by hand before it is published:
       so the project does not move until one has.
 
 How the job meets each point: it is a job of the tag's own pipeline and never a
-trigger; the tag is checked as an annotated tag signed by a key in
-`.gitlab/allowed_signers`, and `Version.h` must say the version the tag names
+trigger; the tag is checked as an annotated tag on a commit `master` has,
+signed by the one key `master`'s `.gitlab/allowed_signers` lists, and
+`Version.h` must say the version the tag names
 before anything is signed; the job has `id_tokens: {SIGSTORE_ID_TOKEN: {aud:
 sigstore}}` and runs cosign's own image from `gcr.io` pinned by digest
 (`HM_COSIGN_IMAGE`); it signs with `--new-bundle-format --rekor-url

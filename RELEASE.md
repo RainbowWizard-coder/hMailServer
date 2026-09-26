@@ -37,6 +37,25 @@ change, check the protected tag rule (Settings, Repository, Protected tags):
 whatever `.gitlab-ci.yml` that tag's commit has, so whoever can push such a tag
 can sign a release the servers accept. Nothing in the pipeline can check this.
 
+Release tags are created by Christopher Holloway, as `Progressiverobot`, alone
+(the owner's decision of 26 September 2026, GOVERNANCE.md). The protected tag
+rule cannot say so on GitLab's free tier - it names a role, and Maintainers
+include others - so the `release` job holds what it can: it reads
+`.gitlab/allowed_signers` as `master` has it, fetched by name, never as the
+tag's own tree has it; it refuses every tag while that list holds any number of
+keys but one; it requires the tag's signature to be that key's, by its
+fingerprint; and it requires the tagged commit to be on `master`. These checks
+run as the tagged commit has them, so a tag on a commit that is not `master`'s
+could carry a `.gitlab-ci.yml` or a `build/ci/release-chain.py` of its own
+without them: they stop a mistake and a tag pushed without the owner's key.
+Against a hostile commit, the protected tag rule is what holds for the Sigstore
+signature every server checks: any pipeline of a protected `v*` tag is given a
+certificate naming that tag, which servers accept. The Azure credential made
+for one tag at a time ([Authenticode](#on-gitlab-from-635)) holds the
+installer's Authenticode signature alone, which a server checks only where
+`UpdateRequireAuthenticode=1` is set, and never on Linux. `master`'s list is
+itself only as safe as `master`, which Maintainers may push to.
+
 1. **Steps 1 to 10 below, as written**, with one change: the release notes are
    the version's section of `CHANGELOG.md`, headed `## [X.Y.Z](...) - <date>`,
    committed before the tag, because `release-publish` makes the release's notes
@@ -46,13 +65,18 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
    that checkout has a change of its own to a tracked file, or a file git does
    not track where a build would take it in (`build/ci/windows-installer.ps1`
    says which).
-2. **Tag the release on `master`**, annotated and signed, and push the tag:
+2. **Tag the release on `master`**, annotated and signed with the owner's key,
+   once the commit is on GitLab's `master`, and push the tag:
 
    ```
    git tag -s vX.Y.Z -m "hMailServer X.Y.Z"
    git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag vX.Y.Z
    git push gitlab vX.Y.Z
    ```
+
+   `release` refuses a tag whose commit GitLab's `master` does not have yet, and
+   reads the key from `master`'s `.gitlab/allowed_signers`, so a key changed in
+   the tagged commit alone counts for nothing.
 
    A pre-release's tag carries a suffix, `vX.Y.Z-rc1` (step 12 says why).
    The tag's pipeline runs every gate - the checks, both suites, the package
@@ -64,11 +88,17 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
    can fail the pipeline has passed; it does not wait for the scans that are
    `allow_failure` (`static-analysis`, `semgrep`, `ci-image-packages`,
    `dependency-scan`, `repo-hygiene`) or for the manual `db-matrix`, so read the
-   scans first. It refuses, naming why, a tag that is lightweight, not signed by
-   a key in `.gitlab/allowed_signers`, or moved to another commit since the
-   pipeline started, a `Version.h` that does not say the tag's version, a cosign
-   image that is not `gcr.io`'s pinned by digest, a missing Azure setting, and a
-   missing file. Nothing has been signed or sent when it refuses.
+   scans first. It refuses, naming why, a tag that is lightweight, moved to
+   another commit since the pipeline started, on a commit `master` does not
+   have, or not signed by the one key `master`'s `.gitlab/allowed_signers`
+   lists (and every tag while that list holds more than one); a `Version.h` that
+   does not say the tag's version, a cosign image that is not `gcr.io`'s pinned
+   by digest, a missing Azure setting, and a missing file. It also refuses when
+   the package `hmailserver/X.Y.Z` already holds one of the release's files with
+   other bytes, or the installer or a bundle at all: those two are made by the
+   signing jobs after it, and a second signing never makes the same bytes (a new
+   timestamp, a new certificate). Nothing has been signed or sent when it
+   refuses.
 4. **`release-authenticode`, `release-sign` and `release-verify` follow by
    themselves.** Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
@@ -82,7 +112,10 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
    (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
    It must pass before the next step.
 6. **Start `release-publish`.** It uploads the six files and their bundles to
-   the package `hmailserver/X.Y.Z`, reads them back, creates the release with a
+   the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a name
+   the package holds with other bytes, and not sending again a file it holds
+   with the same bytes - reads every record of each name back and holds it to
+   the digest that was signed, creates the release with a
    link per file named after it, and checks that the feed the API now gives
    offers the release to Windows, Debian and RPM servers. `update-feed` then
    runs `pages` on `master`. Check the site:
@@ -97,9 +130,13 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
 A tag is spent once here too. Before `release-publish`, a job that failed for
 a reason outside the tree - a setting, a tool on bench150, the network - is
 retried at the same tag once the cause is put right. A fault in the tree needs a
-new commit and so a new version. After `release-publish`, a release that is
-wrong is corrected by the next version, not by editing this one: servers may
-already hold its files.
+new commit and so a new version. A `release-publish` that stopped part-way, with
+some files uploaded, is finished by retrying `release-publish` in the same
+pipeline, which sends only what is not up yet; not by starting `release` again,
+which refuses once the installer or a bundle is in the registry, since signing
+again would make other bytes under the same names. After `release-publish`, a
+release that is wrong is corrected by the next version, not by editing this one:
+servers may already hold its files.
 
 ## Order of operations
 
@@ -510,52 +547,54 @@ token, with the audience `api://AzureADTokenExchange`, is what Microsoft Entra
 ID accepts through a federated credential in place of a client secret. It stops
 before sending anything while a setting is missing, naming it, and when Entra
 refuses the token it prints Entra's own answer, which names the subject the
-token carried. What the owner creates, once:
+token carried. What the owner creates:
 
-1. **The federated credential**, on the app registration that holds the
-   *Artifact Signing Certificate Profile Signer* role on the certificate profile
-   (the one used for 6.3.1 to 6.3.4 will do). A GitLab ID token's subject for a
-   tag is `project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z`,
-   and its issuer `https://gitlab.com`. An ordinary federated credential matches
-   one subject exactly - Entra ID allows no wildcard in it - so either:
+1. **A federated credential for each release, made for its tag alone**, on the
+   app registration that holds the *Artifact Signing Certificate Profile
+   Signer* role on the certificate profile (the one used for 6.3.1 to 6.3.4
+   will do), before the tag is pushed: issuer `https://gitlab.com`, subject
+   `project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z` - a
+   GitLab ID token's subject for that tag, which Entra ID matches exactly -
+   and audience `api://AzureADTokenExchange`. The portal has it under the app
+   registration's Certificates & secrets, Federated credentials, *Other
+   issuer*; or save this as `credential.json`:
 
-   * **a flexible federated credential** (in preview on 26 September 2026),
-     which matches every release tag at once and, as Entra requires for GitLab,
-     the project's id as well. Save this as `credential.json` and post it to the
-     app registration with the Azure CLI, as someone who may edit it:
+   ```json
+   {
+     "name": "gitlab-hmailserver-vX.Y.Z",
+     "issuer": "https://gitlab.com",
+     "subject": "project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z",
+     "audiences": ["api://AzureADTokenExchange"]
+   }
+   ```
 
-     ```json
-     {
-       "name": "gitlab-hmailserver-release-tags",
-       "issuer": "https://gitlab.com",
-       "audiences": ["api://AzureADTokenExchange"],
-       "claimsMatchingExpression": {
-         "value": "claims['sub'] matches 'project_path:Progressiverobot/hmailserver:ref_type:tag:ref:v*' and claims['project_id'] eq '86730559'",
-         "languageVersion": 1
-       }
-     }
-     ```
+   ```
+   az ad app federated-credential create --id <the app registration's application id> --parameters credential.json
+   ```
 
-     ```
-     az rest --method POST --uri "https://graph.microsoft.com/beta/applications/<the app registration's object id>/federatedIdentityCredentials" --headers "Content-Type=application/json" --body "@credential.json"
-     ```
+   Remove it once the release is published (`az ad app federated-credential
+   delete --id <application id> --federated-credential-id
+   gitlab-hmailserver-vX.Y.Z`): an app registration holds at most twenty, and
+   one left in place would let another pipeline of the same tag sign. A
+   pre-release's tag, `vX.Y.Z-rc1`, needs its own.
 
-     The portal offers the same under the app registration's Certificates &
-     secrets, Federated credentials, *Other issuer*. `v*` matches any tag the
-     project protects as a release tag, and only a Maintainer can push one;
-   * or, without the preview, **one ordinary credential per release**, made
-     before its tag is pushed: issuer `https://gitlab.com`, subject
-     `project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z`,
-     audience `api://AzureADTokenExchange`. An app registration holds at most
-     twenty, so remove the old ones.
+   Not a *flexible* federated credential matching `ref:v*` (in preview on 26
+   September 2026), though it would save the step: `v*` matches every tag
+   the protected tag rule lets a Maintainer push, and release tags are the
+   owner's alone ([The release on GitLab](#the-release-on-gitlab)). A
+   credential made for one tag, when the owner makes that tag, keeps the
+   Authenticode signature to the owner's tags whatever the tagged commit
+   carries, since `release`'s own checks run as the tagged commit has them.
+   It does not hold the Sigstore signature, which any pipeline of a protected
+   `v*` tag is given and which is all a server requires unless
+   `UpdateRequireAuthenticode=1` is set.
 
    Setting the project's ID token subject to begin with its id instead of its
    path (the project's `ci_id_token_sub_claim_components`, `["project_id",
    "ref_type", "ref"]`, through GitLab's API) makes the subject
    `project_id:86730559:ref_type:tag:ref:vX.Y.Z`, which no rename or transfer
-   can give to another project; the credential's expression then matches
-   `project_id:86730559:ref_type:tag:ref:v*`. Sigstore does not use the subject,
-   so this changes nothing for the bundles.
+   can give to another project, and the credential's subject is then that.
+   Sigstore does not use the subject, so this changes nothing for the bundles.
 2. **Five CI/CD variables** of the project (Settings, CI/CD, Variables), each
    *protected*, so that only a protected ref's pipeline - a `v*` tag - reads
    them. None is a secret: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID` (the app
