@@ -63,15 +63,17 @@ Where the build gets them
   `build/generate-com-wrapper.ps1`, which `build.ps1` and `build-tools.ps1` run
   themselves.
 
-The download address in the script (`$releaseBase`) is still GitHub's, which has
-answered 404 since GitHub suspended the project's account on 18 September 2026.
-The same release is re-published on GitLab, byte for byte, as
-<https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>, and
-pointing the script there belongs to the Roadmap2 row *The release chain off a
-single forge*. Until then, download the three assets from that page into the
-script's cache (`%LOCALAPPDATA%\hmailserver\build-inputs`, or the folder given to
-`-Cache`): the script checks each against the manifest's hash and uses it
-without downloading anything.
+The script downloads a `build-inputs-<n>` release's files from the project's
+generic package registry on GitLab
+(`https://gitlab.com/api/v4/projects/86730559/packages/generic/build-inputs/<n>/<asset>`),
+where `build-inputs-1` was re-published byte for byte after GitHub suspended the
+project's account on 18 September 2026
+(<https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>).
+Until 26 September 2026 it downloaded from GitHub's address, which has answered
+404 since. A file already in the script's cache
+(`%LOCALAPPDATA%\hmailserver\build-inputs`, or the folder given to `-Cache`)
+with the manifest's hash is used without downloading anything, and every
+download is checked against the hash whatever its address.
 
 The server, the tools, the Control Panel and the test assembly compile without
 the fetched and gathered files. The installer and a regression bench need them.
@@ -252,8 +254,11 @@ Updating the manifest
 
 When you add, update or remove a build input:
 
-1. Publish the new file as an asset of a new `build-inputs-<n>` release, leaving
-   the old one as it is, or change where it is gathered from.
+1. Upload the new file to the generic package `build-inputs/<n>` of the
+   project's package registry, for a new `<n>`, which is where
+   `get-installer-binaries.ps1` fetches a `build-inputs-<n>` release's files
+   from, and make the release `build-inputs-<n>` link to it, leaving the old one
+   as it is; or change where it is gathered from.
 2. Update its entry in `third-party-binaries.json` - `sha256`, `size`,
    `version`, `upstream`, `source`, and `authenticode` if the signing status
    changed - and the `build_inputs` hash of the release asset.
@@ -292,7 +297,7 @@ CycloneDX document to the same rule.
 | OpenSSL 4.0.2, Boost 1.92.0 and PostgreSQL 18.3's libpq, as source | `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, from each project's own release server (OpenSSL's is its GitHub releases) | The archive's SHA-256, in the script; the version, by the include paths in `hMailServer.vcxproj` | Yes, at the include paths' version |
 | zlib 1.3.2 and QuickJS 2025-04-26 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
 | 7-Zip 26.03 | `build/get-installer-binaries.ps1`, from `https://www.7-zip.org/a/7z2603-extra.7z` | SHA-256 in `third-party-binaries.json`, of the package and of the member | Yes, with the package's SHA-256 |
-| MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release (the script still names its GitHub address; the copy on GitLab is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
+| MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release's files in the project's package registry on GitLab (from GitHub until 26 September 2026; the copy is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
 | The MSVC v145 runtime, 14.51.36231.0 | The same script, from the build machine's Visual Studio | Its version (major.minor), against the toolset | Yes, by version, since 25 September 2026 |
 | The .NET Desktop Runtime 10.0.12 | `build/get-dotnet-runtime.ps1`, from builds.dotnet.microsoft.com | The SHA-512 in Microsoft's release metadata, in `third-party-binaries.json`. Until 25 September 2026: whatever aka.ms/dotnet/10.0 served that day, if it was larger than 40 MB | Yes, with the SHA-512, since 25 September 2026 |
 | The Linux packages' libraries: glibc, libstdc++, OpenSSL 3.0 or later, zlib, libpq, OpenLDAP, and Boost 1.83 or later (static) | The distribution, and the build image's Boost | Not pinned: the Linux build's log records the versions it built against (RELEASE.md, step 8) | Yes, by name and with no version, since 25 September 2026 |
@@ -403,9 +408,6 @@ Not yet done
 
 Honest list of what this document does not cover.
 
-- **The fetched files are downloaded from GitHub's address**, which answers 404.
-  The release is on GitLab; the script is not pointed at it yet (the release-chain
-  row), so a clean machine fetches them by hand, as above.
 - **Nothing re-verifies anything automatically.** The provenance workflow and its
   Windows signature job ran on GitHub only.
 - **The Connector/C files are placed twice.** One installer line pointed at

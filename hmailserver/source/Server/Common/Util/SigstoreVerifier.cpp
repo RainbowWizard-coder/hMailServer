@@ -107,10 +107,11 @@ namespace HM
       const __int64 GITHUB_ISSUED_BEFORE = 1789689600;   // 2026-09-18T00:00:00Z
       const char *GITHUB_LAST_VERSION = "6.3.3";
 
-      // Every release after 6.3.3 is to be signed by a job of this project's
-      // GitLab CI pipeline for a v* tag. None has been yet: this entry is compiled
-      // in from Fulcio's documented GitLab form, and the first signed release is
-      // what proves it (docs/UpdateFeed.md, "What the signing job must produce").
+      // Every release from 6.3.5 is to be signed by the release-sign job of this
+      // project's GitLab CI pipeline for a v* tag (6.3.4 was released by hand with
+      // no bundle). None has been yet: this entry is compiled in from Fulcio's
+      // documented GitLab form, and the first signed release is what proves it
+      // (docs/UpdateFeed.md, "What the signing job produces").
       // Fulcio names a GitLab CI job by the ci_config_ref_uri claim of its ID token,
       // "https://" + gitlab.com/<project path>//<CI file>@<ref>, records
       // https://gitlab.com as the issuer, https://gitlab.com/<project path> as the

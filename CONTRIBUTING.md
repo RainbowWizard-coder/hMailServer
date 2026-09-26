@@ -178,12 +178,10 @@ so a tool that normalises the tree to LF breaks all three.
 third-party files the installer carries (7-Zip's `7za.exe`, the MariaDB client and its nine plugins, and the
 SQL Server Compact 4.0 runtime), and a second copy of the MariaDB client and its plugins under
 `libraries\mariadb-connector-c-3.4.9\`, which the post-build step copies beside the server.
-`build\get-installer-binaries.ps1` downloads them from the project's `build-inputs-1` release and checks
-each against the SHA-256 in `hmailserver/docs/third-party-binaries.json`. The script still downloads from the
-release's GitHub address (`$releaseBase`), which is unreachable; the same release is re-published on GitLab, byte
-for byte, at <https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>. Download its three
-assets into the script's cache, `%LOCALAPPDATA%\hmailserver\build-inputs`, and the script checks each against the
-manifest and uses it without downloading anything
+`build\get-installer-binaries.ps1` downloads them from the project's `build-inputs-1` release, whose files are in
+the project's package registry on GitLab (<https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>,
+the same bytes GitHub served until 18 September 2026), and 7-Zip's console from 7-zip.org, and checks each against
+the SHA-256 in `hmailserver/docs/third-party-binaries.json`
 ([ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md#where-the-build-gets-them)). The server, the
 tools, the Control Panel and the test assembly compile without them; a regression bench and the installer need
 them.
@@ -409,6 +407,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-portal-script.py` | Runs the webmail's script against a small DOM and a stubbed API | Needs `node`; `--no-node` runs the static checks only |
 | `check-project-items.py` | No file listed twice in a project, and every listed file exists | |
 | `check-roadmap2.py` | The counter line at the top of `Roadmap2.md` equals the rows' marks | **Rewrites** the counter with `--write` |
+| `check-release-chain.py` | The release jobs of `.gitlab-ci.yml`, their scripts and `SigstoreVerifier.cpp`'s GitLab identity agree: the ID tokens' audiences, cosign's flags, the order of the jobs, the two manual starts, and every other job refusing the feed's pipeline | `--self-test` |
 | `check-role-choke-point.py` | `RoleManager` is the only decider of what a credential may do; every `RouteKind` is classified | `--self-test` |
 | `check-sbom-inputs.py` | Every input the build pins - in `third-party-binaries.json`, `native-dependencies.ps1`, `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1`, and every library `CMakeLists.txt` finds - is in the SBOM's component list, at its pinned version and with its pinned hash | `--self-test`; `--sbom FILE` (repeatable) holds a finished SPDX or CycloneDX document to it. Runs `native-dependencies.ps1` when `pwsh` or `powershell` is present, and reads its tables when neither is |
 | `check-setting-levels.py` | A setting with domain or account levels is read only through `EffectiveSetting`, and its marks agree with `build/settings-levels.txt` | Proves its own negative controls on every run |

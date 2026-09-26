@@ -6,17 +6,96 @@ already cost a release cycle or nearly shipped a defect.
 **Status since 18 September 2026.** GitHub has been unavailable to the project
 since 18 September 2026, and its home has been
 [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September
-2026. The release chain this checklist describes runs on GitHub: the installer's
-fetched inputs come from the `build-inputs-1` GitHub release (step 11), and the
-draft release, the Linux packages, the SBOMs, Sigstore and Authenticode signing,
-the installer smoke test and the package managers are GitHub Releases and GitHub
-Actions (steps 11 to 13). So no release can be completed until that chain moves,
-which is planned roadmap work and not yet done. The bench steps run as written,
-except that step 9's Code Scanning and Dependabot pages are GitHub's. Step 12's
-commit rule is out of date as well: since 24 September 2026 commits are made as
-Christopher Holloway, the identity of the GitLab account `Progressiverobot`, and
-since 14 September 2026 no approval is required, so a tree that has passed the
-gate lands on `master` by fast-forward, with no pull request.
+2026. Steps 11 to 13 below describe the release chain as it ran on GitHub -
+the draft release, the Linux packages, the SBOMs, Sigstore and Authenticode
+signing, the installer smoke test and the package managers as GitHub Releases
+and GitHub Actions - and are kept as the history of how releases up to 6.3.3
+were made. From 6.3.5 a release is made by the tag's GitLab pipeline instead:
+[The release on GitLab](#the-release-on-gitlab), below, replaces steps 11 and 12
+from the tag on. 6.3.4 was built and Authenticode-signed by hand, between the
+two, and carries no Sigstore bundle. The bench steps run as written, except that
+step 9's Code Scanning and Dependabot pages are GitHub's. Step 12's commit rule
+is out of date as well: since 24 September 2026 commits are made as Christopher
+Holloway, the identity of the GitLab account `Progressiverobot`, and since 14
+September 2026 no approval is required, so a tree that has passed the gate lands
+on `master` by fast-forward, with no pull request.
+
+## The release on GitLab
+
+For 6.3.5 onwards. Written on 26 September 2026 and not yet run: the first
+release made this way is also the first test of it, and
+`hmailserver/docs/ContinuousIntegration.md` ("The release") lists what only that
+run can show and the one-time steps the owner takes first. The jobs are in
+`.gitlab-ci.yml`, and `build/check-release-chain.py` holds them to what a server
+built after 6.3.3 needs.
+
+Before the first release, and whenever the project's members or settings
+change, check the protected tag rule (Settings, Repository, Protected tags):
+`v*`, allowed to create: Maintainers, and nobody else. Every server built after
+6.3.3 trusts a bundle signed by any pipeline of a `v` tag of this project,
+whatever `.gitlab-ci.yml` that tag's commit has, so whoever can push such a tag
+can sign a release the servers accept. Nothing in the pipeline can check this.
+
+1. **Steps 1 to 10 below, as written**, with one change: the release notes are
+   the version's section of `CHANGELOG.md`, headed `## [X.Y.Z](...) - <date>`,
+   committed before the tag, because `release-publish` makes the release's notes
+   from it as the tag's own tree has it and refuses a version without one - a
+   pre-release's too, `## [X.Y.Z-rc1](...)`. The installer is not built by hand
+   (step 11): the pipeline builds it, in bench150's checkout, and refuses to if
+   that checkout has a change of its own to a tracked file, or a file git does
+   not track where a build would take it in (`build/ci/windows-installer.ps1`
+   says which).
+2. **Tag the release on `master`**, annotated and signed, and push the tag:
+
+   ```
+   git tag -s vX.Y.Z -m "hMailServer X.Y.Z"
+   git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag vX.Y.Z
+   git push gitlab vX.Y.Z
+   ```
+
+   A pre-release's tag carries a suffix, `vX.Y.Z-rc1` (step 12 says why).
+   The tag's pipeline runs every gate - the checks, both suites, the package
+   jobs, the SBOMs - and `windows-installer`, which builds the installer on
+   bench150 after `windows-gate` and signs nothing.
+3. **Start `release`** once every job before it has passed, within three days of
+   the tag's pipeline (`linux-build`'s artifact is kept three days; retry
+   `linux-build` otherwise). GitLab offers the button only when every job that
+   can fail the pipeline has passed; it does not wait for the scans that are
+   `allow_failure` (`static-analysis`, `semgrep`, `ci-image-packages`,
+   `dependency-scan`, `repo-hygiene`) or for the manual `db-matrix`, so read the
+   scans first. It refuses, naming why, a tag that is lightweight, not signed by
+   a key in `.github/allowed_signers`, or moved to another commit since the
+   pipeline started, a `Version.h` that does not say the tag's version, a cosign
+   image that is not `gcr.io`'s pinned by digest, a missing Azure setting, and a
+   missing file. Nothing has been signed or sent when it refuses.
+4. **`release-authenticode`, `release-sign` and `release-verify` follow by
+   themselves.** Read `release-verify`'s `verification.md`: the identity must
+   be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
+5. **The installer smoke test**, on the signed installer: download
+   `release-signed/` from `release-sign`'s artifacts to the VMware host and run
+   `bash build/ci/installer-smoke-run.sh <the previous release's installer>
+   release-signed/hMailServer-X.Y.Z-x64.exe`
+   (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
+   It must pass before the next step.
+6. **Start `release-publish`.** It uploads the six files and their bundles to
+   the package `hmailserver/X.Y.Z`, reads them back, creates the release with a
+   link per file named after it, and checks that the feed the API now gives
+   offers the release to Windows, Debian and RPM servers. `update-feed` then
+   runs `pages` on `master`. Check the site:
+
+   ```
+   python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com
+   ```
+
+7. **The package managers** (step 13) are still by hand: the manifests job was
+   not ported.
+
+A tag is spent once here too. Before `release-publish`, a job that failed for
+a reason outside the tree - a setting, a tool on bench150, the network - is
+retried at the same tag once the cause is put right. A fault in the tree needs a
+new commit and so a new version. After `release-publish`, a release that is
+wrong is corrected by the next version, not by editing this one: servers may
+already hold its files.
 
 ## Order of operations
 
@@ -395,6 +474,79 @@ things that are real: the elevation prompt reads the publisher's name instead of
 refuses unsigned binaries outright stops being a wall. For a mail server, whose
 users are disproportionately administrators on policy-managed Windows, the second
 is the one that matters.
+
+### On GitLab, from 6.3.5
+
+The `release-authenticode` job (`build/ci/windows-authenticode.ps1`, on bench150)
+signs the installer with **Azure Artifact Signing** through SignTool and
+Microsoft's Artifact Signing plugin, with an RFC 3161 timestamp from
+`http://timestamp.acs.microsoft.com`, and holds no secret: the job's GitLab ID
+token, with the audience `api://AzureADTokenExchange`, is what Microsoft Entra
+ID accepts through a federated credential in place of a client secret. It stops
+before sending anything while a setting is missing, naming it, and when Entra
+refuses the token it prints Entra's own answer, which names the subject the
+token carried. What the owner creates, once:
+
+1. **The federated credential**, on the app registration that holds the
+   *Artifact Signing Certificate Profile Signer* role on the certificate profile
+   (the one used for 6.3.1 to 6.3.4 will do). A GitLab ID token's subject for a
+   tag is `project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z`,
+   and its issuer `https://gitlab.com`. An ordinary federated credential matches
+   one subject exactly - Entra ID allows no wildcard in it - so either:
+
+   * **a flexible federated credential** (in preview on 26 September 2026),
+     which matches every release tag at once and, as Entra requires for GitLab,
+     the project's id as well. Save this as `credential.json` and post it to the
+     app registration with the Azure CLI, as someone who may edit it:
+
+     ```json
+     {
+       "name": "gitlab-hmailserver-release-tags",
+       "issuer": "https://gitlab.com",
+       "audiences": ["api://AzureADTokenExchange"],
+       "claimsMatchingExpression": {
+         "value": "claims['sub'] matches 'project_path:Progressiverobot/hmailserver:ref_type:tag:ref:v*' and claims['project_id'] eq '86730559'",
+         "languageVersion": 1
+       }
+     }
+     ```
+
+     ```
+     az rest --method POST --uri "https://graph.microsoft.com/beta/applications/<the app registration's object id>/federatedIdentityCredentials" --headers "Content-Type=application/json" --body "@credential.json"
+     ```
+
+     The portal offers the same under the app registration's Certificates &
+     secrets, Federated credentials, *Other issuer*. `v*` matches any tag the
+     project protects as a release tag, and only a Maintainer can push one;
+   * or, without the preview, **one ordinary credential per release**, made
+     before its tag is pushed: issuer `https://gitlab.com`, subject
+     `project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z`,
+     audience `api://AzureADTokenExchange`. An app registration holds at most
+     twenty, so remove the old ones.
+
+   Setting the project's ID token subject to begin with its id instead of its
+   path (the project's `ci_id_token_sub_claim_components`, `["project_id",
+   "ref_type", "ref"]`, through GitLab's API) makes the subject
+   `project_id:86730559:ref_type:tag:ref:vX.Y.Z`, which no rename or transfer
+   can give to another project; the credential's expression then matches
+   `project_id:86730559:ref_type:tag:ref:v*`. Sigstore does not use the subject,
+   so this changes nothing for the bundles.
+2. **Five CI/CD variables** of the project (Settings, CI/CD, Variables), each
+   *protected*, so that only a protected ref's pipeline - a `v*` tag - reads
+   them. None is a secret: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID` (the app
+   registration's application id), `ARTIFACT_SIGNING_ENDPOINT`
+   (`https://neu.codesigning.azure.net`), `ARTIFACT_SIGNING_ACCOUNT` and
+   `ARTIFACT_SIGNING_PROFILE`. The pipeline needs no client secret; the
+   `AZURE_CLIENT_SECRET` of the GitHub workflow has no counterpart here.
+3. **The Artifact Signing Client Tools on bench150**, for the machine, as an
+   administrator: `winget install --exact --id
+   Microsoft.Azure.ArtifactSigningClientTools --scope machine`.
+
+The job then checks the signature is `Valid`, carries the timestamp, and left
+the version resource as it was, before `release-sign` signs the same bytes with
+Sigstore. What signing buys and what it does not is the same as below.
+
+### On GitHub, up to 6.3.3
 
 The `authenticode` job in `sign-release.yml` signs the installer with **Azure
 Artifact Signing** - the service formerly called Trusted Signing - and does

@@ -48,7 +48,13 @@ What runs where
 | `ci-image-packages` | test | linix | a protected ref | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | a protected ref | Trivy over the lock files and the CI image, OSV over the vendored libraries |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
-| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | A placeholder. It fails with "the release stage is the release-chain row's (137)" |
+| `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
+| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, and collects the six files a release carries (`build/ci/release-chain.py collect`) |
+| `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The installer Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
+| `release-sign` | release | GitLab's shared runners | a `v*` tag, after `release-authenticode` | Every file signed with Sigstore as this pipeline (`build/ci/release-sign.sh`) |
+| `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update` (`build/ci/release-verify.sh`) |
+| `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
+| `update-feed` | release | (a trigger) | a `v*` tag, after `release-publish` | Starts a downstream pipeline on `master`, passing no variables, which runs `pages` alone |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | a pipeline schedule for `master` with `RUN_RENOVATE=1`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 
@@ -57,7 +63,10 @@ and `linux-sbom` start as soon as the pipeline does. They do not wait for the
 checks, because the two machines are otherwise idle and the Windows gate is the
 longest job. `linux-suite`, the two upgrade gates, the two package jobs and
 `linux-image` wait for `linux-build`, whose artifact holds the binary and the
-packages, and `release` waits for the checks and the two suites. linix runs one
+packages, and `release` waits for every job that can fail a tag's pipeline - the
+checks, both suites, the upgrade gates, the package jobs, `linux-cross`,
+`linux-sanitize`, `linux-image`, `windows-dotnet` - and `windows-installer`
+([The release](#the-release)). linix runs one
 job at a time, so its jobs queue behind each other in the order GitLab hands them
 out; bench150's two jobs take the bench's gate lock in turn
 ([The .NET job](#the-net-job)).
@@ -78,16 +87,17 @@ Which pipeline runs what
 
 | Push or event | Pipeline | Jobs |
 |---|---|---|
-| `master` | the branch's | all of them but `release`, `linux-fuzz` and `installer-smoke` |
-| a `batch*` branch | the branch's | all of them but `release`, `linux-fuzz` and `pages`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
+| `master` | the branch's | all of them but the release jobs, `linux-fuzz` and `installer-smoke` |
+| a `batch*` branch | the branch's | all of them but the release jobs, `linux-fuzz` and `pages`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
 | any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, and `sign-off` when the branch is in a fork |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them but `linux-fuzz`, with `release` and `installer-smoke` manual |
+| a `v*` tag | the tag's | all of them but `linux-fuzz`, with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
 | any other tag | none | |
 | the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
 | the Renovate schedule (`RUN_RENOVATE=1`, on `master`) | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
 | any other pipeline schedule on `master` (the update feed's) | the schedule's | `pages` alone (see [The update feed](#the-update-feed)) |
+| the pipeline `update-feed` starts (on `master`, source `pipeline`) | a downstream pipeline | `pages` alone |
 
 The four path-bound checks - `chart-and-compose`, `update-helper`,
 `package-templates` and `roadmap` - run when a file they check, or
@@ -199,6 +209,20 @@ bench), plus these:
   ("NETFX 4.8.1 Tools"). The gate's server build needs the Build Tools already.
   This job clones the commit into the runner's own builds directory as usual;
   its checkout is LocalSystem's, so it needs no `safe.directory`.
+- For `windows-installer`: Inno Setup 6 installed for the machine (`winget
+  install --exact --id JRSoftware.InnoSetup --scope machine`, as an
+  administrator), because LocalSystem sees no per-user installation; and access
+  to `gitlab.com`'s package registry, `7-zip.org` and Microsoft's .NET download
+  site, which `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1` fetch
+  from, each file checked against its pinned hash. `HM_ISCC`, a CI/CD variable,
+  names `ISCC.exe` where it is somewhere else. Not installed yet (26 September
+  2026).
+- For `release-authenticode`: Microsoft's Artifact Signing Client Tools
+  (`winget install --exact --id Microsoft.Azure.ArtifactSigningClientTools
+  --scope machine`), which bring SignTool's Artifact Signing plugin and the
+  .NET 8 runtime it needs; SignTool itself is the Windows SDK's, which the Build
+  Tools installed. `HM_SIGNTOOL` and `HM_SIGNING_DLIB` name either where it is
+  somewhere else. Not installed yet (26 September 2026).
 
 ### Re-creating a runner
 
@@ -416,19 +440,19 @@ in the tree in case GitHub returns; GitLab reads none of them.
 | `linux-build.yml` regression-on-linux | `linux-suite` (row 139), the whole suite in one run | linix | a protected ref |
 | `linux-build.yml` db-upgrade | `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | linix | a protected ref |
 | `linux-build.yml` image | `linux-image`: built and inspected, not pushed | linix | a protected ref |
-| `linux-build.yml` publish | not ported: the release-chain row (137) | | |
+| `linux-build.yml` publish | `release`, `release-sign` and `release-publish`: the `.deb`, the `.rpm` and their sums on the release | shared, linix | a `v*` tag |
 | `packaging.yml` chart-and-compose | `chart-and-compose` | shared | the chart or the Compose file changed |
 | `packaging.yml` update-helper | `update-helper` | shared | the helper, its test or a unit changed |
 | `package-managers.yml` templates | `package-templates` | shared | the templates or their scripts changed |
-| `package-managers.yml` manifests | not ported: it renders from a published, signed installer and submits it; the release-chain row (137) | | |
-| `sbom.yml` | `linux-sbom`: made and kept, not attached | linix | a protected ref |
+| `package-managers.yml` manifests | not ported: it renders from a published, signed installer and submits it; still the release-chain row's (137) | | |
+| `sbom.yml` | `linux-sbom`: made and kept; a `v*` tag's release carries them, signed | linix | a protected ref |
 | `fuzz-nightly.yml` | `linux-fuzz`, on Linux rather than Windows | linix | the fuzz schedule |
 | (none) | `linux-sanitize`: `snmp-tests` under AddressSanitizer, once the SNMP row adds `HM_SANITIZE` | linix | a protected ref |
 | `codeql.yml` | not ported: see below | | |
 | `dependency-review.yml` | not ported: see below | | |
 | `scorecard.yml` | not ported: see below | | |
 | `upstream-watch.yml` | not ported: see below | | |
-| `sign-release.yml` | not ported: the release-chain row (137) | | |
+| `sign-release.yml` | `release-authenticode`, `release-sign` and `release-verify`: Authenticode with a federated credential in place of a client secret, and Sigstore; not the SLSA provenance (see below) | bench150, shared, linix | a `v*` tag |
 | `verify-binary-provenance.yml` | not ported: the release-chain row (137) | | |
 | `installer-smoke.yml` | ported separately, by its own change | | |
 
@@ -443,12 +467,13 @@ in the tree in case GitHub returns; GitLab reads none of them.
   to the OpenSSF API from a verified GitHub workflow.
 - `upstream-watch.yml`. It reads upstream hMailServer's repository, which is on
   GitHub, and files an issue there.
-- `sign-release.yml`, `verify-binary-provenance.yml`, `linux-build.yml`
-  publish, `package-managers.yml` manifests, and the upload halves of
-  `sbom.yml` and the image job. Signing, publishing, the update feed and what a
-  release attaches are the Roadmap2 row "The release chain off a single forge"
-  (137). The jobs here make and check the packages, the image and the SBOMs;
-  that row decides where they go.
+- `verify-binary-provenance.yml`, `package-managers.yml` manifests, the image
+  job's push, and the SLSA provenance and the `.sigstore.json` copies of the
+  bundles that `sign-release.yml` made. The SLSA generator is a GitHub reusable
+  workflow with no GitLab form, and the copies were for OpenSSF Scorecard, which
+  reads GitHub. They stay with the Roadmap2 row "The release chain off a single
+  forge" (137); the signing and publishing it built are
+  [The release](#the-release).
 - `installer-smoke.yml`. Another change ports it.
 - `ci.yml`'s coverage upload. It went to GitHub's code-quality page. The tests
   still run; the coverage is not collected.
@@ -614,7 +639,9 @@ host is not a GitLab runner, and reverting the VM needs `vmrun` on that host.
 So the `installer-smoke` job in the CI file is only a placeholder: in a
 `batch*` or `v*` pipeline it is a manual button that fails with a sentence
 saying where the test runs from. It becomes a real job when a runner exists on
-that host.
+that host. For a release, the installer it tests is the signed one in the
+`release-sign` job's artifact (`release-signed/`), and it passes before
+`release-publish` is started ([The release](#the-release)).
 
 **How to run it.** Run it from Git Bash on the VMware host. The first installer
 is installed, the second is installed over it as the upgrade, and then
@@ -819,6 +846,138 @@ the server, and CI runs it on every push. The installer's own comments had the
 entry that is not `postinstall` before `ssPostInstall`. So the runtime is
 installed from `section_run.iss`, and `InstallDotNetRuntime` at `ssPostInstall`
 is the second attempt.
+
+The release
+-----------
+
+A protected `v*` tag's pipeline ends in the release, for 6.3.5 onwards. It was
+written on 26 September 2026, while 6.3.4 was released by hand, and **none of it
+has run**: see [What waits for the owner](#what-waits-for-the-owner) and
+[What only a first run can show](#what-only-a-first-run-can-show). RELEASE.md
+has the runbook.
+
+| Job | Where | What it does |
+|---|---|---|
+| `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
+| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag signed by a key in `.github/allowed_signers` and still points at the commit the pipeline built, `Version.h` says the tag's version, `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb`, the `.rpm`, their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the two SBOMs, checking the sums against the packages (`build/ci/release-chain.py collect`) |
+| `release-authenticode` | bench150 | Signs the installer through Azure Artifact Signing and requires a valid signature with an RFC 3161 timestamp (`build/ci/windows-authenticode.ps1`) |
+| `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Signs all six files with Sigstore and checks each bundle's format and log entry, and verifies it with cosign (`build/ci/release-sign.sh`) |
+| `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, and writes the notes' verification section (`build/ci/release-verify.sh`) |
+| `release-publish` | shared runners, by hand | Refuses a release that exists already; uploads the twelve files to the generic package `hmailserver/<version>`, reads them back and holds each to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows, Debian and RPM servers their file and bundle (`build/ci/release-chain.py publish`) |
+| `update-feed` | a trigger | A downstream pipeline on `master`, which runs `pages` alone: every other job refuses a pipeline whose source is `pipeline`. It passes no variables, not even the file's (`inherit: variables: false`), because GitLab takes a trigger job's variables as pipeline variables, which this project refuses at GitLab's default for a project made since 17.7 |
+
+**Why two buttons.** Nothing is signed or sent until a maintainer starts
+`release`, after every gate of the tag has passed. A manual job can be started
+as soon as its own needs have finished, so `release` needs every job that can
+fail the tag's pipeline, and brings the artifacts of only the three whose files
+it collects. It does not wait for the scans that are `allow_failure`
+(`static-analysis`, `semgrep`, `ci-image-packages`, `dependency-scan`,
+`repo-hygiene`), whose failure would not hold it anyway, nor for the manual
+`db-matrix` and `installer-smoke`: read the scans' findings before starting it.
+`build/check-release-chain.py` fails when a job that can fail is not among its
+needs. `release-publish` waits for
+the second button so that the installer smoke test can run on the signed
+installer first ([The installer smoke test](#the-installer-smoke-test)):
+download `release-signed/` from `release-sign`'s artifacts, run the test with
+the previous release and the new installer, and start `release-publish` when it
+passes. Both are `allow_failure: false`, so the pipeline waits at each and the
+jobs after them do not start.
+
+**Why no secret.** Sigstore takes the job's ID token for the audience
+`sigstore`; Entra ID takes another, for `api://AzureADTokenExchange`, through a
+federated credential on the app registration in place of a client secret; and
+the upload and the release are the job's own `CI_JOB_TOKEN`. A token lives for
+the job and names the project, the tag and the pipeline.
+
+**Why the tag's own pipeline.** Fulcio names the certificate after the ID
+token's `ci_config_ref_uri`, which a child or downstream pipeline's token does
+not carry, and the file's path, `.gitlab-ci.yml`, is in the identity every
+server built after 6.3.3 trusts ([UpdateFeed.md](UpdateFeed.md), "What the
+signing job produces"). `build/check-release-chain.py`, in the `checkers` job,
+fails when a change to the file or the scripts breaks that, or the order of the
+jobs, or the manual starts.
+
+**What a release carries.** Six files and a bundle beside each: the Windows
+installer, the x86-64 `.deb` and `.rpm` and their sums, and the SPDX and
+CycloneDX SBOMs. No AArch64 packages, no AppImages, no SLSA provenance and no
+`.sigstore.json` copies, which the GitHub releases had: linix builds x86-64
+only, the AppImage tool is published only on GitHub, and the provenance
+generator is GitHub's. The verification section `release-verify` writes into a
+release's notes says so. The server and the tools in the installer are the
+bench checkout's incremental build of the tag's commit, not a clean one, and its
+OpenSSL, libpq and C++ runtime come from the bench's library tree and Visual
+Studio; the notes say that too.
+
+**The artifacts' lifetimes.** `linux-build`'s artifact is kept three days, so
+`release` has to be started within three days of the tag's pipeline, or
+`linux-build` retried first. `release` keeps what the later jobs need, the
+server binary included, for thirty days, and the signed files are kept ninety.
+
+### What waits for the owner
+
+Each is a one-time step. Until one of the first three is done, the job that
+needs it stops with a sentence naming it, and nothing is signed. The fourth is
+met only at `release-publish`'s first upload, after both signatures are made,
+and GitLab's refusal is what the job reports. The fifth is a setting nothing in
+the pipeline can check, and the one every server's trust in a release rests on.
+
+1. **The cosign image's digest.** `HM_COSIGN_IMAGE` at the top of the CI file
+   ends in `@sha256:PIN-THE-DIGEST`, a placeholder, and `release` refuses to
+   start while it does. Choose a cosign release whose `-dev` tag exists on
+   `gcr.io/projectsigstore/cosign` (the `-dev` image has the busybox shell a job
+   needs; the plain one has no shell), read its digest - `crane digest
+   gcr.io/projectsigstore/cosign:<tag>` or `docker buildx imagetools inspect`
+   on linix - and write both into the variable. Never an image from
+   `ghcr.io`. cosign 2.4 or later is needed for `--new-bundle-format`; the
+   script turns the signing configuration off wherever the version has it.
+2. **Inno Setup 6 and the Artifact Signing Client Tools on bench150**, as
+   administrator ([bench150](#bench150)).
+3. **The Azure side of Authenticode**: the federated credential and the five
+   CI/CD variables (RELEASE.md, "Authenticode", has what to create).
+4. **The package registry**: on for the project (Settings, General,
+   Visibility, Packages). `release-publish` uploads and creates the release
+   with `CI_JOB_TOKEN`, which acts with the permissions of whoever started the
+   job, so it is started by a Maintainer.
+5. **The protected tag rule, checked.** Settings, Repository, Protected tags:
+   `v*`, *Allowed to create* Maintainers, and nobody else. The whole Sigstore
+   trust rests on it: a server built after 6.3.3 accepts a bundle whose
+   certificate names `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`
+   (`SigstoreVerifier.cpp`), and Fulcio issues that certificate to any
+   pipeline of such a tag, running whatever `.gitlab-ci.yml` the tag's commit
+   has. Anyone who can push a `v` tag could therefore sign a release the
+   servers accept with a CI file of their own, without the release jobs. The
+   pipeline cannot enforce this: without the rule the release jobs simply do
+   not run, and a hostile file does not need them. Check it again whenever the
+   project's members or settings change.
+
+The feed's pipeline needs nothing here. `update-feed` passes no variables, so
+the project's *Minimum role to use pipeline variables* can stay at GitLab's
+default for a new project, *No one allowed*; it is told apart from other
+pipelines on `master` by its source, `pipeline`.
+
+### What only a first run can show
+
+Nothing here has run. These are written from the documentation and have not
+been seen working:
+
+- that a job which `needs` a manual job waits for it rather than being skipped
+  (GitLab documents a blocking manual job, `allow_failure: false`, as holding
+  the jobs after it, which is why both buttons are blocking);
+- that GitLab's Fulcio certificate carries the repository id, which the notes
+  report either way;
+- that the gcr.io `-dev` tag chosen exists and that cosign reads
+  `SIGSTORE_ID_TOKEN` from the environment in it, as GitLab's own documentation
+  shows for its keyless example;
+- that the Artifact Signing plugin's credential chain includes the workload
+  identity credential (`AZURE_FEDERATED_TOKEN_FILE`) - the job exchanges the
+  token itself first, so that a mismatch is reported in Entra's words, but
+  SignTool's own exchange is the plugin's;
+- that `update-feed` may trigger a pipeline in its own project with the job
+  token, that the pipeline's source is `pipeline` (GitLab's documented source
+  for a multi-project pipeline, which a `trigger: project` of the same project
+  makes), and that GitLab Pages deploys from that pipeline;
+- that the generic package upload answers with `file_sha256`, which the job
+  does not rely on: it reads the registry back instead.
 
 Dependency updates
 ------------------
@@ -1089,17 +1248,29 @@ what the releases say at that moment, whichever commit ran it.
 It runs for a push to `master`, for a `v*` tag, and for a pipeline schedule on
 `master`, and never for a merge request, a `batch*` branch or any other branch.
 A release is created on GitLab after its tag is pushed, so the tag's own run
-can miss it. The schedule is what brings the feed up to date without a push.
+of `pages` misses it. A release made by the release jobs ends with
+`update-feed`, which starts a pipeline on `master` running `pages` alone; the
+schedule brings the feed up to date after a release made or edited any other
+way.
 Until there is one, running a pipeline on `master` by hand after a release is
 published does the same (Build, Pipelines, Run pipeline), along with every other
 `master` job.
 
-**A schedule's pipeline runs `pages` alone.** A scheduled pipeline is a
-pipeline on `master` to every job in the file, so each of the others says it is
-not for one: `.own-runners` (and so every job on linix and bench150) and
+**A schedule's pipeline runs `pages` alone, and so does the feed's.** A
+scheduled pipeline is a pipeline on `master` to every job in the file, and so
+is the downstream pipeline a release's `update-feed` job starts, whose
+`CI_PIPELINE_SOURCE` is `pipeline`, so each of the others says it is not for
+one: `.own-runners` (and so every job on linix and bench150) and
 `.not-a-fuzz-pipeline` (and so `checkers`, `harnesses` and `editorconfig`)
-begin with `- if: $HM_PIPELINE == "fuzz" || $CI_PIPELINE_SOURCE == "schedule"`
-with `when: never`, and the four path-bound checks carry the same rule. `pages`
+begin with `- if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" ||
+$CI_PIPELINE_SOURCE == "pipeline"` with `when: never` - any `HM_PIPELINE` at
+all, any schedule and the feed's pipeline - and the four path-bound checks,
+`db-matrix` and the release jobs carry the same rule. The feed's pipeline is
+told apart by its source rather than by a variable because a trigger job's
+variables reach the pipeline it starts as pipeline variables, which GitLab
+refuses by default in a project made since 17.7, and the trigger would fail.
+`build/check-release-chain.py` fails on a job that does not, apart from the few
+whose own rules match nothing on such a pipeline. `pages`
 itself skips the fuzz pipeline and Renovate's, and `renovate` runs in Renovate's alone. Without them each scheduled run would start the whole Windows gate
 on bench150 and the Linux suite on linix. A new job added to the file needs the
 same, or a schedule starts it too.
@@ -1500,9 +1671,10 @@ What is still done by hand
   `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`. No job builds it:
   bench150 is x64 and has no ARM64 compilers, and no runner is an ARM64 Windows
   machine to test it on ([WindowsOnArm.md](WindowsOnArm.md) has the commands).
-- Signing, publishing the packages, the image and the SBOMs, the release's
-  manifests, and the update feed. These belong to the Roadmap2 row "The release
-  chain off a single forge". The `release` stage is its placeholder.
+- The release's two buttons, `release` and `release-publish`
+  ([The release](#the-release)), and pushing the image and the package
+  managers' manifests, which are still the Roadmap2 row "The release chain off
+  a single forge".
 - The installer smoke test, which runs from the VMware host with
   `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
   release runs it before it is published (see [The installer smoke
@@ -1519,10 +1691,10 @@ What is still done by hand
   `build/linux-tu-census.sh` runs the census by hand.
 - The schema-upgrade gate (`build/db-upgrade-gate.sh`), the Control Panel's
   tests and the tools' tests.
-- Signing, the `.deb`, `.rpm` and AppImage packages, the container image and
-  publishing; the update feed is the `pages` job's. These belong to the
-  Roadmap2 row "The release chain off a single forge". The `release` stage is
-  its placeholder.
+- The AppImage, the AArch64 packages, pushing the container image and the
+  package managers' manifests: the Roadmap2 row "The release chain off a single
+  forge". Signing and publishing the rest are the release jobs
+  ([The release](#the-release)).
 - Building the Linux job image when its Dockerfile changes (see [The
   image](#the-image)), and creating the fuzz schedule once (see [The fuzz
   schedule](#the-fuzz-schedule)).

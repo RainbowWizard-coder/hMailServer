@@ -186,7 +186,7 @@ signer's issuer, repository and repository id.
 
 | | GitHub | GitLab |
 |---|---|---|
-| Signed | Every release from 6.2.19 to 6.3.3 | The releases after 6.3.3, once the signing job exists |
+| Signed | Every release from 6.2.19 to 6.3.3 | The releases from 6.3.5 on, by the `release-sign` job; 6.3.4 carries no bundle |
 | Identity (the certificate's subject alternative name begins with) | `https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@` | `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v` |
 | Issuer | `https://token.actions.githubusercontent.com` | `https://gitlab.com` |
 | Repository | `https://github.com/Progressiverobot/hmailserver` | `https://gitlab.com/Progressiverobot/hmailserver` |
@@ -297,13 +297,17 @@ the GitHub entry - the copy is dropped and the unchanged signer kept.
 checks everything but the release, which it is not given; the helper holds the
 package to an upgrade itself.
 
-What the signing job must produce
----------------------------------
+What the signing job produces
+-----------------------------
 
-The release chain's signing job does not exist yet (the Roadmap2 row "The
-release chain off a single forge"). Every server built after 6.3.3 refuses a
-bundle that is not exactly what this verifier reads, so the job must meet all of
-this, and the first release must be checked against it before it is published:
+The signing is the `release-sign` job of `.gitlab-ci.yml`, with
+`build/ci/release-sign.sh`, written on 26 September 2026 for 6.3.5 onwards
+([ContinuousIntegration.md](ContinuousIntegration.md), "The release"). It has not
+run yet: 6.3.4 was released by hand, with an Authenticode signature and no bundle.
+Every server built after 6.3.3 refuses a bundle that is not exactly what this
+verifier reads, so the job is held to all of this. `build/check-release-chain.py`
+fails on a change to the job that breaks a point it can see in the file, and the
+first release is to be checked against the list by hand before it is published:
 
 - [ ] **In `.gitlab-ci.yml` itself**, in the top-level pipeline of a protected
       `v*` tag: not a child or downstream pipeline, whose ID token carries no
@@ -342,6 +346,24 @@ this, and the first release must be checked against it before it is published:
       same commit, not only with cosign. Check the certificate's identity,
       issuer, repository and id against the table above, and put them in the
       release's notes.
+
+How the job meets each point: it is a job of the tag's own pipeline and never a
+trigger; the tag is checked as an annotated tag signed by a key in
+`.github/allowed_signers`, and `Version.h` must say the version the tag names
+before anything is signed; the job has `id_tokens: {SIGSTORE_ID_TOKEN: {aud:
+sigstore}}` and runs cosign's own image from `gcr.io` pinned by digest
+(`HM_COSIGN_IMAGE`); it signs with `--new-bundle-format --rekor-url
+https://rekor.sigstore.dev`, and with `--use-signing-config=false` wherever the
+cosign in the image has that option, then refuses a bundle that is not a
+Sigstore bundle with a `messageSignature` and a hashedrekord 0.0.1 entry with an
+`integratedTime` and the log's promise or proof; `release-verify` runs
+`hmailserver --verify-update` from `linux-build` of the same commit on every
+file, requires the identity above, and writes the notes' verification section
+with the repository id as the certificate states it; and `release-publish`
+uploads every file to `hmailserver/<version>` before it creates the release with
+a link per file named after it, then renders the feed from the API and requires
+the new release in it with a Windows, a Debian and an RPM file and their
+bundles (`build/ci/release-chain.py`).
 
 What the site serves
 --------------------

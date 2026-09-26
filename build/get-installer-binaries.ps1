@@ -22,6 +22,7 @@
                %VCToolsRedistDir%\x64\Microsoft.VC145.CRT, the same DLLs the
                toolset links against.
      fetched   downloaded from this repository's own "build-inputs-<n>" release,
+               whose files are in the project's package registry on GitLab,
                which holds the exact bytes that were committed before, with their
                provenance in its notes. A release rather than the vendor's URL
                because two of the three have no stable first-party download left.
@@ -65,7 +66,11 @@ $ErrorActionPreference = 'Stop'
 $repo = Resolve-Path (Join-Path $PSScriptRoot '..')
 $manifestPath = Join-Path $repo 'hmailserver\docs\third-party-binaries.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-$releaseBase = 'https://github.com/Progressiverobot/hmailserver/releases/download'
+# A build-inputs-<n> release's files are in this project's generic package registry on
+# GitLab, as build-inputs/<n>/<asset> - the same bytes the GitHub release carried until
+# GitHub suspended the project's account on 18 September 2026, checked below against
+# the manifest's hashes whatever the address.
+$registryBase = 'https://gitlab.com/api/v4/projects/86730559/packages/generic'
 
 function Get-Sha256([string]$path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLower() }
 
@@ -210,7 +215,8 @@ foreach ($a in $fetched) {
             Write-Host "Downloading $url"
             Invoke-WebRequest -Uri $url -OutFile $local -UseBasicParsing -MaximumRedirection 0
          } else {
-            $url = "$releaseBase/$release/$asset"
+            if ($release -notmatch '^build-inputs-(\d+)$') { throw "The manifest names the release '$release', which is neither a build-inputs-<n> release nor an https address" }
+            $url = "$registryBase/build-inputs/$($Matches[1])/$asset"
             Write-Host "Downloading $url"
             Invoke-WebRequest -Uri $url -OutFile $local -UseBasicParsing
          }

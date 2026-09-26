@@ -53,10 +53,12 @@ number is written that way here. Upstream hMailServer's numbers are written the 
 
 By hand. It is not generated: the project does not use GitLab's `Changelog:` commit trailers. The Unreleased
 section is updated when a batch lands on `master`, never by the commits of individual roadmap rows, which would
-make every fold of parallel work conflict on this file. A released version's section is written once, from its
-notes, when the release is published. GitLab CI's `checkers` job runs `python build/add-license-headers.py
---check` on every push; after editing, run it too and read the rendered page for a stray `#` number or `@`
-name.
+make every fold of parallel work conflict on this file. A released version's section is written once, before
+its tag, in the commit the tag points at: from 6.3.5 the tag's pipeline makes the GitLab release's notes from
+that section as the tag's own tree has it (`build/ci/release-chain.py`, `release-publish`), and refuses a version
+without one, so the section cannot be added afterwards. GitLab CI's `checkers` job runs
+`python build/add-license-headers.py --check` on every push; after editing, run it too and read the rendered page
+for a stray `#` number or `@` name.
 
 ---
 
