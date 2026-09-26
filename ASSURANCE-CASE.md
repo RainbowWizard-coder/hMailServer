@@ -13,11 +13,14 @@ in [Residual risk](#8-residual-risk).
 **Status since 18 September 2026.** GitHub has been unavailable to the project
 since 18 September 2026, and its home has been
 [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September
-2026. Claim C7 rests on the release chain in `.github/workflows/`
-(`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`), which runs on
-GitHub Actions. It holds for the releases that chain signed, 6.2.19 to 6.3.3,
-whose Sigstore bundles verify without GitHub, and it cannot be made for a later
-release until that chain moves, which is planned roadmap work and not yet done.
+2026. Claim C7 rests on the release chain that ran on GitHub Actions
+(`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`, in the git
+history at `v6.3.3`). It holds for the releases that chain signed, 6.2.19 to
+6.3.3, whose Sigstore bundles verify without GitHub. 6.3.4 was built and signed
+by hand and carries no Sigstore bundle. The chain's replacement, the release
+jobs of `.gitlab-ci.yml` ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-release)),
+is written for 6.3.5 onwards and has not run, so the claim cannot be made for a
+later release until one has been made by it.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
 GitHub and do not run on GitLab. Since 25 September 2026 GitLab CI has
 replacements, not yet blocking - cppcheck, clang-tidy and Semgrep for CodeQL,
@@ -315,13 +318,13 @@ releases (`hmailserver/docs/UpdateFeed.md`).
 
 | Claim | Where the evidence is |
 |---|---|
-| C1 | `fuzz/` harnesses; CodeQL workflow; `/WX` in `hMailServer.vcxproj`; the regression suite under `hmailserver/test/RegressionTests` |
+| C1 | `fuzz/` harnesses; the CodeQL workflow up to 18 September 2026, and the *static-analysis* and *semgrep* jobs of `.gitlab-ci.yml` since; `/WX` in `hMailServer.vcxproj`; the regression suite under `hmailserver/test/RegressionTests` |
 | C2 | Authentication path and per-account scoping in `Server/Common/BO/`; regression tests for authentication |
 | C3 | `Server/Common/Util/Hashing/HashCreator.cpp`; `IniFileSettings.cpp` hash-scheme handling |
 | C4 | `Server/Common/TCPIP/TCPConnection.cpp` verify mode and callbacks; `SslContextInitializer.cpp` |
 | C5 | Parameterised-SQL rule in `CONTRIBUTING.md`; persistence layer; SMTP terminator tests |
 | C6 | Account scoping in the BO layer; administrative boundary in `SECURITY.md` |
-| C7 | `.github/workflows/sign-release.yml`; `verify-binary-provenance.yml`; `sbom.yml` |
+| C7 | Up to 6.3.3, the GitHub workflows `sign-release.yml`, `verify-binary-provenance.yml` and `sbom.yml` (git history, `v6.3.3`); from 6.3.5, the release jobs of `.gitlab-ci.yml` (`build/ci/release-chain.py`, `release-sign.sh`, `release-verify.sh`); `SigstoreVerifier.cpp` |
 
 Release validation is not a smoke test: the full regression suite runs against
 the exact binary being shipped, with live SpamAssassin and ClamAV (real EICAR
@@ -378,7 +381,7 @@ credible.
 - **Bus factor is still effectively 1.** Since September 2026 the project has
   two maintainers, both at Progressive Robot Ltd, but until the second has
   access to private vulnerability reports and a key in
-  `.github/allowed_signers`, security triage and release tagging rest on one
+  `.gitlab/allowed_signers`, security triage and release tagging rest on one
   person, and so far only one person has a record of changes to the codebase —
   see [GOVERNANCE.md](GOVERNANCE.md#continuity). A slow security response
   remains a realistic failure mode.

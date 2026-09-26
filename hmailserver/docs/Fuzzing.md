@@ -86,15 +86,15 @@ this bench, and it is here first because it is the one that has actually been ma
 to work end to end.
 
 **Portable LLVM, user-local, no elevation.** This is what the build was verified
-against:
+against. LLVM publishes its Windows toolchain,
+`clang+llvm-22.1.8-x86_64-pc-windows-msvc.tar.xz`, only as a GitHub release asset
+(llvm.org's download page links there), and this project fetches nothing from
+GitHub, so this route is for a copy of that archive already at hand, such as the
+bench's; on a new machine, take the Visual Studio component below:
 
 ```powershell
-# ~820 MB download, ~2.5 GB extracted. Windows' own tar handles .xz and .zst.
-$rel = Invoke-RestMethod 'https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-22.1.8' `
-   -Headers @{ 'User-Agent' = 'hmailserver-build' }
-$asset = $rel.assets | Where-Object name -eq 'clang+llvm-22.1.8-x86_64-pc-windows-msvc.tar.xz'
-Invoke-WebRequest $asset.browser_download_url -OutFile "$env:TEMP\llvm.tar.xz"
-
+# ~820 MB archive, ~2.5 GB extracted. Windows' own tar handles .xz and .zst.
+# $env:TEMP\llvm.tar.xz is the archive named above, already on the machine.
 $target = "$env:LOCALAPPDATA\Programs\LLVM-22.1.8"
 New-Item -ItemType Directory -Force $target | Out-Null
 tar -xf "$env:TEMP\llvm.tar.xz" -C $target --strip-components=1
@@ -385,7 +385,7 @@ the job and the reproducer landed as an artifact of the run (`fuzz-findings-<run
 id>`, kept thirty days); the section above says what to do with it.
 
 It has not run since GitHub suspended the project's account on 18 September
-2026. GitLab reads nothing under `.github/`.
+2026, and it is in the git history at `6399e08a5`.
 
 From 25 September 2026 the nightly job is GitLab CI's `linux-fuzz`, on the
 project's Linux runner: the same three harnesses, the same dictionary, the same

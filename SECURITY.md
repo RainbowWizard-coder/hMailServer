@@ -62,10 +62,11 @@ A confirmed vulnerability is fixed the way any defect here is: with a regression
 build before the fix, and the full regression suite on the binary that ships. When the fix ships, the release
 notes describe the vulnerability and credit you, and the issue is made public.
 
-One known risk to the third target: the chain that signs and publishes a release ran on GitHub Actions, so while
-GitHub is unavailable a fix can be written and tested but not released. Moving that chain off GitHub is
-planned roadmap work and not yet done. If it holds a fix past 90 days, that is a slip like any other, and you
-will be told before the target passes.
+One known risk to the third target: the chain that signs and publishes a release ran on GitHub Actions until
+GitHub suspended the project's account. Its replacement, the release jobs of `.gitlab-ci.yml`
+([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-release), "The
+release"), is written and has not run yet; until it has, a release is built and signed by hand, as 6.3.4 was. If
+that holds a fix past 90 days, that is a slip like any other, and you will be told before the target passes.
 
 ## Coordinated disclosure
 
@@ -114,11 +115,11 @@ file, byte for byte, with the same signatures and Sigstore bundle, so everything
 verified the original.
 
 - **The release tag** (from `v6.2.23-alpha2` on) is an annotated tag signed with a maintainer's SSH key listed in
-  `.github/allowed_signers`. That allow list is in the repository, so a clone can check it without trusting
+  `.gitlab/allowed_signers`. That allow list is in the repository, so a clone can check it without trusting
   anything else:
 
   ```
-  git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag v6.2.23-alpha2
+  git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag v6.2.23-alpha2
   ```
 
 - **The assets of every release from 6.2.19 on** (the withdrawn 6.2.22-pre4 and the superseded -pre5 aside) carry
@@ -126,7 +127,7 @@ verified the original.
   6.3.3 the signing certificate names this repository's GitHub workflow, because that is where they were signed, so
   the identity and the issuer below are facts about those files and stay right for them wherever they are hosted.
   The bundle carries the certificate and the log's proof, and nothing in the check contacts GitHub. With
-  [cosign](https://github.com/sigstore/cosign) installed:
+  [cosign](https://docs.sigstore.dev/cosign/) installed:
 
   ```
   cosign verify-blob \
@@ -136,8 +137,10 @@ verified the original.
     hMailServer-x.y.z-x64.exe
   ```
 
-  Only GitHub Actions can issue that identity, so while GitHub is unavailable no later release can carry it. The
-  identity a later release does carry will be written here when the release chain moves.
+  Only GitHub Actions can issue that identity, so no later release can carry it. 6.3.4, built and signed by hand,
+  carries no bundle. From 6.3.5 the release jobs of `.gitlab-ci.yml` sign each asset in the tag's own pipeline,
+  with the identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` and the
+  issuer `https://gitlab.com`; none of them has run yet.
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
   Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In
@@ -158,8 +161,9 @@ OpenSSL, Boost and libpq are built from source by `libraries/build-*.ps1`, at th
 pins, and each script checks the SHA-256 of the source archive it downloads.
 
 Releases from 6.2.3 on carry an SBOM, in SPDX and in CycloneDX (the withdrawn pre-release 6.2.22-pre4, and -pre5,
-which -pre6 superseded, aside). They were made by `.github/workflows/sbom.yml`, which adds the native libraries to
-the .NET dependency graph (`build/merge-native-dependencies-into-sbom.ps1`).
+which -pre6 superseded, aside). Up to 6.3.3 they were made by the GitHub workflow `sbom.yml` (in the git history at
+`v6.3.3`), which added the native libraries to the .NET dependency graph
+(`build/merge-native-dependencies-into-sbom.ps1`); on GitLab the `linux-sbom` job makes them.
 
 ## For a security questionnaire
 
@@ -195,10 +199,11 @@ reason.
   committed and the .NET projects are restored with `--locked-mode`, so a package cannot change under a build
   without a reviewed commit; the native libraries are pinned by version and by source hash, as above; and every
   third-party binary is checked against `hmailserver/docs/third-party-binaries.json`.
-- **What ran on GitHub.** GitHub's dependency review (`.github/workflows/dependency-review.yml`) compared every
+- **What ran on GitHub.** GitHub's dependency review (the workflow `dependency-review.yml`, in the git history at
+  `v6.3.3`) compared every
   pull request's dependency graph against the GitHub Advisory Database, including its malware advisories, as a
   required check: a change that added a dependency with a known vulnerability of severity high or critical, or a
-  package flagged as malicious, could not be merged. Dependabot (`.github/dependabot.yml`) opened a pull request
+  package flagged as malicious, could not be merged. Dependabot (`dependabot.yml`, likewise) opened a pull request
   for every advisory touching a dependency in use, and for every new version of a GitHub Action the workflows pin.
   Neither runs on GitLab. *dependency-scan* stands for the alerts, not for the merge-time gate (it runs for the
   protected refs, and a merge request from a fork never reaches the runner it needs) nor for the update pull
@@ -214,7 +219,7 @@ reason.
   what a reader checks the shipped versions against.
 - **Not affected.** A finding in a component that does not affect this project - the vulnerable code is not
   reached, the feature is not built, the platform is not one the server runs on - is recorded as a statement in
-  the project's VEX document, [`.github/hmailserver.openvex.json`](.github/hmailserver.openvex.json) (OpenVEX),
+  the project's VEX document, [`.gitlab/hmailserver.openvex.json`](.gitlab/hmailserver.openvex.json) (OpenVEX),
   with the reason, when it is dismissed. An empty statement list means every advisory raised against a component
   has been fixed rather than dismissed. *dependency-scan* reads the document, so a statement there is what quiets
   a finding the scan keeps raising.
@@ -232,7 +237,7 @@ reason.
   can fail on a new finding only; both are allow_failure until the baselines are triaged. Neither reads the
   Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends), which only an
   MSVC build compiles.
-- **What ran on GitHub.** CodeQL (`.github/workflows/codeql.yml`, configured in `.github/codeql/`) analysed the
+- **What ran on GitHub.** CodeQL (the workflow `codeql.yml` and its configuration, in the git history at `v6.3.3`) analysed the
   repository on every pull request and every push to `master`, and the `master` ruleset required its results. It
   does not run on GitLab: its command-line tool and its query packs are published only on GitHub.
 - **Remediation thresholds.** An error-level finding, or a security finding of high or critical severity, is
@@ -251,7 +256,7 @@ reason.
 - The one credential the release automation needed, for the Azure identity that Authenticode-signs the
   installer, was held in GitHub Actions' secrets; the identity itself is in Azure. Release signatures are keyless
   (Sigstore, bound to the workflow's own identity), so there is no signing key to protect. Release tags are signed
-  with a maintainer's SSH key, whose public half is in `.github/allowed_signers`.
+  with a maintainer's SSH key, whose public half is in `.gitlab/allowed_signers`.
 - A secret is rotated when a maintainer leaves, when the pipeline that uses it changes hands, or on any suspicion
   of exposure; the Azure identity's secret has an expiry and is replaced before it.
 - Test environments use throwaway credentials that the suite creates and destroys; none of them is a real
@@ -259,10 +264,11 @@ reason.
 
 ### Branch and tag names in the pipelines
 
-The GitHub workflows under `.github/workflows/` do not run on GitLab; they are kept in case GitHub returns. In
-them, `sign-release.yml` takes the tag through an environment variable and refuses a tag that is lightweight, or
-not signed by a key in `.github/allowed_signers`, before it signs anything, and `package-managers.yml` writes the
-tag into a command only after checking that it names a three-number version. `installer-smoke.yml` writes its
-`release_tag` input into a PowerShell command directly; only someone with write access to the repository can
+The GitHub workflows that ran until 18 September 2026 were removed from the tree when the project moved to
+GitLab; they are in the git history (at `6399e08a5`, the last commit that had them all). In them, `sign-release.yml`
+took the tag through an environment variable and refused a tag that was lightweight, or not signed by a key in
+the allowed signers file, before it signed anything, and `package-managers.yml` wrote the
+tag into a command only after checking that it named a three-number version. `installer-smoke.yml` wrote its
+`release_tag` input into a PowerShell command directly; only someone with write access to the repository could
 dispatch it. Whatever replaces them on GitLab passes every branch and tag name through the environment, never
 into the text of a command.

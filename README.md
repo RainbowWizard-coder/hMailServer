@@ -204,7 +204,7 @@ with clang or GCC from `hmailserver/source/Server/CMakeLists.txt`, links as one
 `hmailserver` executable, and packages as a `.deb` and an `.rpm` for x86-64 and
 AArch64, with a `PKGBUILD` for Arch and an AppImage script beside them. All 496
 core translation units compile for both architectures; `build/linux-tu-census.sh` counts
-them, and the Linux workflow on GitHub (`.github/workflows/linux-build.yml`) failed when one
+them, and the Linux workflow on GitHub (`linux-build.yml`, in the git history at `v6.3.3`) failed when one
 stopped. GitLab CI builds the Linux server with clang on the project's own runner and compiles every core
 file for AArch64 there; the GCC build and a build on AArch64 hardware are run by hand.
 
@@ -479,7 +479,7 @@ Some 3rd party libraries which hMailServer relies on are large and updated frequ
 
 Create an environment variable named hMailServerLibs pointing at a folder where you will store hMailServer libraries, such as C:\Dev\hMailLibs.
 
-The repository carries one script per library. Each downloads the source archive of the version hMailServer is pinned to, verifies it against the SHA-256 recorded in the script, and builds it into the layout the project file expects. Run them in this order from the repository root, with Perl on `%PATH%` (OpenSSL and PostgreSQL need it) and, for PostgreSQL, Python with Meson and Ninja (`py -m pip install meson ninja`) and [winflexbison](https://github.com/lexxmark/winflexbison/releases) on `%PATH%`:
+The repository carries one script per library. Each downloads the source archive of the version hMailServer is pinned to, verifies it against the SHA-256 recorded in the script, and builds it into the layout the project file expects. Run them in this order from the repository root, with Perl on `%PATH%` (OpenSSL and PostgreSQL need it) and, for PostgreSQL, Python with Meson and Ninja (`py -m pip install meson ninja`) and [winflexbison](https://sourceforge.net/projects/winflexbison/files/) on `%PATH%`:
 
    <pre>
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2
@@ -487,7 +487,7 @@ The repository carries one script per library. Each downloads the source archive
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3
    </pre>
 
-`build\Get-LibraryVersions.ps1` prints the versions the project file currently pins. The same three scripts built the libraries for the continuous-integration server build on GitHub (`.github/workflows/server-build.yml`), which cached the result per version; either way, a version bump is an edit to `hMailServer.vcxproj` and to the digest table of the matching script. The sections below record what the scripts do, for anyone who would rather do it by hand.
+`build\Get-LibraryVersions.ps1` prints the versions the project file currently pins. The same three scripts built the libraries for the continuous-integration server build on GitHub (`server-build.yml`, in the git history at `v6.3.3`), which cached the result per version; either way, a version bump is an edit to `hMailServer.vcxproj` and to the digest table of the matching script. The sections below record what the scripts do, for anyone who would rather do it by hand.
 
 Building OpenSSL
 ----------------
@@ -510,7 +510,7 @@ Building PostgreSQL
 -------------------
 1. Download PostgreSQL 18.3 source from https://www.postgresql.org/ftp/source/v18.3/ and put it into %hMailServerLibs%\postgresql-18.3.
    You should now have a folder named %hMailServerLibs%\postgresql-18.3, for example C:\Dev\hMailLibs\postgresql-18.3
-2. Download winflexbison from https://github.com/lexxmark/winflexbison/releases, extract it, and add the folder to `%PATH%`.
+2. Download winflexbison from https://sourceforge.net/projects/winflexbison/files/, extract it, and add the folder to `%PATH%`.
 3. Install Python dependencies: `py -m pip install meson ninja`
 4. Start a x64 Native Tools Command Prompt for VS2026.
 5. Change dir to %hMailServerLibs%

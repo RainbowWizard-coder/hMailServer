@@ -15,11 +15,12 @@ release signing through GitHub's token service - it describes how the project
 ran there. On GitLab, no approval is required (the GitHub ruleset had stopped
 requiring one on 14 September 2026), `master` is protected, and a change that
 has passed the regression gate lands on it by fast-forward. Security reports go
-by the routes in [SECURITY.md](SECURITY.md). The release chain runs on GitHub
-Actions and the installer's fetched build inputs come from a GitHub release, so
-no release can be signed and published, and the installer cannot be built on a
-new machine, until both move; that is planned roadmap work and not yet done.
-Until then, *Critical assets* below overstates what is committed.
+by the routes in [SECURITY.md](SECURITY.md). The release chain ran on GitHub
+Actions; its replacement, the release jobs of `.gitlab-ci.yml`, is written and
+has not run yet, so 6.3.4 was built and signed by hand. The installer's fetched
+build inputs come from the project's package registry on GitLab. Until a
+release has been made by those jobs, *Critical assets* below overstates what is
+committed.
 
 The short version
 -----------------
@@ -76,8 +77,9 @@ release workflows. Two of the duties above need more than write access, and
 neither is in place yet:
 
 1. **Releasing** needs Zain Ul Abidin's SSH signing key in
-   [.github/allowed_signers](.github/allowed_signers): the signing workflow
-   refuses a tag that does not verify against that file. A release also needs
+   [.gitlab/allowed_signers](.gitlab/allowed_signers): the `release` job of
+   `.gitlab-ci.yml` refuses a tag that does not verify against that file, as
+   GitHub's signing workflow did before it. A release also needs
    a machine set up to run [RELEASE.md](RELEASE.md) steps 4 to 11 — the
    regression suite, the fuzz runs and the installer build. Until both are in
    place, releases are tagged by Christopher Holloway.
@@ -185,8 +187,8 @@ so that a successor knows what to look for:
 
 | Asset | What it is for |
 |---|---|
-| GitHub repository admin | Repository settings and rulesets, including who may bypass them, secrets and variables, private vulnerability reports and security advisories, and granting access |
-| Release signing path | Sigstore cosign keyless signing of release assets, and the SSH keys listed in `.github/allowed_signers` that sign release tags (one today, Christopher Holloway's) |
+| GitLab project owner | Project settings, protected branches and tags, CI/CD variables, confidential issues, and granting access (on GitHub, until 18 September 2026: repository admin, with its rulesets, secrets, private vulnerability reports and security advisories) |
+| Release signing path | Sigstore cosign keyless signing of release assets, and the SSH keys listed in `.gitlab/allowed_signers` that sign release tags (one today, Christopher Holloway's) |
 | Code-signing material | Signing the Windows installer |
 | Build environment recipe | Visual Studio 2026 / v145 plus the external libraries under `hMailServerLibs` |
 | Test environment recipe | The database, ClamAV, SpamAssassin and INI configuration the full regression suite needs |
@@ -194,15 +196,16 @@ so that a successor knows what to look for:
 Everything needed to *build, test, release and verify* the product is
 committed to this repository and documented — in
 [README.md](README.md), [ARCHITECTURE.md](ARCHITECTURE.md),
-[RELEASE.md](RELEASE.md), the scripts under `build/`, and the workflows under
-`.github/workflows/`. Deliberately, nothing about producing a release depends
+[RELEASE.md](RELEASE.md), the scripts under `build/`, and the pipeline in
+`.gitlab-ci.yml`. Deliberately, nothing about producing a release depends
 on knowledge that exists only in one maintainer's head.
 
-Note that release-asset signing is **keyless** (Sigstore, via GitHub OIDC), so
+Note that release-asset signing is **keyless** (Sigstore, via the CI's OIDC
+token: GitHub's for the releases up to 6.3.3, GitLab's from 6.3.5), so
 there is no private key behind it to inherit or to lose, which removes the
 single most common continuity failure for a small project. Release *tags* are
 signed with a maintainer's own SSH key, which must be listed in
-[.github/allowed_signers](.github/allowed_signers) — today only Christopher
+[.gitlab/allowed_signers](.gitlab/allowed_signers) — today only Christopher
 Holloway's is; a lost key is replaced by adding a new one there, not inherited.
 
 Continuity

@@ -226,8 +226,8 @@ Grouped by component. Per-file hashes are in
 What checks it
 --------------
 
-The `Binary provenance` workflow
-([.github/workflows/verify-binary-provenance.yml](../../.github/workflows/verify-binary-provenance.yml))
+The `Binary provenance` workflow (`verify-binary-provenance.yml`, a GitHub
+workflow, in the git history at `v6.3.3`)
 ran on every push and pull request to master on GitHub until 18 September 2026,
 and answered three questions:
 
@@ -325,7 +325,7 @@ Not pinned, and why:
   the build machine, not fetched by a script. Only the .NET SDK is pinned, by
   `global.json`.
 * **What the GitHub workflows fetched.** They have not run since
-  18 September 2026. The two inputs they left unpinned were the SLSA generator,
+  18 September 2026, and are in the git history at `6399e08a5`. The two inputs they left unpinned were the SLSA generator,
   referenced by tag because its verifier requires it (`sign-release.yml`), and
   wingetcreate's `latest` (`package-managers.yml`, which refused it unless its
   Authenticode signature was valid).

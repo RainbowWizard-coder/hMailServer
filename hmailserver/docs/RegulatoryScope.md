@@ -135,7 +135,8 @@ for a security-relevant product and they would be prerequisites if scope ever
 changed:
 
 * SPDX and CycloneDX SBOMs attached to every release up to 6.3.3
-  ([`sbom.yml`](../../.github/workflows/sbom.yml)), including the native
+  (the GitHub workflow `sbom.yml`, in the git history at `v6.3.3`; on GitLab the
+  `linux-sbom` job makes them), including the native
   dependencies — OpenSSL, Boost and libpq — that a source-tree scan does not see.
   That matters for exactly the purpose an SBOM has: without them, anyone checking a
   release against a CVE feed would have concluded this server does not link OpenSSL.
@@ -148,15 +149,15 @@ changed:
   needs it ([`third-party-binaries.json`](third-party-binaries.json),
   explained in [ThirdPartyBinaries.md](ThirdPartyBinaries.md)). Until 18 September
   2026 every push and pull request ran
-  [`verify-binary-provenance.yml`](../../.github/workflows/verify-binary-provenance.yml),
-  which failed if a binary appeared that the inventory did not describe, or one it
+  the GitHub workflow `verify-binary-provenance.yml` (in the git history at
+  `v6.3.3`), which failed if a binary appeared that the inventory did not describe, or one it
   lists as fetched was committed after all. The SBOM answers "what does this link
   against"; this answers the separate question "what unreviewable files are in
   the source tree, and who made them".
 * **Every release asset up to 6.3.3 signed**, with Sigstore cosign, keyless via
   OIDC, the signature recorded in the public Rekor transparency log and verified in
   the same job so a malformed bundle cannot reach a user
-  ([`sign-release.yml`](../../.github/workflows/sign-release.yml)). Keyless
+  (the GitHub workflow `sign-release.yml`, in the git history at `v6.3.3`). Keyless
   deliberately: for a single-maintainer project a long-lived signing key held in CI
   is itself the thing most worth stealing.
 * **The Windows installer Authenticode-signed since 6.3.1** (11 September 2026),
@@ -191,16 +192,19 @@ changed:
   configured window after a backup. The Roadmap's Product Liability Directive row
   was closed on 7 September 2026 against this document's determination.
 
-What the release half of this list now depends on: the SBOMs, the Sigstore
-signatures, the Authenticode signature and the provenance check are all made by
-GitHub Actions workflows, the Azure identity that signs the installer was reached
-through GitHub Actions' secrets, and an installed server accepts an update only
-when its Sigstore bundle names that workflow's GitHub identity. None of the
-workflows has run since GitHub suspended the project's account on 18 September
-2026, so until they run somewhere else a release can be re-hosted but not cut:
-the releases up to 6.3.3 are on GitLab with their original signatures, and no
-later one can be signed either way. Moving the chain off a single forge is its own
-row in [Roadmap2.md](../../Roadmap2.md), *The release chain off a single forge*.
+What the release half of this list now depends on: up to 6.3.3 the SBOMs, the
+Sigstore signatures, the Authenticode signature and the provenance check were all
+made by GitHub Actions workflows, the Azure identity that signs the installer was
+reached through GitHub Actions' secrets, and a server up to 6.3.3 accepts an
+update only when its Sigstore bundle names that workflow's GitHub identity. None
+of the workflows has run since GitHub suspended the project's account on 18
+September 2026. The releases up to 6.3.3 are on GitLab with their original
+signatures; 6.3.4 was built and Authenticode-signed by hand and carries no
+Sigstore bundle or provenance; and the GitLab release jobs that replace the
+workflows, for 6.3.5 onwards, are written and have not run
+([ContinuousIntegration.md](ContinuousIntegration.md#the-release)). Moving the
+chain off a single forge is its own row in [Roadmap2.md](../../Roadmap2.md),
+*The release chain off a single forge*.
 
 What in this document is checkable, and what is not
 --------------------------------------------------
@@ -223,7 +227,9 @@ asset, then `verify-blob` in the same job), `.github/workflows/codeql.yml`,
 `.github/workflows/verify-binary-provenance.yml` (run against this tree: 40
 manifest entries, 40 binaries found, 0 unlisted, every hash matching the bytes
 stored in git), `.github/SECURITY.md`, and
-`WebServicesServer`'s `/.well-known/security.txt` handler.
+`WebServicesServer`'s `/.well-known/security.txt` handler. (Those paths are as they
+were that day: the workflows are in the git history at `v6.3.3`, and the policy
+is `SECURITY.md` at the repository root.)
 
 Re-checked 25 September 2026, for the move off GitHub: no tracked file is a binary
 by the provenance workflow's own detector (its extension set, and its PE, ELF and

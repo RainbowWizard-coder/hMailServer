@@ -222,8 +222,10 @@ The software supply chain
 
 Releases from 6.2.3 on carry two SBOMs, SPDX and CycloneDX, apart from the
 withdrawn pre-release 6.2.22-pre4 and -pre5, which -pre6 superseded
-([SECURITY.md](../../SECURITY.md), *Supply chain*). They are made by
-`.github/workflows/sbom.yml`: Syft over the release tag's tree, after a check
+([SECURITY.md](../../SECURITY.md), *Supply chain*). Up to 6.3.3 they were made
+by the GitHub workflow `sbom.yml` (in the git history at `v6.3.3`), and on
+GitLab the `linux-sbom` job (`build/ci/linux-sbom.sh`) makes them the same way:
+Syft over the release tag's tree, after a check
 that the tree is the tag's, and `build/merge-native-dependencies-into-sbom.ps1`
 adds the native libraries Syft cannot see, which `build/native-dependencies.ps1`
 reads from `hMailServer.vcxproj` and the tree: OpenSSL 4.0.2, Boost 1.92.0,
@@ -270,11 +272,12 @@ The .NET Desktop Runtime the installer bundles is not in the manifest:
 Microsoft's `aka.ms` link and checks only that the file is larger than 40 MB,
 so it is neither pinned to a version nor checked against a hash.
 
-Two more things are not in place. `get-installer-binaries.ps1` still fetches
-from the GitHub copy of `build-inputs-1`, which is unreachable, so a new build
-machine cannot fetch the inputs until the release chain moves (below); a copy
-of the release is on GitLab ([CHANGELOG.md](../../CHANGELOG.md), *Where the
-releases are*). And 7-Zip 19.00, which the Windows backup runs, is from 2019:
+`get-installer-binaries.ps1` fetches `build-inputs-1` from the project's
+package registry on GitLab, where it was re-published byte for byte after
+GitHub suspended the project's account; until 26 September 2026 it fetched
+GitHub's copy, which has answered 404 since 18 September
+([ThirdPartyBinaries.md](ThirdPartyBinaries.md)). One more thing is not in
+place: 7-Zip 19.00, which the Windows backup runs, is from 2019:
 ThirdPartyBinaries.md names it the file most overdue a refresh. That
 document's narrative still describes the files as committed, and is being
 rewritten under Roadmap2's *Forge-neutral text in the product*; the JSON is the
@@ -293,9 +296,12 @@ of which checks the archive against a SHA-256 pinned in the script.
   change under a build without a reviewed commit.
 * **Native:** by version in `hMailServer.vcxproj` and by the source archive's
   SHA-256, as above.
-* **CI actions:** the GitHub workflows pin every action by commit hash, except
-  the SLSA generator, which is referenced by tag because its verifier requires
-  it (`sign-release.yml` says why).
+* **CI actions:** the GitHub workflows, which ran until 18 September 2026 and
+  are in the git history at `v6.3.3`, pinned every action by commit hash, except
+  the SLSA generator, which was referenced by tag because its verifier requires
+  it (`sign-release.yml` said why). Where each GitLab job's image and tools come
+  from is in [ContinuousIntegration.md](ContinuousIntegration.md), *Where the
+  tools come from*.
 
 ### Signatures and provenance
 
@@ -304,18 +310,24 @@ of which checks the archive against a SHA-256 pinned in the script.
   ([RELEASE.md](../../RELEASE.md), *Authenticode*). The Linux packages carry no
   package-manager signature of their own; their Sigstore bundle, below, is what
   verifies them.
-* **Sigstore.** Every asset of every release from 6.2.19 on (the withdrawn
-  6.2.22-pre4 and the superseded -pre5 aside) has a keyless cosign bundle,
-  recorded in the public Rekor log and verified in the same job before upload
-  (`sign-release.yml`); [SECURITY.md](../../SECURITY.md), *Verifying a release*,
-  has the command.
+* **Sigstore.** Every asset of every release from 6.2.19 to 6.3.3 (the
+  withdrawn 6.2.22-pre4 and the superseded -pre5 aside) has a keyless cosign
+  bundle, recorded in the public Rekor log and verified in the same job before
+  upload (the GitHub workflow `sign-release.yml`, in the git history at
+  `v6.3.3`). 6.3.4, built and signed by hand, has none; from 6.3.5 the
+  `release-sign` and `release-verify` jobs of `.gitlab-ci.yml` make and check
+  them, and have not run yet. [SECURITY.md](../../SECURITY.md), *Verifying a
+  release*, has the command.
 * **SLSA provenance.** From 6.3.2, each release carries
   `hmailserver-<tag>.intoto.jsonl`, made by the SLSA project's generic generator
   over the digests of the assets as attached, and checked with `slsa-verifier`
   before publication (`sign-release.yml`, the `provenance` and
   `attach-provenance` jobs; RELEASE.md step 12 says 6.3.1 and earlier have none).
+  The generator is a GitHub reusable workflow, so 6.3.3 is the last release
+  with provenance; the GitLab release jobs make none
+  ([ContinuousIntegration.md](ContinuousIntegration.md), *The release*).
 * **Signed tags.** Release tags from `v6.2.23-alpha2` on are annotated and
-  signed with a maintainer's SSH key listed in `.github/allowed_signers`, which
+  signed with a maintainer's SSH key listed in `.gitlab/allowed_signers`, which
   holds one key today.
 * **The live update** reads the release feed, downloads the installer (or the
   Linux package *(unreleased)*) with its bundle, and verifies the bundle
@@ -331,16 +343,18 @@ re-published on GitLab with its original files and signatures, byte for byte
 workflow that signed it, and the cosign command in SECURITY.md verifies it
 without contacting GitHub.
 
-Until that row is done, **no new release can be signed or published.** The
-signing, provenance and packaging workflows are GitHub Actions, and the package
-manager manifests and the container image name GitHub hosts. Half of the row is
-in this tree: an installed server's update check reads the project's own feed,
+Until that row is done, **a new release is built and signed by hand**, as
+6.3.4 was, with Authenticode and no Sigstore bundle. The GitLab jobs that
+replace GitHub's signing and packaging workflows are in `.gitlab-ci.yml` for
+6.3.5 onwards and have not run ([ContinuousIntegration.md](ContinuousIntegration.md),
+*The release*); the package-manager manifests are rendered by hand, and the
+container image, named `registry.gitlab.com/progressiverobot/hmailserver`, is
+built and not pushed. The rest of the row is in this tree: an installed server's update check reads the project's own feed,
 https://updates.progressiverobot.com, published from GitLab Pages
 ([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two
 signers - the GitHub workflow identity for the releases up to 6.3.3, and this
 project's GitLab CI pipeline for the ones after (`SigstoreVerifier.cpp`). No
-release has been signed on GitLab yet; moving the signing and the packaging is
-the half still to do. A server from 6.2.28 to 6.3.3 still reads GitHub's
+release has been signed on GitLab yet. A server from 6.2.28 to 6.3.3 still reads GitHub's
 address until one line of its settings points it at the feed (UpdateFeed.md).
 
 Vulnerability handling
@@ -372,9 +386,9 @@ the confidential-issue link and the Service Desk address, `Expires:
 (off by default), is the installation's, not the project's: it names the
 requested domain's postmaster as `Contact:`, sets `Expires:` 90 days ahead on
 each request, and is not served for a domain that is not hosted or has no
-postmaster (`WebServicesServer::HandleSecurityTxt_`). Its `Policy:` line still
-names the project's former GitHub address, which answers 404; pointing it at
-GitLab is Roadmap2's *Forge-neutral text in the product*.
+postmaster (`WebServicesServer::HandleSecurityTxt_`). Its `Policy:` line names
+the project's `SECURITY.md` on GitLab since 6.3.4; a server up to 6.3.3 names
+the project's former GitHub address, which answers 404.
 
 **How a fix ships.** In the next release, with a regression test that fails
 against the build before the fix, and the full regression suite on the binary
@@ -387,13 +401,13 @@ test mode that turned a failed signature into a pass and its logged IMAP SASL
 credentials, 6.2.27's missing-DS proof, and 6.3.3's REST routes that let a
 read-only API key read the `[Settings]` secrets. The repository records no CVE
 and no separate advisory. The OpenVEX document
-(`.github/hmailserver.openvex.json`) holds no statement: no advisory against a
+(`.gitlab/hmailserver.openvex.json`) holds no statement: no advisory against a
 component has been dismissed as not affecting the project.
 
-**What that means today.** Because no release can be made until the release
-chain moves (*The software supply chain*), a fix can be written and tested but
-not shipped; if that holds one past 90 days, SECURITY.md says the reporter is
-told before the target passes. One such fix is in the tree now: the event-script
+**What that means today.** Until the GitLab release jobs have made a release
+(*The software supply chain*), a fix ships only in a release built and signed
+by hand; if that holds one past 90 days, SECURITY.md says the reporter is told
+before the target passes. One such fix waited for 6.3.4: the event-script
 escaping of 24 September 2026, found by the project's own review
 ([EventScripts.md](EventScripts.md); Roadmap.md, *Event invocation by
 source-text concatenation*). A 6.3.3 server is exposed only with event
@@ -443,7 +457,9 @@ remediation thresholds, are in SECURITY.md, *Vulnerability management policy*.
 **Fuzzing.** Three libFuzzer harnesses with AddressSanitizer cover the MIME
 parser (`fuzz/`, [Fuzzing.md](Fuzzing.md)). A timed run on the release source is
 required for every minor release (RELEASE.md, step 8c). The nightly job ran on
-GitHub Actions and does not run now. HTML, iCalendar, vCard, Sieve, ManageSieve
+GitHub Actions until 18 September 2026; on GitLab it is the `linux-fuzz` job,
+which waits for the owner to create its schedule ([ContinuousIntegration.md](ContinuousIntegration.md),
+*The fuzz schedule*). HTML, iCalendar, vCard, Sieve, ManageSieve
 and the SMTP command parser have no harness yet (Fuzzing.md, *What is not
 covered yet*).
 
@@ -702,9 +718,9 @@ Not in place, in one list
 * An account's TOTP secret, and the `[Settings]` secrets, under the secret
   store.
 * A low-privilege Windows service account: the service runs as LocalSystem.
-* A new release: none can be signed or published until the release chain moves
-  off GitHub, and the live update in installed servers trusts only the GitHub
-  signing identity.
+* A release made by the GitLab release jobs: they are written and have not
+  run, and 6.3.4 was built and signed by hand; the live update in servers up to
+  6.3.3 trusts only the GitHub signing identity.
 * CI on GitLab blocking on the security scans: they run on the project's own
   runner but do not fail a pipeline yet ([ContinuousIntegration.md](ContinuousIntegration.md)).
 * CodeQL, the dependency review and the nightly fuzzing: none has run since

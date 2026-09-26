@@ -271,7 +271,7 @@ keeps under that on its own.
 The server it runs against is any hMailServer with the REST listener on, on any
 host; the defaults are the PostgreSQL-backed tree the CI job lays out
 (`build/ci/linux-suite.sh`, run by the `linux-suite` job of `.gitlab-ci.yml`;
-before that, `.github/workflows/linux-build.yml`'s `regression-on-linux`), which is also
+before that, the GitHub workflow `linux-build.yml`'s `regression-on-linux`, in the git history at `v6.3.3`), which is also
 the recipe for a hand-made one: `DBScripts` from the checkout beside the binary,
 `tlds.txt` and `dh2048.pem` from `installation/Extras`, an INI with
 `Type=PostgreSQL` and `RestApiPort=8045`, `--create-database`, the SMTP, POP3

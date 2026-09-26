@@ -13,9 +13,10 @@ and GitHub Actions - and are kept as the history of how releases up to 6.3.3
 were made. From 6.3.5 a release is made by the tag's GitLab pipeline instead:
 [The release on GitLab](#the-release-on-gitlab), below, replaces steps 11 and 12
 from the tag on. 6.3.4 was built and Authenticode-signed by hand, between the
-two, and carries no Sigstore bundle. The bench steps run as written, except that
-step 9's Code Scanning and Dependabot pages are GitHub's. Step 12's commit rule
-is out of date as well: since 24 September 2026 commits are made as Christopher
+two, and carries no Sigstore bundle. The bench steps run as written; step 9
+reads the scan reports of the commit's GitLab pipeline where it read GitHub's
+Code Scanning and Dependabot pages up to 6.3.3. Step 12's commit rule is out of
+date as well: since 24 September 2026 commits are made as Christopher
 Holloway, the identity of the GitLab account `Progressiverobot`, and since 14
 September 2026 no approval is required, so a tree that has passed the gate lands
 on `master` by fast-forward, with no pull request.
@@ -49,7 +50,7 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
 
    ```
    git tag -s vX.Y.Z -m "hMailServer X.Y.Z"
-   git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag vX.Y.Z
+   git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag vX.Y.Z
    git push gitlab vX.Y.Z
    ```
 
@@ -64,7 +65,7 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
    `allow_failure` (`static-analysis`, `semgrep`, `ci-image-packages`,
    `dependency-scan`, `repo-hygiene`) or for the manual `db-matrix`, so read the
    scans first. It refuses, naming why, a tag that is lightweight, not signed by
-   a key in `.github/allowed_signers`, or moved to another commit since the
+   a key in `.gitlab/allowed_signers`, or moved to another commit since the
    pipeline started, a `Version.h` that does not say the tag's version, a cosign
    image that is not `gcr.io`'s pinned by digest, a missing Azure setting, and a
    missing file. Nothing has been signed or sent when it refuses.
@@ -259,9 +260,11 @@ already hold its files.
    with no `-StopOnError`) — every test, nothing skipped. If *anything* changes after this run, the run is void: rebuild
    and re-run. Never abort a run; if one must be stopped, expect step 4 to
    fail and clean up before trusting any result.
-   At this point the Code Scanning and Dependabot alert pages show no open
-   high or critical finding - the thresholds in `SECURITY.md` - or the
-   release waits.
+   At this point the reports of the commit's pipeline - *dependency-scan*,
+   *static-analysis* and *semgrep* (`hmailserver/docs/ContinuousIntegration.md`,
+   "Security scanning") - show no open high or critical finding - the
+   thresholds in `SECURITY.md` - or the release waits. Up to 6.3.3 these were
+   GitHub's Code Scanning and Dependabot alert pages.
 10. **README release notes** — every claim checked against the diff. "Fixed"
    means reproduced-then-fixed or negative-control-tested; anything else is
    described as hardening or diagnostics. Unfixed known issues are named as
@@ -279,12 +282,20 @@ already hold its files.
    runtime fetched from the `build-inputs-1` release -
    none of which is in git since 11 September 2026 (run it with `-Verify` to
    check; every file is matched against `hmailserver/docs/third-party-binaries.json`). Never run the installer on
-   the dev machine — validation is the CI smoke-test workflow
-   (`installer-smoke.yml`), which installs it on a throwaway runner, and it is
-   dispatched by hand: after the draft release exists and its installer asset
-   is uploaded, `gh workflow run "Installer smoke test" -f release_tag=vX.Y.Z`,
-   and it must be green **before** the release is published.
-12. **Commit** (as chrisholloway5, no co-author trailers - history has been
+   the dev machine — validation is the installer smoke test, which installs it
+   on a throwaway machine and must pass **before** the release is published:
+   on GitLab, step 5 of [The release on GitLab](#the-release-on-gitlab)
+   (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
+   Up to 6.3.3 it was the GitHub workflow `installer-smoke.yml` (in the git
+   history at `v6.3.3`), dispatched by hand on a hosted runner once the draft
+   release carried its installer:
+   `gh workflow run "Installer smoke test" -f release_tag=vX.Y.Z`.
+12. *History: how a release up to 6.3.3 was committed, tagged, published and
+    signed on GitHub, by the workflows that are in the git history at
+    `v6.3.3`. From 6.3.5, [The release on GitLab](#the-release-on-gitlab)
+    replaces this step from the tag on.*
+
+    **Commit** (as chrisholloway5, no co-author trailers - history has been
     rewritten once to remove them, and will be again). `master` is protected:
     changes arrive by pull request with an approving review from someone other
     than the last person to push, force-pushes and deletions are refused, and
@@ -306,13 +317,14 @@ already hold its files.
 
     ```
     git tag -s vX.Y.Z -m "hMailServer X.Y.Z"
-    git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag vX.Y.Z
+    git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag vX.Y.Z
     git push origin vX.Y.Z
     ```
 
     Signing is SSH-based (`git config gpg.format ssh` and `user.signingkey`
     pointing at the public key, set once in the repository's config), and the
-    key must be listed in `.github/allowed_signers` - the signing workflow
+    key must be listed in `.gitlab/allowed_signers` (`.github/allowed_signers`
+    until the move to GitLab) - the signing workflow
     below refuses to sign anything for a tag that is lightweight or that does
     not verify against that file, so an unsigned tag stops the release before
     it has any assets. Every tag up to `v6.2.23-alpha1` was either lightweight or annotated but
@@ -417,7 +429,12 @@ already hold its files.
     And a tag is spent once: a tag that has backed an immutable release cannot back
     another, even after that release is deleted. There is no re-cutting a broken
     release under the same version - it needs the next number.
-13. **The package managers**, once the release is published and its installer
+13. *History: the GitHub workflow `package-managers.yml`, in the git history
+    at `6399e08a5`; it was never ported to GitLab
+    (`hmailserver/docs/ContinuousIntegration.md`, "From GitHub Actions to
+    GitLab CI"), so the manifests are rendered and submitted by hand.*
+
+    **The package managers**, once the release is published and its installer
     signed. The *Package managers* workflow runs itself on `release: published`:
     it downloads the installer the release actually attached, refuses it unless
     its Authenticode signature is valid, computes the SHA-256 from those bytes,
@@ -548,8 +565,10 @@ Sigstore. What signing buys and what it does not is the same as below.
 
 ### On GitHub, up to 6.3.3
 
-The `authenticode` job in `sign-release.yml` signs the installer with **Azure
-Artifact Signing** - the service formerly called Trusted Signing - and does
+The `authenticode` job in `sign-release.yml` (the GitHub workflow, in the git
+history at `v6.3.3`) signed the installer with **Azure Artifact Signing** - the
+service formerly called Trusted Signing. The rest of this section is written as
+it stood then. The job does
 nothing at all until these exist. It is deliberately silent-but-visible: it
 writes a notice on every release saying the installer is unsigned, and lets the
 release proceed. It runs BEFORE the cosign job, which is not arbitrary: it

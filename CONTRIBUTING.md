@@ -82,10 +82,9 @@ The tree:
 | `build/` | The build, test and check scripts |
 | `libraries/` | The scripts that build OpenSSL, Boost and libpq, and vendored third-party code |
 | `fuzz/` | The libFuzzer harnesses |
-| `.gitlab/` | The issue and merge-request templates GitLab offers |
+| `.gitlab/` | The issue and merge-request templates GitLab offers, and three files that are not GitLab's: `allowed_signers`, the SSH keys release tags are signed with; `hmailserver.openvex.json`, the project's VEX document; and `upstream-sync`, the upstream hMailServer commit this tree was last compared against |
 | `.gitlab-ci.yml` | The checks GitLab CI runs on a push and a merge request ([the checkers](#the-checkers)) |
 | `renovate.json` | What Renovate, the project's dependency-update bot, keeps current, and how ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)) |
-| `.github/` | GitHub's workflows, templates and settings, kept in case GitHub returns. GitLab reads none of it and none of it runs. Two files there are not GitHub's: `allowed_signers`, the SSH keys release tags are signed with, and `hmailserver.openvex.json`, the project's VEX document |
 
 ## Reporting, asking and proposing
 
@@ -372,7 +371,7 @@ the change; everywhere, `check-package-manifests.py` against a released installe
 `check-schema-versions.ps1` and `check-db-scripts.ps1`. Run those from the repository root before you open a
 merge request, and say in it which ones you ran; the ones CI runs are worth running first too, since they take
 a few minutes here and a round trip there. They need nothing but Python unless their row says otherwise, and
-ran on Linux under `python3` in the GitHub workflow `.github/workflows/style.yml` before they ran on GitLab.
+ran on Linux under `python3` in the GitHub workflow `style.yml` (in the git history at `v6.3.3`) before they ran on GitLab.
 **Rewrites** marks a mode that changes files.
 
 ### Python checkers
@@ -683,7 +682,7 @@ As practised on `master`:
 * A commit that flips a Roadmap2 row carries the counter line with it.
 * The history is linear: `master` has had no merge commit since 15 September 2026.
 * Commits on `master` are not signed. Release **tags** from `v6.2.23-alpha2` on are annotated and SSH-signed
-  with a key listed in `.github/allowed_signers`.
+  with a key listed in `.gitlab/allowed_signers`.
 * Numbers and names follow [the convention above](#issue-numbers-from-github-and-from-gitlab).
 
 ## Sign-off
@@ -695,7 +694,7 @@ must be the commit's author email. There is no CLA, so the sign-off is the recor
 distributed under AGPL-3.0-or-later.
 
 Sign-off is required of every commit in a merge request from someone outside the project. The maintainers'
-own commits are exempt, as they were under the GitHub check (`.github/workflows/dco.yml`), which is why most
+own commits are exempt, as they were under the GitHub check (the workflow `dco.yml`, in the git history at `v6.3.3`), which is why most
 commits on `master` carry none. **GitLab CI checks it**: the *sign-off* job runs on a merge request whose
 source branch is in a fork, and fails unless every commit from the merge request's base to its head carries a
 `Signed-off-by` trailer with the commit's author email (compared without regard to case). A merge request from a

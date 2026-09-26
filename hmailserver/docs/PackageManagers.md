@@ -59,7 +59,7 @@ What is in the repository
 | `hmailserver/installation/chocolatey/tools/chocolateyuninstall.ps1` | Runs the Inno uninstaller found through the `hMailServer_is1` registry key. Not a template: nothing in it changes between versions. |
 | `build/make-package-manifests.ps1` | Renders all of the above for a version, computing the hash from the actual installer. |
 | `build/check-package-manifests.py` | Validates the rendered manifests against Microsoft's published JSON schemas and cross-checks them against the Chocolatey package. |
-| `.github/workflows/package-managers.yml` | Runs the two on every release, keeps the result as an artifact, and submits when armed. |
+| `package-managers.yml` (a GitHub workflow, in the git history at `6399e08a5`) | Ran the two on every release, kept the result as an artifact, and submitted when armed. It was not ported to GitLab ([ContinuousIntegration.md](ContinuousIntegration.md), "From GitHub Actions to GitLab CI"), so the two are run by hand. |
 
 Where the values come from
 --------------------------

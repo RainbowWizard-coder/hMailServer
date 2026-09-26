@@ -332,12 +332,13 @@ on the branch `ci-installer-smoke`, is to add them.
 * **After the uninstall**: `Data\Certificates` kept with the rest of the data
   directory.
 
-The Linux packaging job of `.github/workflows/linux-build.yml` has these checks for
-the `.deb` - the file and the mark removed, the record, the four listeners, the
-two ranges, the key's owner and mode, STARTTLS on all four, and `AUTH` refused
-before STARTTLS from the runner's own address and offered after it - but it runs
-only on GitHub Actions, which the project cannot use at present, so nothing runs
-them today.
+The Linux packaging job of the GitHub workflow `linux-build.yml` (in the git
+history at `6399e08a5`) has these checks for the `.deb` - the file and the mark
+removed, the record, the four listeners, the two ranges, the key's owner and
+mode, STARTTLS on all four, and `AUTH` refused before STARTTLS from the runner's
+own address and offered after it - but it ran only on GitHub Actions, and GitLab
+CI's `linux-package-deb` job does not carry them yet, so nothing runs them
+today.
 
 ## Where the code is
 

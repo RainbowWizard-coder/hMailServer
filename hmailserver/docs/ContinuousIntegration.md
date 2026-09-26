@@ -416,8 +416,10 @@ lock.
 From GitHub Actions to GitLab CI
 --------------------------------
 
-Every job of the old `.github/workflows`, and where it went. The workflows stay
-in the tree in case GitHub returns; GitLab reads none of them.
+Every job of the old `.github/workflows`, and where it went. The workflows were
+removed from the tree when the project moved to GitLab. They are in the git
+history: all of them at `6399e08a5`, the last commit that had them, and the ones
+that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 
 | GitHub workflow and job | GitLab job | Runner | When |
 |---|---|---|---|
@@ -623,7 +625,7 @@ The installer smoke test
 
 The real Windows installer is installed, upgraded and uninstalled on a
 throwaway machine, and every promise it makes is checked. This replaces
-GitHub's `.github/workflows/installer-smoke.yml`, which ran on a hosted runner
+GitHub's `installer-smoke.yml` (in the git history at `v6.3.3`), which ran on a hosted runner
 that was thrown away after the job. Running the installer on the laptop or on
 bench150 would take over their service and their COM registration, so it runs
 on neither.
@@ -859,7 +861,7 @@ has the runbook.
 | Job | Where | What it does |
 |---|---|---|
 | `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
-| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag signed by a key in `.github/allowed_signers` and still points at the commit the pipeline built, `Version.h` says the tag's version, `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb`, the `.rpm`, their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the two SBOMs, checking the sums against the packages (`build/ci/release-chain.py collect`) |
+| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag signed by a key in `.gitlab/allowed_signers` and still points at the commit the pipeline built, `Version.h` says the tag's version, `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb`, the `.rpm`, their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the two SBOMs, checking the sums against the packages (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | bench150 | Signs the installer through Azure Artifact Signing and requires a valid signature with an RFC 3161 timestamp (`build/ci/windows-authenticode.ps1`) |
 | `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Signs all six files with Sigstore and checks each bundle's format and log entry, and verifies it with cosign (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, and writes the notes' verification section (`build/ci/release-verify.sh`) |
@@ -1020,9 +1022,11 @@ notes (`fetchChangeLogs` off), because release notes come from GitHub.
 Not covered, each for a reason: the MSVC runtime (gathered from the build
 machine's Visual Studio), the ADO type library (copied from Windows), SQL Server
 Compact (retired, with no release to follow), the Linux build's libraries (the
-distribution's packages, which move with the image's digest), the dead `.github/`
-tree, the project's own image on ghcr.io, and `hmailserver-ci/linux`, which is
-built on linix and never pushed. The .NET runtime the installer bundles has no pin
+distribution's packages, which move with the image's digest), the old GitHub
+workflows, which are no longer in the tree, the project's own image
+(`registry.gitlab.com/progressiverobot/hmailserver`, which `linux-image` builds
+and does not push: the project's container registry is not switched on), and
+`hmailserver-ci/linux`, which is built on linix and never pushed. The .NET runtime the installer bundles has no pin
 yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
 rule in `renovate.json` says what to add when the supply-chain row pins it.
 
@@ -1532,7 +1536,7 @@ What each scan leaves out, and why:
 `dependency-scan` fails on a high or critical advisory that has a fixed
 version, which is [SECURITY.md](../../SECURITY.md)'s threshold for "fixed before
 the next release". A finding that does not affect the project is dismissed in
-the VEX document, `.github/hmailserver.openvex.json`, with its reason. Trivy
+the VEX document, `.gitlab/hmailserver.openvex.json`, with its reason. Trivy
 reads that document (`--vex`), and so does the OSV step. A dismissed finding is
 still listed, marked as dismissed.
 
@@ -1572,14 +1576,16 @@ the answer is not public, and it never counts as a pass. On 25 September 2026:
   anonymously.
 - **Signed-Releases** passed. The five newest `v*` releases carry Sigstore and
   cosign bundles, two of them in-toto provenance as well. git verified the SSH
-  signature on each of their tags against `.github/allowed_signers`.
+  signature on each of their tags against the allowed signers file (then
+  `.github/allowed_signers`, now `.gitlab/allowed_signers`).
 - **Security-Policy** passed. `SECURITY.md` offers a confidential issue and an
   address.
 - **Pinned-Dependencies** failed on four images: `python:3.13-slim-trixie` and
   `node:22-trixie-slim` in the `checkers`, `harnesses`, `sign-off` and `release`
   jobs are named by tags that can move. Everything else passed: every Dockerfile
-  `FROM`, every action a kept GitHub workflow uses (by commit, except the SLSA
-  generator, which must be called by its tag and which Scorecard exempts too),
+  `FROM`, every action a GitHub workflow then kept in the tree used (by commit,
+  except the SLSA generator, which must be called by its tag and which Scorecard
+  exempts too; the workflows have since been removed),
   every install in the CI scripts, and a lock file beside every NuGet project.
   The check also notes three Python modules that a script imports and that no
   requirements file names: PyYAML, Playwright and jsonschema.
