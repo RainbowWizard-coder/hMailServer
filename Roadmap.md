@@ -127,8 +127,12 @@ Urgent — the OpenSSF gold badge
 Added 21 August 2026, the day the **passing** badge was earned (52% → 100% in
 one sitting) and silver reached 96%. Gold is the stated target, so this section
 sits at the top until it is either achieved or honestly declared unreachable.
-The live numbers are at <https://www.bestpractices.dev/en/projects/14187>:
-passing 100%, silver 96%, gold 48%, baseline 1/2/3 at 92/95/43%.
+The live numbers are at <https://www.bestpractices.dev/en/projects/14949>, the
+entry made for the GitLab home on 26 September 2026: passing 100%, silver 96%,
+gold 70%, baseline 1/2/3 at 92/84/81%. The first entry,
+<https://www.bestpractices.dev/en/projects/14187>, was made through a GitHub login
+and can no longer be edited since GitHub suspended the account on 18 September 2026;
+its figures stand as they were then.
 
 Two rules carried over from how the badge was filled in, and they bind here
 too: **nothing is claimed that the repository does not show**, and a criterion
