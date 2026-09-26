@@ -16,7 +16,8 @@
 # own merge request by default, so while one account is the only owner,
 # "Require approval from code owners" would hold back every change that owner
 # makes, and it stays off. The second maintainer, Zain Ul Abidin, is a member
-# as @zainulabidin1990 (since 24 September 2026) and shares the default owners;
+# as @zainulabidin1990 (since 24 September 2026; a Developer since 26 September
+# 2026, the owner's decision, which is enough to be named) and shares the default owners;
 # the supply-chain paths below stay with @Progressiverobot, who alone creates
 # release tags (GOVERNANCE.md).
 #

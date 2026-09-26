@@ -29,6 +29,14 @@ This project has **two maintainers**, Christopher Holloway and Zain Ul Abidin,
 and is stewarded by Progressive Robot Ltd. Decisions are made by the
 maintainers, in the open, on the issue tracker.
 
+On GitLab, since 26 September 2026, Christopher Holloway's account
+`Progressiverobot` is the project's only Owner and its only member with the
+Maintainer role or above. Zain Ul Abidin (`zainulabidin1990`) and Christopher
+Holloway's older account `chrisholloway5` hold the Developer role; the owner
+decided both. `master` and the `v*` tags are protected for Maintainers, so
+every change reaches `master` through the owner, Zain Ul Abidin's included,
+and only the owner can create a release tag.
+
 Both maintainers work for Progressive Robot Ltd, and until this change this
 document named Christopher Holloway as the project's only maintainer.
 That is stated plainly here for the same reason the project's size is stated in
@@ -42,8 +50,9 @@ Roles and responsibilities
 
 ### Maintainers
 
-**Currently: Christopher Holloway (`Progressiverobot` on GitLab, `chrisholloway5`
-on GitHub) and Zain Ul Abidin (`zainulabidin1990` on GitLab, `Zainulabidin90` on
+**Currently: Christopher Holloway (`Progressiverobot` on GitLab, the Owner, and
+his older account `chrisholloway5`, a Developer; `chrisholloway5` on GitHub) and
+Zain Ul Abidin (`zainulabidin1990` on GitLab, a Developer; `Zainulabidin90` on
 GitHub).**
 
 The maintainers are accountable for the project. In practice this means:
@@ -65,8 +74,8 @@ Who holds which today:
 
 | Duty | Christopher Holloway | Zain Ul Abidin |
 |---|:-:|:-:|
-| Accepting changes | Yes | Yes |
-| Releasing | Yes | Not yet ¹ |
+| Accepting changes | Yes | Reviews; lands through the owner ³ |
+| Releasing | Yes | No ¹ |
 | Security response | Yes | Not yet ² |
 | Direction | Yes | Yes |
 | Infrastructure | Yes | No |
@@ -74,32 +83,45 @@ Who holds which today:
 Christopher Holloway owns the GitLab project and holds the signing and release
 path. On GitHub, until 18 September 2026, he held admin rights on the
 repository, and Zain Ul Abidin held write access, which was enough to review and
-merge pull requests and to run the release workflows. Two of the duties above
-need more than that, and neither is in place yet:
+merge pull requests and to run the release workflows. On GitLab, since
+26 September 2026, Zain Ul Abidin holds the Developer role, the owner's
+decision. Three of the duties above need more than GitLab's Developer role
+gives, or a decision not yet made:
 
-1. **Releasing** needs Zain Ul Abidin's SSH signing key in
-   [.gitlab/allowed_signers](.gitlab/allowed_signers): the `release` job of
-   `.gitlab-ci.yml` refuses a tag that does not verify against that file, as
-   GitHub's signing workflow did before it. A release also needs
-   a machine set up to run [RELEASE.md](RELEASE.md) steps 4 to 11 — the
-   regression suite, the fuzz runs and the installer build. **Release tags are
-   created by Christopher Holloway, as the `Progressiverobot` account, alone**
-   (decided on 26 September 2026). GitLab's Free tier cannot hold tag creation
-   to one account - a protected-tag rule names a role, and `v*` allows
-   Maintainers - so the rule is held where a release is made: `.gitlab/allowed_signers`
-   lists his key alone, the `release` job refuses a tag that does not verify
-   against it, and the Azure federated credential that signs the installer is
-   issued for one tag at a time.
+1. **Releasing** is the owner's alone. **Release tags are created by
+   Christopher Holloway, as the `Progressiverobot` account, alone** (decided on
+   26 September 2026), and he is the only member GitLab lets create one: the
+   protected tag rule for `v*` allows Maintainers, and he is the only member
+   with that role or above. That role is the real control. GitLab's Free tier
+   cannot hold tag creation to one account - a protected-tag rule names a
+   role - and a Maintainer's `v*` tag runs the tagged commit's own
+   `.gitlab-ci.yml`: any pipeline of a protected `v*` tag is given a Sigstore
+   certificate naming that tag, which every server built after 6.3.3 accepts.
+   The `release` job's own checks - `.gitlab/allowed_signers` read as `master`
+   has it, exactly one key in it (his), the tag signed by that key, and the
+   tagged commit on `master` - run as the tagged commit has them, so they stop
+   a mistake and a tag pushed without his key, not a hostile commit; the Azure
+   federated credential made for one tag at a time holds the installer's
+   Authenticode signature alone ([RELEASE.md](RELEASE.md), "The release on
+   GitLab"). Whoever is given the Maintainer role can therefore sign a release
+   the servers accept. A release also needs a machine set up to run
+   [RELEASE.md](RELEASE.md) steps 4 to 11 — the regression suite, the fuzz runs
+   and the installer build.
 2. **Security response** needs to see every report. Reports arrive as
    confidential issues on GitLab, opened directly or by mail to the Service
    Desk address ([SECURITY.md](SECURITY.md)), and GitLab shows a confidential
    issue only to its author, its assignees and the project's members with the
    Planner role or above. Zain Ul Abidin has been a member of the GitLab
-   project since 24 September 2026 (`zainulabidin1990`), so he can see every
-   report; taking the duty on is the maintainers' decision, and until it is
+   project since 24 September 2026 (`zainulabidin1990`), a Developer since
+   26 September 2026, so he can see every report; taking the duty on is the maintainers' decision, and until it is
    made, security response rests on Christopher Holloway. (On GitHub, until 18 September 2026, reports arrived through
    private vulnerability reporting, which showed every advisory only to
    repository admins, security managers and organisation owners.)
+3. **Accepting changes** on GitLab needs the Maintainer role: `master` is
+   protected, and only Maintainers may push or merge to it. As a Developer,
+   Zain Ul Abidin pushes branches of his own, opens merge requests and reviews
+   others'; his changes, and a contributor's he has reviewed, reach `master`
+   through the owner, who lands them.
 
 ### Contributor
 
@@ -129,7 +151,9 @@ Review). The reasoning is recorded where the decision happens — in the pull
 request, in the issue, or in the release notes. The project's habit is to
 write down *why* rather than just *what*; the release notes are the clearest
 example of this and are the intended place to look for the reasoning behind a
-behavioural change.
+behavioural change. On GitLab, since 26 September 2026, whoever decides, a
+change lands on `master` through the owner, the one member with the Maintainer
+role (note 3 under [Maintainers](#maintainers)).
 
 **Review.** A pull request authored by one maintainer, or opened by an agent
 on one maintainer's behalf, is approved by the other before it is merged. The
@@ -211,9 +235,10 @@ Note that release-asset signing is **keyless** (Sigstore, via the CI's OIDC
 token: GitHub's for the releases up to 6.3.3, GitLab's from 6.3.5), so
 there is no private key behind it to inherit or to lose, which removes the
 single most common continuity failure for a small project. Release *tags* are
-signed with a maintainer's own SSH key, which must be listed in
-[.gitlab/allowed_signers](.gitlab/allowed_signers) — today only Christopher
-Holloway's is; a lost key is replaced by adding a new one there, not inherited.
+signed with the owner's own SSH key, the one key
+[.gitlab/allowed_signers](.gitlab/allowed_signers) may hold, Christopher
+Holloway's; a lost key is replaced by putting a new one in its place on
+`master`, not inherited.
 
 Continuity
 ----------
@@ -224,13 +249,15 @@ person's.** Christopher Holloway keeps the critical credentials in a managed
 arrangement that a trusted person can reach if Christopher Holloway is
 confirmed unavailable, together with the legal authority to use them, so the
 project could create and close issues, accept changes and publish a release
-within days rather than being locked out. A second maintainer with write
-access means a contributor's pull request can be reviewed and merged without
-that arrangement. On GitHub, Zain Ul Abidin's own pull requests could not: the
-master ruleset required an approval from someone other than the last person to
-push until 14 September 2026, and GitHub does not let authors approve their own
-pull requests. On GitLab no approval is required, so a maintainer who can push
-to `master` does not wait on the arrangement.
+within days rather than being locked out. On GitHub, a second maintainer with
+write access meant a contributor's pull request could be reviewed and merged
+without that arrangement, though Zain Ul Abidin's own pull requests could not
+be: the master ruleset required an approval from someone other than the last
+person to push until 14 September 2026, and GitHub does not let authors approve
+their own pull requests. On GitLab no approval is required, but since
+26 September 2026 only the owner can push or merge to `master`, so while he is
+unavailable every change, Zain Ul Abidin's included, waits on the arrangement
+too.
 
 What remains true, stated as plainly as the single-maintainer position was:
 
@@ -242,13 +269,16 @@ What remains true, stated as plainly as the single-maintainer position was:
   review rule under [How decisions are made](#how-decisions-are-made) is what
   builds that record.
 - **Administration rests on one person.** Only Christopher Holloway holds
-  repository admin and the credentials under
+  the Owner role on GitLab, and with it the only Maintainer rights, and the
+  credentials under
   [Critical assets](#critical-assets); while Christopher Holloway is
   unavailable, settings, rulesets, access and security advisories wait on the
   arrangement above.
-- **Two of the duties need more than write access.** Releasing needs a second
-  tag-signing key and a release machine, and security response needs access to
-  private reports; see the notes under [Maintainers](#maintainers).
+- **Two of the duties need more than the Developer role.** Accepting
+  changes and releasing need the Maintainer role, which is the owner's alone,
+  and releasing needs a release machine besides. Security response needs
+  access to private reports, which a Developer has; taking it on is the
+  maintainers' decision. See the notes under [Maintainers](#maintainers).
 - **One organisation.** Both maintainers work for Progressive Robot Ltd, so
   the project still depends on one organisation; only a maintainer from
   outside it would remove that dependence.
