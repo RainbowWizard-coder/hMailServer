@@ -15,7 +15,8 @@
 #   docker compose up -d
 #   # then https://<host>:8045/ is the Control Deck, Administrator and that password
 #
-# The image is the tag's own, from GHCR; pin the version you deployed. Every
+# The image is the release's own, from the project's GitLab registry once one is
+# published there (the image: line below says when); pin the version you deployed. Every
 # variable the entrypoint reads is listed in docker-entrypoint.sh beside this
 # file. The packaged hMailServer.ini holds the database connection and the
 # administrator password, kept in the hm-etc volume and rewritten from the
