@@ -1533,8 +1533,8 @@ exceptions:
   # hmailserver/source/Server/Common/Persistence/MessageStore.cpp
   - scan: static-analysis
     finding: ce8a6e1bf3f24f1bff6a
-    what: (int) text[i] of a possibly signed char in IsBracedGuid
-    reason: 'In IsBracedGuid (MessageStore.cpp) c is compared only with ''-'' and the ASCII ranges ''0''-''9'', ''A''-''F'' and ''a''-''f'', all positive; on Linux, where String''s element is a signed char, a byte of 0x80 or above becomes a negative int that matches none of them, so the function returns false, the right answer for a name that is not a GUID. The length is checked to be exactly 38 before indexing 1..36, and c is never used as an index or passed to a ctype function.'
+    what: (int) text[i] of a String (wchar_t) character in IsBracedGuid
+    reason: 'In IsBracedGuid (MessageStore.cpp) text is a String, CStdStr<wchar_t> on both platforms (StdString.h:4125), so text[i] is a whole wchar_t code unit, not a byte; the rule matched Linux''s signed 32-bit wchar_t, and its message always says signed char. c is compared only with ''-'' and the ASCII ranges ''0''-''9'', ''A''-''F'' and ''a''-''f'', all positive, so any other value, a non-ASCII code point or a negative wchar_t alike, matches none of them and the function returns false, the right answer for a name that is not a GUID. The length is checked to be exactly 38 before indexing 1..36, and c is never used as an index or passed to a ctype function.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26
