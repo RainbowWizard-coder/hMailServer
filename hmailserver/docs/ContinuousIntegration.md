@@ -213,7 +213,12 @@ stopping at the first refusal:
    `master` (the project merges by fast-forward only), add no merge commit, and
    carry its author's `Signed-off-by` on every commit it adds, less those the
    project's `v*` tags already hold (`build/sign-off.py`, the check the
-   `sign-off` job runs). `--dry-run` stops here.
+   `sign-off` job runs); and the secret scan of every commit it adds
+   (`build/scan-secrets.py`, [Before a push](#before-a-push-the-secret-scan))
+   must run and find nothing: a possible secret, or no scanner to run it,
+   refuses (exit 8). A `batch*` branch's pipeline does not run
+   `secret_detection`, and its merge request runs no pipeline, so this is the
+   scan that reads a batch before it is on GitLab. `--dry-run` stops here.
 2. It pushes the branch. A `batch*` branch is protected, so its pipeline runs
    everything, the two machines' gates included.
 3. It opens a merge request into `master`, not squashed, with the source branch
@@ -265,7 +270,9 @@ one* (below), is checked by nothing.
 **What has run, and what has not.** `python3 build/land-via-mr.py --self-test`,
 which `checkers` runs, drives the whole landing against a bare repository
 standing for the project and a GitLab API held in memory: a landing, and a
-refusal for each of an unsigned commit, a batch behind `master`, a merge commit,
+refusal for each of an unsigned commit, a possible secret, a secret scan that
+could not run or failed (the scan itself stands in there; its own self-test
+covers it), a batch behind `master`, a merge commit,
 a failed pipeline, a pipeline waiting on a manual job, an open thread, and a
 missing approval once one is required; approvals read from the merge request's
 system notes where the approvals API is refused; an approval given before the
@@ -1979,7 +1986,10 @@ range adds, which the reader checks. Its first run, on 26 September 2026 over
 `secret_detection` would have failed the next push to `master` on: AWS's example
 access key id, quoted in this document, in `.gitleaksignore`'s comment and in
 `HelpPagesData.cpp`, which every regeneration of the help pages added again.
-The three now describe it instead, and the ten are in `.gitleaksignore`.
+The three now describe it instead, and the ten are in `.gitleaksignore`, with
+two more the same key at `HelpPagesData.cpp`'s lines 355 and 356 in two folds
+made after that run, which a scan of the batch rebased onto `master` found:
+twelve lines, naming the commits as they are after the rebase.
 
 ### The old GitHub jobs and what replaced them
 

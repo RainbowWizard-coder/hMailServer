@@ -382,9 +382,10 @@ anything is published.
   `.gitleaksignore` does not name. It has not run on GitLab yet: `master` is still pushed with `ci.skip`. The
   whole history was scanned once, on 26 September 2026, with the job's own image on the project's Linux machine:
   thirty findings, each read and none a secret (test fixtures, the key parsers' test armour, AWS's documented
-  example key), which `.gitleaksignore` names. The first scan of a batch before its landing, the same day, found
-  ten more in the batch's commits, all that same example key quoted in a document and the help pages made from
-  it; the document describes it since, and the ten are named too. The same scan on GitLab is a schedule the owner runs once
+  example key), which `.gitleaksignore` names. The scans of a batch before its landing, the same day, found
+  twelve more in the batch's commits - ten the first time, and two in folds made after it - all that same example
+  key quoted in a document and the help pages made from it; the document describes it since, and the twelve are
+  named too. The same scan on GitLab is a schedule the owner runs once
   ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Security scanning").
 - The one credential the release automation needed, for the Azure identity that Authenticode-signs the
   installer, was held in GitHub Actions' secrets; the identity itself is in Azure. Release signatures are keyless

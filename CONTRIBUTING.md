@@ -786,7 +786,9 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    squashed into one commit of yours that keeps them - with other changes ready to land.
 7. **Landing.** A `batch*` branch lands through a merge request of its own, by fast-forward, so history stays
    linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge
-   commit and is signed off throughout, pushes it, opens the merge request, waits for the branch's pipeline,
+   commit, is signed off throughout and holds no possible secret (`build/scan-secrets.py` over every commit it
+   adds, which must run: see [Secrets](#secrets)), pushes it, opens the merge request, waits for the branch's
+   pipeline,
    and merges only when it passed and GitLab calls the merge request mergeable. It never squashes. It records on
    the merge request, and in `land-via-mr.log` in the git directory, the pipeline, the sign-off and whether
    somebody other than the author approved the tip it lands (an approval given before a later push does not

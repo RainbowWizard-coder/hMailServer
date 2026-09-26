@@ -13,7 +13,13 @@ refusal:
      project merges by fast-forward only), it adds no merge commit, and every
      commit it adds carries its author's Signed-off-by (build/sign-off.py, the
      same check the sign-off job runs; commits already in one of the project's
-     v* release tags are left out). Nothing is pushed until all of this holds.
+     v* release tags are left out), and the secret scan of those commits
+     (build/scan-secrets.py: gitleaks with GitLab's rules and the tip's
+     .gitleaksignore, in Docker here or where HM_SECRET_SCAN_SSH points) finds
+     nothing and could run. A batch branch's pipeline does not run the
+     secret_detection job and its merge request runs none, so this scan is the
+     one that reads a batch before it is on GitLab. Nothing is pushed until all
+     of this holds.
   2. The branch is pushed. batch* is a protected branch, so its pipeline runs
      the whole gate on the project's own runners (docs/ContinuousIntegration.md);
      a merge request from it runs no pipeline of its own, and the branch's
@@ -66,7 +72,8 @@ Exit codes: 0 landed (or the dry run or --no-wait passed), 2 usage or a git or
 GitLab error, 3 the branch cannot land by fast-forward, 4 a commit is not signed
 off, 5 the merge request or its pipeline did not pass, 6 GitLab would not merge,
 7 no second person approved and the owner gave no override, or the override
-was refused.
+was refused, 8 the secret scan found a possible secret in the batch's commits or
+could not run.
 """
 
 import argparse
@@ -120,6 +127,15 @@ def _load_sign_off():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def secret_scan(repo, base, tip):
+    """build/scan-secrets.py over the commits base..tip (CONTRIBUTING.md, "Secrets"):
+    its exit code - 0 nothing found, 1 a possible secret, 2 the scan failed, 3 no
+    scanner - and what it printed."""
+    done = subprocess.run([sys.executable, os.path.join(ROOT, "build", "scan-secrets.py"), "--repo", repo,
+                           "--range", "%s..%s" % (base, tip)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    return done.returncode, done.stdout.decode("utf-8", "replace")
 
 
 class Git(object):
@@ -296,7 +312,7 @@ def approvals(api, project, iid):
     return list(current.values()), "the merge request's system notes"
 
 
-def land(opts, git, api, out, sleep=time.sleep, clock=time.time):
+def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_scan):
     say = lambda text="": print(text, file=out)
     sign_off = _load_sign_off()
     branch = opts.branch
@@ -329,9 +345,20 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time):
             say("MISSING  %s %s - no Signed-off-by for %s" % (sha[:12], subject[:90], author))
         raise Refused(4, "REFUSED: %d of the %d commit(s) %s adds lack their author's Signed-off-by. %s"
                          % (len(missing), looked, branch, sign_off.FIX.replace("<base>", "%s/%s" % (remote, TARGET))))
+    # The secret scan of every commit the batch brings to master, before anything is
+    # pushed: a possible secret, or a scan that did not run, refuses (a scan that did
+    # not run has not said anything is clean).
+    scanned, report = scan(git.repo, base, tip)
+    for line in report.splitlines():
+        say(line)
+    if scanned != 0:
+        why = {1: "found a possible secret", 3: "had no scanner to run"}.get(scanned, "failed (exit %d)" % scanned)
+        raise Refused(8, "REFUSED: the secret scan of the %d commit(s) %s adds to %s/%s %s, so nothing was pushed. "
+                         "A real secret is revoked and taken out of the commits; a fingerprint that is not one goes "
+                         "in .gitleaksignore (CONTRIBUTING.md, \"Secrets\")." % (len(shas), branch, remote, TARGET, why))
     authors = sorted(set(tuple(line.split("\x1f", 1)) for line in
                          git.run("log", "--format=%an\x1f%ae", "%s..%s" % (base, tip)).splitlines() if "\x1f" in line))
-    say("%s at %s: %d commit(s) on top of %s/%s %s, every one signed off%s." % (
+    say("%s at %s: %d commit(s) on top of %s/%s %s, every one signed off%s, and no possible secret in them." % (
         branch, tip[:12], len(shas), remote, TARGET, base[:12],
         " (%d already in a release tag not looked at)" % (len(shas) - looked) if looked != len(shas) else ""))
     if opts.dry_run:
@@ -704,6 +731,14 @@ def self_test():
             run(work, *(["commit", "-q", "-m", message] + (["-s"] if signoff else [])))
             return run(work, "rev-parse", "HEAD")
 
+        # The secret scan stands in: scan-secrets.py needs Docker or gitleaks, which the
+        # checkers job does not have (its own self-test covers it). Each call is kept.
+        scans = []
+
+        def clean_scan(repo, base, tip):
+            scans.append((repo, base, tip))
+            return 0, "scan-secrets: nothing found\n"
+
         def attempt(work, api, **kw):
             opts = argparse.Namespace(branch=kw.get("branch", "batch1"), remote="origin", project="1", dry_run=kw.get("dry_run", False),
                                       no_wait=False, force_push=False, timeout_hours=1, poll_seconds=0,
@@ -712,7 +747,7 @@ def self_test():
             run(work, "checkout", "-q", "--detach")
             sink = io.StringIO()
             try:
-                code = land(opts, Git(work), api, sink, sleep=lambda s: None)
+                code = land(opts, Git(work), api, sink, sleep=lambda s: None, scan=kw.get("scan", clean_scan))
             except Refused as e:
                 print(str(e), file=sink)
                 code = e.code
@@ -724,11 +759,15 @@ def self_test():
 
         # 1. The whole way: signed commits, a green pipeline, the other maintainer's approval.
         bare, work = scenario("happy")
+        master_before = remote_ref(bare, "refs/heads/master")
         commit(work, "first, signed")
         tip = commit(work, "second, signed")
         api = FakeGitLab(bare, approved_by=[zain])
+        del scans[:]
         code, text = attempt(work, api)
         expect("happy: exit", code, 0)
+        expect("happy: the secret scan read the batch's commits, from master to the tip", scans, [(work, master_before, tip)])
+        expect("happy: what the scan said is shown", "scan-secrets: nothing found" in text, True)
         expect("happy: the project's master is the tip", remote_ref(bare, "refs/heads/master"), tip)
         expect("happy: the local master too", run(work, "rev-parse", "master"), tip)
         expect("happy: the branch is gone on the project", remote_ref(bare, "refs/heads/batch1"), None)
@@ -749,6 +788,24 @@ def self_test():
         expect("unsigned: nothing pushed", remote_ref(bare, "refs/heads/batch1"), None)
         expect("unsigned: no API call", api.calls, [])
         expect("unsigned: the commit is named", "MISSING" in text and "not signed" in text, True)
+
+        # 2a. A possible secret in the batch, or a scan that could not run: nothing leaves the machine.
+        bare, work = scenario("secret")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain])
+        finding = "0123456789abcdef0123456789abcdef01234567:a.txt:generic-api-key:2"
+        code, text = attempt(work, api, scan=lambda repo, base, tip: (1, finding + "\nscan-secrets: 1 possible secret\n"))
+        expect("secret: exit", code, 8)
+        expect("secret: nothing pushed", remote_ref(bare, "refs/heads/batch1"), None)
+        expect("secret: no API call", api.calls, [])
+        expect("secret: the fingerprint is shown", finding in text and "found a possible secret" in text, True)
+        code, text = attempt(work, api, scan=lambda repo, base, tip: (3, "scan-secrets: no scanner\n"))
+        expect("no scanner: exit", code, 8)
+        expect("no scanner: nothing pushed", remote_ref(bare, "refs/heads/batch1"), None)
+        expect("no scanner: said so", "had no scanner to run" in text, True)
+        code, text = attempt(work, api, scan=lambda repo, base, tip: (2, "scan-secrets: the scan failed\n"))
+        expect("a failed scan: exit", code, 8)
+        expect("a failed scan: no API call", api.calls, [])
 
         # 3. Behind master: refused before the push.
         bare, work = scenario("behind")
@@ -906,6 +963,8 @@ def self_test():
         expect("dry run: exit", code, 0)
         expect("dry run: nothing pushed", remote_ref(bare, "refs/heads/batch1"), None)
         expect("dry run: no API call", api.calls, [])
+        code, text = attempt(work, api, dry_run=True, scan=lambda repo, base, tip: (1, "scan-secrets: 1 possible secret\n"))
+        expect("a dry run scans too", code, 8)
     finally:
         for key, value in env_keep.items():
             if value is None:
