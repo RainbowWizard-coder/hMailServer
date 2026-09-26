@@ -486,6 +486,84 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
+      [Description("The per-minute ceiling on verifications is the policy's, not each recipient domain's: under a policy for a pattern (*.<zone>) allowing two a minute, five recipients at five different subdomains open two sessions to the primary, and every one of them is accepted.")]
+      public void TheCalloutCeilingIsThePolicysNotEachSubdomains()
+      {
+         // A primary that takes the connection and closes it without a word: no
+         // verdict, quickly, and every session it is asked for is counted.
+         var primaryPort = TestSetup.GetNextFreePort();
+         var listener = new TcpListener(IPAddress.Loopback, primaryPort);
+         listener.Start();
+
+         int sessions = 0;
+         var acceptor = new Thread(() =>
+         {
+            try
+            {
+               while (true)
+               {
+                  TcpClient client = listener.AcceptTcpClient();
+                  Interlocked.Increment(ref sessions);
+                  client.Close();
+               }
+            }
+            catch (SocketException)
+            {
+               // The listener was stopped.
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+         }) { IsBackground = true };
+         acceptor.Start();
+
+         try
+         {
+            // The backup-MX shape for every subdomain of the pattern. A zone of
+            // this run's own: the policy's ceiling is kept per pattern in the
+            // server's memory for a minute, so a second run inside that minute
+            // under the same pattern would find it already spent.
+            string zone = "wc" + Guid.NewGuid().ToString("N").Substring(0, 8) + ".test";
+            Route route = _settings.Routes.Add();
+            route.DomainName = "*." + zone;
+            route.TargetSMTPHost = "127.0.0.1";
+            route.TargetSMTPPort = TestSetup.GetNextFreePort();
+            route.NumberOfTries = 1;
+            route.MinutesBetweenTry = 5;
+            route.TreatRecipientAsLocalDomain = true;
+            route.TreatSenderAsLocalDomain = true;
+            route.AllAddresses = true;
+            route.Save();
+
+            AddPolicy_("*." + zone, p =>
+            {
+               p.CalloutEnabled = true;
+               p.CalloutHost = "127.0.0.1";
+               p.CalloutPort = primaryPort;
+               p.CalloutTimeoutSeconds = 5;
+               p.CalloutCacheMinutes = 60;
+               p.CalloutMaxPerMinute = 2;
+            });
+
+            for (int i = 1; i <= 5; i++)
+            {
+               string reply = RcptReply_("user@s" + i + "." + zone);
+               StringAssert.StartsWith("250", reply, "A recipient with no verdict was refused: " + reply);
+            }
+
+            Thread.Sleep(1000);
+
+            // Until 26 September 2026 the ceiling was kept per recipient domain,
+            // and each of the five subdomains had two of its own: five sessions.
+            Assert.AreEqual(2, Volatile.Read(ref sessions), "The policy's ceiling of two a minute did not hold across its subdomains.");
+         }
+         finally
+         {
+            listener.Stop();
+         }
+      }
+
+      [Test]
       [Description("No callout is made for a domain this server hosts, even when a policy names it.")]
       public void NoCalloutForADomainThisServerHosts()
       {

@@ -176,6 +176,48 @@ namespace RegressionTests.Domains
          StringAssert.StartsWith("250", MailFrom(small.Address, 300), "Cleared, the account takes the domain's 500 again.");
       }
 
+      [Test]
+      [Description("The signed-in account's limit is its domain's as well as its own: under a server of 1000 KB and a domain of 500, an account with no value of its own signed in and naming no sender (MAIL FROM:<>) or an outside one is refused a 600 KB message with the domain's 500; the same MAIL FROM from a session that has not signed in takes the server's 1000. And an account signed in under a domain alias is held to its own 200, as under its own spelling.")]
+      public void TheSignedInAccountsDomainLimitHoldsWhateverMailFromNames()
+      {
+         Account small = AddAccount("small");
+         Account sibling = AddAccount("sibling");
+
+         int serverBefore = _settings.MaxMessageSize;
+         _putBack.Add(() => _settings.MaxMessageSize = serverBefore);
+         _settings.MaxMessageSize = 1000;
+         _domain.MaxMessageSize = 500;
+         _domain.Save();
+
+         // The negative controls: nobody signed in, the envelope names no domain
+         // of ours, so the server's 1000 is the limit; and the sibling naming
+         // itself is held to its domain's 500.
+         StringAssert.StartsWith("250", MailFrom("", 600), "Unauthenticated, MAIL FROM:<> takes the server's 1000 KB.");
+         StringAssert.StartsWith("552", MailFrom(sibling.Address, 600, sibling.Address), "The domain's 500 holds the sibling naming itself.");
+
+         // Until 26 September 2026 both of these were taken: only the signed-in
+         // account's OWN value was held, and the sibling has none.
+         string nullSender = MailFrom("", 600, sibling.Address);
+         StringAssert.StartsWith("552", nullSender, "Signed in, MAIL FROM:<> lifted the domain's limit.");
+         StringAssert.Contains("Max size: 500 KB", nullSender);
+         StringAssert.StartsWith("552", MailFrom("someone@outside.example", 600, sibling.Address), "Signed in, an outside MAIL FROM lifted the domain's limit.");
+         StringAssert.StartsWith("250", MailFrom("", 300, sibling.Address), "Under the domain's 500 a 300 KB message is taken.");
+
+         // Under a domain alias: until 26 September 2026 the signed-in account was
+         // looked up by the name as typed, found nothing, and was held to nothing.
+         PutAccount(small, "{\"max_message_size_kb\":200}");
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.DomainID = _domain.ID;
+         alias.AliasName = "levels-alias.test";
+         alias.Save();
+         EmptyTheCaches();
+
+         StringAssert.StartsWith("552", MailFrom("", 300, "small@" + _domain.Name), "Its own 200 holds under its own spelling.");
+         string aliased = MailFrom("", 300, "small@levels-alias.test");
+         StringAssert.StartsWith("552", aliased, "Signed in under the domain alias, the account's own 200 was lifted.");
+         StringAssert.Contains("Max size: 200 KB", aliased);
+      }
+
       // ---- the quarantine digest: two preferences --------------------------
 
       [Test]

@@ -738,10 +738,19 @@ namespace HM
    {
       Answer answer = Resolve(name, domain, account);
 
+      // The signed-in account's whole answer - its own value, else its own
+      // domain's, held to the server's - and the tighter of the two. Until 26
+      // September 2026 only the account's own value was asked, so a domain's
+      // limit tighter than the server's held its accounts only while they
+      // named an address of the domain as the sender: MAIL FROM:<> or another
+      // domain's address resolved the server's.
       const Definition *definition = Find(name);
-      String own;
-      if (definition && signedIn && definition->ceiling() && AccountValue(*definition, signedIn, own) && IsLooser(*definition, answer.value, own))
-         answer.value = own;
+      if (definition && signedIn && definition->ceiling())
+      {
+         const Answer theirs = Resolve(name, std::shared_ptr<const Domain>(), signedIn);
+         if (IsLooser(*definition, answer.value, theirs.value))
+            answer.value = theirs.value;
+      }
 
       long long number = 0;
       if (!ParseInteger(answer.value, number))

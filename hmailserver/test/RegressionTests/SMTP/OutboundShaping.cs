@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -48,6 +49,7 @@ namespace RegressionTests.SMTP
       // slides over a minute, so two tests a few seconds apart on one address
       // would find the first one's delivery still in the bucket.
       private const string ThirdHost = "127.0.0.3";
+      private const string FourthHost = "127.0.0.4";
 
       private const string SlowDownAtMailFrom = "451 4.7.650 The mail server has been temporarily rate limited";
       private const string SlowDownAtBanner = "421 4.7.0 [TSS04] Messages temporarily deferred due to unexpected volume";
@@ -588,6 +590,124 @@ namespace RegressionTests.SMTP
          finally
          {
             _settings.MirrorEMailAddress = "";
+         }
+      }
+
+      [Test]
+      [Description("An uncounted pass does not repeat a rule's forward or its script function: with a server rule forwarding the second message and calling a script function, and that message deferred by the rate through several passes, the forward arrives once and the function runs once, not once per pass.")]
+      public void AnUncountedPassDoesNotForwardAgain()
+      {
+         Account forwarded = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "forward-shaping@example.test", "test");
+
+         Rule rule = _application.Rules.Add();
+         rule.Name = "Forward the held message";
+         rule.Active = true;
+         rule.UseAND = true;
+
+         RuleCriteria criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = eRulePredefinedField.eFTSubject;
+         criteria.MatchType = eRuleMatchType.eMTContains;
+         criteria.MatchValue = "Held and forwarded";
+         criteria.Save();
+
+         // And addressed to the remote domain: the forwarded copy keeps the subject,
+         // and without this the rule would forward the forward, to the rule loop limit.
+         RuleCriteria outbound = rule.Criterias.Add();
+         outbound.UsePredefined = true;
+         outbound.PredefinedField = eRulePredefinedField.eFTRecipientList;
+         outbound.MatchType = eRuleMatchType.eMTContains;
+         outbound.MatchValue = FirstDomain;
+         outbound.Save();
+
+         RuleAction action = rule.Actions.Add();
+         action.Type = eRuleActionType.eRAForwardEmail;
+         action.To = forwarded.Address;
+         action.Save();
+
+         // A script function too: what one does cannot be known - it may send
+         // mail as the forward does - so it is gated as the forward is.
+         RuleAction script = rule.Actions.Add();
+         script.Type = eRuleActionType.eRARunScriptFunction;
+         script.ScriptFunction = "MarkTheHeldPass";
+         script.Save();
+
+         rule.Save();
+
+         const string ScriptMark = "held-pass-script-ran";
+         File.WriteAllText(_settings.Scripting.CurrentScriptFile,
+            "Sub MarkTheHeldPass(message)" + Environment.NewLine +
+            " Call EventLog.Write(\"" + ScriptMark + "\")" + Environment.NewLine +
+            "End Sub");
+         _settings.Scripting.Enabled = true;
+         _settings.Scripting.Reload();
+         if (File.Exists(LogHandler.GetEventLogFileName()))
+            File.Delete(LogHandler.GetEventLogFileName());
+
+         IniFileSetting.Write("MaxOutboundPerDestinationPerMinute", "1");
+         _application.Reinitialize();
+
+         try
+         {
+            int port = TestSetup.GetNextFreePort();
+
+            using (var remote = new SmtpServerSimulator(2, port))
+            {
+               remote.AddRecipientResult(Accepts_("test@" + FirstDomain));
+               remote.AddRecipientResult(Accepts_("test@" + FirstDomain));
+               remote.SecondsToWaitBeforeTerminate = 120;
+               remote.StartListen();
+
+               // A fourth address, whose rate bucket no other test in this fixture
+               // has touched.
+               AddRoute_(FirstDomain, FourthHost, port, 3);
+
+               SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "First", "Within the rate");
+               Assert.IsTrue(WaitFor_(() => remote.MessageData.Contains("Within the rate"), 20), "The first message was not delivered.");
+
+               SmtpClientSimulator.StaticSend(_account.Address, "test@" + FirstDomain, "Held and forwarded", "Over the rate");
+               Assert.IsTrue(LogHandler.DefaultLogContains("Delivery to " + FourthHost + " deferred due to the per-destination rate limit"), "The second message was not deferred by the rate.");
+
+               long held = HeldMessageId_(FirstDomain);
+
+               // Several uncounted passes before the rate's window drains: each
+               // retry makes the queue look again, runs the rules again, and is
+               // deferred again. Until 26 September 2026 each one forwarded.
+               for (int pass = 0; pass < 3; pass++)
+               {
+                  Assert.AreEqual(200, Admin("POST", "/api/v1/queue/" + held + "/retry", null).status);
+                  Thread.Sleep(3000);
+               }
+
+               Assert.IsTrue(Queued_(FirstDomain).Exists(r => r.id == held && r.tries == 0), "The held message counted a try, or left the queue, during the uncounted passes.");
+
+               DateTime deadline = DateTime.UtcNow.AddSeconds(100);
+               while (DateTime.UtcNow < deadline && !remote.MessageData.Contains("Over the rate"))
+               {
+                  Admin("POST", "/api/v1/queue/" + held + "/retry", null);
+                  Thread.Sleep(5000);
+               }
+
+               remote.WaitForCompletion();
+               StringAssert.Contains("Over the rate", remote.MessageData, "The deferred message did not arrive once the rate's window had drained.");
+
+               // One forward for the one attempt: the first pass made it, and the
+               // passes that repeated that attempt did not make it again.
+               var pop3 = new Pop3ClientSimulator();
+               Assert.IsTrue(WaitFor_(() => pop3.GetMessageCount(forwarded.Address, "test") >= 1, 20), "The rule did not forward the message at all.");
+               Thread.Sleep(5000);
+               Assert.AreEqual(1, pop3.GetMessageCount(forwarded.Address, "test"), "An uncounted pass forwarded the held message again.");
+
+               // And one call of the function. Until 26 September 2026 the
+               // forward was gated and the function was not: it ran on every pass.
+               string eventLog = TestSetup.ReadExistingTextFile(LogHandler.GetEventLogFileName());
+               int calls = eventLog.Split(new[] { ScriptMark }, StringSplitOptions.None).Length - 1;
+               Assert.AreEqual(1, calls, "An uncounted pass ran the rule's script function again. Event log: " + eventLog);
+            }
+         }
+         finally
+         {
+            rule.Delete();
          }
       }
 

@@ -17526,6 +17526,12 @@ namespace HM
       // applies, before the size is taken and the \Sent copy made.
       OutgoingFooters::AddToWebmailMessage(message, writer);
 
+      // The account that wrote it, before the rules are asked: whose domain's
+      // rules act on the whole message depends on it
+      // (RuleApplier::DomainRuleScopes).
+      if (writer && message->GetSubmitterAccountID() == 0)
+         message->SetSubmitterAccountID(writer->GetID());
+
       // The rules that block, asked here as the SMTP session asks them at the
       // end of DATA and with the same collections (RuleApplier): the page is
       // the sender on the line. A message queued past a reject rule would be

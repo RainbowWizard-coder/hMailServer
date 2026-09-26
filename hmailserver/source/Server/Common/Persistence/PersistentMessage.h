@@ -64,7 +64,10 @@ namespace HM
       // itself (SMTP/DestinationBackoff.h): the next try without a try counted,
       // and Message::FlagFirstPassDone set in the same statement, so that the
       // steps gated on "first pass" are not repeated on the next one.
-      static bool SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes);
+      // repeatsAttempt sets Message::FlagRepeatsAttempt with it: the pass that
+      // is being rescheduled ran the rules, so the next one repeats its attempt.
+      // A counted SetNextTryTime clears that mark.
+      static bool SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes, bool repeatsAttempt = false);
 
       // A held message rescheduled - LocalDelivery::HoldForRetry's recipients
       // whose mailbox's encryption is not known, ListManager::HoldForRetry's

@@ -164,8 +164,15 @@ namespace HM
 
       // Everything a hit does, decided here so that the SMTP path holds no policy:
       // the ban, the block, the record, the log line and the counter.
+      //
+      // The envelope sender is blocked server-wide only when SPF passes for it
+      // from the connecting address (heloHost is the session's HELO, which SPF
+      // needs only for the null sender, never blocked anyway). The envelope is
+      // whatever the client typed, and trap addresses are published: without the
+      // check, one unauthenticated connection put any correspondent it named on
+      // the block list for every mailbox for SpamTrapBlockDays.
       static Outcome OnHit(const String &trapAddress, __int64 domainId, const IPAddress &address,
-                           const String &envelopeSender, bool authenticated, bool rangeRunsSpamTests,
+                           const String &envelopeSender, const String &heloHost, bool authenticated, bool rangeRunsSpamTests,
                            bool whiteListed, bool incomingRelay, bool bannedEarlierInSession);
 
       // The message a session that addressed a trap went on to send, taught to

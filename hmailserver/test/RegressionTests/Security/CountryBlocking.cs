@@ -297,6 +297,124 @@ namespace RegressionTests.Security
          StringAssert.Contains("+OK", PopLogon("geo@example.test", "test"));
       }
 
+      private static string PopScram(string user, string password)
+      {
+         using (var socket = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(socket.Connect(110));
+            socket.ReadUntil("+OK");
+            string answer = RegressionTests.POP3.Pop3SaslTestClient.AuthenticateScram(socket, user, password);
+
+            // QUIT, and its answer read, so that the maildrop this session may hold
+            // is released before the next sign-in: a refusal there must be the
+            // policy's, never [IN-USE].
+            socket.Send("QUIT\r\n");
+            socket.Receive();
+            return answer;
+         }
+      }
+
+      [Test]
+      [Description("SCRAM-SHA-256 meets the domain's country policy as a password sign-in does: it proves the password without passing through AccountLogon::Logon, where the policy is asked")]
+      public void AScramSignInFromARefusedCountryIsRefused()
+      {
+         JudgeTheLoopbackAddress();
+
+         // The negative control: with no policy the account signs in over SCRAM.
+         StringAssert.StartsWith("+OK", PopScram("geo@example.test", "test"));
+
+         _domain.CountryPolicy = "block:" + LoopbackCountry;
+         _domain.Save();
+
+         // Until 26 September 2026 this signed in: the policy was asked only on
+         // the paths that hand AccountLogon::Logon a password.
+         StringAssert.StartsWith("-ERR", PopScram("geo@example.test", "test"),
+            "A SCRAM sign-in from a country the domain refuses was accepted.");
+
+         _domain.CountryPolicy = "allow:" + LoopbackCountry;
+         _domain.Save();
+
+         StringAssert.StartsWith("+OK", PopScram("geo@example.test", "test"));
+      }
+
+      [Test]
+      [Description("The policy of the domain the account really belongs to is asked however the name is spelled: a sign-in under one of its domain aliases meets it too")]
+      public void ASignInUnderADomainAliasMeetsTheDomainsPolicy()
+      {
+         JudgeTheLoopbackAddress();
+
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.DomainID = _domain.ID;
+         alias.AliasName = "geo-alias.test";
+         alias.Save();
+
+         // The negative control: the alias spelling signs the account in, so a
+         // refusal below is the policy and not the spelling.
+         StringAssert.Contains("+OK", PopLogon("geo@geo-alias.test", "test"),
+            "The account must sign in under its domain's alias while no policy is set.");
+
+         _domain.CountryPolicy = "block:" + LoopbackCountry;
+         _domain.Save();
+
+         StringAssert.Contains("-ERR", PopLogon("geo@example.test", "test"),
+            "The domain's own spelling is refused, as ASignInFromARefusedCountryIsTheOrdinaryRefusal proves.");
+
+         // Until 26 September 2026 this signed in: the policy was looked up under
+         // geo-alias.test, which has no hm_domains row and so no policy, and the
+         // password was then checked against geo@example.test.
+         StringAssert.Contains("-ERR", PopLogon("geo@geo-alias.test", "test"),
+            "A sign-in under a domain alias escaped the domain's country policy.");
+      }
+
+      [Test]
+      [Description("The IMAP master user signing in as another account meets the policy of the account signed into, not only its own")]
+      public void AMasterUserSignInMeetsTheTargetsPolicy()
+      {
+         JudgeTheLoopbackAddress();
+
+         // The master is geo@example.test, whose domain has no policy; the
+         // mailbox it acts as is in a domain of its own.
+         Domain targetDomain = SingletonProvider<TestSetup>.Instance.AddDomain("geo-target.test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(targetDomain, "mailbox@geo-target.test", "other");
+
+         _settings.IMAPSASLPlainEnabled = true;
+         _settings.IMAPMasterUser = "geo@example.test";
+
+         // The negative control: with no policy anywhere the master signs in as
+         // the mailbox, so a refusal below is the policy and nothing else.
+         StringAssert.Contains("A01 OK", ImapAuthenticatePlain("mailbox@geo-target.test", "geo@example.test", "test"),
+            "The master user must sign in as the mailbox while no policy is set.");
+
+         targetDomain.CountryPolicy = "block:" + LoopbackCountry;
+         targetDomain.Save();
+
+         // The master's own sign-in is unaffected: its domain has no policy.
+         StringAssert.Contains("+OK", PopLogon("geo@example.test", "test"));
+
+         // Until 26 September 2026 this signed in: the policy was asked only for
+         // the name that authenticated, geo@example.test.
+         StringAssert.Contains("A01 NO", ImapAuthenticatePlain("mailbox@geo-target.test", "geo@example.test", "test"),
+            "A master user opened a mailbox from a country the mailbox's domain refuses.");
+      }
+
+      private static string ImapAuthenticatePlain(string authzid, string authcid, string password)
+      {
+         using (var socket = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(socket.Connect(143));
+            socket.ReadUntil("* OK");
+            socket.Send("A01 AUTHENTICATE PLAIN\r\n");
+            string continuation = socket.Receive();
+            StringAssert.StartsWith("+", continuation, "The server did not ask for the SASL response.");
+            socket.Send(Convert.ToBase64String(Encoding.UTF8.GetBytes(authzid + "\0" + authcid + "\0" + password)) + "\r\n");
+            string result = socket.ReadUntil("A01 ");
+            socket.Send("A02 LOGOUT\r\n");
+            socket.ReadUntil("A02 ");
+            socket.Disconnect();
+            return result;
+         }
+      }
+
       [Test]
       [Description("A domain with no policy of its own judges no sign-in, whatever the listener policies say")]
       public void ADomainWithNoPolicyJudgesNothing()

@@ -204,7 +204,9 @@ namespace HM
    }
 
    RecipientCallout::RecipientCallout() :
-      probe_count_(0)
+      next_sweep_at_(0),
+      probe_count_(0),
+      in_flight_(0)
    {
 
    }
@@ -265,11 +267,19 @@ namespace HM
       // condition, so it accepts: refusing somebody else's mail because this
       // server had already asked its primary ten times this minute would turn a
       // protection into an outage.
+      //
+      // Kept per POLICY, by its pattern, and below per server asked - not per
+      // recipient domain: a policy for *.partner.example matches as many
+      // subdomains as a sender cares to name, and each of them had a ceiling of
+      // its own, so the number of sessions to the one primary had none.
       int maxPerMinute = (int) policy->GetCalloutMaxPerMinute();
 
-      if (maxPerMinute > 0 && !RateLimiter::Instance()->TryConsume(_T("callout:") + domain, maxPerMinute))
+      String policyKey = policy->GetDomainName();
+      policyKey.ToLower();
+
+      if (maxPerMinute > 0 && !RateLimiter::Instance()->TryConsume(_T("callout-policy:") + policyKey, maxPerMinute))
       {
-         LOG_DEBUG("Recipient callout for " + address + " skipped: the per-minute ceiling for " + domain + " is reached.");
+         LOG_DEBUG("Recipient callout for " + address + " skipped: the per-minute ceiling of the policy " + policyKey + " is reached.");
          return CalloutUnknown;
       }
 
@@ -293,16 +303,46 @@ namespace HM
 
       Verdict verdict = CalloutUnknown;
       String verdictReason;
+      bool asked = false;
 
       for (const std::pair<String, String> &target : targets)
       {
+         const String targetKey = target.second + _T(":") + StringParser::IntToString(port);
+
+         // The same ceiling per server asked: two policies, or a policy for a
+         // pattern, pointing at one primary share it.
+         if (maxPerMinute > 0 && !RateLimiter::Instance()->TryConsume(_T("callout-target:") + targetKey, maxPerMinute))
+         {
+            verdictReason = _T("the per-minute ceiling for ") + targetKey + _T(" is reached");
+            continue;
+         }
+
+         if (!BeginProbe_(targetKey))
+         {
+            verdictReason = _T("too many verifications are in progress");
+            continue;
+         }
+
          {
             boost::lock_guard<boost::recursive_mutex> guard(mutex_);
             probe_count_++;
          }
 
+         asked = true;
+
          String probeReason;
-         Verdict answer = Probe_(target.second, port, address, timeoutSeconds, probeReason);
+         Verdict answer = CalloutUnknown;
+         try
+         {
+            answer = Probe_(target.second, port, address, timeoutSeconds, probeReason);
+         }
+         catch (...)
+         {
+            EndProbe_(targetKey);
+            throw;
+         }
+
+         EndProbe_(targetKey);
 
          if (answer == CalloutAccepted || answer == CalloutRejected)
          {
@@ -328,12 +368,18 @@ namespace HM
          // accepting for an hour after the primary came back.
          long minutes = verdict == CalloutUnknown ? 1 : cacheMinutes;
 
-         if (minutes > 0)
+         // Nothing is remembered when nobody was asked: that no verdict came
+         // is then a fact about this server's own ceilings, not about the
+         // address or the primary.
+         if (minutes > 0 && asked)
          {
             CachedVerdict entry;
             entry.verdict = verdict;
             entry.reason = verdictReason;
             entry.expires_at = now + (time_t) minutes * 60;
+
+            if (cache_.find(address) == cache_.end())
+               MakeRoom_(now);
 
             cache_[address] = entry;
          }
@@ -529,6 +575,69 @@ namespace HM
       {
          reason = _T("the verification session failed");
          return CalloutUnknown;
+      }
+   }
+
+   void
+   RecipientCallout::MakeRoom_(time_t now)
+   {
+      if (now >= next_sweep_at_ || cache_.size() >= MaxCachedVerdicts)
+      {
+         for (auto entry = cache_.begin(); entry != cache_.end(); )
+         {
+            if (entry->second.expires_at <= now)
+               entry = cache_.erase(entry);
+            else
+               ++entry;
+         }
+
+         next_sweep_at_ = now + 60;
+      }
+
+      if (cache_.size() < MaxCachedVerdicts)
+         return;
+
+      auto soonest = cache_.begin();
+      for (auto entry = cache_.begin(); entry != cache_.end(); ++entry)
+      {
+         if (entry->second.expires_at < soonest->second.expires_at)
+            soonest = entry;
+      }
+
+      if (soonest != cache_.end())
+         cache_.erase(soonest);
+   }
+
+   bool
+   RecipientCallout::BeginProbe_(const String &target)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      if (in_flight_ >= MaxProbesInFlight)
+         return false;
+
+      int &toTarget = in_flight_per_target_[target];
+      if (toTarget >= MaxProbesInFlightPerTarget)
+         return false;
+
+      toTarget++;
+      in_flight_++;
+      return true;
+   }
+
+   void
+   RecipientCallout::EndProbe_(const String &target)
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      if (in_flight_ > 0)
+         in_flight_--;
+
+      auto toTarget = in_flight_per_target_.find(target);
+      if (toTarget != in_flight_per_target_.end())
+      {
+         if (--toTarget->second <= 0)
+            in_flight_per_target_.erase(toTarget);
       }
    }
 

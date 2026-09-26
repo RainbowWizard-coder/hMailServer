@@ -24,6 +24,21 @@ Two kinds of policy, in one grammar:
   domain, on any protocol. It is about signing in rather than about connecting
   because a domain is not known when a connection is accepted: the name arrives
   later.
+  A password sign-in meets it before the password is checked, and SCRAM-SHA-256,
+  which proves the password without handing it over, meets it before its proof is
+  checked, with the same ordinary refusal. A sign-in that proves who the client
+  is without a password meets it as soon as the account is known: an OAuth2
+  bearer token (`XOAUTH2`, `OAUTHBEARER`), a client certificate (`EXTERNAL`) or a
+  Kerberos ticket (`GSSAPI`) on SMTP, IMAP and POP3, and a passkey or OpenID
+  Connect single sign-on into the webmail and the REST API.
+  The domain is the one the account belongs to, however the name was written: a
+  name under one of the domain's aliases, or a bare local part the default domain
+  completes, meets that domain's policy (and the account's own, where it has one).
+  The IMAP master user signing in as another account (`AUTHENTICATE PLAIN` with an
+  authorisation identity) meets both accounts' policies: its own before the
+  password, and the mailbox's after it - and the mailbox's compromise hold - so a
+  master user in a domain with no policy cannot open a mailbox from a country the
+  mailbox's domain refuses. Until 26 September 2026 only the master user's was asked.
 
 Each is written as one string, because it is one decision:
 

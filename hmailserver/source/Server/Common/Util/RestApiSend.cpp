@@ -55,6 +55,7 @@
 #include "Unicode.h"
 #include "Utilities.h"
 #include "FileUtilities.h"
+#include "Journaling.h"
 #include "Time.h"
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
@@ -637,6 +638,17 @@ namespace HM
             Formatter::Format(_T("Message {0}, sent through the send API by the key '{1}' ({2}), was queued but could not be recorded in hm_apisends, so the key cannot ask what became of it."),
                message->GetID(), caller.key_label, caller.key_id));
       }
+
+      // Journaling and dual delivery (Journaling.h), as the SMTP session applies
+      // them to what it accepts: once, after the save, before the queue is told.
+      // The send API is a submission surface like SMTP AUTH, and until 26
+      // September 2026 it was past both evaluation points, so a journalled
+      // domain's application mail - and a journalled local recipient's copy of
+      // it - never reached the archive. The key's sender is what the outbound
+      // half is judged against when it is an account of this server, as the
+      // name an SMTP session signed in as is: a key allowed to send as that
+      // address sends as it.
+      Journaling::Evaluate(message, fromAccount ? fromAccount->GetAddress() : String(), 0, String(caller.peer.ToString()));
 
       Application::Instance()->SubmitPendingEmail();
 

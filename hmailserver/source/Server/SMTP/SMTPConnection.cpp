@@ -157,6 +157,7 @@ namespace HM
       bdat_chunk_remaining_(0),
       ptr_lookup_completed_(false),
       authenticated_by_xclient_(false),
+      passwordless_auth_(AUTH_NONE),
       start_tls_used_(false)
    {
       smtpconf_ = Configuration::Instance()->GetSMTPConfiguration();
@@ -870,9 +871,9 @@ namespace HM
       // their own client, with the reason in front of them; mail stopping
       // arriving is noticed by everybody else. Keyed on the authenticated
       // account, as the sending quota is, not on MAIL FROM.
-      if (isAuthenticated_ && !username_.IsEmpty())
+      if (isAuthenticated_)
       {
-         std::shared_ptr<const Account> sendingAccount = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+         std::shared_ptr<const Account> sendingAccount = SignedInAccount_();
          String stopped;
 
          if (sendingAccount && QuotaPolicy::SendingStopped(sendingAccount, stopped))
@@ -1027,14 +1028,15 @@ namespace HM
 
       // Check the max size. The domain level is the envelope sender's domain's,
       // as it has always been read, with the envelope sender's own value under
-      // it. And when the session is authenticated, the SIGNED-IN account's own
-      // value holds as well: an account's own limit is a limit on the account
-      // (docs/SettingLevels.md), and naming another address - or none, <> - in
-      // MAIL FROM must not lift it, as the send-stop above and the sending
-      // quota below are keyed on the signed-in account for the same reason.
-      std::shared_ptr<const Account> signedIn;
-      if (isAuthenticated_ && !username_.IsEmpty())
-         signedIn = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+      // it. And when the session is authenticated, the SIGNED-IN account's
+      // limit holds as well - its own value, else its domain's, held to the
+      // server's: a limit on the account or on its domain is a limit on what
+      // that account sends (docs/SettingLevels.md), and naming another address
+      // - or none, <> - in MAIL FROM must not lift it, as the send-stop above
+      // and the sending quota below are keyed on the signed-in account for the
+      // same reason. Until 26 September 2026 only the account's own value was
+      // held, so a domain's tighter limit was lifted by MAIL FROM:<>.
+      std::shared_ptr<const Account> signedIn = SignedInAccount_();
       max_message_size_kb_ = GetMaxMessageSize_(sender_domain_, sender_account_, signedIn);
 
       // Check if estimated message size exceedes our
@@ -1101,10 +1103,36 @@ namespace HM
          return true;
       }
 
-      std::shared_ptr<const Account> pAccount = PasswordValidator::ValidatePassword(username_, password_);
-      
-      if (pAccount)
-         return true;
+      if (passwordless_auth_ != AUTH_NONE)
+      {
+         // SCRAM, a bearer token, a client certificate and a Kerberos ticket
+         // leave no password on the session - password_ is set only by PLAIN
+         // and LOGIN - so validating it again refused the second MAIL FROM of
+         // every such session with 550 and signed it out. What is asked again
+         // is what the logon asked of the account: still an active account of
+         // an active domain, not a room, not held for review, not refused by
+         // its country policy, and - for SCRAM, which proved the account's own
+         // password - not since given a second factor or an expired password,
+         // which is what validating a PLAIN password again would refuse.
+         std::shared_ptr<const Account> account = LookupActiveAccount_(passwordless_address_);
+
+         bool refused = !account || AccountLogon::RefusedByHold(account, GetRemoteEndpointAddress());
+
+         bool chargeNothing = false;
+         if (!refused && passwordless_auth_ == AUTH_SCRAM_SHA256 &&
+             AccountLogon::RefusedForScram(account, GetRemoteEndpointAddress(), chargeNothing))
+            refused = true;
+
+         if (!refused)
+            return true;
+      }
+      else
+      {
+         std::shared_ptr<const Account> pAccount = PasswordValidator::ValidatePassword(username_, password_);
+
+         if (pAccount)
+            return true;
+      }
          
       // Reset login credentials
       ResetLoginCredentials_();      
@@ -1262,13 +1290,15 @@ namespace HM
       // Only an authenticated sender is subject to the ceiling. Inbound mail from
       // other servers is not, and must not be: this is a control on what an account
       // of ours can send, not on what we accept.
-      if (!isAuthenticated_ || username_.IsEmpty())
+      if (!isAuthenticated_ || SignedInAddress_().IsEmpty())
          return true;
 
       // Key on the authenticated account, not on MAIL FROM. A compromised account
       // can put any address in MAIL FROM, but it cannot change whose credentials it
-      // presented, so that is the only identity worth counting against.
-      quota_account_ = DefaultDomain::ApplyDefaultDomain(username_);
+      // presented, so that is the only identity worth counting against - and by
+      // the account's own address, not the spelling it signed in with, or a
+      // domain alias would be a second allowance.
+      quota_account_ = SignedInAddress_();
       quota_limits_ = RateLimiter::Instance()->GetAccountLimits(quota_account_);
 
       if (!quota_limits_.IsEnabled())
@@ -1863,7 +1893,7 @@ namespace HM
          const bool whiteListed = SpamProtection::IsWhiteListed(sender, GetRemoteEndpointAddress());
 
          SpamTrapMonitor::Outcome outcome =
-            SpamTrapMonitor::OnHit(trapAddress, domainId, GetRemoteEndpointAddress(), sender,
+            SpamTrapMonitor::OnHit(trapAddress, domainId, GetRemoteEndpointAddress(), sender, helo_host_,
                                    isAuthenticated_, rangeRunsSpamTests, whiteListed, incomingRelay,
                                    banned_for_spam_trap_);
 
@@ -1990,8 +2020,8 @@ namespace HM
       {
          std::shared_ptr<const Account> submitter;
 
-         if (isAuthenticated_ && !username_.IsEmpty())
-            submitter = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+         if (isAuthenticated_ && !SignedInAddress_().IsEmpty())
+            submitter = SignedInAccount_();
          else
             submitter = sender_account_;
 
@@ -2735,9 +2765,9 @@ namespace HM
          // way, so a takeover learns nothing from the reply and a legitimate
          // sender's mail is a review away from being sent.
          CompromiseDetector::Assessment shape;
-         if (isAuthenticated_ && !username_.IsEmpty())
+         if (isAuthenticated_)
          {
-            std::shared_ptr<const Account> submitter = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+            std::shared_ptr<const Account> submitter = SignedInAccount_();
             if (submitter)
             {
                std::vector<String> submitted;
@@ -2761,21 +2791,7 @@ namespace HM
          // DMARC passed for. A room or a piece of equipment reads it before
          // it takes an invitation's organiser to be who sent it
          // (Util/ResourceBooking.h).
-         if (isAuthenticated_ && !username_.IsEmpty())
-         {
-            std::shared_ptr<DomainAliases> submitterAliases = ObjectCache::Instance()->GetDomainAliases();
-            const String submitterName = DefaultDomain::ApplyDefaultDomain(username_);
-            std::shared_ptr<const Account> submitterAccount =
-               CacheContainer::Instance()->GetAccount(submitterAliases ? submitterAliases->ApplyAliasesOnAddress(submitterName) : submitterName);
-            if (submitterAccount)
-               current_message_->SetSubmitterAccountID(submitterAccount->GetID());
-         }
-         else if (!isAuthenticated_ && authentication_results_)
-         {
-            const AnsiString passed = authentication_results_->PassedDomains();
-            if (!passed.IsEmpty())
-               current_message_->SetAuthDomains(String(passed));
-         }
+         RecordOrigin_();
 
          // Add the message to the database.
          if (PersistentMessage::SaveObject(current_message_))
@@ -2820,9 +2836,9 @@ namespace HM
             // rows are keyed by the queue row's id, which is what ties a list
             // member's copy at delivery to this submission without trusting a
             // header. A message from outside costs one empty test here.
-            if (isAuthenticated_ && !username_.IsEmpty())
+            if (isAuthenticated_)
             {
-               std::shared_ptr<const Account> writer = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+               std::shared_ptr<const Account> writer = SignedInAccount_();
                if (writer)
                   MessageRecall::Record(writer, current_message_, "SMTP");
             }
@@ -2846,7 +2862,7 @@ namespace HM
             // journaled; the sender is told 451 and will send it again. With no
             // rule in the table this is one empty test.
             Journaling::Evaluate(current_message_,
-               isAuthenticated_ && !username_.IsEmpty() ? DefaultDomain::ApplyDefaultDomain(username_) : String(),
+               SignedInAddress_(),
                GetSessionID(), GetIPAddressString());
 
             // Per-domain counters, before the message is released below. Counted
@@ -3047,9 +3063,9 @@ namespace HM
       // And somebody the address book offers: what the person writes to from
       // Outlook or Thunderbird over SMTP is collected as the webmail's own send
       // collects, once per address, under the account that signed in.
-      if (isAuthenticated_ && !username_.IsEmpty() && current_message_)
+      if (isAuthenticated_ && current_message_)
       {
-         std::shared_ptr<const Account> writer = CacheContainer::Instance()->GetAccount(DefaultDomain::ApplyDefaultDomain(username_));
+         std::shared_ptr<const Account> writer = SignedInAccount_();
          if (writer)
          {
             std::vector<String> written;
@@ -3122,9 +3138,35 @@ namespace HM
                                          authentication_results_);
    }
 
+   void
+   SMTPConnection::RecordOrigin_()
+   {
+      if (!current_message_)
+         return;
+
+      if (isAuthenticated_ && !SignedInAddress_().IsEmpty())
+      {
+         std::shared_ptr<const Account> submitterAccount = SignedInAccount_();
+         if (submitterAccount)
+            current_message_->SetSubmitterAccountID(submitterAccount->GetID());
+      }
+      else if (!isAuthenticated_ && authentication_results_)
+      {
+         const AnsiString passed = authentication_results_->PassedDomains();
+         if (!passed.IsEmpty())
+            current_message_->SetAuthDomains(String(passed));
+      }
+   }
+
    bool
    SMTPConnection::RejectedByRule_(String &text)
    {
+      // What the message's origin is, before the rules are asked: which
+      // domains' rules act on the whole message depends on it - the
+      // submitter's, and the envelope sender's where it is vouched for
+      // (RuleApplier::DomainRuleScopes).
+      RecordOrigin_();
+
       // The same question the self-service send route asks before it queues,
       // so a rule that blocks speaks to the webmail as it does to this session
       // - the collections and the parse live in RuleApplier for that reason.
@@ -4095,6 +4137,7 @@ namespace HM
             // authenticated.
             isAuthenticated_ = false;
             authenticated_by_xclient_ = false;
+            passwordless_auth_ = AUTH_NONE;
             username_ = "";
          }
          else
@@ -4106,6 +4149,7 @@ namespace HM
             password_ = "";
             isAuthenticated_ = true;
             authenticated_by_xclient_ = true;
+            passwordless_auth_ = AUTH_NONE;
          }
       }
 
@@ -4886,6 +4930,7 @@ namespace HM
 
       if (pAccount)
       {
+         RememberPasswordlessLogon_(pAccount, AUTH_GSSAPI);
          RecordSignIn_(pAccount, SignInStore::CredentialSingleSignOn, String());
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
@@ -5174,7 +5219,7 @@ namespace HM
          // An account the compromised-account detection has locked is refused
          // here as a password logon is refused at the lockout check: the token
          // proves who the client is, not that the account is theirs to use.
-         held = AccountLogon::RefusedByHold(pAccount);
+         held = AccountLogon::RefusedByHold(pAccount, GetRemoteEndpointAddress());
       }
 
       username_ = sLoginName;
@@ -5185,6 +5230,7 @@ namespace HM
 
       if (pAccount)
       {
+         RememberPasswordlessLogon_(pAccount, AUTH_BEARER);
          RecordSignIn_(pAccount, SignInStore::CredentialToken, String());
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
@@ -5245,6 +5291,7 @@ namespace HM
 
       if (pAccount)
       {
+         RememberPasswordlessLogon_(pAccount, AUTH_EXTERNAL);
          RecordSignIn_(pAccount, SignInStore::CredentialCertificate, String());
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
@@ -5265,6 +5312,40 @@ namespace HM
       }
 
       RestartAuthentication_();
+   }
+
+   void
+   SMTPConnection::RememberPasswordlessLogon_(std::shared_ptr<const Account> account, AuthenticationType mechanism)
+   {
+      passwordless_auth_ = mechanism;
+      passwordless_address_ = account ? account->GetAddress() : String();
+   }
+
+   String
+   SMTPConnection::SignedInAddress_() const
+   {
+      if (!isAuthenticated_)
+         return String();
+
+      if (passwordless_auth_ != AUTH_NONE && !passwordless_address_.IsEmpty())
+         return passwordless_address_;
+
+      if (username_.IsEmpty())
+         return String();
+
+      std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+      const String name = aliases ? aliases->ApplyAliasesOnAddress(username_) : username_;
+      return DefaultDomain::ApplyDefaultDomain(name);
+   }
+
+   std::shared_ptr<const Account>
+   SMTPConnection::SignedInAccount_() const
+   {
+      const String address = SignedInAddress_();
+      if (address.IsEmpty())
+         return std::shared_ptr<const Account>();
+
+      return CacheContainer::Instance()->GetAccount(address);
    }
 
    std::shared_ptr<const Account>
@@ -5312,6 +5393,7 @@ namespace HM
      
       if (pAccount)
       {
+         passwordless_auth_ = AUTH_NONE;
          RecordSignIn_(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
          SendResponse_(235, _T("2.7.0"), _T("authenticated."));
          current_state_ = HEADER;
@@ -5432,6 +5514,8 @@ namespace HM
       requestedAuthenticationType_ = AUTH_NONE;
       isAuthenticated_ = false;
       authenticated_by_xclient_ = false;
+      passwordless_auth_ = AUTH_NONE;
+      passwordless_address_ = "";
 
       scram_session_.reset();
 
@@ -5481,6 +5565,18 @@ namespace HM
       // exchange so the protocol does not reveal whether the account exists.
       AnsiString storedHash = "";
       std::shared_ptr<const Account> pAccount = LookupPbkdf2Account_(sUsername);
+
+      // The country policy, a second factor and an expired password refuse the
+      // account's own password on every other path (AccountLogon::Logon,
+      // PasswordValidator), and SCRAM reaches neither - so the same refusal is
+      // a forced failure here, with no second refusal shape to tell apart.
+      bool refusalChargesNothing = false;
+      if (pAccount && AccountLogon::RefusedForScram(pAccount, GetRemoteEndpointAddress(), refusalChargesNothing))
+      {
+         pAccount.reset();
+         scram_session_->SetRefusalChargesNothing(refusalChargesNothing);
+      }
+
       if (pAccount)
       {
          scram_session_->SetAccount(pAccount);
@@ -5556,6 +5652,7 @@ namespace HM
       }
 
       isAuthenticated_ = true;
+      RememberPasswordlessLogon_(pAccount, AUTH_SCRAM_SHA256);
 
       // SCRAM proves the account's own password: an app password cannot be used
       // with it (see PasswordValidator).
@@ -5585,6 +5682,7 @@ namespace HM
       // password guess and must not count towards the per-name lockout. See the
       // fuller note in POP3Connection::ScramAuthFailed_.
       const bool verifiableAccount = scram_session_ && scram_session_->GetAccount() != nullptr;
+      const bool chargeNothing = scram_session_ && scram_session_->GetRefusalChargesNothing();
 
       scram_session_.reset();
 
@@ -5592,13 +5690,14 @@ namespace HM
       // unless the exchange was doomed by the lock itself, in which case nothing
       // is reported, exactly as AccountLogon::Logon's locked branch does: the
       // owner retrying a locked name with the CORRECT password must not get their
-      // address banned for everyone behind it. Not extended to the other
-      // forced-failure causes (unknown name, Argon2id/AD account, hash policy),
-      // which would let an attacker spray names over SCRAM for free. See the
-      // fuller note in POP3Connection::ScramAuthFailed_.
+      // address banned for everyone behind it. The country policy's refusal is
+      // charged to nothing for the same reason, as Logon charges it. Not
+      // extended to the other forced-failure causes (unknown name, Argon2id/AD
+      // account, hash policy), which would let an attacker spray names over
+      // SCRAM for free. See the fuller note in POP3Connection::ScramAuthFailed_.
       bool disconnect = false;
 
-      if (!AccountLockout::Instance()->IsLockedOut(sUsername))
+      if (!chargeNothing && !AccountLockout::Instance()->IsLockedOut(sUsername))
       {
          AccountLogon accountLogon;
          accountLogon.RegisterFailedLogin(GetRemoteEndpointAddress(), sUsername, disconnect, verifiableAccount);
@@ -5676,8 +5775,9 @@ namespace HM
       // sending account's own value, else its domain's, else the server's - each
       // level held to the one above it, which is the rule the domain's value has
       // always had against the server's here - and, for a signed-in session,
-      // the signed-in account's own value as well. A domain and an account with
-      // no value of their own resolve as they always did.
+      // the signed-in account's answer as well - its own value, else its
+      // domain's - the tighter winning. A domain and an account with no value
+      // of their own resolve as they always did.
       return EffectiveSetting::ResolveIntHeldTo(_T("max_message_size_kb"), pDomain, pAccount, pSignedIn);
    }
 

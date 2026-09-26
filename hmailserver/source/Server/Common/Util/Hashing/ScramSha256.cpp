@@ -24,7 +24,8 @@ namespace HM
       state_(NeedClientFirst),
       real_account_(false),
       plus_mode_(false),
-      server_supports_cbind_(false)
+      server_supports_cbind_(false),
+      refusal_charges_nothing_(false)
    {
    }
 

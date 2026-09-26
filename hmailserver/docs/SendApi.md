@@ -216,6 +216,10 @@ differently:
   ASCII are written as `_`.
 * It is **DKIM-signed** at delivery by the domain's key, as every message of
   the domain is ([DkimKeyRotation.md](DkimKeyRotation.md)).
+* It is **journalled** by the journal rules that cover it, as an SMTP
+  submission is ([Journaling.md](Journaling.md)): an outbound rule when the
+  key's sender is an account here, an inbound rule for each recipient mailbox
+  it reaches.
 * **No Sent copy**, anywhere. An application is not a person and has no Sent
   folder; the webmail's send keeps one because a person expects to find what
   they wrote.

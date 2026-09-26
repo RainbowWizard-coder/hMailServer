@@ -60,7 +60,7 @@ namespace RegressionTests.AntiSpam
 
       // The senders these tests put on the server's list, by name, so the
       // tear-down can take those back without touching anybody else's.
-      private static readonly string[] OurSenders = { "harvester@spammer.example", "spammer.example" };
+      private static readonly string[] OurSenders = { "harvester@spammer.example", "spammer.example", "invoices@bank.example", "billing@failing-bank.example" };
 
       // Set when a test switched one of the four settings, so the tear-down puts
       // back what the run started with rather than what this file thinks is right.
@@ -85,6 +85,11 @@ namespace RegressionTests.AntiSpam
          settings.SpamTrapBanMinutes = 5;
          settings.SpamTrapBlockDays = 1;
 
+         // spammer.example authorises the address the suite connects from, so its
+         // envelope is not a forgery and a hit may block it. A sender whose SPF does
+         // not pass is never blocked: ASenderSpfDoesNotAuthoriseIsNotBlocked.
+         SuiteDns.Zone.WithTxt("spammer.example", "v=spf1 ip4:127.0.0.1 -all");
+
          ClearHits();
          RemoveOurServerListEntries();
       }
@@ -98,6 +103,7 @@ namespace RegressionTests.AntiSpam
          RemoveOurServerListEntries();
 
          IniFileSetting.Delete("AutoBanNeverBan");
+         SuiteDns.Reset();
 
          dynamic settings = _settings;
          settings.SpamTrapBanMinutes = banMinutesBefore_;
@@ -306,6 +312,41 @@ namespace RegressionTests.AntiSpam
          List<Dictionary<string, object>> hits = Hits();
          ClassicAssert.AreEqual(1, hits.Count);
          ClassicAssert.IsFalse(Flag(hits[0], "blocked"), Text(hits[0], "note"));
+      }
+
+      [Test]
+      [Description("A sender whose domain's SPF does not authorise the connecting address is not blocked: the envelope is whatever the client typed, and one connection must not put a chosen correspondent on the server's block list.")]
+      public void ASenderSpfDoesNotAuthoriseIsNotBlocked()
+      {
+         AddTrap(TrapAddress());
+
+         // No policy at all, and a policy that refuses the connecting address. Until
+         // 26 September 2026 both were blocked server-wide for SpamTrapBlockDays.
+         SuiteDns.Zone.WithTxt("failing-bank.example", "v=spf1 -all");
+
+         RcptReply("invoices@bank.example", TrapAddress());
+         LiftEverySpamTrapBan();
+         RcptReply("billing@failing-bank.example", TrapAddress());
+         LiftEverySpamTrapBan();
+
+         ClassicAssert.IsNull(FindServerListEntry("invoices@bank.example"),
+            "A sender whose domain publishes no SPF was blocked on a trap hit, so anybody can block any correspondent by naming it.");
+         ClassicAssert.IsNull(FindServerListEntry("billing@failing-bank.example"),
+            "A sender whose SPF refuses the connecting address was blocked on a trap hit.");
+
+         List<Dictionary<string, object>> hits = Hits();
+         ClassicAssert.AreEqual(2, hits.Count, "Both hits are recorded, blocked or not.");
+         foreach (Dictionary<string, object> hit in hits)
+         {
+            ClassicAssert.IsFalse(Flag(hit, "blocked"), Text(hit, "note"));
+            StringAssert.Contains("SPF", Text(hit, "note"), Text(hit, "note"));
+         }
+
+         // The control: the sender whose SPF passes is blocked, by the same trap.
+         RcptReply("harvester@spammer.example", TrapAddress());
+         LiftEverySpamTrapBan();
+         ClassicAssert.IsNotNull(FindServerListEntry("harvester@spammer.example"),
+            "A sender whose SPF authorises the connecting address was not blocked, so the refusals above prove nothing.");
       }
 
       [Test]

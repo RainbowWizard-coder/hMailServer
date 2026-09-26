@@ -108,6 +108,55 @@ namespace RegressionTests.API
       // --------------------------------------------------------------- tests ---
 
       [Test]
+      [Description("A message sent through the send API is journalled, as a message submitted over SMTP is: an outbound rule on the key's sender account reports it, and an inbound rule on the recipient's account reports the copy that reaches it.")]
+      public void TheSendApiIsJournalled()
+      {
+         var vault = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "vault@" + _domain.Name, Password);
+         var key = MakeKey("the journalled app", "noreply@" + _domain.Name);
+
+         string outbound = AddJournalRule(_noreply.Address, vault.Address, "outbound");
+         try
+         {
+            SendTo(key.token, _reader.Address, "Journalled on the way out");
+            Pop3ClientSimulator.AssertMessageCount(_reader.Address, Password, 1);
+
+            // Until 26 September 2026 the send API passed neither point where the
+            // rules are evaluated, and the vault stayed empty.
+            Pop3ClientSimulator.AssertMessageCount(vault.Address, Password, 1);
+            string report = Pop3ClientSimulator.AssertGetFirstMessageText(vault.Address, Password);
+            StringAssert.Contains("Sender: noreply@" + _domain.Name, report, "The report names the key's sender.");
+            StringAssert.Contains("Recipient: " + _reader.Address, report);
+            StringAssert.Contains("Journalled on the way out", report, "The message itself is attached.");
+         }
+         finally
+         {
+            Admin("DELETE", "/api/v1/journal-rules/" + outbound, null);
+         }
+
+         string inbound = AddJournalRule(_reader.Address, vault.Address, "inbound");
+         try
+         {
+            SendTo(key.token, _reader.Address, "Journalled on the way in");
+            Pop3ClientSimulator.AssertMessageCount(vault.Address, Password, 1);
+            StringAssert.Contains("Journalled on the way in", Pop3ClientSimulator.AssertGetFirstMessageText(vault.Address, Password),
+               "An inbound rule on the recipient did not report what the send API delivered to it.");
+         }
+         finally
+         {
+            Admin("DELETE", "/api/v1/journal-rules/" + inbound, null);
+         }
+      }
+
+      private static string AddJournalRule(string account, string journalAddress, string direction)
+      {
+         (int status, string body) created = Admin("POST", "/api/v1/journal-rules",
+            "{\"scope\":\"account\",\"target\":\"" + account + "\",\"journal_address\":\"" + journalAddress +
+            "\",\"direction\":\"" + direction + "\",\"mode\":\"report\",\"enabled\":true}");
+         Assert.AreEqual(201, created.status, "The journal rule was refused: " + created.body);
+         return Value(created.body, "id");
+      }
+
+      [Test]
       [Description("A key with send_from noreply@ sends text, html and an attachment to a local account: 202 with a queue id and the one address it named; the message arrives from noreply@ with that Return-Path, the attachment's bytes intact and a Received field naming the send API and the key's label - and neither the key's id nor the application's address - and nothing is kept in any Sent folder. The same body from a key without a sender, a from outside the key's sender, a read-only key, the administrator password and an account are each refused.")]
       public void AKeyWithASenderSendsAndTheMessageArrivesAsTheSender()
       {

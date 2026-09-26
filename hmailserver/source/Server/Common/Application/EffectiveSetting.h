@@ -207,10 +207,12 @@ namespace HM
       static String ResolveText(const String &name, std::shared_ptr<const Domain> domain, std::shared_ptr<const Account> account);
 
       // A limit resolved for one account under a domain, and held as well to a
-      // second account's own value: the signed-in account's, where the message
-      // names another address as its sender. An account's own limit is a limit
-      // on the account, and what address it sends as does not lift it; with no
-      // value of the second account's own, the answer is exactly ResolveInt's.
+      // second account's answer - its own value, else its domain's, held to
+      // the server's: the signed-in account's, where the message names another
+      // address (or none) as its sender. A limit on an account or on its
+      // domain is a limit on what the account sends, and what address it
+      // sends as does not lift it; with no second account, the answer is
+      // exactly ResolveInt's.
       static int ResolveIntHeldTo(const String &name, std::shared_ptr<const Domain> domain, std::shared_ptr<const Account> account,
                                   std::shared_ptr<const Account> signedIn);
 

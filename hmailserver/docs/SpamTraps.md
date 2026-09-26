@@ -33,7 +33,7 @@ Then, for a session that could have been refused anyway:
 | | What happens | The setting |
 |---|---|---|
 | The connecting address | Banned, through the server's own auto-ban: an expiring `hm_securityranges` row named `Auto-ban: spam trap <address>`, lifted by the same sweep that lifts a logon ban, shown on the same **IP ranges** page, and mirrored into the firewall by the same reconciliation ([AutoBanFirewall](../source/Server/Common/Util/AutoBanFirewall.h)) — that mirroring is queued rather than done inside `RCPT TO`, since it can run a program and the reply must not wait for one. | `SpamTrapBanMinutes`, 1440. 0 bans nobody. |
-| The envelope sender | Added to the server's block list (`hm_senderlist` at server scope) with an expiry, so its mail to a real mailbox is held for review where the quarantine is on and marked where it is not — see [SenderListsAndDigests.md](SenderListsAndDigests.md). | `SpamTrapBlockDays`, 30. 0 blocks nobody. |
+| The envelope sender | Added to the server's block list (`hm_senderlist` at server scope) with an expiry, so its mail to a real mailbox is held for review where the quarantine is on and marked where it is not — see [SenderListsAndDigests.md](SenderListsAndDigests.md). Only when its domain's SPF passes for the connecting address: see below. | `SpamTrapBlockDays`, 30. 0 blocks nobody. |
 | The hit | Recorded in `hm_spamtraphits` and counted into `hmailserver_spam_trap_hits_total`. | `SpamTrapHitRetentionDays`, 90. |
 
 The application log gets one line per hit, and one per ban:
@@ -59,7 +59,8 @@ the hit's own note:
   already said that range is trusted, and a trap must not overrule that;
 * **an address or sender the anti-spam white list covers**, for the same reason;
 * **an incoming relay** — banning the machine that fronts this server would
-  refuse everybody's mail. The sender is still blocked;
+  refuse everybody's mail. The sender is still judged, below, though its SPF
+  will seldom name the relay;
 * **an address on `AutoBanNeverBan`** — the list that exists precisely so that a
   ban cannot lock an administrator out of the machine's mail ports.
 
@@ -69,6 +70,17 @@ hosts (that is a forgery, and the entry would block the real user), or where the
 server's own **allow** list already names it — an administrator's decision
 outranks an automatic one. A block that is already wider than the new one is
 left alone rather than shortened.
+
+**Nor is it blocked unless SPF passes for it.** The envelope sender is whatever
+the client typed, and a trap address is published to be found, so a sender
+blocked on the claim alone is a sender anybody can have blocked: one
+connection naming `invoices@bank.example` would hold or mark the bank's real
+mail to every mailbox here for `SpamTrapBlockDays`. The sender's domain is
+therefore asked, by SPF, whether the address that addressed the trap may send
+for it, and only a **pass** blocks; none, neutral, softfail, fail and an error
+leave the list alone, and the hit's note says so. The address is banned either
+way, and the hit still names the sender. Before 26 September 2026 every
+external sender was blocked.
 
 "Already names it" is asked of
 [SenderListCache](../source/Server/Common/AntiSpam/SenderListCache.h), which is

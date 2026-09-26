@@ -391,7 +391,15 @@ knows the answer to never reaches a verification.
 |---|---|---|
 | How long to wait | 10 s, at most 60 | The wait is inside the sending server's SMTP session. It is one deadline over the whole conversation, the same on Windows and Linux. |
 | How long an answer is remembered | 60 min | A flood of messages to one address costs the primary one session. A verification that gave no verdict is remembered for one minute at most, so a primary that comes back is asked again promptly. |
-| How often one domain is asked, per minute | 10 | A ceiling on sessions to the primary. Beyond it recipients are accepted without asking - our own throttle never refuses somebody else's mail. |
+| How often one domain is asked, per minute | 10 | A ceiling on sessions to the primary, kept per policy and again per server asked: a policy for `*.partner.example` shares one ceiling among every subdomain a sender names (until 26 September 2026 each subdomain had its own), and two policies pointing at one primary share its. Beyond it recipients are accepted without asking - our own throttle never refuses somebody else's mail. |
+
+Two bounds are fixed rather than set. At most 8 verifications run at once, and at
+most 2 to one server: each holds the thread answering that `RCPT TO` for up to the
+timeout, and those threads serve every session; beyond them the recipient is
+accepted without asking. And the remembered answers are swept of expired ones at
+most a minute apart and capped at 10,000, the one nearest its expiry making room;
+until 26 September 2026 every address asked about stayed in memory until it was
+asked about again.
 
 **Two warnings.**
 

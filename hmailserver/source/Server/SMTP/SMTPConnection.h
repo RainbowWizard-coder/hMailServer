@@ -552,6 +552,37 @@ namespace HM
       // that case, so ReAuthenticateUser must not try.
       bool authenticated_by_xclient_;
 
+      // The mechanism that authenticated this session when it proved no
+      // password the session keeps - SCRAM-SHA-256, a bearer token (XOAUTH2,
+      // OAUTHBEARER), a client certificate (EXTERNAL) or a Kerberos ticket
+      // (GSSAPI) - and the address of the account it signed in as. AUTH_NONE
+      // for PLAIN and LOGIN, whose password ReAuthenticateUser validates again,
+      // for XCLIENT and for a session that has not authenticated.
+      AuthenticationType passwordless_auth_;
+      String passwordless_address_;
+
+      // A logon that proved no password has succeeded as account, by mechanism:
+      // what ReAuthenticateUser asks again at the next MAIL FROM.
+      void RememberPasswordlessLogon_(std::shared_ptr<const Account> account, AuthenticationType mechanism);
+
+      // The address of the account this session signed in as, resolved as the
+      // logon resolved it - the account's own address for a passwordless
+      // logon, and otherwise the name the client gave with the domain aliases
+      // and then the default domain applied, as PasswordValidator does - or
+      // empty for a session that has not authenticated. What every control
+      // keyed on the signed-in account reads: with the default domain alone,
+      // a sign-in as bob@alias.example was a different name from
+      // bob@example.com, whose send-stop, sending quota, restricted delivery,
+      // takeover check and message-size limit then found no account or
+      // counted under another name.
+      String SignedInAddress_() const;
+
+      // Where the message came from, as this session saw it, recorded on the
+      // message (Message::GetSubmitterAccountID, GetAuthDomains): the account
+      // it signed in as, or the domain DMARC passed for.
+      void RecordOrigin_();
+      std::shared_ptr<const Account> SignedInAccount_() const;
+
       // SECURITY: the per-account outbound sending ceiling in force for the current
       // transaction. Established at MAIL FROM: quota_account_ is the authenticated
       // account (empty for an unauthenticated session, which is never limited -

@@ -172,6 +172,63 @@ namespace RegressionTests.Security
       }
 
       [Test]
+      [Description("SCRAM-SHA-256 refuses an expired password too - it proves the account's own password without ever reaching the check the PLAIN path makes")]
+      public void AnExpiredPasswordIsRefusedOverScram()
+      {
+         var account = NewAccount("expiredscram", "a-password-for-scram");
+
+         SetPolicy(MaximumAgeDays, "1");
+
+         bool autoBan = _settings.AutoBanOnLogonFailure;
+         _settings.AutoBanOnLogonFailure = false;
+         _settings.ClearLogonFailureList();
+
+         try
+         {
+            // The negative control: a fresh PBKDF2 password signs in over SCRAM.
+            using (var fresh = new TcpConnection())
+            {
+               ClassicAssert.IsTrue(fresh.Connect(110));
+               fresh.ReadUntil("+OK");
+               string answer = RegressionTests.POP3.Pop3SaslTestClient.AuthenticateScram(fresh, account.Address, "a-password-for-scram");
+               StringAssert.StartsWith("+OK", answer, "A password set moments ago must sign in over SCRAM.");
+
+               // Released before the next sign-in, whose refusal must be the
+               // password's age and not [IN-USE].
+               fresh.Send("QUIT\r\n");
+               fresh.Receive();
+            }
+
+            BackdatePassword(account.Address, 5);
+            _application.Reinitialize();
+
+            using (var expired = new TcpConnection())
+            {
+               ClassicAssert.IsTrue(expired.Connect(110));
+               expired.ReadUntil("+OK");
+               string answer = RegressionTests.POP3.Pop3SaslTestClient.AuthenticateScram(expired, account.Address, "a-password-for-scram");
+               StringAssert.StartsWith("-ERR", answer,
+                  "Five days old against a one-day maximum must be refused over SCRAM as it is over USER/PASS.");
+            }
+
+            using (var smtp = new TcpConnection())
+            {
+               ClassicAssert.IsTrue(smtp.Connect(25));
+               ClassicAssert.IsTrue(smtp.Receive().StartsWith("220"));
+               smtp.Send("EHLO test.com\r\n");
+               ClassicAssert.IsTrue(smtp.Receive().StartsWith("250"));
+               string answer = RegressionTests.SMTP.SmtpScramTestClient.Authenticate(smtp, account.Address, "a-password-for-scram");
+               ClassicAssert.IsFalse(answer.StartsWith("235"), "SMTP AUTH SCRAM-SHA-256 accepted an expired password. Got: " + answer);
+            }
+         }
+         finally
+         {
+            _settings.AutoBanOnLogonFailure = autoBan;
+            _settings.ClearLogonFailureList();
+         }
+      }
+
+      [Test]
       [Description("An app password still works for an expired account - the escape hatch that keeps a mail client running")]
       public void AnAppPasswordSurvivesExpiry()
       {

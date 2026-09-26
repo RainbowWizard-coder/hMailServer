@@ -10,6 +10,7 @@
 #include "AutoBanFirewall.h"
 #include "../Application/IniFileSettings.h"
 #include "PasswordValidator.h"
+#include "PasswordHistory.h"
 #include "MailboxKeys.h"
 #include "../Persistence/PersistentLogonFailure.h"
 #include "../Persistence/PersistentAccount.h"
@@ -117,6 +118,24 @@ namespace HM
       if (matchedAppPassword)
          *matchedAppPassword = viaAppPassword;
 
+      // An authorisation identity that is not the name that authenticated (the
+      // IMAP master user, RFC 4616): the checks above judged the account that
+      // proved the password, and the session is the other one's. Its country
+      // policy and its compromise hold are asked too, with its own address, so
+      // that a master user in a domain with no policy cannot open a mailbox
+      // from a country the mailbox's domain or the mailbox itself refuses, nor
+      // one held for review. Until 26 September 2026 neither was asked. The
+      // password was right, so the refusal is charged to nothing, as a country
+      // refusal or a hold is for the account itself.
+      if (account && !masqname.IsEmpty() && masqname.CompareNoCase(username) != 0)
+      {
+         if (RefusedByHold(account, ipaddress))
+         {
+            std::shared_ptr<Account> empty;
+            return empty;
+         }
+      }
+
       if (account)
       {
          PersistentAccount::UpdateLastLogonTime(account);
@@ -178,6 +197,65 @@ namespace HM
          // every entry point of AccountLockout falls back.
          return false;
       }
+   }
+
+   bool
+   AccountLogon::RefusedByHold(std::shared_ptr<const Account> &account, const IPAddress &remote)
+   {
+      if (RefusedByHold(account))
+         return true;
+
+      if (!account)
+         return false;
+
+      // The country policy, asked with the account's own address: the name the
+      // client presented has already been resolved to this account, so no
+      // spelling of it chooses the policy. Until 26 September 2026 only the
+      // password paths and the REST API asked it, so a stolen token, a
+      // certificate or a ticket signed in from a country the domain refuses.
+      if (CountryBlocking::Instance()->IsLogonAllowed(account->GetAddress(), remote))
+         return false;
+
+      LOG_DEBUG("AccountLogon - " + account->GetAddress() + " may not sign in from " + String(remote.ToString()) + " under its country policy; the logon is refused.");
+      account.reset();
+      return true;
+   }
+
+   bool
+   AccountLogon::RefusedForScram(const std::shared_ptr<const Account> &account, const IPAddress &remote, bool &chargeNothing)
+   {
+      chargeNothing = false;
+
+      if (!account)
+         return false;
+
+      // The country policy first, as Logon puts it first, and asked with the
+      // address the account really has, so that no spelling of the name - an
+      // alias domain's, a bare local part - chooses which policy applies.
+      if (!CountryBlocking::Instance()->IsLogonAllowed(account->GetAddress(), remote))
+      {
+         chargeNothing = true;
+         return true;
+      }
+
+      // PasswordValidator's rule, applied where SCRAM can see it: once a
+      // second factor is enrolled the account's own password is not a mailbox
+      // credential, and an app password - which SCRAM cannot use - is the only
+      // one. Without this, the phished password of an account with TOTP opened
+      // SMTP submission and the mailbox over SCRAM-SHA-256.
+      if (!account->GetTotpSecret().IsEmpty())
+      {
+         LOG_DEBUG("AccountLogon - " + account->GetAddress() + " has a second factor enrolled, so its own password cannot sign in over SCRAM; the exchange is a forced failure.");
+         return true;
+      }
+
+      if (PasswordHistory::HasExpired(account))
+      {
+         LOG_DEBUG("AccountLogon - the password of " + account->GetAddress() + " has passed the configured maximum age, so SCRAM cannot sign in with it; the exchange is a forced failure.");
+         return true;
+      }
+
+      return false;
    }
 
    int

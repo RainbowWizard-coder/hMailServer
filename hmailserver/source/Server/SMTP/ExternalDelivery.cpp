@@ -2001,9 +2001,12 @@ namespace HM
 
             // The first-pass mark travels in the same statement, and onto the
             // cached object, so the next pass neither mirrors nor seals nor
-            // notifies again.
-            PersistentMessage::SetNextTryTimeUncounted(original_message_->GetID(), shapingMinutes);
+            // notifies again - and the repeat mark with it, so that the rules
+            // that ran on this pass do not forward, copy or reply again on the
+            // next (Message::FlagRepeatsAttempt).
+            PersistentMessage::SetNextTryTimeUncounted(original_message_->GetID(), shapingMinutes, true);
             original_message_->SetFirstPassDone(true);
+            original_message_->SetRepeatsAttempt(true);
 
             PersistentMessage::UnlockObject(original_message_);
 

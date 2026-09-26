@@ -65,7 +65,7 @@ kind for kind.
 
 | Name | Kind | Why | Server level | Domain level held in | Account level held in | Read site that resolves it | Proved by |
 |---|---|---|---|---|---|---|---|
-| `max_message_size_kb` | limit (0 is no limit) | what the server stores and carries, and every recipient's mailbox | property `maxmessagesize` | the domain's `MaxMessageSize` (0 takes the server's; capped by it, as always) | overlay | `SMTPConnection::GetMaxMessageSize_` at `MAIL FROM` (the envelope sender's domain and account, and the signed-in account's own value as well); `IMAPCommandAppend` (the session's account) | behaviour: `SettingLevels.TheMaximumMessageSizeIsALimitHeldAtEveryLevel` (SMTP), `SettingLevels.AnImapAppendIsHeldToTheAccountsOwnLimit` (IMAP) |
+| `max_message_size_kb` | limit (0 is no limit) | what the server stores and carries, and every recipient's mailbox | property `maxmessagesize` | the domain's `MaxMessageSize` (0 takes the server's; capped by it, as always) | overlay | `SMTPConnection::GetMaxMessageSize_` at `MAIL FROM` (the envelope sender's domain and account, and the signed-in account's own answer - its value, else its domain's - as well); `IMAPCommandAppend` (the session's account) | behaviour: `SettingLevels.TheMaximumMessageSizeIsALimitHeldAtEveryLevel`, `SettingLevels.TheSignedInAccountsDomainLimitHoldsWhateverMailFromNames` (SMTP), `SettingLevels.AnImapAppendIsHeldToTheAccountsOwnLimit` (IMAP) |
 | `quarantine_digest` | preference | a message to the tenant's own people | none (a domain is created with it off) | the domain's `QuarantineDigest` | overlay | `QuarantineDigestTask::RunPass_`, `HandleMeQuarantineDigest_` | behaviour: `SettingLevels.AnAccountsOwnDigestSwitchSendsItUnderADomainThatHasItOff` |
 | `quarantine_digest_hour` | preference | when the tenant's people are written to | none (a domain is created with 7) | the domain's `QuarantineDigestHour` | overlay | the same two | behaviour: `SettingLevels.TheDigestGoesAtTheAccountsOwnHourAndItsSiblingsAtTheDomains` |
 | `external_tag_subject`, `external_tag_header` | preference | how the tenant's own readers see mail from outside | none (off) | the domain's `ExternalTagSubject`, `ExternalTagHeader` | overlay | `ExternalSenderTagger::Apply` (the recipient's) | behaviour: `SettingLevels.TheExternalTagIsTheRecipientAccountsOwnWhereItHasOne` |
@@ -276,8 +276,12 @@ on to everything the account holds nothing of - and caps the account's own limit
   ceilings would change what existing domains resolve to. The ceiling binds the
   account below them.
 * **The maximum message size is the sending account's**, at `MAIL FROM` - the
-  envelope sender's domain's and account's, and the signed-in account's own value
-  as well - and at IMAP `APPEND`, because the domain's has always been the sending
+  envelope sender's domain's and account's, and the signed-in account's as well:
+  its own value, else its domain's, the tighter of the two answers winning, so
+  that `MAIL FROM:<>` or another domain's address lifts neither (until 26
+  September 2026 only the signed-in account's own value held, and a domain's
+  tighter limit was lifted that way; and a sign-in under a domain alias was not
+  recognised as the account at all) - and at IMAP `APPEND`, because the domain's has always been the sending
   domain's; the EHLO `SIZE` advertisement, the webmail's own send and the send
   API, which shares the webmail's check ([SendApi.md](SendApi.md)), stay the
   server's.
@@ -334,6 +338,10 @@ or the step before the value:
   the domain's 500; signed in as the account, the sibling's address does not lift
   its 200; 5000 refused as looser than the domain's; the domain tightened to 100
   capping the account's 200; cleared, the domain's again;
+* the signed-in account's domain limit: under 1000/500, an account with nothing
+  of its own signed in and sending `MAIL FROM:<>` or an outside address refused
+  600 KB with the domain's 500, while the same `MAIL FROM:<>` unauthenticated takes
+  the server's 1000; signed in under a domain alias, the account's own 200 holds;
 * the same limit at IMAP `APPEND`: `APPENDLIMIT` and a 300 KB literal refused for
   the account and asked for from its sibling;
 * the digest hour and the digest switch, at hours the clock does not reach during

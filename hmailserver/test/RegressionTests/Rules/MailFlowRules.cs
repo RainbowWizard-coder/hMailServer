@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -86,6 +87,93 @@ namespace RegressionTests.Rules
 
          rule.Delete();
          ClassicAssert.AreEqual(0, _domain.Rules.Count);
+      }
+
+      [Test]
+      [Description("A recipient domain's delete acts on its own recipients: a message to the first domain alone is deleted by its rule, and the same message to both domains reaches the second domain's mailbox and not the first's")]
+      public void ARecipientDomainsDeleteTakesOnlyItsOwnRecipientsOff()
+      {
+         Domain second = SingletonProvider<TestSetup>.Instance.AddDomain("second.test");
+         Account first = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "scope@example.test", "test");
+         Account other = SingletonProvider<TestSetup>.Instance.AddAccount(second, "scope@second.test", "test");
+
+         Rule rule = NewRule(_domain.Rules, "Drop it here", eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "scoped");
+         AddAction(rule, eRuleActionType.eRADeleteEmail);
+         rule.Save();
+
+         // The negative control: to the first domain alone, the rule deletes it.
+         SmtpClientSimulator.StaticSend("sender@dummy-example.com", first.Address, "scoped alone", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(first.Address, "test", 0);
+
+         // To both: until 26 September 2026 the first domain's delete deleted the
+         // message for the second domain's recipient as well.
+         SmtpClientSimulator.StaticSend("sender@dummy-example.com", new List<string> { first.Address, other.Address }, "scoped both", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(other.Address, "test", 1);
+         Pop3ClientSimulator.AssertMessageCount(first.Address, "test", 0);
+      }
+
+      [Test]
+      [Description("A domain's rules are not chosen by an envelope sender nobody vouched for: a message from outside claiming the first domain as its sender, to the second domain, does not get the first domain's header; to the first domain's own mailbox it does")]
+      public void AnUnvouchedSenderDoesNotChooseItsDomainsRules()
+      {
+         Domain second = SingletonProvider<TestSetup>.Instance.AddDomain("second.test");
+         Account first = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "claimed@example.test", "test");
+         Account other = SingletonProvider<TestSetup>.Instance.AddAccount(second, "target@second.test", "test");
+
+         Rule rule = NewRule(_domain.Rules, "Sender header", eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "claimed");
+         AddAction(rule, eRuleActionType.eRASetHeaderValue, value: "yes", header: "X-First-Domain-Rule");
+         rule.Save();
+
+         // The negative control: to the first domain's own mailbox its rule runs.
+         SmtpClientSimulator.StaticSend(first.Address, first.Address, "claimed one", "Body.");
+         StringAssert.Contains("X-First-Domain-Rule: yes", Pop3ClientSimulator.AssertGetFirstMessageText(first.Address, "test"));
+
+         // Until 26 September 2026 the unauthenticated MAIL FROM chose the first
+         // domain's rules for the second domain's mail.
+         SmtpClientSimulator.StaticSend(first.Address, other.Address, "claimed two", "Body.");
+         StringAssert.DoesNotContain("X-First-Domain-Rule", Pop3ClientSimulator.AssertGetFirstMessageText(other.Address, "test"),
+            "An envelope sender nobody vouched for chose its domain's rules for another domain's mail.");
+      }
+
+      [Test]
+      [Description("A recipient domain's reject on a message that also goes to another domain takes its own recipients off and tells a hosted sender so: the message is accepted, the other domain's recipient gets it, the rejecting domain's does not, and the sender is mailed a notice naming that recipient alone")]
+      public void ARecipientDomainsRejectTellsAHostedSenderWhoWasLeftOut()
+      {
+         Domain second = SingletonProvider<TestSetup>.Instance.AddDomain("second.test");
+         Account refused = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "refusing@example.test", "test");
+         Account colleague = SingletonProvider<TestSetup>.Instance.AddAccount(second, "colleague@second.test", "test");
+         Account writer = SingletonProvider<TestSetup>.Instance.AddAccount(second, "writer@second.test", "test");
+
+         Rule rule = NewRule(_domain.Rules, "No quotes here", eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "quote");
+         AddAction(rule, eRuleActionType.eRAReject, value: "Quotes go to sales@example.test.");
+         rule.Save();
+
+         // The message is accepted: the SMTP session has one answer for every
+         // recipient, and the rule is example.test's say over its own alone.
+         SmtpClientSimulator.StaticSend(writer.Address, new List<string> { refused.Address, colleague.Address }, "Your quote", "Attached.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         Pop3ClientSimulator.AssertMessageCount(colleague.Address, "test", 1);
+         Pop3ClientSimulator.AssertMessageCount(refused.Address, "test", 0);
+
+         // The hosted sender is told who did not get it. Until the scoped
+         // reject told nobody, the recipient was dropped without a word.
+         string notice = Decoded_(Pop3ClientSimulator.AssertGetFirstMessageText(writer.Address, "test"));
+         StringAssert.Contains("Subject: Policy notice: No quotes here", notice);
+         StringAssert.Contains("was not delivered to " + refused.Address + ":", notice);
+         StringAssert.DoesNotContain(colleague.Address, notice, "The notice named a recipient the rule did not refuse.");
+         StringAssert.Contains("Quotes go to sales@example.test.", notice);
+         StringAssert.Contains("its other recipients are not affected", notice);
+      }
+
+      /// <summary>A notice as a reader sees it: quoted-printable soft breaks and escapes undone.</summary>
+      private static string Decoded_(string raw)
+      {
+         string joined = raw.Replace("=\r\n", "").Replace("=\n", "");
+         return System.Text.RegularExpressions.Regex.Replace(joined, "=([0-9A-F]{2})",
+            match => ((char) Convert.ToInt32(match.Groups[1].Value, 16)).ToString());
       }
 
       [Test]

@@ -262,6 +262,16 @@ which an uncounted pass leaves at nought; the reschedule now sets
 `FlagFirstPassDone` on the message in the same statement, and the three ask
 both, so a message held through ten passes is mirrored once and sealed once.
 
+**Nor does a held pass forward, copy, reply or call a script function again.**
+The server's and the domains' mail flow rules run on every pass, and until 26
+September 2026 a rule that forwards, copies or replies queued a new message on
+each one - one per held pass, which for a message held behind a rate or a
+back-off was dozens - and a rule's script function, which may send mail too, ran
+on each one. The uncounted reschedule now also sets `FlagRepeatsAttempt`, and
+those four actions are not taken on a pass that carries it; a counted retry
+clears it, so they run once per counted attempt, as they always have
+([MailFlowRules.md](MailFlowRules.md)).
+
 Where to see it
 ---------------
 

@@ -19,10 +19,22 @@
 // WHY IT IS DANGEROUS, and what is done about each part.
 //
 //   * A callout is a request this server makes on a stranger's say-so, which is
-//     the shape of every reflection abuse. Rate-limited per remote (the policy's
-//     own CalloutMaxPerMinute, ten a minute by default), and answered from a
-//     cache for the rest of the lifetime, so a flood of addresses costs the
-//     remote a handful of sessions rather than one per recipient.
+//     the shape of every reflection abuse. Rate-limited per policy and per
+//     server asked (the policy's own CalloutMaxPerMinute, ten a minute by
+//     default, for each), and answered from a cache for the rest of the
+//     lifetime, so a flood of addresses costs the remote a handful of sessions
+//     rather than one per recipient. Until 26 September 2026 the ceiling was
+//     kept per recipient domain, so a policy for *.partner.example gave every
+//     subdomain a sender cared to name its own ten a minute, all to the one
+//     primary.
+//   * The cache is bounded: expired verdicts are swept at most a minute apart,
+//     and at MaxCachedVerdicts the verdict nearest its expiry makes room. It
+//     grew by one entry for every distinct address asked about, for the life
+//     of the process.
+//   * At most MaxProbesInFlight conversations run at once, and at most
+//     MaxProbesInFlightPerTarget to one server: each holds the thread handling
+//     the RCPT TO for up to the policy's timeout, and those threads are shared
+//     by every session. Beyond either, the recipient is accepted without asking.
 //   * It can be used to enumerate a third party's recipients: point a policy at
 //     somebody else's server, then read this server's answers. That is why the
 //     callout is OFF unless an administrator turns it on for a named domain,
@@ -102,6 +114,11 @@ namespace HM
       // connection for four hours.
       static const int CalloutMaxTimeoutSeconds = 60;
 
+      // The bounds described in the header comment.
+      static const size_t MaxCachedVerdicts = 10000;
+      static const int MaxProbesInFlight = 8;
+      static const int MaxProbesInFlightPerTarget = 2;
+
    private:
 
       struct CachedVerdict
@@ -119,8 +136,21 @@ namespace HM
       // left out, which is the loop guard.
       static std::vector<std::pair<String, String> > ResolveTargets_(const String &domain, std::shared_ptr<RemoteDomainPolicy> policy, int port);
 
+      // Room for one more verdict: the expired ones swept when a sweep is due
+      // or the cache is full, then, if it is still full, the one nearest its
+      // expiry dropped. Called with mutex_ held.
+      void MakeRoom_(time_t now);
+
+      // A conversation begun with target, or false when the ceilings on
+      // conversations in flight leave no room for it; EndProbe_ ends one begun.
+      bool BeginProbe_(const String &target);
+      void EndProbe_(const String &target);
+
       mutable boost::recursive_mutex mutex_;
       std::map<String, CachedVerdict> cache_;
+      time_t next_sweep_at_;
       int probe_count_;
+      int in_flight_;
+      std::map<String, int> in_flight_per_target_;
    };
 }

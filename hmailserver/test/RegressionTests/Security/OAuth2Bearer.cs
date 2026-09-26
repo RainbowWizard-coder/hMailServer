@@ -692,5 +692,76 @@ namespace RegressionTests.Security
             }
          }
       }
+
+      // -- The country policy ------------------------------------------------------
+
+      /// <summary>XOAUTH2 over POP3, then QUIT, so the next logon does not meet [IN-USE].</summary>
+      private static string Pop3AuthXOAuth2AndQuit(string email, string token)
+      {
+         using (var con = new TcpConnection())
+         {
+            Assert.IsTrue(con.Connect(110), "Could not connect to POP3.");
+            con.ReadUntil("+OK");
+            con.Send("AUTH XOAUTH2 " + XOAuth2Response(email, token) + "\r\n");
+            string answer = con.Receive();
+            con.Send("QUIT\r\n");
+            con.Receive();
+            return answer;
+         }
+      }
+
+      [Test]
+      [Description("A bearer token meets the domain's country policy as a password does: a valid token from a refused country is refused, with the same answer as an invalid one")]
+      public void TestPop3XOAuth2MeetsTheDomainsCountryPolicy()
+      {
+         const string address = "oauthgeo@example.test";
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, "irrelevant-password");
+
+         // What CountryBlocking.cs does for the same reason: the suite connects from
+         // 127.0.0.1, which the shipped exemption covers, so the exemption is emptied
+         // and a database that gives the loopback range a country is supplied.
+         string databasePath = Paths.Combine(_settings.Directories.DataDirectory, "GeoIP", "RegressionTests-OAuth2Country.mmdb");
+         GeoIpFixture.WriteCountryDatabase(databasePath,
+            new System.Collections.Generic.Dictionary<string, string> { { "127.0.0.0/8", "SE" } });
+
+         string exemptAsShipped = _settings.CountryBlockingExemptRanges;
+         if (string.IsNullOrWhiteSpace(exemptAsShipped))
+            exemptAsShipped = "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,100.64.0.0/10,fe80::/10,fc00::/7";
+
+         _settings.AutoBanOnLogonFailure = false;
+         _settings.ClearLogonFailureList();
+         try
+         {
+            EnableOAuth2("HS256");
+            _settings.GeoIpDatabaseFile = databasePath;
+            _settings.CountryBlockingExemptRanges = "";
+
+            string token = MintHs256(address, UnixNow() + 3600);
+
+            // The negative control: with no policy the token signs in.
+            string allowed = Pop3AuthXOAuth2AndQuit(address, token);
+            Assert.IsTrue(allowed.StartsWith("+OK"), "The token must sign in while the domain has no policy. Got: " + allowed);
+
+            _domain.CountryPolicy = "block:SE";
+            _domain.Save();
+
+            // Until 26 September 2026 this signed in: the policy was asked only where
+            // a password is checked (AccountLogon::Logon) and by the REST API.
+            string refused = Pop3AuthXOAuth2AndQuit(address, token);
+            Assert.IsTrue(refused.StartsWith("-ERR"),
+               "A valid bearer token from a country the domain refuses signed in. Got: " + refused);
+         }
+         finally
+         {
+            _domain.CountryPolicy = "";
+            _domain.Save();
+            _settings.CountryBlockingExemptRanges = exemptAsShipped;
+            _settings.GeoIpDatabaseFile = "";
+            if (File.Exists(databasePath))
+               File.Delete(databasePath);
+            DisableOAuth2();
+            _settings.ClearLogonFailureList();
+         }
+      }
    }
 }

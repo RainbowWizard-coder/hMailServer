@@ -58,6 +58,7 @@ namespace HM
       // Drops a message's AV hold count once it is past scanning, so the in-memory
       // table does not accumulate entries for messages that are long delivered.
       static void ForgetUnscannableHold_(__int64 messageID);
+      static void TakeDomainsRecipientsOff_(std::shared_ptr<Message> pMessage, __int64 domainId, bool quarantine, const String &ruleName);
       static bool RunGlobalRules_(std::shared_ptr<Message> pMessage, RuleResult &ruleResult);
 
       // Builds and queues the non-delivery report. One DeliveryFailure per failed

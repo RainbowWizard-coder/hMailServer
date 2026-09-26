@@ -162,7 +162,7 @@ namespace HM
             // An account the compromised-account detection has locked is refused
             // here as a password logon is refused at the lockout check: the token
             // proves who the client is, not that the account is theirs to use.
-            held = AccountLogon::RefusedByHold(pAccount);
+            held = AccountLogon::RefusedByHold(pAccount, pConnection->GetRemoteEndpointAddress());
          }
 
          pConnection->FireOnClientLogon(sLoginName, pAccount != nullptr);
@@ -590,6 +590,18 @@ namespace HM
       // exchange so the protocol does not reveal whether the account exists.
       AnsiString storedHash = "";
       std::shared_ptr<const Account> pAccount = LookupPbkdf2Account_(sUsername);
+
+      // The country policy, a second factor and an expired password refuse the
+      // account's own password on every other path (AccountLogon::Logon,
+      // PasswordValidator), and SCRAM reaches neither - so the same refusal is
+      // a forced failure here, with no second refusal shape to tell apart.
+      bool refusalChargesNothing = false;
+      if (pAccount && AccountLogon::RefusedForScram(pAccount, pConnection->GetRemoteEndpointAddress(), refusalChargesNothing))
+      {
+         pAccount.reset();
+         session->SetRefusalChargesNothing(refusalChargesNothing);
+      }
+
       if (pAccount)
       {
          session->SetAccount(pAccount);
@@ -687,6 +699,7 @@ namespace HM
       // fuller note in POP3Connection::ScramAuthFailed_.
       std::shared_ptr<ScramSha256> failedSession = pConnection->GetScramSession();
       const bool verifiableAccount = failedSession && failedSession->GetAccount() != nullptr;
+      const bool chargeNothing = failedSession && failedSession->GetRefusalChargesNothing();
 
       pConnection->SetScramSession(nullptr);
 
@@ -696,13 +709,14 @@ namespace HM
       // unless the exchange was doomed by the lock itself, in which case nothing
       // is reported, exactly as AccountLogon::Logon's locked branch does: the
       // owner retrying a locked name with the CORRECT password must not get their
-      // address banned for everyone behind it. Not extended to the other
-      // forced-failure causes (unknown name, Argon2id/AD account, hash policy),
-      // which would let an attacker spray names over SCRAM for free. See the
-      // fuller note in POP3Connection::ScramAuthFailed_.
+      // address banned for everyone behind it. The country policy's refusal is
+      // charged to nothing for the same reason, as Logon charges it. Not
+      // extended to the other forced-failure causes (unknown name, Argon2id/AD
+      // account, hash policy), which would let an attacker spray names over
+      // SCRAM for free. See the fuller note in POP3Connection::ScramAuthFailed_.
       bool disconnect = false;
 
-      if (!AccountLockout::Instance()->IsLockedOut(sUsername))
+      if (!chargeNothing && !AccountLockout::Instance()->IsLockedOut(sUsername))
       {
          AccountLogon accountLogon;
          accountLogon.RegisterFailedLogin(pConnection->GetRemoteEndpointAddress(), sUsername, disconnect, verifiableAccount);

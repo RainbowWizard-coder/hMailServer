@@ -88,9 +88,10 @@
 //
 // There is no second guard. There was one - a rule whose journal address was
 // itself covered by an enabled rule was skipped - and it defended against a loop
-// that cannot happen: Evaluate runs from an SMTP session and from a fetch
-// account's download, and a journal message is written straight into the
-// delivery queue, so a copy to a local mailbox never passes either point. What
+// that cannot happen: Evaluate runs from an SMTP session, from a fetch
+// account's download and from the send API (POST /api/v1/send), and a journal
+// message is written straight into the delivery queue, so a copy to a local
+// mailbox never passes any of those points. What
 // it did instead was empty the archive of the most ordinary arrangement there
 // is, "journal example.com into archive@example.com": the rule matched, the copy
 // was dropped with a line in the log, and every surface went on showing the rule

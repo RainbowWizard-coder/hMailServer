@@ -187,14 +187,21 @@ Writing, changing or removing a rule is on the audit trail, because
 * **It has no conditions.** A rule covers all of a domain's or an account's mail
   in the direction it names. There is no "only messages over 10 MB" and no "only
   from these senders"; a mail flow rule is the place for that.
-* **It does not cover mail a person sends from the browser.** A message the
-  webmail queues directly (`POST /api/v1/me/messages`), a send-later draft and a
-  message written by an event script are queued past both evaluation points and
-  are not journalled. The outbound half therefore covers SMTP submission, which
-  is what a desktop or phone client uses, and not the browser. Mail that
-  **arrives** is covered whichever way it arrives - the SMTP session or a fetch
-  account - so it is the outbound half that has this gap and the inbound half
-  that does not.
+* **It covers mail that comes in through the SMTP session, a fetch account or
+  the send API, and nothing this server queues itself.** Those three are where
+  the rules are evaluated - the send API (`POST /api/v1/send`,
+  [SendApi.md](SendApi.md)) since 26 September 2026, before which an application's
+  mail was not journalled either, and its key's sender counts as the sender an
+  outbound rule judges when that sender is an account here. A message the server
+  queues itself is queued past all three and is **not journalled in either
+  direction**, even when it is addressed to a mailbox a rule covers: a message the
+  webmail queues directly (`POST /api/v1/me/messages`), a send-later draft, a
+  message written by an event script, a mail flow rule's forward, copy or reply,
+  an automatic reply, a Sieve redirect, an account's forwarding and a delivery
+  report. The outbound half therefore covers SMTP submission, which is what a
+  desktop or phone client uses, and the send API, and not the browser; the
+  inbound half covers mail from outside this server, and not what the server
+  sends on to a mailbox of its own.
 * **It does not journal a message that was refused.** A message rejected at RCPT
   TO or by a rule never existed as far as this is concerned; a message held for
   review IS journalled, because it was accepted.

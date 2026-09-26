@@ -1415,31 +1415,42 @@ namespace HM
       std::shared_ptr<Account> emptyAccount;
       pRuleApplier->ApplyRules(ObjectCache::Instance()->GetGlobalRules(), emptyAccount, pMessage, ruleResult);
 
-      // The domains' own rules, after the server's: every domain a local
-      // recipient is in, and the sender's when it is hosted here, each once.
+      // The domains' own rules, after the server's, each once: the sending
+      // domain's on the whole message, and each recipient domain's on the
+      // whole message when every recipient is its own and on its own
+      // recipients otherwise (RuleApplier::DomainRuleScopes).
       if (!ruleResult.GetDeleteEmail())
       {
-         std::set<__int64> domainIds;
-         // owned by this call: the recipients of the message this delivery holds
-         for (std::shared_ptr<MessageRecipient> recipient : pMessage->GetRecipients()->GetVector())
+         for (const RuleApplier::DomainRuleScope &scope : RuleApplier::DomainRuleScopes(pMessage))
          {
-            if (!recipient || !recipient->GetIsLocalName())
-               continue;
+            if (scope.whole_message)
+            {
+               pRuleApplier->ApplyRules(ObjectCache::Instance()->GetDomainRules(scope.domain_id), emptyAccount, pMessage, ruleResult);
+               if (ruleResult.GetDeleteEmail())
+                  break;
 
-            std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
-            if (domain)
-               domainIds.insert(domain->GetID());
+               continue;
+            }
+
+            // A result of its own: a route, a bound address or required TLS
+            // from these rules is not taken (RuleApplier::SetRecipientScope),
+            // and a delete, a reject or a quarantine is the domain's recipients
+            // taken off, not the message.
+            RuleApplier scoped;
+            scoped.SetRecipientScope(scope.domain_id);
+            RuleResult scopedResult;
+            scoped.ApplyRules(ObjectCache::Instance()->GetDomainRules(scope.domain_id), emptyAccount, pMessage, scopedResult);
+
+            if (scopedResult.GetDeleteEmail())
+               TakeDomainsRecipientsOff_(pMessage, scope.domain_id, false, scopedResult.GetDeleteRuleName());
+            else if (scopedResult.GetQuarantine() && !pMessage->GetReleasedFromQuarantine())
+               TakeDomainsRecipientsOff_(pMessage, scope.domain_id, true, scopedResult.GetQuarantineRuleName());
          }
 
-         std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(pMessage->GetFromAddress()));
-         if (senderDomain)
-            domainIds.insert(senderDomain->GetID());
-
-         for (__int64 domainId : domainIds)
+         if (!ruleResult.GetDeleteEmail() && pMessage->GetRecipients()->GetCount() == 0)
          {
-            pRuleApplier->ApplyRules(ObjectCache::Instance()->GetDomainRules(domainId), emptyAccount, pMessage, ruleResult);
-            if (ruleResult.GetDeleteEmail())
-               break;
+            ruleResult.SetDeleteEmail(true);
+            ruleResult.SetDeleteRuleName(_T("every recipient was taken off by its domain's rules"));
          }
       }
 
@@ -1496,7 +1507,83 @@ namespace HM
 
    }
 
-   void 
+   void
+   SMTPDeliverer::TakeDomainsRecipientsOff_(std::shared_ptr<Message> pMessage, __int64 domainId, bool quarantine, const String &ruleName)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // A recipient domain's rule deleted, rejected or quarantined a message that
+   // also goes to recipients outside the domain: the domain's recipients are
+   // taken off it, and the rest of it goes on. A quarantine keeps a copy for
+   // them first, under the rule's name; a quarantine that cannot keep it
+   // leaves them on the message, as the whole-message quarantine delivers a
+   // message it could not store rather than lose it.
+   //---------------------------------------------------------------------------()
+   {
+      // owned by this call: the recipients of the message this delivery holds
+      std::vector<std::shared_ptr<MessageRecipient> > &recipients = pMessage->GetRecipients()->GetVector();
+
+      std::vector<std::shared_ptr<MessageRecipient> > taken;
+      for (std::shared_ptr<MessageRecipient> recipient : recipients)
+      {
+         if (!recipient || !recipient->GetIsLocalName())
+            continue;
+
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+         if (domain && domain->GetID() == domainId)
+            taken.push_back(recipient);
+      }
+
+      if (taken.empty())
+         return;
+
+      String addresses;
+      for (std::shared_ptr<MessageRecipient> recipient : taken)
+         addresses += (addresses.IsEmpty() ? _T("") : _T(", ")) + recipient->GetAddress();
+
+      if (quarantine)
+      {
+         std::shared_ptr<Message> held = std::shared_ptr<Message>(new Message(false));
+         held->SetFromAddress(pMessage->GetFromAddress());
+         for (std::shared_ptr<MessageRecipient> recipient : taken)
+         {
+            std::shared_ptr<MessageRecipient> copy = std::shared_ptr<MessageRecipient>(new MessageRecipient());
+            copy->CopyFrom(recipient);
+            copy->SetMessageID(0);
+            held->GetRecipients()->Add(copy);
+         }
+
+         if (!QuarantineStore::Quarantine(held, _T("Rule: ") + ruleName, 0, MessageStore::WorkingFile(pMessage)))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6261, "SMTPDeliverer::TakeDomainsRecipientsOff_",
+               "A domain's rule asked for its recipients' copy of a message to be quarantined and the quarantine could not store it; the message is being delivered to them instead.");
+            return;
+         }
+      }
+
+      for (std::shared_ptr<MessageRecipient> recipient : taken)
+      {
+         if (!PersistentMessageRecipient::DeleteObject(recipient))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6106, "SMTPDeliverer::TakeDomainsRecipientsOff_",
+               Formatter::Format("Message {0}: {1} was taken off by its domain's rule but that recipient could not be removed from the database.",
+                  pMessage->GetID(), recipient->GetAddress()));
+         }
+
+         for (auto live = recipients.begin(); live != recipients.end(); ++live)
+         {
+            if (*live == recipient)
+            {
+               recipients.erase(live);
+               break;
+            }
+         }
+      }
+
+      LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: not delivered to {1}: {2} by a rule of their domain ({3}). The message goes on to its other recipients.",
+         pMessage->GetID(), addresses, quarantine ? String(_T("quarantined")) : String(_T("deleted")), ruleName));
+   }
+
+   void
    SMTPDeliverer::LogAwstatsMessageRejected_(const String &sSendersIP, std::shared_ptr<Message> pMessage, const String &sReason)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:

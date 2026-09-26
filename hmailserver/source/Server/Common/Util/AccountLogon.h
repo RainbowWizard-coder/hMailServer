@@ -29,6 +29,12 @@ namespace HM
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sUsername, const String &sPassword, bool &disconnect,
                                            bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
                                            SecondFactorOffer *secondFactor = nullptr);
+
+      // sMasqname, when it names another account than sUsername (the IMAP
+      // master user's authzid, RFC 4616), is the account the session will be:
+      // the lockout and the country policy are asked for sUsername before the
+      // password, and RefusedByHold(account, ipaddress) - room, hold, country
+      // policy - for the account signed into after it, charged to nothing.
       std::shared_ptr<const Account> Logon(const IPAddress &ipaddress, const String &sMasqname, const String &sUsername, const String &sPassword, bool &disconnect,
                                            bool *matchedAppPassword = nullptr, String *matchedAppPasswordName = nullptr,
                                            SecondFactorOffer *secondFactor = nullptr);
@@ -62,6 +68,33 @@ namespace HM
       // shared with everybody else. Counted as a failed authentication in the
       // server status, as Logon's refusal is. Never throws.
       static bool RefusedByHold(std::shared_ptr<const Account> &account);
+
+      // The same, and then the country policy of the account's domain (or the
+      // account's own) for the address the client is at - the decision Logon
+      // makes for a password, which these logons never reach. Every mail
+      // protocol's passwordless logon asks this one: a bearer token (XOAUTH2,
+      // OAUTHBEARER), a client certificate (EXTERNAL) and a Kerberos ticket
+      // (GSSAPI). Refused on its country, the account is dropped and the
+      // refusal is charged to nothing and counted as a country refusal, not as
+      // a failed authentication, exactly as Logon's own country branch.
+      static bool RefusedByHold(std::shared_ptr<const Account> &account, const IPAddress &remote);
+
+      // What PasswordValidator and Logon decide about a password that SCRAM,
+      // which never holds the password and so never reaches either, must decide
+      // for itself about the account it is about to verify a proof against.
+      // True when the exchange must be a forced failure however good the
+      // proof: the account's domain (or the account) does not accept sign-ins
+      // from the remote address's country; a second factor is enrolled, which
+      // turns the account's own password off in every client that cannot
+      // present a code - and SCRAM proves exactly that password, never an app
+      // password; or the password has passed PasswordPolicyMaximumAgeDays.
+      //
+      // chargeNothing is set for the country refusal alone, which Logon charges
+      // to neither the per-name lockout nor the per-IP auto-ban (see there);
+      // the other two are charged as a wrong password is on the PLAIN path.
+      // The OnClientValidatePassword script hook is NOT consulted: it is given
+      // a password, and SCRAM has none to give it.
+      static bool RefusedForScram(const std::shared_ptr<const Account> &account, const IPAddress &remote, bool &chargeNothing);
 
       // The logon tarpit: how long a connection's next refusal should wait, given
       // how many logons it has failed so far (this one included). Progressive - the

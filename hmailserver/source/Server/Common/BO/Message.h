@@ -85,7 +85,18 @@ namespace HM
          // wrote. The sandbox leaves such a message alone unless
          // SandboxInternalMail says otherwise, so that what the server's own
          // users send is not uploaded to a third party by default.
-         FlagSubmittedBySignedInUser = 4096
+         FlagSubmittedBySignedInUser = 4096,
+
+         // The pass about to run repeats the delivery attempt the last pass
+         // made: that pass ran the rules and was then held by this server's
+         // own shaping (SMTP/DestinationBackoff.h) without counting a try. Set
+         // with FlagFirstPassDone in the uncounted reschedule's UPDATE, cleared
+         // by the counted one's. The rule actions that queue a new message - a
+         // forward, a copy, a reply (SMTP/RuleApplier.cpp) - read it, so that a
+         // message held through ten passes forwards once for the attempt and
+         // not ten times; a counted retry clears it, and runs them as every
+         // counted retry always has, for the 'delivery attempts' condition.
+         FlagRepeatsAttempt = 8192
       };
 
       Message(bool generateFileName);
@@ -247,6 +258,16 @@ namespace HM
             flags_ |= FlagFirstPassDone;
          else
             flags_ &= ~FlagFirstPassDone;
+      }
+
+      // See FlagRepeatsAttempt.
+      bool GetRepeatsAttempt() const { return (flags_ & FlagRepeatsAttempt) != 0; }
+      void SetRepeatsAttempt(bool repeats)
+      {
+         if (repeats)
+            flags_ |= FlagRepeatsAttempt;
+         else
+            flags_ &= ~FlagRepeatsAttempt;
       }
 
       void SetCreateTime(const String &sCreateTime) {create_time_ = sCreateTime; }

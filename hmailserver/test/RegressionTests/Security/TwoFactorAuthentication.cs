@@ -276,5 +276,81 @@ namespace RegressionTests.Security
          ClassicAssert.IsFalse(second.Contains(first),
             "Re-enrolling must mint a NEW secret rather than returning the existing one.");
       }
+
+      /// <summary>One SCRAM-SHA-256 exchange on each protocol; true for each that signed in.</summary>
+      private static (bool smtp, bool imap, bool pop3) ScramOnEveryProtocol(string address, string password)
+      {
+         bool smtp;
+         using (var sock = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(sock.Connect(25));
+            ClassicAssert.IsTrue(sock.Receive().StartsWith("220"));
+            sock.Send("EHLO test.com\r\n");
+            ClassicAssert.IsTrue(sock.Receive().StartsWith("250"));
+            smtp = RegressionTests.SMTP.SmtpScramTestClient.Authenticate(sock, address, password).StartsWith("235");
+         }
+
+         bool imap;
+         using (var con = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(con.Connect(143));
+            con.Receive();
+            imap = RegressionTests.IMAP.ScramTestClient.Authenticate(con, "A01", address, password).Contains("A01 OK");
+         }
+
+         bool pop3;
+         using (var tc = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(tc.Connect(110));
+            tc.ReadUntil("+OK");
+            pop3 = RegressionTests.POP3.Pop3SaslTestClient.AuthenticateScram(tc, address, password).StartsWith("+OK");
+
+            // Released before the next exchange, whose refusal must be the second
+            // factor's and not [IN-USE].
+            tc.Send("QUIT\r\n");
+            tc.Receive();
+         }
+
+         return (smtp, imap, pop3);
+      }
+
+      [Test]
+      [Description("SCRAM-SHA-256 proves the account's own password, so once a second factor is enrolled it is refused on SMTP, IMAP and POP3 as the PLAIN path refuses it")]
+      public void ScramRefusesTheAccountPasswordOnceASecondFactorIsEnrolled()
+      {
+         var settings = SingletonProvider<TestSetup>.Instance.GetApp().Settings;
+         bool autoBan = settings.AutoBanOnLogonFailure;
+         bool saslPlain = settings.IMAPSASLPlainEnabled;
+         settings.AutoBanOnLogonFailure = false;
+         settings.IMAPSASLPlainEnabled = true;
+         settings.ClearLogonFailureList();
+
+         try
+         {
+            // The negative control: before enrolment the account is one SCRAM can
+            // serve (a PBKDF2 hash, the default), so a refusal below is the second
+            // factor and not the mechanism.
+            var before = ScramOnEveryProtocol(_account.Address, Password);
+            ClassicAssert.IsTrue(before.smtp && before.imap && before.pop3,
+               "SCRAM must sign the account in before a second factor is enrolled (smtp " + before.smtp +
+               ", imap " + before.imap + ", pop3 " + before.pop3 + ").");
+
+            Enrol();
+
+            // Until 26 September 2026 all three signed in here: SCRAM never reached
+            // PasswordValidator, where the rule lived, so a phished password of an
+            // account with TOTP submitted mail and read the mailbox.
+            var after = ScramOnEveryProtocol(_account.Address, Password);
+            ClassicAssert.IsFalse(after.smtp, "SMTP AUTH SCRAM-SHA-256 accepted the account password of an account with a second factor.");
+            ClassicAssert.IsFalse(after.imap, "IMAP AUTHENTICATE SCRAM-SHA-256 accepted it.");
+            ClassicAssert.IsFalse(after.pop3, "POP3 AUTH SCRAM-SHA-256 accepted it.");
+         }
+         finally
+         {
+            settings.AutoBanOnLogonFailure = autoBan;
+            settings.IMAPSASLPlainEnabled = saslPlain;
+            settings.ClearLogonFailureList();
+         }
+      }
    }
 }

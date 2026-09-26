@@ -413,6 +413,69 @@ namespace RegressionTests.Rules
       }
 
       [Test]
+      [Description("An account's own warn_sender rule tells the sender when its recipient is delivered on a later pass: the once-per-message guard is the server's and the domains' rules', and an account's rule runs once, when its recipient's copy is stored")]
+      public void AnAccountRuleWarnsTheSenderOnALaterPass()
+      {
+         _settings.SetAdministratorPassword(AdminPassword);
+         RestPort = RestListener.Start(RestPort);
+         _application.Reinitialize();
+         string credentials = "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes("Administrator:" + AdminPassword));
+         bool draining = false;
+         try
+         {
+            Account sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "later-pass-sender@example.test", "test");
+            Account recipient = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "later-pass-recipient@example.test", "test");
+
+            Rule rule = NewRule(recipient.Rules, "Tell the sender");
+            AddCriterion(rule, (int) eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "Reached on a later pass");
+            AddAction(rule, WarnSender, value: "Seen by the recipient's own rule.");
+            rule.Save();
+
+            // Held in the queue by a drain, so that its try count can be set
+            // before the deliverer reads it: a recipient reached on a pass after
+            // the first, as one whose mailbox's encryption was not known on the
+            // first pass is (LocalDelivery::HoldForRetry).
+            ClassicAssert.AreEqual(200, RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/server/drain", credentials, "{}").status);
+            draining = true;
+
+            string me = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(sender.Address + ":test"));
+            string json = "{\"to\":\"" + recipient.Address + "\",\"subject\":\"Reached on a later pass\",\"text\":\"Hello.\"}";
+            (int status, string body) sent = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/me/messages", me, json);
+            ClassicAssert.AreEqual(201, sent.status, sent.body);
+
+            (int status, string body) queue = RestRequest.Send("127.0.0.1", RestPort, "GET", "/api/v1/queue", credentials, null);
+            ClassicAssert.AreEqual(200, queue.status, queue.body);
+            long queuedId = 0;
+            foreach (System.Text.Json.JsonElement message in System.Text.Json.JsonDocument.Parse(queue.body).RootElement.GetProperty("messages").EnumerateArray())
+            {
+               if ((message.GetProperty("recipients").GetString() ?? "").IndexOf(recipient.Address, StringComparison.OrdinalIgnoreCase) >= 0)
+                  queuedId = message.GetProperty("id").GetInt64();
+            }
+            ClassicAssert.AreNotEqual(0, queuedId, "The message is not in the queue: " + queue.body);
+            _application.Database.ExecuteSQL("update hm_messages set messagecurnooftries = 1 where messageid = " + queuedId);
+
+            ClassicAssert.AreEqual(200, RestRequest.Send("127.0.0.1", RestPort, "DELETE", "/api/v1/server/drain", credentials, null).status);
+            draining = false;
+
+            Pop3ClientSimulator.AssertMessageCount(recipient.Address, "test", 1);
+
+            // Until 26 September 2026 the notice was skipped: the guard that
+            // keeps a server rule's notice to one per message read the try
+            // count, and the recipient's own rule had never run before.
+            Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+            string notice = Decoded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
+            StringAssert.Contains("Subject: Policy notice: Tell the sender", notice);
+            StringAssert.Contains("Seen by the recipient's own rule.", notice);
+         }
+         finally
+         {
+            if (draining)
+               RestRequest.Send("127.0.0.1", RestPort, "DELETE", "/api/v1/server/drain", credentials, null);
+            RestListener.Stop();
+         }
+      }
+
+      [Test]
       [Description("No notice goes to a sender this server does not host: the message from outside is delivered and nothing is sent back")]
       public void AnOutsideSenderIsNotWarned()
       {

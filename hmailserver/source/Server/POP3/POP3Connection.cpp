@@ -1140,7 +1140,7 @@ namespace HM
          // An account the compromised-account detection has locked is refused
          // here as a password logon is refused at the lockout check: the token
          // proves who the client is, not that the account is theirs to use.
-         held = AccountLogon::RefusedByHold(pAccount);
+         held = AccountLogon::RefusedByHold(pAccount, GetRemoteEndpointAddress());
       }
 
       username_ = sAddress;
@@ -1327,6 +1327,18 @@ namespace HM
       // exchange so the protocol does not reveal whether the account exists.
       AnsiString storedHash = "";
       std::shared_ptr<const Account> pAccount = LookupPbkdf2Account_(sUsername);
+
+      // The country policy, a second factor and an expired password refuse the
+      // account's own password on every other path (AccountLogon::Logon,
+      // PasswordValidator), and SCRAM reaches neither - so the same refusal is
+      // a forced failure here, with no second refusal shape to tell apart.
+      bool refusalChargesNothing = false;
+      if (pAccount && AccountLogon::RefusedForScram(pAccount, GetRemoteEndpointAddress(), refusalChargesNothing))
+      {
+         pAccount.reset();
+         scram_session_->SetRefusalChargesNothing(refusalChargesNothing);
+      }
+
       if (pAccount)
       {
          scram_session_->SetAccount(pAccount);
@@ -1412,6 +1424,11 @@ namespace HM
       // accounting still sees the attempt.
       const bool verifiableAccount = scram_session_ && scram_session_->GetAccount() != nullptr;
 
+      // The country policy's refusal (AccountLogon::RefusedForScram) is charged
+      // to nothing, as AccountLogon::Logon charges it: the person refused is
+      // very often the account's owner, travelling.
+      const bool chargeNothing = scram_session_ && scram_session_->GetRefusalChargesNothing();
+
       scram_session_.reset();
 
       // Report the failed attempt to the script server with Client.Authenticated =
@@ -1438,7 +1455,7 @@ namespace HM
       // single per-IP failure.
       bool disconnect = false;
 
-      if (!AccountLockout::Instance()->IsLockedOut(sUsername))
+      if (!chargeNothing && !AccountLockout::Instance()->IsLockedOut(sUsername))
       {
          AccountLogon accountLogon;
          accountLogon.RegisterFailedLogin(GetRemoteEndpointAddress(), sUsername, disconnect, verifiableAccount);

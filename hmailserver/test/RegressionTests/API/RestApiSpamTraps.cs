@@ -64,6 +64,11 @@ namespace RegressionTests.API
          blockDaysBefore_ = Number(settings, "spam_trap_block_days");
 
          PutSettings("{\"spam_trap_ban_minutes\":0,\"spam_trap_block_days\":1}");
+
+         // The sender's domain authorises the address the suite connects from: a
+         // trap hit blocks an envelope sender only when its SPF passes
+         // (SpamTrapMonitor::OnHit), since the envelope is otherwise just a claim.
+         SuiteDns.Zone.WithTxt(SpammerDomain, "v=spf1 ip4:127.0.0.1 -all");
       }
 
       [TearDown]
@@ -74,6 +79,7 @@ namespace RegressionTests.API
             Http("DELETE", "/api/v1/spam-traps/hits");
             RemoveTestDomains();
             RemoveOurBlockedSenders();
+            SuiteDns.Reset();
 
             PutSettings("{\"spam_trap_ban_minutes\":" + banMinutesBefore_ +
                         ",\"spam_trap_block_days\":" + blockDaysBefore_ + "}");

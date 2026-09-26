@@ -70,7 +70,8 @@ namespace HM
    }
 
    RuleApplier::RuleApplier(void) :
-      rule_account_id_(0)
+      rule_account_id_(0),
+      recipient_scope_domain_(0)
    {
    }
 
@@ -213,6 +214,170 @@ namespace HM
       }
    }
 
+   bool
+   RuleApplier::OutsideScope_(const String &action) const
+   {
+      if (recipient_scope_domain_ == 0)
+         return false;
+
+      LOG_DEBUG("RuleApplier: the domain rule's " + action + " is not applied: the message also goes to recipients outside the domain, and it would change the message for them.");
+      return true;
+   }
+
+   bool
+   RuleApplier::SenderDomainVouched_(std::shared_ptr<Message> message, __int64 senderDomainId, const String &senderDomainName)
+   {
+      if (!message || senderDomainId <= 0)
+         return false;
+
+      // The account an authenticated session, the webmail or a scheduled send
+      // submitted it as, when that account is the domain's.
+      if (message->GetSubmitterAccountID() > 0)
+      {
+         std::shared_ptr<const Account> submitter = CacheContainer::Instance()->GetAccount(message->GetSubmitterAccountID());
+         if (submitter && submitter->GetDomainID() == senderDomainId)
+            return true;
+      }
+
+      // Or, for mail from outside, DMARC passed for the domain
+      // (AuthenticationResults::PassedDomains: whole tokens, "dmarc=name").
+      const String passed = message->GetAuthDomains();
+      if (!passed.IsEmpty() && !senderDomainName.IsEmpty())
+      {
+         std::vector<String> tokens = StringParser::SplitString(passed, _T(","));
+         for (String token : tokens)
+         {
+            token.Trim();
+            if (token.CompareNoCase(_T("dmarc=") + senderDomainName) == 0)
+               return true;
+         }
+      }
+
+      return false;
+   }
+
+   std::vector<RuleApplier::DomainRuleScope>
+   RuleApplier::DomainRuleScopes(std::shared_ptr<Message> message)
+   {
+      std::vector<DomainRuleScope> scopes;
+      if (!message)
+         return scopes;
+
+      // Who the message is addressed to: each hosted domain with how many of
+      // its recipients it has, in the order first met, and how many there
+      // are in all.
+      std::vector<std::pair<__int64, int> > recipientDomains;
+      int total = 0;
+      // owned by this call: the recipients of the message its caller holds
+      for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
+      {
+         if (!recipient)
+            continue;
+
+         total++;
+
+         if (!recipient->GetIsLocalName())
+            continue;
+
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+         if (!domain)
+            continue;
+
+         bool known = false;
+         for (std::pair<__int64, int> &entry : recipientDomains)
+         {
+            if (entry.first == domain->GetID())
+            {
+               entry.second++;
+               known = true;
+               break;
+            }
+         }
+         if (!known)
+            recipientDomains.push_back(std::make_pair(domain->GetID(), 1));
+      }
+
+      std::set<__int64> sending;
+
+      // The submitter's own domain: its account signed in and sent this.
+      if (message->GetSubmitterAccountID() > 0)
+      {
+         std::shared_ptr<const Account> submitter = CacheContainer::Instance()->GetAccount(message->GetSubmitterAccountID());
+         if (submitter && submitter->GetDomainID() > 0)
+            sending.insert(submitter->GetDomainID());
+      }
+
+      // The envelope sender's hosted domain, when what the server saw vouches
+      // for it, or when the message reaches no other domain's mailboxes - an
+      // unauthenticated claim then selects rules that act on that domain's
+      // own recipients and on mail leaving the server, which is what an
+      // application relaying from its own network sends.
+      std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(message->GetFromAddress()));
+      if (senderDomain)
+      {
+         bool otherMailboxes = false;
+         for (const std::pair<__int64, int> &entry : recipientDomains)
+         {
+            if (entry.first != senderDomain->GetID())
+               otherMailboxes = true;
+         }
+
+         if (!otherMailboxes || SenderDomainVouched_(message, senderDomain->GetID(), senderDomain->GetName()))
+            sending.insert(senderDomain->GetID());
+      }
+
+      for (__int64 domainId : sending)
+      {
+         DomainRuleScope scope;
+         scope.domain_id = domainId;
+         scope.whole_message = true;
+         scopes.push_back(scope);
+      }
+
+      for (const std::pair<__int64, int> &entry : recipientDomains)
+      {
+         if (sending.find(entry.first) != sending.end())
+            continue;
+
+         DomainRuleScope scope;
+         scope.domain_id = entry.first;
+         scope.whole_message = entry.second == total;
+         scopes.push_back(scope);
+      }
+
+      return scopes;
+   }
+
+   bool
+   RuleApplier::RepeatsAttempt_(std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData, const String &action)
+   {
+      // An account's own rules are never repeated by a held pass: they run in
+      // local delivery, once, when the recipient's copy is stored, and a
+      // recipient delivered is taken off the message. The mark travels on the
+      // message, which the recipient's copy copies the flags of (or which is
+      // itself the copy, for a single recipient), so a recipient first delivered
+      // on a held pass - one whose mailbox's encryption was not known on the
+      // pass that ran the rules (LocalDelivery::HoldForRetry) - would otherwise
+      // have its own forward, copy or reply skipped although it never ran.
+      if (account)
+         return false;
+
+      // A pass that repeats the attempt the last pass made (Message::
+      // FlagRepeatsAttempt): that pass ran these rules and was then held by this
+      // server's own shaping without a try counted. The actions that only change
+      // this message run again, as they must - a route, a header, a delete - but
+      // one that queues a NEW message has already queued it, and doing so again
+      // on every held pass sent one forward, copy or reply per pass: dozens for
+      // one message held behind a rate or a back-off. A counted retry clears the
+      // mark, and runs them as every counted retry always has.
+      std::shared_ptr<Message> message = pMsgData ? pMsgData->GetMessage() : std::shared_ptr<Message>();
+      if (!message || !message->GetRepeatsAttempt())
+         return false;
+
+      LOG_DEBUG("RuleApplier: the rule's " + action + " is not made again: this pass repeats a delivery attempt that already made it.");
+      return true;
+   }
+
    void
    RuleApplier::ApplyAction_(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData, bool &bContinueRuleProcessing, RuleResult &ruleResult)
    {  
@@ -236,21 +401,40 @@ namespace HM
          }
       case RuleAction::Forward:  
          {
+            if (RepeatsAttempt_(account, pMsgData, _T("forward")))
+               break;
+
             ApplyAction_Forward(pAction, account, pMsgData);
             break;
          }
       case RuleAction::Reply:
          {
+            if (RepeatsAttempt_(account, pMsgData, _T("reply")))
+               break;
+
             ApplyAction_Reply(pAction, account, pMsgData);
             break;
          }
       case RuleAction::ScriptFunction:
          {
+            if (OutsideScope_(_T("script function")))
+               break;
+
+            // Gated as a forward is: what the function does cannot be known -
+            // it may send mail, write to a database, add a header with Add
+            // rather than set one - and on a repeat pass it has already done
+            // it, with any change it saved to the message still on disk.
+            if (RepeatsAttempt_(account, pMsgData, _T("script function")))
+               break;
+
             ApplyAction_ScriptFunction(pAction, account, pMsgData);
             break;
          }
       case RuleAction::SetHeaderValue:
          {
+            if (OutsideScope_(_T("header")))
+               break;
+
             ApplyAction_SetHeader(pAction, account, pMsgData);
             break;
          }
@@ -261,21 +445,33 @@ namespace HM
          }
       case RuleAction::SendUsingRoute:
          {
+            if (OutsideScope_(_T("route")))
+               break;
+
             ruleResult.SetSendUsingRoute(pAction->GetRouteID());
             break;
          }
       case RuleAction::CreateCopy:  
          {
+            if (RepeatsAttempt_(account, pMsgData, _T("copy")))
+               break;
+
             ApplyAction_Copy(pRule, account, pMsgData);
             break;
          }
       case RuleAction::BindToAddress:
          {
+            if (OutsideScope_(_T("bound address")))
+               break;
+
             ruleResult.SetBindToAddress(pAction->GetValue());
             break;
          }
       case RuleAction::AddDisclaimer:
          {
+            if (OutsideScope_(_T("disclaimer")))
+               break;
+
             ApplyAction_AddDisclaimer(pRule, pAction, account, pMsgData);
             break;
          }
@@ -297,12 +493,20 @@ namespace HM
             String sDeleteRuleName;
             sDeleteRuleName.Format(_T("Rule name: %s, ID: %d (reject)"), pRule->GetName().c_str(), pRule->GetID());
             ruleResult.SetDeleteRuleName(sDeleteRuleName);
+            // In a recipient domain's scope the deliverer takes that domain's
+            // recipients off and the message goes on to the others: the SMTP
+            // session could not refuse it for them alone, so a hosted sender
+            // is told here, by a notice that names those recipients and says
+            // the rest of the message went (SendPolicyNotice_).
             if (!account)
-               SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, true);
+               SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, true, account);
             break;
          }
       case RuleAction::RequireTLS:
          {
+            if (OutsideScope_(_T("required TLS")))
+               break;
+
             ruleResult.SetRequireTls(pRule->GetName());
             break;
          }
@@ -322,11 +526,11 @@ namespace HM
    void
    RuleApplier::ApplyAction_WarnSender(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
    {
-      SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, false);
+      SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, false, account);
    }
 
    void
-   RuleApplier::SendPolicyNotice_(std::shared_ptr<Rule> pRule, const String &actionText, std::shared_ptr<MessageData> pMsgData, bool notSent) const
+   RuleApplier::SendPolicyNotice_(std::shared_ptr<Rule> pRule, const String &actionText, std::shared_ptr<MessageData> pMsgData, bool notSent, std::shared_ptr<const Account> account) const
    {
       std::shared_ptr<Message> pOriginalMessage = pMsgData->GetMessage();
       if (!pOriginalMessage)
@@ -344,12 +548,21 @@ namespace HM
       // been told anything.
       // The counter, or the mark a shaping deferral leaves in its place: such
       // a deferral (SMTP/DestinationBackoff.h) keeps the counter at nought.
-      if (!notSent && (pOriginalMessage->GetNoOfRetries() != 0 || pOriginalMessage->GetFirstPassDone()))
+      //
+      // Not for an account's own rule, which runs once for its recipient, in
+      // local delivery, when that recipient's copy is stored: the marks below
+      // travel on the message whichever pass delivers the recipient (see
+      // RepeatsAttempt_), and the release mark is cleared on the recipient's
+      // copy before its rules run, so for such a rule they said nothing about
+      // whether this notice had gone - a recipient first delivered on a later
+      // pass had its own rule's notice skipped although it had never run.
+      const bool onceForTheMessage = !account;
+      if (onceForTheMessage && !notSent && (pOriginalMessage->GetNoOfRetries() != 0 || pOriginalMessage->GetFirstPassDone()))
       {
          LOG_DEBUG("RuleApplier::SendPolicyNotice_: not the first delivery attempt, so the sender has been told already.");
          return;
       }
-      if (!notSent && pOriginalMessage->GetReleasedFromQuarantine())
+      if (onceForTheMessage && !notSent && pOriginalMessage->GetReleasedFromQuarantine())
       {
          LOG_DEBUG("RuleApplier::SendPolicyNotice_: the message was released from the quarantine, so the sender was told when it was held.");
          return;
@@ -383,12 +596,26 @@ namespace HM
          return;
       }
 
+      // A reject in a recipient domain's scope refuses the message to that
+      // domain's recipients alone (SMTPDeliverer::TakeDomainsRecipientsOff_),
+      // so the notice names them and says the others were not affected.
+      const bool notSentToSome = notSent && recipient_scope_domain_ != 0;
+
       String recipients;
       // owned by this call: the recipients of the message this delivery holds
       for (std::shared_ptr<MessageRecipient> recipient : pOriginalMessage->GetRecipients()->GetVector())
       {
          if (!recipient)
             continue;
+         if (notSentToSome)
+         {
+            if (!recipient->GetIsLocalName())
+               continue;
+
+            std::shared_ptr<const Domain> recipientDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+            if (!recipientDomain || recipientDomain->GetID() != recipient_scope_domain_)
+               continue;
+         }
          if (!recipients.IsEmpty())
             recipients += _T(", ");
          recipients += recipient->GetAddress();
@@ -402,7 +629,12 @@ namespace HM
       text.Trim();
 
       String body;
-      if (notSent)
+      if (notSentToSome)
+      {
+         body.Format(_T("Your message with the subject \"%s\" was not delivered to %s: it matched the rule \"%s\" of their domain on this mail server, which refuses it.\r\n\r\n"),
+            pMsgData->GetSubject().c_str(), recipients.c_str(), ruleName.c_str());
+      }
+      else if (notSent)
       {
          body.Format(_T("Your message to %s with the subject \"%s\" was not sent: it matched the outbound content policy \"%s\" of this mail server, which refuses it.\r\n\r\n"),
             recipients.c_str(), pMsgData->GetSubject().c_str(), ruleName.c_str());
@@ -414,7 +646,9 @@ namespace HM
       }
       if (!text.IsEmpty())
          body += text + _T("\r\n\r\n");
-      if (notSent)
+      if (notSentToSome)
+         body += _T("This notice is sent automatically. The message will not be tried again for those recipients; its other recipients are not affected by this rule.\r\n");
+      else if (notSent)
          body += _T("This notice is sent automatically. The message has not been delivered to anyone and will not be tried again; a copy in your Sent folder is the only copy.\r\n");
       else
          body += _T("This notice is sent automatically. What happened to the message is decided by the rule's other actions; a rule with no other action delivered it.\r\n");
@@ -602,26 +836,15 @@ namespace HM
       std::vector<std::shared_ptr<Rules> > collections;
       collections.push_back(ObjectCache::Instance()->GetGlobalRules());
 
-      // Every domain a local recipient is in, and the sender's when it is
-      // hosted here, each once - the same set the deliverer runs.
-      std::set<__int64> domainIds;
-      // owned by this call: the recipients of the message being submitted, held by its session or by the send route
-      for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
+      // The domains whose rules act on the whole message - the same choice
+      // the deliverer makes (DomainRuleScopes). A domain whose rules reach
+      // only its own recipients cannot refuse the message for the others: its
+      // reject is met at delivery, where its recipients are taken off.
+      for (const DomainRuleScope &scope : DomainRuleScopes(message))
       {
-         if (!recipient || !recipient->GetIsLocalName())
-            continue;
-
-         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
-         if (domain)
-            domainIds.insert(domain->GetID());
+         if (scope.whole_message)
+            collections.push_back(ObjectCache::Instance()->GetDomainRules(scope.domain_id));
       }
-
-      std::shared_ptr<const Domain> senderDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(message->GetFromAddress()));
-      if (senderDomain)
-         domainIds.insert(senderDomain->GetID());
-
-      for (__int64 domainId : domainIds)
-         collections.push_back(ObjectCache::Instance()->GetDomainRules(domainId));
 
       bool anyReject = false;
       for (std::shared_ptr<Rules> rules : collections)
@@ -781,6 +1004,19 @@ namespace HM
 
          for(std::shared_ptr<MessageRecipient> recipient : oldRecipients)
          {
+            // A recipient domain's rule copies to its own recipients: a copy
+            // to everybody would deliver the message twice to recipients the
+            // domain has no say over.
+            if (recipient_scope_domain_ != 0)
+            {
+               if (!recipient || !recipient->GetIsLocalName())
+                  continue;
+
+               std::shared_ptr<const Domain> recipientDomain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+               if (!recipientDomain || recipientDomain->GetID() != recipient_scope_domain_)
+                  continue;
+            }
+
             std::shared_ptr<MessageRecipient> newRecipient = std::shared_ptr<MessageRecipient >(new MessageRecipient());
             newRecipient->CopyFrom(recipient);
             newRecipient->SetMessageID(0);

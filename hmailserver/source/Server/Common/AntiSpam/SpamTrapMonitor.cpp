@@ -34,6 +34,7 @@
 #include "../Util/AuditTrail.h"
 #include "../Util/AutoBanFirewall.h"
 #include "../Util/FileUtilities.h"
+#include "../../SMTP/SPF/SPF.h"
 #include "../Util/GUIDCreator.h"
 #include "../Util/Parsing/StringParser.h"
 #include "../Util/ServerStatus.h"
@@ -474,7 +475,7 @@ namespace HM
 
    SpamTrapMonitor::Outcome
    SpamTrapMonitor::OnHit(const String &trapAddress, __int64 domainId, const IPAddress &address,
-                          const String &envelopeSender, bool authenticated, bool rangeRunsSpamTests,
+                          const String &envelopeSender, const String &heloHost, bool authenticated, bool rangeRunsSpamTests,
                           bool whiteListed, bool incomingRelay, bool bannedEarlierInSession)
    {
       Outcome outcome;
@@ -550,7 +551,25 @@ namespace HM
       else if (CacheContainer::Instance()->GetDomain(senderDomain))
          blockNote = _T("sender not blocked: it claims a domain this server hosts, so it is a forgery");
       else
-         outcome.blocked = BlockSender_(sender, trapAddress, connecting, blockDays, blockNote);
+      {
+         // The envelope sender is a claim the client typed, and a trap address is
+         // published to be found. Blocked on the claim alone, any correspondent an
+         // unauthenticated client cared to name - a bank, a supplier - went on the
+         // server's block list and had its real mail held or marked for every
+         // mailbox for SpamTrapBlockDays; the hosted-domain case above was the only
+         // forgery refused. So the sender is blocked only when its domain's SPF
+         // authorises the address that addressed the trap, which is the one case in
+         // which the block lands on whoever really sent it. Anything short of a pass
+         // - none, neutral, softfail, fail, an error - leaves the list alone; the
+         // hit's row still names the sender, and the address is banned all the same.
+         String explanation;
+         const SPF::Result spf = SPF::Instance()->Test(connecting, sender, heloHost, explanation);
+
+         if (spf != SPF::Result::Pass)
+            blockNote = _T("sender not blocked: SPF does not authorise the connecting address to send for it, so the envelope sender may be forged");
+         else
+            outcome.blocked = BlockSender_(sender, trapAddress, connecting, blockDays, blockNote);
+      }
 
       // ---- the record
       SpamTrapHit hit;

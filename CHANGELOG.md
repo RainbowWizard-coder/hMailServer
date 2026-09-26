@@ -286,7 +286,8 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   administrator names answers;
   off ([Sandbox.md](hmailserver/docs/Sandbox.md)).
 - **Spam traps** (schema 6058): an address that was never real refuses like an unknown user, bans the connecting
-  address and puts the envelope sender on the block list ([SpamTraps.md](hmailserver/docs/SpamTraps.md)).
+  address and, when its domain's SPF passes for that address, puts the envelope sender on the block list
+  ([SpamTraps.md](hmailserver/docs/SpamTraps.md)).
 - **Country blocking** (schema 6052): connections and sign-ins judged by country from a MaxMind database the
   administrator supplies, with loopback and private ranges exempt and a missing database meaning allow
   ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md)).
@@ -302,6 +303,25 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   parts of a `multipart/signed`, called and made as a signature is; as first written, any part anywhere that
   typed itself `application/pkcs7-signature` or `application/pgp-signature` was spared the list, whatever it
   was called.
+- Fixed: a message held by this server's own outbound shaping - a destination's back-off, a rate or connection
+  ceiling, the tenant share, the IP warm-up - no longer sends a server or domain rule's forward, copy or reply,
+  or calls its script function, once per held pass. Each pass re-ran the rules, and each queued the new message
+  again, so a message held every few minutes for as long as its retry schedule spans sent one copy per pass;
+  those actions now run once per counted attempt. An account's own rules, which run once for their recipient,
+  are not held back by this, and an account rule's warn_sender now goes when its recipient is reached on a later
+  attempt too - it was skipped, as the server's once-per-message notice is
+  ([MailFlowRules.md](hmailserver/docs/MailFlowRules.md), [OutboundShaping.md](hmailserver/docs/OutboundShaping.md),
+  [OutboundContentPolicy.md](hmailserver/docs/OutboundContentPolicy.md)).
+- Fixed: one domain's mail flow rules no longer act on another domain's recipients. A domain's rules ran on the
+  whole of every message with a recipient in the domain, and on every message whose envelope sender claimed the
+  domain, authenticated or not, so one tenant's delete or reject removed a message for another tenant's
+  recipients, and its header, route or bound address applied to their copies. The sending domain's rules - the
+  submitting account's domain, and the envelope sender's where its account submitted the message, DMARC passed
+  for it, or the message reaches no other domain's mailboxes - still act on the whole message; a recipient
+  domain's act on the whole message only when every recipient is its own, and otherwise take its own recipients
+  off (a quarantine keeps a copy for them, and a reject mails a hosted sender a notice naming them), copy to them
+  alone and leave the message's headers, body and routing alone
+  ([MailFlowRules.md](hmailserver/docs/MailFlowRules.md)).
 
 ### IMAP, POP3 and the webmail
 
@@ -446,6 +466,67 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
 - **An evidence pack for a buyer's security questionnaire**: where mail and personal data are kept, what leaves the
   server, ISO/IEC 27001:2022 Annex A and SOC 2 mapped to what the product provides, and the supply chain, each fact
   with the file it can be checked in and each gap named ([EvidencePack.md](hmailserver/docs/EvidencePack.md)).
+- **Fixed: SCRAM-SHA-256 signed in with a password every other path refused.** SMTP `AUTH`, IMAP `AUTHENTICATE`
+  and POP3 `AUTH` with `SCRAM-SHA-256` (or `-PLUS`) accepted the account's own password for an account with a
+  second factor enrolled - whose own password is otherwise refused in every mail client, app passwords being
+  the only credential - and a password past `PasswordPolicyMaximumAgeDays`, and never asked the domain's or the
+  account's country policy: SCRAM proves the password without reaching `PasswordValidator` or
+  `AccountLogon::Logon`, where those rules are. So a phished password of an account with TOTP could submit mail
+  as it and read its mailbox. The second-factor and expiry gaps were in 6.3.3 as well. Each is now a forced
+  failure of the exchange, answered as a wrong password is; the country refusal is charged to nothing, as it is
+  on the other paths. The `OnClientValidatePassword` script hook is still not consulted for SCRAM, which has no
+  password to give it ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md),
+  [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md)).
+- **Fixed: a sign-in under a domain alias escaped the domain's country policy.** The policy was looked up under
+  the domain the client typed, and an alias domain has no policy of its own, so `bob@alias.example` was allowed
+  from a refused country and then signed in as `bob@example.com`. The name is now resolved as the sign-in resolves
+  it - domain aliases, then the default domain - before the policy is read
+  ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md)).
+- **Fixed: a token, a certificate or a Kerberos ticket signed in past the country policy.** `XOAUTH2`,
+  `OAUTHBEARER`, `EXTERNAL` and `GSSAPI` on SMTP, IMAP and POP3 never asked the domain's or the account's
+  country policy, which the password paths and the REST API ask, so a stolen bearer token signed in from a
+  refused country. They now ask it where they ask the compromise hold (`AccountLogon::RefusedByHold`), and the
+  refusal is charged to nothing, as a password's is ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md)).
+- **Fixed: an SMTP session signed in without a password sent only one message.** At each `MAIL FROM` after the
+  first the session's credentials are checked again, and the check validated the password the session kept -
+  which only `PLAIN` and `LOGIN` keep. After `SCRAM-SHA-256`, `XOAUTH2`, `OAUTHBEARER`, `EXTERNAL` or `GSSAPI` the
+  second message was refused with 550 "Login credentials no longer valid" and the session signed out. Such a
+  session now has its account checked again instead: still active in an active domain, not a room, not held for
+  review, not refused by its country policy, and for SCRAM not since given a second factor or an expired password.
+- **Fixed: the IMAP master user opened a mailbox past the mailbox's country policy.** `AUTHENTICATE PLAIN` with an
+  authorisation identity asked the country policy, and the compromise hold, of the master user only, so a master
+  user in a domain with no policy signed in as a mailbox from a country the mailbox's domain refuses. The account
+  signed into is now asked too, after the password, and the refusal is charged to nothing
+  ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md)).
+- **Fixed: a sign-in under a domain alias was not the account to SMTP's own controls.** After signing in as
+  `bob@alias.example`, the send-stop of the quota policy, the sending quota (counted under a second name), restricted
+  delivery, the takeover check, message recall, the address book and the message-size limit looked the account up
+  by the name as typed, with the default domain alone, and found nothing - so none of them held. They now use the
+  account the sign-in resolved to.
+- **Fixed: a domain's maximum message size was lifted by `MAIL FROM:<>`.** A signed-in account was held to its own
+  size limit whatever `MAIL FROM` named, but not to its domain's, which was read from the envelope sender's domain;
+  naming no sender or another domain's address took the server's instead. The signed-in account's whole answer -
+  its own value, else its domain's - now holds as well ([SettingLevels.md](hmailserver/docs/SettingLevels.md)).
+- **Fixed: the backup-MX recipient callout's ceiling was per recipient domain.** A policy for a pattern such as
+  `*.partner.example` gave every subdomain a sender named ten verifications a minute of its own, all to one
+  primary, each holding a thread of the SMTP service for up to the timeout, and every address asked about stayed
+  in memory. The ceiling is now the policy's and the primary's, at most 8 verifications run at once (2 to one
+  server), and the remembered answers are swept and capped at 10,000
+  ([RemoteDomains.md](hmailserver/docs/RemoteDomains.md)).
+- **Fixed: one connection could put any correspondent on the server's block list.** A message to a spam trap
+  blocked its envelope sender server-wide for `SpamTrapBlockDays` (30), whatever that sender was, and the
+  envelope is whatever the client types: anybody who knew a trap address - published to be found - could have a
+  bank's or a supplier's real mail held or marked for every mailbox. The sender is now blocked only when its
+  domain's SPF passes for the connecting address; the address is banned and the hit recorded as before
+  ([SpamTraps.md](hmailserver/docs/SpamTraps.md)).
+- **Fixed: the send API was not journalled.** A message an application sent through `POST /api/v1/send` reached
+  neither of the two points where journal rules are evaluated, so a domain or account under a compliance rule
+  had its application mail, and a journalled recipient's copy of it, missing from the archive. It is evaluated
+  now, the key's sender counting as the sender when it is an account here. Journaling.md said mail that arrives
+  was covered whichever way it arrived; it now says what is not covered in either direction: everything the
+  server queues itself - the webmail, a send-later draft, an event script, a rule's forward, copy or reply, an
+  automatic reply, a Sieve redirect, an account's forwarding, a delivery report
+  ([Journaling.md](hmailserver/docs/Journaling.md)).
 
 ### Encryption
 

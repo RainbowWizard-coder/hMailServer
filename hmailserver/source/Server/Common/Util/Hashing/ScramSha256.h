@@ -43,6 +43,12 @@ namespace HM
       std::shared_ptr<const Account> GetAccount() const { return account_; }
       void SetAccount(std::shared_ptr<const Account> account) { account_ = account; }
 
+      // Set when the exchange was made a forced failure by a refusal that is
+      // charged to nothing - the country policy (AccountLogon::RefusedForScram) -
+      // so that the failure at its end is not reported to the auto-ban either.
+      bool GetRefusalChargesNothing() const { return refusal_charges_nothing_; }
+      void SetRefusalChargesNothing(bool value) { refusal_charges_nothing_ = value; }
+
       // The SCRAM authentication identity, retained for failed-login (auto-ban)
       // accounting after the exchange has moved past the client-first message.
       AnsiString GetUsername() const { return username_; }
@@ -101,6 +107,7 @@ namespace HM
       bool real_account_;   // false => unknown user / non-PBKDF2: always fail at the end
       bool plus_mode_;             // true => SCRAM-SHA-256-PLUS (channel binding required)
       bool server_supports_cbind_; // true => server offered PLUS on this connection
+      bool refusal_charges_nothing_; // see SetRefusalChargesNothing
       std::vector<unsigned char> channel_binding_data_; // expected tls-server-end-point
       std::vector<unsigned char> salted_password_;
       AnsiString gs2_header_;

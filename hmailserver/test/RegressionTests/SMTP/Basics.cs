@@ -133,6 +133,46 @@ namespace RegressionTests.SMTP
 
       [Test]
       [Category("SMTP")]
+      [Description("A session signed in over SCRAM-SHA-256 sends more than one message: the MAIL FROM after the first " +
+                   "re-checks the account, and must not try to validate a password SCRAM never gave the session.")]
+      public void TestScramSha256SessionSendsASecondMessage()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "scramtwice@example.test", "SeC-r3t Pass!");
+
+         var sock = new TcpConnection();
+         sock.Connect(25);
+         Assert.IsTrue(sock.Receive().StartsWith("220"));
+         sock.Send("EHLO test.com\r\n");
+         Assert.IsTrue(sock.Receive().StartsWith("250"));
+
+         string final = SmtpScramTestClient.Authenticate(sock, account.Address, "SeC-r3t Pass!");
+         Assert.IsTrue(final.StartsWith("235"), "SCRAM-SHA-256 authentication should succeed (235). Got: " + final);
+
+         for (int message = 1; message <= 2; message++)
+         {
+            // Until 26 September 2026 the second MAIL FROM was answered 550 "Login
+            // credentials no longer valid" and the session signed out: the
+            // re-check validated password_, which only PLAIN and LOGIN set.
+            sock.Send("MAIL FROM:<" + account.Address + ">\r\n");
+            string mailFrom = sock.Receive();
+            Assert.IsTrue(mailFrom.StartsWith("250"), "MAIL FROM of message " + message + " was refused. Got: " + mailFrom);
+
+            sock.Send("RCPT TO:<" + account.Address + ">\r\n");
+            Assert.IsTrue(sock.Receive().StartsWith("250"));
+            sock.Send("DATA\r\n");
+            Assert.IsTrue(sock.Receive().StartsWith("354"));
+            sock.Send("Subject: SCRAM message " + message + "\r\n\r\nBody " + message + "\r\n.\r\n");
+            Assert.IsTrue(sock.Receive().StartsWith("250"), "Message " + message + " was not accepted.");
+         }
+
+         sock.Send("QUIT\r\n");
+         sock.Disconnect();
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "SeC-r3t Pass!", 2);
+      }
+
+      [Test]
+      [Category("SMTP")]
       [Description("RFC 5802/7677 (SCRAM-SHA-256): a wrong password yields an invalid client proof and " +
                    "the server rejects the exchange without authenticating.")]
       public void TestScramSha256WrongPasswordFails()

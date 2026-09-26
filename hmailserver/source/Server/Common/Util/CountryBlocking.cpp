@@ -10,6 +10,9 @@
 #include "Time.h"
 #include "../Application/Configuration.h"
 #include "../Application/EffectiveSetting.h"
+#include "../Application/DefaultDomain.h"
+#include "../Application/ObjectCache.h"
+#include "../BO/DomainAliases.h"
 #include "../BO/Domain.h"
 #include "../BO/Account.h"
 #include "../Cache/CacheContainer.h"
@@ -551,14 +554,35 @@ namespace HM
    bool
    CountryBlocking::IsLogonAllowed(const String &username, const IPAddress &address)
    {
-      String domainName = username;
-      const int at = domainName.Find(_T("@"));
+      // The name as the sign-in will resolve it: domain aliases first, then the
+      // default domain, exactly as PasswordValidator does before it looks the
+      // account up (and AccountLockout::NormalizeKey_ before it counts). Read
+      // as the client typed it, bob@alias-domain found no hm_domains row, was
+      // allowed, and then signed in as bob@real-domain, whose policy was never
+      // asked.
+      String canonical = username;
+      canonical.Trim();
 
-      if (at >= 0)
-         domainName = domainName.Mid(at + 1);
-      else
-         domainName = Configuration::Instance()->GetDefaultDomain();
+      try
+      {
+         std::shared_ptr<DomainAliases> aliases = ObjectCache::Instance()->GetDomainAliases();
+         if (aliases)
+            canonical = aliases->ApplyAliasesOnAddress(canonical);
+      }
+      catch (...)
+      {
+         // The alias collection could not be read. The name as typed is then
+         // what is judged, which is what this function always judged.
+      }
 
+      canonical = DefaultDomain::ApplyDefaultDomain(canonical);
+
+      const int at = canonical.ReverseFind(_T('@'));
+
+      if (at < 0)
+         return true;
+
+      String domainName = canonical.Mid(at + 1);
       domainName.Trim();
 
       if (domainName.IsEmpty())
@@ -572,13 +596,9 @@ namespace HM
       // The policy is a setting with levels (Application/EffectiveSetting.h):
       // the account's own where an administrator gave it one - an empty one
       // judging nothing for that account - and its domain's otherwise. The
-      // account is the one the name signs in as, with the default domain
-      // added to a bare name as the sign-in adds it.
-      std::shared_ptr<const Account> account;
-      if (at >= 0)
-         account = CacheContainer::Instance()->GetAccount(username);
-      else
-         account = CacheContainer::Instance()->GetAccount(username + _T("@") + domainName);
+      // account is the one the name signs in as, resolved above as the
+      // sign-in resolves it.
+      std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(canonical);
 
       Policy policy;
       String error;

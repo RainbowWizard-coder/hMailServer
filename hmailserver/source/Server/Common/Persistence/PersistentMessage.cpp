@@ -1049,8 +1049,10 @@ namespace HM
       // to tell queue to try delivering again
       sUpdateSQL += " , messagetype = 1 ";
 
+      // A counted try is a new attempt: the next pass is not a repeat of the
+      // last one, so its rules may forward and copy again (Message::FlagRepeatsAttempt).
       if (bUpdateNoOfTries)
-         sUpdateSQL += " , messagecurnooftries = messagecurnooftries + 1 ";
+         sUpdateSQL += " , messagecurnooftries = messagecurnooftries + 1 , messageflags = messageflags & ~ @REPEATS ";
    
       // To prevent already delivered messages from being updated
       // () needed around messagetypes to fix order of evaluation
@@ -1060,6 +1062,8 @@ namespace HM
       sUpdateSQL += sWhereClause;
 
       SQLCommand command(sUpdateSQL);
+      if (bUpdateNoOfTries)
+         command.AddParameter("@REPEATS", (int) Message::FlagRepeatsAttempt);
       command.AddParameter("@MESSAGEID", iMessageID);
 
       bool bResult = Application::Instance()->GetDBManager()->Execute(command);
@@ -1070,7 +1074,7 @@ namespace HM
    }
 
    bool
-   PersistentMessage::SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes)
+   PersistentMessage::SetNextTryTimeUncounted(__int64 iMessageID, long lNoOfMinutes, bool repeatsAttempt)
    {
       // As SetNextTryTime without the counter, plus the first-pass mark in the
       // same statement: the two must land together or a restart between them
@@ -1081,7 +1085,7 @@ namespace HM
       sUpdateSQL += _T("where messageid = @MESSAGEID and (messagetype = 1 or messagetype = 3)");
 
       SQLCommand command(sUpdateSQL);
-      command.AddParameter("@FLAGS", (int) Message::FlagFirstPassDone);
+      command.AddParameter("@FLAGS", (int) (repeatsAttempt ? (Message::FlagFirstPassDone | Message::FlagRepeatsAttempt) : Message::FlagFirstPassDone));
       command.AddParameter("@MESSAGEID", iMessageID);
 
       return Application::Instance()->GetDBManager()->Execute(command);
