@@ -19,9 +19,10 @@
 # That is the project's GitLab container registry. The image appears there from
 # the first release GitLab CI makes once the owner turns its publishing on (the
 # project variable HM_PUBLISH_IMAGE, set after the project's move to the group
-# hmailserver; 6.3.4 was built by hand and has none): a v* tag's container-image job builds this file from the release's
-# .deb and pushes :<version>, and for a release without a suffix :<major>.<minor>
-# and :latest, signed by digest with Sigstore as the release's pipeline
+# hmailserver; a release built by hand has none): a v* tag's container-image job
+# builds this file from the release's .deb and pushes :<version>, and for a release
+# without a suffix :<major>.<minor> and :latest, signed by digest with Sigstore as
+# the release's pipeline
 # (.gitlab/ci/container-image.yml). Until then, build it yourself (docker build,
 # with the .deb in packages/) and run your own tag. The images published before
 # GitHub suspended the project's account on 18 September 2026 were on ghcr.io,

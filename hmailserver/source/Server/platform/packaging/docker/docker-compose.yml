@@ -49,9 +49,9 @@ services:
     # the packaging check refuses one for that reason. The project's GitLab
     # container registry has the image from the first release GitLab CI
     # makes once the owner turns its publishing on, after the project's
-    # move to the group hmailserver (6.3.4 has none), signed with Sigstore; until
-    # then, build one from the Dockerfile beside this file and name your own
-    # tag here.
+    # move to the group hmailserver (the releases built by hand have none),
+    # signed with Sigstore; until then, build one from the Dockerfile beside
+    # this file and name your own tag here.
     image: registry.gitlab.com/progressiverobot/hmailserver:latest
     restart: unless-stopped
     depends_on:
