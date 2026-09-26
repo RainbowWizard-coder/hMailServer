@@ -90,6 +90,11 @@ namespace hMailServer
          return new Domain { Active = true, Unsaved = true };
       }
 
+      public Domain get_ItemByDBID(long id)
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoDomainIds);
+      }
+
       public void DeleteByDBID(long id)
       {
          NotOnThisServer.Ignore(NotOnThisServer.NoDomainIds);

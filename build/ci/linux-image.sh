@@ -126,8 +126,10 @@ if [ "$push" = 1 ]; then
     destinations="$destinations --destination $repository:$t"
   done
   echo "pushing to: $(echo "$destinations" | sed 's/ --destination / /g')"
+  # $destinations is "--destination <image>:<tag>" per tag, each tag held to
+  # [A-Za-z0-9_.-] above, split on purpose: kaniko's busybox sh has no arrays.
   # shellcheck disable=SC2086
-  set -- $destinations --digest-file "$out/digest.txt" --push-retry 3
+  set -- $destinations --digest-file "$out/digest.txt" --push-retry 3 # nosemgrep
 else
   set -- --no-push --destination "hmailserver:$version"
 fi
@@ -139,8 +141,9 @@ cp "$deb" "$context/packages/"
 
 "$executor" version 2> /dev/null || true
 # HM_KANIKO_FLAGS is for a test against a registry of one's own (--insecure); the jobs
-# never set it.
+# never set it. It is split into words on purpose: busybox sh has no arrays.
 # shellcheck disable=SC2086
+# nosemgrep
 "$executor" \
   --context "dir://$PWD/$context" \
   --dockerfile "$PWD/$context/Dockerfile" \

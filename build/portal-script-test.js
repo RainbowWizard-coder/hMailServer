@@ -3944,15 +3944,19 @@ async function main() {
    await flush();
    const zoneSelect = document.getElementById('pref-timezone');
    check('the settings offer the zones the browser knows', zoneSelect.children.length > 20 && Array.from(zoneSelect.children).some((o) => o.value === 'Asia/Tokyo'), String(zoneSelect.children.length));
-   zoneSelect.value = 'Asia/Tokyo';
+   // A zone whose clock differs from the one the run is in: Tokyo, or Sao Paulo when the run is at Tokyo's offset.
+   const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+   const sentAt = new Date('2026-09-08 09:00');
+   const zoneThere = sentAt.toLocaleString('en', Object.assign({ timeZone: 'Asia/Tokyo' }, dateOptions)) === sentAt.toLocaleString('en', dateOptions) ? 'America/Sao_Paulo' : 'Asia/Tokyo';
+   zoneSelect.value = zoneThere;
    const beforeZone = requests.length;
    document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
    await flush();
    const zonePut = since(beforeZone).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/preferences')[0];
-   check('the zone is kept with the account', !!zonePut && JSON.parse(zonePut.body).timezone === 'Asia/Tokyo', zonePut ? zonePut.body : 'no PUT');
+   check('the zone is kept with the account', !!zonePut && JSON.parse(zonePut.body).timezone === zoneThere, zonePut ? zonePut.body : 'no PUT');
    location.hash = '#/m/102';
    await flush();
-   const expectedThere = new Date('2026-09-08 09:00').toLocaleString('en', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' });
+   const expectedThere = sentAt.toLocaleString('en', Object.assign({ timeZone: zoneThere }, dateOptions));
    check('and the open message is dated in that zone', document.getElementById('message-date').textContent === expectedThere && document.getElementById('message-date').textContent !== dateHere,
       document.getElementById('message-date').textContent + ' vs ' + expectedThere + ' (was ' + dateHere + ')');
    location.hash = '#/settings';
@@ -4466,7 +4470,10 @@ async function main() {
    // ---- resize in the week view: the bottom edge dragged an hour down
    viewButton('week').dispatchEvent(makeEvent('click'));
    await flush();
-   const handle = findAll(calSection, (n) => hasClass(n, 'cal-ev-resize'))[0];
+   // The standup's handle, not the first one: in UTC, west of it and more than ten hours east of it
+   // the week also holds the delegated calendar's review and its neighbour, on the Monday before the
+   // standup's Tuesday, and their handles come first.
+   const handle = findAll(calSection, (n) => hasClass(n, 'cal-ev-resize') && n.parentNode.textContent.indexOf('Standup') >= 0)[0];
    check('a writable block has a resize handle', !!handle);
    const beforeResize = requests.length;
    handle.dispatchEvent(makeEvent('mousedown', { clientY: 100, preventDefault() {}, stopPropagation() {} }));
@@ -4474,7 +4481,9 @@ async function main() {
    document.dispatchEvent(makeEvent('mouseup', { clientY: 148 }));
    await flush();
    const resized = bodyOf(beforeResize, 'PUT', '/api/v1/me/calendar/events/10');
-   check('releasing it an hour lower PUTs the end an hour later, for this occurrence', !!resized && resized.end === resized.start.slice(0, 11) + wall(new Date(calWall.end.getTime() + 3600000)) && resized.instance === '20260921T090000Z', JSON.stringify(resized) + ' expected ' + wall(new Date(calWall.end.getTime() + 3600000)));
+   // The day of the new end in the reader's zone too: an hour later can be past midnight there.
+   const wallStamp = (d) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).format(d) + 'T' + wall(d);
+   check('releasing it an hour lower PUTs the end an hour later, for this occurrence', !!resized && resized.end === wallStamp(new Date(calWall.end.getTime() + 3600000)) && resized.instance === '20260921T090000Z', JSON.stringify(resized) + ' expected ' + wallStamp(new Date(calWall.end.getTime() + 3600000)));
    viewButton('month').dispatchEvent(makeEvent('click'));
    await flush();
 

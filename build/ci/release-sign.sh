@@ -109,8 +109,10 @@ for file in "$out"/*; do
   name=$(basename "$file")
   echo ""
   echo "== $name  $(sha256sum "$file" | cut -d' ' -f1)"
+  # $sign_flags and $verify_flags are the flags set above, split on purpose: the
+  # cosign image's busybox sh has no arrays.
   # shellcheck disable=SC2086
-  cosign sign-blob $sign_flags --bundle "$file.cosign.bundle" "$file" > /dev/null
+  cosign sign-blob $sign_flags --bundle "$file.cosign.bundle" "$file" > /dev/null # nosemgrep
   bundle="$file.cosign.bundle"
   [ -s "$bundle" ] || fail "cosign wrote no bundle for $name"
 
@@ -124,6 +126,7 @@ for file in "$out"/*; do
   grep -Eq '"inclusionPromise"|"inclusionProof"' "$bundle" || fail "$name.cosign.bundle carries neither a signed entry timestamp nor an inclusion proof"
 
   # shellcheck disable=SC2086
+  # nosemgrep
   cosign verify-blob $verify_flags --bundle "$bundle" \
     --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$file" > /dev/null 2>&1 \
     || fail "$name does not verify as signed by $identity"

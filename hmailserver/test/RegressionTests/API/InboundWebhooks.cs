@@ -794,6 +794,14 @@ namespace RegressionTests.API
             StringAssert.Contains("control character", control.body, url + ": " + control.body);
          }
 
+         // A character outside ASCII has no one spelling in a request line, and is
+         // refused on every platform: read as a signed char it was refused on Linux
+         // as a control character, and passed on Windows.
+         (int status, string body) accented = Http("POST", RoutesPath,
+            "{\"address\":\"a@" + _domainName + "\",\"url\":\"" + EndpointUrl + "/caf\u00e9\",\"secret\":\"" + Secret + "\"}");
+         Assert.AreEqual(400, accented.status, accented.body);
+         StringAssert.Contains("printable ASCII", accented.body);
+
          // No more than the 80 MB the message parser takes.
          (int status, string body) tooLarge = Http("POST", RoutesPath,
             "{\"address\":\"a@" + _domainName + "\",\"url\":\"" + EndpointUrl + "\",\"secret\":\"" + Secret + "\",\"max_size_kb\":81921}");

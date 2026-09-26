@@ -2407,12 +2407,12 @@ create table hm_bouncecounts
 	bcpolicy int not null,
 	bcother int not null,
 	bcconsecutivehard int not null,
-	bccomplaints int not null,
+	bccomplaints int not null default 0,
 	bclaststatus nvarchar(16) not null,
 	bclastcategory int not null,
 	bclastbounce nvarchar(32) not null,
 	bclastdelivered nvarchar(32) not null,
-	bclastcomplaint nvarchar(32) not null
+	bclastcomplaint nvarchar(32) not null default ''
 )
 
 ALTER TABLE hm_bouncecounts ADD CONSTRAINT hm_bouncecounts_pk PRIMARY KEY NONCLUSTERED (bcid)

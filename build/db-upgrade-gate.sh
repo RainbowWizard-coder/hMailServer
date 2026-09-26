@@ -5,10 +5,11 @@
 
 # The schema-upgrade gate: prove that a database at schema 6029 holding orphaned
 # rows upgrades to this build's schema through the real upgrade scripts, on a real
-# backend. Nothing in CI executed an upgrade before 11 September 2026, which is how
-# the 6029 -> 6030 step shipped sweeping children before parents (issue #93's
-# report led to it). This runs on the Ubuntu VM and in GitLab CI's
-# linux-db-upgrade-pgsql and linux-db-upgrade-mysql jobs (build/ci/linux-db-upgrade.sh).
+# backend, and that what it upgrades to is the schema a new installation gets.
+# Nothing in CI executed an upgrade before 11 September 2026, which is how the
+# 6029 -> 6030 step shipped sweeping children before parents (issue #93's report
+# led to it). This runs on the Ubuntu VM and in GitLab CI's linux-db-upgrade-pgsql
+# and linux-db-upgrade-mysql jobs (build/ci/linux-db-upgrade.sh).
 #
 #   db-upgrade-gate.sh pgsql|mysql
 #
@@ -17,12 +18,40 @@
 #   HM_SCRIPTS      the DBScripts directory of the tree under test
 #   DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME
 #
-# Steps: create the database at this build's schema with --create-database, wind
-# it back to 6029 (drop the seventeen constraints the 6030 step adds and the column
-# the 6031 step adds, set the version row), seed the orphans, run
-# --upgrade-database, and verify: exit 0, version = REQUIRED, seventeen foreign
-# keys present. The rewind exists because the repository's history was rewritten
-# and no create script older than the current one survives in it.
+# Steps:
+#   1. A database at schema 6029, made by the create script of 6029 itself:
+#      build/db-upgrade-6029/CreateTables<dialect>.sql, the files
+#      hmailserver/source/DBScripts/CreateTables{MYSQL,PGSQL}.sql of commit
+#      6eeb54bdf (5 September 2026), the last whose create scripts made 6029,
+#      byte for byte (git blobs 72ca64c4 and 4aff719a; .gitattributes keeps
+#      them unconverted). The database is made as that version's server made
+#      it - utf8 on MySQL, UTF8 on PostgreSQL - and the script is run by the
+#      backend's own client.
+#   2. The orphans: a row with an absent parent in each of the seventeen tables
+#      the 6030 step constrains, and the chains that fail only in the wrong
+#      order (build/seed-orphans.py, from that same script).
+#   3. --upgrade-database, exactly as the installer's post-install step runs it.
+#   4. A second database made by --create-database at this build's schema, the
+#      way a new installation is made.
+#   5. The verdict: the upgrade exited 0, the version is REQUIRED_DB_VERSION,
+#      and the upgraded database has the new one's schema - every table, every
+#      column with its type, nullability and default (and on MySQL its
+#      collation), every index with its columns, every constraint and foreign
+#      key. A difference fails the gate: the upgraded server would run on a
+#      schema nothing else tests.
+#
+# Until 26 September 2026 step 1 made the database at this build's schema and
+# wound it back to 6029, dropping what it read each later step's script to add.
+# The comment above it said no older create script survived; they do, under
+# the MYSQL spelling of the name that commit a8ddb65ba changed. The rewind went
+# stale three times, silently until an upgrade stopped on it: indexes a later
+# step made on an old table (6089), a unique index MariaDB would not let a
+# column go under (6086), and the second column of a step that adds two in one
+# ALTER TABLE (6101), on the first GitLab pipeline. It also never undid a
+# column's widening (6039, 6072, 6103) or MySQL's utf8 (6102), so those steps
+# ran on columns and tables already in their final shape. A real 6029 database
+# has none of those faults, and step 5 checks the whole chain against the
+# create script, which the rewind could not.
 set -euo pipefail
 
 backend="${1:-}"
@@ -32,8 +61,10 @@ HM_BIN="${HM_BIN:-hmailserver}"
 HM_SCRIPTS="${HM_SCRIPTS:-$(cd "$(dirname "$0")/.." && pwd)/hmailserver/source/DBScripts}"
 DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_USER="${DB_USER:-hmailserver}"
-DB_PASSWORD="${DB_PASSWORD:-hmtest}"
+# Empty is a password too (the CI job's MariaDB root has none): hmtest only when unset.
+DB_PASSWORD="${DB_PASSWORD-hmtest}"
 DB_NAME="${DB_NAME:-hmupgrade}"
+fresh_name="${DB_NAME}_fresh"
 here="$(cd "$(dirname "$0")" && pwd)"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -41,38 +72,89 @@ trap 'rm -rf "$work"' EXIT
 if [ "$backend" = pgsql ]; then
    DB_PORT="${DB_PORT:-5432}"
    ini_type=PostgreSQL
-   create_script="$HM_SCRIPTS/CreateTablesPGSQL.sql"
-   sql() { PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -q -t -A "$@"; }
-   admin_sql() { PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -q -t -A "$@"; }
-   query() { sql -c "$1" </dev/null; }
-   run_file() { sql -f "$1" </dev/null >/dev/null; }
-   drop_fk() { echo "alter table $1 drop constraint if exists $2;"; }
-   drop_index() { echo "drop index if exists $2;"; }
-   # PostgreSQL drops a column's indexes with it.
-   drop_column() { echo "alter table $1 drop column $2;"; }
+   base_script="$here/db-upgrade-6029/CreateTablesPGSQL.sql"
+   # sql_in <database> <psql arguments>
+   sql_in() { local db="$1"; shift; PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$db" -q -t -A "$@"; }
+   query_in() { sql_in "$1" -c "$2" </dev/null; }
+   run_file() { sql_in "$DB_NAME" -f "$1" </dev/null >/dev/null; }
+   drop_database() { query_in postgres "drop database if exists $1;" >/dev/null; }
+   create_6029() { query_in postgres "create database \"$1\" ENCODING = 'UTF8';" >/dev/null; }
+   this_schema="'public'"
    count_fks="select count(*) from information_schema.table_constraints where constraint_type = 'FOREIGN KEY' and table_schema = 'public';"
+   schema_queries=(
+      "select concat_ws(' ', 'table', table_name) from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE';"
+      "select concat_ws(' ', 'column', table_name, column_name, data_type, coalesce(character_maximum_length::text, '-'), case when is_nullable = 'YES' then 'null' else 'not-null' end, 'default=' || coalesce(column_default, '(none)')) from information_schema.columns where table_schema = 'public';"
+      "select concat_ws(' ', 'index', tablename, indexname, indexdef) from pg_indexes where schemaname = 'public';"
+      "select concat_ws(' ', 'constraint', conrelid::regclass::text, conname, pg_get_constraintdef(oid)) from pg_constraint where connamespace = 'public'::regnamespace;"
+      "select concat_ws(' ', 'function', proname, pg_get_function_identity_arguments(oid)) from pg_proc where pronamespace = 'public'::regnamespace;"
+   )
 else
    DB_PORT="${DB_PORT:-3306}"
    ini_type=MySQL
-   create_script="$HM_SCRIPTS/CreateTablesMySQL.sql"
-   sql() { mariadb --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password="$DB_PASSWORD" --database="$DB_NAME" --batch --skip-column-names "$@"; }
-   admin_sql() { mariadb --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password="$DB_PASSWORD" --batch --skip-column-names "$@"; }
-   query() { sql -e "$1" </dev/null; }
-   run_file() { sql < "$1"; }
-   drop_fk() { echo "alter table $1 drop foreign key if exists $2;"; }
-   drop_index() { echo "drop index if exists $2 on $1;"; }
-   # MariaDB will not drop a column a unique index still names with another
-   # column (ERROR 1072: sharegroupid, 6086), whatever the step called the index,
-   # so every index on the column goes first, read from the database as it is.
-   drop_column() {
-      local index
-      for index in $(query "select distinct index_name from information_schema.statistics where table_schema = database() and table_name = '$1' and column_name = '$2' and index_name <> 'PRIMARY';"); do
-         drop_index "$1" "$index"
-      done
-      echo "alter table $1 drop column $2;"
+   base_script="$here/db-upgrade-6029/CreateTablesMySQL.sql"
+   # MariaDB 11.4's client verifies the server's certificate, and the one a new
+   # server makes for itself can be proved only by a password: with none, the
+   # connection is still TLS, and the certificate is not checked.
+   verify=()
+   [ -n "$DB_PASSWORD" ] || verify=(--skip-ssl-verify-server-cert)
+   # sql_in <database, or "" for none> <mariadb arguments>
+   sql_in() {
+      local database=()
+      [ -z "$1" ] || database=(--database="$1")
+      shift
+      mariadb --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USER" --password="$DB_PASSWORD" "${verify[@]}" "${database[@]}" --batch --skip-column-names "$@"
    }
+   query_in() { sql_in "$1" -e "$2" </dev/null; }
+   run_file() { sql_in "$DB_NAME" < "$1"; }
+   drop_database() { query_in "" "drop database if exists $1;"; }
+   # As SQLStatement.cpp of 6029 made it.
+   create_6029() { query_in "" "create database $1 character set 'utf8';"; }
+   this_schema="database()"
    count_fks="select count(*) from information_schema.referential_constraints where constraint_schema = database();"
+   schema_queries=(
+      "select concat_ws(' ', 'table', table_name, engine, table_collation) from information_schema.tables where table_schema = database() and table_type = 'BASE TABLE';"
+      "select concat_ws(' ', 'column', table_name, column_name, column_type, if(is_nullable = 'YES', 'null', 'not-null'), concat('default=', coalesce(column_default, '(none)')), coalesce(collation_name, '-'), extra) from information_schema.columns where table_schema = database();"
+      "select concat_ws(' ', 'index', table_name, index_name, if(non_unique = 0, 'unique', 'non-unique'), group_concat(concat(column_name, if(sub_part is null, '', concat('(', sub_part, ')'))) order by seq_in_index separator ',')) from information_schema.statistics where table_schema = database() group by table_name, index_name, non_unique;"
+      "select concat_ws(' ', 'foreign-key', k.table_name, k.constraint_name, group_concat(k.column_name order by k.ordinal_position separator ','), '->', k.referenced_table_name, group_concat(k.referenced_column_name order by k.ordinal_position separator ','), concat('update=', r.update_rule), concat('delete=', r.delete_rule)) from information_schema.key_column_usage k join information_schema.referential_constraints r on r.constraint_schema = k.constraint_schema and r.constraint_name = k.constraint_name and r.table_name = k.table_name where k.table_schema = database() and k.referenced_table_name is not null group by k.table_name, k.constraint_name, k.referenced_table_name, r.update_rule, r.delete_rule;"
+      "select concat_ws(' ', 'check', table_name, constraint_name, check_clause) from information_schema.check_constraints where constraint_schema = database();"
+   )
 fi
+query() { query_in "$DB_NAME" "$1"; }
+
+# Every table, column, index and constraint of a database, one per line, sorted.
+schema_of() {
+   local q
+   for q in "${schema_queries[@]}"; do
+      query_in "$1" "$q"
+   done | LC_ALL=C sort
+}
+
+# An installation's directories and hMailServer.ini, for the database named.
+make_installation() {
+   local dir="$1" db="$2"
+   mkdir -p "$dir/program" "$dir/db" "$dir/data" "$dir/logs" "$dir/temp" "$dir/events"
+   cp -r "$HM_SCRIPTS" "$dir/program/DBScripts"
+   cat > "$dir/program/hMailServer.ini" <<INI
+[Directories]
+ProgramFolder=$dir/program
+DatabaseFolder=$dir/db
+DataFolder=$dir/data
+LogFolder=$dir/logs
+TempFolder=$dir/temp
+EventFolder=$dir/events
+
+[Database]
+Type=$ini_type
+Server=$DB_HOST
+Port=$DB_PORT
+Username=$DB_USER
+Password=$DB_PASSWORD
+Database=$db
+Passwordencryption=0
+
+[Settings]
+INI
+}
 
 # The schema this build needs: from Constants.h when the scripts are the tree's,
 # else from the database the binary creates, which is that schema by definition.
@@ -82,103 +164,112 @@ if [ -f "$constants" ]; then
 else
    required=""
 fi
+[ -f "$base_script" ] || { echo "no $base_script: the 6029 create script this gate starts from is missing" >&2; exit 1; }
 echo "== gate: $backend, binary $("$HM_BIN" --version </dev/null 2>/dev/null | head -1), scripts in $HM_SCRIPTS"
 
-# 1. A fresh database at this build's schema, made the way the installer makes it.
-echo "-- dropping and creating $DB_NAME"
-if [ "$backend" = pgsql ]; then
-   admin_sql -c "drop database if exists $DB_NAME;" >/dev/null
-else
-   admin_sql -e "drop database if exists $DB_NAME;"
-fi
-cat > "$work/hMailServer.ini" <<INI
-[Directories]
-ProgramFolder=$work/program
-DatabaseFolder=$work/db
-DataFolder=$work/data
-LogFolder=$work/logs
-TempFolder=$work/temp
-EventFolder=$work/events
-
-[Database]
-Type=$ini_type
-Server=$DB_HOST
-Port=$DB_PORT
-Username=$DB_USER
-Password=$DB_PASSWORD
-Database=$DB_NAME
-Passwordencryption=0
-
-[Settings]
-INI
-mkdir -p "$work/program" "$work/db" "$work/data" "$work/logs" "$work/temp" "$work/events"
-cp -r "$HM_SCRIPTS" "$work/program/DBScripts"
-cp "$work/hMailServer.ini" "$work/program/hMailServer.ini"
-"$HM_BIN" --config "$work/program/hMailServer.ini" --create-database </dev/null
+# 1. The 6029 database.
+echo "-- dropping $DB_NAME and $fresh_name, creating $DB_NAME at schema 6029 from ${base_script#"$here"/}"
+drop_database "$DB_NAME"
+drop_database "$fresh_name"
+create_6029 "$DB_NAME"
+run_file "$base_script"
 version=$(query "select value from hm_dbversion;")
-[ -n "$required" ] || required="$version"
-[ "$version" = "$required" ] || { echo "created database is at $version, expected $required" >&2; exit 1; }
-echo "-- created at schema $required"
-
-# 2. Wind it back to 6029: everything every step after it added, removed -
-#    read from the steps' own scripts, so a new step needs nothing here.
-#    Foreign keys first, then each step's indexes, columns and tables. The
-#    foreign keys the create script made are counted now, and expected back
-#    after the upgrade.
-echo "-- winding back to 6029"
-expected_fks=$(query "$count_fks")
-dialect=$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL )
-# The columns the rewind removes are kept in a list for the seeder: the create
-# script it reads has them, the 6029 database it seeds does not, and a column
-# that is NOT NULL with no default (a MySQL text column cannot have one) would
-# otherwise be named in an INSERT against a table that no longer has it.
-: > "$work/dropped-columns.txt"
-{
-   for ((v = required; v > 6029; v--)); do
-      script="$HM_SCRIPTS/Upgrade$((v - 1))to${v}${dialect}.sql"
-      [ -f "$script" ] || { echo "no $script" >&2; exit 1; }
-      (grep -ioE 'alter table \w+ add constraint \w+ foreign key' "$script" || true) \
-         | awk '{print tolower($3), tolower($6)}' | while read -r table name; do drop_fk "$table" "$name"; done
-   done
-   for ((v = required; v > 6029; v--)); do
-      script="$HM_SCRIPTS/Upgrade$((v - 1))to${v}${dialect}.sql"
-      # The indexes a step created, before its columns go: a later step's index on
-      # a table 6029 already had is still there after the columns and tables are
-      # gone, and the step that makes it again stops on "already exists"
-      # (idx_hm_messagetrace_queueid, 6089, found on 25 September 2026, the first
-      # run of this gate on GitLab CI's linix).
-      (grep -ioE 'create (unique )?index \w+ on \w+' "$script" || true) \
-         | awk '{print tolower($NF), tolower($(NF - 2))}' | while read -r table name; do drop_index "$table" "$name"; done
-      (grep -ioE 'alter table \w+ add (column )?\w+' "$script" || true) \
-         | awk '{ c = tolower($NF); if (c != "constraint" && c != "index" && c != "unique" && c != "primary") print tolower($3), c }' \
-         | tee -a "$work/dropped-columns.txt" \
-         | while read -r table column; do drop_column "$table" "$column"; done
-      (grep -ioE 'create table \w+' "$script" || true) \
-         | awk '{print tolower($3)}' | while read -r table; do echo "drop table if exists $table;"; done
-   done
-   echo "update hm_dbversion set value = 6029;"
-} > "$work/rewind.sql"
-run_file "$work/rewind.sql"
+[ "$version" = 6029 ] || { echo "the 6029 create script made a database at $version" >&2; exit 1; }
 fks=$(query "$count_fks")
-[ "$fks" = 0 ] || { echo "rewind left $fks foreign key(s)" >&2; exit 1; }
+[ "$fks" = 0 ] || { echo "a 6029 database has no foreign key, and this one has $fks" >&2; exit 1; }
+echo "   $(query "select count(*) from information_schema.tables where table_schema = $this_schema and table_type = 'BASE TABLE';") tables, schema 6029"
 
-# 3. The orphans.
+# 2. The orphans.
 echo "-- seeding orphaned rows"
-python3 "$here/seed-orphans.py" "$create_script" "$backend" "$work/dropped-columns.txt" > "$work/seed.sql"
+python3 "$here/seed-orphans.py" "$base_script" "$backend" > "$work/seed.sql"
 run_file "$work/seed.sql"
 echo "   $(grep -c '^insert' "$work/seed.sql") rows in $(grep -c '^insert' "$work/seed.sql") tables, every one with a parent that does not exist"
 
-# 4. The upgrade, exactly as the installer's post-install step runs it.
+# 3. The upgrade, exactly as the installer's post-install step runs it.
 echo "-- upgrading"
+make_installation "$work/upgraded" "$DB_NAME"
 set +e
-"$HM_BIN" --config "$work/program/hMailServer.ini" --upgrade-database </dev/null
+"$HM_BIN" --config "$work/upgraded/program/hMailServer.ini" --upgrade-database </dev/null
 rc=$?
 set -e
 version=$(query "select value from hm_dbversion;")
+
+# 4. A new installation's database, at this build's schema.
+echo "-- creating $fresh_name as a new installation makes it"
+make_installation "$work/fresh" "$fresh_name"
+"$HM_BIN" --config "$work/fresh/program/hMailServer.ini" --create-database </dev/null
+fresh_version=$(query_in "$fresh_name" "select value from hm_dbversion;")
+[ -n "$required" ] || required="$fresh_version"
+[ "$fresh_version" = "$required" ] || { echo "the new database is at $fresh_version, expected $required" >&2; exit 1; }
+
+# 5. The verdict.
 fks=$(query "$count_fks")
-echo "-- upgrade exit $rc; schema now $version; foreign keys $fks of $expected_fks"
+expected_fks=$(query_in "$fresh_name" "$count_fks")
+schema_of "$fresh_name" > "$work/schema-new.txt"
+schema_of "$DB_NAME" > "$work/schema-upgraded.txt"
+echo "-- upgrade exit $rc; schema now $version of $required; foreign keys $fks of $expected_fks;" \
+     "$(wc -l < "$work/schema-new.txt") schema objects in a new database"
+
+# Two things an upgraded database has that a new one does not, by design, and
+# nothing else:
+#  - the helper functions ScriptPrerequisites<dialect>.sql makes for the upgrade
+#    steps to call (hm_drop_column_objects on PostgreSQL), which --upgrade-database
+#    runs first and --create-database never does;
+#  - on MySQL, a column of the TEXT family one size wider: CONVERT TO CHARACTER
+#    SET, moving a table from utf8 (three bytes a character) to utf8mb4 (four),
+#    makes a TEXT a MEDIUMTEXT and a MEDIUMTEXT a LONGTEXT so that it still holds
+#    as many characters, and the 6102 step converts every table so. The wider
+#    column holds everything the new database's does. The same column narrower,
+#    or of any other type, is still a difference.
+prerequisites="$HM_SCRIPTS/ScriptPrerequisites$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL ).sql"
+if [ -f "$prerequisites" ]; then
+   while read -r helper; do
+      if ! grep -q "^function $helper " "$work/schema-new.txt"; then
+         sed -i "/^function $helper /d" "$work/schema-upgraded.txt"
+         echo "   the upgrade's helper function $helper, from ${prerequisites##*/}: not a difference"
+      fi
+   done < <(grep -ioE 'create (or replace )?function \w+' "$prerequisites" | awk '{print tolower($NF)}' | sort -u)
+fi
+if [ "$backend" = mysql ]; then
+   python3 - "$work/schema-new.txt" "$work/schema-upgraded.txt" <<'PY'
+import sys
+
+WIDER = {"text": "mediumtext", "mediumtext": "longtext"}
+new_path, upgraded_path = sys.argv[1], sys.argv[2]
+new = {}
+with open(new_path, encoding="utf-8") as f:
+    for line in f:
+        fields = line.rstrip("\n").split(" ")
+        if fields[0] == "column":
+            new[(fields[1], fields[2])] = fields
+lines, widened = [], []
+with open(upgraded_path, encoding="utf-8") as f:
+    for line in f:
+        fields = line.rstrip("\n").split(" ")
+        if fields[0] == "column":
+            was = new.get((fields[1], fields[2]))
+            if was and len(was) == len(fields) and WIDER.get(was[3]) == fields[3] and was[4:] == fields[4:]:
+                widened.append("%s.%s" % (fields[1], fields[2]))
+                fields[3] = was[3]
+        lines.append(" ".join(fields))
+with open(upgraded_path, "w", encoding="utf-8") as f:
+    f.write("\n".join(lines) + "\n")
+if widened:
+    print("   %d TEXT-family column(s) one size wider than a new database's, as utf8mb4's conversion leaves them: not a difference" % len(widened))
+PY
+fi
+failed=""
 if [ "$rc" -ne 0 ] || [ "$version" != "$required" ] || [ "$fks" != "$expected_fks" ]; then
-   echo "GATE FAILED: a 6029 database holding orphaned rows did not upgrade cleanly on $backend" >&2
+   failed=yes
+fi
+if ! diff -u --label "a new database ($fresh_name)" --label "the upgraded one ($DB_NAME)" \
+        "$work/schema-new.txt" "$work/schema-upgraded.txt" > "$work/schema.diff"; then
+   echo "The upgraded database's schema is not a new database's ($(grep -c '^-[^-]' "$work/schema.diff") line(s) only in the new, $(grep -c '^+[^+]' "$work/schema.diff") only in the upgraded):"
+   cat "$work/schema.diff"
+   failed=yes
+fi
+if [ -n "$failed" ]; then
+   echo "GATE FAILED: a 6029 database holding orphaned rows did not upgrade cleanly to a new database's schema on $backend" >&2
    exit 1
 fi
-echo "GATE PASSED on $backend"
+echo "GATE PASSED on $backend: 6029 to $required, and the same schema as a new database"

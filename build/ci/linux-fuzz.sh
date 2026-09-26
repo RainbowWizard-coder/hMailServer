@@ -151,7 +151,7 @@ build() {
     object="$build_dir/$(basename "$source" .cpp).o"
     echo "  compiling $source"
     if ! clang++ -c -fsanitize=fuzzer-no-link,address "${flags[@]}" "$source" -o "$object" > "$build_dir/compile.log" 2>&1; then
-      cat "$build_dir/compile.log" | head -n 60
+      head -n 60 "$build_dir/compile.log"
       cp "$build_dir/compile.log" "$out/compile.log"
       echo "BUILD FAILED: $source"
       return 2
@@ -162,7 +162,7 @@ build() {
     echo "  linking $target"
     if ! clang++ -fsanitize=fuzzer,address "${flags[@]}" "fuzz/harness/$target.cpp" "${objects[@]}" \
          -o "$bin_dir/$target" > "$build_dir/link.log" 2>&1; then
-      cat "$build_dir/link.log" | head -n 60
+      head -n 60 "$build_dir/link.log"
       cp "$build_dir/link.log" "$out/link.log"
       echo "BUILD FAILED: $target"
       return 2

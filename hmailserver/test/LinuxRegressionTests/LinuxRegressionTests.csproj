@@ -86,6 +86,8 @@
     <Compile Include="..\RegressionTests\Shared\SslVersions.cs" Link="Shared\SslVersions.cs" />
     <Compile Include="..\RegressionTests\Shared\StringExtensions.cs" Link="Shared\StringExtensions.cs" />
     <Compile Include="..\RegressionTests\Shared\TcpConnection.cs" Link="Shared\TcpConnection.cs" />
+    <Compile Include="..\RegressionTests\Shared\GeoIpFixture.cs" Link="Shared\GeoIpFixture.cs" />
+    <Compile Include="..\RegressionTests\SMTP\SmtpScramTestClient.cs" Link="SMTP\SmtpScramTestClient.cs" />
     <Compile Include="..\RegressionTests\Shared\TcpServer.cs" Link="Shared\TcpServer.cs" />
     <Compile Include="..\RegressionTests\Shared\TestPorts.cs" Link="Shared\TestPorts.cs" />
     <Compile Include="..\RegressionTests\Shared\TestTracer.cs" Link="Shared\TestTracer.cs" />

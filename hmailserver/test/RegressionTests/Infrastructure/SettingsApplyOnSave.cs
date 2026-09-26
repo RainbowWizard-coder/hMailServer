@@ -484,7 +484,7 @@ namespace RegressionTests.Infrastructure
          (int status, string body) state = Admin("GET", "/api/v1/server/drain", null);
          Assert.AreEqual(200, state.status, state.body);
          Assert.IsFalse(JsonDocument.Parse(state.body).RootElement.GetProperty("draining").GetBoolean(), "Still draining after the reinitialise: " + state.body);
-         AssertListening_(25, "SMTP after the reinitialise");
+         AssertListening_(TestPorts.Actual(25), "SMTP after the reinitialise");
       }
 
       [Test]

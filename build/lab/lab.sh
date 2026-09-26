@@ -230,8 +230,9 @@ cmd_up() {
   for profile in "$@"; do
     services=$(services_of "$profile")
     say "== up $profile ($services)"
+    # $services is the profile's service names from the compose file, split on purpose.
     # shellcheck disable=SC2086
-    compose --profile "$profile" up -d --wait $services || die "$profile did not come up healthy"
+    compose --profile "$profile" up -d --wait $services || die "$profile did not come up healthy" # nosemgrep
     case "$profile" in
       mysql|mariadb|postgresql|mssql) ensure_db_user "$profile" ;;
       idp) python3 "$LAB_DIR/keycloak-setup.py" setup || die "setting up Keycloak's realm failed" ;;
@@ -247,8 +248,9 @@ cmd_down() {
     [ "$profile" != core ] || { say "core stays up: stop it with docker compose -p hmlab stop kuma, deliberately"; continue; }
     services=$(services_of "$profile")
     say "== down $profile ($services); volumes kept"
+    # $services is the profile's service names from the compose file, split on purpose.
     # shellcheck disable=SC2086
-    compose --profile "$profile" stop $services && compose --profile "$profile" rm -f $services > /dev/null
+    compose --profile "$profile" stop $services && compose --profile "$profile" rm -f $services > /dev/null # nosemgrep
   done
 }
 
@@ -594,7 +596,7 @@ cmd_numbers() {
   esac
   local code=$?
   say "loadgen exit $code; $run.md, $run.json, $run.config.txt"
-  return $code
+  return "$code"
 }
 
 cmd_idp_check() {

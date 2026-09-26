@@ -10,9 +10,11 @@
 
 #ifdef HM_PLATFORM_POSIX
 
+#include <cerrno>
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vector>
 
 #else
 
@@ -63,10 +65,26 @@ namespace HM
    String
    ServiceAccount::ProcessAccountName()
    {
-      const struct passwd *entry = ::getpwuid(::geteuid());
-      if (entry == nullptr || entry->pw_name == nullptr)
-         return String();
-      return String(entry->pw_name);
+      // getpwuid_r, into a buffer of this call's own: getpwuid's is one for the
+      // whole process, and the setup checklist, auto-ban and the updater ask for
+      // the name from threads of their own. A buffer too small for the entry is
+      // doubled, up to a megabyte.
+      const long suggested = ::sysconf(_SC_GETPW_R_SIZE_MAX);
+      std::vector<char> buffer(suggested > 0 ? (size_t) suggested : 16384);
+      for (;;)
+      {
+         struct passwd entry = {};
+         struct passwd *found = nullptr;
+         const int error = ::getpwuid_r(::geteuid(), &entry, buffer.data(), buffer.size(), &found);
+         if (error == ERANGE && buffer.size() < 1024 * 1024)
+         {
+            buffer.resize(buffer.size() * 2);
+            continue;
+         }
+         if (error != 0 || found == nullptr || found->pw_name == nullptr)
+            return String();
+         return String(found->pw_name);
+      }
    }
 
    bool

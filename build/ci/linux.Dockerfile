@@ -39,6 +39,9 @@
 #   curl, procps, iproute2                to wait for the server, stop it, and say
 #                                         what is listening when it did not start
 #   python3                               build/ci/trx-to-junit.py, build/seed-orphans.py
+#   7zip                                  7z, the archiver the server runs to write and
+#                                         read a backup (the .deb recommends it): the
+#                                         suite's backup tests fail without it
 #   libicu78, tzdata                      what .NET needs at run time on Ubuntu
 #   the .NET SDK and PowerShell           the Linux suite (dotnet test), and pwsh for
 #                                         the SBOM's native-dependency merge; copied
@@ -77,6 +80,7 @@ RUN apt-get update -qq \
       mariadb-client libmariadb3 \
       curl procps iproute2 \
       python3 \
+      7zip \
       libicu78 tzdata \
  && rm -rf /var/lib/apt/lists/*
 
@@ -100,5 +104,5 @@ ENV LANG=C.UTF-8 \
 RUN dotnet --list-sdks && pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()' \
  && syft version | head -n 2 \
  && clang --version | head -n 1 && cmake --version | head -n 1 && psql --version && mariadb --version \
- && rpmbuild --version && aarch64-linux-gnu-g++ --version | head -n 1 && llvm-symbolizer --version | head -n 1 \
+ && rpmbuild --version && command -v 7z && 7z i | head -n 2 && aarch64-linux-gnu-g++ --version | head -n 1 && llvm-symbolizer --version | head -n 1 \
  && ls /usr/lib/llvm-*/lib/clang/*/lib/*/libclang_rt.fuzzer*.a /usr/lib/llvm-*/lib/clang/*/lib/*/libclang_rt.asan*.a

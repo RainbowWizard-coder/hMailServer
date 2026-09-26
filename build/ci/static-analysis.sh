@@ -27,8 +27,10 @@
 #
 # What it leaves, for the job's artifacts (HM_OUT_DIR, security/static-analysis):
 #   cppcheck.xml, clang-tidy.txt       the tools' own output, every finding
+#   gl-sast-report.json                the job's GitLab SAST report (schema 15), both
+#                                      tools' findings: GitLab takes one file a type
 #   gl-sast-cppcheck.json,
-#   gl-sast-clang-tidy.json            GitLab SAST reports (schema 15)
+#   gl-sast-clang-tidy.json            the same, one tool's findings each
 #   junit.xml                          a test case per tool and per NEW finding
 #   findings.txt, new-findings.txt     readable lists, most severe first
 #   versions.json, configure.log

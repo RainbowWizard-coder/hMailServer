@@ -64,6 +64,15 @@ build/fixtures/openpgp/** binary
 build/fixtures/pst/** binary
 *.pst binary
 
+###############################################################################
+# The schema-upgrade gate's starting point (build/db-upgrade-gate.sh): the create
+# scripts of schema 6029, byte for byte as commit 6eeb54bdf held them, CRLF and
+# all, so that each is that commit's own blob and anyone can see it is:
+#   git rev-parse 6eeb54bdf:hmailserver/source/DBScripts/CreateTablesMYSQL.sql
+# names the same blob as HEAD:build/db-upgrade-6029/CreateTablesMySQL.sql.
+###############################################################################
+build/db-upgrade-6029/*.sql -text
+
 # Explicitly binary
 *.exe binary
 *.dll binary

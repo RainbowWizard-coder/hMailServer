@@ -2154,12 +2154,12 @@ create table hm_bouncecounts
 	bcpolicy int not null,
 	bcother int not null,
 	bcconsecutivehard int not null,
-	bccomplaints int not null,
+	bccomplaints int not null default 0,
 	bclaststatus varchar(16) not null,
 	bclastcategory int not null,
 	bclastbounce varchar(32) not null,
 	bclastdelivered varchar(32) not null,
-	bclastcomplaint varchar(32) not null
+	bclastcomplaint varchar(32) not null default ''
 );
 
 CREATE UNIQUE INDEX idx_hm_bouncecounts_address ON hm_bouncecounts (bcdomainid, bcaddress);

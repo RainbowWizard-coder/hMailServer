@@ -160,7 +160,10 @@ variables:
 
 checkers:
   stage: check
-  image: python:3.13-slim-trixie
+  # The shared runners' Python and Node images, by the digest Docker Hub served for
+  # the tag on 26 September 2026 (docker pull on linix); Renovate moves tag and
+  # digest together (renovate.json, pinDigests).
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
   timeout: 20 minutes
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
@@ -261,7 +264,7 @@ checkers:
 
 harnesses:
   stage: check
-  image: node:22-trixie-slim
+  image: node:22-trixie-slim@sha256:b26b04c123d9ff8ab646ceb18b9d75a1173acf64b9a401094b906d27b29338d4
   timeout: 20 minutes
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
@@ -280,7 +283,7 @@ harnesses:
 
 sign-off:
   stage: check
-  image: python:3.13-slim-trixie
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
   timeout: 10 minutes
   variables:
     GIT_DEPTH: "0"
@@ -335,7 +338,7 @@ sign-off:
 # must not publish the feed. On the shared runners, like the checks.
 pages:
   stage: release
-  image: python:3.13-slim-trixie
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
   needs: []
   timeout: 15 minutes
   rules:
@@ -399,7 +402,7 @@ pages:
   extends: .own-runners
   tags: [linix]
   image:
-    name: hmailserver-ci/linux:26.04-1c3319908955
+    name: hmailserver-ci/linux:26.04-dad0ab749505
     pull_policy: if-not-present
 
 # Started at once rather than after the checks: the runner is otherwise idle, and
@@ -704,8 +707,12 @@ update-helper:
     - bash build/test-hmailserver-update.sh
     # The only thing systemd-analyze objects to in a checkout is the two executables
     # the package would have installed; they are tolerated by name and nothing else is.
+    # GitLab's hosted runners check out with umask 0000, so every file is world-writable,
+    # which systemd-analyze reports; the package installs the units 0644 (CMake's
+    # install(FILES) default), so the checkout's copies are given that mode first.
     - |
       cd hmailserver/source/Server/platform/packaging
+      chmod 0644 hmailserver.service hmailserver-update.path hmailserver-update.service
       for unit in hmailserver.service hmailserver-update.path hmailserver-update.service; do
         out="$(systemd-analyze verify --recursive-errors=no "./$unit" 2>&1 || true)"
         problems="$(printf '%s\n' "$out" | grep -v -E 'Command /usr/(bin/hmailserver|lib/hmailserver/hmailserver-update) is not executable' | grep -v '^$' || true)"
@@ -819,11 +826,14 @@ linux-db-upgrade-pgsql:
 linux-db-upgrade-mysql:
   extends: .linux-db-upgrade
   services:
+    # root with no password: the service is reachable from this job's container
+    # alone, and no password is written here (repo-hygiene, Token-Permissions).
+    # build/ci/linux-db-upgrade.sh logs in as root with none.
     - name: mariadb:11@sha256:2d2f4095530294735a857cfe22bb101e19b0849b416911c796ec4aa81b164a62
       alias: mariadb
       pull_policy: if-not-present
       variables:
-        MARIADB_ROOT_PASSWORD: hmtest
+        MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"
   script:
     - bash build/ci/linux-db-upgrade.sh mysql
 
@@ -1038,9 +1048,9 @@ static-analysis:
     paths:
       - security/static-analysis/
     reports:
-      sast:
-        - security/static-analysis/gl-sast-cppcheck.json
-        - security/static-analysis/gl-sast-clang-tidy.json
+      # One file: GitLab takes one per report type ("only one file can be sent as
+      # raw", the first pipeline). Each tool's own is among the paths above.
+      sast: security/static-analysis/gl-sast-report.json
       junit: security/static-analysis/junit.xml
 
 semgrep:
@@ -1109,9 +1119,9 @@ dependency-scan:
     paths:
       - security/dependency-scan/
     reports:
-      dependency_scanning:
-        - security/dependency-scan/gl-dependency-scanning-trivy.json
-        - security/dependency-scan/gl-dependency-scanning-osv.json
+      # One file: GitLab takes one per report type ("only one file can be sent as
+      # raw", the first pipeline). Each scanner's own is among the paths above.
+      dependency_scanning: security/dependency-scan/gl-dependency-scanning.json
       junit: security/dependency-scan/junit.xml
 
 repo-hygiene:
@@ -1554,7 +1564,7 @@ update-feed:
 # release-sign's artifact, before release-publish is started.
 installer-smoke:
   stage: release
-  image: python:3.13-slim-trixie
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
   needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)

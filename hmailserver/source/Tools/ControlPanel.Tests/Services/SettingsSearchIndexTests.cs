@@ -209,7 +209,10 @@ namespace hMailServer.ControlPanel.Tests.Services
             if (name.StartsWith("FeatureSettingsView.") || name.StartsWith("ServerSettingsView."))
                continue;
 
-            missing.AddRange(Regex.Matches(File.ReadAllText(file), "\\.(?:Read|Write)(?:Bool|String|Int|Number)\\(\\s*\"([^\"]+)\"")
+            // The store's accessors take the [Settings] key first. ProfileApi's take the
+            // SECTION first (DiscoveryView reads [Directories] DataFolder to find the ACME
+            // folder, and edits nothing there), so a literal after ProfileApi is no key.
+            missing.AddRange(Regex.Matches(File.ReadAllText(file), "(?<!ProfileApi)\\.(?:Read|Write)(?:Bool|String|Int|Number)\\(\\s*\"([^\"]+)\"")
                .Select(m => m.Groups[1].Value)
                .Where(key => !indexed.Contains(key))
                .Select(key => name + ": " + key));

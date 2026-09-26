@@ -27,9 +27,12 @@ counted as a pass):
                        has package references.
   Binary-Artifacts     no executable or compiled file tracked in git (by content,
                        not only by extension).
-  Token-Permissions    no job that a merge request can start reaches the
-                       project's own runners; no CI script handles CI_JOB_TOKEN or
-                       another credential; no id_tokens or secrets on such a job;
+  Token-Permissions    no job that a merge request or an unprotected ref can start
+                       reaches the project's own runners, asks for id_tokens or
+                       secrets, or runs a CI script that handles CI_JOB_TOKEN or
+                       another credential - judged by the rules each job runs by,
+                       its own or those it extends, in .gitlab-ci.yml and the
+                       files it includes; no credential written in those files;
                        CI_DEBUG_TRACE (which prints every variable into a public
                        job log) set nowhere. The project's job-token allowlist and
                        pipeline-variable settings are not public, and the check
@@ -510,79 +513,202 @@ def ci_jobs(text):
     return blocks
 
 
+def ci_files():
+    """.gitlab-ci.yml and the local files it includes, as [(path, text)]."""
+    found, queue = [], [".gitlab-ci.yml"]
+    while queue:
+        path = queue.pop(0)
+        if path in [f for f, _ in found] or not os.path.exists(os.path.join(ROOT, path)):
+            continue
+        text = read(path)
+        found.append((path, text))
+        queue += [m.strip("'\"/") for m in re.findall(r"^\s*-\s*local:\s*(\S+)", text, re.M)]
+    return found
+
+
+def split_or(condition):
+    """A rule's condition cut at its top-level ||, outside parentheses."""
+    parts, depth, current = [], 0, ""
+    i = 0
+    while i < len(condition):
+        c = condition[i]
+        depth += c == "("
+        depth -= c == ")"
+        if depth == 0 and condition.startswith("||", i):
+            parts.append(current.strip())
+            current, i = "", i + 2
+            continue
+        current += c
+        i += 1
+    parts.append(current.strip())
+    return parts
+
+
+def admits(rules):
+    """Why these rules can create a job for code nobody has reviewed - a merge
+    request's, or an unprotected ref's - or None when they cannot. A rule that
+    creates the job must ask for a protected ref in each of its alternatives, and
+    shut out a merge request: by saying so, by asking for a schedule or a tag
+    (neither is a merge request's pipeline), or by an earlier rule that sends a
+    merge request's pipeline to never."""
+    if rules is None:
+        return "no rules: every pipeline, a merge request's included"
+    mr_closed = False
+    for condition, when in rules:
+        alternatives = split_or(condition)
+        if when == "never":
+            if any(re.fullmatch(r'\$CI_PIPELINE_SOURCE\s*==\s*"merge_request_event"', a) for a in alternatives):
+                mr_closed = True
+            continue
+        for a in alternatives:
+            if '$CI_COMMIT_REF_PROTECTED == "true"' not in a:
+                return "a rule that does not ask for a protected ref: %s" % (condition or "(no condition)")
+            if not (mr_closed or '$CI_PIPELINE_SOURCE != "merge_request_event"' in a
+                    or '$CI_PIPELINE_SOURCE == "schedule"' in a or re.search(r"\$CI_COMMIT_TAG\s*=~", a)):
+                return "a rule a merge request's pipeline can meet: %s" % condition
+    return None
+
+
 def check_token_permissions(files):
     r = Result("Token-Permissions", "no credential in reach of code nobody has reviewed")
     path = ".gitlab-ci.yml"
     if not os.path.exists(os.path.join(ROOT, path)):
         r.fail("no .gitlab-ci.yml")
         return r
-    text = read(path)
-    jobs = ci_jobs(text)
+    sources = ci_files()
+    text = "\n".join(t for _, t in sources)
+    jobs = {}
+    for _, t in sources:
+        jobs.update(ci_jobs(t))
     reserved = {"stages", "workflow", "default", "variables", "include"}
+    real = [n for n in jobs if n not in reserved and not n.startswith(".")]
+
+    def parents(name):
+        m = re.search(r"^\s+extends:\s*\[?([^\]\n]+)\]?", jobs.get(name, ""), re.M)
+        return [p.strip().strip("'\"") for p in m.group(1).split(",")] if m else []
 
     def extends(name, depth=0):
-        body = jobs.get(name, "")
-        m = re.search(r"^\s+extends:\s*\[?([^\]\n]+)\]?", body, re.M)
-        parents = [p.strip().strip("'\"") for p in m.group(1).split(",")] if m else []
-        chain = list(parents)
+        chain = list(parents(name))
         if depth < 5:
-            for p in parents:
+            for p in parents(name):
                 chain += extends(p, depth + 1)
         return chain
 
+    def rules_of(name, depth=0):
+        """[(condition, when)] of the rules a job runs by: its own, else the first
+        parent's that has any (extends replaces a list whole); None when none."""
+        m = re.search(r"^  rules:[ \t]*\n(.*?)(?=^  [^\s#]|\Z)", jobs.get(name, "") + "\n", re.M | re.S)
+        if m:
+            rules = []
+            for item in re.split(r"^    - ", m.group(1), flags=re.M)[1:]:
+                ref = re.match(r"!reference\s*\[\s*([^,\]\s]+)\s*,\s*rules\s*\]", item)
+                if ref:
+                    rules += (rules_of(ref.group(1), depth + 1) if depth < 5 else None) or []
+                    continue
+                condition = re.match(r"if:\s*(.*)", item)
+                when = re.search(r"^\s*when:\s*(\S+)", item, re.M)
+                rules.append((condition.group(1).strip() if condition else "", when.group(1) if when else "on_success"))
+            return rules
+        if depth < 5:
+            for p in parents(name):
+                found = rules_of(p, depth + 1)
+                if found is not None:
+                    return found
+        return None
+
     own = re.compile(r"\b(linix|bench150|bench)\b")
     guard = jobs.get(".own-runners", "")
-    guard_ok = ('$CI_COMMIT_REF_PROTECTED == "true"' in guard
-                and '$CI_PIPELINE_SOURCE != "merge_request_event"' in guard)
+    guard_ok = admits(rules_of(".own-runners")) is None and '$CI_COMMIT_REF_PROTECTED == "true"' in guard
     if guard_ok:
         r.ok(".own-runners creates a job only for a protected ref, and never for a merge request")
     else:
         r.fail(".own-runners no longer demands a protected ref that is not a merge request's")
-    exposed = []
-    for name, body in jobs.items():
-        if name in reserved or name.startswith("."):
-            continue
+    on_own, exposed, through_guard = [], [], 0
+    for name in real:
         chain = [name] + extends(name)
         tags = " ".join(re.findall(r"^\s+tags:\s*(.*)$", "\n".join(jobs.get(n, "") for n in chain), re.M))
         if not own.search(tags):
             continue
-        if ".own-runners" not in chain:
-            exposed.append(name)
+        on_own.append(name)
+        why = admits(rules_of(name))
+        if why:
+            exposed.append("%s (%s)" % (name, why))
+        elif rules_of(name) == rules_of(".own-runners"):
+            through_guard += 1
     if exposed:
-        r.fail("job(s) on the project's own runners without the .own-runners rules: %s" % ", ".join(exposed))
+        r.fail("job(s) on the project's own runners that a merge request or an unprotected ref can start: %s"
+               % "; ".join(exposed))
     else:
-        r.ok("every job on linix or bench150 extends .own-runners")
+        r.ok("all %d jobs on linix or bench150 run only for a protected ref and never for a merge request:"
+             " %d by .own-runners, %d by rules of their own that ask the same" % (
+                 len(on_own), through_guard, len(on_own) - through_guard))
 
-    scripts = [path] + [f for f in files if re.match(r"^build/ci/[^/]+\.(sh|ps1)$", f)]
-    handled = []
-    for s in scripts:
+    # A script that handles a credential is judged by the jobs that run it: each must
+    # be one no merge request and no unprotected ref can start.
+    # GitLab's secret-detection template is configured by SECRET_DETECTION_* switches,
+    # which name no secret.
+    credential = re.compile(r"\$\{?(CI_JOB_TOKEN|CI_REGISTRY_PASSWORD|CI_DEPLOY_PASSWORD|CI_JOB_JWT\w*|"
+                            r"(?!SECRET_DETECTION_)[A-Z0-9_]*(?:TOKEN|SECRET)[A-Z0-9_]*)\}?")
+    scripts = [f for f in files if re.match(r"^build/ci/[^/]+\.(sh|ps1)$", f)]
+    handled, unsafe = [], []
+    for s in [f for f, _ in sources] + scripts:
+        found = []
+        current = None
         for i, line in enumerate(read(s).splitlines()):
+            top = re.match(r"^([A-Za-z0-9_.\-]+):\s*(#.*)?$", line)
+            if top:
+                current = top.group(1)
             if re.match(r"^\s*#", line):
                 continue
-            for m in re.finditer(r"\$\{?(CI_JOB_TOKEN|CI_REGISTRY_PASSWORD|CI_DEPLOY_PASSWORD|CI_JOB_JWT\w*|"
-                                 r"[A-Z0-9_]*(?:TOKEN|SECRET)[A-Z0-9_]*)\}?", line):
-                handled.append("%s line %d: %s" % (s, i + 1, m.group(1)))
-    if handled:
-        r.fail("CI scripts handle a credential: %s" % "; ".join(handled[:10]))
+            for m in credential.finditer(line):
+                found.append((i + 1, m.group(1), current))
+        if not found:
+            continue
+        if s.endswith((".yml", ".yaml")):
+            runners = sorted({job for _, _, job in found})
+        else:
+            name = s.split("/")[-1]
+            runners = [n for n in real if re.search(r"build[/\\]ci[/\\]" + re.escape(name) + r"\b", jobs[n])]
+        where = ", ".join("line %d: %s" % (line, var) for line, var, _ in found[:4])
+        if not runners:
+            unsafe.append("%s (%s), which no job runs" % (s, where))
+            continue
+        bad = [n for n in runners if n.startswith(".") or admits(rules_of(n))]
+        if bad:
+            unsafe.append("%s (%s), run by %s" % (s, where, ", ".join(bad)))
+        else:
+            handled.append("%s (%s)" % (s, ", ".join(runners)))
+    if unsafe:
+        r.fail("CI scripts handle a credential where unreviewed code can reach it: %s" % "; ".join(unsafe[:10]))
     else:
-        r.ok("no CI script reads CI_JOB_TOKEN or any *TOKEN* or *SECRET* variable (%d files)" % len(scripts))
+        r.ok("no CI script handles CI_JOB_TOKEN or any *TOKEN* or *SECRET* variable outside a protected ref's"
+             " jobs (%d files)" % (len(sources) + len(scripts)))
+    for h in handled:
+        r.note("handles a credential, in jobs a protected ref alone can start: %s" % h)
 
-    for name, body in jobs.items():
-        if re.search(r"^\s+(id_tokens|secrets):", body, re.M):
-            chain = [name] + extends(name)
-            if ".own-runners" not in chain:
-                r.fail("job %s asks for id_tokens or secrets and can run for a merge request" % name)
+    for name in real:
+        if re.search(r"^\s+(id_tokens|secrets):", jobs[name], re.M):
+            if admits(rules_of(name)):
+                r.fail("job %s asks for id_tokens or secrets and a merge request or an unprotected ref can start it" % name)
             else:
                 r.note("job %s asks for id_tokens or secrets, on a protected ref only" % name)
     if re.search(r"CI_DEBUG_TRACE\s*:\s*['\"]?true", text, re.I):
         r.fail("CI_DEBUG_TRACE is set: every variable, masked or not, would be printed to a public job log")
     else:
         r.ok("CI_DEBUG_TRACE is set nowhere (the job logs are public)")
-    literal = re.findall(r"^\s+([A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET)[A-Z0-9_]*):\s*(\S+)", text, re.M)
+    # A value on the key's own line: an id_tokens entry's key holds a mapping (aud), not a value.
+    literal = re.findall(r"^[ \t]+([A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET)[A-Z0-9_]*):[ \t]*([^\s#]+)", text, re.M)
     for key, value in literal:
-        if key == "POSTGRES_PASSWORD" and value.strip("'\"") == "hmtest":
+        bare = value.strip("'\"")
+        if key.startswith("SECRET_DETECTION_"):
+            continue
+        if key == "POSTGRES_PASSWORD" and bare == "hmtest":
             r.note("POSTGRES_PASSWORD is written in the file: the throwaway password of the linux-suite job's"
                    " own PostgreSQL service container, which nothing outside that job can reach")
+        elif key in ("MARIADB_ALLOW_EMPTY_ROOT_PASSWORD", "MARIADB_RANDOM_ROOT_PASSWORD") and bare.lower() in ("1", "yes", "true"):
+            r.note("%s is a switch of the MariaDB image, not a credential: no password is written in the file" % key)
+        elif bare.startswith("$"):
+            r.note("%s is taken from the variable %s, not written in the file" % (key, bare))
         else:
             r.fail("%s is given a value in .gitlab-ci.yml; a credential belongs in a masked, protected variable" % key)
     r.unknown("the project's CI/CD job-token allowlist ('Limit access to this project') and who may"

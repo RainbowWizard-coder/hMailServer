@@ -71,7 +71,8 @@ echo "== ninja snmp-tests (-j $jobs)"
 started=$(date +%s)
 ninja -C "$build_dir" -j "$jobs" snmp-tests > "$out/build.log" 2>&1
 code=$?
-echo "ninja exit $code after $(( $(date +%s) - started )) s"
+ended=$(date +%s)
+echo "ninja exit $code after $(( ended - started )) s"
 if [ "$code" -ne 0 ]; then
   grep -E '^FAILED:|error:' "$out/build.log" | sort -u | head -n 60
   echo "BUILD FAILED - the whole log is the job's artifact $out/build.log"

@@ -45,8 +45,11 @@ and the OSV step drops every advisory the document says is not_affected.
 
 Writes to --out (default security/dependency-scan): the tools' raw output, a
 GitLab dependency-scanning report per scanner (gl-dependency-scanning-trivy.json,
-gl-dependency-scanning-osv.json), junit.xml (a test case per scanned target -
-the part GitLab's free tier shows) and findings.txt. Exits 1 when a high or
+gl-dependency-scanning-osv.json) and one with both (gl-dependency-scanning.json,
+the job's report: GitLab takes one file per report type, and refused the upload
+of two on the first pipeline, "only one file can be sent as raw"), junit.xml (a
+test case per scanned target - the part GitLab's free tier shows) and
+findings.txt. Exits 1 when a high or
 critical vulnerability with a fixed version is found (SECURITY.md's threshold:
 fixed before the next release), 2 when a scan could not run, 0 otherwise.
 
@@ -389,12 +392,14 @@ def gitlab_report(scanner, name, version, findings, started, ended, status):
     for f in findings:
         if f.get("dismissed"):
             continue
-        identifier_type = "cve" if f["id"].startswith("CVE-") else "ghsa" if f["id"].startswith("GHSA-") else scanner
+        # A finding's own scanner, which is the report's except in the report of both.
+        found_by = f.get("scanner", scanner)
+        identifier_type = "cve" if f["id"].startswith("CVE-") else "ghsa" if f["id"].startswith("GHSA-") else found_by
         identifiers = [{"type": identifier_type, "name": f["id"], "value": f["id"]}]
         if f["url"].startswith(("http://", "https://")):
             identifiers[0]["url"] = f["url"]
         item = {
-            "id": str(uuid.uuid5(ID_NAMESPACE, "|".join([scanner, f["file"], f["package"], f["version"], f["id"]]))),
+            "id": str(uuid.uuid5(ID_NAMESPACE, "|".join([found_by, f["file"], f["package"], f["version"], f["id"]]))),
             "name": "%s in %s %s" % (f["id"], f["package"], f["version"]),
             "description": f["description"] or f["title"] or f["id"],
             "severity": f["severity"] if f["severity"] in ("Critical", "High", "Medium", "Low", "Info") else "Unknown",
@@ -573,6 +578,11 @@ def main():
     with open(os.path.join(out, "gl-dependency-scanning-osv.json"), "w", encoding="utf-8") as f:
         json.dump(gitlab_report("osv", "OSV", "api.osv.dev v1", osv_all, started, ended,
                                 "failure" if broken else "success"), f, indent=1)
+    # The job's report, both scanners' findings in one file: GitLab takes one per type.
+    with open(os.path.join(out, "gl-dependency-scanning.json"), "w", encoding="utf-8") as f:
+        json.dump(gitlab_report("trivy-osv", "Trivy and OSV",
+                                "Trivy %s; api.osv.dev v1" % trivy_version.replace("Version: ", ""),
+                                trivy_all + osv_all, started, ended, "failure" if broken else "success"), f, indent=1)
     with open(os.path.join(out, "junit.xml"), "w", encoding="utf-8") as f:
         f.write(junit(targets))
     order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3, "Unknown": 4, "Info": 5}

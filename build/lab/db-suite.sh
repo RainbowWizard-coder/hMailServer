@@ -165,7 +165,9 @@ ensure_clients() {
   if [ -n "$wanted" ]; then
     echo "== installing$wanted from Ubuntu's archive"
     export DEBIAN_FRONTEND=noninteractive
+    # $wanted is the package names chosen above, one word each, split on purpose.
     # shellcheck disable=SC2086
+    # nosemgrep
     apt-get update -qq > /dev/null && apt-get install -y -qq --no-install-recommends $wanted > /dev/null \
       || { echo "REFUSED:$wanted could not be installed."; exit 2; }
   fi
@@ -182,7 +184,8 @@ sql() {
     *)
       # --skip-ssl-verify-server-cert: the lab's database servers have self-made
       # certificates; this is the layout's client, not the server's connection.
-      MYSQL_PWD="$DBPASS" mariadb -h "$DBHOST" -P "$DBPORT" -u "$DBUSER" --skip-ssl-verify-server-cert -N -B ${database:+"$database"}
+      # ${database:+"$database"}: the database's name as one word, or no word at all.
+      MYSQL_PWD="$DBPASS" mariadb -h "$DBHOST" -P "$DBPORT" -u "$DBUSER" --skip-ssl-verify-server-cert -N -B ${database:+"$database"} # nosemgrep
       ;;
   esac
 }
@@ -383,8 +386,9 @@ dotnet test hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj -c
   "${filter_args[@]}" --logger "trx;LogFileName=db-matrix.trx" --logger "console;verbosity=normal" \
   --results-directory "$OUT" > "$OUT/console.log" 2>&1
 code=$?
+ended=$(date +%s)
 grep -E '^\s+Failed |^(Passed|Failed)!|error CS' "$OUT/console.log" | head -n 80
-echo "dotnet test exit $code after $(( ($(date +%s) - started) / 60 )) min"
+echo "dotnet test exit $code after $(( (ended - started) / 60 )) min"
 
 stop_server
 

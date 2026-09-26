@@ -18,7 +18,10 @@ which:
     identical lines, the order of those lines;
   * compares the fingerprints with the job's baseline (build/ci/<job>-baseline.txt),
     the findings that were already there when the baseline was written;
-  * writes a GitLab SAST report per tool (gl-sast-<tool>.json, schema 15), a JUnit
+  * writes a GitLab SAST report per tool (gl-sast-<tool>.json, schema 15) and one
+    of every tool's findings (gl-sast-report.json, the job's report: GitLab takes
+    one file per report type, and refused the upload of static-analysis's two on
+    the first pipeline, "only one file can be sent as raw"), a JUnit
     report (junit.xml: a test case per tool that fails when anything is new, and a
     failing test case per new finding), findings.txt (every finding) and
     new-findings.txt (only those not in the baseline);
@@ -379,12 +382,13 @@ def write_baseline(path, job, findings):
 
 # ---------------------------------------------------------------- the reports
 
-def sast_report(tool, tool_name, tool_version, findings, started, ended, status):
+def sast_report(tool, tool_name, tool_version, findings, started, ended, status, names=None):
     vulnerabilities = []
     for f in findings:
+        # A finding's own tool, which is the report's except in the report of them all.
         identifiers = [{
-            "type": "%s_rule" % tool.replace("-", "_"),
-            "name": "%s %s" % (tool_name, f["rule"]),
+            "type": "%s_rule" % f["tool"].replace("-", "_"),
+            "name": "%s %s" % ((names or {}).get(f["tool"], tool_name), f["rule"]),
             "value": f["rule"],
         }]
         for c in f["cwe"]:
@@ -531,6 +535,12 @@ def main():
                              "failure" if tool_errors else "success")
         with open(os.path.join(args.out, "gl-sast-%s.json" % tool), "w", encoding="utf-8") as f:
             json.dump(report, f, indent=1)
+    names = {tool: name for tool, name, _, _ in inputs}
+    report = sast_report(args.job, " and ".join(names.values()),
+                         "; ".join("%s %s" % (names[t], versions.get(t) or "unknown") for t in names),
+                         all_findings, started, ended, "failure" if errors else "success", names)
+    with open(os.path.join(args.out, "gl-sast-report.json"), "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=1)
     with open(os.path.join(args.out, "junit.xml"), "w", encoding="utf-8") as f:
         f.write(junit(args.job, per_tool, new, errors))
     order = {s: i for i, s in enumerate(SEVERITY_ORDER)}

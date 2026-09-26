@@ -398,7 +398,9 @@ class Signer:
 
     def __enter__(self):
         self.home = tempfile.mkdtemp(prefix="hm-gpg-")
-        os.chmod(self.home, 0o700)
+        # Owner-only: GnuPG refuses a home others can read. The rule takes the
+        # directory's search bit for an executable file's.
+        os.chmod(self.home, 0o700)  # nosemgrep
         try:
             self.fingerprint = key_fingerprint(self.public_key)
             self.gpg(["--import", self.public_key])
@@ -714,7 +716,11 @@ def check(site, public_key=None, registry=REGISTRY):
                 problems.append("rpm %s/%s: %s" % (dist, arch, e))
                 continue
             ns = {"r": "http://linux.duke.edu/metadata/repo", "c": "http://linux.duke.edu/metadata/common"}
-            repomd = ElementTree.parse(os.path.join(repodata, "repomd.xml"))
+            # createrepo_c's own output, written by this run a moment ago; and the
+            # standard library's parser resolves no external entity (Python 3.7.1
+            # on) and is not open to entity expansion with the Expat every
+            # supported Python carries (build/ci/security-findings.py says the same).
+            repomd = ElementTree.parse(os.path.join(repodata, "repomd.xml"))  # nosemgrep
             for data in repomd.getroot().findall("r:data", ns):
                 href = data.find("r:location", ns).get("href")
                 digest = data.find("r:checksum", ns).text
@@ -725,7 +731,7 @@ def check(site, public_key=None, registry=REGISTRY):
                 if data.get("type") != "primary":
                     continue
                 with gzip.open(full) as f:
-                    primary = ElementTree.parse(f)
+                    primary = ElementTree.parse(f)  # nosemgrep
                 for package in primary.getroot().findall("c:package", ns):
                     href = package.find("c:location", ns).get("href")
                     name = href.rsplit("/", 1)[-1]

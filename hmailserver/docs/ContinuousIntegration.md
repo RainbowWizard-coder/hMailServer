@@ -438,6 +438,8 @@ is a clean system, and `linux-image` in kaniko's. The image holds:
 - `rpm`, whose `rpmbuild` CPack's RPM generator runs;
 - GnuPG, the PostgreSQL client, the MariaDB client and `libmariadb3` (the
   library the server loads to reach MySQL), curl and Python;
+- 7-Zip (`7zip`), whose `7z` the server runs to write and read a backup, for
+  the suite's backup tests;
 - the .NET 10 SDK and PowerShell 7, copied from Microsoft's SDK image at a
   pinned digest. Ubuntu's own `dotnet-sdk-10.0` is a 10.0.1xx SDK, and
   `global.json` refuses it;

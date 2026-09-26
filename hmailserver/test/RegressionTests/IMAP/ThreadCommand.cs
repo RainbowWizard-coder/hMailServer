@@ -20,16 +20,23 @@ namespace RegressionTests.IMAP
    ///
    ///    Sequence numbers are deterministic here: each test starts with an empty
    ///    INBOX and delivers in a fixed order, so message N of the test is sequence
-   ///    number N. Where UID THREAD is asserted, the UIDs are read back rather than
-   ///    assumed.
+   ///    number N. That holds because Deliver waits for each message to be in the
+   ///    INBOX before the next is sent: the server delivers on several threads at
+   ///    once, and two messages sent back to back can land in either order (the
+   ///    GitLab gate of 26 September 2026 saw ORDEREDSUBJECT's 3 and 4 swapped).
+   ///    Where UID THREAD is asserted, the UIDs are read back rather than assumed.
    /// </summary>
    [TestFixture]
    public class ThreadCommand : TestFixtureBase
    {
       private const string Password = "test";
 
+      // How many messages Deliver has put in this test's account.
+      private int _delivered;
+
       private Account CreateAccount()
       {
+         _delivered = 0;
          return SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "thread@example.test", Password);
       }
 
@@ -37,10 +44,13 @@ namespace RegressionTests.IMAP
       ///    Delivers one message with exactly the threading headers given. The Date
       ///    matters: REFERENCES and ORDEREDSUBJECT both order siblings by sent date,
       ///    so each message gets a distinct, increasing date and the assertions are
-      ///    on ordering the test controls, not on delivery timing.
+      ///    on ordering the test controls, not on delivery timing. It returns once the
+      ///    message is in the INBOX, so that its sequence number is its place in the
+      ///    test's order; inOrder: false skips the wait, for a test that asserts no
+      ///    order and waits for the whole count itself.
       /// </summary>
-      private static void Deliver(Account account, string subject, string messageId,
-                                  string references, int minuteOffset)
+      private void Deliver(Account account, string subject, string messageId,
+                           string references, int minuteOffset, bool inOrder = true)
       {
          string headers =
             "From: sender@example.test\r\n" +
@@ -59,6 +69,9 @@ namespace RegressionTests.IMAP
 
          SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address,
             headers + "\r\n" + "Body of " + subject + "\r\n");
+         _delivered++;
+         if (inOrder)
+            WaitForMessageCount(account, _delivered);
       }
 
       private static void WaitForMessageCount(Account account, int count)
@@ -426,7 +439,7 @@ namespace RegressionTests.IMAP
          for (int i = 1; i <= chainLength; i++)
          {
             string references = i == 1 ? "" : "<chain" + (i - 1) + "@x.test>";
-            Deliver(account, "Deep chain", "chain" + i + "@x.test", references, i % 60);
+            Deliver(account, "Deep chain", "chain" + i + "@x.test", references, i % 60, inOrder: false);
          }
 
          WaitForMessageCount(account, chainLength);

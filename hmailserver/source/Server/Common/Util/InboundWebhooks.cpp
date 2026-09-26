@@ -703,13 +703,16 @@ namespace HM
 
       // The path goes into the request line as it is written: a space, a line
       // break or another control character there would end that line and start
-      // a header - or a request - of the URL's own making.
+      // a header - or a request - of the URL's own making, and a character
+      // outside ASCII has no one spelling there. Read as an unsigned value: as
+      // a signed char, on Linux, a byte of UTF-8 was below 0x21 and refused as
+      // a control character, while on Windows the same character passed.
       for (int i = 0; i < url.GetLength(); i++)
       {
-         const int c = (int) url[i];
-         if (c < 0x21 || c == 0x7F)
+         const unsigned int c = (unsigned int) url[i];
+         if (c < 0x21 || c >= 0x7F)
          {
-            refusal = _T("a URL has no space, line break or other control character in it; percent-encode it");
+            refusal = _T("a URL is printable ASCII, with no space, line break or other control character in it; percent-encode the rest");
             return false;
          }
       }

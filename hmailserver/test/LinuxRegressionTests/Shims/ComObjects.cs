@@ -470,6 +470,18 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.Server, "mirror_email_address", value, true); }
       }
 
+      public string GeoIpDatabaseFile
+      {
+         get { return Str("geoip_database_file"); }
+         set { SettingsApi.Put(SettingsApi.Server, "geoip_database_file", value, true); }
+      }
+
+      public string CountryBlockingExemptRanges
+      {
+         get { return Str("country_blocking_exempt_ranges"); }
+         set { SettingsApi.Put(SettingsApi.Server, "country_blocking_exempt_ranges", value, true); }
+      }
+
       public int MaxMessageSize
       {
          get { return Num("max_message_size_kb"); }
@@ -3016,6 +3028,7 @@ namespace hMailServer
       private string _dkimSecondaryKeyFile = string.Empty; public string DKIMSecondaryPrivateKeyFile { get { return _dkimSecondaryKeyFile; } set { _dkimSecondaryKeyFile = value; Pend("dkim_secondary_private_key_file", Q(value)); } }
       private string _adDomainName = string.Empty; public string ADDomainName { get { return _adDomainName; } set { _adDomainName = value; Pend("ad_domain_name", Q(value)); } }
       private string _reportMailbox = string.Empty; public string ReportMailbox { get { return _reportMailbox; } set { _reportMailbox = value; Pend("report_mailbox", Q(value)); } }
+      private string _countryPolicy = string.Empty; public string CountryPolicy { get { return _countryPolicy; } set { _countryPolicy = value; Pend("country_policy", Q(value)); } }
       private string _restrictedDomains = string.Empty; public string RestrictedDomains { get { return _restrictedDomains; } set { _restrictedDomains = value; Pend("restricted_domains", Q(value)); } }
       private int _impersonationAction; public int ImpersonationAction { get { return _impersonationAction; } set { _impersonationAction = value; Pend("impersonation_action", N(value)); } }
       private string _protectedPersons = string.Empty; public string ProtectedPersons { get { return _protectedPersons; } set { _protectedPersons = value; Pend("protected_persons", Q(value)); } }
@@ -3059,6 +3072,7 @@ namespace hMailServer
          _savedName = _name;
          _active = ServerApi.FlagOf(element, "active");
          _postmaster = ServerApi.StringOf(element, "postmaster") ?? string.Empty;
+         _countryPolicy = ServerApi.StringOf(element, "country_policy") ?? string.Empty;
          _maxMessageSize = (int) ServerApi.LongOf(element, "max_message_size_kb");
          _maxSize = (int) ServerApi.LongOf(element, "max_size_mb");
          _maxAccountSize = (int) ServerApi.LongOf(element, "max_account_size_mb");
