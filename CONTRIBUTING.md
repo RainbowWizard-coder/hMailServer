@@ -185,10 +185,12 @@ the SHA-256 in `hmailserver/docs/third-party-binaries.json`
 tools, the Control Panel and the test assembly compile without them; a regression bench and the installer need
 them.
 
-Some build steps reach other projects' GitHub repositories: `libraries\build-openssl.ps1` downloads the OpenSSL
-release archive from OpenSSL's, `build-appimage.sh` downloads linuxdeploy from its own, and `build-pgsql.ps1`
-and the fuzz build point at winflexbison's and LLVM's releases. Those are other projects' repositories, not this
-one's.
+No build step downloads from GitHub, the owner's rule since GitHub suspended the project's account. Two inputs
+are published only there, so the scripts take a copy you obtained instead: `libraries\build-openssl.ps1` refuses
+without `-Archive`, a copy of OpenSSL's release archive that it holds to the pinned SHA-256, and
+`build-appimage.sh` uses linuxdeploy and its AppImage plugin only when they are already in `TOOLS_DIR` and
+refuses otherwise. Which non-GitHub source to take them from is the owner's decision. `build-pgsql.ps1` names
+winflexbison's SourceForge page, and the fuzz build takes clang from the Visual Studio component.
 
 ### Linux
 

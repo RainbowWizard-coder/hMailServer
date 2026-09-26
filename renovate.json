@@ -304,7 +304,7 @@
       "groupName": "native libraries",
       "groupSlug": "native",
       "prBodyNotes": [
-        "**A native library: this merge request changes the build's paths, and the build needs the library built first.** On every Windows build machine and the bench, build {{{depName}}} {{{newVersion}}} with its script (libraries/build-openssl.ps1, build-boost.ps1 with the version in dots, build-pgsql.ps1), passing -Sha256 the digest published beside the release, and add that digest to the script's digest table on this branch. Then change the version where the documents name it (`git grep` the old one: README.md, hmailserver/docs) and run `python build/generate-help-pages.py`. The Linux build uses the distribution's packages and is not affected."
+        "**A native library: this merge request changes the build's paths, and the build needs the library built first.** On every Windows build machine and the bench, build {{{depName}}} {{{newVersion}}} with its script (libraries/build-openssl.ps1, build-boost.ps1 with the version in dots, build-pgsql.ps1), passing -Sha256 the digest published beside the release (and, for OpenSSL, -Archive with a copy of the archive obtained by hand: its releases are published only on GitHub, which the project does not download from), and add that digest to the script's digest table on this branch. Then change the version where the documents name it (`git grep` the old one: README.md, hmailserver/docs) and run `python build/generate-help-pages.py`. The Linux build uses the distribution's packages and is not affected."
       ]
     },
     {

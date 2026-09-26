@@ -294,7 +294,7 @@ CycloneDX document to the same rule.
 
 | Input | Fetched by, from | Pinned by | In the SBOM |
 |---|---|---|---|
-| OpenSSL 4.0.2, Boost 1.92.0 and PostgreSQL 18.3's libpq, as source | `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, from each project's own release server (OpenSSL's is its GitHub releases) | The archive's SHA-256, in the script; the version, by the include paths in `hMailServer.vcxproj` | Yes, at the include paths' version |
+| OpenSSL 4.0.2, Boost 1.92.0 and PostgreSQL 18.3's libpq, as source | `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, Boost's and PostgreSQL's from each project's own release server; OpenSSL's from a copy of the archive passed with `-Archive`, since its releases are published only on GitHub, which the project does not download from | The archive's SHA-256, in the script; the version, by the include paths in `hMailServer.vcxproj` | Yes, at the include paths' version |
 | zlib 1.3.2 and QuickJS 2025-04-26 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
 | 7-Zip 26.03 | `build/get-installer-binaries.ps1`, from `https://www.7-zip.org/a/7z2603-extra.7z` | SHA-256 in `third-party-binaries.json`, of the package and of the member | Yes, with the package's SHA-256 |
 | MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release's files in the project's package registry on GitLab (from GitHub until 26 September 2026; the copy is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
@@ -306,11 +306,13 @@ CycloneDX document to the same rule.
 Not pinned, and why:
 
 * **The AppImage tools.** `hmailserver/source/Server/platform/packaging/build-appimage.sh`
-  downloads linuxdeploy and its AppImage plugin from their GitHub releases'
-  `continuous` tag, which moves, and checks no hash; the plugin's runtime is
-  inside every AppImage built. A pin needs a release and a hash read from a
-  copy, and this project cannot reach GitHub. It is the input most in need of
-  one.
+  no longer downloads linuxdeploy and its AppImage plugin: they are published
+  only on GitHub, which the project does not download from, so the script
+  uses copies already in `TOOLS_DIR` and refuses otherwise, and checks no
+  hash. Until 18 September 2026 it took them from their GitHub releases'
+  `continuous` tag, which moves. The plugin's runtime is inside every AppImage
+  built. A pin needs a chosen non-GitHub source and a hash read from a copy;
+  it is the input most in need of one.
 * **The Public Suffix List.** `build/generate-public-suffix-list.ps1` downloads
   the current list from publicsuffix.org, as its maintainers ask. What the
   build compiles is the generated `PublicSuffixListData.h`, committed with the

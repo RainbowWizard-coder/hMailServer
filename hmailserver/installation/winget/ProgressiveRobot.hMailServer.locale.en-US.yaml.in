@@ -47,8 +47,8 @@ Description: |-
 
   Every release is validated by the full regression suite run against the exact binary that
   ships, with live SpamAssassin and ClamAV, and SPF, DKIM and DMARC evaluated through the
-  resolver code path - nothing but DNS is mocked. The installer is Authenticode-signed and
-  every release carries an SBOM and Sigstore signatures.
+  resolver code path - nothing but DNS is mocked. The installer is Authenticode-signed, and
+  every release the project's CI signs carries an SBOM and Sigstore signatures.
 
   This package installs the server, the Control Panel and the setup tools. An unattended
   install configures the embedded database and leaves the administrator password unset:
