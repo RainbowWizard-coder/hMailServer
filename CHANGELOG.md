@@ -522,7 +522,8 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   Pages serves from the project's releases, in place of GitHub's Releases API, which has answered 404 since 18
   September 2026. It trusts two signers: the GitHub workflow that signed every release up to 6.3.3, for a
   certificate issued before the suspension and a release no later than 6.3.3, and this project's GitLab CI pipeline
-  for a `v*` tag, which is to sign the releases from 6.3.5 and has signed none yet. 6.3.4 was built and
+  for a `v*` tag, at the project's path and at the group's it is to move to (below), which is to sign the releases
+  from 6.3.5 and has signed none yet. 6.3.4 was built and
   Authenticode-signed by hand, before that job existed, and carries no Sigstore bundle: every server, of any
   version, installs it by hand, and a live update offered it says it cannot be verified and downloads nothing. A
   file signed for one release tag is refused as any other release; on Windows the installer's own version resource
@@ -536,6 +537,17 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   on GitLab, 6.3.5, will be refused by that server's live update, which trusts only GitHub's signer; installing
   6.3.4 by hand first avoids it, since 6.3.4 trusts both. Until then keep `UpdateAutoDownload` off, or such a
   server downloads a GitLab-signed installer at every check and refuses it
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+- **The live update already trusts where the project is going.** The project is to move from the personal
+  namespace `Progressiverobot/hmailserver` to the group [`hmailserver`](https://gitlab.com/hmailserver), which the
+  owner reserved on 26 September 2026, and a move changes the path every signing certificate names. A server trusts
+  only the signers compiled into it, so 6.3.4 carries a third: the same pipeline at
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, issuer `https://gitlab.com`,
+  repository `https://gitlab.com/hmailserver/hmailserver`, with the project's id, `86730559`, which a transfer keeps,
+  required in the certificate - so nobody who registers that path, now or later, can sign as this project, and a
+  release signed after the move installs by the live update of every server from 6.3.4 on. The id stays optional
+  for the present path. A server that still has the three GitLab values `UpdateFeed.md` gave 6.2.28 to 6.3.3 set
+  trusts the present path alone, and refuses what is signed after the move until they are cleared
   ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 - **Upgrades without a booked window**: a drain closes the listeners before it waits, the live update drains
   first, and with `UpgradeOnStart=1` in `[Database]` (a new bootstrap key, 0 by default) the service applies

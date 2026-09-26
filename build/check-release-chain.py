@@ -24,7 +24,9 @@ refuses it. This checker holds them to each other. It fails when:
     configuration off, hashedrekord 0.0.1), or counts another number of files than
     a release carries (build/ci/release-chain.py);
   * the identity the scripts expect is not the one SigstoreVerifier.cpp trusts,
-    or that one is not this project's path, file and repository id;
+    or that one is not this project's path, file and repository id; or the
+    verifier stops trusting the group the project is to move to (MOVE_TO) with
+    the project's id required, or the scripts sign from a path it does not trust;
   * release-authenticode has no ID token for Entra ID (aud
     api://AzureADTokenExchange), or its script signs without the service's RFC
     3161 timestamp, or reads other settings than the release job checks;
@@ -91,6 +93,13 @@ COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE
 PINNED_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
 PLACEHOLDER_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:PIN-THE-DIGEST$")
 RESERVED = {"stages", "workflow", "default", "variables", "include"}
+# Where the project is to move, from the personal namespace to the group the owner
+# reserved for it (26 September 2026). SigstoreVerifier.cpp trusts the pipeline there
+# too, with the project's id required, so that the servers built before the move take
+# what is signed after it; the release scripts sign from either path and no other.
+MOVE_TO = "https://gitlab.com/hmailserver/hmailserver"
+IDENTITY_TAIL = "//.gitlab-ci.yml@refs/tags/"
+SCRIPT_IDENTITY = 'identity="${repository}%s${tag}"' % IDENTITY_TAIL
 
 
 def _load(relative, name):
@@ -313,9 +322,32 @@ def check(texts, chain, feed):
             prefix.group(1) if prefix else "missing", expected_prefix))
     if chain.SIGNER_IDENTITY_PREFIX + "v" != expected_prefix:
         problems.append("build/ci/release-chain.py expects the identity %s..., not the verifier's %s" % (chain.SIGNER_IDENTITY_PREFIX, expected_prefix))
+    # The group the project is to move to: the same pipeline under its new path, the
+    # same project's id, and that id required - were it optional, a certificate for the
+    # path would be accepted from whoever held the path.
+    group_prefix = re.search(r'const char \*GITLAB_GROUP_IDENTITY_PREFIX = "([^"]+)";', texts["verifier"])
+    group_repository = re.search(r'const char \*GITLAB_GROUP_REPOSITORY = "([^"]+)";', texts["verifier"])
+    expected_group_prefix = MOVE_TO + IDENTITY_TAIL + "v"
+    if not group_prefix or group_prefix.group(1) != expected_group_prefix:
+        problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_IDENTITY_PREFIX is %s, not %s - the path the project is to move to and this CI file" % (
+            group_prefix.group(1) if group_prefix else "missing", expected_group_prefix))
+    if not group_repository or group_repository.group(1) != MOVE_TO:
+        problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_REPOSITORY is not %s" % MOVE_TO)
+    if not re.search(r'trust\.signers\.push_back\(MakeSigner_\(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, (true|false), 0, ""\)\);',
+                     texts["verifier"]):
+        problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the GitLab signer at the project's present path with its id")
+    group_signer = 'trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
+    if group_signer not in texts["verifier"]:
+        problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the group's signer with the project's id required: %s" % group_signer)
+    # The scripts name the identity after the project's path, which must be one of the
+    # two the verifier trusts, each with its own repository, and nothing else.
+    wanted = sorted([(feed.PROJECT_URL.split("/", 3)[3], feed.PROJECT_URL), (MOVE_TO.split("/", 3)[3], MOVE_TO)])
     for name in ("sign", "verify"):
-        if 'identity="%s${tag}"' % chain.SIGNER_IDENTITY_PREFIX not in texts[name]:
-            problems.append("%s expects another identity than %s<tag>" % (FILES[name], chain.SIGNER_IDENTITY_PREFIX))
+        paths = sorted(re.findall(r"^  ([^\s)]+)\) repository=(\S+) ;;$", texts[name], re.MULTILINE))
+        if paths != wanted:
+            problems.append("%s accepts the paths %s; a server trusts a signature from %s alone" % (FILES[name], paths, wanted))
+        if SCRIPT_IDENTITY not in texts[name] or '"${CI_PROJECT_PATH:-}"' not in texts[name]:
+            problems.append("%s expects another identity than <the project's repository>%s<tag>" % (FILES[name], IDENTITY_TAIL))
     if not repository or repository.group(1) != feed.PROJECT_URL:
         problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY is not %s" % feed.PROJECT_URL)
     if not repository_id or repository_id.group(1) != feed.PROJECT_ID or chain.PROJECT_ID != feed.PROJECT_ID:
@@ -423,6 +455,19 @@ def self_test(chain, feed):
            "release does not need linux-cross-2")
     broken("a release job for a branch", "ci", ".release-rules:\n  rules:\n    - if: $HM_PIPELINE", ".release-rules:\n  rules:\n    - if: $HM_PIPELINE_X", ".release-rules no longer holds")
     broken("the verifier trusting another file", "verifier", '//.gitlab-ci.yml@refs/tags/v"', '//.gitlab/ci.yml@refs/tags/v"', "GITLAB_IDENTITY_PREFIX")
+    broken("the verifier trusting another group path", "verifier", 'GITLAB_GROUP_IDENTITY_PREFIX = "https://gitlab.com/hmailserver/hmailserver//',
+           'GITLAB_GROUP_IDENTITY_PREFIX = "https://gitlab.com/hmailserver//', "GITLAB_GROUP_IDENTITY_PREFIX")
+    broken("the group's signer with its id optional", "verifier", 'GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""',
+           'GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, true, 0, ""', "the project's id required")
+    broken("the group's signer on another id", "verifier", 'GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false',
+           'GITLAB_GROUP_REPOSITORY, GITHUB_REPOSITORY_ID, false', "the project's id required")
+    broken("a script signing from a third path", "verify", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
+           "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n  someone/hmailserver) repository=https://gitlab.com/someone/hmailserver ;;\n",
+           "release-verify.sh accepts the paths")
+    broken("a script mapping a path to another repository", "sign", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;",
+           "  hmailserver/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;", "release-sign.sh accepts the paths")
+    broken("a script expecting a branch's identity", "sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
+           'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "release-sign.sh expects another identity")
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
 

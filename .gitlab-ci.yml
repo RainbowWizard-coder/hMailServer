@@ -1312,7 +1312,8 @@ release-authenticode:
 
 # Sigstore, keyless, on GitLab's shared runners, in cosign's own image pinned by digest
 # (HM_COSIGN_IMAGE, above): nothing from GitHub. The certificate names
-# https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/<tag>.
+# https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, or
+# https://gitlab.com/hmailserver/hmailserver//... once the project has moved to that group.
 release-sign:
   stage: release
   image:

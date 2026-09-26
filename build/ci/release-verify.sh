@@ -25,7 +25,6 @@ server=release-tools/hmailserver
 signed=release-signed
 out=release-verified
 tag="${CI_COMMIT_TAG:-}"
-identity="https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/${tag}"
 
 fail() {
   echo "RELEASE-VERIFY FAILED: $*"
@@ -36,6 +35,15 @@ case "$tag" in
   v[0-9]*) ;;
   *) fail "this is not a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
 esac
+# The project's path, which the certificate names: the personal namespace the project
+# began in, or the group it is to move to - the two GitLab paths the server trusts, the
+# group's only with the project's id, which a transfer keeps.
+case "${CI_PROJECT_PATH:-}" in
+  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;
+  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;
+  *) fail "the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from" ;;
+esac
+identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"
 [ -x "$server" ] || fail "$server is not here: the release job's artifact did not arrive"
 [ -d "$signed" ] || fail "$signed is not here: release-sign's artifact did not arrive"
 
@@ -87,8 +95,10 @@ rm -rf "$scratch"
 
 [ "$verified" -eq 6 ] || fail "$verified file(s) verified; a release is 6"
 
-# The repository id (Fulcio's 1.3.6.1.4.1.57264.1.15): the server requires it when the
-# certificate carries it, and the notes say which it was, from the installer's bundle.
+# The repository id (Fulcio's 1.3.6.1.4.1.57264.1.15): for the path the project began
+# at the server requires it when the certificate carries it, for the group's always, and
+# the notes say which it was, from the installer's bundle. The first release says here
+# whether Fulcio writes it for GitLab at all, which the move to the group waits for.
 installer="hMailServer-${tag#v}-x64.exe"
 repository_id=$(python3 - "$signed/$installer.cosign.bundle" <<'PY'
 import base64, json, sys
@@ -114,7 +124,11 @@ PY
 )
 case "$repository_id" in
   86730559) id_row="| Repository id | \`86730559\` |" ;;
-  absent) id_row="| Repository id | not in the certificate; a server checks it only when it is there |" ;;
+  absent)
+    # The server refused such a file above already where the path is the group's.
+    [ "$repository" = "https://gitlab.com/Progressiverobot/hmailserver" ] \
+      || fail "the certificate records no repository id, which a server requires for $repository"
+    id_row="| Repository id | not in the certificate; a server checks it only when it is there |" ;;
   *) fail "the certificate names the repository id '$repository_id', not 86730559" ;;
 esac
 
@@ -129,7 +143,7 @@ esac
   echo "|---|---|"
   echo "| Identity | \`$identity\` |"
   echo "| Issuer | \`https://gitlab.com\` |"
-  echo "| Repository | \`https://gitlab.com/Progressiverobot/hmailserver\` |"
+  echo "| Repository | \`$repository\` |"
   echo "$id_row"
   echo ""
   echo "| File | SHA-256 | Recorded by the transparency log |"

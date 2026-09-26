@@ -133,6 +133,42 @@ namespace HM
       const char *GITLAB_REPOSITORY = "https://gitlab.com/Progressiverobot/hmailserver";
       const char *GITLAB_REPOSITORY_ID = "86730559";
 
+      // And the same pipeline after the project moves. The project is to leave the
+      // personal namespace Progressiverobot for the group hmailserver
+      // (https://gitlab.com/hmailserver), which the owner reserved for it on 26
+      // September 2026. A transfer keeps the project's id and changes its path, and
+      // with the path the identity and the source repository Fulcio writes, so no
+      // certificate from the pipeline after the move names the entry above. A
+      // server trusts only the signers compiled into it: one that knew only the
+      // entry above would refuse every release signed after the move, and nothing
+      // but an upgrade by hand would get it past. This entry is here so that every
+      // server from 6.3.4 on takes those releases. Nothing has been signed from
+      // this path, and nothing will be until the move. The prefix is anchored as
+      // the entry above's is, and the issuer is the same.
+      //
+      // Here the id is required, where the entry above checks it only when the
+      // certificate carries one. That entry's path is the project's own today, in
+      // the owner's own namespace, where nobody else can make a project; its id
+      // guards against whoever holds the path after the project has left it, and
+      // it is optional because a server that refused every certificate for lacking
+      // an extension Fulcio turned out not to write could install nothing. This
+      // path is not the project's until the move. The group can be lost, or the
+      // project moved on again, and whoever holds the path then can run a pipeline
+      // for a v* tag of their own there and be named exactly as this entry names
+      // it. Only the id tells them apart: a transfer keeps 86730559, and GitLab
+      // gives no other project that id, so a certificate for this path must record
+      // it, and one that records none is nobody's. Whoever registers the path, now
+      // or ever, cannot sign as this project from a project of their own. The cost
+      // falls on the project, not on a server: Fulcio's GitLab mapping writes the
+      // project's id as the source repository identifier, but no GitLab-issued
+      // certificate has been seen here yet, and if Fulcio wrote none, nothing
+      // signed from the group would install. The first release signed from the
+      // personal namespace shows which (release-verify puts the id it found in the
+      // release's notes), and the project is not to move before one has shown it
+      // (docs/UpdateFeed.md, "What a server built after 6.3.3 checks").
+      const char *GITLAB_GROUP_IDENTITY_PREFIX = "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v";
+      const char *GITLAB_GROUP_REPOSITORY = "https://gitlab.com/hmailserver/hmailserver";
+
       // Fulcio's certificate extensions (docs.sigstore.dev/certificate_authority/oid-info/).
       const char *OID_ISSUER_V1 = "1.3.6.1.4.1.57264.1.1";          // raw string
       const char *OID_ISSUER_V2 = "1.3.6.1.4.1.57264.1.8";          // DER UTF8String
@@ -559,6 +595,7 @@ namespace HM
       trust.signers.push_back(MakeSigner_(GITHUB_IDENTITY_PREFIX, GITHUB_ISSUER, GITHUB_REPOSITORY, GITHUB_REPOSITORY_ID, false,
                                           GITHUB_ISSUED_BEFORE, GITHUB_LAST_VERSION));
       trust.signers.push_back(MakeSigner_(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, true, 0, ""));
+      trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));
       return trust;
    }
 
@@ -606,8 +643,8 @@ namespace HM
 
       // Each of the three replaces its part of every signer in the list: a site
       // that signs its own releases sets all three and is left with one signer, its
-      // own; one that sets only the repository check off keeps both of this
-      // project's workflows without it. The repository check can be switched off
+      // own; one that sets only the repository check off keeps every one of this
+      // project's signers without it. The repository check can be switched off
       // with "-"; an empty setting keeps the default, so that the default is what a
       // blank INI gets. What belongs to this project's own signers goes with the
       // part it belongs to: the repository's id with the repository; the GitHub
@@ -625,7 +662,11 @@ namespace HM
       // dropped, since signers are tried in order and a copy first in the list
       // would take a certificate the real one refuses. Stronger: the one whose
       // identity was not replaced (it keeps its release check and its limits),
-      // then the one nothing was replaced in; between equals, the first.
+      // then the one nothing was replaced in; between equals, the first. The same
+      // three values turn the group's entry into the present path's without the
+      // id, and it goes the same way: a server that keeps them set trusts the
+      // project's present path alone, and refuses what is signed after the move
+      // until they are cleared, which docs/UpdateFeed.md tells it to do.
       String identity = settings->GetUpdateSigningIdentity();
       String issuer = settings->GetUpdateSigningIssuer();
       String repository = settings->GetUpdateSourceRepository();
@@ -1127,8 +1168,9 @@ namespace HM
          return Fail_(verdict, _T("The signing certificate is not a code-signing certificate."));
 
       // 5. Whose certificate it is: one trusted signer's, whole. The subject
-      // alternative name picks the signer - this project's two prefixes are
-      // disjoint, one on github.com and one on gitlab.com - and then that signer's
+      // alternative name picks the signer - this project's three prefixes are
+      // disjoint, one on github.com and two on gitlab.com for two project paths,
+      // neither of which begins the other - and then that signer's
       // issuer, repository and repository id must be the certificate's too, so a
       // certificate with one signer's identity and another's issuer is nobody's.
       // Then the signer's cut-off, and the release: a signer that signed its last

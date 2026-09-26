@@ -247,6 +247,55 @@ namespace RegressionTests.API
       }
 
       [Test]
+      public void ABundleFromTheGroupTheProjectIsToMoveToIsAcceptedOnlyWithTheProjectsId()
+      {
+         // The project is to move from the personal namespace to the group
+         // hmailserver. A transfer keeps the project's id and changes its path, so
+         // the pipeline's certificates will name the group's path, and the server
+         // trusts it - the third entry of its default trust - with the id required.
+         string identity = FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer;
+         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabGroupSigned(identity)));
+
+         var status = Checked();
+         Assert.IsTrue(status.DownloadUpdate(), "A release signed by this project's pipeline after its move to the group, recording the project's id. Error: " + status.UpdateLastError);
+         Assert.AreEqual(3, status.UpdateState);
+         Assert.AreEqual(identity, status.UpdateSignerIdentity, "The verdict names the group's identity.");
+         StringAssert.Contains("Update: hMailServer " + Newer + " downloaded to " + status.UpdateInstallerPath + " and verified: signed by " + identity,
+            LogHandler.ReadCurrentDefaultLog());
+         CleanUpdates();
+
+         // The path is not the project's until the move, and whoever holds it then
+         // could sign for a v* tag of their own: without the project's id, or with
+         // another project's, the certificate is nobody's.
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: null),
+            "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+
+         // The present path still takes a certificate that records no id: what is
+         // required is the group entry's, not every GitLab one's.
+         FakeSigstore.Options presentWithoutId = GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer);
+         presentWithoutId.RepositoryId = null;
+         ServeRelease(_installer, _sigstore.Bundle(_installer, presentWithoutId));
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "The present path checks the id only when the certificate carries one. Error: " + status.UpdateLastError);
+         CleanUpdates();
+
+         // The group's identity is one part of its signer, as the present path's is:
+         // recording the present path's repository, on another issuer's token, or
+         // for another tag than the release being installed, it is refused.
+         AssertRefused(status, GitLabGroupSigned(identity, repository: FakeSigstore.GitLabRepository),
+            "is for " + FakeSigstore.GitLabRepository + ", not " + FakeSigstore.GitLabGroupRepository);
+         AssertRefused(status, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer, repository: FakeSigstore.GitLabGroupRepository),
+            "is for " + FakeSigstore.GitLabGroupRepository + ", not " + FakeSigstore.GitLabRepository);
+         AssertRefused(status, GitLabGroupSigned(identity, issuer: FakeSigstore.GitHubIssuer),
+            "issued on a token from " + FakeSigstore.GitHubIssuer + ", not " + FakeSigstore.GitLabIssuer);
+         string another = FakeSigstore_Bump(Newer);
+         AssertRefused(status, GitLabGroupSigned(FakeSigstore.GitLabGroupReleaseIdentityPrefix + another),
+            "The certificate was made for the tag v" + another + ", not for v" + Newer + ", the release being installed.");
+      }
+
+      [Test]
       public void AGitLabBundleFromAnotherProjectOrRefIsRefused()
       {
          var status = Checked();
@@ -268,7 +317,11 @@ namespace RegressionTests.API
             // This project, for a tag that is not a release's.
             new[] { "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/build-inputs-1", FakeSigstore.GitLabRepository },
             // This project, for a v* tag, from another CI file.
-            new[] { "https://gitlab.com/Progressiverobot/hmailserver//ci/other.yml" + tag, FakeSigstore.GitLabRepository }
+            new[] { "https://gitlab.com/Progressiverobot/hmailserver//ci/other.yml" + tag, FakeSigstore.GitLabRepository },
+            // The group the project is to move to: a subgroup of the same name, and
+            // the project there for a branch.
+            new[] { "https://gitlab.com/hmailserver/hmailserver/fork//.gitlab-ci.yml" + tag, "https://gitlab.com/hmailserver/hmailserver/fork" },
+            new[] { "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/heads/master", FakeSigstore.GitLabGroupRepository }
          };
          foreach (string[] stranger in strangers)
          {
@@ -397,7 +450,8 @@ namespace RegressionTests.API
          // the GitLab signer, still set after the upgrade. They restate the GitLab
          // signer's own values, which keeps every check it has; the GitHub entry,
          // turned by them into GitLab's identity without GitLab's checks, is dropped
-         // rather than tried first.
+         // rather than tried first, and so is the group's, turned into the present
+         // path's without the id.
          WriteSetting("UpdateSigningIdentity", FakeSigstore.GitLabReleaseIdentityPrefix);
          WriteSetting("UpdateSigningIssuer", FakeSigstore.GitLabIssuer);
          WriteSetting("UpdateSourceRepository", FakeSigstore.GitLabRepository);
@@ -412,6 +466,10 @@ namespace RegressionTests.API
             "The certificate was made for the tag v" + FakeSigstore_Bump(Newer) + ", not for v" + Newer);
          AssertRefused(status, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer, repositoryId: "12345678"),
             "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         // So a server that keeps them set trusts the present path alone, and
+         // refuses what the project signs after its move until they are cleared.
+         AssertRefused(status, GitLabGroupSigned(FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer),
+            "The certificate names " + FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer + ", not this repository's release workflow");
 
          // Another issuer only: it replaces the GitHub entry's, which then takes no
          // GitHub certificate, and leaves GitLab's alone, release check and all.
@@ -424,9 +482,10 @@ namespace RegressionTests.API
          AssertRefused(status, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + FakeSigstore_Bump(Newer)),
             "The certificate was made for the tag v" + FakeSigstore_Bump(Newer));
 
-         // Only the repository check off: both of this project's signers stay,
-         // neither holding a certificate to its repository or its id, and the
-         // GitHub one still holding it to the releases it signed.
+         // Only the repository check off: every one of this project's signers
+         // stays, none holding a certificate to its repository or its id - the
+         // group's required id goes with its repository - and the GitHub one still
+         // holding it to the releases it signed.
          WriteSetting("UpdateSigningIssuer", "");
          WriteSetting("UpdateSourceRepository", "-");
          _application.Reinitialize();
@@ -440,6 +499,11 @@ namespace RegressionTests.API
          }));
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
          Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository. Error: " + status.UpdateLastError);
+         CleanUpdates();
+         ServeRelease(_installer, _sigstore.Bundle(_installer,
+            GitLabGroupSigned(FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: null)));
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository or id for the group's path either. Error: " + status.UpdateLastError);
       }
 
       [Test]
@@ -926,6 +990,14 @@ namespace RegressionTests.API
             RepositoryId = repositoryId,
             SignedAt = DateTimeOffset.UtcNow
          };
+      }
+
+      // The same, as the pipeline will have it made once the project has moved to
+      // the group: the group's repository, and the same project's id.
+      private static FakeSigstore.Options GitLabGroupSigned(string identity, string issuer = FakeSigstore.GitLabIssuer,
+         string repository = FakeSigstore.GitLabGroupRepository, string repositoryId = FakeSigstore.GitLabRepositoryId)
+      {
+         return GitLabSigned(identity, issuer, repository, repositoryId);
       }
 
       // Serves the release with a bundle made as options says, checks, and requires

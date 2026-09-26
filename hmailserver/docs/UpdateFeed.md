@@ -177,24 +177,29 @@ Then clear all three the way the last bullet above clears `UpdateFeedUrl` - the
 Control Panel, `DELETE /api/v1/settings/ini/<name>`, or `hmailserver
 --set-setting <name>=` - and not in the file, which the new version puts back.
 Left set, they keep the new version to the GitLab signer alone, with all of
-that signer's checks: they restate its own values (see below).
+that signer's checks: they restate its own values (see below). They also keep
+it to the project's present path: once the project has moved to the group
+`hmailserver` (below), a server that still has them refuses every release
+signed after the move. Clear them before then.
 
 What a server built after 6.3.3 checks
 --------------------------------------
 
-The trust is a list of this project's two signers, compiled in. A certificate
-is accepted only when it is one signer's whole: its identity, and that same
-signer's issuer, repository and repository id.
+The trust is a list of this project's signers, compiled in: the GitHub
+workflow, and the GitLab pipeline under two paths, the project's now and the
+group's it is to move to. A certificate is accepted only when it is one
+entry's whole: its identity, and that same entry's issuer, repository and
+repository id.
 
-| | GitHub | GitLab |
-|---|---|---|
-| Signed | Every release from 6.2.19 to 6.3.3 | The releases from 6.3.5 on, by the `release-sign` job; 6.3.4 carries no bundle |
-| Identity (the certificate's subject alternative name begins with) | `https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@` | `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v` |
-| Issuer | `https://token.actions.githubusercontent.com` | `https://gitlab.com` |
-| Repository | `https://github.com/Progressiverobot/hmailserver` | `https://gitlab.com/Progressiverobot/hmailserver` |
-| Repository id (Fulcio's 1.3.6.1.4.1.57264.1.15) | `1267388815`, required | `86730559`, checked when the certificate carries one |
-| Issued | Before 2026-09-18T00:00:00Z | Any time |
-| Release | Only a release up to 6.3.3, the last it signed; where the workflow ran for a `v*` tag, that tag | The tag the certificate names |
+| | GitHub | GitLab | GitLab, after the move |
+|---|---|---|---|
+| Signed | Every release from 6.2.19 to 6.3.3 | The releases from 6.3.5 until the project moves, by the `release-sign` job; 6.3.4 carries no bundle | The releases after the project moves to the group `hmailserver`; none yet |
+| Identity (the certificate's subject alternative name begins with) | `https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@` | `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v` | `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v` |
+| Issuer | `https://token.actions.githubusercontent.com` | `https://gitlab.com` | `https://gitlab.com` |
+| Repository | `https://github.com/Progressiverobot/hmailserver` | `https://gitlab.com/Progressiverobot/hmailserver` | `https://gitlab.com/hmailserver/hmailserver` |
+| Repository id (Fulcio's 1.3.6.1.4.1.57264.1.15) | `1267388815`, required | `86730559`, checked when the certificate carries one | `86730559`, required |
+| Issued | Before 2026-09-18T00:00:00Z | Any time | Any time |
+| Release | Only a release up to 6.3.3, the last it signed; where the workflow ran for a `v*` tag, that tag | The tag the certificate names | The tag the certificate names |
 
 The rows after the repository are there because the names are not the
 project's to keep, and because the feed is not the project's word either:
@@ -212,6 +217,20 @@ project's to keep, and because the feed is not the project's word either:
   the id is checked when the certificate carries one, rather than required: a
   server that refused every certificate for lacking an extension Fulcio turned
   out not to write could install nothing.
+- **The path the project is to move to is trusted already, and only with the
+  project's id.** The project is to leave the personal namespace for the group
+  `hmailserver` (https://gitlab.com/hmailserver), which the owner reserved for
+  it on 26 September 2026. A transfer changes the path in every certificate
+  the pipeline is given and keeps the project's id, and a server trusts only
+  what is compiled into it, so a server that knew only the present path would
+  refuse every release signed after the move. Every server from 6.3.4 on knows
+  both paths. For the group's the id is required: the path is not the
+  project's until the move, and whoever holds it then - were the group lost,
+  or the project moved on again - could sign for a `v*` tag of their own
+  there, but never with this project's id. The cost is the project's: the
+  project does not move until a release signed from the present path has shown
+  that Fulcio records the id (its notes say, from `release-verify`), since if
+  Fulcio wrote none, nothing signed from the group would install.
 - **A file is held to its release.** A GitLab job signs for the tag it ran
   for, and the identity names that tag. A server built after 6.3.3 refuses a
   file whose certificate names another tag than the release the feed offers it
@@ -286,15 +305,17 @@ project's to keep, and because the feed is not the project's word either:
   from System32.
 
 `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository`
-replace their part of both signers, and a site that sets all three is left with
+replace their part of every entry, and a site that sets all three is left with
 one signer, its own. A setting that changes a signer's part drops what went with
-it: a new repository drops the repository id; a new identity or issuer drops
-the GitHub cut-off and its last release; a new identity drops the release check,
-since a site's workflow names its refs its own way. A setting that restates a
+it: a new repository drops the repository id, the group's required one
+included; a new identity or issuer drops the GitHub cut-off and its last
+release; a new identity drops the release check, since a site's workflow names
+its refs its own way. A setting that restates a
 signer's own value changes nothing about that signer. And where the settings
 turn one signer into another's identity, issuer and repository without its
 checks - the three GitLab values above, still set after an upgrade, do that to
-the GitHub entry - the copy is dropped and the unchanged signer kept.
+the GitHub entry and to the group's - the copy is dropped and the unchanged
+signer kept, so such a server trusts the project's present path alone.
 `hmailserver --verify-update`, which the Linux update helper runs as root,
 checks everything but the release, which it is not given; the helper holds the
 package to an upgrade itself.
@@ -348,6 +369,12 @@ first release is to be checked against the list by hand before it is published:
       same commit, not only with cosign. Check the certificate's identity,
       issuer, repository and id against the table above, and put them in the
       release's notes.
+- [ ] **The project's path, and its id**: the job signs as the path it runs
+      at, `Progressiverobot/hmailserver` until the project moves to the group
+      and `hmailserver/hmailserver` after, and from no other. Before the move,
+      the notes of a release signed from the present path must show the id
+      `86730559` in the certificate: a server requires it for the group's path,
+      so the project does not move until one has.
 
 How the job meets each point: it is a job of the tag's own pipeline and never a
 trigger; the tag is checked as an annotated tag signed by a key in
@@ -358,9 +385,11 @@ sigstore}}` and runs cosign's own image from `gcr.io` pinned by digest
 https://rekor.sigstore.dev`, and with `--use-signing-config=false` wherever the
 cosign in the image has that option, then refuses a bundle that is not a
 Sigstore bundle with a `messageSignature` and a hashedrekord 0.0.1 entry with an
-`integratedTime` and the log's promise or proof; `release-verify` runs
+`integratedTime` and the log's promise or proof; both refuse to run at a
+project path (`CI_PROJECT_PATH`) other than the two above, and name the
+identity after the one they run at; `release-verify` runs
 `hmailserver --verify-update` from `linux-build` of the same commit on every
-file, requires the identity above, and writes the notes' verification section
+file, requires that identity, and writes the notes' verification section
 with the repository id as the certificate states it; and `release-publish`
 uploads every file to `hmailserver/<version>` before it creates the release with
 a link per file named after it, then renders the feed from the API and requires

@@ -945,13 +945,15 @@ the pipeline can check, and the one every server's trust in a release rests on.
    `v*`, *Allowed to create* Maintainers, and nobody else. The whole Sigstore
    trust rests on it: a server built after 6.3.3 accepts a bundle whose
    certificate names `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`
-   (`SigstoreVerifier.cpp`), and Fulcio issues that certificate to any
-   pipeline of such a tag, running whatever `.gitlab-ci.yml` the tag's commit
-   has. Anyone who can push a `v` tag could therefore sign a release the
-   servers accept with a CI file of their own, without the release jobs. The
-   pipeline cannot enforce this: without the rule the release jobs simply do
-   not run, and a hostile file does not need them. Check it again whenever the
-   project's members or settings change.
+   (`SigstoreVerifier.cpp`), or `https://gitlab.com/hmailserver/hmailserver//...`
+   with the project's id, the group the project is to move to, and Fulcio
+   issues that certificate to any pipeline of such a tag, running whatever
+   `.gitlab-ci.yml` the tag's commit has. Anyone who can push a `v` tag could
+   therefore sign a release the servers accept with a CI file of their own,
+   without the release jobs. The pipeline cannot enforce this: without the rule
+   the release jobs simply do not run, and a hostile file does not need them.
+   Check it again whenever the project's members or settings change, and after
+   the move to the group, whose members and Owners can reach the project too.
 
 The feed's pipeline needs nothing here. `update-feed` passes no variables, so
 the project's *Minimum role to use pipeline variables* can stay at GitLab's

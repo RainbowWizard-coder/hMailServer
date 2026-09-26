@@ -48,6 +48,13 @@ namespace RegressionTests.Shared
       public const string GitLabRepository = "https://gitlab.com/Progressiverobot/hmailserver";
       public const string GitLabRepositoryId = "86730559";
 
+      // The third: the same pipeline once the project has moved from the personal
+      // namespace to the group hmailserver, which the owner reserved for it. A
+      // transfer changes the path and keeps the project's id, and the server
+      // requires the id for this path.
+      public const string GitLabGroupReleaseIdentityPrefix = "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v";
+      public const string GitLabGroupRepository = "https://gitlab.com/hmailserver/hmailserver";
+
       // The newest release the GitHub workflow signed: the server installs no file
       // it signed as a later one.
       public const string GitHubLastVersion = "6.3.3";

@@ -324,8 +324,10 @@ ten-minute certificate is valid); the certificate is one of this project's two
 release signers, whole - the GitHub Actions workflow `sign-release.yml` on a
 GitHub token, issued before GitHub suspended the account, for the releases up to
 6.3.3, or this project's GitLab CI pipeline on a GitLab token, for the `v*` tag
-of the release being installed, for the ones after (compiled in; no release has
-been signed there yet); the signature verifies under
+of the release being installed, for the ones after (compiled in, at the
+project's path now and at the path of the group `hmailserver` it is to move to,
+where the certificate must record the project's id; no release has been signed
+there yet); the signature verifies under
 the certificate's key; and the log vouches for the entry under its own key. A
 GitHub-signed file is installed only as a release up to 6.3.3, and on Windows
 the installer's own version resource must name the release it is installed as. A

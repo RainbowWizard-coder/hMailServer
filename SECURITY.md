@@ -140,7 +140,11 @@ verified the original.
   Only GitHub Actions can issue that identity, so no later release can carry it. 6.3.4, built and signed by hand,
   carries no bundle. From 6.3.5 the release jobs of `.gitlab-ci.yml` sign each asset in the tag's own pipeline,
   with the identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` and the
-  issuer `https://gitlab.com`; none of them has run yet.
+  issuer `https://gitlab.com`; none of them has run yet. The project is to move to the group
+  [`hmailserver`](https://gitlab.com/hmailserver), and the releases signed after the move will carry the identity
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and the
+  project's id, `86730559`, in the certificate. A server from 6.3.4 on trusts both paths, the group's only with that id
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
   Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In

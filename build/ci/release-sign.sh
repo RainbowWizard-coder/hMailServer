@@ -17,9 +17,12 @@
 # The identity token is the job's SIGSTORE_ID_TOKEN (id_tokens, aud sigstore), which
 # cosign reads from the environment itself: it is never on a command line and never
 # printed. Fulcio names the certificate after the token's ci_config_ref_uri,
-#   https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/<tag>
-# which is the GitLab signer SigstoreVerifier.cpp trusts, and only a top-level pipeline
-# of a tag has it - so this runs in the tag's own pipeline and never in a child one.
+#   https://gitlab.com/<project path>//.gitlab-ci.yml@refs/tags/<tag>
+# which is a GitLab signer SigstoreVerifier.cpp trusts when the path is the project's
+# now, Progressiverobot/hmailserver, or the group's it is to move to,
+# hmailserver/hmailserver (there only with the project's id, which a transfer keeps).
+# Only a top-level pipeline of a tag has it - so this runs in the tag's own pipeline
+# and never in a child one.
 #
 # What every server built after 6.3.3 reads, and nothing else (docs/UpdateFeed.md,
 # "What the signing job produces"): a Sigstore bundle, not cosign's older format and
@@ -49,7 +52,14 @@ case "$tag" in
 esac
 version="${tag#v}"
 installer="hMailServer-${version}-x64.exe"
-identity="https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/${tag}"
+# The two paths a server trusts a signature from, and nothing else: a pipeline of this
+# project at any other path would sign what no server installs.
+case "${CI_PROJECT_PATH:-}" in
+  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;
+  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;
+  *) fail "the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from" ;;
+esac
+identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"
 
 [ -n "${SIGSTORE_ID_TOKEN:-}" ] || fail "the job has no SIGSTORE_ID_TOKEN: id_tokens with aud sigstore is missing from it"
 if ! command -v cosign > /dev/null 2>&1; then

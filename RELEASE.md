@@ -71,7 +71,10 @@ can sign a release the servers accept. Nothing in the pipeline can check this.
    missing file. Nothing has been signed or sent when it refuses.
 4. **`release-authenticode`, `release-sign` and `release-verify` follow by
    themselves.** Read `release-verify`'s `verification.md`: the identity must
-   be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
+   be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
+   or, once the project has moved to the group, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
+   Note the repository id it gives: until one release signed before the move
+   shows `86730559`, the project does not move (hmailserver/docs/UpdateFeed.md).
 5. **The installer smoke test**, on the signed installer: download
    `release-signed/` from `release-sign`'s artifacts to the VMware host and run
    `bash build/ci/installer-smoke-run.sh <the previous release's installer>
