@@ -373,10 +373,21 @@ namespace RegressionTests.API
          StringAssert.Contains("\"notifications_sent\":1", ran.body, ran.body);
 
          string message = Pop3ClientSimulator.AssertGetFirstMessageText(recipient.Address, "test");
-         Match subject = Regex.Match(message, "^Subject: (.*(?:\r\n[ \t].*)*)", RegexOptions.Multiline);
+         // [^\r\n], not ".": in .NET "." takes the CR of a CRLF, and the folded
+         // Subject's next line would never be reached. "[hMailServer <host>]
+         // low: " and the summary's 25 bytes of UTF-8 are more than the first
+         // word holds, so the Subject is folded.
+         Match subject = Regex.Match(message, "^Subject: ([^\r\n]*(?:\r\n[ \t][^\r\n]*)*)", RegexOptions.Multiline);
          Assert.IsTrue(subject.Success, message);
 
          StringAssert.Contains("=?UTF-8?B?", subject.Groups[1].Value, "A header carries no raw byte above 0x7F. " + subject.Value);
+         Assert.AreEqual("", Regex.Replace(subject.Groups[1].Value, @"=\?UTF-8\?B\?[A-Za-z0-9+/=]+\?=|\s", ""),
+            "The Subject is encoded words and nothing else. " + subject.Value);
+
+         // RFC 2047 section 2: a word is at most 75 characters and a line that
+         // holds one at most 76, the first line with "Subject: " on it too.
+         foreach (string line in subject.Value.Split(new[] { "\r\n" }, StringSplitOptions.None))
+            Assert.LessOrEqual(line.Length, 76, subject.Value);
 
          var decoded = new StringBuilder();
          foreach (Match word in Regex.Matches(subject.Groups[1].Value, @"=\?UTF-8\?B\?([A-Za-z0-9+/=]+)\?="))

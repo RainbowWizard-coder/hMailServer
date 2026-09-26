@@ -573,15 +573,28 @@ namespace HM
    }
 
    std::string
-   PstMime::EncodedWords(const std::string &utf8)
+   PstMime::EncodedWords(const std::string &utf8, size_t firstLineUsed)
    {
-      // "=?UTF-8?B?" and "?=" are twelve characters, which leaves 63 of base64:
-      // 45 bytes of text, cut before a byte that continues a character.
+      // RFC 2047 section 2: a word is at most 75 characters and a line holding
+      // one at most 76. "=?UTF-8?B?" and "?=" are twelve characters, so a word
+      // after the folding space has 63 of base64: 45 bytes of text. The first
+      // word shares its line with the firstLineUsed characters before it and
+      // carries less - never under six bytes, which a character of four still
+      // fits in whole. Each word is cut before a byte that continues a
+      // character.
       std::string out;
       size_t i = 0;
+      size_t used = firstLineUsed;
       while (i < utf8.size())
       {
-         size_t length = utf8.size() - i < 45 ? utf8.size() - i : 45;
+         size_t room = used < 76 ? 76 - used : 0;
+         if (room > 75)
+            room = 75;
+         size_t maximum = room > 12 ? (room - 12) / 4 * 3 : 0;
+         if (maximum < 6)
+            maximum = 6;
+
+         size_t length = utf8.size() - i < maximum ? utf8.size() - i : maximum;
          while (length > 1 && i + length < utf8.size() && ((unsigned char) utf8[i + length] & 0xC0) == 0x80)
             length--;
 
@@ -595,6 +608,7 @@ namespace HM
             out += "\r\n ";
          out += "=?UTF-8?B?" + encoded + "?=";
          i += length;
+         used = 1;
       }
       return out;
    }

@@ -129,16 +129,21 @@ namespace HM
          return true;
       }
 
-      // A header's unstructured text (the Subject): as it is when it is
-      // printable ASCII, otherwise RFC 2047 encoded words of its UTF-8. A raw
-      // byte above 0x7F in a header is what the mail used to carry.
-      AnsiString HeaderText(const String &value)
+      // A header field of unstructured text (the Subject), name and value: the
+      // value as it is when it is printable ASCII, otherwise RFC 2047 encoded
+      // words of its UTF-8, folded, the first word short enough to share its
+      // line with the name. A raw byte above 0x7F in a header is what the mail
+      // used to carry.
+      AnsiString HeaderField(const AnsiString &name, const String &value)
       {
+         const AnsiString start = name + ": ";
+
          AnsiString bytes = Utf8(value);
          if (IsPrintableAscii(bytes))
-            return bytes;
+            return start + bytes;
 
-         return AnsiString(PstMime::EncodedWords(PstMime::HeaderSafe(std::string(bytes.c_str(), bytes.GetLength()))).c_str());
+         return start + AnsiString(PstMime::EncodedWords(PstMime::HeaderSafe(std::string(bytes.c_str(), bytes.GetLength())),
+                                                         (size_t) start.GetLength()).c_str());
       }
 
       // A value for an HTTP header of the webhook's (the condition, in
@@ -762,7 +767,7 @@ namespace HM
       AnsiString content;
       content += "From: <" + Utf8(from) + ">\r\n";
       content += "To: <" + Utf8(recipient) + ">\r\n";
-      content += "Subject: " + HeaderText(OneLine(subject)) + "\r\n";
+      content += HeaderField("Subject", OneLine(subject)) + "\r\n";
       content += "Date: " + Utf8(Time::GetCurrentMimeDate()) + "\r\n";
       content += "Auto-Submitted: auto-generated\r\n";
       content += "X-hMailServer-Alert: 1\r\n";

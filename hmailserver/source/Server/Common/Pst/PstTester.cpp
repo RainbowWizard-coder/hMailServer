@@ -1360,6 +1360,23 @@ namespace HM
             longName += "\xCE\x9A";
          const std::string words = PstMime::EncodedWords(longName);
          Expect(words.find("\r\n ") != std::string::npos && words.find("\xCE") == std::string::npos, "A long name folds into several words.");
+         {
+            // RFC 2047 section 2: a word of at most 75 characters, a line
+            // holding one of at most 76 - the first line with the nine
+            // characters of "Subject: " before its word.
+            const std::string field = "Subject: " + PstMime::EncodedWords(longName, 9);
+            bool within = field.find("\r\n ") != std::string::npos;
+            size_t start = 0;
+            while (start <= field.size())
+            {
+               size_t end = field.find("\r\n", start);
+               if (end == std::string::npos)
+                  end = field.size();
+               within = within && end - start <= 76;
+               start = end + 2;
+            }
+            Expect(within && PstMime::EncodedWords(longName, 0) == words, "The first word shares its line with the field's name.");
+         }
 
          Expect(PstMime::QuotedPrintable("a=b\r\n") == "a=3Db\r\n", "= is encoded.");
          Expect(PstMime::QuotedPrintable("a \r\nb") == "a=20\r\nb", "A space before a line break is encoded.");

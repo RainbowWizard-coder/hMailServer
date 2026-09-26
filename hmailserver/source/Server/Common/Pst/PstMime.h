@@ -50,8 +50,11 @@ namespace HM
       static std::string HeaderSafe(const std::string &utf8);
 
       // RFC 2047 encoded words (B, UTF-8), each at most 75 characters, split at
-      // character boundaries and joined by a folding CRLF SP.
-      static std::string EncodedWords(const std::string &utf8);
+      // character boundaries and joined by a folding CRLF SP. firstLineUsed is
+      // how many characters the header line already holds before the first
+      // word ("Subject: " is nine), so that line too stays within the 76 that
+      // RFC 2047 allows a line holding an encoded word.
+      static std::string EncodedWords(const std::string &utf8, size_t firstLineUsed = 0);
 
       // A display name as a phrase: as it is, quoted, or encoded.
       static std::string Phrase(const std::string &utf8);
