@@ -890,11 +890,18 @@ or reached, and 4 when the script did not run to a result.
 
 **The switches.** The switches are the installer's own, from
 `hMailServerInnoExtension.iss`. The first install gets
-`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TYPE=full /adminpassword=<password> /LOG=<file>`.
-`/adminpassword=` is the only way a silent install sets the administrator
-password. The upgrade needs it too: DBUpdater authenticates as the
-administrator before it moves the schema, and under `/silent` it fails rather
-than asks. The upgrade gets no `/TYPE`, because winget and Chocolatey pass none
+`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TYPE=full /LOG=<file>` and the
+administrator password, which a silent install takes with `/adminpassword=` or,
+from 6.3.4, in `HM_ADMIN_PASSWORD`. The upgrade needs it too: DBUpdater
+authenticates as the administrator before it moves the schema, and under
+`/silent` it fails rather than asks. When the first installer is 6.3.4 or later,
+the password carries a space, a double quote and backslashes before one, and goes
+in `HM_ADMIN_PASSWORD` to both installers, since Inno drops every double quote
+from its command line; that is the path by which the installer hands it to
+DBSetupQuick and DBUpdater unchanged. An installer before 6.3.4 put the password
+on DBSetupQuick's command line unquoted, so with one as the first installer the
+password is letters and digits and goes with `/adminpassword=`. The upgrade gets
+no `/TYPE`, because winget and Chocolatey pass none
 ([PackageManagers.md](PackageManagers.md)), and the test checks that Inno kept
 the components already installed. Each installer and the uninstaller get ten
 minutes. When one fails or runs out of time, the test prints the tail of Inno's
@@ -919,7 +926,7 @@ checks:
     three restart actions (ConfigureServiceRecovery) and is running without
     being started by the test;
   - SMTP, POP3 and IMAP answer their banners;
-  - the password given with `/adminpassword` authenticates;
+  - the administrator password given to the installer authenticates;
   - the database is SQL Server Compact, its schema is the one the server
     requires, and the create script that was installed makes that same version;
   - `Software\hMailServer` InstallLocation is in the 32-bit view;
@@ -1893,9 +1900,10 @@ refute the first, under the owner's delegation: 169 were judged not
 exploitable and are accepted in `.gitlab/security-exceptions.yml` until 25
 September 2027, each with the check, size or constant that makes it safe; their
 `reviewed-by` names the owner, who delegated the reading. The seven judged real
-have no entry, so each holds the release until it is fixed, and a fixed line
-the analyzer still flags holds it until it is read again. Over that report, the
-gate now holds on those seven alone.
+have no entry: each was fixed instead, in the tree 6.3.4 is released from (the
+list is in the exceptions file's header), and a fixed line the analyzer still
+flags holds the release until it is read again. Over that report, the gate held
+on those seven alone; no semgrep-sast scan has been run over the fixed tree yet.
 
 This is a gate on releases, not on changes: the scans still run for protected
 refs only, after the push, and `master` is pushed with `ci.skip`. A finding a

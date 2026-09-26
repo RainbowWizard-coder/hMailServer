@@ -20,7 +20,12 @@ using namespace boost::interprocess;
 
 int CreateMinidump(int process_id, int thread_id, EXCEPTION_POINTERS* pExp, const wchar_t *file_name)
 {   
-   HMODULE debug_help_dll = LoadLibrary(_T("dbghelp.dll"));
+   // System32's dbghelp.dll and nothing else: it is no KnownDLL, and by bare
+   // name the loader would look in Bin first. LOAD_LIBRARY_SEARCH_SYSTEM32
+   // searches System32 alone, for the DLL and for the DLLs it imports.
+   // Not /DEPENDENTLOADFLAG: this helper links the CRT dynamically, and the
+   // installer ships that CRT in Bin, not System32.
+   HMODULE debug_help_dll = LoadLibraryExW(L"dbghelp.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
    if(debug_help_dll==NULL)
    {
       return -1;
@@ -71,7 +76,8 @@ int CreateMinidump(int process_id, int thread_id, EXCEPTION_POINTERS* pExp, cons
          FALSE,
          process_id);
 
-   if (process == INVALID_HANDLE_VALUE)
+   // OpenProcess fails with NULL, not INVALID_HANDLE_VALUE.
+   if (process == NULL)
       return -4;
 
    BOOL bWriteDump = pfnMiniDumpWriteDump(

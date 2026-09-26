@@ -18,11 +18,6 @@
    #define new DEBUG_NEW
 #endif
 
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-
 namespace HM
 {
    namespace
@@ -95,9 +90,11 @@ namespace HM
             return false;
 
          // Returns NULL for a closing MIME boundary at EOF with no trailing CRLF.
-         if (HM::FindString("--------------9RmO0bL0Xu1K5PGiz2FQ63S5--",
-            "\r\n",
-            "--------------9RmO0bL0Xu1K5PGiz2FQ63S5--" + strlen("--------------9RmO0bL0Xu1K5PGiz2FQ63S5--")) != NULL)
+         // One array, so that the start and the end point into the same object:
+         // two copies of the literal need not share storage, and in a Debug build
+         // they do not.
+         static const char closingBoundaryAtEof[] = "--------------9RmO0bL0Xu1K5PGiz2FQ63S5--";
+         if (HM::FindString(closingBoundaryAtEof, "\r\n", closingBoundaryAtEof + sizeof(closingBoundaryAtEof) - 1) != NULL)
             return false;
 
          return true;
@@ -820,22 +817,22 @@ namespace HM
          HM_TEST_FAILED();
 
       if (!TestQPDecodeDeletesTrailingWhitespace())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPDecodeSoftBreakAfterWhitespace())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPDecodeImaptestPart())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestQPDecodeKeepsInvalidEscape())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestHeaderWithoutFinalCrlf())
-         throw;
+         HM_TEST_FAILED();
 
       if (!TestUnterminatedTextWithoutFieldNameIsNoField())
-         throw;
+         HM_TEST_FAILED();
 
    }
 }

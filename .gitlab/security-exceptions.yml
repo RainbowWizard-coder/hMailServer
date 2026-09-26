@@ -46,18 +46,30 @@
 # reviewed-by names the owner, who delegated the reading, not a reader. Each names
 # the specific reason it is safe: the check, the size or the constant that holds, and
 # the function it is in. The fingerprints are the gate's own, made from that report;
-# batch40 moved some of the flagged lines and changed none of them.
+# batch40 moved some of the flagged lines and changed none of them until sast-fix,
+# folded after, changed six accepted ones: MySQLInterface.cpp's LoadLibrary,
+# Utilities.cpp's two memcpy, the password dialog's help link
+# (formEnterPassword.cs), the Control Panel's elevated command line
+# (FeatureSettingsView.xaml.cs, /d added) and UtilityViews.cs's explorer.exe. Where
+# the analyzer still flags one of those, it has a new fingerprint and holds the
+# release until it is read again.
 #
-# The seven High findings judged real have no entry, so each holds the release until
-# it is fixed: the crash-dump helper loading dbghelp.dll by bare name
-# (hMailServer.Minidump.cpp); the Control Panel's service restart running a bare
-# cmd.exe elevated (TryRestartService); DBSetupQuick passing the password to DBUpdater
-# unquoted (UpgradeDatabase, two findings); the XMLite parser copying past the end of
-# a truncated backup index (_SetString) and reading past an entity reference without
-# its ';' (Ref2Entity); and a MimeTester check built from two copies of one literal
-# (TestFindStringEdgeCases). A fixed line the analyzer still flags has a new
-# fingerprint, or keeps one never accepted here, and holds the release until it is
-# read again.
+# The seven High findings judged real have no entry: each was fixed instead, in the
+# tree 6.3.4 is released from (batch40's fold of the branch sast-fix, 26 September
+# 2026): the crash-dump helper loads System32's dbghelp.dll alone
+# (hMailServer.Minidump.cpp); the Control Panel's service restart runs System32's
+# cmd.exe and net.exe by their full paths, in System32 (TryRestartService);
+# DBSetupQuick hands DBUpdater the password in HM_ADMIN_PASSWORD, on no command line
+# (UpgradeDatabase, two findings); the XMLite parser stops at the end of a truncated
+# backup index (_SetString) and keeps an entity reference without its ';' as written
+# (Ref2Entity); and the MimeTester check reads one array (TestFindStringEdgeCases).
+# A fixed line the analyzer still flags has a new fingerprint, or keeps one never
+# accepted here, and holds the release until it is read again. Four of the seven
+# were fixed around a flagged line that did not change - XMLite.cpp's memcpy in
+# _SetString and _tcslen in Ref2Entity, TryRestartService's Process.Start and
+# UpgradeDatabase's Process.Start - so where the analyzer flags them by that text
+# they keep the fingerprints this file does not accept. No semgrep-sast scan had
+# been run over the fixed tree when this was written.
 exceptions:
 
   # fuzz/harness/fuzz_mime_common.h

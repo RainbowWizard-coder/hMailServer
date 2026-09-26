@@ -37,23 +37,35 @@ namespace DBSetupQuick
             System.Diagnostics.ProcessStartInfo upgradeProcess = new System.Diagnostics.ProcessStartInfo();
             upgradeProcess.FileName = System.IO.Path.Join(AppContext.BaseDirectory, "DBUpdater.exe");
 
+            // The environment below reaches the child only without the shell.
+            upgradeProcess.UseShellExecute = false;
+
+            // Each argument on its own, quoted by .NET by the rules DBUpdater's
+            // command line is split by, rather than one string built by hand.
+            //
             // Means that it should automatically exit if already up to date. This is always
             // the case when we launch it via 'quick'.
-            string arguments = "/SilentIfOk";
+            upgradeProcess.ArgumentList.Add("/SilentIfOk");
 
             // If the /silent param has been supplied to this process, we should forward it to the updater
             if (CommandLineParser.IsSilent())
-               arguments += " /silent";
+               upgradeProcess.ArgumentList.Add("/silent");
 
             // Forward the administrator password as well. The create path has always
             // done this; the upgrade path did not, and that asymmetry is what made an
             // unattended upgrade hang. DBUpdater authenticates before it can upgrade,
             // had no password to authenticate with, and fell through to a modal dialog
             // nobody was there to answer.
-            if (CommandLineParser.ContainsArgument("password"))
-               arguments += " password:" + CommandLineParser.GetArgument("password");
-
-            upgradeProcess.Arguments = arguments;
+            //
+            // In DBUpdater's environment, HM_ADMIN_PASSWORD, and not on its command
+            // line: until 26 September 2026 it was appended there unquoted, so a
+            // password with a space reached DBUpdater cut at the space, a double quote
+            // or backslashes before one changed it, and a silent upgrade failed with
+            // exit code 3. Whether this process was given it that way by the
+            // installer or as password:VALUE by an administrator.
+            string password = Authenticator.GetGivenPassword();
+            if (password != null)
+               upgradeProcess.Environment[Authenticator.PasswordVariable] = password;
 
             // Launch upgrader and wait for it to complete.
             Process p = Process.Start(upgradeProcess);
@@ -74,10 +86,9 @@ namespace DBSetupQuick
 
       private static int CreateDatabase()
       {
-         string adminPassword = string.Empty;
-
-         if (CommandLineParser.ContainsArgument("password"))
-            adminPassword = CommandLineParser.GetArgument("password");
+         // In HM_ADMIN_PASSWORD from the installer, or as password:VALUE from an
+         // administrator; none is the empty password a new installation may have.
+         string adminPassword = Authenticator.GetGivenPassword() ?? string.Empty;
 
          if (!Authenticator.AuthenticateUser(_application, adminPassword))
             return 3;

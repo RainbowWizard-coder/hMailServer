@@ -240,7 +240,16 @@ namespace HM
       return true;
 #else
       String sLibrary = GetLibraryFileName_();
-      library_instance_ = LoadLibrary(sLibrary);
+
+      // By its full path, and what it imports from its own folder and System32
+      // only. LoadLibrary looked for its imports beside hMailServer.exe, then in
+      // System32, the Windows folder, the current directory and every PATH entry,
+      // so a client copied here without the DLLs it needs could have been handed
+      // them from any folder on PATH that somebody may write to. MariaDB
+      // Connector/C, which the x64 installer puts here, imports Windows' own DLLs,
+      // the API-set C runtime and VCRUNTIME140.dll, which is beside it and
+      // already loaded by the server.
+      library_instance_ = LoadLibraryEx(sLibrary, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
 
       if (!library_instance_)
       {
@@ -249,8 +258,8 @@ namespace HM
          sErrorMessage = Formatter::Format("Error:\r\n"
                "The MySQL client (libmysql.dll, {0}) could not be loaded.\r\n"
                "hMailServer needs this file to be able to connect to MySQL.\r\n"
-               "The MySQL client needs to be manually copied to the hMailServer Bin directory. The file is not included in the hMailServer installation.\r\n"
-               "It can be obtained from https://dev.mysql.com/downloads/connector/c/.\r\n"
+               "The x64 installer puts MariaDB Connector/C in the hMailServer Bin directory as libmysql.dll; the ARM64 installer carries no MySQL client (WindowsOnArm.md says how to build one).\r\n"
+               "The DLLs the client needs must be beside it or in System32: it is loaded with its own folder and System32 as the only places they are looked for.\r\n"
                "Path: {1}", versionArchitecture, sLibrary);
 
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5094, "MySQLInterface::Load", sErrorMessage);

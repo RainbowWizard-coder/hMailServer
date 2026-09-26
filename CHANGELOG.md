@@ -347,6 +347,12 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   off (a quarantine keeps a copy for them, and a reject mails a hosted sender a notice naming them), copy to them
   alone and leave the message's headers, body and routing alone
   ([MailFlowRules.md](hmailserver/docs/MailFlowRules.md)).
+- Fixed: a custom virus scanner whose command line holds a bare `%FILE%` was handed the message file's path
+  cut at its first space - and the default data directory, under `C:\Program Files`, has one - so it scanned no
+  file, answered with an exit code other than the virus one, and the message was delivered as clean. A `%FILE%`
+  outside double quotes is now replaced by the path in quotes; one already inside them, `"%FILE%"` as the
+  documented examples write it, is replaced as before. ClamWin's database and temporary folders lose a trailing
+  backslash, which escaped the closing quote of `--database="..."` and took the file to scan with it.
 
 ### IMAP, POP3 and the webmail
 
@@ -854,6 +860,17 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   on Linux such a hash still opens to the password with `?` for those characters until it is set again, and on
   both platforms SCRAM-SHA-256 still opens a PBKDF2 one to the bytes it was made over
   ([SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md), *A password outside Latin-1*).
+- Fixed: the crash-dump helper, `hMailServer.Minidump.exe`, loaded `dbghelp.dll` by name, so a copy put in `Bin`
+  would have run under the service's account at the next crash. It loads System32's, and the service starts
+  the helper by its full path.
+- Fixed: the Control Panel restarted the service after a settings change by starting `cmd.exe` elevated by name,
+  and Windows looks for a bare name in the working directory first - wherever a file dialog last left it - so
+  a `cmd.exe` put there would have run behind the elevation prompt. It runs System32's `cmd.exe` and
+  `net.exe` by their full paths, and `DBUpdater.exe`, run as an administrator, opens an upgrade script in
+  System32's Notepad by its full path, where it named `notepad.exe` alone.
+- Fixed: the MySQL client's own DLLs were looked for in the current directory and along `PATH` as well; they
+  are looked for beside `libmysql.dll` and in System32 only. The MariaDB client the x64 installer ships needs
+  nothing else; a client copied into `Bin` by hand needs its DLLs beside it.
 
 ### Encryption
 
@@ -1143,6 +1160,10 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   archive, and a full restore deleted and replaced both folders. Both are now left out of the backup and left in
   place by a restore, as the recoverable store and the eDiscovery files are. Archives taken by earlier 6.3.4 builds
   still hold those copies ([Backup.md](hmailserver/docs/Backup.md)).
+- Fixed: a restore whose backup index was cut short or altered - ending inside a tag, a comment or a quoted
+  value, or holding an entity reference without its `;` - read past the end of the index. Such an index is
+  refused as malformed - a comment left open after its closing tag is only ignored - and a reference without
+  its `;` is kept as written.
 - **Monitoring**: syslog (RFC 5424, or the journal under systemd; off) ([Syslog.md](hmailserver/docs/Syslog.md));
   per-domain reports ([Reports.md](hmailserver/docs/Reports.md)) with spam, virus and storage figures per domain
   (schema 6062); the DMARC and TLS-RPT reports a domain receives, read and charted (schema 6070)
@@ -1208,6 +1229,15 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   it deletes anything, so `hMailServer.exe` and its DLLs are no longer left in `Bin`, and a file still in use is
   removed at the next restart; the event log source is removed; and an uninstall after an upgrade no longer leaves
   the COM AppID behind.
+- Fixed: an administrator password with a space, a double quote or backslashes before one failed a new
+  installation at the database step, and a silent upgrade that moved the schema, with exit code 3: the installer
+  put it unquoted on `DBSetupQuick.exe`'s command line, and DBSetupQuick on `DBUpdater.exe`'s (`DBSetup.exe`,
+  run for an external database, asked for it again). Both hand it on in the environment variable
+  `HM_ADMIN_PASSWORD` now, the installer to `DBSetup.exe` too, as it already did for `hMailServer.exe
+  --set-admin-password`, so it is on no command line. An unattended install may give the installer the password
+  in `HM_ADMIN_PASSWORD` in place of `/adminpassword=`, which cannot carry a double quote (Inno Setup drops it)
+  and which anybody listing processes can read; it is set in an elevated prompt, since it does not cross the UAC
+  prompt ([Upgrading.md](hmailserver/docs/Upgrading.md)).
 - **The product points at GitLab**: the Control Panel's About and stalled-mail links, the `Policy:` line of the
   `security.txt` the server serves, the systemd units' `Documentation=` and the Linux packages' homepage. The
   update feed field is labelled "Update feed URL" in all eighteen catalogues. So do the Arch Linux PKGBUILD's `url`

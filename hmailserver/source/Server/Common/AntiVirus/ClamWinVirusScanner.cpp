@@ -14,6 +14,28 @@
 
 namespace HM
 {
+   namespace
+   {
+      // A directory for an argument in double quotes: without a trailing
+      // backslash, which the C runtime reads as escaping the closing quote -
+      // --database="C:\ClamWin\db\" gave clamscan the quote and everything
+      // after it, the file to scan and --tempdir, as the database path. A
+      // drive's root keeps a name of its own: "D:" alone is the drive's
+      // current directory.
+      String QuotableDirectory(const String &directory)
+      {
+         String result = directory;
+
+         while (result.GetLength() > 1 && result.Right(1) == _T("\\"))
+            result = result.Left(result.GetLength() - 1);
+
+         if (result.GetLength() == 2 && result.GetAt(1) == _T(':'))
+            result += _T("\\.");
+
+         return result;
+      }
+   }
+
    ClamWinVirusScanner::ClamWinVirusScanner()
    {
 
@@ -42,15 +64,7 @@ namespace HM
       String sFileToScan = FileUtilities::GetFileNameFromFullPath(sFilename);
       String sTempDir = IniFileSettings::Instance()->GetTempDirectory();
 
-      String sCommandLine;
-      // Quote the executable path so a path containing spaces cannot be
-      // misinterpreted by CreateProcess (which searches NULL lpApplicationName
-      // by splitting on whitespace, e.g. C:\Program.exe before C:\Program Files\...).
-      String sExecutable = scannerExecutable;
-      if (sExecutable.GetLength() > 0 && sExecutable.GetAt(0) != _T('"'))
-         sExecutable = _T("\"") + sExecutable + _T("\"");
-
-      sCommandLine.Format(_T("%s --database=\"%s\" \"%s\" --tempdir=\"%s\""), sExecutable.c_str(), databasePath.c_str(), sFileToScan.c_str(), sTempDir.c_str());
+      String sCommandLine = BuildCommandLine(scannerExecutable, databasePath, sFileToScan, sTempDir);
 
       unsigned int exitCode = 0;
       ProcessLauncher launcher(sCommandLine, sPath);
@@ -78,5 +92,23 @@ namespace HM
       else
          return VirusScanningResult(VirusScanningResult::NoVirusFound, Formatter::Format("Return code: {0}", exitCode));
 
+   }
+
+   String
+   ClamWinVirusScanner::BuildCommandLine(const String &scannerExecutable, const String &databasePath, const String &sFileToScan, const String &sTempDir)
+   {
+      // Quote the executable path so a path containing spaces cannot be
+      // misinterpreted by CreateProcess (which searches NULL lpApplicationName
+      // by splitting on whitespace, e.g. C:\Program.exe before C:\Program Files\...).
+      String sExecutable = scannerExecutable;
+      if (sExecutable.GetLength() > 0 && sExecutable.GetAt(0) != _T('"'))
+         sExecutable = _T("\"") + sExecutable + _T("\"");
+
+      const String database = QuotableDirectory(databasePath);
+      const String tempDirectory = QuotableDirectory(sTempDir);
+
+      String sCommandLine;
+      sCommandLine.Format(_T("%s --database=\"%s\" \"%s\" --tempdir=\"%s\""), sExecutable.c_str(), database.c_str(), sFileToScan.c_str(), tempDirectory.c_str());
+      return sCommandLine;
    }
 }

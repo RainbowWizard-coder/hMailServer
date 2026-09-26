@@ -45,13 +45,17 @@
 
    The silent switches are the installer's own (hMailServerInnoExtension.iss):
    /VERYSILENT /SUPPRESSMSGBOXES /NORESTART, /TYPE=full on the first install as the
-   GitHub workflow passed it, and /adminpassword=, the only way a silent install sets
-   the administrator password. An upgrade that moves the schema needs it: DBUpdater
-   authenticates as the administrator before it upgrades, and under /silent it fails
-   rather than asks. The upgrade gets no /TYPE, as winget and Chocolatey pass none
-   (docs/PackageManagers.md): Inno keeps the components already installed. The
-   password is made here, used over COM, POP3 and IMAP on this machine, and never
-   printed.
+   GitHub workflow passed it, and the administrator password, which a silent install
+   takes with /adminpassword= or, from 6.3.4, in HM_ADMIN_PASSWORD. An upgrade that
+   moves the schema needs it: DBUpdater authenticates as the administrator before it
+   upgrades, and under /silent it fails rather than asks. The upgrade gets no /TYPE,
+   as winget and Chocolatey pass none (docs/PackageManagers.md): Inno keeps the
+   components already installed. The password is made here, used over COM on this
+   machine, and never printed. When the first installer is 6.3.4 or later it carries
+   a space, a double quote and backslashes before one, and goes in HM_ADMIN_PASSWORD,
+   since Inno drops every double quote from its command line; before 6.3.4 the
+   installer put the password on DBSetupQuick's command line unquoted, so it is
+   letters and digits and goes with /adminpassword=.
 
    -AllowUnsigned is for a freshly built installer, which nobody has signed: an
    installer with no signature at all is then a SKIP, not a FAIL. A signature that is
@@ -94,9 +98,10 @@ $SmokeDomain = 'smoke.test'
 $SmokeAccount = 'user@smoke.test'
 $SmokeSender = 'sender@example.org'
 
-# Letters and digits only: the value travels on Inno's command line, in DBSetupQuick's
-# "password:VALUE" argument and in an IMAP quoted string, and none of them needs
-# escaping for these.
+# Letters and digits only: the account password travels in POP3's PASS and in an IMAP
+# quoted string, and the administrator password on Inno's command line when the first
+# installer predates 6.3.4 (Set-AdminPasswordFor), and none of them needs escaping for
+# these.
 function New-Secret([int] $Length) {
    $alphabet = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'
    $bytes = New-Object byte[] $Length
@@ -109,6 +114,11 @@ function New-Secret([int] $Length) {
 
 $AdminPassword = New-Secret 20
 $AccountPassword = New-Secret 16
+
+# What the administrator password gains when the installers can carry it: a space, a
+# double quote, two backslashes before one and a trailing backslash - each of which
+# the C runtime's splitting of a command line changes (Set-AdminPasswordFor).
+$AdminPasswordHardPart = ' q"t \\" e\'
 
 # Everything the checks learn and later checks need: a hashtable, so that a check's
 # script block can write to it from its own scope.
@@ -128,6 +138,7 @@ $State = @{
    ComAfterInstall = 0
    SchemaNow = 0
    ErrorLinesSeen = New-Object 'System.Collections.Generic.HashSet[string]'
+   PasswordInEnvironment = $false
 }
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
@@ -570,6 +581,46 @@ function Invoke-Setup([string] $Path, [string[]] $Arguments, [string] $LogPath) 
    return "exit code 0 after $seconds s"
 }
 
+# The administrator password, chosen once the first installer's version is known. From
+# 6.3.4 the installer takes it in HM_ADMIN_PASSWORD and hands it to DBSetupQuick and
+# DBUpdater there, so it gains a space, a double quote and backslashes before one, and
+# goes in the environment: Inno drops every double quote from its own command line,
+# so /adminpassword= cannot carry it. Before 6.3.4 the installer appended it unquoted
+# to DBSetupQuick's command line, and DBSetupQuick to DBUpdater's, so it stays letters
+# and digits and goes with /adminpassword=. The upgrade takes it the same way, being
+# the later installer.
+function Set-AdminPasswordFor([string] $FirstVersion) {
+   $takesAny = $false
+   if ($FirstVersion -match '^(\d+)\.(\d+)\.(\d+)') {
+      $takesAny = ([version] "$($Matches[1]).$($Matches[2]).$($Matches[3])") -ge [version] '6.3.4'
+   }
+   if ($takesAny) {
+      $script:AdminPassword = $script:AdminPassword + $AdminPasswordHardPart
+      $State.PasswordInEnvironment = $true
+      return 'letters and digits, a space, a double quote and backslashes before one, in HM_ADMIN_PASSWORD'
+   }
+   $State.PasswordInEnvironment = $false
+   return "letters and digits, with /adminpassword=: the first installer, $FirstVersion, predates 6.3.4, which is the first to hand any password to the database tools unchanged"
+}
+
+# Runs a script block with the administrator password in HM_ADMIN_PASSWORD when it
+# goes there, and removes the variable again, whatever the block did. Removed with
+# Remove-Item: PowerShell 7 hands a .NET string parameter "" for $null, which would
+# leave the variable set to the empty string.
+function Invoke-WithAdminPassword([scriptblock] $Block) {
+   if (-not $State.PasswordInEnvironment) { return & $Block }
+   [Environment]::SetEnvironmentVariable('HM_ADMIN_PASSWORD', $AdminPassword)
+   try { return & $Block }
+   finally { Remove-Item -LiteralPath Env:HM_ADMIN_PASSWORD -ErrorAction SilentlyContinue }
+}
+
+# An install or an upgrade, given the administrator password the way the installer
+# takes it (Set-AdminPasswordFor).
+function Invoke-SetupWithAdminPassword([string] $Path, [string[]] $Arguments, [string] $LogPath) {
+   if (-not $State.PasswordInEnvironment) { $Arguments = $Arguments + "/adminpassword=$AdminPassword" }
+   return Invoke-WithAdminPassword { Invoke-Setup $Path $Arguments $LogPath }
+}
+
 function Write-LogTail([string] $LogPath) {
    if (Test-Path -LiteralPath $LogPath) {
       Write-Line "      ----- the last 80 lines of $(Split-Path -Leaf $LogPath) -----"
@@ -591,8 +642,11 @@ function Write-DatabaseDiagnosis([string] $App) {
    }
    $out = Join-Path $LogDirectory 'dbsetup-stdout.txt'
    $err = Join-Path $LogDirectory 'dbsetup-stderr.txt'
-   $arguments = @('/silent', "password:$AdminPassword")
-   $process = Start-Process -FilePath $tool -ArgumentList $arguments -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+   # The password as the installer gave it: in HM_ADMIN_PASSWORD, or while it is
+   # letters and digits as password:VALUE, which every DBSetupQuick takes.
+   $arguments = @('/silent')
+   if (-not $State.PasswordInEnvironment) { $arguments += "password:$AdminPassword" }
+   $process = Invoke-WithAdminPassword { Start-Process -FilePath $tool -ArgumentList $arguments -PassThru -RedirectStandardOutput $out -RedirectStandardError $err }
    $null = $process.Handle
    if (-not $process.WaitForExit(3 * 60 * 1000)) {
       try { $process.Kill() } catch { }
@@ -1130,12 +1184,13 @@ Write-Section 'The installers'
 $firstVersion = Test-InstallerFile 'first' $Installer
 $secondVersion = ''
 if ($UpgradeInstaller) { $secondVersion = Test-InstallerFile 'upgrade' $UpgradeInstaller }
+Write-Info 'the administrator password' (Set-AdminPasswordFor $firstVersion)
 
 # ---- install
 Write-Section "Install $firstVersion"
 $installLog = Join-Path $LogDirectory 'install.log'
 $installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
-   Invoke-Setup $Installer @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/adminpassword=$AdminPassword", "/LOG=$installLog") $installLog
+   Invoke-SetupWithAdminPassword $Installer @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") $installLog
 }
 if (-not $installed) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 $State.Installed = ($null -ne (Get-UninstallEntry)) -or (Test-Path -LiteralPath (Join-Path (Get-InstallDirectory) 'Bin\hMailServer.exe'))
@@ -1163,7 +1218,7 @@ if ($State.Installed) {
       Write-Section "Upgrade $firstVersion to $secondVersion"
       $upgradeLog = Join-Path $LogDirectory 'upgrade.log'
       $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
-         Invoke-Setup $UpgradeInstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/adminpassword=$AdminPassword", "/LOG=$upgradeLog") $upgradeLog
+         Invoke-SetupWithAdminPassword $UpgradeInstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog") $upgradeLog
       }
       if (-not $upgraded) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 

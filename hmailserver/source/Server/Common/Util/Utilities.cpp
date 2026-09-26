@@ -261,10 +261,16 @@ namespace HM
       {
          host = NULL;
          host = gethostbyname(hostname.c_str());
-         if (!host)
+
+         // An IPv4 address of four bytes, or no answer: the copy below is into
+         // sin_addr. That is all gethostbyname gives on Windows and on a current
+         // glibc, but a glibc before 2.30 with "options inet6" in resolv.conf
+         // answered sixteen-byte IPv6 addresses here, and h_length bytes would
+         // have been written past the end of addr.
+         if (!host || host->h_addrtype != AF_INET || host->h_length != (int) sizeof(addr.sin_addr) || host->h_addr_list[0] == 0)
             return false;
 
-         memcpy(&addr.sin_addr, host->h_addr_list[0], host->h_length);
+         memcpy(&addr.sin_addr, host->h_addr_list[0], sizeof(addr.sin_addr));
       }
 #else
       USES_CONVERSION;
@@ -280,10 +286,12 @@ namespace HM
       {
          host = NULL;
          host = gethostbyname(hostname);
-         if (!host)
+
+         // As in the POSIX arm above: four bytes of IPv4, or nothing.
+         if (!host || host->h_addrtype != AF_INET || host->h_length != (int) sizeof(addr.sin_addr) || host->h_addr_list[0] == 0)
             return false;
 
-         memcpy(&addr.sin_addr, host->h_addr_list[0], host->h_length);
+         memcpy(&addr.sin_addr, host->h_addr_list[0], sizeof(addr.sin_addr));
       }
 #endif
 

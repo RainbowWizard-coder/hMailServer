@@ -15,6 +15,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <climits>
 
 #ifdef HM_PLATFORM_POSIX
 #include <cwctype>
@@ -23,7 +24,7 @@
 //
 // _istspace, _tcspbrk and _tcsnicmp are the TCHAR-generic family, and this
 // program is built UNICODE, so they ARE iswspace, wcspbrk and wcsncasecmp - the
-// same functions under Microsoft's names. There are ten uses of them below and
+// same functions under Microsoft's names. There are eleven uses of them below and
 // none anywhere else in the tree, which is why they are given a shape here
 // rather than in the platform header.
 //
@@ -97,7 +98,10 @@ LPTSTR _tcschrs( LPCTSTR psz, LPCTSTR pszchs )
 LPTSTR _tcsskip( LPCTSTR psz )
 {
    //while( psz && *psz == ' ' && *psz == 13 && *psz == 10 ) psz++;
-   while( psz && isspace(*psz) ) psz++;
+   // _istspace, not isspace: *psz is a TCHAR, and isspace of a value above 255
+   // is undefined - on Windows the debug runtime asserts - and a backup index
+   // can put any character where this runs.
+   while( psz && _istspace(*psz) ) psz++;
       
    return (LPTSTR)psz;
 }
@@ -118,7 +122,13 @@ LPTSTR _tcsechr( LPCTSTR psz, int ch, int escape )
    while( pch && *pch )
    {
       if( escape != 0 && *pch == escape )
+      {
+         // An escape as the last character escapes nothing. Stepping over it
+         // and then over "the character it escapes" went past the terminator.
+         if( *(pch+1) == 0 )
+            return pch+1;
          pch++;
+      }
       else
       if( *pch == ch ) 
          return (LPTSTR)pch;
@@ -237,7 +247,8 @@ int _tcsenicmp( LPCTSTR psz, LPCTSTR str, int len, int escape )
       else
       {
          prev_escape = NULL;
-         if( tolower(*pch) != tolower(des[i]) )
+         // _totlower, not tolower: these are TCHARs, as in _tcsskip.
+         if( _totlower(*pch) != _totlower(des[i]) )
             break;
          i++;
       }
@@ -309,14 +320,22 @@ LPTSTR _tcseistr( LPCTSTR psz, LPCTSTR str, int escape )
 //========================================================
 void _SetString( LPTSTR psz, LPTSTR end, HM::String* ps, bool trim = FALSE, int escape = 0 )
 {
+   // First, before the trim below reads *(end-1): a span with no end - a
+   // search that found nothing, as when a backup index stops inside a tag
+   // name ("<Backup><Dom") - or one that ends before it starts. Until 26
+   // September 2026 a NULL end made (end - psz) a length taken from the
+   // address alone, and the copy below read that much from the index.
+   if( psz == NULL || end == NULL || end <= psz ) return;
+
    //trim
    if( trim )
    {
       while( psz && psz < end && _istspace(*psz) ) psz++;
       while( (end-1) && psz < (end-1) && _istspace(*(end-1)) ) end--;
    }
-   int len = (int) (end - psz);
-   if( len <= 0 ) return;
+   ptrdiff_t span = end - psz;
+   if( span <= 0 || span > INT_MAX ) return;
+   int len = (int) span;
    if( escape )
    {
       len = _tcselen( escape, psz, end );
@@ -326,10 +345,12 @@ void _SetString( LPTSTR psz, LPTSTR end, HM::String* ps, bool trim = FALSE, int 
    }
    else
    {
-      //varf�r �ka p� str�ngens l�ngd med ett h�r?!
-      LPTSTR pss = ps->GetBufferSetLength( (len + 1) * sizeof(TCHAR)) ;
+      // Exactly len characters, and the length said rather than found: the
+      // buffer used to be asked for (len + 1) * sizeof(TCHAR) characters and
+      // the length taken back from the first NUL after the copy.
+      LPTSTR pss = ps->GetBufferSetLength( len );
       memcpy( pss, psz, len * sizeof(TCHAR) );
-      ps->ReleaseBuffer();
+      ps->ReleaseBuffer( len );
    }
 }
 
@@ -441,7 +462,9 @@ LPTSTR _tagXMLNode::LoadAttributes( LPCTSTR pszAttrs , LPPARSEINFO pi /*= &piDef
                   if( pi->entity_value && pi->entitys )
                      attr->value = pi->entitys->Ref2Entity(attr->value);
 
-                  if( quote == '"' || quote == '\'' )
+                  // Past the closing quote - but an unterminated value ends on
+                  // the terminator, and stepping over that read past the text.
+                  if( ( quote == '"' || quote == '\'' ) && *xml )
                      xml++;
                }
             }
@@ -534,7 +557,9 @@ LPTSTR _tagXMLNode::LoadAttributes( LPCTSTR pszAttrs, LPCTSTR pszEnd, LPPARSEINF
                   if( pi->entity_value && pi->entitys )
                      attr->value = pi->entitys->Ref2Entity(attr->value);
 
-                  if( quote == '"' || quote == '\'' )
+                  // Past the closing quote - but an unterminated value ends on
+                  // the terminator, and stepping over that read past the text.
+                  if( ( quote == '"' || quote == '\'' ) && *xml )
                      xml++;
                }
             }
@@ -561,9 +586,20 @@ LPTSTR _tagXMLNode::LoadAttributes( LPCTSTR pszAttrs, LPCTSTR pszEnd, LPPARSEINF
 LPTSTR _tagXMLNode::LoadProcessingInstrunction( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/ )
 {
    // find the end of pi
-   LPTSTR end = _tcsenistr( pszXml, szXMLPIClose, sizeof(szXMLPIClose)-1, pi ? pi->escape_value : 0 );
-   if( end == NULL )
+   LPTSTR end = _tcsenistr( pszXml, szXMLPIClose, (int)(sizeof(szXMLPIClose)/sizeof(TCHAR)) - 1, pi ? pi->escape_value : 0 );
+   // _tcsenistr answers the terminator, never NULL, when there is no "?>": an
+   // unterminated PI is an error here, or "end +=" below steps past the text.
+   if( end == NULL || *end == 0 )
+   {
+      if( pi && !pi->erorr_occur )
+      {
+         pi->erorr_occur = true;
+         pi->error_pointer = (LPTSTR)pszXml;
+         pi->error_code = PIE_NOT_CLOSED;
+         pi->error_string = _T("Processing instruction is not terminated.");
+      }
       return NULL;
+   }
 
    // process pi
    if( doc )
@@ -575,8 +611,20 @@ LPTSTR _tagXMLNode::LoadProcessingInstrunction( LPCTSTR pszXml, LPPARSEINFO pi /
       node->doc = doc;
       node->type = XNODE_PI;
       
-      xml += sizeof(szXMLPIOpen)-1;
+      xml += (int)(sizeof(szXMLPIOpen)/sizeof(TCHAR)) - 1;
       TCHAR* pTagEnd = _tcspbrk( xml, _T(" ?>") );
+      if( pTagEnd == NULL )
+      {
+         if( pi && !pi->erorr_occur )
+         {
+            pi->erorr_occur = true;
+            pi->error_pointer = xml;
+            pi->error_code = PIE_NOT_CLOSED;
+            pi->error_string = _T("Element name is not terminated.");
+         }
+         delete node;
+         return NULL;
+      }
       _SetString( xml, pTagEnd, &node->name );
       xml = pTagEnd;
       
@@ -585,7 +633,7 @@ LPTSTR _tagXMLNode::LoadProcessingInstrunction( LPCTSTR pszXml, LPPARSEINFO pi /
       doc->childs.push_back( node );
    }
 
-   end += sizeof(szXMLPIClose)-1;
+   end += (int)(sizeof(szXMLPIClose)/sizeof(TCHAR)) - 1;
    return end;
 }
 
@@ -604,18 +652,29 @@ LPTSTR _tagXMLNode::LoadProcessingInstrunction( LPCTSTR pszXml, LPPARSEINFO pi /
 LPTSTR _tagXMLNode::LoadComment( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/ )
 {
    // find the end of comment
-   LPTSTR end = _tcsenistr( pszXml, szXMLCommentClose, sizeof(szXMLCommentClose)-1, pi ? pi->escape_value : 0 );
-   if( end == NULL )
+   LPTSTR end = _tcsenistr( pszXml, szXMLCommentClose, (int)(sizeof(szXMLCommentClose)/sizeof(TCHAR)) - 1, pi ? pi->escape_value : 0 );
+   // As in LoadProcessingInstrunction: the terminator, not NULL, when the
+   // comment is not closed.
+   if( end == NULL || *end == 0 )
+   {
+      if( pi && !pi->erorr_occur )
+      {
+         pi->erorr_occur = true;
+         pi->error_pointer = (LPTSTR)pszXml;
+         pi->error_code = PIE_NOT_CLOSED;
+         pi->error_string = _T("Comment is not terminated.");
+      }
       return NULL;
+   }
 
    // process comment
    LPXNode par = parent;
    if( parent == NULL && doc )
-      par = (LPXNode)&doc;
+      par = (LPXNode)doc;
    if( par )
    {
       LPTSTR xml = (LPTSTR)pszXml;
-      xml += sizeof(szXMLCommentOpen)-1;
+      xml += (int)(sizeof(szXMLCommentOpen)/sizeof(TCHAR)) - 1;
       
       LPXNode node = new XNode;
       node->parent = this;
@@ -627,7 +686,7 @@ LPTSTR _tagXMLNode::LoadComment( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/
       par->childs.push_back( node );
    }
 
-   end += sizeof(szXMLCommentClose)-1;
+   end += (int)(sizeof(szXMLCommentClose)/sizeof(TCHAR)) - 1;
    return end;
 }
 
@@ -646,18 +705,29 @@ LPTSTR _tagXMLNode::LoadComment( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/
 LPTSTR _tagXMLNode::LoadCDATA( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/ )
 {
    // find the end of CDATA
-   LPTSTR end = _tcsenistr( pszXml, szXMLCDATAClose, sizeof(szXMLCDATAClose)-1, pi ? pi->escape_value : 0 );
-   if( end == NULL )
+   LPTSTR end = _tcsenistr( pszXml, szXMLCDATAClose, (int)(sizeof(szXMLCDATAClose)/sizeof(TCHAR)) - 1, pi ? pi->escape_value : 0 );
+   // As in LoadProcessingInstrunction: the terminator, not NULL, when the
+   // CDATA is not closed.
+   if( end == NULL || *end == 0 )
+   {
+      if( pi && !pi->erorr_occur )
+      {
+         pi->erorr_occur = true;
+         pi->error_pointer = (LPTSTR)pszXml;
+         pi->error_code = PIE_NOT_CLOSED;
+         pi->error_string = _T("CDATA section is not terminated.");
+      }
       return NULL;
+   }
 
    // process CDATA
    LPXNode par = parent;
    if( parent == NULL && doc )
-      par = (LPXNode)&doc;
+      par = (LPXNode)doc;
    if( par )
    {
       LPTSTR xml = (LPTSTR)pszXml;
-      xml += sizeof(szXMLCDATAOpen)-1;
+      xml += (int)(sizeof(szXMLCDATAOpen)/sizeof(TCHAR)) - 1;
       
       LPXNode node = new XNode;
       node->parent = this;
@@ -669,7 +739,7 @@ LPTSTR _tagXMLNode::LoadCDATA( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/ )
       par->childs.push_back( node );
    }
 
-   end += sizeof(szXMLCDATAClose)-1;
+   end += (int)(sizeof(szXMLCDATAClose)/sizeof(TCHAR)) - 1;
    return end;
 }
 
@@ -698,14 +768,25 @@ LPTSTR LoadOtherNodes( LPXNode node, bool* pbRet, LPCTSTR pszXml, LPPARSEINFO pi
       xml = _tcsskip( xml );
       LPTSTR prev = xml;
       // is PI( Processing Instruction ) Node?
-      if( _tcsnicmp( xml, szXMLPIOpen, sizeof(szXMLPIOpen)-1 ) == 0 )
+      if( _tcsnicmp( xml, szXMLPIOpen, (int)(sizeof(szXMLPIOpen)/sizeof(TCHAR)) - 1 ) == 0 )
       {
          // processing instrunction parse
          // return pointer is next node of pi
          xml = node->LoadProcessingInstrunction( xml, pi );
-         //if( xml == NULL )
-         // return NULL;
-         // restart xml parse
+         // NULL: not terminated, and nothing below may be handed it.
+         if( xml == NULL )
+            return NULL;
+         // Inside an element a PI is a node of its own, as a comment and a
+         // CDATA section are below: what follows it - the element's text, its
+         // close tag or the next element - is the element's to read. Read on
+         // here, it was taken for this node's tag, and "<A><?pi?></A>" and
+         // "<A><?pi?>text</A>" were refused.
+         if( node->parent && node->parent->type != XNODE_DOC )
+         {
+            *pbRet = true;
+            return xml;
+         }
+         // restart xml parse when this node is root doc node
       }
 
       if( xml != prev )
@@ -714,11 +795,13 @@ LPTSTR LoadOtherNodes( LPXNode node, bool* pbRet, LPCTSTR pszXml, LPPARSEINFO pi
       prev = xml;
 
       // is comment Node?
-      if( _tcsnicmp( xml, szXMLCommentOpen, sizeof(szXMLCommentOpen)-1 ) == 0 )
+      if( _tcsnicmp( xml, szXMLCommentOpen, (int)(sizeof(szXMLCommentOpen)/sizeof(TCHAR)) - 1 ) == 0 )
       {
          // processing comment parse
          // return pointer is next node of comment
          xml = node->LoadComment( xml, pi );
+         if( xml == NULL )
+            return NULL;
          // comment node is terminal node
          if( node->parent && node->parent->type != XNODE_DOC 
             && xml != prev )
@@ -735,11 +818,13 @@ LPTSTR LoadOtherNodes( LPXNode node, bool* pbRet, LPCTSTR pszXml, LPPARSEINFO pi
       xml = _tcsskip( xml );
       prev = xml;
       // is CDATA Node?
-      if( _tcsnicmp( xml, szXMLCDATAOpen, sizeof(szXMLCDATAOpen)-1 ) == 0 )
+      if( _tcsnicmp( xml, szXMLCDATAOpen, (int)(sizeof(szXMLCDATAOpen)/sizeof(TCHAR)) - 1 ) == 0 )
       {
          // processing CDATA parse
          // return pointer is next node of CDATA
          xml = node->LoadCDATA( xml, pi );
+         if( xml == NULL )
+            return NULL;
          // CDATA node is terminal node
          if( node->parent && node->parent->type != XNODE_DOC 
             && xml != prev )
@@ -822,14 +907,43 @@ LPTSTR _tagXMLNode::Load( LPCTSTR pszXml, LPPARSEINFO pi /*= &piDefault*/ )
    bool bRet = false;
    LPTSTR ret = NULL;
    ret = LoadOtherNodes( this, &bRet, xml, pi );
-   if( ret != NULL ) 
-      xml = ret;
+   // NULL: a PI, comment or CDATA section that is not terminated.
+   if( ret == NULL )
+      return NULL;
+   xml = ret;
    if( bRet ) 
       return xml;
+
+   // What they leave must be this element's tag: a text that ends after them
+   // ("<?xml version='1.0'?>" and no more) would have "xml++" below step over
+   // its terminator.
+   if( *xml != chXMLTagOpen )
+   {
+      if( pi && !pi->erorr_occur )
+      {
+         pi->erorr_occur = true;
+         pi->error_pointer = xml;
+         pi->error_code = PIE_NOT_CLOSED;
+         pi->error_string = _T("An element was expected.");
+      }
+      return NULL;
+   }
 
    // XML Node Tag Name Open
    xml++;
    TCHAR* pTagEnd = _tcspbrk( xml, _T(" />\t\r\n") );
+   // No end to the name: the text stops inside it ("<Backup><Dom").
+   if( pTagEnd == NULL )
+   {
+      if( pi && !pi->erorr_occur )
+      {
+         pi->erorr_occur = true;
+         pi->error_pointer = xml;
+         pi->error_code = PIE_NOT_CLOSED;
+         pi->error_string = _T("Element name is not terminated.");
+      }
+      return NULL;
+   }
    _SetString( xml, pTagEnd, &name );
    xml = pTagEnd;
    // Generate XML Attributte List
@@ -1837,15 +1951,18 @@ LPXENTITY tagXMLEntitys_::GetEntity( int entity )
 
 LPXENTITY tagXMLEntitys_::GetEntity( LPTSTR entity )
 {
+   // The whole reference or nothing. The loop this replaces advanced past a
+   // mismatch on the reference's last character before it stopped, so "&amp"
+   // with no ";" - at the end of a value or before any other character - was
+   // taken for "&amp;", and Ref2Entity then stepped five characters on: past
+   // the terminator, copying what followed it into the value, or over the
+   // character after the "p" ("&ampX" became "&"). _tcsncmp stops at the first
+   // difference and at the terminator.
    for( unsigned int i = 0 ; i < size(); i ++ )
    {
-      LPTSTR ref = (LPTSTR)at(i).ref;
-      LPTSTR ps = entity;
-      while( ref && *ref )
-         if( *ref++ != *ps++ )
-            break;
-      if( ref && !*ref )   // found!
-         return LPXENTITY(&at(i));
+      const XENTITY &e = at(i);
+      if( _tcsncmp( entity, e.ref, (size_t) e.ref_len ) == 0 )
+         return LPXENTITY(&e);
    }
    return NULL;
 }

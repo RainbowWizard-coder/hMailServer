@@ -815,7 +815,9 @@ namespace hMailServer.ControlPanel.Views
                var start = new System.Diagnostics.ProcessStartInfo
                {
                   FileName = System.IO.Path.Combine(Environment.SystemDirectory, "cmd.exe"), // no-loc
-                  Arguments = "/s /c \"" + CommandFor_(executable, action, report) + "\"", // no-loc
+                  // /d, as TryRestartService: no Command Processor AutoRun in the
+                  // elevated cmd.exe.
+                  Arguments = "/d /s /c \"" + CommandFor_(executable, action, report) + "\"", // no-loc
                   UseShellExecute = true,
                   Verb = "runas", // no-loc
                   WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
@@ -3002,10 +3004,21 @@ namespace hMailServer.ControlPanel.Views
 
             // "net stop" fails harmlessly when the service is already stopped,
             // so chain with "&" rather than "&&".
+            //
+            // cmd.exe and net.exe by their full System32 paths, and System32 as
+            // the working directory: ShellExecuteEx looks for a bare name in the
+            // current directory first, and that is whatever folder a file dialog
+            // last left it in, so a cmd.exe waiting in Downloads would have run
+            // elevated behind the prompt the administrator expects. /d skips any
+            // Command Processor AutoRun; with /s, cmd takes off only the outer
+            // pair of quotes.
+            string system = Environment.SystemDirectory;
+            string net = System.IO.Path.Combine(system, "net.exe"); // no-loc
             var startInfo = new System.Diagnostics.ProcessStartInfo
             {
-               FileName = "cmd.exe",
-               Arguments = "/c net stop hMailServer & net start hMailServer", // no-loc
+               FileName = System.IO.Path.Combine(system, "cmd.exe"), // no-loc
+               Arguments = "/d /s /c \"\"" + net + "\" stop hMailServer & \"" + net + "\" start hMailServer\"", // no-loc
+               WorkingDirectory = system,
                UseShellExecute = true,
                Verb = "runas",
                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden

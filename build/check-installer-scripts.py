@@ -47,12 +47,27 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                marks the start with it (SetStartedForDatabaseUpgrade), so that the
                too-old refusal DBUpdater expects is not reported as HM5011.
 
+  credential   The administrator password - or the live update's token - reaches
+               DBSetupQuick, and DBSetup when it runs instead, in
+               HM_ADMIN_PASSWORD, set to it last before each starts, emptied again
+               in a finally once it has run, and never on its command line;
+               DBSetupQuick hands it on to DBUpdater in the same variable and
+               passes its arguments one by one in ArgumentList. Until 26 September
+               2026 they appended " password:" and the password unquoted, so a
+               password with a space, a double quote or backslashes before one
+               reached the database tools changed and the install failed with exit
+               code 3.
+
 The check proves its own negative controls on every run, on altered copies of the
 texts it reads: an entry without a RunOnceId, two entries sharing one, an
 uninstaller that no longer waits, a stop elsewhere that does not wait,
 hMailServer.exe without uninsrestartdelete, the AppID registered before
-/Unregister is read, the AppID removal made conditional again, and the installer's
-argument spelt differently from the server's, must all be refused.
+/Unregister is read, the AppID removal made conditional again, the installer's
+argument spelt differently from the server's, the password on DBSetupQuick's
+command line again, HM_ADMIN_PASSWORD left set after DBSetupQuick, the password on
+DBSetup's command line, DBSetup started without the credential, HM_ADMIN_PASSWORD
+left set after DBSetup, DBUpdater's command line built as one string and the
+password on it, must all be refused.
 
 Usage: python build/check-installer-scripts.py
 Exits 1 listing what is wrong.
@@ -66,6 +81,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 INSTALLATION = os.path.join(ROOT, 'hmailserver', 'installation')
 SERVER = os.path.join(ROOT, 'hmailserver', 'source', 'Server')
+TOOLS = os.path.join(ROOT, 'hmailserver', 'source', 'Tools')
 
 EXTENSION = 'hMailServerInnoExtension.iss'
 UNINSTALL_RUN = 'section_uninstallrun.iss'
@@ -73,6 +89,9 @@ UNINSTALL_RUN = 'section_uninstallrun.iss'
 FILES = ('section_files_64.iss', 'section_files_common.iss', 'section_files_arm64.iss')
 MAIN = 'hMailServer/hMailServer.cpp'
 EVENT_LOG = 'Common/Application/WindowsEventLog.cpp'
+# Under Tools: the database step the installer runs, and the password it hands on.
+DBSETUPQUICK = 'DBSetupQuick/Program.cs'
+AUTHENTICATOR = 'Shared/Miscellaneous/Authenticator.cs'
 
 # The files the server's process loads, as their [Files] Source spells them. Each
 # must be found at least once, and every entry it matches must carry
@@ -99,6 +118,8 @@ def load():
             texts[name] = read(os.path.join(INSTALLATION, name))
     texts[MAIN] = read(os.path.join(SERVER, MAIN))
     texts[EVENT_LOG] = read(os.path.join(SERVER, EVENT_LOG))
+    texts[DBSETUPQUICK] = read(os.path.join(TOOLS, DBSETUPQUICK))
+    texts[AUTHENTICATOR] = read(os.path.join(TOOLS, AUTHENTICATOR))
     return texts
 
 
@@ -309,6 +330,54 @@ def check_upgrade(texts, problems):
                         '%s, the argument the installer starts it with' % (MAIN, started.group(1)))
 
 
+def check_credential(texts, problems):
+    routine = pascal_routine(texts.get(EXTENSION, ''), 'RunPostInstallTasks') or ''
+    for line in re.findall(r'^\s*szParameters\s*:=.*$', routine, re.M):
+        if re.search(r'g_szAdminPassword|g_szUpgradeToken|password:', line, re.I):
+            problems.append('%s: RunPostInstallTasks puts a credential on the database tools\' command line (%s); it '
+                            'goes in HM_ADMIN_PASSWORD' % (EXTENSION, line.strip()))
+    if not re.search(r"^\s*szCredential\s*:=\s*g_szAdminPassword\s*$", routine, re.M) or \
+            not re.search(r"^\s*szCredential\s*:=\s*'token:'\s*\+\s*g_szUpgradeToken\s*;", routine, re.M):
+        problems.append('%s: RunPostInstallTasks no longer makes szCredential of the administrator password or '
+                        '"token:" and the update token' % EXTENSION)
+    # DBSetupQuick for the built-in database or an existing configuration, DBSetup
+    # for an external database chosen for the first time: both sign in with it.
+    for tool in ('DBSetupQuick', 'DBSetup'):
+        exec_call = re.search(r"Exec\(\s*ExpandConstant\('\{app\}\\Bin\\" + tool + r"\.exe'\)\s*,\s*([^,]*),", routine)
+        if not exec_call:
+            problems.append('%s: RunPostInstallTasks no longer runs {app}\\Bin\\%s.exe where this check looks for it'
+                            % (EXTENSION, tool))
+            continue
+        if re.search(r'g_szAdminPassword|g_szUpgradeToken|szCredential|password:', exec_call.group(1), re.I):
+            problems.append('%s: the administrator password or the update token is on %s\'s command line'
+                            % (EXTENSION, tool))
+        before = routine[:exec_call.start()]
+        after = routine[exec_call.end():]
+        # The last value HM_ADMIN_PASSWORD is given before the tool starts is the
+        # credential: an earlier tool's set, emptied again after it, does not count.
+        handed = re.findall(r"SetProcessEnvironmentVariable\(\s*'HM_ADMIN_PASSWORD'\s*,\s*([^)]*?)\s*\)", before)
+        if not handed or handed[-1] != 'szCredential':
+            problems.append('%s: RunPostInstallTasks no longer hands %s the credential in HM_ADMIN_PASSWORD'
+                            % (EXTENSION, tool))
+        if not re.search(r'\btry\b(?:(?!\bend;).)*$', before, re.S | re.I) or \
+                not re.match(r"(?:(?!\bend;).)*?\bfinally\s+SetProcessEnvironmentVariable\(\s*'HM_ADMIN_PASSWORD'\s*,"
+                             r"\s*''\s*\)", after, re.S | re.I):
+            problems.append('%s: HM_ADMIN_PASSWORD is not emptied in a finally around %s, so every process the '
+                            'installer starts afterwards inherits the password' % (EXTENSION, tool))
+
+    program = texts.get(DBSETUPQUICK, '')
+    if re.search(r'\bupgradeProcess\.Arguments\s*=', program) or 'upgradeProcess.ArgumentList.Add(' not in program:
+        problems.append('%s: DBSetupQuick builds DBUpdater\'s command line as one string; each argument goes in '
+                        'ArgumentList' % DBSETUPQUICK)
+    if not re.search(r'upgradeProcess\.Environment\[\s*Authenticator\.PasswordVariable\s*\]\s*=', program) or \
+            re.search(r'"password:"\s*\+', program):
+        problems.append('%s: DBSetupQuick no longer hands the password to DBUpdater in HM_ADMIN_PASSWORD, or puts it '
+                        'on DBUpdater\'s command line' % DBSETUPQUICK)
+    if not re.search(r'\bPasswordVariable\s*=\s*"HM_ADMIN_PASSWORD"', texts.get(AUTHENTICATOR, '')):
+        problems.append('%s: Authenticator.PasswordVariable is not HM_ADMIN_PASSWORD, the variable the installer sets'
+                        % AUTHENTICATOR)
+
+
 def check(texts):
     problems = []
     entries = check_run_once(texts, problems)
@@ -317,6 +386,7 @@ def check(texts):
     check_unregister(texts, problems)
     check_event_source(texts, problems)
     check_upgrade(texts, problems)
+    check_credential(texts, problems)
     return problems, entries
 
 
@@ -358,6 +428,34 @@ def negative_controls(texts):
                  '      if (SUCCEEDED(_AtlModule.UnregisterServer(TRUE)))\n         _AtlModule.UnregisterAppId();\n')),
         ('the installer\'s argument spelt differently from the server\'s',
          altered(texts, EXTENSION, "'start hMailServer --for-database-upgrade'", "'start hMailServer --database-upgrade'")),
+        ('the password on DBSetupQuick\'s command line again',
+         altered(texts, EXTENSION, '            szCredential := g_szAdminPassword\n',
+                 '            szParameters := szParameters + \' password:\' + g_szAdminPassword\n')),
+        ('HM_ADMIN_PASSWORD left set after DBSetupQuick',
+         altered(texts, EXTENSION, "               finally\n                  SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '');\n",
+                 "               finally\n                  Log('DBSetupQuick has finished');\n")),
+        ('the password on DBSetup\'s command line',
+         altered(texts, EXTENSION, "Exec(ExpandConstant('{app}\\Bin\\DBSetup.exe'), szParameters,",
+                 "Exec(ExpandConstant('{app}\\Bin\\DBSetup.exe'), szParameters + ' password:' + szCredential,")),
+        ('DBSetup started without the credential',
+         altered(texts, EXTENSION, "if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then\n"
+                 "               SuppressibleMsgBox('The hMailServer database setup could not be started",
+                 "if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '') then\n"
+                 "               SuppressibleMsgBox('The hMailServer database setup could not be started")),
+        ('HM_ADMIN_PASSWORD left set after DBSetup',
+         altered(texts, EXTENSION, "ExpandConstant('{app}\\Bin\\DBSetup.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, "
+                 "ResultCode);\n                  if (bStarted = False) then\n                     SuppressibleMsgBox(SysErrorMessage("
+                 "ResultCode), mbError, MB_OK, IDOK);\n               finally\n                  SetProcessEnvironmentVariable("
+                 "'HM_ADMIN_PASSWORD', '');\n",
+                 "ExpandConstant('{app}\\Bin\\DBSetup.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, "
+                 "ResultCode);\n                  if (bStarted = False) then\n                     SuppressibleMsgBox(SysErrorMessage("
+                 "ResultCode), mbError, MB_OK, IDOK);\n               finally\n                  Log('DBSetup has finished');\n")),
+        ('DBUpdater\'s command line built as one string',
+         altered(texts, DBSETUPQUICK, 'upgradeProcess.ArgumentList.Add("/SilentIfOk");',
+                 'upgradeProcess.Arguments = "/SilentIfOk";')),
+        ('the password on DBUpdater\'s command line',
+         altered(texts, DBSETUPQUICK, 'upgradeProcess.Environment[Authenticator.PasswordVariable] = password;',
+                 'upgradeProcess.ArgumentList.Add("password:" + password);')),
     ]
 
     missed = []
@@ -387,7 +485,8 @@ def main():
 
     print('OK    %d [UninstallRun] entries run once each; the uninstall and the upgrade wait for the server\'s process; '
           'the files it loads are queued for a restart if still in use; /Unregister creates nothing and removes the '
-          'event source; the upgrade\'s start is marked; %d negative controls refused' % (entries, controls))
+          'event source; the upgrade\'s start is marked; the database tools\' password is on no command line; '
+          '%d negative controls refused' % (entries, controls))
     return 0
 
 

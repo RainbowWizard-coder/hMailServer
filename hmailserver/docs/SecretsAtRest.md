@@ -116,10 +116,17 @@ line - the installer says so, reports a failed installation, and the server is l
 no administrator password: set one on the Control Panel's *Administrative access* page
 before the server is used.
 
-The installer still hands the password it collected to the database tools
-(`DBSetupQuick.exe password:<password>`, forwarded to `DBUpdater.exe`), on their command
-lines, as it did before; that is not this row's, and it is named under *What is still kept
-as written*.
+The installer hands the password it collected to the database tools the same way: in
+`HM_ADMIN_PASSWORD`, set for `DBSetupQuick.exe` (or `DBSetup.exe`, for an external
+database) and emptied as soon as it has finished, and DBSetupQuick hands it on to
+`DBUpdater.exe` in the same variable. Until 26 September 2026 it was
+`DBSetupQuick.exe password:<password>` on their command lines, unquoted, so a password
+with a space, a double quote or backslashes before one reached them changed and the
+database step failed. An unattended install can give the installer the password in
+`HM_ADMIN_PASSWORD` too, set in an elevated prompt, in place of `/adminpassword=`,
+which is on the installer's own command line and cannot carry a double quote.
+`password:<password>` still works for an administrator who runs `DBSetupQuick.exe` or
+`DBUpdater.exe` by hand.
 
 **`hMailServer.exe --set-admin-password`** takes the password from `HM_ADMIN_PASSWORD`, or,
 when that is not set, from one line of standard input when that is a pipe or a file, and
@@ -476,7 +483,7 @@ each stays as it is.
 | A Web Push subscription's `auth` secret | `hm_pushsubscriptions.pskeyauth` | The browser's key for encrypting to it, in a 32-character column; the same |
 | Private keys a browser wrapped | `hm_pgpring.pgrsecret`, `hm_zeroaccess.zasecret`, `hm_smimekeys.smimekey` | Encrypted in the page under a passphrase this server never sees |
 | A mailbox key's password-wrapped half | `hm_accountkeys.akpassword` | Wrapped by the account's password (Argon2id, AES-256-GCM) - [EncryptionAtRest.md](EncryptionAtRest.md) |
-| The administrator password on the database tools' command lines | The installer, `DBSetupQuick.exe`, `DBUpdater.exe` | In transit rather than at rest, and on a command line while the tools run. Unchanged by this row |
+| The administrator password given to the installer with `/adminpassword=` | The installer's command line | In transit rather than at rest, on the command line while setup runs. `HM_ADMIN_PASSWORD` keeps it off (*What the Windows installer did, and does*); the installer no longer puts it on the database tools' |
 
 
 Errors

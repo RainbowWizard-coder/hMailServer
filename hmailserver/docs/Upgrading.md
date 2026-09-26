@@ -383,12 +383,21 @@ set hung: `DBSetupQuick.exe` forwarded only `/SilentIfOk` and `/silent` to
 `DBUpdater.exe`, not the password, and DBUpdater then opened a modal password dialog
 nobody was there to answer. That is fixed. DBSetupQuick forwards the password on the
 upgrade path as well as the create path, the installer accepts it as
-`/adminpassword=<password>` and passes it through, and under `/silent` the shared
-authenticator fails with an exit code instead of prompting. So:
+`/adminpassword=<password>` or, from 6.3.4, in the environment variable
+`HM_ADMIN_PASSWORD`, and under `/silent` the shared authenticator fails with an exit
+code instead of prompting. From 6.3.4 the installer hands the password to
+`DBSetupQuick.exe`, and DBSetupQuick to `DBUpdater.exe`, in `HM_ADMIN_PASSWORD`; until
+then it went on their command lines unquoted, so a password with a space, a double
+quote or backslashes before one reached them changed and the database step failed with
+exit code 3. So:
 
 * administrator password empty → a silent upgrade works;
-* administrator password set → pass `/adminpassword=<password>`; without it the database
-  upgrade fails and the installer reports the non-zero exit code rather than waiting.
+* administrator password set → pass `/adminpassword=<password>` or set
+  `HM_ADMIN_PASSWORD`; without it the database upgrade fails and the installer reports
+  the non-zero exit code rather than waiting. A password with a double quote goes in
+  `HM_ADMIN_PASSWORD`: Inno Setup drops every double quote from its command line. Set
+  the variable in an elevated prompt: setup started without administrator rights
+  elevates itself through the UAC prompt, and the variable does not cross it.
 
 *(New in 6.2.28: the live update's helper
 passes a single-use `/upgradetoken=<hex>` in place of the password, so an unattended

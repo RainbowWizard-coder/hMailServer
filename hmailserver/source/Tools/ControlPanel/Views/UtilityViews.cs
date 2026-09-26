@@ -840,7 +840,10 @@ namespace hMailServer.ControlPanel.Views
          {
             try
             {
-               Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + reportPath_ + "\"") { UseShellExecute = true });
+               // Explorer by its full path: a bare name is looked for in the
+               // current directory first.
+               string explorer = System.IO.Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"); // no-loc
+               Process.Start(new ProcessStartInfo(explorer, "/select,\"" + reportPath_ + "\"") { UseShellExecute = true });
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {

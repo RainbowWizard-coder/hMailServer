@@ -200,7 +200,26 @@ namespace HM
       //Write all the memory to 1
       std::memcpy(region.get_address(), &view, sizeof(MiniDumpInput));
 
-      String command_line = "hMailServer.minidump.exe";
+      // The helper by its full path, beside hMailServer.exe where the installer puts
+      // it (Bin), and in quotes, since that path may hold spaces. By bare name
+      // CreateProcess looks there first too, but then in the current directory,
+      // System32, the Windows directory and every PATH entry, so a missing helper
+      // could be stood in for by any file of that name further down the list.
+      String executable = Application::GetExecutableName();
+      int last_backslash = executable.ReverseFind(_T("\\"));
+
+      if (last_backslash <= 0)
+      {
+         String message = Formatter::Format(
+            "An error has been detected. hMailServer was unable to launch minidump generator: the directory hMailServer.exe runs from is not known. {0}",
+            exception_description);
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5521, "ExceptionLogger::Log", message);
+         return;
+      }
+
+      String helper = FileUtilities::Combine(executable.Mid(0, last_backslash), "hMailServer.Minidump.exe");
+      String command_line = "\"" + helper + "\"";
 
       unsigned int exit_code;
       ProcessLauncher launcher(command_line);

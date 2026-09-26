@@ -911,7 +911,12 @@ namespace DBUpdater
 
          try
          {
-            System.Diagnostics.Process.Start("notepad.exe", scriptToExecute);
+            // System32's Notepad by its full path, and the script as one argument:
+            // by bare name CreateProcess looked beside DBUpdater and in the current
+            // directory before System32, and DBUpdater runs as an administrator.
+            var notepad = new System.Diagnostics.ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "notepad.exe"));
+            notepad.ArgumentList.Add(scriptToExecute);
+            using (System.Diagnostics.Process.Start(notepad)) { }
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {

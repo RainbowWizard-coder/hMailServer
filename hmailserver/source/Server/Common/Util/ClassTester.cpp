@@ -55,6 +55,8 @@
 #include "../../SMTP/DestinationBackoffTester.h"
 #include "../../SMTP/WarmupPlanTester.h"
 #include "SnmpTester.h"
+#include "XMLiteTester.h"
+#include "../AntiVirus/CustomVirusScanner.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "ServiceAccount.h"
 #include "../Persistence/MessageStoreFormat.h"
@@ -235,6 +237,21 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing MailboxRestore\n"));
       MailboxRestoreTester mailboxRestoreTester;
       mailboxRestoreTester.Test();
+
+      // The parser that reads the archive's index, on indexes that stop inside a
+      // tag, a declaration, a comment, a CDATA section or quotes, and on entity
+      // references without their ";": each an error or the text as written,
+      // none a read past the end.
+      OutputDebugString(_T("hMailServer: Testing XMLite\n"));
+      XMLiteTester xmliteTester;
+      xmliteTester.Test();
+
+      // The command lines of the custom virus scanner and ClamWin: the file's
+      // path one argument wherever %FILE% stands, quoted or not, and ClamWin's
+      // folders without the trailing backslash that escaped their quotes.
+      OutputDebugString(_T("hMailServer: Testing scanner command lines\n"));
+      ScannerCommandLineTester scannerCommandLineTester;
+      scannerCommandLineTester.Test();
 
       // The restore's check of an archive's entries before anything is
       // extracted: an absolute path, a ".." segment or a link with a target,

@@ -362,7 +362,8 @@ begin
 
 end;
 
-// Whether a password was collected, on the wizard's page or with /adminpassword.
+// Whether a password was collected, on the wizard's page, with /adminpassword or in
+// HM_ADMIN_PASSWORD.
 // WriteAdministratorPassword writes one only then.
 //
 // Without that rule, an installation that never collects a password - every silent
@@ -378,7 +379,7 @@ end;
 //
 // Leaving the key out is the safer of the two states and it is the one the rest of
 // the product is written for. Unattended installs can supply a real password with
-// /adminpassword=<password> (see InitializeSetup).
+// /adminpassword=<password>, or in HM_ADMIN_PASSWORD (see InitializeSetup).
 function HasAdministratorPassword(): Boolean;
 begin
   Result := Length(g_szAdminPassword) > 0;
@@ -566,12 +567,12 @@ begin
 	Result := sKey;
 end;
 
-// Writes the administrator password the wizard's page or /adminpassword collected
-// into [Security] AdministratorPassword, as the salted PBKDF2 hash the Control Panel
-// writes: hMailServer.exe --set-admin-password makes it, the hash being the server's
-// to make. Until 25 September 2026 an [INI] entry wrote GetMD5OfString of the
-// password instead - an unsalted MD5 digest, which the server accepted and nothing
-// re-hashed (docs/SecretsAtRest.md).
+// Writes the administrator password the wizard's page, /adminpassword or
+// HM_ADMIN_PASSWORD collected into [Security] AdministratorPassword, as the salted
+// PBKDF2 hash the Control Panel writes: hMailServer.exe --set-admin-password makes
+// it, the hash being the server's to make. Until 25 September 2026 an [INI] entry
+// wrote GetMD5OfString of the password instead - an unsalted MD5 digest, which the
+// server accepted and nothing re-hashed (docs/SecretsAtRest.md).
 //
 // The password reaches the verb in this process's environment, HM_ADMIN_PASSWORD,
 // which the process Exec starts inherits, and never on its command line, where
@@ -1118,8 +1119,9 @@ begin
 		   	  Result:= true;
 		   end;
 
-		   // ...and likewise when it came in on the command line, so that
-		   // /adminpassword works for an attended install too.
+		   // ...and likewise when it came in on the command line or in the
+		   // environment, so that /adminpassword and HM_ADMIN_PASSWORD work for an
+		   // attended install too.
 		   if HasAdministratorPassword() then
 		      Result := true;
 	   end;
@@ -1373,9 +1375,19 @@ begin
 	// is not a password: it is never written to the ini.
 	g_szUpgradeToken := ExpandConstant('{param:upgradetoken|}');
 
+	// Or in the environment, HM_ADMIN_PASSWORD, when neither switch is given - the
+	// name the server's own --set-admin-password reads. Inno Setup's command line
+	// cannot carry every password: a double quote in it only turns quoting on or
+	// off and is dropped, so /adminpassword=ab"cd sets abcd, and the switch is on
+	// the command line for anybody listing processes while setup runs. Not read
+	// beside /upgradetoken, so that a variable left in the service's environment
+	// cannot stand in for the live update's token.
+	if (g_szAdminPassword = '') and (g_szUpgradeToken = '') then
+		g_szAdminPassword := GetEnv('HM_ADMIN_PASSWORD');
+
 	if (Length(g_szAdminPassword) > 0) and (Length(g_szAdminPassword) < 5) then
 	begin
-		SuppressibleMsgBox('The password given with /adminpassword must be at least 5 characters long.', mbError, MB_OK, IDOK);
+		SuppressibleMsgBox('The password given with /adminpassword or HM_ADMIN_PASSWORD must be at least 5 characters long.', mbError, MB_OK, IDOK);
 		Result := false;
 		Exit;
 	end;
@@ -1799,9 +1811,11 @@ function RunPostInstallTasks() : Boolean;
       ResultCode: Integer;
       ProgressPage : TOutputProgressWizardPage;
       szParameters: AnsiString;
+      szCredential: String;
       bDatabaseBackendReady: Boolean;
       bServiceRegistered: Boolean;
       bPasswordWritten: Boolean;
+      bStarted: Boolean;
 begin
    Result := true;
 
@@ -1863,7 +1877,8 @@ begin
          end;
 
          // Add the password as well, so that the administrator doesn't have to type it in
-         // again if he has just entered it, or supplied it with /adminpassword.
+         // again if he has just entered it, or supplied it with /adminpassword or
+         // HM_ADMIN_PASSWORD.
          //
          // This is load-bearing on the UPGRADE path, not just the create path. DBUpdater
          // must authenticate before it can move the schema, and until 6.2.23 DBSetupQuick
@@ -1876,10 +1891,22 @@ begin
          // Not when it could not be written above: the server would refuse it, the file
          // having no password, and the database step then signs in with none - which is
          // what such a server has, as the message just said.
+         //
+         // In DBSetupQuick's environment, HM_ADMIN_PASSWORD, as WriteAdministratorPassword
+         // hands it to hMailServer.exe, emptied again as soon as DBSetupQuick has finished;
+         // DBSetupQuick hands it on to DBUpdater the same way, and DBSetup, run instead
+         // for an external database, is given it the same way. The live update's token
+         // goes the same way, as "token:<hex>". Until 26 September 2026 the password was
+         // ' password:' + the password on DBSetupQuick's (or DBSetup's) command line,
+         // unquoted, and DBSetupQuick appended it to DBUpdater's the same way: a password
+         // with a space reached the database tools cut at the space, a double quote or
+         // backslashes before one changed it, and a new installation or an upgrade with
+         // such a password failed with exit code 3 (DBSetup asked for it again).
+         szCredential := '';
          if (Length(g_szAdminPassword) > 0) and bPasswordWritten then
-            szParameters := szParameters + ' password:' + g_szAdminPassword
+            szCredential := g_szAdminPassword
          else if (Length(g_szUpgradeToken) > 0) then
-            szParameters := szParameters + ' password:token:' + g_szUpgradeToken;
+            szCredential := 'token:' + g_szUpgradeToken;
 
          // Skipped when the built-in database engine could not be installed: the
          // tools cannot possibly succeed without it, and a second, vaguer error
@@ -1901,9 +1928,23 @@ begin
             if (IsNewDatabase() = false) and (bServiceRegistered = true) then
                StartServiceForDatabaseUpgrade();
 
-            if (Exec(ExpandConstant('{app}\Bin\DBSetupQuick.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) = False) then
+            ResultCode := 0;
+            bStarted := false;
+            if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then
+               SuppressibleMsgBox('The hMailServer database step could not be started: the administrator password could not be handed to DBSetupQuick.exe. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK)
+            else
             begin
-               SuppressibleMsgBox(SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
+               try
+                  bStarted := Exec(ExpandConstant('{app}\Bin\DBSetupQuick.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+                  if (bStarted = False) then
+                     SuppressibleMsgBox(SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
+               finally
+                  SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '');
+               end;
+            end;
+
+            if (bStarted = False) then
+            begin
                Result := false;
             end
             else if (ResultCode <> 0) then
@@ -1928,9 +1969,26 @@ begin
          end
          else
          begin
-            if (Exec(ExpandConstant('{app}\Bin\DBSetup.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) = False) then
+            // DBSetup signs in with the same credential, the same way, so that the
+            // administrator is not asked again for the password just typed: until
+            // 26 September 2026 it had it on its command line with DBSetupQuick's.
+            ResultCode := 0;
+            bStarted := false;
+            if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then
+               SuppressibleMsgBox('The hMailServer database setup could not be started: the administrator password could not be handed to DBSetup.exe. Run DBSetup.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK)
+            else
             begin
-               SuppressibleMsgBox(SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
+               try
+                  bStarted := Exec(ExpandConstant('{app}\Bin\DBSetup.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+                  if (bStarted = False) then
+                     SuppressibleMsgBox(SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
+               finally
+                  SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '');
+               end;
+            end;
+
+            if (bStarted = False) then
+            begin
                Result := false;
             end
             else if (ResultCode <> 0) then

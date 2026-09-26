@@ -203,6 +203,14 @@ namespace HM
       try
       {
          int iColIdx = GetColumnIndex_(FieldName);
+
+         // -1 when the column is not in the result - a programming error, the
+         // names being constants in the code, which GetColumnIndex_ has just
+         // reported as HM4231. current_[-1] and lengths[-1] are read from before
+         // the row, so the getters answer their empty value instead.
+         if (iColIdx < 0)
+            return "";
+
          char *pValue = current_[iColIdx];
 
          if (pValue == 0)
@@ -270,6 +278,9 @@ namespace HM
       try
       {
          int iColIdx = GetColumnIndex_(FieldName);
+         if (iColIdx < 0)
+            return 0;   // as in GetStringValue
+
          char *pValue = current_[iColIdx];
          long lVal = pValue ? atoi(pValue) : 0;
          return lVal;
@@ -297,6 +308,9 @@ namespace HM
       try
       {
          int iColIdx = GetColumnIndex_(FieldName);
+         if (iColIdx < 0)
+            return false;   // as in GetStringValue
+
          char *pValue = current_[iColIdx];
 
          if (pValue == 0)
@@ -327,6 +341,9 @@ namespace HM
       try
       {
          int iColIdx = GetColumnIndex_(FieldName);
+         if (iColIdx < 0)
+            return 0;   // as in GetStringValue
+
          char *pValue = current_[iColIdx];
          __int64 lVal = pValue ? _atoi64(pValue) : 0;
          return lVal;
@@ -354,6 +371,9 @@ namespace HM
       try
       {
          int iColIdx = GetColumnIndex_(FieldName);
+         if (iColIdx < 0)
+            return 0;   // as in GetStringValue
+
          char *pValue = current_[iColIdx];
          double dbVal = pValue ? atof(pValue) : 0;
 
