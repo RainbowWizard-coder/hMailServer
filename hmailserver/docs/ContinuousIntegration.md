@@ -1874,11 +1874,12 @@ who read it, the day, and an expiry at most a year after it. After the expiry
 the finding holds the release again until it is read again. The file is a strict
 subset of YAML (the job's image has no YAML library), is the owner's in
 `.gitlab/CODEOWNERS`, and `build/check-release-chain.py` reads it on every
-pipeline, so a malformed entry fails `checkers` long before a release. None is
-accepted today. The thresholds are `SECURITY.md`'s ("Vulnerability management
-policy"); the gate's self-test, run by `checkers`, holds it to each of them.
+pipeline, so a malformed entry fails `checkers` long before a release. It
+holds 169 entries today, all `semgrep-sast` (below). The thresholds are
+`SECURITY.md`'s ("Vulnerability management policy"); the gate's self-test, run
+by `checkers`, holds it to each of them.
 
-What it will hold first: GitLab's semgrep analyzer, run on linix on 26
+What it held first: GitLab's semgrep analyzer, run on linix on 26
 September 2026 in the job's own image (90 seconds on two CPUs) over the tree of
 the local `v6.3.4` tag as it then was - `master` at 40c7d3e0c, before batch40;
 the tag is made again once batch40 lands - found 282 findings, 176 of them High and 106 Medium, none
@@ -1886,9 +1887,15 @@ Critical. 154 of the High ones come from its C and C++ rules ported from
 flawfinder - 97 `strlen`, 33 `memcpy`, 11 `MultiByteToWideChar`, 5 `getenv` and
 a few more - 21 from the C# rule SCS0001 and one from a Node SSRF rule. The gate
 read that report, gave the 176 High findings 176 distinct fingerprints and held
-on every one; a trial exception took exactly one of them out. So the first
-release through this gate waits until they are read: each fixed, or accepted in
-`.gitlab/security-exceptions.yml` with its reason.
+on every one; a trial exception took exactly one of them out. All 176 were
+read on 26 September 2026, each by two AI review agents, the second trying to
+refute the first, under the owner's delegation: 169 were judged not
+exploitable and are accepted in `.gitlab/security-exceptions.yml` until 25
+September 2027, each with the check, size or constant that makes it safe; their
+`reviewed-by` names the owner, who delegated the reading. The seven judged real
+have no entry, so each holds the release until it is fixed, and a fixed line
+the analyzer still flags holds it until it is read again. Over that report, the
+gate now holds on those seven alone.
 
 This is a gate on releases, not on changes: the scans still run for protected
 refs only, after the push, and `master` is pushed with `ci.skip`. A finding a

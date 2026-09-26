@@ -348,7 +348,9 @@ fingerprint the gate prints; for a dependency the advisory's id and the package)
 not exploitable as the code stands, or waiting on an upstream fix - the GitLab user of the maintainer who read it,
 the day, and an expiry no more than a year later, after which the finding holds the release again. The file is
 the owner's (`.gitlab/CODEOWNERS`), is held to that shape on every pipeline by `build/check-release-chain.py`,
-and accepts nothing today. A dependency finding that does not affect the project at all goes in the VEX document
+and today accepts 169 *semgrep-sast* findings judged not exploitable, each read on 26 September 2026 by two AI
+review agents under the owner's delegation, as the file says; for those, the reviewer it names is the owner, who
+delegated the reading. A dependency finding that does not affect the project at all goes in the VEX document
 instead.
 
 This holds releases, not changes: the scans run after a push, for the protected refs, and a finding a change

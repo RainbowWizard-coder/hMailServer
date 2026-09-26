@@ -39,5 +39,1362 @@
 # allow-list: an exception the owner adds on master after the tag counts when the
 # release job is retried.
 #
-# None is accepted today.
-exceptions: []
+# The entries below are the 169 findings of GitLab's semgrep analyzer (semgrep-sast),
+# run on linix over master at 40c7d3e0c, that were judged not exploitable. Each was
+# read on 26 September 2026 by two AI review agents, the second trying to refute the
+# first, under the owner's delegation, and not line by line by the owner, so their
+# reviewed-by names the owner, who delegated the reading, not a reader. Each names
+# the specific reason it is safe: the check, the size or the constant that holds, and
+# the function it is in. The fingerprints are the gate's own, made from that report;
+# batch40 moved some of the flagged lines and changed none of them.
+#
+# The seven High findings judged real have no entry, so each holds the release until
+# it is fixed: the crash-dump helper loading dbghelp.dll by bare name
+# (hMailServer.Minidump.cpp); the Control Panel's service restart running a bare
+# cmd.exe elevated (TryRestartService); DBSetupQuick passing the password to DBUpdater
+# unquoted (UpgradeDatabase, two findings); the XMLite parser copying past the end of
+# a truncated backup index (_SetString) and reading past an entity reference without
+# its ';' (Ref2Entity); and a MimeTester check built from two copies of one literal
+# (TestFindStringEdgeCases). A fixed line the analyzer still flags has a new
+# fingerprint, or keeps one never accepted here, and holds the release until it is
+# read again.
+exceptions:
+
+  # fuzz/harness/fuzz_mime_common.h
+  - scan: semgrep-sast
+    finding: 05f8290789cd4d5ddc5d
+    what: 'memcpy of the libFuzzer input into the NUL-terminated parse buffer in hm_fuzz::ParseBuffer''s constructor'
+    reason: 'Fuzz-harness code: ParseBuffer''s constructor sizes storage_, a std::vector<char>, to size + 1 and copies exactly size bytes from libFuzzer''s buffer of that length, only when size > 0. The terminator goes into the extra element, and libFuzzer''s max_len keeps size + 1 from wrapping.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Application/EnvironmentSettings.cpp
+  - scan: semgrep-sast
+    finding: 973f383007943dc4228c
+    what: 'wcslen walk over the GetEnvironmentStringsW block in EnvironmentSettings::ReadProcessEnvironment (Windows)'
+    reason: 'The block comes from GetEnvironmentStringsW, null-checked, which the OS guarantees is a run of NUL-terminated strings ending in an extra NUL. Each wcslen in ReadProcessEnvironment stops at its entry''s own terminator, and the loop stops at the final empty string.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/LDAP/LdapClient.cpp
+  - scan: semgrep-sast
+    finding: 7a893b908ed6285dbef5
+    what: strlen in the single-argument FromUtf8_ overload that converts OpenLDAP-returned C strings to String
+    reason: 'POSIX (OpenLDAP) only: this FromUtf8_ overload runs strlen after a null check, and every caller passes a string OpenLDAP allocated and terminated itself (the diagnostic message from ldap_get_option or ldap_parse_result, ldap_err2string, ldap_get_dn). Attribute values, which are length-delimited berval data, go through the two-argument overload with bv_len, never through strlen.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Mime/MimeTester.cpp
+  - scan: semgrep-sast
+    finding: 4c3cd4c03288580f8a96
+    what: 'strlen of the test literal `sample`, used for FindString''s end pointer in TestFindStringEdgeCases'
+    reason: Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. sample is the 8-character string literal abc CRLF def, so strlen is 8 and sample + 8 is one past the end of that same array; FindString compares only inside it.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 318a639a49ea8727b0c3
+    what: 'strlen of the test literal `repeated`, used for FindString''s end pointer'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. repeated is the string literal "abcabc", so strlen is 6 and the end pointer is one past the end of that same array.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 0bd4458935c0df932888
+    what: 'strlen of the test literal `repeated`, used for FindString''s end pointer, with the search starting at repeated+1'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. repeated is the string literal "abcabc" (strlen 6); the start, repeated + 1, and the end, repeated + 6, lie in the same array, and FindString''s lastStart keeps memcmp inside them.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: a3b341fc71aabbd9ed8c
+    what: 'strlen of the test literal `beginning`, used for FindString''s end pointer'
+    reason: Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. beginning is the 8-character string literal CRLF header, so strlen is 8 and the end pointer is one past the end of that same array.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 719653d894764fb9a6af
+    what: 'strlen of the test literal `sample`, used for FindString''s end pointer (a match at the very end)'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. sample is the 8-character string literal abc CRLF def, and FindString''s lastStart is sample + 5, so memcmp reads no further than sample + 7.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 52dce127fa606996c9ee
+    what: 'strlen of the test literal `emptyNeedleSample`, used for FindString''s end pointer (empty needle)'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. emptyNeedleSample is the string literal "payload" (strlen 7), and with an empty needle FindString returns before it reads the haystack.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2432a76bc4e65df2a423
+    what: 'strlen of the test literal `sample`, used for FindString''s end pointer, with the search starting at sample+5'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. sample is the 8-character string literal abc CRLF def; the start, sample + 5, and the end, sample + 8, lie in the same array, and FindString''s lastStart keeps memcmp inside them.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: b968a9dab5509203db03
+    what: 'strlen of the test literal `sample`, used for FindString''s end pointer (needle absent)'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. sample is the 8-character string literal abc CRLF def, and with the needle absent FindString''s lastStart, sample + 5, keeps memcmp at or before sample + 7.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 9e985a512c21ab3bd351
+    what: strlen of the test literal `sample`, used for the end pointer, with a NULL haystack
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. strlen''s argument is the string literal sample, and with a NULL haystack FindString returns NULL before it reads anything.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 25acd4ab09de34062689
+    what: strlen of the test literal `sample`, used for the end pointer, with a NULL needle
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. strlen''s argument is the string literal sample, and with a NULL needle FindString returns before its own strlen of the needle.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: be408e8a6efb83529dff
+    what: 'strlen of the test literal multipartWithoutFinalCrlf, passed as MimeBody::Load''s length'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithoutFinalCrlf is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeBody::Load and MimeHeader::Load bound every read by the length they are given.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 5d49942f36e9df320cfd
+    what: strlen of the test literal multipartWithoutFinalCrlf, compared with the loaded length
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithoutFinalCrlf is one NUL-terminated array of adjacent string literals, and strlen''s result is only compared with the loaded length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: f1802def585de98cb14f
+    what: 'strlen of the test literal multipartWithFinalCrlf, passed as MimeBody::Load''s length'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithFinalCrlf is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeBody::Load and MimeHeader::Load bound every read by the length they are given.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: a7eed50973a49bdd104a
+    what: strlen of the test literal multipartWithFinalCrlf, compared with the loaded length
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithFinalCrlf is one NUL-terminated array of adjacent string literals, and strlen''s result is only compared with the loaded length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2fefd7bf3a31b3417ee4
+    what: 'strlen of the test literal multipartWithoutClosingBoundary, passed as MimeBody::Load''s length'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithoutClosingBoundary is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeBody::Load and MimeHeader::Load bound every read by the length they are given.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 902a3ae40d0202e0add7
+    what: strlen of the test literal multipartWithoutClosingBoundary, compared with the loaded length
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithoutClosingBoundary is one NUL-terminated array of adjacent string literals, and strlen''s result is only compared with the loaded length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 9d805c9c87b34cdd41a3
+    what: 'strlen of the test literal multipartWithClosingBoundaryMissingSeparator, passed as MimeBody::Load''s length'
+    reason: Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithClosingBoundaryMissingSeparator is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and GetBoundaryEnd checks the room left for the boundary and its two dashes before it indexes.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2402bc95fd4f8aa7d039
+    what: strlen of the test literal multipartWithClosingBoundaryMissingSeparator, compared with the loaded length
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithClosingBoundaryMissingSeparator is one NUL-terminated array of adjacent string literals, and strlen''s result is only compared with the loaded length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 132f966c378fb650f137
+    what: 'strlen of QPEncode''s input, passed as MimeCodeQP::SetInput''s length'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. QPEncode is file-local (anonymous namespace), and its callers pass string literals or AnsiString::c_str(), which std::basic_string always terminates. The longest input is 77 bytes, so the int cast is exact.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 6e622e8529ebc5abe036
+    what: 'strlen of the test literal multipartWithPartBoundaryMissingCrlf, passed as MimeBody::Load''s length'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithPartBoundaryMissingCrlf is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeBody::Load and MimeHeader::Load bound every read by the length they are given.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 87359de0e822a8a35470
+    what: strlen of the test literal multipartWithPartBoundaryMissingCrlf, compared with the loaded length
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. multipartWithPartBoundaryMissingCrlf is one NUL-terminated array of adjacent string literals, and strlen''s result is only compared with the loaded length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 81059ab36b832832b004
+    what: 'strlen of a test header line, passed as MimeField::Load''s length in TestGetParameterWithQuotedSemicolon'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. line is a string literal, so strlen is its exact length, and MimeField::Load bounds every read by pszLimit, the data plus that length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 01a1f531a2c87b5ff276
+    what: 'strlen of a test header line, passed as MimeField::Load''s length in TestGetParameterNeighboringParamUnaffectedByQuotedSemicolon'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. line is a string literal, so strlen is its exact length, and MimeField::Load bounds every read by pszLimit, the data plus that length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: cf3e1ea09998499b76da
+    what: 'strlen of a test header line, passed as MimeField::Load''s length in TestRemoveParameterRemovesSimpleParam'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. line is a string literal, so strlen is its exact length, and MimeField::Load bounds every read by pszLimit, the data plus that length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 3e524b09bac361076b05
+    what: 'strlen of a test header line, passed as MimeField::Load''s length in TestRemoveParameterRemovesRfc2231Continuations'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. line is a string literal, so strlen is its exact length, and MimeField::Load bounds every read by pszLimit, the data plus that length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: e7cc47c34d12287cf525
+    what: 'strlen of a test header block, passed as MimeHeader::Load''s length in TestSetFileNameReplacesRfc2231ContinuationFilename'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. headers is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeHeader::Load bounds each read by it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 5b3f87528851fc16b5c5
+    what: 'strlen of a test header block, passed as MimeHeader::Load''s length in TestSetFileNameReplacesEncodedFilenameVariant'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. headers is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeHeader::Load bounds each read by it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: f0ce7aa0e983922bd697
+    what: 'strlen of a test header block, passed as MimeHeader::Load''s length in TestSetFileNameReplacesContentTypeNameVariant'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. headers is one NUL-terminated array of adjacent string literals, so strlen is its exact length, and MimeHeader::Load bounds each read by it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: db995d25155c4d2814a5
+    what: 'strlen of a test header line, passed as MimeField::Load''s length in TestRfc2231ApostropheInUnquotedValue'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. line is a string literal, so strlen is its exact length, and MimeField::Load bounds every read by pszLimit, the data plus that length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 756d889c316d82b7d747
+    what: 'strlen of QPDecode''s input, passed as MimeCodeQP::SetInput''s length'
+    reason: Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. QPDecode is file-local (anonymous namespace), and its callers pass only string literals, the longest 94 bytes, so strlen is exact and the int cast cannot truncate.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 73e0ae038039951aa7a1
+    what: 'strlen of a test header block, passed as MimeHeader::Load''s length in TestHeaderWithoutFinalCrlf'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. headers is a string literal with no final CRLF; MimeField::Load then takes pszLimit as the end and MimeHeader::Load stops at the length it is given, so neither reads past it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2b18e1ebd58df5676a2c
+    what: 'strlen of a test header block, passed as MimeHeader::Load''s length in TestUnterminatedTextWithoutFieldNameIsNoField'
+    reason: 'Test-only code in MimeTester, run only by the password-guarded RunTestSuite or hMailServer.exe /Test. headers is the string literal "no colon here", so strlen is its exact length, and LineFind and FindString are both bounded by pszLimit.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Persistence/MessageStore.cpp
+  - scan: semgrep-sast
+    finding: 0db3c465e3c63e65974c
+    what: 'memcpy of the bytes read from a message into the caller''s buffer in MessageStore::ReadRange'
+    reason: 'MessageStore::ReadRange copies min(bytes read, requested), which lies inside the ByteBuffer MessageStoreReader::ReadChunk returned (never null, never more than asked) and inside count, and returns early when count <= 0. Its only callers, in IMAPFetch, size the destination std::vector<BYTE> to the same positive count.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Persistence/MessageStoreFormat.cpp
+  - scan: semgrep-sast
+    finding: a0a8ec6796df17d95210
+    what: strlen of the prefix in StartsWithNoCase
+    reason: 'StartsWithNoCase''s only caller is FieldValue, which is called only with the literals "content-type" and "content-transfer-encoding", so the prefix is terminated. The header is a std::string, and StartsWithNoCase returns false when at + length passes its size, before it indexes.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 5a97c278cdeaaecd34ed
+    what: 'strlen(lowerName) in FieldValue''s bounds check'
+    reason: 'lowerName is always one of FieldValue''s two literal header names, and at < header.size() in FieldValue''s loop, so at + strlen(lowerName) cannot wrap. The && proves at + strlen(lowerName) < header.size() before header is indexed.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 38fd712f5ac2a44f26b0
+    what: 'second strlen(lowerName) on the same line, indexing header at the name''s end'
+    reason: The same terminated literal as the first strlen of this line in FieldValue; header[at + strlen(lowerName)] is evaluated only after the preceding && term has shown that index is below header.size().
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 5d52dcf3273063dbc435
+    what: strlen(lowerName) in the substr position that takes the field value
+    reason: 'FieldValue reaches the substr only after proving at + len < header.size() for the literal lowerName, so the position at + len + 1 is at most header.size(), which substr accepts. The matched name and its '':'' hold no newline, so the line end found from at lies beyond them.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 1e2077879c629f426df7
+    what: second strlen(lowerName) in the substr count on the same line
+    reason: 'The substr count in FieldValue, lineEnd - at - len - 1, cannot wrap: the matched literal name and its '':'' hold no newline, so lineEnd > at + len. substr also clamps the count to the rest of the string.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Persistence/MessageStoreObjectClient.cpp
+  - scan: semgrep-sast
+    finding: 7c553b58c9e69068214d
+    what: 'strlen of the wanted header name in MessageStoreObjectClient::HeaderOf_ (object-store response headers)'
+    reason: 'HeaderOf_ is a private static of MessageStoreObjectClient, and every caller passes a literal header name (ETag, Content-Length, x-ms-copy-status and the like). The response headers are a std::string, and the name is compared character by character only after the colon was found at exactly the name''s length, so the line is longer than the name.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstCodePages.cpp
+  - scan: semgrep-sast
+    finding: 48030cfa5cf6b68c7a07
+    what: 'sizing call (no output buffer) in PstCodePages::Decode (Windows branch)'
+    reason: 'A sizing call in PstCodePages::Decode (null output, size 0) with an explicit byte count, refused above 0x7FFFFFFF so the int cast is exact; empty input returns before it. The code page must be in the table, and a result <= 0 returns false.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: aa2a5f2227c8534ab576
+    what: 'conversion into a std::wstring sized by the preceding call in PstCodePages::Decode'
+    reason: 'PstCodePages::Decode converts into a std::wstring built with exactly the count the identical sizing call returned (same code page, flags and bytes), and cchWideChar is that count in wide characters. A result <= 0 returns false and the string is resized to what was written, so no terminator is relied on.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstItems.cpp
+  - scan: semgrep-sast
+    finding: 10abb994291a96149e31
+    what: 'strlen of the message-class base name in PstItems::IsOfClass'
+    reason: 'Every caller of PstItems::IsOfClass (PstReaderChild, and MigrationJobPstItems'' OfClass) passes a literal message class such as IPM.Contact or IPF.Task. The PST-controlled value is a std::string: IsOfClass returns when it is shorter than the base name, and reads the next character only when it is longer.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstItemsTester.cpp
+  - scan: semgrep-sast
+    finding: 21073e09349165556629
+    what: 'first strlen of TestException::subject in the test helper Recurrence() that builds a recurrence blob'
+    reason: 'Test-only: Recurrence() in the PST tester runs this strlen only under if (exception.subject), and every TestException the tester builds sets subject to the literal "Moved". Every other Recurrence() call passes an empty exceptions list, so no outside input reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 0521399774e60683a281
+    what: 'second strlen of TestException::subject on the same line of Recurrence() in the PST tester'
+    reason: 'Test-only: Recurrence() in the PST tester runs this strlen only under if (exception.subject), and every TestException the tester builds sets subject to the literal "Moved". Every other Recurrence() call passes an empty exceptions list, so no outside input reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: d700dc41af4c663e7089
+    what: 'first strlen of TestException::location in Recurrence() in the PST tester'
+    reason: 'Test-only: Recurrence() in the PST tester runs this strlen only under if (exception.location), and location is the literal "Room 2" or nullptr, which the guard skips.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 62e78e60541a5ce9af6e
+    what: 'second strlen of TestException::location on the same line of Recurrence()'
+    reason: 'Test-only: Recurrence() in the PST tester runs this strlen only under if (exception.location), and location is the literal "Room 2" or nullptr, which the guard skips.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: b536ce47c81c57012c18
+    what: 'strlen of TestException::subject in Recurrence()''s ExtendedException block'
+    reason: 'Test-only: Recurrence() in the PST tester runs this strlen only under if (exception.subject), and every TestException the tester builds sets subject to the literal "Moved". Every other Recurrence() call passes an empty exceptions list, so no outside input reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 8d770b1006a79a0db67a
+    what: 'strlen of TestException::location in Recurrence()''s ExtendedException block'
+    reason: 'Test-only: Recurrence() in the PST tester runs this strlen only under if (exception.location), and location is the literal "Room 2" or nullptr, which the guard skips.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstMime.cpp
+  - scan: semgrep-sast
+    finding: 2292211a0f02a0d58112
+    what: strlen of the prefix in the PST-to-MIME helper StartsWithNoCase
+    reason: 'This file-local StartsWithNoCase in PstMime is always called with a literal prefix (IPM.Note.SMIME, Content-Type: and the like), so the prefix is terminated. The PST-derived text is a std::string, checked to be at least the prefix''s length before substr.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstReaderWireTester.cpp
+  - scan: semgrep-sast
+    finding: 5d8bced860365c841a95
+    what: 'memcpy in the test stream reader StreamOf feeding PstWire::ReadFrame in PstReaderWireTester'
+    reason: 'Test-only: StreamOf reads the tester''s own frames, returns 0 once at reaches the end of bytes, and clamps the count to the bytes left, the piece size and the length the caller says is free. PstWire::ReadFrame''s readExactly passes a length that fits its header array or its payload vector, so neither side overruns.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstRtf.cpp
+  - scan: semgrep-sast
+    finding: d0231edf2d30ed09c804
+    what: 'memcpy of the [MS-OXRTFCP] preload into the 4096-byte LZFu dictionary in PstRtf::Decompress'
+    reason: 'PstRtf::Decompress copies the constant 207-byte [MS-OXRTFCP] preload from PstRtf::Preload into its 4096-byte LZFu dictionary. The length is fixed at compile time and no PST data affects it; later dictionary indexes wrap with % 4096.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstStore.cpp
+  - scan: semgrep-sast
+    finding: 045965607d9e91379856
+    what: strlen of the comparison literal in the anonymous-namespace EqualsNoCase helper of PstStore
+    reason: 'EqualsNoCase is file-local to PstStore.cpp, and every call passes a literal (SMTP, IPF.Note, IPM.Post, Inbox and the like) as the string strlen measures. The PST-derived text is a std::string measured with size(), never with strlen.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Pst/PstStoreItems.cpp
+  - scan: semgrep-sast
+    finding: 61c78d5a8d7715e7f334
+    what: 'memcpy of the 8-byte PidLidPercentComplete PtypFloating64 into a double in PstStore::ReadTask'
+    reason: 'PstStore::ReadTask copies into a local 8-byte double only when pc.Bytes succeeded and the std::string it filled holds exactly 8 bytes. The value is then checked for NaN and for the 0..1 range.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/SQL/MySQLInterface.cpp
+  - scan: semgrep-sast
+    finding: 1400426ba14b4209dfb6
+    what: 'LoadLibrary of the MySQL/MariaDB client in MySQLInterface::Load (Windows arm)'
+    reason: 'MySQLInterface::Load gives LoadLibrary a full path, not a bare name: GetLibraryFileName_ takes the server''s own directory from GetModuleFileName and appends libmysql.dll. A full path loads that file or fails, never searching the current directory or PATH, so no search-order planting is possible.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/SQL/MySQLRecordset.cpp
+  - scan: semgrep-sast
+    finding: fe41cfb5a941c8b3cf67
+    what: 'strlen fallback for a column value when mysql_fetch_lengths returns null, in MySQLRecordset::GetStringValue'
+    reason: 'A fallback in MySQLRecordset::GetStringValue for when mysql_fetch_lengths gives no lengths: the field is non-null (checked first) and comes from a mysql_store_result row, which both MariaDB Connector/C and libmysql terminate inside the row allocation. So strlen cannot read past the field; at worst it stops early at an embedded NUL.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 071a0acb598b4fa014e3
+    what: 'strlen fallback for a column value when the client has no mysql_fetch_lengths export, in MySQLRecordset::GetStringValue'
+    reason: 'Runs only when the client library exports no mysql_fetch_lengths; the field is the same non-null, client-terminated mysql_store_result value as GetStringValue''s other fallback. At worst it truncates at an embedded NUL; it never reads out of bounds.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Scripting/ScriptSite.h
+  - scan: semgrep-sast
+    finding: cdbb46aab3928a42937a
+    what: 'memcpy of the CLSID from the engine''s context in IInternetHostSecurityManagerImpl::ProcessUrlAction'
+    reason: 'IInternetHostSecurityManagerImpl::ProcessUrlAction copies sizeof(CLSID) into a local CLSID, and only when pContext is non-null and cbContext >= sizeof(CLSID). A short or missing context leaves GUID_NULL, which grants no more access.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 95462df90e00419044f5
+    what: 'memcpy of the CONFIRMSAFETY''s leading CLSID in IInternetHostSecurityManagerImpl::QueryCustomPolicy'
+    reason: 'IInternetHostSecurityManagerImpl::QueryCustomPolicy copies sizeof(CLSID) into a local CLSID, only when pContext is non-null and cbContext >= sizeof(CLSID), so only the CONFIRMSAFETY''s leading clsid is read. Otherwise the policy stays URLPOLICY_DISALLOW.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/TCPIP/DNSResolverWinApi.cpp
+  - scan: semgrep-sast
+    finding: fa39003455bea32da514
+    what: 'memcpy of the custom DNSServer SOCKADDR_IN into DNS_ADDR_ARRAY.AddrArray[0].MaxSa in DNSResolver::_Resolve'
+    reason: 'DNSResolver::_Resolve copies a local 16-byte SOCKADDR_IN, from an inet_addr result checked against INADDR_NONE, into AddrArray[0].MaxSa, a 32-byte field (DNS_ADDR_MAX_SOCKADDR_LENGTH) of a real element of its by-value DNS_ADDR_ARRAY. Only element 0 is used, with MaxCount and AddrCount 1; memcpy is used because the struct is packed.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/TCPIP/DnssecResolver.cpp
+  - scan: semgrep-sast
+    finding: c142b80374951114ccf0
+    what: 'memcpy of a system DNS server''s SOCKADDR from GetAdaptersAddresses into a sockaddr_in (Windows arm of the nameserver lookup)'
+    reason: 'The destination is a local sockaddr_in and exactly its size is copied, from GetAdaptersAddresses'' own buffer after it returned NO_ERROR. Entries with a null lpSockaddr or a family other than AF_INET are skipped, and an AF_INET SOCKET_ADDRESS points at a 16-byte SOCKADDR_IN; no network input sets the length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 128fc21fb2d62c4c105e
+    what: 'memcpy of an A record''s 4-octet RDATA into a struct in_addr, in the DNSSEC resolver''s answer-to-DNSRecord conversion'
+    reason: 'The DNSSEC resolver''s A-record conversion breaks out unless record.rdata.size() == 4, so exactly 4 bytes are copied into a 4-byte struct in_addr.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 8cd16a7556140f9a0d26
+    what: 'memcpy of an AAAA record''s 16-octet RDATA into a struct in6_addr in the DNSSEC resolver'
+    reason: 'The DNSSEC resolver''s AAAA-record conversion breaks out unless record.rdata.size() == 16, so exactly 16 bytes are copied into a 16-byte struct in6_addr.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/TCPIP/ProxyProtocol.cpp
+  - scan: semgrep-sast
+    finding: 15f2926cd28fe801d261
+    what: 'memcpy of the 4-byte IPv4 source address from a PROXY v2 header in ProxyProtocolParser::ParseVersion2_'
+    reason: 'ProxyProtocolParser::ParseVersion2_ asks for more data unless available >= 16 + the address block''s length, and refuses an IPv4 block shorter than 12, so the 4 address bytes and the port lie inside the header. The destination is a 4-byte address_v4::bytes_type, and available is the real size of the buffer TCPConnection fills with transfer_exactly reads.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2c60273b4001d0142d45
+    what: 'memcpy of the 16-byte IPv6 source address from a PROXY v2 header in ProxyProtocolParser::ParseVersion2_'
+    reason: 'ProxyProtocolParser::ParseVersion2_ asks for more data unless available >= 16 + the address block''s length, and refuses an IPv6 block shorter than 36, so the 16 address bytes and the port lie inside the header. The destination is a 16-byte address_v6::bytes_type, and available is the real size of the buffer TCPConnection fills.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/TCPIP/SslContextInitializer.cpp
+  - scan: semgrep-sast
+    finding: cc042b2c9a27012f1b3d
+    what: 'memcpy of the 16-byte session-ticket key name into OpenSSL''s key_name in TicketKeyCallback (encrypt path)'
+    reason: 'TicketKeyCallback copies the 16-byte name of the server''s own ticket key (unsigned char name[16]) into OpenSSL''s key_name, which OpenSSL declares TLSEXT_KEYNAME_LENGTH (16) bytes long. It runs only on the encrypt branch, from a local copy of the key, never from peer data.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/ByteBuffer.cpp
+  - scan: semgrep-sast
+    finding: 5c695489e16ffde713f5
+    what: 'memcpy of the trailing bytes kept by ByteBuffer::Empty(size_t)'
+    reason: 'ByteBuffer::Empty throws std::logic_error when the bytes to keep exceed the buffer''s size, which also catches a caller''s wrapped subtraction, so the source offset stays inside the allocation. The destination is new BYTE[iLeaveEndingBytes], exactly the copy''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 6c25d6190eb8e31ca2af
+    what: 'memcpy of the old contents into the grown buffer in ByteBuffer::Add'
+    reason: 'ByteBuffer::Add allocates buffer_size_ + lSize bytes and copies the old buffer_size_ bytes only when buffer_size_ > 0; every writer of buffer_size_ keeps it at most the allocation behind buffer_. The old buffer is read before it is freed, so appending a buffer to itself is safe.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 0fed6ef6768d3284e493
+    what: 'memcpy of the appended bytes after the old contents in ByteBuffer::Add'
+    reason: 'ByteBuffer::Add leaves exactly lSize bytes after the old contents in an allocation of buffer_size_ + lSize, and returns early when lSize is 0. A sweep of the callers found every length guarded or taken from the source''s own size (IMAPFetch''s GetBytesToSend_ clamps; TCPConnection, TransparentTransmissionBuffer and MessageStore use their buffers'' sizes), so neither a wrapped size nor a short source reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/CalDavServer.cpp
+  - scan: semgrep-sast
+    finding: 826f6580e7d042800171
+    what: strlen of the CalDAV sync-token URN prefix, used to take the digits after it in the sync-collection REPORT handler
+    reason: 'In CalDavServer''s sync-collection REPORT handler the prefix is a local pointer to the literal urn:x-hmailserver:caldav-sync:, and Mid runs only after presented.StartsWith(prefix). CStdString::Mid clamps and returns empty past the end, which the handler rejects, and the cap of 18 digits keeps the __int64 from overflowing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/Charset.cpp
+  - scan: semgrep-sast
+    finding: bddfb043edde9a767b9d
+    what: 'MultiByteToWideChar sizing call in Charset::ToWideChar'
+    reason: 'The size query in Charset::ToWideChar writes nothing (null output, size 0), and its input is AnsiString::c_str() with -1, always terminated. The code page is CodePages::GetCodePage''s table entry or 0, and a 0 result allocates a single zeroed wchar_t.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: caa96dd7bdf28b19ad10
+    what: 'MultiByteToWideChar conversion into the wchar_t buffer in Charset::ToWideChar'
+    reason: 'Charset::ToWideChar''s output is new wchar_t[iNeedSize + 1], zeroed before the call, and cchWideChar is iNeedSize + 1 wide characters for the same input, code page and flags the size query measured. So the conversion cannot overrun, and the result is terminated even if it fails.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/DavSupport.h
+  - scan: semgrep-sast
+    finding: f5df584488167cc5504e
+    what: strlen of the literal argument of the private DAV XML parser method StartsWith_
+    reason: 'StartsWith_ is private to Dav::XmlReader and all its calls pass literals (the UTF-8 BOM, <?, <!--, </, <![CDATA[ and the like), so strlen measures a constant. The request or response body is compared with memcmp only after position_ + length is checked against its length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 31a4c909526d7809d3ee
+    what: 'strlen of the terminator literal in the DAV XML parser''s SkipPast_'
+    reason: 'SkipPast_ is private to Dav::XmlReader and called only with the literals ?> and -->, so strlen measures a constant. The match comes from std::string''s find over the body and is checked for not-found, so position_ ends at most at the body''s end.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/DistributionListMembership.cpp
+  - scan: semgrep-sast
+    finding: c76e7a92b1d32bfc5837
+    what: 'wcslen of the constant prefix "domain:" in DistributionListMembership::Parse'
+    reason: 'PrefixDomain is the file-local literal L"domain:", and DistributionListMembership::Parse takes Mid past it only after value.StartsWith(PrefixDomain).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 3ef348b03c9d5aa340ad
+    what: 'wcslen of the constant prefix "pattern:" in DistributionListMembership::Parse'
+    reason: 'PrefixPattern is the file-local literal L"pattern:", and DistributionListMembership::Parse takes Mid past it only after value.StartsWith(PrefixPattern).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/FileUtilities.cpp
+  - scan: semgrep-sast
+    finding: 483d1e545abfc0ce9ed1
+    what: 'memcpy of the bytes ReadChunk read into the caller''s buffer in FileUtilities::ReadFileToBuf'
+    reason: 'FileUtilities::ReadFileToBuf copies min(bytes read, requested) from the non-null ByteBuffer File::ReadChunk returns, after it has required a positive count. Its only caller is FileUtilitiesTester, whose 8-byte buffer takes counts of at most 4.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/GeoIpDatabase.cpp
+  - scan: semgrep-sast
+    finding: 78bb361aba4d01bfe70a
+    what: 'memcpy of a 4-byte IPv4 address into the tail of a 16-byte ::ffff:0:0/96 buffer in GeoIpDatabase::LookupBytes'
+    reason: 'GeoIpDatabase::LookupBytes admits only 4 or 16 bytes and takes this branch only for 4, writing bytes 12 to 15 of its 16-byte mapped buffer. Every caller passing 4 hands over a real 4-byte address (an address_v4, the tail of an address_v6, or the tester''s own arrays).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/GeoIpDatabaseTester.cpp
+  - scan: semgrep-sast
+    finding: 34c734780e7afeea9165
+    what: 'memcpy of the test''s own 16-byte 2001:db8:: address into a 16-byte local (test code)'
+    reason: 'Test-only: GeoIpDatabaseTester copies its own constant 16-byte documentation address into a 16-byte local; both arrays are 16 bytes.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/HttpCompression.cpp
+  - scan: semgrep-sast
+    finding: 1d603a58ad6ceb1b7272
+    what: 'strlen of the constant header name in HttpCompression::IsDownload'
+    reason: 'HttpCompression::IsDownload measures the literal Content-Disposition: (20 bytes) after FindNoCase found that literal in the headers, and FindNoCase preserves lengths, so at + 20 is within the string. The following Find and Mid stay inside it, and Mid also clamps.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/JsonDocument.cpp
+  - scan: semgrep-sast
+    finding: fa7cf48d9d46c4e4b2bf
+    what: 'strlen of the keyword literal in JsonParser::Expect_'
+    reason: 'JsonParser::Expect_ is private and called only with the literals true, false and null. The document is compared with std::string::compare(position_, length, literal), which never reads past the end, and position_ is already inside the text.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/JwksKeySet.cpp
+  - scan: semgrep-sast
+    finding: 2e7e2b84986eb023f40c
+    what: 'memcpy of the 32-byte X coordinate into the 65-byte uncompressed P-256 point in JwksKeySet::MakeP256Key_'
+    reason: 'JwksKeySet::MakeP256Key_ returns nullptr unless the X coordinate''s GetLength() (the string''s length, not strlen) is exactly 32, and copies it into bytes 1 to 32 of the 65-byte point.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: a6e1906e7a2d111ebea7
+    what: 'memcpy of the 32-byte Y coordinate into the P-256 point in JwksKeySet::MakeP256Key_'
+    reason: 'JwksKeySet::MakeP256Key_ requires the Y coordinate''s GetLength() to be exactly 32, and the copy fills bytes 33 to 64, ending exactly at the 65-byte point''s end.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/MailboxCrypto.cpp
+  - scan: semgrep-sast
+    finding: c9cf69499922e551112b
+    what: strlen of a hex literal in the anonymous-namespace helper FromHexLiteral in MailboxCrypto.cpp
+    reason: 'FromHexLiteral is file-local and called only by MailboxCrypto''s self-test with the RFC 7748 and RFC 5869 test-vector literals. Its loop reads a pair of hex digits only while both lie inside the literal.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/MetricsServer.cpp
+  - scan: semgrep-sast
+    finding: 6c141ad6bb54d4bdb915
+    what: memcpy of a sockaddr_in6 into a sockaddr_storage in ParseBindAddress
+    reason: 'ParseBindAddress copies sizeof(sockaddr_in6), 28 bytes, from a local sockaddr_in6 into the caller''s 128-byte sockaddr_storage; no input sets the size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: e8a4d49e2db6cb64a476
+    what: memcpy of a sockaddr_in into a sockaddr_storage in ParseBindAddress
+    reason: 'ParseBindAddress copies sizeof(sockaddr_in), 16 bytes, from a local sockaddr_in into the caller''s 128-byte sockaddr_storage; no input sets the size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 87b172b8b9142f850186
+    what: 'strlen of the wanted header name in MetricsServer::GetHeaderValue_'
+    reason: 'MetricsServer::GetHeaderValue_ is a private static whose only caller, IsRequestAuthorized_, passes the literal authorization. _strnicmp reads at most the name''s length of a request line, and only when the colon is at that length, so the line is longer.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/OpenPgpWriter.cpp
+  - scan: semgrep-sast
+    finding: 63eef07c038004c0c008
+    what: 'strlen(text) giving the plaintext length to OpenPgpWriter::Encrypt in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): text is a 42-byte string literal that the function never reassigns, so strlen stops at its compiler-supplied terminator.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: a44e712b5364e27d4dbd
+    what: 'first strlen(text) in the literal-packet length check in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): strlen measures the 42-byte string literal text, never the decrypted data, and its result is only compared with the literal packet''s body length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: d02bde26c02d82aa7884
+    what: 'second strlen(text), the memcmp length, in the literal-packet check in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): strlen measures the 42-byte string literal text. The memcmp runs only after the body length was shown to equal 6 + 42, and ReadPacket has already refused a body longer than the data, so both operands are in bounds.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 7dd625df3ba52c081727
+    what: 'strlen(text) for the first of two fresh-randomness encryptions in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): text is a 42-byte string literal that the function never reassigns, so strlen stops at its compiler-supplied terminator.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 363c0765519bbac04bb0
+    what: 'strlen(text) for the second of two fresh-randomness encryptions in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): text is a 42-byte string literal that the function never reassigns, so strlen stops at its compiler-supplied terminator.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 7571433d945c0ed80daf
+    what: 'strlen(text) for an encryption to a refused key in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): text is a 42-byte string literal that the function never reassigns, so strlen stops at its compiler-supplied terminator.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: a29c26b22c2426710190
+    what: 'strlen of the revoked-subkey base64 fixture before Base64::Decode in OpenPgpWriterTester::Test'
+    reason: 'Self-test only (OpenPgpWriterTester::Test): RevokedSubkeyBase64 is a constant made of adjacent string literals and never reassigned, so strlen is exactly 724, which fits Base64::Decode''s int length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/Parsing/StringParser.cpp
+  - scan: semgrep-sast
+    finding: 9e86c9fecd6654c180db
+    what: 'strlen of the search needle in StringParser::Search'
+    reason: 'StringParser::Search runs strlen only on the needle, and every caller passes a literal (CRLF, two CRLFs, ?= or =?). The haystack, which can be an unterminated network buffer, is bounded by haystackSize, the size of the caller''s own buffer, and the search stops before a memcmp could pass its end.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/PasswordBreachCheck.cpp
+  - scan: semgrep-sast
+    finding: 0c89479fe8afb3059e8d
+    what: 'strlen of the {prefix} token while removing it from the endpoint URL in PasswordBreachCheck''s endpoint validation'
+    reason: 'PrefixToken is a file-local pointer to the literal {prefix}, never reassigned. PasswordBreachCheck''s endpoint check erases it only when CountOccurrences found exactly one in a copy of the same text, so find cannot return npos and erase(pos, 8) is in range.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: df69f0e510193b190162
+    what: 'strlen of the {prefix} token while substituting the 5-hex-digit prefix in PasswordBreachCheck::RangeUrl'
+    reason: 'PrefixToken is the file-local literal {prefix}, never reassigned, and PasswordBreachCheck::RangeUrl replaces it only when find returned a position, so replace(token, 8, ...) covers exactly the token. The five-hex-digit prefix comes from an AnsiString''s c_str().'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/PortalProtected.js
+  - scan: semgrep-sast
+    finding: ce35e03e38e845bcda88
+    what: 'fetch() in fetchJson of the password-protected message reading page''s browser script'
+    reason: 'Browser code, not server code: the server serves PortalProtected.js as a static file, so fetchJson runs in the viewer''s browser and the server fetches nothing. Both calls fetch a same-origin path, /api/v1/protected/ and a token that must match [A-Za-z0-9_-]{22} in location.pathname, which allows no slash, dot, colon or @.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/ProcessLauncher.cpp
+  - scan: semgrep-sast
+    finding: 52df568d8f58680f92f1
+    what: 'CreateProcess(NULL, command_line_) in ProcessLauncher::Launch (Windows)'
+    reason: 'Every Windows caller of ProcessLauncher quotes the executable (7za.exe, ClamWin, the custom scanner), or names hMailServer.minidump.exe, which has no space and which CreateProcess finds first in the service''s own Bin directory. The only unquoted command lines are ones an administrator writes whole (AutoBanCommand, a custom scanner line), to which the code appends only IP addresses, numbers and its own temporary paths; no shell is involved.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/RestApiMailingLists.cpp
+  - scan: semgrep-sast
+    finding: f5d59752dc6aa7cff669
+    what: wcslen of the tag word in StartsAt (HTML-to-text for list archive pages)
+    reason: StartsAt is always given a wide literal tag word (<script, <style, br, p, div and the like). It returns false unless offset >= 0 and offset + length lie within the lowered text, whose length ToLower preserves, so wcsncmp stays inside the String.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/RestApiOidcSignIn.cpp
+  - scan: semgrep-sast
+    finding: cffaed0c9bb2ac366f62
+    what: 'strlen of the OIDC cookie name to cut the value out of a Cookie header part in RestApiServer::HandleOidcCallback_'
+    reason: strlen measures OidcCookieName, the literal hmoidc, never the request. HandleOidcCallback_ takes Mid past it only after the Cookie part StartsWith hmoidc=, so the offset lies inside the part.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/RestApiPasskeys.cpp
+  - scan: semgrep-sast
+    finding: 4f9fda05b27ceee1ca8a
+    what: 'strlen of the passkey cookie''s name when cutting the nonce out of the Cookie header in RestApiServer::AuthenticatePasskey_'
+    reason: PasskeyCookieName is the file-local literal hmpasskey, never reassigned, so strlen is 9. AuthenticatePasskey_ takes Mid(10) of a Cookie part only after it StartsWith hmpasskey=, so the offset is within the part.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/RestApiSamlSignIn.cpp
+  - scan: semgrep-sast
+    finding: 77d3f4fd8e6db67bac7f
+    what: 'strlen of the cookie name "hmsaml" to skip past "hmsaml=" in CookieValue (RestApiSamlSignIn.cpp)'
+    reason: SamlCookieName is the literal hmsaml, so strlen is 6 and never measures the request. CookieValue takes Mid(7) only after the part StartsWith hmsaml=, so the part has at least 7 characters.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/RestApiScim.cpp
+  - scan: semgrep-sast
+    finding: 9e0607ba7fea166e57c0
+    what: strlen of the prefix argument in the anonymous-namespace helper ScimStartsWith
+    reason: 'ScimStartsWith is file-local to RestApiScim.cpp, and every caller passes a literal (urn:, W/) or ScimUserPathPrefix or ScimGroupPathPrefix, both const char *const literals. The text is a std::string checked to be at least the prefix''s length before substr.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 206392a892702a0131f2
+    what: strlen of the user-schema prefix, used to strip a fully qualified attribute in the SCIM filter parser
+    reason: 'ScimUserPathPrefix is a const char *const bound to a string literal in RestApiScim.cpp''s anonymous namespace, so it is always terminated. The SCIM filter parser strips it only after ScimStartsWith checked the text is at least the prefix''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 1049d85e924e1e443453
+    what: strlen of the group-schema prefix, used to strip a fully qualified attribute in the SCIM filter parser
+    reason: 'ScimGroupPathPrefix is a const char *const bound to a string literal in RestApiScim.cpp''s anonymous namespace, so it is always terminated. The SCIM filter parser strips it only after ScimStartsWith checked the text is at least the prefix''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 6625c3099e37d0d408c7
+    what: strlen of the user-schema prefix in ScimReadAttributeList, the attributes= list parser
+    reason: 'ScimUserPathPrefix is a const char *const bound to a string literal in RestApiScim.cpp''s anonymous namespace, so it is always terminated. ScimReadAttributeList strips it only after ScimStartsWith checked the text is at least the prefix''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 36ff9b4b6202a5c71c57
+    what: strlen of the group-schema prefix in ScimReadAttributeList, the attributes= list parser
+    reason: 'ScimGroupPathPrefix is a const char *const bound to a string literal in RestApiScim.cpp''s anonymous namespace, so it is always terminated. ScimReadAttributeList strips it only after ScimStartsWith checked the text is at least the prefix''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: e59383a11185ad758d1b
+    what: strlen of the SCIM user-schema prefix, used to strip it from a PATCH path in the user PATCH operation handler
+    reason: 'ScimUserPathPrefix is a const char *const bound to a string literal in RestApiScim.cpp''s anonymous namespace, so it is always terminated. The user PATCH handler strips it only after ScimStartsWith checked the text is at least the prefix''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 17364c5273d2043c0cc1
+    what: strlen of the SCIM group-schema prefix, used to strip it from a PATCH path in the group PATCH operation handler
+    reason: 'ScimGroupPathPrefix is a const char *const bound to a string literal in RestApiScim.cpp''s anonymous namespace, so it is always terminated. The group PATCH handler strips it only after ScimStartsWith checked the text is at least the prefix''s length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/RestApiSettingLevels.cpp
+  - scan: semgrep-sast
+    finding: cf9edd55d51be588647e
+    what: 'strlen of the constant suffix "_effective"/"_source" in IsReadOnlyKey'
+    reason: The suffix is one of the two literals _effective and _source. IsReadOnlyKey takes substr only when EndsWith found the text longer than the suffix, so the subtraction cannot underflow.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/SamlSignIn.cpp
+  - scan: semgrep-sast
+    finding: 20a77ac50bbc928e3f3b
+    what: strlen of the PEM BEGIN marker in ReadCertificates
+    reason: 'BeginMarker is the static literal -----BEGIN CERTIFICATE-----, used in ReadCertificates only as an offset past a match. The END marker is searched for after it, so the substr''s position is within the text and its count is not negative.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: b23ba7813e14d5072861
+    what: strlen of the PEM END marker in ReadCertificates
+    reason: 'EndMarker is the static literal -----END CERTIFICATE-----, used in ReadCertificates only to step past a match find returned, so the next position is at most the text''s size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/SnmpEngine.cpp
+  - scan: semgrep-sast
+    finding: cdc60560329b5ce1c67c
+    what: 'memcpy of the 24-octet HMAC into msgAuthenticationParameters of an outgoing SNMPv3 message in SnmpEngine::Wrap_'
+    reason: 'SnmpEngine::Wrap_ copies the 24-byte HMAC (SnmpUsm::AuthParameterLength) that SnmpUsm::Digest filled exactly, and only after checking offset + 24 <= message.size(). The offset is built from the sizes of the pieces Wrap_ just encoded, where it wrote a 24-byte placeholder.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/SnmpTester.cpp
+  - scan: semgrep-sast
+    finding: 23d7d4bdcd8e72771212
+    what: strlen of a C string in the test helper Text()
+    reason: 'Test-only: SnmpTester''s Text() has one caller, Text("Hi There"), the RFC 2202 and RFC 4231 HMAC test-vector literal.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 6d688a4cba105d5b0878
+    what: 'memcpy of the test manager''s HMAC into msgAuthenticationParameters in V3MessageFromScoped (test code)'
+    reason: 'Test-only, on a message the tester built itself: the 24-byte mac from SnmpUsm::Digest goes to the offset FindAuthParameters parsed from the same message. SnmpBerReader refuses any element longer than what remains, and the tester requires the parsed length to be 24 before it copies.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/SnmpUsm.cpp
+  - scan: semgrep-sast
+    finding: aa776361c8c3426168d3
+    what: 'memcpy of the truncated HMAC-SHA-256 into the caller''s 24-byte digest in SnmpUsm::Digest'
+    reason: 'SnmpUsm::Digest copies the constant AuthParameterLength (24) bytes from a 64-byte EVP_MAX_MD_SIZE buffer, only after HMAC succeeded with at least 24 bytes. The destination is declared a 24-byte array, and every caller passes one.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/StdString.h
+  - scan: semgrep-sast
+    finding: ad0366e5a9588c6e066e
+    what: 'wide ssvsprintf wrapper that calls the 4-argument _vstprintf (vswprintf) used by CStdStr::FormatV and AppendFormatV'
+    reason: 'ssvsprintf calls the bounded vswprintf(buffer, count, format, args), never the non-conforming three-argument form (_CRT_NON_CONFORMING_SWPRINTFS is defined nowhere); on POSIX the hm_platform.h shim calls ::vswprintf with the size. Its callers FormatV and AppendFormatV pass nLen + 1 for a buffer of that size, with nLen measured from the same format and arguments on a va_list the count did not consume.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/SyslogSink.cpp
+  - scan: semgrep-sast
+    finding: fe3825bd02420653ec9a
+    what: strncpy of the systemd journal socket path into sockaddr_un.sun_path (POSIX journal sink)
+    reason: 'The source is the constant 27-character journal socket path /run/systemd/journal/socket, well under sun_path''s 108 bytes. The bound is sizeof(sun_path) - 1 after the whole sockaddr_un was zeroed, so sun_path always ends in a NUL.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/Unicode.cpp
+  - scan: semgrep-sast
+    finding: 9d5562d5f458e2656827
+    what: 'wcslen of a String to size the narrow buffer in Unicode::ToANSI'
+    reason: 'Unicode::ToANSI measures a String''s c_str(), always terminated, and sizes the narrow buffer 2 * (chars + 1) bytes. Nothing in the tree sets a locale, so the conversion runs in the C locale, at most one byte a character; on POSIX wcstombs is bounded by the buffer and terminated by hand.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2bde1ea8a70e0cdf01d9
+    what: 'measuring call of MultiByteToWideChar in Unicode::MultiByteToWide'
+    reason: 'The measuring call in Unicode::MultiByteToWide writes nothing (null output, size 0) and takes the AnsiString''s explicit byte length, never -1, so no terminator is read. Empty input returns before it, and a 0 result is rejected.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 747f08168ba2c4d012fe
+    what: 'converting call of MultiByteToWideChar into a String buffer in Unicode::MultiByteToWide'
+    reason: 'Unicode::MultiByteToWide converts into a String resized to exactly the count the measuring call returned for the same input, and cchWideChar is that count in wide characters. The result is checked for 0, and std::wstring keeps its own terminator past the size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/UpdateChecker.cpp
+  - scan: semgrep-sast
+    finding: ea26d55cee65f1492419
+    what: 'getenv("APPIMAGE") in UpdateChecker::DetectInstallKind (POSIX only) to detect an AppImage install'
+    reason: DetectInstallKind only tests whether APPIMAGE is present and non-empty; the value is never copied, measured or used as a path. The environment is set by whoever starts the server, who already controls it, and the worst case is an update check naming the AppImage instead of the .deb or .rpm.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: e982d6de1322d4cd8c3b
+    what: 'system() asking rpm whether it owns the hmailserver package in UpdateChecker::DetectInstallKind (POSIX only)'
+    reason: DetectInstallKind runs a compile-time literal command with nothing interpolated, naming rpm by absolute path after an access check of /usr/bin/rpm, and glibc runs /bin/sh by absolute path. The environment comes from root or systemd, not from a remote party, and the answer is cached.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/UpdateInstaller.cpp
+  - scan: semgrep-sast
+    finding: b990ddc5879c1960c9e1
+    what: 'getenv("APPDIR") in UpdateInstaller::HelperSourcePath (AppImage case) to locate the bundled hmailserver-update helper'
+    reason: HelperSourcePath only joins APPDIR, null- and empty-checked, with a constant helper name into a String; no buffer is involved and the value never reaches a command line. It comes from the environment of whoever launched the service (the AppImage runtime or root), who already chooses the binary.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: d0c94a541b7c9b1a16a6
+    what: 'getenv("RUNTIME_DIRECTORY") in UpdateInstaller::LaunchPosix_ to find where to write the apply request for hmailserver-update.path'
+    reason: 'LaunchPosix_ copies RUNTIME_DIRECTORY into a std::string, cut at the first colon, and uses it only as the directory where the service''s own user writes the apply request. The root-side hmailserver-update helper treats that request as untrusted: it refuses a symlink, reads at most 64 KiB, takes only known keys and requires every path inside the updates directory named by root''s own hMailServer.ini.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: d5ea247032eebbcee225
+    what: 'presence test of INVOCATION_ID in UpdateInstaller::LaunchPosix_ to decide whether to try systemd-run'
+    reason: LaunchPosix_ only tests whether INVOCATION_ID is present, to decide whether to try systemd-run; the value is never read. PolicyKit decides whether the process may start a unit, and the command line carries only a constant path, a version limited to [0-9A-Za-z._-] and quoted paths in the updates directory.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 65515b25ad1db6132230
+    what: 'getenv("APPIMAGE") in UpdateInstaller::Apply (POSIX) written as the image= line of the apply request'
+    reason: 'UpdateInstaller::Apply appends APPIMAGE, null-checked, to an AnsiString written as the image= line of the apply request; no buffer is involved. The service user writes that request and the root-side helper treats it as untrusted: its check_request requires image= to be an absolute, non-symlink regular file owned by the applying uid and not writable by group or others.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/Utilities.cpp
+  - scan: semgrep-sast
+    finding: 0fd6dff2646a97c3fdeb
+    what: 'memcpy of gethostbyname''s first address into a SOCKADDR_IN''s sin_addr in Utilities::IsLocalHost (POSIX arm)'
+    reason: 'IsLocalHost''s POSIX arm copies h_length bytes, which glibc''s gethostbyname sets to 4 for AF_INET itself, whatever the DNS answer; 16-byte results needed RES_USE_INET6, removed in glibc 2.30, far older than the glibc the packages depend on. A null result is caught before the copy, and the only POSIX caller is UtilitiesTester, with the machine''s own name.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 5cccc1f61958ec5cfe54
+    what: 'memcpy of gethostbyname''s first address into a SOCKADDR_IN''s sin_addr in Utilities::IsLocalHost (Windows arm)'
+    reason: 'Winsock''s gethostbyname returns IPv4 only and builds the hostent itself, with h_length 4, sizeof(IN_ADDR), whatever a DNS server answers. IsLocalHost catches a null result before the copy, and the hostname chooses which address is copied, never how many bytes.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/WebAuthn.cpp
+  - scan: semgrep-sast
+    finding: 6e5312428fd04da03582
+    what: 'memcpy of a passkey''s EC x coordinate into the 65-byte uncompressed-point buffer in MakeEcKey'
+    reason: MakeEcKey returns nullptr unless x and y are exactly 32 bytes each, so this copy writes bytes 1 to 32 of the 65-byte uncompressed point.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: e2e64ea9f499c38e6ce7
+    what: 'memcpy of a passkey''s EC y coordinate into the 65-byte point buffer in MakeEcKey'
+    reason: The same check in MakeEcKey makes y exactly 32 bytes, written at bytes 33 to 64, the end of the 65-byte uncompressed point.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/WebPush.cpp
+  - scan: semgrep-sast
+    finding: 2a1302658e91ec122f2c
+    what: strlen of an RFC 8291/8188 info label in the file-local Append(Bytes&, const char*)
+    reason: 'This const char * overload of WebPush''s file-local Append is called only with KeyInfoPrefix, CekInfo and NonceInfo, the file''s RFC 8291 and RFC 8188 label literals. The subscription''s bytes go through the Bytes overload, never through strlen.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/XMLite.cpp
+  - scan: semgrep-sast
+    finding: b93f83c69667684db987
+    what: _tcslen of the search string in the unused helper _tcseistr
+    reason: '_tcseistr is never called: no header declares it, no other file declares it extern, and a grep finds only its definition, so this code never runs.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 3482bb3837c7dec17ae1
+    what: '_tcslen of the text being entity-encoded in tagXMLEntitys_::Entity2Ref(LPCTSTR), used to size the output'
+    reason: 'Entity2Ref measures an HM::String''s c_str() (NULL is excluded), and its output, the length plus 10 for each entity found, covers the references of any entity table, which are at most 9 characters. The int size could wrap only for a single value of about 390 million characters, far beyond the database columns the backup and person-export XML are built from.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/Common/Util/XmlDocument.cpp
+  - scan: semgrep-sast
+    finding: 225e008048a4170cdbb2
+    what: 'strlen of the token literal in the XML parser''s private Looking() helper'
+    reason: 'Looking is private to XmlDocument''s parser, and every call passes a literal (<?xml, <!--, <!DOCTYPE, </, <![CDATA[ and the like). The document is compared with text_.compare only after at_ + length <= text_.size() is checked.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/IMAP/IMAPCommandUID.cpp
+  - scan: semgrep-sast
+    finding: 25ae4f9cd67cf26fdea2
+    what: '_tcslen of the literal "CHANGEDSINCE" to skip past it in UID FETCH parsing'
+    reason: The argument is the literal CHANGEDSINCE (12 characters), and the UID FETCH parser takes Mid past it only after Find located it in the command, so at least 12 characters follow.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/IMAP/IMAPConnection.cpp
+  - scan: semgrep-sast
+    finding: d7357e30c12b69d74090
+    what: '_tcslen of the constant " AUTHENTICATE " when masking SASL responses in IMAPConnection::LogClientCommand_'
+    reason: 'LogClientCommand_ measures the literal " AUTHENTICATE " and offsets from where Find located it in the upper-cased copy, whose length MakeUpper (an in-place std::transform) preserves. So the mechanism''s start is within the logged line, and the later Find and Mid stay in range.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/IMAP/IMAPFetchParser.cpp
+  - scan: semgrep-sast
+    finding: be14c42339932cbfa055
+    what: 'wcslen of the literal "PREVIEW (LAZY)" to skip it in IMAPFetchParser::ParseCommand'
+    reason: 'wcslen measures the literal PREVIEW (LAZY), 14 characters, not the client''s text. IMAPFetchParser::ParseCommand offsets from where FindNoCase found it, and FindNoCase lower-cases copies one character for one, so 14 characters follow that index in the original.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/SMTP/TlsPolicy.cpp
+  - scan: semgrep-sast
+    finding: 6c06852c973a375f0467
+    what: 'memcpy of a system DNS server''s sockaddr, from GetAdaptersAddresses, into a local sockaddr_in in TlsPolicy''s DNS-server lookup'
+    reason: 'TlsPolicy''s DNS-server lookup copies sizeof(sockaddr_in), 16 bytes, into a local sockaddr_in, from GetAdaptersAddresses'' own buffer after it returned NO_ERROR for AF_INET. Null entries and every family other than AF_INET are skipped; the data is the OS''s adapter table, not a peer''s.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/hMailServer.Updater/hMailServer.Updater.cpp
+  - scan: semgrep-sast
+    finding: 262a76ab3fa72c370330
+    what: UTF-8 sizing call (no output buffer) in Decoded(), reading the installer log
+    reason: 'A sizing call in the Updater''s Decoded() (null output, size 0) with the installer log''s explicit byte count, required to be positive, so no terminator is needed. Its only caller, InstallerLogSays, caps the buffer at 512 KiB, so the int cast is exact, and a 0 result falls back to the ANSI code page.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: bd7e2251503c1e9f0398
+    what: CP_ACP sizing call (no output buffer) in Decoded() when the log is not valid UTF-8
+    reason: 'The ANSI-code-page sizing call in the Updater''s Decoded() writes nothing (null output, size 0) and takes the same positive byte count, at most 512 KiB. A 0 result builds an empty std::wstring and skips the conversion.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: ccdabdc01d4698dc8e36
+    what: 'conversion into a std::wstring sized by the preceding call in Decoded()'
+    reason: 'The Updater''s Decoded() converts into a std::wstring built with exactly the count the sizing call returned for the same code page and bytes, and skips the call when that count is 0. The result carries its own length, so no terminator is relied on.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/hMailServer/hMailServer.cpp
+  - scan: semgrep-sast
+    finding: acb3fc603e1e7c4bd45e
+    what: 'strlen of the message written to the verb''s stderr handle in WriteVerbError(const char*)'
+    reason: 'WriteVerbError is static to hMailServer.cpp, and every caller passes a string literal or the c_str() of a std::string or HM::AnsiString that lives through the call. No ReadFile, recv or fixed-size buffer reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 2041ec4ab0ceaaeae277
+    what: 'strlen of the message written to the verb''s stdout handle in WriteVerbOutput'
+    reason: 'WriteVerbOutput is static to hMailServer.cpp, and every caller passes a string literal or the c_str() of a std::string that lives through the call. No ReadFile, recv or fixed-size buffer reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 839b9255029166f6db96
+    what: MultiByteToWideChar size query for the stdin password in SetAdministratorPasswordFromCommandLine
+    reason: The size query in SetAdministratorPasswordFromCommandLine writes nothing (null output, size 0) and takes the explicit length of the stdin line, which the read loop caps at 4096 bytes plus one 512-byte read, so the int cast is exact. A result <= 0, which MB_ERR_INVALID_CHARS gives for invalid UTF-8, clears the line and exits 2.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 0d7646fd2537a8baf5cf
+    what: 'MultiByteToWideChar conversion of the stdin password into a std::vector<wchar_t> in SetAdministratorPasswordFromCommandLine'
+    reason: 'SetAdministratorPasswordFromCommandLine converts into a zero-filled std::vector<wchar_t> one element longer than the size query''s count for the same bytes, so the last element is always the terminator. A 0 result would leave an empty password, which is refused with exit 2.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Server/platform/hm_platform.h
+  - scan: semgrep-sast
+    finding: d59f49b92bf2976d2988
+    what: POSIX shim vswprintf_s forwarding to the _vstprintf shim
+    reason: 'A POSIX-only shim forwarding to the _vstprintf shim, which calls the bounded ::vswprintf(buffer, size, ...) and clears buffer[0] when the output does not fit. Nothing calls vswprintf_s by name; the only POSIX path in is StdString''s FormatV and AppendFormatV, which pass the size of the buffer they sized from the same format.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: c3dd9720ccbfc14b4e3a
+    what: POSIX shim swprintf_s forwarding to the _vstprintf shim
+    reason: 'A POSIX-only shim forwarding to the bounded _vstprintf shim (::vswprintf with the size, clearing buffer[0] when the output does not fit). Its only callers are in the Windows-only hMailServer.Updater, which the POSIX build does not compile, so it has no POSIX caller.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/App.xaml.cs
+  - scan: semgrep-sast
+    finding: 3dd9b00833174d6a841d
+    what: 'ProcessStartInfo for the Control Panel''s own executable in App.Restart'
+    reason: 'App.Restart names the running Control Panel by its own full path (MainModule.FileName of the current process) and uses no shell. The arguments are the process''s own, added one by one through ArgumentList, which quotes each.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 29315eba528347786c4a
+    what: 'Process.Start relaunching the Control Panel''s own executable in App.Restart'
+    reason: 'App.Restart starts the running image by its absolute path without a shell, passing this process''s own arguments through ArgumentList, quoted one by one. The same user relaunches the same binary with the same arguments at the same integrity level.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Services/MarkdownFlow.cs
+  - scan: semgrep-sast
+    finding: c34a0509bdb5e5418b2f
+    what: 'ShellExecute of a help-page markdown link''s Href when clicked, in MarkdownFlow.Inlines'
+    reason: 'The Href comes only from MarkdownBlocks.LinkTarget, which keeps a link only when it starts with http://, https:// or mailto: and turns document links and fragments into navigation in the pane; anything else is rendered as plain text. The markdown is the Control Panel''s own embedded help, so ShellExecute only ever receives an http, https or mailto URL.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Views/AboutView.cs
+  - scan: semgrep-sast
+    finding: 2c862856421b9d18de8e
+    what: ShellExecute of the developer-card hyperlink in the AboutView constructor
+    reason: 'e.Uri is the developer card''s NavigateUri, the constant https://www.progressiverobot.com set in the AboutView constructor and nowhere else.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: b476e441283f26afff17
+    what: 'ShellExecute of the hyperlink''s NavigateUri in AboutView.Link''s RequestNavigate handler'
+    reason: 'AboutView.Link is private static with one call, passing the constant https://gitlab.com/Progressiverobot/hmailserver, and nothing else sets NavigateUri, so ShellExecute opens only that URL.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Views/FeatureSettingsView.xaml.cs
+  - scan: semgrep-sast
+    finding: 90413260f444e2b8400d
+    what: FileName of the elevated cmd.exe that runs /GrantServiceAccess and /Register in RunElevated_
+    reason: 'RunElevated_ names cmd.exe by full path, Path.Combine(Environment.SystemDirectory, cmd.exe), so ShellExecuteEx searches nothing, and the line carries no one''s text.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 7ce10eaea41b79b9f115
+    what: 'cmd.exe /s /c argument line built by CommandFor_ from the server executable''s path and a temp report path, in RunElevated_'
+    reason: 'Only two variables reach RunElevated_''s cmd.exe /s /c line, and CommandFor_ double-quotes each: the server executable, found from HKLM''s InstallLocation or the service''s registered path and required to exist, and a GUID-named temporary report path. Both come from administrators or from the user who consents to the elevation (a % in either would expand, which crosses no privilege boundary), and no viewer, network or database text reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 100f9e87bccf75b36125
+    what: Process.Start of the elevated cmd.exe start info in RunElevated_
+    reason: 'RunElevated_ starts cmd.exe by its full System32 path with only the quoted server executable path, the GUID-named temporary report path and CommandFor_''s constant switches, so there is no bare-name lookup and no text an attacker chooses.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Views/HelpPane.cs
+  - scan: semgrep-sast
+    finding: d47e3a059aee686ad374
+    what: ShellExecute of the wiki page URL in HelpPane.OpenWiki_
+    reason: 'The URL always starts with http:// or https://: HelpPages.WikiBaseUrlOrEmpty clears any other base, OpenWiki_ returns on an empty one, and the page is one of the assembly''s embedded help resources. ShellExecute therefore hands it to the browser as a URL, and only the server administrator sets the base.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Views/ServerSettingsView.xaml.cs
+  - scan: semgrep-sast
+    finding: 62b3d2169e947da03c31
+    what: Process.Start(ProcessStartInfo(path){UseShellExecute=true}) to open the log folder in Explorer from the Control Panel
+    reason: 'OpenLogFolder hands ShellExecute a folder path with no arguments: [Directories] LogFolder from the local hMailServer.ini, found through HKLM or the service''s binary path, which only administrators can write and COM cannot reach. It refuses anything Directory.Exists does not report as an existing directory, so Explorer opens a folder as the administrator who controls that file.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Views/StalledMailView.cs
+  - scan: semgrep-sast
+    finding: 40a38b46731555e6ac99
+    what: Process.Start with shell execute, opening the stalled-mail guide in the browser in StalledMailView
+    reason: 'The only argument is GuideUrl, a private const https URL of the project''s DiagnosingStalledMail.md, with no Arguments; nothing variable reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/ControlPanel/Views/UtilityViews.cs
+  - scan: semgrep-sast
+    finding: 6e79a4a88cac096ac366
+    what: 'ShellExecute of the message-store consistency report file in the Control Panel''s OpenReport'
+    reason: 'OpenReport''s reportPath_ is set only after File.Exists found the report, and is always the log folder joined with the constant hMailServer_messagestore_consistency.report, so ShellExecute opens a .report document, never an executable type. The log folder comes from the administrator-owned local INI, and the tool runs as the interactive administrator.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 863677ab66138b6959b3
+    what: 'fallback that starts explorer.exe /select,"<report path>" to reveal the consistency report'
+    reason: 'The only variable part of explorer.exe''s /select argument is the quoted reportPath_, which exists (File.Exists) and so cannot hold a double quote, and ends in the constant report file name, not a backslash. explorer.exe parses it, not cmd.exe, and the path comes from the administrator-owned local INI.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/DBSetup/Pages/ucPerformTask.cs
+  - scan: semgrep-sast
+    finding: 8a077474b453f8775e29
+    what: ProcessStartInfo.FileName for the elevated sc.exe in ucPerformTask.SetDependencyAsAdministrator
+    reason: SetDependencyAsAdministrator names sc.exe by the fixed absolute path Environment.SystemDirectory plus sc.exe, never through PATH or the current directory, and nothing the user types reaches it; no cmd.exe is involved.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 6cea1ec2402b0a6db672
+    what: 'sc.exe argument line `config hMailServer depend= "RPCSS/<service>"` in ucPerformTask.SetDependencyAsAdministrator'
+    reason: The only variable part is the service name, which ucServiceDependency allows only from ServiceController.GetServices(), a service the SCM already holds. A service whose name adds sc.exe arguments needs an administrator to register it, and the person in this elevated wizard is an administrator who could run sc.exe anyway; no shell parses the line.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+  - scan: semgrep-sast
+    finding: 7047797ad10009208851
+    what: Process.Start of the elevated sc.exe in ucPerformTask.SetDependencyAsAdministrator
+    reason: SetDependencyAsAdministrator starts the absolute System32 sc.exe with a service name restricted to one the SCM already holds, with no command interpreter, behind a UAC prompt.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/DBSetupQuick/Program.cs
+  - scan: semgrep-sast
+    finding: e0b9928ec2b4f18e271f
+    what: FileName of the DBUpdater ProcessStartInfo in DBSetupQuick.Program.UpgradeDatabase
+    reason: 'FileName is the full path of DBUpdater.exe in DBSetupQuick''s own folder (AppContext.BaseDirectory), with no search and no shell (UseShellExecute is false on .NET 10). The unquoted password in the argument line is a separate finding, fixed instead of accepted.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25
+
+  # hmailserver/source/Tools/Shared/Dialogs/formEnterPassword.cs
+  - scan: semgrep-sast
+    finding: 8ff29a186e46cb2464ba
+    what: 'ShellExecute of the fixed help URL from the password dialog''s ''What is this'' link'
+    reason: linkWhatIsThis_LinkClicked opens a compile-time constant https URL with no arguments; nothing variable reaches it.
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-26
+    expires: 2027-09-25

@@ -1190,14 +1190,17 @@ def self_test(chain, feed):
            "no longer asks build/ci/security-gate.py")
     broken("the gate given the tagged tree's exceptions", "chain", 'exceptions_text=exceptions or "exceptions: []\\n", say=say)',
            "say=say)", "does not give the gate master's")
-    broken("an exception without an expiry", "exceptions", "exceptions: []\n",
-           "exceptions:\n  - scan: semgrep\n    finding: 0123456789abcdef0123\n    what: x\n"
-           "    reason: 'read, and the input is a literal the code itself writes'\n    reviewed-by: Progressiverobot\n"
-           "    reviewed: 2026-09-26\n", "it has no expires")
-    broken("an exception for two years", "exceptions", "exceptions: []\n",
-           "exceptions:\n  - scan: semgrep\n    finding: 0123456789abcdef0123\n    what: x\n"
-           "    reason: 'read, and the input is a literal the code itself writes'\n    reviewed-by: Progressiverobot\n"
-           "    reviewed: 2026-09-26\n    expires: 2028-09-26\n", "reviewed again within a year")
+    # One malformed entry after the entries the file holds, if any: the list from its
+    # key to the end of the file is what each case replaces.
+    listed = re.search(r"^exceptions:.*", texts["exceptions"], re.MULTILINE | re.DOTALL)
+    listed = listed.group(0) if listed else "exceptions: []\n"
+    kept = "exceptions:\n" if listed.startswith("exceptions: []") else listed.rstrip("\n") + "\n"
+    malformed = ("  - scan: semgrep\n    finding: 0123456789abcdef0123\n    what: x\n"
+                 "    reason: 'read, and the input is a literal the code itself writes'\n    reviewed-by: Progressiverobot\n"
+                 "    reviewed: 2026-09-26\n")
+    broken("an exception without an expiry", "exceptions", listed, kept + malformed, "it has no expires")
+    broken("an exception for two years", "exceptions", listed, kept + malformed + "    expires: 2028-09-26\n",
+           "reviewed again within a year")
     broken("the exceptions file given to everyone", "codeowners", "/.gitlab/security-exceptions.yml", "/.gitlab/security-exceptions.old",
            "does not give /.gitlab/security-exceptions.yml to @Progressiverobot")
     broken("the secret scan's ignore list shared", "codeowners", "/.gitleaksignore                   @Progressiverobot",
