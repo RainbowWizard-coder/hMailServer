@@ -10,7 +10,9 @@ comes from `hMailServerARM64.iss`, which uses the same section files as the x64
 installer.
 
 **This has not been run on ARM64 hardware.** It was written on 25 September 2026
-on an x64 machine, and nothing on this page has been compiled yet. The project
+on an x64 machine, and first compiled there on 26 September 2026: the three
+libraries, the server, the tools and `hMailServer-6.3.4-arm64.exe` all built,
+and every native image is an `AA64` machine image, but none of it has run. The project
 has no ARM64 Windows machine, and no CI job builds it: the Windows runner,
 bench150, is x64. The Roadmap2 row "Windows on ARM" stays in motion until an
 ARM64 build has been installed and has run the regression suite on real
@@ -137,9 +139,12 @@ In order, because libpq links against the ARM64 OpenSSL:
   the end requires `libpq.dll` to import `libssl-4-arm64.dll`. This is expected
   to take 3 to 10 minutes.
 
-The logs are `libraries\build-*-arm64.log`. The times are estimates. None of
-these three builds has been run yet. The first run is also the test of the
-Meson cross build, which PostgreSQL supports but this project has not used.
+The logs are `libraries\build-*-arm64.log`. The first run, on 26 September 2026
+on a 32-thread x64 machine, took 16.5 minutes for OpenSSL, 2.5 minutes for Boost
+(`-Jobs 16`) and under a minute for libpq. libpq's cross build needs
+win_flex and win_bison on PATH, as the x64 one does, and is given
+`-Dsystem_tzdata`: a Meson cross build otherwise stops for want of a `zic` that
+runs on the build machine, and libpq uses no time zone data.
 
 ### The server, the tools and the installer
 
@@ -163,6 +168,14 @@ Meson cross build, which PostgreSQL supports but this project has not used.
   has its own NuGet lock files, `packages.arm64.lock.json`, so that it never
   rewrites the `win-x64` lock files that CI restores in locked mode. The first
   ARM64 publish creates them. Commit them with the first ARM64 build.
+  The tools compile against, and the installer ships, a COM wrapper of their
+  own, `Interop\ARM64\Interop.hMailServer.dll`: `generate-com-wrapper.ps1
+  -Platform ARM64` makes it with TlbImp `/machine:Agnostic`, and
+  `Tools\Directory.Build.targets` points the reference at it for this publish
+  only. TlbImp has no ARM64 machine type, and the x64 wrapper is marked x64,
+  which .NET refuses to load into an ARM64 process (BadImageFormatException at
+  the first use of the COM API). The first ARM64 build, on 26 September 2026,
+  found this from the compiler's warning CS8012.
 - `get-installer-binaries.ps1 -Platform ARM64` places what
   `third-party-binaries.json` marks `"platform": "arm64"`, under
   `hmailserver\installation\ARM64`. That is the ARM64 C++ runtime, gathered from

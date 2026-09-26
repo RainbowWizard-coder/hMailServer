@@ -40,6 +40,12 @@ $publishProjects = 'DBSetup', 'DBSetupQuick', 'DBUpdater', 'DataDirectorySynchro
 if ($Platform -eq 'ARM64') {
     # The Control Panel too: for x64 it is RELEASE.md step 8's own publish.
     $publishProjects += 'ControlPanel'
+    # The tools compile against, and ship, the wrapper made for ARM64
+    # (Interop\ARM64, /machine:Agnostic): .NET will not load the x64 one into an
+    # ARM64 process. Directory.Build.targets points the reference at it.
+    & (Join-Path $scriptRoot 'generate-com-wrapper.ps1') -Platform ARM64
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $interopArm64 = Join-Path $toolsDir 'Interop\ARM64'
     foreach ($project in $publishProjects) {
         $csproj = Join-Path $toolsDir "$project\$project.csproj"
         $output = Join-Path $toolsDir "$project\publish-arm64"
@@ -51,7 +57,7 @@ if ($Platform -eq 'ARM64') {
         # Its own bin and obj as well: the compiler's incremental check does not look
         # at the platform, and an x64 publish after this one must not find ARM64
         # assemblies in obj and ship them.
-        dotnet publish $csproj -c $Configuration -o $output -r win-arm64 --self-contained false -p:PlatformTarget=ARM64 -p:NuGetLockFilePath=packages.arm64.lock.json "-p:OutputPath=bin\ARM64\$Configuration\\" "-p:IntermediateOutputPath=obj\ARM64\$Configuration\\"
+        dotnet publish $csproj -c $Configuration -o $output -r win-arm64 --self-contained false -p:PlatformTarget=ARM64 -p:NuGetLockFilePath=packages.arm64.lock.json "-p:OutputPath=bin\ARM64\$Configuration\\" "-p:IntermediateOutputPath=obj\ARM64\$Configuration\\" "-p:HmInteropDirectory=$interopArm64\\"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     Write-Host "All tools published for ARM64."

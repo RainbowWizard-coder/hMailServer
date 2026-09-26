@@ -259,7 +259,12 @@ try
             "cpu = 'aarch64'",
             "endian = 'little'"
         )
-        $mesonCross = @("--cross-file=$crossFile")
+        # A cross build compiles the time zone data with a zic that runs on this
+        # machine, and meson setup stops without one (src\timezone\meson.build:
+        # "Program 'zic' not found", on the first ARM64 run, 26 September 2026).
+        # libpq uses no time zone data - only the backend's pgtz.c and initdb read
+        # SYSTEMTZDIR - so naming a system directory instead skips zic altogether.
+        $mesonCross = @("--cross-file=$crossFile", "-Dsystem_tzdata=unused-by-libpq")
     }
 
     Invoke-BuildStep "Configuring PostgreSQL $Version with Meson (release, OpenSSL only, $Platform)" {

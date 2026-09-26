@@ -43,7 +43,15 @@ param(
    [switch] $Force,
    # Overrides, for a machine that keeps its tools elsewhere.
    [string] $TlbImp = '',
-   [string] $VcVars64 = ''
+   [string] $VcVars64 = '',
+   # ARM64: the wrapper the win-arm64 tools compile against and ship
+   # (build-tools.ps1 -Platform ARM64, hmailserver/docs/WindowsOnArm.md), in
+   # Interop\ARM64 and made /machine:Agnostic. TlbImp has no ARM64 machine type,
+   # and .NET refuses to load an assembly marked x64 into an ARM64 process, so
+   # the x64 wrapper would fail there with BadImageFormatException at the first
+   # use of the COM API. The default, x64, makes the wrapper it always made.
+   [ValidateSet('x64', 'ARM64')]
+   [string] $Platform = 'x64'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,9 +59,15 @@ $ErrorActionPreference = 'Stop'
 $root = (Get-Item (Split-Path -Parent $MyInvocation.MyCommand.Path)).Parent.FullName
 $idl = Join-Path $root 'hmailserver\source\Server\hMailServer\hMailServer.idl'
 $idlRelative = 'hmailserver/source/Server/hMailServer/hMailServer.idl'
-$builtTypeLibrary = Join-Path $root "hmailserver\source\Server\hMailServer\x64\$Configuration\hMailServer.tlb"
-$intermediateTypeLibrary = Join-Path $root "hmailserver\source\Server\hMailServer\hMailServer\x64\$Configuration\hMailServer.tlb"
+$builtTypeLibrary = Join-Path $root "hmailserver\source\Server\hMailServer\$Platform\$Configuration\hMailServer.tlb"
+$intermediateTypeLibrary = Join-Path $root "hmailserver\source\Server\hMailServer\hMailServer\$Platform\$Configuration\hMailServer.tlb"
 $wrapper = Join-Path $root 'hmailserver\source\Tools\Interop\Interop.hMailServer.dll'
+$machine = 'X64'
+if ($Platform -eq 'ARM64')
+{
+   $wrapper = Join-Path $root 'hmailserver\source\Tools\Interop\ARM64\Interop.hMailServer.dll'
+   $machine = 'Agnostic'
+}
 $stamp = "$wrapper.source-sha256"
 
 function Find-TlbImp
@@ -175,7 +189,7 @@ if (-not $Force -and (Test-Path -LiteralPath $wrapper) -and (Test-Path -LiteralP
 $tlbImpExe = Find-TlbImp
 New-Item -ItemType Directory -Path (Split-Path -Parent $wrapper) -Force | Out-Null
 Write-Host ("  TlbImp: {0}" -f $tlbImpExe)
-& $tlbImpExe $source /out:$wrapper /namespace:hMailServer /machine:X64 /silent
+& $tlbImpExe $source /out:$wrapper /namespace:hMailServer /machine:$machine /silent
 if ($LASTEXITCODE -ne 0) { throw "TlbImp returned $LASTEXITCODE." }
 [System.IO.File]::WriteAllText($stamp, $sourceHash + "`n", (New-Object System.Text.UTF8Encoding($false)))
 if (-not $fromBuild) { Remove-Item -LiteralPath (Split-Path -Parent $source) -Recurse -Force -ErrorAction SilentlyContinue }

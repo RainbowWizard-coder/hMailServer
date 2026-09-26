@@ -684,14 +684,21 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   with the machine's details in every result; and a lab recipe that runs it against hMailServer and against
   Postfix and Dovecot on the same machine under stated fairness rules
   ([PublishedNumbers.md](hmailserver/docs/PublishedNumbers.md)). No numbers have been measured with it yet.
-- **Windows on ARM, written but not yet built.** A `Release|ARM64` configuration in the server's three projects,
+- **Windows on ARM, compiled but not run.** A `Release|ARM64` configuration in the server's three projects,
   `-Platform ARM64` in `build.ps1`, `build-tools.ps1`, the three library scripts, `get-installer-binaries.ps1` and
   `get-dotnet-runtime.ps1`, and a second installer, `hMailServerARM64.iss` (`hMailServer-<version>-arm64.exe`),
   sharing the x64 installer's sections. The ARM64 server uses SQL Server or PostgreSQL; it has no built-in
   database, since SQL Server Compact has no ARM64 build, and no bundled MySQL client. An ARM64 server's update
-  check looks for the ARM64 installer, and `VersionArchitecture` says `ARM64`. Nothing of it has been compiled
-  yet - the build machine lacks ATL for ARM64 - let alone run on ARM64 hardware, and 6.3.4 has no ARM64 installer;
-  the x64 build and its SBOM are unchanged. `hmailserver/docs/WindowsOnArm.md`.
+  check looks for the ARM64 installer, and `VersionArchitecture` says `ARM64`. It was first compiled on
+  26 September 2026, on the x64 development machine: the three ARM64 libraries, the server, the tools and an
+  ARM64 installer all built, every native image an ARM64 one. That compile found two faults, both fixed for ARM64
+  only: libpq's cross build wanted a time zone compiler that runs on the build machine, and is now built with
+  the system's time zone data, which libpq never reads; and the tools were compiled against the x64-marked COM
+  wrapper, which .NET will not load into an ARM64 process, so `generate-com-wrapper.ps1 -Platform ARM64` makes a
+  machine-neutral one, `build-tools.ps1 -Platform ARM64` points the tools at it through the `HmInteropDirectory`
+  property and a new `Tools/Directory.Build.targets`, and the ARM64 installer ships it. Nothing of it has run:
+  the project has no ARM64 hardware, and 6.3.4 carries no ARM64 installer; the x64 build, its COM wrapper and
+  its SBOM are unchanged. `hmailserver/docs/WindowsOnArm.md`.
 - **CI on the project's own GitLab runners.** `.gitlab-ci.yml` runs the platform-neutral checkers, the Deck's and
   the webmail's script harnesses and, for a merge request from a fork, a sign-off check on GitLab's shared runners;
   and, for a push to `master`, a `batch*` branch or a `v*` tag only, the Linux build, its tester programs, the

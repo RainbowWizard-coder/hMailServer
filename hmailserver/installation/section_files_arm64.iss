@@ -35,7 +35,9 @@ Source: "ARM64\DotNet\{#DOTNET_RUNTIME_FILE}"; DestDir: "{tmp}"; Flags: deleteaf
 Source: "..\source\Tools\DBUpdater\publish-arm64\*"; DestDir: "{app}\Bin"; Flags: ignoreversion recursesubdirs; Components: server;
 Source: "..\source\Tools\DBSetup\publish-arm64\*"; DestDir: "{app}\Bin"; Flags: ignoreversion recursesubdirs; Components: server;
 Source: "..\source\Tools\DBSetupQuick\publish-arm64\*"; DestDir: "{app}\Bin"; Flags: ignoreversion recursesubdirs; Components: server;
-Source: "..\source\Tools\Interop\Interop.hMailServer.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
+; The COM wrapper made for ARM64 (/machine:Agnostic, generate-com-wrapper.ps1
+; -Platform ARM64): .NET will not load the x64 one into an ARM64 process.
+Source: "..\source\Tools\Interop\ARM64\Interop.hMailServer.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion; Components: server admintools;
 Source: "..\source\Tools\DataDirectorySynchronizer\publish-arm64\*"; DestDir: "{app}\Addons\DataDirectorySynchronizer"; Flags: ignoreversion recursesubdirs; Components: server;
 Source: "..\source\Tools\ImportTool\publish-arm64\*"; DestDir: "{app}\Addons\ImportTool"; Flags: ignoreversion recursesubdirs; Components: server;
 

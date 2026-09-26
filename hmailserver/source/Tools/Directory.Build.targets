@@ -1,0 +1,16 @@
+<Project>
+  <!--
+    The Windows on ARM publish (build\build-tools.ps1 -Platform ARM64,
+    hmailserver/docs/WindowsOnArm.md) compiles the tools against the COM
+    wrapper made for it, Interop\ARM64\Interop.hMailServer.dll, which TlbImp
+    makes /machine:Agnostic: the x64 wrapper every project names by HintPath is
+    marked x64, and .NET will not load it into an ARM64 process. build-tools.ps1
+    passes HmInteropDirectory for that publish only. Without it, which is every
+    x64 build, nothing here applies and the HintPath is the project's own.
+  -->
+  <ItemGroup Condition="'$(HmInteropDirectory)' != ''">
+    <Reference Update="Interop.hMailServer">
+      <HintPath>$(HmInteropDirectory)Interop.hMailServer.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

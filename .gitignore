@@ -141,3 +141,5 @@ hmailserver/test/LinuxRegressionTests/obj/
 # made from recorded beside it.
 /hmailserver/source/Tools/Interop/Interop.hMailServer.dll
 /hmailserver/source/Tools/Interop/Interop.hMailServer.dll.source-sha256
+# The ARM64 build's, /machine:Agnostic (generate-com-wrapper.ps1 -Platform ARM64).
+/hmailserver/source/Tools/Interop/ARM64/
