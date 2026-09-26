@@ -277,7 +277,9 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   names or as one JSON document - signed with the outbound webhooks' HMAC-SHA256 recipe and retried on their
   schedule; when the attempts run out a route keeps the message to be downloaded or retried, or returns it to its
   sender. A route may deliver to the mailbox as well. Link-local and cloud metadata addresses are refused to
-  everybody, an API key may name only a public address, and plain `http` is taken only to this machine. Routes are
+  everybody, an API key may name only a public address, and plain `http` is taken only to this machine. A URL is
+  printable ASCII, and anything outside it is refused on both platforms - fixed before release, when Linux refused
+  such a URL as holding a control character and Windows put it into the request line as it was. Routes are
   made over REST (`/api/v1/inbound-webhooks`) and on the Control Deck, under a new permission,
   `manage_inbound_webhooks`, that only `serveradmin` holds; there is no COM member and no Control Panel page.
   Nothing is on until a route is made ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)).
@@ -1126,11 +1128,14 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   since 26 September 2026 the project's only member with that role or above is its owner, whose tags these are
   ([GOVERNANCE.md](GOVERNANCE.md)). The release job refuses a tag that is not annotated, not on `master`, or not
   signed by the one key `master`'s `.gitlab/allowed_signers` lists, read from `master` and never from the tagged
-  tree, and a file name the package registry already holds with other bytes. The pipeline builds the installer on
+  tree, and a file name the package registry already holds with other bytes; and it refuses while the security
+  scans of the tagged commit have a finding the policy counts that no baseline holds and `master`'s
+  `.gitlab/security-exceptions.yml` does not accept (see Build and tests). The pipeline builds the installer on
   the project's Windows runner after the whole suite has passed there; once the owner has started the `release`
   job, it Authenticode-signs the installer through Azure Artifact Signing with a federated credential made for
-  that one tag, signs every file with Sigstore as the pipeline, checks each signature with the server's own
-  `--verify-update`, and, once the installer smoke test has passed and the owner has started the last job,
+  that one tag, makes the signed installer's own SBOM, signs every file with Sigstore as the pipeline, checks each
+  signature with the server's own `--verify-update`, and, once the installer smoke test has passed and the owner
+  has started the last job,
   publishes the files to the package registry and a GitLab release, in the milestone of its version where the
   project has one, with this file's section as its notes, and refreshes the update feed. The job's
   checks run as the tagged commit has them, so they stop a mistake; what stops a hostile tag is that nobody else
@@ -1257,6 +1262,14 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   yet.
 - Fixed on Linux: a character-set conversion that failed read an unterminated buffer, where Windows had
   substituted; it now gives an empty string.
+- Fixed on Linux: the name of the account the service runs as was read with `getpwuid`, whose answer is one
+  buffer for the whole process, while the setup checklist, auto-ban's firewall check and the live update ask for
+  it from threads of their own, so two at once could read each other's entry or a torn one. It is read into a
+  buffer of the call's own (`getpwuid_r`).
+- Fixed: the container image built from `hmailserver/source/Server/platform/packaging/docker/Dockerfile` installed
+  the `.deb` without its two Recommends, so it had no 7-Zip - a backup failed with "Could not add the backup
+  settings to the archive" - and no Python 3 for `hmctl`. It installs `7zip` and `python3` with the package.
+  No image of 6.3.4 is published (above); this is the image built from the file.
 
 ### Build and tests
 
@@ -1302,10 +1315,25 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   and the SBOMs on `linix`, and the Control Panel, the tools and the whole Windows suite on `bench150`. A nightly
   pipeline fuzzes the three MIME harnesses once the owner has created its schedule. Nothing reached from GitHub
   is used. Until 26 September 2026 only the update feed's `pages` job had run there, and the ported Linux scripts
-  were run by hand on `linix`. The first pipeline of the whole file was started on `master` that day, on the
-  tree before the changes below: on its first run `harnesses` and `update-helper` failed on the shared runners,
-  `linux-build` passed on `linix`, and `linux-suite` there and `windows-gate` on `bench150` were still running,
-  the other jobs on those two waiting, when this section was written
+  were run by hand on `linix`. The first pipeline of the whole file ran on `master` at `40c7d3e0c` that day
+  (pipeline 2884863496), and it finished failed. The checkers, the Linux build and its packages, image,
+  cross-compile, sanitizer build and SBOMs, and the update feed passed; `harnesses` and `update-helper` failed on
+  the shared runners, `linux-suite` and both database upgrade gates on `linix`, `windows-gate` and
+  `windows-dotnet` on `bench150`, and `dependency-scan`, `repo-hygiene`, `semgrep` and `static-analysis`, which
+  may fail without failing the pipeline. Every one of those failures was the tree's or the job's, not a fault of
+  the server's, and 6.3.4 fixes them: the helper job checked the systemd units on a checkout the runner makes
+  world-writable; the portal harness depended on the runner's time zone; the CI image had no 7-Zip, which the
+  suite's backup tests need; three tests assumed the SMTP port, the order two messages land in, and an INI
+  section to be a setting; the upgrade gate wound a new database back to 6029 by reading the later steps, and
+  now starts from the create scripts of 6029 themselves and compares what it upgrades to with a new database,
+  which found two columns of `hm_bouncecounts` the create scripts left without the default the 6055 step gives
+  them (they now have it); GitLab refused two scans' reports, each two files of one type, and each now uploads
+  one; `repo-hygiene` found six images not pinned by digest and a password written in the file for the upgrade
+  gate's own database, and judged a job by whether it extends `.own-runners` rather than by the rules it runs by;
+  and Semgrep's findings beyond its baseline are fixed or suppressed with the reason. Of `static-analysis`'s
+  findings beyond its baseline, the two that were defects are fixed (above); the others have not yet been read
+  into its baseline, so that job still fails. The owner's edit of the README on `master` started a second
+  pipeline, which failed on `harnesses` the same way. No pipeline has run on the fixed tree yet
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
 - **The CI after its first review on GitLab.** The fuzz, Renovate, whole-history secret scan and export pipelines
   are chosen by their schedule's description - `fuzz`, `renovate`, `security`, `export` - since the project
@@ -1341,7 +1369,18 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   registry.
 - **Security scanning** on the same runner, in place of CodeQL, dependency review and Scorecard: cppcheck and
   clang-tidy held to a committed baseline, Semgrep, Trivy and OSV over the lock files, the CI image and the
-  vendored libraries, and the repository checks Scorecard ran. Not yet blocking.
+  vendored libraries, and the repository checks Scorecard ran. They hold a release, not a change (next item).
+- **A release is held by its security scans, and a secret is refused before it is pushed.**
+  `build/ci/security-gate.py` reads what `static-analysis`, `semgrep`, `semgrep-sast` and `dependency-scan` found
+  in the release's commit, and the release job - or, for a release made by hand, its runbook - refuses while one
+  of them did not finish or found something `SECURITY.md`'s policy counts that is in no baseline and is not
+  accepted, for at most a year, in `.gitlab/security-exceptions.yml`, which the owner keeps on `master`. That file
+  accepts 169 findings of GitLab's Semgrep analyzer over `master` at `40c7d3e0c`, each read by two review agents
+  under the owner's delegation and each with the reason it is not exploitable; the seven it found real are fixed
+  in this release (under Security and identity). `build/scan-secrets.py` runs gitleaks with GitLab's rules in the
+  two git hooks the repository ships (`build/hooks`, turned on with `git config core.hooksPath build/hooks`) and
+  in the maintainer's landing, which pushes nothing while it finds a secret or cannot scan
+  ([SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), "Secrets").
 - **Dependency updates by Renovate** on the same runner, with nothing read from GitHub; inert until the owner
   creates its token and schedule.
 - **A test lab on `linix`**: MySQL 8.4, MariaDB 11.4, PostgreSQL 17 and SQL Server 2022, Keycloak for the OpenID
@@ -1351,6 +1390,11 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
 - **The installer smoke test** installs, upgrades and uninstalls on a throwaway Windows Server 2025 VM, from a
   snapshot, checking what the installer promises for each (`build/ci/installer-smoke.ps1`); its first run, of 6.3.2
   upgraded to 6.3.3, found the four installer defects fixed above.
+- **An SBOM for every compiled file a release carries**: from 6.3.4, the Windows installer, the `.deb` and the
+  `.rpm` each go out with `<file>.cdx.json`, a CycloneDX 1.6 document whose subject is that file by its SHA-256
+  and SHA-512 and whose components are what the file holds and needs, made by `build/asset-sbom.py`, which also
+  checks one against its file. The five GitLab releases before 6.2.3 that carry an installer carry one too since
+  26 September 2026, made from each installer ([SECURITY.md](SECURITY.md), "Software bills of materials").
 - **Every build input pinned and named**: the .NET Desktop Runtime the installer bundles is pinned to 10.0.12 by
   version and SHA-512, where it was whatever Microsoft's 10.0 link gave on the day; the SBOM names seventeen
   components, among them zlib, the installer's fetched files and the Linux packages' system libraries, and

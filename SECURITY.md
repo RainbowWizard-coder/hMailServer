@@ -185,6 +185,11 @@ which -pre6 superseded, aside). Up to 6.3.3 they were made by the GitHub workflo
 `v6.3.3`), which added the native libraries to the .NET dependency graph
 (`build/merge-native-dependencies-into-sbom.ps1`); on GitLab the `linux-sbom` job makes them.
 
+The five GitLab releases before 6.2.3 that carry an installer - `v6.0.0-B1`, `v6.0.0`, `v6.1.0`, `v6.2.1` and
+`v6.2.2` - carry `<installer>.cdx.json` too, attached on 26 September 2026 and made afterwards from each installer
+itself: innoextract 1.9 unpacked it and Syft 1.52.0 read what came out, every file listed by its SHA-256. Each was
+checked by downloading it anonymously from its release page.
+
 ### Software bills of materials
 
 From 6.3.4 on, every compiled file a release carries goes out with a software bill of materials of its own, in

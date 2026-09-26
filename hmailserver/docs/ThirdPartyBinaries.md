@@ -319,8 +319,8 @@ Not pinned, and why:
   list's own VERSION and COMMIT lines, so the review of that diff is the pin;
   `-ListFile` regenerates it from a saved copy.
 * **The container image's packages.** The Dockerfile pins `ubuntu:24.04` by
-  digest and installs `ca-certificates` and `libcap2-bin` from the archive at
-  whatever version it has that day.
+  digest and installs `ca-certificates`, `libcap2-bin`, `7zip` and `python3`
+  from the archive at whatever version it has that day.
 * **The toolchains.** Visual Studio (toolset v145, which the project names),
   the Windows SDK, Inno Setup 6 - whose setup loader is part of every
   installer - Strawberry Perl, Meson, Ninja and winflexbison are installed on

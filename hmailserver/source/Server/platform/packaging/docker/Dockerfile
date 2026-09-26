@@ -52,11 +52,15 @@ ARG HM_DEB=packages/hmailserver_*_amd64.deb
 # The package's post-install script creates the hmailserver user and the data,
 # log and configuration directories, and is written to run where there is no
 # systemd. libcap2-bin is for setcap below; ca-certificates for the TLS the
-# server does as a client (MTA-STS, ACME, outbound SMTP).
+# server does as a client (MTA-STS, ACME, outbound SMTP). 7zip and python3 are
+# the package's two Recommends, which --no-install-recommends leaves out, named
+# here because the image needs both: the server writes and reads every backup
+# through 7-Zip (without it a backup fails with "Could not add the backup
+# settings to the archive"), and /usr/bin/hmctl is a Python 3 script.
 COPY ${HM_DEB} /tmp/hmailserver.deb
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      /tmp/hmailserver.deb ca-certificates libcap2-bin \
+      /tmp/hmailserver.deb ca-certificates libcap2-bin 7zip python3 \
  && rm -rf /var/lib/apt/lists/* /tmp/hmailserver.deb \
  # Ports 25, 110, 143, 465, 587, 993 and 995 are below 1024 and the process does
  # not run as root: the one capability it needs, on the binary rather than on
