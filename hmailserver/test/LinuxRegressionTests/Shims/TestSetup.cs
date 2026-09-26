@@ -434,19 +434,25 @@ namespace RegressionTests.Shared
          { "/api/v1/settings", "/api/v1/settings/logging", "/api/v1/settings/antispam", "/api/v1/settings/scripting" };
 
       /// <summary>
-      ///    The keys GET reports and PUT refuses: the logging group's five describe
-      ///    the files, they do not set them, and the scripting group's two say where
-      ///    the script is.
-      /// </summary>
-      private static readonly string[] ReadOnlyKeys =
-         { "directory", "current_default_log", "current_error_log", "current_event_log", "current_awstats_log", "current_script_file" };
-
-      /// <summary>
-      ///    Every key of the three groups as they stood when the run began, with the
+      ///    Every key of the four groups as they stood when the run began, with the
       ///    suite's own overrides already applied. This is what a test is given.
       /// </summary>
       private static Dictionary<string, Dictionary<string, string>> _baseline;
 
+      /// <summary>
+      ///    The group's keys that PUT takes, as GET answers them now. Only those: a key
+      ///    the server marks read-only in its OpenAPI document is refused by the PUT
+      ///    with a 400 and nothing applied, so a read-only value that moved since the
+      ///    baseline was read would fail every test after it in SetUp. It was a list
+      ///    of six names here - the logging group's file names and the scripting
+      ///    group's two - and /api/v1/settings has read-only keys of its own:
+      ///    geoip_database_status, whose refusal counters move with the first logon a
+      ///    country policy refuses (OAuth2Bearer's TestPop3XOAuth2MeetsTheDomainsCountryPolicy,
+      ///    after which 474 tests of the 6.3.4 run failed with "geoip_database_status is
+      ///    read-only"), sample_domain_id and saml_idp_certificate_fingerprints. The
+      ///    document is the server's own word for which keys those are, and a key made
+      ///    read-only later is left out without a change here.
+      /// </summary>
       private static Dictionary<string, string> ReadGroup(string group)
       {
          var values = new Dictionary<string, string>();
@@ -455,7 +461,12 @@ namespace RegressionTests.Shared
          if (!answer.Json.HasValue || answer.Json.Value.ValueKind != JsonValueKind.Object)
             return values;
 
-         foreach (var property in answer.Json.Value.EnumerateObject().Where(property => System.Array.IndexOf(ReadOnlyKeys, property.Name) < 0))
+         var writable = ServerApi.WritableKeys(group);
+         if (writable == null)
+            Assert.Fail("The suite cannot tell which of " + group + "'s keys it may put back. " +
+               (ServerApi.WritableKeysProblem ?? "The server's OpenAPI document gives PUT " + group + " no request schema."));
+
+         foreach (var property in answer.Json.Value.EnumerateObject().Where(property => writable.Contains(property.Name)))
          {
             values[property.Name] = property.Value.ValueKind == JsonValueKind.String
                ? ServerApi.Quote(property.Value.GetString())
@@ -472,11 +483,11 @@ namespace RegressionTests.Shared
       ///    it back cannot decide what the next fixture sees.
       ///
       ///    Here the whole of each group is compared rather than a list of keys: the
-      ///    first call reads the three groups as the run found them, applies the
+      ///    first call reads the four groups as the run found them, applies the
       ///    suite's own overrides (the spam thresholds and the rest of SuiteDefaults)
       ///    and keeps the result as the baseline; every later call writes back only
       ///    the keys that differ from it, which in the ordinary case is none and
-      ///    costs three reads. The baseline is the server's own state, not a table
+      ///    costs four reads. The baseline is the server's own state, not a table
       ///    of values this project believes in, so it cannot drift from what a fresh
       ///    --create-database leaves.
       /// </summary>

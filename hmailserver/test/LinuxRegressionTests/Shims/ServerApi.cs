@@ -582,5 +582,104 @@ namespace RegressionTests.Shared
          var entry = end < 0 ? document.Substring(start) : document.Substring(start, end - start);
          return entry.Contains("\"" + verb + "\":");
       }
+
+      // Every path's PUT request schema, read once: the properties it lists that
+      // are not marked readOnly. A path the document names twice has the keys of
+      // both, so the order of its entries decides nothing. Problem is set when the
+      // document could not be read at all, so that a caller's failure says that
+      // rather than that one path has no schema.
+      private sealed class PutSchemas
+      {
+         public readonly Dictionary<string, HashSet<string>> KeysByPath = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+         public string Problem;
+      }
+
+      private static readonly Lazy<PutSchemas> PutKeys = new Lazy<PutSchemas>(() =>
+      {
+         var schemas = new PutSchemas();
+         var keysByPath = schemas.KeysByPath;
+         if (OpenApi.Value.Length == 0)
+         {
+            schemas.Problem = "GET /api/v1/openapi.json did not answer 200.";
+            return schemas;
+         }
+
+         JsonDocument document;
+         try
+         {
+            document = JsonDocument.Parse(OpenApi.Value, new JsonDocumentOptions { MaxDepth = 256 });
+         }
+         catch (JsonException ex)
+         {
+            schemas.Problem = "The server's OpenAPI document (GET /api/v1/openapi.json) is not JSON: " + ex.Message;
+            return schemas;
+         }
+
+         using (document)
+         {
+            JsonElement paths;
+            if (document.RootElement.ValueKind != JsonValueKind.Object ||
+                !document.RootElement.TryGetProperty("paths", out paths) || paths.ValueKind != JsonValueKind.Object)
+            {
+               schemas.Problem = "The server's OpenAPI document (GET /api/v1/openapi.json) has no paths object.";
+               return schemas;
+            }
+
+            foreach (var path in paths.EnumerateObject())
+            {
+               var properties = path.Value;
+               foreach (var step in new[] { "put", "requestBody", "content", "application/json", "schema", "properties" })
+               {
+                  JsonElement next;
+                  if (properties.ValueKind != JsonValueKind.Object || !properties.TryGetProperty(step, out next))
+                  {
+                     properties = default(JsonElement);
+                     break;
+                  }
+                  properties = next;
+               }
+
+               if (properties.ValueKind != JsonValueKind.Object)
+                  continue;
+
+               HashSet<string> keys;
+               if (!keysByPath.TryGetValue(path.Name, out keys))
+                  keysByPath[path.Name] = keys = new HashSet<string>(StringComparer.Ordinal);
+
+               foreach (var property in properties.EnumerateObject())
+               {
+                  if (!FlagOf(property.Value, "readOnly"))
+                     keys.Add(property.Name);
+               }
+            }
+         }
+
+         return schemas;
+      });
+
+      /// <summary>
+      ///    The keys PUT on the path takes, as this server's OpenAPI document lists
+      ///    them: every property of the PUT's request schema that is not marked
+      ///    readOnly. For a settings group that is exactly what a GET of the group
+      ///    answers less what the PUT refuses as read-only - the read-only rows
+      ///    (geoip_database_status, the log file names, the cache counters) and the
+      ///    &lt;key&gt;_levels and &lt;key&gt;_environment marks, which the schema does
+      ///    not list at all. Null when the document gives the path no PUT schema,
+      ///    or could not be read - WritableKeysProblem then says which.
+      /// </summary>
+      public static IReadOnlySet<string> WritableKeys(string path)
+      {
+         HashSet<string> keys;
+         return PutKeys.Value.KeysByPath.TryGetValue(path, out keys) ? keys : null;
+      }
+
+      /// <summary>
+      ///    Why WritableKeys knows no path at all - the document did not answer, is
+      ///    not JSON or has no paths - or null when it was read.
+      /// </summary>
+      public static string WritableKeysProblem
+      {
+         get { return PutKeys.Value.Problem; }
+      }
    }
 }
