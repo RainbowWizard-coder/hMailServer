@@ -334,7 +334,7 @@ def ci_images(text):
 
 
 def check_pinned_dependencies(files):
-    r = Result("Pinned-Dependencies", "images, base images, actions and installs pinned to a digest, hash or lock file")
+    r = Result("Pinned-Dependencies", "images, base images and installs pinned to a digest, hash or lock file")
     ci = read(".gitlab-ci.yml") if os.path.exists(os.path.join(ROOT, ".gitlab-ci.yml")) else ""
     unpinned = []
     images = ci_images(ci)

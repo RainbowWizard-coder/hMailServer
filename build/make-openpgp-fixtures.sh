@@ -197,9 +197,9 @@ module is checked against an implementation that is not this one.
 `openpgp-fixture-symmetric`). They were made for this check, their addresses
 are in the `.test` top-level domain, which can never be delivered to, and
 nothing anywhere trusts them. They are committed so that the check (the
-harnesses job of .gitlab-ci.yml) needs no GnuPG; where the check finds `gpg` on the PATH it also runs the other
-direction - what the module made, handed to GnuPG - which is the half that
-cannot be proved from a file.
+harnesses job of .gitlab-ci.yml) needs no GnuPG; where the check finds `gpg`
+on the PATH it also runs the other direction - what the module made, handed to
+GnuPG - which is the half that cannot be proved from a file.
 
 Never copy a key from here into anything real.
 READ

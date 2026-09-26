@@ -1,8 +1,8 @@
 {
    "_comment": [
-      "editorconfig-checker configuration, read by the editorconfig job of .gitlab-ci.yml",
-      "(with -config, as a local run from the repository root may pass it too; until",
-      "18 September 2026 by the GitHub workflow style.yml).",
+      "editorconfig-checker configuration, read by the editorconfig job of .gitlab-ci.yml,",
+      "which passes it with -config (as a local run from the repository root should too),",
+      "and until 18 September 2026 by the GitHub workflow style.yml.",
       "",
       "IndentSize is disabled on purpose: .editorconfig declares width 3 for C++ and C#,",
       "and the checker reads that as 'every indented line must be a multiple of three',",

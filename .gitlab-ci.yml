@@ -647,8 +647,8 @@ update-helper:
 # package-managers.yml's templates job: the winget manifests and the Chocolatey
 # package render from their templates, every token is one the renderer knows, and the
 # three winget manifests agree - checked offline, as the old job checked a change: the
-# winget schemas are fetched through aka.ms from GitHub, and a release is what has a
-# real hash. Rendering, checking and submitting for a release (the manifests job) is
+# winget schemas' aka.ms aliases lead to GitHub, which build/check-package-manifests.py
+# refuses to download from, and a release is what has a real hash. Rendering, checking and submitting for a release (the manifests job) is
 # the release-chain row's. pwsh is the one in Microsoft's .NET SDK image; PyYAML and
 # jsonschema are Ubuntu's packages.
 package-templates:

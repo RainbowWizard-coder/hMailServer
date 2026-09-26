@@ -7,11 +7,15 @@
 # merge request and gates the merge only when master's protected-branch rule
 # turns on "Require approval from code owners".
 #
-# The owner below is the project's group, @Progressiverobot, so that every
-# member with at least the Developer role counts - GitLab does not let an author
-# approve their own merge request by default, and a single named owner would put
-# every change that owner makes behind someone else. A person named here must be
-# a project member with at least the Developer role, or GitLab ignores the name.
+# The owner below is @Progressiverobot, the maintainer's GitLab account, which
+# is also the project's namespace - a personal one, not a group (the project's
+# API answer gives the namespace's kind as "user"). A person named here must be
+# a project member with at least the Developer role, or GitLab ignores the name;
+# the second maintainer the GitHub file named is added here by their GitLab
+# username once they are a member. GitLab does not let an author approve their
+# own merge request by default, so while one account is the only owner,
+# "Require approval from code owners" would hold back every change that owner
+# makes, and it stays off.
 #
 # Until 18 September 2026 this was .github/CODEOWNERS on GitHub, naming the two
 # maintainers' GitHub accounts; the paths are the same.
