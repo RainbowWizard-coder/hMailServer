@@ -17,12 +17,16 @@
                                          Signing Certificate Profile Signer role
      ARTIFACT_SIGNING_ENDPOINT           https://neu.codesigning.azure.net
      ARTIFACT_SIGNING_ACCOUNT, ARTIFACT_SIGNING_PROFILE
-   and on the machine, installed once: Microsoft's Artifact Signing Client Tools
-   (winget install --exact --id Microsoft.Azure.ArtifactSigningClientTools
-   --scope machine), which bring SignTool's Artifact Signing plugin
-   (Azure.CodeSigning.Dlib.dll) and the .NET 8 runtime it runs on; and SignTool
-   from the Windows SDK the bench's Build Tools installed. HM_SIGNTOOL and
-   HM_SIGNING_DLIB name either where it is somewhere else.
+   and on the machine, installed once: Microsoft's Artifact Signing Client Tools,
+   installed for the machine with msiexec and ALLUSERS=1 into
+   C:\Program Files\Microsoft\ArtifactSigningClientTools (winget's --scope machine
+   finds no installer, and without it the MSI goes into the administrator's
+   profile, which LocalSystem does not see; docs\ContinuousIntegration.md,
+   "bench150", has the command), which bring SignTool's Artifact Signing plugin
+   (Azure.CodeSigning.Dlib.dll), run on the machine's .NET 10 through
+   rollForward Major; and SignTool from the Windows SDK the bench's Build Tools
+   installed. HM_SIGNTOOL and HM_SIGNING_DLIB name either where it is somewhere
+   else.
 
    The steps:
      1. every setting is there, or the job stops naming the missing ones, before
@@ -101,8 +105,10 @@ if (-not $dlib) {
       Sort-Object { if ($_.FullName -match '\\x64\\') { 0 } else { 1 } } | Select-Object -First 1 -ExpandProperty FullName
 }
 if (-not $dlib -or -not (Test-Path -LiteralPath $dlib)) {
-   Stop-Signing 2 ('the Artifact Signing plugin is not installed on this runner. Install it once, as an administrator on bench150: ' +
-      'winget install --exact --id Microsoft.Azure.ArtifactSigningClientTools --scope machine - or set HM_SIGNING_DLIB to Azure.CodeSigning.Dlib.dll')
+   Stop-Signing 2 ('the Artifact Signing plugin is not installed on this runner. Install it once, as an administrator on bench150, for the machine: ' +
+      'msiexec /i ArtifactSigningClientTools.msi TARGETDIR="C:\Program Files\Microsoft\ArtifactSigningClientTools\" ALLUSERS=1 /qn ' +
+      '(winget --scope machine finds no installer, and without it the MSI goes into the administrator''s profile, which LocalSystem does not see; ' +
+      'docs\ContinuousIntegration.md, ''bench150'') - or set HM_SIGNING_DLIB to Azure.CodeSigning.Dlib.dll')
 }
 "signtool: $signtool"
 "plugin:   $dlib"

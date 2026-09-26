@@ -151,8 +151,8 @@ $candidates += (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'), (Jo
 $iscc = $candidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
 if (-not $iscc) {
    Stop-Installer 2 (("Inno Setup 6 is not installed for the machine on this runner (looked for {0}). Install it once, as an administrator on bench150: " +
-      "winget install --exact --id JRSoftware.InnoSetup --scope machine - or set the CI/CD variable HM_ISCC to ISCC.exe's path " +
-      "(docs\ContinuousIntegration.md, 'The release').") -f ($candidates -join ', '))
+      "copy a trusted Inno Setup 6 installation into C:\Program Files (x86)\Inno Setup 6 (winget's installer and jrsoftware.org's download are both on github.com) " +
+      "- or set the CI/CD variable HM_ISCC to ISCC.exe's path (docs\ContinuousIntegration.md, 'bench150').") -f ($candidates -join ', '))
 }
 "ISCC: $iscc"
 
