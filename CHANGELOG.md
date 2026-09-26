@@ -444,11 +444,16 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   store, so one damaged message does not stop a whole folder's sync at itself. Every part is read before any is
   sent, so a failure can no longer leave an untagged `FETCH` unfinished
   ([EncryptionAtRest.md](hmailserver/docs/EncryptionAtRest.md)).
-- Fixed: an IMAP `LIST` or `LSUB` pattern cost its length times each folder name's, for every folder listed, on
-  the threads every protocol shares, and nothing bounded it: one authenticated client's ten-megabyte pattern of
-  `*` held a thread for tens of seconds a command. A run of wildcards is now matched as one and a pattern that
-  cannot match stops at once, and a pattern longer than 8,192 characters with its reference - longer than any
-  name a folder can have - or more than 32 patterns in one `LIST` is answered `BAD`.
+- Fixed: nothing bounded an IMAP `LIST` or `LSUB` pattern but the 11 MB one command may hold - a quoted pattern
+  goes on over the lines a literal joins - and matching it against each folder cost at least its length on the
+  threads every protocol shares: 6.3.3 copied the whole pattern twice for each, and this release's matcher, which
+  finds a wildcard anywhere in a pattern, cost its length times the folder name's. So one authenticated client's
+  pattern of `*` megabytes long could hold those threads. A run of wildcards is now matched as one and a pattern
+  that cannot match stops at once, and a pattern longer than 8,192 characters with its reference - longer than
+  any name a folder can have - or more than 32 patterns in one `LIST` is answered `BAD`. `LIST` and `LSUB` also
+  read a reference or pattern sent as a literal (`{n}`), as RFC 3501 allows, and the same bound holds for it: they
+  matched the literal's length as the pattern, so such a command did not list what it asked for. 6.3.3 had that
+  too.
 - Fixed: a message whose `Date` header held a backslash - one at its end, say - broke the IMAP `ENVELOPE` it was
   sent in: the backslash escaped the date's closing quote, so a client read the subject and the addresses the
   sender wrote as part of the date and then as the response's own structure. The date's backslashes are left out,

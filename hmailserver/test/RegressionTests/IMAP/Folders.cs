@@ -689,7 +689,7 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      [Description("A LIST or LSUB pattern longer than any mailbox name the server can hold, or more patterns than one LIST may carry, is refused BAD rather than matched against every folder on the shared threads; a run of wildcards still matches as one wildcard, and a '%' in a run with '*' crosses the delimiter as '*' does.")]
+      [Description("A LIST or LSUB pattern longer than any mailbox name the server can hold - quoted, a literal, or quoted and continued over the lines a literal joins - or more patterns than one LIST may carry, is refused BAD rather than matched against every folder on the shared threads; a literal reference or pattern is its octets; a run of wildcards still matches as one wildcard, and a '%' in a run with '*' crosses the delimiter as '*' does.")]
       public void TestListPatternBounds()
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "listbounds@example.test", "test");
@@ -709,30 +709,70 @@ namespace RegressionTests.IMAP
          Assert.IsTrue(percent.Contains("\"Alpha\""), percent);
          Assert.IsFalse(percent.Contains("\"Alpha.Beta\""), "\"%%\" is \"%\" and stops at the delimiter: " + percent);
 
-         // One pattern of 9,000 wildcards, as a literal: longer than any name.
-         string tooLong = new string('*', 9000);
-         simulator.SendRaw("A04 LIST \"\" {" + tooLong.Length + "}\r\n");
+         // A pattern sent as a literal is the literal's octets (RFC 3501 section 9),
+         // not the digits between its braces, which is what LIST used to match.
+         simulator.SendRaw("A04 LIST \"\" {5}\r\n");
          StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
-         simulator.SendRaw(tooLong + "\r\n");
-         string refused = simulator.ReceiveUntil("A04 ");
-         Assert.IsTrue(refused.Contains("A04 BAD"), "A 9,000-character pattern must be refused: " + refused);
+         simulator.SendRaw("Alpha\r\n");
+         string literal = simulator.ReceiveUntil("A04 ");
+         Assert.IsTrue(literal.Contains("\"Alpha\""), "A literal pattern is its octets: " + literal);
+         Assert.IsTrue(literal.Contains("A04 OK"), literal);
 
-         simulator.SendRaw("A05 LSUB \"\" {" + tooLong.Length + "}\r\n");
+         // A literal reference, then a pattern list holding a literal: the list's
+         // literal is the command's second.
+         simulator.SendRaw("A05 LIST {6}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw("Alpha. ({4}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw("Beta \"Zulu\")\r\n");
+         literal = simulator.ReceiveUntil("A05 ");
+         Assert.IsTrue(literal.Contains("\"Alpha.Beta\""), "A literal reference and a literal in a pattern list are their octets: " + literal);
+         Assert.IsTrue(literal.Contains("A05 OK"), literal);
+
+         // One pattern of 9,000 wildcards - as a literal, as a quoted string and as a
+         // literal in a pattern list: longer than any name.
+         string tooLong = new string('*', 9000);
+         simulator.SendRaw("A06 LIST \"\" {" + tooLong.Length + "}\r\n");
          StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
          simulator.SendRaw(tooLong + "\r\n");
-         refused = simulator.ReceiveUntil("A05 ");
-         Assert.IsTrue(refused.Contains("A05 BAD"), "A 9,000-character LSUB pattern must be refused: " + refused);
+         string refused = simulator.ReceiveUntil("A06 ");
+         Assert.IsTrue(refused.Contains("A06 BAD"), "A 9,000-character pattern must be refused: " + refused);
+
+         refused = simulator.SendSingleCommand("A07 LIST \"\" \"" + tooLong + "\"");
+         Assert.IsTrue(refused.Contains("A07 BAD"), "A 9,000-character quoted pattern must be refused: " + refused);
+
+         simulator.SendRaw("A08 LIST \"\" ({" + tooLong.Length + "}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw(tooLong + " \"Alpha\")\r\n");
+         refused = simulator.ReceiveUntil("A08 ");
+         Assert.IsTrue(refused.Contains("A08 BAD"), "A 9,000-character literal in a pattern list must be refused: " + refused);
+
+         simulator.SendRaw("A09 LSUB \"\" {" + tooLong.Length + "}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw(tooLong + "\r\n");
+         refused = simulator.ReceiveUntil("A09 ");
+         Assert.IsTrue(refused.Contains("A09 BAD"), "A 9,000-character LSUB pattern must be refused: " + refused);
+
+         // A quoted pattern goes on over the lines a literal joins - the command is
+         // the text of all of them - so no one line has to hold it: two lines of
+         // 5,000 wildcards are one pattern of 10,003 characters.
+         string half = new string('*', 5000);
+         simulator.SendRaw("A10 LIST \"\" \"" + half + "{1}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw("X" + half + "\"\r\n");
+         refused = simulator.ReceiveUntil("A10 ");
+         Assert.IsTrue(refused.Contains("A10 BAD"), "A quoted pattern continued past a literal is one pattern, and 10,003 characters must be refused: " + refused);
 
          // Thirty-three patterns in one LIST-EXTENDED command.
          var many = new System.Text.StringBuilder();
          for (int i = 0; i < 33; i++)
             many.Append(i == 0 ? "" : " ").Append("\"P").Append(i).Append("\"");
-         string tooMany = simulator.SendSingleCommand("A06 LIST \"\" (" + many + ")");
-         Assert.IsTrue(tooMany.Contains("A06 BAD"), "Thirty-three patterns must be refused: " + tooMany);
+         string tooMany = simulator.SendSingleCommand("A11 LIST \"\" (" + many + ")");
+         Assert.IsTrue(tooMany.Contains("A11 BAD"), "Thirty-three patterns must be refused: " + tooMany);
 
          // The connection is still in step.
-         string after = simulator.SendSingleCommand("A07 LIST \"\" \"Alpha\"");
-         Assert.IsTrue(after.Contains("A07 OK"), after);
+         string after = simulator.SendSingleCommand("A12 LIST \"\" \"Alpha\"");
+         Assert.IsTrue(after.Contains("A12 OK"), after);
 
          simulator.Disconnect();
       }

@@ -19,7 +19,11 @@ namespace HM
 
    private:
       // RFC 5258: split a parenthesised mailbox-pattern list into individual patterns.
-      static void ExtractPatterns_(const String &sParenContent, std::vector<String> &patterns);
+      // A literal in it is the command's literal iLiteralIndex, the next the one after.
+      static void ExtractPatterns_(const String &sParenContent, std::shared_ptr<IMAPCommandArgument> pArgument, unsigned int iLiteralIndex, std::vector<String> &patterns);
+
+      // True for "{n}" or "{n+}": what a literal leaves of itself in the command text.
+      static bool IsLiteralMarker_(const String &sToken);
 
       // True when the parenthesised selection/return option list contains sOption as a
       // whole, case-insensitive token.

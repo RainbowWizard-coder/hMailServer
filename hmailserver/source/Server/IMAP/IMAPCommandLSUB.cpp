@@ -34,9 +34,11 @@ namespace HM
       if (pParser->WordCount() != 3)
          return IMAPResult(IMAPResult::ResultBad, "LSUB Command requires 2 parameters.");
 
-      // We ignore the input reference (param 1)
-      String sReference = pParser->Word(1)->Value();
-      String sWildcards = pParser->Word(2)->Value();
+      // Either argument can be a literal (RFC 3501 section 9), whose word holds
+      // only what was between its braces; GetParamValue gives its octets, as
+      // IMAPCommandLIST takes them.
+      String sReference = pParser->GetParamValue(pArgument, 0);
+      String sWildcards = pParser->GetParamValue(pArgument, 1);
 
       String folderSpecifier = sWildcards;
       if (sReference.GetLength() > 0)

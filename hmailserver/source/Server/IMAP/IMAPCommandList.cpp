@@ -100,16 +100,31 @@ namespace HM
       if (iIdx + 1 >= iWordCount)
          return IMAPResult(IMAPResult::ResultBad, "LIST Command requires 2 parameters.");
 
-      String sReferenceName = pParser->Word(iIdx)->Value();
+      // The reference is a mailbox and each pattern a list-mailbox, and either
+      // can be a literal (RFC 3501 section 9). A literal's word holds only what
+      // was between its braces - 'LIST "" {9000}' was matched as the pattern
+      // "9000" - so its octets are taken from the command's literals, as
+      // GetParamValue takes them for SELECT and the others.
+      String sReferenceName = pParser->GetParamValue(pArgument, (int) iIdx - 1);
       iIdx++;
 
       // Mailbox pattern(s): a single pattern, or a parenthesised list of patterns.
       std::vector<String> patterns;
       std::shared_ptr<IMAPSimpleWord> pPatternWord = pParser->Word(iIdx);
       if (pPatternWord->Paranthezied())
-         ExtractPatterns_(pPatternWord->Value(), patterns);
+      {
+         // The list's literals come after those of the words before it.
+         unsigned int iLiteralIndex = 0;
+         for (size_t iWord = 1; iWord < iIdx; iWord++)
+         {
+            if (pParser->Word(iWord)->Clammerized())
+               iLiteralIndex++;
+         }
+
+         ExtractPatterns_(pPatternWord->Value(), pArgument, iLiteralIndex, patterns);
+      }
       else
-         patterns.push_back(pPatternWord->Value());
+         patterns.push_back(pParser->GetParamValue(pArgument, (int) iIdx - 1));
       iIdx++;
 
       // Optional trailing "RETURN (<options>)".
@@ -477,10 +492,11 @@ namespace HM
    }
 
    void
-   IMAPCommandLIST::ExtractPatterns_(const String &sParenContent, std::vector<String> &patterns)
+   IMAPCommandLIST::ExtractPatterns_(const String &sParenContent, std::shared_ptr<IMAPCommandArgument> pArgument, unsigned int iLiteralIndex, std::vector<String> &patterns)
    {
       // The parenthesised content holds one or more space-separated patterns,
-      // each optionally double-quoted, e.g.  "INBOX" "Sent"  or  INBOX Sent.
+      // each optionally double-quoted, e.g.  "INBOX" "Sent"  or  INBOX Sent,
+      // or a literal, of which the content holds only "{n}" or "{n+}".
       int iPos = 0;
       int iLen = sParenContent.GetLength();
       while (iPos < iLen)
@@ -505,12 +521,42 @@ namespace HM
             int iEnd = sParenContent.Find(_T(" "), iPos);
             if (iEnd < 0)
                iEnd = iLen;
-            patterns.push_back(sParenContent.Mid(iPos, iEnd - iPos));
+
+            String sToken = sParenContent.Mid(iPos, iEnd - iPos);
+
+            // No list-char is "{", so a pattern never starts with one: this is a
+            // literal, and its octets are the command's next literal.
+            if (IsLiteralMarker_(sToken))
+               sToken = pArgument->Literal(iLiteralIndex++);
+
+            patterns.push_back(sToken);
             iPos = iEnd + 1;
          }
       }
 
       if (patterns.empty())
          patterns.push_back(_T(""));
+   }
+
+   bool
+   IMAPCommandLIST::IsLiteralMarker_(const String &sToken)
+   {
+      // "{n}", or "{n+}" for a non-synchronizing literal (RFC 7888).
+      int iLength = sToken.GetLength();
+      if (iLength < 3 || sToken.GetAt(0) != '{' || sToken.GetAt(iLength - 1) != '}')
+         return false;
+
+      int iDigitsEnd = sToken.GetAt(iLength - 2) == '+' ? iLength - 2 : iLength - 1;
+      if (iDigitsEnd <= 1)
+         return false;
+
+      for (int i = 1; i < iDigitsEnd; i++)
+      {
+         wchar_t ch = sToken.GetAt(i);
+         if (ch < '0' || ch > '9')
+            return false;
+      }
+
+      return true;
    }
 }
