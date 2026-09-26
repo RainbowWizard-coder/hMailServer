@@ -208,12 +208,14 @@ namespace HM
       {
       case ModeDefault:
          // The providers this server picks for itself when [Database] Provider is
-         // empty - MSOLEDBSQL, and SQLNCLI for a failover partner - encrypt only the
-         // login unless asked, and every SQL Server since 2005 can encrypt the rest
-         // with the certificate it makes for itself. MSOLEDBSQL19 already encrypts
-         // and checks by default, which is stronger and is left alone; SQLOLEDB
-         // cannot encrypt without checking the certificate against the Windows
-         // store, which a server's own certificate fails, so it is left alone too.
+         // empty (ADOConnection.cpp) are MSOLEDBSQL when version 18 or later is
+         // installed, SQLNCLI for a failover partner, and SQLOLEDB otherwise. The
+         // first two encrypt only the login unless asked, and every SQL Server since
+         // 2005 can encrypt the rest with the certificate it makes for itself.
+         // MSOLEDBSQL19 already encrypts and checks by default, which is stronger and
+         // is left alone; SQLOLEDB cannot encrypt without checking the certificate
+         // against the Windows store, which a server's own certificate fails, so it
+         // is left alone too, and on it only the login is encrypted.
          if (kind == ProviderModern)
             keywords = encryptNoCheck;
          return true;
