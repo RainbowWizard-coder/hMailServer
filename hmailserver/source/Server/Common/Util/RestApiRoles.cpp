@@ -398,7 +398,16 @@ namespace HM
    HttpResponse
    RestApiServer::HandleAccountPasswordReset_(const Caller &caller, const AnsiString &address, const AnsiString &requestBody)
    {
-      AnsiString password = GetJsonStringValue_(requestBody, "password");
+      // The UTF-8 the body carries, decoded, as the account update, the create
+      // and the account holder's own change read theirs. It was the bytes
+      // widened one to a character (String(AnsiString)), so a password outside
+      // ASCII reached the policy, the breach check and the mailbox key as other
+      // characters than were sent: counted by its bytes, looked up in the
+      // corpus as the SHA-1 of its UTF-8 encoded twice - a leaked one was
+      // never found - and a key encrypted at rest wrapped under that too. The
+      // stored hash was right only because Crypt hashes such a String as the
+      // bytes it holds (Unicode::ToUtf8Canonical).
+      const String password = JsonUtf8Value_(requestBody, "password");
 
       std::shared_ptr<Account> account = FindAccount(address);
 
@@ -429,13 +438,13 @@ namespace HM
       // anywhere else.
       String policyFailure;
 
-      if (!PasswordPolicy::IsAcceptable(account->GetAddress(), String(password), policyFailure))
+      if (!PasswordPolicy::IsAcceptable(account->GetAddress(), password, policyFailure))
       {
          LOG_APPLICATION("RestApi: Refused a password for account " + String(address) + ": " + policyFailure);
          return BuildResponse_(400, AnsiString("{\"error\":\"") + JsonEscape_(Utf8_(policyFailure)) + "\"}");
       }
 
-      if (PasswordHistory::IsReuse(account, String(password)))
+      if (PasswordHistory::IsReuse(account, password))
          return BuildResponse_(409, "{\"error\":\"This password has been used recently on this account. Choose one that has not.\"}");
 
       // The published breach corpus, after the local rules so that a password
@@ -446,7 +455,7 @@ namespace HM
       AnsiString breachReason;
       int breachStatus = 0;
 
-      if (!PasswordBreachCheck::IsAcceptable(account->GetAddress(), String(password), breachRefusal, breachReason, breachStatus))
+      if (!PasswordBreachCheck::IsAcceptable(account->GetAddress(), password, breachRefusal, breachReason, breachStatus))
       {
          AnsiString body;
          body.Format("{\"error\":\"%hs\",\"reason\":\"%hs\"}", JsonEscape_(Utf8_(breachRefusal)).c_str(), breachReason.c_str());
@@ -459,14 +468,14 @@ namespace HM
       // encrypted mailbox has.
       {
          String keyRefusal;
-         if (!MailboxKeys::PrepareForNewPassword(account, String(password), keyRefusal))
+         if (!MailboxKeys::PrepareForNewPassword(account, password, keyRefusal))
             return BuildResponse_(MailboxKeys::RefusalStatus(keyRefusal, 409), "{\"error\":\"" + JsonEscape_(Utf8_(keyRefusal)) + "\",\"code\":\"mailbox_key\"}");
       }
 
       PasswordHistory::Record(account);
 
       const int preferredHashAlgorithm = IniFileSettings::Instance()->GetPreferredHashAlgorithm();
-      account->SetPassword(Crypt::Instance()->EnCrypt(String(password), (Crypt::EncryptionType) preferredHashAlgorithm));
+      account->SetPassword(Crypt::Instance()->EnCrypt(password, (Crypt::EncryptionType) preferredHashAlgorithm));
       account->SetPasswordEncryption(preferredHashAlgorithm);
       account->SetPasswordChanged(Time::GetCurrentDateTime());
 

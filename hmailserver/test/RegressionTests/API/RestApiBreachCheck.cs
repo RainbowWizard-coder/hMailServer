@@ -19,8 +19,8 @@ namespace RegressionTests.API
    ///    The password breach check over REST: its four settings in the server-wide group,
    ///    the refusal - with the reason word a page translates - on every route that
    ///    chooses a password (the account holder's own change, the account update, the
-   ///    account create, a chosen app password), the endpoint test route, and the
-   ///    OpenAPI document that describes them.
+   ///    account create, the help desk's reset, a chosen app password), the endpoint
+   ///    test route, and the OpenAPI document that describes them.
    ///
    ///    The corpus is FakeBreachCorpus on 127.0.0.1:9551 and nothing reaches the
    ///    internet. Every refusal is paired with the same route accepting a password the
@@ -285,14 +285,73 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("POST /api/v1/accounts/{address}/password, the help desk's reset, judges a password outside ASCII as the characters sent: the breach check finds a leaked one and the policy counts its characters, not its bytes")]
+      public void AccountPasswordResetJudgesAPasswordOutsideAsciiAsItsCharacters()
+      {
+         string route = "/api/v1/accounts/" + Address + "/password";
+
+         // 18 characters, 22 bytes of UTF-8. The route read the body one byte to a
+         // character (String(AnsiString)), which made it 22 characters: the breach
+         // check asked about the SHA-1 of their UTF-8 (prefix AB4DF), which the
+         // corpus does not hold, and a minimum of 20 characters was met. The stored
+         // hash was the same either way (Unicode::ToUtf8Canonical), so these two
+         // are where the difference is seen.
+         const string accented = "p\u00e4ssw\u00f6rd-2026-cr\u00e9\u00e9";
+         const string fresh = "Nobody-Leaked-fr\u00fch-9551";
+
+         using (var corpus = new FakeBreachCorpus())
+         {
+            corpus.Add(accented, 3);
+            Enable();
+
+            (int status, string body) refused = Http("POST", route, AdminHeader(), "{\"password\":\"" + accented + "\"}");
+            Assert.AreEqual(400, refused.status, refused.body);
+            AssertReason(refused.body, "breached");
+            Assert.AreEqual(1, corpus.Requests.Count);
+            StringAssert.StartsWith("GET /range/" + FakeBreachCorpus.Sha1HexUtf8(accented).Substring(0, 5) + " ", corpus.Requests[0],
+               "The check must ask about the SHA-1 of the characters' UTF-8.");
+            Assert.AreEqual(200, Http("GET", "/api/v1/me", UserHeader(UserPassword)).status, "The refused reset must leave the password as it was.");
+
+            // Negative control: the same route, and a password outside ASCII the corpus does not hold.
+            (int status, string body) accepted = Http("POST", route, AdminHeader(), "{\"password\":\"" + fresh + "\"}");
+            Assert.AreEqual(200, accepted.status, accepted.body);
+            Assert.AreEqual(2, corpus.Requests.Count);
+            Assert.AreEqual(200, Http("GET", "/api/v1/me", UserHeader(fresh)).status, "The reset password must sign in.");
+         }
+
+         RestoreDefaults();
+
+         ServerIniFile.SetSetting("PasswordPolicyMinimumLength", "20");
+         _application.Reinitialize();
+
+         (int status, string body) tooShort = Http("POST", route, AdminHeader(), "{\"password\":\"" + accented + "\"}");
+         Assert.AreEqual(400, tooShort.status, tooShort.body);
+         StringAssert.Contains("20", tooShort.body, "Eighteen characters are fewer than twenty, whatever their UTF-8 counts.");
+         Assert.AreEqual(200, Http("GET", "/api/v1/me", UserHeader(fresh)).status, "The refused reset must leave the password as it was.");
+
+         ServerIniFile.SetSetting("PasswordPolicyMinimumLength", null);
+         _application.Reinitialize();
+
+         // Neither rule on: the reset takes it, and it signs in.
+         (int status, string body) reset = Http("POST", route, AdminHeader(), "{\"password\":\"" + accented + "\"}");
+         Assert.AreEqual(200, reset.status, reset.body);
+         Assert.AreEqual(200, Http("GET", "/api/v1/me", UserHeader(accented)).status, "The reset password must sign in.");
+      }
+
+      [Test]
       [Description("POST /api/v1/domains/{domain}/accounts applies the breach check and the password policy, and stores a non-ASCII password as the characters sent")]
       public void AccountCreateAppliesThePolicyAndTheBreachCheck()
       {
          string domainPath = "/api/v1/domains/" + _domain.Name + "/accounts";
 
+         // A password outside ASCII: 18 characters, 22 bytes of UTF-8.
+         const string accented = "p\u00e4ssw\u00f6rd-2026-cr\u00e9\u00e9";
+         string accentedAddress = "breachutf8@" + _domain.Name;
+
          using (var corpus = new FakeBreachCorpus())
          {
             corpus.Add("password", 10434004);
+            corpus.Add(accented, 3);
             Enable();
 
             string leakedAddress = "breachcreate@" + _domain.Name;
@@ -305,6 +364,17 @@ namespace RegressionTests.API
             (int status, string body) accepted = Http("POST", domainPath, AdminHeader(),
                "{\"address\":\"" + leakedAddress + "\",\"password\":\"Created-Nobody-Leaked-9551\"}");
             Assert.AreEqual(201, accepted.status, accepted.body);
+
+            // The route hands the check the characters sent. The corpus holds the SHA-1
+            // of their UTF-8; a route that read the body one byte to a character, as
+            // String(AnsiString) did, would have asked about the UTF-8 of those 22
+            // characters, found nothing, and made the account. The stored hash cannot
+            // show that difference (see the end of this test), so this is where it is seen.
+            (int status, string body) accentedRefused = Http("POST", domainPath, AdminHeader(),
+               "{\"address\":\"" + accentedAddress + "\",\"password\":\"" + accented + "\"}");
+            Assert.AreEqual(400, accentedRefused.status, accentedRefused.body);
+            AssertReason(accentedRefused.body, "breached");
+            Assert.AreEqual(404, Http("GET", "/api/v1/accounts/" + accentedAddress, AdminHeader()).status, "A refused create must create nothing.");
          }
 
          RestoreDefaults();
@@ -323,19 +393,29 @@ namespace RegressionTests.API
          ServerIniFile.SetSetting("PasswordPolicyMinimumLength", null);
          _application.Reinitialize();
 
-         // A password outside ASCII, with neither rule on: stored as UTF-8, so the same
-         // characters validate. Read through String(AnsiString), as it was, it did not.
-         // Last, because Account.ValidatePassword has no REST route: against the Linux
-         // suite's shim it skips the test here, after everything above has run.
-         const string accented = "p\u00e4ssw\u00f6rd-2026-cr\u00e9\u00e9";
-         string accentedAddress = "breachutf8@" + _domain.Name;
+         // The password outside ASCII, with neither rule on: stored as UTF-8, so the
+         // same characters validate. Last, because Account.ValidatePassword has no REST
+         // route: against the Linux suite's shim it skips the test here, after
+         // everything above has run.
          (int status, string body) created = Http("POST", domainPath, AdminHeader(),
             "{\"address\":\"" + accentedAddress + "\",\"password\":\"" + accented + "\"}");
          Assert.AreEqual(201, created.status, created.body);
          Account createdAccount = _domain.Accounts.get_ItemByAddress(accentedAddress);
          ClassicAssert.IsTrue(createdAccount.ValidatePassword(accented), "The account must validate the exact characters it was created with.");
-         ClassicAssert.IsFalse(createdAccount.ValidatePassword("p\u00c3\u00a4ssw\u00c3\u00b6rd-2026-cr\u00c3\u00a9\u00c3\u00a9"),
-            "Negative control: the UTF-8 bytes read as Windows-1252 are a different password.");
+         ClassicAssert.IsFalse(createdAccount.ValidatePassword("p\u00e4ssw\u00f6rd-2026-cr\u00e9\u00e8"),
+            "Negative control: a password one accented letter different must not validate.");
+
+         // Not a negative control: the password's UTF-8 read one byte to a character -
+         // the Latin-1 reading of those bytes, and for these letters the Windows-1252
+         // one too. Since 6.3.4 every password is hashed over Unicode::ToUtf8Canonical,
+         // which takes a String holding UTF-8 widened byte by byte - as IMAP LOGIN,
+         // POP3 PASS and a REST Basic credential hand a password over - as those bytes,
+         // so that such a sign-in opens an account whose password was set as text
+         // (Crypt.cpp, docs/SecretsAtRest.md; ClassTester requires the same). The form
+         // is the same password by design, and so a route that stored it would store
+         // the same hash: the breach check above is what tells the two routes apart.
+         ClassicAssert.IsTrue(createdAccount.ValidatePassword("p\u00c3\u00a4ssw\u00c3\u00b6rd-2026-cr\u00c3\u00a9\u00c3\u00a9"),
+            "The password's UTF-8 widened one byte to a character is the same password (Unicode::ToUtf8Canonical).");
       }
 
       [Test]

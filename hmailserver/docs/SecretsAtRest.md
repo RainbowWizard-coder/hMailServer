@@ -51,7 +51,18 @@ PBKDF2 over UTF-8 is also what a SCRAM-SHA-256 client derives its key from, so s
 password now serves SCRAM too. A password that reaches the server as its UTF-8 widened one
 byte to a character - IMAP's `LOGIN`, the REST API's Basic credential - is hashed as those
 bytes (`Unicode::ToUtf8Canonical`), which is what the old conversion hashed as well; so it
-and the same password decoded (SASL PLAIN, COM, a REST body) are one password.
+and the same password decoded (SASL PLAIN, COM, a REST body) are one password. The server
+cannot tell that widened form from text that is the same characters, so the reverse holds
+too: `pÃ¤sswÃ¶rd`, the UTF-8 of `pässwörd` read one byte to a character, given as text
+opens the account whose password is `pässwörd`, and set as a password it sets that one. At a
+sign-in that gives nobody anything: the form is made from the password's own bytes, so only
+someone who knows the password can type it. The password policy and the breach check judge
+the characters they are handed, not the bytes a hash is made over, so every place that sets
+a password hands them the characters the client sent - a REST body, the help desk's reset
+(`POST /api/v1/accounts/{address}/password`) among them, is read as UTF-8, and COM and the
+Control Panel give text - and `pässwörd` sent to any of them is counted and looked up as
+`pässwörd`. Typed as `pÃ¤sswÃ¶rd`, it is counted and looked up as those ten characters,
+although what it sets is `pässwörd`.
 
 **What a sign-in checks** (`Crypt::Validate`): the password's UTF-8 as above, then - for
 Latin-1 text, every character below U+0100 and the bytes not UTF-8 - its characters as
