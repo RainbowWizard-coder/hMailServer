@@ -898,5 +898,59 @@ namespace RegressionTests.IMAP
          Assert.IsTrue(trustedSimulator.SelectFolder(realFolder));
          trustedSimulator.Disconnect();
       }
+
+      /// <summary>
+      ///    APPEND into somebody else's folder is charged to the folder's OWNER,
+      ///    as COPY and MOVE are: the message is stored in the owner's mailbox
+      ///    and counted in the owner's size. It was charged to the caller, so a
+      ///    delegate with room pushed a full owner past the limit, and a delegate
+      ///    over their own limit was refused an append to a mailbox with room.
+      ///    Both halves are asserted, so the test fails against the old check
+      ///    whichever way round it reads.
+      /// </summary>
+      [Test]
+      public void AppendIntoASharedFolderIsChargedToTheOwner()
+      {
+         // A full owner and a delegate with no limit: refused before the
+         // literal moves, with OVERQUOTA and no continuation.
+         var fullOwner = CreateOwnerWithMessage("quotaowner@example.test", "Existing", "Existing body");
+         fullOwner.MaxSize = 1;
+         fullOwner.Save();
+         var roomyDelegate = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "quotadelegate@example.test", "test");
+         GrantRightsOnFolder(fullOwner.IMAPFolders.get_ItemByName("INBOX"), roomyDelegate, RightLookup | RightRead | RightInsert);
+
+         var simulator = new ImapClientSimulator();
+         Assert.IsTrue(simulator.ConnectAndLogon(roomyDelegate.Address, "test"));
+         simulator.SendRaw("A01 APPEND \"#Users.quotaowner@example.test.INBOX\" {2000000}\r\n");
+         var refused = simulator.ReceiveUntilAny("+ ", "A01 ");
+         simulator.Disconnect();
+
+         StringAssert.Contains("A01 NO [OVERQUOTA]", refused,
+            "A 2 MB append into a mailbox limited to 1 MB must be refused by the owner's quota, whatever the delegate's. Got: " + refused);
+         CustomAsserts.AssertFolderMessageCount(fullOwner.IMAPFolders.get_ItemByName("INBOX"), 1);
+
+         // A delegate limited to 1 MB appending 1.2 MB into an owner with no
+         // limit: the delegate's own quota is not the one that counts.
+         var roomyOwner = CreateOwnerWithMessage("quotaowner2@example.test", "Existing", "Existing body");
+         var limitedDelegate = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "quotadelegate2@example.test", "test");
+         limitedDelegate.MaxSize = 1;
+         limitedDelegate.Save();
+         GrantRightsOnFolder(roomyOwner.IMAPFolders.get_ItemByName("INBOX"), limitedDelegate, RightLookup | RightRead | RightInsert);
+
+         var message = "Subject: large\r\n\r\n" + new string('x', 1200 * 1024) + "\r\n";
+
+         simulator = new ImapClientSimulator();
+         Assert.IsTrue(simulator.ConnectAndLogon(limitedDelegate.Address, "test"));
+         simulator.SendRaw("A02 APPEND \"#Users.quotaowner2@example.test.INBOX\" {" + message.Length + "}\r\n");
+         var continuation = simulator.ReceiveUntilAny("+ ", "A02 ");
+         StringAssert.Contains("+ Ready", continuation,
+            "The delegate's own 1 MB limit must not refuse an append into a mailbox with room. Got: " + continuation);
+         simulator.SendRaw(message + "\r\n");
+         var accepted = simulator.ReceiveUntil("A02 ");
+         simulator.Disconnect();
+
+         StringAssert.Contains("A02 OK", accepted, accepted);
+         CustomAsserts.AssertFolderMessageCount(roomyOwner.IMAPFolders.get_ItemByName("INBOX"), 2);
+      }
    }
 }

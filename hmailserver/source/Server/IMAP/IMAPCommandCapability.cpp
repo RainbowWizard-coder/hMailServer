@@ -51,13 +51,18 @@ namespace HM
       if (ACLManager::GetAclEnforcementEnabled())
          sResponse += " ACL";
 
-      if (pConnection->GetConnectionSecurity() == CSSTARTTLSOptional ||
-          pConnection->GetConnectionSecurity() == CSSTARTTLSRequired)
+      // Offered only where it is taken (IMAPCommandStartTls): on a STARTTLS port,
+      // before TLS is active and before authentication.
+      if ((pConnection->GetConnectionSecurity() == CSSTARTTLSOptional ||
+           pConnection->GetConnectionSecurity() == CSSTARTTLSRequired) &&
+          !pConnection->IsSSLConnection() && !pConnection->IsAuthenticated())
          sResponse += " STARTTLS";
 
       // RFC 4978: offered until it is in use - once compression is on it is not a
       // capability of this connection any more, and a second COMPRESS is refused.
-      if (IniFileSettings::Instance()->GetImapCompressionEnabled() && !pConnection->IsCompressed())
+      // Offered once signed in only, since that is when COMPRESS is taken
+      // (IMAPCommandCompress).
+      if (IniFileSettings::Instance()->GetImapCompressionEnabled() && !pConnection->IsCompressed() && pConnection->IsAuthenticated())
          sResponse += " COMPRESS=DEFLATE";
 
       // RFC 3501 section 6.1.1: a capability must not be advertised if the server will

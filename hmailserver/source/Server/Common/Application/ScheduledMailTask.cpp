@@ -392,8 +392,9 @@ namespace HM
             return true;
       }
 
-      returned->SetFlagSeen(false);
-      if (Application::Instance()->GetFolderManager()->UpdateMessageFlags((int) account->GetID(), (int) target->GetID(), returned->GetID(), returned->GetFlags()))
+      // On the folder's live message and its row as one step, as STORE does it.
+      if (Application::Instance()->GetFolderManager()->ChangeMessageFlags(account->GetID(), target->GetID(), returned->GetID(),
+             [](Message &live) { live.SetFlagSeen(false); return true; }, returned) == FolderManager::FlagChangeStored)
       {
          std::vector<__int64> changed;
          changed.push_back(returned->GetID());

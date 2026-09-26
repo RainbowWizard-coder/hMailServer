@@ -380,6 +380,67 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   loop over a shared collection now iterates a locked copy.
 - Fixed: an IMAP command pipelined behind an `APPEND` with a non-synchronising literal was never answered, which
   stopped `mbsync` after one message.
+- Fixed: a heap-corruption abort when two IMAP sessions on one mailbox met on the same message's keywords - a
+  `STORE` of `$Forwarded`, `Junk` or a label beside a `FETCH`, a `SELECT` or another `STORE`, which is what two
+  of Thunderbird's connections, or a phone and a desktop, do. Every session shares the one message object, and its
+  keywords were rewritten with no lock; they are now read and changed under a lock of their own, so the abort
+  cannot happen. 6.3.3 had it too.
+- Fixed: two changes to one message's flags at the same moment - two IMAP `STORE`s from two sessions, a `STORE`
+  beside a `FETCH` that sets `\Seen`, or beside the webmail's flag and label routes - could each write back the
+  flags and keywords it had read before the other's change, so one change was lost, in memory and in the
+  database. The read, the change and the write are now one step under a lock of the message's own, and each flag
+  is set and cleared on its own bit. `STORE ... (UNCHANGEDSINCE n)` is tested in the same step; a `STORE` refused
+  for too many keywords leaves the message as it was rather than half changed in memory and never written; and a
+  flag change no longer writes back a `\Recent` another session has just claimed. As old as `STORE`.
+- Fixed: an IMAP `APPEND` whose client went away after sending a message's octets and before the command's
+  final line break left that message's file in the data directory for good, with no row, counted by no quota,
+  and - with `MessageStoreCompression` on - holding its references to shared parts. An authenticated user could
+  fill the volume by repeating it until the server refused mail for everyone. The file is now removed with the
+  connection, and one left by a server that stopped in the middle of such an `APPEND` - a crash, a kill, a power
+  cut - is removed when the server next starts: every such file has a marker in the temp folder's `IMAPAppend`
+  directory until its row is saved, and the file of a marker no row answers goes
+  ([MessageStore.md](hmailserver/docs/MessageStore.md)). 6.3.3 had it too.
+- Fixed: an IMAP `APPEND` into a folder shared from another mailbox (`#Users`) was measured against the quota
+  of the user appending, not of the mailbox that stores it, so a delegate with the insert right could push the
+  owner past the limit, and a delegate over their own limit was refused an append to a mailbox with room. It is
+  now charged to the owner, as `COPY` and `MOVE` already were. 6.3.3 had it too.
+- Fixed: an IMAP `FETCH` of a message the server could not read - one in a mailbox encrypted at rest while its
+  owner's key is closed, as a delegate meets it, or a damaged one (`HM7350`) - was answered `OK` with an
+  `ENVELOPE` of `NIL`s, an empty structure and empty sections, which clients keep by UID for good, and a
+  non-`PEEK` section set `\Seen`. It is now answered `NO [UNAVAILABLE]` for a closed key, with nothing of the
+  message sent; a damaged one is left out and the rest of the range fetched, and the command ends `NO`, as for a
+  message lost from an object store, so one damaged message does not stop a whole folder's sync at itself. Every
+  part is read before any is sent, so a failure can no longer leave an untagged `FETCH` unfinished
+  ([EncryptionAtRest.md](hmailserver/docs/EncryptionAtRest.md)).
+- Fixed: an IMAP `LIST` or `LSUB` pattern cost its length times each folder name's, for every folder listed, on
+  the threads every protocol shares, and nothing bounded it: one authenticated client's ten-megabyte pattern of
+  `*` held a thread for tens of seconds a command. A run of wildcards is now matched as one and a pattern that
+  cannot match stops at once, and a pattern longer than 8,192 characters with its reference - longer than any
+  name a folder can have - or more than 32 patterns in one `LIST` is answered `BAD`.
+- Fixed: a message whose `Date` header held a backslash - one at its end, say - broke the IMAP `ENVELOPE` it was
+  sent in: the backslash escaped the date's closing quote, so a client read the subject and the addresses the
+  sender wrote as part of the date and then as the response's own structure. The date's backslashes are left out,
+  as its quotes already were. 6.3.3 had it too.
+- Fixed: the same for IMAP `BODYSTRUCTURE`: a part's type, charset, file name, boundary, `Content-ID` and
+  disposition were put between quotes as the sender wrote them, so a file name ending in a backslash or a
+  `Content-ID` holding a quote broke the structure every client parsed, and a folded `Content-ID` ended the
+  response line. Their quotes and backslashes are now escaped and a control character is sent as a space; a value
+  without any of these is sent as before. 6.3.3 had it too.
+- Fixed: on an IMAP connection compressed with `COMPRESS DEFLATE`, what one read inflated past the connection's
+  250,000-octet receive buffer was dropped without a word. A few hundred compressed octets of a repeated byte
+  inflate to more than that, so such an `APPEND` stored its message cut short, or never finished, and the session
+  lost step with the client. The rest now waits and is taken before the connection reads again. 6.3.3 had it too.
+- Fixed: a later message of an IMAP `MULTIAPPEND` refused under a `{n+}` literal, or any literal after the command
+  had failed, was read and thrown away whatever size it declared, past the 2 GB ceiling too, so a client could
+  keep a connection reading for as long as it liked. Declared larger than the maximum message size (and 1 MB),
+  it now closes the connection with `BAD [TOOBIG]`, as the first literal already did. 6.3.3 had it too.
+- IMAP `COMPRESS DEFLATE` is taken, and `COMPRESS=DEFLATE` advertised, only once the client has signed in; before
+  that it is answered `NO`. It was taken in any state, which put the inflater within reach of anyone who could
+  open a connection, for no client that compresses before it authenticates.
+- Fixed: IMAP `STARTTLS` was taken, and offered, after `LOGIN` and inside a TLS session it had already started,
+  where it began a second handshake on the running one. It is a command of the not authenticated state only
+  (RFC 9051); it is now answered `BAD` and left out of `CAPABILITY` once TLS is active or the client has signed
+  in, as SMTP's `STARTTLS` and POP3's `STLS` already were. 6.3.3 had it too.
 - **A folder of a hundred thousand in the webmail**: a page copies one page of the folder, never all of it;
   Oldest reaches the end in one request; a search is bounded by time as well as by files read, spared by
   the full-text index, and goes on from where it stopped across every folder; select-all hands the

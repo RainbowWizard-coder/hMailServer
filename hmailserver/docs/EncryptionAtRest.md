@@ -446,8 +446,14 @@ arrived. So a message is never left under a key its new owner cannot open, and n
 the clear in an encrypted mailbox. A public folder is nobody's mailbox: a copy into one
 is stored as the message arrived.
 
-A folder shared with a delegate is readable by the delegate only while the owner's key
-is open - and the delegate's reading does not keep it open.
+A folder shared with a delegate is readable by the delegate only while the owner's key is
+open - and the delegate's reading does not keep it open. Over IMAP, while the key is
+closed, a `FETCH` of anything that reads the message - `ENVELOPE`, `BODYSTRUCTURE`, a
+section, the preview - is answered `NO [UNAVAILABLE]` with nothing of the message sent,
+and sets no `\Seen`; its UID, flags and size are still answered. A damaged message
+(`HM7350`) is left out the same way, to its owner as to anyone, but the rest of the
+range is still fetched and the command ends `NO`, so that one damaged message does not
+stop a client's sync of the whole folder at itself.
 
 
 Passwords

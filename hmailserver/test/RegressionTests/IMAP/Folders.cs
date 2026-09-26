@@ -5,6 +5,7 @@
 using System;
 using hMailServer;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Shared;
 
 namespace RegressionTests.IMAP
@@ -683,6 +684,55 @@ namespace RegressionTests.IMAP
          Assert.IsFalse(simulator.RenameFolder("1.2.3", "1"));
 
          Assert.IsTrue(simulator.RenameFolder("1.2.3", "A"));
+
+         simulator.Disconnect();
+      }
+
+      [Test]
+      [Description("A LIST or LSUB pattern longer than any mailbox name the server can hold, or more patterns than one LIST may carry, is refused BAD rather than matched against every folder on the shared threads; a run of wildcards still matches as one wildcard, and a '%' in a run with '*' crosses the delimiter as '*' does.")]
+      public void TestListPatternBounds()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "listbounds@example.test", "test");
+
+         var simulator = new ImapClientSimulator();
+         simulator.ConnectAndLogon(account.Address, "test");
+         simulator.CreateFolder("Alpha.Beta");
+
+         string runs = simulator.SendSingleCommand("A01 LIST \"\" \"Al**a.%%%\"");
+         Assert.IsTrue(runs.Contains("\"Alpha.Beta\""), runs);
+         Assert.IsTrue(runs.Contains("A01 OK"), runs);
+
+         string mixed = simulator.SendSingleCommand("A02 LIST \"\" \"A%*%a\"");
+         Assert.IsTrue(mixed.Contains("\"Alpha.Beta\""), "\"%*%\" is \"*\" and crosses the delimiter: " + mixed);
+
+         string percent = simulator.SendSingleCommand("A03 LIST \"\" \"A%%a\"");
+         Assert.IsTrue(percent.Contains("\"Alpha\""), percent);
+         Assert.IsFalse(percent.Contains("\"Alpha.Beta\""), "\"%%\" is \"%\" and stops at the delimiter: " + percent);
+
+         // One pattern of 9,000 wildcards, as a literal: longer than any name.
+         string tooLong = new string('*', 9000);
+         simulator.SendRaw("A04 LIST \"\" {" + tooLong.Length + "}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw(tooLong + "\r\n");
+         string refused = simulator.ReceiveUntil("A04 ");
+         Assert.IsTrue(refused.Contains("A04 BAD"), "A 9,000-character pattern must be refused: " + refused);
+
+         simulator.SendRaw("A05 LSUB \"\" {" + tooLong.Length + "}\r\n");
+         StringAssert.Contains("+ ", simulator.ReceiveUntil("+ "));
+         simulator.SendRaw(tooLong + "\r\n");
+         refused = simulator.ReceiveUntil("A05 ");
+         Assert.IsTrue(refused.Contains("A05 BAD"), "A 9,000-character LSUB pattern must be refused: " + refused);
+
+         // Thirty-three patterns in one LIST-EXTENDED command.
+         var many = new System.Text.StringBuilder();
+         for (int i = 0; i < 33; i++)
+            many.Append(i == 0 ? "" : " ").Append("\"P").Append(i).Append("\"");
+         string tooMany = simulator.SendSingleCommand("A06 LIST \"\" (" + many + ")");
+         Assert.IsTrue(tooMany.Contains("A06 BAD"), "Thirty-three patterns must be refused: " + tooMany);
+
+         // The connection is still in step.
+         string after = simulator.SendSingleCommand("A07 LIST \"\" \"Alpha\"");
+         Assert.IsTrue(after.Contains("A07 OK"), after);
 
          simulator.Disconnect();
       }

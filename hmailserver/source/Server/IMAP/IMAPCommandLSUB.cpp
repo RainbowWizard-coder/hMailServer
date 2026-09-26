@@ -42,6 +42,10 @@ namespace HM
       if (sReference.GetLength() > 0)
          folderSpecifier = sReference + folderSpecifier;
 
+      // What a command may ask to be matched (FolderListCreator::MaxPatternLength).
+      if (folderSpecifier.GetLength() > FolderListCreator::MaxPatternLength)
+         return IMAPResult(IMAPResult::ResultBad, "LSUB mailbox pattern is too long.");
+
       std::shared_ptr<IMAPFolders> pAccountFolders = pConnection->GetAccountFolders();
       std::shared_ptr<IMAPFolders> pPublicFolders = pConnection->GetPublicFolders();
 

@@ -52,6 +52,7 @@
 #include "../../SMTP/SMTPDeliveryManager.h"
 #include "../../SMTP/IpWarmup.h"
 #include "../../IMAP/IMAPConfiguration.h"
+#include "../../IMAP/IMAPCommandAppend.h"
 #include "../../ExternalFetcher/ExternalFetchManager.h"
 
 #include "../Threading/WorkQueueManager.h"
@@ -631,6 +632,11 @@ namespace HM
       // files put right (Util/MailboxKeys.h). A server with no keyed account
       // reads the empty table and nothing more.
       MailboxKeys::Start();
+
+      // What an IMAP APPEND the last process stopped in the middle of left in
+      // the message store - a literal's file with no row - removed before any
+      // listener is up (IMAP/IMAPCommandAppend.h).
+      IMAPCommandAppend::SweepAbandonedAppends();
 
       // Before io_service_, so that no listener can ever accept a connection on a
       // context whose session queues do not exist yet.

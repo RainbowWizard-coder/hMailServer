@@ -30,6 +30,14 @@ namespace HM
       if (!IniFileSettings::Instance()->GetImapCompressionEnabled())
          return IMAPResult(IMAPResult::ResultBad, "Unknown or NULL command");
 
+      // Once signed in, as RFC 4978's examples have it and as Dovecot and most
+      // servers offer it: before authentication it put the zlib inflater - and,
+      // until the receive buffer was bounded, a way to lose a command's bytes -
+      // within reach of anyone who could open a connection, for no client that
+      // needs it there. Not advertised before then either (IMAPCommandCapability).
+      if (!pConnection->IsAuthenticated())
+         return IMAPResult(IMAPResult::ResultNo, "Authenticate first");
+
       // "COMPRESS DEFLATE": the one algorithm the RFC defines.
       String sLine = pArgument->Command();
       int iSpace = sLine.Find(_T(" "));

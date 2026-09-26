@@ -293,6 +293,9 @@ namespace HM
       void StartCompressedRead_();
       void AsyncCompressedReadCompleted(const boost::system::error_code& error, size_t bytes_transferred);
       bool CompressedReadSatisfied_(size_t &available);
+      // Moves as much of inflated_pending_ into receive_buffer_ as its ceiling
+      // leaves room for.
+      void MoveInflated_();
       void AsyncRead(const AnsiString &delimitor);
       void AsyncHandshake();
       void AsyncDelay(int seconds);
@@ -361,6 +364,11 @@ namespace HM
       bool compression_read_enabled_ = false;
       bool compression_write_enabled_ = false;
       boost::asio::streambuf compressed_buffer_;
+      // Inflated bytes receive_buffer_ had no room for yet. One read of a few
+      // hundred compressed octets can inflate to a thousand times as many, more
+      // than receive_buffer_'s ceiling; the tail waits here, and a read takes it
+      // before the socket is read again.
+      std::string inflated_pending_;
       AnsiString compressed_read_delimiter_;
       std::shared_ptr<ByteBuffer> compressed_write_buffer_;
       // Set when the write that announces compression is dispatched; the deflater

@@ -59,10 +59,10 @@ namespace HM
       
       IMAPResult result = pFetch->DoForMails(pConnection, sMailNo, pArgument);
 
-      // The messages the object store has lost were left out; the others were
-      // fetched (docs/ObjectStorage.md).
-      if (result.GetResult() == IMAPResult::ResultOK && pFetch->GetLost() > 0)
-         return IMAPResult(IMAPResult::ResultNo, "Some of the messages are missing from the message store; the others were fetched.");
+      // The messages the object store has lost, and damaged ones, were left
+      // out; the others were fetched (docs/ObjectStorage.md).
+      if (result.GetResult() == IMAPResult::ResultOK && !pFetch->GetLeftOutRefusal().IsEmpty())
+         return IMAPResult(IMAPResult::ResultNo, pFetch->GetLeftOutRefusal());
 
       if (result.GetResult() == IMAPResult::ResultOK)
          pConnection->SendAsciiData(pArgument->Tag() + " OK FETCH completed\r\n");

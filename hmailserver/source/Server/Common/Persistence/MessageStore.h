@@ -324,6 +324,19 @@ namespace HM
       static bool Missing();
       static void NoteMissing();
 
+      // Whether a door on this thread refused a stored message it could not
+      // read (ReportUnreadable): a container that is damaged (HM7350), or one
+      // of a mailbox encrypted at rest read while the account's key is closed
+      // - the second is the one UnreadableKeyClosed answers true for. A door
+      // that fails that way answers as a file with nothing in it would - an
+      // empty header, an empty body, a size of nought - so a caller that must
+      // not hand that on as the message, as IMAP's FETCH must not, asks this
+      // after its reads. ClearUnreadable before them; not cleared by
+      // ClearUnavailable, which a door may call in the middle.
+      static bool Unreadable();
+      static bool UnreadableKeyClosed();
+      static void ClearUnreadable();
+
       // ---- The working file --------------------------------------------------
       //
       // The file of a message the store has not placed: a queue file, a copy

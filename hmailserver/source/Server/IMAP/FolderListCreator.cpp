@@ -5,6 +5,8 @@
 #include "stdafx.h"
 #include "FolderListCreator.h"
 
+#include <algorithm>
+
 #include "../Common/Application/ACLManager.h"
 
 #include "../Common/BO/ACLPermission.h"
@@ -342,9 +344,44 @@ namespace HM
       // the first i pattern characters can match. One row at a time, so the
       // cost is the product of the two lengths - bounded, whatever the
       // pattern, which a backtracking matcher fed "*%*%*%..." would not be.
-      const int patternLength = sWildcard.GetLength();
+      //
+      // The product is still the pattern's length times the name's, for every
+      // folder of every tree listed, on the shared TCP/IP threads - a pattern
+      // of ten million "*" cost tens of seconds of CPU per LIST. So the
+      // commands refuse a pattern longer than MaxPatternLength, and here a run
+      // of wildcards is one wildcard first: "**" and "*%" match what "*"
+      // matches, and "%%" what "%" matches. After that, a pattern with more
+      // characters that must each match one character of the name than the
+      // name has cannot match, and a row with no prefix left matching ends it.
+      String pattern;
+      int literals = 0;
+      for (int i = 0; i < sWildcard.GetLength(); i++)
+      {
+         const wchar_t patternChar = sWildcard.GetAt(i);
+         const bool wildcard = patternChar == '*' || patternChar == '%';
+         const int kept = pattern.GetLength();
+         const wchar_t last = kept > 0 ? pattern.GetAt(kept - 1) : (wchar_t) 0;
+
+         if (wildcard && (last == '*' || last == '%'))
+         {
+            // A "*" anywhere in the run makes the run "*".
+            if (patternChar == '*' && last == '%')
+               pattern.SetAt(kept - 1, '*');
+            continue;
+         }
+
+         if (!wildcard)
+            literals++;
+
+         pattern += patternChar;
+      }
+
+      const int patternLength = pattern.GetLength();
       const int nameLength = sFolderName.GetLength();
       const wchar_t delimiter = hierarchyDelimiter.IsEmpty() ? (wchar_t) 0 : hierarchyDelimiter.GetAt(0);
+
+      if (literals > nameLength)
+         return false;
 
       std::vector<char> previous((size_t) nameLength + 1, 0);
       std::vector<char> current((size_t) nameLength + 1, 0);
@@ -354,7 +391,7 @@ namespace HM
 
       for (int i = 1; i <= patternLength; i++)
       {
-         const wchar_t patternChar = sWildcard.GetAt(i - 1);
+         const wchar_t patternChar = pattern.GetAt(i - 1);
 
          if (patternChar == '*')
          {
@@ -384,6 +421,9 @@ namespace HM
          }
 
          previous.swap(current);
+
+         if (std::find(previous.begin(), previous.end(), (char) 1) == previous.end())
+            return false;
       }
 
       return previous[(size_t) nameLength] != 0;

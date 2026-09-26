@@ -643,6 +643,56 @@ namespace RegressionTests.Infrastructure
          File.WriteAllBytes(fileName, whole);
       }
 
+      [Test]
+      [Description("One damaged container does not stop a FETCH over the folder at itself: it is left out, the other messages are fetched, and the command ends NO. Negative control: with the container whole again the same FETCH answers both and OK.")]
+      public void ADamagedContainerIsLeftOutOfARangeAndTheRestIsFetched()
+      {
+         SetCompression(true, 256);
+         Account account = AddAccount("damagedrange");
+
+         string unique = "quokka" + Guid.NewGuid().ToString("N").Substring(0, 8);
+         SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address, Message(account.Address, "FirstDamaged", TextBody(unique, 500), null));
+         ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 1);
+         SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address, Message(account.Address, "SecondWhole", TextBody(unique, 500), null));
+         ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 2);
+
+         string fileName = Inbox(account).Messages[0].Filename;
+         byte[] whole = File.ReadAllBytes(fileName);
+         ClassicAssert.IsTrue(HasMagic(whole));
+         int headerLength = (int) BitConverter.ToUInt32(whole, 12);
+
+         try
+         {
+            File.WriteAllBytes(fileName, whole.Take(headerLength + (whole.Length - headerLength) / 2).ToArray());
+
+            string response = FetchRange(account.Address, "1:2 (ENVELOPE)");
+            StringAssert.DoesNotContain("FirstDamaged", response, "The damaged message was served: " + response);
+            StringAssert.Contains("SecondWhole", response, "The message after the damaged one was not fetched - the range stopped at the damage: " + response);
+            StringAssert.Contains("F1 NO", response, "A FETCH that left a message out must not end OK: " + response);
+
+            // Negative control: whole again, both and OK.
+            File.WriteAllBytes(fileName, whole);
+            response = FetchRange(account.Address, "1:2 (ENVELOPE)");
+            StringAssert.Contains("FirstDamaged", response);
+            StringAssert.Contains("SecondWhole", response);
+            StringAssert.Contains("F1 OK", response);
+         }
+         finally
+         {
+            File.WriteAllBytes(fileName, whole);
+         }
+      }
+
+      private static string FetchRange(string address, string arguments)
+      {
+         var imap = new ImapClientSimulator();
+         ClassicAssert.IsTrue(imap.ConnectAndLogon(address, Password));
+         ClassicAssert.IsTrue(imap.SelectFolder("INBOX"));
+         string response = imap.SendSingleCommand("F1 FETCH " + arguments);
+         imap.Disconnect();
+         return response;
+      }
+
       // ---- backup ----------------------------------------------------------------------
 
       [Test]

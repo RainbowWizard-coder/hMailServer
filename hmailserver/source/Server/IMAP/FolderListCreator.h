@@ -47,6 +47,18 @@ namespace HM
       // has no folder tree of its own, hence this helper. LIST output only.
       static String CreateNamespaceRootLine(const String &sRootPath, const String &sWildcard);
 
+      // The most a LIST, LSUB or LIST-EXTENDED command is matched with: each
+      // pattern, its reference in front, at most MaxPatternLength characters,
+      // and at most MaxPatterns patterns in one command. Matching costs the
+      // pattern's length times the name's for every folder listed, so without
+      // them one authenticated client's ten-megabyte pattern held the shared
+      // TCP/IP threads for tens of seconds a command. A name a folder can have
+      // - 25 levels of 255 characters, and "#Users" or the public folders'
+      // prefix before them - is well inside the first; the commands answer BAD
+      // beyond either.
+      static const int MaxPatternLength = 8192;
+      static const size_t MaxPatterns = 32;
+
    private:
 
       // Everything one listing needs, carried as a unit through the recursive walk.

@@ -1496,14 +1496,44 @@ namespace HM
    }
 
    void
+   TCPConnection::MoveInflated_()
+   {
+      if (inflated_pending_.empty())
+         return;
+
+      const size_t room = receive_buffer_.max_size() - receive_buffer_.size();
+      const size_t count = std::min(room, inflated_pending_.size());
+      if (count == 0)
+         return;
+
+      // prepare, not an ostream: a stream write past the ceiling fails into the
+      // stream's badbit and drops the rest without a word.
+      boost::asio::streambuf::mutable_buffers_type target = receive_buffer_.prepare(count);
+      boost::asio::buffer_copy(target, boost::asio::buffer(inflated_pending_.data(), count));
+      receive_buffer_.commit(count);
+      inflated_pending_.erase(0, count);
+   }
+
+   void
    TCPConnection::StartCompressedRead_()
    {
+      // What an earlier read inflated beyond the buffer's ceiling comes first.
+      MoveInflated_();
+
       size_t available = 0;
       if (CompressedReadSatisfied_(available))
       {
          // What the read asked for has already been inflated: complete it on the
          // strand, as the socket would have.
          boost::asio::post(strand_, std::bind(&TCPConnection::AsyncReadCompleted, shared_from_this(), boost::system::error_code(), available));
+         return;
+      }
+
+      // Full, and still no end of line: the ceiling async_read_until enforces,
+      // answered as it answers it (OnExcessiveDataReceived, through not_found).
+      if (receive_buffer_.size() >= receive_buffer_.max_size())
+      {
+         boost::asio::post(strand_, std::bind(&TCPConnection::AsyncReadCompleted, shared_from_this(), boost::asio::error::make_error_code(boost::asio::error::not_found), (size_t) 0));
          return;
       }
 
@@ -1543,11 +1573,16 @@ namespace HM
          return;
       }
 
+      // A few hundred compressed octets of zeros inflate to a thousand times as
+      // many, past receive_buffer_'s ceiling. Written with an ostream, the tail
+      // past it was lost without a word (the stream's badbit), and in binary
+      // mode what was left went on as an APPEND literal: a stored message cut
+      // short and the session out of step. Now the tail waits in
+      // inflated_pending_ for the next read, which takes it before the socket.
       if (!plain.empty())
-      {
-         std::ostream stream(&receive_buffer_);
-         stream.write(plain.data(), (std::streamsize) plain.size());
-      }
+         inflated_pending_.append(plain);
+
+      MoveInflated_();
 
       size_t available = 0;
       if (CompressedReadSatisfied_(available))

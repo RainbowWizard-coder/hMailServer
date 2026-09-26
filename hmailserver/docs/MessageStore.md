@@ -323,6 +323,33 @@ Backups
   the archive brought: the reader never asks the setting.
 
 
+An `APPEND` the server stopped in the middle of
+-----------------------------------------------
+
+An IMAP `APPEND` writes each literal to its message file, and places it in the store,
+as soon as its octets are in - before the command's last line, since a `MULTIAPPEND`
+is stored all or not at all - and the row comes only when the whole command has
+succeeded. A client that goes away in between takes its files with it: the command
+removes them when the connection closes. A process that stops in between - a crash, a
+kill, a power cut - runs nothing, so from the moment a literal's file is named until
+its row is saved or the file removed, the server keeps a small marker for it in the
+temp folder, `IMAPAppend\<file name>.append`, which names the file and says whether it
+has been placed yet.
+
+When the server starts, before any listener is up, it reads every marker no command
+of its own holds. A file no row names is removed - through the store when it had been
+placed, so that it lets go of the parts it holds once; discarded without asking what
+its first bytes claim when it had not - and the application log says so. A file any
+row names, by its partial name or its full path, is mail, and only its marker goes.
+A marker that does not say exactly what the server writes, or that names anything but
+a message file where the store keeps one - a mailbox's or the public folders'
+directory and its two-character fan-out, never the queue, the temp folder or anything
+else under the data directory - is removed and the file it names left alone. When the database cannot be asked, the
+marker stays for the next start.
+
+Nothing else is swept this way: a file another writer leaves when the process stops
+in the middle of it - an SMTP transfer's spool file, a delivery - is not looked for.
+
 What is thinner than it could be
 --------------------------------
 

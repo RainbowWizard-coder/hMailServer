@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 namespace HM
 {
    class MessageData;
@@ -121,8 +123,8 @@ namespace HM
 
       // RFC 7162 (CONDSTORE/QRESYNC): per-mailbox mod-sequence value, bumped on
       // arrival and on every metadata (flag) change.
-      __int64 GetModSeq() const { return message_modseq_; }
-      void SetModSeq(__int64 modSeq) { message_modseq_ = modSeq; }
+      __int64 GetModSeq() const { return message_modseq_.load(); }
+      void SetModSeq(__int64 modSeq) { message_modseq_.store(modSeq); }
 
       __int64 GetAccountID() const { return message_account_id_; }
       void SetAccountID(__int64 MsgAccountID) { message_account_id_ = (int) MsgAccountID; }
@@ -136,15 +138,44 @@ namespace HM
       __int64 GetFolderID() const { return message_folder_id_; }
       void SetFolderID(__int64 iFolderID) { message_folder_id_ = (int) iFolderID; }
 
-      short GetFlags() {return flags_; }
-      void SetFlags(short iNewVal) {flags_ = iNewVal; }
+      // The flags of a message in an IMAP folder's collection are shared the
+      // same way as its keywords (below): STORE, FETCH's \Seen, the REST API
+      // and the collection's own \Recent claim all change them from their own
+      // threads. So flags_ is atomic and every one-flag setter changes its bit
+      // alone - a plain "flags_ = flags_ | bit" from two threads at once could
+      // put back a bit the other had just cleared, or clear one it had set.
+      short GetFlags() const { return flags_.load(); }
+      void SetFlags(short iNewVal) { flags_.store(iNewVal); }
+
+      // Sets the bits in mask to their value in values and leaves every other
+      // bit as it is at that moment, as one atomic step.
+      void SetFlagBits(short mask, short values);
+
+      // Held by whoever reads, changes and writes this message's flags and
+      // keywords as one step (FolderManager::ChangeMessageFlags), so that two
+      // such changes - two STOREs from two sessions, a STORE and the REST
+      // API - cannot interleave and write back an older state over a newer
+      // one, in memory or in hm_messages. Only ChangeMessageFlags takes it,
+      // and with no other lock held. Under it the message's own members, the
+      // database and the folder's cached mod-sequence (IMAPFolderContainer::
+      // UpdateCurrentModSeq) are touched - never another message's lock, and
+      // nothing that could be waiting for this one.
+      boost::mutex &GetFlagChangeMutex() const { return flag_change_mutex_; }
 
       // IMAP keywords (RFC 3501 - the flags that are not system flags; the
       // webmail's labels): atoms, kept space-separated, compared without
       // case, at most 500 characters together. Persisted as messagekeywords
       // beside messageflags, written by the same statement.
-      String GetKeywords() const { return keywords_; }
-      void SetKeywords(const String &keywords) { keywords_ = keywords; }
+      //
+      // A message in an IMAP folder's collection is one object that every
+      // session on the mailbox shares (STORE and FETCH are handed the live
+      // one), so another session's thread may read these while a STORE
+      // rewrites them. keywords_ is a heap-owning string, so every access goes
+      // through keywords_mutex_, and AddKeyword and RemoveKeyword do their read,
+      // change and write under one hold of it - two STOREs at once could
+      // otherwise free the same buffer, or one lose the other's keyword.
+      String GetKeywords() const;
+      void SetKeywords(const String &keywords);
 
       // In memory only, never persisted: the id of the stored message this one
       // was copied from within the same account (PersistentMessage::
@@ -190,33 +221,24 @@ namespace HM
       // at the first NUL and smuggling bare LFs past the check that exists to
       // stop them. Schema 6025 widened the column for this, so the mark now
       // survives the database round-trip and the refusal holds on every path.
-      bool GetReleasedFromQuarantine() const { return (flags_ & FlagReleasedFromQuarantine) != 0; }
+      bool GetReleasedFromQuarantine() const { return (GetFlags() & FlagReleasedFromQuarantine) != 0; }
       void SetReleasedFromQuarantine(bool bNewVal)
       {
-         if (bNewVal)
-            flags_ |= FlagReleasedFromQuarantine;
-         else
-            flags_ &= ~FlagReleasedFromQuarantine;
+         SetFlagBits((short) FlagReleasedFromQuarantine, bNewVal ? (short) FlagReleasedFromQuarantine : (short) 0);
       }
 
       // See FlagReleasedFromSandboxQuarantine.
-      bool GetReleasedFromSandboxQuarantine() const { return (flags_ & FlagReleasedFromSandboxQuarantine) != 0; }
+      bool GetReleasedFromSandboxQuarantine() const { return (GetFlags() & FlagReleasedFromSandboxQuarantine) != 0; }
       void SetReleasedFromSandboxQuarantine(bool bNewVal)
       {
-         if (bNewVal)
-            flags_ |= FlagReleasedFromSandboxQuarantine;
-         else
-            flags_ &= ~FlagReleasedFromSandboxQuarantine;
+         SetFlagBits((short) FlagReleasedFromSandboxQuarantine, bNewVal ? (short) FlagReleasedFromSandboxQuarantine : (short) 0);
       }
 
       // See FlagSubmittedBySignedInUser.
-      bool GetSubmittedBySignedInUser() const { return (flags_ & FlagSubmittedBySignedInUser) != 0; }
+      bool GetSubmittedBySignedInUser() const { return (GetFlags() & FlagSubmittedBySignedInUser) != 0; }
       void SetSubmittedBySignedInUser(bool bNewVal)
       {
-         if (bNewVal)
-            flags_ |= FlagSubmittedBySignedInUser;
-         else
-            flags_ &= ~FlagSubmittedBySignedInUser;
+         SetFlagBits((short) FlagSubmittedBySignedInUser, bNewVal ? (short) FlagSubmittedBySignedInUser : (short) 0);
       }
 
       // Where the message came from, as the server itself saw it (schema 6101):
@@ -236,13 +258,10 @@ namespace HM
       String GetAuthDomains() const { return auth_domains_; }
       void SetAuthDomains(const String &domains) { auth_domains_ = domains; }
 
-      bool GetBinaryMime() const { return (flags_ & FlagBinaryMime) != 0; }
+      bool GetBinaryMime() const { return (GetFlags() & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {
-         if (bNewVal)
-            flags_ |= FlagBinaryMime;
-         else
-            flags_ &= ~FlagBinaryMime;
+         SetFlagBits((short) FlagBinaryMime, bNewVal ? (short) FlagBinaryMime : (short) 0);
       }
 
       void SetNoOfRetries(unsigned short lNewVal) {no_of_retries_ = lNewVal; }
@@ -251,13 +270,10 @@ namespace HM
 
       // See FlagFirstPassDone. The three "first pass only" steps of the
       // deliverer ask both this and the retry counter.
-      bool GetFirstPassDone() const { return (flags_ & FlagFirstPassDone) != 0; }
+      bool GetFirstPassDone() const { return (GetFlags() & FlagFirstPassDone) != 0; }
       void SetFirstPassDone(bool done)
       {
-         if (done)
-            flags_ |= FlagFirstPassDone;
-         else
-            flags_ &= ~FlagFirstPassDone;
+         SetFlagBits((short) FlagFirstPassDone, done ? (short) FlagFirstPassDone : (short) 0);
       }
 
       // See FlagRepeatsAttempt.
@@ -306,14 +322,21 @@ namespace HM
 
       short message_state_;
       short no_of_retries_;
-      short flags_;
-      String keywords_;
+      // Atomic: see GetFlags.
+      std::atomic<short> flags_;
 
-      // See GetBinaryMime above: in-memory only until messageflags is widened.
+      // Guarded by keywords_mutex_: see GetKeywords.
+      String keywords_;
+      mutable boost::mutex keywords_mutex_;
+
+      // See GetFlagChangeMutex.
+      mutable boost::mutex flag_change_mutex_;
 
       unsigned int uid_;
 
-      __int64 message_modseq_;
+      // Atomic because a flag change writes it (PersistentMessage::SaveFlags)
+      // while other sessions' FETCHes read it.
+      std::atomic<__int64> message_modseq_;
 
       __int64 copied_from_id_ = 0;
 
@@ -322,6 +345,9 @@ namespace HM
       String auth_domains_;
 
    private:
+
+      static std::vector<String> SplitKeywords_(const String &keywords);
+      static String JoinKeywords_(const std::vector<String> &keywords);
 
       bool GetFlag_(int iFlag) const;
       void SetFlag_(int iFlag, bool bSet);

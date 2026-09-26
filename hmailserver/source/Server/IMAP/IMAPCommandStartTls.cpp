@@ -31,6 +31,19 @@ namespace HM
       if (pConnection->IsCompressed())
          return IMAPResult(IMAPResult::ResultBad, "STARTTLS is not available once COMPRESS is active");
 
+      // RFC 9051 and RFC 3501 6.2.1: STARTTLS is a command of the not
+      // authenticated state, and a client must not start TLS inside a TLS
+      // session. Both used to be answered "OK Begin TLS negotiation now" and a
+      // handshake started - on a TLS session already running in the second case,
+      // where what followed was left to OpenSSL. Refused as SMTP's STARTTLS
+      // (SMTPConnection::ProtocolSTARTTLS_) and POP3's STLS already refuse it,
+      // and not advertised then either (IMAPCommandCapability).
+      if (pConnection->IsSSLConnection())
+         return IMAPResult(IMAPResult::ResultBad, "STARTTLS is not allowed: TLS is already active");
+
+      if (pConnection->IsAuthenticated())
+         return IMAPResult(IMAPResult::ResultBad, "STARTTLS is only allowed before authentication");
+
       if (pConnection->GetConnectionSecurity() == CSSTARTTLSOptional ||
          pConnection->GetConnectionSecurity() == CSSTARTTLSRequired)
       {

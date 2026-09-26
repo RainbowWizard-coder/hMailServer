@@ -100,8 +100,9 @@ namespace HM
       return true;
    }
 
-   bool
-   FolderManager::UpdateMessageFlags(int accountID, int folderID, __int64 messageID, int flags)
+   FolderManager::FlagChangeResult
+   FolderManager::ChangeMessageFlags(__int64 accountID, __int64 folderID, __int64 messageID,
+      const std::function<bool(Message &message)> &change, std::shared_ptr<Message> callersMessage)
    {
       std::shared_ptr<IMAPFolders> folders;
       if (accountID > 0)
@@ -110,45 +111,74 @@ namespace HM
          folders = IMAPFolderContainer::Instance()->GetPublicFolders();
 
       if (!folders)
-         return false;
+         return FlagChangeGone;
 
       std::shared_ptr<IMAPFolder> folder = folders->GetItemByDBIDRecursive(folderID);
       if (!folder)
-         return false;
+         return FlagChangeGone;
 
+      // Looked up before the message's lock is taken: the collection's own lock
+      // is never held under it (see Message::GetFlagChangeMutex).
       std::shared_ptr<Message> message = folder->GetMessages()->GetItemByDBID(messageID);
-
       if (!message)
-         return false;
+         return FlagChangeGone;
 
-      message->SetFlags(flags);
-      return PersistentMessage::SaveFlags(message);
+      const FlagChangeResult result = ChangeFlagsOf(message, change);
+
+      // The caller resolved the message from a collection that has since been
+      // replaced (the cache let it go and loaded the folder afresh): its object
+      // is brought in line with what was stored, after the live one's lock is
+      // released, so no two message locks are ever held at once.
+      if (result == FlagChangeStored && callersMessage && callersMessage != message)
+      {
+         boost::lock_guard<boost::mutex> guard(callersMessage->GetFlagChangeMutex());
+         const short recent = (short) Message::FlagRecent;
+         callersMessage->SetFlagBits((short) ~recent, message->GetFlags());
+         callersMessage->SetKeywords(message->GetKeywords());
+         callersMessage->SetModSeq(message->GetModSeq());
+      }
+
+      return result;
    }
 
-   bool
-   FolderManager::UpdateMessageFlags(int accountID, int folderID, __int64 messageID, int flags, const String &keywords)
+   FolderManager::FlagChangeResult
+   FolderManager::ChangeFlagsOf(std::shared_ptr<Message> message, const std::function<bool(Message &message)> &change)
    {
-      std::shared_ptr<IMAPFolders> folders;
-      if (accountID > 0)
-         folders = IMAPFolderContainer::Instance()->GetFoldersForAccount(accountID);
-      else
-         folders = IMAPFolderContainer::Instance()->GetPublicFolders();
-
-      if (!folders)
-         return false;
-
-      std::shared_ptr<IMAPFolder> folder = folders->GetItemByDBIDRecursive(folderID);
-      if (!folder)
-         return false;
-
-      std::shared_ptr<Message> message = folder->GetMessages()->GetItemByDBID(messageID);
-
       if (!message)
-         return false;
+         return FlagChangeGone;
 
-      message->SetFlags(flags);
-      message->SetKeywords(keywords);
-      return PersistentMessage::SaveFlags(message);
+      boost::lock_guard<boost::mutex> guard(message->GetFlagChangeMutex());
+
+      const short flagsBefore = message->GetFlags();
+      const String keywordsBefore = message->GetKeywords();
+      const __int64 modSeqBefore = message->GetModSeq();
+
+      // Put back what this change altered, and only that. \Recent is not
+      // taken under this lock - the collection clears it for every message at
+      // a claim (Messages::ClaimRecentMessageIDs) - so it is never restored:
+      // doing so could hand a claimed message its \Recent back.
+      auto restore = [&]()
+      {
+         const short recent = (short) Message::FlagRecent;
+         const short altered = (short) ((flagsBefore ^ message->GetFlags()) & ~recent);
+         message->SetFlagBits(altered, flagsBefore);
+         message->SetKeywords(keywordsBefore);
+      };
+
+      if (!change(*message))
+      {
+         restore();
+         return FlagChangeDeclined;
+      }
+
+      if (!PersistentMessage::SaveFlags(message))
+      {
+         restore();
+         message->SetModSeq(modSeqBefore);
+         return FlagChangeNotStored;
+      }
+
+      return FlagChangeStored;
    }
 
 

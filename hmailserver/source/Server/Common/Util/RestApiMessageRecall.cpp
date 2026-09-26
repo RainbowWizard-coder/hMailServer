@@ -403,8 +403,10 @@ namespace HM
                marked = true;
             else if (recalled > 0 && RightOn_(account, folder, ACLPermission::PermissionWriteOthers))
             {
-               if (copy->AddKeyword(String(RecalledKeyword)) &&
-                   Application::Instance()->GetFolderManager()->UpdateMessageFlags((int) folder->GetAccountID(), (int) folder->GetID(), copy->GetID(), copy->GetFlags(), copy->GetKeywords()))
+               // On the live message and its row as one step, as STORE does it.
+               const String recalled = String(RecalledKeyword);
+               if (Application::Instance()->GetFolderManager()->ChangeMessageFlags(folder->GetAccountID(), folder->GetID(), copy->GetID(),
+                      [&recalled](Message &live) { return live.AddKeyword(recalled); }, copy) == FolderManager::FlagChangeStored)
                {
                   std::vector<__int64> changed;
                   changed.push_back(copy->GetID());

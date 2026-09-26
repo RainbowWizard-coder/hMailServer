@@ -56,24 +56,39 @@ namespace HM
 
       message_state_ = other.message_state_;
       no_of_retries_ = other.no_of_retries_;
-      flags_ = other.flags_;
-      keywords_ = other.keywords_;
+      flags_.store(other.flags_.load());
+      // The other message may be a live one another session is changing.
+      keywords_ = other.GetKeywords();
 
       uid_ = other.uid_;
-      message_modseq_ = other.message_modseq_;
+      message_modseq_.store(other.message_modseq_.load());
 
       submitter_account_id_ = other.submitter_account_id_;
       auth_domains_ = other.auth_domains_;
    }
 
+   String
+   Message::GetKeywords() const
+   {
+      boost::lock_guard<boost::mutex> guard(keywords_mutex_);
+      return keywords_;
+   }
+
+   void
+   Message::SetKeywords(const String &keywords)
+   {
+      boost::lock_guard<boost::mutex> guard(keywords_mutex_);
+      keywords_ = keywords;
+   }
+
    std::vector<String>
-   Message::GetKeywordList() const
+   Message::SplitKeywords_(const String &keywords)
    {
       std::vector<String> list;
       String current;
-      for (int i = 0; i < keywords_.GetLength(); i++)
+      for (int i = 0; i < keywords.GetLength(); i++)
       {
-         wchar_t c = keywords_[i];
+         wchar_t c = keywords[i];
          if (c == ' ')
          {
             if (!current.IsEmpty())
@@ -88,8 +103,8 @@ namespace HM
       return list;
    }
 
-   void
-   Message::SetKeywordList(const std::vector<String> &keywords)
+   String
+   Message::JoinKeywords_(const std::vector<String> &keywords)
    {
       String joined;
       for (size_t i = 0; i < keywords.size(); i++)
@@ -106,6 +121,21 @@ namespace HM
             break;
          joined = next;
       }
+      return joined;
+   }
+
+   std::vector<String>
+   Message::GetKeywordList() const
+   {
+      return SplitKeywords_(GetKeywords());
+   }
+
+   void
+   Message::SetKeywordList(const std::vector<String> &keywords)
+   {
+      String joined = JoinKeywords_(keywords);
+
+      boost::lock_guard<boost::mutex> guard(keywords_mutex_);
       keywords_ = joined;
    }
 
@@ -124,8 +154,19 @@ namespace HM
    bool
    Message::AddKeyword(const String &keyword)
    {
-      if (keyword.IsEmpty() || HasKeyword(keyword))
+      if (keyword.IsEmpty())
          return true;
+
+      // The test and the write under one hold: see GetKeywords.
+      boost::lock_guard<boost::mutex> guard(keywords_mutex_);
+
+      std::vector<String> list = SplitKeywords_(keywords_);
+      for (size_t i = 0; i < list.size(); i++)
+      {
+         if (list[i].CompareNoCase(keyword) == 0)
+            return true;
+      }
+
       String next = keywords_.IsEmpty() ? keyword : keywords_ + _T(" ") + keyword;
       if (next.GetLength() > KeywordsMaximumLength)
          return false;
@@ -136,14 +177,16 @@ namespace HM
    void
    Message::RemoveKeyword(const String &keyword)
    {
-      std::vector<String> list = GetKeywordList();
+      boost::lock_guard<boost::mutex> guard(keywords_mutex_);
+
+      std::vector<String> list = SplitKeywords_(keywords_);
       std::vector<String> kept;
       for (size_t i = 0; i < list.size(); i++)
       {
          if (list[i].CompareNoCase(keyword) != 0)
             kept.push_back(list[i]);
       }
-      SetKeywordList(kept);
+      keywords_ = JoinKeywords_(kept);
    }
 
 
@@ -156,7 +199,7 @@ namespace HM
       message_size_ = 0;
       no_of_retries_ = 0;
       uid_ = 0;
-      message_modseq_ = 0;
+      message_modseq_.store(0);
 
       if (generateFileName)
       {
@@ -164,7 +207,7 @@ namespace HM
       }
 
       // Message flags.
-      flags_ = 0;
+      flags_.store(0);
 
       // RFC 3030: not binary until a MAIL FROM says so. Also the value every
       // message re-read from the database gets, since the mark does not persist
@@ -183,16 +226,25 @@ namespace HM
    bool
    Message::GetFlag_(int iFlag) const
    {
-      return (flags_ & iFlag) > 0;
+      return (GetFlags() & iFlag) != 0;
    }
 
    void
    Message::SetFlag_(int iFlag, bool bSet)
    {
-      if (bSet)
-         flags_ = flags_ | iFlag;
-      else
-         flags_ = flags_ & ~iFlag;
+      // One bit, atomically: see GetFlags in Message.h.
+      SetFlagBits((short) iFlag, bSet ? (short) iFlag : (short) 0);
+   }
+
+   void
+   Message::SetFlagBits(short mask, short values)
+   {
+      short current = flags_.load();
+      short wanted = 0;
+      do
+      {
+         wanted = (short) ((current & ~mask) | (values & mask));
+      } while (!flags_.compare_exchange_weak(current, wanted));
    }
 
    bool 
@@ -306,7 +358,7 @@ namespace HM
       pNode->AppendAttr(_T("State"), StringParser::IntToString(message_state_));
       pNode->AppendAttr(_T("Size"), StringParser::IntToString(message_size_));
       pNode->AppendAttr(_T("NoOfRetries"), StringParser::IntToString(no_of_retries_));
-      pNode->AppendAttr(_T("Flags"), StringParser::IntToString(flags_));
+      pNode->AppendAttr(_T("Flags"), StringParser::IntToString((int) GetFlags()));
 
       // The flags that are not system flags: the webmail's labels, its second and
       // third stars, its follow-up flag, mute and pin, and every keyword an IMAP
@@ -315,7 +367,7 @@ namespace HM
       // only the flags, so from the day keywords arrived a restore silently returned
       // every message with its labels stripped. Nothing announced it, because a
       // message that comes back unlabelled still comes back.
-      pNode->AppendAttr(_T("Keywords"), keywords_);
+      pNode->AppendAttr(_T("Keywords"), GetKeywords());
 
       pNode->AppendAttr(_T("ID"), StringParser::IntToString(id_));
       pNode->AppendAttr(_T("UID"), StringParser::IntToString(uid_));
@@ -332,12 +384,12 @@ namespace HM
       message_state_ = (State) _ttoi(pNode->GetAttrValue(_T("State")));
       message_size_ = _ttoi(pNode->GetAttrValue(_T("Size")));
       no_of_retries_ = _ttoi(pNode->GetAttrValue(_T("NoOfRetries")));
-      flags_ = _ttoi(pNode->GetAttrValue(_T("Flags")));
+      SetFlags((short) _ttoi(pNode->GetAttrValue(_T("Flags"))));
 
       // An archive taken before the attribute existed simply has none, and
       // GetAttrValue answers an empty string for that - which is exactly "no
       // keywords" and is what those messages had. No version check is needed.
-      keywords_ = pNode->GetAttrValue(_T("Keywords"));
+      SetKeywords(pNode->GetAttrValue(_T("Keywords")));
 
       uid_ = _ttoi(pNode->GetAttrValue(_T("UID")));
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using hMailServer;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
@@ -132,6 +133,82 @@ namespace RegressionTests.IMAP
          simulator.Disconnect();
 
          Assert.IsTrue(result.Contains("Wed, 22 Apr 2009 11:05:09 GMT"));
+      }
+
+      [Test]
+      [Description("A Date header ending with a backslash must not escape the closing quote of the ENVELOPE's date string: the subject and the rest of the envelope stay the envelope's.")]
+      public void TestFetchEnvelopeWithDateEndingInBackslash()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "mimetest@example.test", "test");
+
+         var message = "From: Someone <someone@example.com>" + "\r\n" +
+                       "To: Someoen <someone@example.com>" + "\r\n" +
+                       "Date: Wed, 22 Apr 2009 11:05:09 +0000 \\" + "\r\n" +
+                       "Subject: BackslashDateSubject" + "\r\n" +
+                       "\r\n" +
+                       "Hello" + "\r\n";
+
+         var smtpSimulator = new SmtpClientSimulator();
+         smtpSimulator.SendRaw(account.Address, account.Address, message);
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
+
+         var simulator = new ImapClientSimulator();
+         simulator.Connect();
+         simulator.Logon(account.Address, "test");
+         simulator.SelectFolder("INBOX");
+         var result = simulator.Fetch("1 ENVELOPE");
+         simulator.Disconnect();
+
+         StringAssert.Contains("Wed, 22 Apr 2009 11:05:09 +0000", result);
+         StringAssert.DoesNotContain("\\\"", result,
+            "A backslash before a quote in the envelope escapes it, and the envelope's strings run into each other: " + result);
+         StringAssert.Contains(" \"BackslashDateSubject\"", result,
+            "The subject must be a quoted string of its own: " + result);
+      }
+
+      [Test]
+      [Description("BODYSTRUCTURE strings come from the sender's own header: a file name ending in a backslash and a Content-ID holding a quote are escaped, not left to end the quoted string early or escape its closing quote.")]
+      public void TestFetchBodyStructureEscapesTheSendersStrings()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "mimetest@example.test", "test");
+
+         var message = "From: Someone <someone@example.com>" + "\r\n" +
+                       "To: Someoen <someone@example.com>" + "\r\n" +
+                       "Subject: Structure" + "\r\n" +
+                       "MIME-Version: 1.0" + "\r\n" +
+                       "Content-Type: multipart/mixed; boundary=\"outer\"" + "\r\n" +
+                       "\r\n" +
+                       "--outer" + "\r\n" +
+                       "Content-Type: text/plain; charset=us-ascii" + "\r\n" +
+                       "Content-ID: <quo\"te@example.com>" + "\r\n" +
+                       "\r\n" +
+                       "Body" + "\r\n" +
+                       "--outer" + "\r\n" +
+                       "Content-Type: application/octet-stream; name=\"report\\\"" + "\r\n" +
+                       "Content-Disposition: attachment; filename=\"report\\\"" + "\r\n" +
+                       "Content-Transfer-Encoding: base64" + "\r\n" +
+                       "\r\n" +
+                       "SGVsbG8=" + "\r\n" +
+                       "--outer--" + "\r\n";
+
+         var smtpSimulator = new SmtpClientSimulator();
+         smtpSimulator.SendRaw(account.Address, account.Address, message);
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
+
+         var simulator = new ImapClientSimulator();
+         simulator.Connect();
+         simulator.Logon(account.Address, "test");
+         simulator.SelectFolder("INBOX");
+         var result = simulator.Fetch("1 BODYSTRUCTURE");
+         simulator.Disconnect();
+
+         StringAssert.Contains("\"<quo\\\"te@example.com>\"", result,
+            "The Content-ID's quote must be escaped: " + result);
+         StringAssert.Contains("(\"FILENAME\" \"report\\\\\")", result,
+            "The file name's backslash must be escaped, so the closing quote stays one: " + result);
+         StringAssert.DoesNotContain("\"report\\\")", result, result);
       }
 
       [Test]

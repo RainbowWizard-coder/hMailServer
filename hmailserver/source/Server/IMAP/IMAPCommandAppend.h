@@ -34,6 +34,16 @@ namespace HM
       // ceiling, and advertising 0 would mean "no APPEND accepted at all".
       static __int64 GetEffectiveAppendLimitBytes(std::shared_ptr<const Account> pAccount);
 
+      // What an APPEND the process stopped in the middle of left behind: the
+      // message file of a literal received but never given a row. Every such
+      // file has a marker in the temp folder's IMAPAppend directory from the
+      // moment the literal's file is named until its row is saved or the file
+      // removed; a marker no command of this process holds belongs to a
+      // process that ended - a crash, a kill, a power cut - and its file, when
+      // no row names it, is removed with it. Run by Application::StartServers,
+      // before any listener is up.
+      static void SweepAbandonedAppends();
+
 
    private:
 
@@ -44,6 +54,9 @@ namespace HM
       {
          std::shared_ptr<Message> message;
          String fileName;
+
+         // Its marker (see SweepAbandonedAppends), or empty.
+         String markerFile;
       };
 
       // The command stays in binary mode from the first literal to the final
@@ -70,9 +83,24 @@ namespace HM
       IMAPResult RefuseWithLiteral_(std::shared_ptr<IMAPConnection> pConnection, const IMAPResult &refusal, bool nonSynchronizingLiteral, __int64 declaredSize);
       void CleanupPendingMessages_();
 
+      // The most of a literal that is read only to be discarded, and the
+      // TOOBIG close for one declared larger (true when the connection was
+      // closed; ParseBinary then reads nothing more).
+      static __int64 RefusedLiteralLimitBytes_(std::shared_ptr<const Account> pAccount);
+      bool CloseOnOversizedDiscard_(std::shared_ptr<IMAPConnection> pConnection, __int64 declaredSize);
+
       bool TruncateBuffer_(const std::shared_ptr<IMAPConnection> pConnection );
       bool WriteData_(const std::shared_ptr<IMAPConnection> pConnection, const BYTE *pBuf, size_t WriteLen);
       void KillCurrentMessage_();
+
+      // The markers of SweepAbandonedAppends. WriteAppendMarker_ answers the
+      // marker's path, or empty when it could not be written - the APPEND then
+      // goes on as it always did, unguarded against a crash rather than refused.
+      static String AppendMarkerDirectory_();
+      static String WriteAppendMarker_(const String &messageFile, bool placed, const String &existingMarker);
+      static void RemoveAppendMarker_(String &markerFile);
+      // One marker of SweepAbandonedAppends; whatever it throws is caught there.
+      static void SweepAbandonedAppend_(const String &directory, const String &dataDirectory, const String &markerName);
 
       static bool StripUtf8LiteralWrapper_(String &command);
 
@@ -84,6 +112,9 @@ namespace HM
       size_t bytes_left_to_receive_;
 
       String message_file_name_;
+
+      // The marker of the message being received (see SweepAbandonedAppends).
+      String current_marker_;
 
       // Set when any part of the literal could not be written to disk. The
       // literal is still consumed to keep the parser in step, but the command
@@ -100,6 +131,9 @@ namespace HM
       // step but discarded, and this holds the response to send at the end.
       bool command_failed_ = false;
       String failure_response_;
+
+      // Set when CloseOnOversizedDiscard_ has closed the connection.
+      bool connection_closing_ = false;
 
       // RFC 8508 (REPLACE): the message the command replaces. Removed from the
       // selected mailbox only after the replacement is safely stored - a failed

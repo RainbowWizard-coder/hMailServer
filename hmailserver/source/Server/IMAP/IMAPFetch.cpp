@@ -103,6 +103,7 @@ namespace HM
 
       // Whatever an earlier message on this thread met.
       MessageStore::ClearUnavailable();
+      MessageStore::ClearUnreadable();
 
       if (willReadMessageFile)
       {
@@ -293,6 +294,7 @@ namespace HM
 
       // RFC 8970: a server-generated snippet of the message body, so a client
       // can render its message list without fetching any bodies.
+      AnsiString previewUtf8;
       if (parser_->GetShowPreview())
       {
          String previewText = CreatePreviewText_(pConnection, pMessage);
@@ -300,7 +302,6 @@ namespace HM
          if (willReadMessageFile && MessageStore::Unavailable())
             return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
 
-         AnsiString previewUtf8;
          Unicode::WideToMultiByte(previewText, previewUtf8);
 
          // RFC 8970 section 5: at most 256 octets. The character truncation in
@@ -315,7 +316,74 @@ namespace HM
                cut--;
             previewUtf8 = previewUtf8.substr(0, cut);
          }
+      }
 
+      // Every part this message's response carries is read here, before any of
+      // the response is sent. A part read after an earlier one had gone out as
+      // a literal could fail only by leaving the untagged FETCH unfinished in
+      // front of the tagged NO.
+      std::vector<IMAPFetchParser::BodyPart> vecPartsToPeekAt = parser_->GetPartsToLookAt();
+      std::vector<std::shared_ptr<ByteBuffer> > partBuffers;
+
+      for (IMAPFetchParser::BodyPart &oPart : vecPartsToPeekAt)
+      {
+         const String partFileName = PersistentMessage::GetFileName(pConnection->GetAccountOwningCurrentFolder(), pMessage);
+         // A stored file the store cannot read - a container cut short or
+         // whose SHA-256 does not match (HM7350, reported by the store) - makes
+         // MessageStore::ReadRange throw. Nothing of this message has been sent,
+         // so the command is answered NO for it rather than the throw reaching
+         // the connection's catch-all, which logged a critical error with a
+         // minidump and dropped the session.
+         std::shared_ptr<ByteBuffer> pBuffer;
+         try
+         {
+            pBuffer = GetByteBufferByBodyPart_(partFileName, pMimeBody, oPart);
+         }
+         catch (const std::exception &)
+         {
+            if (MessageStore::Unavailable())
+               return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
+            if (MessageStore::UnreadableKeyClosed())
+               return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message is encrypted at rest and cannot be read until the mailbox's owner signs in.");
+
+            // Damaged: left out, the rest of the range fetched (GetDamaged).
+            damaged_++;
+            return IMAPResult();
+         }
+
+         // A part read that did not throw but found the object store gone - the
+         // raw HEADER and TEXT path answers an empty buffer when ReadAll fails -
+         // is the same "not now" as the checks above, not an empty section.
+         // Asked after each read: a later door clears the mark.
+         if (MessageStore::Unavailable())
+            return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
+
+         partBuffers.push_back(pBuffer);
+      }
+
+      // A stored message the store refused to read - damaged (HM7350), or in a
+      // mailbox encrypted at rest whose key is closed, which is what a
+      // delegate meets while the owner is not signed in - reads as nothing: an
+      // empty header, so an ENVELOPE of NILs, an empty structure, and empty
+      // sections. Answered OK, that was cached by the client under the UID for
+      // good, and a non-PEEK section set \Seen on a message nobody had read.
+      // Asked here, after every read and before a byte of this message is
+      // sent; the key's case is temporary, as RFC 5530 UNAVAILABLE says
+      // (docs/EncryptionAtRest.md).
+      if (willReadMessageFile && MessageStore::Unreadable())
+      {
+         if (MessageStore::UnreadableKeyClosed())
+            return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message is encrypted at rest and cannot be read until the mailbox's owner signs in.");
+
+         // Damaged: left out, the rest of the range fetched (GetDamaged). It
+         // used to end the command here, so one damaged message stopped every
+         // FETCH 1:* - a client's whole sync of the folder - at itself.
+         damaged_++;
+         return IMAPResult();
+      }
+
+      if (parser_->GetShowPreview())
+      {
          // Emitted as a literal: the preview is UTF-8 by definition (RFC 8970
          // section 5) and an IMAP quoted string cannot safely carry that.
          String sTemp;
@@ -340,102 +408,75 @@ namespace HM
          AppendOutput_(sOutput, sResult);
       }
 
-      std::vector<IMAPFetchParser::BodyPart> vecPartsToPeekAt = parser_->GetPartsToLookAt();
-      
-      if (vecPartsToPeekAt.size() > 0)
+      for (size_t partIndex = 0; partIndex < vecPartsToPeekAt.size(); partIndex++)
       {
-         auto iter = vecPartsToPeekAt.begin();
+         IMAPFetchParser::BodyPart &oPart = vecPartsToPeekAt[partIndex];
+         std::shared_ptr<ByteBuffer> pBuffer = partBuffers[partIndex];
 
-         // First we should only print the part sizes..
-         while (iter != vecPartsToPeekAt.end())   
+         int iOctetStart = oPart.octet_start_;
+         int iOctetCount = oPart.octet_count_;
+
+         String sPartIdentifier;
+         if (iOctetStart == -1 && iOctetCount == -1)
+            sPartIdentifier.Format(_T("%s"), oPart.GetDescription().c_str());
+         else
+            // RFC 3501: a partial response echoes only the origin octet.
+            sPartIdentifier.Format(_T("%s<%d>"), oPart.GetDescription().c_str(), iOctetStart);
+
+         // RFC 3516: BINARY.SIZE answers a number, not a literal.
+         if (oPart.GetShowBinarySize())
          {
-            IMAPFetchParser::BodyPart oPart = (*iter);
+            String sTemp;
+            sTemp.Format(_T("%s %Iu"), oPart.GetDescription().c_str(), pBuffer->GetSize());
+            AppendOutput_(sOutput, sTemp);
+            continue;
+         }
 
-            int iOctetStart = oPart.octet_start_;
-            int iOctetCount = oPart.octet_count_;
-           
-            const String messageFileName = PersistentMessage::GetFileName(pConnection->GetAccountOwningCurrentFolder(), pMessage);
-            // A stored file the store cannot read - a container cut short or
-            // whose SHA-256 does not match (HM7350, reported by the store) - makes
-            // MessageStore::ReadRange throw. Nothing of this part has been sent,
-            // so the command is answered NO for it rather than the throw reaching
-            // the connection's catch-all, which logged a critical error with a
-            // minidump and dropped the session.
-            std::shared_ptr<ByteBuffer> pBuffer;
-            try
-            {
-               pBuffer = GetByteBufferByBodyPart_(messageFileName, pMimeBody, oPart);
-            }
-            catch (const std::exception &)
-            {
-               if (MessageStore::Unavailable())
-                  return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
-               return IMAPResult(IMAPResult::ResultNo, "The message could not be read.");
-            }
-            
-            String sPartIdentifier;
-            if (iOctetStart == -1 && iOctetCount == -1)
-               sPartIdentifier.Format(_T("%s"), oPart.GetDescription().c_str());
-            else
-               // RFC 3501: a partial response echoes only the origin octet.
-               sPartIdentifier.Format(_T("%s<%d>"), oPart.GetDescription().c_str(), iOctetStart);
+         if (pBuffer->GetSize() > 0)
+         {
+            // RFC 3516 section 4.3: BINARY content is announced with literal8
+            // (~{n}), not the plain literal. It matters for exactly the content
+            // BINARY exists to deliver - decoded bytes can contain NUL, which a
+            // plain literal is not permitted to carry, so a client reading
+            // strictly would be entitled to treat the response as malformed.
+            // Only BINARY uses it; BODY[] keeps the plain literal, and a client
+            // only sees literal8 in reply to a command that announced BINARY
+            // support by using it.
+            const String literalPrefix = oPart.GetShowBinaryContent() ? _T("~{") : _T("{");
 
-            // RFC 3516: BINARY.SIZE answers a number, not a literal.
-            if (oPart.GetShowBinarySize())
-            {
-               String sTemp;
-               sTemp.Format(_T("%s %Iu"), oPart.GetDescription().c_str(), pBuffer->GetSize());
-               AppendOutput_(sOutput, sTemp);
+            // Send part size information
+            String sTemp;
+            sTemp.Format(_T("%s %s%Iu}\r\n"), sPartIdentifier.c_str(), literalPrefix.c_str(), pBuffer->GetSize()); // Add 2 for trailing newline.
 
-               iter++;
-               continue;
-            }
+            AppendOutput_(sOutput, sTemp);
+            SendAndReset_(pConnection, sOutput);
 
-            if (pBuffer->GetSize() > 0)
-            {
-               // RFC 3516 section 4.3: BINARY content is announced with literal8
-               // (~{n}), not the plain literal. It matters for exactly the content
-               // BINARY exists to deliver - decoded bytes can contain NUL, which a
-               // plain literal is not permitted to carry, so a client reading
-               // strictly would be entitled to treat the response as malformed.
-               // Only BINARY uses it; BODY[] keeps the plain literal, and a client
-               // only sees literal8 in reply to a command that announced BINARY
-               // support by using it.
-               const String literalPrefix = oPart.GetShowBinaryContent() ? _T("~{") : _T("{");
-
-               // Send part size information
-               String sTemp;
-               sTemp.Format(_T("%s %s%Iu}\r\n"), sPartIdentifier.c_str(), literalPrefix.c_str(), pBuffer->GetSize()); // Add 2 for trailing newline.
-               
-               AppendOutput_(sOutput, sTemp);
-               SendAndReset_(pConnection, sOutput);
-
-               // Send the actual part
-               pConnection->EnqueueWrite(pBuffer);
-            }
-            else
-            {
-               // The client requested a part that does not exist.
-               // Just give the client an empty string for that part.
-               String sTemp;
-               sTemp.Format(_T("%s \"\""), sPartIdentifier.c_str());
-               AppendOutput_(sOutput, sTemp);
-            }
-
-            iter++;
+            // Send the actual part
+            pConnection->EnqueueWrite(pBuffer);
+         }
+         else
+         {
+            // The client requested a part that does not exist.
+            // Just give the client an empty string for that part.
+            String sTemp;
+            sTemp.Format(_T("%s \"\""), sPartIdentifier.c_str());
+            AppendOutput_(sOutput, sTemp);
          }
       }
-     
+
       if (seenWillBeSet)
       {
-         // Since the user has looked at the email, we should set the Seen flag.
-         // Update seen flag in the cached copy of the message...
-         pMessage->SetFlagSeen(true);
-
-         Application::Instance()->GetFolderManager()->UpdateMessageFlags(
-            (int) pConnection->GetCurrentFolder()->GetAccountID(),
-            (int) pConnection->GetCurrentFolder()->GetID(),
-            pMessage->GetID(), pMessage->GetFlags());
+         // Since the user has looked at the email, we should set the Seen flag -
+         // on the folder's live message and in its row, as one step under the
+         // message's flag-change lock (FolderManager::ChangeMessageFlags), so
+         // that a STORE another session makes at the same moment is neither
+         // undone nor undoes this.
+         Application::Instance()->GetFolderManager()->ChangeMessageFlags(
+            pConnection->GetCurrentFolder()->GetAccountID(),
+            pConnection->GetCurrentFolder()->GetID(),
+            pMessage->GetID(),
+            [](Message &message) { message.SetFlagSeen(true); return true; },
+            pMessage);
 
          // The change is part of this response when the client did not ask for
          // FLAGS itself (RFC 3501 6.4.5), as imaptest and Dovecot expect.
@@ -1049,9 +1090,15 @@ namespace HM
             if (iStartPara >= 0)
                sDate = sDate.Mid(0, iStartPara-1);
 
-            // Make sure no quotes are included in the date.
-
+            // Make sure no quotes are included in the date - and no backslash,
+            // which a date never has either. Charset::Encode leaves printable
+            // ASCII as it is, and inside the quoted string a backslash escapes
+            // what follows (RFC 3501 4.3): a Date header that ended with one
+            // escaped the closing quote, so every client read the rest of the
+            // envelope, and whatever the sender wrote in it, as the date and
+            // then as the response's own structure.
             sDate.Replace(_T("\""), _T(""));
+            sDate.Replace(_T("\\"), _T(""));
 
             sDate = Charset::Encode(sDate);
 
@@ -1209,6 +1256,35 @@ namespace HM
    }
 
    String
+   IMAPFetch::StructureString_(const String &value)
+   {
+      // A BODYSTRUCTURE string taken from the message's own header - a type,
+      // a charset, a file name, a boundary, a Content-ID, a disposition - which
+      // anyone who can send the server mail writes. They were put between
+      // quotes as they came, so a file name ending in a backslash escaped the
+      // closing quote, and a Content-ID with a quote in it ended the string
+      // early: every client then parsed what the sender wrote as the
+      // response's own structure. Quote and backslash are escaped (RFC 3501
+      // 4.3) and a control character, a folded line's CR LF among them, which
+      // a quoted string cannot carry and which would end the response line,
+      // is sent as a space. Anything else goes as it always has, so a value
+      // without any of these is sent byte for byte as before.
+      String quoted = _T("\"");
+      for (int i = 0; i < value.GetLength(); i++)
+      {
+         wchar_t c = value.GetAt(i);
+         if (c == '"' || c == '\\')
+            quoted += _T("\\");
+         else if (c < 0x20 || c == 0x7F)
+            c = ' ';
+         quoted += c;
+      }
+      quoted += _T("\"");
+
+      return quoted;
+   }
+
+   String
    IMAPFetch::EnvelopeNString_(const AnsiString &value)
    {
       if (value.IsEmpty())
@@ -1317,15 +1393,12 @@ namespace HM
          String sType = oPart->GetSubType();
          sType.ToUpper();
 
-         String sTemp;
-         sTemp.Format(_T(" \"%s\""), sType.c_str());
-         sResult += sTemp;
+         sResult += _T(" ") + StructureString_(sType);
 
          if (includeExtensionData)
          {
             String sBoundary = oPart->GetBoundary();
-            sTemp.Format(_T(" (\"BOUNDARY\" \"%s\") NIL NIL"), sBoundary.c_str());
-            sResult += sTemp;
+            sResult += _T(" (\"BOUNDARY\" ") + StructureString_(sBoundary) + _T(") NIL NIL");
          }
          
          sResult += ")";
@@ -1350,7 +1423,7 @@ namespace HM
       String sBodyParams;
 
       if (oPart->IsAttachment())
-         sBodyParams.Format(_T("(\"NAME\" \"%s\")"), oPart->GetRawFilename().c_str());
+         sBodyParams = _T("(\"NAME\" ") + StructureString_(oPart->GetRawFilename()) + _T(")");
       else
       {
          String sCharset = oPart->GetCharset();
@@ -1363,7 +1436,7 @@ namespace HM
             sCharset = "US-ASCII";
          }
 
-         sBodyParams.Format(_T("(\"CHARSET\" \"%s\")"), sCharset.c_str());
+         sBodyParams = _T("(\"CHARSET\" ") + StructureString_(sCharset) + _T(")");
       }
       
       // body-fld-desc is the part's Content-Description (RFC 3501 7.4.2). It
@@ -1383,14 +1456,14 @@ namespace HM
 
       String sResult;
       sResult += "(";
-      sResult += "\"" + sMainType + "\"";
-      sResult += " \"" + sSubType + "\"";
+      sResult += StructureString_(sMainType);
+      sResult += " " + StructureString_(sSubType);
       sResult += " " + sBodyParams;
-      
+
       if (sContentID.IsEmpty())
          sResult += " NIL";
       else
-         sResult += " \"" + sContentID + "\"";
+         sResult += " " + StructureString_(sContentID);
       
       if (sDescription.IsEmpty())
          sResult += " NIL";
@@ -1403,7 +1476,7 @@ namespace HM
       if (sEncoding.IsEmpty())
          sResult += " \"7bit\"";
       else
-         sResult += " \"" + sEncoding + "\"";
+         sResult += " " + StructureString_(sEncoding);
 
       sResult += " " + sSize;
 
@@ -1480,9 +1553,7 @@ namespace HM
          if (sDisposition.IsEmpty())
             sDisposition = "ATTACHMENT";
     
-         String sTemp;
-         sTemp.Format(_T("NIL (\"%s\" (\"FILENAME\" \"%s\"))"), sDisposition.c_str(), oPart->GetRawFilename().c_str());
-         sResult += " " + sTemp;
+         sResult += _T(" NIL (") + StructureString_(sDisposition) + _T(" (\"FILENAME\" ") + StructureString_(oPart->GetRawFilename()) + _T("))");
       }
 
       sResult += ")";
@@ -1744,5 +1815,16 @@ namespace HM
       ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5062, "IMAPFetch::ReportCriticalError_", sErrorMessage);
    }
 
+   String
+   IMAPFetch::GetLeftOutRefusal() const
+   {
+      if (lost_ > 0 && damaged_ > 0)
+         return _T("Some of the messages are missing from the message store or could not be read; the others were fetched.");
+      if (lost_ > 0)
+         return _T("Some of the messages are missing from the message store; the others were fetched.");
+      if (damaged_ > 0)
+         return _T("Some of the messages could not be read; the others were fetched.");
+      return String();
+   }
 }
 

@@ -38,10 +38,23 @@ namespace HM
       // message lost from the store never stops a client's sync at itself.
       int GetLost() const { return lost_; }
 
+      // How many messages of the range the store holds but cannot read -
+      // damaged (HM7350): left out the same way, so that one damaged message
+      // does not stop every FETCH 1:* at itself, the rest fetched, and the
+      // command answered NO. A closed mailbox key is not counted here: every
+      // message of such a mailbox is unreadable until its owner signs in, and
+      // the command stops with NO [UNAVAILABLE] at the first.
+      int GetDamaged() const { return damaged_; }
+
+      // The tagged NO a FETCH ends with when it left messages out (GetLost,
+      // GetDamaged), or empty when it left none out.
+      String GetLeftOutRefusal() const;
+
 
    private:
 
       int lost_ = 0;
+      int damaged_ = 0;
 
       String CreateEnvelopeStructure_(MimeHeader& oHeader);
       String GetPartStructure_(std::shared_ptr<MimeBody> oPart, bool includeExtensionData, int iRecursion);
@@ -55,6 +68,10 @@ namespace HM
       // The "N" form answers NIL for an empty value.
       static String EnvelopeString_(const AnsiString &value);
       static String EnvelopeNString_(const AnsiString &value);
+
+      // A BODYSTRUCTURE string from the message's header, quoted with its quote
+      // and backslash escaped and a control character sent as a space.
+      static String StructureString_(const String &value);
 
       // RFC 3501 7.4.2: body-fld-lines, the size of a body in text lines.
       static long CountTextLines_(const AnsiString &content);

@@ -39,8 +39,9 @@ namespace RegressionTests.IMAP
       {
          using (var client = new DeflateImapClient())
          {
-            StringAssert.Contains("COMPRESS=DEFLATE", client.Command("A1 CAPABILITY"), "Offered on a plain connection.");
+            StringAssert.DoesNotContain("COMPRESS=DEFLATE", client.Command("A1 CAPABILITY"), "Not offered before authentication, where it is not taken.");
             client.Login(_account.Address, "test");
+            StringAssert.Contains("COMPRESS=DEFLATE", client.Command("A2 CAPABILITY"), "Offered on a plain connection once signed in.");
             client.Compress();
             string capability = client.Command("A3 CAPABILITY");
             StringAssert.Contains("* CAPABILITY IMAP4", capability, "The response arrived inflated.");
@@ -134,6 +135,42 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
+      public void AnAppendLiteralThatInflatesPastTheReceiveBufferArrivesWhole()
+      {
+         // A run of one letter, sent as a dynamic-Huffman DEFLATE block of 258-octet
+         // matches at two bits each: about a thousand plain octets for every
+         // compressed one. One socket read of a few hundred compressed octets then
+         // inflates past the connection's 250,000-octet receive buffer, and the
+         // tail past it was dropped without a word - the literal arrived short and
+         // the server went on reading the command's last line as message octets.
+         const string header = "From: sender@example.com\r\nTo: compress@example.test\r\nSubject: inflated past the buffer\r\n\r\n";
+         const int matches = 5000;
+         int run = 1 + 258 * matches;
+         int size = header.Length + run + 2;
+
+         using (var client = new DeflateImapClient())
+         {
+            client.Login(_account.Address, "test");
+            client.Compress();
+
+            string continuation = client.Command("A3 APPEND INBOX {" + size + "}", "+");
+            StringAssert.StartsWith("+", continuation, "The server asks for the literal.");
+
+            client.SendText(header);
+            client.SendDeflate(DeflateImapClient.RunOfTheLetterA(matches));
+            // The literal's own last CRLF, then the command's.
+            string appended = client.Command("\r\n", "A3");
+            StringAssert.Contains("A3 OK", appended, "The whole literal must arrive and be stored: " + appended);
+
+            StringAssert.Contains("* 1 EXISTS", client.Command("A4 SELECT INBOX"));
+            string fetch = client.Command("A5 FETCH 1 (RFC822.SIZE BODY.PEEK[]<" + (size - 12) + ".12>)");
+            StringAssert.Contains("RFC822.SIZE " + size, fetch, "The stored message is the size of the literal: " + fetch);
+            StringAssert.Contains("AAAAAAAAAA\r\n", fetch, "The message ends with the run and its line break: " + fetch);
+            StringAssert.Contains("A5 OK", fetch);
+         }
+      }
+
+      [Test]
       public void ASecondCompressIsRefusedWithCompressionActive()
       {
          using (var client = new DeflateImapClient())
@@ -159,14 +196,17 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      public void CompressWorksBeforeLoginToo()
+      public void CompressIsRefusedBeforeLogin()
       {
-         // RFC 4978 allows COMPRESS in any state.
+         // Taken once signed in only: before authentication it put the zlib
+         // inflater within reach of anyone who could connect, for no client
+         // that needs it there. The connection stays plain and usable.
          using (var client = new DeflateImapClient())
          {
-            client.Compress("A1");
+            StringAssert.Contains("A1 NO", client.Command("A1 COMPRESS DEFLATE"));
             StringAssert.Contains("A2 OK", client.Command("A2 LOGIN " + _account.Address + " test"));
-            StringAssert.Contains("A3 OK", client.Command("A3 SELECT INBOX"));
+            client.Compress("A3");
+            StringAssert.Contains("A4 OK", client.Command("A4 SELECT INBOX"));
          }
       }
 
@@ -177,8 +217,9 @@ namespace RegressionTests.IMAP
          {
             if (!client.Command("A1 CAPABILITY").Contains("STARTTLS"))
                Assert.Ignore("STARTTLS is not offered on the plain IMAP port in this environment.");
-            client.Compress("A2");
-            StringAssert.Contains("A3 BAD", client.Command("A3 STARTTLS"), "RFC 4978 section 3: no TLS under compression.");
+            client.Login(_account.Address, "test");
+            client.Compress("A3");
+            StringAssert.Contains("A4 BAD", client.Command("A4 STARTTLS"), "RFC 4978 section 3: no TLS under compression.");
          }
       }
 
@@ -324,6 +365,100 @@ namespace RegressionTests.IMAP
             }
             byte[] stored = StoredDeflate(bytes);
             _network.Write(stored, 0, stored.Length);
+         }
+
+         // Text without a line break of its own, as stored blocks.
+         public void SendText(string text)
+         {
+            Send(text);
+         }
+
+         // DEFLATE bytes built by the test, as they are. They must leave the stream
+         // on a byte boundary, as RunOfTheLetterA does.
+         public void SendDeflate(byte[] deflate)
+         {
+            _network.Write(deflate, 0, deflate.Length);
+         }
+
+         // One non-final dynamic-Huffman block (RFC 1951 section 3.2.7) that
+         // inflates to "A" followed by 'matches' copies of a 258-octet match at
+         // distance 1, then an empty stored block to come back to a byte boundary.
+         // Literal/length code: 285 (length 258) '0', 'A' '10', end of block '11';
+         // distance code 0 '0'; the code-length code: 18 '0', 1 '10', 2 '11'.
+         public static byte[] RunOfTheLetterA(int matches)
+         {
+            var bits = new BitWriter();
+            bits.Write(0, 1);          // BFINAL: more blocks follow
+            bits.Write(2, 2);          // BTYPE 10: dynamic Huffman
+            bits.Write(286 - 257, 5);  // HLIT: literal/length codes 0-285
+            bits.Write(1 - 1, 5);      // HDIST: distance code 0
+            int[] order = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1};
+            bits.Write(order.Length - 4, 4);
+            foreach (int symbol in order)
+               bits.Write(symbol == 18 ? 1 : (symbol == 1 || symbol == 2) ? 2 : 0, 3);
+
+            // The 286 literal/length code lengths and the one distance code length.
+            bits.Code(0, 1); bits.Write(65 - 11, 7);     // 0-64 unused
+            bits.Code(3, 2);                             // 'A' (65): 2
+            bits.Code(0, 1); bits.Write(138 - 11, 7);    // 66-203 unused
+            bits.Code(0, 1); bits.Write(52 - 11, 7);     // 204-255 unused
+            bits.Code(3, 2);                             // end of block (256): 2
+            bits.Code(0, 1); bits.Write(28 - 11, 7);     // 257-284 unused
+            bits.Code(2, 2);                             // 285: 1
+            bits.Code(2, 2);                             // distance 0: 1
+
+            bits.Code(2, 2);                             // 'A'
+            for (int i = 0; i < matches; i++)
+            {
+               bits.Code(0, 1);                          // length 258
+               bits.Code(0, 1);                          // distance 1
+            }
+            bits.Code(3, 2);                             // end of block
+
+            // An empty stored block: its header, the pad to the byte, LEN 0, NLEN.
+            bits.Write(0, 3);
+            bits.Align();
+            bits.Bytes.AddRange(new byte[] {0x00, 0x00, 0xFF, 0xFF});
+            return bits.Bytes.ToArray();
+         }
+
+         private sealed class BitWriter
+         {
+            public readonly List<byte> Bytes = new List<byte>();
+            private int _current;
+            private int _count;
+
+            // A header field or extra bits: least significant bit first.
+            public void Write(int value, int length)
+            {
+               for (int i = 0; i < length; i++)
+                  Bit((value >> i) & 1);
+            }
+
+            // A Huffman code: most significant bit first.
+            public void Code(int code, int length)
+            {
+               for (int i = length - 1; i >= 0; i--)
+                  Bit((code >> i) & 1);
+            }
+
+            public void Align()
+            {
+               if (_count > 0)
+               {
+                  Bytes.Add((byte) _current);
+                  _current = 0;
+                  _count = 0;
+               }
+            }
+
+            private void Bit(int bit)
+            {
+               _current |= bit << _count;
+               _count++;
+               if (_count == 8)
+                  Align();
+            }
          }
 
          private string ReadUntil(params string[] markers)

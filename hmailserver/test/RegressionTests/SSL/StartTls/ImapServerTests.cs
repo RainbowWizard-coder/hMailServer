@@ -5,6 +5,7 @@
 using System.Threading;
 using hMailServer;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Shared;
 
 namespace RegressionTests.SSL.StartTls
@@ -62,6 +63,43 @@ namespace RegressionTests.SSL.StartTls
          imapSimulator.GetCapabilities();
 
          imapSimulator.Logon(_account.Address, "test");
+      }
+
+      [Test]
+      [Description("A second STARTTLS inside the TLS session it started is refused, and STARTTLS is no longer offered there. Negative control: the first STARTTLS on the same connection is taken.")]
+      public void ASecondStartTlsIsRefusedOnceTlsIsActive()
+      {
+         var imapSimulator = new ImapClientSimulator(false, 14302);
+         imapSimulator.Connect();
+         StringAssert.Contains("STARTTLS", imapSimulator.SendSingleCommand("A01 CAPABILITY"), "Offered before TLS.");
+         StringAssert.Contains("A02 OK", imapSimulator.SendSingleCommand("A02 STARTTLS"));
+         imapSimulator.Handshake();
+
+         // Over TLS now: neither offered nor taken again (RFC 9051 6.2.1). It
+         // used to be offered and answered OK, and a second handshake started
+         // on the running session.
+         StringAssert.DoesNotContain("STARTTLS", imapSimulator.SendSingleCommand("A03 CAPABILITY"), "Not offered once TLS is active.");
+         StringAssert.Contains("A04 BAD", imapSimulator.SendSingleCommand("A04 STARTTLS"));
+
+         // The session goes on.
+         ClassicAssert.IsTrue(imapSimulator.Logon(_account.Address, "test"));
+         imapSimulator.Disconnect();
+      }
+
+      [Test]
+      [Description("STARTTLS after LOGIN is refused and not offered: it is a command of the not authenticated state only (RFC 9051 6.2.1).")]
+      public void StartTlsAfterLoginIsRefused()
+      {
+         var imapSimulator = new ImapClientSimulator(false, 14302);
+         imapSimulator.Connect();
+         ClassicAssert.IsTrue(imapSimulator.Logon(_account.Address, "test"));
+
+         StringAssert.DoesNotContain("STARTTLS", imapSimulator.SendSingleCommand("A02 CAPABILITY"), "Not offered once signed in.");
+         StringAssert.Contains("A03 BAD", imapSimulator.SendSingleCommand("A03 STARTTLS"));
+
+         // Still a working plain session.
+         StringAssert.Contains("A04 OK", imapSimulator.SendSingleCommand("A04 SELECT INBOX"));
+         imapSimulator.Disconnect();
       }
 
       [Test]

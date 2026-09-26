@@ -2011,10 +2011,18 @@ namespace HM
       // Create a statement object.
       // The keywords ride in the same statement: a label is a flag change
       // to every client, with the same mod-sequence.
-      String statement = "UPDATE hm_messages SET messageflags = @FLAGS, messagekeywords = @KEYWORDS, messagemodseq = @MODSEQ WHERE messageid = @MESSAGEID";
+      //
+      // \Recent is left as the row has it. No flag change sets or clears it;
+      // the folder's collection clears it in the rows itself when a session
+      // claims the recent messages (Messages::ClaimRecentMessageIDs), without
+      // the message's flag-change lock. Writing the in-memory value here could
+      // put back, from a read made just before such a claim, a \Recent the
+      // claim had just cleared - and every collection loaded afresh later would
+      // show the message as recent again.
+      String statement = "UPDATE hm_messages SET messageflags = (messageflags & 32) | @FLAGS, messagekeywords = @KEYWORDS, messagemodseq = @MODSEQ WHERE messageid = @MESSAGEID";
 
       SQLCommand sqlCommand(statement);
-      sqlCommand.AddParameter("@FLAGS", message->GetFlags());
+      sqlCommand.AddParameter("@FLAGS", (int) (message->GetFlags() & ~Message::FlagRecent));
       sqlCommand.AddParameter("@KEYWORDS", message->GetKeywords());
       sqlCommand.AddParameter("@MODSEQ", message->GetModSeq());
       sqlCommand.AddParameter("@MESSAGEID", message->GetID());

@@ -118,6 +118,7 @@ namespace
 #include "../Scripting/ScriptServer.h"
 #include "../SQL/SQLStatement.h"
 #include <boost/pool/object_pool.hpp>
+#include <atomic>
 
 #ifdef _DEBUG
    #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -1722,6 +1723,135 @@ namespace HM
       IMAPSimpleCommandParserTester *pTest = new IMAPSimpleCommandParserTester();
       pTest->Test();
       delete pTest;
+
+      // A message's keywords, changed and read by several threads at once. A
+      // message in an IMAP folder is one object every session on the mailbox
+      // shares, and STORE is handed that live object, so two STOREs, or a
+      // STORE beside a FETCH, a SELECT or a copy of the message, meet on the
+      // same keyword string. It was a plain string with no lock: two threads
+      // assigning it freed one buffer twice, and a read-modify-write lost the
+      // other thread's keyword. Two writers here add and remove keywords of
+      // their own while two readers copy the message and list its keywords;
+      // at the end each writer's last additions must all be there, and no
+      // reader may ever have seen a keyword that neither writer wrote.
+      OutputDebugString(_T("hMailServer: Testing Message keywords under concurrent STORE\n"));
+      {
+         Message shared(false);
+         const int keywordsPerWriter = 20;
+         const int rounds = 300;
+         std::atomic<bool> stop(false);
+         std::atomic<int> strangers(0);
+
+         auto writer = [&](const String prefix)
+         {
+            for (int round = 0; round < rounds; round++)
+            {
+               for (int k = 0; k < keywordsPerWriter; k++)
+                  shared.AddKeyword(prefix + StringParser::IntToString(k));
+               for (int k = 0; k < keywordsPerWriter; k++)
+                  shared.RemoveKeyword(prefix + StringParser::IntToString(k));
+            }
+            for (int k = 0; k < keywordsPerWriter; k++)
+               shared.AddKeyword(prefix + StringParser::IntToString(k));
+         };
+
+         auto reader = [&]()
+         {
+            while (!stop)
+            {
+               Message copy(shared);
+               std::vector<String> list = copy.GetKeywordList();
+               std::vector<String> live = shared.GetKeywordList();
+               list.insert(list.end(), live.begin(), live.end());
+               for (const String &keyword : list)
+               {
+                  if (keyword.GetLength() < 2 || (keyword[0] != 'a' && keyword[0] != 'b'))
+                     strangers++;
+               }
+            }
+         };
+
+         boost::thread readerOne(reader);
+         boost::thread readerTwo(reader);
+         boost::thread writerA(writer, String(_T("a")));
+         boost::thread writerB(writer, String(_T("b")));
+         writerA.join();
+         writerB.join();
+         stop = true;
+         readerOne.join();
+         readerTwo.join();
+
+         if (strangers != 0)
+            HM_TEST_FAILED();
+
+         std::vector<String> result = shared.GetKeywordList();
+         if (result.size() != (size_t) (2 * keywordsPerWriter))
+            HM_TEST_FAILED();
+         for (int k = 0; k < keywordsPerWriter; k++)
+         {
+            if (!shared.HasKeyword(String(_T("a")) + StringParser::IntToString(k)) ||
+                !shared.HasKeyword(String(_T("b")) + StringParser::IntToString(k)))
+               HM_TEST_FAILED();
+         }
+      }
+
+      // A message's flags, changed by several threads at once: STORE, FETCH's
+      // \Seen, the REST API and the collection's \Recent claim all set and
+      // clear bits of the same shared message. A one-flag setter was
+      // "flags_ = flags_ | bit", a read and a write: a thread that read the
+      // flags just before another set its bit wrote them back without it. Each
+      // thread here owns one bit, sets it and clears it over and over, and
+      // checks after every set that its bit is still there - no other thread
+      // touches it, so only a lost update can take it away.
+      OutputDebugString(_T("hMailServer: Testing Message flags under concurrent change\n"));
+      {
+         Message shared(false);
+         const int rounds = 200000;
+         std::atomic<int> lost(0);
+
+         auto owner = [&](int bit)
+         {
+            for (int round = 0; round < rounds; round++)
+            {
+               switch (bit)
+               {
+               case Message::FlagSeen: shared.SetFlagSeen(true); break;
+               case Message::FlagFlagged: shared.SetFlagFlagged(true); break;
+               case Message::FlagAnswered: shared.SetFlagAnswered(true); break;
+               default: shared.SetFlagRecent(true); break;
+               }
+
+               if ((shared.GetFlags() & bit) == 0)
+                  lost++;
+
+               switch (bit)
+               {
+               case Message::FlagSeen: shared.SetFlagSeen(false); break;
+               case Message::FlagFlagged: shared.SetFlagFlagged(false); break;
+               case Message::FlagAnswered: shared.SetFlagAnswered(false); break;
+               default: shared.SetFlagRecent(false); break;
+               }
+            }
+         };
+
+         boost::thread seen(owner, (int) Message::FlagSeen);
+         boost::thread flagged(owner, (int) Message::FlagFlagged);
+         boost::thread answered(owner, (int) Message::FlagAnswered);
+         boost::thread recent(owner, (int) Message::FlagRecent);
+         seen.join();
+         flagged.join();
+         answered.join();
+         recent.join();
+
+         if (lost != 0 || shared.GetFlags() != 0)
+            HM_TEST_FAILED();
+
+         // SetFlagBits changes the masked bits only.
+         shared.SetFlags((short) (Message::FlagSeen | Message::FlagDeleted | Message::FlagRecent));
+         shared.SetFlagBits((short) (Message::FlagSeen | Message::FlagFlagged), (short) Message::FlagFlagged);
+         if (shared.GetFlags() != (short) (Message::FlagFlagged | Message::FlagDeleted | Message::FlagRecent))
+            HM_TEST_FAILED();
+      }
 
    }
 

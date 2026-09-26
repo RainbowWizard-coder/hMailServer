@@ -522,6 +522,65 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("A delegate reading a shared folder of a mailbox encrypted at rest while its owner's key is closed is refused NO [UNAVAILABLE] for everything that reads the message - ENVELOPE, BODYSTRUCTURE, HEADER, TEXT, the whole - with no untagged FETCH, and a non-PEEK section does not set \\Seen. They were answered OK with NILs and empty strings, which a client caches by UID for good. What needs no file (UID, FLAGS, RFC822.SIZE) is still answered. Negative control: with the owner signed in the same FETCH hands the delegate the message.")]
+      public void ADelegatesFetchWhileTheOwnersKeyIsClosedIsRefusedNotBlank()
+      {
+         MakeRecoveryKey();
+         string owner = AddAccount("atrest-sharer");
+         string reader = AddAccount("atrest-reader");
+         SwitchOn(owner);
+
+         // Closed, as it is while the owner is not signed in.
+         RestartServerAndReacquireCom();
+         ClassicAssert.IsFalse(KeyState(owner).GetProperty("open").GetBoolean(), "A restart did not close the key.");
+
+         string marker = Word("quokka");
+         new SmtpClientSimulator().Send("sender@example.test", owner, "Shared at rest " + marker, "The body carries " + marker + " and nothing else.");
+         WaitForMessages(owner, 1);
+
+         // Lookup, read and write-seen on the owner's INBOX (RFC 4314 l, r, s).
+         _application.Database.ExecuteSQL(string.Format(
+            "insert into hm_acl (aclsharefolderid, aclpermissiontype, aclpermissiongroupid, aclpermissionaccountid, aclvalue) values ({0}, 0, 0, {1}, {2})",
+            Inbox(owner).ID, AccountOverCom(reader).ID, 1 | 2 | 4));
+
+         string shared = "#Users." + owner + ".INBOX";
+
+         var imap = new ImapClientSimulator();
+         ClassicAssert.IsTrue(imap.ConnectAndLogon(reader, Password));
+         ClassicAssert.IsTrue(imap.SelectFolder(shared), "The delegate could not select " + shared);
+
+         string noFile = imap.SendSingleCommand("F1 FETCH 1 (UID FLAGS RFC822.SIZE)");
+         StringAssert.Contains("F1 OK", noFile, "What needs no file is answered while the key is closed: " + noFile);
+
+         foreach (string item in new[] { "ENVELOPE", "BODYSTRUCTURE", "BODY.PEEK[HEADER]", "BODY.PEEK[TEXT]", "BODY.PEEK[]", "BODY[TEXT]" })
+         {
+            string answer = imap.SendSingleCommand("F2 FETCH 1 (" + item + ")");
+            StringAssert.Contains("F2 NO [UNAVAILABLE]", answer, item + " of a message whose key is closed was not refused: " + answer);
+            StringAssert.DoesNotContain("* 1 FETCH", answer, item + " sent something of a message it could not read: " + answer);
+         }
+
+         string flags = imap.SendSingleCommand("F3 FETCH 1 (FLAGS)");
+         StringAssert.DoesNotContain("\\Seen", flags, "A refused BODY[TEXT] set \\Seen on the owner's message: " + flags);
+         imap.Disconnect();
+         ClassicAssert.IsFalse(KeyState(owner).GetProperty("open").GetBoolean(), "The delegate's reading opened the owner's key.");
+
+         // The owner signed in: the key is open, and the delegate reads the message.
+         var ownerSession = new ImapClientSimulator();
+         ClassicAssert.IsTrue(ownerSession.ConnectAndLogon(owner, Password));
+         try
+         {
+            ClassicAssert.IsTrue(KeyState(owner).GetProperty("open").GetBoolean(), "The owner's LOGIN did not open the key.");
+            string text = FetchLiteral(reader, Password, shared, 1, "BODY.PEEK[TEXT]");
+            ClassicAssert.IsNotNull(text, "The delegate could not read the message with the owner's key open.");
+            StringAssert.Contains("The body carries " + marker, text);
+         }
+         finally
+         {
+            ownerSession.Disconnect();
+         }
+      }
+
+      [Test]
       [Description("A webmail session lives under the opening of the key it was made under. Two sessions made while the key was open ask nothing while the idle minute closes it; a fresh sign-in with the password opens it again - a new opening - and then one stale session asks: it is refused (401) and not brought back to life by the open key, the other stale one is ended with it, and the fresh session - made a moment before the stale request - is not. Once the fresh session has gone quiet and the key has closed again, it is refused too. Negative control: the fresh session works before and after the stale one's request.")]
       public void AWebmailSessionWhoseKeyClosedIsEnded()
       {

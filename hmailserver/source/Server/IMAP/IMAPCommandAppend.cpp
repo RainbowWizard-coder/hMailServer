@@ -17,12 +17,14 @@
 #include "../Common/Application/EffectiveSetting.h"
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/MessageStore.h"
+#include "../Common/Util/Unicode.h"
 #include "../Common/Util/MailboxKeys.h"
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Tracking/NotificationServer.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/DiskSpace.h"
 #include "../Common/Util/File.h"
+#include "../Common/Util/FileInfo.h"
 #include "../Common/Util/Time.h"
 #include "../SMTP/SMTPConfiguration.h"
 
@@ -45,6 +47,23 @@ namespace HM
 
    IMAPCommandAppend::~IMAPCommandAppend()
    {
+      // A connection that goes away between a literal and the command's final
+      // CRLF - the client closed it, the network dropped, the idle timeout -
+      // leaves here with every literal already received placed in the store
+      // (CompleteCurrentMessage_) and no row referring to any of them. Nothing
+      // else ever removes a message file without a row, and the files counted
+      // against no quota, so each abandoned APPEND used to leave up to the
+      // maximum message size on the data volume for good, with its blob
+      // references held.
+      try
+      {
+         CleanupPendingMessages_();
+      }
+      catch (...)
+      {
+
+      }
+
       try
       {
          KillCurrentMessage_();
@@ -63,6 +82,230 @@ namespace HM
 
       if (FileUtilities::Exists(message_file_name_))
          FileUtilities::DeleteFile(message_file_name_);
+
+      // The name belongs to the message just dropped and to nothing after it.
+      message_file_name_.Empty();
+
+      RemoveAppendMarker_(current_marker_);
+   }
+
+   // The markers this process's commands hold. A marker in the directory and
+   // not in here is a dead process's - or one a command could not remove, which
+   // the sweep treats the same way, since the row decides.
+   static boost::mutex &AppendMarkersMutex()
+   {
+      static boost::mutex mutex;
+      return mutex;
+   }
+
+   static std::set<String> &AppendMarkersHeld()
+   {
+      static std::set<String> held;
+      return held;
+   }
+
+   String
+   IMAPCommandAppend::AppendMarkerDirectory_()
+   {
+      return FileUtilities::Combine(IniFileSettings::Instance()->GetTempDirectory(), _T("IMAPAppend"));
+   }
+
+   String
+   IMAPCommandAppend::WriteAppendMarker_(const String &messageFile, bool placed, const String &existingMarker)
+   {
+      // One small text file per message received and not yet saved, named after
+      // the message file, holding what the sweep needs: whether the file has
+      // been placed in the store (a placed one lets go of what it references
+      // when it is removed; one not yet placed is the client's bytes, whatever
+      // they begin with, and is only discarded), and the file itself. UTF-8,
+      // since a data directory's path may hold any character.
+      const String directory = AppendMarkerDirectory_();
+      if (!FileUtilities::Exists(directory) && !FileUtilities::CreateDirectory(directory))
+         return String();
+
+      const String marker = existingMarker.IsEmpty()
+         ? FileUtilities::Combine(directory, FileUtilities::GetFileNameFromFullPath(messageFile) + _T(".append"))
+         : existingMarker;
+
+      String text;
+      text.Format(_T("hMailServer IMAP APPEND in progress\nstate=%s\nfile=%s\n"),
+         placed ? _T("placed") : _T("working"), messageFile.c_str());
+
+      AnsiString utf8;
+      if (!Unicode::WideToMultiByte(text, utf8))
+         return String();
+
+      {
+         boost::lock_guard<boost::mutex> guard(AppendMarkersMutex());
+         AppendMarkersHeld().insert(marker);
+      }
+
+      if (!FileUtilities::WriteToFileAtomically(marker, utf8))
+      {
+         // A marker that says "working" is left as it is when "placed" cannot
+         // replace it: the sweep then discards the file without letting go of
+         // its references, which leaks them rather than taking another
+         // message's.
+         if (existingMarker.IsEmpty())
+         {
+            boost::lock_guard<boost::mutex> guard(AppendMarkersMutex());
+            AppendMarkersHeld().erase(marker);
+            return String();
+         }
+      }
+
+      return marker;
+   }
+
+   void
+   IMAPCommandAppend::RemoveAppendMarker_(String &markerFile)
+   {
+      if (markerFile.IsEmpty())
+         return;
+
+      if (FileUtilities::Exists(markerFile))
+         FileUtilities::DeleteFile(markerFile);
+
+      {
+         boost::lock_guard<boost::mutex> guard(AppendMarkersMutex());
+         AppendMarkersHeld().erase(markerFile);
+      }
+
+      markerFile.Empty();
+   }
+
+   void
+   IMAPCommandAppend::SweepAbandonedAppend_(const String &directory, const String &dataDirectory, const String &markerName)
+   {
+      String marker = FileUtilities::Combine(directory, markerName);
+
+      {
+         boost::lock_guard<boost::mutex> guard(AppendMarkersMutex());
+         if (AppendMarkersHeld().find(marker) != AppendMarkersHeld().end())
+            return;
+      }
+
+      // Read and checked before anything is removed. A marker that does not
+      // say exactly what this server writes names nothing it will touch: it
+      // goes, and whatever file it names stays.
+      String text;
+      {
+         File markerFile;
+         std::shared_ptr<ByteBuffer> bytes;
+         if (markerFile.Open(marker, File::OTReadOnly))
+            bytes = markerFile.ReadFile();
+         if (bytes && bytes->GetSize() > 0)
+            Unicode::MultiByteToWide(AnsiString(bytes->GetCharBuffer(), bytes->GetSize()), text);
+      }
+
+      String state;
+      String file;
+      bool header = false;
+      std::vector<String> lines = StringParser::SplitString(text, _T("\n"));
+      for (const String &line : lines)
+      {
+         if (line == _T("hMailServer IMAP APPEND in progress"))
+            header = true;
+         else if (line.StartsWith(_T("state=")))
+            state = line.Mid(6);
+         else if (line.StartsWith(_T("file=")))
+            file = line.Mid(5);
+      }
+
+      // The file must be a message file of the store - under the data
+      // directory, not the queue directly in it, named as the marker is,
+      // ending ".eml" and climbing out of nothing, and at the place a message
+      // of an account or of the public folders is kept (domain, mailbox and the
+      // two-character fan-out, or #Public and the fan-out): GetPartialFilename
+      // answers for exactly those. Being under the data directory is not enough
+      // on its own: the Linux packages keep the temp, event and database
+      // directories inside it.
+      const String expectedName = markerName.Left(markerName.GetLength() - 7);
+      const String fileDirectory = FileUtilities::GetFilePath(file);
+      const String prefix = dataDirectory + FileUtilities::PathSeparator;
+#ifdef HM_PLATFORM_POSIX
+      const bool underData = file.GetLength() > prefix.GetLength() && file.Left(prefix.GetLength()) == prefix;
+      const bool inQueue = fileDirectory == dataDirectory;
+      const bool namedAsMarker = FileUtilities::GetFileNameFromFullPath(file) == expectedName;
+#else
+      const bool underData = file.GetLength() > prefix.GetLength() && file.Left(prefix.GetLength()).CompareNoCase(prefix) == 0;
+      const bool inQueue = fileDirectory.CompareNoCase(dataDirectory) == 0;
+      const bool namedAsMarker = FileUtilities::GetFileNameFromFullPath(file).CompareNoCase(expectedName) == 0;
+#endif
+      String partialName;
+      const bool inStoreLayout = PersistentMessage::GetPartialFilename(file, partialName) &&
+         partialName.CompareNoCase(expectedName) == 0;
+
+      const bool wellFormed = header && (state == _T("working") || state == _T("placed")) &&
+         underData && !inQueue && namedAsMarker && inStoreLayout && expectedName.EndsWith(_T(".eml")) &&
+         file.Find(_T("..")) < 0;
+
+      if (!wellFormed)
+      {
+         LOG_APPLICATION("IMAP APPEND: the marker " + marker + " is not one this server wrote in full; it is removed and the file it names, if any, is left alone.");
+         FileUtilities::DeleteFile(marker);
+         return;
+      }
+
+      // A row that names the file means the APPEND finished and only the
+      // marker was left - the process stopped between the row and the marker,
+      // or the marker could not be removed. The file is then mail. Any row
+      // of any account, by the name a row stores (the partial name, or the
+      // full path an old row may hold): a file some row names is never
+      // removed here, whatever the marker says. Not indexed, and asked only
+      // for the markers a stopped process left - a handful.
+      SQLCommand command("select messageid from hm_messages where messagefilename = @PARTIALNAME or messagefilename = @FULLNAME");
+      command.AddParameter("@PARTIALNAME", partialName);
+      command.AddParameter("@FULLNAME", file);
+
+      std::shared_ptr<DALRecordset> rows = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!rows)
+      {
+         // Not known: kept, marker and file, for the next start to ask again.
+         return;
+      }
+
+      if (rows->IsEOF())
+      {
+         if (state == _T("placed"))
+            MessageStore::Remove(file);
+         else
+            MessageStore::DiscardWorkingFile(file);
+
+         LOG_APPLICATION("IMAP APPEND: removed " + file + ", the message of an APPEND the server stopped in the middle of; no row names it.");
+      }
+
+      FileUtilities::DeleteFile(marker);
+   }
+
+   void
+   IMAPCommandAppend::SweepAbandonedAppends()
+   {
+      const String directory = AppendMarkerDirectory_();
+      if (!FileUtilities::Exists(directory))
+         return;
+
+      String dataDirectory = IniFileSettings::Instance()->GetDataDirectory();
+      while (dataDirectory.EndsWith(_T("\\")) || dataDirectory.EndsWith(_T("/")))
+         dataDirectory = dataDirectory.Left(dataDirectory.GetLength() - 1);
+      if (dataDirectory.IsEmpty())
+         return;
+
+      std::vector<FileInfo> markers = FileUtilities::GetFilesInDirectory(directory, _T(".*\\.append"));
+      for (FileInfo &entry : markers)
+      {
+         // One marker a stopped process left cannot stop the server starting,
+         // nor the sweep of the others: whatever it throws is logged and the
+         // marker left for the next start.
+         try
+         {
+            SweepAbandonedAppend_(directory, dataDirectory, entry.GetName());
+         }
+         catch (...)
+         {
+            LOG_APPLICATION("IMAP APPEND: the marker " + FileUtilities::Combine(directory, entry.GetName()) + " could not be dealt with; it is left for the next start.");
+         }
+      }
    }
 
    IMAPResult
@@ -187,13 +430,16 @@ namespace HM
 
       // A fresh command: forget everything a previous APPEND on this connection
       // left behind. Before the first refusal below, which may set some of it.
-      pending_messages_.clear();
+      // A message still pending was never saved, so its file goes with it.
+      CleanupPendingMessages_();
       command_failed_ = false;
       failure_response_.Empty();
+      connection_closing_ = false;
       continuation_line_.Empty();
       receive_state_ = ReceivingLiteral;
       write_failed_ = false;
       append_buffer_.Empty();
+      KillCurrentMessage_();
       current_message_.reset();
       destination_folder_.reset();
       replace_mode_ = isReplace;
@@ -319,12 +565,7 @@ namespace HM
       // limit is the configured maximum message size (the one APPENDLIMIT
       // advertises), and never under 1 MB, so a small refused message is still
       // read and answered NO on a connection that stays open.
-      const __int64 refusedLiteralFloorBytes = (__int64) 1024 * 1024;
-      __int64 refusedLiteralLimitBytes = GetEffectiveAppendLimitBytes(pConnection->GetAccount());
-      if (refusedLiteralLimitBytes < refusedLiteralFloorBytes)
-         refusedLiteralLimitBytes = refusedLiteralFloorBytes;
-
-      if (declaredSize > refusedLiteralLimitBytes)
+      if (declaredSize > RefusedLiteralLimitBytes_(pConnection->GetAccount()))
       {
          destination_folder_.reset();
          pConnection->SendAsciiData(current_tag_ + " BAD [TOOBIG] The literal is larger than this server accepts.\r\n");
@@ -413,27 +654,36 @@ namespace HM
          for (const PendingMessage &pending : pending_messages_)
             pendingBytes += (size_t) pending.message->GetSize();
 
-         std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(pConnection->GetAccount()->GetID());
+         // The quota that matters is the DESTINATION folder owner's, as COPY
+         // and MOVE have it (IMAPCopy.cpp): the message is stored in the
+         // owner's mailbox and counted in the owner's size. Charging the caller
+         // let a delegate with the insert right push the owner past the limit,
+         // and refused a delegate over their own quota an append to a mailbox
+         // with room. Read fresh from the cache, not the session's copy, so a
+         // limit an administrator has just changed applies at once.
+         std::shared_ptr<const Account> pAccount = CacheContainer::Instance()->GetAccount(destination_folder_->GetAccountID());
 
          if (!pAccount)
-            return IMAPResult(IMAPResult::ResultNo, "Account could not be fetched.");
+            return IMAPResult(IMAPResult::ResultNo, "The destination folder could not be resolved.");
 
          if (!pAccount->SpaceAvailable(bytes_left_to_receive_ + pendingBytes))
             return IMAPResult(IMAPResult::ResultNo, "[OVERQUOTA] Your quota has been exceeded.");
       }
 
-      current_message_ = std::shared_ptr<Message>(new Message);
-      current_message_->SetAccountID(destination_folder_->GetAccountID());
-      current_message_->SetFolderID(destination_folder_->GetID());
-
       // Construct a file name which we'll write the message to.
       //
-      // The owner of the DESTINATION folder, not the caller. The row above is
-      // already stamped with destination_folder_->GetAccountID(), so using the
+      // The owner of the DESTINATION folder, not the caller. The row below is
+      // stamped with destination_folder_->GetAccountID(), so using the
       // caller here wrote the bytes into one account's directory while the row
       // named another's - and every later FETCH, by the owner or by the appending
       // delegate, resolved the owner's directory, found nothing, and served the
       // "file does not exist" placeholder. The APPEND itself answered OK.
+      //
+      // Resolved before current_message_ is made, so that a current message
+      // always has its own file name. Made first, a refusal here left a current
+      // message beside the file name of the message before it - on this
+      // connection, the last APPEND's, saved with its row - and the refusal's
+      // KillCurrentMessage_ (RefuseWithLiteral_) deleted that saved message's file.
       std::shared_ptr<const Account> pMessageOwner;
       if (!destination_folder_->IsPublicFolder())
       {
@@ -444,7 +694,14 @@ namespace HM
             return IMAPResult(IMAPResult::ResultNo, "The destination folder could not be resolved.");
       }
 
+      current_message_ = std::shared_ptr<Message>(new Message);
+      current_message_->SetAccountID(destination_folder_->GetAccountID());
+      current_message_->SetFolderID(destination_folder_->GetID());
+
       message_file_name_ = MessageStore::WorkingFile(pMessageOwner, current_message_);
+
+      // Before a byte of it is written: see SweepAbandonedAppends.
+      current_marker_ = WriteAppendMarker_(message_file_name_, false, String());
 
       return IMAPResult();
    }
@@ -535,6 +792,10 @@ namespace HM
 
          ParseContinuationLine_(pConnection, line);
 
+         // Closed with TOOBIG (CloseOnOversizedDiscard_): nothing more is read.
+         if (connection_closing_)
+            return;
+
          if (receive_state_ == ReceivingLiteral && bytes_left_to_receive_ > 0)
             continue;
 
@@ -624,6 +885,7 @@ namespace HM
    {
       if (command_failed_ || !current_message_)
       {
+         KillCurrentMessage_();
          current_message_.reset();
          return;
       }
@@ -673,6 +935,8 @@ namespace HM
       if (!MessageStore::PlaceWorkingFileFor(messageOwner, message_file_name_, false, refusal))
       {
          MessageStore::DiscardWorkingFile(message_file_name_);
+         message_file_name_.Empty();
+         RemoveAppendMarker_(current_marker_);
          current_message_.reset();
 
          // Whether the mailbox is encrypted at rest not known just now: the
@@ -685,6 +949,10 @@ namespace HM
             FailCommand_(current_tag_ + " NO APPEND failed - the message could not be stored on the server.\r\n");
          return;
       }
+
+      // Placed: removing it from here on lets go of what it references.
+      if (!current_marker_.IsEmpty())
+         WriteAppendMarker_(message_file_name_, true, current_marker_);
 
       // The size after placing, of what the store now holds: the file is plain,
       // or a container the store wrote itself, and either answers the literal's
@@ -747,7 +1015,13 @@ namespace HM
       PendingMessage pending;
       pending.message = current_message_;
       pending.fileName = message_file_name_;
+      pending.markerFile = current_marker_;
+      current_marker_.Empty();
       pending_messages_.push_back(pending);
+
+      // Pending now: its file is the pending entry's to remove, never the
+      // current message's (KillCurrentMessage_).
+      message_file_name_.Empty();
 
       current_message_.reset();
    }
@@ -922,7 +1196,11 @@ namespace HM
          }
 
          // The octets are already on their way ({n+}); consume them to keep the
-         // protocol in step, store nothing, and answer at the command's end.
+         // protocol in step, store nothing, and answer at the command's end -
+         // unless there are more of them than a refused literal is read for.
+         if (CloseOnOversizedDiscard_(pConnection, declaredSize))
+            return;
+
          String refusal = prepareResult.GetResult() == IMAPResult::ResultBad ? _T(" BAD ") : _T(" NO ");
          FailCommand_(current_tag_ + refusal + prepareResult.GetMessage() + _T("\r\n"));
 
@@ -933,7 +1211,13 @@ namespace HM
       }
 
       if (command_failed_)
+      {
+         // Read only to be thrown away, as above.
+         if (CloseOnOversizedDiscard_(pConnection, declaredSize))
+            return;
+
          bytes_left_to_receive_ = (size_t) declaredSize;
+      }
 
       receive_state_ = ReceivingLiteral;
 
@@ -1033,11 +1317,12 @@ namespace HM
    {
       // None of these have database rows yet, so removing the files is the
       // whole rollback.
-      for (const PendingMessage &pending : pending_messages_)
+      for (PendingMessage &pending : pending_messages_)
       {
          // Through the store: a placed file lets go of what it references -
          // and one in an object store has no file on the disk to find first.
          MessageStore::Remove(pending.fileName);
+         RemoveAppendMarker_(pending.markerFile);
       }
 
       pending_messages_.clear();
@@ -1097,6 +1382,14 @@ namespace HM
          savedUids.push_back((__int64) pending.message->GetUID());
          pConnection->AddRecentMessage(pending.message->GetID());
       }
+
+      // Every one has its row now: none is pending any more, and nothing from
+      // here on - the destructor included - may remove its file. Their markers
+      // go too; one that cannot be removed is harmless, since the sweep asks
+      // for the row first.
+      for (PendingMessage &pending : pending_messages_)
+         RemoveAppendMarker_(pending.markerFile);
+      pending_messages_.clear();
 
       MessagesContainer::Instance()->SetFolderNeedsRefresh(destination_folder_->GetID());
 
@@ -1185,6 +1478,53 @@ namespace HM
       // domain's, else the server's, each level held to the one above it. The
       // account is the session's own, so no address named anywhere lifts it.
       return EffectiveSetting::ResolveInt(_T("max_message_size_kb"), pDomain, pAccount);
+   }
+
+   // static
+   __int64
+   IMAPCommandAppend::RefusedLiteralLimitBytes_(std::shared_ptr<const Account> pAccount)
+   {
+      // The configured maximum message size (the one APPENDLIMIT advertises),
+      // and never under 1 MB, so a small refused message is still read and
+      // answered NO on a connection that stays open.
+      const __int64 refusedLiteralFloorBytes = (__int64) 1024 * 1024;
+      __int64 refusedLiteralLimitBytes = GetEffectiveAppendLimitBytes(pAccount);
+      if (refusedLiteralLimitBytes < refusedLiteralFloorBytes)
+         refusedLiteralLimitBytes = refusedLiteralFloorBytes;
+
+      return refusedLiteralLimitBytes;
+   }
+
+   bool
+   IMAPCommandAppend::CloseOnOversizedDiscard_(std::shared_ptr<IMAPConnection> pConnection, __int64 declaredSize)
+   {
+      // A later literal of a MULTIAPPEND that is read only to be thrown away -
+      // its message refused under {n+}, or any literal once the command has
+      // failed - was consumed whatever its size, up to the 2 GB ceiling and
+      // past it: the TOOBIG cut-off RefuseWithLiteral_ applies to the first
+      // literal did not reach these, so a client could keep a connection
+      // reading and discarding for as long as it liked. The same limit and
+      // the same answer (RFC 7888 sections 4 and 5).
+      if (declaredSize <= RefusedLiteralLimitBytes_(pConnection->GetAccount()))
+         return false;
+
+      CleanupPendingMessages_();
+      KillCurrentMessage_();
+      current_message_.reset();
+      append_buffer_.Empty();
+      destination_folder_.reset();
+      replace_target_.reset();
+      replace_mode_ = false;
+      command_failed_ = false;
+      failure_response_.Empty();
+      bytes_left_to_receive_ = 0;
+      receive_state_ = ReceivingContinuationLine;
+      connection_closing_ = true;
+
+      pConnection->SetReceiveBinary(false);
+      pConnection->SendAsciiData(current_tag_ + " BAD [TOOBIG] The literal is larger than this server accepts.\r\n");
+      pConnection->Logout("* BYE [TOOBIG] The literal is larger than this server accepts.\r\n");
+      return true;
    }
 
    // static

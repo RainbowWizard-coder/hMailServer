@@ -15772,27 +15772,45 @@ namespace HM
       if ((named[1] || named[2] || named[3] || !keywordsAdd.empty() || !keywordsRemove.empty()) && !RightOn_(account, folder, ACLPermission::PermissionWriteOthers))
          return BuildResponse_(403, "{\"error\":\"the folder does not allow this account to change flags\"}");
 
-      if (named[0])
-         message->SetFlagSeen(values[0]);
-      if (named[1])
-         message->SetFlagFlagged(values[1]);
-      if (named[2])
-         message->SetFlagAnswered(values[2]);
-      if (named[3])
-         message->SetFlagDraft(values[3]);
-      if (named[4])
-         message->SetFlagDeleted(values[4]);
-      for (size_t i = 0; i < keywordsRemove.size(); i++)
-         message->RemoveKeyword(keywordsRemove[i]);
-      for (size_t i = 0; i < keywordsAdd.size(); i++)
+      // The path STORE takes (FolderManager::ChangeMessageFlags): the change is
+      // made to the live message and written with the folder's next
+      // mod-sequence as one step, so CONDSTORE and QRESYNC clients see it and
+      // a STORE made at the same moment is not undone by it. Too many keywords
+      // leaves the message exactly as it was; this used to answer 400 with the
+      // flags and the keywords before the one that did not fit already changed
+      // in memory and never written.
+      bool tooManyKeywords = false;
+      auto change = [&](Message &live)
       {
-         if (!message->AddKeyword(keywordsAdd[i]))
-            return BuildResponse_(400, "{\"error\":\"too many keywords on the message\"}");
-      }
+         if (named[0])
+            live.SetFlagSeen(values[0]);
+         if (named[1])
+            live.SetFlagFlagged(values[1]);
+         if (named[2])
+            live.SetFlagAnswered(values[2]);
+         if (named[3])
+            live.SetFlagDraft(values[3]);
+         if (named[4])
+            live.SetFlagDeleted(values[4]);
+         for (size_t i = 0; i < keywordsRemove.size(); i++)
+            live.RemoveKeyword(keywordsRemove[i]);
+         for (size_t i = 0; i < keywordsAdd.size(); i++)
+         {
+            if (!live.AddKeyword(keywordsAdd[i]))
+            {
+               tooManyKeywords = true;
+               return false;
+            }
+         }
+         return true;
+      };
 
-      // The path STORE takes: the flags are written with the folder's next
-      // mod-sequence, so CONDSTORE and QRESYNC clients see the change.
-      if (!Application::Instance()->GetFolderManager()->UpdateMessageFlags((int) folder->GetAccountID(), (int) folder->GetID(), message->GetID(), message->GetFlags(), message->GetKeywords()))
+      FolderManager::FlagChangeResult stored = Application::Instance()->GetFolderManager()->ChangeMessageFlags(folder->GetAccountID(), folder->GetID(), message->GetID(), change, message);
+      if (stored == FolderManager::FlagChangeDeclined && tooManyKeywords)
+         return BuildResponse_(400, "{\"error\":\"too many keywords on the message\"}");
+      if (stored == FolderManager::FlagChangeGone)
+         return BuildResponse_(404, "{\"error\":\"message not found\"}");
+      if (stored != FolderManager::FlagChangeStored)
          return BuildResponse_(500, "{\"error\":\"the flags could not be stored\"}");
 
       std::vector<__int64> changed;
@@ -16593,47 +16611,58 @@ namespace HM
 
          if (action == "flags")
          {
-            const short flagsBefore = message->GetFlags();
-            const String keywordsBefore = message->GetKeywords();
-
-            if (flagNamed[0])
-               message->SetFlagSeen(flagValues[0]);
-            if (flagNamed[1])
-               message->SetFlagFlagged(flagValues[1]);
-            if (flagNamed[2])
-               message->SetFlagAnswered(flagValues[2]);
-            if (flagNamed[3])
-               message->SetFlagDraft(flagValues[3]);
-            if (flagNamed[4])
-               message->SetFlagDeleted(flagValues[4]);
-            for (size_t k = 0; k < keywordsRemove.size(); k++)
-               message->RemoveKeyword(keywordsRemove[k]);
-
+            // Read, changed and written as one step under the message's
+            // flag-change lock (FolderManager::ChangeFlagsOf), as STORE does,
+            // so that a STORE another session makes at the same moment is
+            // neither undone by this nor undoes it. A message the change
+            // declines is put back exactly as it was.
             bool fits = true;
-            for (size_t k = 0; k < keywordsAdd.size() && fits; k++)
-               fits = message->AddKeyword(keywordsAdd[k]);
-
-            if (!fits)
+            bool alreadySo = false;
+            auto change = [&](Message &live)
             {
-               // Too many keywords on this one: left exactly as it was.
-               message->SetFlags(flagsBefore);
-               message->SetKeywords(keywordsBefore);
-               failed++;
-               continue;
-            }
+               const short flagsBefore = live.GetFlags();
+               const String keywordsBefore = live.GetKeywords();
 
-            // Already so: no row written, no mod-sequence spent. A select-all
-            // "mark as read" over a folder mostly read costs what is unread.
-            if (message->GetFlags() == flagsBefore && message->GetKeywords() == keywordsBefore)
+               if (flagNamed[0])
+                  live.SetFlagSeen(flagValues[0]);
+               if (flagNamed[1])
+                  live.SetFlagFlagged(flagValues[1]);
+               if (flagNamed[2])
+                  live.SetFlagAnswered(flagValues[2]);
+               if (flagNamed[3])
+                  live.SetFlagDraft(flagValues[3]);
+               if (flagNamed[4])
+                  live.SetFlagDeleted(flagValues[4]);
+               for (size_t k = 0; k < keywordsRemove.size(); k++)
+                  live.RemoveKeyword(keywordsRemove[k]);
+
+               for (size_t k = 0; k < keywordsAdd.size() && fits; k++)
+                  fits = live.AddKeyword(keywordsAdd[k]);
+
+               // Too many keywords on this one: left exactly as it was.
+               if (!fits)
+                  return false;
+
+               // Already so: no row written, no mod-sequence spent. A select-all
+               // "mark as read" over a folder mostly read costs what is unread.
+               if (live.GetFlags() == flagsBefore && live.GetKeywords() == keywordsBefore)
+               {
+                  alreadySo = true;
+                  return false;
+               }
+
+               return true;
+            };
+
+            const FolderManager::FlagChangeResult stored = FolderManager::ChangeFlagsOf(message, change);
+            if (stored == FolderManager::FlagChangeDeclined && alreadySo)
             {
                unchanged++;
                continue;
             }
 
-            if (!PersistentMessage::SaveFlags(message))
+            if (stored != FolderManager::FlagChangeStored)
             {
-               message->SetFlags(flagsBefore);
-               message->SetKeywords(keywordsBefore);
                failed++;
                continue;
             }
@@ -18262,8 +18291,9 @@ namespace HM
          std::shared_ptr<Message> answered = FindOwnMessage_(account, answeredId, answeredFolder);
          if (answered && !answered->GetFlagAnswered() && RightOn_(account, answeredFolder, ACLPermission::PermissionWriteOthers))
          {
-            answered->SetFlagAnswered(true);
-            if (Application::Instance()->GetFolderManager()->UpdateMessageFlags((int) answeredFolder->GetAccountID(), (int) answeredFolder->GetID(), answered->GetID(), answered->GetFlags()))
+            // On the live message and its row as one step, as STORE does it.
+            if (Application::Instance()->GetFolderManager()->ChangeMessageFlags(answeredFolder->GetAccountID(), answeredFolder->GetID(), answered->GetID(),
+                   [](Message &live) { live.SetFlagAnswered(true); return true; }, answered) == FolderManager::FlagChangeStored)
             {
                std::vector<__int64> changed;
                changed.push_back(answered->GetID());

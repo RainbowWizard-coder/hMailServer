@@ -166,6 +166,16 @@ namespace HM
          }
       }
 
+      // What a command may ask to be matched (FolderListCreator::MaxPatternLength).
+      if (patterns.size() > FolderListCreator::MaxPatterns)
+         return IMAPResult(IMAPResult::ResultBad, "LIST has too many mailbox patterns.");
+
+      for (const String &sPattern : patterns)
+      {
+         if (sReferenceName.GetLength() + sPattern.GetLength() > FolderListCreator::MaxPatternLength)
+            return IMAPResult(IMAPResult::ResultBad, "LIST mailbox pattern is too long.");
+      }
+
       bool bExtended = bOnlySubscribed || bAnnotateSubscribed || bOnlySpecialUse;
 
       // RFC 5258: every mailbox returned for a SUBSCRIBED selection is, by

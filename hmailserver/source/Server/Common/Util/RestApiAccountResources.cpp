@@ -1315,20 +1315,29 @@ namespace
       if (mentioned == 0)
          return Refusal(bridge, 400, "no flag named: seen, deleted, flagged, answered or draft");
 
-      if (named[0])
-         message->SetFlagSeen(values[0]);
-      if (named[1])
-         message->SetFlagDeleted(values[1]);
-      if (named[2])
-         message->SetFlagFlagged(values[2]);
-      if (named[3])
-         message->SetFlagAnswered(values[3]);
-      if (named[4])
-         message->SetFlagDraft(values[4]);
+      // The path STORE takes (FolderManager::ChangeMessageFlags): the change
+      // is made to the live message and written with the folder's next
+      // mod-sequence as one step, so CONDSTORE and QRESYNC clients see it and
+      // a STORE made at the same moment is not undone by it.
+      auto change = [&](Message &live)
+      {
+         if (named[0])
+            live.SetFlagSeen(values[0]);
+         if (named[1])
+            live.SetFlagDeleted(values[1]);
+         if (named[2])
+            live.SetFlagFlagged(values[2]);
+         if (named[3])
+            live.SetFlagAnswered(values[3]);
+         if (named[4])
+            live.SetFlagDraft(values[4]);
+         return true;
+      };
 
-      // The path STORE takes: the flags are written with the folder's next
-      // mod-sequence, so CONDSTORE and QRESYNC clients see the change.
-      if (!Application::Instance()->GetFolderManager()->UpdateMessageFlags((int) folder->GetAccountID(), (int) folder->GetID(), message->GetID(), message->GetFlags(), message->GetKeywords()))
+      FolderManager::FlagChangeResult stored = Application::Instance()->GetFolderManager()->ChangeMessageFlags(folder->GetAccountID(), folder->GetID(), message->GetID(), change, message);
+      if (stored == FolderManager::FlagChangeGone)
+         return Refusal(bridge, 404, "message not found");
+      if (stored != FolderManager::FlagChangeStored)
          return Refusal(bridge, 500, "the flags could not be stored");
 
       std::vector<__int64> changed;

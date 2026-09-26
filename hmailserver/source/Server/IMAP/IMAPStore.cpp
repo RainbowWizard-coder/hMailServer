@@ -148,63 +148,105 @@ namespace HM
       }
 
 
-      if (sCommand.FindNoCase(_T("-FLAGS")) >= 0)
+      // What the command does, applied to the folder's live message under its
+      // flag-change lock (FolderManager::ChangeMessageFlags): the read, the
+      // change and the write are one step. They used to be three - the flags
+      // changed here on the shared object, then read back and written over it
+      // again with the database row - so two STOREs on one message from two
+      // sessions at once could each write back what it had read, and one of
+      // the two changes was lost, in memory and in the database.
+      const bool removing = sCommand.FindNoCase(_T("-FLAGS")) >= 0;
+      const bool adding = !removing && sCommand.FindNoCase(_T("+FLAGS")) >= 0;
+      const bool replacing = !removing && !adding && sCommand.FindNoCase(_T("FLAGS")) >= 0;
+      const bool replaceKeywords = replacing && pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionWriteOthers);
+
+      bool changedSince = false;
+      bool tooManyKeywords = false;
+
+      auto change = [&](Message &message) -> bool
       {
-         // Remove flags
-         if (bSeen)
-            pMessage->SetFlagSeen(false);
-         if (bDeleted)
-            pMessage->SetFlagDeleted(false);
-         if (bDraft)
-            pMessage->SetFlagDraft(false);
-         if (bAnswered)
-            pMessage->SetFlagAnswered(false);
-         if (bFlagged)
-            pMessage->SetFlagFlagged(false);
-         for (size_t i = 0; i < keywordsGiven.size(); i++)
-            pMessage->RemoveKeyword(keywordsGiven[i]);
-
-
-
-      }
-      else if (sCommand.FindNoCase(_T("+FLAGS")) >= 0)
-      {
-         // Add flags
-         if (bSeen)
-            pMessage->SetFlagSeen(true);
-         if (bDeleted)
-            pMessage->SetFlagDeleted(true);
-         if (bDraft)
-            pMessage->SetFlagDraft(true);
-         if (bAnswered)
-            pMessage->SetFlagAnswered(true);
-         if (bFlagged)
-            pMessage->SetFlagFlagged(true);
-         for (size_t i = 0; i < keywordsGiven.size(); i++)
+         // RFC 7162 3.1.3: the UNCHANGEDSINCE test and the store it guards are
+         // one operation - asked again here, under the lock, since another
+         // session may have changed the message after the test above.
+         if (has_unchangedsince_ && message.GetModSeq() > unchangedsince_)
          {
-            if (!pMessage->AddKeyword(keywordsGiven[i]))
-               return IMAPResult(IMAPResult::ResultNo, "Too many keywords on the message.");
+            changedSince = true;
+            return false;
          }
-       
-      }
-      else if (sCommand.FindNoCase(_T("FLAGS")) >= 0)
+
+         if (removing)
+         {
+            if (bSeen)
+               message.SetFlagSeen(false);
+            if (bDeleted)
+               message.SetFlagDeleted(false);
+            if (bDraft)
+               message.SetFlagDraft(false);
+            if (bAnswered)
+               message.SetFlagAnswered(false);
+            if (bFlagged)
+               message.SetFlagFlagged(false);
+            for (size_t i = 0; i < keywordsGiven.size(); i++)
+               message.RemoveKeyword(keywordsGiven[i]);
+         }
+         else if (adding)
+         {
+            if (bSeen)
+               message.SetFlagSeen(true);
+            if (bDeleted)
+               message.SetFlagDeleted(true);
+            if (bDraft)
+               message.SetFlagDraft(true);
+            if (bAnswered)
+               message.SetFlagAnswered(true);
+            if (bFlagged)
+               message.SetFlagFlagged(true);
+            for (size_t i = 0; i < keywordsGiven.size(); i++)
+            {
+               // The message is put back as it was, by ChangeMessageFlags:
+               // this used to return NO with the flags and the keywords before
+               // this one already changed in memory and never written.
+               if (!message.AddKeyword(keywordsGiven[i]))
+               {
+                  tooManyKeywords = true;
+                  return false;
+               }
+            }
+         }
+         else if (replacing)
+         {
+            message.SetFlagSeen(bSeen);
+            message.SetFlagDeleted(bDeleted);
+            message.SetFlagDraft(bDraft);
+            message.SetFlagAnswered(bAnswered);
+            message.SetFlagFlagged(bFlagged);
+            if (replaceKeywords)
+               message.SetKeywordList(keywordsGiven);
+         }
+
+         return true;
+      };
+
+      FolderManager::FlagChangeResult result = Application::Instance()->GetFolderManager()->ChangeMessageFlags(
+         pConnection->GetCurrentFolder()->GetAccountID(),
+         pConnection->GetCurrentFolder()->GetID(),
+         pMessage->GetID(), change, pMessage);
+
+      if (result == FolderManager::FlagChangeDeclined)
       {
-         // Set flags
-         pMessage->SetFlagSeen(bSeen);
-         pMessage->SetFlagDeleted(bDeleted);
-         pMessage->SetFlagDraft(bDraft);
-         pMessage->SetFlagAnswered(bAnswered);
-         pMessage->SetFlagFlagged(bFlagged);
-         if (pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionWriteOthers))
-            pMessage->SetKeywordList(keywordsGiven);
+         if (changedSince)
+         {
+            modified_.push_back(GetIsUID() ? pMessage->GetUID() : (unsigned int) messageIndex);
+            return IMAPResult();
+         }
+
+         if (tooManyKeywords)
+            return IMAPResult(IMAPResult::ResultNo, "Too many keywords on the message.");
+
+         return IMAPResult(IMAPResult::ResultNo, "Unable to store message flags.");
       }
 
-      bool result = Application::Instance()->GetFolderManager()->UpdateMessageFlags(
-         (int) pConnection->GetCurrentFolder()->GetAccountID(), 
-         (int) pConnection->GetCurrentFolder()->GetID(),
-         pMessage->GetID(), pMessage->GetFlags(), pMessage->GetKeywords());
-
-      if (!result)
+      if (result != FolderManager::FlagChangeStored)
       {
          // A message another session expunged after this command resolved it -
          // the folder's collection no longer holds it, so there are no flags to

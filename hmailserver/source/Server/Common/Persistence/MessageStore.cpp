@@ -63,6 +63,10 @@ namespace HM
       // it does not have (MessageStore::Missing).
       thread_local bool store_missing = false;
 
+      // Set on this thread when a door refused a stored message it could not
+      // read (MessageStore::Unreadable): 1 for damage, 2 for a key closed.
+      thread_local int store_unreadable = 0;
+
       class LocalFileStream : public MessageStoreBackendStream
       {
       public:
@@ -1015,6 +1019,24 @@ namespace HM
       store_unavailable = true;
    }
 
+   bool
+   MessageStore::Unreadable()
+   {
+      return store_unreadable != 0;
+   }
+
+   bool
+   MessageStore::UnreadableKeyClosed()
+   {
+      return store_unreadable == 2;
+   }
+
+   void
+   MessageStore::ClearUnreadable()
+   {
+      store_unreadable = 0;
+   }
+
    void
    MessageStore::Commit(const String &messageFile)
    {
@@ -1062,9 +1084,13 @@ namespace HM
       // since a delegate's client or a push can ask for such a message often.
       if (MailboxKeys::IsLockedProblem(problem))
       {
+         if (store_unreadable == 0)
+            store_unreadable = 2;
          LOG_DEBUG("MessageStore: " + messageFile + " was not read: " + problem + ".");
          return;
       }
+
+      store_unreadable = 1;
 
       ReportStoreError(7350, _T("MessageStore"),
          "The stored message " + messageFile + " could not be read: " + problem + ". It is refused rather than read as something it is not, and the file is left as it is.");
