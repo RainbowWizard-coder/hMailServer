@@ -1215,6 +1215,18 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   `package-repos` the apt and dnf repositories, each waiting for the owner's token or key.
   `build/check-release-chain.py` holds all of it, the release jobs and the container image's gate included, and
   `build/check-forge-export.py` the export.
+- **Changes land through merge requests, signed off, from the first landing after 6.3.4.** A batch reaches
+  `master` through a GitLab merge request,
+  by fast-forward, once its branch's pipeline has passed and every thread is resolved: `build/land-via-mr.py`
+  checks the batch, pushes it, opens the merge request, waits for the pipeline, merges without squashing, and
+  records on the merge request whether somebody other than the author approved; without that approval - Zain Ul
+  Abidin's, or the owner's for Zain's own, given on the tip it lands - it refuses to merge, unless the owner
+  overrides it for one landing with `--land-without-approval "<reason>"`, which it records. From the first batch
+  landed this way, every commit that reaches `master` carries its author's `Signed-off-by`, the maintainers'
+  included: the `sign-off` job checks every merge request and every `batch*` branch
+  (`build/sign-off.py`, which the landing script uses too), and Renovate signs its commits off. `master`'s rule is
+  to take no direct push once the first batch has landed this way (`hmailserver/docs/ContinuousIntegration.md`,
+  "Landing on master"). No batch has landed this way on GitLab yet; both scripts' self-tests run in `checkers`.
 - **Nothing is downloaded from GitHub to build**: the seventeen GitHub workflows, Dependabot and the CodeQL
   configuration have left the tree and are in its history; `libraries\build-openssl.ps1` takes OpenSSL's release
   archive from Debian's archive, `openssl_<version>.orig.tar.gz`, which is OpenSSL's own tarball, held to the same

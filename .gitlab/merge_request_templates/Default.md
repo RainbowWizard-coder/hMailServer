@@ -23,7 +23,7 @@ Text between these comment markers is not shown once the merge request is saved.
 ## Checklist
 
 - [ ] Branched from the current `master`; one logical change
-- [ ] Every commit is signed off (`git commit -s`), with the commit's own author email: the Developer Certificate of Origin, required of every commit in a merge request from a fork and checked by the *sign-off* job (CONTRIBUTING.md, "Sign-off")
+- [ ] Every commit is signed off (`git commit -s`), with the commit's own author email: the Developer Certificate of Origin, required of every commit that reaches `master`, the maintainers' included, and checked by the *sign-off* job (CONTRIBUTING.md, "Sign-off")
 - [ ] The server builds warning-free (`/WX`) with `build\build.ps1`; .NET changes build with `-warnaserror`
 - [ ] New behaviour is covered by a regression test, and a fix has a test that fails against the build before it
 - [ ] A new test file is listed in `RegressionTests.csproj` (and in `LinuxRegressionTests.csproj` if it compiles there)

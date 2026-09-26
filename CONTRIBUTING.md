@@ -15,8 +15,8 @@ change is held to, and how a change reaches `master`. By taking part you agree t
 18 September 2026, so every link to github.com/Progressiverobot - in older notes, commit messages and
 documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitlab-ci.yml`) on every push and
 every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,
-editorconfig, the packaging and package-manager checks when their files change, and the sign-off of a merge
-request from a fork. **The builds, both regression suites, the .NET build and tests, the packages, the
+editorconfig, the packaging and package-manager checks when their files change, and the sign-off of every
+commit a merge request or a `batch*` branch adds. **The builds, both regression suites, the .NET build and tests, the packages, the
 schema-upgrade gate and the rest of what the old GitHub workflows ran happen on the project's own two machines,
 for `master`, `batch*` branches and `v*` tags only** - never for a merge request, and never for a fork
 ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for your branch
@@ -347,8 +347,8 @@ stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG)
 editorconfig-checker. Four more run when their files change: *chart-and-compose* (the Helm chart and the
 Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units under `systemd-analyze`),
 *package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
-placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on a merge request from a fork (see
-[Sign-off](#sign-off)). Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
+placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on every merge request and every
+`batch*` branch (see [Sign-off](#sign-off)); *checkers* runs its self-test and `build/land-via-mr.py`'s. Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
 `pwsh -File build/...`, never by its shebang, because the tree checks out CRLF.
 
 **On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
@@ -689,6 +689,7 @@ As practised on `master`:
   hand, the commit message and the merge request are the only record of what passed.
 * A commit that adds a key to a bootstrap section of `hMailServer.ini` says so, and why, in its message.
 * A commit that flips a Roadmap2 row carries the counter line with it.
+* **Every commit is signed off**, `git commit -s`, the maintainers' included ([Sign-off](#sign-off)).
 * The history is linear: `master` has had no merge commit since 15 September 2026.
 * Commits on `master` are not signed. Release **tags** from `v6.2.23-alpha2` on are annotated and SSH-signed
   with a key listed in `.gitlab/allowed_signers`.
@@ -702,13 +703,27 @@ project's licence: the [Developer Certificate of Origin](https://developercertif
 must be the commit's author email. There is no CLA, so the sign-off is the record that a contribution may be
 distributed under AGPL-3.0-or-later.
 
-Sign-off is required of every commit in a merge request from someone outside the project. The maintainers'
-own commits are exempt, as they were under the GitHub check (the workflow `dco.yml`, in the git history at `v6.3.3`), which is why most
-commits on `master` carry none. **GitLab CI checks it**: the *sign-off* job runs on a merge request whose
-source branch is in a fork, and fails unless every commit from the merge request's base to its head carries a
-`Signed-off-by` trailer with the commit's author email (compared without regard to case). A merge request from a
-branch of this project does not run it. A commit that lacks it is fixed with `git commit --amend -s` (or
-`git rebase --signoff` for several) and a push.
+**Sign-off is required of every commit that reaches `master`, the maintainers' own included**, from the first
+batch that lands through `build/land-via-mr.py` (written on 26 September 2026; none has landed yet). Until then
+the maintainers' commits were exempt, as they were under the GitHub check (the workflow `dco.yml`, in the git
+history at `v6.3.3`), which is why the commits on `master` before it carry none. A direct push to `master`,
+which Maintainers can make until its push rule becomes *No one*, is checked by nothing
+([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Landing on master"). Two things hold
+it, and both ask the same question through `build/sign-off.py`:
+
+* **GitLab CI.** The *sign-off* job runs in every merge request's pipeline - a fork's, and a branch of this
+  project's - and in the pipeline of every `batch*` branch, which stands for the merge request a batch lands
+  through (a merge request from a `batch*` branch runs no pipeline of its own). It fails unless every commit the
+  merge request or the batch adds to `master` carries a `Signed-off-by` trailer with the commit's author email
+  (compared without regard to case). For a `batch*` branch it leaves out the commits the project's own `v*`
+  release tags already hold, which a trailer could be added to only by rewriting a release; a merge request's
+  range exempts nothing.
+* **The landing script.** `build/land-via-mr.py` refuses to push a batch with a commit that lacks it
+  ([Merge requests](#merge-requests)).
+
+A commit that lacks it is fixed with `git commit --amend -s` (or `git rebase --signoff master` for several) and
+a push. Only sign off what you wrote or may submit: `git rebase --signoff` adds *your* name to every commit it
+rewrites. To sign off without remembering the flag, `git config alias.cs "commit -s"` and commit with `git cs`.
 
 ## Merge requests
 
@@ -718,17 +733,33 @@ branch of this project does not run it. A commit that lacks it is fixed with `gi
 3. **Keep it to one logical change.** Add or update regression tests for a change of behaviour. Say in the
    description which checks you ran and on what; the merge-request template asks.
 4. **Open the merge request against `master`** of `Progressiverobot/hmailserver`, and sign off every commit.
-5. **Review.** Zain Ul Abidin, the second maintainer, reviews the change and approves the merge request - or,
-   for a merge request of his own, the owner does - and may ask for changes on it; the full Windows regression
-   gate runs on the bench before anything lands. From the first change after 6.3.4 no change lands without
-   that approval, the maintainers' own included ([GOVERNANCE.md](GOVERNANCE.md), Review). GitLab's Free tier
-   cannot require an approval, so the owner, who merges, holds to the rule.
-6. **Landing.** Christopher Holloway, the owner, merges the approved merge request into `master` by
-   fast-forward, with its pipeline green, so history stays linear; he may rebase your branch onto the current
-   `master`, or squash it into one commit, first. `master` is protected: only the owner can merge to it, and once
-   the pipeline on `master` is green it is to be closed to direct pushes, so that a merge request is the only
-   way in. (On GitHub, until 14 September 2026, a pull request was merged by rebase once the other maintainer
-   had approved it, as the master ruleset required; from then until 6.3.4 no approval was required.)
+5. **Review.** Zain Ul Abidin, the second maintainer, reviews the change - or, for a merge request of his own,
+   the owner does - asks for changes in threads on the merge request, and presses **Approve** when it is right.
+   GitLab will not merge a merge request with an unresolved thread or a pipeline that has not passed (both are
+   project settings). From the first change after 6.3.4 no change lands without that approval, the maintainers'
+   own included ([GOVERNANCE.md](GOVERNANCE.md), "Review"). On GitLab's Free tier anyone with the Developer role
+   can approve, but no rule can require an approval, and whether an author may approve their own is a setting of
+   the paid tiers; so the landing script below holds the rule, and it never counts an author's approval.
+6. **The gate.** A merge request's own pipeline runs the shared runners' checks only. The builds and both suites
+   run on the project's machines for a `batch*` branch, which only a Maintainer can push: the maintainer puts
+   your commits on one - rebased onto the current `master`, your authorship and your `Signed-off-by` kept, or
+   squashed into one commit of yours that keeps them - with other changes ready to land.
+7. **Landing.** A `batch*` branch lands through a merge request of its own, by fast-forward, so history stays
+   linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge
+   commit and is signed off throughout, pushes it, opens the merge request, waits for the branch's pipeline,
+   and merges only when it passed and GitLab calls the merge request mergeable. It never squashes. It records on
+   the merge request, and in `land-via-mr.log` in the git directory, the pipeline, the sign-off and whether
+   somebody other than the author approved the tip it lands (an approval given before a later push does not
+   count), and without such an approval it refuses to merge (exit 7). The owner alone may override that for
+   one landing that cannot wait - a security fix inside its disclosure window, a broken `master` - with
+   `--land-without-approval "<reason>"`: the script refuses the override unless it runs as one of the owner's
+   accounts, records the reason on the merge request and in its log, and the change is reviewed afterwards. Run
+   with `--dry-run` it checks and changes nothing, with `--no-wait` it stops once the merge request is open, and
+   run again it finds the open merge request and carries on. Your merge request is then merged or closed with a
+   link to the batch's. `master` is protected: only the owner can merge to it, and once the pipeline on
+   `master` is green it is to be closed to direct pushes, so that a merge request is the only way in. (On
+   GitHub, until 14 September 2026, a pull request was merged by rebase once the other maintainer had approved
+   it, as the master ruleset required; from then until 6.3.4 no approval was required.)
 
 If a change spans more than about three rows of ARCHITECTURE.md's *Where to start* table, or touches the schema,
 the COM interface or the release path, open an issue to discuss it before writing it.

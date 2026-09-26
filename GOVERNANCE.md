@@ -17,7 +17,12 @@ GitHub ruleset had stopped requiring one on 14 September 2026): `master` is
 protected, and a change that had passed the regression gate landed on it by
 fast-forward. From the first change after 6.3.4, every change is to land
 through a merge request that Zain Ul Abidin approves (the owner, for Zain's
-own) before the owner merges it (see Review). Security reports go
+own) before the owner merges it, by fast-forward, once its pipeline has passed
+and every thread on it is resolved; `build/land-via-mr.py` (written on 26
+September 2026) lands it that way and refuses a merge request without that
+approval (see Review). No batch has landed that way yet: until one has, and the
+owner has taken direct pushes off `master`, he can still push a gated tree to
+`master` directly, as he did before. Security reports go
 by the routes in [SECURITY.md](SECURITY.md). The release chain ran on GitHub
 Actions; its replacement, the release jobs of `.gitlab-ci.yml`, is written and
 has not run yet, so 6.3.4 was built and signed by hand. The installer's fetched
@@ -124,11 +129,14 @@ gives, or a decision not yet made:
    private vulnerability reporting, which showed every advisory only to
    repository admins, security managers and organisation owners.)
 3. **Accepting changes** on GitLab needs the Maintainer role: `master` is
-   protected, and only Maintainers may push or merge to it. As a Developer,
-   Zain Ul Abidin pushes branches of his own, opens merge requests and reviews
-   others'; from the first change after 6.3.4 he approves each merge request
-   before the owner merges it (see Review), and his own changes reach `master`
-   through the owner, who reviews and lands them.
+   protected, and only Maintainers may merge to it (or push to it, until the
+   push rule becomes *No one*; [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+   "Landing on master"). As a Developer, Zain Ul Abidin pushes branches of his
+   own, opens merge requests and reviews others'; from the first change after
+   6.3.4 he approves each merge request, the owner's batches included, before
+   the owner merges it (see Review), and his own changes, and a contributor's
+   he has reviewed, reach `master` through the owner, who reviews and lands
+   them.
 
 ### Contributor
 
@@ -160,7 +168,10 @@ project's habit is to write down *why* rather than just *what*; the release
 notes are the clearest example of this and are the intended place to look for
 the reasoning behind a behavioural change. On GitLab, since 26 September 2026,
 whoever decides, a change lands on `master` through the owner, the one member
-with the Maintainer role (note 3 under [Maintainers](#maintainers)).
+with the Maintainer role (note 3 under [Maintainers](#maintainers)), and, from
+the first batch it lands, through a merge request: the owner's own work as a
+`batch*` branch that `build/land-via-mr.py` lands
+([CONTRIBUTING.md](CONTRIBUTING.md), "Merge requests").
 
 **Review.** From the first change after 6.3.4, every change lands on `master`
 through a merge request, and Zain Ul Abidin reviews and approves each one
@@ -168,18 +179,57 @@ before Christopher Holloway, the owner, merges it - by fast-forward, with the
 merge request's pipeline green (the owner's decision of 26 September 2026).
 That covers the owner's own changes, those an agent makes on his behalf,
 contributors' and Renovate's. A merge request of Zain Ul Abidin's own is
-reviewed and approved by the owner instead, since GitLab does not let an author
-approve his own. A reviewer asks for changes on the merge request rather than
-pushing to the author's branch, and while the reviewer is unavailable, changes
-wait. No approval rule is configured on the project - GitLab's Free tier cannot
-require one - so it is the owner, the one member who can merge, who holds to
-the rule (the project's merge settings do hold the other two: a merge request
-merges only by fast-forward, and only once its pipeline has succeeded); the approval is recorded on the merge request rather than anywhere
-private, because that record is what shows that a second person has read the
-change. Today `master` still takes a Maintainer's direct push, which is how
-6.3.4 and the batch that carries it land, gated as before; once the pipeline on
-`master` is green, `master` is to be closed to direct pushes, leaving the merge
-request as the only way in.
+reviewed and approved by the owner instead. A reviewer asks for changes on the
+merge request rather than pushing to the author's branch, and while the
+reviewer is unavailable, changes wait. GitLab's Free tier has the Approve
+button but no approval rules: anyone with the Developer role or above can
+approve, and nothing in GitLab can make an approval a condition of the merge
+(no approval rule is configured on the project). What the project's merge
+settings do hold is that a merge request merges only by fast-forward, only once
+its pipeline has succeeded and only with every thread on it resolved. Whether
+an author may approve their own merge request, and whether a new push takes an
+approval off, are settings of the paid tiers; the landing script never counts
+an author's approval, and counts only one given after the tip it lands reached
+the merge request, whatever those settings say. So the approval is held by
+`build/land-via-mr.py`, and by the owner, the one member who can merge; it is
+recorded on the merge request rather than anywhere private, because that record
+is what shows that a second person has read the change. Today `master` still
+takes a Maintainer's direct push, which is how 6.3.4 and the batch that carries
+it land, gated as before; once the pipeline on `master` is green, `master` is to
+be closed to direct pushes ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+"Landing on master"), leaving the merge request as the only way in.
+
+How Zain Ul Abidin, a Developer, reviews one of the owner's batches:
+
+1. Open the merge request (`Land batchN: ...`, opened by `build/land-via-mr.py`),
+   and read the **Changes** tab, commit by commit where the batch is large (the
+   **Commits** tab).
+2. Say what must change as a comment on the line, which opens a thread. GitLab
+   will not merge while a thread is unresolved; the author answers, changes the
+   batch and pushes it again (a new pipeline), and the reviewer resolves the
+   thread when the answer is right.
+3. When the change is right, press **Approve**. The approval is recorded on the
+   merge request and in its activity. The landing script counts only an
+   approval given after the tip it lands reached the merge request, so after a
+   new push the reviewer approves again (**Revoke approval**, then **Approve**,
+   where the old approval still shows).
+
+`build/land-via-mr.py` reads the approvals just before it merges and records,
+in a note on the merge request and in its log, whether somebody other than the
+author approved the tip it lands: not the merge request's author, not an
+author of one of its commits, not another account of the same person
+(`Progressiverobot` and `chrisholloway5` are both Christopher Holloway's), and
+not an approval given before that tip reached the merge request (its diff
+versions say when). Without such an approval it refuses to merge (exit 7), and
+the landing note says so. The owner alone may override that for one landing,
+when waiting would hold up something urgent - a security fix inside its
+disclosure window, or a broken build on `master` - with
+`python3 build/land-via-mr.py batchN --land-without-approval "<reason>"`: the
+script refuses the override unless it runs as one of the owner's accounts, and
+records the reason in the landing note and its log; a change landed that way is
+reviewed afterwards, on its merge request. A contributor's merge request is
+approved by a maintainer on the contributor's own merge request before its
+commits are put on a batch.
 
 On GitHub, until 14 September 2026, a pull request authored by one maintainer,
 or opened by an agent on one maintainer's behalf, was approved by the other

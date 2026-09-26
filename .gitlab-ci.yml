@@ -13,8 +13,9 @@
 #   harnesses   the Control Deck's and the webmail's scripts run in Node against a
 #               small DOM and a recorded server, and the webmail's S/MIME and OpenPGP
 #               modules against OpenSSL and GnuPG;
-#   sign-off    on a merge request from a fork, every commit carries a Signed-off-by
-#               trailer naming its author (CONTRIBUTING.md, "Sign-off");
+#   sign-off    on every merge request, and on a batch* branch, which stands for its
+#               merge request, every commit carries a Signed-off-by trailer naming
+#               its author (build/sign-off.py; CONTRIBUTING.md, "Sign-off");
 #   editorconfig          every text file against .editorconfig;
 #   chart-and-compose     the Helm chart and the Compose file, when they change;
 #   update-helper         the live update's Linux apply step against fakes, and the
@@ -221,6 +222,10 @@ checkers:
       # The release's collect and publish steps, against a registry and a releases API in
       # memory: the links they make are the ones the feed takes.
       check python3 build/ci/release-chain.py --self-test
+      # The sign-off check and the landing script, against repositories and a GitLab API
+      # they make for themselves.
+      check python3 build/sign-off.py --self-test
+      check python3 build/land-via-mr.py --self-test
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check
@@ -268,46 +273,38 @@ sign-off:
   timeout: 10 minutes
   variables:
     GIT_DEPTH: "0"
-  # Outside contributors' merge requests come from forks. The maintainers' own
-  # commits are exempt, as they were under the GitHub check: they push to branches
-  # of this project, and those merge requests do not run this job.
+  # Every commit that reaches master carries its author's Developer Certificate of
+  # Origin sign-off, the maintainers' included (CONTRIBUTING.md, "Sign-off"). A
+  # change reaches master through a merge request: a fork's or a branch of this
+  # project's runs this job in the merge request's pipeline, and a batch* branch's
+  # runs none (the workflow rules), so its own branch pipeline, which stands for the
+  # merge request, runs it here. build/sign-off.py is the check, and
+  # build/land-via-mr.py asks it the same question before it pushes a batch.
+  # For a batch* branch the range is what the branch adds to master, less what the
+  # project's own v* tags hold: a released commit cannot take a trailer without
+  # being rewritten, and until 26 September 2026 the maintainers' commits carried
+  # none. A fork's tags are the fork's, so a merge request's range exempts nothing.
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID != $CI_MERGE_REQUEST_PROJECT_ID
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"
   before_script:
     - apt-get update -qq
     - apt-get install -y -qq --no-install-recommends git > /dev/null
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
   script:
     - |
-      base="$CI_MERGE_REQUEST_DIFF_BASE_SHA"
-      head="${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}"
-      if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2> /dev/null; then
-        echo "The merge request's base commit ($base) is not in this clone; nothing can be checked."
-        exit 1
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
+        python3 build/sign-off.py "$CI_MERGE_REQUEST_DIFF_BASE_SHA" "${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}"
+      else
+        git fetch --quiet --force origin "+refs/heads/$CI_DEFAULT_BRANCH:refs/remotes/origin/$CI_DEFAULT_BRANCH" "+refs/tags/v*:refs/tags/v*"
+        set --
+        for tag in $(git tag -l 'v*'); do
+          set -- "$@" --exempt "refs/tags/$tag"
+        done
+        python3 build/sign-off.py "refs/remotes/origin/$CI_DEFAULT_BRANCH" "$CI_COMMIT_SHA" "$@"
       fi
-      missing=0
-      for sha in $(git rev-list --reverse "$base..$head"); do
-        author=$(git log -1 --format='%ae' "$sha" | tr 'A-Z' 'a-z')
-        subject=$(git log -1 --format='%s' "$sha" | cut -c1-100)
-        # The trailer must name the commit's author: a sign-off by somebody else
-        # certifies nothing about the person who wrote the change.
-        trailers=$(git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$sha" | tr 'A-Z' 'a-z')
-        case "$trailers" in
-          *"<$author>"*)
-            echo "ok       $(echo "$sha" | cut -c1-12) $subject" ;;
-          *)
-            echo "MISSING  $(echo "$sha" | cut -c1-12) $subject - no Signed-off-by for $author"
-            missing=$((missing + 1)) ;;
-        esac
-      done
-      if [ "$missing" -gt 0 ]; then
-        echo ""
-        echo "$missing commit(s) have no Developer Certificate of Origin sign-off by their author."
-        echo "Add one with 'git commit --amend -s' for the last commit, or 'git rebase --signoff'"
-        echo "for several, and push again. What it certifies: https://developercertificate.org/"
-        exit 1
-      fi
-      echo "Every commit carries its author's sign-off."
 
 # ---------------------------------------------------------------- the update feed
 #

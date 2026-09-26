@@ -23,7 +23,13 @@ September 2026 up to and including 6.3.4 no approval was required, so a tree tha
 had passed the gate landed on `master` by fast-forward, with no pull request;
 and from the first change after 6.3.4 every change, a release's included, lands
 through a merge request that the other maintainer approves before the owner
-merges it by fast-forward, its pipeline green (GOVERNANCE.md, Review).
+merges it by fast-forward, its pipeline green (GOVERNANCE.md, Review). A batch
+lands that way with `python3 build/land-via-mr.py batchN` (written on 26
+September 2026; none has landed yet), which refuses a merge request without that
+approval unless the owner overrides it for one landing (`--land-without-approval
+"<reason>"`), and every commit it lands is signed off (`git commit -s`;
+CONTRIBUTING.md, "Merge requests"). Until the first such landing, a tree that has
+passed the gate is pushed to `master` directly.
 
 ## The release on GitLab
 
@@ -58,7 +64,10 @@ certificate naming that tag, which servers accept. The Azure credential made
 for one tag at a time ([Authenticode](#on-gitlab-from-635)) holds the
 installer's Authenticode signature alone, which a server checks only where
 `UpdateRequireAuthenticode=1` is set, and never on Linux. `master`'s list is
-itself only as safe as `master`, which Maintainers may push to.
+itself only as safe as `master`, which Maintainers may push to until its push
+rule becomes *No one*; after that a change to it reaches `master` only through a
+merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`,
+"Landing on master").
 
 1. **Steps 1 to 10 below, as written**, with one change: the release notes are
    the version's section of `CHANGELOG.md`, headed `## [X.Y.Z](...) - <date>`,
@@ -70,7 +79,10 @@ itself only as safe as `master`, which Maintainers may push to.
    not track where a build would take it in (`build/ci/windows-installer.ps1`
    says which).
 2. **Tag the release on `master`**, annotated and signed with the owner's key,
-   once the commit is on GitLab's `master`, and push the tag:
+   once the commit is on GitLab's `master` - where the release commit, with the
+   version stamp and the notes, gets through its batch's merge request
+   (`python3 build/land-via-mr.py batchN`), signed off like every other - and
+   push the tag:
 
    ```
    git tag -s vX.Y.Z -m "hMailServer X.Y.Z"

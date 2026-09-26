@@ -3,9 +3,10 @@
   "description": [
     "Dependency updates by the project's own bot: Renovate, run by the scheduled renovate job of .gitlab-ci.yml on linix (docs/ContinuousIntegration.md, 'Dependency updates').",
     "Every datasource below is off GitHub: api.nuget.org, Microsoft's .NET release metadata, Docker Hub and mcr.microsoft.com, registry.npmjs.org, pypi.org, and the upstream projects' own release listings. hostRules refuses github.com, githubusercontent.com and ghcr.io outright, and fetchChangeLogs is off, because release notes are read from GitHub.",
-    "Nothing merges itself: there is no automerge anywhere in this file."
+    "Nothing merges itself: there is no automerge anywhere in this file.",
+    "Every commit carries a Signed-off-by trailer naming its author, Renovate's git author (the :gitSignOff preset, built into Renovate): the sign-off job of .gitlab-ci.yml checks every commit of every merge request (CONTRIBUTING.md, 'Sign-off')."
   ],
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", ":gitSignOff"],
   "timezone": "Europe/London",
   "schedule": ["* * * * 1"],
   "updateNotScheduled": false,

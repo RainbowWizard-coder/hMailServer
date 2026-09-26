@@ -24,7 +24,7 @@ What runs where
 |---|---|---|---|---|
 | `checkers` | check | GitLab's shared runners | every pipeline but a schedule's | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
 | `harnesses` | check | GitLab's shared runners | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
-| `sign-off` | check | GitLab's shared runners | a merge request from a fork | Every commit carries its author's `Signed-off-by` |
+| `sign-off` | check | GitLab's shared runners | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
 | `editorconfig` | check | GitLab's shared runners | every pipeline | Every text file against `.editorconfig`, and a negative control |
 | `chart-and-compose` | check | GitLab's shared runners | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
 | `update-helper` | check | GitLab's shared runners | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
@@ -94,12 +94,12 @@ Which pipeline runs what
 
 | Push or event | Pipeline | Jobs |
 |---|---|---|
-| `master` | the branch's | all of them but the release jobs, `linux-fuzz` and `installer-smoke` |
+| `master` | the branch's | all of them but the release jobs, `linux-fuzz`, `installer-smoke` and `sign-off` |
 | a `batch*` branch | the branch's | all of them but the release jobs, `linux-fuzz`, `pages`, `package-repos`, `semgrep-sast` and `secret_detection`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
-| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, `semgrep-sast`, `secret_detection`, and `sign-off` when the branch is in a fork |
+| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, `semgrep-sast`, `secret_detection`, and `sign-off` |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them but `linux-fuzz`, `semgrep-sast` and `secret_detection` (the commit's `master` pipeline ran them), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
+| a `v*` tag | the tag's | all of them but `linux-fuzz`, `semgrep-sast`, `secret_detection` and `sign-off` (the commit's `master` pipeline ran the first three, and its batch the last), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
 | any other tag | none | |
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
 | the schedule described `renovate`, on `master` | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
@@ -187,7 +187,125 @@ them is enough. Relaxing one of them is not a reason to relax the others.
 
 The protected refs are project settings (Settings, Repository, Protected
 branches and Protected tags): `master`, `batch*` and `v*`, with push and merge
-allowed to Maintainers.
+allowed to Maintainers. `master`'s push rule is to become *No one* after the
+first landing through a merge request ([Landing on master](#landing-on-master)).
+
+Landing on master
+-----------------
+
+From the first batch it lands, a change reaches `master` through a merge
+request. The script was written on 26 September 2026 and no batch has landed
+through it yet; until one has, the owner pushes a gated batch to `master`
+himself, as before. The owner's work is folded into a `batch*` branch, and
+`build/land-via-mr.py` lands it:
+
+```
+python3 build/land-via-mr.py batch41 --dry-run
+python3 build/land-via-mr.py batch41
+```
+
+It needs git and `glab`, logged in to gitlab.com as a Maintainer. In order, and
+stopping at the first refusal:
+
+1. **Before anything is sent**, the batch must be on top of the remote's
+   `master` (the project merges by fast-forward only), add no merge commit, and
+   carry its author's `Signed-off-by` on every commit it adds, less those the
+   project's `v*` tags already hold (`build/sign-off.py`, the check the
+   `sign-off` job runs). `--dry-run` stops here.
+2. It pushes the branch. A `batch*` branch is protected, so its pipeline runs
+   everything, the two machines' gates included.
+3. It opens a merge request into `master`, not squashed, with the source branch
+   to be deleted, or finds the one already open for the branch: running it again
+   resumes. `--no-wait` stops here.
+4. It waits for the pipeline of exactly the branch's tip (twelve hours by
+   default, `--timeout-hours`). A merge request from a `batch*` branch runs no
+   pipeline of its own (the `workflow:` rules), so GitLab holds it to the
+   branch's pipeline for the same commit, its head pipeline. Anything but
+   success refuses: failed, canceled, skipped, or waiting on a manual job that
+   blocks.
+5. GitLab must call the merge request mergeable. The project's settings make
+   that mean the pipeline passed (*Pipelines must succeed*), every thread is
+   resolved (*All threads must be resolved*), it is not a draft, and `master`
+   has not moved since the batch was rebased (fast-forward merge).
+6. It reads the approvals and decides whether somebody other than the author
+   approved the tip it lands ([GOVERNANCE.md](../../GOVERNANCE.md), "Review").
+   An approval given before that tip reached the merge request (the merge
+   request's diff versions say when) does not count: whether a push takes
+   earlier approvals off is a setting of the paid tiers. Without one it refuses
+   (exit 7): from the first landing after 6.3.4 every merge request needs Zain
+   Ul Abidin's approval, the owner's for Zain's own (the owner's decision of 26
+   September 2026). The owner alone may override that for one landing with
+   `--land-without-approval "<reason>"`, which the script refuses unless it runs
+   as one of the owner's accounts, and whose reason it records in the landing
+   note and its log.
+7. It merges through the API at exactly the tip it checked (`sha`), with
+   `squash` false - the project's squash option is *encouraged*, and a squash
+   would put one commit in the merge request author's name in place of the
+   batch, its authors and its sign-offs - and checks that the remote's `master`
+   is now that tip.
+8. It records the landing in a note on the merge request - the tip, the
+   pipeline, the sign-off, the approvals and who landed it - and in
+   `land-via-mr.log` in the repository's git directory. It moves the local
+   `master` to the tip when no worktree has it checked out, and deletes the
+   branch on GitLab and locally where it can, saying when it cannot.
+
+Nothing reaches `master` when it refuses. After a failed pipeline or an open
+thread, change the batch, push it again, and run it again; after `master` has
+moved, rebase the batch onto it first, which starts a new pipeline.
+
+Merging by fast-forward is a push to `master`, so `master`'s own pipeline runs
+the whole gate again on the same commit ([Which pipeline runs
+what](#which-pipeline-runs-what)); the `sign-off` job does not run there, since
+every commit a merge request brings to `master` has passed it on the way. A
+direct push to `master`, which Maintainers can make until its push rule is *No
+one* (below), is checked by nothing.
+
+**What has run, and what has not.** `python3 build/land-via-mr.py --self-test`,
+which `checkers` runs, drives the whole landing against a bare repository
+standing for the project and a GitLab API held in memory: a landing, and a
+refusal for each of an unsigned commit, a batch behind `master`, a merge commit,
+a failed pipeline, a pipeline waiting on a manual job, an open thread, and a
+missing approval once one is required; approvals read from the merge request's
+system notes where the approvals API is refused; an approval given before the
+tip reached the merge request not counted, and counted with a note where the
+diff versions cannot be read; and the release-tag exemption
+taken from the project's tags, never from a tag only the local clone has. No
+batch has landed this way on GitLab yet. The first landing is the first test of
+the calls against GitLab itself: the merge request, its head pipeline, the
+approvals and diff-versions endpoints on the Free tier (their answers' shapes
+are taken from GitLab's API documentation; the project has had no merge request
+to read them from), the merge, and deleting a protected branch.
+
+### After the first landing: nobody pushes to master
+
+`master`'s rule lets Maintainers push and merge. Once a batch has landed through
+`build/land-via-mr.py` - its branch's pipeline green and the merge made through
+the API - nothing needs a direct push any more, and the rule drops it for
+everyone: **push *No one*, merge *Maintainers***. Not before: until the merge
+request path has worked once on GitLab, a direct push is the way a fix lands.
+
+The owner makes the change in Settings, Repository, Protected branches: for
+`master`, *Allowed to push and merge* becomes *No one*, and *Allowed to merge*
+stays *Maintainers*. The edit is in place. Through the API the same takes two
+calls on the Free tier, whose `PATCH` of a protected branch cannot change an
+access level (`allowed_to_push` is Premium's), so the branch is unprotected and
+protected again, and is unprotected for the moment between the two:
+
+```
+glab api -X DELETE projects/86730559/protected_branches/master && \
+glab api -X POST projects/86730559/protected_branches -f name=master \
+  -F push_access_level=0 -F merge_access_level=40 -F unprotect_access_level=40 \
+  -F allow_force_push=false
+glab api projects/86730559/protected_branches/master
+```
+
+The last must show `push_access_levels` holding one entry, `access_level` 0
+(*No access*), `merge_access_levels` Maintainers, and `allow_force_push` false.
+Nothing then pushes to `master`, the owner included: no hand's `git push`, and
+no job (Renovate pushes `renovate/*` branches and opens
+merge requests; `pages` and `forge-export` push nothing). Tags are not touched:
+the release tag is still the owner's to push. To undo it, set *Allowed to push
+and merge* back to *Maintainers*.
 
 The runners
 -----------
@@ -499,7 +617,7 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 | `style.yml` license-headers | `checkers` (row 139) | shared | every pipeline |
 | `style.yml` dotnet-format | `windows-dotnet` | bench150 | a protected ref |
 | `server-build.yml` | `windows-gate`, which builds the Release server before the suite | bench150 | a protected ref |
-| `dco.yml` | `sign-off` (row 139) | shared | a merge request from a fork |
+| `dco.yml` | `sign-off` (row 139); since 26 September 2026 for every merge request and every `batch*` branch, the maintainers' commits included | shared | a merge request, a `batch*` branch |
 | `roadmap.yml` | `roadmap` | shared | `Roadmap.md` changed |
 | `linux-build.yml` stamps | `checkers` runs `check-linux-version-stamp.sh` (row 139), and `linux-build` runs it again before it packages: a drifted stamp makes no package | shared, linix | every pipeline; a protected ref |
 | `linux-build.yml` build, x86-64 clang | `linux-build` (with the packages) | linix | a protected ref |
