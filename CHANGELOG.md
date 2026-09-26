@@ -544,10 +544,13 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   only the signers compiled into it, so 6.3.4 carries a third: the same pipeline at
   `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, issuer `https://gitlab.com`,
   repository `https://gitlab.com/hmailserver/hmailserver`, with the project's id, `86730559`, which a transfer keeps,
-  required in the certificate - so nobody who registers that path, now or later, can sign as this project, and a
-  release signed after the move installs by the live update of every server from 6.3.4 on. The id stays optional
-  for the present path. A server that still has the three GitLab values `UpdateFeed.md` gave 6.2.28 to 6.3.3 set
-  trusts the present path alone, and refuses what is signed after the move until they are cleared
+  required in the certificate whatever `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository`
+  say (`-` included) - so nobody who registers that path, now or later, can sign as this project, and a release
+  signed after the move installs by the live update of every server from 6.3.4 on (the project moves only once a
+  release signed before it has shown that Fulcio records the id). The id stays optional for the present path. A
+  server that still has the three GitLab values `UpdateFeed.md` gave 6.2.28 to 6.3.3 set trusts the present path
+  alone, and refuses what is signed after the move until they are cleared; a server from 6.2.28 to 6.3.3 checks no
+  id, is never to be pointed at the group's path with them, and is upgraded by hand after the move
   ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 - **Upgrades without a booked window**: a drain closes the listeners before it waits, the live update drains
   first, and with `UpgradeOnStart=1` in `[Database]` (a new bootstrap key, 0 by default) the service applies

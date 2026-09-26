@@ -271,6 +271,9 @@ namespace RegressionTests.API
             "The certificate names no source repository identifier.");
          AssertRefused(status, GitLabGroupSigned(identity, repositoryId: "12345678"),
             "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         // An id recorded empty is another id, not a match.
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: ""),
+            "is for the repository with the id , not " + FakeSigstore.GitLabRepositoryId);
 
          // The present path still takes a certificate that records no id: what is
          // required is the group entry's, not every GitLab one's.
@@ -318,9 +321,12 @@ namespace RegressionTests.API
             new[] { "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/build-inputs-1", FakeSigstore.GitLabRepository },
             // This project, for a v* tag, from another CI file.
             new[] { "https://gitlab.com/Progressiverobot/hmailserver//ci/other.yml" + tag, FakeSigstore.GitLabRepository },
-            // The group the project is to move to: a subgroup of the same name, and
-            // the project there for a branch.
+            // The group the project is to move to: a subgroup of the same name, a
+            // project beside it whose path begins with its path, the same path in
+            // other letters, and the project there for a branch.
             new[] { "https://gitlab.com/hmailserver/hmailserver/fork//.gitlab-ci.yml" + tag, "https://gitlab.com/hmailserver/hmailserver/fork" },
+            new[] { "https://gitlab.com/hmailserver/hmailserver-evil//.gitlab-ci.yml" + tag, "https://gitlab.com/hmailserver/hmailserver-evil" },
+            new[] { "https://gitlab.com/HMailServer/hmailserver//.gitlab-ci.yml" + tag, "https://gitlab.com/HMailServer/hmailserver" },
             new[] { "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/heads/master", FakeSigstore.GitLabGroupRepository }
          };
          foreach (string[] stranger in strangers)
@@ -483,9 +489,10 @@ namespace RegressionTests.API
             "The certificate was made for the tag v" + FakeSigstore_Bump(Newer));
 
          // Only the repository check off: every one of this project's signers
-         // stays, none holding a certificate to its repository or its id - the
-         // group's required id goes with its repository - and the GitHub one still
-         // holding it to the releases it signed.
+         // stays, none holding a certificate to its repository, the GitHub one
+         // still holding it to the releases it signed, and a certificate for the
+         // group's path still held to the project's id, which no setting drops:
+         // it is all that tells the project from whoever holds that path.
          WriteSetting("UpdateSigningIssuer", "");
          WriteSetting("UpdateSourceRepository", "-");
          _application.Reinitialize();
@@ -500,10 +507,73 @@ namespace RegressionTests.API
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
          Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository. Error: " + status.UpdateLastError);
          CleanUpdates();
-         ServeRelease(_installer, _sigstore.Bundle(_installer,
-            GitLabGroupSigned(FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: null)));
+         string group = FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer;
+         AssertRefused(status, GitLabGroupSigned(group, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: null),
+            "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabGroupSigned(group, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabGroupSigned(group, repository: "https://gitlab.com/someone-else/hmailserver")));
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
-         Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository or id for the group's path either. Error: " + status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository for the group's path, and still its id. Error: " + status.UpdateLastError);
+      }
+
+      [Test]
+      public void TheGroupsValuesPinnedKeepItsIdRequired()
+      {
+         // The three settings restating the group's entry - as a site might set
+         // them once the project has moved - keep every check it has, the required
+         // id among them. The GitHub entry and the present path's, turned by them
+         // into the group's identity, issuer and repository without the id, are
+         // dropped rather than tried first.
+         WriteSetting("UpdateSigningIdentity", FakeSigstore.GitLabGroupReleaseIdentityPrefix);
+         WriteSetting("UpdateSigningIssuer", FakeSigstore.GitLabIssuer);
+         WriteSetting("UpdateSourceRepository", FakeSigstore.GitLabGroupRepository);
+         _application.Reinitialize();
+
+         var status = Checked();
+         string identity = FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer;
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: null),
+            "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         AssertRefused(status, GitLabGroupSigned(FakeSigstore.GitLabGroupReleaseIdentityPrefix + FakeSigstore_Bump(Newer)),
+            "The certificate was made for the tag v" + FakeSigstore_Bump(Newer) + ", not for v" + Newer);
+         AssertRefused(status, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer),
+            "The certificate names " + FakeSigstore.GitLabReleaseIdentityPrefix + Newer + ", not this repository's release workflow");
+
+         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabGroupSigned(identity)));
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "The group's own values, with the project's id. Error: " + status.UpdateLastError);
+         CleanUpdates();
+
+         // An identity of the site's own that still names the group's path - here
+         // without the "v" - replaces every entry's, and the one kept is the copy
+         // of the first, whose id went with its repository. The server still
+         // refuses a certificate for the group's path without the project's id,
+         // whatever the settings made of the signers.
+         WriteSetting("UpdateSigningIdentity", "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/");
+         _application.Reinitialize();
+         status = Checked();
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: null),
+            "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabGroupSigned(identity)));
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "The site's identity names the group's path, and the certificate the project's id. Error: " + status.UpdateLastError);
+         CleanUpdates();
+
+         // Nor with the widest identity and the repository check off: a
+         // certificate for the group's path, or recording its repository, needs
+         // the project's id.
+         WriteSetting("UpdateSigningIdentity", "https://gitlab.com/");
+         WriteSetting("UpdateSourceRepository", "-");
+         _application.Reinitialize();
+         status = Checked();
+         AssertRefused(status, GitLabGroupSigned(identity, repositoryId: null),
+            "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabGroupSigned("https://gitlab.com/someone-else/hmailserver//.gitlab-ci.yml@refs/tags/v" + Newer, repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
       }
 
       [Test]

@@ -143,8 +143,8 @@ verified the original.
   issuer `https://gitlab.com`; none of them has run yet. The project is to move to the group
   [`hmailserver`](https://gitlab.com/hmailserver), and the releases signed after the move will carry the identity
   `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and the
-  project's id, `86730559`, in the certificate. A server from 6.3.4 on trusts both paths, the group's only with that id
-  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+  project's id, `86730559`, in the certificate. A server from 6.3.4 on trusts both paths, the group's only with that id,
+  whatever its update settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
   Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In

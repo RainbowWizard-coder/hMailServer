@@ -25,8 +25,10 @@ refuses it. This checker holds them to each other. It fails when:
     a release carries (build/ci/release-chain.py);
   * the identity the scripts expect is not the one SigstoreVerifier.cpp trusts,
     or that one is not this project's path, file and repository id; or the
-    verifier stops trusting the group the project is to move to (MOVE_TO) with
-    the project's id required, or the scripts sign from a path it does not trust;
+    verifier stops trusting the group the project is to move to (MOVE_TO) once,
+    with the project's id required, or stops requiring that id of every
+    certificate naming the group's path or repository whatever the settings; or
+    the scripts sign from a path it does not trust, or name the identity twice;
   * release-authenticode has no ID token for Entra ID (aud
     api://AzureADTokenExchange), or its script signs without the service's RFC
     3161 timestamp, or reads other settings than the release job checks;
@@ -337,17 +339,35 @@ def check(texts, chain, feed):
                      texts["verifier"]):
         problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the GitLab signer at the project's present path with its id")
     group_signer = 'trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
-    if group_signer not in texts["verifier"]:
-        problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the group's signer with the project's id required: %s" % group_signer)
+    if group_signer not in texts["verifier"] or texts["verifier"].count("MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX") != 1:
+        problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the group's signer once, with the project's id required: %s" % group_signer)
+    # And whatever the settings make of the signers, a certificate naming the group's
+    # path or repository needs the project's id: the check in Verify_ that every
+    # signer's match goes through.
+    for needle in ('LowerAscii_(std::string(GITLAB_GROUP_REPOSITORY) + "//")',
+                   'LowerAscii_(repository) == LowerAscii_(GITLAB_GROUP_REPOSITORY)',
+                   'repositoryId != std::string(GITLAB_REPOSITORY_ID)',
+                   "         else if (!groupRefusal.IsEmpty())\n            why = groupRefusal;\n"):
+        if needle not in texts["verifier"]:
+            problems.append("SigstoreVerifier.cpp no longer requires the project's id of every certificate naming the group's path "
+                            "or repository, whatever the settings (%s)" % needle.strip())
     # The scripts name the identity after the project's path, which must be one of the
-    # two the verifier trusts, each with its own repository, and nothing else.
-    wanted = sorted([(feed.PROJECT_URL.split("/", 3)[3], feed.PROJECT_URL), (MOVE_TO.split("/", 3)[3], MOVE_TO)])
+    # two the verifier trusts, each with its own repository, and nothing else: the case
+    # on CI_PROJECT_PATH exactly as below, the one assignment of the repository and the
+    # identity in each script, and the identity right after the case.
+    paths = [(feed.PROJECT_URL.split("/", 3)[3], feed.PROJECT_URL), (MOVE_TO.split("/", 3)[3], MOVE_TO)]
+    case_block = ('case "${CI_PROJECT_PATH:-}" in\n' +
+                  "".join("  %s) repository=%s ;;\n" % path for path in paths) +
+                  "  *) fail \"the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from\" ;;\n"
+                  "esac\n")
     for name in ("sign", "verify"):
-        paths = sorted(re.findall(r"^  ([^\s)]+)\) repository=(\S+) ;;$", texts[name], re.MULTILINE))
-        if paths != wanted:
-            problems.append("%s accepts the paths %s; a server trusts a signature from %s alone" % (FILES[name], paths, wanted))
-        if SCRIPT_IDENTITY not in texts[name] or '"${CI_PROJECT_PATH:-}"' not in texts[name]:
-            problems.append("%s expects another identity than <the project's repository>%s<tag>" % (FILES[name], IDENTITY_TAIL))
+        text = texts[name]
+        if (text.count(case_block) != 1 or len(re.findall(r"\bcase\b[^\n]*CI_PROJECT_PATH", text)) != 1 or
+                len(re.findall(r"(?<![\w-])repository=", text)) != len(paths)):
+            problems.append("%s accepts the paths it names otherwise than %s alone, each with its repository, and "
+                            "fails at any other: its case on CI_PROJECT_PATH must be exactly\n%s" % (FILES[name], [p for p, _ in paths], case_block))
+        if text.count(case_block + SCRIPT_IDENTITY + "\n") != 1 or len(re.findall(r"(?<![\w-])identity=", text)) != 1:
+            problems.append("%s expects another identity than <the project's repository>%s<tag>, named once, after the case" % (FILES[name], IDENTITY_TAIL))
     if not repository or repository.group(1) != feed.PROJECT_URL:
         problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY is not %s" % feed.PROJECT_URL)
     if not repository_id or repository_id.group(1) != feed.PROJECT_ID or chain.PROJECT_ID != feed.PROJECT_ID:
@@ -468,6 +488,20 @@ def self_test(chain, feed):
            "  hmailserver/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;", "release-sign.sh accepts the paths")
     broken("a script expecting a branch's identity", "sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "release-sign.sh expects another identity")
+    broken("a third path, indented otherwise", "verify", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
+           "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n    someone/hmailserver) repository=https://gitlab.com/someone/hmailserver;;\n",
+           "release-verify.sh accepts the paths")
+    broken("any other path taken as it is", "sign", "  *) fail \"the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from\" ;;\n",
+           "  *) repository=\"https://gitlab.com/${CI_PROJECT_PATH}\" ;;\n", "release-sign.sh accepts the paths")
+    broken("the repository named again after the case", "sign", SCRIPT_IDENTITY + "\n", SCRIPT_IDENTITY + "\nrepository=\"$CI_PROJECT_URL\"\n",
+           "release-sign.sh accepts the paths")
+    broken("the identity named again after the case", "verify", SCRIPT_IDENTITY + "\n",
+           SCRIPT_IDENTITY + '\nidentity="${CI_PROJECT_URL}//.gitlab-ci.yml@refs/tags/${tag}"\n', "release-verify.sh expects another identity")
+    group_line = 'trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
+    broken("a second group signer before it, its id optional", "verifier", group_line,
+           group_line.replace(", false, 0,", ", true, 0,") + "\n      " + group_line, "the project's id required")
+    broken("the group's id left to the settings", "verifier", "         else if (!groupRefusal.IsEmpty())\n            why = groupRefusal;\n", "",
+           "whatever the settings")
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
 

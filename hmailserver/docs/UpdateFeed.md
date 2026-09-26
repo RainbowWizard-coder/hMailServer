@@ -182,6 +182,13 @@ it to the project's present path: once the project has moved to the group
 `hmailserver` (below), a server that still has them refuses every release
 signed after the move. Clear them before then.
 
+Never point these three at the group's path, `hmailserver/hmailserver`. A
+server from 6.2.28 to 6.3.3 checks no repository id at all, so pinned there it
+would install whatever anyone who ever holds that path signs for a `v*` tag -
+the id is what tells the project apart there, and only a server built after
+6.3.3 checks it. Once the project has moved, a server still on 6.2.28 to 6.3.3
+is upgraded by hand, once, to a release that knows the group's path.
+
 What a server built after 6.3.3 checks
 --------------------------------------
 
@@ -227,7 +234,8 @@ project's to keep, and because the feed is not the project's word either:
   both paths. For the group's the id is required: the path is not the
   project's until the move, and whoever holds it then - were the group lost,
   or the project moved on again - could sign for a `v*` tag of their own
-  there, but never with this project's id. The cost is the project's: the
+  there, but never with this project's id. No setting relaxes it (see the
+  three settings below). The cost is the project's: the
   project does not move until a release signed from the present path has shown
   that Fulcio records the id (its notes say, from `release-verify`), since if
   Fulcio wrote none, nothing signed from the group would install.
@@ -307,11 +315,15 @@ project's to keep, and because the feed is not the project's word either:
 `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository`
 replace their part of every entry, and a site that sets all three is left with
 one signer, its own. A setting that changes a signer's part drops what went with
-it: a new repository drops the repository id, the group's required one
-included; a new identity or issuer drops the GitHub cut-off and its last
-release; a new identity drops the release check, since a site's workflow names
-its refs its own way. A setting that restates a
-signer's own value changes nothing about that signer. And where the settings
+it: a new repository, or `-`, drops the repository id; a new identity or issuer
+drops the GitHub cut-off and its last release; a new identity drops the release
+check, since a site's workflow names its refs its own way. One thing no setting
+drops: a certificate that names the group's path
+(`https://gitlab.com/hmailserver/hmailserver//`, in any case) or its
+repository is refused without the project's id `86730559`, whatever the three
+make of the entries - with `UpdateSourceRepository=-`, and with an identity of
+the site's own that names that path, too. A setting that restates a signer's
+own value changes nothing about that signer. And where the settings
 turn one signer into another's identity, issuer and repository without its
 checks - the three GitLab values above, still set after an upgrade, do that to
 the GitHub entry and to the group's - the copy is dropped and the unchanged

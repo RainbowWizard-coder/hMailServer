@@ -158,8 +158,13 @@ namespace HM
       // it. Only the id tells them apart: a transfer keeps 86730559, and GitLab
       // gives no other project that id, so a certificate for this path must record
       // it, and one that records none is nobody's. Whoever registers the path, now
-      // or ever, cannot sign as this project from a project of their own. The cost
-      // falls on the project, not on a server: Fulcio's GitLab mapping writes the
+      // or ever, cannot sign as this project from a project of their own - and
+      // not through a setting either: whatever UpdateSigningIdentity,
+      // UpdateSigningIssuer and UpdateSourceRepository make of the signers ("-"
+      // included, which drops every entry's id with its repository), Verify_
+      // refuses a certificate that names this path or this repository without
+      // the project's id. The cost falls on the project, not on a server:
+      // Fulcio's GitLab mapping writes the
       // project's id as the source repository identifier, but no GitLab-issued
       // certificate has been seen here yet, and if Fulcio wrote none, nothing
       // signed from the group would install. The first release signed from the
@@ -556,6 +561,18 @@ namespace HM
          return ref.substr(tags.size());
       }
 
+      // ASCII letters in lower case. GitLab gives a path to one namespace or
+      // project whatever its case, so the group's path is compared without it.
+      std::string LowerAscii_(std::string text)
+      {
+         for (size_t i = 0; i < text.size(); i++)
+         {
+            if (text[i] >= 'A' && text[i] <= 'Z')
+               text[i] = (char) (text[i] - 'A' + 'a');
+         }
+         return text;
+      }
+
       // Unix seconds as ISO 8601 UTC, by arithmetic alone (the days-to-civil
       // conversion of Howard Hinnant's date algorithms), so that nothing here
       // depends on a platform's gmtime.
@@ -644,7 +661,9 @@ namespace HM
       // Each of the three replaces its part of every signer in the list: a site
       // that signs its own releases sets all three and is left with one signer, its
       // own; one that sets only the repository check off keeps every one of this
-      // project's signers without it. The repository check can be switched off
+      // project's signers without it (a certificate that names the group's path
+      // still needs the project's id: Verify_ holds it to that whatever is set
+      // here). The repository check can be switched off
       // with "-"; an empty setting keeps the default, so that the default is what a
       // blank INI gets. What belongs to this project's own signers goes with the
       // part it belongs to: the repository's id with the repository; the GitHub
@@ -1200,6 +1219,32 @@ namespace HM
          repositoryIdMalformed = repositoryIdPresent && !DerUtf8String_(extension, repositoryId);
       }
 
+      // Whatever the settings made of the signers, a certificate that names the
+      // group the project is to move to - that project's path in its identity, or
+      // its repository - is this project's only with this project's id, which is
+      // all that tells the project from whoever holds the path then
+      // (GITLAB_GROUP_IDENTITY_PREFIX says why). The group's own entry requires
+      // it; this is so that no setting takes such a certificate without it: not
+      // the repository check off ("-"), which drops every entry's id with its
+      // repository, and not an identity or a repository of the site's own that
+      // names the group's path, where the copy of the present path's entry,
+      // whose id went with its repository, is the one kept. Without regard to
+      // case, which does not tell GitLab's paths apart.
+      String groupRefusal;
+      {
+         const std::string groupPath = LowerAscii_(std::string(GITLAB_GROUP_REPOSITORY) + "//");
+         bool namesGroup = repositoryRecorded && LowerAscii_(repository) == LowerAscii_(GITLAB_GROUP_REPOSITORY);
+         for (size_t i = 0; i < uris.size() && !namesGroup; i++)
+            namesGroup = LowerAscii_(uris[i]).compare(0, groupPath.size(), groupPath) == 0;
+         if (namesGroup && repositoryIdMalformed)
+            groupRefusal = _T("The certificate's source repository identifier is malformed.");
+         else if (namesGroup && !repositoryIdPresent)
+            groupRefusal = _T("The certificate names no source repository identifier.");
+         else if (namesGroup && repositoryId != std::string(GITLAB_REPOSITORY_ID))
+            groupRefusal = Formatter::Format(_T("The certificate is for the repository with the id {0}, not {1}."),
+               String(repositoryId.c_str()), String(GITLAB_REPOSITORY_ID));
+      }
+
       const std::string expectedTag = expectedVersion.IsEmpty() ? std::string() : "v" + Utf8Of_(expectedVersion);
 
       std::string identity;
@@ -1236,6 +1281,8 @@ namespace HM
             why = _T("The certificate names no source repository identifier.");
          else if (!signer.repository_id.IsEmpty() && repositoryIdPresent && repositoryId != std::string(signer.repository_id.c_str()))
             why = Formatter::Format(_T("The certificate is for the repository with the id {0}, not {1}."), String(repositoryId.c_str()), String(signer.repository_id));
+         else if (!groupRefusal.IsEmpty())
+            why = groupRefusal;
          else if (signer.issued_before > 0 && ASN1_TIME_cmp_time_t(X509_get0_notBefore(leaf.get()), (time_t) signer.issued_before) != -1)
             why = Formatter::Format(_T("The certificate names {0}, a signer this server trusts only for certificates issued before {1}, and this one was issued later."),
                String(named.c_str()), String(UtcText_(signer.issued_before).c_str()));
