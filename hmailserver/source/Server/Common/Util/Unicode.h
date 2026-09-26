@@ -16,6 +16,50 @@ namespace HM
       static bool WideToMultiByte(const String &sInput, AnsiString &sOutput);
       static bool MultiByteToWide(const AnsiString &sInput, String &sOutput);
 
+      // Every character of the text as UTF-8, for a hash, a MAC or a key, where
+      // two different texts must never give the same bytes. AnsiString(String)
+      // is not that: on Windows it stops at the first character above U+00FF and
+      // the rest of the string becomes NUL bytes, and on Linux each such
+      // character becomes '?'. False, with the output empty, when the text
+      // holds an unpaired surrogate - which UTF-8 cannot carry, and which
+      // WideCharToMultiByte would quietly write as U+FFFD, so that two texts
+      // would again give the same bytes - or when the conversion fails. For
+      // ASCII text the bytes are the ones AnsiString(String) gave, so a hash
+      // made the old way over ASCII is the hash made this way.
+      static bool ToUtf8Exact(const String &text, AnsiString &utf8);
+
+      // Much of this server holds text as the bytes it arrived as, one to a
+      // character: the SMTP and IMAP command lines are widened byte by byte, so
+      // is a REST Basic credential, and an address kept in an AnsiString member
+      // (Message::from_address_, Account::address_) is read back that way. For
+      // such a String the UTF-8 is those bytes; its characters' UTF-8 would be
+      // the text encoded twice. True, with the bytes, when every unit is below
+      // U+0100, one is above U+007F and the units as bytes are well-formed UTF-8
+      // (RFC 3629: no overlong form, no surrogate, nothing above U+10FFFF) -
+      // which Latin-1 text almost never is ("café" is not; its E9 begins a
+      // sequence it does not complete). decoded, when given, is the text.
+      static bool IsWidenedUtf8(const String &text, AnsiString *bytes = nullptr, String *decoded = nullptr);
+
+      // The UTF-8 a String stands for, whichever of the two it holds: the bytes
+      // of a widened one (IsWidenedUtf8), the characters' UTF-8 of any other
+      // (ToUtf8Exact). So an address as the SMTP command line gave it and the
+      // same address decoded give the same bytes, and a hash or a MAC over them
+      // agrees. False, with the output empty, for an unpaired surrogate. For
+      // ASCII the bytes are the ones AnsiString(String) gave.
+      static bool ToUtf8Canonical(const String &text, AnsiString &utf8);
+
+      // The text as UTF-8 for what leaves the server to be read - a JSON body,
+      // a CSV, a mail, a header - where AnsiString(String) is not an encoding
+      // of it either: ToUtf8Canonical, and a lone surrogate half, which UTF-8
+      // cannot carry, written as U+FFFD on both platforms (WideCharToMultiByte
+      // did so on Windows; iconv refused the whole string on Linux).
+      static AnsiString ToUtf8(const String &text);
+
+      // Whether the text holds a surrogate half that is not part of a high-low
+      // pair. Where wchar_t is four bytes every surrogate value is one, since a
+      // character outside the Basic Multilingual Plane is a single unit there.
+      static bool HasUnpairedSurrogate(const String &text);
+
       static unsigned char* CharMoveNext(unsigned char*, bool utf8);
 
       // The on-disk form of a String, and the way back.

@@ -614,8 +614,11 @@ namespace HM
       // the one that verified - a password set meanwhile, by this process or by
       // another (hMailServer.exe --set-admin-password runs beside the service),
       // wins - and nothing once the file has refused a write (HM7494, once). True
-      // only when the file was rewritten.
-      bool UpgradeAdministratorPasswordHash(const String &password, const String &verifiedHash);
+      // only when the file was rewritten. legacyBytes (Crypt::PasswordMatch::
+      // legacy_bytes): the password matched only as the bytes the conversion before
+      // 6.3.4 made of a Latin-1 password, so a PBKDF2 hash is written again, over the
+      // password's UTF-8, even when its work factor needs nothing.
+      bool UpgradeAdministratorPasswordHash(const String &password, const String &verifiedHash, bool legacyBytes = false);
 
       // [Security] StoredSecretsKey: the installation's stored-secrets key as this
       // machine's store protects it (Util/StoredSecrets.h, docs/SecretsAtRest.md).

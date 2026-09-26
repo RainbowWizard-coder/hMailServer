@@ -1317,7 +1317,56 @@ namespace HM
       // organiser and to nobody else, whatever the calendar object says by
       // then: anybody with a write share of the resource's calendar can write
       // any ORGANIZER into it. Written and removed under the resource's lock.
+      //
+      // The UID is compared exactly, as the calendar compares it
+      // (CalendarStore's ReadExactObject). bduid is compared by the database
+      // under the column's collation - one that ignores case and width on SQL
+      // Server and Compact, and trailing spaces under MySQL's utf8mb4_bin - so
+      // the WHERE clause only narrows the rows, and each is checked here and
+      // removed by its id. Keyed on the collation alone, a booking whose UID
+      // differed from another's only in letters the collation does not tell
+      // apart removed that booking's record and wrote its own organiser in its
+      // place, and a delegate's later decline of the first booking told nobody.
       // ------------------------------------------------------------------
+
+      struct DecisionRow
+      {
+         DecisionRow() : id(0) { }
+
+         __int64 id;
+         String uid;
+         String organiser;
+      };
+
+      // The rows the database finds under the UID, exact or not. False when
+      // the table could not be read.
+      bool ReadDecisionRows(__int64 accountId, const String &uid, std::vector<DecisionRow> &rows)
+      {
+         rows.clear();
+         SQLCommand command("select bdid, bduid, bdorganiser from hm_bookingdecisions where bdaccountid = @ACCOUNTID and bduid = @UID");
+         command.AddParameter("@ACCOUNTID", accountId);
+         command.AddParameter("@UID", uid);
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!recordset)
+            return false;
+         while (!recordset->IsEOF())
+         {
+            DecisionRow row;
+            row.id = recordset->GetInt64Value("bdid");
+            row.uid = recordset->GetStringValue("bduid");
+            row.organiser = recordset->GetStringValue("bdorganiser");
+            rows.push_back(row);
+            recordset->MoveNext();
+         }
+         return true;
+      }
+
+      bool DeleteDecisionRow(__int64 id)
+      {
+         SQLCommand command("delete from hm_bookingdecisions where bdid = @ID");
+         command.AddParameter("@ID", id);
+         return Application::Instance()->GetDBManager()->Execute(command);
+      }
 
       bool RecordDecision(__int64 accountId, const String &uid, const AnsiString &organiser)
       {
@@ -1325,11 +1374,25 @@ namespace HM
          if (uid.IsEmpty() || uid.GetLength() > 255 || organiserText.IsEmpty() || organiserText.GetLength() > 255)
             return false;
 
-         SQLCommand forget("delete from hm_bookingdecisions where bdaccountid = @ACCOUNTID and bduid = @UID");
-         forget.AddParameter("@ACCOUNTID", accountId);
-         forget.AddParameter("@UID", uid);
-         if (!Application::Instance()->GetDBManager()->Execute(forget))
+         std::vector<DecisionRow> rows;
+         if (!ReadDecisionRows(accountId, uid, rows))
             return false;
+
+         // Another booking's record, under a UID the collation takes for this
+         // one: it is that booking's, and stays. The unique index would refuse a
+         // second row beside it on this backend, so this booking goes
+         // unrecorded, which the caller logs.
+         for (size_t i = 0; i < rows.size(); i++)
+         {
+            if (rows[i].uid.Compare(uid) != 0)
+               return false;
+         }
+
+         for (size_t i = 0; i < rows.size(); i++)
+         {
+            if (!DeleteDecisionRow(rows[i].id))
+               return false;
+         }
 
          SQLStatement statement;
          statement.SetTable("hm_bookingdecisions");
@@ -1350,14 +1413,17 @@ namespace HM
          if (uid.IsEmpty() || uid.GetLength() > 255)
             return true;
 
-         SQLCommand command("select bdorganiser from hm_bookingdecisions where bdaccountid = @ACCOUNTID and bduid = @UID");
-         command.AddParameter("@ACCOUNTID", accountId);
-         command.AddParameter("@UID", uid);
-         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
-         if (!recordset)
+         std::vector<DecisionRow> rows;
+         if (!ReadDecisionRows(accountId, uid, rows))
             return false;
-         if (!recordset->IsEOF())
-            organiser = Utf8Of(LowerWide(recordset->GetStringValue("bdorganiser")));
+         for (size_t i = 0; i < rows.size(); i++)
+         {
+            if (rows[i].uid.Compare(uid) == 0)
+            {
+               organiser = Utf8Of(LowerWide(rows[i].organiser));
+               break;
+            }
+         }
          return true;
       }
 
@@ -1384,10 +1450,17 @@ namespace HM
       {
          if (uid.IsEmpty() || uid.GetLength() > 255)
             return;
-         SQLCommand command("delete from hm_bookingdecisions where bdaccountid = @ACCOUNTID and bduid = @UID");
-         command.AddParameter("@ACCOUNTID", accountId);
-         command.AddParameter("@UID", uid);
-         if (!Application::Instance()->GetDBManager()->Execute(command))
+
+         // Only the row recorded under exactly this UID: another booking's under
+         // a UID the collation takes for this one is that booking's.
+         std::vector<DecisionRow> rows;
+         bool removed = ReadDecisionRows(accountId, uid, rows);
+         for (size_t i = 0; removed && i < rows.size(); i++)
+         {
+            if (rows[i].uid.Compare(uid) == 0)
+               removed = DeleteDecisionRow(rows[i].id);
+         }
+         if (!removed)
             LOG_DEBUG("Resource booking: the record of the booking " + uid + " of account " + String(IntText(accountId)) + " could not be removed.");
       }
 

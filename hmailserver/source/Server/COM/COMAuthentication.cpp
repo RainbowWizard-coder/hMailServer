@@ -233,8 +233,13 @@ namespace HM
       Crypt::EncryptionType type = HM::Crypt::Instance()->GetHashType(sPasswordCorrect);
 
       // Validate the password.
-      if (!HM::Crypt::Instance()->Validate(sPassword, sPasswordCorrect, type))
+      HM::Crypt::PasswordMatch match;
+      if (!HM::Crypt::Instance()->Validate(sPassword, sPasswordCorrect, type, &match))
+      {
+         if (match.refused_old_conversion)
+            LOG_APPLICATION(_T("Administrator logon refused: the stored administrator password hash was made before 6.3.4 from a password with a character above U+00FF, of which that version kept only the length, so any password of the same form would match it. Set the administrator password again (hMailServer.exe --set-admin-password)."));
          return;
+      }
 
       // The second factor, checked only once the password has been accepted, so
       // that a wrong password and a missing code are answered identically from
@@ -273,7 +278,7 @@ namespace HM
       // MD5, or against a hash cheaper than the one the server makes now, is written
       // again as PBKDF2, as an account's is at its next logon.
       if (!stored.IsEmpty())
-         HM::IniFileSettings::Instance()->UpgradeAdministratorPasswordHash(sPassword, stored);
+         HM::IniFileSettings::Instance()->UpgradeAdministratorPasswordHash(match.text, stored, match.legacy_bytes);
 
       // Create a dummy account since the administrator
       // does not have a real email account.

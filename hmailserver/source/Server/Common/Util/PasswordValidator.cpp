@@ -425,6 +425,7 @@ namespace HM
       // correct one and lock out the user who types it the way they always have.
       String sPasswordToStore = sPassword;
       bool upgradeEligible = true;
+      bool legacyBytes = false;
 
       if (iPasswordEncryption == 0)
       {
@@ -454,8 +455,25 @@ namespace HM
                iPasswordEncryption == Crypt::ETScrypt)
       {
          // Compare hashs
-         if (!Crypt::Instance()->Validate(sPassword, sComparePassword, iPasswordEncryption))
+         Crypt::PasswordMatch match;
+         if (!Crypt::Instance()->Validate(sPassword, sComparePassword, iPasswordEncryption, &match))
+         {
+            if (match.refused_old_conversion)
+            {
+               String sMessage;
+               sMessage.Format(_T("Authentication refused for account %s: its stored password hash was made before 6.3.4 from a password with a character above U+00FF, of which that version kept only the length (NUL bytes on Windows, '?' on Linux), so any password of the same form would match it. The password must be set again."),
+                  pAccount->GetAddress().c_str());
+               LOG_APPLICATION(sMessage);
+            }
             return false;
+         }
+
+         // Re-hashed, if it is, from the text whose UTF-8 is what the stored hash
+         // was made over: the password as sent, or a client's UTF-8 that arrived
+         // widened byte by byte, read as UTF-8. Re-hashing the widened form would
+         // store a hash that the same password, sent as characters, never opens.
+         sPasswordToStore = match.text;
+         legacyBytes = match.legacy_bytes;
       }
       else if (iPasswordEncryption == Crypt::ETBlowFish)
       {
@@ -481,7 +499,7 @@ namespace HM
       // can be re-derived - and the only point at which a database write is justified.
       int effectiveEncryption = (int) iPasswordEncryption;
       if (upgradeEligible)
-         effectiveEncryption = UpgradeStoredPasswordHash_(pAccount, sPasswordToStore, (int) iPasswordEncryption);
+         effectiveEncryption = UpgradeStoredPasswordHash_(pAccount, sPasswordToStore, (int) iPasswordEncryption, legacyBytes);
 
       // Hash-policy enforcement: an administrator can require that stored account
       // passwords use at least a given hash scheme (the Crypt::EncryptionType values
@@ -611,7 +629,7 @@ namespace HM
    }
 
    int
-   PasswordValidator::UpgradeStoredPasswordHash_(std::shared_ptr<const Account> pAccount, const String &sPassword, int currentEncryption)
+   PasswordValidator::UpgradeStoredPasswordHash_(std::shared_ptr<const Account> pAccount, const String &sPassword, int currentEncryption, bool legacyBytes)
    {
       int preferredHashAlgorithm = IniFileSettings::Instance()->GetPreferredHashAlgorithm();
 
@@ -639,14 +657,18 @@ namespace HM
       // Compared by strength rather than by enum value: Argon2id and scrypt are
       // peers, so a preference for one is neither an upgrade nor a downgrade of an
       // account stored under the other, and such an account is left as it is.
-      if (Crypt::StrengthRank(preferredHashAlgorithm) < Crypt::StrengthRank(currentEncryption))
+      //
+      // A hash made before 6.3.4 over a Latin-1 password's bytes (legacyBytes) is
+      // still made again, under the scheme it has, never the weaker one preferred.
+      const bool preferredIsWeaker = Crypt::StrengthRank(preferredHashAlgorithm) < Crypt::StrengthRank(currentEncryption);
+      if (preferredIsWeaker && !legacyBytes)
          return currentEncryption;
 
       // PersistentAccount::ReadObject re-hashes an unencrypted stored password into
       // the in-memory object, so an account whose row is still clear text arrives here
       // already claiming the preferred type. Those accounts are flagged as pending
       // instead of being detected by their type.
-      bool storedIsUnencrypted = PersistentAccount::IsPasswordUpgradePending(pAccount->GetID());
+      bool storedIsUnencrypted = !preferredIsWeaker && PersistentAccount::IsPasswordUpgradePending(pAccount->GetID());
 
       bool storedIsWeaker = Crypt::StrengthRank(preferredHashAlgorithm) > Crypt::StrengthRank(currentEncryption);
 
@@ -661,17 +683,22 @@ namespace HM
                              preferredHashAlgorithm == currentEncryption &&
                              HashCreator::NeedsRehash(AnsiString(pAccount->GetPassword()));
 
-      if (!storedIsUnencrypted && !storedIsWeaker && !storedIsCheaper)
+      const bool upgrade = storedIsUnencrypted || storedIsWeaker || storedIsCheaper;
+      if (!upgrade && !legacyBytes)
          return currentEncryption;
+
+      // The scheme the hash is made under: the preferred one for an upgrade, the
+      // one it has for a re-hash over UTF-8 alone.
+      const int targetEncryption = upgrade ? preferredHashAlgorithm : currentEncryption;
 
       int storedEncryption = storedIsUnencrypted ? (int) Crypt::ETNone : currentEncryption;
 
       try
       {
-         String upgradedHash = Crypt::Instance()->EnCrypt(sPassword, (Crypt::EncryptionType) preferredHashAlgorithm);
+         String upgradedHash = Crypt::Instance()->EnCrypt(sPassword, (Crypt::EncryptionType) targetEncryption);
 
          if (upgradedHash.IsEmpty() ||
-             !PersistentAccount::PersistUpgradedPassword(pAccount, upgradedHash, preferredHashAlgorithm))
+             !PersistentAccount::PersistUpgradedPassword(pAccount, upgradedHash, targetEncryption))
          {
             // Log it, but let the login through on the hash the account already has:
             // refusing a correct password because we could not improve its storage
@@ -700,15 +727,18 @@ namespace HM
       }
 
       String sMessage;
-      if (storedIsCheaper)
+      if (!upgrade)
+         sMessage.Format(_T("Re-derived the stored password hash for account %s (type %d) over the password's UTF-8: it had been made before 6.3.4 over the password's Latin-1 bytes, or under the pepper as that version keyed it."),
+            pAccount->GetAddress().c_str(), targetEncryption);
+      else if (storedIsCheaper)
          sMessage.Format(_T("Re-derived the stored password hash for account %s (type %d) under the configured work factor."),
-            pAccount->GetAddress().c_str(), preferredHashAlgorithm);
+            pAccount->GetAddress().c_str(), targetEncryption);
       else
          sMessage.Format(_T("Upgraded the stored password hash for account %s from type %d to type %d."),
-            pAccount->GetAddress().c_str(), storedEncryption, preferredHashAlgorithm);
+            pAccount->GetAddress().c_str(), storedEncryption, targetEncryption);
       LOG_APPLICATION(sMessage);
 
-      return preferredHashAlgorithm;
+      return targetEncryption;
    }
 
 }

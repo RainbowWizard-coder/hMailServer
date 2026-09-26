@@ -587,6 +587,47 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The organiser the room believed is kept per UID exactly: a booking by Bob whose UID differs from Alice's only in a character the database's collation does not tell apart takes nothing of Alice's, and a delegate's decline of Alice's booking tells Alice")]
+      public void ABookingWhoseUidTheCollationTakesForAnothersLeavesTheOtherOrganiserBelieved()
+      {
+         // Until 26 September 2026 the room's record of whom it accepted a booking
+         // from was written, read and removed with "bduid = @UID". On SQL Server
+         // and Compact that compares under a collation that ignores case and width,
+         // so Bob's acceptance - his UID starting with a full-width 'r', which the
+         // calendar keeps apart (its file name is another) - removed Alice's record
+         // and wrote his own, and the delegate's decline of Alice's booking then
+         // read Bob as the organiser, did not match the booking's ORGANIZER and
+         // told nobody. This test failed against that code there; MySQL and
+         // PostgreSQL compared the UID exactly already.
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/accounts/" + Room + "/booking-policy", "{\"delegates\":[\"" + Deputy + "\"]}").status);
+
+         string alices = "rooms-twin-0001@" + _domain.Name;
+         string bobs = "ｒooms-twin-0001@" + _domain.Name;
+
+         SmtpRaw(Alice, Invitation("REQUEST", Alice, "Invitation: Tandem", "Tandem", alices, Slot(52, 10, 0), Slot(52, 11, 0), 0, Alice), Alice);
+         ReplyTo(Alice, alices, "ACCEPTED", 0);
+
+         SmtpRaw(Bob, Invitation("REQUEST", Bob, "Invitation: Relay", "Relay", bobs, Slot(53, 10, 0), Slot(53, 11, 0), 0, Bob), Bob);
+         ReplyIn(Bob, "Accepted: Relay");
+
+         (int status, string body) seen = Me("GET", "/api/v1/me/calendar/events?start=" + Slot(52, 0, 0) + "&end=" + Slot(53, 0, 0), null, Deputy, Password);
+         Assert.AreEqual(200, seen.status, seen.body);
+         StringAssert.Contains("\"summary\":\"Tandem\"", seen.body, "The delegate sees Alice's booking.");
+         long eventId = long.Parse(Regex.Match(seen.body.Substring(seen.body.IndexOf("\"events\":[", StringComparison.Ordinal)), "\"id\":(\\d+)").Groups[1].Value);
+         (int status, string body) answered = Me("POST", "/api/v1/me/calendar/events/" + eventId + "/reply", "{\"partstat\":\"DECLINED\"}", Deputy, Password);
+         Assert.AreEqual(200, answered.status, answered.body);
+
+         Reply told = ReplyIn(Alice, "Declined: Tandem");
+         StringAssert.Contains("\"partstat\":\"DECLINED\",\"sent_by\":\"" + Deputy + "\"", told.Card, "Alice, whom the room believed, is told.");
+         CollectionAssert.IsEmpty(Periods(FreeBusyOfRoom(52)), "Alice's booking left the calendar.");
+         CollectionAssert.AreEqual(new[] { Slot(53, 10, 0) + "/" + Slot(53, 11, 0) + "/busy" }, Periods(FreeBusyOfRoom(53)), "Bob's stays.");
+
+         // Bob has his acceptance and nothing about Alice's booking.
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(Bob, Password, 1);
+      }
+
+      [Test]
       [Description("A decline written from a CalDAV client tells somebody only when a delegate wrote it, and only the organiser the room believed when it accepted the booking: a colleague with a plain write share of the room's calendar who declines for it takes the booking out and mails nobody, nor after writing Bob in as the ORGANIZER first; a delegate's decline of a booking whose ORGANIZER that colleague rewrote mails nobody; and a delegate whose own PUT names Bob tells Alice, whom the room believed, and not Bob")]
       public void ACalDavDeclineTellsOnlyTheOrganiserTheRoomBelievedAndOnlyForADelegate()
       {

@@ -6,6 +6,7 @@
 #include "BATV.h"
 
 #include "Hashing/HashCreator.h"
+#include "Unicode.h"
 
 #include <ctime>
 
@@ -61,8 +62,23 @@ namespace HM
       String lowerMailbox = mailbox;
       lowerMailbox.ToLower();
 
-      AnsiString canonical = AnsiString(keyAndDay) + AnsiString(lowerMailbox);
-      AnsiString hex = HashCreator::ComputeHMACSHA256Hex(AnsiString(secret), canonical);
+      // As UTF-8, every character of it (Unicode::ToUtf8Canonical). AnsiString
+      // (String) stopped at the first character above U+00FF on Windows and wrote
+      // NUL bytes for the rest, and wrote '?' for each on Linux, so two
+      // internationalized mailboxes of one length - the same letters up to the
+      // first such character on Windows - shared one tag, and a bounce to one was
+      // taken as a bounce to the other. A mailbox as the SMTP command line gives
+      // it - its UTF-8 widened byte by byte, which is what Sign and Verify are
+      // handed - is hashed as those bytes, which is what the old conversion
+      // hashed, so a tag made before this change still verifies; so does every
+      // tag over ASCII. Text UTF-8 cannot carry (an unpaired surrogate) is not
+      // signed and never verifies.
+      AnsiString secretBytes;
+      AnsiString canonical;
+      if (!Unicode::ToUtf8Canonical(secret, secretBytes) || !Unicode::ToUtf8Canonical(keyAndDay + lowerMailbox, canonical))
+         return "";
+
+      AnsiString hex = HashCreator::ComputeHMACSHA256Hex(secretBytes, canonical);
       AnsiString truncated = hex.Mid(0, kHashHexLength);
 
       // The hex digest is ASCII; widen it to a String for use in the address.
@@ -97,6 +113,8 @@ namespace HM
       keyAndDay += dayDigits;
 
       String hash = ComputeHash_(secret, keyAndDay, mailbox);
+      if (hash.IsEmpty())
+         return "";
 
       String result;
       result.Format(_T("prvs=%s%s=%s@%s"),
@@ -159,7 +177,7 @@ namespace HM
 
       // Verify the HMAC signature (case-insensitive hex comparison).
       String expected = ComputeHash_(secret, keyAndDay, candidateMailbox);
-      if (expected.CompareNoCase(hash) != 0)
+      if (expected.IsEmpty() || expected.CompareNoCase(hash) != 0)
          return false;
 
       int dayNumber = (dayDigits.GetAt(0) - L'0') * 100 +

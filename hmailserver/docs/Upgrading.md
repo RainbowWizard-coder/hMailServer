@@ -190,11 +190,19 @@ section, because the difference matters when you plan.
    backed up first - *Take a backup* above is the rule, and this is the step that
    makes it matter. **One node at a time:** set it on the node you start first; a
    second node that starts against the same database reads the new version and
-   does nothing. Two nodes that do start together are serialised on the version
-   row - each step locks it (`select ... for update` on PostgreSQL and MySQL,
-   `with (updlock, holdlock)` on SQL Server) for the length of its transaction,
-   so the second blocks, then finds the step done and moves on - but that is the
-   net, not the plan.
+   does nothing. Two nodes that do start together are serialised step by step -
+   on PostgreSQL and SQL Server by the version row, which each step locks
+   (`select ... for update`, `with (updlock, holdlock)`) for the length of its
+   transaction; on MySQL and MariaDB, whose first DDL statement in a step commits
+   the transaction and frees that lock, by a named lock
+   (`GET_LOCK('hmailserver_schema_upgrade')`) held until the step is over and
+   waited on for up to four hours - so the second blocks, then finds the step
+   done and moves on - but that is the net, not the plan. Until 26 September
+   2026 MySQL had only the row lock, so the second node ran the same step beside
+   the first and failed on a table or a column already there. A server that
+   refuses `GET_LOCK` altogether - MariaDB Galera with wsrep on - still upgrades,
+   with only the row lock, and the upgrade's output says so for each step: there,
+   upgrade from one node at a time.
 5. **Start.** `/readyz` answers 200 again once the database probe agrees, and the
    load balancer routes to the node again.
 
@@ -408,9 +416,54 @@ says why each of the three. What it means for the upgrade:
   the schema empty it is one to five seconds; on a large installation plan minutes
   or more, and have free disk space of the order of the largest table, since InnoDB
   writes the new copy before it drops the old.
-* **It needs MySQL 5.7.9 or MariaDB 10.2.2.** On an older server its first statement
-  fails with error 1071 and nothing has been changed; upgrade the database server,
-  then the schema.
+* **It needs MySQL 5.7.9 or MariaDB 10.2.2.** So do steps 6041 and 6101 before it,
+  whose new tables have keys of the same size. Each of the three opens with a
+  statement that needs such a key - 6041 and 6101 make and drop a table
+  `hm_upgradeprobe` with one, 6102 converts `hm_accounts` - so on an older server
+  the upgrade from 6.3.3 stops at the first, 6040 to 6041, with error 1071, and
+  nothing has been changed; upgrade the database server, then the schema. Until 26
+  September 2026 steps 6041 and 6101 made their first tables before the index that
+  failed, and MySQL commits a CREATE or ALTER TABLE at once, so they stopped half
+  done and every later run failed on a table already there.
+* **Repairing a database an earlier build left half done.** No upgrade path repairs
+  it - `UpgradeOnStart`, `hmailserver --upgrade-database` and DBUpdater all run the
+  same step again and stop on the same table - so it is put back by hand, once the
+  database server can hold the keys (MySQL 5.7.9 or MariaDB 10.2.2 or later, InnoDB
+  as the default engine, `innodb_large_prefix` on where the server still has it), or
+  the probe stops the step again. Stop the hMailServer service and take a backup of
+  the database first.
+
+  *At 6040, from 6.3.3* - `select value from hm_dbversion` answers `6040` and
+  `show tables like 'hm_calendar%'` lists `hm_calendars`. The old step 6041 made that
+  table and stopped at its index; nothing at schema 6040 uses it, so it is empty
+  (`select count(*) from hm_calendars` answers 0). Drop what the step made and run
+  the upgrade again:
+
+  ```sql
+  DROP TABLE IF EXISTS hm_calendarobjects;
+  DROP TABLE IF EXISTS hm_calendars;
+  ```
+
+  *At 6100* - `select value from hm_dbversion` answers `6100` and
+  `show tables like 'hm_booking%'` lists `hm_bookingpolicies` or `hm_bookinganswers`.
+  A server that took the keys of step 6041 takes these as well, so this needs a
+  database server changed between the two steps; if it happened, the old step 6101
+  had added a column to `hm_accounts`, made `hm_bookingpolicies`, added two columns
+  to `hm_messages` and made `hm_bookinganswers`. Drop those - each column only if
+  `show columns from <table> like '<column>'` lists it, since MySQL has no
+  `DROP COLUMN IF EXISTS` - and run the upgrade again:
+
+  ```sql
+  DROP TABLE IF EXISTS hm_bookingdecisions;
+  DROP TABLE IF EXISTS hm_bookingqueue;
+  DROP TABLE IF EXISTS hm_bookinganswers;
+  DROP TABLE IF EXISTS hm_bookingpolicies;
+  ALTER TABLE hm_messages DROP COLUMN messagesubmitterid, DROP COLUMN messageauthdomains;
+  ALTER TABLE hm_accounts DROP COLUMN accountkind;
+  ```
+
+  Dropping the two `hm_messages` columns rebuilds that table, which takes as long as
+  copying it. Neither repair touches a row the server had before the step.
 * **It needs the ALTER privilege on the database**, not only on its tables, because
   it also changes the database's default character set. An account granted
   `ALL PRIVILEGES ON <database>.*` has it.

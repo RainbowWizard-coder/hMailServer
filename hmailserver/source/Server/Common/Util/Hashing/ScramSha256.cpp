@@ -6,6 +6,7 @@
 #include "ScramSha256.h"
 
 #include "../Parsing/StringParser.h"
+#include "../Unicode.h"
 #include "../../Application/IniFileSettings.h"
 
 #include <openssl/rand.h>
@@ -162,15 +163,8 @@ namespace HM
       // values.
       IniFileSettings *settings = IniFileSettings::Instance();
 
-      AnsiString keyMaterial = "hMailServer-SCRAM-anti-enumeration-key";
-      keyMaterial += "\x1f";
-      keyMaterial += AnsiString(settings->GetAdministratorPassword());
-      keyMaterial += "\x1f";
-      keyMaterial += AnsiString(settings->GetPassword());
-      keyMaterial += "\x1f";
-      keyMaterial += AnsiString(settings->GetDatabaseName());
-      keyMaterial += "\x1f";
-      keyMaterial += AnsiString(settings->GetDatabaseServer());
+      AnsiString keyMaterial = AntiEnumerationKey(settings->GetAdministratorPassword(), settings->GetPassword(),
+                                                  settings->GetDatabaseName(), settings->GetDatabaseServer());
 
       AnsiString lowerUser = username;
       lowerUser.MakeLower();
@@ -184,6 +178,37 @@ namespace HM
 
       // A real PBKDF2 salt is 16 bytes; mirror that length exactly.
       saltOut.assign(mac, mac + 16);
+   }
+
+   AnsiString
+   ScramSha256::AntiEnumerationKey(const String &administratorPassword, const String &databasePassword,
+                                   const String &databaseName, const String &databaseServer)
+   {
+      // Each secret as UTF-8, every character of it. AnsiString(String) stopped
+      // at the first character above U+00FF on Windows and wrote NUL bytes for
+      // the rest, and wrote '?' for each on Linux, so a database password of
+      // Cyrillic or CJK letters added nothing to the key but its length. For
+      // ASCII the bytes are the old ones, so the salt an unknown account was
+      // given before is the salt it is given now. A value UTF-8 cannot carry (an
+      // unpaired surrogate) goes in as its UTF-16LE units, which lose nothing.
+      const String *parts[] = { &administratorPassword, &databasePassword, &databaseName, &databaseServer };
+
+      AnsiString keyMaterial = "hMailServer-SCRAM-anti-enumeration-key";
+
+      for (const String *part : parts)
+      {
+         AnsiString bytes;
+         if (!Unicode::ToUtf8Canonical(*part, bytes))
+         {
+            std::string units = Unicode::ToUtf16Le(*part);
+            bytes = AnsiString(units.data(), units.size());
+         }
+
+         keyMaterial += "\x1f";
+         keyMaterial += bytes;
+      }
+
+      return keyMaterial;
    }
 
    AnsiString

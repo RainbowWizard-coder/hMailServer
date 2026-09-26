@@ -234,6 +234,109 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A row whose text has a character above U+00FF is covered to its last character: an edit after that character is found, and so is an edit of the character itself.")]
+      public void AnEditAfterOrOfANonLatinCharacterIsFound()
+      {
+         // Until 26 September 2026 the fields were hashed through AnsiString(String).
+         // On Windows that stops at the first character above U+00FF and hashes the
+         // rest as NUL bytes, so both edits below left the hash as it was and
+         // verify answered intact:true; on Linux each such character was hashed as
+         // '?', so the second edit did. The fields are now hashed as UTF-8.
+         const string Greeting = "Привет, pop3 world";
+
+         string before = _settings.WelcomePOP3;
+         _settings.WelcomePOP3 = Greeting;
+
+         try
+         {
+            string trail = Read(AuditPath + "?object_type=setting&limit=50");
+            string row = RowFor(trail, Greeting);
+            string id = Extract(row, "id");
+            string detail = JsonString(row, "detail");
+
+            (int status, string body) intact = Http("GET", AuditPath + "/verify");
+            Assert.AreEqual(200, intact.status, intact.body);
+            StringAssert.Contains("\"intact\":true", intact.body, "A row with Cyrillic in it verifies as written. " + intact.body);
+
+            // After the Cyrillic: a word in the same place, of the same length.
+            SetDetail(id, detail.Replace("pop3 world", "pop3 w0rld"));
+            AssertEditedAt(id);
+
+            SetDetail(id, detail);
+            (int status, string body) restored = Http("GET", AuditPath + "/verify");
+            StringAssert.Contains("\"intact\":true", restored.body, "The row put back as it was verifies again. " + restored.body);
+
+            // The Cyrillic itself: one letter for another.
+            SetDetail(id, detail.Replace("При", "Дри"));
+            AssertEditedAt(id);
+
+            SetDetail(id, detail);
+         }
+         finally
+         {
+            _settings.WelcomePOP3 = before;
+         }
+      }
+
+      [Test]
+      [Description("A row written before the fields were hashed as UTF-8 - its hash in lower-case hex - still verifies, and an edit to it is still found.")]
+      public void ARowHashedTheOldWayStillVerifies()
+      {
+         MakeThreeChanges();
+
+         string trail = Read(AuditPath + "?limit=100");
+         List<string> hashes = Values(trail, "hash");
+         Assert.GreaterOrEqual(hashes.Count, 1, trail);
+
+         // The newest row, and a row written the old way after it: an ASCII row
+         // hashes the same bytes either way, so its old hash is the SHA-256 of its
+         // fields in lower case.
+         string head = hashes[0];
+         Assert.AreEqual(head.ToUpperInvariant(), head, "A row is written with its hash in upper case, which is what marks the UTF-8 scheme.");
+
+         const long Time = 1758844800;
+         string[] fields = { head, Time.ToString(), "Administrator", "com", "COM", "", "setting", "LegacyProbe", "updated", "LegacyProbe: 1 -> 2" };
+         string oldHash;
+         using (var sha = System.Security.Cryptography.SHA256.Create())
+         {
+            byte[] digest = sha.ComputeHash(Encoding.ASCII.GetBytes(string.Join("\n", fields)));
+            oldHash = BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
+         }
+
+         _application.Database.ExecuteSQL(
+            "insert into hm_audit (audittime, auditactor, auditactortype, auditinterface, auditaddress, auditobjecttype, auditobjectname, auditaction, auditdetail, auditprevhash, audithash) values (" +
+            Time + ", 'Administrator', 'com', 'COM', '', 'setting', 'LegacyProbe', 'updated', 'LegacyProbe: 1 -> 2', '" + head + "', '" + oldHash + "')");
+
+         (int status, string body) verified = Http("GET", AuditPath + "/verify");
+         Assert.AreEqual(200, verified.status, verified.body);
+         StringAssert.Contains("\"intact\":true", verified.body, "A row hashed the old way is checked the old way. " + verified.body);
+
+         _application.Database.ExecuteSQL("update hm_audit set auditaction = 'created' where auditobjectname = 'LegacyProbe'");
+
+         (int status, string body) edited = Http("GET", AuditPath + "/verify");
+         StringAssert.Contains("\"intact\":false", edited.body, edited.body);
+         StringAssert.Contains("edited", edited.body);
+      }
+
+      private void SetDetail(string id, string detail)
+      {
+         bool nationalLiteral = _application.Database.DatabaseType == eDBtype.hDBTypeMSSQL ||
+                                _application.Database.DatabaseType == eDBtype.hDBTypeMSSQLCE;
+
+         _application.Database.ExecuteSQL("update hm_audit set auditdetail = " + (nationalLiteral ? "N'" : "'") +
+                                          TestSetup.Escape(detail).Replace("'", "''") + "' where auditid = " + id);
+      }
+
+      private static void AssertEditedAt(string id)
+      {
+         (int status, string body) verified = Http("GET", AuditPath + "/verify");
+         Assert.AreEqual(200, verified.status, verified.body);
+         StringAssert.Contains("\"intact\":false", verified.body, verified.body);
+         StringAssert.Contains("\"first_broken_id\":" + id, verified.body, verified.body);
+         StringAssert.Contains("edited", verified.body);
+      }
+
+      [Test]
       [Description("The trail pages and filters: a limit takes a page, an offset takes the next one, and a filter on who or what narrows it.")]
       public void TheTrailPagesAndFilters()
       {

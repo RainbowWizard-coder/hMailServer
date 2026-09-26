@@ -159,6 +159,12 @@ namespace HM
       // JsonEscape_ of Utf8_, for the helpers of a route file outside the class.
       static AnsiString JsonEscapeUtf8(const String &value);
 
+      // JsonEscape_ of Unicode::ToUtf8, for text that may hold the bytes it
+      // arrived as widened one to a character - an alert rule a REST body
+      // wrote before its fields were read as UTF-8 - as well as text: either is
+      // written as the UTF-8 it stands for (RestApiAudit.cpp).
+      static AnsiString JsonEscapeText(const String &value);
+
       // An address book the signed-in account can see: one of its own, or one
       // another account shares with it or with its whole domain
       // (RestApiAddressBooks.cpp). Plain fields rather than the store's record,

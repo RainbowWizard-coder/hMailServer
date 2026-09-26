@@ -96,6 +96,9 @@ namespace
 #include "StoredSecrets.h"
 #include "SRS.h"
 #include "BATV.h"
+#include "Unicode.h"
+#include "AlertManager.h"
+#include "Hashing/ScramSha256.h"
 #include "AccountLockout.h"
 #include "Totp.h"
 #include "../AntiSpam/DMARC/DmarcTreeWalk.h"
@@ -742,6 +745,384 @@ namespace HM
          if (!BATV::Verify(tagged2, secret, original2))
             throw 0;
          if (original2.CompareNoCase(mailbox2) != 0)
+            throw 0;
+      }
+
+      // What a hash, a MAC or a key is made over: every character, as UTF-8
+      // (Unicode::ToUtf8Exact), where AnsiString(String) stopped at the first
+      // character above U+00FF on Windows and wrote NUL bytes for the rest, and
+      // wrote '?' for each on Linux. Each check against the old conversion below
+      // is the proof that a tag, a key or a signature made before 6.3.4 over
+      // ASCII is made again the same way; each check over Cyrillic text is the
+      // negative control, which the old conversion fails on both platforms.
+      OutputDebugString(_T("hMailServer: Testing UTF-8 for hashes\n"));
+      {
+         AnsiString bytes;
+         if (!Unicode::ToUtf8Exact(L"caf\u00E9 \u0438", bytes) || bytes != "caf\xC3\xA9 \xD0\xB8")
+            throw 0;
+         if (!Unicode::ToUtf8Exact(L"", bytes) || !bytes.IsEmpty())
+            throw 0;
+
+         // An unpaired surrogate, alone and before a letter, is refused rather
+         // than written as U+FFFD; a pair is a character (on Windows, where
+         // wchar_t is two bytes; on Linux one unit is the character).
+         String lone;
+         lone += (wchar_t) 0xD800;
+         if (Unicode::ToUtf8Exact(lone, bytes) || !bytes.IsEmpty())
+            throw 0;
+         String loneThenLetter = lone + _T("a");
+         if (Unicode::ToUtf8Exact(loneThenLetter, bytes))
+            throw 0;
+         String lowAlone;
+         lowAlone += (wchar_t) 0xDC00;
+         if (!Unicode::HasUnpairedSurrogate(lowAlone))
+            throw 0;
+         if (sizeof(wchar_t) == 2)
+         {
+            String pair;
+            pair += (wchar_t) 0xD83D;
+            pair += (wchar_t) 0xDE00;
+            if (Unicode::HasUnpairedSurrogate(pair) || !Unicode::ToUtf8Exact(pair, bytes) || bytes != "\xF0\x9F\x98\x80")
+               throw 0;
+         }
+
+         // A String holding UTF-8 widened one byte to a character - as the SMTP
+         // and IMAP command lines give it - stands for those bytes; Latin-1 text,
+         // a byte sequence RFC 3629 refuses, and ASCII do not.
+         String widenedIvan;
+         const unsigned char ivanBytes[] = { 0xD0, 0xB8, 0xD0, 0xB2, 0xD0, 0xB0, 0xD0, 0xBD };
+         for (unsigned char b : ivanBytes)
+            widenedIvan += (wchar_t) b;
+         AnsiString widenedBytes;
+         String widenedText;
+         if (!Unicode::IsWidenedUtf8(widenedIvan, &widenedBytes, &widenedText) ||
+             widenedBytes != "\xD0\xB8\xD0\xB2\xD0\xB0\xD0\xBD" || widenedText != L"\u0438\u0432\u0430\u043D")
+            throw 0;
+         AnsiString canonicalWidened, canonicalText;
+         if (!Unicode::ToUtf8Canonical(widenedIvan, canonicalWidened) || !Unicode::ToUtf8Canonical(widenedText, canonicalText) ||
+             canonicalWidened != canonicalText || Unicode::ToUtf8(widenedIvan) != canonicalText)
+            throw 0;
+         if (Unicode::IsWidenedUtf8(L"caf\u00E9") || Unicode::IsWidenedUtf8(_T("plain ascii")) ||
+             Unicode::IsWidenedUtf8(L"\u0438") || Unicode::ToUtf8(L"caf\u00E9") != "caf\xC3\xA9")
+            throw 0;
+         const unsigned int refused[][4] = {
+            { 0xC0, 0x80, 0, 0 },       // overlong
+            { 0xED, 0xA0, 0x80, 0 },    // a surrogate
+            { 0xF4, 0x90, 0x80, 0x80 }, // above U+10FFFF
+            { 0xE2, 0x82, 0, 0 },       // cut short
+            { 0x80, 0x41, 0, 0 }        // a trail byte first
+         };
+         for (const auto &sequence : refused)
+         {
+            String candidate = _T("x");
+            for (unsigned int b : sequence)
+            {
+               if (b != 0)
+                  candidate += (wchar_t) b;
+            }
+            if (Unicode::IsWidenedUtf8(candidate))
+               throw 0;
+         }
+
+         const String asciiSamples[] = { _T("alice@example.test"), _T("Bob.Smith+tag@Example.TEST"), _T("https://push.example.test/v2/AbC-_~.%20x?y=1"), _T("") };
+         for (const String &sample : asciiSamples)
+         {
+            if (!Unicode::ToUtf8Exact(sample, bytes) || bytes != AnsiString(sample))
+               throw 0;
+         }
+      }
+
+      OutputDebugString(_T("hMailServer: Testing BATV over UTF-8\n"));
+      {
+         const String secret = _T("batv-test-secret-key");
+
+         // A tag made the old way, AnsiString(String) of the secret and of the
+         // canonical string, over an ASCII mailbox in mixed case, still verifies.
+         const int day = (int) (((__int64) time(0) / 86400) % 1000);
+         String keyAndDay;
+         keyAndDay.Format(_T("1%03d"), day);
+         String lowerMailbox = _T("Alice.Old@Example.test");
+         lowerMailbox.ToLower();
+         AnsiString legacyHex = HashCreator::ComputeHMACSHA256Hex(AnsiString(secret), AnsiString(keyAndDay) + AnsiString(lowerMailbox));
+         String legacyTag = _T("prvs=") + keyAndDay + String(legacyHex.Mid(0, 6)) + _T("=Alice.Old@Example.test");
+         String original;
+         if (!BATV::Verify(legacyTag, secret, original) || original != _T("Alice.Old@Example.test"))
+            throw 0;
+
+         // And what Sign makes today is that tag (unless the day turned over
+         // between the two, which the second computation allows for).
+         String signedNow = BATV::Sign(_T("Alice.Old@Example.test"), secret);
+         const int dayAfter = (int) (((__int64) time(0) / 86400) % 1000);
+         if (day == dayAfter && signedNow.CompareNoCase(legacyTag) != 0)
+            throw 0;
+
+         // A mailbox as the SMTP command line hands it to Sign and Verify - its
+         // UTF-8 widened byte by byte - is hashed as those bytes, as the old
+         // conversion hashed it: a tag made before this change for such a
+         // mailbox still verifies, and the mailbox decoded gets the same tag.
+         String widenedMailbox;
+         const unsigned char mailboxBytes[] = { 0xD0, 0xB8, 0xD0, 0xB2, 0xD0, 0xB0, 0xD0, 0xBD };
+         for (unsigned char b : mailboxBytes)
+            widenedMailbox += (wchar_t) b;
+         widenedMailbox += _T("@example.test");
+         const int widenedDay = (int) (((__int64) time(0) / 86400) % 1000);
+         String widenedKeyAndDay;
+         widenedKeyAndDay.Format(_T("1%03d"), widenedDay);
+         AnsiString oldWidenedHex = HashCreator::ComputeHMACSHA256Hex(AnsiString(secret), AnsiString(widenedKeyAndDay) + AnsiString(widenedMailbox));
+         String oldWidenedTag = _T("prvs=") + widenedKeyAndDay + String(oldWidenedHex.Mid(0, 6)) + _T("=") +
+                                widenedMailbox.Mid(0, widenedMailbox.Find(_T("@"))) + _T("@example.test");
+         if (!BATV::Verify(oldWidenedTag, secret, original))
+            throw 0;
+         String signedWidened = BATV::Sign(widenedMailbox, secret);
+         String signedDecoded = BATV::Sign(L"\u0438\u0432\u0430\u043D@example.test", secret);
+         if (signedWidened.IsEmpty() || signedWidened.Mid(0, 15) != signedDecoded.Mid(0, 15))
+            throw 0;
+
+         // Two internationalized mailboxes of one length that differ only in a
+         // letter above U+00FF: the old conversion gave both the same canonical
+         // bytes, so the tag of one was the tag of the other.
+         const String ivan = L"\u0438\u0432\u0430\u043D@example.test";
+         const String ivam = L"\u0438\u0432\u0430\u043C@example.test";
+         String taggedIvan = BATV::Sign(ivan, secret);
+         if (taggedIvan.IsEmpty() || !BATV::Verify(taggedIvan, secret, original) || original != ivan)
+            throw 0;
+         String forged = taggedIvan;
+         forged.Replace(L"\u0438\u0432\u0430\u043D@", L"\u0438\u0432\u0430\u043C@");
+         if (forged == taggedIvan || BATV::Verify(forged, secret, original))
+            throw 0;
+         if (BATV::Sign(ivam, secret).Mid(0, 15) == taggedIvan.Mid(0, 15))
+            throw 0;
+
+         // The same after an ASCII prefix, which the old conversion kept and then
+         // lost at the first Cyrillic letter.
+         String taggedMixed = BATV::Sign(L"ops.\u043F\u0451\u0442\u0440@example.test", secret);
+         String forgedMixed = taggedMixed;
+         forgedMixed.Replace(L"\u043F\u0451\u0442\u0440@", L"\u043F\u0451\u0442\u0444@");
+         if (taggedMixed.IsEmpty() || forgedMixed == taggedMixed || BATV::Verify(forgedMixed, secret, original))
+            throw 0;
+
+         // A secret that differs only in a Cyrillic letter is another secret.
+         String taggedBySecret = BATV::Sign(_T("carol@example.test"), L"\u043A\u043B\u044E\u0447-1");
+         if (BATV::Verify(taggedBySecret, L"\u043A\u043B\u044E\u0447-2", original) ||
+             BATV::Verify(taggedBySecret, L"\u043A\u043B\u044E\u0448-1", original) ||
+             !BATV::Verify(taggedBySecret, L"\u043A\u043B\u044E\u0447-1", original))
+            throw 0;
+
+         // Text UTF-8 cannot carry is neither signed nor verified.
+         String loneMailbox;
+         loneMailbox += (wchar_t) 0xD800;
+         loneMailbox += _T("x@example.test");
+         if (!BATV::Sign(loneMailbox, secret).IsEmpty())
+            throw 0;
+      }
+
+      OutputDebugString(_T("hMailServer: Testing SRS over UTF-8\n"));
+      {
+         const String secret = _T("srs-test-secret-key");
+
+         // ASCII: the hash in what Forward makes today is the hash the old
+         // conversion made over the same time slot, domain and local part.
+         String srs = SRS::Forward(_T("Alice@External-Sender.com"), _T("relay.example.com"), secret);
+         // SRS0=HHHHHHHH=TT=external-sender.com=Alice@relay.example.com
+         std::vector<String> fields = StringParser::SplitString(srs.Mid(5, srs.ReverseFind(_T('@')) - 5), _T("="));
+         if (fields.size() != 4)
+            throw 0;
+         String lowerDomain = fields[2];
+         lowerDomain.ToLower();
+         AnsiString legacyHex = HashCreator::ComputeHMACSHA256Hex(AnsiString(secret),
+            AnsiString(fields[1]) + AnsiString(lowerDomain) + AnsiString(fields[3]));
+         if (fields[0].CompareNoCase(String(legacyHex.Mid(0, fields[0].GetLength()))) != 0)
+            throw 0;
+
+         // Two internationalized senders that differ only in a letter above
+         // U+00FF: the old conversion gave one hash for both, so the SRS address
+         // of one reversed to the other.
+         const String original = L"\u0438\u0432\u0430\u043D@\u043F\u0440\u0438\u043C\u0435\u0440.\u0440\u0444";
+         String srsCyrillic = SRS::Forward(original, _T("relay.example.com"), secret);
+         String reversed;
+         if (srsCyrillic.IsEmpty() || !SRS::Reverse(srsCyrillic, secret, reversed) || reversed != original)
+            throw 0;
+         String forged = srsCyrillic;
+         forged.Replace(L"=\u0438\u0432\u0430\u043D@", L"=\u0438\u0432\u0430\u043C@");
+         if (forged == srsCyrillic || SRS::Reverse(forged, secret, reversed))
+            throw 0;
+         String forgedDomain = srsCyrillic;
+         forgedDomain.Replace(L"=\u043F\u0440\u0438\u043C\u0435\u0440.", L"=\u043F\u0440\u0438\u043C\u0435\u0439.");
+         if (forgedDomain == srsCyrillic || SRS::Reverse(forgedDomain, secret, reversed))
+            throw 0;
+      }
+
+      OutputDebugString(_T("hMailServer: Testing password hashes over UTF-8\n"));
+      {
+         Crypt *crypt = Crypt::Instance();
+
+         // ASCII: unchanged. MD5 of "password" is the value every table has, and
+         // a salted SHA-256 and a PBKDF2 hash made the old way - over
+         // AnsiString(String) - still open.
+         if (crypt->EnCrypt(_T("password"), Crypt::ETMD5) != _T("5f4dcc3b5aa765d61d8327deb882cf99"))
+            throw 0;
+         const String ascii = _T("SeC-r3t Pass! ~#");
+         HashCreator sha(HashCreator::SHA256);
+         const String oldSha = String(sha.GenerateHash(AnsiString(ascii), ""));
+         if (!crypt->Validate(ascii, oldSha, Crypt::ETSHA256) || crypt->Validate(_T("SeC-r3t Pass! ~$"), oldSha, Crypt::ETSHA256))
+            throw 0;
+         const String oldPbkdf2 = String(HashCreator::GeneratePBKDF2(AnsiString(ascii)));
+         Crypt::PasswordMatch asciiMatch;
+         if (!crypt->Validate(ascii, oldPbkdf2, Crypt::ETPBKDF2, &asciiMatch) || asciiMatch.text != ascii)
+            throw 0;
+
+         // Cyrillic: the hash is of the password's UTF-8, so another password of
+         // the same length - which the old conversion made the same NUL bytes on
+         // Windows and the same question marks on Linux - does not open it, and
+         // neither do those NUL bytes or question marks.
+         const String cyrillic = L"\u043F\u0430\u0440\u043E\u043B\u044C-\u0442\u0435\u0441\u0442";
+         const String sameShape = L"\u043A\u043B\u044E\u0447\u0438\u043A-\u0432\u0445\u043E\u0434";
+         const String newSha = crypt->EnCrypt(cyrillic, Crypt::ETSHA256);
+         if (!crypt->Validate(cyrillic, newSha, Crypt::ETSHA256))
+            throw 0;
+         if (crypt->Validate(sameShape, newSha, Crypt::ETSHA256) ||
+             crypt->Validate(_T("??????-????"), newSha, Crypt::ETSHA256) ||
+             crypt->Validate(String(11, (wchar_t) 0), newSha, Crypt::ETSHA256))
+            throw 0;
+         if (crypt->EnCrypt(cyrillic, Crypt::ETMD5) != _T("9ab2c725cd6055f5020fe986d4f90c46") ||
+             crypt->EnCrypt(cyrillic, Crypt::ETMD5) == crypt->EnCrypt(sameShape, Crypt::ETMD5))
+            throw 0;
+
+         // A hash made before 6.3.4 of a password that arrived as its UTF-8
+         // widened (the old conversion hashed those bytes exactly) opens to the
+         // password decoded as well - SASL PLAIN and COM give it that way.
+         AnsiString cyrillicUtf8;
+         if (!Unicode::ToUtf8Exact(cyrillic, cyrillicUtf8))
+            throw 0;
+         String cyrillicWidened;
+         for (int i = 0; i < cyrillicUtf8.GetLength(); i++)
+            cyrillicWidened += (wchar_t) (unsigned char) cyrillicUtf8[i];
+         const String oldWidenedSha = String(sha.GenerateHash(AnsiString(cyrillicWidened), ""));
+         if (!crypt->Validate(cyrillic, oldWidenedSha, Crypt::ETSHA256) || !crypt->Validate(cyrillicWidened, oldWidenedSha, Crypt::ETSHA256))
+            throw 0;
+
+         // The same password as a client's UTF-8 widened byte by byte (the REST
+         // API's Basic credential, IMAP's command line) opens it too, and the text
+         // to re-hash from is the password itself, so a re-hash keeps its bytes.
+         AnsiString utf8;
+         if (!Unicode::ToUtf8Exact(cyrillic, utf8))
+            throw 0;
+         String widened;
+         for (int i = 0; i < utf8.GetLength(); i++)
+            widened += (wchar_t) (unsigned char) utf8[i];
+         const String newPbkdf2 = crypt->EnCrypt(cyrillic, Crypt::ETPBKDF2);
+         Crypt::PasswordMatch widenedMatch;
+         if (!crypt->Validate(widened, newPbkdf2, Crypt::ETPBKDF2, &widenedMatch) || widenedMatch.text != cyrillic)
+            throw 0;
+
+         // Latin-1 text hashed before 6.3.4 - its characters as bytes, which the
+         // old conversion kept exactly - still opens, and is re-hashed from the
+         // password as it is, which moves it to UTF-8.
+         const String latin1 = L"passw\u00F6rd-\u00E9t\u00E9";
+         AnsiString latin1Bytes;
+         for (int i = 0; i < latin1.GetLength(); i++)
+            latin1Bytes += (char) (unsigned char) latin1[i];
+         const String oldLatin1 = String(sha.GenerateHash(latin1Bytes, ""));
+         Crypt::PasswordMatch latin1Match;
+         if (!crypt->Validate(latin1, oldLatin1, Crypt::ETSHA256, &latin1Match) || latin1Match.text != latin1 ||
+             !latin1Match.legacy_bytes)
+            throw 0;
+
+         // The same Latin-1 password from a client that sends UTF-8 (IMAP LOGIN,
+         // REST Basic: its UTF-8 widened one byte to a character) opens that hash
+         // too, is said to need a re-hash, and names the text to make it from.
+         AnsiString latin1Utf8;
+         if (!Unicode::ToUtf8Exact(latin1, latin1Utf8))
+            throw 0;
+         String latin1Widened;
+         for (int i = 0; i < latin1Utf8.GetLength(); i++)
+            latin1Widened += (wchar_t) (unsigned char) latin1Utf8[i];
+         Crypt::PasswordMatch widenedLatin1Match;
+         if (!crypt->Validate(latin1Widened, oldLatin1, Crypt::ETSHA256, &widenedLatin1Match) ||
+             widenedLatin1Match.text != latin1 || !widenedLatin1Match.legacy_bytes)
+            throw 0;
+
+         // A hash over UTF-8 is no legacy match, whichever form the password came in.
+         const String utf8Latin1Hash = crypt->EnCrypt(latin1, Crypt::ETSHA256);
+         Crypt::PasswordMatch currentMatch;
+         if (!crypt->Validate(latin1Widened, utf8Latin1Hash, Crypt::ETSHA256, &currentMatch) || currentMatch.legacy_bytes ||
+             currentMatch.text != latin1)
+            throw 0;
+         if (crypt->Validate(L"passw\u00F6rd-\u00E9t\u00E8", oldLatin1, Crypt::ETSHA256))
+            throw 0;
+         if (!crypt->Validate(latin1, crypt->EnCrypt(latin1, Crypt::ETSHA256), Crypt::ETSHA256))
+            throw 0;
+
+         // A hash the old conversion made of a password above U+00FF is refused
+         // to that very password, and said to be one: every password of its form
+         // matched it. A password holding U+0000 is refused whatever the hash.
+         const String oldLossy = String(sha.GenerateHash(AnsiString(cyrillic), ""));
+         Crypt::PasswordMatch lossyMatch;
+         if (crypt->Validate(cyrillic, oldLossy, Crypt::ETSHA256, &lossyMatch) || !lossyMatch.refused_old_conversion)
+            throw 0;
+         Crypt::PasswordMatch otherMatch;
+         if (crypt->Validate(sameShape, oldLossy, Crypt::ETSHA256, &otherMatch) || !otherMatch.refused_old_conversion)
+            throw 0;
+         // Said too when the password arrives as its UTF-8 widened (IMAP LOGIN).
+         Crypt::PasswordMatch widenedLossyMatch;
+         if (crypt->Validate(widened, oldLossy, Crypt::ETSHA256, &widenedLossyMatch) || !widenedLossyMatch.refused_old_conversion)
+            throw 0;
+         const String nulHash = String(sha.GenerateHash(AnsiString("ab\0\0", 4), ""));
+         String nulPassword = _T("ab");
+         nulPassword += (wchar_t) 0;
+         nulPassword += (wchar_t) 0;
+         if (crypt->Validate(nulPassword, nulHash, Crypt::ETSHA256))
+            throw 0;
+      }
+
+      OutputDebugString(_T("hMailServer: Testing the SCRAM anti-enumeration key over UTF-8\n"));
+      {
+         // ASCII: the old key, byte for byte.
+         AnsiString legacy = "hMailServer-SCRAM-anti-enumeration-key";
+         const String asciiParts[] = { _T("5f4dcc3b5aa765d61d8327deb882cf99"), _T("db pass!"), _T("hMailServer"), _T("db.example.test\\SQLEXPRESS") };
+         for (const String &part : asciiParts)
+         {
+            legacy += "\x1f";
+            legacy += AnsiString(part);
+         }
+         if (ScramSha256::AntiEnumerationKey(asciiParts[0], asciiParts[1], asciiParts[2], asciiParts[3]) != legacy)
+            throw 0;
+
+         // A database password of Cyrillic letters: the old key held its length
+         // and nothing else, so two such passwords of one length gave one key.
+         AnsiString first = ScramSha256::AntiEnumerationKey(_T("h"), L"\u043F\u0430\u0440\u043E\u043B\u044C", _T("n"), _T("s"));
+         AnsiString second = ScramSha256::AntiEnumerationKey(_T("h"), L"\u043F\u0430\u0440\u043E\u043B\u0438", _T("n"), _T("s"));
+         if (first == second)
+            throw 0;
+         if (first.Find("\xD0\xBF\xD0\xB0\xD1\x80\xD0\xBE\xD0\xBB\xD1\x8C") < 0)
+            throw 0;
+      }
+
+      OutputDebugString(_T("hMailServer: Testing the push endpoint hash over UTF-8\n"));
+      {
+         const String endpoint = _T("https://fcm.googleapis.com/fcm/send/dQw4w9WgXcQ:APA91bE-x_y");
+         HashCreator hasher(HashCreator::SHA256);
+         if (PushSubscriptions::HashOf(endpoint) != String(hasher.GenerateHashNoSalt(AnsiString(endpoint), HashCreator::hex)))
+            throw 0;
+         if (PushSubscriptions::HashOf(L"https://push.example.test/\u0430") == PushSubscriptions::HashOf(L"https://push.example.test/\u0431"))
+            throw 0;
+      }
+
+      OutputDebugString(_T("hMailServer: Testing the alert webhook signature\n"));
+      {
+         // The recipe AlertsAndAuditTrail.md gives - HMAC-SHA256 over the
+         // timestamp, a full stop and the body - held to a value computed apart
+         // from this code, with the secret as the old conversion gave it and as
+         // UTF-8: for an ASCII secret and body the two are one signature.
+         const String secret = _T("a-shared-secret-nobody-else-has");
+         const AnsiString body = "{\"condition\":\"test.webhook\",\"summary\":\"ASCII only\"}";
+         const AnsiString expected = "21dbdc037651f57dd9aa730e6034e21f647b627a8042986c1f43f5a3b0bb137d";
+         AnsiString utf8Secret;
+         if (!Unicode::ToUtf8Exact(secret, utf8Secret))
+            throw 0;
+         if (AlertManager::SignWebhook(utf8Secret, 1700000000, body) != expected)
+            throw 0;
+         if (AlertManager::SignWebhook(AnsiString(secret), 1700000000, body) != expected)
             throw 0;
       }
 

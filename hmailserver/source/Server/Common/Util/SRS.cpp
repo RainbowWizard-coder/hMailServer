@@ -6,6 +6,7 @@
 #include "SRS.h"
 
 #include "Hashing/HashCreator.h"
+#include "Unicode.h"
 
 #include <ctime>
 
@@ -92,8 +93,23 @@ namespace HM
       String lowerDomain = sourceDomain;
       lowerDomain.ToLower();
 
-      AnsiString canonical = AnsiString(timeSlot) + AnsiString(lowerDomain) + AnsiString(sourceLocal);
-      AnsiString hex = HashCreator::ComputeHMACSHA256Hex(AnsiString(secret), canonical);
+      // As UTF-8 (Unicode::ToUtf8Canonical) - as BATV::ComputeHash_ does, and
+      // for the same reason. AnsiString(String) stopped at the first character
+      // above U+00FF on Windows and wrote NUL bytes for the rest, and wrote '?'
+      // for each on Linux, so two internationalized senders of one length (the
+      // same up to the first such character, on Windows) shared one hash, and a
+      // bounce to the SRS address of one was reversed to the other. A sender as
+      // the SMTP command line gives it, its UTF-8 widened byte by byte, is hashed
+      // as those bytes, as the old conversion hashed it, and so is ASCII: an SRS
+      // address handed out before this change still reverses. Text UTF-8 cannot
+      // carry is neither forwarded nor reversed.
+      AnsiString secretBytes;
+      AnsiString canonical;
+      if (!Unicode::ToUtf8Canonical(secret, secretBytes) ||
+          !Unicode::ToUtf8Canonical(timeSlot + lowerDomain + sourceLocal, canonical))
+         return "";
+
+      AnsiString hex = HashCreator::ComputeHMACSHA256Hex(secretBytes, canonical);
       AnsiString truncated = hex.Mid(0, kHashHexLength);
 
       // The hex digest is ASCII; widen it to a String for use in the address.
@@ -118,6 +134,8 @@ namespace HM
 
       String timeSlot = EncodeTimeSlot_(CurrentTimeSlot_());
       String hash = ComputeHash_(secret, timeSlot, sourceDomain, sourceLocal);
+      if (hash.IsEmpty())
+         return "";
 
       String result;
       result.Format(_T("SRS0=%s=%s=%s=%s@%s"),
@@ -192,7 +210,7 @@ namespace HM
 
       // Verify the HMAC signature (case-insensitive hex comparison).
       String expected = ComputeHash_(secret, timeSlot, sourceDomain, sourceLocal);
-      if (expected.CompareNoCase(hash) != 0)
+      if (expected.IsEmpty() || expected.CompareNoCase(hash) != 0)
       {
          return false;
       }

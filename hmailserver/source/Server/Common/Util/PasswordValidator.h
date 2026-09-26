@@ -128,6 +128,12 @@ namespace HM
       //
       // Returns the encryption type the stored password uses after the attempt - the
       // type it already had if nothing needed doing or if the upgrade failed.
-      static int UpgradeStoredPasswordHash_(std::shared_ptr<const Account> pAccount, const String &sPassword, int currentEncryption);
+      //
+      // legacyBytes: the password matched only as the bytes the conversion before
+      // 6.3.4 made (Crypt::PasswordMatch::legacy_bytes). The hash is then made again
+      // even when its scheme and cost need nothing - under the preferred scheme if
+      // that is an upgrade, under the one it has otherwise - so that it is over the
+      // password's UTF-8.
+      static int UpgradeStoredPasswordHash_(std::shared_ptr<const Account> pAccount, const String &sPassword, int currentEncryption, bool legacyBytes);
    };
 }

@@ -35,6 +35,58 @@ Where each secret is
 | The Control Panel's own second factor | `HKLM\SOFTWARE\hMailServer` `AdminTotpSecret` | DPAPI, machine scope |
 
 
+A password outside Latin-1
+--------------------------
+
+**What a password hash is made over.** The password's UTF-8, every character of it, for
+every scheme (MD5, salted SHA-256, PBKDF2, Argon2id, scrypt) and for the pepper
+(`Crypt::EnCrypt`). Until 6.3.4 it was the password through `AnsiString(String)`, which
+is not an encoding of it: on Windows it made the first character above U+00FF, and every
+byte after it, a NUL byte, and on Linux it made each such character `?`. So a password
+of Cyrillic, Greek or CJK letters was stored as the hash of its length - and any other
+password of that length and shape, sent over SASL PLAIN (whose fields are UTF-8), opened
+the account; on Windows so did the NUL bytes themselves, in a REST API Basic credential.
+For ASCII the bytes are the ones they were, so an ASCII password's hash is unchanged, and
+PBKDF2 over UTF-8 is also what a SCRAM-SHA-256 client derives its key from, so such a
+password now serves SCRAM too. A password that reaches the server as its UTF-8 widened one
+byte to a character - IMAP's `LOGIN`, the REST API's Basic credential - is hashed as those
+bytes (`Unicode::ToUtf8Canonical`), which is what the old conversion hashed as well; so it
+and the same password decoded (SASL PLAIN, COM, a REST body) are one password.
+
+**What a sign-in checks** (`Crypt::Validate`): the password's UTF-8 as above, then - for
+Latin-1 text, every character below U+0100 and the bytes not UTF-8 - its characters as
+bytes, which is what the old conversion made of such a password (`passwörd`) exactly, so
+those hashes still open. For a password that arrives as its UTF-8 widened (IMAP `LOGIN`,
+POP3 `PASS`, REST Basic) that second check is of the text it decodes to, so a client that
+sends UTF-8 opens such a hash too, which it never did. A sign-in that matched only that
+way is followed by a re-hash from the password decoded, under the scheme the hash has (or
+the preferred one, if that is an upgrade), which moves the hash to UTF-8 - after which it
+serves SCRAM-SHA-256 as well - and the application log says `Re-derived the stored password
+hash for account <address> ... over the password's UTF-8`. A password holding U+0000 is
+refused.
+
+**What changes on upgrade.** A hash stored before 6.3.4 of a password with a character
+above U+00FF is the hash of NUL bytes or question marks, which the server cannot tell
+apart from the hash of another password: it is **refused**, to its own password too, and
+the application log says `Authentication refused for account <address>: its stored
+password hash was made before 6.3.4 from a password with a character above U+00FF...`
+(for the administrator, `Administrator logon refused: the stored administrator password
+hash was made before 6.3.4...`). An administrator sets such a password again - on the
+Control Panel, over COM or the REST API, and with `hMailServer.exe --set-admin-password`
+for the administrator's own; the webmail's password change asks for the old password
+and is refused as a sign-in is - and it is hashed whole. On Linux one such hash still opens to the password with `?` in place of
+each of those characters, which is an ASCII password the server cannot refuse. On both
+platforms a PBKDF2 one still opens over SCRAM-SHA-256: a SCRAM client derives its key from
+the password itself, so one that derives it from the NUL bytes (Windows) or question marks
+(Linux) the hash was made over proves knowledge of it, and the server, which never sees the
+password in SCRAM, cannot tell. Set those passwords again, soon after the upgrade; the log
+line above names each account as its user tries to sign in, whether the client sends the
+password as characters or as UTF-8. A pepper (`PasswordPepper`) outside ASCII is keyed as
+UTF-8 for a new hash and, for a hash made before, also as it was then, so an Argon2id or
+scrypt account signs in as before, and that sign-in makes its hash again under the
+pepper's UTF-8.
+
+
 The administrator password
 --------------------------
 

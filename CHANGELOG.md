@@ -154,7 +154,12 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
     subject in the message index, a signature or a log line was refused with error 1366 or made a question mark.
     The step rebuilds every table, which takes time on a large database; it needs MySQL 5.7.9 or MariaDB 10.2.2 or
     later and the ALTER privilege on the database, and a step stopped part of the way is finished by running it
-    again. Two rows the old collation told apart and the new one does not - on MariaDB 11.8, `straße` and `strase`
+    again. So do steps 6041 and 6101 before it, and each now opens with a probe table that needs the same key size,
+    so on an older server the upgrade stops at 6041 with error 1071 having changed nothing. Fixed: those two steps
+    made their first tables before the index that failed, and MySQL commits DDL at once, so they stopped half done
+    and every later run failed on a table already there; a database an earlier build left that way, at 6040 (or,
+    after a change of database server between the two steps, at 6100), is put back by hand with the statements
+    Upgrading.md gives. Two rows the old collation told apart and the new one does not - on MariaDB 11.8, `straße` and `strase`
     in one address book; on MySQL 8.4, two names that differ only in an emoji - stop it with error 1062 until one
     of them is removed. SQL Server, SQL Server Compact and PostgreSQL only move the version
     ([Upgrading.md](hmailserver/docs/Upgrading.md),
@@ -226,6 +231,12 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
     nothing in its place, fails with a temporary `450 4.7.0`, and the error log says to set the security to TLS
     or STARTTLS required (`HM5912`); the message waits for the retries the route allows. Exchange Online offers
     STARTTLS on 587, so a route set up as Microsoft documents it is not affected.
+24. **A password hash stored before 6.3.4 of a password with a character above U+00FF is refused**, to its own
+    password too, and the application log names the account: that hash was of NUL bytes or question marks, and
+    any other password of that form opened it (see the fix under Security and identity). An administrator sets
+    such a password again, and soon: until then SCRAM-SHA-256, whose client derives its key itself, still opens
+    such a PBKDF2 hash to the NUL bytes (Windows) or question marks (Linux) it was made over, which the server
+    cannot tell from the password. Every ASCII and Latin-1 password signs in as before.
 
 ### Delivery and SMTP
 
@@ -378,6 +389,10 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   directory lists rooms with their capacity, and CalDAV's room finder searches them. The policy is at
   `/api/v1/accounts/{address}/booking-policy`, with no COM or Control Panel page; nothing changes until an account
   is given a kind ([RoomsAndEquipment.md](hmailserver/docs/RoomsAndEquipment.md)).
+- Fixed: on SQL Server and SQL Server Compact a room's record of whom it accepted a booking from was keyed on the
+  UID under a collation that ignores case and width, so a booking whose UID differed from another's only that way
+  replaced the other's record, and a delegate's later decline of the first booking told its organiser nothing. The
+  UID is now compared exactly on every database.
 - **Delegated mailboxes named in the Autodiscover answer**, in Exchange's `AlternativeMailbox` element and only
   to a request signed in as the delegate. Outlook reads that element for an Exchange account and not for an IMAP
   one, so for IMAP clients the mechanism that works is still the `#Users` namespace, which Thunderbird and
@@ -811,6 +826,34 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   buffer sized for the largest body a route takes and applied the 64 KB cap on a head only once its blank line
   arrived, so each connection could be made to hold 16 MB until the request deadline closed it. A head is now
   refused with `413` as soon as it passes the cap.
+- Fixed: BATV tags, SRS addresses, the fabricated SCRAM salt of an unknown account and the Web Push endpoint's
+  hash were made over a conversion that, on Windows, gave zero bytes for everything after the first character
+  above U+00FF and, on Linux, `?` for each such character - the conversion the audit trail's chain was fixed of
+  (under Administration). So two internationalised mailboxes of one length shared a BATV tag and an SRS hash, and
+  a bounce to one was taken, or reversed, as a bounce to the other; a database password of Cyrillic letters added
+  only its length to the SCRAM key; and two push endpoints of one length shared the hash the unique index is on.
+  Each is now made over UTF-8. A String that holds UTF-8 widened one byte to a character - what the SMTP and IMAP
+  command lines give, and so what BATV and SRS are handed - is hashed as those bytes, which the old conversion
+  hashed too; so for such a mailbox, as for ASCII, a tag or an SRS address handed out before the upgrade still
+  verifies, and the salt an unknown account is given does not change. `ClassTester` holds each to the old
+  conversion over ASCII and over widened UTF-8, and to a difference over Cyrillic, and `Batv.cs` accepts a tag
+  computed the old way. A push endpoint outside printable ASCII - which no browser gives - is refused.
+- Fixed: a password of Cyrillic, Greek or CJK letters could be opened by any other password of its length. Every
+  password hash (MD5, salted SHA-256, PBKDF2, Argon2id, scrypt, and the pepper) was made over the same
+  conversion - NUL bytes on Windows from the first character above U+00FF on, `?` for each on Linux - so SASL
+  PLAIN, whose fields are UTF-8, took `ключик-вход` for `пароль-тест`, and on Windows a REST API Basic credential
+  of NUL bytes took either; the administrator password was hashed the same way. Hashes are now made over UTF-8,
+  which leaves every ASCII password's hash as it was and lets such a password serve SCRAM-SHA-256. A password that
+  arrives as its UTF-8 widened one byte to a character (IMAP `LOGIN`, REST Basic) is hashed as those bytes, as it
+  was, so it and the same password decoded are one; a sign-in also tries a Latin-1 password's characters as bytes
+  (for a client that sends UTF-8, those of the text it decodes to), which opens a hash made of them before, and
+  that sign-in makes the hash again over UTF-8 (as it does one made under a pepper outside ASCII, under
+  the pepper's UTF-8), after which it serves SCRAM-SHA-256 too. A password holding U+0000 is refused. COM's
+  `Utilities.MD5` and `Utilities.SHA256` are the same code, so for text outside ASCII they now give the digest of
+  its UTF-8. A hash the old conversion made of a password above U+00FF is refused and logged (upgrade item 24);
+  on Linux such a hash still opens to the password with `?` for those characters until it is set again, and on
+  both platforms SCRAM-SHA-256 still opens a PBKDF2 one to the bytes it was made over
+  ([SecretsAtRest.md](hmailserver/docs/SecretsAtRest.md), *A password outside Latin-1*).
 
 ### Encryption
 
@@ -877,6 +920,27 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
 - **The audit trail** (schema 6043) as a hash chain that can be verified, a setting's change put back from its
   row, and a Control Panel page; its first gaps - misspelt table names, the settings store, the access lists -
   closed. **Alerts** now cover eleven conditions, by mail or signed webhook.
+- Fixed: the audit trail's chain did not cover a character above U+00FF. The fields were hashed through a
+  conversion that, on Windows, hashed everything after the first such character as zero bytes and, on Linux,
+  each such character as `?`, so a row naming a Cyrillic account or an internationalised address could be
+  edited after that character (`deleted` to `created`, say) and `verify` still answered intact. The fields
+  are now hashed as UTF-8 and the hash written in upper case; rows written before, in lower case, are checked
+  the old way ([AlertsAndAuditTrail.md](hmailserver/docs/AlertsAndAuditTrail.md), *Verifying the chain*).
+  `GET /api/v1/audit` listed such a row through the same conversion, so its actor, object and detail came back
+  as zero bytes or question marks, and its `actor`, `object_type` and `action` filters matched nothing outside
+  ASCII; the listing is now UTF-8 and the filters are read as UTF-8.
+- Fixed: the alerts carried text outside ASCII as something else. The REST routes widened the JSON body's UTF-8
+  one byte at a time, so a rule's condition, address, webhook and secret, and a test alert's condition and
+  summary, were stored as other text than was sent, and a condition was counted in bytes against its limit of 64
+  characters; and
+  `GET /api/v1/alerts/rules` and `/events`, the webhook's body and the mail wrote text through the conversion
+  above, so an alert the server raised about a name outside Latin-1 arrived with zero bytes or question marks.
+  Every field is now read and written as UTF-8; the mail's Subject is RFC 2047 encoded words when it is not
+  ASCII; the condition in `X-hMailServer-Event` is percent-encoded outside printable ASCII, so no byte of it can
+  end the header; and the webhook is signed with the secret's UTF-8, which for an ASCII secret and body is the
+  signature it always was (`ClassTester` holds it to a value computed apart); a secret stored before this fix,
+  as the bytes it was sent as, signs with those bytes, so no receiver's check changes. Text that arrived that
+  way - an address from the SMTP command line, a rule written before - is written as the UTF-8 it stands for.
 - **A setup checklist the server judges**, a sample domain that can be thrown away, **help beside every page**
   of the Control Panel, the Deck and the webmail from the documents built into the binary, and first-run tours
   ([SetupChecklist.md](hmailserver/docs/SetupChecklist.md), [SampleDomain.md](hmailserver/docs/SampleDomain.md),
@@ -1066,6 +1130,11 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   first, and with `UpgradeOnStart=1` in `[Database]` (a new bootstrap key, 0 by default) the service applies
   the schema steps itself as it starts ([Upgrading.md](hmailserver/docs/Upgrading.md)). A rolled-back update's
   outcome is reported as soon as the service is back.
+- Fixed: on MySQL and MariaDB, two nodes applying the schema steps at once - both with `UpgradeOnStart=1`, or one
+  and `--upgrade-database` - were not serialised: the version-row lock the second waited on was freed by the
+  step's first DDL statement, so it ran the same step beside the first and stopped with a table or a column
+  already there. Each step now holds a named lock (`GET_LOCK`) until it is over. A server that refuses
+  `GET_LOCK` (MariaDB Galera) still upgrades, with the row lock alone, and says so for each step.
 - **Backups**: encrypted with AES-256, the passphrase never inside the archive (schema 6059); one mailbox or one
   message restored from an archive ([Backup.md](hmailserver/docs/Backup.md)).
 - Fixed: a backup with **Back up messages** copied `<data directory>\Confidential` and `<data directory>\Protected`,
@@ -1090,6 +1159,13 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   send and receive deadlines were passed in the Windows form, which Linux refuses, so a collector that accepted the
   connection and never answered held the exporter, and the stop that waits for it, for good. Linux is given the
   deadlines in its own form. This was so in every release with Linux packages, from 6.3.0.
+- Fixed: the reports (`GET /api/v1/reports`) keyed and wrote every address and domain through the conversion the
+  audit trail's chain was fixed of, so two senders or recipients at a local domain whose names differ after a
+  character above U+00FF were counted as one row, named as zero bytes on Windows and question marks on Linux, in
+  the JSON and in the CSV. Names are now keyed and written as UTF-8, domains lower-cased in A to Z as before, and the
+  `domain` parameter is read as UTF-8. A trace row that holds an address as the SMTP command line gives it, its
+  UTF-8 widened one byte to a character, is written as the UTF-8 it stands for, as it was, and counted with the
+  same address decoded.
 - **Linux**: the live update applies on Linux through a root helper outside the server's unit; a Helm chart and a
   Compose file beside the container image; `hmailserver --set-setting`, `--sample-domain` and
   `--apply-environment`.

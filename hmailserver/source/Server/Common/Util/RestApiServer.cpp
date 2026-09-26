@@ -1473,8 +1473,17 @@ namespace HM
 
       Crypt::EncryptionType hashType = Crypt::Instance()->GetHashType(correctPassword);
 
-      if (!Crypt::Instance()->Validate(password, correctPassword, hashType))
+      // The credential's bytes are widened one by one, so a password outside ASCII
+      // arrives as its UTF-8 read as Latin-1; Crypt::Validate checks those bytes,
+      // and match.text is the password read as UTF-8, which is what a re-hash
+      // below is made from.
+      Crypt::PasswordMatch match;
+      if (!Crypt::Instance()->Validate(password, correctPassword, hashType, &match))
+      {
+         if (match.refused_old_conversion)
+            LOG_APPLICATION(_T("Administrator logon refused: the stored administrator password hash was made before 6.3.4 from a password with a character above U+00FF, of which that version kept only the length, so any password of the same form would match it. Set the administrator password again (hMailServer.exe --set-admin-password)."));
          return BasicRefused;
+      }
 
       // The second factor, once the password has been accepted - the same order
       // COMAuthentication uses, for the same reason: what is said about the code
@@ -1525,7 +1534,7 @@ namespace HM
       // MD5, or a hash cheaper than the one the server makes now, is written again
       // as PBKDF2 (IniFileSettings::UpgradeAdministratorPasswordHash) - before a
       // session is made, whose stamp is taken from the hash in force.
-      IniFileSettings::Instance()->UpgradeAdministratorPasswordHash(password, correctPassword);
+      IniFileSettings::Instance()->UpgradeAdministratorPasswordHash(match.text, correctPassword, match.legacy_bytes);
       return BasicAccepted;
    }
 

@@ -15,6 +15,8 @@
 #include "HttpsClient.h"
 #include "Time.h"
 #include "Hashing/HashCreator.h"
+#include "Unicode.h"
+#include "../Pst/PstMime.h"
 
 #include "../BO/Message.h"
 #include "../BO/MessageRecipients.h"
@@ -103,6 +105,67 @@ namespace HM
          return value.Mid(0, maximum - 3) + _T("...");
       }
 
+      // Text as UTF-8, for what leaves the server: the webhook's body and its
+      // signing key, a mail, a header. AnsiString(String) is not an encoding of
+      // the text: on Windows it wrote NUL bytes from the first character above
+      // U+00FF to the end, and on Linux a '?' for each, so an alert raised about
+      // a Cyrillic account or a backup path outside Latin-1 reached its webhook
+      // and its mail as something else. A lone surrogate half, which UTF-8
+      // cannot carry, is written as U+FFFD on both platforms (Unicode::ToUtf8).
+      AnsiString Utf8(const String &value)
+      {
+         return Unicode::ToUtf8(value);
+      }
+
+      bool IsPrintableAscii(const AnsiString &bytes)
+      {
+         for (int i = 0; i < bytes.GetLength(); i++)
+         {
+            const unsigned char c = (unsigned char) bytes[i];
+            if (c < 0x20 || c > 0x7E)
+               return false;
+         }
+
+         return true;
+      }
+
+      // A header's unstructured text (the Subject): as it is when it is
+      // printable ASCII, otherwise RFC 2047 encoded words of its UTF-8. A raw
+      // byte above 0x7F in a header is what the mail used to carry.
+      AnsiString HeaderText(const String &value)
+      {
+         AnsiString bytes = Utf8(value);
+         if (IsPrintableAscii(bytes))
+            return bytes;
+
+         return AnsiString(PstMime::EncodedWords(PstMime::HeaderSafe(std::string(bytes.c_str(), bytes.GetLength()))).c_str());
+      }
+
+      // A value for an HTTP header of the webhook's (the condition, in
+      // X-hMailServer-Event): printable ASCII as it is, every other byte of its
+      // UTF-8 - and '%' - percent-encoded. A condition is whatever the rule was
+      // saved under, so a CR or an LF in one would otherwise have ended the
+      // header and begun another.
+      AnsiString HeaderToken(const String &value)
+      {
+         AnsiString bytes = Utf8(value);
+         AnsiString out;
+         for (int i = 0; i < bytes.GetLength(); i++)
+         {
+            const unsigned char c = (unsigned char) bytes[i];
+            if (c < 0x20 || c > 0x7E || c == '%')
+            {
+               AnsiString escaped;
+               escaped.Format("%%%02X", (unsigned int) c);
+               out += escaped;
+            }
+            else
+               out += (char) c;
+         }
+
+         return out;
+      }
+
       AnsiString JsonEscape(const AnsiString &value)
       {
          AnsiString result;
@@ -132,6 +195,14 @@ namespace HM
             default:
                if (static_cast<unsigned char>(character) >= 0x20)
                   result += character;
+               else
+               {
+                  // RFC 8259 section 7, as RestApiServer::JsonEscape_ writes
+                  // it: a control character is escaped, not dropped.
+                  AnsiString escaped;
+                  escaped.Format("\\u%04x", (unsigned int) (unsigned char) character);
+                  result += escaped;
+               }
                break;
             }
          }
@@ -648,18 +719,18 @@ namespace HM
    {
       AnsiString json;
       json += "{";
-      json += "\"condition\":\"" + JsonEscape(AnsiString(event.condition)) + "\",";
+      json += "\"condition\":\"" + JsonEscape(Utf8(event.condition)) + "\",";
       json += "\"state\":\"" + AnsiString(event.state == StateCleared ? "cleared" : "raised") + "\",";
-      json += "\"severity\":\"" + JsonEscape(AnsiString(SeverityWord(event.severity))) + "\",";
+      json += "\"severity\":\"" + JsonEscape(Utf8(SeverityWord(event.severity))) + "\",";
 
       AnsiString time;
       time.Format("\"time\":%I64d,", event.time);
       json += time;
 
-      json += "\"time_utc\":\"" + JsonEscape(AnsiString(TimeText(event.time))) + "\",";
-      json += "\"summary\":\"" + JsonEscape(AnsiString(event.summary)) + "\",";
-      json += "\"detail\":\"" + JsonEscape(AnsiString(event.detail)) + "\",";
-      json += "\"server\":\"" + JsonEscape(AnsiString(Configuration::Instance()->GetHostName())) + "\"";
+      json += "\"time_utc\":\"" + JsonEscape(Utf8(TimeText(event.time))) + "\",";
+      json += "\"summary\":\"" + JsonEscape(Utf8(event.summary)) + "\",";
+      json += "\"detail\":\"" + JsonEscape(Utf8(event.detail)) + "\",";
+      json += "\"server\":\"" + JsonEscape(Utf8(Configuration::Instance()->GetHostName())) + "\"";
       json += "}";
 
       return json;
@@ -689,10 +760,10 @@ namespace HM
          return false;
 
       AnsiString content;
-      content += "From: <" + AnsiString(from) + ">\r\n";
-      content += "To: <" + AnsiString(recipient) + ">\r\n";
-      content += "Subject: " + AnsiString(OneLine(subject)) + "\r\n";
-      content += "Date: " + AnsiString(Time::GetCurrentMimeDate()) + "\r\n";
+      content += "From: <" + Utf8(from) + ">\r\n";
+      content += "To: <" + Utf8(recipient) + ">\r\n";
+      content += "Subject: " + HeaderText(OneLine(subject)) + "\r\n";
+      content += "Date: " + Utf8(Time::GetCurrentMimeDate()) + "\r\n";
       content += "Auto-Submitted: auto-generated\r\n";
       content += "X-hMailServer-Alert: 1\r\n";
       content += "MIME-Version: 1.0\r\n";
@@ -782,15 +853,15 @@ namespace HM
                Shorten(event.summary, 120).c_str());
 
             AnsiString body;
-            body += AnsiString(event.summary) + "\r\n\r\n";
+            body += Utf8(event.summary) + "\r\n\r\n";
             if (!event.detail.IsEmpty())
-               body += AnsiString(event.detail) + "\r\n\r\n";
-            body += "Condition: " + AnsiString(event.condition) + "\r\n";
+               body += Utf8(event.detail) + "\r\n\r\n";
+            body += "Condition: " + Utf8(event.condition) + "\r\n";
             body += "State:     " + AnsiString(event.state == StateCleared ? "cleared" : "raised") + "\r\n";
-            body += "Severity:  " + AnsiString(SeverityWord(event.severity)) + "\r\n";
-            body += "When:      " + AnsiString(TimeText(event.time)) + "\r\n";
-            body += "Server:    " + AnsiString(Configuration::Instance()->GetHostName()) + "\r\n";
-            body += "\r\nThis condition can be turned off, sent somewhere else, or moved into the daily digest: PUT /api/v1/alerts/rules/" + AnsiString(event.condition) + "\r\n";
+            body += "Severity:  " + Utf8(SeverityWord(event.severity)) + "\r\n";
+            body += "When:      " + Utf8(TimeText(event.time)) + "\r\n";
+            body += "Server:    " + Utf8(Configuration::Instance()->GetHostName()) + "\r\n";
+            body += "\r\nThis condition can be turned off, sent somewhere else, or moved into the daily digest: PUT /api/v1/alerts/rules/" + Utf8(event.condition) + "\r\n";
 
             SendMail_(subject, body, recipient);
          }
@@ -841,17 +912,17 @@ namespace HM
          return 0;
 
       AnsiString body;
-      body += "These conditions were recorded on " + AnsiString(Configuration::Instance()->GetHostName()) + " since the last digest.\r\n\r\n";
+      body += "These conditions were recorded on " + Utf8(Configuration::Instance()->GetHostName()) + " since the last digest.\r\n\r\n";
 
       for (const Event &event : held)
       {
-         body += AnsiString(TimeText(event.time)) + "  " +
+         body += Utf8(TimeText(event.time)) + "  " +
                  AnsiString(event.state == StateCleared ? "cleared" : "raised ") + "  " +
-                 AnsiString(event.condition) + "\r\n";
-         body += "    " + AnsiString(event.summary) + "\r\n";
+                 Utf8(event.condition) + "\r\n";
+         body += "    " + Utf8(event.summary) + "\r\n";
 
          if (!event.detail.IsEmpty())
-            body += "    " + AnsiString(OneLine(event.detail)) + "\r\n";
+            body += "    " + Utf8(OneLine(event.detail)) + "\r\n";
 
          body += "\r\n";
       }
@@ -876,7 +947,7 @@ namespace HM
       AnsiString body = BuildEventJson(event);
       __int64 timestamp = (__int64) time(nullptr);
 
-      AnsiString signature = SignWebhook(AnsiString(rule.secret), timestamp, body);
+      AnsiString signature = SignWebhook(Utf8(rule.secret), timestamp, body);
 
       std::vector<AnsiString> headers;
 
@@ -884,12 +955,12 @@ namespace HM
       timestampHeader.Format("X-hMailServer-Timestamp: %I64d", timestamp);
       headers.push_back(timestampHeader);
       headers.push_back("X-hMailServer-Signature: sha256=" + signature);
-      headers.push_back("X-hMailServer-Event: " + AnsiString(rule.condition));
+      headers.push_back("X-hMailServer-Event: " + HeaderToken(rule.condition));
       headers.push_back("User-Agent: hMailServer");
 
       HttpsClient::Response response;
 
-      if (!HttpsClient::Request("POST", AnsiString(rule.webhook), headers, "application/json", body, response, error))
+      if (!HttpsClient::Request("POST", Utf8(rule.webhook), headers, "application/json", body, response, error))
          return false;
 
       if (response.status_code < 200 || response.status_code > 299)

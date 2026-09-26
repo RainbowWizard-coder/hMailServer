@@ -106,6 +106,16 @@
 // stored hash is not the hash the row's own contents produce. It does not make
 // the table tamper-PROOF - anyone who can write the table can recompute the
 // whole chain - it makes tampering DETECTABLE without a second copy.
+//
+// The fields are hashed as UTF-8, and the hash is stored in upper-case hex.
+// Until 26 September 2026 they were hashed through AnsiString(String), which
+// on Windows wrote NUL bytes from the first character above U+00FF to the
+// end and on Linux wrote each such character as '?', so an edit after or of
+// such a character left the hash unchanged. Those rows were stored in lower-
+// case hex, and Verify checks a row by the scheme its own hash is written in:
+// lower case the old one, anything else UTF-8. Turning a row's hash to lower
+// case to have it checked the old way changes the back-hash the next row
+// carries, which is an edit the chain catches like any other.
 
 #pragma once
 
@@ -236,9 +246,10 @@ namespace HM
    private:
 
       bool Write_(const String &objectType, const String &objectName, const String &action, const String &detail);
-      static String HashRow_(const String &previousHash, __int64 time, const String &actor, const String &actorKind,
+      static String HashRow_(bool legacyEncoding, const String &previousHash, __int64 time, const String &actor, const String &actorKind,
                              const String &interfaceName, const String &address, const String &objectType,
                              const String &objectName, const String &action, const String &detail);
+      static bool IsLegacyHash_(const String &storedHash);
       String ReadHeadHash_();
       static String Describe_(const SQLCommand &command, String &table, String &action, String &objectName);
       static String ColumnOfParameter_(const String &parameterName);

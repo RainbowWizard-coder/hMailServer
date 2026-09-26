@@ -35,6 +35,7 @@
 #include "../Cache/CacheContainer.h"
 #include "MessageTrace.h"
 #include "Time.h"
+#include "Unicode.h"
 
 #include "../Application/EffectiveSetting.h"
 #include "../Application/IniFileSettings.h"
@@ -61,6 +62,41 @@ namespace HM
       // private escaper, and writing a second escaper here would be a second
       // opinion about what a quotation mark is.
       typedef AnsiString (*Escaper)(const AnsiString &);
+
+      // Every name and address in a report as UTF-8, which is what the JSON and
+      // the CSV (text/csv; charset=utf-8) say they are. AnsiString(String) was
+      // not: on Windows it wrote NUL bytes from the first character above
+      // U+00FF to the end of the name, and on Linux a '?' for each, so two
+      // internationalized senders of one length were counted as one, and a
+      // report named neither.
+      AnsiString Utf8(const String &value)
+      {
+         return Unicode::ToUtf8(value);
+      }
+
+      // A domain as the report keys it: lower case, then UTF-8. The set of
+      // hosted domains, the domain a request names and every row's domain go
+      // through this one function, so that they compare as the same bytes.
+      AnsiString DomainKey(const String &domain)
+      {
+         // MakeLower runs in the classic locale, which the server never changes,
+         // so it lowers A to Z alone on both platforms, as the narrow ToLower of
+         // the old key did: a domain outside ASCII is compared as it is written.
+         String lowered = domain;
+         lowered.MakeLower();
+         return Utf8(lowered);
+      }
+
+      // The way back, for a comparison with the caller's domains and a query
+      // of hm_domainsamples. Bytes that are not UTF-8 are widened one by one,
+      // which matches nothing, rather than dropped, which would match all.
+      String Wide(const AnsiString &utf8)
+      {
+         String text;
+         if (!Unicode::MultiByteToWide(utf8, text))
+            text = String(utf8);
+         return text;
+      }
 
       // ----------------------------------------------------------- the sections
 
@@ -189,7 +225,7 @@ namespace HM
       // trace rows and the metric samples alike.
       AnsiString TodayOnThisServer()
       {
-         AnsiString now = AnsiString(Time::GetCurrentDate());
+         AnsiString now = Utf8(Time::GetCurrentDate());
 
          if (now.GetLength() >= 10)
             return now.Mid(0, 10);
@@ -402,9 +438,10 @@ namespace HM
             if (allowed.empty())
                return true;
 
+            const String wide = Wide(candidate);
             for (const String &one : allowed)
             {
-               if (one.CompareNoCase(String(candidate).c_str()) == 0)
+               if (one.CompareNoCase(wide.c_str()) == 0)
                   return true;
             }
 
@@ -498,8 +535,8 @@ namespace HM
             AnsiString day;
             day.Format("%04d-%02d-%02d", row.year, row.month, row.day);
 
-            AnsiString senderDomain = AnsiString(Reports::DomainOf(row.sender));
-            AnsiString recipientDomain = AnsiString(Reports::DomainOf(row.recipient));
+            AnsiString senderDomain = DomainKey(Reports::DomainOf(row.sender));
+            AnsiString recipientDomain = DomainKey(Reports::DomainOf(row.recipient));
 
             // A local sender writing to a local recipient counts once as this
             // domain's outgoing and once as its incoming, which is what
@@ -582,8 +619,8 @@ namespace HM
             if (!IsFailed(row.event))
                continue;
 
-            AnsiString senderDomain = AnsiString(Reports::DomainOf(row.sender));
-            AnsiString recipientDomain = AnsiString(Reports::DomainOf(row.recipient));
+            AnsiString senderDomain = DomainKey(Reports::DomainOf(row.sender));
+            AnsiString recipientDomain = DomainKey(Reports::DomainOf(row.recipient));
 
             // Zero-padded so that the map's ordering is by number rather than
             // by the text of the number, which would put 550 before 99.
@@ -675,13 +712,14 @@ namespace HM
 
             String raw = senders ? row.sender : row.recipient;
 
-            AnsiString domain = AnsiString(Reports::DomainOf(raw));
+            AnsiString domain = DomainKey(Reports::DomainOf(raw));
 
             if (!context.Wanted(domain))
                continue;
 
-            AnsiString address = AnsiString(raw);
-            address.ToLower();
+            String lowered = raw;
+            lowered.MakeLower();
+            AnsiString address = Utf8(lowered);
 
             AddressCell &cell = cells[address];
             cell.domain = domain;
@@ -772,7 +810,7 @@ namespace HM
 
          for (const Reports::MailboxRow &row : context.mailboxes)
          {
-            if (row.quota_mb <= 0 || !context.Wanted(AnsiString(row.domain)))
+            if (row.quota_mb <= 0 || !context.Wanted(DomainKey(row.domain)))
                continue;
 
             wanted.push_back(row);
@@ -809,8 +847,8 @@ namespace HM
                state = "warned";
 
             std::vector<AnsiString> row;
-            row.push_back(AnsiString(mailbox.address));
-            row.push_back(AnsiString(mailbox.domain));
+            row.push_back(Utf8(mailbox.address));
+            row.push_back(Utf8(mailbox.domain));
             row.push_back(WholeNumber(mailbox.bytes / (1024 * 1024)));
             row.push_back(WholeNumber(mailbox.quota_mb));
             row.push_back(WholeNumber(percent));
@@ -851,7 +889,7 @@ namespace HM
 
          for (const Reports::MailboxRow &row : context.mailboxes)
          {
-            AnsiString domain = AnsiString(row.domain);
+            AnsiString domain = DomainKey(row.domain);
 
             if (!context.Wanted(domain))
                continue;
@@ -869,8 +907,8 @@ namespace HM
          for (size_t i = 0; i < wanted.size() && (int) i < context.top; i++)
          {
             std::vector<AnsiString> row;
-            row.push_back(AnsiString(wanted[i].address));
-            row.push_back(AnsiString(wanted[i].domain));
+            row.push_back(Utf8(wanted[i].address));
+            row.push_back(Utf8(wanted[i].domain));
             row.push_back(WholeNumber(wanted[i].messages));
             row.push_back(WholeNumber(wanted[i].bytes));
             row.push_back(WholeNumber(wanted[i].bytes / (1024 * 1024)));
@@ -942,17 +980,17 @@ namespace HM
 
          for (const Reports::DomainDay &row : rows)
          {
-            if (!context.Wanted(AnsiString(row.domain)))
+            if (!context.Wanted(DomainKey(row.domain)))
                continue;
 
             AnsiString entry;
             if (store)
                entry.Format("%s{\"day\":\"%hs\",\"domain\":\"%hs\",\"bytes\":%I64d,\"megabytes\":%I64d,\"messages\":%I64d}",
-                  first ? "" : ",", context.escape(AnsiString(row.day)).c_str(), context.escape(AnsiString(row.domain)).c_str(),
+                  first ? "" : ",", context.escape(Utf8(row.day)).c_str(), context.escape(Utf8(row.domain)).c_str(),
                   row.storeBytes, row.storeBytes / (1024 * 1024), row.storeMessages);
             else
                entry.Format("%s{\"day\":\"%hs\",\"domain\":\"%hs\",\"spam\":%d,\"viruses\":%d}",
-                  first ? "" : ",", context.escape(AnsiString(row.day)).c_str(), context.escape(AnsiString(row.domain)).c_str(),
+                  first ? "" : ",", context.escape(Utf8(row.day)).c_str(), context.escape(Utf8(row.domain)).c_str(),
                   row.spam, row.viruses);
 
             json += entry;
@@ -971,7 +1009,7 @@ namespace HM
          section.enabled = IniFileSettings::Instance()->GetMetricsHistoryDays() > 0;
 
          std::vector<Reports::DomainDay> domainDays;
-         Reports::ReadDomainDays(String(context.from_day), String(context.to_day), String(context.domain), domainDays);
+         Reports::ReadDomainDays(String(context.from_day), String(context.to_day), Wide(context.domain), domainDays);
 
          if (PerDomain(context))
          {
@@ -992,12 +1030,12 @@ namespace HM
 
             for (const Reports::DomainDay &row : domainDays)
             {
-               if (!context.Wanted(AnsiString(row.domain)))
+               if (!context.Wanted(DomainKey(row.domain)))
                   continue;
 
                std::vector<AnsiString> line;
-               line.push_back(AnsiString(row.day));
-               line.push_back(AnsiString(row.domain));
+               line.push_back(Utf8(row.day));
+               line.push_back(Utf8(row.domain));
                line.push_back(WholeNumber(row.spam));
                line.push_back(WholeNumber(row.viruses));
                section.table.rows.push_back(line);
@@ -1026,7 +1064,7 @@ namespace HM
 
             for (const Reports::DayValue &value : days)
             {
-               std::vector<double> &row = byDay[AnsiString(value.day)];
+               std::vector<double> &row = byDay[Utf8(value.day)];
 
                if (row.empty())
                   row.resize(VolumeMetricCount, 0);
@@ -1065,7 +1103,7 @@ namespace HM
          section.enabled = IniFileSettings::Instance()->GetMetricsHistoryDays() > 0;
 
          std::vector<Reports::DomainDay> domainDays;
-         Reports::ReadDomainDays(String(context.from_day), String(context.to_day), String(context.domain), domainDays);
+         Reports::ReadDomainDays(String(context.from_day), String(context.to_day), Wide(context.domain), domainDays);
 
          if (PerDomain(context))
          {
@@ -1087,12 +1125,12 @@ namespace HM
 
             for (const Reports::DomainDay &row : domainDays)
             {
-               AnsiString domain = AnsiString(row.domain);
+               AnsiString domain = DomainKey(row.domain);
                if (!context.Wanted(domain))
                   continue;
 
                std::vector<AnsiString> line;
-               line.push_back(AnsiString(row.day));
+               line.push_back(Utf8(row.day));
                line.push_back(domain);
                line.push_back(WholeNumber(row.storeBytes));
                line.push_back(WholeNumber(row.storeBytes / (1024 * 1024)));
@@ -1141,7 +1179,7 @@ namespace HM
          std::map<AnsiString, double> messagesByDay;
 
          for (const Reports::DayValue &value : messages)
-            messagesByDay[AnsiString(value.day)] = value.value;
+            messagesByDay[Utf8(value.day)] = value.value;
 
          double firstBytes = 0;
          double lastBytes = 0;
@@ -1157,7 +1195,7 @@ namespace HM
 
             lastBytes = value.value;
 
-            AnsiString day = AnsiString(value.day);
+            AnsiString day = Utf8(value.day);
 
             std::vector<AnsiString> row;
             row.push_back(day);
@@ -1209,7 +1247,7 @@ namespace HM
          for (const Reports::DayValue &value : days)
          {
             std::vector<AnsiString> row;
-            row.push_back(AnsiString(value.day));
+            row.push_back(Utf8(value.day));
             row.push_back(RoundedNumber(value.value));
 
             section.table.rows.push_back(row);
@@ -1225,7 +1263,7 @@ namespace HM
                byCountry += ",";
 
             AnsiString row;
-            row.Format("{\"country\":\"%hs\",\"refused\":%I64d}", context.escape(AnsiString(entry.first)).c_str(), entry.second);
+            row.Format("{\"country\":\"%hs\",\"refused\":%I64d}", context.escape(Utf8(entry.first)).c_str(), entry.second);
             byCountry += row;
 
             total += entry.second;
@@ -1452,15 +1490,16 @@ namespace HM
          if (!one)
             continue;
 
-         AnsiString name = AnsiString(one->GetName());
-         name.ToLower();
+         AnsiString name = DomainKey(one->GetName());
          context.local.insert(name);
       }
 
       // ---- the domain asked for
-      AnsiString wanted = QueryParameter_(query, "domain");
-      wanted.Trim();
-      wanted.ToLower();
+      // The query's percent-decoded bytes are UTF-8, lower-cased as a domain
+      // (DomainKey) before they are compared.
+      String wantedText = Wide(QueryParameter_(query, "domain"));
+      wantedText.Trim();
+      AnsiString wanted = wantedText.IsEmpty() ? AnsiString() : DomainKey(wantedText);
 
       if (!wanted.IsEmpty() && context.local.find(wanted) == context.local.end())
          return BuildResponse_(404, "{\"error\":\"no such domain on this server\"}");
@@ -1504,10 +1543,10 @@ namespace HM
             context.from_day.c_str(), context.to_day.c_str(), today.c_str(), sections.c_str(),
             MessageTrace::GetEnabled() ? "true" : "false",
             IniFileSettings::Instance()->GetMessageTraceRetentionDays(),
-            JsonEscape_(AnsiString(Reports::OldestTraceRow())).c_str(),
+            JsonEscape_(Utf8(Reports::OldestTraceRow())).c_str(),
             IniFileSettings::Instance()->GetMetricsHistoryDays() > 0 ? "true" : "false",
             IniFileSettings::Instance()->GetMetricsHistoryDays(),
-            JsonEscape_(AnsiString(Reports::OldestSample())).c_str());
+            JsonEscape_(Utf8(Reports::OldestSample())).c_str());
 
          return BuildResponse_(200, body);
       }

@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "PushSubscriptions.h"
+#include "Unicode.h"
 
 #include "Hashing/HashCreator.h"
 #include "WebPush.h"
@@ -73,8 +74,22 @@ namespace HM
    String
    PushSubscriptions::HashOf(const String &endpoint)
    {
+      // Over the endpoint's UTF-8, every character of it. AnsiString(String)
+      // stopped at the first character above U+00FF on Windows and hashed NUL
+      // bytes for the rest, and hashed '?' for each on Linux, so two endpoints
+      // of one length could share a hash - and the hash is what the unique index
+      // and the lookups are on. Save now refuses an endpoint outside printable
+      // ASCII, where the bytes are the ones the old conversion gave, so a row
+      // stored before this change is still found by its hash.
+      AnsiString bytes;
+      if (!Unicode::ToUtf8Canonical(endpoint, bytes))
+      {
+         std::string units = Unicode::ToUtf16Le(endpoint);
+         bytes = AnsiString(units.data(), units.size());
+      }
+
       HashCreator hasher(HashCreator::SHA256);
-      return String(hasher.GenerateHashNoSalt(AnsiString(endpoint), HashCreator::hex));
+      return String(hasher.GenerateHashNoSalt(bytes, HashCreator::hex));
    }
 
    PushSubscriptions::Subscription
@@ -208,6 +223,21 @@ namespace HM
       // stand a push service up on 127.0.0.1. A push service in the field is
       // always https, and a plain http one on a network would carry the VAPID
       // token that authorises sending to that device in the clear.
+      // A push service's endpoint is a URL as a browser serialises it
+      // (PushSubscription.endpoint): printable ASCII, with anything else
+      // percent-encoded and a host in its A-label form. Anything else is not
+      // one, and a space or a control character in it would reach the request
+      // line of every push sent to it.
+      for (int i = 0; i < endpoint.GetLength(); i++)
+      {
+         const unsigned int unit = (unsigned int) endpoint[i];
+         if (unit < 0x21 || unit > 0x7E)
+         {
+            refusal = _T("a push endpoint is a URL in printable ASCII, as a browser gives it");
+            return false;
+         }
+      }
+
       String lower = endpoint;
       lower.MakeLower();
       const bool loopbackHttp = IsLoopbackHttp(lower);

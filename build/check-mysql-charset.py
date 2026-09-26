@@ -47,6 +47,18 @@ back. The rules:
              bytes a character: no key part over 3072 bytes, no key over 3072 bytes
              in all, and no TEXT column without a prefix length.
 
+  probe      Every MySQL upgrade step from 6.3.3's schema (6040) to 6102 that makes a
+             utf8mb4 table opens with the probe - DROP TABLE IF EXISTS hm_upgradeprobe,
+             a CREATE TABLE hm_upgradeprobe whose primary key is a utf8mb4
+             varchar(255), InnoDB and DYNAMIC, and DROP TABLE hm_upgradeprobe - and
+             every utf8mb4 table it makes says ENGINE=InnoDB and ROW_FORMAT=DYNAMIC.
+             MySQL commits each CREATE and ALTER TABLE as it runs, so a step whose
+             1020-byte key was refused (error 1071, on a server older than MySQL
+             5.7.9 or MariaDB 10.2.2, or one whose default engine or row format is
+             MyISAM or COMPACT) stopped with its first tables made and the version
+             row unchanged, and every later run failed on a table already there.
+             The probe is refused before anything is changed.
+
   server     No MySQL CREATE TABLE compiled into the server (the SQL log device
              creates hm_log on demand), and no CREATE DATABASE (the setup's and
              --create-database's, SQLStatement::GetCreateDatabase), names a
@@ -71,6 +83,11 @@ CONVERSION = "Upgrade6101to6102MySQL.sql"
 # Upgrade steps whose target is this or later are held to the options rule. The
 # steps before it shipped under utf8 and are converted, whole, by the 6102 step.
 FIRST_CHECKED_STEP = 6102
+
+# The steps an upgrade from 6.3.3 runs before the conversion: from this schema to
+# FIRST_CHECKED_STEP. Each that makes a utf8mb4 table opens with the probe.
+PROBE_FROM = 6040
+PROBE_TABLE = "hm_upgradeprobe"
 
 CHARSET = "utf8mb4"
 COLLATION = "utf8mb4_general_ci"
@@ -357,6 +374,43 @@ def check_options(name, text, problems):
                                    COLLATION, BINARY))
 
 
+def check_probe(name, text, problems):
+    """The probe rule over one step before the conversion."""
+    listed = list(commands(text))
+    makes = False
+    for line, command in listed:
+        table = parse_create(command)
+        if not table or table["name"] == PROBE_TABLE or not re.search(r"\butf8mb4\b", command, re.I):
+            continue
+        makes = True
+        if not re.search(r"\bengine\s*=\s*innodb\b", table["options"], re.I) or \
+           not re.search(r"\brow_format\s*=\s*dynamic\b", table["options"], re.I):
+            problems.append("%s:%d: create table %s is utf8mb4 without ENGINE=InnoDB and ROW_FORMAT=DYNAMIC, so its "
+                            "1020-byte keys depend on the server's default engine and row format"
+                            % (name, line, table["name"]))
+    if not makes:
+        return
+    texts = [command.strip() for _, command in listed]
+    probe = parse_create(texts[1]) if len(texts) > 1 else None
+    opened = bool(len(texts) > 2 and
+                  re.match(r"^drop\s+table\s+if\s+exists\s+`?" + PROBE_TABLE + r"`?\s*;?$", texts[0], re.I) and
+                  probe is not None and probe["name"] == PROBE_TABLE and
+                  re.match(r"^drop\s+table\s+`?" + PROBE_TABLE + r"`?\s*;?$", texts[2], re.I))
+    if opened:
+        options = probe["options"]
+        wide = [key for key in probe["keys"] if key["kind"] == "primary" and
+                any(probe["columns"].get(column, {}).get("type") == "varchar" and
+                    (probe["columns"][column]["length"] or 0) >= 255 for column, _ in key["parts"])]
+        opened = bool(wide and re.search(r"\bengine\s*=\s*innodb\b", options, re.I) and
+                      re.search(r"\brow_format\s*=\s*dynamic\b", options, re.I) and
+                      re.search(r"\bcharset\s*=\s*utf8mb4\b", options, re.I))
+    if not opened:
+        problems.append("%s: makes a utf8mb4 table without opening with the probe (DROP TABLE IF EXISTS %s; a "
+                        "CREATE TABLE %s whose primary key is a utf8mb4 varchar(255), InnoDB and DYNAMIC; DROP "
+                        "TABLE %s), so on a server that cannot hold a 1020-byte key it stops half applied"
+                        % (name, PROBE_TABLE, PROBE_TABLE, PROBE_TABLE))
+
+
 def check_step(text, tables, problems):
     """The step rule: the 6102 script converts every table of the create script."""
     converted = {}
@@ -452,6 +506,8 @@ def check(scripts, sources):
         step = STEP.match(name)
         if step and int(step.group(2)) >= FIRST_CHECKED_STEP:
             check_options(name, scripts[name], problems)
+        elif step and int(step.group(1)) >= PROBE_FROM:
+            check_probe(name, scripts[name], problems)
     if CONVERSION in scripts:
         check_step(scripts[CONVERSION], tables, problems)
     else:
@@ -590,6 +646,28 @@ def self_test(scripts, sources):
     copy = dict(sources)
     copy["Server/Common/SQL/Example.cpp"] = '         sSQL.Format(_T("create database %s character set \'utf8\'"), sDatabaseName.c_str());\n'
     expect("a database the server creates in utf8", scripts, copy, "the MySQL database the server creates is utf8")
+
+    calendars = "Upgrade6040to6041MySQL.sql"
+    copy = dict(scripts)
+    copy[calendars] = scripts[calendars].split("DROP TABLE hm_upgradeprobe;\n\n", 1)[1]
+    expect("a step before the conversion that makes a utf8mb4 table without the probe", copy, sources,
+           calendars + ": makes a utf8mb4 table without opening with the probe")
+
+    copy = dict(scripts)
+    copy[calendars] = scripts[calendars].replace("probevalue varchar(255) not null", "probevalue int not null", 1)
+    expect("a probe whose key is not a wide string", copy, sources,
+           calendars + ": makes a utf8mb4 table without opening with the probe")
+
+    copy = dict(scripts)
+    copy[calendars] = scripts[calendars].replace("primary key(probevalue)", "unique(probevalue)", 1)
+    expect("a probe with no primary key, which sql_require_primary_key refuses", copy, sources,
+           calendars + ": makes a utf8mb4 table without opening with the probe")
+
+    copy = dict(scripts)
+    copy[calendars] = scripts[calendars].replace(") ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4;",
+                                                 ") DEFAULT CHARSET=utf8mb4;", 1)
+    expect("a utf8mb4 table before the conversion without ENGINE and ROW_FORMAT", copy, sources,
+           "create table hm_calendars is utf8mb4 without ENGINE=InnoDB and ROW_FORMAT=DYNAMIC")
 
     copy = dict(scripts)
     copy[CREATE] = "\n".join(create.split("\n")[:40])

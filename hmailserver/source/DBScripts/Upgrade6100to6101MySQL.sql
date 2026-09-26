@@ -1,3 +1,22 @@
+-- Before anything else, whether this server can hold the keys this step makes
+-- (varchar(255) in utf8mb4, 1020 bytes a key part): InnoDB with ROW_FORMAT=DYNAMIC, which is
+-- MySQL 5.7.9 or MariaDB 10.2.2, or later. MySQL commits every CREATE and ALTER TABLE as it runs,
+-- so a step that failed at such an index left what came before it in place with the version
+-- row unchanged, and every later run then failed on a table or a column already there. On a
+-- server that cannot hold the key this probe is refused with error 1071 ("Specified key was
+-- too long") before anything has been changed; upgrade the database server and run it again.
+-- The key is the primary key, since a server with sql_require_primary_key on refuses a table
+-- without one.
+DROP TABLE IF EXISTS hm_upgradeprobe;
+
+CREATE TABLE hm_upgradeprobe
+(
+	probevalue varchar(255) not null,
+	primary key(probevalue)
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+DROP TABLE hm_upgradeprobe;
+
 alter table hm_accounts add column accountkind int not null default 0;
 
 create table hm_bookingpolicies

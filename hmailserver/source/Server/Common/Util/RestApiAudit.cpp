@@ -40,6 +40,7 @@
 #include "AuditTrail.h"
 #include "AlertManager.h"
 #include "JsonDocument.h"
+#include "Unicode.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -50,34 +51,66 @@ namespace HM
 {
    namespace
    {
-      AnsiString AuditEntryJson(const AuditTrail::Entry &entry, AnsiString (*escape)(const AnsiString &))
+      // Every text field as UTF-8. AnsiString(String) is no encoding of the text:
+      // on Windows it wrote NUL bytes from the first character above U+00FF to
+      // the end of the field, and on Linux a '?' for each, so a row naming a
+      // Cyrillic account, an IDN address or a setting's value outside Latin-1
+      // was listed as something else than the row the chain verifies. Through
+      // JsonEscapeText, so that a field holding its UTF-8 widened byte by byte -
+      // an identity taken from a REST Basic credential, an address read back
+      // from an AnsiString member - is written as the text, as it was before.
+      AnsiString AuditEntryJson(const AuditTrail::Entry &entry)
       {
+         AnsiString (*escape)(const String &) = &RestApiServer::JsonEscapeText;
+
          AnsiString json;
          AnsiString numbers;
 
          numbers.Format("{\"id\":%I64d,\"time\":%I64d,", entry.id, entry.time);
          json += numbers;
 
-         json += "\"actor\":\"" + escape(AnsiString(entry.actor)) + "\",";
-         json += "\"actor_type\":\"" + escape(AnsiString(entry.actor_kind)) + "\",";
-         json += "\"interface\":\"" + escape(AnsiString(entry.interface_name)) + "\",";
-         json += "\"address\":\"" + escape(AnsiString(entry.address)) + "\",";
-         json += "\"object_type\":\"" + escape(AnsiString(entry.object_type)) + "\",";
-         json += "\"object\":\"" + escape(AnsiString(entry.object_name)) + "\",";
-         json += "\"action\":\"" + escape(AnsiString(entry.action)) + "\",";
-         json += "\"detail\":\"" + escape(AnsiString(entry.detail)) + "\",";
-         json += "\"hash\":\"" + escape(AnsiString(entry.hash)) + "\",";
-         json += "\"previous_hash\":\"" + escape(AnsiString(entry.previous_hash)) + "\"";
+         json += "\"actor\":\"" + escape(entry.actor) + "\",";
+         json += "\"actor_type\":\"" + escape(entry.actor_kind) + "\",";
+         json += "\"interface\":\"" + escape(entry.interface_name) + "\",";
+         json += "\"address\":\"" + escape(entry.address) + "\",";
+         json += "\"object_type\":\"" + escape(entry.object_type) + "\",";
+         json += "\"object\":\"" + escape(entry.object_name) + "\",";
+         json += "\"action\":\"" + escape(entry.action) + "\",";
+         json += "\"detail\":\"" + escape(entry.detail) + "\",";
+         json += "\"hash\":\"" + escape(entry.hash) + "\",";
+         json += "\"previous_hash\":\"" + escape(entry.previous_hash) + "\"";
          json += "}";
 
          return json;
       }
 
-      AnsiString AlertRuleJson(const AlertManager::Rule &rule, AnsiString (*escape)(const AnsiString &))
+      String QueryText(const AnsiString &bytes)
       {
+         String text;
+         if (!Unicode::MultiByteToWide(bytes, text))
+            text = String(bytes);
+         return text;
+      }
+
+      // The text of an alert's rule and events: in from the JSON body as UTF-8,
+      // out to it as UTF-8. It went in widened byte by byte and out through
+      // AnsiString(String), which gave the same bytes back for text that came in
+      // over REST and so looked right, while the rule was stored as something
+      // else than its text and a condition's length was counted in bytes; and
+      // an alert the server raised about text outside Latin-1 was listed with
+      // NUL bytes on Windows and '?' on Linux.
+      bool JsonText(const std::string &utf8, String &text)
+      {
+         return Unicode::MultiByteToWide(AnsiString(utf8.data(), utf8.size()), text);
+      }
+
+      AnsiString AlertRuleJson(const AlertManager::Rule &rule)
+      {
+         AnsiString (*escape)(const String &) = &RestApiServer::JsonEscapeText;
+
          AnsiString json;
 
-         json += "{\"condition\":\"" + escape(AnsiString(rule.condition)) + "\",";
+         json += "{\"condition\":\"" + escape(rule.condition) + "\",";
          json += AnsiString("\"enabled\":") + (rule.enabled ? "true" : "false") + ",";
 
          AnsiString numbers;
@@ -85,8 +118,8 @@ namespace HM
          json += numbers;
 
          json += AnsiString("\"digest\":") + (rule.digest ? "true" : "false") + ",";
-         json += "\"address\":\"" + escape(AnsiString(rule.address)) + "\",";
-         json += "\"webhook\":\"" + escape(AnsiString(rule.webhook)) + "\",";
+         json += "\"address\":\"" + escape(rule.address) + "\",";
+         json += "\"webhook\":\"" + escape(rule.webhook) + "\",";
 
          // The secret itself, never. Whether there is one, always: an
          // administrator asking "is this webhook signed" gets an answer, and a
@@ -97,8 +130,10 @@ namespace HM
          return json;
       }
 
-      AnsiString AlertEventJson(const AlertManager::Event &event, AnsiString (*escape)(const AnsiString &))
+      AnsiString AlertEventJson(const AlertManager::Event &event)
       {
+         AnsiString (*escape)(const String &) = &RestApiServer::JsonEscapeText;
+
          const char *hookState = "none";
          switch (event.hook_state)
          {
@@ -114,10 +149,10 @@ namespace HM
          numbers.Format("{\"id\":%I64d,\"time\":%I64d,\"severity\":%d,", event.id, event.time, event.severity);
          json += numbers;
 
-         json += "\"condition\":\"" + escape(AnsiString(event.condition)) + "\",";
+         json += "\"condition\":\"" + escape(event.condition) + "\",";
          json += AnsiString("\"state\":\"") + (event.state == AlertManager::StateCleared ? "cleared" : "raised") + "\",";
-         json += "\"summary\":\"" + escape(AnsiString(event.summary)) + "\",";
-         json += "\"detail\":\"" + escape(AnsiString(event.detail)) + "\",";
+         json += "\"summary\":\"" + escape(event.summary) + "\",";
+         json += "\"detail\":\"" + escape(event.detail) + "\",";
          json += AnsiString("\"notified\":") + (event.notified ? "true" : "false") + ",";
          json += AnsiString("\"held_for_digest\":") + (event.digested ? "true" : "false") + ",";
          json += AnsiString("\"webhook\":\"") + hookState + "\",";
@@ -132,6 +167,12 @@ namespace HM
       }
    }
 
+   AnsiString
+   RestApiServer::JsonEscapeText(const String &value)
+   {
+      return JsonEscape_(Unicode::ToUtf8(value));
+   }
+
    HttpResponse
    RestApiServer::HandleAudit_(const Route &route, const AnsiString &requestBody)
    {
@@ -142,9 +183,14 @@ namespace HM
       case RouteAuditList:
          {
             AuditTrail::Filter filter;
-            filter.actor = String(QueryParameter_(route.query, "actor"));
-            filter.object_type = String(QueryParameter_(route.query, "object_type"));
-            filter.action = String(QueryParameter_(route.query, "action"));
+            // The query's percent-decoded bytes are UTF-8: widened byte by
+            // byte, an actor or an object type outside ASCII matched nothing.
+            // Bytes that are not UTF-8 are widened as they were, so that such a
+            // filter still narrows the list - to nothing - rather than being
+            // dropped and listing every row.
+            filter.actor = QueryText(QueryParameter_(route.query, "actor"));
+            filter.object_type = QueryText(QueryParameter_(route.query, "object_type"));
+            filter.action = QueryText(QueryParameter_(route.query, "action"));
 
             AnsiString since = QueryParameter_(route.query, "since");
             if (!since.IsEmpty())
@@ -178,7 +224,7 @@ namespace HM
                if (i > 0)
                   body += ",";
 
-               body += AuditEntryJson(entries[i], escape);
+               body += AuditEntryJson(entries[i]);
             }
 
             body += "]}";
@@ -233,7 +279,7 @@ namespace HM
                if (i > 0)
                   body += ",";
 
-               body += AlertRuleJson(rules[i], escape);
+               body += AlertRuleJson(rules[i]);
             }
 
             body += "]}";
@@ -243,8 +289,11 @@ namespace HM
 
       case RouteAlertRuleUpdate:
          {
-            // Conditions are stored lower-case; see AlertManager::SaveRule.
-            String condition = String(route.identifier);
+            // Conditions are stored lower-case; see AlertManager::SaveRule. The
+            // path's percent-decoded bytes are UTF-8.
+            String condition;
+            if (!Unicode::MultiByteToWide(route.identifier, condition))
+               return BuildResponse_(400, "{\"error\":\"the condition in the path is not UTF-8\"}");
             condition.MakeLower();
 
             AlertManager::Rule rule;
@@ -273,15 +322,17 @@ namespace HM
                rule.actions = (int) member->AsInt64();
             if ((member = document.Get("cooldown_minutes")) != nullptr)
                rule.cooldown = (int) member->AsInt64();
-            if ((member = document.Get("address")) != nullptr)
-               rule.address = String(AnsiString(member->AsString().c_str()));
-            if ((member = document.Get("webhook")) != nullptr)
-               rule.webhook = String(AnsiString(member->AsString().c_str()));
+            if ((member = document.Get("address")) != nullptr && !JsonText(member->AsString(), rule.address))
+               return BuildResponse_(400, "{\"error\":\"address is not UTF-8\"}");
+            if ((member = document.Get("webhook")) != nullptr && !JsonText(member->AsString(), rule.webhook))
+               return BuildResponse_(400, "{\"error\":\"webhook is not UTF-8\"}");
 
             // Write-only, as a secret should be: it can be set, it can be
-            // cleared with "", and it is never handed back.
-            if ((member = document.Get("webhook_secret")) != nullptr)
-               rule.secret = String(AnsiString(member->AsString().c_str()));
+            // cleared with "", and it is never handed back. The webhook is
+            // signed with its UTF-8 (AlertManager::DeliverWebhook_), which is
+            // what a receiver holding the same text computes.
+            if ((member = document.Get("webhook_secret")) != nullptr && !JsonText(member->AsString(), rule.secret))
+               return BuildResponse_(400, "{\"error\":\"webhook_secret is not UTF-8\"}");
 
             String refusal;
             if (!AlertManager::Instance()->SaveRule(rule, refusal))
@@ -296,7 +347,7 @@ namespace HM
             AlertManager::Rule saved;
             AlertManager::Instance()->GetRule(condition, saved);
 
-            return BuildResponse_(exists ? 200 : 201, AlertRuleJson(saved, escape));
+            return BuildResponse_(exists ? 200 : 201, AlertRuleJson(saved));
          }
 
       case RouteAlertEventList:
@@ -319,7 +370,7 @@ namespace HM
                if (i > 0)
                   body += ",";
 
-               body += AlertEventJson(events[i], escape);
+               body += AlertEventJson(events[i]);
             }
 
             body += "]}";
@@ -334,15 +385,18 @@ namespace HM
             if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.GetLength()), document, parseError) || !document.IsObject())
                return BuildResponse_(400, "{\"error\":\"the body must be a JSON object\"}");
 
-            String condition = String(AnsiString(document.GetString("condition").c_str()));
+            String condition;
+            if (!JsonText(document.GetString("condition"), condition))
+               return BuildResponse_(400, "{\"error\":\"the condition is not UTF-8\"}");
             condition.Trim();
             condition.MakeLower();
 
             if (condition.IsEmpty())
                return BuildResponse_(400, "{\"error\":\"name the condition to raise\"}");
 
-            String summary = String(AnsiString(document.GetString("summary",
-               "Raised on request, to prove that alerting reaches somebody.").c_str()));
+            String summary;
+            if (!JsonText(document.GetString("summary", "Raised on request, to prove that alerting reaches somebody."), summary))
+               return BuildResponse_(400, "{\"error\":\"the summary is not UTF-8\"}");
 
             // Through exactly the path a real condition takes - the same rule,
             // the same cool-down, the same ceiling - so that what arrives is

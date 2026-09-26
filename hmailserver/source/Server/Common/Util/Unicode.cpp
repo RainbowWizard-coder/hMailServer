@@ -314,7 +314,176 @@ namespace HM
       return true;
    }
 
-   bool 
+   bool
+   Unicode::ToUtf8Exact(const String &text, AnsiString &utf8)
+   {
+      utf8.Empty();
+
+      if (HasUnpairedSurrogate(text))
+         return false;
+
+      if (!WideToMultiByte(text, utf8))
+      {
+         utf8.Empty();
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
+   Unicode::IsWidenedUtf8(const String &text, AnsiString *bytes, String *decoded)
+   {
+      const int length = text.GetLength();
+      bool high = false;
+      for (int i = 0; i < length; i++)
+      {
+         const unsigned int unit = (unsigned int) text[i];
+         if (unit > 0xFF)
+            return false;
+         if (unit > 0x7F)
+            high = true;
+      }
+
+      if (!high)
+         return false;
+
+      // RFC 3629, section 4, byte by byte.
+      for (int i = 0; i < length; )
+      {
+         const unsigned int lead = (unsigned int) text[i];
+         int trail = 0;
+         unsigned int low = 0x80, highest = 0xBF;
+
+         if (lead <= 0x7F)
+         {
+            i++;
+            continue;
+         }
+         else if (lead >= 0xC2 && lead <= 0xDF)
+            trail = 1;
+         else if (lead == 0xE0)
+         {
+            trail = 2;
+            low = 0xA0;
+         }
+         else if ((lead >= 0xE1 && lead <= 0xEC) || lead == 0xEE || lead == 0xEF)
+            trail = 2;
+         else if (lead == 0xED)
+         {
+            trail = 2;
+            highest = 0x9F;
+         }
+         else if (lead == 0xF0)
+         {
+            trail = 3;
+            low = 0x90;
+         }
+         else if (lead >= 0xF1 && lead <= 0xF3)
+            trail = 3;
+         else if (lead == 0xF4)
+         {
+            trail = 3;
+            highest = 0x8F;
+         }
+         else
+            return false;
+
+         if (i + trail >= length)
+            return false;
+
+         for (int k = 1; k <= trail; k++)
+         {
+            const unsigned int next = (unsigned int) text[i + k];
+            const unsigned int minimum = k == 1 ? low : 0x80;
+            const unsigned int maximum = k == 1 ? highest : 0xBF;
+            if (next < minimum || next > maximum)
+               return false;
+         }
+
+         i += trail + 1;
+      }
+
+      AnsiString raw;
+      raw.resize(length);
+      for (int i = 0; i < length; i++)
+         raw[i] = (char) (unsigned char) text[i];
+
+      if (decoded != nullptr && !MultiByteToWide(raw, *decoded))
+         return false;
+
+      if (bytes != nullptr)
+         *bytes = raw;
+
+      return true;
+   }
+
+   bool
+   Unicode::ToUtf8Canonical(const String &text, AnsiString &utf8)
+   {
+      if (IsWidenedUtf8(text, &utf8))
+         return true;
+
+      return ToUtf8Exact(text, utf8);
+   }
+
+   AnsiString
+   Unicode::ToUtf8(const String &text)
+   {
+      AnsiString bytes;
+      if (ToUtf8Canonical(text, bytes))
+         return bytes;
+
+      String repaired;
+      const int length = text.GetLength();
+      for (int i = 0; i < length; i++)
+      {
+         const unsigned int unit = (unsigned int) text[i];
+
+         if (unit >= 0xD800 && unit <= 0xDBFF && sizeof(wchar_t) == 2 && i + 1 < length &&
+             (unsigned int) text[i + 1] >= 0xDC00 && (unsigned int) text[i + 1] <= 0xDFFF)
+         {
+            repaired += text[i];
+            repaired += text[i + 1];
+            i++;
+            continue;
+         }
+
+         repaired += (unit >= 0xD800 && unit <= 0xDFFF) ? (wchar_t) 0xFFFD : text[i];
+      }
+
+      if (!WideToMultiByte(repaired, bytes))
+         bytes.Empty();
+
+      return bytes;
+   }
+
+   bool
+   Unicode::HasUnpairedSurrogate(const String &text)
+   {
+      const int length = text.GetLength();
+      for (int i = 0; i < length; i++)
+      {
+         const unsigned int unit = (unsigned int) text[i];
+
+         if (unit >= 0xD800 && unit <= 0xDBFF && sizeof(wchar_t) == 2 && i + 1 < length)
+         {
+            const unsigned int low = (unsigned int) text[i + 1];
+            if (low >= 0xDC00 && low <= 0xDFFF)
+            {
+               i++;
+               continue;
+            }
+         }
+
+         if (unit >= 0xD800 && unit <= 0xDFFF)
+            return true;
+      }
+
+      return false;
+   }
+
+   bool
    Unicode::MultiByteToWide(const AnsiString &sInput, String &sOutput)
    {
       int iInputLength = sInput.GetLength();

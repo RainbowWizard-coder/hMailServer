@@ -70,7 +70,8 @@ written, and that occurrence stays busy: decline it from the webmail, or delete
 it.)
 
 **Whom an answer goes to.** The room records, when it accepts a booking, the
-organiser it believed (`hm_bookingdecisions`, by the booking's UID), and an
+organiser it believed (`hm_bookingdecisions`, by the booking's UID, compared
+exactly on every database), and an
 answer about that booking - a delegate's Accept, Maybe or Decline, over REST or
 from a CalDAV client - goes to that organiser and to nobody else, and only
 while the booking still names them as its `ORGANIZER`. Anybody who may write

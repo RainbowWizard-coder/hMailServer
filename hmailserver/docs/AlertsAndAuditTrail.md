@@ -253,8 +253,9 @@ syslog setters on COM's `Logging` object wrote with no actor, until it existed.
 ### Verifying the chain
 
 Each row carries the SHA-256 of the row before it and its own, computed over the
-previous hash followed by this row's fields, newline-separated. Editing a row or
-deleting one therefore breaks the chain at that point:
+previous hash followed by this row's fields, newline-separated, as UTF-8, and
+written in upper-case hex. Editing a row or deleting one therefore breaks the
+chain at that point:
 
     GET /api/v1/audit/verify
 
@@ -271,6 +272,17 @@ This does not make the table tamper-**proof**. Anyone who can write the table
 can recompute the whole chain. It makes tampering **detectable** without keeping
 a second copy, which is what the question "has this record been edited" actually
 needs.
+
+Rows written before 26 September 2026 were hashed another way, and their hash is
+in lower-case hex. That way did not cover a character above U+00FF - a Cyrillic
+or Chinese name, an internationalised address: on Windows everything after the
+first such character was hashed as zero bytes, and on Linux each such character
+as `?`, so such a row could be edited after that character, or on Linux in it,
+without breaking the chain. `verify` checks each row by the scheme its own hash
+is written in, so those rows still verify, with that weakness; every row written
+since covers every character. Turning an old-style row's hash to lower case to
+have it checked the old way changes the back-hash the next row carries, which the
+chain catches like any other edit.
 
 A note on retention: `AuditRetentionDays` deletes rows older than the number of
 days it names, and the oldest surviving row then still points back at a row that
@@ -416,7 +428,11 @@ with three headers:
 #### Verifying the signature
 
 The signature is **HMAC-SHA256 over the timestamp, a full stop, and the raw
-request body**, under the rule's shared secret, as lower-case hex. Verify it
+request body**, under the rule's shared secret, as lower-case hex. The body is
+UTF-8 and the key is the secret's UTF-8, which is what both examples below compute.
+`X-hMailServer-Event` names the condition with every byte of its UTF-8 outside
+printable ASCII, and `%`, percent-encoded (`%D0%B4` for `д`), so that nothing in a
+condition can end the header; the body carries it as it is. Verify the signature
 against the bytes you received, before parsing them:
 
 ```python

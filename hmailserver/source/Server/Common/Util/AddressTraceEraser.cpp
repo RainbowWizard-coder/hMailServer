@@ -215,8 +215,9 @@ namespace HM
          removedCount += count;
 
       // And their OpenPGP keys (kind 2 of hm_pgpring, OpenPgpRing.h), whose user
-      // id names the person the same way. Compared lower-cased: a key filed
-      // under the address its own user id carries keeps that address's case.
+      // id names the person the same way. Compared lower-cased, as every store
+      // here is: a key filed under the address its own user id carries keeps
+      // that address's case.
       count = DeleteAddressRows_("hm_pgpring", "pgraddress", "", lowered, "pgrkind = 2");
       if (count < 0)
          failedStores.push_back(_T("the correspondents' OpenPGP keys"));
@@ -350,13 +351,15 @@ namespace HM
    AddressTraceEraser::DeleteAddressRows_(const AnsiString &table, const AnsiString &firstColumn, const AnsiString &secondColumn, const String &address,
                                           const AnsiString &condition)
    {
-      // Compared lower-cased on both sides. The columns hold an address as it
-      // was written - an envelope's Ann@Example.com in the message trace, an
-      // alias or a list member as an administrator typed it - and PostgreSQL
-      // compares varchar by its bytes, so "column = @ADDRESS" left every row in
-      // another case behind there while the erasure reported success (SQL
-      // Server's and MySQL's collations hid it). The count and the delete ask
-      // the same question, so the number reported is the rows deleted.
+      // Compared lower-cased on both sides, on every backend. Several of these
+      // columns keep the address as it arrived - the message trace's sender is
+      // MAIL FROM as the client wrote it, an alias or a list member as the
+      // administrator typed it - and PostgreSQL's varchar compares case by case,
+      // so "=" with the operator's spelling left "John.Doe@Example.com" behind
+      // an erasure of john.doe@example.com there, and reported the erasure
+      // done. SQL Server, Compact and MySQL matched it under their collations.
+      // The count and the delete ask the same question, so the number
+      // reported is the rows deleted.
       String lowered = address;
       lowered.ToLower();
 

@@ -2013,7 +2013,7 @@ namespace HM
    }
 
    bool
-   IniFileSettings::UpgradeAdministratorPasswordHash(const String &password, const String &verifiedHash)
+   IniFileSettings::UpgradeAdministratorPasswordHash(const String &password, const String &verifiedHash, bool legacyBytes)
    {
       // A file this process has once failed to write is not tried again: the
       // packaged Linux file is root's, and every sign-in - every REST Basic
@@ -2028,8 +2028,10 @@ namespace HM
       // its work factor. Argon2id and scrypt are never written for the administrator
       // and are left alone, as a peer of PBKDF2 or stronger.
       const Crypt::EncryptionType type = Crypt::Instance()->GetHashType(verifiedHash);
+      // A PBKDF2 hash over a Latin-1 password's bytes (legacyBytes) is made again too,
+      // over its UTF-8.
       const bool weaker = type == Crypt::ETMD5 || type == Crypt::ETSHA256 ||
-                          (type == Crypt::ETPBKDF2 && HashCreator::NeedsRehash(AnsiString(verifiedHash)));
+                          (type == Crypt::ETPBKDF2 && (legacyBytes || HashCreator::NeedsRehash(AnsiString(verifiedHash))));
       if (!weaker)
          return false;
 

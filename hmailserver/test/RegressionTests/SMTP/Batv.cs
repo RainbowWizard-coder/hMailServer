@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using hMailServer;
 using NUnit.Framework;
@@ -40,6 +41,56 @@ namespace RegressionTests.SMTP
          char c = prvsAddress[9];
          char replacement = c == '0' ? '1' : '0';
          return prvsAddress.Substring(0, 9) + replacement + prvsAddress.Substring(10);
+      }
+
+      [Test]
+      [Description("A prvs tag computed here the way every earlier version computed it - HMAC-SHA256 keyed with the secret's bytes over K, DDD and the lower-cased mailbox, the first six hex digits - is accepted for an ASCII mailbox, and the same tag one hex digit off is refused. The tag is now made over UTF-8 so that a mailbox above U+00FF is covered (ClassTester holds that half); for ASCII the bytes did not change, and a bounce to a tag handed out before the upgrade is still taken.")]
+      public void ATagMadeTheOldWayOverAsciiIsStillAccepted()
+      {
+         const string secret = "regression-batv-secret";
+         try
+         {
+            WriteSetting("BATVEnabled", "1");
+            WriteSetting("BATVSecret", secret);
+            _application.Reinitialize();
+
+            SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "batvold@example.test", "test");
+
+            long day = (DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 86400) % 1000;
+            string keyAndDay = "1" + day.ToString("000", System.Globalization.CultureInfo.InvariantCulture);
+            string hash;
+            using (var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.ASCII.GetBytes(secret)))
+            {
+               byte[] mac = hmac.ComputeHash(System.Text.Encoding.ASCII.GetBytes(keyAndDay + "batvold@example.test"));
+               hash = BitConverter.ToString(mac).Replace("-", "").ToLowerInvariant().Substring(0, 6);
+            }
+
+            string tagged = "prvs=" + keyAndDay + hash + "=BatvOld@example.test";
+
+            var socket = new TcpConnection();
+            Assert.IsTrue(socket.Connect(25));
+            Assert.IsTrue(socket.Receive().StartsWith("220"));
+            socket.Send("HELO example.com\r\n");
+            Assert.IsTrue(socket.Receive().StartsWith("250"));
+            socket.Send("MAIL FROM:<>\r\n");
+            Assert.IsTrue(socket.Receive().StartsWith("250"));
+
+            string accepted = socket.SendAndReceive("RCPT TO:<" + tagged + ">\r\n");
+            Assert.IsTrue(accepted.StartsWith("250"),
+               "A tag made the way 6.3.3 made it, for an ASCII mailbox, must still verify. Tag: " + tagged + " Got: " + accepted);
+
+            string tampered = socket.SendAndReceive("RCPT TO:<" + TamperPrvsHash(tagged) + ">\r\n");
+            Assert.IsFalse(tampered.StartsWith("250"), "A tag one hex digit off must be refused. Got: " + tampered);
+
+            socket.Send("QUIT\r\n");
+            socket.Disconnect();
+         }
+         finally
+         {
+            WriteSetting("BATVEnabled", "0");
+            WriteSetting("BATVSecret", "");
+            _application.Reinitialize();
+         }
       }
 
       [Test]

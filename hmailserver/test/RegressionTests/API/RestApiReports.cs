@@ -359,6 +359,44 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("Two senders at a local domain whose local parts are Cyrillic and differ in their last letter are two rows, each named as its text, in the JSON and in the CSV. The report keyed and wrote every address through AnsiString(String), which on Windows is NUL bytes from the first letter above U+00FF and on Linux a '?' for each, so the two were one row named by neither. A trace row holding the address as the SMTP command line gives it - its UTF-8 widened one byte to a character - is the same sender as the address decoded, and is counted with it.")]
+      public void AnAddressOutsideLatinOneIsReportedAsItsText()
+      {
+         _application.Database.ExecuteSQL("delete from hm_messagetrace");
+
+         const string ivan = "\u0438\u0432\u0430\u043d@example.test";
+         const string ivam = "\u0438\u0432\u0430\u043c@example.test";
+         const string ivanAsSmtpGivesIt = "\u00d0\u00b8\u00d0\u00b2\u00d0\u00b0\u00d0\u00bd@example.test";
+
+         foreach (string row in new[] { ivan + "|far@remote.example", ivanAsSmtpGivesIt + "|near@remote.example", ivam + "|far@remote.example" })
+         {
+            string[] parts = row.Split('|');
+            _application.Database.ExecuteSQL(
+               "insert into hm_messagetrace (mtqueueid, mtoccurred, mtevent, mtsender, mtrecipient, mtsourceip, mtstatuscode, mtdetail) " +
+               "values (1, '" + Stamp(2) + "', 'delivered', N'" + parts[0] + "', '" + parts[1] + "', '192.0.2.1', 250, '')");
+         }
+
+         (int status, string body, string headers) senders =
+            Basic("GET", "/api/v1/reports/senders?" + Window() + "&domain=example.test");
+
+         Assert.AreEqual(200, senders.status, "Body: " + senders.body);
+         StringAssert.Contains("{\"sender\":\"" + ivan + "\",\"domain\":\"example.test\",\"messages\":2,\"failed\":0}",
+            senders.body, "Body: " + senders.body);
+         StringAssert.Contains("{\"sender\":\"" + ivam + "\",\"domain\":\"example.test\",\"messages\":1,\"failed\":0}",
+            senders.body, "Body: " + senders.body);
+         StringAssert.Contains("\"addresses_seen\":2", senders.body, "Body: " + senders.body);
+         StringAssert.DoesNotContain("\\u0000", senders.body, "Body: " + senders.body);
+
+         (int status, string body, string headers) csv =
+            Basic("GET", "/api/v1/reports/senders?" + Window() + "&domain=example.test&format=csv");
+
+         Assert.AreEqual(200, csv.status, "Body: " + csv.body);
+         string[] lines = csv.body.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+         CollectionAssert.Contains(lines, ivan + ",example.test,2,0", csv.body);
+         CollectionAssert.Contains(lines, ivam + ",example.test,1,0", csv.body);
+      }
+
+      [Test]
       [Description("A window outside the rows is empty rather than wrong, and a day is a whole day at both ends")]
       public void TheWindowIsHalfOpenAndInclusiveOfItsLastDay()
       {

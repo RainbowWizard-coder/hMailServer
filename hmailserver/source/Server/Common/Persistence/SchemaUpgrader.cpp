@@ -30,6 +30,101 @@
 
 namespace HM
 {
+   namespace
+   {
+      /*
+         MySQL's named lock, which two walkers of one MySQL or MariaDB database
+         take for each step. The row lock the other backends serialise on does
+         not hold there: every MySQL step opens with DDL, and a CREATE or ALTER
+         TABLE commits the transaction and frees the FOR UPDATE lock with it, so
+         a second walker blocked on the version row went on while the first was
+         still running the step, read the version the step had not yet written,
+         and ran the same script beside it - to fail on a table or a column
+         already there, or to interleave its rows with the first's. GET_LOCK
+         belongs to the session, not the transaction, so no commit releases it;
+         the destructor does, at the end of the step, and a walker that dies
+         releases it with its connection.
+
+         Four hours for the other walker's step: 6101 to 6102 rebuilds every
+         table, which on a large database is minutes or more. The wait is not a
+         statement timeout, which is lifted for the call - on MariaDB
+         max_statement_time would end it, and on MySQL max_execution_time ends a
+         SELECT.
+      */
+      class NamedUpgradeLock
+      {
+      public:
+         explicit NamedUpgradeLock(std::shared_ptr<DALConnection> connection) :
+            connection_(connection),
+            held_(false)
+         {
+         }
+
+         ~NamedUpgradeLock()
+         {
+            try
+            {
+               if (held_)
+               {
+                  String error;
+                  connection_->TryExecute(SQLCommand(_T("do release_lock('hmailserver_schema_upgrade')")), error, 0, 0);
+               }
+            }
+            catch (...)
+            {
+               // Never out of a destructor. The lock goes with the session.
+            }
+         }
+
+         /*
+            False, with the reason, when the step must not run: the other
+            walker still holds the lock after four hours, or the server
+            answered the call with NULL. When the server refuses the call
+            itself - MariaDB Galera answers GET_LOCK with error 1235 while
+            wsrep is on - the step runs without it, serialised by the version
+            row alone as before, and unavailable says so: a server that has
+            no named lock is no reason to leave its database un-upgraded.
+         */
+         bool Acquire(String &error, bool &unavailable)
+         {
+            unavailable = false;
+
+            connection_->SetTimeout(0);
+
+            std::shared_ptr<DALRecordset> recordset = connection_->CreateRecordset();
+            const bool opened = recordset &&
+               recordset->Open(connection_, SQLCommand(_T("select get_lock('hmailserver_schema_upgrade', 14400) as locked")));
+
+            connection_->ApplyDefaultTimeout();
+
+            if (!opened)
+            {
+               unavailable = true;
+               return true;
+            }
+
+            if (recordset->IsEOF() || recordset->GetIsNull("locked"))
+            {
+               error = _T("The schema upgrade's lock (GET_LOCK('hmailserver_schema_upgrade')) could not be taken.");
+               return false;
+            }
+
+            if (recordset->GetLongValue("locked") != 1)
+            {
+               error = _T("Another process has held the schema upgrade's lock (GET_LOCK('hmailserver_schema_upgrade')) for four hours while it runs a step. Run the upgrade again when it has finished.");
+               return false;
+            }
+
+            held_ = true;
+            return true;
+         }
+
+      private:
+         std::shared_ptr<DALConnection> connection_;
+         bool held_;
+      };
+   }
+
    String
    SchemaUpgrader::ScriptSuffix(DatabaseSettings::SQLDBType type)
    {
@@ -164,13 +259,30 @@ namespace HM
          const String step = Formatter::Format(_T("{0} -> {1} ({2})"), current, next, fileName);
          report(step);
 
+         // On MySQL the step is serialised on a named lock, taken before the
+         // transaction and released when the step is over (NamedUpgradeLock).
+         String error;
+         NamedUpgradeLock stepLock(connection);
+         if (type == DatabaseSettings::TypeMYSQLServer)
+         {
+            bool unavailable = false;
+            if (!stepLock.Acquire(error, unavailable))
+            {
+               outcome.failed_step = step;
+               outcome.error = error;
+               return outcome;
+            }
+
+            if (unavailable)
+               report(Formatter::Format(_T("{0}: the database server refused GET_LOCK, so this step is not serialised against another process upgrading the same database. Upgrade from one process at a time."), step));
+         }
+
          // One transaction per step, where the backend has one: a statement
          // that fails takes the step's earlier statements with it on SQL Server,
          // PostgreSQL and Compact, and the version row - the script's last
          // statement - is never written for a step that did not finish. MySQL
          // commits DDL as it goes and the transaction protects only the rows;
          // that is the same protection DBUpdater's one transaction gives it.
-         String error;
          if (!connection->BeginTransaction(error))
          {
             outcome.failed_step = step;
@@ -181,10 +293,13 @@ namespace HM
          // Two walkers on one database - two nodes of a warm-standby pair both
          // starting with UpgradeOnStart, or a node and the command line - are
          // serialised on the version row: the second blocks on the lock until
-         // the first commits, and then finds the step done and moves on. On the
-         // three backends with row locks the read is locked for the length of
-         // the transaction; Compact is one file with one writer and has nothing
-         // to lock against.
+         // the first commits, and then finds the step done and moves on. On
+         // SQL Server and PostgreSQL the read is locked for the length of the
+         // transaction; Compact is one file with one writer and has nothing to
+         // lock against. On MySQL the row lock lasts only until the script's
+         // first DDL statement commits the transaction, so there the named lock
+         // above is what serialises the step, and this read, made under it, is
+         // what finds the step already done.
          String lockStatement;
          switch (type)
          {

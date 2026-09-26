@@ -698,7 +698,7 @@ namespace HM
    }
 
    String
-   AuditTrail::HashRow_(const String &previousHash, __int64 time, const String &actor, const String &actorKind,
+   AuditTrail::HashRow_(bool legacyEncoding, const String &previousHash, __int64 time, const String &actor, const String &actorKind,
                         const String &interfaceName, const String &address, const String &objectType,
                         const String &objectName, const String &action, const String &detail)
    {
@@ -728,7 +728,54 @@ namespace HM
       canonical += detail;
 
       HashCreator creator(HashCreator::SHA256);
-      return String(creator.GenerateHashNoSalt(AnsiString(canonical), HashCreator::hex));
+
+      // The rows written before 26 September 2026, checked as they were written.
+      // AnsiString(String) is not an encoding of the text: on Windows it stops at
+      // the first character above U+00FF and the rest becomes NUL bytes, and on
+      // Linux each such character becomes '?'. So a row naming an IDN address or
+      // a Cyrillic account could be edited after that character - "deleted" to
+      // "created", a level 2 to a level 0 - and still produce its hash.
+      if (legacyEncoding)
+         return String(creator.GenerateHashNoSalt(AnsiString(canonical), HashCreator::hex));
+
+      // Every character, as UTF-8 - what anyone re-computing the chain outside
+      // the server would hash. A string UTF-8 cannot carry (an unpaired
+      // surrogate, which iconv refuses on Linux) is hashed as its UTF-16LE
+      // units instead, which lose nothing either. Unicode::ToUtf8Exact looks
+      // for one rather than leaving it to the conversion: on Windows
+      // WideCharToMultiByte does not refuse
+      // an unpaired surrogate, it writes U+FFFD for it, so one could be edited
+      // into another, or into U+FFFD, and the hash would not change.
+      AnsiString bytes;
+      if (!Unicode::ToUtf8Exact(canonical, bytes))
+      {
+         std::string units = Unicode::ToUtf16Le(canonical);
+         bytes = AnsiString(units.data(), units.size());
+      }
+
+      // Upper case marks the scheme, so that Verify knows which one to check a
+      // row by without a column for it: the old rows are lower case.
+      String hash = String(creator.GenerateHashNoSalt(bytes, HashCreator::hex));
+      hash.MakeUpper();
+      return hash;
+   }
+
+   /*
+      Whether a stored hash was written by the old scheme, which HashCreator's
+      lower-case hex marks. A hash of digits alone reads as the new scheme; the
+      chance of one is (10/16)^64.
+   */
+   bool
+   AuditTrail::IsLegacyHash_(const String &storedHash)
+   {
+      for (int i = 0; i < storedHash.GetLength(); i++)
+      {
+         wchar_t c = storedHash[i];
+         if (c >= 'a' && c <= 'f')
+            return true;
+      }
+
+      return false;
    }
 
    /*
@@ -811,7 +858,7 @@ namespace HM
             safeDetail += _T("[role: ") + OneLine(actor.role) + _T("]");
          }
 
-         String hash = HashRow_(previousHash, now, safeActor, actor.kind, actor.interface_name, actor.address,
+         String hash = HashRow_(false, previousHash, now, safeActor, actor.kind, actor.interface_name, actor.address,
                                 safeObjectType, safeObjectName, action, safeDetail);
 
          SQLStatement statement(SQLStatement::STInsert, _T("hm_audit"));
@@ -1137,7 +1184,7 @@ namespace HM
             return false;
          }
 
-         String computed = HashRow_(storedPrevious,
+         String computed = HashRow_(IsLegacyHash_(storedHash), storedPrevious,
                                     recordset->GetInt64Value("audittime"),
                                     recordset->GetStringValue("auditactor"),
                                     recordset->GetStringValue("auditactortype"),

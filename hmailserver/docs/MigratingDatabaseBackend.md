@@ -77,9 +77,11 @@ releases are the first whose InnoDB, as it ships, takes a key part of up to 3072
 bytes and makes its tables DYNAMIC. The longest key in the schema is 1060 bytes.
 The schema was proven on MySQL 5.7.44 and 8.4.11 and on MariaDB 10.6.28, 11.4.13
 and 11.8.9 on 25 September 2026. On an older server as it ships, the create script
-and the 6102 upgrade step both stop at their first table - with error 1071,
-"Specified key was too long; max key length is 767 bytes", on a MySQL 5.7 set up as
-5.6 shipped - and the upgrade step has then changed nothing.
+stops at its first table, and an upgrade from 6.3.3 at the first step, 6040 to
+6041, whose opening statement makes a probe table with such a key (6101 opens with
+the same probe, and 6102 with `hm_accounts`) - with error 1071, "Specified key was
+too long; max key length is 767 bytes", on a MySQL 5.7 set up as 5.6 shipped - and
+the upgrade has then changed nothing.
 
 **Why `utf8mb4`.** MySQL's `utf8` is `utf8mb3`: three bytes a character, so nothing
 outside Unicode's Basic Multilingual Plane fits in it - no emoji, and none of the

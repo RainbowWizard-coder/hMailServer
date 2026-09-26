@@ -118,5 +118,57 @@ namespace RegressionTests.Security
             _settings.ClearLogonFailureList();
          }
       }
+
+      [Test]
+      [Description("A password of Cyrillic letters is hashed whole. Its hash was made over AnsiString(String), which on Windows is NUL bytes from the first letter above U+00FF on and on Linux a '?' for each, so any other password of the same length and shape - sent over SASL PLAIN, whose fields are UTF-8 - opened the account. Now another such password and the question marks are refused, the password itself is taken over SASL PLAIN, and SCRAM, whose client derives its key from the password's UTF-8, is taken too, which it never was for such a password.")]
+      public void APasswordOutsideLatinOneIsHashedWhole()
+      {
+         _settings.AutoBanOnLogonFailure = false;
+         _settings.ClearLogonFailureList();
+
+         const string password = "\u043f\u0430\u0440\u043e\u043b\u044c-\u0442\u0435\u0441\u0442";
+         const string sameShape = "\u043a\u043b\u044e\u0447\u0438\u043a-\u0432\u0445\u043e\u0434";
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "nonlatin@example.test", password);
+
+         try
+         {
+            foreach (string wrong in new[] { sameShape, "??????-????" })
+            {
+               using (var tc = new TcpConnection())
+               {
+                  Assert.IsTrue(tc.Connect(110));
+                  tc.ReadUntil("+OK");
+                  string refused = Pop3SaslTestClient.AuthenticatePlain(tc, account.Address, wrong);
+                  Assert.IsTrue(refused.StartsWith("-ERR"),
+                     "Another password of the same shape must not open the account. Got: " + refused);
+                  tc.Disconnect();
+               }
+            }
+
+            using (var tc = new TcpConnection())
+            {
+               Assert.IsTrue(tc.Connect(110));
+               tc.ReadUntil("+OK");
+               string accepted = Pop3SaslTestClient.AuthenticatePlain(tc, account.Address, password);
+               Assert.IsTrue(accepted.StartsWith("+OK"), "The password itself must open the account. Got: " + accepted);
+               tc.Send("QUIT\r\n");
+               tc.Disconnect();
+            }
+
+            using (var tc = new TcpConnection())
+            {
+               Assert.IsTrue(tc.Connect(110));
+               tc.ReadUntil("+OK");
+               string scram = Pop3SaslTestClient.AuthenticateScram(tc, account.Address, password);
+               Assert.IsTrue(scram.StartsWith("+OK"),
+                  "SCRAM-SHA-256 derives its key from the password's UTF-8, which is what the PBKDF2 hash is now made over. Got: " + scram);
+               tc.Disconnect();
+            }
+         }
+         finally
+         {
+            _settings.ClearLogonFailureList();
+         }
+      }
    }
 }

@@ -251,6 +251,140 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A condition, a secret and a summary outside ASCII are kept as their text and reach the webhook as UTF-8, signed over those bytes with the secret's UTF-8. The REST route widened the body's UTF-8 byte by byte, so a condition was stored as something else than its text and its length counted in bytes: fifty Cyrillic letters were refused as more than sixty-four characters. The event's condition goes into X-hMailServer-Event percent-encoded, so no byte of it can end the header. For ASCII the signature is the one AWebhookBodyIsSignedSoAReceiverCanVerifyIt recomputes, which did not change.")]
+      public void AConditionOutsideAsciiIsKeptAsItsTextAndSignedOverItsUtf8()
+      {
+         string condition = "test.\u0434\u0438\u0441\u043a-" + new string('\u0436', 40);
+         string secret = "\u0441\u0435\u043a\u0440\u0435\u0442-" + Secret;
+         const string summary = "\u0414\u0438\u0441\u043a \u043f\u043e\u0447\u0442\u0438 \u043f\u043e\u043b\u043e\u043d";
+         string rulePath = RulesPath + "/" + Uri.EscapeDataString(condition);
+
+         using (var endpoint = new FakeHttpEndpoint(200, "{}"))
+         {
+            try
+            {
+               (int status, string body) created = Http("PUT", rulePath,
+                  "{\"enabled\":true,\"digest\":false,\"cooldown_minutes\":0,\"actions\":2," +
+                  "\"webhook\":\"" + endpoint.UrlFor("/hook") + "\",\"webhook_secret\":\"" + secret + "\"}");
+               Assert.AreEqual(201, created.status,
+                  "Fifty letters are within the sixty-four a condition may have; counted as the bytes of their UTF-8 they were not. " + created.body);
+               StringAssert.Contains("\"condition\":\"" + condition + "\"", created.body, created.body);
+
+               StringAssert.Contains("\"condition\":\"" + condition + "\"", Read(RulesPath));
+
+               Assert.AreEqual("true", Extract(Raise(condition, true, summary), "raised"));
+
+               (int status, string body) ran = Http("POST", "/api/v1/alerts/run", "{}");
+               Assert.AreEqual(200, ran.status, ran.body);
+               StringAssert.Contains("\"webhooks_delivered\":1", ran.body, ran.body);
+
+               string request = OneRequest(endpoint);
+               Assert.IsNotNull(request, "The webhook was never called.");
+               byte[] sent = endpoint.RequestBodies[0];
+               string text = Encoding.UTF8.GetString(sent);
+
+               StringAssert.Contains("\"condition\":\"" + condition + "\"", text, text);
+               StringAssert.Contains("\"summary\":\"" + summary + "\"", text, text);
+
+               string timestamp = Header(request, "X-hMailServer-Timestamp");
+               byte[] signed = Encoding.ASCII.GetBytes(timestamp + ".");
+               var payload = new byte[signed.Length + sent.Length];
+               Buffer.BlockCopy(signed, 0, payload, 0, signed.Length);
+               Buffer.BlockCopy(sent, 0, payload, signed.Length, sent.Length);
+               using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
+               {
+                  string expected = BitConverter.ToString(hmac.ComputeHash(payload)).Replace("-", "").ToLowerInvariant();
+                  Assert.AreEqual("sha256=" + expected, Header(request, "X-hMailServer-Signature"),
+                     "HMAC-SHA256 keyed with the secret's UTF-8 over the timestamp, a full stop and the body's bytes.");
+               }
+
+               var token = new StringBuilder();
+               foreach (byte value in Encoding.UTF8.GetBytes(condition))
+               {
+                  if (value < 0x20 || value > 0x7E || value == (byte) '%')
+                     token.Append("%" + value.ToString("X2"));
+                  else
+                     token.Append((char) value);
+               }
+               Assert.AreEqual(token.ToString(), Header(request, "X-hMailServer-Event"), request);
+
+               string events = Read(EventsPath + "?limit=50");
+               StringAssert.Contains("\"condition\":\"" + condition + "\"", events, events);
+               StringAssert.Contains("\"summary\":\"" + summary + "\"", events, events);
+
+               // A secret written over REST before its fields were read as UTF-8
+               // was stored as its UTF-8 widened one byte to a character. Such a
+               // row signs with the same key: the bytes it stands for.
+               var widened = new StringBuilder();
+               foreach (byte value in Encoding.UTF8.GetBytes(secret))
+                  widened.Append((char) value);
+               _application.Database.ExecuteSQL("update hm_alertrules set alertrulesecret = N'" + widened +
+                  "' where alertrulecondition = N'" + condition + "'");
+
+               Assert.AreEqual("true", Extract(Raise(condition, true, summary), "raised"));
+               (int status, string body) second = Http("POST", "/api/v1/alerts/run", "{}");
+               StringAssert.Contains("\"webhooks_delivered\":1", second.body, second.body);
+
+               string secondRequest = null;
+               for (int attempt = 0; attempt < 100 && secondRequest == null; attempt++)
+               {
+                  if (endpoint.Requests.Count > 1)
+                     secondRequest = endpoint.Requests[1];
+                  else
+                     Thread.Sleep(100);
+               }
+               Assert.IsNotNull(secondRequest, "The second webhook was never called.");
+
+               byte[] secondSent = endpoint.RequestBodies[1];
+               byte[] secondSigned = Encoding.ASCII.GetBytes(Header(secondRequest, "X-hMailServer-Timestamp") + ".");
+               var secondPayload = new byte[secondSigned.Length + secondSent.Length];
+               Buffer.BlockCopy(secondSigned, 0, secondPayload, 0, secondSigned.Length);
+               Buffer.BlockCopy(secondSent, 0, secondPayload, secondSigned.Length, secondSent.Length);
+               using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
+               {
+                  string expected = BitConverter.ToString(hmac.ComputeHash(secondPayload)).Replace("-", "").ToLowerInvariant();
+                  Assert.AreEqual("sha256=" + expected, Header(secondRequest, "X-hMailServer-Signature"),
+                     "A secret stored widened signs with the bytes it stands for, as it did before.");
+               }
+            }
+            finally
+            {
+               Http("PUT", rulePath, "{\"enabled\":false,\"webhook\":\"\",\"webhook_secret\":\"\",\"actions\":1}");
+            }
+         }
+      }
+
+      [Test]
+      [Description("A mailed alert whose summary is outside ASCII carries it in the Subject as RFC 2047 encoded words of UTF-8. It carried the raw bytes before, which a header may not hold.")]
+      public void AMailedAlertOutsideAsciiHasAnEncodedSubject()
+      {
+         Account recipient = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encoded@" + _domain.Name, "test");
+         Account sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encoded-from@" + _domain.Name, "test");
+         const string summary = "\u041e\u0447\u0435\u0440\u0435\u0434\u044c \u0441\u0442\u043e\u0438\u0442";
+
+         Http("PUT", "/api/v1/settings",
+            "{\"alert_recipient\":\"" + recipient.Address + "\",\"alert_sender_address\":\"" + sender.Address + "\"}");
+         Http("PUT", RulesPath + "/test.state", "{\"enabled\":true,\"digest\":false,\"cooldown_minutes\":0,\"actions\":1}");
+
+         Raise("test.state", true, summary);
+
+         (int status, string body) ran = Http("POST", "/api/v1/alerts/run", "{}");
+         Assert.AreEqual(200, ran.status, ran.body);
+         StringAssert.Contains("\"notifications_sent\":1", ran.body, ran.body);
+
+         string message = Pop3ClientSimulator.AssertGetFirstMessageText(recipient.Address, "test");
+         Match subject = Regex.Match(message, "^Subject: (.*(?:\r\n[ \t].*)*)", RegexOptions.Multiline);
+         Assert.IsTrue(subject.Success, message);
+
+         StringAssert.Contains("=?UTF-8?B?", subject.Groups[1].Value, "A header carries no raw byte above 0x7F. " + subject.Value);
+
+         var decoded = new StringBuilder();
+         foreach (Match word in Regex.Matches(subject.Groups[1].Value, @"=\?UTF-8\?B\?([A-Za-z0-9+/=]+)\?="))
+            decoded.Append(Encoding.UTF8.GetString(Convert.FromBase64String(word.Groups[1].Value)));
+         StringAssert.Contains(summary, decoded.ToString(), subject.Value);
+      }
+
+      [Test]
       [Description("An endpoint that answers with an error is a failure, not a delivery: the event stays pending for the next attempt.")]
       public void AnEndpointThatRefusesIsNotADelivery()
       {

@@ -84,6 +84,15 @@ namespace HM
       // true. Returns false on an invalid proof, nonce or channel-binding mismatch.
       bool ProcessClientFinal(const AnsiString &clientFinal, AnsiString &serverFinalOut);
 
+      // The key the fabricated salt of an unknown account is made with: a
+      // domain-separation prefix and the four server-side secrets, each as
+      // UTF-8, joined by 0x1F. Public so that ClassTester can hold it to the
+      // bytes the old conversion gave for ASCII (the salt an unknown account is
+      // given is the one it was given before) and to a different key
+      // for secrets that differ only in a character above U+00FF.
+      static AnsiString AntiEnumerationKey(const String &administratorPassword, const String &databasePassword,
+                                           const String &databaseName, const String &databaseServer);
+
    private:
       static bool ParseStoredPbkdf2_(const AnsiString &stored, int &iterations,
                                      std::vector<unsigned char> &salt,

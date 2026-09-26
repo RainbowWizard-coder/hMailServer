@@ -157,6 +157,39 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An endpoint outside printable ASCII is refused, and one percent-encoded as a browser gives it is taken. The endpoint's hash, which the unique index and every lookup are on, was made over AnsiString(endpoint): two endpoints of one length that differed only in a letter above U+00FF shared it, so the second replaced the first.")]
+      public void AnEndpointOutsidePrintableAsciiIsRefused()
+      {
+         using (var service = new FakeHttpEndpoint(201, ""))
+         {
+            // The same path as a browser serialises it: percent-encoded UTF-8.
+            Device encoded = Device.Make(this, service.UrlFor("/push/%D0%BA%D0%BB%D1%8E%D1%87"));
+            Subscribe(encoded, "\"device\":\"percent-encoded\"");
+
+            string[] refusedEndpoints =
+            {
+               "https://push.example.net/\u043a\u043b\u044e\u0447-\u0430",
+               "https://push.example.net/\u043a\u043b\u044e\u0447-\u0431",
+               "https://push.example.net/caf\u00e9",
+               "https://push.example.net/a b"
+            };
+
+            for (int i = 0; i < refusedEndpoints.Length; i++)
+            {
+               Device device = Device.Make(this, refusedEndpoints[i]);
+               (int status, string body) refused = Http("POST", MePath + "/subscriptions", UserHeader(),
+                  device.SubscriptionJson("\"device\":\"refused-" + i + "\""));
+               Assert.AreEqual(400, refused.status, refusedEndpoints[i] + ": " + refused.body);
+               StringAssert.Contains("printable ASCII", refused.body, refused.body);
+            }
+
+            string listed = Read(MePath, UserHeader());
+            StringAssert.Contains("\"device\":\"percent-encoded\"", listed, listed);
+            StringAssert.DoesNotContain("refused-", listed, "A refused subscription was stored: " + listed);
+         }
+      }
+
+      [Test]
       [Description("A push carries the headers RFC 8030 and RFC 8291 require, a VAPID token that verifies under the key it names for the push service's origin, and a body that opens to exactly the promised JSON.")]
       public void APushCarriesTheRightHeadersAndAVerifiableSignature()
       {

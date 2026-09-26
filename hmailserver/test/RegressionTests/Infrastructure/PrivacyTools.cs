@@ -233,5 +233,53 @@ namespace RegressionTests.Infrastructure
          ClassicAssert.AreEqual(0, SingletonProvider<TestSetup>.Instance.GetApp().Utilities.EraseAddressTraces(erased, false),
             "A second erasure finds nothing: the count and the delete asked the same question.");
       }
+
+      [Test]
+      [Description("Erasure finds the address in whatever case each store kept it: an alias, a list member and a greylisting sender written in mixed case go with an erasure written in lower case")]
+      public void ErasureMatchesTheAddressInAnyCase()
+      {
+         // Until 26 September 2026 the message trace, the greylisting triplets,
+         // the list members and the aliases were matched with "=" on the operator's
+         // spelling. PostgreSQL compares varchar case by case, so there these rows
+         // were left behind while the erasure reported itself done; SQL Server,
+         // Compact and MySQL matched them under their collations. On PostgreSQL
+         // this test failed against that code (the list kept its member).
+         const string written = "Erased-Case@Example.Test";
+         const string erased = "erased-case@example.test";
+
+         var target = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "erasecasetarget@example.test", "test");
+
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, "erased-case-alias@example.test", written);
+         SingletonProvider<TestSetup>.Instance.AddDistributionList(_domain, "erased-case-list@example.test",
+            new List<string> {written});
+
+         // The sender as the client wrote it in MAIL FROM, which is how the
+         // triplet keeps it.
+         var antiSpam = _settings.AntiSpam;
+         antiSpam.GreyListingEnabled = true;
+
+         try
+         {
+            CustomAsserts.Throws<DeliveryFailedException>(
+               () => SmtpClientSimulator.StaticSend(written, target.Address, "Greylisted", "Body"));
+         }
+         finally
+         {
+            antiSpam.GreyListingEnabled = false;
+         }
+
+         int removed = SingletonProvider<TestSetup>.Instance.GetApp().Utilities.EraseAddressTraces(erased, true);
+
+         Assert.GreaterOrEqual(removed, 3,
+            "The alias, the list membership and the greylisting triplet, each kept in mixed case, should all be counted.");
+
+         var list = _domain.DistributionLists.get_ItemByAddress("erased-case-list@example.test");
+         ClassicAssert.AreEqual(0, list.Recipients.Count,
+            "The member written in mixed case must be off the list.");
+
+         // Nothing is left in either spelling.
+         ClassicAssert.AreEqual(0, SingletonProvider<TestSetup>.Instance.GetApp().Utilities.EraseAddressTraces(written, true),
+            "An erasure of the spelling the stores kept must find nothing left.");
+      }
    }
 }

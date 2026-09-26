@@ -158,6 +158,95 @@ namespace RegressionTests.Security
          return loggedOn;
       }
 
+      /// <summary>
+      ///    A PBKDF2 hash as every version before 6.3.4 made it of a Latin-1 password: over
+      ///    its characters as bytes (Latin-1), not their UTF-8. The iteration count is above
+      ///    the default, so that a re-hash of it is never one for its work factor.
+      /// </summary>
+      private static string LegacyLatin1Pbkdf2Hash(string password, int iterations)
+      {
+         byte[] salt = new byte[16];
+         using (var rng = RandomNumberGenerator.Create())
+            rng.GetBytes(salt);
+
+         byte[] key;
+         using (var pbkdf2 = new Rfc2898DeriveBytes(Encoding.GetEncoding(28591).GetBytes(password), salt, iterations, HashAlgorithmName.SHA256))
+            key = pbkdf2.GetBytes(32);
+
+         return "$h1$" + iterations + "$" + Hex(salt) + "$" + Hex(key);
+      }
+
+      private static string Hex(byte[] bytes)
+      {
+         var hex = new StringBuilder(bytes.Length * 2);
+         foreach (byte b in bytes)
+            hex.Append(b.ToString("x2"));
+         return hex.ToString();
+      }
+
+      private static string Scram(string address, string password)
+      {
+         using (var tc = new TcpConnection())
+         {
+            Assert.IsTrue(tc.Connect(110));
+            tc.ReadUntil("+OK");
+            string final = RegressionTests.POP3.Pop3SaslTestClient.AuthenticateScram(tc, address, password);
+            tc.Disconnect();
+            return final;
+         }
+      }
+
+      [Test]
+      [Description("A PBKDF2 hash made before 6.3.4 of a Latin-1 password, over its Latin-1 bytes, opens to the " +
+                   "password sent by a client that sends UTF-8 (POP3 PASS, IMAP LOGIN: the bytes widened one to a " +
+                   "character), and that sign-in makes it again over the password's UTF-8 - so SCRAM-SHA-256, " +
+                   "whose client derives its key from the UTF-8, works for it afterwards. Before, only the " +
+                   "characters themselves (SASL PLAIN, COM) opened such a hash, and nothing moved it, because " +
+                   "its scheme and work factor needed nothing.")]
+      public void ALatin1HashMadeBefore634OpensToUtf8AndIsMadeAgainOverIt()
+      {
+         _settings.AutoBanOnLogonFailure = false;
+         _settings.ClearLogonFailureList();
+
+         const string latin1Password = "passw\u00f6rd-\u00e9t\u00e9";
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "hashupgradelatin1@example.test", latin1Password);
+
+         try
+         {
+            string legacy = LegacyLatin1Pbkdf2Hash(latin1Password, 400000);
+            ForceStoredPassword(account, legacy, CryptPbkdf2);
+            Assert.IsTrue(StoredPasswordIs(account, legacy), "The fixture failed to store the legacy hash.");
+
+            // Over the Latin-1 bytes, SCRAM (UTF-8) cannot open it.
+            string before = Scram(account.Address, latin1Password);
+            Assert.IsTrue(before.StartsWith("-ERR"), "SCRAM derives from UTF-8, which this hash is not over. Got: " + before);
+            Assert.IsTrue(StoredPasswordIs(account, legacy), "A failed SCRAM exchange must not touch the stored hash.");
+
+            // POP3 PASS in UTF-8: the password arrives as its UTF-8 widened one byte to a
+            // character. Refused before 6.3.4's fix, whatever the hash was over.
+            Assert.IsTrue(LogonAndRelease(account.Address, latin1Password),
+               "The Latin-1 password sent as UTF-8 must open the hash made of its Latin-1 bytes.");
+
+            Assert.IsFalse(StoredPasswordIs(account, legacy),
+               "The sign-in must have made the hash again, over the password's UTF-8.");
+            Assert.AreEqual(CryptPbkdf2, ReadStoredEncryptionType(account),
+               "The hash is made again under the scheme it had.");
+
+            string after = Scram(account.Address, latin1Password);
+            Assert.IsTrue(after.StartsWith("+OK"), "Over UTF-8 now, the hash serves SCRAM. Got: " + after);
+
+            Assert.IsTrue(LogonAndRelease(account.Address, latin1Password), "The password still opens it.");
+            string error;
+            Assert.IsFalse(LogonAndRelease(account.Address, "passw\u00f6rd-\u00e9t\u00e8", out error),
+               "A different password must still be refused.");
+         }
+         finally
+         {
+            _settings.ClearLogonFailureList();
+            LogHandler.DeleteErrorLog();
+         }
+      }
+
       [Test]
       [Description("An account whose password is still stored unencrypted is re-hashed with the preferred " +
                    "scheme in the database on its first successful logon, and still authenticates afterwards.")]
