@@ -571,16 +571,20 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   ([GOVERNANCE.md](GOVERNANCE.md)). The release job refuses a tag that is not annotated, not on `master`, or not
   signed by the one key `master`'s `.gitlab/allowed_signers` lists, read from `master` and never from the tagged
   tree, and a file name the package registry already holds with other bytes. The pipeline builds the installer on
-  the project's Windows runner after the whole suite has passed there, Authenticode-signs it through Azure Artifact
-  Signing with a federated credential made for that one tag, signs every file with Sigstore as the pipeline,
-  checks each signature with the server's own `--verify-update`, and, once the installer smoke test has passed
-  and the owner has started the last job, publishes the files to the package registry and a GitLab release in
-  the milestone of its version, with this file's section as its notes, and refreshes the update feed. The job's
+  the project's Windows runner after the whole suite has passed there; once the owner has started the `release`
+  job, it Authenticode-signs the installer through Azure Artifact Signing with a federated credential made for
+  that one tag, signs every file with Sigstore as the pipeline, checks each signature with the server's own
+  `--verify-update`, and, once the installer smoke test has passed and the owner has started the last job,
+  publishes the files to the package registry and a GitLab release, in the milestone of its version where the
+  project has one, with this file's section as its notes, and refreshes the update feed. The job's
   checks run as the tagged commit has them, so they stop a mistake; what stops a hostile tag is that nobody else
   may create one. The container image, `registry.gitlab.com/progressiverobot/hmailserver`, is pushed, signed with
   cosign and scanned by the same pipeline once the project has moved to the group and the owner has switched it
   on, since GitLab.com cannot move a project whose registry holds an image; signed apt and dnf repositories on the
-  feed's site are made from the stable releases' packages once the owner's signing key exists. None of this has
+  feed's site are made from the stable releases' packages once the owner's signing key exists - an apt suite per
+  distribution release, 6.3.4's `.deb` in `ubuntu26.04`'s, and dnf repositories only from the first release that
+  carries `.rpm` files built on each distribution, since the one `.rpm` 6.3.4 carries is built on Ubuntu and goes
+  in none ([PackageManagers.md](hmailserver/docs/PackageManagers.md#apt-and-dnf)). None of this has
   run: 6.3.4 was made by hand ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
   [RELEASE.md](RELEASE.md), [PackageManagers.md](hmailserver/docs/PackageManagers.md)).
 - **Upgrades without a booked window**: a drain closes the listeners before it waits, the live update drains
@@ -692,7 +696,8 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   is used. Until 26 September 2026 only the update feed's `pages` job had run there, and the ported Linux scripts
   were run by hand on `linix`. The first pipeline of the whole file was started on `master` that day, on the
   tree before the changes below: on its first run `harnesses` and `update-helper` failed on the shared runners,
-  and the jobs on `linix` and `bench150` were still running when this section was written
+  `linux-build` passed on `linix`, and `linux-suite` there and `windows-gate` on `bench150` were still running,
+  the other jobs on those two waiting, when this section was written
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
 - **The CI after its first review on GitLab.** The fuzz, Renovate, whole-history secret scan and export pipelines
   are chosen by their schedule's description - `fuzz`, `renovate`, `security`, `export` - since the project
