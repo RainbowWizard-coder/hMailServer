@@ -1,7 +1,7 @@
-﻿hMailServer
+hMailServer
 ===========
 
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14187/badge)](https://www.bestpractices.dev/projects/14187)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949)
 
 **The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and the releases up to 6.3.3 are being re-published there under their original dates.
 
