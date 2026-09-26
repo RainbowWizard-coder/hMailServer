@@ -52,19 +52,25 @@ c71a6de74c8e169d03ee71e0be29fbd00fc639f8:hmailserver/test/SSL examples/example.k
 c71a6de74c8e169d03ee71e0be29fbd00fc639f8:libraries/boost_1_52_0/libs/asio/example/ssl/ca.pem:RSA private key:14
 c71a6de74c8e169d03ee71e0be29fbd00fc639f8:libraries/boost_1_52_0/libs/asio/example/ssl/server.pem:RSA private key:14
 #
-# And ten more, found on 26 September 2026 by the landing's own scan (build/scan-secrets.py)
+# And twelve more, found on 26 September 2026 by the landing's own scan (build/scan-secrets.py)
 # in batch40's commits before they reached master, each read in its commit: the same
 # AWS example access key id, quoted in docs/ContinuousIntegration.md, in this file's
 # comment above and in HelpPagesData.cpp, which build/generate-help-pages.py makes from
 # the document and which each regeneration added again at another line. The three files
-# describe the key since, and no longer quote it, so no regeneration adds it again.
-0edf1e41b62df1f9f10ad92b547a10570ef1f27c:.gitleaksignore:AWS:14
-0edf1e41b62df1f9f10ad92b547a10570ef1f27c:hmailserver/docs/ContinuousIntegration.md:AWS:1488
-0edf1e41b62df1f9f10ad92b547a10570ef1f27c:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:346
-9b834286a221a8d10e9380d1c6536fb09f31bad1:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:347
-6b658afe64580828d2ffb79beb46337e38b53c32:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:348
-f89ec4927e143fbcd348bbc1f289e74a8a65c8a9:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
-04c875c45cbbc00aa88bc052cf5f052aaba2ceee:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
-13c2c76ed043b0d4a851a81656bd220af7cab920:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
-47f66873e769eb9b380512175e9d87bdb64f55a8:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
-fc828c5798dbc4e104afb3ec67b6c4d07bd44bdc:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
+# describe the key since, and no longer quote it, so no regeneration adds it again. The
+# lines name the commits as batch40 was rebased onto master 95febd2fa, in a line (the ten
+# written before named the commits before the rebase); the two at HelpPagesData.cpp's
+# lines 355 and 356 are the mrflow and sbom folds, which regenerated it while the document
+# still quoted the key.
+ac35b402b5b09104ca31df3515e4d73821a8baf0:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:346
+ac35b402b5b09104ca31df3515e4d73821a8baf0:hmailserver/docs/ContinuousIntegration.md:AWS:1488
+ac35b402b5b09104ca31df3515e4d73821a8baf0:.gitleaksignore:AWS:14
+318b615c5495bff447f2bd957869eb24fac85904:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:347
+c2d53e36c4281ee1b890de2c82f2fa2f90a3af51:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:348
+4a4fd988e09c6549563d907193e7d7784d5af56f:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
+77ae713cdf9da2980b7ef736e27ca15cd2fdbd4a:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
+3274dcdd7c33605ce22f3ecde51e783d805ab55f:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
+c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
+88d89cefa01801d8357ba30c5f0d18463c8baaf6:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:350
+00587974da0214b80bafd0729906c8170f20e90b:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:355
+020f6c6c7c230606c937f2ac87422d2c29a0e9d6:hmailserver/source/Server/Common/Util/HelpPagesData.cpp:AWS:356

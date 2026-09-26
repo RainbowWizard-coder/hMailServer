@@ -1344,7 +1344,8 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   and kept out of the public job log, where an input could be an exploit. cosign's image is pinned by
   digest (2.6.5). GitLab's own SAST (`semgrep-sast`, which adds the server's C and C++) and secret detection
   (`secret_detection`, which fails on a finding; `.gitleaksignore` names the thirty findings of a scan of the
-  whole history, none of them a secret) run on the shared runners for `master` and merge requests.
+  whole history and the twelve the landing's scan found in this release's own commits, none of them a secret) run
+  on the shared runners for `master` and merge requests.
   `forge-export` writes the weekly archive [Mirroring.md](hmailserver/docs/Mirroring.md) describes, and
   `package-repos` the apt and dnf repositories, each waiting for the owner's token or key.
   `build/check-release-chain.py` holds all of it, the release jobs and the container image's gate included, and
