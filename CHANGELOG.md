@@ -16,10 +16,11 @@ and will carry a version number when a release is cut.
 
 The project's home is <https://gitlab.com/Progressiverobot/hmailserver>. Its releases were published on GitHub
 until GitHub suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in older
-text now answers 404. The releases are being re-created on GitLab from the GitHub originals, under their original
-dates: <https://gitlab.com/Progressiverobot/hmailserver/-/releases>, with the latest always at
-<https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest>. Until a version's page exists, its
-tag is at `https://gitlab.com/Progressiverobot/hmailserver/-/tags/<tag>`.
+text now answers 404. Every release up to 6.3.3 has been re-created on GitLab from the GitHub original, under its
+original date and with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved:
+<https://gitlab.com/Progressiverobot/hmailserver/-/releases>, with the latest always at
+<https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest>. A tag with no release is at
+`https://gitlab.com/Progressiverobot/hmailserver/-/tags/<tag>`.
 
 One release is not a version of the server and has no section here:
 [`build-inputs-1`](https://gitlab.com/Progressiverobot/hmailserver/-/tags/build-inputs-1), of 11 September 2026,
@@ -164,10 +165,12 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
     Connector/C - the client bundled on Windows and the one Ubuntu packages - had never used TLS, whatever the
     documents said; with nothing configured they now use it whenever the server offers it, without checking the
     certificate, and connect without it when it offers none. SQL Server through MSOLEDBSQL 18 and SQL Native Client
-    now encrypts the whole session, and tries once more without encryption when the failure reads as TLS.
-    PostgreSQL is unchanged. Two `[Database]` keys choose otherwise: `TlsMode` (`prefer`, the default, `require`,
-    `verify-full` or `disable`) and `TlsCaFile`. The application log says at every start what the connection got,
-    and `--check-database` makes one connection and says the same
+    now encrypts the whole session, and tries once more without encryption when the failure reads as TLS; through
+    SQLOLEDB, which the server picks when MSOLEDBSQL 18 or later is not installed and no failover partner is set,
+    only the login is encrypted unless `TlsMode` is `require` or `verify-full`. PostgreSQL is unchanged. Two
+    `[Database]` keys choose otherwise: `TlsMode` (`prefer`, the default, `require`, `verify-full` or `disable`)
+    and `TlsCaFile`. The application log says at every start what the connection got, and `--check-database`
+    makes one connection and says the same
     ([DatabaseTls.md](hmailserver/docs/DatabaseTls.md)).
 16. **The administrator password is hashed again at sign-in.** The Windows installer wrote it as an unsalted MD5
     digest that nothing ever replaced. The first successful administrator sign-in - the Control Panel, COM, REST,
@@ -541,6 +544,14 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   6.3.4 by hand first avoids it, since 6.3.4 trusts both. Until then keep `UpdateAutoDownload` off, or such a
   server downloads a GitLab-signed installer at every check and refuses it
   ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+- **Stable download links.** The feed's site answers `https://updates.progressiverobot.com/download/<name>`, where
+  `<name>` is a file's name without its version - `hMailServer-x64.exe`, `hmailserver_amd64.deb`,
+  `hmailserver.x86_64.rpm` and the rest, each with its `.cosign.bundle` beside it - with a redirect to that file of
+  the newest stable release, and `/download/` with one to that release's page. GitLab's own
+  `/-/releases/permalink/latest` follows the release published last, a pre-release included; these links never do,
+  and a name the stable release does not carry answers 404, never another release's file. 6.3.4 carries the x64
+  installer, the amd64 `.deb` and the x86-64 `.rpm`, and no bundle
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md#the-download-links)).
 - **The live update already trusts where the project is going.** The project is to move from the personal
   namespace `Progressiverobot/hmailserver` to the group [`hmailserver`](https://gitlab.com/hmailserver), which the
   owner reserved on 26 September 2026, and a move changes the path every signing certificate names. A server trusts
@@ -555,6 +566,23 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   alone, and refuses what is signed after the move until they are cleared; a server from 6.2.28 to 6.3.3 checks no
   id, is never to be pointed at the group's path with them, and is upgraded by hand after the move
   ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+- **From 6.3.5, a release is made by GitLab CI**, from a protected `v*` tag. Only a Maintainer may create one, and
+  since 26 September 2026 the project's only member with that role or above is its owner, whose tags these are
+  ([GOVERNANCE.md](GOVERNANCE.md)). The release job refuses a tag that is not annotated, not on `master`, or not
+  signed by the one key `master`'s `.gitlab/allowed_signers` lists, read from `master` and never from the tagged
+  tree, and a file name the package registry already holds with other bytes. The pipeline builds the installer on
+  the project's Windows runner after the whole suite has passed there, Authenticode-signs it through Azure Artifact
+  Signing with a federated credential made for that one tag, signs every file with Sigstore as the pipeline,
+  checks each signature with the server's own `--verify-update`, and, once the installer smoke test has passed
+  and the owner has started the last job, publishes the files to the package registry and a GitLab release in
+  the milestone of its version, with this file's section as its notes, and refreshes the update feed. The job's
+  checks run as the tagged commit has them, so they stop a mistake; what stops a hostile tag is that nobody else
+  may create one. The container image, `registry.gitlab.com/progressiverobot/hmailserver`, is pushed, signed with
+  cosign and scanned by the same pipeline once the project has moved to the group and the owner has switched it
+  on, since GitLab.com cannot move a project whose registry holds an image; signed apt and dnf repositories on the
+  feed's site are made from the stable releases' packages once the owner's signing key exists. None of this has
+  run: 6.3.4 was made by hand ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+  [RELEASE.md](RELEASE.md), [PackageManagers.md](hmailserver/docs/PackageManagers.md)).
 - **Upgrades without a booked window**: a drain closes the listeners before it waits, the live update drains
   first, and with `UpgradeOnStart=1` in `[Database]` (a new bootstrap key, 0 by default) the service applies
   the schema steps itself as it starts ([Upgrading.md](hmailserver/docs/Upgrading.md)). A rolled-back update's
@@ -612,7 +640,21 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   the COM AppID behind.
 - **The product points at GitLab**: the Control Panel's About and stalled-mail links, the `Policy:` line of the
   `security.txt` the server serves, the systemd units' `Documentation=` and the Linux packages' homepage. The
-  update feed field is labelled "Update feed URL" in all eighteen catalogues.
+  update feed field is labelled "Update feed URL" in all eighteen catalogues. So do the Arch Linux PKGBUILD's `url`
+  and the release tag it clones, the Helm chart's home and sources, and the winget and Chocolatey templates'
+  addresses and installer, which is the one in GitLab's package registry. The container image is named
+  `registry.gitlab.com/progressiverobot/hmailserver` in the Compose file and the chart; nothing is published there
+  yet (above), and the images published on `ghcr.io` before the suspension answer 404. The update check no longer
+  sends GitHub's `X-GitHub-Api-Version` header. The release tags' signing keys are in `.gitlab/allowed_signers`,
+  which was `.github/allowed_signers`, and the VEX document is `.gitlab/hmailserver.openvex.json`.
+- **The project on GitLab**: issue templates for a bug, a feature, a question and a security report, the first
+  three asking for the version, the platform, the database and a log excerpt; a merge request template; the
+  Service Desk, an address for anyone without a GitLab account, whose message becomes a confidential issue
+  (README's Getting help, [SUPPORT.md](SUPPORT.md)); the releases as an Atom feed; and the README's list of where
+  each of these is. [GOVERNANCE.md](GOVERNANCE.md) gives the maintainers' roles on GitLab, and
+  [Mirroring.md](hmailserver/docs/Mirroring.md) how to push-mirror the repository to a second forge, and the
+  weekly export of the issues, merge requests, releases and wiki that a mirror does not carry; neither is set up
+  yet.
 - Fixed on Linux: a character-set conversion that failed read an unterminated buffer, where Windows had
   substituted; it now gives an empty string.
 
@@ -647,9 +689,31 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   whole Linux suite, the packages, the container image, the cross-compile for AArch64, the database upgrade gates
   and the SBOMs on `linix`, and the Control Panel, the tools and the whole Windows suite on `bench150`. A nightly
   pipeline fuzzes the three MIME harnesses once the owner has created its schedule. Nothing reached from GitHub
-  is used. When 6.3.4 was made only the update feed's `pages` job had run there; the jobs on `linix` and
-  `bench150` had not, and the ported Linux scripts were run by hand on `linix`
+  is used. Until 26 September 2026 only the update feed's `pages` job had run there, and the ported Linux scripts
+  were run by hand on `linix`. The first pipeline of the whole file was started on `master` that day, on the
+  tree before the changes below: on its first run `harnesses` and `update-helper` failed on the shared runners,
+  and the jobs on `linix` and `bench150` were still running when this section was written
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
+- **The CI after its first review on GitLab.** The fuzz, Renovate, whole-history secret scan and export pipelines
+  are chosen by their schedule's description - `fuzz`, `renovate`, `security`, `export` - since the project
+  refuses pipeline variables and GitLab counts a schedule's as such; only the update feed's schedule exists yet.
+  A later push no longer cancels the Linux suite or the Windows gate half-way, and a push that changes only
+  Markdown at the repository's root or under `.gitlab/` starts nothing on the project's runners. A busy bench is
+  a warning, except in a release tag's pipeline. The fuzz job's findings are its artifact, for Developers only,
+  and kept out of the public job log, where an input could be an exploit. cosign's image is pinned by
+  digest (2.6.5). GitLab's own SAST (`semgrep-sast`, which adds the server's C and C++) and secret detection
+  (`secret_detection`, which fails on a finding; `.gitleaksignore` names the thirty findings of a scan of the
+  whole history, none of them a secret) run on the shared runners for `master` and merge requests.
+  `forge-export` writes the weekly archive [Mirroring.md](hmailserver/docs/Mirroring.md) describes, and
+  `package-repos` the apt and dnf repositories, each waiting for the owner's token or key.
+  `build/check-release-chain.py` holds all of it, the release jobs and the container image's gate included, and
+  `build/check-forge-export.py` the export.
+- **Nothing is downloaded from GitHub to build**: the seventeen GitHub workflows, Dependabot and the CodeQL
+  configuration have left the tree and are in its history; `libraries\build-openssl.ps1` takes OpenSSL's release
+  archive from Debian's archive, `openssl_<version>.orig.tar.gz`, which is OpenSSL's own tarball, held to the same
+  pinned SHA-256, or from `-Archive`; `build-appimage.sh` uses linuxdeploy only from `TOOLS_DIR` and otherwise
+  refuses; winflexbison comes from SourceForge; and the installer's build inputs come from GitLab's package
+  registry.
 - **Security scanning** on the same runner, in place of CodeQL, dependency review and Scorecard: cppcheck and
   clang-tidy held to a committed baseline, Semgrep, Trivy and OSV over the lock files, the CI image and the
   vendored libraries, and the repository checks Scorecard ran. Not yet blocking.
