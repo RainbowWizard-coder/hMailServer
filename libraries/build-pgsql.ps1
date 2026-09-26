@@ -162,7 +162,7 @@ $openSslSuffix = if ($Platform -eq 'ARM64') { 'arm64' } else { 'x64' }
 
 if (!(Test-Path (Join-Path -Path $openSslOut -ChildPath "lib\libssl.lib")))
 {
-    Throw "The OpenSSL build to link libpq against was not found at $openSslOut. Build it first with build-openssl.ps1 -Version $OpenSSLVersion -Platform $Platform -Archive <your copy of openssl-$OpenSSLVersion.tar.gz>. Without it libpq would be built without SSL support."
+    Throw "The OpenSSL build to link libpq against was not found at $openSslOut. Build it first with build-openssl.ps1 -Version $OpenSSLVersion -Platform $Platform (it takes the archive from Debian's archive, or -Archive <your copy of openssl-$OpenSSLVersion.tar.gz>). Without it libpq would be built without SSL support."
 }
 
 # --- Locate the Visual Studio build environment via vswhere --------------------

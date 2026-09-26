@@ -36,16 +36,24 @@
     x64 tree.
 
 .PARAMETER Archive
-    A copy of openssl-<Version>.tar.gz that you obtained yourself. Required. This
-    script downloaded the archive from OpenSSL's GitHub releases until GitHub
-    suspended this project's account on 18 September 2026; since then the project
-    downloads nothing from GitHub (the owner's standing rule), and no non-GitHub
-    address for OpenSSL's archives has been checked and chosen. Whatever its origin,
-    the file must match the SHA-256 pinned below (or -Sha256), or it is refused.
+    A copy of openssl-<Version>.tar.gz that you obtained yourself, used instead of
+    the download. Optional. Without it the script downloads the archive from
+    Debian's archive: Debian ships OpenSSL's own release tarball unchanged as
+    openssl_<Version>.orig.tar.gz, in the pool while the version is current
+    (https://deb.debian.org/debian/pool/main/o/openssl/) and at
+    https://snapshot.debian.org once it has left it. OpenSSL's own download address
+    (openssl.org/source) redirects to its GitHub releases, and this project fetches
+    nothing from GitHub since GitHub suspended its account on 18 September 2026.
+    Checked on 26 September 2026: Debian's openssl_4.0.2.orig.tar.gz has exactly
+    the SHA-256 pinned below. Whatever its origin, the file must match the SHA-256
+    pinned below (or -Sha256), or it is refused.
 
 .PARAMETER Sha256
     The SHA-256 of openssl-<Version>.tar.gz, for a version the digest table below does
     not know yet. Take it from the .sha256 file published beside the release.
+
+.EXAMPLE
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2
 
 .EXAMPLE
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Archive C:\Downloads\openssl-4.0.2.tar.gz
@@ -131,22 +139,42 @@ Resolve-NativePerl
 # --- Download, verify and extract the source (always a clean tree) --------------
 
 $digest = Get-PinnedDigest -Digests $Digests -Version $Version -Library 'OpenSSL' -Override $Sha256
-# Not downloaded: OpenSSL's release archives are GitHub release assets, and this project
-# downloads nothing from GitHub since GitHub suspended its account on 18 September 2026.
-# The archive is one the caller obtained, held to the pinned digest like a download was.
-if (-not $Archive)
+# OpenSSL's release archives are GitHub release assets (openssl.org/source redirects
+# there), and this project downloads nothing from GitHub since GitHub suspended its
+# account on 18 September 2026. Debian ships the same release tarball unchanged as
+# its .orig.tar.gz, so that is where it comes from, held to the pinned digest - which
+# is OpenSSL's own - exactly as a download from OpenSSL was. A copy the caller has
+# can be given with -Archive instead.
+if ($Archive)
 {
-    Throw "This script no longer downloads OpenSSL: its release archives are published on GitHub, and the project downloads nothing from GitHub (the owner's rule since GitHub suspended the project's account on 18 September 2026); no other source has been chosen. Obtain openssl-$Version.tar.gz yourself and pass it with -Archive; it is checked against the pinned SHA-256 $digest."
+    if (-not (Test-Path -LiteralPath $Archive -PathType Leaf))
+    {
+        Throw "The archive given with -Archive was not found: $Archive"
+    }
+    if ((Split-Path -Leaf $Archive) -ne "openssl-$Version.tar.gz")
+    {
+        Throw "The archive given with -Archive must be named openssl-$Version.tar.gz, as OpenSSL publishes it: $Archive"
+    }
+    $tarUrl = (Resolve-Path -LiteralPath $Archive).ProviderPath
 }
-if (-not (Test-Path -LiteralPath $Archive -PathType Leaf))
+else
 {
-    Throw "The archive given with -Archive was not found: $Archive"
+    # The pool holds the versions Debian ships now; snapshot.debian.org every one it
+    # ever shipped. The digest check below is what makes either trustworthy.
+    $orig = "openssl_$Version.orig.tar.gz"
+    $poolUrl = "https://deb.debian.org/debian/pool/main/o/openssl/$orig"
+    $download = Join-Path -Path $libsPath -ChildPath "openssl-$Version.tar.gz"
+    Write-Host "Downloading OpenSSL $Version's release tarball from Debian's archive: $poolUrl"
+    try
+    {
+        Invoke-WebRequest -Uri $poolUrl -OutFile $download -UseBasicParsing -MaximumRedirection 0
+    }
+    catch
+    {
+        Throw "OpenSSL $Version is not in Debian's pool ($poolUrl): it may have left it. Find $orig on https://snapshot.debian.org/package/openssl/ and pass it, renamed openssl-$Version.tar.gz, with -Archive. It is checked against the pinned SHA-256 $digest."
+    }
+    $tarUrl = $download
 }
-if ((Split-Path -Leaf $Archive) -ne "openssl-$Version.tar.gz")
-{
-    Throw "The archive given with -Archive must be named openssl-$Version.tar.gz, as OpenSSL publishes it: $Archive"
-}
-$tarUrl = (Resolve-Path -LiteralPath $Archive).ProviderPath
 if ($targetDir)
 {
     Get-SourceArchive -Url $tarUrl -SrcDir (Join-Path -Path $libsPath -ChildPath "openssl-$Version") -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir
