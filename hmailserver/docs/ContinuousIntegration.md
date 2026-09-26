@@ -1920,12 +1920,18 @@ the answer is not public, and it never counts as a pass. On 25 September 2026:
 
 Left out of Scorecard's checks, each for a reason:
 
-- **Code-Review.** The maintainers commit to `master` without merge requests,
-  which is the project's rule, and GitLab's approval rules are a paid feature.
+- **Code-Review.** Up to 6.3.4 the maintainers committed to `master` without
+  merge requests, which was then the project's rule. From the first change
+  after 6.3.4 every change lands through a merge request that the other
+  maintainer approves ([GOVERNANCE.md](../../GOVERNANCE.md), Review), and the
+  approvals are on the merge requests; GitLab's approval rules are a paid
+  feature, so no project setting records the rule for a check to read.
 - **Maintained** and **Contributors.** They measure activity and outside
   organisations, not the repository's settings.
-- **CII-Best-Practices.** It looks up an OpenSSF Best Practices badge, which
-  the project does not hold.
+- **CII-Best-Practices.** It looks up an OpenSSF Best Practices badge. The
+  entry made for the GitLab home, 14949, has held the passing badge since
+  26 September 2026, which the README's badge shows; the first entry, 14187,
+  was made through a GitHub login and can no longer be edited.
 - **Webhooks.** A project's webhooks are readable only with a maintainer's
   token.
 - **Dangerous-Workflow.** It looks for GitHub Actions' `pull_request_target` and

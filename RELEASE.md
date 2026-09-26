@@ -18,9 +18,12 @@ tag's SSH key instead ([A release made by hand](#a-release-made-by-hand)). The b
 reads the scan reports of the commit's GitLab pipeline where it read GitHub's
 Code Scanning and Dependabot pages up to 6.3.3. Step 12's commit rule is out of
 date as well: since 24 September 2026 commits are made as Christopher
-Holloway, the identity of the GitLab account `Progressiverobot`, and since 14
-September 2026 no approval is required, so a tree that has passed the gate lands
-on `master` by fast-forward, with no pull request.
+Holloway, the identity of the GitLab account `Progressiverobot`; from 14
+September 2026 up to and including 6.3.4 no approval was required, so a tree that
+had passed the gate landed on `master` by fast-forward, with no pull request;
+and from the first change after 6.3.4 every change, a release's included, lands
+through a merge request that the other maintainer approves before the owner
+merges it by fast-forward, its pipeline green (GOVERNANCE.md, Review).
 
 ## The release on GitLab
 

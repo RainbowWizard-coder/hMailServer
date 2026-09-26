@@ -382,7 +382,9 @@ credible.
   CFG is a mitigation, not a boundary: a defect that overwrites data rather
   than a pointer is unaffected.
 - **Bus factor is still effectively 1.** Since September 2026 the project has
-  two maintainers, both at Progressive Robot Ltd, but release tagging is the
+  two maintainers, one from Progressive Robot Ltd and one independent of it,
+  and from the first change after 6.3.4 every merge request is approved by
+  one before the other merges it, but release tagging is the
   owner's alone (the only member with GitLab's Maintainer role, and the one
   key `.gitlab/allowed_signers` may hold), security triage rests on him until
   the second takes that duty on, and so far only one person has a record of

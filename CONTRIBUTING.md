@@ -718,11 +718,17 @@ branch of this project does not run it. A commit that lacks it is fixed with `gi
 3. **Keep it to one logical change.** Add or update regression tests for a change of behaviour. Say in the
    description which checks you ran and on what; the merge-request template asks.
 4. **Open the merge request against `master`** of `Progressiverobot/hmailserver`, and sign off every commit.
-5. **Review.** The maintainer reads the change, may ask for changes on the merge request, and runs the full
-   Windows regression gate on the bench before anything lands. No approval rule is configured: GitLab requires
-   none on this project, and the maintainer decides.
-6. **Landing.** `master` is protected, and changes reach it by fast-forward, so history stays linear. The
-   maintainer may rebase your branch onto the current `master`, or squash it into one commit, before landing.
+5. **Review.** Zain Ul Abidin, the second maintainer, reviews the change and approves the merge request - or,
+   for a merge request of his own, the owner does - and may ask for changes on it; the full Windows regression
+   gate runs on the bench before anything lands. From the first change after 6.3.4 no change lands without
+   that approval, the maintainers' own included ([GOVERNANCE.md](GOVERNANCE.md), Review). GitLab's Free tier
+   cannot require an approval, so the owner, who merges, holds to the rule.
+6. **Landing.** Christopher Holloway, the owner, merges the approved merge request into `master` by
+   fast-forward, with its pipeline green, so history stays linear; he may rebase your branch onto the current
+   `master`, or squash it into one commit, first. `master` is protected: only the owner can merge to it, and once
+   the pipeline on `master` is green it is to be closed to direct pushes, so that a merge request is the only
+   way in. (On GitHub, until 18 September 2026, a pull request was merged by rebase once the other maintainer
+   had approved it, as the master ruleset required until 14 September 2026.)
 
 If a change spans more than about three rows of ARCHITECTURE.md's *Where to start* table, or touches the schema,
 the COM interface or the release path, open an issue to discuss it before writing it.

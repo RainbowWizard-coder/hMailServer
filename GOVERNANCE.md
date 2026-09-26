@@ -12,9 +12,11 @@ since 18 September 2026, and its home has been GitLab since 22 September 2026.
 Where this document describes the GitHub repository - its ruleset and the
 approval it required, repository admin, private vulnerability reporting, and
 release signing through GitHub's token service - it describes how the project
-ran there. On GitLab, no approval is required (the GitHub ruleset had stopped
-requiring one on 14 September 2026), `master` is protected, and a change that
-has passed the regression gate lands on it by fast-forward. Security reports go
+ran there. On GitLab, up to and including 6.3.4, no approval was required (the
+GitHub ruleset had stopped requiring one on 14 September 2026): `master` is
+protected, and a change that had passed the regression gate landed on it by
+fast-forward. From the first change after 6.3.4, every change lands through a
+merge request that the other maintainer approves (see Review). Security reports go
 by the routes in [SECURITY.md](SECURITY.md). The release chain ran on GitHub
 Actions; its replacement, the release jobs of `.gitlab-ci.yml`, is written and
 has not run yet, so 6.3.4 was built and signed by hand. The installer's fetched
@@ -37,8 +39,11 @@ decided both. `master` and the `v*` tags are protected for Maintainers, so
 every change reaches `master` through the owner, Zain Ul Abidin's included,
 and only the owner can create a release tag.
 
-Both maintainers work for Progressive Robot Ltd, and until this change this
-document named Christopher Holloway as the project's only maintainer.
+The two maintainers are unassociated: Christopher Holloway is from Progressive
+Robot Ltd, and Zain Ul Abidin is independent of it (the owner's statement of
+26 September 2026; an earlier version of this document said both worked for
+the company, which was wrong). Until September 2026 this document named
+Christopher Holloway as the project's only maintainer.
 That is stated plainly here for the same reason the project's size is stated in
 [SECURITY.md](SECURITY.md): people relying on a mail server are
 entitled to know how much of it rests on how few people, and on which
@@ -57,8 +62,8 @@ GitHub).**
 
 The maintainers are accountable for the project. In practice this means:
 
-- **Accepting changes.** Reviewing and merging pull requests, and deciding
-  what does and does not belong in the fork.
+- **Accepting changes.** Reviewing and merging merge requests (pull requests,
+  on GitHub), and deciding what does and does not belong in the fork.
 - **Releasing.** Producing releases according to [RELEASE.md](RELEASE.md),
   including running the full regression suite against the exact binary being
   shipped, and signing every release asset.
@@ -120,8 +125,9 @@ gives, or a decision not yet made:
 3. **Accepting changes** on GitLab needs the Maintainer role: `master` is
    protected, and only Maintainers may push or merge to it. As a Developer,
    Zain Ul Abidin pushes branches of his own, opens merge requests and reviews
-   others'; his changes, and a contributor's he has reviewed, reach `master`
-   through the owner, who lands them.
+   others'; from the first change after 6.3.4 he approves each merge request
+   before the owner merges it (see Review), and his own changes reach `master`
+   through the owner, who reviews and lands them.
 
 ### Contributor
 
@@ -145,38 +151,52 @@ Reporters are credited for security findings unless they ask not to be.
 How decisions are made
 ----------------------
 
-**Ordinary changes.** Either maintainer decides on a contributor's pull
-request; a maintainer's own pull request also needs the other's approval (see
-Review). The reasoning is recorded where the decision happens — in the pull
-request, in the issue, or in the release notes. The project's habit is to
-write down *why* rather than just *what*; the release notes are the clearest
-example of this and are the intended place to look for the reasoning behind a
-behavioural change. On GitLab, since 26 September 2026, whoever decides, a
-change lands on `master` through the owner, the one member with the Maintainer
-role (note 3 under [Maintainers](#maintainers)).
+**Ordinary changes.** Either maintainer decides on a contributor's merge
+request, and every change is approved by a maintainer other than its author
+before it lands (see Review). The reasoning is recorded where the decision
+happens — in the merge request, in the issue, or in the release notes. The
+project's habit is to write down *why* rather than just *what*; the release
+notes are the clearest example of this and are the intended place to look for
+the reasoning behind a behavioural change. On GitLab, since 26 September 2026,
+whoever decides, a change lands on `master` through the owner, the one member
+with the Maintainer role (note 3 under [Maintainers](#maintainers)).
 
-**Review.** A pull request authored by one maintainer, or opened by an agent
-on one maintainer's behalf, is approved by the other before it is merged. The
-master ruleset enforces this: a merge needs an approving review from someone
-other than the last person to push, so a reviewer suggests changes rather than
-pushing to the author's branch. A pull request Copilot opens under its own
-identity, rather than for one maintainer, needs both maintainers' approval: the
-ruleset adds one approval for those. The rule binds both maintainers: while
-either is unavailable, the other's own pull requests, release pull requests
-included, wait too. When waiting would hold up something urgent — a security
-fix inside its disclosure window, or a broken build on master — only an
-administrator on the ruleset's bypass list can merge first; Zain Ul Abidin's
-write access carries no bypass. A change merged that way is reviewed
-afterwards, and its pull request says that it was merged before review, and
-why. Reviews are recorded on the pull request rather than anywhere private,
-because that record is what shows that a second person has read the change.
+**Review.** From the first change after 6.3.4, every change lands on `master`
+through a merge request, and Zain Ul Abidin reviews and approves each one
+before Christopher Holloway, the owner, merges it - by fast-forward, with the
+merge request's pipeline green (the owner's decision of 26 September 2026).
+That covers the owner's own changes, those an agent makes on his behalf,
+contributors' and Renovate's. A merge request of Zain Ul Abidin's own is
+reviewed and approved by the owner instead, since GitLab does not let an author
+approve his own. A reviewer asks for changes on the merge request rather than
+pushing to the author's branch, and while the reviewer is unavailable, changes
+wait. No approval rule is configured on the project - GitLab's Free tier cannot
+require one - so it is the owner, the one member who can merge, who holds to
+the rule; the approval is recorded on the merge request rather than anywhere
+private, because that record is what shows that a second person has read the
+change. Today `master` still takes a Maintainer's direct push, which is how
+6.3.4 and the batch that carries it land, gated as before; once the pipeline on
+`master` is green, `master` is to be closed to direct pushes, leaving the merge
+request as the only way in.
+
+On GitHub, until 18 September 2026, a pull request authored by one maintainer,
+or opened by an agent on one maintainer's behalf, was approved by the other
+before it was merged. The master ruleset enforced this until 14 September 2026:
+a merge needed an approving review from someone other than the last person to
+push. A pull request Copilot opened under its own identity, rather than for one
+maintainer, needed both maintainers' approval: the ruleset added one approval
+for those. When waiting would have held up something urgent — a security fix
+inside its disclosure window, or a broken build on master — only an
+administrator on the ruleset's bypass list could merge first, and a change
+merged that way was reviewed afterwards, its pull request saying that it was
+merged before review, and why.
 
 **Disagreements.** Raise them on the issue in question. A maintainer will
 respond with a reason, not just a verdict. A closed issue is not a closed
 conversation — reopening it with new information (especially a reproduction)
 is welcome, and has changed outcomes before. If the maintainers disagree, both
 positions are written on the issue and Christopher Holloway decides, recording
-the reason there. When that decision is to merge a pull request the other
+the reason there. When that decision is to merge a merge request the other
 maintainer has not approved, the other maintainer approves it and records the
 disagreement in the review.
 
@@ -205,10 +225,10 @@ the release and security duties above rather than only the coding.
 If you want to help at that level, say so on an issue. The project would
 benefit from it — see [Continuity](#continuity).
 
-The second maintainer did not come by that route. Zain Ul Abidin was
-appointed in September 2026 from within Progressive Robot Ltd, before building
-a track record in this repository; that record is being built through the
-review rule under [How decisions are made](#how-decisions-are-made).
+The second maintainer did not come by that route. Zain Ul Abidin, who is
+independent of Progressive Robot Ltd, was appointed by the owner in September
+2026, before building a track record in this repository; that record is being
+built through the review rule under [How decisions are made](#how-decisions-are-made).
 
 Critical assets
 ---------------
@@ -243,9 +263,9 @@ Holloway's; a lost key is replaced by putting a new one in its place on
 Continuity
 ----------
 
-**Current status: two maintainers, both at Progressive Robot Ltd; access
-continuity is arranged; the record of knowing the codebase is still one
-person's.** Christopher Holloway keeps the critical credentials in a managed
+**Current status: two maintainers, one from Progressive Robot Ltd and one
+independent of it; access continuity is arranged; the record of knowing the
+codebase is still one person's.** Christopher Holloway keeps the critical credentials in a managed
 arrangement that a trusted person can reach if Christopher Holloway is
 confirmed unavailable, together with the legal authority to use them, so the
 project could create and close issues, accept changes and publish a release
@@ -254,10 +274,11 @@ write access meant a contributor's pull request could be reviewed and merged
 without that arrangement, though Zain Ul Abidin's own pull requests could not
 be: the master ruleset required an approval from someone other than the last
 person to push until 14 September 2026, and GitHub does not let authors approve
-their own pull requests. On GitLab no approval is required, but since
-26 September 2026 only the owner can push or merge to `master`, so while he is
-unavailable every change, Zain Ul Abidin's included, waits on the arrangement
-too.
+their own pull requests. On GitLab, since 26 September 2026, only the owner can
+push or merge to `master`, so while he is unavailable every change, Zain Ul
+Abidin's included, waits on the arrangement too; and from the first change
+after 6.3.4 every change also waits for the other maintainer's approval (see
+Review).
 
 What remains true, stated as plainly as the single-maintainer position was:
 
@@ -266,8 +287,9 @@ What remains true, stated as plainly as the single-maintainer position was:
   Christopher Holloway's pull requests had been approved by anyone else, so
   the repository does not yet show a second person who knows the codebase.
   That changes only as both maintainers review and write changes here; the
-  review rule under [How decisions are made](#how-decisions-are-made) is what
-  builds that record.
+  review rule under [How decisions are made](#how-decisions-are-made), which
+  has Zain Ul Abidin approve every merge request from the first change after
+  6.3.4, is what builds that record.
 - **Administration rests on one person.** Only Christopher Holloway holds
   the Owner role on GitLab, and with it the only Maintainer rights, and the
   credentials under
@@ -279,9 +301,12 @@ What remains true, stated as plainly as the single-maintainer position was:
   and releasing needs a release machine besides. Security response needs
   access to private reports, which a Developer has; taking it on is the
   maintainers' decision. See the notes under [Maintainers](#maintainers).
-- **One organisation.** Both maintainers work for Progressive Robot Ltd, so
-  the project still depends on one organisation; only a maintainer from
-  outside it would remove that dependence.
+- **Mostly one organisation, for now.** The maintainers are unassociated -
+  Christopher Holloway is from Progressive Robot Ltd, Zain Ul Abidin is
+  independent of it - but the administration, the release path and, so far,
+  nearly every change are the Progressive Robot maintainer's. The dependence
+  on one organisation lessens only as the independent maintainer's reviews
+  and changes accumulate here.
 
 The mitigations that were in place for a single maintainer still hold:
 
@@ -293,8 +318,7 @@ The mitigations that were in place for a single maintainer still hold:
   continue the work — a fork is always available as a last resort, which is
   precisely how this project itself came to exist.
 
-The project is open to further maintainers, and particularly to one from
-outside Progressive Robot Ltd; see
+The project is open to further maintainers; see
 [Becoming a maintainer](#becoming-a-maintainer).
 
 Changing this document
