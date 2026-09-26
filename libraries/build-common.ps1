@@ -488,7 +488,8 @@ function Get-SourceArchive
     if ($actual -ne $Sha256.ToLowerInvariant())
     {
         if ($ownCopy) { Remove-Item $tarPath -Force }
-        Throw "The download of $Url does not match its pinned SHA-256 and has been deleted. Expected $($Sha256.ToLowerInvariant()), got $actual. If the project re-issued the archive, take the new digest from its published .sha256 file and update the pin."
+        $what = if (Test-Path -LiteralPath $Url -PathType Leaf) { "The archive $Url does not match its pinned SHA-256 (the file itself is kept)" } else { "The download of $Url does not match its pinned SHA-256 and has been deleted" }
+        Throw "$what. Expected $($Sha256.ToLowerInvariant()), got $actual. If the project re-issued the archive, take the new digest from its published .sha256 file and update the pin."
     }
     Write-Log "SHA-256 verified: $actual"
 

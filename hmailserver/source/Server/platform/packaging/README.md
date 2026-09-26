@@ -624,8 +624,10 @@ after the stop, and `--dry-run` running nothing: 138 checks, green on Ubuntu
 `systemd-analyze verify` of the three units; the `.deb` and `.rpm` file
 assertions of the `linux-package-deb` and `linux-package-rpm` jobs
 (`build/ci/linux-package-install.sh`) cover the three new files, and the `.deb` job
-checks that `postinst` left the path unit enabled and active. (The GitHub
-workflows `packaging.yml` and `linux-build.yml` did this until 18 September 2026.)
+checks that `postinst` left the path unit enabled (the container has no systemd
+to say whether it is active). (The GitHub workflows `packaging.yml` and
+`linux-build.yml` did this until 18 September 2026, the second also checking that
+the unit was active.)
 
 *The verification, against a real release.* The Linux binary built from this
 tree ran `hmailserver --verify-update` against the latest release's

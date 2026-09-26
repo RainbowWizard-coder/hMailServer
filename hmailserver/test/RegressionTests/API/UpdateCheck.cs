@@ -462,19 +462,19 @@ namespace RegressionTests.API
          var assets = new StringBuilder();
          if (withInstaller)
          {
-            assets.Append(Asset(11, "hMailServer-" + plain + "-x64.exe", 77197816, "sha256:bfb1e5d606d3fb18b2bbbe26a8704a29033c807e293988265f47e75891905f1e", download));
+            assets.Append(Asset(11, tag, "hMailServer-" + plain + "-x64.exe", 77197816, "sha256:bfb1e5d606d3fb18b2bbbe26a8704a29033c807e293988265f47e75891905f1e", download));
             assets.Append(",");
-            assets.Append(Asset(12, "hMailServer-" + plain + "-x64.exe.cosign.bundle", 10807, "sha256:be7085eca2f0042a643cc85330d3d8a406fe6e023a375eaf0c680effa366bb46", download));
+            assets.Append(Asset(12, tag, "hMailServer-" + plain + "-x64.exe.cosign.bundle", 10807, "sha256:be7085eca2f0042a643cc85330d3d8a406fe6e023a375eaf0c680effa366bb46", download));
             assets.Append(",");
          }
-         assets.Append(Asset(13, "hmailserver.spdx.json", 260646, "sha256:8b265676f3e7d6a1b860688d84ffc6470d24574601dcddb880bcf8c8864cec74", download));
+         assets.Append(Asset(13, tag, "hmailserver.spdx.json", 260646, "sha256:8b265676f3e7d6a1b860688d84ffc6470d24574601dcddb880bcf8c8864cec74", download));
 
          return "{" +
             "\"url\":\"https://gitlab.com/api/v4/projects/86730559/releases/" + tag + "\"," +
             "\"assets_url\":\"https://gitlab.com/api/v4/projects/86730559/releases/" + tag + "/assets/links\"," +
             "\"html_url\":\"https://gitlab.com/Progressiverobot/hmailserver/-/releases/" + tag + "\"," +
             "\"id\":1001," +
-            "\"author\":{\"login\":\"Progressiverobot\",\"id\":5,\"name\":\"not the release\",\"html_url\":\"https://gitlab.com/Progressiverobot\",\"url\":\"https://gitlab.com/api/v4/groups/Progressiverobot\",\"type\":\"Group\"}," +
+            "\"author\":{\"login\":\"Progressiverobot\",\"id\":5,\"name\":\"not the release\",\"html_url\":\"https://gitlab.com/Progressiverobot\",\"url\":\"https://gitlab.com/api/v4/users/42596019\",\"type\":\"User\"}," +
             "\"node_id\":\"RE_x\"," +
             "\"tag_name\":\"" + tag + "\"," +
             "\"target_commitish\":\"master\"," +
@@ -516,10 +516,10 @@ namespace RegressionTests.API
             "}";
       }
 
-      private static string Asset(int id, string name, long size, string digest, string downloadBase)
+      private static string Asset(int id, string tag, string name, long size, string digest, string downloadBase)
       {
          return "{" +
-            "\"url\":\"https://gitlab.com/api/v4/projects/86730559/releases/assets/links/" + id + "\"," +
+            "\"url\":\"https://gitlab.com/api/v4/projects/86730559/releases/" + tag + "/assets/links/" + id + "\"," +
             "\"id\":" + id + "," +
             "\"name\":\"" + name + "\"," +
             "\"label\":\"\"," +
