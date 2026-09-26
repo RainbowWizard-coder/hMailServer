@@ -104,13 +104,14 @@ Which pipeline runs what
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
 | the schedule described `renovate`, on `master` | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
 | the schedule described `security`, on `master`, run once by hand | the schedule's | `secret_detection` alone, over the whole history ([Security scanning](#security-scanning)) |
-| the schedule described `export`, on `master` | the schedule's | `forge-export`, and `pages` and `package-repos` as in any schedule on `master` ([Mirroring.md](Mirroring.md)) |
+| the schedule described `export`, on `master` | the schedule's | `forge-export` alone ([Mirroring.md](Mirroring.md)) |
 | any other pipeline schedule on `master` (the update feed's, `update feed`) | the schedule's | `pages` and `package-repos` alone (see [The update feed](#the-update-feed)) |
 | the pipeline `update-feed` starts (on `master`, source `pipeline`) | a downstream pipeline | `pages` and `package-repos` alone |
 
 A schedule is told apart by its description, which GitLab gives the pipeline
-as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `renovate` and
-`security` are the three words that start a job of their own, and a schedule
+as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `renovate`,
+`export` and `security` are the four words that start a job of their own,
+which `pages` and `package-repos` refuse, and a schedule
 carries no variable. The project refuses pipeline variables (*Minimum role to
 use pipeline variables* is *No one allowed*), and GitLab counts a schedule's
 variables as pipeline variables: it will not save a schedule that has one. The
@@ -1510,8 +1511,8 @@ together. What it does, and the key it needs, are in
 [PackageManagers.md](PackageManagers.md), "apt and dnf".
 
 It runs for a push to `master`, for a `v*` tag, and for a pipeline schedule on
-`master` (the feed's own is described `update feed`) but the three described
-`fuzz`, `renovate` and `security`, and never for a merge request, a `batch*`
+`master` (the feed's own is described `update feed`) but the four described
+`fuzz`, `renovate`, `export` and `security`, and never for a merge request, a `batch*`
 branch or any other branch.
 A release is created on GitLab after its tag is pushed, so the tag's own run
 of `pages` misses it. A release made by the release jobs ends with

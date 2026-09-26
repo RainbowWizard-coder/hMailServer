@@ -15,13 +15,12 @@
 # When it runs: in the pipeline of the schedule whose description is "export", on
 # master, and in no other. The schedule sets no variable (the project refuses pipeline
 # variables: ci_pipeline_variables_minimum_override_role is no_one_allowed); the
-# description is what selects the job (in this file the fuzz and Renovate schedules
-# are still selected by a variable of theirs). The rest of .gitlab-ci.yml's jobs
-# refuse a scheduled pipeline, but for pages, which runs in any schedule's pipeline
-# on master but the fuzz and Renovate ones: then this pipeline renders and deploys
-# the update feed too, which changes nothing the feed's own schedule would not. Once
-# pages refuses schedules by their description, "export" belongs in that list, so
-# that this pipeline runs forge-export alone.
+# description is what selects the job, as it selects linux-fuzz, renovate and the
+# history's secret_detection. The rest of .gitlab-ci.yml's jobs refuse a scheduled
+# pipeline, but for pages (and package-repos, which takes its rules), which runs in
+# any schedule's pipeline on master but those four: pages refuses "export" by its
+# description, so this pipeline runs forge-export alone
+# (build/check-release-chain.py holds both sides).
 #
 # The tokens: HM_EXPORT_TOKEN (required; read_api and read_repository) and
 # HM_EXPORT_FULL_TOKEN (optional; api, a Maintainer's), CI/CD variables of the

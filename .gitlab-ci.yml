@@ -137,7 +137,8 @@ variables:
 
 # Every scheduled pipeline runs one job, chosen by the schedule's description
 # ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "renovate" renovate,
-# "security" secret_detection, and any other - the update feed's - pages. So every
+# "export" forge-export (.gitlab/ci/forge-export.yml), "security" secret_detection,
+# and any other - the update feed's - pages (with package-repos). So every
 # job on the shared runners takes these rules, and .own-runners below begins with
 # the same refusal, which also keeps them out of the downstream pipeline a release
 # starts on master (update-feed, below; its source is "pipeline"), which runs pages
@@ -332,9 +333,10 @@ pages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
-    # Not the three schedules that each run another job alone: the fuzz schedule's,
-    # Renovate's and the history's secret scan.
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")
+    # Not the four schedules that each run another job alone: the fuzz schedule's,
+    # Renovate's, the forge export's and the history's secret scan. package-repos
+    # takes these rules (!reference [pages, rules]), so it refuses them too.
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "export" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"

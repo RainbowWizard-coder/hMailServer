@@ -62,9 +62,11 @@ refuses it. This checker holds them to each other. It fails when:
     variables reach the downstream pipeline as pipeline variables, which GitLab
     refuses by default in a project made since 17.7;
   * a scheduled pipeline is not chosen by its schedule's description: linux-fuzz,
-    renovate and secret_detection (.gitlab/ci/gitlab-security.yml, the whole
-    history) each run for the schedule described "fuzz", "renovate" or "security"
-    and pages refuses those three; or a rule of either file still names
+    renovate, forge-export (.gitlab/ci/forge-export.yml) and secret_detection
+    (.gitlab/ci/gitlab-security.yml, the whole history) each run for the schedule
+    described "fuzz", "renovate", "export" or "security", and pages refuses those
+    four, and package-repos (.gitlab/ci/package-repos.yml) takes pages' rules and no
+    others; or a rule of those files still names
     HM_PIPELINE or RUN_RENOVATE, the variables that chose them before, which the
     project would refuse on a schedule - one way in;
   * the jobs on the project's own runners do not skip a push that changes
@@ -119,6 +121,8 @@ FILES = {
     "signers": os.path.join(".gitlab", "allowed_signers"),
     "image": os.path.join(".gitlab", "ci", "container-image.yml"),
     "image-sign": os.path.join("build", "ci", "container-image-sign.sh"),
+    "export": os.path.join(".gitlab", "ci", "forge-export.yml"),
+    "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sign", "release-verify",
@@ -154,7 +158,11 @@ TAG_ONLY = '$CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"'
 REFUSAL = '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"'
 # The schedules that each run one job of their own, by their description, and the
 # file the job is in. pages, which runs for every other schedule on master, refuses these.
-ONE_JOB_SCHEDULES = {"fuzz": ("linux-fuzz", "ci"), "renovate": ("renovate", "ci"), "security": ("secret_detection", "security")}
+ONE_JOB_SCHEDULES = {"fuzz": ("linux-fuzz", "ci"), "renovate": ("renovate", "ci"), "export": ("forge-export", "export"),
+                     "security": ("secret_detection", "security")}
+# package-repos, in a file of its own, deploys the feed's site with pages; its rules
+# are pages' and nothing else, so it refuses what pages refuses.
+REPOS_RULES = "  rules:\n    - !reference [pages, rules]\n"
 # The variables that chose those pipelines until 26 September 2026. The project refuses
 # them on a schedule, and a rule that still reads one is a second way in.
 OLD_ROUTES = ("HM_PIPELINE", "RUN_RENOVATE")
@@ -771,7 +779,7 @@ def check(texts, chain, feed):
     security_jobs = blocks(security)
     for description, (job, where) in sorted(ONE_JOB_SCHEDULES.items()):
         chosen = '$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "%s"' % description
-        owner = jobs if where == "ci" else security_jobs
+        owner = jobs if where == "ci" else blocks(texts[where])
         if chosen not in owner.get(job, ""):
             problems.append("%s does not run for the schedule described \"%s\" (%s): a schedule carries no variable on this "
                             "project, so its description is what chooses the job" % (job, description, chosen))
@@ -779,7 +787,11 @@ def check(texts, chain, feed):
         if not refused or '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "%s"' % description not in refused.group(1):
             problems.append("pages would run in the pipeline of the schedule described \"%s\" too, which is %s's alone: "
                             "it refuses a schedule of that description, when: never" % (description, job))
-    for key, found in (("ci", jobs), ("security", security_jobs)):
+    repos_job = blocks(texts["repos"]).get("package-repos", "")
+    if REPOS_RULES not in repos_job or len(re.findall(r"^    - ", repos_job.split("  rules:\n", 1)[-1].split("\n  script:")[0], re.MULTILINE)) != 1:
+        problems.append("package-repos's rules are not pages' alone (%s): it would deploy the site in a pipeline "
+                        "pages refuses, the schedules of one job each among them" % REPOS_RULES.strip())
+    for key, found in (("ci", jobs), ("security", security_jobs), ("export", blocks(texts["export"]))):
         for name, text in sorted(found.items()):
             for old in OLD_ROUTES:
                 if "$" + old in text:
@@ -934,6 +946,14 @@ def self_test(chain, feed):
            "pages would run in the pipeline of the schedule described \"fuzz\"")
     broken("pages in the history scan's pipeline", "ci", ' || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")', ")",
            "pages would run in the pipeline of the schedule described \"security\"")
+    broken("pages in the forge export's pipeline", "ci", ' || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "export"', "",
+           "pages would run in the pipeline of the schedule described \"export\"")
+    broken("the export chosen by a variable", "export", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "export"', '$HM_PIPELINE == "export"',
+           "forge-export does not run for the schedule described \"export\"")
+    broken("package-repos with rules of its own", "repos", "  rules:\n    - !reference [pages, rules]\n",
+           "  rules:\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n", "package-repos's rules are not pages' alone")
+    broken("package-repos with a rule added", "repos", "  rules:\n    - !reference [pages, rules]\n",
+           "  rules:\n    - if: $CI_PIPELINE_SOURCE == \"schedule\"\n    - !reference [pages, rules]\n", "package-repos's rules are not pages' alone")
     broken("the history scan without its schedule", "security", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "security"', '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "secure"',
            "secret_detection does not run for the schedule described \"security\"")
     # Documentation-only pushes.
