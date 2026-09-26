@@ -260,9 +260,9 @@ namespace HM
    //
    // Note that this is a *declaration* the fuzz build owns, not the real header
    // being included - so it does not have to track changes to
-   // FileUtilities.h. Only the three signatures the MIME code calls exist here;
-   // adding a fourth call site in Common\Mime will fail to compile until it is
-   // added, which is the correct amount of friction.
+   // FileUtilities.h. Only the functions the MIME code calls exist here; a new
+   // call site in Common\Mime fails to compile until it is added, which is the
+   // correct amount of friction.
    class FileUtilities
    {
    public:
@@ -321,6 +321,11 @@ namespace HM
       // change (temporary file, then a replacing rename). The harness never saves
       // a message, so it answers the way the other writers here do.
       static bool WriteToFileAtomically(const String &, const AnsiString &) { return false; }
+      // MimeBody::LoadFromMemory keeps a message it could not parse aside in
+      // "Problematic messages", making the directory first (the encryption-at-rest
+      // row). Neither exists here, so the copy is not written, as above.
+      static bool Exists(const String &) { return false; }
+      static bool CreateDirectory(const String &) { return false; }
    };
 
    // The server's LOG_* macros come from Application/Logger.h through its

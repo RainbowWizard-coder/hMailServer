@@ -668,6 +668,11 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   suite. The three MIME fuzz harnesses gained a nightly job, and the Linux regression suite was split in two
   halves; both ran on GitHub Actions until 18 September 2026, and on GitLab CI the fuzz job is `linux-fuzz`, nightly once the owner creates its schedule,
   and the Linux suite is one job, `linux-suite`, on the project's own runner (see the CI item below).
+- Fixed: the MIME fuzz harnesses did not build. Since encryption at rest, a message the MIME code cannot parse is
+  kept aside in "Problematic messages", which calls `FileUtilities::Exists` and `CreateDirectory`, and the
+  harness's stand-in for `FileUtilities` lacked both, so `linux-fuzz.sh` and `build-fuzz.ps1` stopped at
+  `Mime.cpp`. It gains both, answering false like its other writers, so the harness still writes nothing; the
+  parser is unchanged. Found by 6.3.4's release fuzz run.
 - Twenty-one new checkers under `build/` hold the rules the batches added, among them `check-account-stores.py`
   (what a backup must carry), `check-com-error-info.py` (COM refusals a caller can read),
   `check-collection-iteration.py` (locked iteration over shared collections), `check-com-dispids.py`,
