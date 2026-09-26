@@ -13,7 +13,8 @@ and GitHub Actions - and are kept as the history of how releases up to 6.3.3
 were made. From 6.3.5 a release is made by the tag's GitLab pipeline instead:
 [The release on GitLab](#the-release-on-gitlab), below, replaces steps 11 and 12
 from the tag on. 6.3.4 was built and Authenticode-signed by hand, between the
-two, and carries no Sigstore bundle. The bench steps run as written; step 9
+two, and carries no Sigstore bundle; its sums file is signed with the release
+tag's SSH key instead ([A release made by hand](#a-release-made-by-hand)). The bench steps run as written; step 9
 reads the scan reports of the commit's GitLab pipeline where it read GitHub's
 Code Scanning and Dependabot pages up to 6.3.3. Step 12's commit rule is out of
 date as well: since 24 September 2026 commits are made as Christopher
@@ -149,6 +150,35 @@ which refuses once the installer or a bundle is in the registry, since signing
 again would make other bytes under the same names. After `release-publish`, a
 release that is wrong is corrected by the next version, not by editing this one:
 servers may already hold its files.
+
+The pipeline signs every file with Sigstore and carries no SSH signature: the
+key that signs the release tags is the owner's, on his own machine, and no
+GitLab job can hold it. A `.sig` of the sums file is for a release made by hand.
+
+## A release made by hand
+
+From 6.3.4, a release built and published by hand - 6.3.4 itself, made after
+GitHub's suspension and before the release jobs above existed, or any later one
+made outside the pipeline - carries `hmailserver-<v>-SHA256SUMS.txt`, the
+`<sha256>  <name>` line of every other file of the release, and
+`hmailserver-<v>-SHA256SUMS.txt.sig`, an SSH signature of it made with the key
+that signs the release tags: the one key `.gitlab/allowed_signers` lists, under
+the principal `christopher.j.holloway@outlook.com`. It stands where the
+pipeline's Sigstore bundles would. Once the sums file is written, and before
+anything is uploaded, sign it with the tag's key and check the signature
+against the tag's own `.gitlab/allowed_signers`:
+
+```
+ssh-keygen -Y sign -f ~/.ssh/id_ed25519 -n file hmailserver-<v>-SHA256SUMS.txt
+git show v<v>:.gitlab/allowed_signers > allowed_signers
+ssh-keygen -Y verify -f allowed_signers -I christopher.j.holloway@outlook.com -n file -s hmailserver-<v>-SHA256SUMS.txt.sig < hmailserver-<v>-SHA256SUMS.txt
+sha256sum -c hmailserver-<v>-SHA256SUMS.txt
+```
+
+The namespace is `file`, not git's `git`, so a tag signature cannot be passed
+off as a signature of the sums, or the other way round. Both files are
+uploaded and linked like every other file of the release. SECURITY.md,
+"Verifying a release", gives users the same two commands.
 
 ## Order of operations
 

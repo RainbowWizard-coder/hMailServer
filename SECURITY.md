@@ -122,6 +122,21 @@ verified the original.
   git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag v6.2.23-alpha2
   ```
 
+- **The signed sums of a release built by hand** (from 6.3.4 on). Such a release carries
+  `hmailserver-<v>-SHA256SUMS.txt`, which names every other file of the release with its SHA-256, and
+  `hmailserver-<v>-SHA256SUMS.txt.sig`, an SSH signature of it made with the key that signs the release tags - the
+  one key in `.gitlab/allowed_signers`, under the principal `christopher.j.holloway@outlook.com`. With OpenSSH 8.1
+  or later, in a clone (for `.gitlab/allowed_signers`) and with the downloads beside you:
+
+  ```
+  ssh-keygen -Y verify -f .gitlab/allowed_signers -I christopher.j.holloway@outlook.com -n file -s hmailserver-<v>-SHA256SUMS.txt.sig < hmailserver-<v>-SHA256SUMS.txt
+  sha256sum -c hmailserver-<v>-SHA256SUMS.txt
+  ```
+
+  The first must say `Good "file" signature for christopher.j.holloway@outlook.com`, and the second `OK` for every
+  file (`--ignore-missing` when you downloaded only some). A release made by the GitLab pipeline, from 6.3.5, has
+  no `.sig`: the pipeline cannot hold that key, so its files are signed by Sigstore instead, as below.
+
 - **The assets of every release from 6.2.19 on** (the withdrawn 6.2.22-pre4 and the superseded -pre5 aside) carry
   Sigstore bundles (`<asset>.cosign.bundle`), keyless and recorded in the public Rekor log. For the releases up to
   6.3.3 the signing certificate names this repository's GitHub workflow, because that is where they were signed, so
