@@ -379,11 +379,17 @@ namespace RegressionTests.Infrastructure
          ImapClientSimulator.AssertMessageCount(account.Address, Password, "Kept", 1);
 
          // The move: the mailbox renamed, its files carried under the new name.
-         string moved = "moved-" + account.Address;
+         // The address the account had, taken before the move: MoveTo updates the
+         // object it is called on, so account.Address after it is the new one, and
+         // removing that left the old address for the teardown to look up - and
+         // not find (the "MessageStoreFormat teardown: ... DISP_E_BADINDEX" line
+         // in the gate logs).
+         string before = account.Address;
+         string moved = "moved-" + before;
          WaitUntilMovable(account);
          string summary = (string) ((dynamic) account).MoveTo(moved, false);
          StringAssert.Contains("\"new_address\":\"" + moved + "\"", summary, summary);
-         accounts_.Remove(account.Address);
+         accounts_.Remove(before);
          accounts_.Add(moved);
 
          ClassicAssert.AreEqual(original, FetchLiteral(moved, "INBOX", 1, "BODY.PEEK[]"), "The moved inbox copy does not read back exactly.");
@@ -644,7 +650,7 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("One damaged container does not stop a FETCH over the folder at itself: it is left out, the other messages are fetched, and the command ends NO. Negative control: with the container whole again the same FETCH answers both and OK.")]
+      [Description("One damaged container does not stop a FETCH over the folder at itself: it is left out, the other messages are fetched, the command ends NO, and the error log names the damaged file (HM7350) and holds nothing else. Negative control: with the container whole again the same FETCH answers both and OK, and logs no error.")]
       public void ADamagedContainerIsLeftOutOfARangeAndTheRestIsFetched()
       {
          SetCompression(true, 256);
@@ -657,6 +663,7 @@ namespace RegressionTests.Infrastructure
          ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 2);
 
          string fileName = Inbox(account).Messages[0].Filename;
+         string leaf = Path.GetFileName(fileName);
          byte[] whole = File.ReadAllBytes(fileName);
          ClassicAssert.IsTrue(HasMagic(whole));
          int headerLength = (int) BitConverter.ToUInt32(whole, 12);
@@ -670,12 +677,46 @@ namespace RegressionTests.Infrastructure
             StringAssert.Contains("SecondWhole", response, "The message after the damaged one was not fetched - the range stopped at the damage: " + response);
             StringAssert.Contains("F1 NO", response, "A FETCH that left a message out must not end OK: " + response);
 
-            // Negative control: whole again, both and OK.
+            // The store reports the damage as it does for a FETCH of that message
+            // alone, naming the file - and the report is this test's to take: left
+            // in the error log, it failed the SetUp of the next test to run
+            // (PerformBasicSetup's AssertNoReportedError), which is not the test
+            // that provoked it.
+            //
+            // Taken whole and read line by line, not with AssertReportedError
+            // alone, which deletes the log once its words are there: that would
+            // also delete, unread, anything else the range logged - a critical
+            // error of the connection's catch-all for a throw that reached it, or
+            // IMAP FETCH's HM10001 - which the next SetUp would otherwise have
+            // seen. The damaged file's HM7350 is the one thing the range may log.
+            string reported = null;
+            try
+            {
+               RetryHelper.TryAction(TimeSpan.FromSeconds(10), () =>
+               {
+                  reported = LogHandler.ReadErrorLog();
+                  RetryableAssert.StringContains(leaf, reported);
+               });
+            }
+            finally
+            {
+               LogHandler.DeleteErrorLog();
+            }
+
+            StringAssert.Contains("could not be read", reported, reported);
+            foreach (string line in reported.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Where(l => l.Trim().Length > 0))
+            {
+               StringAssert.Contains("Code: HM7350,", line, "The range logged an error other than the damaged container's HM7350: " + line);
+               StringAssert.Contains(leaf, line, "The range logged an HM7350 for a file other than the damaged one: " + line);
+            }
+
+            // Negative control: whole again, both and OK, and nothing reported.
             File.WriteAllBytes(fileName, whole);
             response = FetchRange(account.Address, "1:2 (ENVELOPE)");
             StringAssert.Contains("FirstDamaged", response);
             StringAssert.Contains("SecondWhole", response);
             StringAssert.Contains("F1 OK", response);
+            CustomAsserts.AssertNoReportedError();
          }
          finally
          {
