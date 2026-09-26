@@ -23,10 +23,10 @@
 #                         dependency_scanning, which is GitLab Ultimate; on the Free tier
 #                         the template creates no job. dependency-scan (Trivy and OSV,
 #                         on linix) covers the lock files and the CI image.
-#   Container-Scanning    Free runs it, but it scans an image in a registry, and this
-#                         project pushes none yet: linux-image builds the image and
-#                         inspects it without pushing it. It is worth adding when the
-#                         release chain publishes the image.
+#   Container-Scanning    not here: it scans an image in a registry, and the only one
+#                         this project pushes is a release's, so it is included with
+#                         the jobs that push that image, for a v* tag
+#                         (.gitlab/ci/container-image.yml).
 #   GitLab Advanced SAST  Ultimate only: its jobs never start on the Free tier.
 #
 # On the Free tier each job leaves its report as an artifact that project members

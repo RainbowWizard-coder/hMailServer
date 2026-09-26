@@ -57,6 +57,9 @@ What runs where
 | `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update` (`build/ci/release-verify.sh`) |
 | `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
 | `update-feed` | release | (a trigger) | a `v*` tag, after `release-publish` | Starts a downstream pipeline on `master`, passing no variables, which runs `pages` alone |
+| `container-image` | release | linix | a `v*` tag, after `release-publish` | The release's container image built with kaniko from the `.deb` the release carries, inspected as `linux-image` inspects it, and pushed to the project's container registry (`build/ci/linux-image.sh` with `HM_IMAGE_PUSH=1`; [The container image](#the-container-image)) |
+| `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image` | The image signed by its digest with Sigstore as this pipeline, and verified (`build/ci/container-image-sign.sh`) |
+| `container_scanning` | release | GitLab's shared runners | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over the pushed image; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 
@@ -503,7 +506,7 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 | `linux-build.yml` package-install | `linux-package-deb`, `linux-package-rpm` | linix | a protected ref |
 | `linux-build.yml` regression-on-linux | `linux-suite` (row 139), the whole suite in one run | linix | a protected ref |
 | `linux-build.yml` db-upgrade | `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | linix | a protected ref |
-| `linux-build.yml` image | `linux-image`: built and inspected, not pushed | linix | a protected ref |
+| `linux-build.yml` image | `linux-image`: built and inspected, not pushed; for a `v*` tag, `container-image` pushes the release's image and `container-image-sign` signs it | linix, shared | a protected ref; a `v*` tag |
 | `linux-build.yml` publish | `release`, `release-sign` and `release-publish`: the `.deb`, the `.rpm` and their sums on the release | shared, linix | a `v*` tag |
 | `packaging.yml` chart-and-compose | `chart-and-compose` | shared | the chart or the Compose file changed |
 | `packaging.yml` update-helper | `update-helper` | shared | the helper, its test or a unit changed |
@@ -531,8 +534,7 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
   to the OpenSSF API from a verified GitHub workflow.
 - `upstream-watch.yml`. It reads upstream hMailServer's repository, which is on
   GitHub, and files an issue there.
-- `verify-binary-provenance.yml`, `package-managers.yml` manifests, the image
-  job's push, and the SLSA provenance and the `.sigstore.json` copies of the
+- `verify-binary-provenance.yml`, `package-managers.yml` manifests, and the SLSA provenance and the `.sigstore.json` copies of the
   bundles that `sign-release.yml` made. The SLSA generator is a GitHub reusable
   workflow with no GitLab form, and the copies were for OpenSSF Scorecard, which
   reads GitHub. They stay with the Roadmap2 row "The release chain off a single
@@ -619,7 +621,8 @@ with kaniko, which needs no Docker daemon and no privilege, into a tarball, and
 checks what it built: the user, the entrypoint, the healthcheck, the nine
 ports, and the file capability `setcap` gave `/usr/bin/hmailserver`, read from
 the layer. It does not run the image; that needs a daemon. The tarball is not
-kept: the release-chain row will build and push its own.
+kept: for a `v*` tag, `container-image` builds the image again from the `.deb`
+the release carries and pushes it ([The container image](#the-container-image)).
 
 The fuzz schedule
 -----------------
@@ -1029,6 +1032,73 @@ Studio; the notes say that too.
 `linux-build` retried first. `release` keeps what the later jobs need, the
 server binary included, for thirty days, and the signed files are kept ninety.
 
+### The container image
+
+The Compose file and the Helm chart pull
+`registry.gitlab.com/progressiverobot/hmailserver:latest`. The image appears in
+the project's container registry from the first release the pipeline makes,
+6.3.5 onwards; 6.3.4 was built by hand and has none. Three jobs of
+`.gitlab/ci/container-image.yml` follow `release-publish`:
+
+| Job | Where | What it does |
+|---|---|---|
+| `container-image` | linix, in kaniko's image (`linux-image`'s, by reference) | Builds `platform/packaging/docker/Dockerfile` from `hmailserver_<version>_amd64.deb` in `release-sign`'s artifact - the bytes the release carries, signed and verified - and pushes it to `$CI_REGISTRY_IMAGE`, one of the two paths a release is signed from and no other, with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. The tags are `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.5` pushes `6.3.5`, `6.3` and `latest`, and `v6.3.5-rc1` pushes `6.3.5-rc1` alone. It runs the same checks on what it pushed as `linux-image` does on what it built, and leaves a dotenv report naming the image by digest (`build/ci/linux-image.sh`, `HM_IMAGE_PUSH=1`) |
+| `container-image-sign` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the image by its digest with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies the signature with that identity. The tags all name the one digest, so one signature covers them. The signature is stored beside the image in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log (`build/ci/container-image-sign.sh`) |
+| `container_scanning` | GitLab's shared runners | GitLab's Container Scanning template, which the Free tier runs, over the pushed image by digest, with the analyzer pinned by digest. It is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
+
+**Why after `release-publish`.** `:latest` is what the Compose file and the chart
+pull. A release the installer smoke test stopped before `release-publish` must
+not be what `:latest` names, so the image waits for the release to exist.
+
+**Checked after the push, not before.** kaniko cannot push a tarball it wrote
+before, so `container-image` pushes and writes the tarball of the same image in
+one run, and then checks it. A check that fails fails the job with the tags
+already pushed: nothing signs or scans the image, and the job names the tags,
+which then name an image that failed its check and are deleted by hand. The same checks passed on the same Dockerfile and
+`.deb` in `linux-image` earlier in the pipeline; only the Ubuntu packages the
+Dockerfile installs can differ between the two builds.
+
+**To verify an image**, with cosign 2.4 or later:
+
+```
+cosign verify \
+  --certificate-identity https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5 \
+  --certificate-oidc-issuer https://gitlab.com \
+  registry.gitlab.com/progressiverobot/hmailserver:6.3.5
+```
+
+After the move to the group, the identity and the image are
+`https://gitlab.com/hmailserver/hmailserver//...` and
+`registry.gitlab.com/hmailserver/hmailserver`. `container-image-sign` keeps
+`container-image-signed/verification.txt`, with the command for that release.
+
+**What the owner sets on the registry.** Nothing in the pipeline can. As the
+project's API answered on 26 September 2026:
+
+1. **The cleanup policy** keeps `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`, `^latest$`,
+   `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line) and
+   `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures), so it never
+   deletes a release's tags or their signatures. The policy itself is switched
+   off; switched on, it removes only other tags, older than 90 days and beyond the
+   newest ten.
+2. **Protected container tags**: one rule, for
+   `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
+   so that nobody but a maintainer can push the release's tags and nobody but
+   the owner delete them. A pre-release's tag (`6.3.5-rc1`) and the signatures
+   are outside it. Immutable tags are GitLab Ultimate.
+3. **The move to the group comes before the first image.** GitLab's
+   documentation (*Transfer a project*) says that on GitLab.com a project whose
+   container registry is enabled can be transferred only within its top-level
+   group, and the move from the personal namespace to `hmailserver` crosses two.
+   While the registry is empty, switching it off for the move costs nothing;
+   after the first release, it does. The Compose file and the chart name the
+   present path, and are changed with the move; `container-image` pushes to
+   whichever of the two paths the project has, and refuses any other.
+
+A stable release of an older line - a 6.2 release after 6.3.0 - would take
+`:latest` from the newer one. The project releases one line at a time, and the
+job does not look.
+
 ### What waits for the owner
 
 Each is a one-time step, but for the third's credential, which is made for
@@ -1124,7 +1194,19 @@ been seen working:
   `master`: seen with git 2.50 over `file://`, against a scratch copy whose
   `master` was this tree's branch (the real `master` has no `.gitlab/allowed_signers` yet),
   with the real `v6.3.4` tag passing and an unsigned tag off `master` refused;
-  not on GitLab's runners.
+  not on GitLab's runners;
+- that GitLab's registry takes `container-image`'s push with the job's own
+  registry credentials. The push itself - three tags naming one digest for
+  `v6.3.1`, one tag for `v6.3.1-rc1`, the checks on what was pushed, the dotenv
+  report, and the refusals - was run on linix on 26 September 2026, in the job's
+  kaniko image, against a local registry standing in for `registry.gitlab.com`;
+- that the dotenv report reaches `container_scanning`, which names the job in
+  `dependencies` where the template leaves it empty. The analyzer, at the digest
+  pinned here, scanned an image named by its digest (Ubuntu 24.04's, the
+  Dockerfile's base) on linix on 26 September 2026 and wrote its report;
+- that cosign stores the image's signature in GitLab's registry as
+  `sha256-<digest>.sig` with the job's credentials, and that `cosign verify`
+  finds it there.
 
 Dependency updates
 ------------------
@@ -1169,8 +1251,8 @@ machine's Visual Studio), the ADO type library (copied from Windows), SQL Server
 Compact (retired, with no release to follow), the Linux build's libraries (the
 distribution's packages, which move with the image's digest), the old GitHub
 workflows, which are no longer in the tree, the project's own image
-(`registry.gitlab.com/progressiverobot/hmailserver`, which `linux-image` builds
-and does not push: the project's container registry is not switched on), and
+(`registry.gitlab.com/progressiverobot/hmailserver`, which the release pushes
+and nothing in the tree pulls but the Compose file and the chart, by `:latest`), and
 `hmailserver-ci/linux`, which is built on linix and never pushed. The .NET runtime the installer bundles has no pin
 yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
 rule in `renovate.json` says what to add when the supply-chain row pins it.
@@ -1375,6 +1457,8 @@ measured times after the first pipelines.
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
 | `semgrep-sast`, `secret_detection` | not measured | 30 and 30 min | Neither has run on GitLab. Each counts against the namespace's compute minutes on GitLab's shared runners. `secret_detection`'s scan of the whole history took under a minute on linix |
+| `container-image` | under a minute by hand | 30 min | kaniko over Ubuntu 24.04 and the `.deb`, pushed to a local registry standing in for GitLab's, on linix on 26 September 2026; the push to `registry.gitlab.com` adds the upload of about 40 MB |
+| `container-image-sign`, `container_scanning` | not measured | 15 and 30 min | Neither has run in a pipeline. The analyzer's scan of Ubuntu 24.04 on linix, by hand, finished within two minutes of its start, its image's download included |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
@@ -1528,7 +1612,10 @@ pipeline brings. They run on GitLab's shared runners, for `master` and a merge
 request only, in images from `registry.gitlab.com` pinned by digest. Each
 leaves its JSON report for Developers and above to download.
 `SAST_DISABLED=true` or `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable,
-turns one off.
+turns one off. A third, `container_scanning`, scans the container image a `v*`
+tag's release pushes, after the push, in the same way
+([The container image](#the-container-image)); `CONTAINER_SCANNING_DISABLED=true`
+turns it off.
 
 `semgrep-sast` is `allow_failure`, as its template makes it, and holds nothing
 to a baseline. **`secret_detection` fails on a finding.** The template cannot:
@@ -1899,7 +1986,7 @@ What is still done by hand
   `build/linux-tu-census.sh` runs the census by hand.
 - The schema-upgrade gate (`build/db-upgrade-gate.sh`), the Control Panel's
   tests and the tools' tests.
-- The AppImage, the AArch64 packages, pushing the container image and the
+- The AppImage, the AArch64 packages and the
   package managers' manifests: the Roadmap2 row "The release chain off a single
   forge". Signing and publishing the rest are the release jobs
   ([The release](#the-release)).

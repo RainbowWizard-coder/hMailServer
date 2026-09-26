@@ -16,12 +16,15 @@
 #      -v hm-data:/var/lib/hmailserver -v hm-logs:/var/log/hmailserver -v hm-etc:/etc/hmailserver \
 #      registry.gitlab.com/progressiverobot/hmailserver:<version>
 #
-# That is the name the project's GitLab container registry would serve, and it
-# serves nothing yet: the registry is not switched on and GitLab CI's
-# linux-image job builds this image without pushing it. Build it yourself
-# (docker build, with the .deb in packages/) and run your own tag until then.
-# The images published before GitHub suspended the project's account on
-# 18 September 2026 were on ghcr.io, which has answered 404 since.
+# That is the project's GitLab container registry. The image appears there from
+# the first release GitLab CI makes (6.3.5 onwards; 6.3.4 was built by hand and
+# has none): a v* tag's container-image job builds this file from the release's
+# .deb and pushes :<version>, and for a release without a suffix :<major>.<minor>
+# and :latest, signed by digest with Sigstore as the release's pipeline
+# (.gitlab/ci/container-image.yml). Until then, build it yourself (docker build,
+# with the .deb in packages/) and run your own tag. The images published before
+# GitHub suspended the project's account on 18 September 2026 were on ghcr.io,
+# which has answered 404 since.
 #
 # The database is not in the image and never will be: point HM_DB_* at a
 # PostgreSQL or MariaDB server. On first start the entrypoint writes the

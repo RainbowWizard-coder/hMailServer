@@ -84,6 +84,7 @@
 include:
   # GitLab's SAST and secret detection, on the shared runners (the file says what they add).
   - local: .gitlab/ci/gitlab-security.yml
+  - local: .gitlab/ci/container-image.yml
 
 stages:
   - check

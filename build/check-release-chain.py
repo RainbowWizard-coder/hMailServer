@@ -80,6 +80,11 @@ refuses it. This checker holds them to each other. It fails when:
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
     its report after the analyzer, which exits 0 whatever it finds.
+  * the container image's jobs (.gitlab/ci/container-image.yml) can run for
+    anything but a protected v* tag, push before release-publish, sign before the
+    push, sign without an ID token for Sigstore or in another image than
+    HM_COSIGN_IMAGE, or build/ci/container-image-sign.sh expects another identity
+    or log than the release's files are signed with.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -110,10 +115,20 @@ FILES = {
     "fuzz": os.path.join("build", "ci", "linux-fuzz.sh"),
     "chain": os.path.join("build", "ci", "release-chain.py"),
     "signers": os.path.join(".gitlab", "allowed_signers"),
+    "image": os.path.join(".gitlab", "ci", "container-image.yml"),
+    "image-sign": os.path.join("build", "ci", "container-image-sign.sh"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sign", "release-verify",
                 "release-publish", "update-feed"]
+# The container image's jobs, in .gitlab/ci/container-image.yml, and what each must
+# need: the image is pushed once the release is published, from the .deb release-sign
+# signed, and signed and scanned once it is pushed.
+IMAGE_JOBS = {
+    "container-image": ["release-sign", "release-verify", "release-publish"],
+    "container-image-sign": ["container-image"],
+    "container_scanning": ["container-image"],
+}
 # Jobs that need not begin with REFUSAL, because their own rules match nothing the
 # feed's pipeline (source "pipeline", on master) is - each with the text that makes
 # it so. None of them is a gate of a tag's pipeline, so release need not wait for
@@ -671,6 +686,49 @@ def check(texts, chain, feed):
             problems.append("%s does not name the installer %s, the name a Windows server looks for" % (
                 "release-authenticode" if name == "authenticode" else FILES["installer"], installer))
 
+    # The container image, in a file of its own that .gitlab-ci.yml includes. Its
+    # !reference [.release-rules, rules] names the CI file's template.
+    if not re.search(r"^  - local: \.gitlab/ci/container-image\.yml\s*$", ci, re.MULTILINE):
+        problems.append(".gitlab-ci.yml does not include .gitlab/ci/container-image.yml: no release pushes its container image")
+    image_jobs = blocks(texts["image"])
+    merged = dict(jobs)
+    merged.update(image_jobs)
+    for name, wanted in sorted(IMAGE_JOBS.items()):
+        if name not in image_jobs:
+            problems.append(".gitlab/ci/container-image.yml has no %s job" % name)
+            continue
+        if TAG_ONLY not in rules_text(name, merged):
+            problems.append("%s can run for something that is not a protected v* tag: its rules must be .release-rules" % name)
+        if re.search(r"^  trigger:", image_jobs[name], re.MULTILINE):
+            problems.append("%s is a trigger: a child or downstream pipeline's ID token has no ci_config_ref_uri" % name)
+        have = needs(image_jobs[name])
+        for need in wanted:
+            if need not in have:
+                problems.append("%s does not need %s (it needs %s)" % (name, need, ", ".join(have) or "nothing"))
+    push = image_jobs.get("container-image", "")
+    if push and not (re.search(r'^    HM_IMAGE_PUSH: "1"\s*$', push, re.MULTILINE) and "build/ci/linux-image.sh" in push):
+        problems.append("container-image does not run build/ci/linux-image.sh with HM_IMAGE_PUSH=1")
+    image_sign = image_jobs.get("container-image-sign", "")
+    if image_sign:
+        if not re.search(r"^  id_tokens:\s*\n\s+SIGSTORE_ID_TOKEN:\s*\n\s+aud: sigstore\s*$", image_sign, re.MULTILINE):
+            problems.append("container-image-sign has no id_tokens SIGSTORE_ID_TOKEN with aud sigstore: Fulcio issues no certificate without it")
+        if not re.search(r"^    name: \$HM_COSIGN_IMAGE\s*$", image_sign, re.MULTILINE):
+            problems.append("container-image-sign's image is not $HM_COSIGN_IMAGE")
+        if "build/ci/container-image-sign.sh" not in image_sign:
+            problems.append("container-image-sign does not run build/ci/container-image-sign.sh")
+    scanning = image_jobs.get("container_scanning", "")
+    if scanning and not re.search(r"^  dependencies: \[container-image\]\s*$", scanning, re.MULTILINE):
+        problems.append("container_scanning does not take container-image's dotenv report (dependencies: [container-image]): "
+                        "the template's dependencies: [] leaves it no CS_IMAGE")
+    image_script = texts["image-sign"]
+    if SCRIPT_IDENTITY not in image_script:
+        problems.append("build/ci/container-image-sign.sh expects another identity than %s" % SCRIPT_IDENTITY)
+    image_flags = re.search(r'^sign_flags="([^"]*)"$', image_script, re.MULTILINE)
+    if not image_flags or "--rekor-url https://rekor.sigstore.dev" not in image_flags.group(1):
+        problems.append("build/ci/container-image-sign.sh signs without --rekor-url https://rekor.sigstore.dev (Rekor v1)")
+    if "--use-signing-config=false" not in image_script:
+        problems.append("build/ci/container-image-sign.sh no longer turns the signing configuration off")
+
     # The feed pipeline runs pages and nothing else.
     update = jobs["update-feed"]
     project = feed.PROJECT_URL.split("/", 3)[3]
@@ -919,6 +977,17 @@ def self_test(chain, feed):
     broken("the group's id left to the settings", "verifier", "         else if (!groupRefusal.IsEmpty())\n            why = groupRefusal;\n", "",
            "whatever the settings")
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
+    broken("the image pushed before the release is published", "image", "    - job: release-publish\n      artifacts: false\n", "",
+           "container-image does not need release-publish")
+    broken("the image pushed for a branch", "image", "  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
+           "  rules:\n    - if: $CI_COMMIT_BRANCH\n  variables:\n    HM_IMAGE_PUSH", "container-image can run for something that is not a protected v* tag")
+    broken("the image signed for another audience", "image", "      aud: sigstore", "      aud: fulcio", "container-image-sign has no id_tokens")
+    broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n  timeout: 15 minutes",
+           "  needs: []\n  timeout: 15 minutes", "container-image-sign does not need container-image")
+    broken("the scan without the image's name", "image", "  dependencies: [container-image]\n", "", "container_scanning does not take")
+    broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")
+    broken("the image signed as a branch", "image-sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
+           'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "container-image-sign.sh expects another identity")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
 
     # The release tag and the registry.

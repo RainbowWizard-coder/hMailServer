@@ -779,11 +779,18 @@ real install's values, checks its refusals, and resolves the Compose file, on
 every change to either.
 
 Both name the image `registry.gitlab.com/progressiverobot/hmailserver`, the
-project's GitLab container registry, which publishes nothing yet: it is not
-switched on, and the `linux-image` job builds the image without pushing it. Until
-it does, build the image from `docker/Dockerfile` and name your own tag. The
-images published before GitHub suspended the project's account on
-18 September 2026 were on `ghcr.io`, which has answered 404 since.
+project's GitLab container registry. The image appears there from the first
+release GitLab CI makes, 6.3.5 onwards; 6.3.4 was built by hand and has none. A
+`v*` tag's `container-image` job builds `docker/Dockerfile` from the release's
+`.deb` and pushes `:<version>`, and for a release without a suffix
+`:<major>.<minor>` and `:latest` as well; a pre-release never moves those two.
+`container-image-sign` signs the image by digest with Sigstore, as the same
+pipeline identity the release's files carry
+(`hmailserver/docs/ContinuousIntegration.md`, "The container image", has the
+`cosign verify` command). Until then, build the image from `docker/Dockerfile`
+and name your own tag. The images published before GitHub suspended the
+project's account on 18 September 2026 were on `ghcr.io`, which has answered
+404 since.
 
 ### Every setting from the environment
 

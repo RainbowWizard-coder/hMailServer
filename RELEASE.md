@@ -124,6 +124,15 @@ itself only as safe as `master`, which Maintainers may push to.
    python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com
    ```
 
+   The container image follows by itself as well: `container-image` builds it
+   from the release's `.deb` and pushes `:X.Y.Z`, and for a release without a
+   suffix `:X.Y` and `:latest`; `container-image-sign` signs it by digest as
+   the same pipeline; `container_scanning` scans it
+   (`hmailserver/docs/ContinuousIntegration.md`, "The container image"). Read
+   `container-image-signed/verification.txt` and the scan's report. A check
+   that fails after the push leaves tags naming an unsigned image, which the
+   job lists: delete them.
+
 7. **The package managers** (step 13) are still by hand: the manifests job was
    not ported.
 
