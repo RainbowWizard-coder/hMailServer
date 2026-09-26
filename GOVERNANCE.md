@@ -15,8 +15,9 @@ release signing through GitHub's token service - it describes how the project
 ran there. On GitLab, up to and including 6.3.4, no approval was required (the
 GitHub ruleset had stopped requiring one on 14 September 2026): `master` is
 protected, and a change that had passed the regression gate landed on it by
-fast-forward. From the first change after 6.3.4, every change lands through a
-merge request that the other maintainer approves (see Review). Security reports go
+fast-forward. From the first change after 6.3.4, every change is to land
+through a merge request that Zain Ul Abidin approves (the owner, for Zain's
+own) before the owner merges it (see Review). Security reports go
 by the routes in [SECURITY.md](SECURITY.md). The release chain ran on GitHub
 Actions; its replacement, the release jobs of `.gitlab-ci.yml`, is written and
 has not run yet, so 6.3.4 was built and signed by hand. The installer's fetched
@@ -152,8 +153,8 @@ How decisions are made
 ----------------------
 
 **Ordinary changes.** Either maintainer decides on a contributor's merge
-request, and every change is approved by a maintainer other than its author
-before it lands (see Review). The reasoning is recorded where the decision
+request, and from the first change after 6.3.4 every change is approved by a
+maintainer other than its author before it lands (see Review). The reasoning is recorded where the decision
 happens — in the merge request, in the issue, or in the release notes. The
 project's habit is to write down *why* rather than just *what*; the release
 notes are the clearest example of this and are the intended place to look for
@@ -172,16 +173,17 @@ approve his own. A reviewer asks for changes on the merge request rather than
 pushing to the author's branch, and while the reviewer is unavailable, changes
 wait. No approval rule is configured on the project - GitLab's Free tier cannot
 require one - so it is the owner, the one member who can merge, who holds to
-the rule; the approval is recorded on the merge request rather than anywhere
+the rule (the project's merge settings do hold the other two: a merge request
+merges only by fast-forward, and only once its pipeline has succeeded); the approval is recorded on the merge request rather than anywhere
 private, because that record is what shows that a second person has read the
 change. Today `master` still takes a Maintainer's direct push, which is how
 6.3.4 and the batch that carries it land, gated as before; once the pipeline on
 `master` is green, `master` is to be closed to direct pushes, leaving the merge
 request as the only way in.
 
-On GitHub, until 18 September 2026, a pull request authored by one maintainer,
+On GitHub, until 14 September 2026, a pull request authored by one maintainer,
 or opened by an agent on one maintainer's behalf, was approved by the other
-before it was merged. The master ruleset enforced this until 14 September 2026:
+before it was merged, and the master ruleset enforced this:
 a merge needed an approving review from someone other than the last person to
 push. A pull request Copilot opened under its own identity, rather than for one
 maintainer, needed both maintainers' approval: the ruleset added one approval

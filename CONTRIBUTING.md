@@ -727,8 +727,8 @@ branch of this project does not run it. A commit that lacks it is fixed with `gi
    fast-forward, with its pipeline green, so history stays linear; he may rebase your branch onto the current
    `master`, or squash it into one commit, first. `master` is protected: only the owner can merge to it, and once
    the pipeline on `master` is green it is to be closed to direct pushes, so that a merge request is the only
-   way in. (On GitHub, until 18 September 2026, a pull request was merged by rebase once the other maintainer
-   had approved it, as the master ruleset required until 14 September 2026.)
+   way in. (On GitHub, until 14 September 2026, a pull request was merged by rebase once the other maintainer
+   had approved it, as the master ruleset required; from then until 6.3.4 no approval was required.)
 
 If a change spans more than about three rows of ARCHITECTURE.md's *Where to start* table, or touches the schema,
 the COM interface or the release path, open an issue to discuss it before writing it.
