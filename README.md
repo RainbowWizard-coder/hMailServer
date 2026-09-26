@@ -3,7 +3,7 @@ hMailServer
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949) [![Latest release](https://gitlab.com/Progressiverobot/hmailserver/-/badges/release.svg)](https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest)
 
-**The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and every release up to 6.3.3 is re-published there, byte for byte, under its original date.
+**The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and every release up to 6.3.3 is re-published there under its original date, with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved.
 
 hMailServer is a free, open source email server for Microsoft Windows, implementing SMTP, IMAP and POP3. Since 8 September 2026 the server itself also builds, runs and packages on Linux, for x86-64 and AArch64 - see [Linux and AArch64](#linux-and-aarch64) below for exactly how far that goes.
 
