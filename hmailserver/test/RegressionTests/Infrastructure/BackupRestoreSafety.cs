@@ -765,6 +765,21 @@ namespace RegressionTests.Infrastructure
 
          try
          {
+            // A mailbox with a message in it, which the backup must carry. The
+            // domain PerformBasicSetup makes has no directory under the data
+            // directory: deleting the previous test's domain removed it, and a
+            // mailbox's directory is made when its first message is stored. So
+            // without a delivery there is no <data directory>\example.test for the
+            // backup to carry, and the control below could never pass.
+            var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "backup-carried@example.test", "test");
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Carried", "A mailbox's message, for the archive.");
+            Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
+
+            string messageFile = account.IMAPFolders.get_ItemByName("Inbox").Messages[0].Filename;
+            Assert.IsTrue(messageFile.StartsWith(dataDirectory, StringComparison.OrdinalIgnoreCase) && File.Exists(messageFile),
+               "The message should be stored under the data directory " + dataDirectory + ", but its file is " + messageFile + ".");
+            string messageUnderDataDirectory = messageFile.Substring(dataDirectory.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
             foreach (string store in stores)
             {
                string root = Paths.Combine(dataDirectory, store);
@@ -783,7 +798,8 @@ namespace RegressionTests.Infrastructure
 
             string stagedStore = Paths.Combine(_backupDirectory, "DataBackup");
             Assert.IsTrue(Directory.Exists(stagedStore), "An uncompressed backup should leave the message store in " + stagedStore + ".");
-            Assert.IsTrue(Directory.Exists(Paths.Combine(stagedStore, "example.test")), "The mailboxes are carried, or this test proves nothing.");
+            Assert.IsTrue(File.Exists(Paths.Combine(stagedStore, messageUnderDataDirectory)),
+               "The mailboxes are carried, or this test proves nothing: " + messageUnderDataDirectory + " is not in " + stagedStore + ".");
 
             foreach (string store in stores)
             {
