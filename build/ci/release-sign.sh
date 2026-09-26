@@ -12,6 +12,7 @@
 #
 # In:   release-assets/        what the release job collected (build/ci/release-chain.py collect)
 #       release-authenticode/  the Windows installer as release-authenticode signed it
+#       release-sbom/          that installer's own SBOM (build/ci/release-chain.py sbom)
 # Out:  release-signed/        every file, with <file>.cosign.bundle beside it
 #
 # The identity token is the job's SIGSTORE_ID_TOKEN (id_tokens, aud sigstore), which
@@ -37,6 +38,7 @@ set -eu
 
 in=release-assets
 authenticode=release-authenticode
+sboms=release-sbom
 out=release-signed
 issuer=https://gitlab.com
 
@@ -76,10 +78,18 @@ if cmp -s "$in/$installer" "$authenticode/$installer"; then
   fail "the installer release-authenticode handed back is byte for byte the unsigned one"
 fi
 
+# The installer's SBOM, which must describe the signed bytes that ship: its subject's
+# SHA-256 is the signed installer's (build/asset-sbom.py writes it as "content").
+[ -f "$sboms/$installer.cdx.json" ] || fail "$sboms/$installer.cdx.json is not here: release-sbom did not hand back the installer's SBOM"
+signed_sha256=$(sha256sum "$authenticode/$installer" | cut -d' ' -f1)
+grep -q "\"content\": \"$signed_sha256\"" "$sboms/$installer.cdx.json" \
+  || fail "$installer.cdx.json does not describe the signed installer (SHA-256 $signed_sha256)"
+
 rm -rf "$out"
 mkdir -p "$out"
 cp "$in"/* "$out"/
 cp "$authenticode/$installer" "$out/$installer"
+cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"
 
 # The flags every cosign from 2.4 on reads the same way; --use-signing-config exists
 # from 2.6 and is true by default from 3.0, and is turned off where it exists.
@@ -122,7 +132,7 @@ for file in "$out"/*; do
 done
 
 # Counted, because a loop over a glob that matched nothing passes having signed nothing.
-expected=6
+expected=9
 [ "$signed" -eq "$expected" ] || fail "$signed file(s) signed; a release is $expected"
 echo ""
 echo "All $signed files of $tag are signed as $identity."

@@ -15,7 +15,9 @@
 #   linux-build/build-info.txt  its SHA-256 and what --version says
 #   linux-build/build.log       the whole ninja output
 #   linux-build/packages/       the .deb and the .rpm CPack made from that build,
-#                               and their SHA256SUMS.txt (none when packaging failed)
+#                               each with its own SBOM beside it (<package>.cdx.json,
+#                               build/asset-sbom.py), and the packages' SHA256SUMS.txt
+#                               (none of it when packaging failed)
 #   linux-build/package.log     the stamp check and CPack's output
 #
 # The build tree itself is outside the checkout (HM_BUILD_DIR, /tmp/hm-build by
@@ -191,11 +193,22 @@ package() {
   for rpm in "$out"/packages/*.rpm; do
     rpm -qp --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n' "$rpm"
   done
+  # Each package's own software bill of materials, beside it and made here, where
+  # dpkg knows what the binary was built against: the libraries it needs and the ones
+  # linked into it (build/native-dependencies.ps1), the version of each development
+  # package the build used, and what the package declares it depends on. A package
+  # whose SBOM cannot be made is no package: the release carries none without one.
+  pwsh -NoProfile -File build/native-dependencies.ps1 -OutputFile "$build_dir/native-dependencies.json" > /dev/null
+  for file in "$out"/packages/*.deb "$out"/packages/*.rpm; do
+    case "$file" in *.deb) kind=deb ;; *) kind=rpm ;; esac
+    python3 build/asset-sbom.py make --kind "$kind" --asset "$file" \
+      --dependencies "$build_dir/native-dependencies.json" --query-dpkg --read-package
+  done
 }
 ( package ) > "$out/package.log" 2>&1
 code=$?
 if [ "$code" -eq 0 ]; then
-  grep -E '^(Package|Version|Architecture|Depends|hmailserver )|agree with Version.h' "$out/package.log"
+  grep -E '^(Package|Version|Architecture|Depends|hmailserver )|agree with Version.h|\.cdx\.json: ' "$out/package.log"
   sums=$(cd "$out/packages" && sha256sum -- *.deb *.rpm)
   echo "$sums" > "$out/packages/SHA256SUMS.txt"
   echo "$sums"

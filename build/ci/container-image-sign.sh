@@ -15,7 +15,19 @@
 # In:   HM_IMAGE, from container-image's dotenv report: <registry image>@sha256:<digest>.
 #       Every tag that job pushed (:<version>, and :<major>.<minor> and :latest for a
 #       release without a suffix) names that one digest, so one signature covers them.
-# Out:  container-image-signed/verification.txt, what cosign verify answered.
+#       container-image-sbom/hmailserver-image.cdx.json, the image's SBOM, which
+#       container-image-sbom made (build/ci/container-image-sbom.sh).
+# Out:  container-image-signed/verification.txt, what cosign verify and cosign
+#       verify-attestation answered.
+#
+# The SBOM goes with the image as a signed attestation of the predicate type
+# cyclonedx, stored beside it in the registry (sha256-<digest>.att), by the same
+# identity and in the same log as the signature (OpenSSF Baseline OSPS-QA-02.02):
+#
+#   cosign verify-attestation --type cyclonedx --certificate-identity <identity> \
+#     --certificate-oidc-issuer https://gitlab.com <image>@sha256:<digest>
+#
+# prints it, and SECURITY.md, "Software bills of materials", says how to read it.
 #
 # The signature is stored in the registry beside the image, in cosign's tag form
 # (sha256-<digest>.sig), which every cosign and the admission controllers that use it
@@ -31,6 +43,7 @@ set -eu
 
 out=container-image-signed
 issuer=https://gitlab.com
+sbom=container-image-sbom/hmailserver-image.cdx.json
 
 fail() {
   echo "CONTAINER-IMAGE-SIGN FAILED: $*"
@@ -58,6 +71,8 @@ printf '%s\n' "$image" | grep -Eqx "${registry_image}@sha256:[0-9a-f]{64}" \
   || fail "HM_IMAGE is '$image', not $registry_image by digest: container-image's dotenv report did not arrive"
 
 [ -n "${SIGSTORE_ID_TOKEN:-}" ] || fail "the job has no SIGSTORE_ID_TOKEN: id_tokens with aud sigstore is missing from it"
+[ -s "$sbom" ] || fail "$sbom is not here: container-image-sbom did not hand back the image's SBOM"
+grep -q "\"content\": \"${image#*@sha256:}\"" "$sbom" || fail "$sbom does not describe ${image#*@}"
 [ -n "${CI_REGISTRY:-}" ] && [ -n "${CI_REGISTRY_USER:-}" ] && [ -n "${CI_REGISTRY_PASSWORD:-}" ] \
   || fail "the job has no CI_REGISTRY, CI_REGISTRY_USER or CI_REGISTRY_PASSWORD"
 if ! command -v cosign > /dev/null 2>&1; then
@@ -92,6 +107,19 @@ cosign verify $verify_flags --certificate-identity "$identity" --certificate-oid
 grep -q '"critical"' "$out/verify.json" || fail "cosign verify answered nothing for $image"
 grep -q "${image#*@}" "$out/verify.json" || fail "the signature cosign verify found is not over ${image#*@}"
 
+# The SBOM, attested to the image by its digest.
+attest_flags="--yes --rekor-url https://rekor.sigstore.dev --fulcio-url https://fulcio.sigstore.dev"
+attest_help=$(cosign attest --help 2>&1 || true)
+case "$attest_help" in *--use-signing-config*) attest_flags="$attest_flags --use-signing-config=false" ;; esac
+case "$attest_help" in *--new-bundle-format*) attest_flags="$attest_flags --new-bundle-format=false" ;; esac
+# shellcheck disable=SC2086
+cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image" || fail "cosign did not attest the SBOM to $image"
+# shellcheck disable=SC2086
+cosign verify-attestation $verify_flags --type cyclonedx --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" \
+  "$image" > "$out/verify-attestation.json" 2> "$out/verify-attestation.log" \
+  || { cat "$out/verify-attestation.log"; fail "the SBOM attested to $image does not verify as $identity's"; }
+grep -q '"payloadType"' "$out/verify-attestation.json" || fail "cosign verify-attestation answered nothing for $image"
+
 {
   echo "image:    $image"
   echo "tags:     ${HM_IMAGE_TAGS:-}"
@@ -100,7 +128,11 @@ grep -q "${image#*@}" "$out/verify.json" || fail "the signature cosign verify fo
   echo ""
   echo "cosign verify --certificate-identity $identity \\"
   echo "  --certificate-oidc-issuer $issuer $image"
+  echo ""
+  echo "Its SBOM (CycloneDX), attested to it:"
+  echo "cosign verify-attestation --type cyclonedx --certificate-identity $identity \\"
+  echo "  --certificate-oidc-issuer $issuer $image"
 } > "$out/verification.txt"
 cat "$out/verification.txt"
 echo ""
-echo "SIGNED: $image, as $identity."
+echo "SIGNED: $image, as $identity, with its SBOM attested."

@@ -47,6 +47,8 @@
 #                         every file the release carries collected (build/ci/release-chain.py);
 #   release-authenticode  bench150: the installer Authenticode-signed through Azure Artifact
 #                         Signing with the job's ID token (build/ci/windows-authenticode.ps1);
+#   release-sbom          the signed installer's own SBOM, <installer>.cdx.json; the .deb's and
+#                         the .rpm's are linux-build's (build/asset-sbom.py, build/ci/release-chain.py);
 #   release-sign          every file signed with Sigstore as this pipeline (build/ci/release-sign.sh);
 #   release-verify        linix: every bundle checked with the server's own verifier
 #                         (build/ci/release-verify.sh);
@@ -216,6 +218,9 @@ checkers:
                   help-map mysql-charset password-choice-sites release-chain role-choke-point sbom-inputs; do
         check python3 "build/check-$name.py" --self-test
       done
+      # Each compiled release file's own SBOM (build/asset-sbom.py), against a tree, a
+      # dpkg and an rpm held in memory.
+      check python3 build/asset-sbom.py --self-test
       # The update feed's generator, against canned answers: no network, one loopback
       # socket, and the compiled feed addresses read out of UpdateChecker.cpp.
       check python3 build/generate-update-feed.py --self-test
@@ -1187,8 +1192,10 @@ renovate:
 #                         anywhere until a maintainer says so. It checks the tag (an
 #                         annotated tag signed by a key in .gitlab/allowed_signers),
 #                         Version.h against the tag, the cosign pin and the Azure
-#                         settings, and collects the six files a release carries;
+#                         settings, and collects the files a release carries, each
+#                         package with its own SBOM;
 #   release-authenticode  bench150: the installer signed with Authenticode;
+#   release-sbom          GitLab's shared runners: the signed installer's own SBOM;
 #   release-sign          GitLab's shared runners: every file signed with Sigstore;
 #   release-verify        linix: every bundle checked with this commit's own server;
 #   release-publish       started by hand - after the installer smoke test of the signed
@@ -1347,8 +1354,9 @@ release:
   script:
     - python3 build/ci/release-chain.py collect --out release-assets
     # The server release-verify checks the bundles with, kept for as long as the files:
-    # linux-build's own artifact expires in three days.
-    - mkdir -p release-tools && cp linux-build/hmailserver linux-build/build-info.txt release-tools/
+    # linux-build's own artifact expires in three days. And the component list
+    # release-sbom makes the installer's SBOM from, as linux-sbom wrote it.
+    - mkdir -p release-tools && cp linux-build/hmailserver linux-build/build-info.txt sbom/native-dependencies-x64.json release-tools/
   artifacts:
     expire_in: 30 days
     paths:
@@ -1386,6 +1394,32 @@ release-authenticode:
     paths:
       - release-authenticode/
 
+# The installer's own software bill of materials, made from the bytes Authenticode
+# signed, before Sigstore signs it with every other file: each compiled file a release
+# carries goes out with <file>.cdx.json beside it (OpenSSF Baseline OSPS-QA-02.02; the
+# .deb's and the .rpm's are made in linux-build, where dpkg knows what they were built
+# against). build/asset-sbom.py, from linux-sbom's component list (kept in release's
+# release-tools/), the tools' lock files and the installer script's [Files]; SECURITY.md,
+# "Software bills of materials", says how a user checks one.
+release-sbom:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+  needs:
+    - job: release
+      artifacts: true
+    - job: release-authenticode
+      artifacts: true
+  timeout: 10 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  script:
+    - python3 build/ci/release-chain.py sbom --out release-sbom
+  artifacts:
+    expire_in: 90 days
+    paths:
+      - release-sbom/
+
 # Sigstore, keyless, on GitLab's shared runners, in cosign's own image pinned by digest
 # (HM_COSIGN_IMAGE, above): nothing from GitHub. The certificate names
 # https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, or
@@ -1399,6 +1433,8 @@ release-sign:
     - job: release
       artifacts: true
     - job: release-authenticode
+      artifacts: true
+    - job: release-sbom
       artifacts: true
   timeout: 30 minutes
   interruptible: false

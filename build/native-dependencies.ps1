@@ -51,16 +51,28 @@
 #
 # The licences are declared here because a path cannot carry one. They are SPDX
 # identifiers, or NOASSERTION with the licence's name beside it where SPDX has none.
+#
+# Each component also says which compiled assets carry it ("targets": windows, linux)
+# and, for a Linux library, whether the packages link it statically ("linkage"), so
+# that build/asset-sbom.py can give every release asset an SBOM of its own that lists
+# what that asset holds and nothing else. -Platform ARM64 gives the ARM64 installer's
+# list: the linked libraries from the ARM64 include paths, and the shipped files
+# third-party-binaries.json tags arm64 in place of the x64 ones.
 
 [CmdletBinding()]
 param(
    # Where to write the JSON. Defaults to stdout, which is what CI uses.
-   [string] $OutputFile
+   [string] $OutputFile,
+   # The Windows installer the linked and shipped components are those of.
+   [ValidateSet('x64', 'ARM64')] [string] $Platform = 'x64',
+   # The tree to read, when it is not the one this script is in: a release's tree,
+   # checked out elsewhere, described by a newer copy of this script.
+   [string] $RepoRoot
 )
 
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = if ($RepoRoot) { (Resolve-Path -LiteralPath $RepoRoot).Path } else { Split-Path -Parent $PSScriptRoot }
 
 # Built up a segment at a time rather than as one backslash-separated string, because this
 # runs on linix in the linux-sbom job as well as on Windows, and a literal
@@ -121,6 +133,8 @@ $dependencies = @(
       # Read from this file rather than matched in the project file; see the header.
       VersionFile = @('hmailserver', 'source', 'Server', 'quickjs', 'VERSION')
       Vendored    = 'hmailserver/source/Server/quickjs'
+      # The Linux packages' binary alone: hMailServer.exe has no QuickJS.
+      Targets     = 'linux'
       Purl        = 'pkg:generic/quickjs@{0}'
       Cpe         = 'cpe:2.3:a:quickjs_project:quickjs:{0}:*:*:*:*:*:*:*'
       License     = 'MIT'
@@ -133,6 +147,8 @@ $dependencies = @(
       VersionFile    = @('hmailserver', 'source', 'Server', 'zlib', 'zlib.h')
       VersionPattern = '#define ZLIB_VERSION "([^"]+)"'
       Vendored       = 'hmailserver/source/Server/zlib'
+      # hMailServer.exe alone: the Linux packages link the distribution's zlib.
+      Targets        = 'windows'
       Purl           = 'pkg:generic/zlib@{0}'
       Cpe            = 'cpe:2.3:a:zlib:zlib:{0}:*:*:*:*:*:*:*'
       License        = 'Zlib'
@@ -242,6 +258,8 @@ $linuxComponents = @{
    'boost' = @{
       Name = 'boost'; Purl = 'pkg:generic/boost'; License = 'BSL-1.0'; Website = 'https://www.boost.org/'
       Why  = 'the build image''s Boost, 1.83 or later, linked statically: thread, chrono and filesystem, and the header-only rest'
+      # In the binary itself; every other library here is the distribution's, found at run time.
+      Linkage = 'static'
    }
    'libpq' = @{
       Name = 'libpq'; Purl = 'pkg:generic/libpq'; License = 'PostgreSQL'; Website = 'https://www.postgresql.org/'
@@ -271,6 +289,11 @@ function New-Component([hashtable] $fields) {
       source      = $fields.source
       vendored    = $fields.vendored
       hashes      = @($fields.hashes | Where-Object { $_ })
+      # The compiled assets that carry it (windows: the installer of -Platform; linux:
+      # the .deb and the .rpm), and how a Linux library is linked (static or dynamic).
+      targets     = @($fields.targets)
+      linkage     = [string] $fields.linkage
+      files       = @($fields.files | Where-Object { $_ })
    }
    return [pscustomobject] $component
 }
@@ -299,7 +322,10 @@ foreach ($dependency in $dependencies) {
       $source = ($dependency.VersionFile -join '/')
    }
    else {
-      $match = [regex]::Match($project, $dependency.Pattern)
+      # The ARM64 configuration's own paths, which carry the suffix -arm64: the x64
+      # ones are not what the ARM64 installer is linked against.
+      $pattern = if ($Platform -eq 'ARM64') { $dependency.Pattern + '-arm64' } else { $dependency.Pattern }
+      $match = [regex]::Match($project, $pattern)
 
       if (-not $match.Success) {
          $missing += $dependency.Name
@@ -328,6 +354,7 @@ foreach ($dependency in $dependencies) {
       why      = $dependency.Why
       source   = $source
       vendored = $dependency.Vendored
+      targets  = $(if ($dependency.Targets) { @($dependency.Targets) } else { @('windows') })
    }
 }
 
@@ -353,9 +380,12 @@ foreach ($buildInput in @($manifest.build_inputs)) { $buildInputs[('{0}/{1}' -f 
 $byComponent = [ordered]@{}
 foreach ($artifact in @($manifest.artifacts)) {
    if ($pinnedDispositions -notcontains $artifact.disposition) { continue }
-   # The x64 release's SBOM: an artifact tagged with a platform (ARM64) ships in
-   # the ARM64 installer only, which will have an SBOM of its own.
-   if ($artifact.platform) { continue }
+   # An artifact tagged with a platform (arm64) ships in the ARM64 installer only,
+   # and one with none in the x64 installer only: the ARM64 installer carries its
+   # own 7-Zip, runtime and .NET, and no MySQL client or SQL Server Compact
+   # (hmailserver/installation/section_files_arm64.iss).
+   $wanted = if ($Platform -eq 'ARM64') { 'arm64' } else { '' }
+   if ([string] $artifact.platform -ne $wanted) { continue }
    $key = '{0}|{1}' -f $artifact.component, $artifact.version
    if (-not $byComponent.Contains($key)) { $byComponent[$key] = @() }
    $byComponent[$key] += $artifact
@@ -370,6 +400,19 @@ foreach ($key in $byComponent.Keys) {
 
    $hashes = @()
    $pins = @()
+   # Each file the installer packs, by its SHA-256 as the manifest pins it (get-installer-binaries.ps1
+   # checks every one before the installer is built), named by its path under
+   # hmailserver/installation/ (ARM64/ left out for the ARM64 installer's). The copies under
+   # libraries/ are what the build links against, not what is packed.
+   $files = @()
+   foreach ($artifact in $artifacts) {
+      $path = [string] $artifact.path
+      if ($path -like 'hmailserver/installation/*' -and $artifact.sha256) {
+         $packed = $path.Substring('hmailserver/installation/'.Length)
+         if ($Platform -eq 'ARM64' -and $packed -like 'ARM64/*') { $packed = $packed.Substring('ARM64/'.Length) }
+         $files += [pscustomobject][ordered]@{ path = $packed; sha256 = ([string] $artifact.sha256).ToLowerInvariant() }
+      }
+   }
    foreach ($artifact in $artifacts) {
       switch ($artifact.disposition) {
          'fetched' {
@@ -409,6 +452,8 @@ foreach ($key in $byComponent.Keys) {
       why         = $meta.Why
       source      = ('hmailserver/docs/third-party-binaries.json ({0} {1}: {2})' -f $artifacts.Count, $(if ($artifacts.Count -eq 1) { 'file' } else { 'files' }), (($pins | Select-Object -Unique) -join '; '))
       hashes      = $unique
+      targets     = @('windows')
+      files       = @($files)
    }
 }
 
@@ -446,6 +491,8 @@ foreach ($id in $linuxIds) {
       website = $meta.Website
       why     = $meta.Why
       source  = $(if ($findNames.Count) { 'hmailserver/source/Server/CMakeLists.txt finds it (' + ($findNames -join ', ') + ')' } else { 'every C++ program links it' })
+      targets = @('linux')
+      linkage = $(if ($meta.Linkage) { $meta.Linkage } else { 'dynamic' })
    }
 }
 

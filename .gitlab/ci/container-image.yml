@@ -13,10 +13,15 @@
 #                         release without a suffix as :<major>.<minor> and :latest
 #                         too - a pre-release (v6.3.5-rc1) never moves those two
 #                         (build/ci/linux-image.sh with HM_IMAGE_PUSH=1);
+#   container-image-sbom  linix: the image's software bill of materials - Syft's
+#                         reading of the pushed image by its digest, with what the
+#                         .deb's own SBOM names inside the binary added
+#                         (build/ci/container-image-sbom.sh, build/asset-sbom.py);
 #   container-image-sign  GitLab's shared runners, in cosign's own image
 #                         (HM_COSIGN_IMAGE): the image signed by its digest with
 #                         Sigstore, keylessly, as the same pipeline identity the
-#                         release's files carry, and verified
+#                         release's files carry, its SBOM attested to it (predicate
+#                         type cyclonedx) by the same identity, and both verified
 #                         (build/ci/container-image-sign.sh);
 #   container_scanning    GitLab's shared runners: GitLab's own Container Scanning
 #                         template, free on every tier, over the pushed image by
@@ -25,7 +30,7 @@
 #                         for members with the Developer role or above, since the
 #                         vulnerability report is GitLab Ultimate.
 #
-# None of the three runs unless the PROJECT's CI/CD variable HM_PUBLISH_IMAGE is "1"
+# None of the four runs unless the PROJECT's CI/CD variable HM_PUBLISH_IMAGE is "1"
 # (Settings, CI/CD, Variables; a v* tag's pipeline is for a protected ref, so it may
 # be marked Protected). GitLab.com cannot transfer a project whose container
 # registry holds an image to another namespace, and the project is to move into the
@@ -86,6 +91,33 @@ container-image:
     reports:
       dotenv: container-image/image.env
 
+# The image's SBOM, for container-image-sign to attest: in the Linux CI image, which
+# has Syft, and with the release's .deb and that .deb's own SBOM from release-sign.
+container-image-sbom:
+  stage: release
+  tags: [linix]
+  image: !reference [.linix, image]
+  needs:
+    - job: container-image
+      artifacts: true
+    - job: release-sign
+      artifacts: true
+  timeout: 15 minutes
+  interruptible: false
+  rules:
+    - if: $HM_PUBLISH_IMAGE != "1"
+      when: never
+    - !reference [.release-rules, rules]
+  variables:
+    HM_IMAGE_DEB_DIR: release-signed
+  script:
+    - bash build/ci/container-image-sbom.sh
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - container-image-sbom/
+
 container-image-sign:
   stage: release
   image:
@@ -93,6 +125,8 @@ container-image-sign:
     entrypoint: [""]
   needs:
     - job: container-image
+      artifacts: true
+    - job: container-image-sbom
       artifacts: true
   timeout: 15 minutes
   interruptible: false

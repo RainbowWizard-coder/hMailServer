@@ -93,7 +93,24 @@ for file in "$signed"/*; do
 done
 rm -rf "$scratch"
 
-[ "$verified" -eq 6 ] || fail "$verified file(s) verified; a release is 6"
+[ "$verified" -eq 9 ] || fail "$verified file(s) verified; a release is 9"
+
+# Each compiled file's own SBOM describes that very file (build/asset-sbom.py verify:
+# well formed, and its subject's SHA-256 is the file's), as a user checks it
+# (SECURITY.md, "Software bills of materials").
+sbom_rows=""
+for file in "$signed"/*.exe "$signed"/*.deb "$signed"/*.rpm; do
+  [ -f "$file" ] || continue
+  name=$(basename "$file")
+  [ -f "$file.cdx.json" ] || fail "$name goes out without its SBOM, $name.cdx.json"
+  python3 build/asset-sbom.py verify "$file.cdx.json" "$file" > "$out/$name.sbom.txt" \
+    || { cat "$out/$name.sbom.txt"; fail "$name.cdx.json does not describe $name"; }
+  components=$(sed -n 's/^\([0-9][0-9]*\) components\.$/\1/p' "$out/$name.sbom.txt")
+  echo "   $name.cdx.json describes $name ($components components)"
+  sbom_rows="$sbom_rows| \`$name\` | \`$name.cdx.json\` | $components |
+"
+done
+[ -n "$sbom_rows" ] || fail "no compiled file to hold an SBOM to"
 
 # The repository id (Fulcio's 1.3.6.1.4.1.57264.1.15): for the path the project began
 # at the server requires it when the certificate carries it, for the group's always, and
@@ -150,6 +167,15 @@ esac
   echo "|---|---|---|"
   printf '%s' "$rows"
   echo ""
+  echo "Every compiled file goes out with a software bill of materials of its own, in CycloneDX 1.6, named after it, which"
+  echo "names that file by its SHA-256 and lists what it holds and needs. The repository's \`build/asset-sbom.py verify\`"
+  echo "checks that one describes the file beside it (SECURITY.md, \"Software bills of materials\"); each is signed like the rest."
+  echo ""
+  echo "| File | Its SBOM | Components |"
+  echo "|---|---|---|"
+  printf '%s' "$sbom_rows"
+  echo "| the source tree | \`hmailserver.spdx.json\`, \`hmailserver.cyclonedx.json\` | |"
+  echo ""
   echo "To check a download with cosign:"
   echo ""
   echo "    cosign verify-blob --bundle <file>.cosign.bundle \\"
@@ -163,7 +189,8 @@ esac
   echo "is GitHub's."
   echo ""
   echo "What a signature shows is which pipeline signed a file, not what the file was built from. Here, the \`.deb\`,"
-  echo "the \`.rpm\` and the SBOMs were made by this pipeline in the runner's own checkout of \`${CI_COMMIT_SHA:-unknown}\`."
+  echo "the \`.rpm\` and the SBOMs were made by this pipeline in the runner's own checkout of \`${CI_COMMIT_SHA:-unknown}\`,"
+  echo "the installer's SBOM from the installer as Authenticode signed it."
   echo "The Windows installer was made by this pipeline on the project's Windows runner, in that runner's long-lived"
   echo "checkout, which the job requires to be at that commit with no change to a tracked file and no file git does not"
   echo "track where a build would take it in, and from the folders the installer takes whole it removes every file git"

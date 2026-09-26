@@ -242,6 +242,18 @@ holds both documents to every pinned input's version and hash. On GitLab the
 `linux-sbom` job does the same for `master`, `batch*` branches and tags
 ([ContinuousIntegration.md](ContinuousIntegration.md)).
 
+From 6.3.4 on, each compiled file a release carries - the Windows installer, the
+`.deb` and the `.rpm` - also goes out with an SBOM of its own,
+`<file>.cdx.json` (CycloneDX 1.6), whose subject is that file by its SHA-256 and
+whose components are what that file holds and needs, and nothing only another
+file carries: for the installer, the linked and packed native components, each
+packed file by its pinned SHA-256, and the tools' NuGet packages from their lock
+files; for a package, the distribution libraries with the development package
+and version it was built against, Boost and QuickJS as linked into it, and the
+package's declared dependencies. `build/asset-sbom.py` makes them and checks one
+against a file; the release jobs refuse a release without them. How a buyer
+checks one is in [SECURITY.md](../../SECURITY.md), *Software bills of materials*.
+
 ### Reproducible builds
 
 Two clean Release builds of the same tree produce a byte-identical
@@ -729,8 +741,9 @@ Not in place, in one list
 * CodeQL, the dependency review and the nightly fuzzing: none has run since
   18 September 2026.
 * Fuzz harnesses beyond MIME.
-* Versions for the Linux packages' system libraries in the SBOM, which names
-  them without one.
+* Versions for the Linux packages' system libraries at run time: each package's
+  own SBOM names the version it was built against and the range it requires, and
+  the machine's own package manager decides the rest.
 * An independent rebuild confirming a released binary.
 * Active-active operation.
 * Any audit, certification or attestation.

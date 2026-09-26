@@ -6,8 +6,8 @@
 """The release jobs of .gitlab-ci.yml are what a server built after 6.3.3 needs them to be.
 
 A v* tag's pipeline ends in the release chain (docs/ContinuousIntegration.md, "The
-release"): windows-installer, release, release-authenticode, release-sign,
-release-verify, release-publish and update-feed. Most of what makes a release
+release"): windows-installer, release, release-authenticode, release-sbom,
+release-sign, release-verify, release-publish and update-feed. Most of what makes a release
 installable is fixed in places that do not look like each other - the identity
 SigstoreVerifier.cpp compiles in, the file the pipeline is defined in, the ID
 token's audience, cosign's flags, the order of the jobs - and a change to any one
@@ -29,6 +29,13 @@ refuses it. This checker holds them to each other. It fails when:
     with the project's id required, or stops requiring that id of every
     certificate naming the group's path or repository whatever the settings; or
     the scripts sign from a path it does not trust, or name the identity twice;
+  * a compiled file the release carries (build/ci/release-chain.py's
+    expected_assets: an installer or a package) goes out without its own SBOM,
+    <file>.cdx.json, beside it (OpenSSF Baseline OSPS-QA-02.02); release-sbom
+    does not make the installer's from the bytes Authenticode signed, before
+    release-sign signs it; release-sign.sh does not take that SBOM and hold it
+    to the signed installer; or release-verify.sh does not hold every compiled
+    file's SBOM to the file with build/asset-sbom.py verify;
   * release-authenticode has no ID token for Entra ID (aud
     api://AzureADTokenExchange), or its script signs without the service's RFC
     3161 timestamp, or reads other settings than the release job checks;
@@ -86,7 +93,9 @@ refuses it. This checker holds them to each other. It fails when:
     anything but a protected v* tag, push before release-publish, sign before the
     push, sign without an ID token for Sigstore or in another image than
     HM_COSIGN_IMAGE, or build/ci/container-image-sign.sh expects another identity
-    or log than the release's files are signed with; or any of the three can run
+    or log than the release's files are signed with, or no longer attests the
+    image's SBOM (container-image-sbom, build/ci/container-image-sbom.sh) to it
+    and verifies the attestation; or any of the four can run
     without the project's own CI/CD variable HM_PUBLISH_IMAGE set to "1" (each
     begins its rules with the refusal), or a committed CI file sets that variable.
 
@@ -125,14 +134,15 @@ FILES = {
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
 }
 
-RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sign", "release-verify",
+RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
                 "release-publish", "update-feed"]
 # The container image's jobs, in .gitlab/ci/container-image.yml, and what each must
 # need: the image is pushed once the release is published, from the .deb release-sign
 # signed, and signed and scanned once it is pushed.
 IMAGE_JOBS = {
     "container-image": ["release-sign", "release-verify", "release-publish"],
-    "container-image-sign": ["container-image"],
+    "container-image-sbom": ["container-image", "release-sign"],
+    "container-image-sign": ["container-image", "container-image-sbom"],
     "container_scanning": ["container-image"],
 }
 # The rule each of them begins with: none runs unless the project's own CI/CD
@@ -445,7 +455,7 @@ def probe_registry(chain, feed):
     one that holds files of the version already."""
     version = "9.9.9"
     names = feed.installer_names(version)
-    digests = dict((name, "a" * 64) for name in chain.expected_assets(version))
+    digests = dict((name, "a" * 64) for name in chain.collected_assets(version))
 
     class Registry(object):
         def __init__(self, *held):
@@ -466,6 +476,7 @@ def probe_registry(chain, feed):
         ("a .deb with other bytes", Registry((names["deb-amd64"], "b" * 64)), True),
         ("a .deb held twice, the older with other bytes", Registry((names["deb-amd64"], "b" * 64), (names["deb-amd64"], "a" * 64)), True),
         ("the installer, which Authenticode makes after collect", Registry((names["windows"], "a" * 64)), True),
+        ("the installer's SBOM, which release-sbom makes after collect", Registry((chain.sbom_name(names["windows"]), "a" * 64)), True),
         ("a bundle, which Sigstore makes after collect", Registry(("hmailserver.spdx.json.cosign.bundle", "c" * 64)), True),
     ]
     problems = []
@@ -522,7 +533,8 @@ def check(texts, chain, feed):
     order = {
         "release": gates(jobs) + ["windows-installer"],
         "release-authenticode": ["release"],
-        "release-sign": ["release", "release-authenticode"],
+        "release-sbom": ["release", "release-authenticode"],
+        "release-sign": ["release", "release-authenticode", "release-sbom"],
         "release-verify": ["release", "release-sign"],
         "release-publish": ["release-sign", "release-verify"],
         "update-feed": ["release-publish"],
@@ -540,6 +552,38 @@ def check(texts, chain, feed):
             problems.append("release does not bring %s's artifacts, which hold a file the release carries" % name)
         if name not in COLLECTED and not re.search(r"artifacts: false", entry):
             problems.append("release brings %s's artifacts, which it does not collect: say artifacts: false" % name)
+
+    # Every compiled file with its own SBOM: made by the jobs, signed with the rest,
+    # and held to its file before the release is published.
+    carried = chain.expected_assets("9.9.9")
+    compiled = [n for n in carried if chain.link_type(n) == "package"]
+    if sorted(compiled) != sorted(chain.compiled_assets("9.9.9")):
+        problems.append("build/ci/release-chain.py's compiled_assets is %s, and the release carries the compiled files %s: "
+                        "each of them needs its SBOM" % (chain.compiled_assets("9.9.9"), compiled))
+    for name in compiled:
+        if chain.sbom_name(name) not in carried:
+            problems.append("the release carries %s without its SBOM, %s (OpenSSF Baseline OSPS-QA-02.02; build/asset-sbom.py)" % (
+                name, chain.sbom_name(name)))
+    later = chain.made_after_collect("9.9.9")
+    if chain.sbom_name(feed.installer_names("9.9.9")["windows"]) not in later:
+        problems.append("build/ci/release-chain.py collects the installer's SBOM, which must be made from the bytes Authenticode "
+                        "signs after collect")
+    sbom_job = jobs["release-sbom"]
+    if "python3 build/ci/release-chain.py sbom" not in sbom_job or not re.search(r"^      - release-sbom/\s*$", sbom_job, re.MULTILINE):
+        problems.append("release-sbom does not run build/ci/release-chain.py sbom and keep release-sbom/")
+    if re.search(r"^  id_tokens:", sbom_job, re.MULTILINE) or re.search(r"^  tags:", sbom_job, re.MULTILINE):
+        problems.append("release-sbom holds an ID token or runs on the project's own runners: it signs nothing and needs neither")
+    if "sbom/native-dependencies-x64.json release-tools/" not in jobs["release"]:
+        problems.append("release does not keep linux-sbom's component list in release-tools/, which release-sbom reads")
+    for needle, why in (('sboms=release-sbom', "release-sbom's artifact"),
+                        ('cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"', "the installer's SBOM among the files it signs"),
+                        ('grep -q "\\"content\\": \\"$signed_sha256\\"" "$sboms/$installer.cdx.json"', "the check that it describes the signed installer")):
+        if needle not in texts["sign"]:
+            problems.append("build/ci/release-sign.sh no longer has %s (%s)" % (needle, why))
+    if "python3 build/asset-sbom.py verify \"$file.cdx.json\" \"$file\"" not in texts["verify"]:
+        problems.append("build/ci/release-verify.sh no longer holds each compiled file's SBOM to the file (build/asset-sbom.py verify)")
+    if "sbom_problems(assets, version)" not in function_text(texts["chain"], "publish"):
+        problems.append("build/ci/release-chain.py's publish no longer holds each compiled file's SBOM to its file before it uploads")
 
     # Sigstore.
     sign = jobs["release-sign"]
@@ -751,6 +795,14 @@ def check(texts, chain, feed):
         problems.append("build/ci/container-image-sign.sh signs without --rekor-url https://rekor.sigstore.dev (Rekor v1)")
     if "--use-signing-config=false" not in image_script:
         problems.append("build/ci/container-image-sign.sh no longer turns the signing configuration off")
+    for needle, why in (('cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image"', "the SBOM attested to the image"),
+                        ('cosign verify-attestation $verify_flags --type cyclonedx --certificate-identity "$identity"', "the attestation verified as the release's identity"),
+                        ("sbom=container-image-sbom/hmailserver-image.cdx.json", "the SBOM container-image-sbom made")):
+        if needle not in image_script:
+            problems.append("build/ci/container-image-sign.sh no longer has %s (%s): the image would go out without its SBOM" % (needle, why))
+    image_sbom = image_jobs.get("container-image-sbom", "")
+    if image_sbom and ("bash build/ci/container-image-sbom.sh" not in image_sbom or "- container-image-sbom/" not in image_sbom):
+        problems.append("container-image-sbom does not run build/ci/container-image-sbom.sh and keep container-image-sbom/")
 
     # The feed pipeline runs pages and nothing else.
     update = jobs["update-feed"]
@@ -916,11 +968,26 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=6", "expected=5", "a release carries")
+    broken("another count of files", "sign", "expected=9", "expected=6", "a release carries")
+    broken("the installer signed before its SBOM is made", "ci", "    - job: release-sbom\n      artifacts: true\n", "",
+           "release-sign does not need release-sbom")
+    broken("the installer's SBOM made before Authenticode", "ci",
+           "    - job: release-authenticode\n      artifacts: true\n  timeout: 10 minutes", "  timeout: 10 minutes",
+           "release-sbom does not need release-authenticode")
+    broken("the installer's SBOM left out of what is signed", "sign", 'cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"\n', "",
+           "the installer's SBOM among the files it signs")
+    broken("the installer's SBOM not held to the signed bytes", "sign", 'grep -q "\\"content\\": \\"$signed_sha256\\""', 'grep -q "content"',
+           "describes the signed installer")
+    broken("the SBOMs not checked before publication", "verify", 'python3 build/asset-sbom.py verify "$file.cdx.json" "$file"',
+           'true "$file.cdx.json" "$file"', "no longer holds each compiled file's SBOM")
+    broken("publish not holding the SBOMs to their files", "chain", "    unfit = sbom_problems(assets, version)", "    unfit = []",
+           "before it uploads")
+    broken("the component list not kept for release-sbom", "ci", "sbom/native-dependencies-x64.json release-tools/", "release-tools/",
+           "keep linux-sbom's component list")
     broken("a release started without a person", "ci", "      when: manual\n      allow_failure: false\n  before_script:",
            "      allow_failure: false\n  before_script:", "must wait for a person")
-    broken("Sigstore before Authenticode", "ci", "    - job: release-authenticode\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN",
-           "  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN", "release-sign does not need release-authenticode")
+    broken("Sigstore before Authenticode", "ci", "    - job: release-authenticode\n      artifacts: true\n    - job: release-sbom\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN",
+           "    - job: release-sbom\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN", "release-sign does not need release-authenticode")
     broken("a job that would run in the feed's pipeline", "ci", '.not-a-fuzz-pipeline:\n  rules:\n    - if: ' + REFUSAL,
            '.not-a-fuzz-pipeline:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule"', "checkers would run in the feed's pipeline")
     broken("the feed's pipeline marked by a variable", "ci", "  inherit:\n    variables: false\n  trigger:",
@@ -1033,9 +1100,16 @@ def self_test(chain, feed):
            "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_PUSH: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the switch turned on for every job", "ci", "\nvariables:\n", "\nvariables:\n  HM_PUBLISH_IMAGE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the image signed for another audience", "image", "      aud: sigstore", "      aud: fulcio", "container-image-sign has no id_tokens")
-    broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n  timeout: 15 minutes",
+    broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n    - job: container-image-sbom\n      artifacts: true\n  timeout: 15 minutes",
            "  needs: []\n  timeout: 15 minutes", "container-image-sign does not need container-image")
     broken("the scan without the image's name", "image", "  dependencies: [container-image]\n", "", "container_scanning does not take")
+    broken("the image signed before its SBOM is made", "image", "    - job: container-image-sbom\n      artifacts: true\n", "",
+           "container-image-sign does not need container-image-sbom")
+    broken("the image's SBOM made without the switch", "image",
+           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_DEB_DIR",
+           "  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_DEB_DIR", "container-image-sbom's rules do not begin with")
+    broken("the image signed without its SBOM attested", "image-sign", 'cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image"',
+           'true', "the image would go out without its SBOM")
     broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")
     broken("the image signed as a branch", "image-sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "container-image-sign.sh expects another identity")
@@ -1081,6 +1155,11 @@ def self_test(chain, feed):
     patched("a tag check that takes git's word for the key", "check_tag", without("not by the one key"), "a key other than the one git was given")
     patched("a tag check that refuses everything", "check_tag", lambda root, tag, commit, run: ["no"], "refuses a tag master's one key signed")
     patched("the allow-list read from another branch", "TRUSTED_BRANCH", "main", "not from master")
+    held_expected = chain.expected_assets
+    patched("a package carried without its SBOM", "expected_assets",
+            lambda version: [n for n in held_expected(version) if not n.endswith(".deb.cdx.json")], "without its SBOM")
+    patched("a compiled file the SBOM rule does not know", "expected_assets",
+            lambda version: held_expected(version) + ["hMailServer-%s-arm64.exe" % version], "each of them needs its SBOM")
     patched("collect taking whatever the registry holds", "check_registry_before_signing", lambda api, version, digests: [], "collect takes a registry holding")
     held_registry = chain.check_registry_before_signing
     patched("collect taking an installer already signed", "check_registry_before_signing",

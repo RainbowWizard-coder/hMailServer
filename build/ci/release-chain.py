@@ -7,8 +7,9 @@
 
 A v* tag's pipeline (.gitlab-ci.yml, the release stage; docs/ContinuousIntegration.md,
 "The release") builds and tests, then waits for a maintainer to start the `release`
-job. That job runs `collect`; the signing jobs follow it, and `release-publish`, also
-started by hand, runs `publish`:
+job. That job runs `collect`; Authenticode signs the installer, `release-sbom` runs
+`sbom`, Sigstore signs every file, and `release-publish`, also started by hand, runs
+`publish`:
 
   collect   the tag is an annotated tag, it still points at the commit this
             pipeline built, and that commit is on master; it is signed by the one
@@ -20,19 +21,26 @@ started by hand, runs `publish`:
             it is the name a server looks for; the cosign image is gcr.io's pinned
             by digest, whatever a CI/CD variable made it, and the Azure settings the Authenticode job reads are all there; and the
             artefacts of the jobs it needs - the Windows installer, the .deb and the
-            .rpm with their sums, the two SBOMs - are gathered into one directory
-            under the names a release carries. The package hmailserver/<version>
-            must not hold any of them with other bytes already, nor the installer
-            or a bundle at all: those are made by the signing jobs after this one,
-            and a second signing never makes the same bytes. Nothing leaves the
-            pipeline.
+            .rpm with their sums and each package's own SBOM, the two SBOMs of the
+            tree - are gathered into one directory under the names a release
+            carries, each package's SBOM held to the package it describes. The
+            package hmailserver/<version> must not hold any of them with other bytes
+            already, nor the installer, its SBOM or a bundle at all: those are made
+            by the jobs after this one, and a second signing never makes the same
+            bytes. Nothing leaves the pipeline.
+
+  sbom      the installer's own SBOM (build/asset-sbom.py), made from the bytes
+            Authenticode signed - every compiled file a release carries goes out
+            with an SBOM of its own, <file>.cdx.json (OpenSSF Baseline
+            OSPS-QA-02.02; SECURITY.md, "Software bills of materials").
 
   publish   every signed file and its <file>.cosign.bundle uploaded to the generic
             package hmailserver/<version> of this project, read back from the
             registry and held to the SHA-256 it was signed with - nothing is
             uploaded while the package holds a file of that name with other bytes,
             and a file it holds with the same bytes, from an earlier run of the job,
-            is not uploaded again - then the GitLab
+            is not uploaded again - once every compiled file's SBOM has been held
+            to that file - then the GitLab
             release created with one link per file, named after the file, which is
             what build/generate-update-feed.py and every server require. The notes
             are the version's section of CHANGELOG.md and the verification the
@@ -46,6 +54,7 @@ is refused - a tag is spent once - and so is any project but this one.
 
 Usage, from the repository root:
   python3 build/ci/release-chain.py collect [--out release-assets]
+  python3 build/ci/release-chain.py sbom [--out release-sbom]
   python3 build/ci/release-chain.py publish [--assets release-signed] [--verification release-verified/verification.md]
   python3 build/ci/release-chain.py --self-test      no network, no git, no token
 """
@@ -77,6 +86,17 @@ def _load_feed():
 
 
 feed = _load_feed()
+
+
+def _load_asset_sbom():
+    path = os.path.join(ROOT, "build", "asset-sbom.py")
+    spec = importlib.util.spec_from_file_location("asset_sbom", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+asset_sbom = _load_asset_sbom()
 
 PROJECT_ID = feed.PROJECT_ID
 PACKAGE = "hmailserver"
@@ -135,12 +155,37 @@ def sums_name(version):
     return "hmailserver-linux-%s-SHA256SUMS.txt" % version
 
 
+def sbom_name(name):
+    """The SBOM of one compiled file: <file>.cdx.json, beside it (build/asset-sbom.py)."""
+    return name + asset_sbom.SUFFIX
+
+
+def compiled_assets(version):
+    """The compiled files a release carries: the installer and the two packages. Each
+    goes out with an SBOM of its own (OpenSSF Baseline OSPS-QA-02.02)."""
+    names = feed.installer_names(version)
+    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"]]
+
+
 def expected_assets(version):
     """Every file a release carries, each signed beside it. The Linux AArch64
     packages and the AppImages are not built by the pipeline (docs/ContinuousIntegration.md)."""
     names = feed.installer_names(version)
     return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], sums_name(version),
-            "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
+            "hmailserver.spdx.json", "hmailserver.cyclonedx.json"] + [sbom_name(n) for n in compiled_assets(version)]
+
+
+def made_after_collect(version):
+    """What the jobs after collect make: the installer's signed bytes (Authenticode) and
+    the installer's SBOM, which describes those bytes (release-sbom)."""
+    installer = feed.installer_names(version)["windows"]
+    return [installer, sbom_name(installer)]
+
+
+def collected_assets(version):
+    """What collect gathers: every file but the installer's SBOM, which release-sbom makes."""
+    later = made_after_collect(version)[1:]
+    return [name for name in expected_assets(version) if name not in later]
 
 
 def sources(version):
@@ -150,10 +195,39 @@ def sources(version):
         names["windows"]: os.path.join("release-windows", names["windows"]),
         names["deb-amd64"]: os.path.join("linux-build", "packages", names["deb-amd64"]),
         names["rpm-x86_64"]: os.path.join("linux-build", "packages", names["rpm-x86_64"]),
+        sbom_name(names["deb-amd64"]): os.path.join("linux-build", "packages", sbom_name(names["deb-amd64"])),
+        sbom_name(names["rpm-x86_64"]): os.path.join("linux-build", "packages", sbom_name(names["rpm-x86_64"])),
         sums_name(version): os.path.join("linux-build", "packages", "SHA256SUMS.txt"),
         "hmailserver.spdx.json": os.path.join("sbom", "hmailserver.spdx.json"),
         "hmailserver.cyclonedx.json": os.path.join("sbom", "hmailserver.cyclonedx.json"),
     }
+
+
+# The component list release-sbom makes the installer's SBOM from, which linux-sbom
+# writes and the release job keeps in release-tools/ (build/ci/linux-sbom.sh).
+DEPENDENCY_LIST = "native-dependencies-x64.json"
+
+
+def sbom_problems(directory, version, names=None):
+    """Each compiled file's SBOM in directory describes that very file, by its SHA-256,
+    and is well formed; problems as sentences."""
+    problems = []
+    for name in names or compiled_assets(version):
+        document = os.path.join(directory, sbom_name(name))
+        asset = os.path.join(directory, name)
+        if not os.path.isfile(document):
+            problems.append("%s goes out without its SBOM, %s: every compiled file a release carries has one "
+                            "(SECURITY.md, 'Software bills of materials')" % (name, sbom_name(name)))
+            continue
+        lines = []
+        try:
+            answer = asset_sbom.verify(document, asset, lines.append)
+        except (OSError, asset_sbom.SbomError) as e:
+            answer, lines = 1, ["PROBLEM: %s" % e]
+        if answer != 0:
+            problems.append("%s does not describe %s: %s" % (sbom_name(name), name,
+                                                          "; ".join(l for l in lines if l.startswith("PROBLEM")) or "unreadable"))
+    return problems
 
 
 def is_primary(name):
@@ -398,7 +472,7 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
     problems.extend(check_tag(root, tag, env.get("CI_COMMIT_SHA", ""), run))
 
     places = sources(version)
-    for name in expected_assets(version):
+    for name in collected_assets(version):
         path = os.path.join(root, places[name])
         if not os.path.isfile(path) or os.path.getsize(path) == 0:
             problems.append("%s is not in this job's artifacts (%s): the job that makes it failed or did not run" % (name, places[name]))
@@ -407,16 +481,18 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
         problems.extend(check_sums(os.path.join(root, places[sums_name(version)]),
                                    os.path.join(root, places[names["deb-amd64"]]),
                                    os.path.join(root, places[names["rpm-x86_64"]])))
+        problems.extend(sbom_problems(os.path.join(root, "linux-build", "packages"), version,
+                                      [names["deb-amd64"], names["rpm-x86_64"]]))
     if not problems:
         problems.extend(check_registry_before_signing(api, version, dict(
-            (name, sha256_of(os.path.join(root, places[name]))) for name in expected_assets(version))))
+            (name, sha256_of(os.path.join(root, places[name]))) for name in collected_assets(version))))
     if problems:
         return problems
 
     if os.path.isdir(out):
         shutil.rmtree(out)
     os.makedirs(out)
-    for name in expected_assets(version):
+    for name in collected_assets(version):
         shutil.copyfile(os.path.join(root, places[name]), os.path.join(out, name))
         say("  %s  %12d  %s" % (sha256_of(os.path.join(out, name)), os.path.getsize(os.path.join(out, name)), name))
     return []
@@ -509,16 +585,43 @@ def check_registry_before_signing(api, version, digests):
     except (ReleaseError, feed.FeedError) as e:
         return ["the package registry could not be read, and a release is not signed without knowing what it holds "
                 "under %s/%s: %s" % (PACKAGE, version, e)]
-    installer = feed.installer_names(version)["windows"]
-    final = dict((name, digest) for name, digest in digests.items() if name != installer)
+    later = made_after_collect(version)
+    final = dict((name, digest) for name, digest in digests.items() if name not in later)
     problems, _ = registry_conflicts(held, final, version)
-    for name in [installer] + sorted(n + ".cosign.bundle" for n in digests):
+    for name in later + sorted(n + ".cosign.bundle" for n in set(digests) | set(later)):
         if held.get(name):
             problems.append("the package %s/%s already holds %s, which an earlier run's signing made: signing again makes "
                             "other bytes, which release-publish refuses. Retry release-publish in the pipeline that signed "
                             "it, or, if that cannot be, the tag is spent (RELEASE.md, 'A tag is spent once')" % (
                                 PACKAGE, version, name))
     return problems
+
+
+def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out):
+    """release-sbom: the installer's own SBOM, from the bytes Authenticode signed."""
+    version = version_of(tag)
+    installer = feed.installer_names(version)["windows"]
+    if os.path.basename(installer_path) != installer or not os.path.isfile(installer_path):
+        raise ReleaseError("%s is not the signed installer %s: release-authenticode's artifact did not arrive" % (installer_path, installer))
+    unsigned = os.path.join(assets, installer)
+    if os.path.isfile(unsigned) and sha256_of(unsigned) == sha256_of(installer_path):
+        raise ReleaseError("%s is byte for byte the installer collect gathered: Authenticode signed nothing, and the SBOM "
+                           "would describe bytes that do not ship" % installer_path)
+    try:
+        with open(dependencies_path, encoding="utf-8-sig") as f:
+            dependencies = json.load(f)
+        document = asset_sbom.make("windows-x64", installer_path, dependencies, root=root, version=version,
+                                   commit=env.get("CI_COMMIT_SHA", ""))
+    except (OSError, ValueError, asset_sbom.SbomError) as e:
+        raise ReleaseError("the installer's SBOM could not be made: %s" % e)
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    os.makedirs(out)
+    path = os.path.join(out, sbom_name(installer))
+    asset_sbom.write_document(document, path)
+    say("  %s  %d components, describing %s (SHA-256 %s)" % (sbom_name(installer), len(document["components"]), installer,
+                                                            sha256_of(installer_path)))
+    return path
 
 
 def milestone_of(api, version):
@@ -564,6 +667,10 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
             parts.append("extra " + ", ".join(sorted(present - wanted)))
         raise ReleaseError("%s is not a release (%s): a release is exactly %s, and a bundle beside each" % (
             assets, "; ".join(parts), ", ".join(expected)))
+
+    unfit = sbom_problems(assets, version)
+    if unfit:
+        raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
 
     status, body, _ = api.request("GET", "%s/releases/%s" % (feed.API, urllib.parse.quote(tag, safe="")))
     if status == 200:
@@ -717,6 +824,15 @@ def self_test():
         write(VERSION_H, b'#pragma once\n#define HMAILSERVER_VERSION "6.3.5"\n#define HMAILSERVER_VERSION_NUMERIC 6,3,5,44\n')
         for name, relative in sources(version).items():
             write(relative, ("the bytes of %s\n" % name).encode("utf-8"))
+
+        def sbom_of(path, kind):
+            """A document this project's build/asset-sbom.py would accept as describing path."""
+            sha256, sha512, size = asset_sbom.digests(path)
+            subject = asset_sbom.subject(os.path.basename(path), kind, version, sha256, sha512, size, "c" * 40)
+            return json.dumps(asset_sbom.document(subject, [], sha256, kind)).encode("utf-8")
+
+        for key, kind in (("deb-amd64", "deb"), ("rpm-x86_64", "rpm")):
+            write(sources(version)[sbom_name(names[key])], sbom_of(os.path.join(root, sources(version)[names[key]]), kind))
         deb = os.path.join(root, sources(version)[names["deb-amd64"]])
         rpm = os.path.join(root, sources(version)[names["rpm-x86_64"]])
         sums = "%s  %s\n%s  %s\n" % (sha256_of(deb), names["deb-amd64"], sha256_of(rpm), names["rpm-x86_64"])
@@ -849,11 +965,15 @@ def self_test():
         problems = collect(root, tag, out, env, run=signed_tag, api=FakeGitLab())
         expect(problems == [], "a complete release, its tag on master and signed by master's one key, is collected: %s" % problems)
         gathered = sorted(os.listdir(out)) if os.path.isdir(out) else []
-        expect(gathered == sorted(expected_assets(version)), "under the names a release carries: %s" % (gathered or "nothing"))
+        expect(gathered == sorted(collected_assets(version)), "under the names a release carries: %s" % (gathered or "nothing"))
+        expect(sorted(set(expected_assets(version)) - set(collected_assets(version))) == [sbom_name(names["windows"])],
+               "everything but the installer's SBOM, which release-sbom makes from the signed installer")
+        expect(all(sbom_name(n) in expected_assets(version) for n in compiled_assets(version)),
+               "every compiled file goes out with its SBOM")
         if not gathered:
             # So that publishing is still tested when collecting failed.
             os.makedirs(out, exist_ok=True)
-            for name in expected_assets(version):
+            for name in collected_assets(version):
                 shutil.copyfile(os.path.join(root, sources(version)[name]), os.path.join(out, name))
 
         def refused(what, needle, **changes):
@@ -898,8 +1018,10 @@ def self_test():
                 api=FakeGitLab().seed(names["windows"], ("the bytes of %s\n" % names["windows"]).encode("utf-8")))
         refused("a bundle an earlier run left in the registry", "hmailserver.spdx.json.cosign.bundle, which an earlier run's signing made",
                 api=FakeGitLab().seed("hmailserver.spdx.json.cosign.bundle", b"{}"))
+        refused("an installer SBOM an earlier run left in the registry", "%s, which an earlier run's signing made" % sbom_name(names["windows"]),
+                api=FakeGitLab().seed(sbom_name(names["windows"]), b"{}"))
         held = FakeGitLab()
-        for name in expected_assets(version):
+        for name in collected_assets(version):
             if name != names["windows"]:
                 with open(os.path.join(root, sources(version)[name]), "rb") as f:
                     held.seed(name, f.read())
@@ -908,12 +1030,45 @@ def self_test():
         write(sources(version)[sums_name(version)], ("%s  %s\n" % ("0" * 64, names["deb-amd64"])).encode("utf-8"))
         refused("a sums file that is not the packages'", "is not the sums of the two packages")
         write(sources(version)[sums_name(version)], sums.encode("utf-8"))
+        deb_sbom = os.path.join(root, sources(version)[sbom_name(names["deb-amd64"])])
+        with open(deb_sbom, "rb") as f:
+            good_sbom = f.read()
+        write(sources(version)[sbom_name(names["deb-amd64"])], sbom_of(os.path.join(root, sources(version)[names["rpm-x86_64"]]), "deb"))
+        refused("a .deb whose SBOM describes another file", "%s does not describe %s" % (sbom_name(names["deb-amd64"]), names["deb-amd64"]))
+        write(sources(version)[sbom_name(names["deb-amd64"])], b"not json")
+        refused("a .deb whose SBOM is not JSON", "%s does not describe" % sbom_name(names["deb-amd64"]))
+        os.remove(deb_sbom)
+        refused("a .deb without its SBOM", "%s is not in this job's artifacts" % sbom_name(names["deb-amd64"]))
+        write(sources(version)[sbom_name(names["deb-amd64"])], good_sbom)
         os.remove(os.path.join(root, sources(version)["hmailserver.spdx.json"]))
         refused("a missing SBOM", "hmailserver.spdx.json is not in this job's artifacts")
 
-        # Publishing, against a registry and a releases API held in memory.
+        # release-sbom: the installer's SBOM is made from the signed bytes, never the unsigned.
+        signed_dir = os.path.join(work, "release-authenticode")
+        os.makedirs(signed_dir)
+        shutil.copyfile(os.path.join(out, names["windows"]), os.path.join(signed_dir, names["windows"]))
+        try:
+            make_installer_sbom(root, tag, env, out, os.path.join(signed_dir, names["windows"]), os.path.join(work, "none.json"),
+                                os.path.join(work, "release-sbom"))
+            failures.append("an installer Authenticode left unchanged gets no SBOM")
+        except ReleaseError as e:
+            expect("signed nothing" in str(e), "an installer Authenticode left unchanged gets no SBOM, saying why: %s" % e)
+        with open(os.path.join(signed_dir, names["windows"]), "ab") as f:
+            f.write(b"a signature")
+        try:
+            make_installer_sbom(root, tag, env, out, os.path.join(signed_dir, names["windows"]), os.path.join(work, "none.json"),
+                                os.path.join(work, "release-sbom"))
+            failures.append("an installer SBOM without the component list is refused")
+        except ReleaseError as e:
+            expect("could not be made" in str(e), "an installer SBOM without the component list is refused, saying why: %s" % e)
+        expect(not os.path.isdir(os.path.join(work, "release-sbom")), "and nothing is written")
+
+        # Publishing, against a registry and a releases API held in memory. The
+        # installer's SBOM, as release-sbom makes it, describes the installer.
         signed = os.path.join(work, "release-signed")
         shutil.copytree(out, signed)
+        with open(os.path.join(signed, sbom_name(names["windows"])), "wb") as f:
+            f.write(sbom_of(os.path.join(signed, names["windows"]), "windows-x64"))
         for name in expected_assets(version):
             with open(os.path.join(signed, name + ".cosign.bundle"), "w") as f:
                 f.write('{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json"}')
@@ -928,14 +1083,14 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 12 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "twelve links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 12, "every permanent download path is its own")
+            expect(len(links) == 18 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "eighteen links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 18, "every permanent download path is its own")
             expect(payload["name"] == "hMailServer 6.3.5" and "The notes." in payload["description"] and SIGNER_IDENTITY_PREFIX in payload["description"],
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 12 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 18 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
@@ -973,7 +1128,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 7 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 13 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")
@@ -1003,6 +1158,12 @@ def self_test():
             twice = FakeGitLab().seed(names["windows"] + ".cosign.bundle", f.read()).seed(names["windows"] + ".cosign.bundle", b"{}")
         refuses("a name held twice, once with these bytes and once with others", "already holds %s.cosign.bundle" % names["windows"],
                 api_object=twice)
+        mismatched = os.path.join(work, "mismatched")
+        shutil.copytree(signed, mismatched)
+        with open(os.path.join(mismatched, sbom_name(names["windows"])), "wb") as f:
+            f.write(sbom_of(os.path.join(mismatched, names["deb-amd64"]), "windows-x64"))
+        refuses("an installer SBOM that describes another file", "%s does not describe %s" % (sbom_name(names["windows"]), names["windows"]),
+                assets_dir=mismatched)
         unsigned = os.path.join(work, "unsigned")
         shutil.copytree(signed, unsigned)
         os.remove(os.path.join(unsigned, names["windows"] + ".cosign.bundle"))
@@ -1052,8 +1213,12 @@ def self_test():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("command", nargs="?", choices=["collect", "publish"])
-    parser.add_argument("--out", default="release-assets", help="collect: where the files go")
+    parser.add_argument("command", nargs="?", choices=["collect", "sbom", "publish"])
+    parser.add_argument("--out", default=None, help="collect: where the files go (release-assets); sbom: where the "
+                        "installer's SBOM goes (release-sbom)")
+    parser.add_argument("--dependencies", default=os.path.join("release-tools", DEPENDENCY_LIST),
+                        help="sbom: build/native-dependencies.ps1's list, as linux-sbom wrote it")
+    parser.add_argument("--installer-dir", default="release-authenticode", help="sbom: where the signed installer is")
     parser.add_argument("--assets", default="release-signed", help="publish: the signed files and their bundles")
     parser.add_argument("--verification", default=os.path.join("release-verified", "verification.md"),
                         help="publish: what release-verify wrote, for the notes")
@@ -1064,15 +1229,22 @@ def main():
         return self_test()
     tag = os.environ.get("CI_COMMIT_TAG", "")
     try:
+        if args.command == "sbom":
+            version = version_of(tag)
+            installer = feed.installer_names(version)["windows"]
+            make_installer_sbom(ROOT, tag, os.environ, os.path.join(ROOT, "release-assets"),
+                                os.path.join(ROOT, args.installer_dir, installer), os.path.join(ROOT, args.dependencies),
+                                os.path.join(ROOT, args.out or "release-sbom"))
+            return 0
         if args.command == "collect":
             token = os.environ.get("CI_JOB_TOKEN", "")
-            problems = collect(ROOT, tag, os.path.join(ROOT, args.out), os.environ, api=GitLab(token) if token else None)
+            problems = collect(ROOT, tag, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=GitLab(token) if token else None)
             for problem in problems:
                 print("REFUSED: " + problem)
             if problems:
                 print("Nothing has been signed or published. %d problem(s)." % len(problems))
                 return 1
-            print("%s is ready to be signed: %d files in %s." % (tag, len(expected_assets(version_of(tag))), args.out))
+            print("%s is ready to be signed: %d files in %s." % (tag, len(collected_assets(version_of(tag))), args.out or "release-assets"))
             return 0
         if args.command == "publish":
             with open(os.path.join(ROOT, CHANGELOG), encoding="utf-8") as f:

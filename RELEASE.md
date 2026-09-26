@@ -115,8 +115,11 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    signing jobs after it, and a second signing never makes the same bytes (a new
    timestamp, a new certificate). Nothing has been signed or sent when it
    refuses.
-4. **`release-authenticode`, `release-sign` and `release-verify` follow by
-   themselves.** Read `release-verify`'s `verification.md`: the identity must
+4. **`release-authenticode`, `release-sbom`, `release-sign` and `release-verify`
+   follow by themselves.** `release-sbom` makes the signed installer's own SBOM;
+   the `.deb`'s and the `.rpm`'s come from `linux-build`, and every compiled file
+   goes out with its `<file>.cdx.json` (SECURITY.md, "Software bills of
+   materials"). Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
    or, once the project has moved to the group, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
    Note the repository id it gives: until one release signed before the move
@@ -127,8 +130,9 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    release-signed/hMailServer-X.Y.Z-x64.exe`
    (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
    It must pass before the next step.
-6. **Start `release-publish`.** It uploads the six files and their bundles to
-   the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a name
+6. **Start `release-publish`.** It uploads the nine files and their bundles to
+   the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
+   compiled file whose SBOM is missing or describes other bytes, and a name
    the package holds with other bytes, and not sending again a file it holds
    with the same bytes - reads every record of each name back and holds it to
    the digest that was signed, creates the release with a
@@ -145,8 +149,9 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    (`hmailserver/docs/ContinuousIntegration.md`, "The container image") -
    the container image follows by itself as well: `container-image` builds it
    from the release's `.deb` and pushes `:X.Y.Z`, and for a release without a
-   suffix `:X.Y` and `:latest`; `container-image-sign` signs it by digest as
-   the same pipeline; `container_scanning` scans it
+   suffix `:X.Y` and `:latest`; `container-image-sbom` makes its SBOM;
+   `container-image-sign` signs it by digest as the same pipeline and attests
+   the SBOM to it; `container_scanning` scans it
    (`hmailserver/docs/ContinuousIntegration.md`, "The container image"). Read
    `container-image-signed/verification.txt` and the scan's report. A check
    that fails after the push leaves tags naming an unsigned image, which the

@@ -185,6 +185,61 @@ which -pre6 superseded, aside). Up to 6.3.3 they were made by the GitHub workflo
 `v6.3.3`), which added the native libraries to the .NET dependency graph
 (`build/merge-native-dependencies-into-sbom.ps1`); on GitLab the `linux-sbom` job makes them.
 
+### Software bills of materials
+
+From 6.3.4 on, every compiled file a release carries goes out with a software bill of materials of its own, in
+CycloneDX 1.6, beside it on the release page and named after it:
+
+| The file | Its SBOM | What the SBOM lists |
+|---|---|---|
+| `hMailServer-<version>-x64.exe`, the Windows installer | `hMailServer-<version>-x64.exe.cdx.json` | OpenSSL, Boost and libpq, which the server is linked against, and the zlib compiled into it, at the versions `hMailServer.vcxproj` builds with; every third-party file the installer packs (the .NET runtime, the MSVC runtime, 7-Zip, the MariaDB client, SQL Server Compact), each file by the SHA-256 [third-party-binaries.json](hmailserver/docs/third-party-binaries.json) pins it by; and every NuGet package of the tools it installs, at the version and with the SHA-512 their `packages.lock.json` resolves |
+| `hmailserver_<version>_amd64.deb`, `hmailserver-<version>-1.x86_64.rpm` | `<package>.cdx.json` | The libraries the Linux server needs from the distribution (glibc, libstdc++, OpenSSL, zlib, libpq, OpenLDAP), each with the development package and version it was built against; Boost, linked into the binary, at its exact version; the QuickJS compiled into it; and what the package itself declares it depends on |
+| the container image, once one is published | an attestation on the image (predicate type `cyclonedx`) | Every distribution package in the image, as Syft reads it, and what the `.deb`'s own SBOM names inside the binary |
+| the source tree | `hmailserver.spdx.json`, `hmailserver.cyclonedx.json` | Syft's inventory of the tree, with the native libraries it cannot see added |
+
+Each document's subject (`metadata.component`) is its file, by SHA-256 and SHA-512, so it cannot be mistaken for
+another file's. `build/asset-sbom.py` makes them: the release jobs of `.gitlab-ci.yml` make the packages' in
+`linux-build`, where the build ran, and the installer's in `release-sbom`, from the bytes Authenticode signed, and
+refuse to publish a release whose compiled file has no SBOM or one that describes other bytes. The apt and dnf
+repositories serve the release's own packages, so their SBOMs are those on the release page.
+
+To check one, download the file and its `.cdx.json` from the release page, then:
+
+1. **That it is the project's.** From 6.3.5 the SBOM carries a Sigstore bundle like every other file
+   (`<file>.cdx.json.cosign.bundle`); check it with the `cosign verify-blob` command in *Verifying a release*
+   above. For 6.3.4, the release's `SHA256SUMS` file lists the SBOMs' SHA-256 with the rest.
+2. **That it describes your file.** From a clone of the repository at the release's tag:
+
+   ```
+   python3 build/asset-sbom.py verify hMailServer-x.y.z-x64.exe.cdx.json hMailServer-x.y.z-x64.exe
+   ```
+
+   checks that the document is well formed and that its subject's SHA-256 is the file's, and lists the components.
+   Without the repository, compare the two by hand:
+
+   ```
+   jq -r '.metadata.component.hashes[] | select(.alg == "SHA-256") | .content' hmailserver_x.y.z_amd64.deb.cdx.json
+   sha256sum hmailserver_x.y.z_amd64.deb
+   ```
+
+3. **What is in it.** `jq -r '.components[] | [.name, (.version // "-"), .purl] | @tsv' <file>.cdx.json`, or any
+   tool that reads CycloneDX, such as a vulnerability scanner or Dependency-Track.
+
+For the container image, once one is published ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+"The container image"), the SBOM is an attestation stored beside the image in the registry, signed by the same
+pipeline identity as its signature:
+
+```
+cosign verify-attestation --type cyclonedx \
+  --certificate-identity https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
+  --certificate-oidc-issuer https://gitlab.com \
+  registry.gitlab.com/progressiverobot/hmailserver@sha256:<digest> | jq -r .payload | base64 -d | jq .predicate
+```
+
+What an SBOM cannot say: the Linux libraries other than Boost are the distribution's, found at run time, so their
+version is whatever the machine has installed; the SBOM names the one the package was built against and the range
+the package requires.
+
 ## For a security questionnaire
 
 A buyer's security or procurement team will find the answers a vendor questionnaire asks for - where mail and
