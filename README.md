@@ -3,7 +3,7 @@ hMailServer
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949)
 
-**The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and the releases up to 6.3.3 are being re-published there under their original dates.
+**The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and every release up to 6.3.3 is re-published there, byte for byte, under its original date.
 
 hMailServer is a free, open source email server for Microsoft Windows, implementing SMTP, IMAP and POP3. Since 8 September 2026 the server itself also builds, runs and packages on Linux, for x86-64 and AArch64 - see [Linux and AArch64](#linux-and-aarch64) below for exactly how far that goes.
 
@@ -955,10 +955,15 @@ License
 
 hMailServer is free and open source software, licensed under the GNU Affero General Public License v3.0 (AGPLv3). See [LICENSE](LICENSE) for the full text. Third-party component licenses are listed in [hmailserver/docs/Licenses](hmailserver/docs/Licenses).
 
+Getting help
+============
+
+A defect or a question is an [issue on GitLab](https://gitlab.com/Progressiverobot/hmailserver/-/issues), with the **Bug** or the **Question** template; [SUPPORT.md](SUPPORT.md) says what makes a report useful. Without a GitLab account, email the project's Service Desk address, [contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com): GitLab files the message as a confidential issue, and the maintainers' replies reach you by email.
+
 Security
 ========
 
-Please report security vulnerabilities privately, in a confidential issue on GitLab or by email to the project's Service Desk address - see [SECURITY.md](SECURITY.md).
+Please report security vulnerabilities privately, in a confidential issue on GitLab or by email to the project's Service Desk address, [contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com), which needs no GitLab account - see [SECURITY.md](SECURITY.md).
 
 For a security or procurement questionnaire - data flows, ISO/IEC 27001 and SOC 2 mappings of the product, the supply chain, the cryptography and its defaults, and what is not in place - see [hmailserver/docs/EvidencePack.md](hmailserver/docs/EvidencePack.md). It is not an audit report.
 

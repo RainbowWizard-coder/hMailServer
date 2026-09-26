@@ -26,6 +26,11 @@ issue.
 `question` label. GitLab has no Discussions, so configuration questions, "is this supposed to work like this" and
 "has anyone got X working" are issues too.
 
+**No GitLab account** — email the report or the question to the project's Service Desk address,
+[contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com).
+GitLab files the message as a confidential issue, which only the maintainers see, and their replies reach you by
+email.
+
 **General hMailServer questions** not specific to this fork are often better answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/), which has years of accumulated configuration knowledge.
 
 ## What to expect
