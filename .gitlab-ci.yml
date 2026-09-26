@@ -43,7 +43,8 @@
 #
 #   windows-installer     bench150: the Windows installer, built in the bench's checkout
 #                         after windows-gate (build/ci/windows-installer.ps1);
-#   release               by hand: the tag, the version stamp and the settings checked, and
+#   release               by hand: the tag, the version stamp and the settings checked, the
+#                         security scans' reports read (build/ci/security-gate.py), and
 #                         every file the release carries collected (build/ci/release-chain.py);
 #   release-authenticode  bench150: the installer Authenticode-signed through Azure Artifact
 #                         Signing with the job's ID token (build/ci/windows-authenticode.ps1);
@@ -231,6 +232,11 @@ checkers:
       # they make for themselves.
       check python3 build/sign-off.py --self-test
       check python3 build/land-via-mr.py --self-test
+      # The release's security gate, against canned reports and exceptions files.
+      check python3 build/ci/security-gate.py --self-test
+      # The secret scan the hooks and the landing run, without a scanner: what it
+      # reads, what it asks the scanner, and that it refuses when there is none.
+      check python3 build/scan-secrets.py --self-test
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check
@@ -1007,6 +1013,13 @@ linux-fuzz:
 # source scans hold their findings to a committed baseline, so that without
 # allow_failure they fail on a NEW finding only.
 #
+# allow_failure keeps a finding from stopping a push's pipeline; it does not let one
+# into a release. For a v* tag the release job needs static-analysis, semgrep and
+# dependency-scan (and GitLab's semgrep-sast) with their artifacts, and refuses while
+# one of them did not finish or found something SECURITY.md's policy counts that no
+# baseline and no exception in .gitlab/security-exceptions.yml accepts
+# (build/ci/security-gate.py).
+#
 # In the test stage with needs: [] - beside the builds, not after the checks: linix
 # takes one job at a time, and the Windows gate on bench150 is longer than
 # everything linix runs, these jobs included.
@@ -1282,14 +1295,20 @@ windows-installer:
 # The go-ahead, and the manifest of what is released. Nothing before it signs or sends
 # anything; nothing after it starts until it has passed. Its needs are every job that
 # can fail a tag's pipeline - a manual job can be started as soon as its own needs have
-# finished, so a gate left out here could be released past - and every job whose files
-# the release carries; only those three bring their artifacts. Not waited for: the
-# scans that are allow_failure (static-analysis, semgrep, ci-image-packages,
-# dependency-scan, repo-hygiene), whose failure would not hold release anyway, and the
-# manual db-matrix and installer-smoke. The four path-bound checks run for every tag
-# (a tag counts every file as changed) and are optional needs only so that a pipeline
-# without one is still created. build/check-release-chain.py fails when a job that can
-# fail is missing here.
+# finished, so a gate left out here could be released past - every job whose files
+# the release carries, and the four security scans whose reports it reads; only those
+# seven bring their artifacts. The scans are allow_failure, so their failure does not
+# stop the pipeline: release-chain.py collect reads their reports instead
+# (build/ci/security-gate.py) and refuses while a scan did not finish, or found
+# something SECURITY.md's policy counts that is in no baseline and not accepted in
+# .gitlab/security-exceptions.yml. semgrep-sast is GitLab's, in
+# .gitlab/ci/gitlab-security.yml, which runs it for a v* tag for this. Not waited for:
+# ci-image-packages (dependency-scan waits for it) and repo-hygiene, which are
+# allow_failure, and the manual db-matrix and installer-smoke. The four path-bound
+# checks run for every tag (a tag counts every file as changed) and are optional needs
+# only so that a pipeline without one is still created; the scans are not optional, so
+# a tag's pipeline without one of them is not created at all.
+# build/check-release-chain.py fails when a job that can fail, or a scan, is missing here.
 release:
   stage: release
   image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
@@ -1337,6 +1356,14 @@ release:
     - job: linux-sbom
       artifacts: true
     - job: windows-installer
+      artifacts: true
+    - job: static-analysis
+      artifacts: true
+    - job: semgrep
+      artifacts: true
+    - job: dependency-scan
+      artifacts: true
+    - job: semgrep-sast
       artifacts: true
   timeout: 15 minutes
   interruptible: false

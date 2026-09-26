@@ -33,7 +33,10 @@
 # with the Developer role or above can download (artifacts:access in the templates);
 # the merge request widget, the pipeline's Security tab and the vulnerability report
 # are GitLab Ultimate. semgrep-sast is allow_failure, as the template makes it: a
-# finding does not fail a pipeline. secret_detection is not: a secret found fails the
+# finding does not fail a pipeline. It holds a release instead: for a v* tag the
+# release job needs semgrep-sast's report and refuses while it has a finding of
+# severity Critical or High that .gitlab/security-exceptions.yml does not accept, or
+# is missing (build/ci/security-gate.py; SECURITY.md, "Before a release"). secret_detection is not: a secret found fails the
 # job and the pipeline. The template's job cannot do that by itself - the analyzer
 # exits 0 whatever it finds, and the template adds allow_failure: true, which would
 # hide the failure anyway - so the job below runs the analyzer and then reads its
@@ -42,9 +45,12 @@
 # at the root, which gitleaks reads from the checkout.
 #
 # When they run: in a merge request's pipeline and in a pipeline for the default
-# branch, and in no other. Never in the fuzz schedule's, Renovate's or the update
-# feed's pipeline, which each run their one job (.not-a-fuzz-pipeline in
-# .gitlab-ci.yml), nor for a v* tag, whose commit master's pipeline scanned already.
+# branch, and semgrep-sast for a protected v* tag too, whose release job reads its
+# report (master is pushed with ci.skip, so master's pipeline may never have scanned
+# the tagged commit). Never in the fuzz schedule's, Renovate's or the update feed's
+# pipeline, which each run their one job (.not-a-fuzz-pipeline in .gitlab-ci.yml);
+# secret_detection not for a tag, whose commits the pushes to master and the landing's
+# own scan (build/scan-secrets.py) have read.
 # And secret_detection alone in the pipeline of a schedule on master whose description
 # is "security": there it scans the whole history (SECRET_DETECTION_HISTORIC_SCAN),
 # not only the commits a push brings. That is the one-time scan of the history
@@ -92,6 +98,16 @@ semgrep-sast:
     - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1'
       when: never
     - !reference [.gitlab-security-rules, rules]
+    # And for a release tag, whose release job reads the report before anything is
+    # signed (build/ci/security-gate.py): master's pipelines are pushed with ci.skip,
+    # so no pipeline on master may have scanned the tagged commit.
+    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+  # The report as a plain file too: a later job's needs bring a job's artifacts:paths,
+  # not its reports, and the release job reads it. Whatever the scan found.
+  artifacts:
+    when: always
+    paths:
+      - gl-sast-report.json
 
 secret_detection:
   image: registry.gitlab.com/security-products/secrets:7@sha256:77ac5c87f73b709cad2e4bfb2b255caba7e63fb3c832314b3fb88aaa3c129af7

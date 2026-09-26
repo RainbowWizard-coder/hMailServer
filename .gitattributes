@@ -33,6 +33,9 @@ build/*.sh text eol=lf
 # docker build read on the project's own runner (.gitlab-ci.yml).
 build/ci/*.sh text eol=lf
 build/ci/*.Dockerfile text eol=lf
+# The git hooks the repository ships (core.hooksPath build/hooks), which sh runs on
+# every platform: a shebang ending in a carriage return names no interpreter.
+build/hooks/* text eol=lf
 # The test lab on linix (build/lab/README.md): its scripts, which bash, node and
 # python3 run there, and the compose file and the configuration files the
 # containers read.

@@ -88,7 +88,16 @@ refuses it. This checker holds them to each other. It fails when:
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
-    its report after the analyzer, which exits 0 whatever it finds.
+    its report after the analyzer, which exits 0 whatever it finds;
+  * the release can be collected past the security scans: release must need
+    static-analysis, semgrep, dependency-scan and GitLab's semgrep-sast, not
+    optionally, with their artifacts - the scans build/ci/security-gate.py reads -
+    semgrep-sast must run for a protected v* tag and keep gl-sast-report.json as a
+    file whatever it found, and collect must ask the gate before it copies anything;
+    or .gitlab/security-exceptions.yml is not a file the gate reads, or accepts a
+    finding without a reason, a reviewer or an expiry within a year of the review, or
+    is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
+    list of what is not a secret).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, push before release-publish, sign before the
     push, sign without an ID token for Sigstore or in another image than
@@ -132,6 +141,8 @@ FILES = {
     "image-sign": os.path.join("build", "ci", "container-image-sign.sh"),
     "export": os.path.join(".gitlab", "ci", "forge-export.yml"),
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
+    "exceptions": os.path.join(".gitlab", "security-exceptions.yml"),
+    "codeowners": os.path.join(".gitlab", "CODEOWNERS"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
@@ -185,6 +196,12 @@ NOT_INTERRUPTIBLE = ("linux-suite", "windows-gate")
 BUSY_GUARD = "$taken -eq 1 -and -not $env:CI_COMMIT_TAG"
 # The jobs whose artifacts release collects; it waits for every other gate without them.
 COLLECTED = ["linux-build", "linux-sbom", "windows-installer"]
+# The security scans whose reports release reads (build/ci/security-gate.py's SCANS):
+# needed, not optionally, with their artifacts. semgrep-sast is GitLab's, in
+# .gitlab/ci/gitlab-security.yml; the others are the CI file's own, on linix.
+SCANNED = ["static-analysis", "semgrep", "dependency-scan", "semgrep-sast"]
+# The files a change to which is the owner's alone to accept.
+OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
 COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE)
 PINNED_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
 PLACEHOLDER_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:PIN-THE-DIGEST$")
@@ -550,7 +567,7 @@ def check(texts, chain, feed):
     for name, entry in sorted(need_entries(jobs["release"]).items()):
         if name in COLLECTED and not re.search(r"artifacts: true", entry):
             problems.append("release does not bring %s's artifacts, which hold a file the release carries" % name)
-        if name not in COLLECTED and not re.search(r"artifacts: false", entry):
+        if name not in COLLECTED + SCANNED and not re.search(r"artifacts: false", entry):
             problems.append("release brings %s's artifacts, which it does not collect: say artifacts: false" % name)
 
     # Every compiled file with its own SBOM: made by the jobs, signed with the rest,
@@ -916,6 +933,49 @@ def check(texts, chain, feed):
         problems.append("build/ci/linux-fuzz.sh prints a sanitizer's SUMMARY whole into the public job log: the place of a "
                         "finding not yet fixed stays in the artifact")
 
+    # The security scans hold the release: release waits for each, brings its report,
+    # and collect asks the gate before anything is copied, let alone signed.
+    if sorted(SCANNED) != sorted(chain.security_gate.SCANS):
+        problems.append("build/ci/security-gate.py reads the scans %s; release needs %s" % (
+            ", ".join(chain.security_gate.SCANS), ", ".join(SCANNED)))
+    release_needs = need_entries(jobs["release"])
+    for name in SCANNED:
+        entry = release_needs.get(name)
+        if entry is None:
+            problems.append("release does not need %s: the release would be collected without reading that scan's report "
+                            "(build/ci/security-gate.py)" % name)
+            continue
+        if not re.search(r"artifacts: true", entry):
+            problems.append("release does not bring %s's artifacts: the gate would find no report and hold every release" % name)
+        if re.search(r"optional: true", entry):
+            problems.append("release needs %s optionally: a tag's pipeline without that scan would be released past it" % name)
+    sast = blocks(texts["security"]).get("semgrep-sast", "")
+    if "- if: " + TAG_ONLY not in sast:
+        problems.append("semgrep-sast does not run for a protected v* tag (- if: %s): the release job needs its report, "
+                        "and master, pushed with ci.skip, may never have scanned the tagged commit" % TAG_ONLY)
+    kept = re.search(r"^  artifacts:\s*\n((?:    .*\n?)+)", sast, re.MULTILINE)
+    kept = kept.group(1) if kept else ""
+    if "- gl-sast-report.json" not in kept or "when: always" not in kept:
+        problems.append("semgrep-sast does not keep gl-sast-report.json as a file (artifacts: paths, when: always): a "
+                        "later job's needs bring paths, not reports, and the release job reads it")
+    collect_text = function_text(texts["chain"], "collect")
+    asked = collect_text.find("problems.extend(security_gate.evaluate(root, root")
+    if "exceptions, missing = master_exceptions(root, run)" not in collect_text or "exceptions_text=exceptions" not in collect_text:
+        problems.append("build/ci/release-chain.py's collect does not give the gate master's .gitlab/security-exceptions.yml: "
+                        "the tagged tree's own copy could accept what master does not")
+    copied = collect_text.find("shutil.copyfile(")
+    if asked < 0 or copied < asked or collect_text.find("    if problems:\n        return problems", asked) < 0:
+        problems.append("build/ci/release-chain.py's collect no longer asks build/ci/security-gate.py before it copies the "
+                        "release's files, or goes on past what the gate says")
+    entries, wrong = chain.security_gate.check_exceptions(texts["exceptions"])
+    problems.extend(wrong)
+    owners = dict((line.split()[0], line.split()[1:]) for line in texts["codeowners"].split("\n")
+                  if line.strip() and not line.lstrip().startswith("#") and len(line.split()) > 1)
+    for path in OWNED:
+        if owners.get(path) != ["@Progressiverobot"]:
+            problems.append(".gitlab/CODEOWNERS does not give %s to @Progressiverobot alone: what may pass the release's "
+                            "security gate, or the secret scan, is the owner's to accept" % path)
+
     # Secret detection fails on a finding.
     detection = security_jobs.get("secret_detection", "")
     if not re.search(r"^  allow_failure: false\s*$", detection, re.MULTILINE):
@@ -1113,6 +1173,35 @@ def self_test(chain, feed):
     broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")
     broken("the image signed as a branch", "image-sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "container-image-sign.sh expects another identity")
+    # The security scans, before the release.
+    broken("a release that does not wait for GitLab's SAST", "ci", "    - job: semgrep-sast\n      artifacts: true\n", "",
+           "release does not need semgrep-sast")
+    broken("a release that does not bring the dependency scan's report", "ci", "    - job: dependency-scan\n      artifacts: true\n",
+           "    - job: dependency-scan\n      artifacts: false\n", "release does not bring dependency-scan's artifacts")
+    broken("a release that needs a scan optionally", "ci", "    - job: static-analysis\n      artifacts: true\n",
+           "    - job: static-analysis\n      artifacts: true\n      optional: true\n", "release needs static-analysis optionally")
+    broken("GitLab's SAST not run for a release tag", "security",
+           '    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n  # The report as a plain file',
+           "  # The report as a plain file", "semgrep-sast does not run for a protected v* tag")
+    broken("GitLab's SAST report kept as a report only", "security", "    paths:\n      - gl-sast-report.json\n", "",
+           "semgrep-sast does not keep gl-sast-report.json")
+    broken("collect not asking the gate", "chain",
+           '    problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\\n", say=say))\n', "",
+           "no longer asks build/ci/security-gate.py")
+    broken("the gate given the tagged tree's exceptions", "chain", 'exceptions_text=exceptions or "exceptions: []\\n", say=say)',
+           "say=say)", "does not give the gate master's")
+    broken("an exception without an expiry", "exceptions", "exceptions: []\n",
+           "exceptions:\n  - scan: semgrep\n    finding: 0123456789abcdef0123\n    what: x\n"
+           "    reason: 'read, and the input is a literal the code itself writes'\n    reviewed-by: Progressiverobot\n"
+           "    reviewed: 2026-09-26\n", "it has no expires")
+    broken("an exception for two years", "exceptions", "exceptions: []\n",
+           "exceptions:\n  - scan: semgrep\n    finding: 0123456789abcdef0123\n    what: x\n"
+           "    reason: 'read, and the input is a literal the code itself writes'\n    reviewed-by: Progressiverobot\n"
+           "    reviewed: 2026-09-26\n    expires: 2028-09-26\n", "reviewed again within a year")
+    broken("the exceptions file given to everyone", "codeowners", "/.gitlab/security-exceptions.yml", "/.gitlab/security-exceptions.old",
+           "does not give /.gitlab/security-exceptions.yml to @Progressiverobot")
+    broken("the secret scan's ignore list shared", "codeowners", "/.gitleaksignore                   @Progressiverobot",
+           "/.gitleaksignore                   @Progressiverobot @zainulabidin1990", "does not give /.gitleaksignore")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
 
     # The release tag and the registry.

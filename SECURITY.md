@@ -255,9 +255,11 @@ blocking. GitHub has been unavailable since 18 September 2026. Since 25 Septembe
 replacements for the source and dependency scans and for OpenSSF Scorecard, which run on the project's own
 runner for `master`, `batch*` branches and release tags
 ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#security-scanning), "Security
-scanning"). They are not blocking yet: until their first findings are triaged, the thresholds below are held by
-hand, and what runs is stated under each heading. A finding that is not fixed is suppressed only with a written
-reason.
+scanning"). They do not stop a push's pipeline yet: until their first findings are triaged, the thresholds below are
+held by hand for a change, and what runs is stated under each heading. **A release is held by them** since 26
+September 2026: the release job reads the reports of four of them and refuses while one did not finish or found
+something the policy counts ([Before a release](#before-a-release)). A finding that is not fixed is suppressed only
+with a written reason.
 
 ### Dependencies (software composition analysis)
 
@@ -288,7 +290,10 @@ reason.
   with the next dependency refresh. A licence finding (a dependency whose licence is not compatible with
   AGPL-3.0-or-later) is treated as high.
 - **Before a release.** A release is not cut while a known advisory of high or critical severity against a
-  shipped dependency is open. The *dependency-scan* report of the release's commit is read first, and every
+  shipped dependency is open. The release job refuses one that has a fixed version
+  ([Before a release](#before-a-release)); one with no fixed version yet is not refused by the job, and is read
+  from the report by hand before the release: the dependency replaced, the advisory dismissed in the VEX document
+  with its reason, or the release waits. The *dependency-scan* report of the release's commit is read first, and every
   component it marks UNKNOWN, with any the SBOM lists and the scan does not, is checked by hand against the
   components the release's SBOM lists (`hmailserver.spdx.json`, `hmailserver.cyclonedx.json`), which are also
   what a reader checks the shipped versions against.
@@ -319,20 +324,60 @@ reason.
   fixed before merge. A medium finding is fixed within 30 days; a low or note-level one with the next change to
   that file, or dismissed with a reason. A release is not cut with an open error-level finding.
 - **Suppressions.** A finding is dismissed only with a reason that says why it is a false positive or not
-  exploitable, recorded beside the finding.
+  exploitable, recorded beside the finding: in `.gitlab/security-exceptions.yml`, with an expiry, for a finding
+  that would hold a release ([Before a release](#before-a-release)).
+
+### Before a release
+
+The release job of a `v*` tag's pipeline (`build/ci/release-chain.py collect`) evaluates the security scans of
+the tagged commit before it collects, let alone signs, anything, with `build/ci/security-gate.py`, and **refuses
+the release** while:
+
+- any of the four scans it needs did not finish: *static-analysis*, *semgrep*, *dependency-scan* (which must also
+  have scanned the CI image's packages) and GitLab's *semgrep-sast*. Its report is missing, or says its status is
+  not success. The pipeline of a tag without one of them is not created at all;
+- *static-analysis* (cppcheck, clang-tidy) or *semgrep* found something that is not in its committed baseline;
+- *semgrep-sast* found something of severity critical or high;
+- *dependency-scan* found a vulnerability of severity critical or high that has a fixed version and that the VEX
+  document does not dismiss as not affecting the project (one with no fixed version yet is read by hand:
+  [Dependencies](#dependencies-software-composition-analysis), "Before a release");
+
+unless `.gitlab/security-exceptions.yml` accepts that finding - `master`'s copy, which the job reads as it reads
+`master`'s allow-list of tag keys, never the tagged tree's. An entry there names the scan and the finding (the
+fingerprint the gate prints; for a dependency the advisory's id and the package), what it is, why it is accepted -
+not exploitable as the code stands, or waiting on an upstream fix - the GitLab user of the maintainer who read it,
+the day, and an expiry no more than a year later, after which the finding holds the release again. The file is
+the owner's (`.gitlab/CODEOWNERS`), is held to that shape on every pipeline by `build/check-release-chain.py`,
+and accepts nothing today. A dependency finding that does not affect the project at all goes in the VEX document
+instead.
+
+This holds releases, not changes: the scans run after a push, for the protected refs, and a finding a change
+brings stops the next release until it is fixed or accepted. A release made by hand runs the same
+scans on the project's Linux machine against the release's commit and the same gate over their reports before
+anything is published.
 
 ### Secrets and credentials
 
 - The repository holds no credential that opens anything: no token, no password, no signing key. The
   certificates and private keys under `hmailserver/test/SSL examples` are throwaway fixtures the regression suite
   uses to exercise TLS, trusted by nothing outside it.
-- On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab nothing
-  refuses the push itself (push protection is GitLab Ultimate): the `secret_detection` job scans the commits a
-  push to `master` or a merge request brings, after the push, and fails the pipeline on a finding that
+- On GitHub, secret scanning with push protection refused a push that carried a real secret. On GitLab push
+  protection is GitLab Ultimate, so the refusal happens before the push instead, on the pushing machine: the
+  repository ships a pre-commit and a pre-push hook (`build/hooks/`; [CONTRIBUTING.md](CONTRIBUTING.md#secrets))
+  that run `build/scan-secrets.py` - gitleaks from the image the `secret_detection` job pins, with GitLab's rules
+  and `.gitleaksignore` - and refuse the commit or the push on a finding, or when no scanner can run. git runs no
+  hook a clone has not turned on, so each clone turns them on once (`git config core.hooksPath build/hooks`); a
+  clone that has not is not refused by them. The maintainer's landing, the way changes reach `master`, runs the
+  same scan over every commit a batch brings to `master` and pushes nothing when it finds one or cannot run. `.gitignore` leaves the usual key and credential files
+  out of a `git add` (the test fixtures' directories apart). After the push, the `secret_detection` job scans the
+  commits a push to `master` or a merge request brings (not a push to another branch without a merge request)
+  and fails the pipeline on a finding that
   `.gitleaksignore` does not name. It has not run on GitLab yet: `master` is still pushed with `ci.skip`. The
   whole history was scanned once, on 26 September 2026, with the job's own image on the project's Linux machine:
   thirty findings, each read and none a secret (test fixtures, the key parsers' test armour, AWS's documented
-  example key), which `.gitleaksignore` names. The same scan on GitLab is a schedule the owner runs once
+  example key), which `.gitleaksignore` names. The first scan of a batch before its landing, the same day, found
+  ten more in the batch's commits, all that same example key quoted in a document and the help pages made from
+  it; the document describes it since, and the ten are named too. The same scan on GitLab is a schedule the owner runs once
   ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Security scanning").
 - The one credential the release automation needed, for the Azure identity that Authenticode-signs the
   installer, was held in GitHub Actions' secrets; the identity itself is in Azure. Release signatures are keyless

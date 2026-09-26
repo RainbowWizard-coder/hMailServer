@@ -1,0 +1,18 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Refuses a commit that adds a possible secret: build/scan-secrets.py --staged, which
+# runs gitleaks with GitLab's rules (CONTRIBUTING.md, "Secrets"). Turned on in a clone
+# with: git config core.hooksPath build/hooks
+# A finding read and found not to be a secret: git commit --no-verify, then add the
+# fingerprint the pre-push scan prints to .gitleaksignore.
+root=$(git rev-parse --show-toplevel) || exit 1
+for py in python3 python; do
+  if "$py" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' > /dev/null 2>&1; then
+    exec "$py" "$root/build/scan-secrets.py" --staged
+  fi
+done
+echo "pre-commit: no Python 3 on PATH, so the secret scan cannot run and the commit is refused (CONTRIBUTING.md, 'Secrets')."
+exit 1

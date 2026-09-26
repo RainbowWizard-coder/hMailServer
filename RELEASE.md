@@ -101,10 +101,17 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
 3. **Start `release`** once every job before it has passed, within three days of
    the tag's pipeline (`linux-build`'s artifact is kept three days; retry
    `linux-build` otherwise). GitLab offers the button only when every job that
-   can fail the pipeline has passed; it does not wait for the scans that are
-   `allow_failure` (`static-analysis`, `semgrep`, `ci-image-packages`,
-   `dependency-scan`, `repo-hygiene`) or for the manual `db-matrix`, so read the
-   scans first. It refuses, naming why, a tag that is lightweight, moved to
+   can fail the pipeline has passed and `static-analysis`, `semgrep`,
+   `dependency-scan` and `semgrep-sast` have finished, whatever they found; it
+   does not wait for `ci-image-packages` or `repo-hygiene`, which are
+   `allow_failure`, or for the manual `db-matrix`. It reads the four scans'
+   reports first (`build/ci/security-gate.py`) and refuses while one did not
+   finish, or found something `SECURITY.md`'s policy counts ("Before a
+   release") that no baseline and no entry of `.gitlab/security-exceptions.yml`
+   accepts. Fix the finding, which takes a new tag on the fixed commit, or have
+   the owner accept it in that file on `master`, with a reason and an expiry,
+   and retry `release`: the job reads `master`'s copy of the file, never the
+   tagged tree's. It refuses, naming why, a tag that is lightweight, moved to
    another commit since the pipeline started, on a commit `master` does not
    have, or not signed by the one key `master`'s `.gitlab/allowed_signers`
    lists (and every tag while that list holds more than one); a `Version.h` that
@@ -368,10 +375,14 @@ uploaded and linked like every other file of the release. SECURITY.md,
    and re-run. Never abort a run; if one must be stopped, expect step 4 to
    fail and clean up before trusting any result.
    At this point the reports of the commit's pipeline - *dependency-scan*,
-   *static-analysis* and *semgrep* (`hmailserver/docs/ContinuousIntegration.md`,
-   "Security scanning") - show no open high or critical finding - the
-   thresholds in `SECURITY.md` - or the release waits. Up to 6.3.3 these were
-   GitHub's Code Scanning and Dependabot alert pages.
+   *static-analysis*, *semgrep* and *semgrep-sast*
+   (`hmailserver/docs/ContinuousIntegration.md`, "Security scanning") - pass
+   `build/ci/security-gate.py`, which holds them to the thresholds in
+   `SECURITY.md` ("Before a release") and to `.gitlab/security-exceptions.yml`,
+   or the release waits. The release job runs the gate itself; a release made by
+   hand runs the scans on linix against the release's commit and the gate over
+   what they wrote (`python3 build/ci/security-gate.py --artifacts <dir>`).
+   Up to 6.3.3 these were GitHub's Code Scanning and Dependabot alert pages.
 10. **README release notes** — every claim checked against the diff. "Fixed"
    means reproduced-then-fixed or negative-control-tested; anything else is
    described as hardening or diagnostics. Unfixed known issues are named as

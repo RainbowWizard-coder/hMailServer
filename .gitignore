@@ -143,3 +143,37 @@ hmailserver/test/LinuxRegressionTests/obj/
 /hmailserver/source/Tools/Interop/Interop.hMailServer.dll.source-sha256
 # The ARM64 build's, /machine:Agnostic (generate-com-wrapper.ps1 -Platform ARM64).
 /hmailserver/source/Tools/Interop/ARM64/
+
+# Keys and credentials, which never go into a commit (SECURITY.md, "Secrets and
+# credentials"; CONTRIBUTING.md, "Secrets"): a git add leaves them out, and one that
+# is meant to be here takes git add -f, which is the moment to ask whether it is. The
+# hooks' secret scan (build/scan-secrets.py) reads what is added either way.
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.ppk
+*.kdbx
+id_rsa
+id_rsa.*
+id_dsa
+id_dsa.*
+id_ecdsa
+id_ecdsa.*
+id_ed25519
+id_ed25519.*
+.env
+.env.*
+.netrc
+_netrc
+.npmrc
+.pypirc
+credentials.json
+# But for the throwaway keys the tests and the installer carry on purpose: the TLS
+# fixtures the regression suite serves, the Diffie-Hellman parameters the installer
+# ships (public by nature), and the OpenPGP and PST fixtures under build/fixtures.
+!/hmailserver/test/SSL examples/**
+!/hmailserver/installation/Extras/dh2048.pem
+!/build/fixtures/**

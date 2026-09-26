@@ -35,6 +35,7 @@ Contents:
 * [Code style and licence headers](#code-style-and-licence-headers)
 * [Change checklists](#change-checklists)
 * [Commits](#commits)
+* [Secrets](#secrets)
 * [Sign-off](#sign-off)
 * [Merge requests](#merge-requests)
 * [Governance, conduct and licence](#governance-conduct-and-licence)
@@ -339,7 +340,8 @@ reads.
 
 **What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, on
 GitLab's shared runners. *checkers* (a Python image with git) runs every Python checker below except
-`check-package-manifests.py`, the seven `--self-test` modes, `add-license-headers.py --check`, every
+`check-package-manifests.py`, the `--self-test` modes (the release chain's, the release's security gate's and
+the secret scan's among them), `add-license-headers.py --check`, every
 generator's `--check`, `generate-portal-languages.py` and `check-deck-parity.py` held to the files they write
 staying as committed, and `check-linux-version-stamp.sh`, and it reports every failure at the end rather than
 stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`,
@@ -358,8 +360,11 @@ PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-saniti
 AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
 *linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
 the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, and five
-security-scanning jobs, not yet blocking: *static-analysis* (cppcheck and clang-tidy), *semgrep*,
-*dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*. On the second Windows bench:
+security-scanning jobs, which do not stop a push's pipeline: *static-analysis* (cppcheck and clang-tidy),
+*semgrep*, *dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*. Three of them,
+with GitLab's *semgrep-sast*, hold a release instead: the release job reads their reports and refuses while a
+scan did not finish or found something `SECURITY.md`'s policy counts that no baseline and no entry of
+`.gitlab/security-exceptions.yml` accepts ([Before a release](hmailserver/docs/ContinuousIntegration.md#before-a-release-the-scans-hold-it)). On the second Windows bench:
 *windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
 the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
 `dotnet format --verify-no-changes`). A `v*` tag also gets a *release* job, which is a placeholder until the
@@ -415,7 +420,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-portal-script.py` | Runs the webmail's script against a small DOM and a stubbed API | Needs `node`; `--no-node` runs the static checks only |
 | `check-project-items.py` | No file listed twice in a project, and every listed file exists | |
 | `check-roadmap2.py` | The counter line at the top of `Roadmap2.md` equals the rows' marks | **Rewrites** the counter with `--write` |
-| `check-release-chain.py` | The release jobs of `.gitlab-ci.yml`, their scripts and `SigstoreVerifier.cpp`'s GitLab identity agree: the ID tokens' audiences, cosign's flags, the order of the jobs, the two manual starts, and every other job refusing the feed's pipeline | `--self-test` |
+| `check-release-chain.py` | The release jobs of `.gitlab-ci.yml`, their scripts and `SigstoreVerifier.cpp`'s GitLab identity agree: the ID tokens' audiences, cosign's flags, the order of the jobs, the two manual starts, and every other job refusing the feed's pipeline; the release waits for the four security scans and reads their reports before it collects anything, and `.gitlab/security-exceptions.yml` is well formed and the owner's | `--self-test` |
 | `check-role-choke-point.py` | `RoleManager` is the only decider of what a credential may do; every `RouteKind` is classified | `--self-test` |
 | `check-sbom-inputs.py` | Every input the build pins - in `third-party-binaries.json`, `native-dependencies.ps1`, `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1`, and every library `CMakeLists.txt` finds - is in the SBOM's component list, at its pinned version and with its pinned hash | `--self-test`; `--sbom FILE` (repeatable) holds a finished SPDX or CycloneDX document to it. Runs `native-dependencies.ps1` when `pwsh` or `powershell` is present, and reads its tables when neither is |
 | `check-setting-levels.py` | A setting with domain or account levels is read only through `EffectiveSetting`, and its marks agree with `build/settings-levels.txt` | Proves its own negative controls on every run |
@@ -694,6 +699,41 @@ As practised on `master`:
 * Commits on `master` are not signed. Release **tags** from `v6.2.23-alpha2` on are annotated and SSH-signed
   with a key listed in `.gitlab/allowed_signers`.
 * Numbers and names follow [the convention above](#issue-numbers-from-github-and-from-gitlab).
+
+## Secrets
+
+Nothing that opens anything - a token, a password, a private key that is not a throwaway test fixture - goes
+into a commit. Three things stand in the way, as GitLab's push protection is not available on the Free tier:
+
+* **The hooks.** Turn them on once in your clone:
+
+  ```
+  git config core.hooksPath build/hooks
+  ```
+
+  `build/hooks/pre-commit` scans the lines a commit adds, and `build/hooks/pre-push` the commits a push brings,
+  with `build/scan-secrets.py`. It runs gitleaks from the image the `secret_detection` job pins, with GitLab's
+  rules and the repository's `.gitleaksignore`, in Docker when Docker runs on your machine; without Docker, a
+  gitleaks 8 on `PATH` (or named by `HM_GITLEAKS`), with gitleaks' own rules, which are close to GitLab's but not
+  the same; or `HM_SECRET_SCAN_SSH` pointing at a machine with Docker that sees your
+  repository's git directory (`user@host:/path/to/.git`, with `HM_SECRET_SCAN_SSH_KEY` for the key). With none
+  of them the hooks refuse the commit or the push, because a scan that did not run has not said anything is
+  clean. `python build/scan-secrets.py --range master..HEAD` scans a branch by hand.
+* **`.gitignore`** leaves out the usual key and credential files (`*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.jks`,
+  SSH private keys, `.env`, `.netrc`, `.npmrc`, `.pypirc`, `credentials.json`), but for the directories of the
+  test fixtures. Adding one elsewhere takes `git add -f`, which is the moment to ask whether it should be there.
+* **The pipeline.** The `secret_detection` job fails the pipeline of a merge request, or of a push to `master`, on
+  a finding `.gitleaksignore` does not name (not of a push to another branch: open a merge request, or turn the
+  hooks on); and the maintainer's landing scans every commit of a batch before it reaches `master`, which is
+  pushed with `ci.skip` today, so that scan, not the job, is what reads the commits `master` gets.
+
+A finding that is a real secret is revoked where it was issued, and taken out of the commits before they are
+pushed; once pushed, assume it is known ([SECURITY.md](SECURITY.md#secrets-and-credentials)). A finding that is
+not a secret - a key made for a test and used for nothing else, an example key from a standard - is named in
+`.gitleaksignore` by the fingerprint the range scan prints (`<commit>:<file>:<rule>:<line>`), in a commit that
+says what it is; a staged finding has no commit yet, so commit it with `--no-verify` after reading it and add the
+line the pre-push scan then prints. `.gitleaksignore` is the owner's to accept (`.gitlab/CODEOWNERS`). A
+throwaway key is better generated by the test at run time than committed.
 
 ## Sign-off
 

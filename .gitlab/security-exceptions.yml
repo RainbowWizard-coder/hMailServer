@@ -1,0 +1,43 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The security findings a release may go out with, each read and accepted by a
+# maintainer. build/ci/security-gate.py reads this file in the release job (build/ci/
+# release-chain.py collect) and in the hand runbook, and holds the release on every
+# finding its policy counts that is neither in a scan's baseline nor accepted here:
+#
+#   static-analysis, semgrep   a finding not in build/ci/<job>-baseline.txt;
+#   semgrep-sast               a finding of severity Critical or High;
+#   dependency-scan            a Critical or High vulnerability with a fixed version
+#                              that .gitlab/hmailserver.openvex.json does not dismiss.
+#
+# SECURITY.md, "Vulnerability management policy", says why those. A finding that does
+# not affect the project at all belongs in the VEX document (a dependency) or is fixed;
+# this file is for a finding accepted for a time: not exploitable as the code stands,
+# or waiting on an upstream fix, with the reason written down and a date to look again.
+#
+# One entry per finding:
+#
+#   - scan: semgrep-sast               static-analysis, semgrep, semgrep-sast or dependency-scan
+#     finding: 0123456789abcdef0123    the fingerprint the gate prints; for dependency-scan
+#                                      the advisory's id (CVE-..., GHSA-..., OSV-...)
+#     package: zlib                    dependency-scan only: the package the advisory is against
+#     what: 'strcpy in Foo.cpp'        what it is, for the reader of this file
+#     reason: 'why it is accepted: why it is not exploitable here, or what it waits on'
+#     reviewed-by: Progressiverobot    the GitLab username of the maintainer who read it
+#     reviewed: 2026-09-26             the day it was read
+#     expires: 2027-03-26              at most a year later; after it the finding holds the
+#                                      release again until it is read again
+#
+# The file is a strict subset of YAML, read without a YAML library: comments, the
+# "exceptions:" key, and flat entries of one-line "key: value" pairs, a value quoted
+# with single quotes when it has a colon, a hash or a quote in it. The gate refuses
+# anything else, and build/check-release-chain.py holds the file to it on every
+# pipeline. A change to this file is the owner's to accept (.gitlab/CODEOWNERS). The
+# release job reads master's copy, never the tagged tree's, as it reads master's
+# allow-list: an exception the owner adds on master after the tag counts when the
+# release job is retried.
+#
+# None is accepted today.
+exceptions: []

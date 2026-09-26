@@ -19,7 +19,10 @@ job. That job runs `collect`; Authenticode signs the installer, `release-sbom` r
             tags are the owner's alone (GOVERNANCE.md, 26 September 2026);
             Version.h says the version the tag names, so every file name made from
             it is the name a server looks for; the cosign image is gcr.io's pinned
-            by digest, whatever a CI/CD variable made it, and the Azure settings the Authenticode job reads are all there; and the
+            by digest, whatever a CI/CD variable made it, and the Azure settings the Authenticode job reads are all there; the
+            security scans of the commit finished, and every finding they raised that
+            SECURITY.md's policy counts is in a scan's baseline or accepted in
+            .gitlab/security-exceptions.yml (build/ci/security-gate.py); and the
             artefacts of the jobs it needs - the Windows installer, the .deb and the
             .rpm with their sums and each package's own SBOM, the two SBOMs of the
             tree - are gathered into one directory under the names a release
@@ -97,6 +100,19 @@ def _load_asset_sbom():
 
 
 asset_sbom = _load_asset_sbom()
+
+
+def _load_gate():
+    path = os.path.join(ROOT, "build", "ci", "security-gate.py")
+    spec = importlib.util.spec_from_file_location("security_gate", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# The security scans' verdict (build/ci/security-gate.py), which collect asks for
+# before anything is signed.
+security_gate = _load_gate()
 
 PROJECT_ID = feed.PROJECT_ID
 PACKAGE = "hmailserver"
@@ -444,6 +460,18 @@ def check_sums(sums_path, deb_path, rpm_path):
     return []
 
 
+def master_exceptions(root, run=subprocess.run):
+    """(master's .gitlab/security-exceptions.yml, None), or (None, the problem). check_tag
+    fetched master by name; the tagged tree's copy is never read, as its allow-list is not."""
+    shown = run(["git", "-C", root, "show", "%s:%s" % (TRUSTED_REF, security_gate.EXCEPTIONS)], capture_output=True, text=True)
+    if shown.returncode != 0:
+        return None, ("%s's %s could not be read (master not fetched, or without the file), and it says what findings "
+                      "of the security scans a release may go out with: the gate reads master's (SECURITY.md, 'Before a "
+                      "release'): %s" % (
+                          TRUSTED_BRANCH, security_gate.EXCEPTIONS, (shown.stderr or shown.stdout or "").strip()[:300]))
+    return shown.stdout, None
+
+
 def collect(root, tag, out, env, run=subprocess.run, api=None):
     """Checks everything the rest of the chain relies on, then gathers the files.
     Returns the problems; the files are copied only when there are none."""
@@ -470,6 +498,17 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
                         "(RELEASE.md, \"Authenticode\"). Nothing has been signed." % ", ".join(missing))
 
     problems.extend(check_tag(root, tag, env.get("CI_COMMIT_SHA", ""), run))
+
+    # The security scans of this commit, read before anything is signed: static-analysis,
+    # semgrep, semgrep-sast and dependency-scan, whose artifacts the job needs. A scan that
+    # did not finish, or a finding the policy counts that is in no baseline and no
+    # exception in force, holds the release (SECURITY.md, "Before a release"). The
+    # exceptions are master's, as check_tag fetched it, like the allow-list: a finding the
+    # owner accepts on master after the tag counts when the job is retried.
+    exceptions, missing = master_exceptions(root, run)
+    if missing:
+        problems.append(missing)
+    problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\n", say=say))
 
     places = sources(version)
     for name in collected_assets(version):
@@ -840,6 +879,11 @@ def self_test():
         # The tagged tree's own allow-list names another key than master's: a tag
         # signed with it must be refused, which it is only if master's is read.
         write(ALLOWED_SIGNERS, list_b.encode("utf-8"))
+        # The four scans' artifacts as a pipeline that found nothing leaves them, and an
+        # exceptions file that accepts nothing.
+        for relative, content in security_gate.sample_reports().items():
+            write(relative, content.encode("utf-8"))
+        write(security_gate.EXCEPTIONS, b"exceptions: []\n")
 
         built = "c" * 40
         env = {"HM_COSIGN_IMAGE": "gcr.io/projectsigstore/cosign:v2.6.1-dev@sha256:" + "a" * 64, "CI_COMMIT_SHA": built}
@@ -851,7 +895,7 @@ def self_test():
                 self.returncode, self.stdout, self.stderr = code, out, err
 
         def fake_git(commit=built, on_master=True, master_list=list_a, signed_by=key_a, fetch_master=True, names_key=None,
-                     hidden=False, unshallow=True):
+                     hidden=False, unshallow=True, master_exceptions="exceptions: []\n"):
             """git as the release job's checkout answers it. master's history and its
             allow-list are there only once master has been fetched by name; with
             hidden, another shallow boundary hides the way down to the tagged commit
@@ -880,6 +924,8 @@ def self_test():
                 if "show" in arguments:
                     if state["master"] and arguments[-1] == "%s:%s" % (TRUSTED_REF, ALLOWED_SIGNERS) and master_list is not None:
                         return Done(0, master_list)
+                    if state["master"] and arguments[-1] == "%s:%s" % (TRUSTED_REF, security_gate.EXCEPTIONS) and master_exceptions is not None:
+                        return Done(0, master_exceptions)
                     return Done(128, "", "fatal: path '%s' does not exist" % ALLOWED_SIGNERS)
                 if "verify-tag" in arguments:
                     given = [a.split("=", 1)[1] for a in arguments if a.startswith("gpg.ssh.allowedSignersFile=")]
@@ -1042,6 +1088,44 @@ def self_test():
         write(sources(version)[sbom_name(names["deb-amd64"])], good_sbom)
         os.remove(os.path.join(root, sources(version)["hmailserver.spdx.json"]))
         refused("a missing SBOM", "hmailserver.spdx.json is not in this job's artifacts")
+        write(sources(version)["hmailserver.spdx.json"], b"the bytes of hmailserver.spdx.json\n")
+        # The security scans: a report missing, or a scan that failed, holds the release.
+        samples = security_gate.sample_reports()
+        os.remove(os.path.join(root, security_gate.GITLAB_SAST_REPORT))
+        refused("a release whose semgrep-sast report is missing", "semgrep-sast: there is no")
+        write(security_gate.GITLAB_SAST_REPORT, samples[security_gate.GITLAB_SAST_REPORT].encode("utf-8"))
+        failed = json.loads(samples[security_gate.DEPENDENCY_REPORTS[1]])
+        failed["scan"]["status"] = "failure"
+        write(security_gate.DEPENDENCY_REPORTS[1], json.dumps(failed).encode("utf-8"))
+        refused("a release whose dependency scan could not run", "not success")
+        write(security_gate.DEPENDENCY_REPORTS[1], samples[security_gate.DEPENDENCY_REPORTS[1]].encode("utf-8"))
+        refused("a release with an exceptions file the gate cannot read", "it has no finding",
+                run=fake_git(master_exceptions="exceptions:\n  - scan: semgrep\n"))
+        refused("master without an exceptions file", "master's .gitlab/security-exceptions.yml could not be read",
+                run=fake_git(master_exceptions=None))
+        # A finding that holds the release, accepted by the tagged tree's own copy and not
+        # by master's: master's is the one read.
+        advisory = json.loads(samples[security_gate.DEPENDENCY_REPORTS[0]])
+        advisory["vulnerabilities"] = [{"id": "u", "name": "CVE-2026-0001 in zlib 1.3", "severity": "Critical",
+                                        "identifiers": [{"type": "cve", "name": "CVE-2026-0001", "value": "CVE-2026-0001"}],
+                                        "location": {"file": "lock", "dependency": {"package": {"name": "zlib"}, "version": "1.3"}},
+                                        "solution": "Upgrade zlib to 1.3.1."}]
+        write(security_gate.DEPENDENCY_REPORTS[0], json.dumps(advisory).encode("utf-8"))
+        # Reviewed today (UTC, as the gate judges), in force for half a year.
+        clock = security_gate.datetime
+        reviewed = clock.datetime.now(clock.timezone.utc).date()
+        accepted = ("exceptions:\n  - scan: dependency-scan\n    finding: CVE-2026-0001\n    package: zlib\n    what: zlib\n"
+                    "    reason: 'the vulnerable inflate path is not reached: the server only deflates'\n"
+                    "    reviewed-by: Progressiverobot\n    reviewed: %s\n    expires: %s\n" % (
+                        reviewed.isoformat(), (reviewed + clock.timedelta(days=180)).isoformat()))
+        write(security_gate.EXCEPTIONS, accepted.encode("utf-8"))
+        refused("a finding the tagged tree accepts and master does not", "CVE-2026-0001 in zlib")
+        write(security_gate.EXCEPTIONS, b"exceptions: []\n")
+        problems = collect(root, tag, os.path.join(work, "accepted"), env, run=fake_git(master_exceptions=accepted), api=FakeGitLab())
+        expect(problems == [], "a finding master's exceptions accept is collected: %s" % problems)
+        write(security_gate.DEPENDENCY_REPORTS[0], samples[security_gate.DEPENDENCY_REPORTS[0]].encode("utf-8"))
+        problems = collect(root, tag, os.path.join(work, "scanned"), env, run=signed_tag, api=FakeGitLab())
+        expect(problems == [], "the scans put back, the release is collected again: %s" % problems)
 
         # release-sbom: the installer's SBOM is made from the signed bytes, never the unsigned.
         signed_dir = os.path.join(work, "release-authenticode")

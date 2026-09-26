@@ -39,6 +39,10 @@
 /.gitlab-ci.yml                     @Progressiverobot
 /.gitlab/CODEOWNERS                 @Progressiverobot
 /.gitlab/allowed_signers            @Progressiverobot
+# What may pass the release's security gate (build/ci/security-gate.py), and what the
+# secret scans take for not a secret: accepting a finding is the owner's.
+/.gitlab/security-exceptions.yml    @Progressiverobot
+/.gitleaksignore                   @Progressiverobot
 /SECURITY.md                        @Progressiverobot
 /renovate.json                      @Progressiverobot
 /hmailserver/docs/ThirdPartyBinaries.md   @Progressiverobot

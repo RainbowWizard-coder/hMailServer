@@ -1,0 +1,17 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Refuses a push that brings a commit with a possible secret: build/scan-secrets.py
+# --pre-push, over each pushed ref's new commits, with GitLab's rules and the
+# repository's .gitleaksignore (CONTRIBUTING.md, "Secrets"). Turned on in a clone with:
+# git config core.hooksPath build/hooks
+root=$(git rev-parse --show-toplevel) || exit 1
+for py in python3 python; do
+  if "$py" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' > /dev/null 2>&1; then
+    exec "$py" "$root/build/scan-secrets.py" --pre-push "$1"
+  fi
+done
+echo "pre-push: no Python 3 on PATH, so the secret scan cannot run and the push is refused (CONTRIBUTING.md, 'Secrets')."
+exit 1

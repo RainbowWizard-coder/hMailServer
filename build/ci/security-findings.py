@@ -390,6 +390,11 @@ def sast_report(tool, tool_name, tool_version, findings, started, ended, status)
         for c in f["cwe"]:
             identifiers.append({"type": "cwe", "name": "CWE-%s" % c, "value": c,
                                 "url": "https://cwe.mitre.org/data/definitions/%s.html" % c})
+        # The fingerprint the baseline and .gitlab/security-exceptions.yml name the
+        # finding by, which build/ci/security-gate.py prints for a finding that holds
+        # a release.
+        identifiers.append({"type": "hmailserver_fingerprint", "name": "fingerprint %s" % f["fingerprint"],
+                            "value": f["fingerprint"]})
         vulnerabilities.append({
             "id": str(uuid.uuid5(ID_NAMESPACE, f["fingerprint"])),
             "name": f["rule"],

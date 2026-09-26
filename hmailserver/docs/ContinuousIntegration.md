@@ -52,7 +52,7 @@ What runs where
 | `semgrep-sast` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline (`.gitlab/ci/gitlab-security.yml`) |
 | `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
-| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, and collects the eight files a release carries before the installer's SBOM (`build/ci/release-chain.py collect`) |
+| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), and collects the eight files a release carries before the installer's SBOM (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The installer Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
 | `release-sbom` | release | GitLab's shared runners | a `v*` tag, after `release-authenticode` | The signed installer's own SBOM, `<installer>.cdx.json` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
 | `release-sign` | release | GitLab's shared runners | a `v*` tag, after `release-sbom` | Every file signed with Sigstore as this pipeline (`build/ci/release-sign.sh`) |
@@ -1063,7 +1063,7 @@ has the runbook.
 | Job | Where | What it does |
 |---|---|---|
 | `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
-| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb` and the `.rpm` each with its own SBOM (`<package>.cdx.json`, which `linux-build` made and which must describe the package, by SHA-256), their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the tree's two SBOMs, checking the sums against the packages; and refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or the installer, its SBOM or a bundle at all, which only the jobs after it make (`build/ci/release-chain.py collect`) |
+| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb` and the `.rpm` each with its own SBOM (`<package>.cdx.json`, which `linux-build` made and which must describe the package, by SHA-256), their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the tree's two SBOMs, checking the sums against the packages; and refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or the installer, its SBOM or a bundle at all, which only the jobs after it make (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | bench150 | Signs the installer through Azure Artifact Signing and requires a valid signature with an RFC 3161 timestamp (`build/ci/windows-authenticode.ps1`) |
 | `release-sbom` | shared runners, in Python's image | Makes the installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list (kept by `release` in `release-tools/`), the tools' lock files and the installer script; refuses an installer Authenticode left unchanged (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
 | `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires the installer's SBOM to name the signed installer's SHA-256, then signs all nine files with Sigstore and checks each bundle's format and log entry, and verifies it with cosign (`build/ci/release-sign.sh`) |
@@ -1754,14 +1754,16 @@ OpenSSF Scorecard. Since 25 September 2026 five jobs in the test stage stand
 for them. They run on linix, for a protected ref only (`.own-runners`, like the
 builds), and **nothing they use is downloaded from GitHub**: not a tool, not a
 rule, not a database. Every job is `allow_failure: true` until its first
-findings are triaged, so none of them can fail a pipeline yet.
+findings are triaged, so none of them can fail a pipeline yet; but four of them
+hold a release ([Before a release](#before-a-release-the-scans-hold-it)).
 
 Two more come from GitLab's own templates (`.gitlab/ci/gitlab-security.yml`,
 included from `.gitlab-ci.yml`): `semgrep-sast`, GitLab's Semgrep analyzer and
 rules over every language of the tree, the server's C and C++ included, and
 `secret_detection`, which looks for a key, token or password in the commits a
 pipeline brings. They run on GitLab's shared runners, for `master` and a merge
-request only, in images from `registry.gitlab.com` pinned by digest. Each
+request, and `semgrep-sast` for a `v*` tag too, whose release job reads its
+report, in images from `registry.gitlab.com` pinned by digest. Each
 leaves its JSON report for Developers and above to download.
 `SAST_DISABLED=true` or `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable,
 turns one off. A third, `container_scanning`, scans the container image a `v*`
@@ -1796,8 +1798,9 @@ linix in the job's image over a full clone of the project - `master` at
 history `master` does not contain: 2,214 commits,
 720 MB of changes, under a minute, and thirty findings, each read in its commit
 and none a secret - PEM and OpenPGP armour lines in the server's key-parser
-testers, AWS's documented example key `AKIAIOSFODNN7EXAMPLE` in
-`ObjectStoreSignature.cpp`'s tester, the regression tests' own fixture keys,
+testers, the example access key id of AWS's own Signature Version 4
+examples in `ObjectStoreSignature.cpp`'s tester (described here, not quoted:
+quoted, it is a finding in this document and in the help pages made from it), the regression tests' own fixture keys,
 and the sample keys under `hmailserver/test/SSL examples` and Boost's asio
 examples. They are the thirty lines of `.gitleaksignore`; with the file in the
 checkout the scan found nothing, and the job's check passed, and it failed on
@@ -1838,6 +1841,104 @@ Negative controls: two lines taken out of a baseline came back as exactly
 those findings, new (exit 1); a file clang-tidy could not parse, added to its
 output, failed the run as a hole (exit 2); and a missing cppcheck output failed
 it too (exit 2).
+
+### Before a release: the scans hold it
+
+`allow_failure` keeps a finding from stopping a push's pipeline. It does not let
+one into a release. A `v*` tag's `release` job needs four scans of the tagged
+commit - `static-analysis`, `semgrep`, `dependency-scan` and GitLab's
+`semgrep-sast`, which `.gitlab/ci/gitlab-security.yml` runs for a protected `v*`
+tag for this - with their artifacts, and not optionally, so a tag's pipeline
+without one of them is not created (GitLab's own check, tried with the CI lint's
+dry run for a tag on 26 September 2026). Before anything is collected, let alone
+signed, `build/ci/release-chain.py collect` asks `build/ci/security-gate.py`,
+which reads the four reports and refuses when:
+
+- a report is missing, or says its scan's status is not `success` - a scan that
+  did not finish has said nothing is clean; and when `dependency-scan` did not
+  scan the CI image's packages, which the Linux packages are built against;
+- `static-analysis` or `semgrep` found something that is not in its baseline
+  (the finding's fingerprint, which the gate prints; the reports carry it since
+  26 September 2026 as an identifier of type `hmailserver_fingerprint`);
+- `semgrep-sast` found something of severity Critical or High, fingerprinted the
+  same way from GitLab's report (the rule, the file, the text of the line);
+- `dependency-scan` found a Critical or High vulnerability with a fixed version
+  that the VEX document does not dismiss;
+
+and `.gitlab/security-exceptions.yml` does not accept that finding - `master`'s
+copy, which the job reads as it reads `master`'s allow-list, never the tagged
+tree's, so a finding the owner accepts on `master` after the tag counts when the
+job is retried. An entry there names the scan and the finding (a fingerprint; for `dependency-scan` the
+advisory's id and the package), what it is, why it is accepted, the GitLab user
+who read it, the day, and an expiry at most a year after it. After the expiry
+the finding holds the release again until it is read again. The file is a strict
+subset of YAML (the job's image has no YAML library), is the owner's in
+`.gitlab/CODEOWNERS`, and `build/check-release-chain.py` reads it on every
+pipeline, so a malformed entry fails `checkers` long before a release. None is
+accepted today. The thresholds are `SECURITY.md`'s ("Vulnerability management
+policy"); the gate's self-test, run by `checkers`, holds it to each of them.
+
+What it will hold first: GitLab's semgrep analyzer, run on linix on 26
+September 2026 in the job's own image (90 seconds on two CPUs) over the tree of
+the local `v6.3.4` tag as it then was - `master` at 40c7d3e0c, before batch40;
+the tag is made again once batch40 lands - found 282 findings, 176 of them High and 106 Medium, none
+Critical. 154 of the High ones come from its C and C++ rules ported from
+flawfinder - 97 `strlen`, 33 `memcpy`, 11 `MultiByteToWideChar`, 5 `getenv` and
+a few more - 21 from the C# rule SCS0001 and one from a Node SSRF rule. The gate
+read that report, gave the 176 High findings 176 distinct fingerprints and held
+on every one; a trial exception took exactly one of them out. So the first
+release through this gate waits until they are read: each fixed, or accepted in
+`.gitlab/security-exceptions.yml` with its reason.
+
+This is a gate on releases, not on changes: the scans still run for protected
+refs only, after the push, and `master` is pushed with `ci.skip`. A finding a
+change brings stops the next release until it is fixed or accepted, not the
+change.
+
+The same gate runs by hand where a release is made by hand: the scans' scripts
+on linix against the release's commit, then
+`python3 build/ci/security-gate.py --artifacts <the directory they wrote to>`,
+which exits 1 while anything holds the release.
+
+### Before a push: the secret scan
+
+GitLab's push protection, which refuses a push that carries a secret, is
+GitLab Ultimate. What the Free tier allows is built instead, before the push:
+
+- **Hooks the repository ships.** `build/hooks/pre-commit` scans the lines a
+  commit adds and `build/hooks/pre-push` the commits a push brings, with
+  `build/scan-secrets.py`; `git config core.hooksPath build/hooks` turns them
+  on in a clone (CONTRIBUTING.md, "Secrets"). git runs no hook a clone has
+  not turned on, so they refuse nothing in a clone that has not.
+- **The landing.** The maintainer's landing script (his own tool, not in the
+  tree) scans every commit a batch brings to `master`
+  (`build/scan-secrets.py --range master..<tip>`) and pushes nothing when it
+  finds a secret, or when the scan cannot run.
+- **`secret_detection`**, above, fails the pipeline of a merge request, or of a
+  push to `master`, on a finding `.gitleaksignore` does not name - after the
+  push, and not for a push to another branch without a merge request. `master`
+  is pushed with `ci.skip` today, so for `master` the landing's scan is the one
+  that runs.
+- **`.gitignore`** keeps the usual key and credential files (`*.pem`, `*.key`,
+  `*.pfx`, `*.p12`, SSH private keys, `.env`, `.netrc` and the like) out of a
+  `git add`, but for the test fixtures' directories, which hold throwaway keys on
+  purpose.
+
+`build/scan-secrets.py` runs gitleaks from the image `secret_detection` pins -
+it reads the digest from `.gitlab/ci/gitlab-security.yml`, so the two cannot
+differ - with GitLab's rules and the repository's `.gitleaksignore`: in Docker on
+the machine, or in Docker on another machine that sees the repository's git
+directory (`HM_SECRET_SCAN_SSH=user@host:/path/.git`, as linix sees the
+maintainer's clone at `/mnt/hmailserver`), or, without Docker, a `gitleaks` on
+`PATH` with gitleaks' own rules. With none of them it refuses (exit 3). The
+scan's container has no network. It prints each finding as gitleaks
+fingerprints it and never the secret, and lists any `.gitleaksignore` line the
+range adds, which the reader checks. Its first run, on 26 September 2026 over
+`master..batch40` (35 commits, seven seconds on linix), found ten findings
+`secret_detection` would have failed the next push to `master` on: AWS's example
+access key id, quoted in this document, in `.gitleaksignore`'s comment and in
+`HelpPagesData.cpp`, which every regeneration of the help pages added again.
+The three now describe it instead, and the ten are in `.gitleaksignore`.
 
 ### The old GitHub jobs and what replaced them
 
