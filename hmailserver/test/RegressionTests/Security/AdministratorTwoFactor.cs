@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,7 +26,10 @@ namespace RegressionTests.Security
    ///    server-side door. This is the door: once a factor is enrolled, the
    ///    administrator password alone authenticates nowhere. Application.Authenticate
    ///    refuses it, AuthenticateWithCode is the only COM way in, and the REST API's
-   ///    Basic credential needs the code in an X-hMailServer-OTP header.
+   ///    Basic credential needs the code in an X-hMailServer-OTP header. A code is
+   ///    taken once, whichever of them it goes to, and wrong codes are counted
+   ///    against one budget (SecondFactorGuard), so every code a test expects to be
+   ///    taken comes from OneTimeCodes.Fresh.
    ///
    ///    Every test disables the factor again before it returns, and the fixture does
    ///    so once more at the end, because the whole suite authenticates as the
@@ -75,11 +77,11 @@ namespace RegressionTests.Security
             "The password alone must not authenticate once a factor is enrolled.");
 
          // The code path lets it back in, and a wrong code does not.
-         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, Code(secret)),
+         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, OneTimeCodes.Fresh(secret)),
             "The password plus a current code must authenticate.");
-         Assert.IsNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, "000001"),
+         Assert.IsNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, OneTimeCodes.Wrong(secret)),
             "A wrong code must be refused.");
-         Assert.IsNull(new Application().AuthenticateWithCode("Administrator", "wrong-password", Code(secret)),
+         Assert.IsNull(new Application().AuthenticateWithCode("Administrator", "wrong-password", OneTimeCodes.At(secret, 1)),
             "A wrong password with a right code must be refused.");
       }
 
@@ -124,12 +126,153 @@ namespace RegressionTests.Security
             "The 401 must advertise that a one-time code is required. Headers: " + noCode.rawHeaders);
 
          // Password plus the code in the header: accepted.
-         var withCode = Http("GET", "/api/v1/status", BasicHeader(), Code(secret));
+         var withCode = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.Fresh(secret));
          Assert.AreEqual(200, withCode.status, withCode.body);
 
          // Password plus a wrong code: refused.
-         var wrongCode = Http("GET", "/api/v1/status", BasicHeader(), "000001");
+         var wrongCode = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.Wrong(secret));
          Assert.AreEqual(401, wrongCode.status, wrongCode.body);
+      }
+
+      [Test]
+      [Description("A code is taken once over COM (RFC 6238 section 5.2): the same code a second time is refused though the password is right, and the next code is taken. The negative control is each code's first use.")]
+      public void TheAdministratorsCodeIsTakenOnceOverCom()
+      {
+         string secret = Enrol();
+
+         string code = OneTimeCodes.Fresh(secret);
+         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, code),
+            "The password plus a current code must authenticate.");
+         Assert.IsNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, code),
+            "The same code a second time must be refused: it is a code somebody may have seen, not the one the authenticator shows now.");
+         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, OneTimeCodes.Fresh(secret)),
+            "The next code is taken.");
+      }
+
+      [Test]
+      [Description("An empty code over COM is no code: refused, and not counted as a guess - five of them leave the right code taken, as five requests with no X-hMailServer-OTP do at the REST API. Windows only, where the COM API is.")]
+      public void AnEmptyCodeOverComIsNotCountedAsAGuess()
+      {
+         string secret = Enrol();
+
+         for (int attempt = 1; attempt <= 5; attempt++)
+         {
+            Assert.IsNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, ""),
+               "An empty code must not authenticate.");
+         }
+
+         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, OneTimeCodes.Fresh(secret)),
+            "Five empty codes spent the administrator's wrong-code budget.");
+      }
+
+      [Test]
+      [Description("A code is taken once over the REST API as well, the administrator's Basic credential included, and a code taken over COM is not taken again over REST: the record of codes taken is one for every door. The negative control is each code's first use.")]
+      public void TheAdministratorsCodeIsTakenOnceOverRest()
+      {
+         string secret = Enrol();
+         EnableRest();
+
+         string code = OneTimeCodes.Fresh(secret);
+         var first = Http("GET", "/api/v1/status", BasicHeader(), code);
+         Assert.AreEqual(200, first.status, first.body);
+
+         var again = Http("GET", "/api/v1/status", BasicHeader(), code);
+         Assert.AreEqual(401, again.status, "The same code on a second request was taken again: " + again.body);
+         StringAssert.Contains("X-hMailServer-OTP: required", again.rawHeaders);
+
+         var next = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.Fresh(secret));
+         Assert.AreEqual(200, next.status, next.body);
+      }
+
+      [Test]
+      [Description("A code taken once already is refused but not counted as a guess: a script that sends the administrator's password and the same code with every request gets 401 from the second request on, and neither spends the administrator's wrong-code budget nor locks the administrator out. Six of them, and the authenticator's next code is still taken. The negative control is the code's first use, and the first refusal.")]
+      public void ACodeSentAgainIsRefusedButNotCountedAsAGuess()
+      {
+         string secret = Enrol();
+         EnableRest();
+
+         string code = OneTimeCodes.Fresh(secret);
+         var first = Http("GET", "/api/v1/status", BasicHeader(), code);
+         Assert.AreEqual(200, first.status, first.body);
+
+         for (int attempt = 1; attempt <= 6; attempt++)
+         {
+            var again = Http("GET", "/api/v1/status", BasicHeader(), code);
+            Assert.AreEqual(401, again.status, "The code sent again, attempt " + attempt + ", was not refused as a code taken once: " + again.body);
+            StringAssert.Contains("X-hMailServer-OTP: required", again.rawHeaders);
+         }
+
+         var next = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.Fresh(secret));
+         Assert.AreEqual(200, next.status, "Six refusals of a code taken once already spent the administrator's wrong-code budget: " + next.body);
+      }
+
+      [Test]
+      [Description("A code taken by a COM sign-in is refused at the REST API's Basic sign-in: one record of codes taken, whichever door. Windows only, where the COM API is.")]
+      public void ACodeTakenOverComIsNotTakenOverRest()
+      {
+         string secret = Enrol();
+         EnableRest();
+
+         string code = OneTimeCodes.Fresh(secret);
+         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, code));
+
+         var overRest = Http("GET", "/api/v1/status", BasicHeader(), code);
+         Assert.AreEqual(401, overRest.status, "A code taken over COM was taken again over REST: " + overRest.body);
+      }
+
+      [Test]
+      [Description("Wrong codes at the administrator's Basic sign-in are counted against the administrator's own budget from a loopback peer too - which the auto-ban leaves alone, and which a reverse proxy makes every request - so after five in fifteen minutes the right code is answered 429 with Retry-After and code second_factor_locked. The negative control is the right code taken before the budget is spent.")]
+      public void WrongCodesOnTheBasicSignInAreCountedFromLoopbackToo()
+      {
+         string secret = Enrol();
+         EnableRest();
+
+         // An administrator request of the fixture's own before the budget is spent.
+         // On Windows it is a COM read. On Linux it goes over the REST API with the
+         // session the fixture layer keeps while a factor stands (ServerApi), which
+         // the reinitialise above has just ended: this starts the next one while a
+         // code is still taken, so the teardown can disable the factor through it.
+         Assert.IsTrue((bool)_application.AdministratorTOTPEnabled);
+
+         var right = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.Fresh(secret));
+         Assert.AreEqual(200, right.status, "The right code was not taken: " + right.body);
+
+         string wrong = OneTimeCodes.Wrong(secret);
+         for (int attempt = 1; attempt <= 5; attempt++)
+         {
+            var refused = Http("GET", "/api/v1/status", BasicHeader(), wrong);
+            Assert.AreEqual(401, refused.status, "Wrong code " + attempt + " was not refused: " + refused.body);
+         }
+
+         var locked = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.Fresh(secret));
+         Assert.AreEqual(429, locked.status, "After five wrong codes from loopback the right one was taken: " + locked.body);
+         StringAssert.Contains("second_factor_locked", locked.body);
+         StringAssert.Contains("Retry-After:", locked.rawHeaders);
+      }
+
+      [Test]
+      [Description("Wrong codes at the COM sign-in are counted - against the same budget the REST API counts against - so after five in fifteen minutes the right code is refused over COM and answered 429 at the REST API. The negative control is the right code taken over COM before the budget is spent. Windows only, where the COM API is.")]
+      public void WrongCodesOverComAreCountedAndTheRestApiSeesTheSameBudget()
+      {
+         string secret = Enrol();
+         EnableRest();
+
+         Assert.IsNotNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, OneTimeCodes.Fresh(secret)),
+            "The right code was not taken over COM.");
+
+         string wrong = OneTimeCodes.Wrong(secret);
+         for (int attempt = 1; attempt <= 5; attempt++)
+         {
+            Assert.IsNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, wrong),
+               "Wrong code " + attempt + " was taken.");
+         }
+
+         Assert.IsNull(new Application().AuthenticateWithCode("Administrator", AdminPassword, OneTimeCodes.Fresh(secret)),
+            "After five wrong codes over COM the right one was taken over COM.");
+
+         var overRest = Http("GET", "/api/v1/status", BasicHeader(), OneTimeCodes.At(secret));
+         Assert.AreEqual(429, overRest.status, "After five wrong codes over COM the REST API looked at a code: " + overRest.body);
+         StringAssert.Contains("second_factor_locked", overRest.body);
       }
 
       // ----------------------------------------------------------------------
@@ -191,51 +334,6 @@ namespace RegressionTests.Security
             .Where(line => line.StartsWith(key, StringComparison.OrdinalIgnoreCase))
             .Select(line => line.Substring(key.Length).Trim())
             .FirstOrDefault(value => value.Length > 0) ?? "";
-      }
-
-      // A code from an independent RFC 6238 implementation - the point being that
-      // the server accepts what a real authenticator app would produce, not merely
-      // what the server itself computes.
-      private static string Code(string base32Secret)
-      {
-         byte[] key = Base32Decode(base32Secret);
-         long counter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
-
-         byte[] counterBytes = BitConverter.GetBytes(counter);
-         if (BitConverter.IsLittleEndian)
-            Array.Reverse(counterBytes);
-
-         byte[] hash;
-         using (var hmac = new HMACSHA1(key))
-            hash = hmac.ComputeHash(counterBytes);
-
-         int offset = hash[hash.Length - 1] & 0x0F;
-         int binary =
-            ((hash[offset] & 0x7F) << 24) |
-            ((hash[offset + 1] & 0xFF) << 16) |
-            ((hash[offset + 2] & 0xFF) << 8) |
-            (hash[offset + 3] & 0xFF);
-
-         return (binary % 1000000).ToString("000000");
-      }
-
-      private static byte[] Base32Decode(string input)
-      {
-         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-         var output = new System.Collections.Generic.List<byte>();
-         int buffer = 0, bitsLeft = 0;
-
-         foreach (int index in input.Select(c => alphabet.IndexOf(char.ToUpperInvariant(c))).Where(index => index >= 0))
-         {
-            buffer = (buffer << 5) | index;
-            bitsLeft += 5;
-            if (bitsLeft >= 8)
-            {
-               bitsLeft -= 8;
-               output.Add((byte)((buffer >> bitsLeft) & 0xFF));
-            }
-         }
-         return output.ToArray();
       }
 
       // Issues one HTTP/1.0 request against the REST listener over plain TCP and

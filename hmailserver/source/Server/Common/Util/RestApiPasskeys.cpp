@@ -137,7 +137,7 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/passkeys\":{"
          "\"get\":{\"summary\":\"The passkeys the signed-in credential holds\",\"description\":\"{enabled,rp_id,passkeys:[{id,name,created,last_used,transports,algorithm,aaguid}]}: the account's own for an account's session, the administrator's own for the administrator's. created and last_used are seconds since 1970; last_used is 0 for one never used. The public key is never emitted. enabled is the PasskeysEnabled setting and rp_id is what a credential made now would be bound to.\",\"responses\":{\"200\":{\"description\":\"The passkeys\"}}},"
-         "\"post\":{\"summary\":\"Register the credential the browser just made\",\"description\":\"Body: name (what the device is called), password (the owner's own password, as making an app password asks for it; the one-time code goes in X-hMailServer-OTP where a second factor is enrolled) and credential, the PublicKeyCredential the browser answered with, its binary fields base64url: {id, response:{clientDataJSON, attestationObject, transports:[..]}}. The client data's type, challenge and origin are checked, the attestation object is CBOR-decoded for its authenticator data, the relying party hash and the user-present and user-verified flags are checked, and the COSE public key is stored - ES256 or RS256 and nothing else. The attestation STATEMENT is not verified and this server holds no metadata to verify it against: see docs/PasskeysAndSingleSignOn.md.\",\"responses\":{\"201\":{\"description\":\"The passkey\"},\"400\":{\"description\":\"The credential did not answer the challenge this server issued\"},\"403\":{\"description\":\"The password was wrong, or the request came in on an app password\"}}}},"
+         "\"post\":{\"summary\":\"Register the credential the browser just made\",\"description\":\"Body: name (what the device is called), password (the owner's own password, as making an app password asks for it; the one-time code goes in X-hMailServer-OTP where a second factor is enrolled) and credential, the PublicKeyCredential the browser answered with, its binary fields base64url: {id, response:{clientDataJSON, attestationObject, transports:[..]}}. The client data's type, challenge and origin are checked, the attestation object is CBOR-decoded for its authenticator data, the relying party hash and the user-present and user-verified flags are checked, and the COSE public key is stored - ES256 or RS256 and nothing else. The attestation STATEMENT is not verified and this server holds no metadata to verify it against: see docs/PasskeysAndSingleSignOn.md.\",\"responses\":{\"201\":{\"description\":\"The passkey\"},\"400\":{\"description\":\"The credential did not answer the challenge this server issued\"},\"403\":{\"description\":\"The password was wrong, or the request came in on an app password\"},\"409\":{\"description\":\"The administrator's second factor is enrolled but its secret cannot be opened on this machine\"}}}},"
          "\"/api/v1/passkeys/options\":{\"post\":{\"summary\":\"What the browser needs to make a passkey\",\"description\":\"PublicKeyCredentialCreationOptions as navigator.credentials.create takes them, the binary fields base64url: challenge, rp, user, pubKeyCredParams (ES256 and RS256), timeout, attestation 'none', authenticatorSelection (residentKey preferred, userVerification required - the registration refuses a credential the authenticator did not verify the person for, and so does every assertion afterwards) and excludeCredentials, which is this owner's credentials so the same authenticator is not enrolled twice. The challenge is kept against this session for five minutes and is spent by the POST that follows.\",\"responses\":{\"200\":{\"description\":\"The options\"},\"403\":{\"description\":\"Passkeys are off on this server\"}}}},"
          "\"/api/v1/passkeys/{id}\":{\"delete\":{\"summary\":\"Remove one of the signed-in credential's passkeys\",\"description\":\"The device is not told; it keeps a private key this server no longer knows. Refused on a request authenticated with an app password. Answered while PasskeysEnabled is off as well, because taking a way in away must not depend on the feature being switched on.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"Not one of yours\"}}}},"
          "\"/api/v1/passkeys/challenge\":{\"post\":{\"summary\":\"The challenge a passkey sign-in answers\",\"description\":\"No credential: there is no session yet. {challenge, rp_id, timeout} and a Set-Cookie (hmpasskey, HttpOnly, five minutes) the sign-in must carry back, which is what binds the challenge to this browser. allowCredentials is deliberately empty, so a discoverable credential can name its own account. The challenge is spent by the first POST /api/v1/session that answers it, so an assertion cannot be replayed.\",\"responses\":{\"200\":{\"description\":\"The challenge\"},\"403\":{\"description\":\"Passkeys are off on this server\"}}}},"
@@ -191,14 +191,58 @@ namespace HM
       }
 
       const String secret = IniFileSettings::Instance()->GetAdministratorTotpSecret();
+
+      // Enrolled but unopenable: refused, as the administrator's sign-ins
+      // refuse it (AuthenticateBasic_, COMAuthentication) - a lost key must not
+      // read as a second factor switched off, here least of all, where what is
+      // being added is a way in that needs no code.
+      if (IniFileSettings::Instance()->IsAdministratorTotpEnrolled() && secret.IsEmpty())
+      {
+         LOG_APPLICATION("REST API: registering an administrator passkey was refused: a second factor is enrolled but its secret cannot be opened on this machine.");
+         failure = BuildResponse_(409, "{\"error\":\"the administrator's second factor is enrolled but its secret cannot be opened on this machine, so it cannot be checked; restore the key it was protected with, or clear AdministratorTotpSecret in hMailServer.ini and enrol again\"}");
+         return false;
+      }
+
       if (!secret.IsEmpty())
       {
+         // As SecondFactorProved_ does for an account: no code is a page that
+         // has not been told one is needed, and a wrong one is a guess, counted
+         // against the administrator's own wrong-code budget and the source
+         // address - and the budget asked first, so a spent one refuses the
+         // right code too.
          const AnsiString code = GetHeader_(request, "x-hmailserver-otp");
-         if (code.IsEmpty() || !Totp::VerifyCode(AnsiString(secret), code))
+         if (code.IsEmpty())
          {
             failure = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
             return false;
          }
+
+         // Taken once, as every code is (SecondFactorGuard): one the
+         // administrator has had accepted already, here or at a sign-in, is
+         // refused and not counted. The budget is asked, the code judged and a
+         // wrong one counted under one lock (TakeCode).
+         const String owner = _T("administrator");
+         SecondFactorGuard::Outcome outcome;
+         const SecondFactorGuard::Taken taken = SecondFactorGuard::TakeCode(owner, AnsiString(secret), code, &outcome);
+         if (taken == SecondFactorGuard::CodeLocked)
+         {
+            LOG_APPLICATION("REST API: a one-time code for the administrator from " + String(caller.peer.ToString()) +
+               " was not looked at: too many wrong codes have been tried for it.");
+            failure = TooManyWrongCodes_(outcome.retry_after);
+            return false;
+         }
+
+         if (taken != SecondFactorGuard::CodeTaken)
+         {
+            if (taken == SecondFactorGuard::CodeReused)
+               SecondFactorReused_(owner, caller.peer);
+            else
+               SecondFactorWrong_(owner, false, caller.peer, outcome.wrong, outcome.locked_now);
+            failure = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
+            return false;
+         }
+
+         SecondFactorRight_(owner);
       }
 
       return true;
@@ -254,6 +298,10 @@ namespace HM
 
       if (relyingParty.IsEmpty())
          return BuildResponse_(400, "{\"error\":\"this server cannot work out a relying party id for the host this page was served on; set passkey_relying_party\"}");
+
+      const AnsiString missingOrigins = PasskeyStore::MissingOriginsProblem();
+      if (!missingOrigins.IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(missingOrigins) + "\"}");
 
       if (kind == RoutePasskeyOptions)
       {
@@ -347,11 +395,18 @@ namespace HM
       if (AnsiString(clientData.challenge.c_str()) != challenge)
          return BuildResponse_(400, "{\"error\":\"the credential answers a different challenge\"}");
 
-      const AnsiString originHost = HostOfOrigin(clientData.origin);
-      AnsiString wantedHost = host;
-      wantedHost.MakeLower();
-      if (originHost.IsEmpty() || originHost != wantedHost)
+      // The origin the browser says the page was, held to this server's own
+      // (PasskeyStore::OriginAllowed): the page's host by default, the named
+      // list once a relying party is set - never merely whatever the Host
+      // header of this request says. And not a frame of another site's page.
+      AnsiString originProblem;
+      if (clientData.cross_origin ||
+          !PasskeyStore::OriginAllowed(AnsiString(clientData.origin.c_str()), HostOfOrigin(clientData.origin), host, originProblem))
+      {
+         LOG_APPLICATION("REST API: a passkey registration for " + owner + " from " + String(caller.peer.ToString()) +
+            " was refused: " + String(clientData.cross_origin ? AnsiString("it was made in a frame of another site's page") : originProblem) + ".");
          return BuildResponse_(400, "{\"error\":\"the credential was made at another origin\"}");
+      }
 
       std::string authenticatorData;
       AnsiString format;
@@ -419,7 +474,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandlePasskeyChallenge_(const AnsiString &request)
+   RestApiServer::HandlePasskeyChallenge_(const AnsiString &request, const IPAddress &peer_address)
    {
       if (!PasskeyStore::Enabled())
          return BuildResponse_(403, "{\"error\":\"passkeys are switched off on this server\"}");
@@ -428,15 +483,20 @@ namespace HM
       if (relyingParty.IsEmpty())
          return BuildResponse_(400, "{\"error\":\"this server cannot work out a relying party id for the host this page was served on; set passkey_relying_party\"}");
 
+      const AnsiString missingOrigins = PasskeyStore::MissingOriginsProblem();
+      if (!missingOrigins.IsEmpty())
+         return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(missingOrigins) + "\"}");
+
       AnsiString nonce, challenge;
       if (!PasskeyStore::OfferSignIn(nonce, challenge))
          return BuildResponse_(503, "{\"error\":\"no challenge could be made; try again\"}");
 
       // Path=/api/v1 so the sign-in carries it and nothing else does;
-      // SameSite=Strict because the page that asked is this server's own.
+      // SameSite=Strict because the page that asked is this server's own;
+      // Secure whenever the browser came over HTTPS (BrowserCameOverTls_).
       AnsiString cookie;
       cookie.Format("Set-Cookie: %hs=%hs; Path=/api/v1; HttpOnly; SameSite=Strict; Max-Age=%d%hs\r\n",
-         PasskeyCookieName, nonce.c_str(), PasskeyStore::ChallengeSeconds, use_tls_ ? "; Secure" : "");
+         PasskeyCookieName, nonce.c_str(), PasskeyStore::ChallengeSeconds, BrowserCameOverTls_(request, peer_address) ? "; Secure" : "");
 
       AnsiString body;
       body.Format("{\"challenge\":\"%hs\",\"rp_id\":\"%hs\",\"timeout\":%d}",
@@ -500,12 +560,21 @@ namespace HM
           AnsiString(clientData.challenge.c_str()) != challenge)
          return false;
 
+      // The origin, held to this server's own (PasskeyStore::OriginAllowed).
+      // Compared with the Host header only while the relying party id follows
+      // that header, where a page at another host cannot get an assertion the
+      // rp id hash below would take; once PasskeyRelyingParty names a parent
+      // domain, every sibling host under it can ask the browser for one, and
+      // the Host header is the attacker's to write - so the origin must then be
+      // one PasskeyAllowedOrigins names. And not a frame of another site's page.
       AnsiString wantedHost = GetHeader_(request, "host");
       wantedHost.MakeLower();
-      if (HostOfOrigin(clientData.origin) != wantedHost || wantedHost.IsEmpty())
+      AnsiString originProblem;
+      if (clientData.cross_origin ||
+          !PasskeyStore::OriginAllowed(AnsiString(clientData.origin.c_str()), HostOfOrigin(clientData.origin), wantedHost, originProblem))
       {
          LOG_APPLICATION("REST API: a passkey sign-in from " + String(peer_address.ToString()) +
-            " was collected at another origin and was refused.");
+            " was refused: " + String(clientData.cross_origin ? AnsiString("it was collected in a frame of another site's page") : originProblem) + ".");
          return false;
       }
 

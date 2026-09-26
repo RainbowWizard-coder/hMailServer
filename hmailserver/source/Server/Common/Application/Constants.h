@@ -280,6 +280,7 @@
 // for it, and the addresses that sign in as the administrator.
 #define PROPERTY_PASSKEYS_ENABLED               _T("PasskeysEnabled")
 #define PROPERTY_PASSKEY_RELYING_PARTY          _T("PasskeyRelyingParty")
+#define PROPERTY_PASSKEY_ALLOWED_ORIGINS        _T("PasskeyAllowedOrigins")
 #define PROPERTY_OIDC_ISSUER                    _T("OidcIssuer")
 #define PROPERTY_OIDC_CLIENT_ID                 _T("OidcClientId")
 #define PROPERTY_OIDC_CLIENT_SECRET             _T("OidcClientSecret")

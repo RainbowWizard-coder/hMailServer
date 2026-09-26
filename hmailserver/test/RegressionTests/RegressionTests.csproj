@@ -850,6 +850,7 @@
     <Compile Include="API\RestApiWebPush.cs" />
     <Compile Include="API\RestApiComplaints.cs" />
     <Compile Include="Shared\RestRequest.cs" />
+    <Compile Include="Shared\OneTimeCodes.cs" />
     <Compile Include="Shared\BounceTestSupport.cs" />
     <Compile Include="Shared\ComplaintTestSupport.cs" />
   </ItemGroup>

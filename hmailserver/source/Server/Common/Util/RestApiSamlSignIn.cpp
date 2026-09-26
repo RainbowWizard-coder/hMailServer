@@ -75,7 +75,7 @@ namespace HM
       static const char *paths =
          ",\"/portal/saml/start\":{\"get\":{\"summary\":\"Start a sign-in at the organisation's SAML identity provider\",\"description\":\"No credential. Redirects to saml_idp_sso_url with an AuthnRequest in the SAMLRequest parameter (raw DEFLATE, base64, the HTTP-Redirect binding; not signed) and a RelayState, and sets the hmsaml cookie (HttpOnly, SameSite=Lax, Path=/portal/saml, ten minutes; Secure over TLS or behind a loopback proxy that says X-Forwarded-Proto: https) the finish asks for. The request's ID is kept for ten minutes, one use, beside the RelayState and the cookie; the Response must answer it. ?deck=1 starts one for the Control Deck, which lands as the administrator when the address is in saml_administrators; without it the sign-in is the webmail's. Redirects back to the sign-in page with #sso_error=<sentence> when SAML sign-in is not set up.\",\"responses\":{\"302\":{\"description\":\"To the identity provider, or back to the page with an error\"}}}},"
          "\"/portal/saml/acs\":{\"post\":{\"summary\":\"Where the SAML identity provider has the browser post its Response\",\"description\":\"No credential. A form body of SAMLResponse (base64 of the Response) and RelayState, the HTTP-POST binding, at most 256 KB (413 otherwise). The Response is verified against saml_idp_certificate: an enveloped XML signature, exclusive canonicalisation, SHA-256, rsa-sha256 or ecdsa-sha256, the Reference naming the signed element's own ID, the element used re-read from the signed bytes; one Assertion, signed itself unless saml_require_signed_assertion is off; Destination and Recipient this ACS, InResponseTo a request issued here and unused with its RelayState, Issuer the identity provider, the audience this service provider, NotBefore and NotOnOrAfter with a minute of skew, the assertion not seen before. An encrypted assertion, an IdP-initiated Response, a DTD, an entity, an XSLT or XPath transform, SHA-1 and a second assertion are refused. On success the browser is sent on to /portal/saml/finish with a one-use token; otherwise back to the page with #sso_error=<sentence>.\",\"responses\":{\"303\":{\"description\":\"On to the finish, or back to the page with an error\"},\"413\":{\"description\":\"The body is larger than 256 KB\"}}}},"
-         "\"/portal/saml/finish\":{\"get\":{\"summary\":\"Where the ACS sends the browser on to finish a SAML sign-in\",\"description\":\"No credential. ?token= names a sign-in the ACS verified in the last two minutes, and the browser must carry the hmsaml cookie the start gave for that request - so a Response carried to another browser ends here. The token is spent either way. The address - an emailAddress NameID, else the attribute saml_email_attribute names - is then mapped as OIDC maps one, and the browser is sent to the page with a one-use ticket in the URL fragment for POST /api/v1/session; otherwise with #sso_error=<sentence>, to the page the sign-in was started for.\",\"responses\":{\"303\":{\"description\":\"Back to the page, with a ticket or an error\"}}}},"
+         "\"/portal/saml/finish\":{\"get\":{\"summary\":\"Where the ACS sends the browser on to finish a SAML sign-in\",\"description\":\"No credential. ?token= names a sign-in the ACS verified in the last two minutes, and the browser must carry the hmsaml cookie the start gave for that request - so a Response carried to another browser ends here. The token is spent either way. The address - an emailAddress NameID, else the attribute saml_email_attribute names - is then mapped as OIDC maps one, and the browser is sent to the page with a one-use ticket in the URL fragment for POST /api/v1/session, and the hmsso cookie that exchange asks for with it; otherwise with #sso_error=<sentence>, to the page the sign-in was started for.\",\"responses\":{\"303\":{\"description\":\"Back to the page, with a ticket or an error\"}}}},"
          "\"/saml/metadata\":{\"get\":{\"summary\":\"This server's SAML service provider metadata\",\"description\":\"No credential. An EntityDescriptor with one SPSSODescriptor: this service provider's entity ID (saml_sp_entity_id, else the base URL and /saml) and its ACS, <base URL>/portal/saml/acs, on the HTTP-POST binding; AuthnRequestsSigned false, since requests are not signed, and so no KeyDescriptor. For the identity provider to import. 404 while no base URL is set (oidc_redirect_base_url, or import_oauth_redirect_base_url).\",\"responses\":{\"200\":{\"description\":\"The metadata, application/samlmetadata+xml\"},\"404\":{\"description\":\"No base URL is set\"}}}}";
       return AnsiString(paths);
    }
@@ -173,13 +173,18 @@ namespace HM
          return back(result, "sso_error=" + HttpsClient::FormEncode(problem));
       }
 
-      AnsiString ticket;
-      if (!OidcSignIn::MintTicket(result, ticket))
+      AnsiString ticket, binding;
+      if (!OidcSignIn::MintTicket(result, ticket, binding))
          return back(result, "sso_error=" + HttpsClient::FormEncode(AnsiString("the sign-in could not be finished here; try again")));
 
       LOG_APPLICATION("RestApi: " + result.address + " was verified by the SAML identity provider and may now start a " +
          String(result.deck ? _T("Control Deck") : _T("webmail")) + " session.");
 
+      // The hmsaml cookie proved this browser started the sign-in; the ticket's
+      // own cookie, set on this answer, is what keeps the ticket in it. Without
+      // it the ticket could be carried out of this browser as a link and
+      // redeemed in another, which is the very thing the hmsaml check is for.
+      headers += OidcSignIn::TicketCookieHeader(binding, BrowserCameOverTls_(request, peer_address));
       return back(result, "sso=" + ticket);
    }
 

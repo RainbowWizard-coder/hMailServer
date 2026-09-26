@@ -1456,6 +1456,42 @@ namespace
               return String(_T("passkey_relying_party is a host name, not a URL."));
            return String();
         } },
+      { "passkey_allowed_origins", KindString, ReadWrite, EffectNow, nullptr,
+        "The origins a passkey may be registered and used at, comma separated, each written as the browser writes it: https://mail.example.com, https://webmail.example.com (a port where there is one; plain http only on a loopback name). Empty, the default, means the host the page was served on, which is right while passkey_relying_party is empty. Required once passkey_relying_party is set: a parent-domain relying party is one a page at ANY host under it can ask the browser for a passkey of, so the origin a passkey was collected at must be one this list names - until it is set, no passkey is registered or taken.",
+        ROW_TEXT(Config()->GetSignInString(PROPERTY_PASSKEY_ALLOWED_ORIGINS)), ROW_SET(Config()->SetSignInString(PROPERTY_PASSKEY_ALLOWED_ORIGINS, v.text)),
+        [] (const Value &v) -> String
+        {
+           String one;
+           const String text = v.text + _T(",");
+           for (int i = 0; i < text.GetLength(); i++)
+           {
+              const wchar_t c = text[i];
+              if (c != ',' && c != ' ' && c != '\t' && c != '\r' && c != '\n')
+              {
+                 one += c;
+                 continue;
+              }
+
+              if (one.IsEmpty())
+                 continue;
+
+              String rest;
+              if (one.StartsWith(_T("https://")))
+                 rest = one.Mid(8);
+              else if (one.StartsWith(_T("http://")))
+                 rest = one.Mid(7);
+              else
+                 return String(_T("passkey_allowed_origins holds origins, each beginning https:// - ")) + one + _T(" does not.");
+
+              while (rest.EndsWith(_T("/")))
+                 rest = rest.Mid(0, rest.GetLength() - 1);
+              if (rest.IsEmpty() || rest.Find(_T("/")) >= 0 || rest.Find(_T("?")) >= 0 || rest.Find(_T("#")) >= 0 || rest.Find(_T("@")) >= 0)
+                 return String(_T("passkey_allowed_origins holds origins - a scheme, a host and a port - and no path: ")) + one;
+
+              one = String();
+           }
+           return String();
+        } },
       { "oidc_issuer", KindString, ReadWrite, EffectNow, nullptr,
         "The OpenID Connect issuer this server signs people in at, such as https://login.example.com. Its discovery document is read from <issuer>/.well-known/openid-configuration and cached. Empty, the default, offers no single sign-on at all.",
         ROW_TEXT(Config()->GetSignInString(PROPERTY_OIDC_ISSUER)), ROW_SET(Config()->SetSignInString(PROPERTY_OIDC_ISSUER, v.text)),

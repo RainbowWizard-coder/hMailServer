@@ -17,6 +17,7 @@
 #include "../BO/Account.h"
 #include "../BO/Domain.h"
 #include "../BO/Domains.h"
+#include "../Cache/CacheContainer.h"
 #include "../Persistence/PersistentAccount.h"
 
 #include <openssl/crypto.h>
@@ -72,6 +73,7 @@ namespace HM
       struct Ticket
       {
          OidcSignIn::Result result;
+         AnsiString binding;   // the hmsso cookie the browser was given with it
          time_t created = 0;
          unsigned __int64 order = 0;
       };
@@ -639,6 +641,17 @@ namespace HM
             problem = "that mailbox is not active on this server";
             return false;
          }
+
+         // Its domain as well, as a password sign-in asks it: a domain an
+         // administrator has switched off opens to nobody, however they
+         // proved who they are.
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(account->GetDomainID());
+         if (!domain || !domain->GetIsActive())
+         {
+            problem = "that mailbox's domain is not active on this server";
+            return false;
+         }
+
          result.account_id = account->GetID();
          return true;
       }
@@ -695,13 +708,14 @@ namespace HM
    }
 
    bool
-   OidcSignIn::MintTicket(const Result &result, AnsiString &ticket)
+   OidcSignIn::MintTicket(const Result &result, AnsiString &ticket, AnsiString &binding)
    {
-      if (!RandomText(ticket))
+      if (!RandomText(ticket) || !RandomText(binding))
          return false;
 
       Ticket entry;
       entry.result = result;
+      entry.binding = binding;
       entry.created = time(nullptr);
 
       boost::lock_guard<boost::mutex> guard(stateLock);
@@ -713,7 +727,7 @@ namespace HM
    }
 
    bool
-   OidcSignIn::RedeemTicket(const AnsiString &ticket, Result &result)
+   OidcSignIn::RedeemTicket(const AnsiString &ticket, const AnsiString &binding, Result &result)
    {
       if (ticket.IsEmpty())
          return false;
@@ -726,9 +740,57 @@ namespace HM
       if (it == tickets.end())
          return false;
 
+      // The browser the ticket was handed to, and no other. A ticket is a
+      // string, and a string can be carried: somebody who completes a sign-in
+      // of their own and sends the link it ended at - /portal#sso=<ticket> -
+      // to another person would otherwise have that person's browser, through
+      // this server's own page, redeem it and be signed into the sender's
+      // mailbox (login forgery). The cookie was set on the same answer that
+      // carried the ticket, so only the browser that finished the sign-in has
+      // it. A mismatch leaves the ticket where it is: whoever presented it
+      // without its cookie holds nothing that spending it would take away.
+      if (!SameText(it->second.binding, binding))
+         return false;
+
       result = it->second.result;
       tickets.erase(it);
       return true;
+   }
+
+   // Path=/api/v1/session, so that the one request that redeems a ticket
+   // carries it and nothing else does; SameSite=Strict, because that request
+   // is made by this server's own page.
+   AnsiString
+   OidcSignIn::TicketCookieHeader(const AnsiString &binding, bool secure)
+   {
+      AnsiString header;
+      header.Format("Set-Cookie: %hs=%hs; Path=/api/v1/session; HttpOnly; SameSite=Strict; Max-Age=%d%hs\r\n",
+         TicketCookieName, binding.c_str(), TicketSeconds, secure ? "; Secure" : "");
+      return header;
+   }
+
+   AnsiString
+   OidcSignIn::ClearTicketCookieHeader(bool secure)
+   {
+      AnsiString header;
+      header.Format("Set-Cookie: %hs=; Path=/api/v1/session; HttpOnly; SameSite=Strict; Max-Age=0%hs\r\n",
+         TicketCookieName, secure ? "; Secure" : "");
+      return header;
+   }
+
+   AnsiString
+   OidcSignIn::TicketBindingFrom(const AnsiString &cookieHeader)
+   {
+      const AnsiString prefix = AnsiString(TicketCookieName) + "=";
+      AnsiString value;
+      std::vector<AnsiString> cookies = StringParser::SplitString(cookieHeader, ";");
+      for (AnsiString part : cookies)
+      {
+         part.Trim();
+         if (part.StartsWith(prefix))
+            value = part.Mid(prefix.GetLength());
+      }
+      return value;
    }
 
    void

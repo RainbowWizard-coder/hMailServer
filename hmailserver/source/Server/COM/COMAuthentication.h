@@ -96,6 +96,14 @@ namespace HM
       // credential on its own. Sets account_ on success.
       void AuthenticateAdministrator_(const String &sPassword, const String &sCode, bool codePresented);
 
+      // The one-time code of an owner - an account's address, or
+      // "administrator" - whose password has just been accepted: refused while
+      // the owner's wrong-code budget is spent, refused and counted when it is
+      // wrong, refused and not counted when it has been taken once already, and
+      // taken otherwise (SecondFactorGuard, Totp.h, which the REST API shares).
+      // Logs each refusal.
+      static bool AcceptCode_(const String &owner, const String &secret, const String &sCode);
+
       void ResolveGrant_();
       void InstallActor_() const;
 

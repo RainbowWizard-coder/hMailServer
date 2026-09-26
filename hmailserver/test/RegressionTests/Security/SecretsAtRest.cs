@@ -255,7 +255,7 @@ namespace RegressionTests.Security
          StringAssert.StartsWith("HMK1:" + RecordedKeyId() + ":", stored, "The second factor is sealed under the key the database records.");
          StringAssert.DoesNotContain(secret, stored, "...and not as the secret.");
 
-         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)),
+         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)),
             "A code computed with .NET's own HMACSHA1 against the secret verifies.");
          ClassicAssert.IsFalse(AuthenticatesWithCode(address, Password, CurrentCode(secret, 5)),
             "A code five steps out does not: the secret opened is the secret, not something that accepts anything.");
@@ -264,7 +264,7 @@ namespace RegressionTests.Security
          account.Save();
          StringAssert.StartsWith("HMK1:", StoredTotp(account.ID), "Saved again, it is sealed again.");
          ClassicAssert.IsTrue(account.TOTPEnabled);
-         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)), "...and still verifies.");
+         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)), "...and still verifies.");
 
          // The envelope copied into another account's row: the account's id is in the
          // associated data, so it does not open there.
@@ -273,11 +273,11 @@ namespace RegressionTests.Security
          ClassicAssert.IsTrue(TryExecute("update hm_accounts set accounttotpsecret = '" + StoredTotp(account.ID) + "' where accountid = " + other.ID));
          _settings.Cache.Clear();
 
-         ClassicAssert.IsFalse(AuthenticatesWithCode(otherAddress, Password, CurrentCode(secret)),
+         ClassicAssert.IsFalse(AuthenticatesWithCode(otherAddress, Password, OneTimeCodes.At(secret, 1)),
             "Another account's envelope opened in this account's row: the second factor is not bound to its account.");
          ClassicAssert.IsTrue(_application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(otherAddress).TOTPEnabled,
             "The account keeps a second factor, which refuses every code, rather than none.");
-         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)), "The account whose envelope it is still verifies.");
+         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)), "The account whose envelope it is still verifies.");
 
          // HM7493 is said once a process: here, or by an earlier test.
          ClearErrorLogOf("HM7493");
@@ -299,7 +299,7 @@ namespace RegressionTests.Security
          _settings.Cache.Clear();
 
          ClassicAssert.AreEqual(secret, StoredTotp(account.ID), "The precondition: the row holds the secret as generated.");
-         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)),
+         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)),
             "A secret stored as generated is read as it is.");
 
          _application.Reinitialize();
@@ -307,7 +307,7 @@ namespace RegressionTests.Security
          string stored = StoredTotp(account.ID);
          StringAssert.StartsWith("HMK1:", stored, "The start sealed the row.");
          StringAssert.DoesNotContain(secret, stored);
-         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)),
+         ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)),
             "The protected secret is the same secret.");
       }
 
@@ -347,7 +347,7 @@ namespace RegressionTests.Security
             ClassicAssert.AreNotEqual(envelopeBefore, envelopeAfter,
                "A new envelope: the archive carried the secret opened and the restore sealed it again. The old " +
                "envelope copied would open only where this key is held, and a restore onto a server with another would lose the second factor.");
-            ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)), "The same secret.");
+            ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)), "The same secret.");
 
             ClassicAssert.AreEqual(settingSecret, _application.Settings.GetIniSetting(SettingName), "The setting came back whole.");
             string settingEnvelopeAfter = IniFileSetting.Read(SettingName);
@@ -475,7 +475,7 @@ namespace RegressionTests.Security
             ClassicAssert.AreEqual(plain, _application.Settings.GetIniSetting(Name));
 
             ClassicAssert.AreEqual(secret, StoredTotp(account.ID), "...and the second factor as generated.");
-            ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)), "It verifies as it did.");
+            ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)), "It verifies as it did.");
 
             string other = plain + "-2";
             IniFileSetting.Write(Name, other);
@@ -594,7 +594,7 @@ namespace RegressionTests.Security
                "A node without the key made one of its own - a start never makes one, and the database records another.");
             ClassicAssert.IsTrue(_application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(address).TOTPEnabled,
                "The second factor stays enrolled where its secret does not open - never switched off.");
-            ClassicAssert.IsFalse(AuthenticatesWithCode(address, Password, CurrentCode(secret)),
+            ClassicAssert.IsFalse(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)),
                "Without the key every code is refused.");
             CustomAsserts.AssertReportedError("7495", "--import-stored-secrets-key");
 
@@ -612,7 +612,7 @@ namespace RegressionTests.Security
             StringAssert.StartsWith("DPAPI:", IniFileSetting.Read("Security", "StoredSecretsKey"), "Imported under this machine's own store.");
 
             _application.Reinitialize();
-            ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, CurrentCode(secret)), "With the key imported the code verifies again.");
+            ClassicAssert.IsTrue(AuthenticatesWithCode(address, Password, OneTimeCodes.Fresh(secret)), "With the key imported the code verifies again.");
 
             // A key the database does not record is refused, and the key held is not touched.
             byte[] otherKey = new byte[32];
@@ -752,7 +752,7 @@ namespace RegressionTests.Security
             ClassicAssert.AreEqual(string.Empty, row, "The lost setting is emptied in the row.");
             ClassicAssert.AreEqual(string.Empty, _application.Settings.GetIniSetting(Name), "...and reads as not set.");
 
-            ClassicAssert.IsTrue(AuthenticatesWithCode(keptAddress, Password, CurrentCode(keptSecret)), "The second factor the key opens still verifies.");
+            ClassicAssert.IsTrue(AuthenticatesWithCode(keptAddress, Password, OneTimeCodes.Fresh(keptSecret)), "The second factor the key opens still verifies.");
             ClassicAssert.AreEqual(recorded, RecordedKeyId(), "The database still records this server's key.");
          }
          finally
@@ -926,6 +926,9 @@ namespace RegressionTests.Security
       /// <summary>
       ///    RFC 6238 in the test, with .NET's HMACSHA1 - what an authenticator app
       ///    computes, and nothing the server owns (as TwoFactorAuthentication does).
+      ///    For a code the server is to TAKE, the tests ask OneTimeCodes.Fresh
+      ///    instead: a code is taken once (SecondFactorGuard), so a second sign-in
+      ///    with the same secret needs the authenticator's next code.
       /// </summary>
       private static string CurrentCode(string base32Secret, int stepOffset = 0)
       {

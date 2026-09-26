@@ -1179,6 +1179,10 @@ STDMETHODIMP InterfaceSettings::EnrolAdministratorTOTP(BSTR *pVal)
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String(secret)))
          return COMError::GenerateError("The secret could not be written to hMailServer.INI. Nothing has been changed; see the hMailServer error log.");
 
+      // The codes, wrong or taken, that were about the secret this replaces
+      // (SecondFactorGuard) are forgotten with it.
+      HM::SecondFactorGuard::ForgetOwner(_T("administrator"));
+
       // The URI carries the secret, and this is the only moment it leaves the
       // server. Enforced from this moment: the session that enrolled stays
       // authenticated, and the next logon needs the code.
@@ -1207,6 +1211,8 @@ STDMETHODIMP InterfaceSettings::DisableAdministratorTOTP()
 
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String()))
          return COMError::GenerateError("The secret could not be removed from hMailServer.INI. Nothing has been changed; see the hMailServer error log.");
+
+      HM::SecondFactorGuard::ForgetOwner(_T("administrator"));
 
       return S_OK;
    }

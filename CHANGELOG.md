@@ -212,6 +212,14 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
     and for a rename over COM and REST. A domain that already has one is still saved, and is named as `HM7597` at
     every start and as `domain_name_reserved` on the first-hour checklist: rename it
     ([SetupChecklist.md](hmailserver/docs/SetupChecklist.md)).
+22. **A one-time code is taken once.** Over COM and over REST, a TOTP code the server has accepted is refused if
+    it comes again, for the administrator and for an account alike (see the fix under Security and identity). A
+    script that sent the administrator's password and a code with every REST request signs in once instead -
+    `POST /api/v1/session`, and the `hmailsession` cookie from there - or uses an API key; otherwise only its first
+    request in each half minute is accepted. The others are refused with 401 and are not counted as wrong codes, so
+    such a script does not lock the administrator out. Somebody asked for a code twice within half a minute - to sign in to
+    the Control Deck and then to register a passkey, say - waits for the authenticator's next one
+    ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
 
 ### Delivery and SMTP
 
@@ -527,6 +535,80 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   server queues itself - the webmail, a send-later draft, an event script, a rule's forward, copy or reply, an
   automatic reply, a Sieve redirect, an account's forwarding, a delivery report
   ([Journaling.md](hmailserver/docs/Journaling.md)).
+- **Fixed: a single sign-on ticket could be redeemed in another person's browser.** Found in the audit before
+  this release, in the new OpenID Connect and SAML sign-in. The ticket a finished sign-in carried to the page in
+  `/portal#sso=<ticket>` was redeemed by value alone, so anybody who could complete a sign-in of their own could
+  send that link to someone else, and the server's own page would sign that person's browser into the sender's
+  mailbox - login forgery, past both the `X-Requested-With` check and SAML's `hmsaml` cookie. The ticket is now
+  bound to the browser that finished the sign-in by an `hmsso` cookie (HttpOnly, `SameSite=Strict`,
+  `Path=/api/v1/session`) set beside it, and `POST /api/v1/session` refuses it without that cookie
+  ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md)).
+- **Fixed: a one-time code asked for on top of a password could be guessed without limit.** Found in the audit
+  before this release. Changing the password, making an app password or recovery codes, setting a recovery
+  address and registering a passkey ask for the account's password and then its one-time code, and a wrong code
+  there was neither counted nor logged, so somebody holding the password and a session (or, for the password
+  change, an app password) could try codes at the request rate until one matched and leave with a credential
+  that needs no second factor. The administrator's passkey registration had the same gap. A wrong code is now
+  logged and charged like a wrong password, and after five in fifteen minutes every code for that account, or
+  for the administrator, is refused with 429 for fifteen minutes
+  ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
+- **Fixed: with a parent-domain relying party, a page on any sibling host could sign somebody in with their
+  passkey.** Found in the audit before this release. A passkey's origin was compared with the request's own
+  `Host` header, which the client writes, so with `passkey_relying_party` set to `example.com` as the document
+  advised, a script on any host under `example.com` could collect a person's assertion and post it here naming
+  that host, and be signed in as them with no password and no code. A new setting, `passkey_allowed_origins`,
+  names the origins this server's pages are served at; once a relying party is set it is required, and the
+  origin of every registration and sign-in must be one it names. A credential made in a frame of another site's
+  page is refused too. With neither setting, the default, the check is unchanged
+  ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md)).
+- **Fixed: a switched-off domain still let its people in with a passkey or single sign-on.** Found in the audit
+  before this release. A password is refused for an account whose domain is not active, but a passkey, an OpenID
+  Connect or SAML sign-in to an existing mailbox, and every browser session already open went on working. All
+  three now check the domain, and a session ends at its next request once its domain is switched off
+  ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md)).
+- **Fixed: the forgotten-password route's timing said which mailboxes can be reset.** Found in the audit before
+  this release. `POST /api/v1/password-reset` gave every address the same answer, but gave it only after making
+  the link and queueing the message when the mailbox had a confirmed recovery address, so the answer came
+  measurably later for exactly those mailboxes; and a reverse proxy on the same machine had no per-client limit
+  at all. The answer now comes before the address is looked up, the link is made on the async work queue, and
+  requests from loopback share a ceiling of thirty in any minute
+  ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
+- **Fixed: a one-time code could be used again for as long as it was in its window.** Found in the audit before
+  this release. No place that checks a TOTP code - the COM sign-in (`AuthenticateWithCode`) for an account and for
+  the administrator, the administrator's Basic sign-in on the REST API, and the REST routes that ask for a code on
+  top of a password - remembered the codes it had accepted, so a code somebody read over a shoulder, out of a
+  proxy's log or off a phishing page, with the password beside it, was a whole credential for up to a minute and a
+  half after its owner had used it. RFC 6238 says a verifier must not take a code twice. Each owner's last step
+  taken is now remembered, in one record every one of those places shares: the same code, or one from an earlier
+  step, is refused wherever it comes next. It is not counted as a wrong code - it is no guess, and the one who
+  sends it again is most likely its owner - and the wrong codes that are counted are judged and counted under one
+  lock, so that requests racing each other cannot all be judged before the fifth is counted
+  ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
+- **Fixed: a wrong one-time code at the COM sign-in was not counted.** Found in the audit before this release.
+  `AuthenticateWithCode` checked an account's code before its password and counted neither, and the
+  administrator's wrong code was logged and nothing more, so somebody with the password could guess codes over
+  COM at the speed of the calls. The password is now checked first, and a wrong code after a right password
+  counts against the same budget the REST API keeps for that owner - five in fifteen minutes, then no code taken
+  for fifteen, over COM and REST alike. COM stays outside the per-name lockout and the auto-ban, as its passwords
+  are ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
+- **Fixed: behind a reverse proxy on the same machine, the administrator's one-time code could be guessed at the
+  request rate.** Found in the audit before this release; present since the administrator's second factor came
+  to the REST API. A wrong code in `X-hMailServer-OTP` on the administrator's Basic sign-in was charged only to
+  the auto-ban, which leaves 127.0.0.1 and `::1` alone - and behind a proxy on this machine every request comes
+  from there. It now counts against the administrator's budget, and once that is spent the answer is 429 with
+  `code` `second_factor_locked` and `Retry-After`; the auto-ban is still charged once for each wrong code
+  ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
+- **Fixed: behind a reverse proxy that terminates HTTPS, the session cookie was not marked `Secure`.** Found in
+  the audit before this release. `hmailsession`, and the sign-in cookies `hmoidc`, `hmsso` (OpenID Connect) and
+  `hmpasskey`, were marked `Secure` only when the REST listener itself spoke TLS, so behind the usual proxy in
+  front of the plain loopback listener the session cookie of an HTTPS site was one a browser would also send over
+  plain HTTP. They now follow the rule SAML's cookies already did: `Secure` over TLS, or when the proxy on this
+  machine says `X-Forwarded-Proto: https` ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md)).
+- **Fixed: registering an administrator passkey skipped the one-time code when the administrator's second factor
+  could not be opened.** Found in the audit before this release. With `AdministratorTotpSecret` enrolled but its
+  secret unopenable on this machine - the key it was protected with lost - every administrator sign-in refuses,
+  but `POST /api/v1/passkeys` for the administrator took the password alone from a session already open. It now
+  refuses with 409, as the sign-ins do ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md)).
 
 ### Encryption
 

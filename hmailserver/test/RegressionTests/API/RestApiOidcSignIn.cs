@@ -103,7 +103,7 @@ namespace RegressionTests.API
                   IdToken(rsa, Issuer, ClientId, started.nonce, account.Address, true, 600) + "\"}"),
                "application/json");
 
-            string ticket = Complete(started, "/portal");
+            Ticket ticket = Complete(started, "/portal");
             DateTime lastLogonBefore = Convert.ToDateTime(_domain.Accounts.get_ItemByAddress(account.Address).LastLogonTime);
 
             // The stamp is kept to the second: a sign-in in the same second as
@@ -116,11 +116,28 @@ namespace RegressionTests.API
             // refused - and the ticket is not spent by it either, which the
             // sign-in immediately below proves, so a stranger cannot even use it
             // to burn somebody else's ticket.
-            Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null, false).status,
+            Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket.value + "\"}",
+               "Cookie: " + ticket.cookie, false).status,
                "A session minted from the request body needs the header a cross-site form cannot set.");
 
+            // The ticket carried to another browser: the link /portal#sso=<ticket>
+            // sent to somebody else, whose browser has no hmsso cookie, or has the
+            // cookie of a sign-in of its own. This server's own page would post it
+            // with the header, so the header proves nothing here; the cookie does.
+            // Refused both ways, and the ticket is not spent by either, which the
+            // sign-in below proves.
+            Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket.value + "\"}", null).status,
+               "A ticket presented by a browser that was not given its cookie signs nobody in.");
+
+            Started another = Start(false);
+            Token(issuer, rsa, Issuer, ClientId, another.nonce, account.Address, true, 600);
+            Ticket anotherTicket = Complete(another, "/portal");
+            Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket.value + "\"}",
+               "Cookie: " + anotherTicket.cookie).status,
+               "A ticket presented with another sign-in's cookie signs nobody in.");
+
             (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
-               "{\"sso_ticket\":\"" + ticket + "\"}", null);
+               "{\"sso_ticket\":\"" + ticket.value + "\"}", "Cookie: " + ticket.cookie);
             Assert.AreEqual(201, session.status, session.body);
             StringAssert.Contains(account.Address, session.body);
 
@@ -139,8 +156,12 @@ namespace RegressionTests.API
             StringAssert.Contains("\"credential\":\"single_sign_on\"",
                Send("GET", "/api/v1/me/devices", Basic(account.Address, "Sso-Passw0rd!"), null).body);
 
+            // The session answer clears the ticket's cookie: it has nothing left to do.
+            StringAssert.Contains("Set-Cookie: hmsso=;", session.headers);
+
             // A ticket is good once.
-            Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status,
+            Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket.value + "\"}",
+               "Cookie: " + ticket.cookie).status,
                "A spent ticket is not a credential.");
          }
       }
@@ -218,8 +239,9 @@ namespace RegressionTests.API
             Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"oidc_auto_provision\":true}").status);
             Started provisioned = Start(false);
             Token(issuer, rsa, Issuer, ClientId, provisioned.nonce, newcomer, true, 600);
-            string ticket = Complete(provisioned, "/portal");
-            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status);
+            Ticket ticket = Complete(provisioned, "/portal");
+            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket.value + "\"}",
+               "Cookie: " + ticket.cookie).status);
             Assert.AreEqual(200, Admin("GET", "/api/v1/accounts/" + newcomer, null).status, "The mailbox was made.");
 
             // A verified address at a domain this server does not have is still refused.
@@ -238,10 +260,10 @@ namespace RegressionTests.API
 
             Started asChief = Start(true);
             Token(issuer, rsa, Issuer, ClientId, asChief.nonce, chief, true, 600);
-            string deckTicket = Complete(asChief, "/");
+            Ticket deckTicket = Complete(asChief, "/");
 
             (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
-               "{\"sso_ticket\":\"" + deckTicket + "\"}", null);
+               "{\"sso_ticket\":\"" + deckTicket.value + "\"}", "Cookie: " + deckTicket.cookie);
             Assert.AreEqual(201, session.status, session.body);
             StringAssert.Contains("\"administrator\":true", session.body);
 
@@ -249,6 +271,70 @@ namespace RegressionTests.API
             Assert.IsTrue(cookie.Success, session.headers);
             Assert.AreEqual(200, Send("GET", "/api/v1/status", null, null, "Cookie: " + cookie.Groups[1].Value).status,
                "The Deck's session reaches the administration API.");
+         }
+      }
+
+      [Test]
+      [Description("A domain switched off signs nobody in, however they prove who they are: a single sign-on " +
+                   "ticket minted before the switch is refused at POST /api/v1/session, a sign-in finished after " +
+                   "it comes back with sso_error, and a browser session started with the password before it ends " +
+                   "at its next request - as the password itself is refused. The negative control is each of them " +
+                   "working while the domain is on.")]
+      public void ASwitchedOffDomainSignsNobodyIn()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sso-offboarded@" + _domain.Name, "Sso-Passw0rd!");
+
+         using (var rsa = RSA.Create(2048))
+         using (var issuer = new FakeHttpEndpoint(IssuerPort, 404, "{}", "application/json"))
+         {
+            Publish(issuer, rsa);
+            Configure();
+
+            // While the domain is on: a password session, and a ticket not yet spent.
+            (int status, string body, string headers) byPassword = SendRaw("POST", "/api/v1/session",
+               Basic(account.Address, "Sso-Passw0rd!"), null, null);
+            Assert.AreEqual(201, byPassword.status, byPassword.body);
+            string passwordCookie = Regex.Match(byPassword.headers, @"Set-Cookie: (hmailsession=[^;]+);").Groups[1].Value;
+            Assert.AreEqual(200, Send("GET", "/api/v1/me", null, null, "Cookie: " + passwordCookie).status,
+               "The negative control: the session works while the domain is on.");
+
+            Started before = Start(false);
+            Token(issuer, rsa, Issuer, ClientId, before.nonce, account.Address, true, 600);
+            Ticket minted = Complete(before, "/portal");
+
+            _domain.Active = false;
+            _domain.Save();
+            try
+            {
+               Assert.AreEqual(401, Send("POST", "/api/v1/session", Basic(account.Address, "Sso-Passw0rd!"), null).status,
+                  "The password is refused for a switched-off domain, as it always was.");
+
+               Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + minted.value + "\"}",
+                  "Cookie: " + minted.cookie).status,
+                  "A single sign-on into a switched-off domain started a session.");
+
+               Started after = Start(false);
+               Token(issuer, rsa, Issuer, ClientId, after.nonce, account.Address, true, 600);
+               (int status, string location) refused = Callback(after);
+               StringAssert.Contains("sso_error", refused.location, "A sign-in into a switched-off domain was handed a ticket.");
+
+               Assert.AreEqual(401, Send("GET", "/api/v1/me", null, null, "Cookie: " + passwordCookie).status,
+                  "A session outlived its domain being switched off.");
+            }
+            finally
+            {
+               _domain.Active = true;
+               _domain.Save();
+            }
+
+            // Ended, not suspended: switching the domain back on does not bring the
+            // session back, and a fresh sign-in works again.
+            Assert.AreEqual(401, Send("GET", "/api/v1/me", null, null, "Cookie: " + passwordCookie).status);
+            Started again = Start(false);
+            Token(issuer, rsa, Issuer, ClientId, again.nonce, account.Address, true, 600);
+            Ticket fresh = Complete(again, "/portal");
+            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + fresh.value + "\"}",
+               "Cookie: " + fresh.cookie).status);
          }
       }
 
@@ -345,12 +431,29 @@ namespace RegressionTests.API
          return (answer.status, location.Groups[1].Value);
       }
 
-      /// <summary>The callback, expected to succeed; answers the one-use ticket.</summary>
-      private static string Complete(Started started, string page)
+      /// <summary>A ticket, and the hmsso cookie that binds it to the browser it was handed to.</summary>
+      private struct Ticket
       {
-         (int status, string location) landed = Callback(started);
-         StringAssert.StartsWith(page + "#sso=", landed.location, "The sign-in did not come back with a ticket.");
-         return landed.location.Substring((page + "#sso=").Length);
+         public string value;
+         public string cookie;
+      }
+
+      /// <summary>The callback, expected to succeed; answers the one-use ticket and its cookie.</summary>
+      private static Ticket Complete(Started started, string page)
+      {
+         (int status, string body, string headers) answer = SendRaw("GET",
+            "/portal/oidc/callback?state=" + started.state + "&code=a-code", null, null, "Cookie: " + started.cookie);
+         Assert.AreEqual(302, answer.status, answer.headers);
+         string location = Regex.Match(answer.headers, @"Location: (\S+)").Groups[1].Value;
+         StringAssert.StartsWith(page + "#sso=", location, "The sign-in did not come back with a ticket.");
+
+         Match cookie = Regex.Match(answer.headers, @"Set-Cookie: (hmsso=[^;]+);([^\r\n]*)");
+         Assert.IsTrue(cookie.Success, "The ticket came without the cookie that binds it to this browser: " + answer.headers);
+         StringAssert.Contains("HttpOnly", cookie.Groups[2].Value);
+         StringAssert.Contains("SameSite=Strict", cookie.Groups[2].Value);
+         StringAssert.Contains("Path=/api/v1/session", cookie.Groups[2].Value);
+
+         return new Ticket { value = location.Substring((page + "#sso=").Length), cookie = cookie.Groups[1].Value };
       }
 
       private static string Base64Url(byte[] data)

@@ -122,10 +122,30 @@ namespace HM
       // else. The ticket travels in the URL fragment, which a browser does not
       // send to any server and no access log holds. A SAML sign-in ends in the
       // same ticket, redeemed by the same route: one ticket, one redeemer.
-      static bool MintTicket(const Result &result, AnsiString &ticket);
-      static bool RedeemTicket(const AnsiString &ticket, Result &result);
+      //
+      // And redeemed only by the browser it was handed to. binding is a second
+      // random value, set as the TicketCookieName cookie on the same redirect
+      // that carries the ticket and held with it here; RedeemTicket refuses a
+      // ticket presented without it. Without that, a ticket is a bearer string
+      // that its owner can send to somebody else as a link, and this server's
+      // own page would redeem it in that person's browser - signing them into
+      // the sender's mailbox.
+      static bool MintTicket(const Result &result, AnsiString &ticket, AnsiString &binding);
+      static bool RedeemTicket(const AnsiString &ticket, const AnsiString &binding, Result &result);
 
       static const int TicketSeconds = 120;
+
+      // HttpOnly, SameSite=Strict, Path=/api/v1/session, TicketSeconds long.
+      static constexpr const char *TicketCookieName = "hmsso";
+
+      // The Set-Cookie line that hands binding to the browser, and the one
+      // that takes it away again once the ticket is spent. Secure when the
+      // browser came over TLS.
+      static AnsiString TicketCookieHeader(const AnsiString &binding, bool secure);
+      static AnsiString ClearTicketCookieHeader(bool secure);
+
+      // The binding a request's Cookie header carries; empty when none.
+      static AnsiString TicketBindingFrom(const AnsiString &cookieHeader);
 
       // Forgets the discovery document, the pending sign-ins and the tickets.
       // For Reinitialize and the tests.

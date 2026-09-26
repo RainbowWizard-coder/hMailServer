@@ -38,6 +38,7 @@
 #include "../Util/SnmpAgent.h"
 #include "../Util/RateLimiter.h"
 #include "../Util/JwksKeySet.h"
+#include "../Util/Totp.h"
 #include "../Util/DiscoverySearch.h"
 #include "../Util/OtelTracer.h"
 #include "../Util/OtelMetricsExporter.h"
@@ -1806,6 +1807,12 @@ namespace HM
       // and would otherwise keep every later message from posting one
       // (Util/InboundWebhooks.h).
       InboundWebhooks::Instance()->Forget();
+
+      // The second factor's wrong-code counts and locks (Util/Totp.h), which
+      // the COM sign-in and the REST API share: a restart is the administrator's
+      // way to end a lock, as a service restart is. The steps already taken are
+      // kept, so that no code is taken a second time across it.
+      SecondFactorGuard::ClearBudgets();
 
       String sErrorMessage;
       if (!InitInstance(sErrorMessage))

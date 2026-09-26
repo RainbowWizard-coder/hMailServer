@@ -78,6 +78,40 @@ namespace HM
       // credential to something the browser will not accept.
       static AnsiString RelyingParty(const AnsiString &host);
 
+      // Whether PasskeyRelyingParty is set - a relying party id that does not
+      // follow the page's host.
+      static bool RelyingPartyConfigured();
+
+      // The origins a passkey may be registered and used at: the
+      // PasskeyAllowedOrigins setting, each written scheme://host[:port],
+      // lower-cased, without a trailing slash. Empty when it is not set.
+      //
+      // Why it exists. The origin in clientDataJSON is what the browser says
+      // the page that asked for the credential was, and it is the one thing an
+      // attacker cannot write; the Host header is. With the relying party id
+      // following the Host header, an origin that matches the Host header also
+      // fixes the relying party the credential is bound to, and a page at
+      // another host can get nothing a passkey of this server's would sign. With
+      // PasskeyRelyingParty set to a parent domain (example.com), a page at ANY
+      // host under it may ask the browser for a passkey of example.com - so the
+      // origin has to be one this server names as its own, never one the
+      // request itself names. OriginAllowed is that check, for both the
+      // registration and the sign-in.
+      static std::vector<AnsiString> AllowedOrigins();
+
+      // Whether a passkey collected at origin (clientDataJSON's, exactly as the
+      // browser wrote it) may be taken by a request whose Host header is host.
+      // When AllowedOrigins is set, or PasskeyRelyingParty is, the origin must
+      // be in the list - and with a relying party and no list, nothing is
+      // taken; otherwise it must be the page's own host. problem says which
+      // for the log.
+      static bool OriginAllowed(const AnsiString &origin, const AnsiString &originHost, const AnsiString &host,
+                                AnsiString &problem);
+
+      // The sentence the challenge routes answer while PasskeyRelyingParty is
+      // set and PasskeyAllowedOrigins is not; empty otherwise.
+      static AnsiString MissingOriginsProblem();
+
       // The opaque handle the credential carries for its owner, and the way
       // back from one. "admin" for the administrator, "a<account id>" for an
       // account - stable, so a person who re-registers the same authenticator

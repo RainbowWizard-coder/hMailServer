@@ -163,6 +163,96 @@ namespace HM
       return Configuration::Instance()->GetPasskeysEnabled();
    }
 
+   bool
+   PasskeyStore::RelyingPartyConfigured()
+   {
+      AnsiString configured;
+      Unicode::WideToMultiByte(Configuration::Instance()->GetSignInString(PROPERTY_PASSKEY_RELYING_PARTY), configured);
+      configured.Trim();
+      return !configured.IsEmpty();
+   }
+
+   std::vector<AnsiString>
+   PasskeyStore::AllowedOrigins()
+   {
+      AnsiString configured;
+      Unicode::WideToMultiByte(Configuration::Instance()->GetSignInString(PROPERTY_PASSKEY_ALLOWED_ORIGINS), configured);
+
+      std::vector<AnsiString> origins;
+      AnsiString one;
+      for (int i = 0; i <= configured.GetLength(); i++)
+      {
+         const char c = i < configured.GetLength() ? configured[i] : ',';
+         if (c == ',' || c == ' ' || c == '\t' || c == '\r' || c == '\n')
+         {
+            one.Trim();
+            while (one.EndsWith("/"))
+               one = one.Mid(0, one.GetLength() - 1);
+            one.MakeLower();
+            if (!one.IsEmpty())
+               origins.push_back(one);
+            one = AnsiString();
+            continue;
+         }
+         one += c;
+      }
+      return origins;
+   }
+
+   bool
+   PasskeyStore::OriginAllowed(const AnsiString &origin, const AnsiString &originHost, const AnsiString &host,
+                               AnsiString &problem)
+   {
+      if (originHost.IsEmpty())
+      {
+         problem = "the origin is not an https page, or plain http on a loopback name";
+         return false;
+      }
+
+      const std::vector<AnsiString> allowed = AllowedOrigins();
+      if (allowed.empty())
+      {
+         if (RelyingPartyConfigured())
+         {
+            problem = "PasskeyRelyingParty is set and PasskeyAllowedOrigins is not, so no origin is this server's own";
+            return false;
+         }
+
+         AnsiString wantedHost = host;
+         wantedHost.Trim();
+         wantedHost.MakeLower();
+         if (wantedHost.IsEmpty() || originHost != wantedHost)
+         {
+            problem = "the origin is not the host the request was sent to";
+            return false;
+         }
+         return true;
+      }
+
+      AnsiString presented = origin;
+      presented.Trim();
+      while (presented.EndsWith("/"))
+         presented = presented.Mid(0, presented.GetLength() - 1);
+      presented.MakeLower();
+
+      for (const AnsiString &one : allowed)
+      {
+         if (one == presented)
+            return true;
+      }
+
+      problem = "the origin is not one PasskeyAllowedOrigins names";
+      return false;
+   }
+
+   AnsiString
+   PasskeyStore::MissingOriginsProblem()
+   {
+      if (!RelyingPartyConfigured() || !AllowedOrigins().empty())
+         return AnsiString();
+      return "passkey_relying_party is set, so passkey_allowed_origins must name the origins this server's pages are served at (https://mail.example.com); until it does, no passkey is registered or taken";
+   }
+
    AnsiString
    PasskeyStore::RelyingParty(const AnsiString &host)
    {

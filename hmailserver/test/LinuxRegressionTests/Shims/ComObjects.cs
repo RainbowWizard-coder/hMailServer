@@ -1094,9 +1094,10 @@ namespace hMailServer
       /// <summary>
       ///    Settings.DisableAdministratorTOTP: DELETE /api/v1/administrator/second-factor.
       ///    Once a factor is enrolled the administrator password alone no longer
-      ///    authenticates a request, over REST as over COM; this request carries the
-      ///    code for the factor this layer enrolled (ServerApi.AdministratorFactorEnrolled),
-      ///    which is what lets a fixture disable in its teardown what it enrolled in
+      ///    authenticates a request, over REST as over COM; this request goes with the
+      ///    session ServerApi started with a code for the factor this layer enrolled
+      ///    (ServerApi.AdministratorFactorEnrolled), which is what lets a fixture
+      ///    disable in its teardown what it enrolled in
       ///    its test, as the already-authenticated Settings object lets it on Windows.
       ///    A factor enrolled some other way - by a fixture's own request, as the
       ///    operator fixture does and undoes with a code of its own, or left by a run
@@ -1111,8 +1112,8 @@ namespace hMailServer
 
       /// <summary>
       ///    Settings.EnrolAdministratorTOTP: POST /api/v1/administrator/second-factor,
-      ///    answering the otpauth URI - and keeping its secret for this layer's own
-      ///    requests, which need the code from the next one on.
+      ///    answering the otpauth URI - and keeping its secret, from which this
+      ///    layer's next request starts the session the ones after it go with.
       /// </summary>
       public string EnrolAdministratorTOTP()
       {

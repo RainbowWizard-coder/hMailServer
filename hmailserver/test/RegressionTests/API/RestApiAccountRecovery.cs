@@ -262,6 +262,206 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A one-time code asked for on top of the account's password - here at POST /api/v1/me/password, by a client holding an app password and the account password - is counted when it is wrong: after five wrong codes in fifteen minutes every code for the account is refused with 429, the right one included, and the password stays as it was. The negative control is the right code taken before the budget is spent.")]
+      public void AWrongOneTimeCodeIsCountedAndTheBudgetEndsTheGuessing()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recovery-guess@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+
+         // An app password, made before the second factor is enrolled: it is the
+         // credential the account's own password stops being once it is.
+         (int status, string body) minted = Send("POST", "/api/v1/me/app-passwords", me,
+            "{\"name\":\"Phone\",\"password\":\"" + Password + "\"}");
+         Assert.AreEqual(201, minted.status, minted.body);
+         string asProgram = Basic(account.Address, Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value);
+
+         string uri = account.EnrolTOTP();
+         account.Save();
+         string secret = Regex.Match(uri, "secret=([A-Z2-7]+)").Groups[1].Value;
+         Assert.IsNotEmpty(secret, uri);
+
+         // No code: a client that has not been told one is needed, answered 401 with
+         // the header named, and not counted.
+         Assert.AreEqual(401, Send("POST", "/api/v1/me/password", asProgram,
+            "{\"current\":\"" + Password + "\",\"new\":\"" + NewPassword + "\"}").status);
+
+         // The negative control: the right code is taken while the budget stands.
+         (int status, string body) changed = Send("POST", "/api/v1/me/password", asProgram,
+            "{\"current\":\"" + Password + "\",\"new\":\"" + NewPassword + "\"}", "X-hMailServer-OTP: " + CurrentCode(secret));
+         Assert.AreEqual(200, changed.status, "The right code was not taken: " + changed.body);
+
+         // Five wrong codes, each refused as a wrong code is.
+         const string Third = "A-Third-Passw0rd-Chosen!";
+         string change = "{\"current\":\"" + NewPassword + "\",\"new\":\"" + Third + "\"}";
+         string wrong = WrongCode(secret);
+         for (int attempt = 1; attempt <= 5; attempt++)
+         {
+            Assert.AreEqual(401, Send("POST", "/api/v1/me/password", asProgram, change, "X-hMailServer-OTP: " + wrong).status,
+               "Wrong code " + attempt + " was not refused.");
+         }
+
+         // And now the right one is refused too, for as long as the budget is spent -
+         // which is what makes guessing stop, since a guess that happens to be right
+         // looks exactly like this.
+         (int status, string body) locked = Send("POST", "/api/v1/me/password", asProgram, change,
+            "X-hMailServer-OTP: " + CurrentCode(secret));
+         Assert.AreEqual(429, locked.status, "After five wrong codes the right one was taken: " + locked.body);
+         StringAssert.Contains("second_factor_locked", locked.body);
+
+         // The password did not change: the third one is not the current password.
+         Assert.AreEqual(403, Send("POST", "/api/v1/me/password", asProgram,
+            "{\"current\":\"" + Third + "\",\"new\":\"" + Password + "\"}").status,
+            "The account password changed although the code was refused.");
+
+         account.DisableTOTP();
+         account.Save();
+      }
+
+      [Test]
+      [Description("A one-time code asked for on top of the account's password is taken once (RFC 6238 section 5.2): the same code on a second request - here at POST /api/v1/me/password - is refused with 401 and the password stays as it was, six times without being counted as a guess, and the authenticator's next code is taken. The negative control is each code's first use.")]
+      public void AOneTimeCodeIsTakenOnce()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recovery-replay@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+
+         (int status, string body) minted = Send("POST", "/api/v1/me/app-passwords", me,
+            "{\"name\":\"Phone\",\"password\":\"" + Password + "\"}");
+         Assert.AreEqual(201, minted.status, minted.body);
+         string asProgram = Basic(account.Address, Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value);
+
+         string uri = account.EnrolTOTP();
+         account.Save();
+         string secret = Regex.Match(uri, "secret=([A-Z2-7]+)").Groups[1].Value;
+         Assert.IsNotEmpty(secret, uri);
+
+         string code = OneTimeCodes.Fresh(secret);
+         (int status, string body) changed = Send("POST", "/api/v1/me/password", asProgram,
+            "{\"current\":\"" + Password + "\",\"new\":\"" + NewPassword + "\"}", "X-hMailServer-OTP: " + code);
+         Assert.AreEqual(200, changed.status, "The code's first use was not taken: " + changed.body);
+
+         // The same code again, as somebody who read it over a shoulder or out of a
+         // log would send it, with the password that is now current.
+         const string Third = "A-Third-Passw0rd-Chosen!";
+         // Six times: refused every time, and not counted as a guess - so the
+         // next code below is taken, where six counted guesses would have spent
+         // the budget and answered it 429.
+         for (int attempt = 1; attempt <= 6; attempt++)
+         {
+            (int status, string body) replayed = Send("POST", "/api/v1/me/password", asProgram,
+               "{\"current\":\"" + NewPassword + "\",\"new\":\"" + Third + "\"}", "X-hMailServer-OTP: " + code);
+            Assert.AreEqual(401, replayed.status, "A code taken once was taken again: " + replayed.body);
+         }
+
+         Assert.AreEqual(403, Send("POST", "/api/v1/me/password", asProgram,
+            "{\"current\":\"" + Third + "\",\"new\":\"" + Password + "\"}").status,
+            "The account password changed on a code that had been used already.");
+
+         (int status, string body) next = Send("POST", "/api/v1/me/password", asProgram,
+            "{\"current\":\"" + NewPassword + "\",\"new\":\"" + Third + "\"}", "X-hMailServer-OTP: " + OneTimeCodes.Fresh(secret));
+         Assert.AreEqual(200, next.status, "The authenticator's next code was not taken: " + next.body);
+
+         account.DisableTOTP();
+         account.Save();
+      }
+
+      [Test]
+      [Description("A peer on this machine - a webmail or reverse proxy on loopback - is not held to the per-client counter, and is held instead to thirty requests in any minute for every loopback request together: a sweep of thirty names, one request each, leaves the next request answered as every other is and nothing sent. The negative control is the same request a minute later, which sends the link.")]
+      public void ASweepFromLoopbackMeetsACeilingOfItsOwn()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recovery-sweep@" + _domain.Name, Password);
+         Account elsewhere = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recovery-sweep-to@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/recovery", me,
+            "{\"address\":\"" + elsewhere.Address + "\",\"password\":\"" + Password + "\"}").status);
+         string confirmation = Pop3ClientSimulator.AssertGetFirstMessageText(elsewhere.Address, Password);
+         Assert.AreEqual(200, Send("POST", "/recovery/verify?token=" + TokenIn(confirmation, "/recovery/verify?token="), null, null).status);
+
+         string answer;
+         try
+         {
+            // Thirty names, one request each, from 127.0.0.1: none of them repeats an
+            // address, so the per-address counter never refuses one.
+            for (int i = 0; i < 30; i++)
+            {
+               Assert.AreEqual(202, Send("POST", "/api/v1/password-reset", null,
+                  "{\"address\":\"nobody-" + i + "@" + _domain.Name + "\"}").status);
+            }
+
+            // The thirty-first, for a mailbox that could be reset: the same answer, and
+            // nothing sent. Waited for as long as the queued work would take had there
+            // been any, then counted once the delivery queue is empty.
+            (int status, string body) held = Send("POST", "/api/v1/password-reset", null, "{\"address\":\"" + account.Address + "\"}");
+            Assert.AreEqual(202, held.status, held.body);
+            answer = held.body;
+            System.Threading.Thread.Sleep(3000);
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            Pop3ClientSimulator.AssertMessageCount(elsewhere.Address, Password, 0);
+         }
+         finally
+         {
+            // The ceiling is every loopback request's, the tests after this one included.
+            System.Threading.Thread.Sleep(61000);
+         }
+
+         // A minute on, the same request sends the link, and was answered in the same words.
+         (int status, string body) sent = Send("POST", "/api/v1/password-reset", null, "{\"address\":\"" + account.Address + "\"}");
+         Assert.AreEqual(202, sent.status, sent.body);
+         Assert.AreEqual(answer, sent.body, "A request held by the ceiling is answered exactly as one that was not.");
+         Pop3ClientSimulator.AssertMessageCount(elsewhere.Address, Password, 1);
+         StringAssert.Contains("/portal/reset?token=", Pop3ClientSimulator.AssertGetFirstMessageText(elsewhere.Address, Password));
+      }
+
+      /// <summary>RFC 6238 in the test, independently of the server: what an authenticator app shows.</summary>
+      private static string CurrentCode(string base32Secret, int stepOffset = 0)
+      {
+         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+         var key = new System.Collections.Generic.List<byte>();
+         int buffer = 0, bitsLeft = 0;
+         foreach (char c in base32Secret)
+         {
+            int index = alphabet.IndexOf(char.ToUpperInvariant(c));
+            if (index < 0)
+               continue;
+            buffer = (buffer << 5) | index;
+            bitsLeft += 5;
+            if (bitsLeft >= 8)
+            {
+               bitsLeft -= 8;
+               key.Add((byte) ((buffer >> bitsLeft) & 0xFF));
+            }
+         }
+
+         long counter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30 + stepOffset;
+         byte[] counterBytes = BitConverter.GetBytes(counter);
+         if (BitConverter.IsLittleEndian)
+            Array.Reverse(counterBytes);
+
+         byte[] hash;
+         using (var hmac = new System.Security.Cryptography.HMACSHA1(key.ToArray()))
+            hash = hmac.ComputeHash(counterBytes);
+
+         int offset = hash[hash.Length - 1] & 0x0F;
+         int binary = ((hash[offset] & 0x7F) << 24) | ((hash[offset + 1] & 0xFF) << 16) |
+                      ((hash[offset + 2] & 0xFF) << 8) | (hash[offset + 3] & 0xFF);
+         return (binary % 1000000).ToString("000000");
+      }
+
+      /// <summary>Six digits that are none of the codes the server would take in the next minute and a half.</summary>
+      private static string WrongCode(string base32Secret)
+      {
+         var near = new System.Collections.Generic.HashSet<string>();
+         for (int step = -2; step <= 3; step++)
+            near.Add(CurrentCode(base32Secret, step));
+         for (int candidate = 0; ; candidate += 111111)
+         {
+            string code = (candidate % 1000000).ToString("000000");
+            if (!near.Contains(code))
+               return code;
+         }
+      }
+
+      [Test]
       [Description("Asking again within the minute answers exactly as the first, and no second link is sent; and with no public base URL the whole thing answers unavailable.")]
       public void AskingTooOftenAnswersTheSameAndSendsNothing()
       {

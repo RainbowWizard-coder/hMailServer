@@ -53,6 +53,7 @@
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "HttpServer.h"
+#include "AccountLockout.h"
 #include "AccountRecovery.h"
 #include "AuditTrail.h"
 #include "Totp.h"
@@ -63,6 +64,9 @@
 #include "../TCPIP/IPAddress.h"
 
 #include <ctime>
+#include <deque>
+#include <map>
+#include <mutex>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -151,6 +155,92 @@ namespace HM
       }
    }
 
+   // The wrong-code budget and the steps already taken live in
+   // SecondFactorGuard (Totp.h), which the COM sign-in shares, so that a guess
+   // counts the same whichever door it was tried at: five wrong codes in
+   // fifteen minutes, then fifteen minutes in which no code is taken - about
+   // five hundred guesses a day at three codes in a million, where the request
+   // rate alone allowed twenty a second. These are the REST API's side of it:
+   // the log lines, and what a wrong code costs the source address.
+   bool
+   RestApiServer::SecondFactorLocked_(const String &owner, int &retryAfter)
+   {
+      return SecondFactorGuard::Locked(owner, retryAfter);
+   }
+
+   void
+   RestApiServer::SecondFactorWrong_(const String &owner, bool account, const IPAddress &peer, int countedAs, bool lockedNow)
+   {
+      // Counted here unless SecondFactorGuard::TakeCode counted it already,
+      // under the lock it judged it in.
+      int wrong = countedAs;
+      if (wrong <= 0)
+         wrong = SecondFactorGuard::CountWrong(owner, lockedNow);
+
+      String count;
+      count.Format(_T("%d"), wrong);
+      LOG_APPLICATION("REST API: a wrong one-time code for " + owner + " was refused from " + String(peer.ToString()) +
+         " (" + count + _T(" in fifteen minutes)."));
+
+      if (lockedNow)
+      {
+         LOG_APPLICATION("REST API: " + owner + " has had five wrong one-time codes in fifteen minutes; no code for it is taken for the next fifteen.");
+      }
+
+      // The same accounting a wrong password gets: the source address towards
+      // the auto-ban, and an account's name towards the per-name lockout when
+      // an administrator has switched that on. The administrator is not a name
+      // anybody signs in to a mail protocol as, so only its address is charged.
+      // Charged here and nowhere else, so a caller that counts a wrong code
+      // through this does not charge the address a second time.
+      RegisterAuthenticationFailure_(peer);
+      if (account)
+         AccountLockout::Instance()->RecordFailure(owner);
+   }
+
+   // A code taken once already: refused, logged, and charged nothing. It is no
+   // guess - it can never be taken, whoever sends it - and the one most likely
+   // to send it is the owner, again, within the half minute the authenticator
+   // still shows it: a form sent a second time after a refusal for another
+   // reason, or a script that sends a code with every request. Counting it
+   // would lock the owner out, and charge their address to the auto-ban, for
+   // that (SecondFactorGuard, Totp.h).
+   void
+   RestApiServer::SecondFactorReused_(const String &owner, const IPAddress &peer)
+   {
+      LOG_APPLICATION("REST API: a one-time code for " + owner + " that had been used already was refused from " +
+         String(peer.ToString()) + " - not counted as a wrong code. A code is taken once; the next one the authenticator shows is.");
+   }
+
+   void
+   RestApiServer::SecondFactorRight_(const String &owner)
+   {
+      SecondFactorGuard::CountRight(owner);
+   }
+
+   // The counts and locks only. The steps already taken are kept: a listener
+   // started again must not take a code a second time.
+   void
+   RestApiServer::ClearWrongCodes_()
+   {
+      SecondFactorGuard::ClearBudgets();
+   }
+
+   HttpResponse
+   RestApiServer::TooManyWrongCodes_(int retryAfter)
+   {
+      const int wait = retryAfter > 0 ? retryAfter : 60;
+
+      AnsiString refusal;
+      refusal.Format("{\"error\":\"too many wrong one-time codes; try again in %d minute%hs\",\"code\":\"second_factor_locked\",\"retry_after\":%d}",
+         (wait + 59) / 60, (wait + 59) / 60 == 1 ? "" : "s", wait);
+
+      AnsiString header;
+      header.Format("Retry-After: %d\r\n", wait);
+
+      return BuildResponse_(429, refusal, header);
+   }
+
    AnsiString
    RestApiServer::OpenApiRecoveryPaths_()
    {
@@ -162,7 +252,7 @@ namespace HM
          "\"/api/v1/me/recovery/codes\":{\"post\":{\"summary\":\"Make ten one-time recovery codes\",\"description\":\"Body: password (the account's own), with the second factor as for the PUT above. Answers {codes:[...],created}: the only time they are shown. They are stored hashed with the scheme the account password uses, each works once, and making a set ends whatever set the account had. A code is presented in X-hMailServer-Recovery-Code in place of a one-time code - at POST /api/v1/session, at POST /api/v1/me/password and here - which is the way back in for somebody whose authenticator is gone.\",\"responses\":{\"201\":{\"description\":\"The ten codes\"},\"403\":{\"description\":\"The password is not right, or recovery is off\"}}}},"
          "\"/api/v1/accounts/{address}/recovery\":{\"delete\":{\"summary\":\"Clear an account's recovery address (administrator)\",\"description\":\"The address, and every link in flight for it, go; the person sets one again from the webmail. The recovery codes are not touched - DELETE /api/v1/accounts/{address}/recovery/codes is the act for those. What an administrator can read of the address is the masked form on GET /api/v1/accounts/{address} - never the address itself.\",\"responses\":{\"200\":{\"description\":\"Cleared\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/accounts/{address}/recovery/codes\":{\"delete\":{\"summary\":\"End an account's one-time recovery codes (administrator)\",\"description\":\"Every code the account holds goes, and the account holder makes a fresh set from the webmail. The remedy for a code card somebody else has seen: a code stands in for the account's second factor, so a leaked set is a standing way past it. The recovery address is not touched. Answers {codes_cleared}.\",\"responses\":{\"200\":{\"description\":\"Ended\"},\"404\":{\"description\":\"No such account\"}}}},"
-         "\"/api/v1/password-reset\":{\"post\":{\"summary\":\"I have forgotten my password (no credentials)\",\"description\":\"Body: address. Always 202 with the same sentence, for a mailbox that is not here as much as for one that is: a refusal that differed would be an address directory. When the address names a mailbox whose recovery address has been confirmed, a single-use link that lives recovery_reset_link_minutes (30 by default) is sent THERE and nowhere else. One request a minute and six an hour per address and per client address.\",\"responses\":{\"202\":{\"description\":\"The same answer, whatever happened\"},\"503\":{\"description\":\"Recovery is off, or this server has no public address for a link\"}}}},"
+         "\"/api/v1/password-reset\":{\"post\":{\"summary\":\"I have forgotten my password (no credentials)\",\"description\":\"Body: address. Always 202 with the same sentence, for a mailbox that is not here as much as for one that is: a refusal that differed would be an address directory. When the address names a mailbox whose recovery address has been confirmed, a single-use link that lives recovery_reset_link_minutes (30 by default) is sent THERE and nowhere else. One request a minute and six an hour per address, twenty an hour per client address, and thirty in any minute for every request from this machine together (a reverse proxy on loopback). The answer is given before the address is looked up; the link is made and sent afterwards.\",\"responses\":{\"202\":{\"description\":\"The same answer, whatever happened\"},\"503\":{\"description\":\"Recovery is off, or this server has no public address for a link\"}}}},"
          "\"/api/v1/password-reset/complete\":{\"post\":{\"summary\":\"Choose the new password (no credentials)\",\"description\":\"Body: token (from the link), password. The new password goes through the same policy, reuse history and breach check as POST /api/v1/me/password. A password one of those refuses leaves the link alive, so the person can choose again; the link is spent the moment a password is accepted, and never works twice. Every browser session of the account is ended, and the mailbox and the recovery address are both told the password changed. The account.password-reset alert is raised.\",\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"The password was refused; the sentence says why\"},\"410\":{\"description\":\"The link is used, expired, or for an address that is no longer the recovery address\"}}}},"
          "\"/recovery/verify\":{\"get\":{\"summary\":\"Confirm a recovery address (no credentials)\",\"description\":\"The page a confirmation link opens. The GET shows a button and confirms nothing - a mail scanner follows links, and a GET that confirmed would be followed by the scanner rather than by the person - and the POST is the confirmation. The link works once.\",\"responses\":{\"200\":{\"description\":\"The page\"},\"410\":{\"description\":\"The link is used or expired\"}}}},"
          "\"/portal/reset\":{\"get\":{\"summary\":\"Choose a new password (no credentials)\",\"description\":\"The page a reset link opens: a form for the new password, posted back here. The same refusals POST /api/v1/password-reset/complete gives, shown on the page.\",\"responses\":{\"200\":{\"description\":\"The form\"},\"410\":{\"description\":\"The link is used or expired\"}}}}";
@@ -217,34 +307,105 @@ namespace HM
    // property; now every route that takes a code has it.
    bool
    RestApiServer::SecondFactorProved_(std::shared_ptr<const Account> account, const AnsiString &request,
-                                      __int64 *recoveryCodeId)
+                                      const IPAddress &peer, HttpResponse &refusal, __int64 *recoveryCodeId)
    {
       if (recoveryCodeId)
          *recoveryCodeId = 0;
 
       if (!account)
+      {
+         refusal = BuildResponse_(500, "{\"error\":\"internal error\"}");
          return false;
+      }
 
       const String secret = account->GetTotpSecret();
       if (secret.IsEmpty())
          return true;
 
       const AnsiString code = GetHeader_(request, "x-hmailserver-otp");
-      if (!code.IsEmpty() && Totp::VerifyCode(AnsiString(secret), code))
-         return true;
-
       const AnsiString recovery = GetHeader_(request, "x-hmailserver-recovery-code");
-      if (recovery.IsEmpty())
+
+      // No code at all is a client that has not been told one is needed, not
+      // a guess: answered with the 401 that names the header, and not counted,
+      // as the administrator's Basic sign-in does not count it either.
+      if (code.IsEmpty() && recovery.IsEmpty())
+      {
+         refusal = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
          return false;
+      }
 
-      const __int64 matched = AccountRecovery::CheckCode(account->GetID(), Wide(recovery));
-      if (matched == 0)
+      // Every caller has checked the account's own password by now, so what
+      // follows is a guess at six digits by somebody who has it. The budget is
+      // asked first, so that a spent one refuses the right code as well - a
+      // lock the right answer opened would stop no guessing at all.
+      int retryAfter = 0;
+      if (SecondFactorLocked_(account->GetAddress(), retryAfter))
+      {
+         LOG_APPLICATION("REST API: a one-time code for " + account->GetAddress() + " from " + String(peer.ToString()) +
+            " was not looked at: too many wrong codes have been tried for it.");
+         refusal = TooManyWrongCodes_(retryAfter);
          return false;
+      }
 
-      if (recoveryCodeId)
-         *recoveryCodeId = matched;
+      // Taken once: a code this account has had accepted already - here, at
+      // another route, or over COM - is refused for as long as it stays in its
+      // window, and not counted (SecondFactorGuard). A wrong one is counted by
+      // TakeCode under the lock it is judged in, so that requests racing each
+      // other cannot all be judged before the fifth is counted; and the lock is
+      // asked there again for the same reason.
+      SecondFactorGuard::Outcome outcome;
+      bool counted = false;
+      bool reused = false;
+      if (!code.IsEmpty())
+      {
+         const SecondFactorGuard::Taken taken = SecondFactorGuard::TakeCode(account->GetAddress(), AnsiString(secret), code, &outcome);
+         if (taken == SecondFactorGuard::CodeTaken)
+         {
+            SecondFactorRight_(account->GetAddress());
+            return true;
+         }
 
-      return true;
+         if (taken == SecondFactorGuard::CodeLocked)
+         {
+            LOG_APPLICATION("REST API: a one-time code for " + account->GetAddress() + " from " + String(peer.ToString()) +
+               " was not looked at: too many wrong codes have been tried for it.");
+            refusal = TooManyWrongCodes_(outcome.retry_after);
+            return false;
+         }
+
+         counted = taken == SecondFactorGuard::CodeWrong;
+         reused = taken == SecondFactorGuard::CodeReused;
+      }
+
+      if (!recovery.IsEmpty())
+      {
+         const __int64 matched = AccountRecovery::CheckCode(account->GetID(), Wide(recovery));
+         if (matched != 0)
+         {
+            if (recoveryCodeId)
+               *recoveryCodeId = matched;
+
+            SecondFactorRight_(account->GetAddress());
+            return true;
+         }
+
+         // A wrong recovery code is a guess too, counted here when the one-time
+         // code beside it was not one already: one request, one count.
+         if (!counted)
+         {
+            SecondFactorWrong_(account->GetAddress(), true, peer);
+            refusal = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
+            return false;
+         }
+      }
+
+      if (counted)
+         SecondFactorWrong_(account->GetAddress(), true, peer, outcome.wrong, outcome.locked_now);
+      else if (reused)
+         SecondFactorReused_(account->GetAddress(), peer);
+
+      refusal = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
+      return false;
    }
 
    // The other half: the code that stood in for the one-time code, spent, now

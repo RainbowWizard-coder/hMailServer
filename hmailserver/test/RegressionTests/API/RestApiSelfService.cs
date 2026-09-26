@@ -299,6 +299,22 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("Behind the reverse proxy on this machine that says the browser came over HTTPS (X-Forwarded-Proto: https), the session cookie is marked Secure, so a browser never sends it over plain HTTP. The negative control is the same sign-in without the header, over the plain loopback listener, whose cookie is not.")]
+      public void TheSessionCookieIsSecureBehindAnHttpsProxy()
+      {
+         Response plain = Raw("POST", "/api/v1/session", UserHeader(UserPassword), null);
+         Assert.AreEqual(201, plain.Status, plain.Body);
+         Assert.IsFalse(plain.Header("Set-Cookie").Contains("Secure"), "Over plain HTTP the cookie must not be marked Secure: " + plain.Header("Set-Cookie"));
+
+         Response proxied = Raw("POST", "/api/v1/session", UserHeader(UserPassword), null, "X-Forwarded-Proto: https\r\n");
+         Assert.AreEqual(201, proxied.Status, proxied.Body);
+         string setCookie = proxied.Header("Set-Cookie");
+         StringAssert.StartsWith("hmailsession=", setCookie);
+         StringAssert.Contains("; Secure", setCookie,
+            "The browser came over HTTPS through the proxy, and the session cookie would also go over plain HTTP: " + setCookie);
+      }
+
+      [Test]
       [Description("A request that changes something on a session must carry the X-Requested-With header")]
       public void AChangeOnASessionNeedsTheHeader()
       {

@@ -12,7 +12,9 @@
 // The callback verifies the id_token and then mints a TICKET - thirty-two
 // random bytes, good once and for two minutes - and sends the browser to the
 // page with it in the URL fragment, which a browser sends to no server and no
-// access log holds. The page hands the ticket to POST /api/v1/session, which
+// access log holds - and sets the hmsso cookie beside it, without which the
+// ticket is refused, so that only the browser that finished the sign-in can
+// spend it. The page hands the ticket to POST /api/v1/session, which
 // is where every browser session of this server is made: the same table, the
 // same policy, the same device record, whether the person proved themselves
 // with a password, a passkey or their organisation's identity provider.
@@ -55,7 +57,7 @@ namespace HM
    {
       static const char *paths =
          ",\"/portal/oidc/start\":{\"get\":{\"summary\":\"Start a sign-in at the organisation's identity provider\",\"description\":\"No credential. Redirects to the issuer's authorization endpoint with the authorization-code flow and PKCE (S256), and sets the hmoidc cookie (HttpOnly, SameSite=Lax, ten minutes) the callback needs. ?deck=1 starts one for the Control Deck, which lands as the administrator when the address is in OidcAdministrators; without it the sign-in is the webmail's. Redirects back to the sign-in page with ?sso_error=<sentence> when single sign-on is not set up.\",\"responses\":{\"302\":{\"description\":\"To the issuer, or back to the page with an error\"}}}},"
-         "\"/portal/oidc/callback\":{\"get\":{\"summary\":\"Where the identity provider sends the browser back\",\"description\":\"No credential. The state must name a sign-in started here in the last ten minutes and the browser must carry the cookie it was given. The code is exchanged at the token endpoint, the id_token is verified against the issuer's JWK Set (signature, iss, aud, exp, nonce) and its verified email is mapped to a local account - or to the administrator, for a Deck sign-in whose address is in OidcAdministrators. On success the browser is sent to the page with a one-use ticket in the URL fragment, which the page exchanges at POST /api/v1/session; otherwise back with ?sso_error=<sentence>.\",\"responses\":{\"302\":{\"description\":\"Back to the page, with a ticket or an error\"}}}}";
+         "\"/portal/oidc/callback\":{\"get\":{\"summary\":\"Where the identity provider sends the browser back\",\"description\":\"No credential. The state must name a sign-in started here in the last ten minutes and the browser must carry the cookie it was given. The code is exchanged at the token endpoint, the id_token is verified against the issuer's JWK Set (signature, iss, aud, exp, nonce) and its verified email is mapped to a local account - or to the administrator, for a Deck sign-in whose address is in OidcAdministrators. On success the browser is sent to the page with a one-use ticket in the URL fragment, which the page exchanges at POST /api/v1/session, and the hmsso cookie (HttpOnly, SameSite=Strict, Path=/api/v1/session, two minutes) without which that exchange refuses it, so that only this browser can spend the ticket; otherwise back with ?sso_error=<sentence>.\",\"responses\":{\"302\":{\"description\":\"Back to the page, with a ticket or an error\"}}}}";
       return AnsiString(paths);
    }
 
@@ -75,7 +77,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleOidcStart_(const AnsiString &query)
+   RestApiServer::HandleOidcStart_(const AnsiString &request, const AnsiString &query, const IPAddress &peer_address)
    {
       const bool deck = QueryParameter_(query, "deck") == "1";
       const AnsiString page = deck ? AnsiString("/") : AnsiString("/portal");
@@ -90,18 +92,18 @@ namespace HM
       AnsiString headers;
       headers.Format("Set-Cookie: %hs=%hs; Path=/portal/oidc; HttpOnly; SameSite=Lax; Max-Age=600%hs\r\n"
                      "Cache-Control: no-store\r\nReferrer-Policy: no-referrer\r\n",
-         OidcCookieName, cookie.c_str(), use_tls_ ? "; Secure" : "");
+         OidcCookieName, cookie.c_str(), BrowserCameOverTls_(request, peer_address) ? "; Secure" : "");
 
       return BuildResponse_(302, "{}", "Location: " + url + "\r\n" + headers);
    }
 
    HttpResponse
-   RestApiServer::HandleOidcCallback_(const AnsiString &request, const AnsiString &query)
+   RestApiServer::HandleOidcCallback_(const AnsiString &request, const AnsiString &query, const IPAddress &peer_address)
    {
       AnsiString headers;
       headers.Format("Set-Cookie: %hs=; Path=/portal/oidc; HttpOnly; SameSite=Lax; Max-Age=0%hs\r\n"
                      "Cache-Control: no-store\r\nReferrer-Policy: no-referrer\r\n",
-         OidcCookieName, use_tls_ ? "; Secure" : "");
+         OidcCookieName, BrowserCameOverTls_(request, peer_address) ? "; Secure" : "");
 
       // Which page the browser goes back to is decided by the sign-in that was
       // started, never by the query string: a link somebody sends must not be
@@ -139,8 +141,8 @@ namespace HM
          return back(page, "sso_error=" + HttpsClient::FormEncode(problem));
       }
 
-      AnsiString ticket;
-      if (!OidcSignIn::MintTicket(result, ticket))
+      AnsiString ticket, binding;
+      if (!OidcSignIn::MintTicket(result, ticket, binding))
       {
          return back(result.deck ? AnsiString("/") : AnsiString("/portal"),
                      "sso_error=" + HttpsClient::FormEncode(AnsiString("the sign-in could not be finished here; try again")));
@@ -149,6 +151,12 @@ namespace HM
       LOG_APPLICATION("RestApi: " + result.address + " was verified by the identity provider and may now start a " +
          String(result.deck ? _T("Control Deck") : _T("webmail")) + " session.");
 
+      // The ticket's cookie rides the same answer as the ticket, so that the
+      // browser that finished this sign-in is the only one that can redeem it
+      // (OidcSignIn::RedeemTicket).
+      // Secure as SAML's is (HandleSamlFinish_): over TLS, or behind the proxy
+      // on this machine that says the browser came over HTTPS.
+      headers += OidcSignIn::TicketCookieHeader(binding, BrowserCameOverTls_(request, peer_address));
       return back(result.deck ? AnsiString("/") : AnsiString("/portal"), "sso=" + ticket);
    }
 
@@ -162,10 +170,10 @@ namespace HM
          return false;
 
       OidcSignIn::Result result;
-      if (!OidcSignIn::RedeemTicket(ticket, result))
+      if (!OidcSignIn::RedeemTicket(ticket, OidcSignIn::TicketBindingFrom(GetHeader_(request, "cookie")), result))
       {
          LOG_APPLICATION("REST API: a single sign-on ticket from " + String(peer_address.ToString()) +
-            " was not one this server had issued, or it had been spent.");
+            " was not one this server had issued to that browser, or it had been spent.");
          return false;
       }
 
@@ -175,6 +183,7 @@ namespace HM
          caller.read_only = false;
          caller.identity = "administrator";
          caller.grant = RoleManager::ServerAdministrator();
+         caller.via_single_sign_on = true;
          LOG_APPLICATION("REST API: " + result.address + " signed in as the administrator through the identity provider from " +
             String(peer_address.ToString()) + ".");
          return true;

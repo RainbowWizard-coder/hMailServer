@@ -203,6 +203,7 @@ OpenPGPRequireAddressInUserId server
 OpenPGPWebKeyDirectoryEnabled server
 OutboundBackoffMaxMinutes server
 OutboundBackoffMinutes server
+PasskeyAllowedOrigins server
 PasskeyRelyingParty server
 PasskeysEnabled server
 ProtectedMessageDays server

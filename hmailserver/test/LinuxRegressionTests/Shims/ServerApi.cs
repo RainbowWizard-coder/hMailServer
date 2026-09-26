@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using NUnit.Framework;
@@ -74,7 +73,11 @@ namespace RegressionTests.Shared
    /// </summary>
    public static class ServerApi
    {
-      private static readonly HttpClient Client = new HttpClient
+      // UseCookies off: the one cookie this layer presents is the administrator's
+      // session while a second factor stands (below), set by hand on the requests
+      // that are meant to carry it - a cookie jar would put it on every request,
+      // the ones made with an account's own credentials included.
+      private static readonly HttpClient Client = new HttpClient(new HttpClientHandler { UseCookies = false })
       {
          BaseAddress = new Uri(TestTarget.RestBaseUrl),
          Timeout = TimeSpan.FromSeconds(60)
@@ -95,80 +98,80 @@ namespace RegressionTests.Shared
       // working through the COM objects it authenticated before the enrolment:
       // Security/AdministratorTwoFactor disables the factor in its teardown on
       // the Settings object it already held. The equivalent of that still-open
-      // session here is the secret the enrolment answered, kept from the shim's
-      // EnrolAdministratorTOTP until its DisableAdministratorTOTP is answered and
-      // turned into the current code in X-hMailServer-OTP on every administrator
-      // request in between - so the fixture's own teardown, the base teardown's
-      // queue drain and the restart detector's status read all authenticate while
-      // the factor stands. The server reads the header only while a factor is
-      // enrolled, so a code sent once the factor is gone costs nothing; and the
-      // fixture's own raw requests (RestRequest, its sockets) carry what the
-      // fixture gives them, which is how the password alone is refused where the
-      // test expects it to be. Before this, the first test that enrolled left the
-      // factor standing when its teardown's DELETE was refused, and every fixture
-      // after it failed its one-time set-up on the password alone.
+      // session here is a browser session: from the shim's
+      // EnrolAdministratorTOTP until its DisableAdministratorTOTP is answered, the
+      // administrator's requests go with the hmailsession cookie of a session this
+      // layer started with the password and one code (POST /api/v1/session), so
+      // the fixture's own teardown, the base teardown's queue drain and the
+      // restart detector's status read all authenticate while the factor stands.
+      //
+      // A session, and not the password with a code on every request, because the
+      // server takes a code once (SecondFactorGuard): the same code on a second
+      // request is refused, so a code a request cannot share with the next. The
+      // codes come from OneTimeCodes.Fresh, which the fixtures' own requests use
+      // too, so the one this layer takes is never one a fixture then offers. A
+      // session the server has dropped (a restart ends them all) is started
+      // again with the next code. The fixture's own raw requests (RestRequest,
+      // its sockets) carry what the fixture gives them, which is how the password
+      // alone is refused where the test expects it to be. Before any of this, the
+      // first test that enrolled left the factor standing when its teardown's
+      // DELETE was refused, and every fixture after it failed its one-time set-up
+      // on the password alone.
       private static string _administratorSecret;
+      private static string _administratorSession;
 
       /// <summary>A factor was enrolled through this layer: its secret, from the otpauth URI.</summary>
       public static void AdministratorFactorEnrolled(string base32Secret)
       {
          _administratorSecret = string.IsNullOrEmpty(base32Secret) ? null : base32Secret;
+         _administratorSession = null;
       }
 
       /// <summary>The server has said the factor is gone.</summary>
       public static void AdministratorFactorDisabled()
       {
          _administratorSecret = null;
+         _administratorSession = null;
       }
 
-      // RFC 6238 with the server's defaults - HMAC-SHA1, thirty-second steps, six
-      // digits - the same arithmetic as the two fixtures that compute a code of
-      // their own, and kept apart from them on purpose: they are the test.
-      private static string OneTimeCode(string base32Secret)
+      // The administrator's session while a factor stands: POST /api/v1/session
+      // with the password and the next code, and the cookie out of its answer.
+      private static string AdministratorSession(string secret)
       {
-         byte[] key = Base32Decode(base32Secret);
-         long counter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
+         if (_administratorSession != null)
+            return _administratorSession;
 
-         byte[] counterBytes = BitConverter.GetBytes(counter);
-         if (BitConverter.IsLittleEndian)
-            System.Array.Reverse(counterBytes);
-
-         byte[] hash;
-         using (var hmac = new HMACSHA1(key))
-            hash = hmac.ComputeHash(counterBytes);
-
-         int offset = hash[hash.Length - 1] & 0x0F;
-         int binary =
-            ((hash[offset] & 0x7F) << 24) |
-            ((hash[offset + 1] & 0xFF) << 16) |
-            ((hash[offset + 2] & 0xFF) << 8) |
-            (hash[offset + 3] & 0xFF);
-
-         return (binary % 1000000).ToString("000000");
-      }
-
-      private static byte[] Base32Decode(string input)
-      {
-         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-         var output = new List<byte>();
-         int buffer = 0, bitsLeft = 0;
-
-         foreach (char c in input)
+         using (var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/session"))
          {
-            int index = alphabet.IndexOf(char.ToUpperInvariant(c));
-            if (index < 0)
-               continue;
+            request.Headers.TryAddWithoutValidation("Authorization", AdminAuthorization);
+            request.Headers.TryAddWithoutValidation("X-Requested-With", "hMailServer");
+            request.Headers.TryAddWithoutValidation("X-hMailServer-OTP", OneTimeCodes.Fresh(secret));
 
-            buffer = (buffer << 5) | index;
-            bitsLeft += 5;
-            if (bitsLeft >= 8)
+            using (var response = Client.Send(request, HttpCompletionOption.ResponseContentRead))
             {
-               bitsLeft -= 8;
-               output.Add((byte) ((buffer >> bitsLeft) & 0xFF));
+               var body = response.Content == null ? string.Empty : response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+               if ((int) response.StatusCode != 201)
+                  throw new InvalidOperationException("The administrator's session could not be started with a one-time code: " +
+                     (int) response.StatusCode + " " + body);
+
+               IEnumerable<string> cookies;
+               if (response.Headers.TryGetValues("Set-Cookie", out cookies))
+               {
+                  foreach (string cookie in cookies)
+                  {
+                     const string name = "hmailsession=";
+                     if (!cookie.StartsWith(name, StringComparison.Ordinal))
+                        continue;
+
+                     int end = cookie.IndexOf(';');
+                     _administratorSession = end < 0 ? cookie : cookie.Substring(0, end);
+                     return _administratorSession;
+                  }
+               }
+
+               throw new InvalidOperationException("POST /api/v1/session answered 201 without an hmailsession cookie: " + body);
             }
          }
-
-         return output.ToArray();
       }
 
       public static ApiAnswer Get(string path)
@@ -263,15 +266,22 @@ namespace RegressionTests.Shared
          {
             WaitForBudget(authorization);
 
+            // The administrator's session, while a factor this layer enrolled
+            // stands (AdministratorFactorEnrolled above), in place of the password.
+            string secret = authorization == AdminAuthorization ? _administratorSecret : null;
+            string session = secret != null ? AdministratorSession(secret) : null;
+
             using (var request = new HttpRequestMessage(method, path))
             {
-               request.Headers.TryAddWithoutValidation("Authorization", authorization);
-
-               // The administrator's one-time code, while a factor this layer
-               // enrolled stands (AdministratorFactorEnrolled above).
-               string secret = authorization == AdminAuthorization ? _administratorSecret : null;
-               if (secret != null)
-                  request.Headers.TryAddWithoutValidation("X-hMailServer-OTP", OneTimeCode(secret));
+               if (session != null)
+               {
+                  request.Headers.TryAddWithoutValidation("Cookie", session);
+                  request.Headers.TryAddWithoutValidation("X-Requested-With", "hMailServer");
+               }
+               else
+               {
+                  request.Headers.TryAddWithoutValidation("Authorization", authorization);
+               }
 
                if (json != null)
                   request.Content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -296,6 +306,15 @@ namespace RegressionTests.Shared
                            Recent.Remove(authorization);
 
                         System.Threading.Thread.Sleep(retryAfter + TimeSpan.FromMilliseconds(250));
+                        continue;
+                     }
+
+                     // The session is gone - the server restarted, or it idled
+                     // out - and the factor still stands: start another with the
+                     // next code and send the request again, once.
+                     if ((int) response.StatusCode == 401 && session != null && attempt == 1)
+                     {
+                        _administratorSession = null;
                         continue;
                      }
 

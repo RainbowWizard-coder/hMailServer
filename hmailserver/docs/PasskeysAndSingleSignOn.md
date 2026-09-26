@@ -40,7 +40,10 @@ the recovery code is spent by the registration it proved and by nothing less.
 That is the same rule application passwords follow and it is there for the same
 reason: a session somebody else is holding must not be able to add a way in that
 outlives it. A request that was itself authenticated with an application
-password is refused outright.
+password is refused outright. So, with 409, is the administrator's registration
+while the administrator's second factor is enrolled but its secret cannot be
+opened on this machine (the key it was protected with is gone): the code cannot
+be checked, and a factor that cannot be checked is not taken for one switched off.
 
 Over REST:
 
@@ -104,7 +107,9 @@ At registration, from the attestation object:
 * the client data's `type` is `webauthn.create`, its `challenge` is the one this
   server issued to this session, and its `origin` is the origin this page was
   served on (the `Host` header, with `https` required unless the host is a
-  loopback name, which is what a browser treats as a secure context);
+  loopback name, which is what a browser treats as a secure context) - or, once
+  `passkey_allowed_origins` or `passkey_relying_party` is set, one the list names
+  (*The relying party id*, below) - and `crossOrigin` is not true;
 * the authenticator data's relying-party hash is SHA-256 of the relying party
   id, the *user present* and *user verified* flags are both set, and attested
   credential data is there;
@@ -127,13 +132,14 @@ At sign-in:
 * the user handle, when the credential carries one, names the owner the
   credential id already named;
 * and then the account itself, which is a separate question from the
-  credential: it exists and is active, the compromised-account detection is not
-  **holding** the name, and the **domain's country policy** allows a sign-in
-  from where this one came. A single sign-on ticket meets the same two, for the
-  same reason - they are what every credential that proves identity without a
-  password meets in this tree (a client certificate, a Kerberos ticket, a bearer
-  token on IMAP, POP3 and SMTP), and a credential that skipped them would be a
-  way past a lock every other way in obeys. The last-logon stamp moves on here
+  credential: it exists and is active, **its domain is active**, the
+  compromised-account detection is not **holding** the name, and the **domain's
+  country policy** allows a sign-in from where this one came. A single sign-on
+  ticket meets the same checks, for the same reason: the hold and the country
+  policy are what every credential that proves identity without a password
+  meets in this tree (a client certificate, a Kerberos ticket, a bearer token on
+  IMAP, POP3 and SMTP), the domain is what a password meets, and a credential
+  that skipped them would be a way past a lock every other way in obeys. The last-logon stamp moves on here
   too, so somebody who only ever signs in with a passkey does not look to an
   administrator like somebody who has never signed in.
 
@@ -182,6 +188,27 @@ made at `mail.example.com` works at `webmail.example.com` too. A value that is
 not the page's host or a parent of it is refused by the browser, not by this
 server.
 
+**With `passkey_relying_party` set, `passkey_allowed_origins` must be set too**,
+to the origins this server's pages are served at, comma separated and written as
+the browser writes them: `https://mail.example.com, https://webmail.example.com`
+(with the port where there is one). Until it is, no passkey is registered or
+taken, and the Passkeys card and the sign-in say so. The reason: the origin in
+the assertion is the one thing about it the browser vouches for, and a
+parent-domain relying party is one that a page at **any** host under it may ask
+the browser for - `shop.example.com`, a user-content host, anything. Were the
+origin only compared with the request's own `Host` header, which the client
+writes, a script on any sibling host could collect a real person's assertion
+with a normal "sign in to example.com" prompt and post it here with that host in
+`Host`, and be signed in as them, with no password and no code. The origin is
+therefore held to the list whenever the list is set, and whenever a relying
+party is. An assertion or a registration made in a frame of another site's page
+(`crossOrigin` true) is refused as well.
+
+With neither set - the default - the relying party id is the `Host` header and
+the origin must be that same host. That is safe as it stands: a page at another
+host gets a credential for its own name, whose relying party hash no passkey of
+this server's carries.
+
 Behind a TLS-terminating proxy, the `Host` header is still what the browser
 sent, so the check holds; `X-Forwarded-Proto` is **not** consulted, which is why
 the origin check accepts `https` at the page's host and plain `http` only on a
@@ -206,8 +233,9 @@ does not have; that is a gap, and it is named here rather than left to be found.
 
 What it does **not** put a person outside: the account's own state. A passkey
 does not carry its owner past the compromised-account hold, past a domain's
-country policy or past an account that has been made inactive - see the sign-in
-list above. That matters most in the case it was written for: a takeover that
+country policy or past an account or a domain that has been made inactive - see
+the sign-in list above. A session, however it was started, ends at its next
+request once its account or its domain is switched off. That matters most in the case it was written for: a takeover that
 had the password long enough to enrol a passkey of its own, and is then locked
 out of the password, the app passwords, IMAP, POP3 and SMTP by the detection.
 The passkey it enrolled is refused with them.
@@ -267,6 +295,19 @@ two minutes, and sends the browser back to the page with it in the URL fragment
 (which a browser sends to no server and no access log holds); the page hands it
 to `POST /api/v1/session`, which is where every browser session of this server
 is made. One place, one policy.
+
+The ticket is **bound to the browser** that finished the sign-in. The same
+redirect sets an `hmsso` cookie (HttpOnly, `SameSite=Strict`,
+`Path=/api/v1/session`, two minutes) holding a second random value kept with
+the ticket, and `POST /api/v1/session` refuses a ticket that arrives without
+it. A ticket on its own is a string, and a string can be sent to somebody else
+as a link: without the cookie, a person who completed a sign-in of their own
+could send `https://mail.example.com/portal#sso=<ticket>` to someone, and this
+server's own page would redeem it in that person's browser and sign them into
+the sender's mailbox - login forgery, which neither the `X-Requested-With`
+check above nor the SAML `hmsaml` cookie stops, since the post comes from this
+server's own page and the SAML check is made in the sender's browser. The
+session answer clears the cookie.
 
 ### Mapping and provisioning
 
@@ -483,7 +524,8 @@ start gave for that very request (compared in constant time); it clears the
 cookie. Only then is the address mapped - so no mailbox is made for a Response
 that ends in the wrong browser - and, exactly as OpenID Connect's callback does,
 a one-use ticket good for two minutes is minted and the browser sent to the page
-with it in the URL fragment; the page hands it to `POST /api/v1/session`.
+with it in the URL fragment, with the `hmsso` cookie that binds it to this
+browser; the page hands it to `POST /api/v1/session`.
 
 A refusal comes back as `#sso_error=` with the sentence, to the page the sign-in
 was started for. **That page is chosen by this server alone**: at the ACS it is

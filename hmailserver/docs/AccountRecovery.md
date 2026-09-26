@@ -123,6 +123,69 @@ recovery form can all still refuse what they were asked to do - a password the p
 will not have, an address that is not an address - and ten refusals must not leave an
 account with no authenticator and no codes.
 
+Every place a one-time code is checked after a password it has already accepted counts
+a wrong code, and they all count against the same record:
+
+* the REST routes that ask for a code **on top of** the password -
+  `POST /api/v1/me/password`, `POST /api/v1/me/app-passwords`, `PUT /api/v1/me/recovery`,
+  `POST /api/v1/me/recovery/codes`, and `POST /api/v1/passkeys` for an account and for the
+  administrator;
+* the administrator's Basic sign-in on the REST API, the code in `X-hMailServer-OTP`,
+  `POST /api/v1/session` from the Control Deck included;
+* the COM sign-in, `Application.AuthenticateWithCode`, for an account and for the
+  administrator - which is what the Control Panel and scripts use.
+
+A wrong code (from the authenticator or from the set) is a guess at six digits by
+somebody who has the password. Each is logged. On the REST API each is charged to the
+source address's auto-ban and, for an account, to the per-name lockout when
+`AccountLockoutThreshold` is set; COM has no source address and stays outside the
+lockout and the auto-ban, as its passwords always have, so that administration stays
+reachable. And each owner - an account's address, or the administrator - has a budget
+of its own that needs no setting and that every one of those places shares: **five
+wrong codes in fifteen minutes, and for the next fifteen every code for that owner is
+refused** - the right one too - with 429, `code` `second_factor_locked` and
+`Retry-After` on the REST API, and as a refused sign-in over COM, with a line in the log
+that says why. A loopback peer meets the budget as much as any other: the auto-ban
+leaves 127.0.0.1 alone, and behind a reverse proxy every request comes from there, so
+before the audit that preceded 6.3.4 the administrator's Basic sign-in behind a proxy
+had no brake at all but the request rate. A request that carries no code at all is not
+counted; it is a page that has not been told one is needed, and it gets the 401 that
+names the header. The budget is in memory, as the per-name lockout is: a restart of the
+service, a `Reinitialize`, or a stop of the REST listener clears it, and so does
+enrolling or removing that owner's second factor. Without it the only brake was the
+request rate, 200 in ten seconds, and a code - three valid in a million at any moment -
+fell to guessing in hours, minting an app password or a passkey that outlives the
+session it was guessed from.
+
+**A code is taken once** (RFC 6238, section 5.2). Once a code has been accepted for an
+owner - at any of the places above, over COM or over REST - the same code is refused
+wherever it comes next, and so is the code of any earlier step, for as long as it stays
+in its window of a minute and a half. Without that, a code read over a shoulder, out of
+a proxy's log or off a phishing page was good for the rest of its window, and the
+password beside it made the two a whole credential. Such a code is refused with the
+same 401 as a wrong one, and logged, but it is **not** counted against the budget above,
+charged to the auto-ban or to the per-name lockout: it is no guess - it can never be
+taken, whoever sends it - and the one most likely to send it again is the owner, within
+the half minute the authenticator still shows it. What it changes for people:
+
+* Somebody who has just used a code - to sign in to the Control Deck, say - and is asked
+  for one again within the same half minute waits for the authenticator's next code.
+  So does somebody whose request was refused for another reason after the code was
+  checked - a new password the policy will not have, say: the code is taken when it is
+  checked, so that two requests carrying it cannot both be the first, and sending the
+  form again with the same code is refused until the next one is typed.
+* A script that sent the administrator's password and a code with **every** request
+  signs in once instead - `POST /api/v1/session`, and the `hmailsession` cookie from
+  there, with `X-Requested-With: hMailServer` on the requests that change something -
+  or uses an API key. Only the first of its requests in each half minute would be
+  accepted otherwise; the rest are refused, though not counted, so such a script does
+  not lock the administrator out.
+
+The record of steps taken is kept in memory too, and only for the minute and a half a
+step can be in a window. A restart of the service forgets it, which would let a code
+taken in the last minute and a half before the restart be taken once more after it; a
+`Reinitialize` and a stop of the REST listener keep it.
+
 The forgotten password
 ----------------------
 
@@ -137,6 +200,15 @@ directory-linked account whose password this server does not hold, and for a req
 that has just been rate limited. A refusal that differed would be an address
 directory for anybody who asked.
 
+It is also given **in the same time**. Only the rate limits below are decided before
+the answer; looking the address up, making the link and queueing the message happen
+afterwards, on the server's async work queue. Done inline, as they were until the audit
+before 6.3.4, a mailbox with a confirmed recovery address was answered several database
+round trips and a file write later than a name with no mailbox, and a stranger with a
+stopwatch could sort a list of addresses into the ones that can be reset and the rest.
+What the queued work found - no such mailbox, no confirmed address, a link sent, a
+failure - is in the application log, and nowhere else.
+
 The rate limits are charged **before** anything is looked up, and for every address
 alike. Per address: one request a minute and six an hour, which is what stops a link
 being mailed at somebody over and over. Per client address: twenty an hour and no
@@ -150,10 +222,13 @@ know why. Nothing in this server reads a forwarded-for header, so on the ordinar
 publishing a webmail - TLS terminated by a reverse proxy in front of hMailServer - every
 request would arrive from the proxy's address and twenty an hour would be a ceiling on
 the whole installation, met by the twenty-first person as the same silent 202. A proxy
-on the *same* machine is therefore not counted. A proxy on **another** host still shares
-one bucket, and there is no setting for the ceiling: if a busy installation behind a
-remote proxy finds resets stopping, the application log names the address that was
-limited, and the answer is to put the proxy on the mail server or to accept the cap.
+on the *same* machine is therefore not counted per client. It has a ceiling of its own
+instead: **thirty requests in any sixty seconds from loopback, all together** - far more
+than people forget passwords at, and a limit on how fast anybody can drive the route
+through the proxy. A proxy on **another** host still shares one per-client bucket, and
+there is no setting for either ceiling: if a busy installation behind a remote proxy
+finds resets stopping, the application log names the address that was limited, and the
+answer is to put the proxy on the mail server or to accept the cap.
 
 The link goes to the confirmed recovery address and **nowhere else** - never to the
 mailbox itself, which is the mailbox somebody who cannot get in cannot read. It is 32

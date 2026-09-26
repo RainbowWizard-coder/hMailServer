@@ -329,6 +329,9 @@ STDMETHODIMP InterfaceAccount::EnrolTOTP(BSTR *pVal)
          return COMError::GenerateError("The random number generator failed, so no second factor was enrolled. Nothing has been stored. See the hMailServer error log.");
 
       object_->SetTotpSecret(secret);
+      // The codes, wrong or taken, that were about the secret this replaces
+      // (SecondFactorGuard) are forgotten with it.
+      HM::SecondFactorGuard::ForgetOwner(object_->GetAddress());
 
       // The URI carries the secret, and this is the only moment it leaves the server:
       // there is no property that reads it back, because the point of a second factor
@@ -360,6 +363,7 @@ STDMETHODIMP InterfaceAccount::DisableTOTP()
       // client the account holder had set up, as a side effect of an unrelated
       // administrative action.
       object_->SetTotpSecret("");
+      HM::SecondFactorGuard::ForgetOwner(object_->GetAddress());
 
       return S_OK;
    }

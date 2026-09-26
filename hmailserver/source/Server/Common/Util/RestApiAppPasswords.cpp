@@ -170,11 +170,8 @@ namespace HM
       // somebody whose authenticator is gone can still make an app password for
       // the client that needs one. It is matched here and spent by the handler
       // once the act has happened, never on the way to a refusal.
-      if (!SecondFactorProved_(account, request, recoveryCodeId))
-      {
-         failure = BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
+      if (!SecondFactorProved_(account, request, caller.peer, failure, recoveryCodeId))
          return false;
-      }
 
       return true;
    }

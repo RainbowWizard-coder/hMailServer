@@ -1191,7 +1191,7 @@ namespace HM
       // decision is allowed to look at.
       struct Caller
       {
-         Caller() : result(AuthenticationFailed), read_only(true), second_factor_required(false) { }
+         Caller() : result(AuthenticationFailed), read_only(true), second_factor_required(false), second_factor_locked_for(0) { }
 
          AuthenticationResult result;
 
@@ -1199,6 +1199,11 @@ namespace HM
          // was missing was the one-time code; the 401 then says so in a header,
          // as GitHub's API does, so a client knows to ask for it.
          bool second_factor_required;
+
+         // Set on a refusal when the administrator password was right and the
+         // administrator's wrong-code budget is spent: the seconds left, which
+         // the answer gives as 429 with Retry-After instead of the 401.
+         int second_factor_locked_for;
 
          // "administrator", or "key:<id>". Identifies the credential for rate
          // accounting and for the log; never the secret itself.
@@ -1879,12 +1884,49 @@ namespace HM
       // sender-address proof answers the same refusal in.
       static HttpResponse TooManyRecoveryMessages_(const String &problem, int retryAfter);
       // The second factor a route asks for, or a recovery code in its place.
-      // recoveryCodeId comes back as the row of the code that MATCHED - nothing
-      // is spent here, so that a refusal further on in the handler leaves the
-      // code where it was. SpendSecondFactor_ is the other half, called once the
-      // act has actually happened.
+      // recoveryCodeId comes back as the row of the recovery code that MATCHED -
+      // it is not spent here, so that a refusal further on in the handler leaves
+      // the code where it was. SpendSecondFactor_ is the other half, called once
+      // the act has actually happened. A one-time code, by contrast, is taken
+      // here, when it is checked (SecondFactorGuard::TakeCode): taking it at the
+      // check is what stops two requests carrying it from both being the first,
+      // so a refusal further on costs the owner that code and they use the
+      // next. refusal is the answer to give when it is false: 401 asking for the
+      // code, or 429 while the owner's wrong-code budget is spent.
+      //
+      // Every wrong code is counted (SecondFactorWrong_): a six-digit code is a
+      // guess, and one that could be retried without limit behind a password
+      // somebody has would be a second factor in name only. A code taken once
+      // already is refused and not counted (SecondFactorReused_).
       static bool SecondFactorProved_(std::shared_ptr<const Account> account, const AnsiString &request,
+                                      const IPAddress &peer, HttpResponse &refusal,
                                       __int64 *recoveryCodeId = nullptr);
+
+      // The wrong-code budget of one owner - an account's address, or
+      // "administrator" - shared by every place that asks for a code on top of
+      // a password it has already checked, the administrator's Basic sign-in
+      // and the COM sign-in included (SecondFactorGuard, Totp.h): five wrong
+      // codes in fifteen minutes, and then every code, the right one included,
+      // is refused for fifteen minutes. A code taken once already is refused and
+      // not counted: it is no guess, and counting it would lock out the owner
+      // who sent it twice. SecondFactorLocked_ answers whether the budget is
+      // spent and for how long; SecondFactorWrong_ logs one wrong code, charges
+      // the source address to the auto-ban and, for an account, its name to the
+      // per-name lockout - the only charge a wrong code makes - and counts it
+      // against the budget unless SecondFactorGuard::TakeCode already has
+      // (countedAs, the count it answered, and lockedNow); SecondFactorReused_
+      // logs a code taken once already and charges nothing; SecondFactorRight_
+      // clears the count.
+      static bool SecondFactorLocked_(const String &owner, int &retryAfter);
+      static void SecondFactorWrong_(const String &owner, bool account, const IPAddress &peer,
+                                     int countedAs = 0, bool lockedNow = false);
+      static void SecondFactorReused_(const String &owner, const IPAddress &peer);
+      static void SecondFactorRight_(const String &owner);
+      // Forgets every owner's count and lock, not the steps already taken:
+      // Stop() calls it, since a stopped listener holds no refusals and no
+      // request counts (ClearRequestRates_).
+      static void ClearWrongCodes_();
+      static HttpResponse TooManyWrongCodes_(int retryAfter);
       static void SpendSecondFactor_(std::shared_ptr<const Account> account, __int64 recoveryCodeId);
       // Deleted items still within the recovery window (RestApiRecoverable.cpp).
       static HttpResponse HandleMeRecoverable_(const Caller &caller, RouteKind kind, __int64 id);
@@ -1894,7 +1936,7 @@ namespace HM
       // unauthenticated sign-in challenge, and the assertion Authenticate_
       // judges in place of a password.
       static HttpResponse HandlePasskeys_(const Caller &caller, RouteKind kind, __int64 id, const AnsiString &request);
-      HttpResponse HandlePasskeyChallenge_(const AnsiString &request);
+      HttpResponse HandlePasskeyChallenge_(const AnsiString &request, const IPAddress &peer_address);
       static bool AuthenticatePasskey_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
       static bool ConfirmAdministratorPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure);
       static bool PasskeyOwner_(const Caller &caller, __int64 &accountId, bool &administrator, String &owner);
@@ -1904,8 +1946,8 @@ namespace HM
       // Single sign-on (RestApiOidcSignIn.cpp): the two pre-authentication
       // steps of the flow, what the sign-in pages may offer, and the ticket
       // Authenticate_ redeems in place of a password.
-      HttpResponse HandleOidcStart_(const AnsiString &query);
-      HttpResponse HandleOidcCallback_(const AnsiString &request, const AnsiString &query);
+      HttpResponse HandleOidcStart_(const AnsiString &request, const AnsiString &query, const IPAddress &peer_address);
+      HttpResponse HandleOidcCallback_(const AnsiString &request, const AnsiString &query, const IPAddress &peer_address);
       static HttpResponse HandleSignInMethods_();
       static bool AuthenticateOidcTicket_(const AnsiString &request, const IPAddress &peer_address, Caller &caller);
       static AnsiString OpenApiOidcPaths_();
@@ -2068,18 +2110,33 @@ namespace HM
       static bool AuthenticateBearer_(const AnsiString &token, const IPAddress &peer_address, Caller &caller);
       // The Basic credential is the administrator password, and - once a second
       // factor is enrolled on it - a code in the X-hMailServer-OTP request header
-      // as well. The two code outcomes are told apart because only one of them is
-      // a guess: a missing code is a client that has not been told yet, a wrong one
-      // counts towards the per-address auto-ban like any other wrong credential.
+      // as well. The code outcomes are told apart because only some of them are
+      // a guess: a missing code is a client that has not been told yet; a wrong
+      // one is counted against the administrator's wrong-code budget, under the
+      // lock that judged it (SecondFactorGuard::TakeCode; the count in
+      // BasicCode), and charged to the source address (SecondFactorWrong_); one
+      // taken once already (BasicCode::reused) is refused and not counted; and
+      // while that budget is spent no code is looked at (BasicCodeLocked, with
+      // the seconds left in BasicCode::locked_for).
+      struct BasicCode
+      {
+         bool reused = false;
+         int locked_for = 0;
+         int wrong = 0;
+         bool locked_now = false;
+      };
+
       enum BasicResult
       {
          BasicRefused,
          BasicAccepted,
          BasicCodeMissing,
-         BasicCodeWrong
+         BasicCodeWrong,
+         BasicCodeLocked
       };
 
-      static BasicResult AuthenticateBasic_(const AnsiString &encodedCredentials, const AnsiString &request);
+      static BasicResult AuthenticateBasic_(const AnsiString &encodedCredentials, const AnsiString &request,
+                                            BasicCode &codeOutcome);
 
       static AnsiString GetAuthorizationHeader_(const AnsiString &request);
       static AnsiString GetHeader_(const AnsiString &request, const AnsiString &lowerCaseName);

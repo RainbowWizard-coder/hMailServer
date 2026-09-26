@@ -178,8 +178,21 @@ namespace RegressionTests.API
          StringAssert.StartsWith("/portal#sso=", finished.location, Why(finished.location));
          string ticket = finished.location.Substring("/portal#sso=".Length);
 
+         // The ticket carried out of this browser - the link /portal#sso=<ticket> sent to
+         // somebody else, whose browser this server's own page would post it from, header
+         // and all. The hmsaml cookie was checked at the finish in the browser that
+         // started the sign-in, so what keeps the ticket there is the hmsso cookie the
+         // finish set beside it: without it, or with another sign-in's, it is refused,
+         // and it is not spent - the sign-in just below uses it.
+         Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status,
+            "A ticket presented by a browser that was not given its cookie signed somebody in.");
+         Started other = Start(false);
+         string otherTicket = SignIn(other, SignedResponse(new Spec(other, account.Address)));
+         Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(otherTicket)).status,
+            "A ticket presented with another sign-in's cookie signed somebody in.");
+
          (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
-            "{\"sso_ticket\":\"" + ticket + "\"}", "application/json", null);
+            "{\"sso_ticket\":\"" + ticket + "\"}", "application/json", TicketCookie(ticket));
          Assert.AreEqual(201, session.status, session.body);
          StringAssert.Contains(account.Address, session.body);
 
@@ -194,7 +207,7 @@ namespace RegressionTests.API
             Send("GET", "/api/v1/me/devices", Basic(account.Address, "Saml-Passw0rd!"), null).body);
 
          // A ticket is good once.
-         Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status,
+         Assert.AreEqual(401, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket)).status,
             "A spent ticket is not a credential.");
 
          // The same Response again: its request was answered already.
@@ -252,7 +265,7 @@ namespace RegressionTests.API
          // mailbox is made.
          Started own = Start(false);
          string ticket = SignIn(own, SignedResponse(new Spec(own, newcomer)));
-         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status);
+         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket)).status);
          Assert.AreEqual(200, Admin("GET", "/api/v1/accounts/" + newcomer, null).status, "The mailbox was made.");
 
          // And an existing account's, in its own browser.
@@ -275,7 +288,7 @@ namespace RegressionTests.API
          Started byClaim = Start(false);
          Spec claim = new Spec(byClaim, "a1b2c3d4-persistent") { nameIdFormat = PersistentFormat, emailAttribute = account.Address };
          string ticket = SignIn(byClaim, SignedResponse(claim));
-         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status);
+         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket)).status);
 
          Refused("the claim under another name", s => SignedResponse(new Spec(s, "a1b2c3d4-persistent")
          {
@@ -299,7 +312,7 @@ namespace RegressionTests.API
          Started okta = Start(false);
          Spec both = new Spec(okta, account.Address) { prefixList = "xs", signResponse = true };
          string oktaTicket = SignIn(okta, SignedResponse(both));
-         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + oktaTicket + "\"}", null).status);
+         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + oktaTicket + "\"}", TicketCookie(oktaTicket)).status);
       }
 
       [Test]
@@ -321,7 +334,7 @@ namespace RegressionTests.API
          Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"saml_auto_provision\":true}").status);
          Started provisioned = Start(false);
          string ticket = SignIn(provisioned, SignedResponse(new Spec(provisioned, newcomer)));
-         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status);
+         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket)).status);
          Assert.AreEqual(200, Admin("GET", "/api/v1/accounts/" + newcomer, null).status, "The mailbox was made.");
 
          // An address at a domain this server does not host is refused, provisioning or not.
@@ -341,7 +354,7 @@ namespace RegressionTests.API
          string deckTicket = SignIn(asChief, SignedResponse(new Spec(asChief, chief)));
 
          (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
-            "{\"sso_ticket\":\"" + deckTicket + "\"}", "application/json", null);
+            "{\"sso_ticket\":\"" + deckTicket + "\"}", "application/json", TicketCookie(deckTicket));
          Assert.AreEqual(201, session.status, session.body);
          StringAssert.Contains("\"administrator\":true", session.body);
 
@@ -408,7 +421,7 @@ namespace RegressionTests.API
          Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"saml_require_signed_assertion\":false}").status);
          Started responseOnly = Start(false);
          string ticket = SignIn(responseOnly, SignedResponse(new Spec(responseOnly, account.Address) { signAssertion = false, signResponse = true }));
-         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status,
+         Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket)).status,
             "With saml_require_signed_assertion off, a signature over the Response is enough.");
 
          // Off does not mean unsigned: neither signed is still refused.
@@ -422,7 +435,7 @@ namespace RegressionTests.API
                "{\"saml_idp_certificate\":\"" + Json(Pem(_certificate) + Pem(nextCertificate)) + "\"}").status);
             Started rolled = Start(false);
             string rolledTicket = SignIn(rolled, SignedResponse(new Spec(rolled, account.Address) { assertionKey = next }));
-            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + rolledTicket + "\"}", null).status,
+            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + rolledTicket + "\"}", TicketCookie(rolledTicket)).status,
                "The second of two stored certificates verifies.");
          }
       }
@@ -475,7 +488,7 @@ namespace RegressionTests.API
          // each refusal above was of the shape, not of the signature underneath it.
          Started own = Start(false);
          string ticket = SignIn(own, SignedResponse(new Spec(own, attacker.Address)));
-         (int status, string body) session = Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null);
+         (int status, string body) session = Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket));
          Assert.AreEqual(201, session.status, session.body);
          StringAssert.Contains(attacker.Address, session.body);
          StringAssert.DoesNotContain(victim.Address, session.body, "The forgery's address signed in.");
@@ -731,7 +744,7 @@ namespace RegressionTests.API
 
             Started started = Start(false);
             string ticket = SignIn(started, SignedResponse(new Spec(started, account.Address)));
-            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", null).status);
+            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket + "\"}", TicketCookie(ticket)).status);
          }
 
          // A round trip of the switches and the names, the button's words among them.
@@ -1130,7 +1143,31 @@ namespace RegressionTests.API
             SendRaw("GET", finishLocation, null, null, null, cookie == null ? null : "Cookie: " + cookie);
          Match location = Regex.Match(answer.headers, @"Location: (\S+)");
          Assert.IsTrue(location.Success, answer.status + " " + answer.headers + " " + answer.body);
+
+         // A ticket comes with the cookie that binds it to this browser, and the
+         // session is asked for with both, as the browser would.
+         Match ticket = Regex.Match(location.Groups[1].Value, @"#sso=([A-Za-z0-9_-]+)$");
+         if (ticket.Success)
+         {
+            Match bound = Regex.Match(answer.headers, @"Set-Cookie: (hmsso=[^;]+);([^\r\n]*)");
+            Assert.IsTrue(bound.Success, "The ticket came without the cookie that binds it to this browser: " + answer.headers);
+            StringAssert.Contains("HttpOnly", bound.Groups[2].Value);
+            StringAssert.Contains("SameSite=Strict", bound.Groups[2].Value);
+            StringAssert.Contains("Path=/api/v1/session", bound.Groups[2].Value);
+            TicketCookies[ticket.Groups[1].Value] = bound.Groups[1].Value;
+         }
+
          return (answer.status, location.Groups[1].Value);
+      }
+
+      private static readonly System.Collections.Generic.Dictionary<string, string> TicketCookies =
+         new System.Collections.Generic.Dictionary<string, string>();
+
+      /// <summary>The Cookie header the browser a ticket was handed to would send with it.</summary>
+      private static string TicketCookie(string ticket)
+      {
+         Assert.IsTrue(TicketCookies.ContainsKey(ticket), "No finish handed out that ticket.");
+         return "Cookie: " + TicketCookies[ticket];
       }
 
       /// <summary>Where the browser that started this sign-in ends: the ACS, and the finish when the ACS sends it there.</summary>

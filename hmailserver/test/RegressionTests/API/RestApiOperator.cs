@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using NUnit.Framework;
@@ -147,16 +146,18 @@ namespace RegressionTests.API
             // Enforced from this moment: the password alone is refused, the
             // password with the code is accepted.
             ClassicAssert.AreEqual(401, Http("GET", SecondFactorPath).status, "The password alone no longer authenticates.");
-            (int status, string body) withCode = Http("GET", SecondFactorPath, null, "X-hMailServer-OTP: " + Code(secret));
+            // Each request its own code: a code is taken once (SecondFactorGuard),
+            // so the third request below waits for the authenticator's next one.
+            (int status, string body) withCode = Http("GET", SecondFactorPath, null, "X-hMailServer-OTP: " + OneTimeCodes.Fresh(secret));
             ClassicAssert.AreEqual(200, withCode.status, withCode.body);
             StringAssert.Contains("\"enrolled\":true", withCode.body);
 
-            (int status, string body) twice = Http("POST", SecondFactorPath, "{}", "X-hMailServer-OTP: " + Code(secret));
+            (int status, string body) twice = Http("POST", SecondFactorPath, "{}", "X-hMailServer-OTP: " + OneTimeCodes.Fresh(secret));
             ClassicAssert.AreEqual(409, twice.status, "A second enrolment would replace the secret every app holds.");
          }
          finally
          {
-            (int status, string body) disabled = Http("DELETE", SecondFactorPath, null, "X-hMailServer-OTP: " + Code(secret));
+            (int status, string body) disabled = Http("DELETE", SecondFactorPath, null, "X-hMailServer-OTP: " + OneTimeCodes.Fresh(secret));
             ClassicAssert.AreEqual(200, disabled.status, disabled.body);
          }
 
@@ -179,51 +180,6 @@ namespace RegressionTests.API
          string rest = otpauthUri.Substring(at + "secret=".Length);
          int end = rest.IndexOf('&');
          return end < 0 ? rest : rest.Substring(0, end);
-      }
-
-      // A code from an independent RFC 6238 implementation - the point being that
-      // the server accepts what a real authenticator app would produce, not merely
-      // what the server itself computes. The same as Security/AdministratorTwoFactor's.
-      private static string Code(string base32Secret)
-      {
-         byte[] key = Base32Decode(base32Secret);
-         long counter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
-
-         byte[] counterBytes = BitConverter.GetBytes(counter);
-         if (BitConverter.IsLittleEndian)
-            Array.Reverse(counterBytes);
-
-         byte[] hash;
-         using (var hmac = new HMACSHA1(key))
-            hash = hmac.ComputeHash(counterBytes);
-
-         int offset = hash[hash.Length - 1] & 0x0F;
-         int binary =
-            ((hash[offset] & 0x7F) << 24) |
-            ((hash[offset + 1] & 0xFF) << 16) |
-            ((hash[offset + 2] & 0xFF) << 8) |
-            (hash[offset + 3] & 0xFF);
-
-         return (binary % 1000000).ToString("000000");
-      }
-
-      private static byte[] Base32Decode(string input)
-      {
-         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-         var output = new System.Collections.Generic.List<byte>();
-         int buffer = 0, bitsLeft = 0;
-
-         foreach (int index in input.Select(c => alphabet.IndexOf(char.ToUpperInvariant(c))).Where(index => index >= 0))
-         {
-            buffer = (buffer << 5) | index;
-            bitsLeft += 5;
-            if (bitsLeft >= 8)
-            {
-               bitsLeft -= 8;
-               output.Add((byte) ((buffer >> bitsLeft) & 0xFF));
-            }
-         }
-         return output.ToArray();
       }
    }
 }

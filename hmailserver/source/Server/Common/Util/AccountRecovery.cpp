@@ -36,12 +36,15 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../TCPIP/IPAddress.h"
+#include "../Threading/Task.h"
+#include "../Threading/WorkQueue.h"
 #include "../../SMTP/RecipientParser.h"
 
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
 
 #include <ctime>
+#include <deque>
 #include <map>
 #include <mutex>
 #include <vector>
@@ -72,6 +75,15 @@ namespace HM
       const int RequestsPerClientPerHour = 20;
       const size_t MapCeiling = 10000;
 
+      // The one budget a peer on this machine is held to. The per-client counter
+      // is skipped for it (BeginReset says why), which left a webmail or reverse
+      // proxy on loopback with no ceiling at all: a sweep through a list of
+      // addresses, one request each, met nothing but the per-address counter it
+      // never repeats. Thirty in any sixty seconds, for every loopback request
+      // together - far more than people forget passwords at, and a floor under
+      // how fast anybody can drive the route through the proxy.
+      const int LoopbackRequestsPerMinute = 30;
+
       // How long a recovery code is, in characters, and the alphabet it is drawn
       // from - the same one an app password uses: Crockford-style base32 without
       // the letters that are read as digits. Ten characters of thirty symbols is
@@ -89,6 +101,7 @@ namespace HM
       std::mutex state_mutex;
       std::map<AnsiString, Request> by_address;
       std::map<AnsiString, Request> by_client;
+      std::deque<time_t> by_loopback;   // when each of the last minute's loopback requests came
 
       AnsiString Utf8(const String &text)
       {
@@ -795,6 +808,48 @@ namespace HM
       return true;
    }
 
+   namespace
+   {
+      // The part of a reset request that looks anything up, run after the
+      // answer has gone. Never throws into the queue: a request that failed is
+      // a line in the log and nothing else, as it was when it ran inline.
+      class ResetLinkTask : public Task
+      {
+      public:
+         ResetLinkTask(const String &mailbox, const IPAddress &peer) :
+            Task(_T("Password-reset link")),
+            mailbox_(mailbox),
+            peer_(peer)
+         {
+         }
+
+      protected:
+         virtual void DoWork()
+         {
+            try
+            {
+               if (AccountRecovery::SendResetLink(mailbox_, peer_) == AccountRecovery::ResetFailed)
+               {
+                  LOG_APPLICATION("AccountRecovery: a password-reset link could not be made or queued; the request had been answered as every other is.");
+               }
+            }
+            catch (const boost::thread_interrupted &)
+            {
+               // The queue is stopping: let it.
+               throw;
+            }
+            catch (...)
+            {
+               LOG_APPLICATION("AccountRecovery: a password-reset request failed while it was being handled; nothing was sent.");
+            }
+         }
+
+      private:
+         String mailbox_;
+         IPAddress peer_;
+      };
+   }
+
    AccountRecovery::ResetOutcome
    AccountRecovery::BeginReset(const String &mailbox, const IPAddress &peer)
    {
@@ -839,7 +894,43 @@ namespace HM
             return ResetTooSoon;
          if (worst == 2)
             return ResetTooMany;
+
+         // Loopback's own ceiling, in place of the per-client one it skips:
+         // every request from this machine together, in any sixty seconds.
+         if (IsLoopback(peer))
+         {
+            while (!by_loopback.empty() && now - by_loopback.front() >= 60)
+               by_loopback.pop_front();
+            if ((int) by_loopback.size() >= LoopbackRequestsPerMinute)
+               return ResetTooMany;
+            by_loopback.push_back(now);
+         }
       }
+
+      // Everything from here looks something up - the account, its recovery
+      // address, the token table - and on the way to a link writes a row, a
+      // queue file and a message. Done after the answer, on the async work
+      // queue, so that the answer's time says nothing about the address: run
+      // inline, a mailbox with a proved recovery address was answered several
+      // database round trips and a file write later than a name that is no
+      // mailbox at all. Inline only when there is no queue to post to, which
+      // is the service starting or stopping.
+      std::shared_ptr<WorkQueue> queue = Application::Instance()->GetAsyncWorkQueue();
+      if (!queue)
+         return SendResetLink(wanted, peer);
+
+      queue->AddTask(std::shared_ptr<Task>(new ResetLinkTask(wanted, peer)));
+      return ResetQueued;
+   }
+
+   AccountRecovery::ResetOutcome
+   AccountRecovery::SendResetLink(const String &mailbox, const IPAddress &peer)
+   {
+      const String base = BaseUrl();
+      if (base.IsEmpty())
+         return ResetUnavailable;
+
+      const String wanted = Lower(mailbox);
 
       std::shared_ptr<const Account> account = PasswordValidator::LookupAccount(wanted);
       if (!account || !account->GetActive())

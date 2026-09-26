@@ -464,6 +464,18 @@ namespace HM
       const char *SessionCookieName = "hmailsession";
       const int SessionTokenBytes = 32;
 
+      // Whether the domain an account belongs to is there and switched on. A
+      // password sign-in meets this in PasswordValidator on every protocol; the
+      // credentials that prove identity without a password (a passkey, a
+      // single sign-on ticket) and the sessions all of them start meet it here,
+      // so that switching a domain off shuts it for every way in and not only
+      // for the one that asks for a password.
+      bool AccountDomainIsActive(const Account &account)
+      {
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(account.GetDomainID());
+         return domain && domain->GetIsActive();
+      }
+
       // The ceilings that apply where no policy has been set - which is every
       // server until an administrator sets one, and what this listener has always
       // enforced. Named once, in SessionPolicies, so that the policy resolution
@@ -1127,6 +1139,7 @@ namespace HM
       ClearRefusedAddresses_();
       ClearRequestRates_();
       ClearBrowserSessions_();
+      ClearWrongCodes_();
 
       // The challenges a passkey registration or sign-in was waiting on, the
       // sign-ins waiting to come back from the identity provider and the
@@ -1196,6 +1209,16 @@ namespace HM
    {
       if (!account || account->GetID() == 0 || !account->GetActive())
          return false;
+
+      // The domain, as the password sign-in meets it: one an administrator has
+      // switched off - a tenant offboarded, say - signs nobody in, whatever
+      // credential they bring.
+      if (!AccountDomainIsActive(*account))
+      {
+         LOG_APPLICATION("REST API: " + account->GetAddress() + " was refused a session from " + String(peer_address.ToString()) +
+            ": its domain is not active.");
+         return false;
+      }
 
       // The compromised-account detection's hold. A password logon meets it at
       // AccountLockout::IsLockedOut inside AccountLogon::Logon; a credential
@@ -1335,7 +1358,8 @@ namespace HM
             }
          }
 
-         const BasicResult basic = AuthenticateBasic_(encodedCredentials, request);
+         BasicCode code;
+         const BasicResult basic = AuthenticateBasic_(encodedCredentials, request, code);
 
          if (basic == BasicAccepted)
          {
@@ -1362,21 +1386,46 @@ namespace HM
             return caller;
          }
 
+         // The administrator's wrong-code budget is spent: the code was not
+         // looked at, and the answer is 429 with the time left, as at every
+         // other place the administrator's code is asked for. Not charged to the
+         // source address: nothing was guessed.
+         if (basic == BasicCodeLocked)
+         {
+            LOG_APPLICATION("REST API: the administrator password was accepted from " + String(peer_address.ToString()) +
+               " but its one-time code was not looked at: too many wrong codes have been tried for it.");
+            caller.second_factor_required = true;
+            caller.second_factor_locked_for = code.locked_for;
+            return caller;
+         }
+
+         // A wrong code is a guess at six digits by somebody who has the
+         // password. It has been counted against the administrator's own budget
+         // (AuthenticateBasic_), which a loopback peer (a reverse proxy) meets as
+         // much as any other, where the auto-ban leaves loopback alone; and
+         // SecondFactorWrong_ charges the source address itself, so it is not
+         // charged again below. A code taken once already is refused and neither
+         // counted nor charged: it is no guess, and it is what a script that
+         // sends the same code with every request sends from the second on.
+         if (basic == BasicCodeWrong)
+         {
+            caller.second_factor_required = true;
+            if (code.reused)
+            {
+               SecondFactorReused_(_T("administrator"), peer_address);
+               return caller;
+            }
+
+            LOG_APPLICATION("REST API: the administrator password was accepted but the one-time code in X-hMailServer-OTP was not.");
+            SecondFactorWrong_(_T("administrator"), false, peer_address, code.wrong, code.locked_now);
+            return caller;
+         }
+
          // A rejected credential leaves a trace, so repeated guessing against an
          // exposed management port is at least visible to the administrator.
          // (Presenting no credential at all is normal for the login page and is
-         // deliberately not logged here.) A wrong code is a guess at six digits
-         // and is counted like any other wrong credential.
-         if (basic == BasicCodeWrong)
-         {
-            LOG_APPLICATION("REST API: the administrator password was accepted but the one-time code in X-hMailServer-OTP was not.");
-            caller.second_factor_required = true;
-         }
-         else
-         {
-            LOG_APPLICATION("REST API: administrator authentication failed.");
-         }
-
+         // deliberately not logged here.)
+         LOG_APPLICATION("REST API: administrator authentication failed.");
          RegisterAuthenticationFailure_(peer_address);
       }
 
@@ -1384,8 +1433,11 @@ namespace HM
    }
 
    RestApiServer::BasicResult
-   RestApiServer::AuthenticateBasic_(const AnsiString &encodedCredentials, const AnsiString &request)
+   RestApiServer::AuthenticateBasic_(const AnsiString &encodedCredentials, const AnsiString &request,
+                                     BasicCode &codeOutcome)
    {
+      codeOutcome = BasicCode();
+
       // An empty value is refused before the decoder sees it, rather than
       // relying on what MimeCodeBase64 does with a zero-length input.
       if (encodedCredentials.IsEmpty())
@@ -1431,8 +1483,30 @@ namespace HM
          if (code.IsEmpty())
             return BasicCodeMissing;
 
-         if (!Totp::VerifyCode(AnsiString(secret), code))
+         // The budget first, so that a spent one refuses the right code too -
+         // asked by TakeCode under the lock it judges and counts the code in.
+         // Taken once (SecondFactorGuard): the same code on a second request is
+         // refused, so a script signs in once - POST /api/v1/session, and the
+         // cookie from there - or uses an API key, rather than sending the
+         // password and a code with every request.
+         const String owner = _T("administrator");
+         SecondFactorGuard::Outcome outcome;
+         const SecondFactorGuard::Taken taken = SecondFactorGuard::TakeCode(owner, AnsiString(secret), code, &outcome);
+         if (taken == SecondFactorGuard::CodeLocked)
+         {
+            codeOutcome.locked_for = outcome.retry_after;
+            return BasicCodeLocked;
+         }
+
+         if (taken != SecondFactorGuard::CodeTaken)
+         {
+            codeOutcome.reused = taken == SecondFactorGuard::CodeReused;
+            codeOutcome.wrong = outcome.wrong;
+            codeOutcome.locked_now = outcome.locked_now;
             return BasicCodeWrong;
+         }
+
+         SecondFactorRight_(owner);
       }
 
       // Signed in. A password that verified against the installer's old unsalted
@@ -1915,10 +1989,10 @@ namespace HM
       // hands out a one-use ticket and POST /api/v1/session does the minting.
       // See RestApiOidcSignIn.cpp.
       if (method == "GET" && path == "/portal/oidc/start")
-         return HandleOidcStart_(query);
+         return HandleOidcStart_(request, query, peer_address);
 
       if (method == "GET" && path == "/portal/oidc/callback")
-         return HandleOidcCallback_(request, query);
+         return HandleOidcCallback_(request, query, peer_address);
 
       // SAML, beside it (RestApiSamlSignIn.cpp): the request to the identity
       // provider, the Response the browser posts back, the finish the ACS
@@ -1949,7 +2023,7 @@ namespace HM
          return HandleSignInMethods_();
 
       if (method == "POST" && path == "/api/v1/passkeys/challenge")
-         return HandlePasskeyChallenge_(request);
+         return HandlePasskeyChallenge_(request, peer_address);
 
       // Recovery: the page a confirmation link opens, the "I have forgotten my
       // password" route, the page the reset link opens, and the route the
@@ -2043,6 +2117,11 @@ namespace HM
 
          if (caller.result == AuthenticationFailed && scimPath)
             return BuildScimError_(401, "", _T("authentication failed: /scim/ answers to an api key presented as a bearer token"), "WWW-Authenticate: Bearer realm=\"hMailServer\"\r\n");
+
+         // The administrator's password was right and its wrong-code budget is
+         // spent: said as every route that asks for the code says it.
+         if (caller.result == AuthenticationFailed && caller.second_factor_locked_for > 0)
+            return TooManyWrongCodes_(caller.second_factor_locked_for);
 
          if (caller.result == AuthenticationFailed)
             return BuildUnauthorizedResponse_(caller.second_factor_required, IsPageScriptRequest_(request));
@@ -12652,8 +12731,9 @@ namespace HM
       // refuse the new password, and ten refused choices must not leave an
       // account with no authenticator and no codes.
       __int64 recoveryCodeId = 0;
-      if (!SecondFactorProved_(account, request, &recoveryCodeId))
-         return BuildUnauthorizedResponse_(true, IsPageScriptRequest_(request));
+      HttpResponse secondFactorRefusal;
+      if (!SecondFactorProved_(account, request, caller.peer, secondFactorRefusal, &recoveryCodeId))
+         return secondFactorRefusal;
 
       // The same rules the Control Panel and COM apply when an administrator
       // sets a password, from the same two places, so a user cannot choose
@@ -12998,8 +13078,13 @@ namespace HM
       // refused from the next request, and its session is dropped - and so is
       // one made a room or a piece of equipment since, which nobody may be
       // signed into (ResourceBooking.h).
+      //
+      // And so is one whose domain has been switched off since: the password
+      // that started the session would be refused now (PasswordValidator), and
+      // so would a passkey or a single sign-on (AccountMayStartSession_).
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
-      if (!PersistentAccount::ReadObject(account, accountId) || account->GetID() == 0 || !account->GetActive() || account->IsResource())
+      if (!PersistentAccount::ReadObject(account, accountId) || account->GetID() == 0 || !account->GetActive() || account->IsResource() ||
+          !AccountDomainIsActive(*account))
       {
          RevokeSessionsForAccount_(accountId, "");
          return false;
@@ -13315,12 +13400,22 @@ namespace HM
 
       // HttpOnly: the script never reads it, so a script that should not be
       // there cannot either. SameSite=Strict: a request from another site does
-      // not carry it. Secure whenever the listener speaks TLS - which it does
-      // everywhere but loopback. Max-Age is the absolute ceiling; the idle
-      // ceiling is shorter and is the server's to enforce.
+      // not carry it. Secure whenever the browser came over HTTPS - to a
+      // listener that speaks TLS, or to the proxy on this machine in front of
+      // the plain loopback one, which says so in X-Forwarded-Proto
+      // (BrowserCameOverTls_). Until the audit before 6.3.4 only the first
+      // counted, so behind the usual reverse proxy the session cookie of an
+      // HTTPS site was one a browser would also send over plain HTTP. Max-Age
+      // is the absolute ceiling; the idle ceiling is shorter and is the
+      // server's to enforce.
       AnsiString cookie;
       cookie.Format("Set-Cookie: %hs=%hs; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d%hs\r\n",
-         SessionCookieName, token.c_str(), policy.lifetime_seconds, use_tls_ ? "; Secure" : "");
+         SessionCookieName, token.c_str(), policy.lifetime_seconds, BrowserCameOverTls_(request, caller.peer) ? "; Secure" : "");
+
+      // A single sign-on ticket is spent, and the cookie that bound it to this
+      // browser (OidcSignIn::RedeemTicket) has nothing left to do.
+      if (caller.via_single_sign_on)
+         cookie += OidcSignIn::ClearTicketCookieHeader(BrowserCameOverTls_(request, caller.peer));
 
       AnsiString body;
       if (administrator)
@@ -17246,9 +17341,10 @@ namespace HM
       RecordPreference(account->GetID(), _T("support_last"), stamp);
       LOG_APPLICATION("REST API: " + String(caller.identity) + " opened a support session as " + account->GetAddress() + " from " + String(caller.peer.ToString()) + ".");
 
+      // Secure as the webmail's own session cookie is (HandleSessionCreate_).
       AnsiString cookie;
       cookie.Format("Set-Cookie: %hs=%hs; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d%hs\r\n",
-         SessionCookieName, token.c_str(), lifetimeSeconds, use_tls_ ? "; Secure" : "");
+         SessionCookieName, token.c_str(), lifetimeSeconds, BrowserCameOverTls_(request, caller.peer) ? "; Secure" : "");
       AnsiString body;
       body.Format("{\"support\":true,\"account\":\"%hs\",\"idle_seconds\":%d,\"lifetime_seconds\":%d}",
          JsonEscape_(Utf8_(account->GetAddress())).c_str(), idleSeconds, lifetimeSeconds);
@@ -19176,7 +19272,7 @@ namespace HM
          "\"/api/v1/me\":{\"get\":{\"summary\":\"The signed-in account's own state\",\"description\":\"HTTP Basic with the account's address and password - the same credential and the same checks as an IMAP logon, including a per-name lockout and the auto-ban. Refused for the administrator password and for API keys.\",\"responses\":{\"200\":{\"description\":\"address, domain, active, quota (limit_mb, used_bytes), vacation (enabled, active, subject, message, expires, expires_date), password_changed, second_factor, directory_linked\"},\"401\":{\"description\":\"Not an account's credentials\"},\"403\":{\"description\":\"The administrator password or an API key was presented\"}}}},"
          "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"
-         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one. The bearer form, ?bearer=1, is for an account only: the session is the same in every respect, but the token is answered in the body as token and no cookie is set, and it is then accepted as Authorization: Bearer <token> and in no Cookie header (a cookie's value is not accepted as a bearer either). It is what the webmail asks for when a person adds a second account beside the one whose cookie the browser already holds - a cookie is one per origin. The page holds the token in memory only, so a reload forgets it; it ends after the same idle time and lifetime as any session of that account, a password change ends it, its rows in GET /api/v1/me/sessions say bearer true, and DELETE /api/v1/session with the bearer ends it without touching the cookie. What the form means: a token a page holds in script is a credential a cross-site script in that page could read, which the cookie is not; the webmail is served under a policy that allows no inline script and no eval, which is why the form is acceptable there and why it is never minted for the administrator (403). For the same reason a bearer session is the mailbox and nothing more: an account that holds an administrative role - an admin level, or a role assignment - reaches the administration API on its password and on its cookie, and never on a bearer, which is refused there (403) as an ordinary account is and answers administrative false to GET /api/v1/session. And the account the request's own cookie stands for is refused the form (409): it is the account the browser is already signed in as, and signing it in again from the same device would end the cookie's session under the one-per-device policy.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie - or, with ?bearer=1, bearer true and the token in the body and no Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented, or the bearer form was asked for with the administrator password\"},\"409\":{\"description\":\"The bearer form was asked for with the password of the account the request's cookie already stands for\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared - or, for a session presented as a bearer, ended and bearer true, with no Set-Cookie\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
+         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). A code is taken once: the same code a second time is refused with the same 401, though not counted as a wrong code, and five wrong codes in fifteen minutes refuse every code, the right one included, with 429 and Retry-After for fifteen minutes - so a script signs in here once and uses the cookie, or uses an API key, rather than sending the password and a code with every request. Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS or behind a loopback proxy that says X-Forwarded-Proto: https). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one. The bearer form, ?bearer=1, is for an account only: the session is the same in every respect, but the token is answered in the body as token and no cookie is set, and it is then accepted as Authorization: Bearer <token> and in no Cookie header (a cookie's value is not accepted as a bearer either). It is what the webmail asks for when a person adds a second account beside the one whose cookie the browser already holds - a cookie is one per origin. The page holds the token in memory only, so a reload forgets it; it ends after the same idle time and lifetime as any session of that account, a password change ends it, its rows in GET /api/v1/me/sessions say bearer true, and DELETE /api/v1/session with the bearer ends it without touching the cookie. What the form means: a token a page holds in script is a credential a cross-site script in that page could read, which the cookie is not; the webmail is served under a policy that allows no inline script and no eval, which is why the form is acceptable there and why it is never minted for the administrator (403). For the same reason a bearer session is the mailbox and nothing more: an account that holds an administrative role - an admin level, or a role assignment - reaches the administration API on its password and on its cookie, and never on a bearer, which is refused there (403) as an ordinary account is and answers administrative false to GET /api/v1/session. And the account the request's own cookie stands for is refused the form (409): it is the account the browser is already signed in as, and signing it in again from the same device would end the cookie's session under the one-per-device policy.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie - or, with ?bearer=1, bearer true and the token in the body and no Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented, or the bearer form was asked for with the administrator password\"},\"409\":{\"description\":\"The bearer form was asked for with the password of the account the request's cookie already stands for\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared - or, for a session presented as a bearer, ended and bearer true, with no Set-Cookie\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
          "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default); source=manual is what the person kept and source=collected what they merely wrote to; kind=person or kind=group answers one kind, and without it both are listed; fields=card puts the stored vCard on each contact. Each contact carries kind (person), birthday, note, phones and has_photo, read from the card a phone stored. A group (see /api/v1/me/contacts/groups) is listed with kind group, an empty address, its members and its recipients, so that the completion can offer it by name and expand it. Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created, kind), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
          "\"/api/v1/me/contacts/{id}/photo\":{\"get\":{\"summary\":\"The photo on the contact's card\",\"description\":\"The image a phone stored on the card, as it is; 404 for a contact with no card, no photo, or a photo that is only a URL.\",\"responses\":{\"200\":{\"description\":\"The image\"},\"404\":{\"description\":\"No photo\"}}}},"
          "\"/api/v1/me/contacts/{id}\":{\"put\":{\"summary\":\"Change a contact's name or address, or keep a collected address as a contact\",\"description\":\"Body: name and/or address, and/or source, which can only be set to manual - what the person wrote to becomes a contact by their choice, and is served to their phones from then on. Another account's contact is 404.\",\"responses\":{\"200\":{\"description\":\"The contact\"},\"404\":{\"description\":\"No such contact\"},\"409\":{\"description\":\"The new address is already a contact\"}}},\"delete\":{\"summary\":\"Remove a contact\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such contact\"}}}},"

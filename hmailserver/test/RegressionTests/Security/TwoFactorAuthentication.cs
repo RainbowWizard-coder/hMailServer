@@ -147,20 +147,94 @@ namespace RegressionTests.Security
 
          ClassicAssert.IsTrue(_account.TOTPEnabled);
 
+         // The adjacent steps are accepted, because a client clock a second out would
+         // otherwise fail at the boundary of every window. Earliest first: a code is
+         // taken once, and taking one puts every earlier step behind the account
+         // (SecondFactorGuard), so the previous step's code is offered before the
+         // current one and the next step's after it.
+         ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret, -1)),
+            "The previous step must be accepted.");
+
          ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret)),
             "The server must accept a code this test computed with .NET's own HMACSHA1. If it does not, " +
             "no authenticator app will work either, however self-consistent the server is.");
 
-         // The adjacent steps are accepted, because a client clock a second out would
-         // otherwise fail at the boundary of every window.
-         ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret, -1)),
-            "The previous step must be accepted.");
          ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret, 1)),
             "The next step must be accepted.");
 
          // Two steps away is not.
          ClassicAssert.IsFalse(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret, 5)),
             "A code five steps out must be refused, or the window is not a window.");
+      }
+
+      [Test]
+      [Description("A code is taken once (RFC 6238 section 5.2): the same code a second time is refused over COM though the password is right, and so is the code of the step before it; the next step's code is taken. The negative control is each code's first use.")]
+      public void ACodeIsTakenOnceOverCom()
+      {
+         string secret = Enrol();
+
+         string code = CurrentCode(secret);
+         ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, code), "The code's first use is taken.");
+         ClassicAssert.IsFalse(AuthenticatesOverCom(_account.Address, Password, code),
+            "The same code a second time must be refused: it is a code somebody may have seen, not the one the authenticator shows now.");
+         ClassicAssert.IsFalse(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret, -1)),
+            "The step before one that was taken is behind the account too.");
+         ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, CurrentCode(secret, 1)),
+            "The next step's code is taken.");
+      }
+
+      [Test]
+      [Description("A code taken once already is refused over COM but not counted as a guess: six of them leave the account's wrong-code budget as it was, and the next step's code is taken. The negative control is the code's first use. Its own account, so nothing it counts touches another test.")]
+      public void ACodeSentAgainOverComIsNotCountedAsAGuess()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "secondfactor-again@example.test", Password);
+         string uri = account.EnrolTOTP();
+         account.Save();
+         string secret = Regex.Match(uri, "secret=([A-Z2-7]+)").Groups[1].Value;
+         ClassicAssert.IsNotEmpty(secret, uri);
+
+         string code = OneTimeCodes.Fresh(secret);
+         ClassicAssert.IsTrue(AuthenticatesOverCom(account.Address, Password, code), "The code's first use is taken.");
+
+         for (int attempt = 1; attempt <= 6; attempt++)
+         {
+            ClassicAssert.IsFalse(AuthenticatesOverCom(account.Address, Password, code),
+               "The code sent again, attempt " + attempt + ", was taken a second time.");
+         }
+
+         ClassicAssert.IsTrue(AuthenticatesOverCom(account.Address, Password, OneTimeCodes.Fresh(secret)),
+            "Six refusals of a code taken once already spent the account's wrong-code budget.");
+
+         account.DisableTOTP();
+         account.Save();
+      }
+
+      [Test]
+      [Description("Wrong codes at the COM sign-in are counted against the account's own budget: after five in fifteen minutes the right code is refused too, until the budget is renewed. The negative control is the right code taken before the budget is spent. Its own account, so the lock touches no other test.")]
+      public void WrongCodesOverComAreCounted()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "secondfactor-guess@example.test", Password);
+         string uri = account.EnrolTOTP();
+         account.Save();
+         string secret = Regex.Match(uri, "secret=([A-Z2-7]+)").Groups[1].Value;
+         ClassicAssert.IsNotEmpty(secret, uri);
+
+         ClassicAssert.IsTrue(AuthenticatesOverCom(account.Address, Password, OneTimeCodes.Fresh(secret)),
+            "The right code is taken while the budget stands.");
+
+         string wrong = OneTimeCodes.Wrong(secret);
+         for (int attempt = 1; attempt <= 5; attempt++)
+         {
+            ClassicAssert.IsFalse(AuthenticatesOverCom(account.Address, Password, wrong), "Wrong code " + attempt + " was taken.");
+         }
+
+         ClassicAssert.IsFalse(AuthenticatesOverCom(account.Address, Password, OneTimeCodes.Fresh(secret)),
+            "After five wrong codes the right one was taken: the guessing did not stop.");
+
+         // A factor enrolled afresh is another secret, and starts with a budget of
+         // its own.
+         account.DisableTOTP();
+         account.Save();
       }
 
       [Test]

@@ -374,6 +374,8 @@ namespace HM
          if (!ini->SetAdministratorTotpSecret(String()))
             return BuildResponse_(500, "{\"error\":\"The secret could not be removed from hMailServer.INI. Nothing has been changed; see the hMailServer error log.\"}");
 
+         SecondFactorGuard::ForgetOwner(_T("administrator"));
+
          LOG_APPLICATION(_T("The administrator's second factor was disabled over the REST API."));
          return BuildResponse_(200, "{\"enrolled\":false}");
       }
@@ -395,6 +397,10 @@ namespace HM
 
       if (!ini->SetAdministratorTotpSecret(String(secret)))
          return BuildResponse_(500, "{\"error\":\"The secret could not be written to hMailServer.INI. Nothing has been changed; see the hMailServer error log.\"}");
+
+      // The codes, wrong or taken, that were about the secret this replaces
+      // (SecondFactorGuard) are forgotten with it.
+      SecondFactorGuard::ForgetOwner(_T("administrator"));
 
       // The URI carries the secret, and this answer is the only moment it
       // leaves the server. Enforced from this moment: the next logon with the

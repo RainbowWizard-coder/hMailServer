@@ -9,6 +9,10 @@
 #include <openssl/rand.h>
 
 #include <ctime>
+#include <deque>
+#include <functional>
+#include <map>
+#include <mutex>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -151,6 +155,15 @@ namespace HM
    bool
    Totp::VerifyCode(const AnsiString &base32Secret, const AnsiString &code, time_t now)
    {
+      __int64 matchedStep = 0;
+      return VerifyCode(base32Secret, code, now, matchedStep);
+   }
+
+   bool
+   Totp::VerifyCode(const AnsiString &base32Secret, const AnsiString &code, time_t now, __int64 &matchedStep)
+   {
+      matchedStep = 0;
+
       if (base32Secret.IsEmpty() || code.IsEmpty())
          return false;
 
@@ -186,8 +199,14 @@ namespace HM
          for (int i = 0; i < Digits; i++)
             difference |= (unsigned char) (expected.GetAt(i) ^ trimmed.GetAt(i));
 
+         // The latest step that matches, the loop running from the earliest:
+         // the same six digits at two steps of one window is a chance of three
+         // in a million, and taking the later step then refuses more, not less.
          if (difference == 0)
+         {
             matched = true;
+            matchedStep = counter + offset;
+         }
       }
 
       return matched;
@@ -197,6 +216,215 @@ namespace HM
    Totp::VerifyCode(const AnsiString &base32Secret, const AnsiString &code)
    {
       return VerifyCode(base32Secret, code, time(nullptr));
+   }
+
+   namespace
+   {
+      // SecondFactorGuard's memory, one entry for each owner that has had a
+      // code taken in the last window or a wrong code in the last fifteen
+      // minutes. The ceiling only decides when idle entries are swept out.
+      const size_t GuardOwnersCeiling = 10000;
+
+      struct GuardOwner
+      {
+         std::deque<time_t> wrong_at;
+         time_t locked_until = 0;
+         bool has_step = false;
+         __int64 last_step = 0;
+         size_t secret_tag = 0;
+      };
+
+      std::mutex guard_mutex;
+      std::map<String, GuardOwner> guard_owners;
+
+      String GuardKey(const String &owner)
+      {
+         String key = owner;
+         key.Trim();
+         key.ToLower();
+         return key;
+      }
+
+      size_t SecretTag(const AnsiString &base32Secret)
+      {
+         AnsiString normalised = base32Secret;
+         normalised.Trim();
+         normalised.ToUpper();
+         return std::hash<std::string>()(static_cast<const std::string &>(normalised));
+      }
+
+      // Called with guard_mutex held.
+      void DropOldWrongCodes(GuardOwner &state, time_t now)
+      {
+         while (!state.wrong_at.empty() && now - state.wrong_at.front() >= SecondFactorGuard::WrongCodeWindowSeconds)
+            state.wrong_at.pop_front();
+      }
+
+      // Called with guard_mutex held. An entry is idle when it counts nothing
+      // and its step has left every window: a step two behind the current one
+      // is refused by the window itself, so remembering it refuses nothing.
+      bool Idle(GuardOwner &state, time_t now)
+      {
+         DropOldWrongCodes(state, now);
+         const __int64 currentStep = (__int64) now / PeriodSeconds;
+         return state.wrong_at.empty() && state.locked_until <= now &&
+                (!state.has_step || state.last_step < currentStep - 1);
+      }
+
+      void SweepIdle(time_t now)
+      {
+         for (auto it = guard_owners.begin(); it != guard_owners.end();)
+         {
+            if (Idle(it->second, now))
+               it = guard_owners.erase(it);
+            else
+               ++it;
+         }
+      }
+
+      GuardOwner &Owner(const String &owner, time_t now)
+      {
+         if (guard_owners.size() >= GuardOwnersCeiling)
+            SweepIdle(now);
+         return guard_owners[GuardKey(owner)];
+      }
+
+      // Called with guard_mutex held: one wrong code counted, and the budget
+      // spent by the fifth in the window.
+      int CountWrongHeld(GuardOwner &state, time_t now, bool &lockedNow)
+      {
+         lockedNow = false;
+
+         DropOldWrongCodes(state, now);
+         state.wrong_at.push_back(now);
+         const int wrong = (int) state.wrong_at.size();
+
+         if (wrong >= SecondFactorGuard::WrongCodesAllowed && state.locked_until <= now)
+         {
+            state.locked_until = now + SecondFactorGuard::WrongCodeLockSeconds;
+            state.wrong_at.clear();
+            lockedNow = true;
+         }
+
+         return wrong;
+      }
+   }
+
+   SecondFactorGuard::Taken
+   SecondFactorGuard::TakeCode(const String &owner, const AnsiString &base32Secret, const AnsiString &code, Outcome *outcome)
+   {
+      return TakeCode(owner, base32Secret, code, time(nullptr), outcome);
+   }
+
+   SecondFactorGuard::Taken
+   SecondFactorGuard::TakeCode(const String &owner, const AnsiString &base32Secret, const AnsiString &code, time_t now, Outcome *outcome)
+   {
+      Outcome ignored;
+      Outcome &result = outcome ? *outcome : ignored;
+      result = Outcome();
+
+      const size_t tag = SecretTag(base32Secret);
+
+      // The lock looked at, the code judged, and a wrong one counted or a good
+      // one remembered, all under one lock: two requests carrying the same code
+      // at the same moment cannot both be the first, and requests racing each
+      // other with guesses cannot all be judged before the fifth is counted.
+      std::lock_guard<std::mutex> guard(guard_mutex);
+      GuardOwner &state = Owner(owner, now);
+
+      if (state.locked_until > now)
+      {
+         result.retry_after = (int) (state.locked_until - now);
+         if (result.retry_after < 1)
+            result.retry_after = 1;
+         return CodeLocked;
+      }
+
+      __int64 step = 0;
+      if (!Totp::VerifyCode(base32Secret, code, now, step))
+      {
+         result.wrong = CountWrongHeld(state, now, result.locked_now);
+         return CodeWrong;
+      }
+
+      // Refused and not counted: a code lands here only by being one that
+      // was right once, which can never be taken again (the header, Totp.h).
+      if (state.has_step && state.secret_tag == tag && step <= state.last_step)
+         return CodeReused;
+
+      state.has_step = true;
+      state.secret_tag = tag;
+      state.last_step = step;
+      state.wrong_at.clear();
+      return CodeTaken;
+   }
+
+   bool
+   SecondFactorGuard::Locked(const String &owner, int &retryAfter)
+   {
+      return Locked(owner, retryAfter, time(nullptr));
+   }
+
+   bool
+   SecondFactorGuard::Locked(const String &owner, int &retryAfter, time_t now)
+   {
+      retryAfter = 0;
+
+      std::lock_guard<std::mutex> guard(guard_mutex);
+      auto found = guard_owners.find(GuardKey(owner));
+      if (found == guard_owners.end() || found->second.locked_until <= now)
+         return false;
+
+      retryAfter = (int) (found->second.locked_until - now);
+      if (retryAfter < 1)
+         retryAfter = 1;
+      return true;
+   }
+
+   int
+   SecondFactorGuard::CountWrong(const String &owner, bool &lockedNow)
+   {
+      return CountWrong(owner, lockedNow, time(nullptr));
+   }
+
+   int
+   SecondFactorGuard::CountWrong(const String &owner, bool &lockedNow, time_t now)
+   {
+      std::lock_guard<std::mutex> guard(guard_mutex);
+      return CountWrongHeld(Owner(owner, now), now, lockedNow);
+   }
+
+   void
+   SecondFactorGuard::CountRight(const String &owner)
+   {
+      std::lock_guard<std::mutex> guard(guard_mutex);
+      auto found = guard_owners.find(GuardKey(owner));
+      if (found == guard_owners.end())
+         return;
+
+      // The count only: a right code is looked at only while there is no lock.
+      found->second.wrong_at.clear();
+   }
+
+   void
+   SecondFactorGuard::ForgetOwner(const String &owner)
+   {
+      std::lock_guard<std::mutex> guard(guard_mutex);
+      guard_owners.erase(GuardKey(owner));
+   }
+
+   void
+   SecondFactorGuard::ClearBudgets()
+   {
+      std::lock_guard<std::mutex> guard(guard_mutex);
+
+      for (auto &entry : guard_owners)
+      {
+         entry.second.wrong_at.clear();
+         entry.second.locked_until = 0;
+      }
+
+      SweepIdle(time(nullptr));
    }
 
    AnsiString
@@ -325,5 +553,118 @@ namespace HM
 
       if (uri.Find("user%40example.com") < 0 || uri.Find(secret) < 0)
          throw 0;
+
+      TestSecondFactorGuard_(secret);
+   }
+
+   void
+   TotpTester::TestSecondFactorGuard_(const AnsiString &secret)
+   {
+      // Owners no real account can have (.invalid), at a time long past, so
+      // that nothing a real owner has is touched and the steps are fixed. At
+      // 1111111111 the step is 37037037 and the RFC secret's codes are 081804
+      // (the step before), 050471 (this one), 266759 (the next) and 511787
+      // (five on).
+      const String owner = _T("totp-tester@guard.invalid");
+      const String otherOwner = _T("totp-tester-other@guard.invalid");
+      const time_t at = (time_t) 1111111111LL;
+
+      SecondFactorGuard::ForgetOwner(owner);
+      SecondFactorGuard::ForgetOwner(otherOwner);
+
+      // Taken once, and then never again while it is in the window
+      // (RFC 6238 section 5.2) - the step after included.
+      if (SecondFactorGuard::TakeCode(owner, secret, "050471", at) != SecondFactorGuard::CodeTaken) throw 0;
+      if (SecondFactorGuard::TakeCode(owner, secret, "050471", at) != SecondFactorGuard::CodeReused) throw 0;
+      if (SecondFactorGuard::TakeCode(owner, secret, " 050471 ", at + 30) != SecondFactorGuard::CodeReused) throw 0;
+
+      // The code before it in the window is refused as well: taking a code
+      // puts every earlier step behind the owner.
+      if (SecondFactorGuard::TakeCode(owner, secret, "081804", at) != SecondFactorGuard::CodeReused) throw 0;
+
+      // The next step's code is new, once.
+      if (SecondFactorGuard::TakeCode(owner, secret, "266759", at) != SecondFactorGuard::CodeTaken) throw 0;
+      if (SecondFactorGuard::TakeCode(owner, secret, "266759", at + 30) != SecondFactorGuard::CodeReused) throw 0;
+
+      // Not a code of the window at all, or not a code: wrong, not reused.
+      if (SecondFactorGuard::TakeCode(owner, secret, "511787", at) != SecondFactorGuard::CodeWrong) throw 0;
+      if (SecondFactorGuard::TakeCode(owner, secret, "05047a", at) != SecondFactorGuard::CodeWrong) throw 0;
+
+      // Each owner's steps are its own, and so are its secret's: a secret
+      // enrolled afresh starts clean.
+      if (SecondFactorGuard::TakeCode(otherOwner, secret, "050471", at) != SecondFactorGuard::CodeTaken) throw 0;
+      if (SecondFactorGuard::TakeCode(owner, "JBSWY3DPEHPK3PXP", "358462", at) != SecondFactorGuard::CodeTaken) throw 0;
+      if (SecondFactorGuard::TakeCode(owner, "JBSWY3DPEHPK3PXP", "358462", at) != SecondFactorGuard::CodeReused) throw 0;
+
+      // And forgetting an owner (a factor enrolled or removed) forgets its steps.
+      SecondFactorGuard::ForgetOwner(otherOwner);
+      if (SecondFactorGuard::TakeCode(otherOwner, secret, "050471", at) != SecondFactorGuard::CodeTaken) throw 0;
+
+      // The wrong-code budget: four are counted and change nothing...
+      int retryAfter = 0;
+      bool lockedNow = false;
+      for (int i = 1; i <= 4; i++)
+      {
+         if (SecondFactorGuard::CountWrong(owner, lockedNow, at) != i || lockedNow) throw 0;
+         if (SecondFactorGuard::Locked(owner, retryAfter, at)) throw 0;
+      }
+
+      // ...the fifth spends it, for fifteen minutes and no longer...
+      SecondFactorGuard::CountWrong(owner, lockedNow, at);
+      if (!lockedNow) throw 0;
+      if (!SecondFactorGuard::Locked(owner, retryAfter, at + 1) || retryAfter != SecondFactorGuard::WrongCodeLockSeconds - 1) throw 0;
+      if (SecondFactorGuard::Locked(owner, retryAfter, at + SecondFactorGuard::WrongCodeLockSeconds)) throw 0;
+
+      // ...another owner's budget is untouched by it...
+      if (SecondFactorGuard::Locked(otherOwner, retryAfter, at + 1)) throw 0;
+
+      // ...a right code forgets the count...
+      const time_t later = at + SecondFactorGuard::WrongCodeLockSeconds;
+      SecondFactorGuard::CountWrong(owner, lockedNow, later);
+      SecondFactorGuard::CountWrong(owner, lockedNow, later);
+      SecondFactorGuard::CountRight(owner);
+      if (SecondFactorGuard::CountWrong(owner, lockedNow, later) != 1) throw 0;
+
+      // ...and a wrong code older than fifteen minutes has stopped counting.
+      if (SecondFactorGuard::CountWrong(owner, lockedNow, later + SecondFactorGuard::WrongCodeWindowSeconds) != 1) throw 0;
+
+      // TakeCode counts a wrong code itself, under the lock it judges it in:
+      // four change nothing, the fifth spends the budget, and then the right
+      // code is not looked at (CodeLocked, with the time left).
+      const String guessed = _T("totp-tester-guessed@guard.invalid");
+      SecondFactorGuard::ForgetOwner(guessed);
+      SecondFactorGuard::Outcome outcome;
+      for (int i = 1; i <= 4; i++)
+      {
+         if (SecondFactorGuard::TakeCode(guessed, secret, "511787", at, &outcome) != SecondFactorGuard::CodeWrong) throw 0;
+         if (outcome.wrong != i || outcome.locked_now) throw 0;
+      }
+      if (SecondFactorGuard::TakeCode(guessed, secret, "511787", at, &outcome) != SecondFactorGuard::CodeWrong || !outcome.locked_now) throw 0;
+      if (SecondFactorGuard::TakeCode(guessed, secret, "050471", at + 1, &outcome) != SecondFactorGuard::CodeLocked) throw 0;
+      if (outcome.retry_after != SecondFactorGuard::WrongCodeLockSeconds - 1) throw 0;
+
+      // A code taken forgets the wrong ones before it.
+      SecondFactorGuard::ForgetOwner(guessed);
+      SecondFactorGuard::TakeCode(guessed, secret, "511787", at, &outcome);
+      SecondFactorGuard::TakeCode(guessed, secret, "511787", at, &outcome);
+      if (SecondFactorGuard::TakeCode(guessed, secret, "050471", at, &outcome) != SecondFactorGuard::CodeTaken) throw 0;
+      if (SecondFactorGuard::TakeCode(guessed, secret, "511787", at, &outcome) != SecondFactorGuard::CodeWrong || outcome.wrong != 1) throw 0;
+
+      // A code used once already is refused and NOT counted: it is no guess,
+      // and the one who sends it again is most likely its owner. Ten of them
+      // leave the budget as it was, and the next step's code is taken.
+      SecondFactorGuard::ForgetOwner(guessed);
+      if (SecondFactorGuard::TakeCode(guessed, secret, "050471", at) != SecondFactorGuard::CodeTaken) throw 0;
+      for (int i = 0; i < 10; i++)
+      {
+         if (SecondFactorGuard::TakeCode(guessed, secret, "050471", at, &outcome) != SecondFactorGuard::CodeReused) throw 0;
+         if (outcome.wrong != 0 || outcome.locked_now) throw 0;
+      }
+      if (SecondFactorGuard::Locked(guessed, retryAfter, at)) throw 0;
+      if (SecondFactorGuard::TakeCode(guessed, secret, "266759", at) != SecondFactorGuard::CodeTaken) throw 0;
+
+      SecondFactorGuard::ForgetOwner(guessed);
+      SecondFactorGuard::ForgetOwner(owner);
+      SecondFactorGuard::ForgetOwner(otherOwner);
    }
 }

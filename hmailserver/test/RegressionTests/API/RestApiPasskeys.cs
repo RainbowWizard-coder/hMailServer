@@ -60,7 +60,8 @@ namespace RegressionTests.API
       {
          try
          {
-            Admin("PUT", "/api/v1/settings", "{\"passkeys_enabled\":true}");
+            Admin("PUT", "/api/v1/settings",
+               "{\"passkeys_enabled\":true,\"passkey_relying_party\":\"\",\"passkey_allowed_origins\":\"\"}");
          }
          finally
          {
@@ -289,6 +290,63 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("With passkey_relying_party set to a parent domain, a page at any host under it can have the " +
+                   "browser collect a passkey of that domain, so the origin must be one passkey_allowed_origins " +
+                   "names - never merely the host the request's own Host header names. Without the list nothing is " +
+                   "registered or taken; with it, an assertion collected at a sibling host is refused although its " +
+                   "signature, challenge and relying party are all good, and one collected at a named origin signs in.")]
+      public void AParentDomainRelyingPartyTakesOnlyTheOriginsItNames()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-parent@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+         const string Parent = "example.test";
+         const string Ours = "https://mail.example.test";
+
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"passkey_relying_party\":\"" + Parent + "\"}").status);
+
+         // A relying party and no list: nothing is this server's own origin yet, and both
+         // challenge routes say what to set.
+         (int status, string body) noList = Send("POST", "/api/v1/passkeys/options", me, "{}");
+         Assert.AreEqual(400, noList.status, noList.body);
+         StringAssert.Contains("passkey_allowed_origins", noList.body);
+         Assert.AreEqual(400, Send("POST", "/api/v1/passkeys/challenge", null, "{}").status);
+
+         // A list that is not a list of origins is refused.
+         Assert.AreEqual(400, Admin("PUT", "/api/v1/settings", "{\"passkey_allowed_origins\":\"mail.example.test\"}").status);
+         Assert.AreEqual(400, Admin("PUT", "/api/v1/settings", "{\"passkey_allowed_origins\":\"https://mail.example.test/portal\"}").status);
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"passkey_allowed_origins\":\"" + Ours + ", https://webmail.example.test\"}").status);
+
+         using (var authenticator = new SoftwareAuthenticator())
+         {
+            // Registered at the named origin, bound to the parent domain.
+            (int status, string body) options = Send("POST", "/api/v1/passkeys/options", me, "{}", null, true, "mail.example.test");
+            Assert.AreEqual(200, options.status, options.body);
+            StringAssert.Contains("\"id\":\"" + Parent + "\"", options.body);
+            (int status, string body) made = Send("POST", "/api/v1/passkeys", me,
+               authenticator.Registration(Value(options.body, "challenge"), Ours, Parent, "Phone", Password), null, true, "mail.example.test");
+            Assert.AreEqual(201, made.status, made.body);
+
+            // The attack: a page on a sibling host asks the browser for a passkey of the
+            // parent domain - which the browser allows - and the client posts the
+            // assertion here naming that sibling in Host. Signature, challenge, relying
+            // party hash and counter are all good; the origin is not this server's.
+            (string challenge, string cookie) sibling = Challenge();
+            (int status, string body) phished = Send("POST", "/api/v1/session", null,
+               authenticator.Assertion(sibling.challenge, "https://shop.example.test", Parent, 0), "Cookie: " + sibling.cookie,
+               true, "shop.example.test");
+            Assert.AreEqual(401, phished.status, "An assertion collected at a sibling host signed somebody in: " + phished.body);
+
+            // The negative control: the same authenticator at an origin the list names.
+            (string challenge, string cookie) ours = Challenge();
+            (int status, string body) signedIn = Send("POST", "/api/v1/session", null,
+               authenticator.Assertion(ours.challenge, "https://webmail.example.test", Parent, 0), "Cookie: " + ours.cookie,
+               true, "webmail.example.test");
+            Assert.AreEqual(201, signedIn.status, signedIn.body);
+            StringAssert.Contains(account.Address, signedIn.body);
+         }
+      }
+
+      [Test]
       [Description("The administrator registers a passkey from the Control Deck while signed in with the " +
                    "administrator password, and signs in with it afterwards; the account's passkeys and the " +
                    "administrator's are not each other's.")]
@@ -383,9 +441,11 @@ namespace RegressionTests.API
       }
 
       private static (int status, string body) Send(string method, string path, string authorization, string requestBody,
-                                                    string extraHeader = null, bool requestedWith = true)
+                                                    string extraHeader = null, bool requestedWith = true,
+                                                    string hostHeader = null)
       {
-         (int status, string body, string headers) answer = SendRaw(method, path, authorization, requestBody, extraHeader, requestedWith);
+         (int status, string body, string headers) answer = SendRaw(method, path, authorization, requestBody, extraHeader,
+            requestedWith, hostHeader);
          return (answer.status, answer.body);
       }
 
@@ -403,7 +463,7 @@ namespace RegressionTests.API
       /// </summary>
       private static (int status, string body, string headers) SendRaw(string method, string path, string authorization,
                                                                        string requestBody, string extraHeader,
-                                                                       bool requestedWith = true)
+                                                                       bool requestedWith = true, string hostHeader = null)
       {
          using (var client = new TcpClient())
          {
@@ -431,7 +491,7 @@ namespace RegressionTests.API
             {
                var headers = new StringBuilder();
                headers.Append(method + " " + path + " HTTP/1.0\r\n");
-               headers.Append("Host: " + Host + "\r\n");
+               headers.Append("Host: " + (hostHeader ?? Host) + "\r\n");
                if (authorization != null)
                   headers.Append("Authorization: " + authorization + "\r\n");
                if (requestedWith && method != "GET")

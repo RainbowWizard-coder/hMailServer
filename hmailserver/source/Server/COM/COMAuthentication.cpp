@@ -90,17 +90,94 @@ namespace HM
          return account_;
       }
 
+      const String secret = pAccount->GetTotpSecret();
+      if (secret.IsEmpty() || sCode.IsEmpty())
+      {
+         // No second factor, or no code: the password as it always was - which,
+         // with a factor enrolled, leaves only an app password able to sign in
+         // (PasswordValidator). Nothing to count: no code was offered.
+         HM::SecondFactorOffer noCode;
+         if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, &noCode))
+            account_ = pAccount;
+
+         ResolveGrant_();
+         return account_;
+      }
+
+      // The password first, and the code only once it is known to be right, so
+      // that what is said and counted about the code is said and counted only
+      // for somebody who holds the password - the order the administrator's
+      // sign-in and every REST route use. The offer is marked satisfied for the
+      // comparison, and the code is judged below.
       HM::SecondFactorOffer secondFactor;
-      secondFactor.satisfied =
-         !pAccount->GetTotpSecret().IsEmpty() &&
-         HM::Totp::VerifyCode(AnsiString(pAccount->GetTotpSecret()), AnsiString(sCode));
+      secondFactor.satisfied = true;
+      bool viaAppPassword = false;
 
-      if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, &secondFactor))
-         account_ = pAccount;
+      if (!HM::PasswordValidator::ValidatePassword(pAccount, sPassword, &secondFactor, &viaAppPassword))
+      {
+         ResolveGrant_();
+         return account_;
+      }
 
+      // An app password is a whole credential on its own, the code beside it
+      // or not, as it is in every mail client.
+      if (!viaAppPassword && !AcceptCode_(pAccount->GetAddress(), secret, sCode))
+      {
+         ResolveGrant_();
+         return account_;
+      }
+
+      account_ = pAccount;
       ResolveGrant_();
 
       return account_;
+   }
+
+   bool
+   COMAuthentication::AcceptCode_(const String &owner, const String &secret, const String &sCode)
+   {
+      // Counted, where the password on this path is not. The per-name lockout
+      // and the auto-ban stay out of COM for the reason Authenticate gives -
+      // administration has to stay reachable - but a wrong code is a guess at
+      // six digits by somebody who already has the password, and the only
+      // thing between them and the account. So it is counted against the
+      // owner's own wrong-code budget, the one the REST API counts against
+      // too (SecondFactorGuard): five wrong codes in fifteen minutes, and no
+      // code is taken for fifteen more, whichever door they were tried at. The
+      // budget is asked, the code judged and a wrong one counted under one
+      // lock (TakeCode), so that calls racing each other cannot all be judged
+      // before the fifth is counted.
+      HM::SecondFactorGuard::Outcome outcome;
+      const HM::SecondFactorGuard::Taken taken = HM::SecondFactorGuard::TakeCode(owner, AnsiString(secret), AnsiString(sCode), &outcome);
+      if (taken == HM::SecondFactorGuard::CodeTaken)
+         return true;
+
+      if (taken == HM::SecondFactorGuard::CodeLocked)
+      {
+         LOG_APPLICATION("COM logon of " + owner + " refused: the password was correct but no one-time code is taken for it now - too many wrong codes have been tried for it. Try again in " +
+            HM::StringParser::IntToString((outcome.retry_after + 59) / 60) + " minute(s).");
+         return false;
+      }
+
+      // Taken once (RFC 6238 section 5.2): a code already accepted for this
+      // owner - here or over the REST API - is refused, and not counted: it is
+      // no guess, and the one most likely to send it again is the owner.
+      if (taken == HM::SecondFactorGuard::CodeReused)
+      {
+         LOG_APPLICATION("COM logon of " + owner + " refused: the password was correct but the one-time code had been used already. A code is taken once; the next one the authenticator shows is. Not counted as a wrong code.");
+         return false;
+      }
+
+      const bool lockedNow = outcome.locked_now;
+      LOG_APPLICATION("COM logon of " + owner + " refused: the password was correct but the one-time code was not (" +
+         HM::StringParser::IntToString(outcome.wrong) + " in fifteen minutes).");
+
+      if (lockedNow)
+      {
+         LOG_APPLICATION("COM logon: " + owner + " has had five wrong one-time codes in fifteen minutes; no code for it is taken for the next fifteen.");
+      }
+
+      return false;
    }
 
    void
@@ -157,17 +234,18 @@ namespace HM
 
       if (!secret.IsEmpty())
       {
-         if (!codePresented)
+         // An empty code is no code: refused, and not counted as a guess, as the
+         // REST API does not count a request with no X-hMailServer-OTP.
+         if (!codePresented || sCode.IsEmpty())
          {
             LOG_APPLICATION("Administrator logon refused: the password was correct but a second factor is enrolled and no code was presented. Authenticate with a code (Application.AuthenticateWithCode).");
             return;
          }
 
-         if (!HM::Totp::VerifyCode(AnsiString(secret), AnsiString(sCode)))
-         {
-            LOG_APPLICATION("Administrator logon refused: the password was correct but the one-time code was not.");
+         // Counted and taken once, against the same budget and the same record
+         // of steps the REST API's administrator sign-in uses.
+         if (!AcceptCode_(_T("administrator"), secret, sCode))
             return;
-         }
       }
 
       // Signed in. A password that verified against the installer's old unsalted

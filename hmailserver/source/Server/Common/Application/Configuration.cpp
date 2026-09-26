@@ -463,6 +463,12 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_PASSKEYS_ENABLED, 1);
       property_set_->EnsureString(PROPERTY_PASSKEY_RELYING_PARTY, _T(""));
 
+      // The origins a passkey may be used at: empty, which means the host the
+      // page was served on, until a relying party is set - and then they must
+      // be named, since a parent-domain relying party is one every sibling of
+      // this server could ask a passkey for (PasskeyStore.h).
+      property_set_->EnsureString(PROPERTY_PASSKEY_ALLOWED_ORIGINS, _T(""));
+
       // Single sign-on: off, because there is no issuer until an administrator
       // names one, and no account is created for a stranger who signs in at one
       // until auto-provisioning is switched on as well.

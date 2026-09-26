@@ -129,6 +129,18 @@ connection is not one in this sense - it authenticates on every connection and
 each protocol has its own idle timeout - so these policies govern the cookie,
 and revoking a device is what ends a mail connection.
 
+The cookie, `hmailsession`, is HttpOnly and `SameSite=Strict`, and it is marked
+`Secure` whenever the browser came over HTTPS: to a listener with its own
+certificate, or to the reverse proxy on this machine in front of the plain
+loopback listener, which says so with `X-Forwarded-Proto: https`. A browser then
+never sends it over plain HTTP. Until the audit before 6.3.4 only the first
+counted, so behind the usual proxy the cookie of an HTTPS site went without
+`Secure` - and so did the sign-in cookies beside it (`hmoidc`, the OpenID Connect
+ticket's `hmsso`, `hmpasskey`), which follow the same rule now. A proxy that
+terminates HTTPS in front of the loopback listener should set
+`X-Forwarded-Proto: https`; one that does not leaves the cookies without `Secure`,
+as they were.
+
 | Policy | Server-wide (`hm_settings`, `Settings.*` over COM, the settings group over REST) | Per domain (a field of the domain over REST and the Deck; `Utilities.SetDomainSessionPolicy` over COM) | What it does |
 |---|---|---|---|
 | Idle timeout | `SessionIdleSeconds` / `session_idle_seconds` | `session_idle_seconds` | How long a session may go unused before it ends. 0 is *not set*: 1800 seconds applies. At most 2592000 (thirty days). |

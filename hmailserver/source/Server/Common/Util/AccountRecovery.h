@@ -36,7 +36,11 @@
 //    it has a recovery address, or whether that address was proved. Every answer
 //    is the same sentence and the same status, for a mailbox that is not there
 //    as much as for one that is, because a refusal that differs is an address
-//    directory for anybody who asks.
+//    directory for anybody who asks. And it is given in the same time: the
+//    lookup, the link and the message are made on the async work queue after
+//    the answer, since a route that answered a mailbox with a proved address
+//    only after a token row, a queue file and a message insert would be the
+//    same directory read off a clock.
 //
 // 3. A code is never shown twice. Generate() answers the ten in the clear once,
 //    stores their hashes, and nothing here can ever read one back - not an
@@ -174,10 +178,20 @@ namespace HM
          ResetTooSoon,       // one went to this address within the last minute
          ResetTooMany,       // this address, or this client, has asked too often
          ResetUnavailable,   // the feature is off, or no base URL is configured
-         ResetFailed         // the token or the message could not be made
+         ResetFailed,        // the token or the message could not be made
+         ResetQueued         // charged, and handed to the async work queue
       };
 
+      // Charges the counters and hands the rest - the lookup, the token and the
+      // message - to the async work queue, answering ResetQueued, so that the
+      // answer takes the same time whatever the address is. ResetTooSoon,
+      // ResetTooMany and ResetUnavailable are decided here, before anything is
+      // looked up. What the queued work found is the log's (SendResetLink).
       static ResetOutcome BeginReset(const String &mailbox, const IPAddress &peer);
+
+      // The work BeginReset queues: the lookup, the token and the message. The
+      // counters were charged already. Public for the task that runs it.
+      static ResetOutcome SendResetLink(const String &mailbox, const IPAddress &peer);
 
       // Sets the new password a reset link's holder chose, through the same
       // policy, reuse history and breach check as the webmail's own password
