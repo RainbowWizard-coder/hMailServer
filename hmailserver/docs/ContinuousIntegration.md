@@ -48,6 +48,8 @@ What runs where
 | `ci-image-packages` | test | linix | a protected ref | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | a protected ref | Trivy over the lock files and the CI image, OSV over the vendored libraries |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
+| `semgrep-sast` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline (`.gitlab/ci/gitlab-security.yml`) |
+| `secret_detection` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, and collects the six files a release carries (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The installer Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
@@ -88,11 +90,11 @@ Which pipeline runs what
 | Push or event | Pipeline | Jobs |
 |---|---|---|
 | `master` | the branch's | all of them but the release jobs, `linux-fuzz` and `installer-smoke` |
-| a `batch*` branch | the branch's | all of them but the release jobs, `linux-fuzz` and `pages`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
+| a `batch*` branch | the branch's | all of them but the release jobs, `linux-fuzz`, `pages`, `semgrep-sast` and `secret_detection`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
-| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, and `sign-off` when the branch is in a fork |
+| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, `semgrep-sast`, `secret_detection`, and `sign-off` when the branch is in a fork |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them but `linux-fuzz`, with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
+| a `v*` tag | the tag's | all of them but `linux-fuzz`, `semgrep-sast` and `secret_detection` (the commit's `master` pipeline ran them), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
 | any other tag | none | |
 | the fuzz schedule (`HM_PIPELINE=fuzz`, on `master`) | the schedule's | `linux-fuzz` alone |
 | the Renovate schedule (`RUN_RENOVATE=1`, on `master`) | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
@@ -1225,6 +1227,7 @@ measured times after the first pipelines.
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
+| `semgrep-sast`, `secret_detection` | not measured | 30 and 20 min | Neither has run. Each counts against the namespace's compute minutes on GitLab's shared runners |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
@@ -1364,6 +1367,20 @@ builds), and **nothing they use is downloaded from GitHub**: not a tool, not a
 rule, not a database. Every job is `allow_failure: true` until its first
 findings are triaged, so none of them can fail a pipeline yet.
 
+Two more come from GitLab's own templates (`.gitlab/ci/gitlab-security.yml`,
+included from `.gitlab-ci.yml`): `semgrep-sast`, GitLab's Semgrep analyzer and
+rules over every language of the tree, the server's C and C++ included, and
+`secret_detection`, which looks for a key, token or password in the commits a
+pipeline brings. They run on GitLab's shared runners, for `master` and a merge
+request only, in images from `registry.gitlab.com` pinned by digest; they are
+`allow_failure`, as the templates make them, and hold nothing to a baseline.
+Each leaves its JSON report for Developers and above to download.
+`SAST_DISABLED=true` or `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable,
+turns one off. A scan of the whole history is a pipeline on `master` with
+`SECRET_DETECTION_HISTORIC_SCAN=true`; the project refuses variables given to
+a pipeline by hand, so that one is set as a project CI/CD variable for the run
+and removed after it.
+
 **Proved by hand, not yet in a pipeline.** Each job's script was run on linix
 on 25 September 2026, in a container of the job's own image, with the job's own
 commands, on a copy of the tree checked out as GitLab checks it out (CRLF, the
@@ -1406,7 +1423,7 @@ it too (exit 2).
 | `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version | The gate at merge-request time: a merge request from a fork never reaches linix. GitHub's malware advisories |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree | The checks only GitHub can answer, and the published score (below) |
-| Secret scanning with push protection | Refused a push that carried a live secret | Nothing | Push protection is a GitLab Ultimate feature. GitLab's pipeline secret detection is free, but it is not part of this row |
+| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, on the shared runners for `master` and a merge request: it finds a secret after the push and reports it | The refusal. Push protection is a GitLab Ultimate feature |
 
 ### The jobs, and where each tool comes from
 

@@ -34,7 +34,7 @@ Text between these comment markers is not shown once the issue is saved.
 
 <!--
 The window around the problem from the application log, with debug logging on
-(Control Panel: Settings > Logging > Debug messages), and the ERROR_hmailserver_<date>.log
+(Control Panel: Monitoring & troubleshooting > Logging > Debug messages), and the ERROR_hmailserver_<date>.log
 for the same window if there is one. Paste them between the fences below.
 -->
 

@@ -25,7 +25,7 @@ Text between these comment markers is not shown once the issue is saved.
 
 ## Log excerpt
 
-<!-- If the question is about something the server did, the lines of the application log around it (Control Panel: Settings > Logging), between the fences. Otherwise leave this out. -->
+<!-- If the question is about something the server did, the lines of the application log around it (Control Panel: Monitoring & troubleshooting > Logging says where it is written), between the fences. Otherwise leave this out. -->
 
 ```text
 

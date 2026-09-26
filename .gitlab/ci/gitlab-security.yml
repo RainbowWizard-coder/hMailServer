@@ -44,10 +44,10 @@
 # registered with run_untagged off and take only a job tagged for them, and these
 # jobs carry no tag.
 #
-# The analyzer images are pinned by digest, as every image in .gitlab-ci.yml is,
-# rather than taken by the moving major tag the templates name: registry.gitlab.com's
-# security-products/semgrep:6 and security-products/secrets:7 as they were on
-# 26 September 2026. Renovate's gitlabci manager reads this file through the include
+# The analyzer images are pinned by digest, as the other scans' images in
+# .gitlab-ci.yml are, rather than taken by the moving major tag the templates
+# name: registry.gitlab.com's security-products/semgrep:6 and
+# security-products/secrets:7 as they were on 26 September 2026. Renovate's gitlabci manager reads this file through the include
 # and proposes a new digest; a new major version is a change to the tag here.
 #
 # Security/SAST.gitlab-ci.yml and Security/Secret-Detection.gitlab-ci.yml, the names

@@ -9,7 +9,7 @@ releases answer 404.
 
 The most useful report contains, in order of value:
 
-1. **The relevant log, not a description of it.** Turn on debug logging (Settings → Logging → Debug messages in the Control Panel) and paste the window around the problem. The single most useful bug report this project has received was a log that stopped at a particular line — where it stopped was the whole diagnosis.
+1. **The relevant log, not a description of it.** Turn on debug logging (Monitoring & troubleshooting → Logging → Debug messages in the Control Panel) and paste the window around the problem. The single most useful bug report this project has received was a log that stopped at a particular line — where it stopped was the whole diagnosis.
 2. **The `ERROR_hmailserver_<date>.log`** for the same window, if there is one. Even one entry is often decisive.
 3. **Version** (the Control Panel shows it; on Linux, `hmailserver --version`), **the platform** (the Windows version, the Linux distribution and how it was installed, or the container image), and **the database backend**.
 4. **What you expected instead**, and whether it is reproducible.

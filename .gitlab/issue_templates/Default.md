@@ -33,7 +33,7 @@ Text between these comment markers is not shown once the issue is saved.
 
 ## Log excerpt
 
-<!-- The lines of the application log around the problem (Control Panel: Settings > Logging), between the fences. -->
+<!-- The lines of the application log around the problem (Control Panel: Monitoring & troubleshooting > Logging says where it is written), between the fences. -->
 
 ```text
 
