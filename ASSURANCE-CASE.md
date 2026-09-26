@@ -382,10 +382,11 @@ credible.
   CFG is a mitigation, not a boundary: a defect that overwrites data rather
   than a pointer is unaffected.
 - **Bus factor is still effectively 1.** Since September 2026 the project has
-  two maintainers, both at Progressive Robot Ltd, but until the second has
-  access to private vulnerability reports and a key in
-  `.gitlab/allowed_signers`, security triage and release tagging rest on one
-  person, and so far only one person has a record of changes to the codebase —
+  two maintainers, both at Progressive Robot Ltd, but release tagging is the
+  owner's alone (the only member with GitLab's Maintainer role, and the one
+  key `.gitlab/allowed_signers` may hold), security triage rests on him until
+  the second takes that duty on, and so far only one person has a record of
+  changes to the codebase —
   see [GOVERNANCE.md](GOVERNANCE.md#continuity). A slow security response
   remains a realistic failure mode.
 - **Administrators are inside the boundary.** Anyone who can administer the
