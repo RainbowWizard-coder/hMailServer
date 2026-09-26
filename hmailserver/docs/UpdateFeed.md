@@ -475,8 +475,8 @@ of them, and they are not written for it. At `/_redirects` Pages shows each rule
 and whether it is valid.
 
 The links are for people and scripts. A server does not read them, because it
-follows no redirect. They are HTTPS addresses like the rest of the site and
-work once the site has its certificate (issue #30).
+follows no redirect. They are HTTPS addresses like the rest of the site, which
+has had its certificate since 26 September 2026 (issue #30).
 
 A release is in the shape of GitHub's Releases API, which is what 6.2.28 and
 every later version read, and it has only the fields the server reads:
