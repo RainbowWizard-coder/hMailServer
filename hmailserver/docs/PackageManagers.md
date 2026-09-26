@@ -175,10 +175,8 @@ package on the machine.
 **Not live yet.** The job that makes them is written and was tested on linix
 with a throwaway key and dummy packages ([What was tried](#what-was-tried)). It
 publishes nothing until the owner has made the signing key and set it
-([The signing key](#the-signing-key)). The site must also answer HTTPS with its
-own certificate, which it did not on 26 September 2026 (curl refused the certificate as
-issued for another name). apt and dnf refuse the
-repository until then.
+([The signing key](#the-signing-key)). The site answers HTTPS with its own
+certificate, which apt and dnf require, since 26 September 2026 (issue #30).
 
 ### What a user will type: Debian and Ubuntu
 
@@ -226,9 +224,13 @@ in the `.rpm`'s own name (`hmailserver-<v>-1.el9.x86_64.rpm` is in `rpm/el9/`):
 repository asks to import its key, and shows the fingerprint to compare.
 
 The generic `hmailserver-<v>-1.<arch>.rpm` is in no repository. `linux-build`
-makes it on Ubuntu 26.04, so its automatic `Requires` name Ubuntu's sonames, and
-`linux-package-rpm` installs it on Fedora 44 only with `--nodeps`
-(`build/ci/linux-package-install.sh`). dnf could not resolve it anywhere. So a
+makes it on Ubuntu 26.04, so its automatic `Requires` are the sonames and symbol
+versions of that build, and `linux-package-rpm` installs it on Fedora 44 with
+`--nodeps` (`build/ci/linux-package-install.sh`). On 26 September 2026 `dnf
+install` of the `.rpm` `linux-build` made from `master` that day resolved its
+dependencies on Fedora 43 and 44 and AlmaLinux 10, and refused it on AlmaLinux
+9, whose glibc and libstdc++ are older than it asks for. It is still no
+distribution's own build, so a
 dnf repository exists once a stable release carries the per-distribution
 `.rpm` files the package jobs make. A release that carries the generic `.rpm`
 alone, as 6.3.4 does today (the README's download line), adds nothing to them.

@@ -30,10 +30,11 @@
 # reproduced here with setpriv. The privileged listeners bind in any case in a
 # container, because docker sets net.ipv4.ip_unprivileged_port_start to 0.
 #
-# The .rpm: the payload and the scriptlets, as before - installed with --nodeps,
-# because the package is built on Ubuntu and its automatic requires name Ubuntu
-# sonames no Fedora has; whether an RPM distribution's own libraries match is a
-# question for a build made on it.
+# The .rpm: the payload and the scriptlets, as before - installed with --nodeps.
+# The package is built on Ubuntu, so its automatic requires are that build's
+# sonames and symbol versions; dnf resolved them on Fedora 43 and 44 on
+# 26 September 2026 (docs/PackageManagers.md, "apt and dnf"), but this job holds the
+# package, not a distribution's libraries, which are a question for a build made on it.
 set -uo pipefail
 
 kind="${1:-}"

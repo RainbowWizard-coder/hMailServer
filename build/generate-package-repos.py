@@ -117,9 +117,11 @@ PASSPHRASE_VARIABLE = "HM_REPO_SIGNING_PASSPHRASE"
 # rather than offered to a release they may not install on.
 #
 # The generic .rpm goes nowhere. linux-build makes it on Ubuntu 26.04, so its
-# automatic Requires name Ubuntu's sonames, and linux-package-rpm installs it on
-# Fedora only with --nodeps (build/ci/linux-package-install.sh): dnf could not
-# resolve it on any RPM distribution. Where the Fedora 44 build is copied under the
+# automatic Requires are that build's sonames and symbol versions, and
+# linux-package-rpm installs it on Fedora with --nodeps
+# (build/ci/linux-package-install.sh). dnf resolved master's build of 26 September
+# 2026 on Fedora 43 and 44 and AlmaLinux 10 and refused it on AlmaLinux 9, but it is
+# no RPM distribution's own build. Where the Fedora 44 build is copied under the
 # generic name, the .fc44 file beside it is the same build. So a dnf repository
 # holds the per-distribution builds alone, from the first release that carries them.
 GENERIC = {"deb": ("ubuntu26.04", "6.3.4")}
