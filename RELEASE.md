@@ -564,8 +564,11 @@ token carried. What the owner creates, once:
    `ARTIFACT_SIGNING_PROFILE`. The pipeline needs no client secret; the
    `AZURE_CLIENT_SECRET` of the GitHub workflow has no counterpart here.
 3. **The Artifact Signing Client Tools on bench150**, for the machine, as an
-   administrator: `winget install --exact --id
-   Microsoft.Azure.ArtifactSigningClientTools --scope machine`.
+   administrator. Installed on 26 September 2026, in
+   `C:\Program Files\Microsoft\ArtifactSigningClientTools`; winget's
+   `--scope machine` finds no installer for them, so the MSI is installed with
+   `msiexec` and `ALLUSERS=1` (`hmailserver/docs/ContinuousIntegration.md`,
+   "bench150", has the command).
 
 The job then checks the signature is `Valid`, carries the timestamp, and left
 the version resource as it was, before `release-sign` signs the same bytes with

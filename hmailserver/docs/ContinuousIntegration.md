@@ -247,20 +247,34 @@ bench), plus these:
   ("NETFX 4.8.1 Tools"). The gate's server build needs the Build Tools already.
   This job clones the commit into the runner's own builds directory as usual;
   its checkout is LocalSystem's, so it needs no `safe.directory`.
-- For `windows-installer`: Inno Setup 6 installed for the machine (`winget
-  install --exact --id JRSoftware.InnoSetup --scope machine`, as an
-  administrator), because LocalSystem sees no per-user installation; and access
-  to `gitlab.com`'s package registry, `7-zip.org` and Microsoft's .NET download
-  site, which `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1` fetch
-  from, each file checked against its pinned hash. `HM_ISCC`, a CI/CD variable,
-  names `ISCC.exe` where it is somewhere else. Not installed yet (26 September
-  2026).
-- For `release-authenticode`: Microsoft's Artifact Signing Client Tools
-  (`winget install --exact --id Microsoft.Azure.ArtifactSigningClientTools
-  --scope machine`), which bring SignTool's Artifact Signing plugin and the
-  .NET 8 runtime it needs; SignTool itself is the Windows SDK's, which the Build
-  Tools installed. `HM_SIGNTOOL` and `HM_SIGNING_DLIB` name either where it is
-  somewhere else. Not installed yet (26 September 2026).
+- For `windows-installer`: Inno Setup 6 for the machine, in
+  `C:\Program Files (x86)\Inno Setup 6`, because LocalSystem sees no per-user
+  installation; and access to `gitlab.com`'s package registry, `7-zip.org` and
+  Microsoft's .NET download site, which `get-installer-binaries.ps1` and
+  `get-dotnet-runtime.ps1` fetch from, each file checked against its pinned
+  hash. `HM_ISCC`, a CI/CD variable, names `ISCC.exe` where it is somewhere
+  else. Installed on 26 September 2026: Inno Setup 6.7.3, the maintainer's own
+  copy that builds the release installers, copied into that folder without its
+  per-user uninstaller (nothing registered; every executable and DLL
+  Authenticode-signed by Pyrsys B.V.). It was not installed through winget,
+  because the winget manifest's installer, like jrsoftware.org's download
+  page, is on `github.com`. Deleting the folder removes it.
+- For `release-authenticode`: Microsoft's Artifact Signing Client Tools, which
+  bring SignTool's Artifact Signing plugin (`Azure.CodeSigning.Dlib.dll`); the
+  plugin asks for .NET 8 with `rollForward: Major`, so the machine's .NET 10
+  runtime runs it. SignTool itself is the Windows SDK's, which the Build Tools
+  installed. `HM_SIGNTOOL` and `HM_SIGNING_DLIB` name either where it is
+  somewhere else. Installed on 26 September 2026, version 0.1.128, in
+  `C:\Program Files\Microsoft\ArtifactSigningClientTools`. `winget install
+  --exact --id Microsoft.Azure.ArtifactSigningClientTools --scope machine`
+  finds no installer (the manifest declares no scope), and without `--scope`
+  the MSI installs into the administrator's own profile, which LocalSystem
+  does not see; so the MSI winget downloads (from `download.microsoft.com`) is
+  installed with `msiexec /i ArtifactSigningClientTools.msi
+  TARGETDIR="C:\Program Files\Microsoft\ArtifactSigningClientTools\"
+  ALLUSERS=1 /qn`. `msiexec /x {2EF3A45E-5812-4982-A0EB-1A3609722F99} /qn`
+  removes it; never run the `Uninstallation.bat` or `UninstallDotNetFolder.ps1`
+  it ships, which delete all of `C:\Program Files\dotnet`.
 
 ### Re-creating a runner
 
@@ -1004,13 +1018,19 @@ the pipeline can check, and the one every server's trust in a release rests on.
    new tag and digest here, never an image from `ghcr.io`, and
    `build/check-release-chain.py` fails on a tag without its digest.
 2. **Inno Setup 6 and the Artifact Signing Client Tools on bench150**, as
-   administrator ([bench150](#bench150)).
+   administrator ([bench150](#bench150)). Done on 26 September 2026; neither
+   job has run with them yet.
 3. **The Azure side of Authenticode**: the federated credential and the five
    CI/CD variables (RELEASE.md, "Authenticode", has what to create).
 4. **The package registry**: on for the project (Settings, General,
    Visibility, Packages). `release-publish` uploads and creates the release
    with `CI_JOB_TOKEN`, which acts with the permissions of whoever started the
-   job, so it is started by a Maintainer.
+   job, so it is started by an Owner: since 26 September 2026 the project's
+   package protection rules let only an Owner push to the generic packages
+   `hmailserver` and `build-inputs` (Settings, Packages and registries).
+   Uploading a file of a name already there is still allowed, so a re-run of
+   the chain works. Deleting a package still takes only a Maintainer, because
+   GitLab.com has not switched on the rules' delete level.
 5. **The protected tag rule, checked.** Settings, Repository, Protected tags:
    `v*`, *Allowed to create* Maintainers, and nobody else. The whole Sigstore
    trust rests on it: a server built after 6.3.3 accepts a bundle whose
