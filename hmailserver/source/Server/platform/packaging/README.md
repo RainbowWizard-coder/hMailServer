@@ -780,7 +780,9 @@ every change to either.
 
 Both name the image `registry.gitlab.com/progressiverobot/hmailserver`, the
 project's GitLab container registry. The image appears there from the first
-release GitLab CI makes, 6.3.5 onwards; 6.3.4 was built by hand and has none. A
+release GitLab CI makes after the owner turns its publishing on, which waits for
+the project's move to the group `hmailserver` (GitLab.com cannot move a project
+whose registry holds an image); 6.3.4 was built by hand and has none. A
 `v*` tag's `container-image` job builds `docker/Dockerfile` from the release's
 `.deb` and pushes `:<version>`, and for a release without a suffix
 `:<major>.<minor>` and `:latest` as well; a pre-release never moves those two.

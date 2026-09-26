@@ -84,7 +84,9 @@ refuses it. This checker holds them to each other. It fails when:
     anything but a protected v* tag, push before release-publish, sign before the
     push, sign without an ID token for Sigstore or in another image than
     HM_COSIGN_IMAGE, or build/ci/container-image-sign.sh expects another identity
-    or log than the release's files are signed with.
+    or log than the release's files are signed with; or any of the three can run
+    without the project's own CI/CD variable HM_PUBLISH_IMAGE set to "1" (each
+    begins its rules with the refusal), or a committed CI file sets that variable.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -129,6 +131,12 @@ IMAGE_JOBS = {
     "container-image-sign": ["container-image"],
     "container_scanning": ["container-image"],
 }
+# The rule each of them begins with: none runs unless the project's own CI/CD
+# variable HM_PUBLISH_IMAGE is "1". GitLab.com cannot move a project whose registry
+# holds an image to another namespace, and the project moves into the group
+# hmailserver only after a release signed from here has shown its id, so the image
+# waits for the owner to turn it on. Nothing committed may set the variable.
+PUBLISH_GATE = '  rules:\n    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n'
 # Jobs that need not begin with REFUSAL, because their own rules match nothing the
 # feed's pipeline (source "pipeline", on master) is - each with the text that makes
 # it so. None of them is a gate of a tag's pipeline, so release need not wait for
@@ -699,12 +707,19 @@ def check(texts, chain, feed):
             continue
         if TAG_ONLY not in rules_text(name, merged):
             problems.append("%s can run for something that is not a protected v* tag: its rules must be .release-rules" % name)
+        if PUBLISH_GATE not in image_jobs[name]:
+            problems.append("%s's rules do not begin with the project variable's gate (if: $HM_PUBLISH_IMAGE != \"1\", "
+                            "when: never): the image would be pushed before the project has moved" % name)
         if re.search(r"^  trigger:", image_jobs[name], re.MULTILINE):
             problems.append("%s is a trigger: a child or downstream pipeline's ID token has no ci_config_ref_uri" % name)
         have = needs(image_jobs[name])
         for need in wanted:
             if need not in have:
                 problems.append("%s does not need %s (it needs %s)" % (name, need, ", ".join(have) or "nothing"))
+    for key in ("ci", "image", "security"):
+        if re.search(r"^\s*HM_PUBLISH_IMAGE\s*:", texts[key], re.MULTILINE):
+            problems.append("%s sets HM_PUBLISH_IMAGE: the container image's gate is the project's CI/CD variable, "
+                            "which nothing committed may turn on" % FILES[key])
     push = image_jobs.get("container-image", "")
     if push and not (re.search(r'^    HM_IMAGE_PUSH: "1"\s*$', push, re.MULTILINE) and "build/ci/linux-image.sh" in push):
         problems.append("container-image does not run build/ci/linux-image.sh with HM_IMAGE_PUSH=1")
@@ -979,8 +994,24 @@ def self_test(chain, feed):
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
     broken("the image pushed before the release is published", "image", "    - job: release-publish\n      artifacts: false\n", "",
            "container-image does not need release-publish")
-    broken("the image pushed for a branch", "image", "  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
-           "  rules:\n    - if: $CI_COMMIT_BRANCH\n  variables:\n    HM_IMAGE_PUSH", "container-image can run for something that is not a protected v* tag")
+    broken("the image pushed for a branch", "image", "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
+           "    - if: $CI_COMMIT_BRANCH\n  variables:\n    HM_IMAGE_PUSH", "container-image can run for something that is not a protected v* tag")
+    gate = '    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n'
+    broken("the image pushed without the project's switch", "image",
+           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
+           "  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH", "container-image's rules do not begin with")
+    broken("the image signed without the switch", "image",
+           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  id_tokens:",
+           "  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:", "container-image-sign's rules do not begin with")
+    broken("the scan without the switch", "image", "  rules:\n" + gate + "    - if: $CONTAINER_SCANNING_DISABLED",
+           "  rules:\n    - if: $CONTAINER_SCANNING_DISABLED", "container_scanning's rules do not begin with")
+    broken("the switch compared the other way", "image",
+           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
+           "  rules:\n" + gate.replace("!=", "==") + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
+           "container-image's rules do not begin with")
+    broken("the switch turned on in the job", "image", "  variables:\n    HM_IMAGE_PUSH: \"1\"\n",
+           "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_PUSH: \"1\"\n", "sets HM_PUBLISH_IMAGE")
+    broken("the switch turned on for every job", "ci", "\nvariables:\n", "\nvariables:\n  HM_PUBLISH_IMAGE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the image signed for another audience", "image", "      aud: sigstore", "      aud: fulcio", "container-image-sign has no id_tokens")
     broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n  timeout: 15 minutes",
            "  needs: []\n  timeout: 15 minutes", "container-image-sign does not need container-image")

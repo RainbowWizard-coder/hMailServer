@@ -11,8 +11,9 @@
 
 image:
   # The project's container registry on GitLab. The image is published there
-  # from the first release GitLab CI makes (6.3.5 onwards; 6.3.4 has none),
-  # signed with Sigstore. Until then, build the image from docker/Dockerfile,
+  # from the first release GitLab CI makes once the owner turns its
+  # publishing on, after the project's move to the group hmailserver
+  # (6.3.4 has none), signed with Sigstore. Until then, build the image from docker/Dockerfile,
   # push it to a registry of your own and name that here.
   # (The images published before GitHub suspended the project's account on
   # 18 September 2026 were on ghcr.io, which has answered 404 since.)

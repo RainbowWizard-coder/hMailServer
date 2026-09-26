@@ -124,7 +124,10 @@ itself only as safe as `master`, which Maintainers may push to.
    python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com
    ```
 
-   The container image follows by itself as well: `container-image` builds it
+   Once the owner has set the project's CI/CD variable `HM_PUBLISH_IMAGE` to
+   `1` - not before the project has moved to the group `hmailserver`
+   (`hmailserver/docs/ContinuousIntegration.md`, "The container image") -
+   the container image follows by itself as well: `container-image` builds it
    from the release's `.deb` and pushes `:X.Y.Z`, and for a release without a
    suffix `:X.Y` and `:latest`; `container-image-sign` signs it by digest as
    the same pipeline; `container_scanning` scans it

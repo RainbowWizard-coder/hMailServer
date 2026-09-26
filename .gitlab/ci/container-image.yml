@@ -25,6 +25,17 @@
 #                         for members with the Developer role or above, since the
 #                         vulnerability report is GitLab Ultimate.
 #
+# None of the three runs unless the PROJECT's CI/CD variable HM_PUBLISH_IMAGE is "1"
+# (Settings, CI/CD, Variables; a v* tag's pipeline is for a protected ref, so it may
+# be marked Protected). GitLab.com cannot transfer a project whose container
+# registry holds an image to another namespace, and the project is to move into the
+# group hmailserver only after a release signed by this pipeline has shown the
+# project's id; so the image waits for the move, or for the owner's decision to
+# publish it first. It is a project variable because the project refuses pipeline
+# variables (a schedule's included), so nobody can turn the jobs on for one run.
+# Nothing in this file or .gitlab-ci.yml may set it (build/check-release-chain.py
+# holds that).
+#
 # Why after release-publish, and not only after release-verify: :latest is what the
 # Compose file and the Helm chart pull, and it must not name a release that was never
 # published - the installer smoke test before release-publish can still stop one.
@@ -58,6 +69,8 @@ container-image:
   timeout: 30 minutes
   interruptible: false
   rules:
+    - if: $HM_PUBLISH_IMAGE != "1"
+      when: never
     - !reference [.release-rules, rules]
   variables:
     HM_IMAGE_PUSH: "1"
@@ -84,6 +97,8 @@ container-image-sign:
   timeout: 15 minutes
   interruptible: false
   rules:
+    - if: $HM_PUBLISH_IMAGE != "1"
+      when: never
     - !reference [.release-rules, rules]
   id_tokens:
     SIGSTORE_ID_TOKEN:
@@ -110,6 +125,8 @@ container_scanning:
   dependencies: [container-image]
   timeout: 30 minutes
   rules:
+    - if: $HM_PUBLISH_IMAGE != "1"
+      when: never
     - if: $CONTAINER_SCANNING_DISABLED == 'true' || $CONTAINER_SCANNING_DISABLED == '1'
       when: never
     - !reference [.release-rules, rules]

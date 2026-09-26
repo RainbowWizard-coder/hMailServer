@@ -58,9 +58,9 @@ What runs where
 | `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update` (`build/ci/release-verify.sh`) |
 | `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
 | `update-feed` | release | (a trigger) | a `v*` tag, after `release-publish` | Starts a downstream pipeline on `master`, passing no variables, which runs `pages` and `package-repos` alone |
-| `container-image` | release | linix | a `v*` tag, after `release-publish` | The release's container image built with kaniko from the `.deb` the release carries, inspected as `linux-image` inspects it, and pushed to the project's container registry (`build/ci/linux-image.sh` with `HM_IMAGE_PUSH=1`; [The container image](#the-container-image)) |
-| `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image` | The image signed by its digest with Sigstore as this pipeline, and verified (`build/ci/container-image-sign.sh`) |
-| `container_scanning` | release | GitLab's shared runners | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over the pushed image; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
+| `container-image` | release | linix | a `v*` tag, after `release-publish`, while the project's variable `HM_PUBLISH_IMAGE` is `1` | The release's container image built with kaniko from the `.deb` the release carries, inspected as `linux-image` inspects it, and pushed to the project's container registry (`build/ci/linux-image.sh` with `HM_IMAGE_PUSH=1`; [The container image](#the-container-image)) |
+| `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image`, while `HM_PUBLISH_IMAGE` is `1` | The image signed by its digest with Sigstore as this pipeline, and verified (`build/ci/container-image-sign.sh`) |
+| `container_scanning` | release | GitLab's shared runners | a `v*` tag, after `container-image`, while `HM_PUBLISH_IMAGE` is `1` | GitLab's own Container Scanning template over the pushed image; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
@@ -1039,9 +1039,12 @@ server binary included, for thirty days, and the signed files are kept ninety.
 
 The Compose file and the Helm chart pull
 `registry.gitlab.com/progressiverobot/hmailserver:latest`. The image appears in
-the project's container registry from the first release the pipeline makes,
-6.3.5 onwards; 6.3.4 was built by hand and has none. Three jobs of
-`.gitlab/ci/container-image.yml` follow `release-publish`:
+the project's container registry from the first release the pipeline makes
+after the owner has set the project's CI/CD variable `HM_PUBLISH_IMAGE` to `1`,
+which waits for the project's move to the group `hmailserver` (item 3 below);
+6.3.4 was built by hand and has none. Three jobs of
+`.gitlab/ci/container-image.yml` follow `release-publish`, and none of them
+runs while that variable is anything but `1`:
 
 | Job | Where | What it does |
 |---|---|---|
@@ -1089,14 +1092,25 @@ project's API answered on 26 September 2026:
    so that nobody but a maintainer can push the release's tags and nobody but
    the owner delete them. A pre-release's tag (`6.3.5-rc1`) and the signatures
    are outside it. Immutable tags are GitLab Ultimate.
-3. **The move to the group comes before the first image.** GitLab's
-   documentation (*Transfer a project*) says that on GitLab.com a project whose
-   container registry is enabled can be transferred only within its top-level
-   group, and the move from the personal namespace to `hmailserver` crosses two.
-   While the registry is empty, switching it off for the move costs nothing;
-   after the first release, it does. The Compose file and the chart name the
-   present path, and are changed with the move; `container-image` pushes to
-   whichever of the two paths the project has, and refuses any other.
+3. **The switch, `HM_PUBLISH_IMAGE`, stays unset until the project has
+   moved.** GitLab's documentation (*Transfer a project*) says that on
+   GitLab.com a project whose container registry holds an image cannot be
+   transferred to another namespace, and the move from the personal namespace
+   to `hmailserver` is one. The project moves only after a release signed by
+   this pipeline from the present path has shown the project's id
+   ([UpdateFeed.md](UpdateFeed.md)), so that release is made with the switch
+   unset: the three jobs do not run and the registry stays empty. After the
+   move the owner adds `HM_PUBLISH_IMAGE` with the value `1` as a project
+   CI/CD variable (Settings, CI/CD, Variables; a `v*` tag's pipeline is for a
+   protected ref, so it may be marked Protected), and the next release pushes
+   the image. It is a project variable because the project refuses variables
+   given to a pipeline or a schedule, so nobody turns the jobs on for one run.
+   Nothing committed sets it: `build/check-release-chain.py` fails when a CI
+   file does, or when any of the three jobs does not begin its rules with
+   `if: $HM_PUBLISH_IMAGE != "1"`, `when: never`. The Compose file and the
+   chart name the present path, and are changed with the move;
+   `container-image` pushes to whichever of the two paths the project has,
+   and refuses any other.
 
 A stable release of an older line - a 6.2 release after 6.3.0 - would take
 `:latest` from the newer one. The project releases one line at a time, and the
