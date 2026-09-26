@@ -46,8 +46,11 @@ services:
     # :latest is a stable release and never an alpha. Pin the version you
     # deploy in your own copy of this file - this one carries no version,
     # because a literal here goes stale the release after it is written and
-    # the packaging check refuses one for that reason.
-    image: ghcr.io/progressiverobot/hmailserver:latest
+    # the packaging check refuses one for that reason. The project's GitLab
+    # container registry publishes no image yet (the CI builds the image
+    # without pushing it), so until it does, build one from the Dockerfile
+    # beside this file and name your own tag here.
+    image: registry.gitlab.com/progressiverobot/hmailserver:latest
     restart: unless-stopped
     depends_on:
       db:

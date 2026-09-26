@@ -8,8 +8,8 @@
 // ClassTester::DoTests calls SPFTester::Test, and the regression suite reaches it
 // through Utilities.RunTestSuite. That route does not exist here - RunTestSuite is
 // a COM method, and the Linux suite's shim skips it - so the CMake build makes
-// this instead, and .github/workflows/linux-build.yml runs it on both
-// architectures and under both compilers.
+// this instead, and GitLab CI's linux-build job (build/ci/linux-build.sh)
+// runs it, on x86-64 under clang.
 //
 // Nothing here touches the network or the configuration. Each tester answers the
 // evaluation's DNS queries out of a table of its own, so the whole run is

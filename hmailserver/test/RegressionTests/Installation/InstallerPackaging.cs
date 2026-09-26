@@ -19,8 +19,10 @@ namespace RegressionTests.Installation
    ///
    ///    The installer is the one artefact this project cannot exercise from the
    ///    suite: running it hijacks the service path and the COM registration of the
-   ///    machine the tests run on, which is why the only end-to-end check lives in
-   ///    the installer-smoke GitHub workflow on a throwaway runner. Everything in
+   ///    machine the tests run on, which is why the only end-to-end check is the
+   ///    installer smoke test on a throwaway VM (build/ci/installer-smoke-run.sh,
+   ///    GitLab CI's installer-smoke job; the GitHub workflow installer-smoke.yml
+   ///    until 18 September 2026). Everything in
    ///    between - "is the script self-consistent", "does it still agree with the
    ///    server it installs" - has had nothing watching it, and the cost of that
    ///    showed up immediately:

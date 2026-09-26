@@ -187,7 +187,10 @@ elevated installer.
 
 2. The official LLVM release for Windows, unpacked anywhere you can write:
 
-  https://github.com/llvm/llvm-project/releases -> clang+llvm-<version>-x86_64-pc-windows-msvc.tar.xz
+  https://releases.llvm.org/ -> clang+llvm-<version>-x86_64-pc-windows-msvc.tar.xz
+  (LLVM's download page; the archive itself is served from LLVM's GitHub
+  releases, which this project's own scripts do not download from - route 1
+  needs nothing from GitHub)
   tar -xf that archive, then put its bin directory FIRST on PATH for this shell.
 
   It ships clang_rt.fuzzer-x86_64.lib and the dynamic ASan runtime, and the MSVC

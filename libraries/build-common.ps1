@@ -153,7 +153,8 @@ function Resolve-HMailServerLibs
 # auto-linking pragma encodes the toolset in the library name (libboost_thread-vc145-...).
 # hMailServer.vcxproj is pinned to PlatformToolset v145, the default compiler of Visual
 # Studio 2026 (18.x), so that is the only version accepted by default. It is also the only
-# Visual Studio on the GitHub Actions windows-2025-vs2026 image.
+# Visual Studio on the GitHub Actions windows-2025-vs2026 image the server was built on
+# until GitHub suspended the project's account on 18 September 2026.
 #
 # Pass $null or an empty array to fall back to 'vswhere -latest'.
 #
@@ -449,25 +450,44 @@ function Get-SourceArchive
 
     # Name the local tarball after the URL's file (e.g. boost_1_92_0.tar.gz).
     $tarPath = Join-Path -Path $LibsPath -ChildPath (Split-Path -Leaf $Url)
+    # $Url may instead be a file on this machine - an archive the caller obtained itself
+    # (build-openssl.ps1 -Archive) - which is copied rather than downloaded, checked the
+    # same way, and never deleted when it is itself the tarball's place.
+    $ownCopy = $true
 
-    Write-Log "Downloading $Url"
-    # Windows PowerShell 5.1 redraws a progress bar for every chunk it receives, which
-    # turns the 150 MB Boost download from seconds into minutes. Off for the download only.
-    $previousProgress = $ProgressPreference
-    $ProgressPreference = 'SilentlyContinue'
-    try
+    if (Test-Path -LiteralPath $Url -PathType Leaf)
     {
-        Invoke-WebRequest -Uri $Url -OutFile $tarPath -UseBasicParsing
+        Write-Log "Using the local archive $Url"
+        if ([System.IO.Path]::GetFullPath($Url) -eq [System.IO.Path]::GetFullPath($tarPath))
+        {
+            $ownCopy = $false
+        }
+        else
+        {
+            Copy-Item -LiteralPath $Url -Destination $tarPath -Force
+        }
     }
-    finally
+    else
     {
-        $ProgressPreference = $previousProgress
+        Write-Log "Downloading $Url"
+        # Windows PowerShell 5.1 redraws a progress bar for every chunk it receives, which
+        # turns the 150 MB Boost download from seconds into minutes. Off for the download only.
+        $previousProgress = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'
+        try
+        {
+            Invoke-WebRequest -Uri $Url -OutFile $tarPath -UseBasicParsing
+        }
+        finally
+        {
+            $ProgressPreference = $previousProgress
+        }
     }
 
     $actual = (Get-FileHash -Path $tarPath -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($actual -ne $Sha256.ToLowerInvariant())
     {
-        Remove-Item $tarPath -Force
+        if ($ownCopy) { Remove-Item $tarPath -Force }
         Throw "The download of $Url does not match its pinned SHA-256 and has been deleted. Expected $($Sha256.ToLowerInvariant()), got $actual. If the project re-issued the archive, take the new digest from its published .sha256 file and update the pin."
     }
     Write-Log "SHA-256 verified: $actual"
@@ -488,7 +508,7 @@ function Get-SourceArchive
         Throw "Extraction of $tarPath failed with error code $LastExitCode."
     }
 
-    Remove-Item $tarPath -Force
+    if ($ownCopy) { Remove-Item $tarPath -Force }
 
     if (!(Test-Path $SrcDir))
     {

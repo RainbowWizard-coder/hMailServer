@@ -10,7 +10,13 @@
 # keys are named below.
 
 image:
-  repository: ghcr.io/progressiverobot/hmailserver
+  # The project's container registry on GitLab. No image is published there
+  # yet: the registry is not switched on, and the CI's linux-image job builds
+  # the image without pushing it. Until it is, build the image from
+  # docker/Dockerfile, push it to a registry of your own and name that here.
+  # (The images published before GitHub suspended the project's account on
+  # 18 September 2026 were on ghcr.io, which has answered 404 since.)
+  repository: registry.gitlab.com/progressiverobot/hmailserver
   # The tag's own image; pin what you deployed. Empty means the chart's
   # appVersion, which is "latest" - the current stable release, never an alpha.
   tag: ""

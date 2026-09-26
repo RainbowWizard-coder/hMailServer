@@ -32,7 +32,7 @@
       - Perl (e.g. Strawberry Perl) - PostgreSQL's build generates sources with it.
       - Python with Meson and Ninja (py -m pip install meson ninja).
       - flex and bison, as win_flex.exe and win_bison.exe from winflexbison
-        (https://github.com/lexxmark/winflexbison/releases) on PATH.
+        (https://sourceforge.net/projects/winflexbison/) on PATH.
       - Visual Studio 2026 with the x64 build tools (vcvars64.bat is located
         automatically via vswhere).
 
@@ -179,8 +179,8 @@ Resolve-NativePerl
 $tools = @(
     @{ Names = @('meson');              Hint = "Meson - py -m pip install meson" },
     @{ Names = @('ninja');              Hint = "Ninja - py -m pip install ninja" },
-    @{ Names = @('win_flex', 'flex');   Hint = "flex - win_flex.exe from https://github.com/lexxmark/winflexbison/releases on PATH" },
-    @{ Names = @('win_bison', 'bison'); Hint = "bison - win_bison.exe from https://github.com/lexxmark/winflexbison/releases on PATH" }
+    @{ Names = @('win_flex', 'flex');   Hint = "flex - win_flex.exe from winflexbison (https://sourceforge.net/projects/winflexbison/) on PATH" },
+    @{ Names = @('win_bison', 'bison'); Hint = "bison - win_bison.exe from winflexbison (https://sourceforge.net/projects/winflexbison/) on PATH" }
 )
 
 foreach ($tool in $tools)
@@ -223,7 +223,8 @@ $env:CC = 'cl'
 
 # Meson looks OpenSSL up through pkg-config and CMake before it falls back to the extra
 # include and library directories below. A machine with another OpenSSL installed - the
-# GitHub runner images carry a 3.x under Program Files - would have libpq silently
+# GitHub runner images this was built on until 18 September 2026 carried a 3.x under
+# Program Files - would have libpq silently
 # linked against that one, and the DLL would then fail to load beside hMailServer.exe.
 # Both lookups are pointed at our build first; the dumpbin check at the end is the
 # proof that it worked.

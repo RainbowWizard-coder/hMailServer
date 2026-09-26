@@ -8,7 +8,7 @@
 // This program is the only thing that runs ScriptBindingTester. ClassTester::DoTests
 // is reached through COM (Utilities.RunTestSuite) and the Windows /Test switch, and
 // the engine is not on Windows; the Linux regression suite has no COM and does not
-// run this program either. So the CMake build makes it, .github/workflows/linux-build.yml
+// run this program either. So the CMake build makes it, GitLab CI's linux-build job
 // runs it beside spf-tests, and on a machine that CI does not reach it is run by
 // hand from the build directory: ./script-binding-tests. It needs
 // no database, no configuration and no network: it makes the objects a handler

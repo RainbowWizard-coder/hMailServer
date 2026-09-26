@@ -13,7 +13,7 @@
 // routing that decides between the file and the database.
 //
 // Settings live in hm_settings, not in hMailServer.ini, per the rule in
-// .github/CONTRIBUTING.md from 15 September 2026. They are read at Start, which
+// CONTRIBUTING.md from 15 September 2026. They are read at Start, which
 // means at service start and at Reinitialize; a change made in the Control Panel
 // is written to the database immediately and applied at the next of those, which
 // is what the editor says on the page.

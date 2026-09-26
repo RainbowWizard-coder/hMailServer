@@ -15,7 +15,8 @@ namespace HM
    // Until now every JSON the server reads has been searched for its keys by name
    // (AcmeClient::JsonStringValue_, RestApiServer::GetJsonStringValue_ and the like),
    // which is right for a flat object whose keys are known and wrong for anything
-   // nested: a GitHub release carries an author object and an asset array whose
+   // nested: a release in the GitHub Releases API's shape, which the update feed
+   // keeps, carries an author object and an asset array whose
    // members share key names with the release itself, and a Sigstore bundle is
    // objects in arrays in objects. Those need the structure kept, so this keeps it.
    //

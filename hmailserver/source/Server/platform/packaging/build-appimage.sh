@@ -127,42 +127,38 @@ echo "hMailServer ${VERSION} (${ARCH}) from ${BUILD_DIR}"
 
 # ---------------------------------------------------------------- the tools
 
-# Downloaded once and kept, because a build that fetches two AppImages on every
-# run is a build that fails when GitHub is slow. Override TOOLS_DIR to share one
-# cache between checkouts.
+# NOT DOWNLOADED ANY MORE. linuxdeploy and its AppImage plugin are published
+# only as GitHub release assets, and the project downloads nothing from GitHub:
+# the owner's standing rule since GitHub suspended the project's account on
+# 18 September 2026 ('do not use github'). No non-GitHub source for them has
+# been chosen; that is the owner's decision to make, and until it is made this
+# script uses the two tools only if they are already in TOOLS_DIR - put there
+# by hand, executable, under the names below - and refuses otherwise. Override
+# TOOLS_DIR to share one copy between checkouts.
 TOOLS_DIR="${TOOLS_DIR:-${REPO_ROOT}/build/.appimage-tools}"
 mkdir -p "${TOOLS_DIR}"
 
 LINUXDEPLOY="${TOOLS_DIR}/linuxdeploy-${ARCH}.AppImage"
 LINUXDEPLOY_PLUGIN="${TOOLS_DIR}/linuxdeploy-plugin-appimage-${ARCH}.AppImage"
 
-fetch_tool()
+require_tool()
 {
    local destination="$1"
-   local url="$2"
 
    if [ -x "${destination}" ]; then
       return 0
    fi
 
-   echo "Fetching $(basename "${destination}")"
-
-   if command -v curl >/dev/null 2>&1; then
-      curl --fail --location --silent --show-error --output "${destination}" "${url}"
-   elif command -v wget >/dev/null 2>&1; then
-      wget --quiet --output-document "${destination}" "${url}"
-   else
-      echo "Neither curl nor wget is installed, and ${url} has to be fetched." >&2
-      exit 1
-   fi
-
-   chmod +x "${destination}"
+   echo "$(basename "${destination}") is not in ${TOOLS_DIR}, and this script does not download it." >&2
+   echo "linuxdeploy and its AppImage plugin are published only on GitHub, and the project downloads" >&2
+   echo "nothing from GitHub (the owner's rule since GitHub suspended the project's account on" >&2
+   echo "18 September 2026). Which non-GitHub source to take them from is the owner's decision and" >&2
+   echo "has not been made. Put the file there yourself, executable, or build the .deb or the .rpm." >&2
+   exit 1
 }
 
-fetch_tool "${LINUXDEPLOY}" \
-   "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage"
-fetch_tool "${LINUXDEPLOY_PLUGIN}" \
-   "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${ARCH}.AppImage"
+require_tool "${LINUXDEPLOY}"
+require_tool "${LINUXDEPLOY_PLUGIN}"
 
 # An AppImage needs FUSE to mount itself, and a container or a CI runner usually
 # has none. Extracting instead of mounting works everywhere and costs a little

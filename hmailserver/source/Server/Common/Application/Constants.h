@@ -498,7 +498,7 @@
 #define PROPERTY_PST_IMPORT_DIRECTORY _T("PstImportDirectory")
 // The syslog sink (RFC 5424), beside the log files rather than instead of them.
 // In hm_settings rather than in hMailServer.ini because of the rule in
-// .github/CONTRIBUTING.md from 15 September 2026: a setting belongs in the
+// CONTRIBUTING.md from 15 September 2026: a setting belongs in the
 // database. The rows are created with these defaults by
 // PropertySet::EnsureLong/EnsureString at start-up when they are absent, which is
 // every installation that predates the feature - so no reader ever sees a missing

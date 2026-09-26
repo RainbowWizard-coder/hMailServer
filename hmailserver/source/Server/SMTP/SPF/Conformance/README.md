@@ -21,14 +21,17 @@ upstream's to begin with.
 | `rfc7208-tests.CHANGES` | Its changelog, which says what each release of the suite changed. |
 
 The suite was published at <http://www.openspf.org/Test_Suite>. That site no
-longer serves it; these copies were taken from pyspf, which carries the suite
-and its own driver for it:
+longer serves it; these copies were taken from pyspf
+(<https://pypi.org/project/pyspf/>), which carries the suite and its own driver
+for it, as `test/rfc7208-tests.yml`, `.LICENSE` and `.CHANGES` in its source
+repository - on GitHub, at `sdgathman/pyspf`, which is where they were read
+from when they were vendored.
 
-```
-https://raw.githubusercontent.com/sdgathman/pyspf/master/test/rfc7208-tests.yml
-https://raw.githubusercontent.com/sdgathman/pyspf/master/test/rfc7208-tests.LICENSE
-https://raw.githubusercontent.com/sdgathman/pyspf/master/test/rfc7208-tests.CHANGES
-```
+Nothing here fetches them again. `Generate-SPFConformanceSuite.py` reads only
+the vendored copies, and the project downloads nothing from GitHub since GitHub
+suspended its account on 18 September 2026, so the committed copies and the
+table made from them are what the build uses. Taking a newer suite would mean
+finding a copy off GitHub first, such as the one in a pyspf source release.
 
 The three files are vendored unchanged and carry no header of this project's:
 they are not this project's files. The licence asks that the copyright notice be
@@ -95,8 +98,9 @@ cmake --build build/linux --target spf-tests
 ```
 
 GitLab CI's `linux-build` job runs exactly that, on x86-64 under clang, for every
-push of a protected ref (`build/ci/linux-build.sh`); `.github/workflows/linux-build.yml`
-ran it on x86-64 and on AArch64, under clang and under GCC, until GitHub went. The binary prints one line per failure and the number
+push of a protected ref (`build/ci/linux-build.sh`); the GitHub workflow `linux-build.yml`
+(in the history at `v6.3.3`) ran it on x86-64 and on AArch64, under clang and under
+GCC, until GitHub suspended the project's account on 18 September 2026. The binary prints one line per failure and the number
 of cases decided either way, and exits non-zero if the count has fallen below the
 203 the table holds - a case that stops being recognised would otherwise look
 exactly like a suite with nothing wrong with it.

@@ -53,16 +53,17 @@ cmake_minimum_required(VERSION 3.22)
 # NOT written here. Common/Application/Version.h is the one place the number
 # lives - the Windows resources, the installer and the update checker all stamp
 # from it - and this file's PROJECT_VERSION becomes CPACK_PACKAGE_VERSION, which
-# decides the four package FILE NAMES that .github/workflows/sign-release.yml
-# matches by exact equality and that the Linux update checker builds from a tag.
+# decides the package FILE NAMES that the GitLab CI release job
+# (build/ci/release-chain.py) matches by exact equality and that the Linux
+# update checker builds from a tag.
 # A hand-written number here that lagged Version.h by one release produced
 # packages nothing would ever find, and nothing checked it.
 #
 # So it is read out of the header at configure time. The other Linux stamp -
 # pkgver in platform/packaging/PKGBUILD - cannot be derived this way, because
 # makepkg parses that file as a shell script and never runs CMake; it is verified
-# instead, by build/check-linux-version-stamp.sh, which is a required step of
-# .github/workflows/linux-build.yml. CMAKE_CURRENT_LIST_DIR rather than
+# instead, by build/check-linux-version-stamp.sh, which GitLab CI's checkers
+# and linux-build jobs run (.gitlab-ci.yml). CMAKE_CURRENT_LIST_DIR rather than
 # CMAKE_CURRENT_SOURCE_DIR only because this runs before project().
 file(STRINGS ${CMAKE_CURRENT_LIST_DIR}/Common/Application/Version.h HMAILSERVER_VERSION_DEFINE
    REGEX "^#define[ \t]+HMAILSERVER_VERSION[ \t]+\"")
@@ -394,8 +395,10 @@ set_target_properties(hmailserver PROPERTIES OUTPUT_NAME hmailserver)
 # inside hMailServer.exe: ClassTester::DoTests calls SPFTester::Test and the
 # regression suite reaches it through the COM method Utilities.RunTestSuite, which
 # the Linux suite's shim skips because there is no COM to reach it by. So the same
-# testers are linked into a binary instead, and .github/workflows/linux-build.yml
-# runs it in the build job - on x86-64 and AArch64, under clang and under GCC.
+# testers are linked into a binary instead, and GitLab CI's linux-build job
+# runs it (build/ci/linux-build.sh) - on x86-64 under clang; the GitHub
+# workflow linux-build.yml ran it on AArch64 and under GCC as well until GitHub
+# suspended the project's account on 18 September 2026.
 #
 # Not installed, and deliberately not part of the packages: it is a bench tool.
 # Nothing here touches the network or reads the configuration - every tester
@@ -491,7 +494,8 @@ install(FILES ${SERVER_DIR}/quickjs/LICENSE
 # Until this rule existed, every packaged Linux server answered GET / with the
 # built-in "Web administration page not installed" stub: the page was in the
 # repository, the code looked for it, and nothing put it there. The install
-# check in .github/workflows/linux-build.yml now asks the installed server for
+# check of GitLab CI's linux-package-deb and linux-package-rpm jobs
+# (build/ci/linux-package-install.sh) now asks the installed server for
 # the page and refuses the stub.
 install(FILES ${SERVER_DIR}/../../installation/WebAdmin/index.html
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/WebAdmin)

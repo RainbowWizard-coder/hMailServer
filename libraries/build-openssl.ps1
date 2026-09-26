@@ -7,8 +7,8 @@
     Builds a specific OpenSSL 4.x version for hMailServer.
 
 .DESCRIPTION
-    Downloads the OpenSSL source for the requested version into
-    %hMailServerLibs%\openssl-<Version>, verifies it against the SHA-256 pinned below,
+    Takes the OpenSSL source archive for the requested version from -Archive, extracts
+    it into %hMailServerLibs%\openssl-<Version>, verifies it against the SHA-256 pinned below,
     then configures and builds it with the Visual Studio 2026 x64 toolchain into an
     "out64" install prefix, matching the layout hMailServer and libpq link against
     (out64\include, out64\lib, out64\bin with libcrypto-4-x64.dll / libssl-4-x64.dll).
@@ -35,15 +35,23 @@
     libcrypto-4-arm64.dll and libssl-4-arm64.dll; target VC-WIN64-ARM), so it never touches the
     x64 tree.
 
+.PARAMETER Archive
+    A copy of openssl-<Version>.tar.gz that you obtained yourself. Required. This
+    script downloaded the archive from OpenSSL's GitHub releases until GitHub
+    suspended this project's account on 18 September 2026; since then the project
+    downloads nothing from GitHub (the owner's standing rule), and no non-GitHub
+    address for OpenSSL's archives has been checked and chosen. Whatever its origin,
+    the file must match the SHA-256 pinned below (or -Sha256), or it is refused.
+
 .PARAMETER Sha256
     The SHA-256 of openssl-<Version>.tar.gz, for a version the digest table below does
     not know yet. Take it from the .sha256 file published beside the release.
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Archive C:\Downloads\openssl-4.0.2.tar.gz
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64 -Archive C:\Downloads\openssl-4.0.2.tar.gz
 #>
 [CmdletBinding()]
 param(
@@ -54,6 +62,9 @@ param(
     [Parameter(Mandatory = $false)]
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
     [string]$Sha256,
+
+    [Parameter(Mandatory = $false)]
+    [string]$Archive,
 
     [Parameter(Mandatory = $false)]
     [ValidateSet('x64', 'ARM64')]
@@ -67,7 +78,7 @@ $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $false
 
 # The SHA-256 of each release archive, from the openssl-<version>.tar.gz.sha256 file
-# published on https://github.com/openssl/openssl/releases. See Get-PinnedDigest.
+# OpenSSL published beside it (https://openssl-library.org/source/). See Get-PinnedDigest.
 $Digests = @{
     '4.0.1' = '2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09'
     '4.0.2' = '736b467530f916737b7031310ccb21d8218c6229e61e8e160cd1d3458cd543a8'
@@ -120,7 +131,22 @@ Resolve-NativePerl
 # --- Download, verify and extract the source (always a clean tree) --------------
 
 $digest = Get-PinnedDigest -Digests $Digests -Version $Version -Library 'OpenSSL' -Override $Sha256
-$tarUrl = "https://github.com/openssl/openssl/releases/download/openssl-$Version/openssl-$Version.tar.gz"
+# Not downloaded: OpenSSL's release archives are GitHub release assets, and this project
+# downloads nothing from GitHub since GitHub suspended its account on 18 September 2026.
+# The archive is one the caller obtained, held to the pinned digest like a download was.
+if (-not $Archive)
+{
+    Throw "This script no longer downloads OpenSSL: its release archives are published on GitHub, and the project downloads nothing from GitHub (the owner's rule since GitHub suspended the project's account on 18 September 2026); no other source has been chosen. Obtain openssl-$Version.tar.gz yourself and pass it with -Archive; it is checked against the pinned SHA-256 $digest."
+}
+if (-not (Test-Path -LiteralPath $Archive -PathType Leaf))
+{
+    Throw "The archive given with -Archive was not found: $Archive"
+}
+if ((Split-Path -Leaf $Archive) -ne "openssl-$Version.tar.gz")
+{
+    Throw "The archive given with -Archive must be named openssl-$Version.tar.gz, as OpenSSL publishes it: $Archive"
+}
+$tarUrl = (Resolve-Path -LiteralPath $Archive).ProviderPath
 if ($targetDir)
 {
     Get-SourceArchive -Url $tarUrl -SrcDir (Join-Path -Path $libsPath -ChildPath "openssl-$Version") -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir

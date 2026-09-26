@@ -133,7 +133,7 @@ namespace HM
       const char *GITLAB_REPOSITORY = "https://gitlab.com/Progressiverobot/hmailserver";
       const char *GITLAB_REPOSITORY_ID = "86730559";
 
-      // Fulcio's certificate extensions (github.com/sigstore/fulcio/blob/main/docs/oid-info.md).
+      // Fulcio's certificate extensions (docs.sigstore.dev/certificate_authority/oid-info/).
       const char *OID_ISSUER_V1 = "1.3.6.1.4.1.57264.1.1";          // raw string
       const char *OID_ISSUER_V2 = "1.3.6.1.4.1.57264.1.8";          // DER UTF8String
       const char *OID_SOURCE_REPOSITORY_URI = "1.3.6.1.4.1.57264.1.12"; // DER UTF8String

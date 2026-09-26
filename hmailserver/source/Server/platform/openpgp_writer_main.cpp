@@ -12,7 +12,7 @@
 // against RFC 9580 and the arithmetic against RFC 7748, but a test that
 // agrees with itself is not proof that another implementation opens what it
 // wrote. This is how that other implementation is reached:
-// .github/workflows/linux-build.yml runs it against the fixture keys GnuPG
+// GitLab CI's linux-build job (build/ci/linux-build.sh) runs it against the fixture keys GnuPG
 // 2.4 made (build/fixtures/openpgp) and hands the output to gpg --decrypt on
 // the runner, once for the Curve25519 key and once for the RSA one, and the
 // bytes gpg prints have to be the bytes this was given.

@@ -833,7 +833,7 @@ namespace RegressionTests.API
       }
 
       // Serves a release whose installer and bundle are what is given: the feed at
-      // the latest path, the installer behind a redirect (as a GitHub asset is), the
+      // the latest path, the installer behind a redirect (as a GitHub asset was), the
       // bundle beside it.
       private void ServeRelease(byte[] installer, string bundle, string version = null, string digest = null)
       {
@@ -854,9 +854,9 @@ namespace RegressionTests.API
       private string Release(string version, string name, long size, string digest)
       {
          string download = _feed.UrlFor("/download/");
-         return "{\"url\":\"https://api.github.com/repos/Progressiverobot/hmailserver/releases/1001\"," +
-                "\"html_url\":\"https://github.com/Progressiverobot/hmailserver/releases/tag/v" + version + "\"," +
-                "\"id\":1001,\"author\":{\"login\":\"chrisholloway5\",\"html_url\":\"https://github.com/chrisholloway5\"}," +
+         return "{\"url\":\"https://gitlab.com/api/v4/projects/86730559/releases/v" + version + "\"," +
+                "\"html_url\":\"https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + version + "\"," +
+                "\"id\":1001,\"author\":{\"login\":\"Progressiverobot\",\"html_url\":\"https://gitlab.com/Progressiverobot\"}," +
                 "\"tag_name\":\"v" + version + "\",\"name\":\"hMailServer " + version + "\",\"draft\":false,\"prerelease\":false," +
                 "\"published_at\":\"2026-09-12T10:00:00Z\",\"assets\":[" +
                 "{\"name\":\"" + name + "\",\"size\":" + size + ",\"digest\":\"" + digest + "\",\"browser_download_url\":\"" + download + name + "\"}," +

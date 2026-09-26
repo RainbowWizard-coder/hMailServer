@@ -105,14 +105,16 @@ The files land in the build directory as `hmailserver_<version>_amd64.deb` and
 CMakeLists picks the architecture name each packager uses from
 `CMAKE_SYSTEM_PROCESSOR`. The names are the ones the server's update checker
 builds for its own platform and matches exactly on the release page, so they are
-uploaded as they are and never tidied; `.github/workflows/linux-build.yml` attaches
-them to the release for the tag itself, and RELEASE.md has the step.
+uploaded as they are and never tidied; GitLab CI's `release` and `release-publish`
+jobs (`build/ci/release-chain.py`) attach them to the release for the tag itself,
+and RELEASE.md has the step.
 
 `<version>` is not written anywhere in this directory. The CMakeLists reads it out
 of `hmailserver/source/Server/Common/Application/Version.h`, which is the same
 header the Windows resources and the installer stamp from; `pkgver` in the
 PKGBUILD below is the one Linux copy of the number that cannot be derived, and
-`build/check-linux-version-stamp.sh` - a step of the Linux workflow - fails the
+`build/check-linux-version-stamp.sh` - run by GitLab CI's `checkers` and
+`linux-build` jobs - fails the
 build when it disagrees with that header. No version literal belongs in this
 README either, which is why the commands below are written with a placeholder.
 
@@ -124,7 +126,8 @@ cd /tmp/hmailserver-pkg
 makepkg -si
 ```
 
-It fetches the tag `v${pkgver}` from the public repository rather than using the tree
+It fetches the tag `v${pkgver}` from the public repository,
+<https://gitlab.com/Progressiverobot/hmailserver>, rather than using the tree
 it was copied out of, which is what makes the resulting package reproducible by
 somebody who does not have your working copy.
 
@@ -134,9 +137,14 @@ somebody who does not have your working copy.
 hmailserver/source/Server/platform/packaging/build-appimage.sh --build-dir build/linux
 ```
 
-It packages what is already built, downloads `linuxdeploy` and its AppImage plugin
-if they are not cached, and writes `hMailServer-<version>-x86_64.AppImage`. The
-Linux workflow builds one on a release tag and attaches it beside the packages.
+It packages what is already built with `linuxdeploy` and its AppImage plugin, and
+writes `hMailServer-<version>-x86_64.AppImage`. It no longer downloads the two
+tools: they are published only on GitHub, which the project does not download
+from since GitHub suspended its account on 18 September 2026, and no other source
+has been chosen - the owner's decision. Put them in `build/.appimage-tools` (or
+`TOOLS_DIR`) by hand, or the script refuses. The GitHub workflow `linux-build.yml`
+built one on every release tag until 18 September 2026; GitLab CI builds none,
+so the releases since carry no AppImage.
 
 ## What lands where
 
@@ -611,17 +619,19 @@ package's; a rollback image that is not the installed version dropped; no
 installed version recorded), an image with any write bit for its group or
 others (0777, 0620, 0642, 0664) and a directory with one, the log written only
 after the stop, and `--dry-run` running nothing: 138 checks, green on Ubuntu
-26.04 (dash 0.5.12). It runs in
-`.github/workflows/packaging.yml` on every change to these files, beside
+26.04 (dash 0.5.12). It runs in GitLab CI's
+`update-helper` job on every change to these files, beside
 `systemd-analyze verify` of the three units; the `.deb` and `.rpm` file
-assertions in `linux-build.yml` cover the three new files, and the `.deb` job
-checks that `postinst` left the path unit enabled and active.
+assertions of the `linux-package-deb` and `linux-package-rpm` jobs
+(`build/ci/linux-package-install.sh`) cover the three new files, and the `.deb` job
+checks that `postinst` left the path unit enabled and active. (The GitHub
+workflows `packaging.yml` and `linux-build.yml` did this until 18 September 2026.)
 
 *The verification, against a real release.* The Linux binary built from this
 tree ran `hmailserver --verify-update` against the latest release's
-`hmailserver_<version>_amd64.deb` and its `.cosign.bundle` as GitHub serves
-them (the release of 15 September 2026), with the built-in public Sigstore
-trust: it verifies (signed by the `sign-release.yml` workflow, recorded by the
+`hmailserver_<version>_amd64.deb` and its `.cosign.bundle` as GitHub served
+them then (the release of 15 September 2026), with the built-in public Sigstore
+trust: it verifies (signed by the GitHub workflow `sign-release.yml`, recorded by the
 log at 2026-09-15T01:00:17Z), and the same file with one byte appended is
 refused with the two digests named. Doing this found that no real bundle had
 ever verified on Linux before - see the finding below - and that is fixed in
@@ -705,9 +715,11 @@ when the packaging changes.
 
 ## What is still owed
 
-* **The AArch64 packages come from CI, not from hands.** The `ubuntu-24.04-arm`
-  job builds and installs the `.deb` on every push; nobody has installed one on
-  ARM hardware by hand yet.
+* **The AArch64 packages are not built any more.** The GitHub workflow's
+  `ubuntu-24.04-arm` job built and installed the `.deb` on every push until
+  GitHub suspended the project's account on 18 September 2026; GitLab CI builds
+  on x86-64 only, because the project has no ARM machine, so the releases since
+  carry no AArch64 package. Nobody has installed one on ARM hardware by hand.
 * **There is no re-keying command.** The stored-secret key file is made once
   and never rotated; replacing it by hand means re-entering every stored
   password, and there is no tool that re-encrypts them under a new key.
@@ -759,10 +771,17 @@ Beside the image, the two files people expect, in the tree since 15 September
   database.password=... --set administrator.password=... --set
   rest.tlsSecretName=...`.
 
-Neither Helm nor Docker is on the Windows bench that gates the code, so the
-workflow `.github/workflows/packaging.yml` lints and renders the chart with a
+Neither Helm nor Docker is on the Windows bench that gates the code, so
+GitLab CI's `chart-and-compose` job lints and renders the chart with a
 real install's values, checks its refusals, and resolves the Compose file, on
 every change to either.
+
+Both name the image `registry.gitlab.com/progressiverobot/hmailserver`, the
+project's GitLab container registry, which publishes nothing yet: it is not
+switched on, and the `linux-image` job builds the image without pushing it. Until
+it does, build the image from `docker/Dockerfile` and name your own tag. The
+images published before GitHub suspended the project's account on
+18 September 2026 were on `ghcr.io`, which has answered 404 since.
 
 ### Every setting from the environment
 

@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The hMailServer container image: the Linux .deb the tag's own workflow built,
+# The hMailServer container image: the Linux .deb the tag's own pipeline built,
 # installed on the distribution release it was built for, run as its own user.
 #
 #   docker run -d --name hmailserver \
@@ -14,7 +14,14 @@
 #      -v /srv/hmailserver/certs:/certs:ro \
 #      -p 25:25 -p 587:587 -p 993:993 -p 8045:8045 \
 #      -v hm-data:/var/lib/hmailserver -v hm-logs:/var/log/hmailserver -v hm-etc:/etc/hmailserver \
-#      ghcr.io/progressiverobot/hmailserver:<version>
+#      registry.gitlab.com/progressiverobot/hmailserver:<version>
+#
+# That is the name the project's GitLab container registry would serve, and it
+# serves nothing yet: the registry is not switched on and GitLab CI's
+# linux-image job builds this image without pushing it. Build it yourself
+# (docker build, with the .deb in packages/) and run your own tag until then.
+# The images published before GitHub suspended the project's account on
+# 18 September 2026 were on ghcr.io, which has answered 404 since.
 #
 # The database is not in the image and never will be: point HM_DB_* at a
 # PostgreSQL or MariaDB server. On first start the entrypoint writes the

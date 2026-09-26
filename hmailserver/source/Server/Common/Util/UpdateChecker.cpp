@@ -313,8 +313,9 @@ namespace
       AnsiString url = FeedUrl();
       bool preReleaseChannel = IsPreReleaseChannel();
 
+      // No header of GitHub's API: the feed is static files on GitLab Pages, which
+      // read none. Up to 6.3.3 this sent X-GitHub-Api-Version to api.github.com.
       std::vector<AnsiString> headers;
-      headers.push_back("X-GitHub-Api-Version: 2022-11-28");
 
       HttpsClient::Response response;
       String requestError;
@@ -486,8 +487,8 @@ namespace
    {
       assets = ReleaseAssets();
 
+      // No X-GitHub-Api-Version: the feed is GitLab Pages (see CheckNow).
       std::vector<AnsiString> headers;
-      headers.push_back("X-GitHub-Api-Version: 2022-11-28");
 
       HttpsClient::Response response;
       String requestError;

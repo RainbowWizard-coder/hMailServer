@@ -9,7 +9,7 @@
 // ClassTester::DoTests calls it and the regression suite reaches it through
 // Utilities.RunTestSuite. That route does not exist here - it is a COM method,
 // and the Linux suite's shim skips it - so the CMake build makes this, and
-// .github/workflows/linux-build.yml runs it beside the other two. It needs no
+// GitLab CI's linux-build job runs it beside the other two. It needs no
 // database, no configuration, no socket and no network: it makes an engine in
 // memory, sets its clock, and feeds it requests it built and packets it broke -
 // truncated at every length, cut short one element at a time inside true

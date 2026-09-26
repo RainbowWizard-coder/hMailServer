@@ -131,7 +131,7 @@ namespace HM
    // interrupted, an allocation past the ceiling is stopped, the std and os modules
    // and import() are not there, a syntax error names its line. Needs no database
    // and no network. Run by the bench program script-binding-tests, which the
-   // CMake build makes beside spf-tests and .github/workflows/linux-build.yml runs;
+   // CMake build makes beside spf-tests and GitLab CI's linux-build job runs;
    // nothing inside the server runs it (ClassTester::DoTests is reached only
    // through COM and the Windows /Test switch, and the engine is not on Windows),
    // and neither regression suite runs the program.

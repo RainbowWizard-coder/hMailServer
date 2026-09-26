@@ -344,7 +344,7 @@ namespace RegressionTests.API
          string digest;
          using (var sha = SHA256.Create())
             digest = "sha256:" + FakeSigstore.Hex(sha.ComputeHash(installer));
-         return "{\"html_url\":\"https://github.com/Progressiverobot/hmailserver/releases/tag/v" + version + "\"," +
+         return "{\"html_url\":\"https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + version + "\"," +
                 "\"tag_name\":\"v" + version + "\",\"name\":\"hMailServer " + version + "\",\"draft\":false,\"prerelease\":false," +
                 "\"published_at\":\"2026-09-12T10:00:00Z\",\"assets\":[" +
                 "{\"name\":\"" + name + "\",\"size\":" + installer.Length + ",\"digest\":\"" + digest + "\",\"browser_download_url\":\"" + download + name + "\"}," +

@@ -29,7 +29,7 @@ namespace HM
    /// and the message store and never touches the ini, so an operator who restores
    /// onto replacement hardware gets their domains, accounts and mail back and
    /// none of their server settings. The project's rule since 15 September 2026,
-   /// in .github/CONTRIBUTING.md, is that a setting belongs in the database; this
+   /// in CONTRIBUTING.md, is that a setting belongs in the database; this
    /// is the class that makes that true of the 241 keys already in the file.
    ///
    /// WHY THE FILE IS STILL WRITTEN. Because some readers cannot go to the

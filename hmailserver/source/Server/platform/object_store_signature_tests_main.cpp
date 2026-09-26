@@ -8,8 +8,8 @@
 // On Windows the same tester runs inside the shipping server: ClassTester::
 // DoTests calls ObjectStoreSignatureTester::Test, and the regression suite
 // reaches it through Utilities.RunTestSuite. That route does not exist here, so
-// the CMake build makes this instead and .github/workflows/linux-build.yml runs
-// it on both architectures and under both compilers.
+// the CMake build makes this instead and GitLab CI's linux-build job runs
+// it (build/ci/linux-build.sh), on x86-64 under clang.
 //
 // What it holds the signer to: AWS Signature Version 4 against AWS's own test
 // suite (the get-vanilla family and get-unreserved, the service "service" in

@@ -126,8 +126,9 @@ well:
   debug command line to `/Test` and every case can be stepped through.
 * **As a program of its own on Linux.** The CMake build makes `spf-tests` from
   `platform/spf_tests_main.cpp`, and GitLab CI's `linux-build` job runs it on x86-64
-  under clang (`build/ci/linux-build.sh`), as `.github/workflows/linux-build.yml` ran
-  it on x86-64 and AArch64, under clang and under GCC. That route exists because the
+  under clang (`build/ci/linux-build.sh`), as the GitHub workflow `linux-build.yml`
+  (in the history at `v6.3.3`) ran it on x86-64 and AArch64, under clang and under
+  GCC, until GitHub suspended the project's account on 18 September 2026. That route exists because the
   first one does not here: `RunTestSuite` is a COM method and the Linux suite's
   shim skips it.
 

@@ -38,14 +38,16 @@ pkgname=hmailserver
 # was copied out of.
 #
 # So it is verified instead: build/check-linux-version-stamp.sh compares this
-# line with Version.h and is a required step of .github/workflows/linux-build.yml.
+# line with Version.h, and GitLab CI's checkers and linux-build jobs run it.
 # Stamping a release means editing Version.h and this line, and the check is what
 # says so when only one of the two was done.
 pkgver=6.3.4
 pkgrel=1
 pkgdesc="A mail server for SMTP, IMAP and POP3"
 arch=('x86_64' 'aarch64')
-url="https://github.com/Progressiverobot/hmailserver"
+# The project's home since GitHub suspended its account on 18 September 2026;
+# source= below clones the release tag from here.
+url="https://gitlab.com/Progressiverobot/hmailserver"
 license=('AGPL-3.0-or-later')
 
 # Matched to what hmailserver/source/Server/CMakeLists.txt actually links:
