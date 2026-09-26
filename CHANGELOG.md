@@ -111,12 +111,15 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 6. **A destination that asks this server to slow down is given a pause.** A 421, or a 4xx with one of the
    providers' rate-limit codes or phrases, holds deliveries to that destination alone for
    `OutboundBackoffMinutes` (2 by default, doubling to `OutboundBackoffMaxMinutes`, 60); 0 turns the back-off
-   off. A wait this server chose no longer spends a message's retries
+   off. A wait this server chose no longer spends a message's retries until the message has been queued
+   for longer than its retry schedule spans, so a destination that never stops asking still ends in a bounce
    ([OutboundShaping.md](hmailserver/docs/OutboundShaping.md)).
-7. **A backup carries everything an account has** - the address book, the webmail's preferences, scheduled
-   sends, file links, S/MIME keys, calendars, password history, the first-contact memory and every message's
-   keywords - and a restore puts them back, with each folder's access grants. An archive written by 6.3.3 or
-   earlier restores exactly as it did, without what it never held.
+7. **A backup carries what an account keeps beyond its mail** - the address book, the webmail's preferences,
+   scheduled sends, file links, S/MIME keys, calendars, password history, the first-contact memory and every
+   message's keywords - and a restore puts them back, with each folder's access grants. Passkeys, calendar and
+   address-book shares, deleted mail waiting to be recovered, messages that expire, IMAP annotations and the
+   out-of-office memory are not carried, each for the reason `AccountStores.cpp` gives. An archive written by
+   6.3.3 or earlier restores exactly as it did, without what it never held.
 8. **The out-of-office memory survives a restart** (schema 6060): who has been answered is kept in a table,
    so a restart no longer sends every correspondent the reply again.
 9. **Addresses collected from what a person sends are suggestions, not contacts.** They appear under Other
@@ -251,7 +254,8 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   ([SmtpPolicy.md](hmailserver/docs/SmtpPolicy.md)).
 - **Allow and block lists and quarantine digests** (schema 6046): senders or domains allowed or blocked for the
   server, a domain or one reader, covering the From header's address as well as the envelope sender, and URL
-  entries for the links in a message; held mail summarised daily to the person it was held for
+  entries for the links in a message; held mail summarised daily to the person it was
+  held for, once `QuarantineDigestBaseUrl` is set and a domain or an account turns the digest on (off by default)
   ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
 - **Mail flow rules** (schema 6063): a domain's own rules, a condition on an attachment's name, and actions to
   add a disclaimer, reject with a text, require TLS, quarantine or warn the sender; and an **outbound content
@@ -261,10 +265,11 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 - **Impersonation protection** (schema 6087): protected persons and partner domains per domain, judged on mail
   from outside; off on every domain ([ImpersonationProtection.md](hmailserver/docs/ImpersonationProtection.md)).
 - **Attachments opened somewhere safe** (schema 6091): an outside message whose attachment is an executable, a
-  script, an archive or an office document is held until a sandbox service the administrator names answers;
+  script, a shortcut, an archive, a disk image, an office document or a PDF is held until a sandbox service the
+  administrator names answers;
   off ([Sandbox.md](hmailserver/docs/Sandbox.md)).
-- **Spam traps** (schema 6058): an address that was never real refuses like an unknown user, bans the sender's
-  address and puts the sender on the block list ([SpamTraps.md](hmailserver/docs/SpamTraps.md)).
+- **Spam traps** (schema 6058): an address that was never real refuses like an unknown user, bans the connecting
+  address and puts the envelope sender on the block list ([SpamTraps.md](hmailserver/docs/SpamTraps.md)).
 - **Country blocking** (schema 6052): connections and sign-ins judged by country from a MaxMind database the
   administrator supplies, with loopback and private ranges exempt and a missing database meaning allow
   ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md)).
@@ -330,7 +335,7 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 ### Security and identity
 
-- **Administrator roles** (schema 6047): `serveradmin`, `domainadmin`, `helpdesk` and `auditor` over 24
+- **Administrator roles** (schema 6047): `serveradmin`, `domainadmin`, `helpdesk` and `auditor` over 27
   permissions, custom roles, assigned per account and per domain ([Roles.md](hmailserver/docs/Roles.md)).
 - **Passkeys and single sign-on** (schema 6077): WebAuthn, and OpenID Connect from the organisation's issuer,
   into the webmail and the Control Deck; **SAML 2.0** beside it (no schema step), with an XML canonicaliser and
@@ -340,7 +345,8 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 - **A recovery address and one-time recovery codes**, and self-service password reset (schema 6076)
   ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
 - **Sessions and devices** (schema 6053): every client that signs in is a row its owner and the administrator
-  can see and revoke; the session policies are off after an upgrade
+  can see and revoke; the session policies start unset, after an upgrade as in a new database, so the
+  ceilings the server always had (thirty minutes idle, twelve hours in all) apply until they are set
   ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md)).
 - **A new password checked against published breaches** by k-anonymity, wherever a password is chosen; off by
   default ([PasswordBreachCheck.md](hmailserver/docs/PasswordBreachCheck.md)).
@@ -448,11 +454,11 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   ([SetupChecklist.md](hmailserver/docs/SetupChecklist.md), [SampleDomain.md](hmailserver/docs/SampleDomain.md),
   [Help.md](hmailserver/docs/Help.md)).
 - **The Control Panel on one design system**: a command bar, a sidebar that collapses to a rail and dialogs
-  sized to their content ([ControlPanelDesign.md](hmailserver/docs/ControlPanelDesign.md)); 64 pages, nine more
+  sized to their content ([ControlPanelDesign.md](hmailserver/docs/ControlPanelDesign.md)); 65 pages, ten more
   than at 6.3.3.
 - **The Control Deck** in twenty languages besides English, redrawn on the webmail's design and usable without a pointer, with
   one connection's log followed live ([FollowConnection.md](hmailserver/docs/FollowConnection.md)). The census in
-  [DeckParity.md](hmailserver/docs/DeckParity.md) counts 456 of the 464 properties the desktop Control Panel
+  [DeckParity.md](hmailserver/docs/DeckParity.md) counts 458 of the 466 properties the desktop Control Panel
   writes as writable over REST and reachable from a Deck view; the eight it lists as missing are an account's
   directory fields.
 - **A person's data as one archive**, and an erasure that reaches the rest of it
@@ -490,7 +496,7 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   iCalendar, notes and journal entries as messages. ANSI files are read, and an OST where it is a PST in all but
   its name; the 4K-page layout, Windows Information Protection and an OST caching an Exchange mailbox are refused
   with a sentence saying what to do. The reader runs in a process of its own, killed on a pause, a cancel or a
-  stop, so a file that crashes it costs one message, not the service. The file is copied into
+  stop, so a file that crashes it costs one message, not the service. An administrator copies the file into
   `<PstImportDirectory>/<domain>/` - empty as shipped, so no PST job runs until an administrator names a
   directory - and the job is started over REST (`POST /api/v1/migrations`), `hmctl` or the Deck
   ([Migration.md](hmailserver/docs/Migration.md)).
@@ -554,7 +560,7 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   shipped), a message delivered or appended is stored deflated, and each MIME part of at least
   `MessageStoreDedupMinKB` (256 KB) is kept once for every message that carries the same bytes. Every reader sees
   the message as it arrived, and a stored file is checked by its SHA-256 before it is served; the queue is never
-  compressed. `--measure-store` says what it would save and changes nothing, `--compress-store` and `--decompress`
+  compressed. `--measure-store` says what it would save and changes nothing, `--compress-store` and `--compress-store --decompress`
   rewrite what is stored, and `GET /api/v1/store`, the Deck's dashboard and the Control Panel's Performance page
   say what it saves. With it on, `Message.Filename` over COM names the stored form
   ([MessageStore.md](hmailserver/docs/MessageStore.md)).
@@ -594,7 +600,7 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 - The native server's line coverage was measured for the first time: 73.48% over the whole Windows regression
   suite. The three MIME fuzz harnesses gained a nightly job, and the Linux regression suite was split in two
-  halves; both ran on GitHub Actions until 18 September 2026, and on GitLab CI the nightly fuzz job is `linux-fuzz`
+  halves; both ran on GitHub Actions until 18 September 2026, and on GitLab CI the fuzz job is `linux-fuzz`, nightly once the owner creates its schedule,
   and the Linux suite is one job, `linux-suite`, on the project's own runner (see the CI item below).
 - Twenty-one new checkers under `build/` hold the rules the batches added, among them `check-account-stores.py`
   (what a backup must carry), `check-com-error-info.py` (COM refusals a caller can read),
@@ -620,7 +626,9 @@ nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
   and, for a push to `master`, a `batch*` branch or a `v*` tag only, the Linux build, its tester programs, the
   whole Linux suite, the packages, the container image, the cross-compile for AArch64, the database upgrade gates
   and the SBOMs on `linix`, and the Control Panel, the tools and the whole Windows suite on `bench150`. A nightly
-  pipeline fuzzes the three MIME harnesses. Nothing reached from GitHub is used
+  pipeline fuzzes the three MIME harnesses once the owner has created its schedule. Nothing reached from GitHub
+  is used. When 6.3.4 was made only the update feed's `pages` job had run there; the jobs on `linix` and
+  `bench150` had not, and the ported Linux scripts were run by hand on `linix`
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)).
 - **Security scanning** on the same runner, in place of CodeQL, dependency review and Scorecard: cppcheck and
   clang-tidy held to a committed baseline, Semgrep, Trivy and OSV over the lock files, the CI image and the
