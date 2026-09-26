@@ -430,6 +430,11 @@ STDMETHODIMP InterfaceMessage::Save()
       if (!object_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       // Check that the message has a valid date header.
       HM::String sDate = GetMessageData_()->GetSentTime();
       if (sDate.IsEmpty())
@@ -557,6 +562,9 @@ STDMETHODIMP InterfaceMessage::Copy(long lDestinationFolderID)
    {
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       // The source message must be located in a users account.
       if (object_->GetAccountID() == 0)

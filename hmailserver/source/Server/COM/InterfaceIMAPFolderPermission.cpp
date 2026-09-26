@@ -227,6 +227,12 @@ STDMETHODIMP InterfaceIMAPFolderPermission::Save()
       if (!object_)
          return GetAccessDenied();
 
+      // The folder's owner administers its grants, as IMAP has it - and so
+      // does a credential that may change the owner's account; nobody else
+      // (COMAuthentication::MayChangeFolder).
+      if (!authentication_->MayChangeFolder(object_->GetShareFolderID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       if (HM::PersistentACLPermission::SaveObject(object_))
       {
          // Add to parent collection
@@ -284,6 +290,9 @@ STDMETHODIMP InterfaceIMAPFolderPermission::Delete()
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeFolder(object_->GetShareFolderID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       if (!parent_collection_)
          return HM::PersistentACLPermission::DeleteObject(object_) ? S_OK : S_FALSE;

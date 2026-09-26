@@ -214,6 +214,201 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("A head that never ends is refused as soon as it is over the cap, not held until the request deadline")]
+      public void AHeadThatNeverEndsIsRefusedAtTheCapNotAtTheDeadline()
+      {
+         // The negative control for HttpHeadMatch. Until 26 September 2026 the
+         // head was read into a buffer sized for the largest body a route takes
+         // (16 MB here), and the 64 KB cap on a head was asked only once its
+         // blank line had arrived: 80 KB of head with no end was read, kept, and
+         // answered by nothing but the request timer closing the connection
+         // RestRequestSeconds later.
+         using (TcpClient client = Connect(RestPort))
+         using (NetworkStream stream = client.GetStream())
+         {
+            var head = new StringBuilder();
+            head.Append("GET /api/v1/status HTTP/1.1\r\nHost: 127.0.0.1\r\n");
+            string padding = new string('p', 1000);
+            for (int i = 0; i < 80; i++)
+               head.Append("X-Padding-").Append(i).Append(": ").Append(padding).Append("\r\n");
+
+            var stopwatch = Stopwatch.StartNew();
+
+            // A reset while the rest of the head is still being written, or
+            // while the answer is read, is the refusal too; what is measured is
+            // how long the server took to end the request.
+            int status = 0;
+            try
+            {
+               Send(stream, head.ToString());
+               var reader = new HttpReader(stream);
+               stream.ReadTimeout = (RestRequestSeconds + 20) * 1000;
+               status = reader.Read().Status;
+            }
+            catch (IOException)
+            {
+            }
+
+            stopwatch.Stop();
+
+            if (status != 0)
+               Assert.AreEqual(413, status);
+
+            Assert.Less(stopwatch.ElapsedMilliseconds, 10000,
+               "A head over the cap must be refused when it passes the cap, not when the request deadline closes the connection.");
+         }
+      }
+
+      [Test]
+      [Description("A response a reader takes longer than the request deadline to read, but keeps reading, arrives whole")]
+      public void ALargeResponseReadSlowlyArrivesWhole()
+      {
+         // The negative control for the response written in pieces. Until 26
+         // September 2026 the request timer armed when the request began covered
+         // writing the response too, so a download the reader could not take in
+         // within RestRequestSeconds - a file link of 100 MB below 27 Mbit/s -
+         // was cut off part way, every time. Here a 12 MB message's source is
+         // read at about 250 KB a second, well past the deadline, through a small
+         // receive window so that neither end's buffers can hold what is left.
+         const int MessageBytes = LargeMessageBytes;
+         string id = CreateLargeMessage("slow-reader");
+
+         var client = new TcpClient();
+         client.ReceiveBufferSize = 8192;
+         client.Connect("127.0.0.1", RestPort);
+
+         using (client)
+         using (NetworkStream stream = client.GetStream())
+         {
+            Send(stream, "GET /api/v1/accounts/slow-reader@" + _domain.Name + "/messages/" + id + "/source HTTP/1.1\r\n" +
+                         "Host: 127.0.0.1\r\n" + Basic() + "Connection: close\r\n\r\n");
+
+            stream.ReadTimeout = (RestRequestSeconds + 20) * 1000;
+
+            var stopwatch = Stopwatch.StartNew();
+            var received = new MemoryStream();
+            byte[] buffer = new byte[16 * 1024];
+            try
+            {
+               int read;
+               while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+               {
+                  received.Write(buffer, 0, read);
+                  Thread.Sleep(read * 1000 / (250 * 1024));
+               }
+            }
+            catch (IOException)
+            {
+               // A reset is the connection ended; what arrived is judged below.
+            }
+
+            stopwatch.Stop();
+
+            string text = Encoding.ASCII.GetString(received.ToArray());
+            int headEnd = text.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+            Assert.IsTrue(headEnd > 0, "No response head arrived.");
+            StringAssert.StartsWith("HTTP/1.1 200", text, text.Substring(0, headEnd));
+
+            int declared = 0;
+            foreach (string header in text.Substring(0, headEnd).Split(new[] { "\r\n" }, StringSplitOptions.None))
+            {
+               if (header.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
+                  declared = int.Parse(header.Substring(15).Trim());
+            }
+
+            Assert.Greater(declared, MessageBytes - 1, "The whole message was declared.");
+            Assert.Greater(stopwatch.ElapsedMilliseconds, RestRequestSeconds * 1000L,
+               "The read has to outlast the request deadline for this test to say anything.");
+            Assert.AreEqual(declared, text.Length - headEnd - 4,
+               "The response was cut off after " + stopwatch.ElapsedMilliseconds + " ms.");
+         }
+      }
+
+      [Test]
+      [Description("Only so many large downloads are written at once; one more is answered 503 with Retry-After, and a slot freed is taken again")]
+      public void OnlySoManyLargeDownloadsAreWrittenAtOnce()
+      {
+         // The negative control for HttpLimits::max_large_responses. Until 26
+         // September 2026 every connection could hold a large response - a 500
+         // MB file link, three copies of it - for as long as its reader cared
+         // to take, and 64 slow readers held 64 of them. Here sixteen readers
+         // that take the head of a 12 MB message's source and then stop hold
+         // the sixteen slots, and a seventeenth is refused at once; against the
+         // old code it was answered 200 and given the message too.
+         const int Slots = 16;   // HttpServer.h: HttpLimits::max_large_responses
+         string id = CreateLargeMessage("large-downloads");
+         string request = "GET /api/v1/accounts/large-downloads@" + _domain.Name + "/messages/" + id + "/source HTTP/1.1\r\n" +
+                          "Host: 127.0.0.1\r\n" + Basic() + "Connection: close\r\n\r\n";
+
+         var holders = new List<TcpClient>();
+         try
+         {
+            for (int i = 0; i < Slots; i++)
+            {
+               var client = new TcpClient();
+               client.ReceiveBufferSize = 8192;
+               client.Connect("127.0.0.1", RestPort);
+               holders.Add(client);
+
+               NetworkStream stream = client.GetStream();
+               Send(stream, request);
+
+               // The head, and no more: the rest waits in a window of 8 KB,
+               // which is what a reader that has stopped looks like.
+               stream.ReadTimeout = 30000;
+               var head = new StringBuilder();
+               byte[] one = new byte[1];
+               while (!head.ToString().EndsWith("\r\n\r\n", StringComparison.Ordinal))
+               {
+                  Assert.AreEqual(1, stream.Read(one, 0, 1), "Download " + i + " ended before its head: " + head);
+                  head.Append((char) one[0]);
+               }
+
+               StringAssert.StartsWith("HTTP/1.1 200", head.ToString(), "Download " + i + " was not started.");
+            }
+
+            using (TcpClient extra = Connect(RestPort))
+            using (NetworkStream stream = extra.GetStream())
+            {
+               Send(stream, request);
+               HttpReply refused = new HttpReader(stream).Read();
+               Assert.AreEqual(503, refused.Status, "A seventeenth large download was written beside the sixteen: " + refused.StatusLine);
+               Assert.AreEqual("30", refused.Header("Retry-After"));
+            }
+         }
+         finally
+         {
+            foreach (TcpClient holder in holders)
+               holder.Close();
+         }
+
+         // The slots come back as the server sees the sixteen go.
+         int status = 0;
+         var stopwatch = Stopwatch.StartNew();
+         while (stopwatch.ElapsedMilliseconds < 20000)
+         {
+            using (TcpClient again = Connect(RestPort))
+            using (NetworkStream stream = again.GetStream())
+            {
+               Send(stream, request);
+               var reader = new HttpReader(stream);
+               stream.ReadTimeout = 60000;
+               HttpReply reply = reader.Read();
+               status = reply.Status;
+               if (status == 200)
+               {
+                  Assert.Greater(reply.Body.Length, LargeMessageBytes - 1, "The whole message was sent.");
+                  break;
+               }
+            }
+
+            Thread.Sleep(500);
+         }
+
+         Assert.AreEqual(200, status, "The slots the sixteen held were not given back.");
+      }
+
+      [Test]
       [Description("Connections that send half a request do not delay a complete request from someone else")]
       public void ASlowClientDoesNotHoldTheListener()
       {
@@ -366,6 +561,34 @@ namespace RegressionTests.Infrastructure
 
       // ------------------------------------------------------------ helpers ---
 
+      // A message of LargeMessageBytes in a folder of a new account
+      // <localPart>@<the test domain>, made through the API; its id.
+      private const int LargeMessageBytes = 12 * 1024 * 1024;
+
+      private string CreateLargeMessage(string localPart)
+      {
+         string address = localPart + "@" + _domain.Name;
+         hMailServer.Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, "Large-Message-1234");
+         var folder = account.IMAPFolders.Add("Big");
+         folder.Save();
+
+         var raw = new StringBuilder(LargeMessageBytes + 4096);
+         raw.Append("From: sender@example.com\r\nTo: ").Append(address).Append("\r\nSubject: Big\r\n")
+            .Append("Date: Sat, 26 Sep 2026 10:00:00 +0000\r\n\r\n");
+         string line = new string('b', 998) + "\r\n";
+         while (raw.Length < LargeMessageBytes)
+            raw.Append(line);
+
+         string created = Exchange("POST", "/api/v1/accounts/" + address + "/folders/" + folder.ID + "/messages", raw.ToString());
+         StringAssert.StartsWith("HTTP/1.1 201", created, "The message was not created.");
+         int idAt = created.IndexOf("\"id\":", StringComparison.Ordinal);
+         Assert.IsTrue(idAt > 0, created);
+         int idEnd = idAt + 5;
+         while (idEnd < created.Length && char.IsDigit(created[idEnd]))
+            idEnd++;
+         return created.Substring(idAt + 5, idEnd - idAt - 5);
+      }
+
       private static string Basic()
       {
          string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes("Administrator:" + AdminPassword));
@@ -375,6 +598,29 @@ namespace RegressionTests.Infrastructure
       private static string Request(string method, string path, string version, string extraHeaders)
       {
          return method + " " + path + " " + version + "\r\nHost: 127.0.0.1\r\n" + extraHeaders + "\r\n";
+      }
+
+      // One request as the administrator, with a body, on a connection of its
+      // own; the whole of what came back, read to the server's close.
+      private static string Exchange(string method, string path, string body)
+      {
+         using (TcpClient client = Connect(RestPort))
+         using (NetworkStream stream = client.GetStream())
+         {
+            byte[] bodyBytes = Encoding.ASCII.GetBytes(body);
+            Send(stream, method + " " + path + " HTTP/1.1\r\nHost: 127.0.0.1\r\n" + Basic() +
+                         "Content-Type: application/json\r\nContent-Length: " + bodyBytes.Length + "\r\nConnection: close\r\n\r\n");
+            stream.Write(bodyBytes, 0, bodyBytes.Length);
+
+            stream.ReadTimeout = 60000;
+            var received = new MemoryStream();
+            byte[] buffer = new byte[16 * 1024];
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+               received.Write(buffer, 0, read);
+
+            return Encoding.UTF8.GetString(received.ToArray());
+         }
       }
 
       private static TcpClient Connect(int port)

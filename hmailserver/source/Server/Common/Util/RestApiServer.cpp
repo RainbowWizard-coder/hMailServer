@@ -1165,7 +1165,18 @@ namespace HM
    AnsiString
    RestApiServer::GetHeader_(const AnsiString &request, const AnsiString &lowerCaseName)
    {
-      AnsiString lowerRequest = request;
+      // The head alone: up to and including the CRLF that ends the last header
+      // line. The request is the head and the body together, and a body is
+      // whatever the sender chose - a cross-site text/plain form can carry a
+      // line "Authorization: Basic ..." or "X-Requested-With: hMailServer" in
+      // it with no preflight. Searched whole, that line answered for a header
+      // the head did not have: a session was issued on a credential in the
+      // body (login CSRF), and the guards that ask for X-Requested-With were
+      // satisfied by the body.
+      const int headEnd = request.Find("\r\n\r\n");
+      const AnsiString head = headEnd < 0 ? request : request.Mid(0, headEnd + 2);
+
+      AnsiString lowerRequest = head;
       lowerRequest.MakeLower();
 
       const AnsiString needle = "\r\n" + lowerCaseName + ":";
@@ -1175,11 +1186,11 @@ namespace HM
          return "";
 
       int valueStart = headerPosition + needle.GetLength();
-      int lineEnd = request.Find("\r\n", valueStart);
+      int lineEnd = head.Find("\r\n", valueStart);
       if (lineEnd < 0)
          return "";
 
-      AnsiString headerValue = request.Mid(valueStart, lineEnd - valueStart);
+      AnsiString headerValue = head.Mid(valueStart, lineEnd - valueStart);
       headerValue.Trim();
 
       return headerValue;
@@ -2222,6 +2233,42 @@ namespace HM
             return BuildForbiddenResponse_(refusalReason);
          }
 
+         // A change to the account an address in the path names: Authorize_
+         // scoped it to the account's DOMAIN, and a domain can hold an account
+         // wider than whoever administers it - the server administrator's own
+         // mailbox above all. Without this a domain administrator could repoint
+         // the server administrator's fetch account at a host of its own, which
+         // then signs in there with the kept password, set its rules, publish
+         // a key under its address, clear its recovery or exempt it from the
+         // compromise detection. One rule for every such route
+         // (ChangesAccountByAddress_), asked here once; a refusal after the
+         // decision, never a grant.
+         if (ChangesAccountByAddress_(route.kind))
+         {
+            // The address read both ways a handler reads it - as UTF-8, and
+            // through String's own narrow conversion - so that no handler can
+            // find an account under a name this check did not look up. The two
+            // agree for every ASCII address; for any other they may not.
+            String wideName;
+            Unicode::MultiByteToWide(route.identifier, wideName);
+
+            std::shared_ptr<const Account> candidates[2] =
+            {
+               CacheContainer::Instance()->GetAccount(wideName),
+               CacheContainer::Instance()->GetAccount(String(route.identifier))
+            };
+
+            for (const std::shared_ptr<const Account> &named : candidates)
+            {
+               if (named && !CallerTakesInAccount_(caller, named))
+               {
+                  LOG_APPLICATION("REST API: Refused " + String(method) + " " + String(path) + " for " + String(caller.identity) +
+                     ": " + named->GetAddress() + " holds authority the credential does not.");
+                  return AccountNotTakenIn_();
+               }
+            }
+         }
+
          // A mailbox encrypted at rest opens only with its own password
          // (MailboxKeys.h): an app password - over Basic, or holding a session
          // started with one - reaches none of the account's own routes, whether
@@ -2340,7 +2387,7 @@ namespace HM
             return HandleCreateAccount_(caller, String(route.identifier), GetRequestBody_(request));
 
          case RouteAccountDelete:
-            return HandleDeleteAccount_(String(route.identifier));
+            return HandleDeleteAccount_(caller, String(route.identifier));
 
          case RouteQueueList:
             return HandleListQueue_();
@@ -3095,7 +3142,7 @@ namespace HM
             return HandlePortalFilesPolicy_(route.query);
 
          case RoutePortalFilesPolicyPut:
-            return HandlePortalFilesPolicyPut_(GetRequestBody_(request));
+            return HandlePortalFilesPolicyPut_(caller, GetRequestBody_(request));
 
          case RouteMeSessions:
             return HandleMeSessions_(caller);
@@ -3316,7 +3363,7 @@ namespace HM
             return HandleScheduledRun_();
 
          case RoutePortalBrandingPut:
-            return HandlePortalBrandingPut_(GetRequestBody_(request));
+            return HandlePortalBrandingPut_(caller, GetRequestBody_(request));
 
          case RouteAccountSupportSession:
             return HandleAccountSupportSession_(caller, route.identifier, request);
@@ -3355,7 +3402,7 @@ namespace HM
          case RouteAccountMessageCopy:
          case RouteAccountDeviceList:
          case RouteAccountDeviceDelete:
-            return HandleAccountResources_(route, GetRequestBody_(request));
+            return HandleAccountResources_(caller, route, GetRequestBody_(request));
 
          case RouteAccountAddressBooks:
             return HandleAccountAddressBooks_(route.identifier);
@@ -7741,6 +7788,117 @@ namespace HM
    }
 
    bool
+   RestApiServer::CallerTakesInAccount_(const Caller &caller, std::shared_ptr<const Account> account)
+   {
+      if (!account)
+         return false;
+
+      return RoleManager::Encompasses(caller.grant, RoleManager::GrantForAccount(account));
+   }
+
+   bool
+   RestApiServer::DomainInBodyRefused_(const Caller &caller, const String &domain, HttpResponse &refusal)
+   {
+      if (caller.domains.empty())
+         return false;
+
+      if (domain.IsEmpty())
+      {
+         refusal = BuildResponse_(403, "{\"error\":\"this credential is restricted to named domains, and without a domain this is the server's value; name one of its domains\"}");
+         return true;
+      }
+
+      if (!IsDomainAllowed_(caller.domains, domain))
+      {
+         refusal = BuildResponse_(403, "{\"error\":\"this credential is not permitted for that domain\"}");
+         return true;
+      }
+
+      return false;
+   }
+
+   bool
+   RestApiServer::ChangesAccountByAddress_(RouteKind kind)
+   {
+      // THE rule, in one place: every route that changes an account named by
+      // the address in its path, or what hangs off it - its settings, its
+      // credentials, its mail, its folders' grants, its rules, its fetch
+      // accounts, its keys, its recovery - is refused by ProcessRequest_ when
+      // CallerTakesInAccount_ is false for that account. A domain can hold an
+      // account wider than whoever administers it - the server
+      // administrator's own mailbox above all - and Authorize_ scoped these
+      // routes to the account's DOMAIN only. Several handlers ask the same
+      // question again (the account update, the password reset, the role
+      // routes, the mailbox keys, the account resources, the delete, the
+      // move): defence in depth, never the only check.
+      //
+      // Left out, each for its reason, and held to that list by
+      // build/check-role-choke-point.py (TAKES_IN_EXEMPT), which fails a
+      // mutating route named by an account's address that is in neither:
+      //  - the unlocks (RouteAccountUnlock, RouteAccountReviewUnlock): letting
+      //    the owner try again takes nothing over;
+      //  - RouteAccountExport: it reads the account out to the server's disk
+      //    and changes nothing in it, and needs manage_roles, which only the
+      //    server administrator holds.
+      switch (kind)
+      {
+      // The account itself, its deletion and its move to another address.
+      case RouteAccountUpdate:
+      case RouteAccountDelete:
+      case RouteMailboxMove:
+      // Its credentials and the authority it holds.
+      case RouteAccountPasswordReset:
+      case RouteAccountAppPasswordCreate:
+      case RouteAccountAppPasswordUpdate:
+      case RouteAccountAppPasswordDelete:
+      case RouteAccountDeviceDelete:
+      case RouteRoleAssign:
+      case RouteRoleUnassign:
+      case RouteAccountMailboxEncryptionPut:
+      case RouteAccountMailboxEncryptionForfeit:
+      case RouteAccountMailboxEncryptionRecover:
+      // A session into the mailbox, opened with the account's consent - but
+      // consent to support is not consent to a credential it does not take in.
+      case RouteAccountSupportSession:
+      // Its mail and its folders' grants.
+      case RouteAccountFolderPermissionCreate:
+      case RouteAccountFolderPermissionUpdate:
+      case RouteAccountFolderPermissionDelete:
+      case RouteAccountMessagesDelete:
+      case RouteAccountFolderMessageCreate:
+      case RouteAccountMessageFlags:
+      case RouteAccountMessageDelete:
+      case RouteAccountMessageCopy:
+      // What hangs off it.
+      case RouteAccountRuleCreate:
+      case RouteAccountRuleUpdate:
+      case RouteAccountRuleDelete:
+      case RouteFetchAccountCreate:
+      case RouteFetchAccountUpdate:
+      case RouteFetchAccountDelete:
+      case RouteFetchAccountDownload:
+      case RouteAccountOpenPgpPut:
+      case RouteAccountOpenPgpDelete:
+      case RouteAccountDirectoryPut:
+      case RouteAccountBookingPolicyPut:
+      case RouteAccountAddressBookShareDelete:
+      case RouteAccountPushRemove:
+      case RouteAccountRecoveryClear:
+      case RouteAccountRecoveryCodesClear:
+      case RouteAccountReviewPut:
+         return true;
+      default:
+         return false;
+      }
+   }
+
+   HttpResponse
+   RestApiServer::AccountNotTakenIn_()
+   {
+      return BuildResponse_(403, "{\"error\":\"that account holds authority this credential does not, so it is not this credential's to change\"}");
+   }
+
+   bool
    RestApiServer::CallerMayReadArchive_(const Caller &caller)
    {
       return RoleManager::Allows(caller.grant, RolePermission::ViewArchive);
@@ -8798,10 +8956,6 @@ namespace HM
       case RouteDkimGet:
       // Left out of this list, a rotation route would name no domain, and a
       // credential confined to one domain could then switch another domain's key.
-      case RouteAccountPushGet:
-      case RouteAccountPushRemove:
-      case RouteAccountRecoveryClear:
-      case RouteAccountRecoveryCodesClear:
       case RouteDkimRotationGet:
       case RouteDkimRotationStart:
       case RouteDkimRotationCheck:
@@ -8846,6 +9000,15 @@ namespace HM
       case RouteDomainRuleCreate:
       case RouteDomainRuleUpdate:
       case RouteDomainRuleDelete:
+      // A domain's spam traps and the record of what addressed them, under the
+      // domain's name. Left out of this list the three routes named no domain,
+      // and a credential confined to one domain - a domain administrator, a key
+      // issued for it - could plant a trap in another domain, whose hits ban
+      // the sender's address and block the sender for every domain here, and
+      // read that domain's traps and every sender and address that hit them.
+      case RouteSpamTrapDomainList:
+      case RouteSpamTrapDomainCreate:
+      case RouteSpamTrapDomainHits:
          return String(route.identifier);
 
       // A domain's S/MIME authority, under the domain's name. Left out of this
@@ -8936,6 +9099,15 @@ namespace HM
       // by editing one path segment.
       case RouteAccountPasswordReset:
       case RouteAccountUnlock:
+      // An account's push devices, its recovery address and its recovery
+      // codes name the address the same way. Until 26 September 2026 they
+      // were read as naming a DOMAIN, the whole address - which no credential
+      // confined to a domain lists - so a domain administrator was refused
+      // them for every account of its own domain.
+      case RouteAccountPushGet:
+      case RouteAccountPushRemove:
+      case RouteAccountRecoveryClear:
+      case RouteAccountRecoveryCodesClear:
       // The account's review state and its compromise lock name the address
       // the same way, and are scoped the same way.
       case RouteAccountReviewGet:
@@ -9548,6 +9720,8 @@ namespace HM
       case RouteSampleDomainGet:
       case RouteSampleDomainCreate:
       case RouteSampleDomainRemove:
+      // One pass over the scheduled sends is every account's, in every domain.
+      case RouteScheduledRun:
          // IP ranges, certificates, global rules, the logs, the backup, the
          // server settings and the update check are all server-wide: none of
          // them belongs to a domain, and the logs in particular carry every
@@ -10983,12 +11157,23 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleDeleteAccount_(const String &address)
+   RestApiServer::HandleDeleteAccount_(const Caller &caller, const String &address)
    {
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account());
 
       if (!PersistentAccount::ReadObject(account, address) || account->GetID() == 0)
          return BuildResponse_(404, "{\"error\":\"account not found\"}");
+
+      // Authorize_ scoped the delete to the account's domain, and a domain can
+      // hold an account wider than whoever administers it - the server
+      // administrator's own mailbox above all. Deleting one is the furthest a
+      // change to it can go, so it asks what the update asks.
+      if (!CallerTakesInAccount_(caller, account))
+      {
+         LOG_APPLICATION("RestApi: Refused to delete account " + address + " for " + String(caller.identity) +
+            ": it holds authority the credential does not.");
+         return AccountNotTakenIn_();
+      }
 
       // A legal hold forbids it, and the caller is told so rather than handed
       // the 500 the refusal below the persistence layer would read as

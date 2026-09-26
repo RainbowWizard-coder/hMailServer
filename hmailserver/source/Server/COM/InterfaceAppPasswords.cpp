@@ -98,6 +98,9 @@ STDMETHODIMP InterfaceAppPasswords::Delete(LONG Index)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
+      if (!authentication_->TakesInAccount(account_id_))
+         return COMError::GenerateError("You do not have access to change the app passwords of this account. It holds administrative authority that this credential does not.");
+
       app_passwords_->DeleteItem(Index);
 
       return S_OK;
@@ -117,6 +120,9 @@ STDMETHODIMP InterfaceAppPasswords::DeleteByDBID(LONG DBID)
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
+
+      if (!authentication_->TakesInAccount(account_id_))
+         return COMError::GenerateError("You do not have access to change the app passwords of this account. It holds administrative authority that this credential does not.");
 
       app_passwords_->DeleteItemByDBID(DBID);
 
@@ -154,6 +160,15 @@ STDMETHODIMP InterfaceAppPasswords::Add(IInterfaceAppPassword **pVal)
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
+
+      // An app password is a logon of the account's, past its second factor:
+      // issuing one on an account whose authority this credential does not
+      // hold - the server administrator's mailbox in a domain its domain
+      // administrator administers - would be taking the account over. Asked
+      // here, so the refusal comes before a secret is generated, and again at
+      // Save and Delete, which are what write.
+      if (!authentication_->TakesInAccount(account_id_))
+         return COMError::GenerateError("You do not have access to change the app passwords of this account. It holds administrative authority that this credential does not.");
 
       CComObject<InterfaceAppPassword>* item = new CComObject<InterfaceAppPassword>();
       item->SetAuthentication(authentication_);

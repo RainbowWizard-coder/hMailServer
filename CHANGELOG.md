@@ -609,6 +609,89 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   secret unopenable on this machine - the key it was protected with lost - every administrator sign-in refuses,
   but `POST /api/v1/passkeys` for the administrator took the password alone from a session already open. It now
   refuses with 409, as the sign-ins do ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md)).
+- **Fixed: a domain's spam traps were not confined to the domain over REST.** A domain administrator, a role or an
+  API key confined to one domain could declare a spam trap in any other domain on the server with `POST
+  /api/v1/domains/{domain}/spam-traps` - and a hit on it bans the connecting address and blocks the envelope sender
+  for every domain - and read another domain's traps and the senders and addresses that hit them with `GET` on the
+  same path and on `.../spam-traps/hits`. The three routes are now scoped to the domain they name, as a trap's
+  removal already was, and answer `403` for any other.
+- **Fixed: a domain administrator could become the server administrator through an app password.** Where the server
+  administrator's own mailbox sits in a domain somebody else administers, that domain's administrator could issue
+  an app password on it (`POST /api/v1/accounts/{address}/app-passwords`, or COM's `AppPasswords.Add`), was handed
+  the secret, and could then log on to COM with it - `Application.Authenticate` accepted an account's app password
+  and gave the logon the account's whole role, past its second factor. COM no longer accepts an app password as a
+  logon at all (it still opens the mailbox over IMAP, POP3 and SMTP), and a credential may no longer issue or take
+  back an app password, share a folder, or write, flag, copy or delete mail, or revoke a device, of an account
+  whose authority it does not take in, over REST or COM ([Roles.md](hmailserver/docs/Roles.md)).
+- **Fixed: a domain administrator could delete or rename the server administrator's mailbox in its domain.** `DELETE
+  /api/v1/accounts/{address}` and `POST /api/v1/accounts/{address}/move` asked only whether the account's domain
+  was the credential's, so the server administrator's own mailbox could be deleted with its mail, or renamed so
+  that its logon name no longer existed. Both now refuse, with `403`, an account whose authority the credential
+  does not take in, as COM's `Account.MoveTo` always did; COM's `Account.Delete`, `Accounts.Delete` and
+  `Accounts.DeleteByDBID` refuse it too ([Roles.md](hmailserver/docs/Roles.md),
+  [MailboxMove.md](hmailserver/docs/MailboxMove.md)).
+- **Fixed: the REST listener read request headers out of the body.** A header the request's head did not carry was
+  looked for in the body as well, so a cross-site form posting `text/plain` to `/api/v1/session` could carry an
+  `Authorization` line of an account the attacker held and sign the victim's browser in to it (login CSRF), and an
+  `X-Requested-With` line in a body satisfied the guards that ask for that header. Every header is now read from
+  the head alone.
+- **Fixed: a credential confined to one domain could set the webmail's branding for every domain.** `PUT
+  /api/v1/portal/branding` and `PUT /api/v1/portal/files` name their domain in the body, where the authorisation
+  did not look, so an API key or a role holding `manage_settings` and confined to one domain could rewrite the
+  server's sign-in announcement and logo, or another domain's, and the file-link policy of either. A confined
+  credential now sets only its own domains' and is refused the server's and any other's with `403`, and a pass
+  over the scheduled sends (`POST /api/v1/scheduled/run`) is refused to it as server-wide
+  ([Roles.md](hmailserver/docs/Roles.md)).
+- **Fixed: a domain administrator could repoint the server administrator's fetch account.** The routes under
+  `/api/v1/accounts/{address}/` for an account's rules, fetch accounts, OpenPGP keys, directory entry, booking
+  policy, address-book shares, push devices, recovery address and codes and review state asked only whether the
+  account's domain was the credential's. Where the server administrator's own mailbox sits in a domain somebody
+  else administers, that domain's administrator could point its fetch account at a host of its own - the server
+  then signed in there with the kept password - set rules on the mailbox, publish a key under its address, clear
+  its recovery or exempt it from the compromised-account detection; a support session into the mailbox and a
+  migration job copying mail into it asked the same and no more. Every route that changes an account named in its
+  path now asks one rule, in one place, and refuses with `403` an account whose authority the credential does not
+  take in; `build/check-role-choke-point.py` fails a new such route that is not in it. A migration, or a job of
+  it, is started, paused, resumed, retried, cancelled or deleted only by a credential that takes in every account
+  its jobs copy into ([Roles.md](hmailserver/docs/Roles.md), [Migration.md](hmailserver/docs/Migration.md)).
+- **Fixed: over COM, a domain administrator could change what is in the server administrator's mailbox in its
+  domain, and point a rule or a fetch account at another domain's account.** COM's `FetchAccount`, `Rule` (with its
+  actions and criteria), `IMAPFolder`, `IMAPFolderPermission` and `Message` writes, and `Account.DeleteMessages`,
+  `RevokeDevice`, `ClearRecoveryAddress`, `ClearRecoveryCodes` and `RemovePushSubscriptions`, asked nothing of the
+  account they were in - only how the object had been reached - so a domain administrator could add a fetch account
+  or a rule to the server administrator's mailbox, share or delete its folders and mail, or clear its recovery; and
+  a rule, a rule's action or a fetch account reached in its own domain could be given another account's id, in any
+  domain, and saved there. Each now asks where it writes whether the credential reaches the account (the server
+  administrator, an administrator of its domain, or the account itself) and takes in its authority, and refuses
+  otherwise; an event script's objects are left as they were ([Roles.md](hmailserver/docs/Roles.md)).
+- **Fixed: a key or a role confined to a domain could route the server administrator's mail in that domain to a URL
+  of its own.** An inbound webhook route was judged by its domain alone, and a route takes an address's mail instead
+  of its mailbox, so a credential holding `manage_inbound_webhooks` and confined to a domain could route the server
+  administrator's address there - or the whole domain - and read its mail, password resets included. A route is now
+  made, changed or removed only by a credential that takes in the account at its address (or the one its plus tag
+  reaches), and a domain's route only by one that takes in every account of the domain with an admin level or a
+  role; the refusal is `403` ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)).
+- **Fixed: a domain administrator could not clear its own users' recovery address, recovery codes or push devices
+  over REST.** `DELETE /api/v1/accounts/{address}/recovery`, `.../recovery/codes` and `.../push` (and `GET .../push`)
+  read the whole address as a domain name, which no credential confined to a domain lists, so they answered `403`
+  to every domain administrator and every key issued for named domains. They are now scoped to the address's
+  domain, as the other account routes are.
+- **Fixed: a large download over the REST API or the web services was cut off, and held whole in memory while it
+  lasted.** The deadline that covers reading a request covered writing its response too, so a file link, an export
+  or a message source the reader could not take in within the request deadline (30 seconds on the REST listener,
+  15 on the web services) ended part way, every time - a 100 MB file link below about 27 Mbit/s - and the
+  connection's five-minute limit cut off whatever outlived it. Meanwhile each download held the whole body three
+  or four times over, so 64 slow readers of a 500 MB file link, which needs no sign-in, could hold some 32 GB of the
+  mail server's memory. A response is now written in pieces and the deadline is progress: a reader that stops
+  reading is closed after the request deadline. A file link, the export archive (`/export.zip`) and an eDiscovery
+  export are sent from their file on disk 64 KB at a time, never read into memory whole. A large download - a
+  file, or a body of 4 MB or more - may outlive the connection's limit for as long as its size takes at 128 KB a
+  second, and at most sixteen are written at once; one more is answered `503` with `Retry-After: 30`
+  ([PersonalData.md](hmailserver/docs/PersonalData.md), [Discovery.md](hmailserver/docs/Discovery.md)).
+- **Fixed: a request head that never ended could hold 16 MB per connection.** The listener read a head into the
+  buffer sized for the largest body a route takes and applied the 64 KB cap on a head only once its blank line
+  arrived, so each connection could be made to hold 16 MB until the request deadline closed it. A head is now
+  refused with `413` as soon as it passes the cap.
 
 ### Encryption
 

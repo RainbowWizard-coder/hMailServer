@@ -96,6 +96,11 @@ STDMETHODIMP InterfaceFetchAccounts::Delete(LONG Index)
       if (!fetch_accounts_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(fetch_accounts_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       fetch_accounts_->DeleteItem(Index);
    
       return S_OK;
@@ -114,6 +119,9 @@ STDMETHODIMP InterfaceFetchAccounts::DeleteByDBID(LONG DBID)
 
       if (!fetch_accounts_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(fetch_accounts_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       fetch_accounts_->DeleteItemByDBID(DBID);
    

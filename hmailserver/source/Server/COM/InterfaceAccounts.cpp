@@ -89,6 +89,11 @@ STDMETHODIMP InterfaceAccounts::Delete(long Index)
    
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItem(Index);
 
+      // As Account.Delete asks: not an account whose authority this credential
+      // does not take in.
+      if (pAccount && pAccount->GetID() > 0 && !authentication_->TakesInAccount(pAccount->GetID()))
+         return COMError::GenerateError("You do not have access to delete this account. It holds administrative authority that this credential does not.");
+
       // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
       if (pAccount && HM::DiscoveryHolds::IsAccountHeld(pAccount->GetID()))
          return COMError::GenerateError(HM::DiscoveryHolds::DeleteAccountRefusal(pAccount->GetAddress()));
@@ -217,6 +222,11 @@ STDMETHODIMP InterfaceAccounts::DeleteByDBID(long DBID)
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
    
+      // As Account.Delete asks: not an account whose authority this credential
+      // does not take in. An id that names no account here deletes nothing below.
+      if (accounts_->GetItemByDBID(DBID) && !authentication_->TakesInAccount(DBID))
+         return COMError::GenerateError("You do not have access to delete this account. It holds administrative authority that this credential does not.");
+
       // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
       if (HM::DiscoveryHolds::IsAccountHeld(DBID))
       {

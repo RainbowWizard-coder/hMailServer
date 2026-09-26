@@ -175,14 +175,16 @@ namespace HM
       return BuildResponse_(200, answer + JsonEscape_(Utf8_(directory)) + "\"}");
    }
 
-   // The archive built into the temp directory, read, and removed: what the
-   // Deck's link and the person's own page download. In memory once, which is
-   // why there is a ceiling; past it, the operator writes it to disk. Two
-   // things are refused before any work is done: a mailbox whose mail alone
-   // is past four times the ceiling - mail does not deflate that far as a
-   // rule, and building it would take a worker and the memory for nothing -
-   // and a second archive while one is being built for the same account, or
-   // while two are being built on the server (ArchiveDownloadSlot).
+   // The archive built into the temp directory, sent from there and removed:
+   // what the Deck's link and the person's own page download. The ceiling is
+   // what a download is expected to carry; past it, the operator writes it to
+   // disk. Until 26 September 2026 the archive was read into memory here and
+   // copied twice more on its way out. Two things are refused before any work
+   // is done: a mailbox whose mail alone is past four times the ceiling - mail
+   // does not deflate that far as a rule, and building it would take a worker
+   // and the disk for nothing - and a second archive while one is being built
+   // for the same account, or while two are being built on the server
+   // (ArchiveDownloadSlot).
    HttpResponse
    RestApiServer::ArchiveDownload_(std::shared_ptr<Account> account)
    {
@@ -226,20 +228,11 @@ namespace HM
          return BuildResponse_(413, "{\"error\":\"The archive is larger than 500 MB, which a download does not carry; an administrator can write it to the server's disk with POST /api/v1/accounts/{address}/export and archive.\"}");
       }
 
-      AnsiString bytes;
+      if (size == 0)
       {
-         boost::filesystem::path path(zipPath.begin(), zipPath.end());
-         boost::filesystem::ifstream in(path, std::ios::in | std::ios::binary);
-         if (in)
-         {
-            std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-            bytes = content;
-         }
-      }
-      FileUtilities::DeleteFile(zipPath);
-
-      if (bytes.empty())
+         FileUtilities::DeleteFile(zipPath);
          return BuildResponse_(500, "{\"error\":\"The archive could not be read back.\"}");
+      }
 
       String logMessage;
       logMessage.Format(_T("Everything held on %s - %d message(s), %d contact(s), %d calendar object(s), %d log line(s) - was downloaded as one archive."),
@@ -253,10 +246,14 @@ namespace HM
             fileName[i] = '_';
       }
 
+      // Sent from the temporary file a piece at a time, and the file removed
+      // once the response is done with it, written or cut off (body_file_delete).
       HttpResponse response;
       response.status = 200;
       response.content_type = "application/zip";
-      response.body = bytes;
+      response.body_file = zipPath;
+      response.body_file_delete = true;
+      response.no_compress = true;
       response.extra_headers =
          "Content-Disposition: attachment; filename=\"" + AnsiString(fileName) + ".zip\"\r\n"
          "X-Content-Type-Options: nosniff\r\n"
@@ -414,7 +411,7 @@ namespace HM
    {
       static const char *paths =
          ",\"/api/v1/accounts/{address}/export.zip\":{\"get\":{\"summary\":\"Everything the server holds on the account, as one archive\","
-         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) less the credentials - no password hash or its scheme, authenticator seed, app password, recovery code, password-history or shared-file password hash, push subscription key or wrapped mailbox key, nor a fetch account's password or token - and a manifest.json that counts what is there: what a person exercising article 20 is handed. A folder past 256 MB is written as mbox parts. Built in the temp directory and held in memory once, so an archive past 500 MB, or mail past 2 GB before anything is built, is refused with 413: write it to disk with the POST and archive instead. One archive at a time for an account (409) and two on the server (429, Retry-After). A zero-access mailbox is refused with 403. The administrator password's alone.\","
+         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) less the credentials - no password hash or its scheme, authenticator seed, app password, recovery code, password-history or shared-file password hash, push subscription key or wrapped mailbox key, nor a fetch account's password or token - and a manifest.json that counts what is there: what a person exercising article 20 is handed. A folder past 256 MB is written as mbox parts. Built in the temp directory and sent from there a piece at a time, never held in memory whole; an archive past 500 MB, or mail past 2 GB before anything is built, is refused with 413: write it to disk with the POST and archive instead. One archive at a time for an account (409) and two on the server (429, Retry-After). A zero-access mailbox is refused with 403. The administrator password's alone.\","
          "\"responses\":{\"200\":{\"description\":\"The archive\"},\"403\":{\"description\":\"A zero-access mailbox\"},\"404\":{\"description\":\"Unknown account\"},\"409\":{\"description\":\"An archive of this account is being built\"},\"413\":{\"description\":\"Past 500 MB, or mail past 2 GB\"},\"429\":{\"description\":\"Two archives are being built on the server\"},\"500\":{\"description\":\"The archive could not be built\"}}}}"
          ",\"/api/v1/accounts/{address}/export\":{\"post\":{\"summary\":\"Write the mailbox to a directory on the server's disk as .eml files, or everything held on the account to one .zip archive there\","
          "\"description\":\"Every message of the account, one .eml file per message named by its UID, in directories mirroring the folder tree under the directory named - what a person exercising a data-access right is handed, and what Account.ExportMessages does over COM. Stops on the first failure with 500 naming the file, so a partial export never reports success. The administrator password's alone: the directory is anywhere on the server's disk the service can write.\","

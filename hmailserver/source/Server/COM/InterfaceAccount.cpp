@@ -823,6 +823,11 @@ STDMETHODIMP InterfaceAccount::DeleteMessages()
       if (!object_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(object_->GetID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
       if (HM::DiscoveryHolds::IsAccountHeld(object_->GetID()))
          return COMError::GenerateError(HM::DiscoveryHolds::DeleteMessagesRefusal(object_->GetAddress()));
@@ -1959,6 +1964,12 @@ STDMETHODIMP InterfaceAccount::Delete()
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
+      // The question Save asks, asked of the stored account: a domain
+      // administrator does not delete the server administrator's mailbox that
+      // happens to sit in its domain.
+      if (object_->GetID() > 0 && !authentication_->TakesInAccount(object_->GetID()))
+         return COMError::GenerateError("You do not have access to delete this account. It holds administrative authority that this credential does not.");
+
       // A legal hold forbids it, and the caller is told why (docs/Discovery.md).
       if (HM::DiscoveryHolds::IsAccountHeld(object_->GetID()))
          return COMError::GenerateError(HM::DiscoveryHolds::DeleteAccountRefusal(object_->GetAddress()));
@@ -2464,6 +2475,9 @@ STDMETHODIMP InterfaceAccount::RevokeDevice(BSTR DeviceID, VARIANT_BOOL RevokeCr
       if (!authentication_->AllowsForDomain(HM::RolePermission::ManageAccounts, HM::StringParser::ExtractDomain(object_->GetAddress())))
          return authentication_->GetAccessDenied();
 
+      if (!authentication_->MayChangeAccount(object_->GetID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       HM::String device = DeviceID;
       device.Trim();
 
@@ -2583,6 +2597,11 @@ STDMETHODIMP InterfaceAccount::ClearRecoveryAddress()
       if (!object_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(object_->GetID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       HM::AccountRecovery::Address recovery;
       HM::AccountRecovery::Get(object_->GetID(), recovery);
 
@@ -2618,6 +2637,9 @@ STDMETHODIMP InterfaceAccount::ClearRecoveryCodes()
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(object_->GetID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       HM::AccountRecovery::CodeState codes;
       HM::AccountRecovery::GetCodes(object_->GetID(), codes);
@@ -2657,6 +2679,9 @@ STDMETHODIMP InterfaceAccount::RemovePushSubscriptions(long *RemovedCount)
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(object_->GetID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       std::vector<HM::PushSubscriptions::Subscription> subscriptions;
       HM::PushSubscriptions::ForAccount(object_->GetID(), subscriptions);

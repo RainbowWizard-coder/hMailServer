@@ -1363,6 +1363,45 @@ namespace HM
       // administrator.
       static bool HoldsServerAuthority_(const Caller &caller);
 
+      // True when the request's authority takes in the account's
+      // (RoleManager::Encompasses): the rule the account update, the password
+      // reset and the mailbox key recovery apply, asked by ProcessRequest_ for
+      // every route ChangesAccountByAddress_ names, again (defence in depth) in
+      // the handlers that delete or move an account, issue or take back its
+      // app passwords, share a folder, write or delete its mail or revoke a
+      // device, and by the migrations for every account a job copies into.
+      // Without it a domain administrator reached the server administrator's
+      // own mailbox in its domain by every route but those three, and an app
+      // password minted there was a COM logon of that mailbox's. The unlocks
+      // do not ask it.
+      static bool CallerTakesInAccount_(const Caller &caller, std::shared_ptr<const Account> account);
+
+      // THE list of routes that change the account an address in their path
+      // names, or what is in it - the account itself, its deletion and move,
+      // its credentials and role, its mail and folders' grants, its rules,
+      // fetch accounts, keys, directory entry, booking policy, shares, devices,
+      // recovery and review state, a support session into it. ProcessRequest_
+      // refuses every one with AccountNotTakenIn_ when CallerTakesInAccount_ is
+      // false; build/check-role-choke-point.py fails a mutating route named by
+      // an account's address that is neither here nor exempt (the unlocks, the
+      // server-side export).
+      static bool ChangesAccountByAddress_(RouteKind kind);
+
+      // The refusal the routes above answer when it is false: the account
+      // update's sentence, in the account update's status.
+      static HttpResponse AccountNotTakenIn_();
+
+      // True when an inbound webhook route on routeAddress - an address, or a
+      // whole domain - would take mail an account this credential does not take
+      // in receives: the address's account (or the one its plus tag names), or
+      // any account of a routed domain with an admin level or a role. A route
+      // takes an address's mail instead of its mailbox, or copies it, so the
+      // inbound webhook create, update and delete refuse it with
+      // AccountNotTakenIn_ - without it a key or a role holding
+      // manage_inbound_webhooks and confined to a domain read the server
+      // administrator's mail in that domain. RestApiInboundWebhooks.cpp.
+      static bool InboundWebhookReachesAccountBeyond_(const Caller &caller, const String &routeAddress);
+
       // True when the request's role holds view_archive. eDiscovery asks it of
       // a search that reads the archive (RestApiDiscovery.cpp): its hits and
       // its export hand over archived copies, which a role without
@@ -2066,7 +2105,9 @@ namespace HM
       // administrator opening a mailbox as its user, with consent and a record.
       static AnsiString BrandingJson_(const String &domain);
       static HttpResponse HandlePortalBranding_(const AnsiString &query);
-      static HttpResponse HandlePortalBrandingPut_(const AnsiString &requestBody);
+      // The server's branding, or with "domain" one domain's. A credential
+      // confined to named domains sets only its own domains' (DomainInBodyRefused_).
+      static HttpResponse HandlePortalBrandingPut_(const Caller &caller, const AnsiString &requestBody);
       HttpResponse HandleAccountSupportSession_(const Caller &caller, const AnsiString &address, const AnsiString &request);
 
       // The webmail's catalogues (RestApiLanguages.cpp).
@@ -2082,7 +2123,13 @@ namespace HM
       static HttpResponse HandleMeFileDelete_(const Caller &caller, __int64 id);
       static HttpResponse HandlePublicFile_(const AnsiString &method, const AnsiString &token, const AnsiString &body);
       static HttpResponse HandlePortalFilesPolicy_(const AnsiString &query);
-      static HttpResponse HandlePortalFilesPolicyPut_(const AnsiString &requestBody);
+      static HttpResponse HandlePortalFilesPolicyPut_(const Caller &caller, const AnsiString &requestBody);
+      // For a PUT that names its domain in the body - the webmail's branding
+      // and its file-link policy - where Authorize_ saw no domain: a credential
+      // confined to named domains is refused the server's value (no domain)
+      // and any domain outside its list. True, with the 403 in refusal, when
+      // it is refused.
+      static bool DomainInBodyRefused_(const Caller &caller, const String &domain, HttpResponse &refusal);
       static bool IsDomainAllowed_(const std::vector<String> &domains, const String &domainName);
 
       static Caller Authenticate_(const AnsiString &request, const IPAddress &peer_address);
@@ -2226,7 +2273,7 @@ namespace HM
       static AnsiString AccountListEntryJson_(const std::shared_ptr<Account> &account);
       static bool ReadNewAccount_(const Caller &caller, const AnsiString &requestBody,
          std::shared_ptr<Account> account, String &password, HttpResponse &refusal);
-      static HttpResponse HandleDeleteAccount_(const String &address);
+      static HttpResponse HandleDeleteAccount_(const Caller &caller, const String &address);
       static HttpResponse HandleListQueue_();
       static HttpResponse HandleQueueRetry_(__int64 messageId);
       static HttpResponse HandleQueueDelete_(__int64 messageId);
@@ -2542,7 +2589,10 @@ namespace HM
       // follows the address in the path, so that ParseRoute_ splits the
       // address off once and this unit owns its own tails.
       static bool ParseAccountResourceRoute_(const AnsiString &method, const AnsiString &tail, Route &route);
-      HttpResponse HandleAccountResources_(const Route &route, const AnsiString &requestBody);
+      // Every route of it that changes the account or what is in it is refused
+      // to a caller whose authority does not take in the account's
+      // (CallerTakesInAccount_).
+      HttpResponse HandleAccountResources_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiAccountResourcesPaths_();
       // The account groups as a resource (RestApiGroups.cpp): one entry point
       // for the eight routes, the route saying which verb, its record_id the

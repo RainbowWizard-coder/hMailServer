@@ -161,6 +161,11 @@ STDMETHODIMP InterfaceFetchAccount::put_AccountID(LONG newVal)
       if (!object_)
          return GetAccessDenied();
 
+      // Moving the fetch account is changing both accounts: the one it
+      // belongs to now and the one it would belong to.
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()) || !authentication_->MayChangeAccount(newVal))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       object_->SetAccountID(newVal);
    
       return S_OK;
@@ -350,6 +355,11 @@ STDMETHODIMP InterfaceFetchAccount::Save(void)
       if (!object_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       HM::PersistentFetchAccount oPersAccount;
       
       if (oPersAccount.SaveObject(object_))
@@ -509,6 +519,9 @@ STDMETHODIMP InterfaceFetchAccount::DownloadNow(void)
       if (!object_)
          return GetAccessDenied();
 
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       HM::PersistentFetchAccount::SetRetryNow(object_->GetID());
    
       // Notify the fetch manager to look for accounts to fetch from now.
@@ -601,6 +614,9 @@ STDMETHODIMP InterfaceFetchAccount::Delete()
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
    
       if (!parent_collection_)
          return HM::PersistentFetchAccount::DeleteObject(object_) ? S_OK : S_FALSE;

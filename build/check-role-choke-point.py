@@ -22,6 +22,17 @@ Four things are checked, and the last two are the ones that earn this script:
      are named only where a grant is BUILT or REPORTED, never where one is judged.
 
   2. The decision functions exist. Without them the rule above guards nothing.
+     And the routes that change an account, or what is in it, with no account
+     update to pass through ask whether the credential takes the account in
+     (TAKES_IN): an app password issued on the server administrator's mailbox
+     by its domain's administrator was a logon as the server administrator
+     until 26 September 2026, because nothing required the question there.
+     The question is asked for every such route in one place,
+     RestApiServer::ChangesAccountByAddress_, and TAKES_IN_COMPLETE fails any
+     mutating route named by an account's address that is neither there nor
+     exempt for a stated reason; COM_TAKES_IN holds every COM write to what is
+     in an account - its fetch accounts, rules, folders, grants, messages,
+     recovery - to COMAuthentication's MayChange* questions.
 
   3. EVERY RouteKind of the REST API is classified. A route must appear in
      RestApiServer::PermissionFor_, or in IsSelfServiceRoute_ (the account's own
@@ -106,6 +117,8 @@ ALLOWED = {
         "COM/InterfaceApplication.cpp",      # AssignRole and ResetPassword
         "COM/InterfaceAccount.cpp",          # RoleName, Save and MoveTo
         "COM/InterfaceUtilities.cpp",        # MoveMailbox, which is Account.MoveTo reached by address
+        REST_CPP,                            # CallerTakesInAccount_, which the account's other routes ask
+        COM_CPP,                             # TakesInAccount, which the app passwords ask over COM
     },
     # The historical level. A grant is DERIVED from it in RoleManager; every
     # other reader either stores it, reports it or applies the one rule that
@@ -150,7 +163,124 @@ REQUIRED = [
     (REST_H, "static bool IsSessionRoute_(RouteKind kind);"),
     (COM_CPP, "RoleManager::Allows(grant_, RolePermission::AdministerServer)"),
     (COM_CPP, "RoleManager::Allows(grant_, RolePermission::AdministerDomain)"),
+    # An app password is a mail client's credential and never a COM logon:
+    # accepted there, it carried the account's whole role past its second
+    # factor. Asked in both Authenticate overloads' three paths.
+    (COM_CPP, "RefuseAppPassword_(viaAppPassword);"),
+    # Issuing or taking back an app password over COM asks what an Account.Save
+    # would have: whether the credential takes the account in.
+    ("COM/InterfaceAppPasswords.cpp", "authentication_->TakesInAccount(account_id_)"),
+    ("COM/InterfaceAppPassword.cpp", "authentication_->TakesInAccount(object_->GetAccountID())"),
 ]
+
+# The REST handlers that change an account, or what is in it, and must ask
+# whether the credential takes the account in: Authorize_ scopes them to the
+# account's DOMAIN, which is not the same thing - a domain administrator's
+# domain can hold the server administrator's mailbox. (file, handler, what the
+# handler's body must say)
+TAKES_IN = [
+    ("Common/Util/RestApiAccountResources.cpp", "HandleAccountResources_",
+     "IsMutatingRoute_(route.kind) && !CallerTakesInAccount_(caller, account)"),
+    ("Common/Util/RestApiServer.cpp", "HandleDeleteAccount_", "!CallerTakesInAccount_(caller, account)"),
+    ("Common/Util/RestApiMailboxMove.cpp", "HandleMailboxMove_", "!CallerTakesInAccount_(caller, account)"),
+    # THE rule: every route that changes an account named by the address in
+    # its path, asked once, after Authorize_, for every kind
+    # ChangesAccountByAddress_ names - which TAKES_IN_COMPLETE below holds to
+    # every such route there is.
+    ("Common/Util/RestApiServer.cpp", "ProcessRequest_", "named && !CallerTakesInAccount_(caller, named)"),
+    # A migration's job writes mail into its target account: a job is added,
+    # and a migration or a job run, stopped, retried or removed, only by a
+    # credential that takes the target in.
+    ("Common/Util/RestApiMigrations.cpp", "HandleMigrations_", "!CallerTakesInAccount_(caller, account)"),
+    ("Common/Util/RestApiMigrations.cpp", "HandleMigrations_", "!takesInTarget(one)"),
+    ("Common/Util/RestApiMigrations.cpp", "HandleMigrations_", "!takesInTarget(job)"),
+    # An inbound webhook route takes an address's mail instead of its mailbox,
+    # or copies it: made, changed or removed only by a credential that takes in
+    # every account the route reaches - the address's, or a routed domain's
+    # administrative ones (InboundWebhookReachesAccountBeyond_, which asks
+    # CallerTakesInAccount_ of each).
+    ("Common/Util/RestApiInboundWebhooks.cpp", "InboundWebhookReachesAccountBeyond_",
+     "!CallerTakesInAccount_(caller, account)"),
+]
+
+# The inbound webhook writes that must ask InboundWebhookReachesAccountBeyond_,
+# and how many times HandleInboundWebhooks_ must ask it: the create, the update
+# and the delete.
+INBOUND_WEBHOOK_TAKES_IN = ("Common/Util/RestApiInboundWebhooks.cpp", "HandleInboundWebhooks_",
+                            "InboundWebhookReachesAccountBeyond_(caller, hook.address)", 3)
+
+# TAKES_IN_COMPLETE. Every route DomainNamedByRoute_ scopes by the domain of an
+# ADDRESS (StringParser::ExtractDomain of the identifier) and IsMutatingRoute_
+# calls mutating must be in ChangesAccountByAddress_, be one of the exemptions
+# below, or name something that is not an account. A new route that changes an
+# account and is in none of them is a route that forgot the question - the
+# shape of every take-in finding of 26 September 2026 - and fails here.
+#
+# Exempt, each for its reason (RestApiServer::ChangesAccountByAddress_ says the same):
+TAKES_IN_EXEMPT = {
+    "RouteAccountUnlock": "letting the owner try again takes nothing over",
+    "RouteAccountReviewUnlock": "letting the owner try again takes nothing over",
+    "RouteAccountExport": "reads the account out and changes nothing; needs manage_roles, the server administrator's alone",
+}
+
+# Named by an address that is not an account's: a list's, an alias's, a spam
+# trap's. Held to their domain by DomainNamedByRoute_, which is the whole of it.
+NOT_ACCOUNT_ADDRESS_ROUTES = {
+    "RouteListDelete", "RouteListUpdate", "RouteListMembers", "RouteListArchive", "RouteListArchiveGet",
+    "RouteListMemberResetBounces", "RouteListMemberApprove", "RouteAliasDelete", "RouteSpamTrapDelete",
+}
+
+# The COM half of the rule: every COM write to what is in an account asks
+# COMAuthentication's MayChangeAccount, MayChangeRule, MayChangeRuleOwnedBy or
+# MayChangeFolder - where the write is made, since a rule's AccountID or an
+# action's RuleID can be pointed elsewhere after the object was reached.
+# (file, Class::Method) - the method's body must name one of them.
+COM_TAKES_IN = [
+    ("COM/InterfaceFetchAccount.cpp", "InterfaceFetchAccount::put_AccountID"),
+    ("COM/InterfaceFetchAccount.cpp", "InterfaceFetchAccount::Save"),
+    ("COM/InterfaceFetchAccount.cpp", "InterfaceFetchAccount::DownloadNow"),
+    ("COM/InterfaceFetchAccount.cpp", "InterfaceFetchAccount::Delete"),
+    ("COM/InterfaceFetchAccounts.cpp", "InterfaceFetchAccounts::Delete"),
+    ("COM/InterfaceFetchAccounts.cpp", "InterfaceFetchAccounts::DeleteByDBID"),
+    ("COM/InterfaceRule.cpp", "InterfaceRule::put_AccountID"),
+    ("COM/InterfaceRule.cpp", "InterfaceRule::MoveUp"),
+    ("COM/InterfaceRule.cpp", "InterfaceRule::MoveDown"),
+    ("COM/InterfaceRule.cpp", "InterfaceRule::Save"),
+    ("COM/InterfaceRule.cpp", "InterfaceRule::Delete"),
+    ("COM/InterfaceRules.cpp", "InterfaceRules::DeleteByDBID"),
+    ("COM/InterfaceRuleAction.cpp", "InterfaceRuleAction::put_RuleID"),
+    ("COM/InterfaceRuleAction.cpp", "InterfaceRuleAction::Save"),
+    ("COM/InterfaceRuleAction.cpp", "InterfaceRuleAction::MoveUp"),
+    ("COM/InterfaceRuleAction.cpp", "InterfaceRuleAction::MoveDown"),
+    ("COM/InterfaceRuleAction.cpp", "InterfaceRuleAction::Delete"),
+    ("COM/InterfaceRuleActions.cpp", "InterfaceRuleActions::DeleteByDBID"),
+    ("COM/InterfaceRuleActions.cpp", "InterfaceRuleActions::Delete"),
+    ("COM/InterfaceRuleCriteria.cpp", "InterfaceRuleCriteria::put_RuleID"),
+    ("COM/InterfaceRuleCriteria.cpp", "InterfaceRuleCriteria::Save"),
+    ("COM/InterfaceRuleCriteria.cpp", "InterfaceRuleCriteria::Delete"),
+    ("COM/InterfaceRuleCriterias.cpp", "InterfaceRuleCriterias::DeleteByDBID"),
+    ("COM/InterfaceRuleCriterias.cpp", "InterfaceRuleCriterias::Delete"),
+    ("COM/InterfaceIMAPFolder.cpp", "InterfaceIMAPFolder::Save"),
+    ("COM/InterfaceIMAPFolder.cpp", "InterfaceIMAPFolder::Delete"),
+    ("COM/InterfaceIMAPFolders.cpp", "InterfaceIMAPFolders::DeleteByDBID"),
+    ("COM/InterfaceIMAPFolders.cpp", "InterfaceIMAPFolders::Add"),
+    ("COM/InterfaceIMAPFolderPermission.cpp", "InterfaceIMAPFolderPermission::Save"),
+    ("COM/InterfaceIMAPFolderPermission.cpp", "InterfaceIMAPFolderPermission::Delete"),
+    ("COM/InterfaceIMAPFolderPermissions.cpp", "InterfaceIMAPFolderPermissions::Delete"),
+    ("COM/InterfaceIMAPFolderPermissions.cpp", "InterfaceIMAPFolderPermissions::Add"),
+    ("COM/InterfaceIMAPFolderPermissions.cpp", "InterfaceIMAPFolderPermissions::DeleteByDBID"),
+    ("COM/InterfaceMessage.cpp", "InterfaceMessage::Save"),
+    ("COM/InterfaceMessage.cpp", "InterfaceMessage::Copy"),
+    ("COM/InterfaceMessages.cpp", "InterfaceMessages::DeleteByDBID"),
+    ("COM/InterfaceMessages.cpp", "InterfaceMessages::Clear"),
+    ("COM/InterfaceAccount.cpp", "InterfaceAccount::DeleteMessages"),
+    ("COM/InterfaceAccount.cpp", "InterfaceAccount::RevokeDevice"),
+    ("COM/InterfaceAccount.cpp", "InterfaceAccount::ClearRecoveryAddress"),
+    ("COM/InterfaceAccount.cpp", "InterfaceAccount::ClearRecoveryCodes"),
+    ("COM/InterfaceAccount.cpp", "InterfaceAccount::RemovePushSubscriptions"),
+]
+
+COM_TAKES_IN_QUESTIONS = ("MayChangeAccount(", "MayChangeRule(", "MayChangeRuleOwnedBy(", "MayChangeFolder(")
 
 # The second permissions that were decided, and must stay decided. A route
 # here must be named in SecondPermissionFor_ with exactly this permission;
@@ -308,6 +438,117 @@ def check_required(problems):
         if needle not in text:
             problems.append("%s: %s is missing - the choke point this check protects"
                             % (rel, needle.rstrip("(")))
+
+
+def check_takes_in(problems, reader=read):
+    for rel, handler, needle in TAKES_IN:
+        try:
+            text = reader(rel)
+        except OSError:
+            text = ""
+        body = function_body(text, handler)
+        if body is None:
+            problems.append("%s: RestApiServer::%s could not be read" % (rel, handler))
+        elif needle not in body:
+            problems.append(
+                "%s: RestApiServer::%s does not ask '%s' - it changes an account, and the account's "
+                "domain being the credential's is not the account being the credential's to change"
+                % (rel, handler, needle))
+
+
+def check_inbound_webhook_takes_in(problems, reader=read):
+    rel, handler, needle, wanted = INBOUND_WEBHOOK_TAKES_IN
+    try:
+        text = reader(rel)
+    except OSError:
+        text = ""
+    body = function_body(text, handler)
+    if body is None:
+        problems.append("%s: RestApiServer::%s could not be read" % (rel, handler))
+        return
+    found = body.count(needle)
+    if found < wanted:
+        problems.append(
+            "%s: RestApiServer::%s asks '%s' %d time(s), not %d - a route's create, update and delete each change "
+            "what reaches the accounts it routes" % (rel, handler, needle, found, wanted))
+
+
+def address_named_routes(cpp):
+    """The route kinds DomainNamedByRoute_ scopes by the domain of an address:
+    the cases whose group returns StringParser::ExtractDomain(...identifier...)."""
+    body = function_body(cpp, "DomainNamedByRoute_") or ""
+    named = set()
+    pending = []
+    for line in body.split("\n"):
+        label = re.match(r"\s+case (Route\w+):", line)
+        if label:
+            pending.append(label.group(1))
+            continue
+        answer = re.match(r"\s+return (.*);", line)
+        if answer and pending:
+            if "ExtractDomain" in answer.group(1) and "identifier" in answer.group(1):
+                named.update(pending)
+            pending = []
+    return named
+
+
+def check_takes_in_complete(problems, cpp):
+    named = address_named_routes(cpp)
+    mutating = cases(function_body(cpp, "IsMutatingRoute_"))
+    central = cases(function_body(cpp, "ChangesAccountByAddress_"))
+
+    if not named:
+        problems.append("%s: DomainNamedByRoute_'s address-named routes could not be read" % REST_CPP)
+        return
+    if not central:
+        problems.append("%s: ChangesAccountByAddress_ could not be read - the take-in rule's one list" % REST_CPP)
+        return
+
+    for kind in sorted(named & mutating):
+        if kind in central or kind in TAKES_IN_EXEMPT or kind in NOT_ACCOUNT_ADDRESS_ROUTES:
+            continue
+        problems.append(
+            "%s: %s changes something named by an account's address and is not in ChangesAccountByAddress_ - "
+            "a domain's administrator would reach the server administrator's mailbox in its domain by it. "
+            "Name it there, or in TAKES_IN_EXEMPT here with the reason it takes nothing over"
+            % (REST_CPP, kind))
+
+    for kind in sorted(central):
+        if kind not in named:
+            problems.append(
+                "%s: %s is in ChangesAccountByAddress_ but DomainNamedByRoute_ does not read its identifier as an "
+                "address - the rule would look up an account under something that is not one" % (REST_CPP, kind))
+        if kind in TAKES_IN_EXEMPT:
+            problems.append("%s: %s is both asked and exempt - one of the two is wrong" % (REST_CPP, kind))
+
+
+def com_method_body(text, name):
+    """One COM method's body, from 'Class::Method(' to the closing brace in column 0."""
+    match = re.search(re.escape(name) + r"\s*\(", text)
+    if not match:
+        return None
+    end = text.find("\n}\n", match.start())
+    if end < 0:
+        end = text.find("\r\n}\r\n", match.start())
+    if end < 0:
+        return None
+    return text[match.start():end]
+
+
+def check_com_takes_in(problems, reader=read):
+    for rel, method in COM_TAKES_IN:
+        try:
+            text = reader(rel)
+        except OSError:
+            text = ""
+        body = com_method_body(text, method)
+        if body is None:
+            problems.append("%s: %s could not be read" % (rel, method))
+        elif not any(question in body for question in COM_TAKES_IN_QUESTIONS):
+            problems.append(
+                "%s: %s writes to what is in an account without asking COMAuthentication's MayChange* - "
+                "a domain's administrator would reach the server administrator's mailbox in its domain by it"
+                % (rel, method))
 
 
 def check_routes(problems, header, cpp, role_cpp):
@@ -506,6 +747,94 @@ def self_test():
         ("helpdesk holds AdministerServer", "a narrow role holding the full authority is not reported"),
     ]
 
+    # A handler in TAKES_IN that no longer asks: its body without the question.
+    fake_handler = """
+   HttpResponse
+   RestApiServer::HandleAccountResources_(const Caller &caller, const Route &route, const AnsiString &requestBody)
+   {
+      std::shared_ptr<Account> account = AccountAt(String(route.identifier));
+      return CreateAppPassword(bridge, account, requestBody);
+   }
+"""
+    check_takes_in(problems, lambda rel: fake_handler)
+    wanted.append(("RestApiServer::HandleAccountResources_ does not ask",
+                   "a handler that changes an account without asking whether the credential takes it in is not reported"))
+
+    # A mutating route named by an account's address that nobody put in
+    # ChangesAccountByAddress_, and one put there that names no address.
+    fake_takes_in = """
+   RestApiServer::IsMutatingRoute_(RouteKind kind)
+   {
+      switch (kind)
+      {
+      case RouteAccountThingNobodyAsked:
+      case RouteAccountRuleCreate:
+         return true;
+      }
+   }
+
+   RestApiServer::ChangesAccountByAddress_(RouteKind kind)
+   {
+      switch (kind)
+      {
+      case RouteAccountRuleCreate:
+      case RouteDomainThing:
+         return true;
+      default:
+         return false;
+      }
+   }
+
+   RestApiServer::DomainNamedByRoute_(const Route &route)
+   {
+      switch (route.kind)
+      {
+      case RouteDomainThing:
+         return String(route.identifier);
+      case RouteAccountThingNobodyAsked:
+      case RouteAccountRuleCreate:
+         return StringParser::ExtractDomain(String(route.identifier));
+      }
+   }
+"""
+    check_takes_in_complete(problems, fake_takes_in)
+    wanted.append(("RouteAccountThingNobodyAsked changes something named by an account's address",
+                   "a mutating account route missing from ChangesAccountByAddress_ is not reported"))
+    wanted.append(("RouteDomainThing is in ChangesAccountByAddress_ but DomainNamedByRoute_ does not read",
+                   "a route in ChangesAccountByAddress_ that names no address is not reported"))
+
+    # A COM write to an account's content that no longer asks.
+    fake_com = """
+STDMETHODIMP InterfaceFetchAccount::Save(void)
+{
+   try
+   {
+      HM::PersistentFetchAccount oPersAccount;
+      return oPersAccount.SaveObject(object_) ? S_OK : S_FALSE;
+   }
+}
+"""
+    check_com_takes_in(problems, lambda rel: fake_com)
+    wanted.append(("InterfaceFetchAccount::Save writes to what is in an account without asking",
+                   "a COM write to an account's content without MayChange* is not reported"))
+
+    # An inbound webhook delete that no longer asks whether the route reaches
+    # an account beyond the credential.
+    fake_hooks = """
+   HttpResponse
+   RestApiServer::HandleInboundWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody)
+   {
+      if (InboundWebhookReachesAccountBeyond_(caller, hook.address))
+         return refuseBeyond(hook.address);
+      if (InboundWebhookReachesAccountBeyond_(caller, hook.address))
+         return refuseBeyond(hook.address);
+      InboundWebhooks::Instance()->DeleteRoute(hook.address);
+   }
+"""
+    check_inbound_webhook_takes_in(problems, lambda rel: fake_hooks)
+    wanted.append(("RestApiServer::HandleInboundWebhooks_ asks 'InboundWebhookReachesAccountBeyond_(caller, hook.address)' 2 time(s), not 3",
+                   "an inbound webhook write that no longer asks the take-in question is not reported"))
+
     for needle, complaint in wanted:
         if not any(needle in problem for problem in problems):
             failures.append(complaint)
@@ -513,6 +842,10 @@ def self_test():
     # And the happy case: the tree as it stands must produce none of these.
     real = []
     check_routes(real, read(REST_H), read(REST_CPP), read(ROLE_CPP))
+    check_takes_in(real)
+    check_takes_in_complete(real, read(REST_CPP))
+    check_com_takes_in(real)
+    check_inbound_webhook_takes_in(real)
     if real:
         failures.append("the tree itself fails the route rules: " + "; ".join(real[:3]))
 
@@ -534,6 +867,10 @@ def main():
     problems = []
     check_call_sites(problems)
     check_required(problems)
+    check_takes_in(problems)
+    check_takes_in_complete(problems, read(REST_CPP))
+    check_com_takes_in(problems)
+    check_inbound_webhook_takes_in(problems)
     check_routes(problems, read(REST_H), read(REST_CPP), read(ROLE_CPP))
 
     if problems:

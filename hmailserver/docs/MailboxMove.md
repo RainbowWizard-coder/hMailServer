@@ -279,7 +279,10 @@ one it is going to. The server administrator and a domain administrator of both
 domains have it; the help-desk role does not, and neither does the auditor. A
 credential may also not move an account that holds administrative authority the
 credential does not itself hold — the same rule that stops a help desk resetting
-a domain administrator's password.
+a domain administrator's password. So a domain administrator cannot rename or move
+the server administrator's own mailbox where it sits in its domain. COM has always
+asked this; `POST /api/v1/accounts/{address}/move` asks it from 6.3.4 and answers
+`403` *that account holds authority this credential does not*.
 
 `view_accounts` is enough to read `GET …/move` and the journal, so an auditor can
 see that a mailbox moved without being able to move one.

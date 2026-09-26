@@ -1780,13 +1780,32 @@ namespace HM
    // The one entry point the dispatcher reaches for this unit's routes: the
    // kind says which resource and which verb, the identifier the account.
    HttpResponse
-   RestApiServer::HandleAccountResources_(const Route &route, const AnsiString &requestBody)
+   RestApiServer::HandleAccountResources_(const Caller &caller, const Route &route, const AnsiString &requestBody)
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_, &RestApiServer::AppPasswordJson_, &RestApiServer::AppendFolderJson_ };
 
       std::shared_ptr<Account> account = AccountAt(String(route.identifier));
       if (!account)
          return Refusal(bridge, 404, "account not found");
+
+      // Authorize_ scoped the route to the account's domain; that is not the
+      // same as the account being this credential's to change. An app password
+      // issued here is a logon of the account's - over IMAP, POP3 and SMTP past
+      // its second factor, and until 26 September 2026 over COM with the
+      // account's whole role - so a domain administrator who could mint one on
+      // the server administrator's mailbox in its domain was the server
+      // administrator. The same holds of a folder shared to somebody, mail
+      // written into or deleted from the mailbox, and a device revoked: each
+      // changes an account whose authority the credential may not hold, which
+      // the account update, the password reset and the mailbox key recovery
+      // already refuse. Reads are view_mailbox's and view_accounts', decided
+      // by Authorize_.
+      if (IsMutatingRoute_(route.kind) && !CallerTakesInAccount_(caller, account))
+      {
+         LOG_APPLICATION("RestApi: Refused a change to " + account->GetAddress() + " for " + String(caller.identity) +
+            ": it holds authority the credential does not.");
+         return AccountNotTakenIn_();
+      }
 
       switch (route.kind)
       {

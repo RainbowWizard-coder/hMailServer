@@ -52,6 +52,45 @@ namespace HM
       // Whether this credential reaches every domain rather than a list of them.
       bool ReachesEveryDomain() const;
 
+      // Whether this credential's authority takes in the stored account's
+      // (RoleManager::Encompasses): the rule Account.Save and MoveTo apply,
+      // asked where a credential of the account's is issued or taken back
+      // with no Account.Save to pass through - its app passwords. False for an
+      // account that cannot be read.
+      bool TakesInAccount(__int64 accountID) const;
+
+      // THE rule for a COM write to what is IN an account - its fetch
+      // accounts, its rules and their actions and criteria, its folders and
+      // their grants, its messages, its recovery, its devices - asked where
+      // the write is made, not where the object was reached, because an object
+      // can be pointed elsewhere (a rule's AccountID, an action's RuleID) after
+      // it was reached. True when the credential reaches the account as
+      // Links.Account decides - the server administrator, an administrator of
+      // its domain, or the account itself - and takes in its authority
+      // (TakesInAccount). An account id of 0 is no account's (a public
+      // folder, a queued message): what reaches it is gated where it is
+      // reached. An account that is gone is the server administrator's alone
+      // to tidy. An unauthenticated holder is the script host - an event
+      // script's objects carry no credential and no client reaches an
+      // account's content without one - and is left as Account.Save leaves it.
+      bool MayChangeAccount(__int64 accountID) const;
+
+      // A rule's owner, by the rule's AccountID and DomainID: an account's
+      // (MayChangeAccount), a domain's (the server administrator or that
+      // domain's administrator) or the server's (the server administrator).
+      bool MayChangeRuleOwnedBy(__int64 accountID, __int64 domainID) const;
+
+      // The owner of the stored rule ruleID; true for 0, a rule not yet saved,
+      // whose own Save asks MayChangeRuleOwnedBy.
+      bool MayChangeRule(__int64 ruleID) const;
+
+      // The owner of the stored folder folderID (MayChangeAccount of its
+      // account; a public folder is no account's).
+      bool MayChangeFolder(__int64 folderID) const;
+
+      // What the COM writes answer when the rule above says no.
+      static const wchar_t *const NotTakenIn;
+
       // What this credential holds, for the actor the audit trail records and
       // for the Control Panel, which hides a page a role may not use.
       const RoleGrant &GetGrant() const { return grant_; }
@@ -106,6 +145,11 @@ namespace HM
 
       void ResolveGrant_();
       void InstallActor_() const;
+
+      // An account's credential that matched one of its app passwords rather
+      // than its own password is not a COM logon: account_ is left empty. See
+      // Authenticate.
+      void RefuseAppPassword_(bool viaAppPassword);
 
       std::shared_ptr<const Account> account_;
 

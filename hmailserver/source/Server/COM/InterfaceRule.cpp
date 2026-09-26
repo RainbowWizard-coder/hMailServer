@@ -55,6 +55,12 @@ STDMETHODIMP InterfaceRule::put_AccountID(LONG newVal)
       if (!object_)
          return GetAccessDenied();
 
+      // Moving the rule is changing both owners: the one it has now and the
+      // account it would belong to.
+      if (!authentication_->MayChangeRuleOwnedBy(object_->GetAccountID(), object_->GetDomainID()) ||
+          !authentication_->MayChangeRuleOwnedBy(newVal, newVal > 0 ? 0 : object_->GetDomainID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       object_->SetAccountID(newVal);
    
       return S_OK;
@@ -227,6 +233,9 @@ STDMETHODIMP InterfaceRule::MoveUp()
       if (!object_)
          return GetAccessDenied();
 
+      if (!authentication_->MayChangeRuleOwnedBy(object_->GetAccountID(), object_->GetDomainID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       if (object_->GetID() <= 0)
          return COMError::GenerateError("Object not yet saved.");
    
@@ -246,6 +255,9 @@ STDMETHODIMP InterfaceRule::MoveDown()
    {
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeRuleOwnedBy(object_->GetAccountID(), object_->GetDomainID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       if (object_->GetID() <= 0)
          return COMError::GenerateError("Object not yet saved.");
@@ -267,6 +279,13 @@ STDMETHODIMP InterfaceRule::Save()
 
       if (!object_)
          return GetAccessDenied();
+
+      // The rule's owner must be one this credential may change - an
+      // account's, a domain's or the server's (MayChangeRuleOwnedBy) - and,
+      // for a rule already stored, so must the owner it was stored under.
+      if (!authentication_->MayChangeRuleOwnedBy(object_->GetAccountID(), object_->GetDomainID()) ||
+          (object_->GetID() > 0 && !authentication_->MayChangeRule(object_->GetID())))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       // Set the sort order of the rule.
       if (object_->GetID() == 0 && object_->GetSortOrder() == 0)
@@ -307,6 +326,10 @@ STDMETHODIMP InterfaceRule::Delete()
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeRuleOwnedBy(object_->GetAccountID(), object_->GetDomainID()) ||
+          (object_->GetID() > 0 && !authentication_->MayChangeRule(object_->GetID())))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       if (!parent_collection_)
          return HM::PersistentRule::DeleteObject(object_) ? S_OK : S_FALSE;

@@ -138,7 +138,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandlePortalBrandingPut_(const AnsiString &requestBody)
+   RestApiServer::HandlePortalBrandingPut_(const Caller &caller, const AnsiString &requestBody)
    {
       JsonValue document;
       std::string parseError;
@@ -152,6 +152,15 @@ namespace HM
       domain.ToLower();
       if (!domain.IsEmpty() && !ValidDomain(domain))
          return BuildResponse_(400, "{\"error\":\"domain is a domain name\"}");
+
+      // The domain is in the body, where Authorize_ cannot see it: without this
+      // a credential confined to one domain rewrote the sign-in announcement
+      // and the logo of every domain, or of the server - a page every person
+      // signing in reads and trusts.
+      HttpResponse refusal;
+      if (DomainInBodyRefused_(caller, domain, refusal))
+         return refusal;
+
       String suffix = domain.IsEmpty() ? String() : _T(".") + domain;
 
       AnsiString problem;

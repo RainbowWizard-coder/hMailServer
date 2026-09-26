@@ -791,15 +791,14 @@ namespace HM
          return BuildResponse_(405, "{\"error\":\"GET fetches the file\"}");
       }
 
-#ifdef HM_PLATFORM_POSIX
-      const AnsiString narrowPath(PathOf(token));
-      std::ifstream in(narrowPath.c_str(), std::ios::binary);
-#else
-      std::ifstream in(PathOf(token).c_str(), std::ios::binary);
-#endif
-      if (!in)
+      // Sent from disk by the HTTP server a piece at a time (body_file), never
+      // read into memory here: a file link is up to 500 MB, and until 26
+      // September 2026 each download held three whole copies of it until the
+      // reader had taken the last byte - 64 slow readers, 32 GB. The server
+      // also caps how many such downloads run at once (HttpLimits).
+      const String path = PathOf(token);
+      if (!FileUtilities::Exists(path))
          return Page(404, "No such file", "<h1>No such file</h1><p>There is no file at this address, or it has been removed.</p>");
-      std::string bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 
       SQLCommand counted("update hm_files set filedownloads = filedownloads + 1 where fileid = @ID");
       counted.AddParameter("@ID", row.id);
@@ -808,7 +807,7 @@ namespace HM
       HttpResponse response;
       response.status = 200;
       response.content_type = SafeType(row.type);
-      response.body = AnsiString(bytes);
+      response.body_file = path;
       // Never compressed, for the reason the attachment route gives: the type
       // is the one the sender declared, the bytes are whatever they uploaded,
       // and a file sent as a link is by definition one too large to have gone
@@ -839,7 +838,7 @@ namespace HM
    // built-in default to the server), absent leaves it. With domain, the
    // domain's own; without, the server's.
    HttpResponse
-   RestApiServer::HandlePortalFilesPolicyPut_(const AnsiString &requestBody)
+   RestApiServer::HandlePortalFilesPolicyPut_(const Caller &caller, const AnsiString &requestBody)
    {
       JsonValue document;
       std::string parseError;
@@ -852,6 +851,13 @@ namespace HM
       domain.ToLower();
       if (!domain.IsEmpty() && !ValidDomain(domain))
          return BuildResponse_(400, "{\"error\":\"domain is a domain name\"}");
+
+      // The domain is in the body, where Authorize_ cannot see it: a credential
+      // confined to named domains sets its own domains' policy and no other's,
+      // and never the server's.
+      HttpResponse refusal;
+      if (DomainInBodyRefused_(caller, domain, refusal))
+         return refusal;
 
       struct Field
       {

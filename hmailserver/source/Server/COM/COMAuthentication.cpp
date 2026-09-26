@@ -7,6 +7,7 @@
 #include "./COMAuthentication.h"
 #include "../Common/Util/UpdateApplyToken.h"
 #include "../Common/BO/Account.h"
+#include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/Util/PasswordValidator.h"
 #include "../Common/Util/Totp.h"
 #include "../Common/Util/Crypt.h"
@@ -16,6 +17,10 @@
 #include "../Common/Util/AuditTrail.h"
 
 #include "COMError.h"
+#include "../Common/Application/Application.h"
+#include "../Common/SQL/SQLCommand.h"
+#include "../Common/SQL/DALRecordset.h"
+#include "../Common/SQL/DatabaseConnectionManager.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -57,7 +62,9 @@ namespace HM
          // tool they need in order to respond. Administration stays available on
          // purpose; DCOM access is itself an authenticated Windows privilege, not
          // an anonymous mail port.
-         account_ = HM::PasswordValidator::ValidatePassword(sUsername, sPassword);
+         bool viaAppPassword = false;
+         account_ = HM::PasswordValidator::ValidatePassword(_T(""), sUsername, sPassword, &viaAppPassword);
+         RefuseAppPassword_(viaAppPassword);
       }
 
       ResolveGrant_();
@@ -85,7 +92,9 @@ namespace HM
          // No account, so nothing to verify a code against. Deliberately still runs
          // the ordinary path rather than returning early, so that an unknown name and
          // a wrong password remain indistinguishable from out here.
-         account_ = HM::PasswordValidator::ValidatePassword(sUsername, sPassword);
+         bool viaAppPassword = false;
+         account_ = HM::PasswordValidator::ValidatePassword(_T(""), sUsername, sPassword, &viaAppPassword);
+         RefuseAppPassword_(viaAppPassword);
          ResolveGrant_();
          return account_;
       }
@@ -94,12 +103,15 @@ namespace HM
       if (secret.IsEmpty() || sCode.IsEmpty())
       {
          // No second factor, or no code: the password as it always was - which,
-         // with a factor enrolled, leaves only an app password able to sign in
-         // (PasswordValidator). Nothing to count: no code was offered.
+         // with a factor enrolled, accepts only an app password (PasswordValidator),
+         // and an app password is no COM logon (RefuseAppPassword_), so then
+         // nothing signs in here. Nothing to count: no code was offered.
          HM::SecondFactorOffer noCode;
-         if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, &noCode))
+         bool viaAppPassword = false;
+         if (HM::PasswordValidator::ValidatePassword(pAccount, sPassword, &noCode, &viaAppPassword))
             account_ = pAccount;
 
+         RefuseAppPassword_(viaAppPassword);
          ResolveGrant_();
          return account_;
       }
@@ -119,9 +131,18 @@ namespace HM
          return account_;
       }
 
-      // An app password is a whole credential on its own, the code beside it
-      // or not, as it is in every mail client.
-      if (!viaAppPassword && !AcceptCode_(pAccount->GetAddress(), secret, sCode))
+      // An app password is not a COM logon (RefuseAppPassword_), with a code
+      // beside it or not, so the code is neither judged nor counted: it is
+      // refused as the overloads without a code refuse it.
+      if (viaAppPassword)
+      {
+         account_ = pAccount;
+         RefuseAppPassword_(viaAppPassword);
+         ResolveGrant_();
+         return account_;
+      }
+
+      if (!AcceptCode_(pAccount->GetAddress(), secret, sCode))
       {
          ResolveGrant_();
          return account_;
@@ -260,6 +281,28 @@ namespace HM
    }
 
    void
+   COMAuthentication::RefuseAppPassword_(bool viaAppPassword)
+   {
+      // An app password is a credential for a program that reads and sends
+      // mail: it is what a second factor leaves working in a client that cannot
+      // present a code, and whoever administers the account's domain may issue
+      // one. Accepted here, it was a COM logon with the account's whole role
+      // and no second factor - so an app password a domain administrator
+      // issued on the server administrator's mailbox in its domain logged on
+      // as the server administrator. The REST listener has always taken the
+      // role away from one (ApplyAccountGrant_); COM, which is administration
+      // and nothing else, does not accept one at all, and from outside an app
+      // password reads as a wrong password does.
+      if (!viaAppPassword || !account_)
+         return;
+
+      LOG_APPLICATION("COM logon refused for " + account_->GetAddress() +
+         ": the password given is one of the account's app passwords, which open the mailbox in a mail client and never the administration interface.");
+
+      account_.reset();
+   }
+
+   void
    COMAuthentication::AttempAnonymousAuthentication()
    {
       // No authentication is required if the administration password is empty -
@@ -384,6 +427,96 @@ namespace HM
 
       String reason;
       return RoleManager::Allows(grant_, permission, domainName, reason);
+   }
+
+   bool
+   COMAuthentication::TakesInAccount(__int64 accountID) const
+   {
+      InstallActor_();
+
+      std::shared_ptr<Account> stored = std::shared_ptr<Account>(new Account());
+
+      if (accountID <= 0 || !PersistentAccount::ReadObject(stored, accountID))
+         return false;
+
+      return RoleManager::Encompasses(grant_, RoleManager::GrantForAccount(stored));
+   }
+
+   const wchar_t *const COMAuthentication::NotTakenIn =
+      L"You do not have access to change this. The account it belongs to is not one this credential administers, "
+      L"or holds administrative authority that this credential does not.";
+
+   bool
+   COMAuthentication::MayChangeAccount(__int64 accountID) const
+   {
+      InstallActor_();
+
+      if (!account_)
+         return true;
+
+      if (accountID <= 0)
+         return true;
+
+      std::shared_ptr<Account> stored = std::shared_ptr<Account>(new Account());
+      if (!PersistentAccount::ReadObject(stored, accountID))
+         return GetIsServerAdmin();
+
+      const bool itself = account_->GetID() == stored->GetID();
+      const bool domainAdministrator = GetIsDomainAdmin() && GetDomainID() == stored->GetDomainID();
+
+      if (!GetIsServerAdmin() && !domainAdministrator && !itself)
+         return false;
+
+      return RoleManager::Encompasses(grant_, RoleManager::GrantForAccount(stored));
+   }
+
+   bool
+   COMAuthentication::MayChangeRuleOwnedBy(__int64 accountID, __int64 domainID) const
+   {
+      InstallActor_();
+
+      if (!account_)
+         return true;
+
+      if (accountID > 0)
+         return MayChangeAccount(accountID);
+
+      if (domainID > 0)
+         return GetIsServerAdmin() || (GetIsDomainAdmin() && GetDomainID() == domainID);
+
+      return GetIsServerAdmin();
+   }
+
+   bool
+   COMAuthentication::MayChangeRule(__int64 ruleID) const
+   {
+      if (!account_ || ruleID <= 0)
+         return true;
+
+      SQLCommand command("select ruleaccountid, ruledomainid from hm_rules where ruleid = @RULEID");
+      command.AddParameter("@RULEID", ruleID);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return GetIsServerAdmin();
+
+      return MayChangeRuleOwnedBy(recordset->GetInt64Value("ruleaccountid"), recordset->GetInt64Value("ruledomainid"));
+   }
+
+   bool
+   COMAuthentication::MayChangeFolder(__int64 folderID) const
+   {
+      if (!account_ || folderID <= 0)
+         return true;
+
+      SQLCommand command("select folderaccountid from hm_imapfolders where folderid = @FOLDERID");
+      command.AddParameter("@FOLDERID", folderID);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return GetIsServerAdmin();
+
+      return MayChangeAccount(recordset->GetInt64Value("folderaccountid"));
    }
 
    bool

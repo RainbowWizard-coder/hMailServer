@@ -145,6 +145,11 @@ STDMETHODIMP InterfaceMessages::DeleteByDBID(hyper lDBID)
       if (!messages_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(messages_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       std::shared_ptr<HM::Message> pMsg = messages_->GetItemByDBID(lDBID);
 
       if (!pMsg)
@@ -207,6 +212,9 @@ InterfaceMessages::Clear()
    {
       if (!messages_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(messages_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       messages_->DeleteAll();
       return S_OK;

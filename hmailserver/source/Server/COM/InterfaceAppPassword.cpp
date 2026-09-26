@@ -252,6 +252,9 @@ STDMETHODIMP InterfaceAppPassword::Save()
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
 
+      if (!authentication_->TakesInAccount(object_->GetAccountID()))
+         return COMError::GenerateError("You do not have access to change the app passwords of this account. It holds administrative authority that this credential does not.");
+
       // Stamped here rather than in the constructor: an object that is created,
       // abandoned and never saved should leave no trace, and the creation time that
       // matters is the one the row was written with.
@@ -287,6 +290,9 @@ STDMETHODIMP InterfaceAppPassword::Delete()
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
+
+      if (!authentication_->TakesInAccount(object_->GetAccountID()))
+         return COMError::GenerateError("You do not have access to change the app passwords of this account. It holds administrative authority that this credential does not.");
 
       if (!parent_collection_)
          return HM::PersistentAppPassword::DeleteObject(object_) ? S_OK : S_FALSE;

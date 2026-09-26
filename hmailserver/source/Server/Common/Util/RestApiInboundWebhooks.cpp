@@ -22,7 +22,11 @@
 // credential confined to named domains routes, reads and changes those domains'
 // addresses and no other, the listings and the queue narrowed to them here, and
 // a delivery of a route outside them is the same 404 as none. The pass is every
-// domain's and is refused to such a credential in Authorize_.
+// domain's and is refused to such a credential in Authorize_. A route takes an
+// address's mail instead of its mailbox, or copies it, so a route is made,
+// changed or removed only by a credential that takes in every account it would
+// reach (InboundWebhookReachesAccountBeyond_): the address's account, or every
+// administrative account of a routed domain.
 //
 // WHERE A ROUTE MAY POINT. The server's administrator (the administrator
 // password, or an account whose role holds manage_server and reaches every
@@ -53,8 +57,19 @@
 #include "InboundWebhooks.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
+#include "Parsing/StringParser.h"
+#include "../Application/Application.h"
+#include "../Application/RoleManager.h"
+#include "../BO/Account.h"
+#include "../BO/Domain.h"
+#include "../Cache/CacheContainer.h"
+#include "../SQL/DALRecordset.h"
+#include "../SQL/DatabaseConnectionManager.h"
+#include "../SQL/SQLCommand.h"
+#include "../../SMTP/PlusAddressing.h"
 
 #include <ctime>
+#include <set>
 #include <string>
 
 #ifdef _DEBUG
@@ -228,6 +243,68 @@ namespace HM
       }
    }
 
+   bool
+   RestApiServer::InboundWebhookReachesAccountBeyond_(const Caller &caller, const String &routeAddress)
+   {
+      std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(InboundWebhooks::DomainOf(routeAddress));
+
+      if (routeAddress.Find(_T("@")) >= 0)
+      {
+         // The address as written, and the account its plus tag names: a
+         // route on either takes that account's mail (InboundWebhooks::FindRoute).
+         std::vector<String> names;
+         names.push_back(routeAddress);
+         if (domain)
+            names.push_back(PlusAddressing::ExtractAccountAddress(routeAddress, domain));
+
+         for (const String &name : names)
+         {
+            std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(name);
+            if (account && !CallerTakesInAccount_(caller, account))
+               return true;
+         }
+
+         return false;
+      }
+
+      // A domain's route takes the mail of every address of the domain without
+      // a route of its own - its accounts' included. An account with no admin
+      // level and no role holds no authority and is taken in by any credential,
+      // so the ones to ask are those with an admin level and those with a role.
+      if (!domain)
+         return false;
+
+      std::set<__int64> candidates;
+
+      SQLCommand command("select accountid from hm_accounts where accountdomainid = @DOMAINID and accountadminlevel > 0");
+      command.AddParameter("@DOMAINID", (__int64) domain->GetID());
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return true;   // what the domain holds cannot be read: refused, the safer answer
+
+      while (!recordset->IsEOF())
+      {
+         candidates.insert(recordset->GetInt64Value("accountid"));
+         recordset->MoveNext();
+      }
+
+      for (const RoleAssignment &assignment : RoleManager::ListAssignments())
+         candidates.insert(assignment.account_id);
+
+      for (__int64 id : candidates)
+      {
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(id);
+         if (!account || account->GetDomainID() != domain->GetID())
+            continue;
+
+         if (!CallerTakesInAccount_(caller, account))
+            return true;
+      }
+
+      return false;
+   }
+
    HttpResponse
    RestApiServer::HandleInboundWebhooks_(const Caller &caller, const Route &route, const AnsiString &requestBody)
    {
@@ -239,6 +316,16 @@ namespace HM
       auto reaches = [&](const String &routeAddress) -> bool
       {
          return IsDomainAllowed_(caller.domains, InboundWebhooks::DomainOf(routeAddress));
+      };
+
+      // The refusal of a route that would reach an account this credential
+      // does not take in (InboundWebhookReachesAccountBeyond_): the take-in
+      // rule's sentence, as every change to what is in an account answers.
+      auto refuseBeyond = [&](const String &routeAddress) -> HttpResponse
+      {
+         LOG_APPLICATION("RestApi: Refused a change to the inbound webhook for " + routeAddress + " by " + String(caller.identity) +
+            ": it would reach an account that holds authority the credential does not.");
+         return AccountNotTakenIn_();
       };
 
       // Whether this credential may change the routes, and so is answered their
@@ -376,6 +463,9 @@ namespace HM
                // path: a credential confined to named domains routes those.
                if (!reaches(hook.address))
                   return BuildResponse_(403, "{\"error\":\"this credential is not permitted for that domain\"}");
+
+               if (InboundWebhookReachesAccountBeyond_(caller, hook.address))
+                  return refuseBeyond(hook.address);
             }
             else
             {
@@ -383,6 +473,9 @@ namespace HM
                // route off does not need its secret sent back.
                if (!InboundWebhooks::Instance()->GetRoute(String(route.identifier), hook))
                   return BuildResponse_(404, "{\"error\":\"no inbound webhook routes that address\"}");
+
+               if (InboundWebhookReachesAccountBeyond_(caller, hook.address))
+                  return refuseBeyond(hook.address);
 
                const JsonValue *address = body.Get("address");
                if (address != nullptr &&
@@ -461,6 +554,9 @@ namespace HM
             InboundWebhooks::Route hook;
             if (!InboundWebhooks::Instance()->GetRoute(String(route.identifier), hook))
                return BuildResponse_(404, "{\"error\":\"no inbound webhook routes that address\"}");
+
+            if (InboundWebhookReachesAccountBeyond_(caller, hook.address))
+               return refuseBeyond(hook.address);
 
             if (!InboundWebhooks::Instance()->DeleteRoute(hook.address))
                return BuildResponse_(500, "{\"error\":\"the inbound webhook could not be removed\"}");
@@ -659,7 +755,7 @@ namespace HM
          "\"max_size_kb\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":81920,\"description\":\"A larger message is not posted. At most 81920, the 80 MB the message parser takes; 0: no ceiling of the route's own, which is then 81920.\"},"
          "\"enabled\":{\"type\":\"boolean\"}"
          "}}}}},"
-         "\"responses\":{\"201\":{\"description\":\"The route as it now stands\"},\"400\":{\"description\":\"A field was refused, with the reason\"},\"403\":{\"description\":\"The credential does not reach the address's domain\"},\"409\":{\"description\":\"The address has a route already\"}}}}"
+         "\"responses\":{\"201\":{\"description\":\"The route as it now stands\"},\"400\":{\"description\":\"A field was refused, with the reason\"},\"403\":{\"description\":\"The credential does not reach the address's domain, or the route would reach an account that holds authority this credential does not: the address's, or one of the domain's with an admin level or a role\"},\"409\":{\"description\":\"The address has a route already\"}}}}"
          ",\"/api/v1/inbound-webhooks/{address}\":{\"get\":{\"summary\":\"One inbound webhook\","
          "\"description\":\"As the listing shows it. The shared secret is never returned. Needs view_configuration in the address's domain.\","
          "\"parameters\":[{\"name\":\"address\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
@@ -672,11 +768,11 @@ namespace HM
          "\"on_failure\":{\"type\":\"string\",\"enum\":[\"keep\",\"bounce\"]},\"format\":{\"type\":\"string\",\"enum\":[\"form\",\"json\"]},"
          "\"attachments\":{\"type\":\"string\",\"enum\":[\"include\",\"names\",\"none\"]},\"include_raw\":{\"type\":\"boolean\"},"
          "\"max_size_kb\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":81920},\"enabled\":{\"type\":\"boolean\"}}}}}},"
-         "\"responses\":{\"200\":{\"description\":\"The route as saved\"},\"400\":{\"description\":\"A field was refused, with the reason\"},\"404\":{\"description\":\"No route for that address\"}}},"
+         "\"responses\":{\"200\":{\"description\":\"The route as saved\"},\"400\":{\"description\":\"A field was refused, with the reason\"},\"403\":{\"description\":\"The route would reach an account that holds authority this credential does not: the address's, or one of the domain's with an admin level or a role\"},\"404\":{\"description\":\"No route for that address\"}}},"
          "\"delete\":{\"summary\":\"Remove an inbound webhook\","
          "\"description\":\"Removes the route, its queue and every message the queue kept. The address is then what it would be with no route. Needs manage_inbound_webhooks in the address's domain.\","
          "\"parameters\":[{\"name\":\"address\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
-         "\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No route for that address\"}}}}"
+         "\"responses\":{\"200\":{\"description\":\"Removed\"},\"403\":{\"description\":\"The route would reach an account that holds authority this credential does not: the address's, or one of the domain's with an admin level or a role\"},\"404\":{\"description\":\"No route for that address\"}}}}"
          ",\"/api/v1/inbound-webhooks/deliveries\":{\"get\":{\"summary\":\"The inbound webhook queue\","
          "\"description\":\"Newest first: the id (the X-hMailServer-Delivery header's value), the route, when the message was taken, its state (pending, delivered, kept - never accepted, and kept for the administrator - or bounced, returned to its sender), the attempts made, when the next is due, the delivery queue's id for the message, its sender and the route's share of its recipients, its size, whether it was classified as spam, whether a message is still kept for it, and the last failure. Query: route (an address), state and limit (1 to 1000, default 100). Needs view_configuration; a credential confined to named domains is listed its own domains' deliveries.\","
          "\"parameters\":["

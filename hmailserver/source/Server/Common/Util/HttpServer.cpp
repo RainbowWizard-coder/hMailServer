@@ -26,33 +26,216 @@
 //    HTTP/1.0 with Connection: close and are answered exactly as before.
 //
 //  - Absolute ceilings, not idle timeouts. A request timer starts when the
-//    server begins waiting for a request and covers reading it, handling it and
-//    writing the response; a connection timer starts at accept and covers the
-//    connection's whole life. A client that dribbles a byte at a time just
-//    under an idle timeout used to occupy the single worker indefinitely; here
-//    it is closed when the deadline passes, whatever it is doing.
+//    server begins waiting for a request and covers reading it and handling
+//    it; a connection timer starts at accept and covers the connection's whole
+//    life. A client that dribbles a byte at a time just under an idle timeout
+//    used to occupy the single worker indefinitely; here it is closed when the
+//    deadline passes, whatever it is doing.
+//
+//  - The response is written in pieces of WriteChunkBytes, and the request
+//    timer is armed afresh for each: a reader that stops reading is closed
+//    after request_seconds without progress, and one that keeps reading gets
+//    as long as the connection timer allows - which a large download moves
+//    out to fit its size (below). Until 26 September 2026 the
+//    request timer that covered reading the request covered writing the
+//    response too, so a download larger than request_seconds of the reader's
+//    bandwidth - a 100 MB file link at under 27 Mbit/s - was cut off part way,
+//    every time.
+//
+//  - The head is held to max_request_bytes WHILE it is read (HttpHeadMatch), not
+//    once its blank line has arrived: a head that never ends is refused as soon
+//    as it is over the cap, where it used to grow to the size of the largest
+//    body any route takes before anything noticed.
 //
 //  - A connection cap, enforced at accept before the TLS handshake, because the
 //    handshake is the expensive part and the cap exists to bound that cost.
 //
+//  - A body on disk is sent from disk (HttpResponse::body_file), 64 KB at a
+//    time, so a download is never held in memory whole; and the large
+//    downloads - a body file, or a body in memory of large_response_bytes or
+//    more - are capped server-wide (max_large_responses) and given a
+//    connection deadline that fits their size (download_bytes_per_second).
+//    Until 26 September 2026 a file link was read whole into memory, copied
+//    twice more on its way to the socket and cut off at the connection timer,
+//    and 64 slow readers of a 500 MB file could hold 32 GB.
+//
 // What it does not do yet, and says so: bodies are read whole (bounded by
-// max_request_bytes) and responses are written whole, so neither streaming
-// shape a webmail needs exists here; chunked request bodies are refused with
-// 411. Those are the next layer's work, on this foundation.
+// max_request_bytes), and a response a handler builds in memory is held in
+// memory, so neither streaming shape a webmail needs for a request body exists
+// here; chunked request bodies are refused with 411.
 
 #include "StdAfx.h"
 
 #include "HttpServer.h"
 #include "HttpCompression.h"
+#include "FileUtilities.h"
 
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+#ifdef HM_PLATFORM_POSIX
+#include <cerrno>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
 #endif
+
+namespace HM
+{
+   // The end of a request's head, for async_read_until, with the head's cap
+   // applied while it is read. The connection's buffer is sized for the
+   // largest body any route takes (16 MB on the REST listener), and the plain
+   // "\r\n\r\n" delimiter only gives up when that buffer is full - so until
+   // 26 September 2026 each of the listener's connections could be made to
+   // hold 16 MB of a head that never ended, for as long as the request timer
+   // ran, before the 64 KB cap on a head was ever asked. Answered as a match
+   // once the buffer holds more than the cap with no blank line in it; OnHead_
+   // sees a head that does not end in one and refuses it with 413.
+   class HttpHeadMatch
+   {
+   public:
+      HttpHeadMatch(const boost::asio::streambuf &buffer, size_t cap) : buffer_(&buffer), cap_(cap) { }
+
+      template <typename Iterator>
+      std::pair<Iterator, bool> operator()(Iterator begin, Iterator end) const
+      {
+         static const char terminator[] = "\r\n\r\n";
+         Iterator found = std::search(begin, end, terminator, terminator + 4);
+         if (found != end)
+            return std::make_pair(found + 4, true);
+
+         if (buffer_->size() > cap_)
+            return std::make_pair(end, true);
+
+         // Resume where a terminator split across two reads could begin.
+         Iterator resume = begin;
+         if (std::distance(begin, end) > 3)
+            resume = end - 3;
+         return std::make_pair(resume, false);
+      }
+
+   private:
+      const boost::asio::streambuf *buffer_;
+      size_t cap_;
+   };
+
+   // A response's body file, read a piece at a time. Opened so that it can
+   // still be deleted while it is being sent: the sender removing a file link,
+   // or the expiry sweep, while somebody downloads it. On Windows a stream
+   // opened without FILE_SHARE_DELETE would make that delete fail, retry for
+   // four seconds and be reported as an error; here the name goes at once and
+   // the bytes when the download lets go of them, as they do on POSIX.
+   class HttpBodyFile
+   {
+   public:
+      HttpBodyFile() { }
+      ~HttpBodyFile() { Close(); }
+
+      HttpBodyFile(const HttpBodyFile &) = delete;
+      HttpBodyFile &operator=(const HttpBodyFile &) = delete;
+
+      bool Open(const String &path, unsigned long long &size)
+      {
+         Close();
+
+#ifdef HM_PLATFORM_POSIX
+         const AnsiString narrow = path.c_str();
+         descriptor_ = ::open(narrow.c_str(), O_RDONLY | O_CLOEXEC);
+         if (descriptor_ < 0)
+            return false;
+
+         struct stat information;
+         if (::fstat(descriptor_, &information) != 0 || !S_ISREG(information.st_mode))
+         {
+            Close();
+            return false;
+         }
+
+         size = (unsigned long long) information.st_size;
+         return true;
+#else
+         handle_ = ::CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                 nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+         if (handle_ == INVALID_HANDLE_VALUE)
+            return false;
+
+         LARGE_INTEGER length;
+         if (!::GetFileSizeEx(handle_, &length) || length.QuadPart < 0)
+         {
+            Close();
+            return false;
+         }
+
+         size = (unsigned long long) length.QuadPart;
+         return true;
+#endif
+      }
+
+      // What was read into buffer: 0 at the end of the file or on an error,
+      // which the caller tells apart by the bytes it still expected.
+      size_t Read(char *buffer, size_t count)
+      {
+#ifdef HM_PLATFORM_POSIX
+         if (descriptor_ < 0)
+            return 0;
+
+         for (;;)
+         {
+            const ssize_t got = ::read(descriptor_, buffer, count);
+            if (got < 0 && errno == EINTR)
+               continue;
+            return got > 0 ? (size_t) got : 0;
+         }
+#else
+         if (handle_ == INVALID_HANDLE_VALUE)
+            return 0;
+
+         DWORD got = 0;
+         if (!::ReadFile(handle_, buffer, (DWORD) count, &got, nullptr))
+            return 0;
+         return (size_t) got;
+#endif
+      }
+
+      void Close()
+      {
+#ifdef HM_PLATFORM_POSIX
+         if (descriptor_ >= 0)
+            ::close(descriptor_);
+         descriptor_ = -1;
+#else
+         if (handle_ != INVALID_HANDLE_VALUE)
+            ::CloseHandle(handle_);
+         handle_ = INVALID_HANDLE_VALUE;
+#endif
+      }
+
+   private:
+#ifdef HM_PLATFORM_POSIX
+      int descriptor_ = -1;
+#else
+      HANDLE handle_ = INVALID_HANDLE_VALUE;
+#endif
+   };
+}
+
+namespace boost
+{
+   namespace asio
+   {
+      template <> struct is_match_condition<HM::HttpHeadMatch> : public std::true_type { };
+   }
+}
 
 namespace HM
 {
@@ -70,6 +253,19 @@ namespace HM
       const unsigned OverCapLogInterval = 1000;
 
       const char *HeadTerminator = "\r\n\r\n";
+
+      // How much of a response one write hands the socket. Each piece re-arms
+      // the request timer, so this is the progress a reader has to make every
+      // request_seconds to keep the connection. A body file is read from disk
+      // in pieces of the same size, one at a time.
+      const size_t WriteChunkBytes = 64 * 1024;
+
+      // The refusal of a large download over the cap is logged for the first
+      // and then once per this many, as the connection cap's is.
+      const unsigned LargeRefusalLogInterval = 100;
+
+      // What a client refused a large download is told to wait, in seconds.
+      const char *LargeRefusalRetryAfter = "30";
 
       AnsiString ToLower(const AnsiString &value)
       {
@@ -190,6 +386,14 @@ namespace HM
             tls_.reset(new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(socket_, *tls));
       }
 
+      // A connection let go without CloseNow_ - the server stopped with it
+      // queued - still gives back its large-download slot and its temporary
+      // body file.
+      ~HttpConnection()
+      {
+         ReleaseLargeResponse_();
+      }
+
       void Start()
       {
          std::shared_ptr<HttpConnection> self = shared_from_this();
@@ -290,10 +494,12 @@ namespace HM
                self->OnHead_(error, bytes);
             });
 
+         const HttpHeadMatch headEnd(buffer_, limits_.max_request_bytes);
+
          if (tls_)
-            boost::asio::async_read_until(*tls_, buffer_, HeadTerminator, completion);
+            boost::asio::async_read_until(*tls_, buffer_, headEnd, completion);
          else
-            boost::asio::async_read_until(socket_, buffer_, HeadTerminator, completion);
+            boost::asio::async_read_until(socket_, buffer_, headEnd, completion);
       }
 
       void OnHead_(const boost::system::error_code &error, size_t bytes)
@@ -326,6 +532,16 @@ namespace HM
 
          request_ = HttpRequest();
          request_.head.assign(boost::asio::buffers_begin(buffer_.data()), boost::asio::buffers_begin(buffer_.data()) + bytes);
+
+         // HttpHeadMatch answered past the cap with no blank line in sight:
+         // the head alone is over the cap, refused as the full buffer above is.
+         if (request_.head.size() < 4 || request_.head.compare(request_.head.size() - 4, 4, HeadTerminator) != 0)
+         {
+            request_ = HttpRequest();
+            Fail_(413, "request too large");
+            return;
+         }
+
          request_.peer = peer_;
          request_.over_tls = tls_ != nullptr;
          request_.listen_port = listen_port_;
@@ -584,7 +800,12 @@ namespace HM
 
       void Write_(HttpResponse &response)
       {
-         std::shared_ptr<HttpConnection> self = shared_from_this();
+         // A body on disk is sent from disk, never compressed.
+         if (!response.body_file.IsEmpty())
+         {
+            WriteFile_(response);
+            return;
+         }
 
          // The last thing done to an answer before it becomes bytes, and the
          // only place it is done: every response of both listeners - a
@@ -594,24 +815,231 @@ namespace HM
          if (limits_.compression)
             HttpCompression::Apply(request_, response);
 
+         // A large body held in memory is a large download: counted against the
+         // cap - a refusal lets go of the body now rather than when a slow
+         // reader has taken it - and given the time its size needs.
+         if (limits_.large_response_bytes > 0 && (size_t) response.body.GetLength() >= limits_.large_response_bytes)
+         {
+            if (!TakeLargeResponse_())
+            {
+               RefuseLarge_();
+               return;
+            }
+
+            // Closed after it, as a body file's connection is, so the longer
+            // deadline is this download's and not the connection's.
+            keep_alive_ = false;
+            ExtendConnectionDeadline_(response.body.GetLength());
+         }
+
          out_ = HttpServer::Serialize(response, keep_alive_);
+         written_ = 0;
+
+         WriteNext_();
+      }
+
+      // A response whose body is a file: the head now, the file's bytes a
+      // piece at a time after it (WriteNext_ refills out_ from the file). The
+      // connection is closed after it, so a download's longer deadline does not
+      // become the connection's for whatever it is asked next.
+      void WriteFile_(HttpResponse &response)
+      {
+         body_file_path_ = response.body_file;
+         body_file_delete_ = response.body_file_delete;
+         keep_alive_ = false;
+
+         unsigned long long size = 0;
+         if (!body_file_.Open(body_file_path_, size))
+         {
+            ReleaseLargeResponse_();
+            HttpResponse missing = error_responder_(404, "not found");
+            Write_(missing);
+            return;
+         }
+
+         if (!TakeLargeResponse_())
+         {
+            ReleaseLargeResponse_();
+            RefuseLarge_();
+            return;
+         }
+
+         ExtendConnectionDeadline_(size);
+
+         body_file_remaining_ = size;
+         out_ = HttpServer::SerializeHead(response, false, size);
+         written_ = 0;
+
+         WriteNext_();
+      }
+
+      // The next piece of a body file into out_. False when the file ended
+      // before its declared size - it was truncated under us - which leaves
+      // the response's framing a lie, so the caller closes the connection.
+      bool RefillFromFile_()
+      {
+         const size_t wanted = (size_t) std::min<unsigned long long>(WriteChunkBytes, body_file_remaining_);
+
+         out_.resize(wanted);
+         const size_t got = body_file_.Read(&out_[0], wanted);
+         if (got == 0)
+            return false;
+
+         out_.resize(got);
+         body_file_remaining_ -= got;
+         written_ = 0;
+         return true;
+      }
+
+      // One large download too many: 503, with the time to wait, and closed.
+      void RefuseLarge_()
+      {
+         std::shared_ptr<HttpServer> server = server_.lock();
+         if (server)
+         {
+            const unsigned refused = ++server->refused_large_;
+            if (refused == 1 || refused % LargeRefusalLogInterval == 0)
+            {
+               String message;
+               message.Format(_T("%s: Refused a large download to %s - %u are being written, which is the limit. %u refused so far."),
+                  String(server->name_).c_str(), String(peer_.ToString()).c_str(), limits_.max_large_responses, refused);
+               LOG_APPLICATION(message);
+            }
+         }
+         server.reset();
+
+         HttpResponse busy = error_responder_(503, "too many large downloads at once; try again shortly");
+         busy.extra_headers += AnsiString("Retry-After: ") + LargeRefusalRetryAfter + "\r\n";
+         keep_alive_ = false;
+
+         out_ = HttpServer::Serialize(busy, false);
+         written_ = 0;
+         WriteNext_();
+      }
+
+      bool TakeLargeResponse_()
+      {
+         if (holds_large_response_)
+            return true;
+
+         std::shared_ptr<HttpServer> server = server_.lock();
+         if (!server || !server->TakeLargeResponse_())
+            return false;
+
+         holds_large_response_ = true;
+         return true;
+      }
+
+      // The slot back, and the body file closed - and removed, when it was a
+      // temporary one. Safe to call more than once.
+      void ReleaseLargeResponse_()
+      {
+         if (holds_large_response_)
+         {
+            holds_large_response_ = false;
+
+            std::shared_ptr<HttpServer> server = server_.lock();
+            if (server)
+               server->GiveBackLargeResponse_();
+         }
+
+         body_file_.Close();
+         body_file_remaining_ = 0;
+
+         if (body_file_delete_ && !body_file_path_.IsEmpty())
+            FileUtilities::DeleteFile(body_file_path_);
+
+         body_file_delete_ = false;
+         body_file_path_ = String();
+      }
+
+      // The connection timer moved out, never in, to the time bytes take at
+      // download_bytes_per_second, with request_seconds to spare.
+      void ExtendConnectionDeadline_(unsigned long long bytes)
+      {
+         if (limits_.download_bytes_per_second == 0)
+            return;
+
+         const unsigned long long seconds = bytes / limits_.download_bytes_per_second + limits_.request_seconds;
+         const std::chrono::steady_clock::time_point wanted = std::chrono::steady_clock::now() + std::chrono::seconds((long long) seconds);
+
+         if (connection_timer_.expiry() >= wanted)
+            return;
+
+         std::shared_ptr<HttpConnection> self = shared_from_this();
+
+         // expires_at cancels the wait already pending, whose handler then runs
+         // with operation_aborted and does nothing.
+         connection_timer_.expires_at(wanted);
+         connection_timer_.async_wait(boost::asio::bind_executor(strand_,
+            [self](const boost::system::error_code &error)
+            {
+               if (!error)
+                  self->CloseNow_();
+            }));
+      }
+
+      // One piece of out_, with the request timer armed afresh for it: the
+      // deadline on a response is progress, a piece every request_seconds,
+      // under the connection timer's absolute one. A single write of the whole
+      // response under the request's own deadline cut every download off that
+      // the reader could not take in within request_seconds.
+      void WriteNext_()
+      {
+         std::shared_ptr<HttpConnection> self = shared_from_this();
+
+         ArmRequestTimer_();
+
+         const size_t piece = std::min(WriteChunkBytes, out_.size() - written_);
 
          auto completion = boost::asio::bind_executor(strand_,
-            [self](const boost::system::error_code &error, size_t)
+            [self](const boost::system::error_code &error, size_t bytes)
             {
-               self->OnWritten_(error);
+               if (self->closed_)
+                  return;
+
+               self->written_ += bytes;
+
+               if (!error && self->written_ >= self->out_.size() && self->body_file_remaining_ > 0)
+               {
+                  // The head, or the last piece of a body file, is out: the
+                  // next piece from disk.
+                  if (!self->RefillFromFile_())
+                  {
+                     self->CloseNow_();
+                     return;
+                  }
+
+                  self->WriteNext_();
+                  return;
+               }
+
+               if (error || self->written_ >= self->out_.size())
+               {
+                  self->OnWritten_(error);
+                  return;
+               }
+
+               self->WriteNext_();
             });
 
          if (tls_)
-            boost::asio::async_write(*tls_, boost::asio::buffer(out_.data(), out_.size()), completion);
+            boost::asio::async_write(*tls_, boost::asio::buffer(out_.data() + written_, piece), completion);
          else
-            boost::asio::async_write(socket_, boost::asio::buffer(out_.data(), out_.size()), completion);
+            boost::asio::async_write(socket_, boost::asio::buffer(out_.data() + written_, piece), completion);
       }
 
       void OnWritten_(const boost::system::error_code &error)
       {
          if (closed_)
             return;
+
+         // A large download is done with, written or not.
+         ReleaseLargeResponse_();
+
+         // The memory a large response held goes now, not with the connection.
+         if (out_.capacity() > WriteChunkBytes)
+            std::string().swap(out_);
 
          if (error || !keep_alive_)
          {
@@ -658,6 +1086,8 @@ namespace HM
          connection_timer_.cancel();
          socket_.close(ignored);
 
+         ReleaseLargeResponse_();
+
          std::shared_ptr<HttpServer> server = server_.lock();
          if (server)
             server->Untrack_(this);
@@ -684,6 +1114,15 @@ namespace HM
       bool keep_alive_;
       bool closed_;
       std::string out_;
+      size_t written_ = 0;
+
+      // A response's body file while it is sent, and whether this connection
+      // holds one of the server's large-download slots.
+      HttpBodyFile body_file_;
+      String body_file_path_;
+      bool body_file_delete_ = false;
+      unsigned long long body_file_remaining_ = 0;
+      bool holds_large_response_ = false;
    };
 
    HttpServer::HttpServer(const AnsiString &name, const HttpLimits &limits, Handler handler,
@@ -695,7 +1134,9 @@ namespace HM
       error_responder_(error_responder),
       running_(false),
       refused_over_cap_(0),
-      pending_accepts_(0)
+      pending_accepts_(0),
+      large_responses_(0),
+      refused_large_(0)
    {
       if (limits_.worker_threads == 0)
          limits_.worker_threads = 1;
@@ -935,6 +1376,35 @@ namespace HM
       }
    }
 
+   bool
+   HttpServer::TakeLargeResponse_()
+   {
+      // Zero is no cap: counted, never refused.
+      if (limits_.max_large_responses == 0)
+      {
+         large_responses_++;
+         return true;
+      }
+
+      unsigned current = large_responses_.load();
+      do
+      {
+         if (current >= limits_.max_large_responses)
+            return false;
+      } while (!large_responses_.compare_exchange_weak(current, current + 1));
+
+      return true;
+   }
+
+   void
+   HttpServer::GiveBackLargeResponse_()
+   {
+      unsigned current = large_responses_.load();
+      while (current > 0 && !large_responses_.compare_exchange_weak(current, current - 1))
+      {
+      }
+   }
+
    size_t
    HttpServer::GetConnectionCount() const
    {
@@ -1083,6 +1553,23 @@ namespace HM
       out += response.extra_headers;
       out += keep_alive ? "Connection: keep-alive\r\n\r\n" : "Connection: close\r\n\r\n";
       out += response.body;
+
+      return out;
+   }
+
+   AnsiString
+   HttpServer::SerializeHead(const HttpResponse &response, bool keep_alive, unsigned long long content_length)
+   {
+      int status = response.status;
+      AnsiString statusText = StatusText(status);
+
+      AnsiString out;
+      out.Format("HTTP/1.1 %d %hs\r\nContent-Type: %hs\r\n",
+         status, statusText.c_str(), response.content_type.c_str());
+
+      out += AnsiString("Content-Length: ") + AnsiString(std::to_string(content_length).c_str()) + "\r\n";
+      out += response.extra_headers;
+      out += keep_alive ? "Connection: keep-alive\r\n\r\n" : "Connection: close\r\n\r\n";
 
       return out;
    }

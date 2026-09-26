@@ -133,6 +133,9 @@ STDMETHODIMP InterfaceRuleActions::DeleteByDBID(LONG DBID)
       if (!rule_actions_)
          return GetAccessDenied();
 
+      if (!authentication_->MayChangeRule(rule_actions_->GetRuleID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       rule_actions_->DeleteItemByDBID(DBID);
    
       return S_OK;
@@ -151,6 +154,9 @@ STDMETHODIMP InterfaceRuleActions::Delete(LONG DBID)
 
       if (!rule_actions_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeRule(rule_actions_->GetRuleID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       rule_actions_->DeleteItem(DBID);
    

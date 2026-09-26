@@ -850,9 +850,11 @@ namespace RegressionTests.API
 
          // ...and a server administrator's account is beyond a domain-restricted
          // key altogether: InterfaceAccount::Save's guard, with the caller known.
+         // Since 26 September 2026 the take-in rule (ChangesAccountByAddress_)
+         // refuses it before the handler does, with its own sentence.
          (int status, string body) touched = Bearer("PUT", "/api/v1/accounts/" + account.Address, ownKey, "{\"first_name\":\"Taken\"}");
          Assert.AreEqual(403, touched.status, "A domain-restricted key must not update a server administrator's account. Body: " + touched.body);
-         StringAssert.Contains("server administrator", touched.body);
+         StringAssert.Contains("holds authority this credential does not", touched.body);
          Assert.AreEqual("Own", AccountOverCom(account.Address).PersonFirstName, "The refused PUT must not have changed the account.");
          Assert.AreEqual(403, Bearer("PUT", "/api/v1/accounts/" + account.Address, ownKey, "{\"password\":\"Taken-Over-1234\"}").status);
          Assert.IsTrue(ImapClientSimulator.ValidatePassword(account.Address, "test"), "The refused PUT must not have changed the password.");

@@ -55,6 +55,11 @@ STDMETHODIMP InterfaceIMAPFolder::Save()
       if (!object_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       if (HM::PersistentIMAPFolder::SaveObject(object_))
       {
          // Add to parent collection
@@ -261,6 +266,9 @@ STDMETHODIMP InterfaceIMAPFolder::Delete()
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       if (!parent_collection_)
          return HM::PersistentIMAPFolder::DeleteObject(object_) ? S_OK : S_FALSE;

@@ -74,7 +74,7 @@ namespace HM
       // The archived copies one request may put on hold.
       const size_t MaxArchiveHolds = 10000;
 
-      // A download is read into memory once, as ArchiveDownload_'s is.
+      // What a download is expected to carry; past it, the file is on the disk.
       const unsigned __int64 DownloadCeiling = 500 * 1024 * 1024;
 
       AnsiString Quoted(const String &value)
@@ -905,18 +905,7 @@ namespace HM
          return BuildResponse_(413, "{\"error\":" + Quoted(sentence) + "}");
       }
 
-      AnsiString bytes;
-      {
-         boost::filesystem::path filePath(path.begin(), path.end());
-         boost::filesystem::ifstream in(filePath, std::ios::in | std::ios::binary);
-         if (in)
-         {
-            std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-            bytes = content;
-         }
-      }
-
-      if (bytes.empty())
+      if (size == 0)
          return BuildResponse_(500, "{\"error\":\"The export could not be read.\"}");
 
       // The download writes no row, so it is recorded here: who took the
@@ -933,7 +922,10 @@ namespace HM
       HttpResponse response;
       response.status = 200;
       response.content_type = "application/zip";
-      response.body = bytes;
+      // Sent from the case's directory a piece at a time (body_file): an
+      // export is up to 500 MB, and was read into memory here, and copied
+      // twice more on its way out, until 26 September 2026.
+      response.body_file = path;
       response.no_compress = true;
       response.extra_headers =
          "Content-Disposition: attachment; filename=\"" + fileName + "\"\r\n"

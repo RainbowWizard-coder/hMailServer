@@ -57,6 +57,9 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::Delete(long Index)
       if (!acl_permission_)
          return GetAccessDenied();
 
+      if (!authentication_->MayChangeAccount(folder_ ? folder_->GetAccountID() : 0))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       acl_permission_->DeleteItem(Index);
       return S_OK;
    }
@@ -118,6 +121,9 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::Add(IInterfaceIMAPFolderPermission 
 
       if (!authentication_->GetIsDomainAdmin())
          return authentication_->GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(folder_ ? folder_->GetAccountID() : 0))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
    
       if (!acl_permission_)
          return authentication_->GetAccessDenied();
@@ -184,6 +190,9 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::DeleteByDBID(long DBID)
 
       if (!acl_permission_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(folder_ ? folder_->GetAccountID() : 0))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
    
       if (acl_permission_)

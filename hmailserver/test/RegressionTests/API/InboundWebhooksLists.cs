@@ -230,6 +230,61 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("A key holding manage_inbound_webhooks and confined to a domain cannot route the server administrator's mailbox in that domain - by its address, by a plus-tagged address that reaches it, or by routing the whole domain - nor change or remove the route the administrator put on it; an ordinary account of the domain it still routes")]
+      public void AConfinedKeyCannotRouteTheServerAdministratorsMailbox()
+      {
+         // The negative control for RestApiServer::InboundWebhookReachesAccountBeyond_.
+         // Until 26 September 2026 a route was judged by its domain alone, so a key
+         // or a custom role confined to a domain could route the server
+         // administrator's address there to a URL of its own - the route takes the
+         // mail instead of the mailbox - and read its mail, password resets included.
+         Domain domain = CurrentDomain();
+         domain.PlusAddressingEnabled = true;
+         domain.PlusAddressingCharacter = "+";
+         domain.Save();
+
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@" + _domainName, AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "plain@" + _domainName, AccountPassword);
+
+         MakeRole("inboundtest-takein", "view_configuration,manage_inbound_webhooks");
+         string key = MakeKey("inbound take-in", null, "inboundtest-takein", _domainName);
+
+         const string Refusal = "holds authority this credential does not";
+
+         foreach (string address in new[] { "boss@" + _domainName, "boss+invoices@" + _domainName, _domainName })
+         {
+            (int status, string body) refused = AsKey(key, "POST", RoutesPath,
+               "{\"address\":\"" + address + "\",\"url\":\"https://8.8.8.8/inbound\",\"secret\":\"" + Secret + "\"}");
+            Assert.AreEqual(403, refused.status, "A confined key routed " + address + ": " + refused.body);
+            StringAssert.Contains(Refusal, refused.body, address);
+         }
+
+         StringAssert.DoesNotContain("8.8.8.8", Read(RoutesPath), "A refused route was stored.");
+
+         // The route the administrator put on the mailbox is the administrator's:
+         // the key may not repoint it, nor take it away.
+         Create("boss@" + _domainName);
+         string bossPath = RoutesPath + "/" + Uri.EscapeDataString("boss@" + _domainName);
+
+         (int status, string body) repointed = AsKey(key, "PUT", bossPath, "{\"url\":\"https://8.8.8.8/mine\"}");
+         Assert.AreEqual(403, repointed.status, repointed.body);
+         StringAssert.Contains(Refusal, repointed.body);
+         StringAssert.DoesNotContain("8.8.8.8", Read(bossPath), "The refused PUT changed the route.");
+
+         (int status, string body) removed = AsKey(key, "DELETE", bossPath, null);
+         Assert.AreEqual(403, removed.status, removed.body);
+         Assert.AreEqual(200, Http("GET", bossPath).status, "The refused DELETE removed the route.");
+
+         // An ordinary account of the domain is the key's to route, as before.
+         (int status, string body) plain = AsKey(key, "POST", RoutesPath,
+            "{\"address\":\"plain@" + _domainName + "\",\"url\":\"https://8.8.8.8/inbound\",\"secret\":\"" + Secret + "\"}");
+         Assert.AreEqual(201, plain.status, plain.body);
+         Assert.AreEqual(200, AsKey(key, "DELETE", RoutesPath + "/" + Uri.EscapeDataString("plain@" + _domainName), null).status);
+      }
+
       private static bool EventLogContains(string text)
       {
          try

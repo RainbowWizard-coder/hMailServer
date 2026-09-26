@@ -1352,7 +1352,10 @@ namespace HM
       // to a domain administrator, a wider domain administrator's to a narrower
       // one - is not this credential's to change, because a change here can be
       // its password. The server administrator's account above is the case this
-      // generalises; its own sentence is kept for the callers that read it.
+      // generalises. Since 26 September 2026 ProcessRequest_ asks the same for
+      // this route before it gets here (ChangesAccountByAddress_), so both
+      // refusals here are a second line: what either would refuse is refused
+      // there first, with the take-in sentence below.
       if (!RoleManager::Encompasses(caller.grant, RoleManager::GrantForAccount(account)))
       {
          LOG_APPLICATION("RestApi: Refused to update account " + address + " for " + String(caller.identity) +

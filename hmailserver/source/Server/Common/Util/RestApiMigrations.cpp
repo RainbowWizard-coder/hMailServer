@@ -719,6 +719,27 @@ namespace HM
       int status = 0;
       String problem;
 
+      // A job writes mail into its target account, so running, stopping,
+      // retrying or removing one is changing what is in that account: refused
+      // when the credential does not take the account in (the rule
+      // ChangesAccountByAddress_ holds the account routes to). Reading a
+      // migration or a job is not. A job whose account is gone is nobody's.
+      auto takesInTarget = [&caller](const MigrationJobRecord &one) -> bool
+      {
+         std::shared_ptr<const Account> target = CacheContainer::Instance()->GetAccount(one.targetAccountId);
+         return !target || CallerTakesInAccount_(caller, target);
+      };
+
+      if (route.kind == RouteMigrationDelete || route.kind == RouteMigrationStart ||
+          route.kind == RouteMigrationPause || route.kind == RouteMigrationResume)
+      {
+         for (const MigrationJobRecord &one : jobs)
+         {
+            if (!takesInTarget(one))
+               return AccountNotTakenIn_();
+         }
+      }
+
       switch (route.kind)
       {
       case RouteMigrationGet:
@@ -927,6 +948,13 @@ namespace HM
                if (!IsDomainAllowed_(caller.domains, StringParser::ExtractDomain(account->GetAddress())))
                   return refuse(403, "this credential may not administer accounts in the domain of " + one.target);
 
+               // A job writes mail into the account, which is changing what is
+               // in it: refused for an account whose authority the credential
+               // does not take in (ChangesAccountByAddress_'s rule) - the server
+               // administrator's mailbox in a domain administrator's domain.
+               if (!CallerTakesInAccount_(caller, account))
+                  return refuse(403, "the account " + one.target + " holds authority this credential does not, so it is not this credential's to copy mail into");
+
                one.targetAccountId = account->GetID();
 
                if (pstFiles)
@@ -1035,6 +1063,10 @@ namespace HM
       MigrationJobRecord job;
       if (!MigrationStore::GetJob(route.record_id, job) || job.migrationId != migrationId)
          return BuildResponse_(404, "{\"error\":\"no such job in this migration\"}");
+
+      if ((route.kind == RouteMigrationJobRetry || route.kind == RouteMigrationJobCancel || route.kind == RouteMigrationJobSignIn) &&
+          !takesInTarget(job))
+         return AccountNotTakenIn_();
 
       auto jobAgain = [&]() -> HttpResponse
       {

@@ -55,9 +55,9 @@ domains is refused them whatever it holds.
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
-| `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, and the breach check's endpoint testthe breach check's endpoint test, and clearing the record of spam trap hits *(server-wide)* | ✅ | | | |
+| `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, and the breach check's endpoint testthe breach check's endpoint test, and clearing the record of spam trap hits *(server-wide)*; the webmail's branding and its file-link policy (`PUT /api/v1/portal/branding` and `/api/v1/portal/files`), whose domain is in the body: a confined credential sets its own domains' and is refused the server's and any other's | ✅ | | | |
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
-| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep, the DKIM key rotation pass or a reputation check now *(server-wide)* | ✅ | | | |
+| `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep, the DKIM key rotation pass, a reputation check or a pass over the scheduled sends now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
 | `send_through_api` | Sending mail as an application through `POST /api/v1/send`, as the one sender an **API key** names in its `send_from` - the permission alone sends nothing, and only a key reaches the route ([SendApi.md](SendApi.md)). A custom role may be given it, which is how a key that sends and does nothing else is made; a key reads its own sends without any permission, and nobody else's | ✅ | | | |
 | `provision` | Provisioning over SCIM 2.0 at `/scim/v2` - the organisation's identity provider making, renaming, suspending and removing accounts, with their aliases, and distribution lists ([Scim.md](Scim.md)). Only an **API key** reaches `/scim/`, and its reads need this as its writes do, so an auditor's key reads nothing there (an auditor reads the same accounts at `/api/v1/domains/{domain}/accounts`). A custom role may be given it, which is how a key that provisions and does nothing else is made; a key confined to named domains provisions those alone | ✅ | | | |
@@ -98,10 +98,51 @@ reset the password of, or change, an account whose authority it does not take in
 every permission, in every domain. A help desk resets an ordinary account's password
 and is refused a domain administrator's or an auditor's, even in its own domain,
 because otherwise it could sign in as them; a domain administrator may change the
-accounts of its domain as it always could, and is refused an auditor's. Over COM this
-is `Account.Save` and `Application.ResetPassword`; over REST, the password reset,
-`PUT /api/v1/accounts/{address}`, giving and taking away a role, and SCIM's writes. The
-refusal says so: *that account holds authority this credential does not*.
+accounts of its domain as it always could, and is refused an auditor's.
+
+Over REST it is **one rule**, asked in one place for every route that changes an
+account named by the address in its path, or what is in it (`ChangesAccountByAddress_`
+in `RestApiServer.cpp`): `PUT` and `DELETE /api/v1/accounts/{address}`, the move, the
+password reset, giving and taking away a role, the mailbox encryption key, a support
+session, and every route under `/api/v1/accounts/{address}/` that changes the account's
+app passwords, folder permissions, messages, devices, rules, fetch accounts, OpenPGP
+keys, directory entry, booking policy, address-book shares, push devices, recovery
+address or recovery codes, or its review state. SCIM's writes ask it too, and so does a
+migration: a job is added into an account, and a migration or one of its jobs started,
+paused, resumed, retried, cancelled, signed in or deleted, only by a credential that
+takes in every account the jobs copy into. So does an inbound webhook route, which takes
+an address's mail instead of its mailbox: it is made, changed or removed only by a
+credential that takes in the account at its address (or the one its plus tag reaches),
+and a whole domain's route only by one that takes in every account of the domain with an
+admin level or a role ([InboundWebhooks.md](InboundWebhooks.md)). `build/check-role-choke-point.py` fails a new
+route that changes an account by its address and is not in that one list. Three are
+left out, each for its reason: the two unlocks (`/unlock` and `/review/unlock`) —
+letting the owner try again takes nothing over — and `POST .../export`, which reads the
+account out to the server's disk, changes nothing in it, and needs `manage_roles`,
+which only the server administrator holds. The refusal says so: *that account holds
+authority this credential does not*.
+
+Over COM the same question is asked where the write is made, not where the object was
+reached — a rule's `AccountID`, a fetch account's `AccountID`, a rule action's or
+criterion's `RuleID` can be pointed elsewhere after the object was reached — by
+`Account.Save`, `Account.Delete`, `Accounts.Delete` and `DeleteByDBID`, `Account.MoveTo`,
+`Application.ResetPassword`, the app passwords (`AppPasswords.Add`, `Delete`,
+`DeleteByDBID`, `AppPassword.Save` and `Delete`), and every write to what is in an
+account: `FetchAccount.Save`, `Delete`, `DownloadNow` and `AccountID`, `FetchAccounts.Delete`
+and `DeleteByDBID`; `Rule.Save`, `Delete`, `MoveUp`, `MoveDown` and `AccountID`,
+`Rules.DeleteByDBID`, and the same for a rule's actions and criteria (`RuleID`
+included); `IMAPFolder.Save` and `Delete`, `IMAPFolders.Add` and `DeleteByDBID`;
+`IMAPFolderPermission.Save` and `Delete`, `IMAPFolderPermissions.Add`, `Delete` and
+`DeleteByDBID`; `Message.Save` and `Copy`, `Messages.DeleteByDBID` and `Clear`; and
+`Account.DeleteMessages`, `RevokeDevice`, `ClearRecoveryAddress`, `ClearRecoveryCodes`
+and `RemovePushSubscriptions`. Each asks that the credential reach the account as
+`Links.Account` decides — the server administrator, an administrator of its domain, or
+the account itself — and take in its authority; a domain's or the server's rules answer
+to that domain's administrator or to the server administrator. An event script's
+objects carry no credential and are left as they were.
+
+The server administrator's own mailbox may sit in a domain somebody else administers;
+that domain's administrator is refused all of these on it, over both interfaces.
 
 `administer_server` takes in everything only where it reaches every domain. A full
 key confined to named domains is `serveradmin` confined to them, and it is judged by
@@ -266,7 +307,10 @@ a Control Panel connected to a server that predates roles shows every page.
 An account that holds a role signs in to the Control Deck with its own address and
 password (and second factor, where it has one). A request authenticated with one of the
 account's **app passwords** never carries its role: an app password is a credential for
-a mail program. A **support session** an administrator opens into a mailbox is the
+a mail program. Over REST it is an ordinary account's request; over COM it is not a
+logon at all - `Application.Authenticate` and `AuthenticateWithCode` answer an app
+password as they answer a wrong password, whatever role the account holds. A **support
+session** an administrator opens into a mailbox is the
 portal as that person and does not carry their role either. Nor does it reach what makes
 up the person's cryptographic identity: it reads the OpenPGP ring, the key published for
 the address, the S/MIME store and the zero-access state without the wrapped private

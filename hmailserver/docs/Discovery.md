@@ -357,9 +357,11 @@ unpacker of the last twenty years reads that record. An export that would leave
 the data directory's volume - where the mail is delivered - with less than a
 gigabyte free fails the same way as one past 4 GB.
 
-**The download** is read into memory once, as the person export's is: an
-export past 500 MB answers `413` with where it is on the server's disk and its
-SHA-256, for an administrator to take from there. It is sent as
+**The download** is sent from the case's directory a piece at a time, as the
+person export's is, never read into memory whole; it counts against the
+listener's cap on large downloads at once (sixteen; one more answers `503` with
+`Retry-After: 30`). An export past 500 MB answers `413` with where it is on the
+server's disk and its SHA-256, for an administrator to take from there. It is sent as
 `application/zip` with `Content-Disposition: attachment`, `nosniff`, `sandbox`
 and `no-store`, and it is on the audit trail as a **discovery export
 downloaded**, with the export's id, the search's, the size and the SHA-256.

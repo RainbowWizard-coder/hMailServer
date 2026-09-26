@@ -207,8 +207,12 @@ adding a job needs it in the target account's domain. A credential confined to n
 domains sees a migration only when it has a job copying into one of those domains and
 none copying anywhere else; it cannot create a migration, since one with no jobs is no
 domain's, so an administrator of the whole server creates it, and a job into one of
-that credential's domains then lets it see the migration and add to it. No permission
-was added for migrations. The audit trail records the migrations and their jobs
+that credential's domains then lets it see the migration and add to it. A job copies
+mail into its target account, so it is added - and a migration or a job started,
+paused, resumed, retried, cancelled, signed in or deleted - only by a credential that
+takes in every account the jobs copy into ([Roles.md](Roles.md)): a domain's
+administrator is refused a job into the server administrator's own mailbox in its
+domain, and a migration that has one. No permission was added for migrations. The audit trail records the migrations and their jobs
 (`hm_migrations`, `hm_migrationjobs`, a job named by its mailbox and target, "anna@old
 -> anna@example.com") under whoever created, started, paused, resumed or deleted
 them, or added, retried or cancelled a job - the cancel of a running job as an event,

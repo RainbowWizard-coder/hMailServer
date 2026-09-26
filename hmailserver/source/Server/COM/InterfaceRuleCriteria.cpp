@@ -38,6 +38,12 @@ STDMETHODIMP InterfaceRuleCriteria::Save()
       if (!object_)
          return GetAccessDenied();
 
+      // The rule the criterion is saved under, and the one it was reached
+      // through, must be rules this credential may change.
+      if (!authentication_->MayChangeRule(object_->GetRuleID()) ||
+          (parent_collection_ && !authentication_->MayChangeRule(parent_collection_->GetRuleID())))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       if (parent_collection_->GetRuleID() > 0)
       {
          // Through the overload that can SAY why - the length check refuses
@@ -87,6 +93,10 @@ STDMETHODIMP InterfaceRuleCriteria::put_RuleID(long newVal)
    {
       if (!object_)
          return GetAccessDenied();
+
+      // Moving the criterion to another rule is changing both rules.
+      if (!authentication_->MayChangeRule(object_->GetRuleID()) || !authentication_->MayChangeRule(newVal))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       object_->SetRuleID(newVal);
       return S_OK;
@@ -266,6 +276,9 @@ STDMETHODIMP InterfaceRuleCriteria::Delete()
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeRule(object_->GetRuleID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       if (!parent_collection_)
          return HM::PersistentRuleCriteria::DeleteObject(object_) ? S_OK : S_FALSE;

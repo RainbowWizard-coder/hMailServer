@@ -153,6 +153,11 @@ InterfaceIMAPFolders::DeleteByDBID(long lDBID)
       if (!object_)
          return GetAccessDenied();
 
+      // The account this belongs to must be one this credential may change
+      // (COMAuthentication::MayChangeAccount).
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
       // Check that it does not exist.
       if (!object_->DeleteItemByDBID(lDBID))
          return COMError::WithoutMessage(DISP_E_BADINDEX);
@@ -174,6 +179,9 @@ InterfaceIMAPFolders::Add(BSTR sName, IInterfaceIMAPFolder **pVal)
 
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->MayChangeAccount(object_->GetAccountID()))
+         return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       // Convert the modified UTF7 string into unicode.
       // Since hMailServer core don't know unicode, we

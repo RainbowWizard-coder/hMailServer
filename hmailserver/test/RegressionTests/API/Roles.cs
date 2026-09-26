@@ -345,6 +345,500 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A domain administrator, and a full key issued for one domain, are refused another domain's spam traps and the record of what addressed them, and reach their own domain's")]
+      public void ADomainConfinedCredentialIsRefusedAnotherDomainsSpamTraps()
+      {
+         // The negative control for the three routes DomainNamedByRoute_ left
+         // out until 26 September 2026: they named no domain, so Authorize_ let
+         // a credential confined to example.test plant a trap in another domain
+         // (201) - whose hits ban the connecting address and block the sender
+         // for every domain on the server - and read that domain's traps and
+         // hits (200).
+         SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+
+         (int status, string body) key = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest traps\",\"scope\":\"full\",\"domains\":\"example.test\"}");
+         Assert.AreEqual(201, key.status, key.body);
+         string token = JsonValue(key.body, "key");
+
+         var credentials = new List<(string name, Func<string, string, string, (int status, string body)> call)>
+         {
+            ("a domain administrator of example.test", (method, path, body) => AsAccount("dora@example.test", method, path, body)),
+            ("a full key issued for example.test", (method, path, body) => Bearer(token, method, path, body)),
+         };
+
+         string otherTraps = "/api/v1/domains/" + OtherDomain + "/spam-traps";
+
+         foreach (var credential in credentials)
+         {
+            (int status, string body) planted = credential.call("POST", otherTraps, "{\"address\":\"invoices\"}");
+            Assert.AreEqual(403, planted.status, credential.name + " planted a spam trap in another domain. Body: " + planted.body);
+
+            (int status, string body) listed = credential.call("GET", otherTraps, null);
+            Assert.AreEqual(403, listed.status, credential.name + " read another domain's spam traps. Body: " + listed.body);
+
+            (int status, string body) hits = credential.call("GET", otherTraps + "/hits", null);
+            Assert.AreEqual(403, hits.status, credential.name + " read the senders and addresses that hit another domain's traps. Body: " + hits.body);
+
+            // Its own domain's are its own: the refusal is about the other domain,
+            // not about the routes.
+            (int status, string body) own = credential.call("GET", "/api/v1/domains/example.test/spam-traps", null);
+            Assert.AreEqual(200, own.status, credential.name + " could not read its own domain's spam traps. Body: " + own.body);
+         }
+
+         (int status, string body) afterwards = Admin("GET", otherTraps);
+         Assert.AreEqual(200, afterwards.status, afterwards.body);
+         StringAssert.DoesNotContain("invoices", afterwards.body, "A refused create planted nothing.");
+      }
+
+      [Test]
+      [Description("A domain administrator cannot issue or take back an app password, share a folder or delete the mail of the server administrator's mailbox in its domain, over REST or COM, and still can an ordinary account's")]
+      public void ADomainAdministratorCannotMintACredentialForTheServerAdministrator()
+      {
+         // The negative control for HandleAccountResources_, which until 26
+         // September 2026 had no caller to ask: a domain administrator of
+         // example.test was answered 201 and the server administrator's app
+         // password in clear, and COM's AppPasswords.Add and Save asked only
+         // GetIsDomainAdmin.
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+
+         string bossResources = "/api/v1/accounts/boss@example.test";
+
+         (int status, string body) minted = AsAccount("dora@example.test", "POST", bossResources + "/app-passwords", "{\"name\":\"Mine now\"}");
+         Assert.AreEqual(403, minted.status, "A domain administrator was handed an app password of the server administrator's. Body: " + minted.body);
+         StringAssert.Contains("holds authority this credential does not", minted.body);
+         StringAssert.DoesNotContain("\"password\"", minted.body);
+         Assert.AreEqual(0, AccountOverCom("boss@example.test").AppPasswords.Count, "The refused create stored nothing.");
+
+         (int status, string body) wiped = AsAccount("dora@example.test", "DELETE", bossResources + "/messages");
+         Assert.AreEqual(403, wiped.status, "A domain administrator emptied the server administrator's mailbox. Body: " + wiped.body);
+
+         (int status, string body) issued = Admin("POST", bossResources + "/app-passwords", "{\"name\":\"The administrator's own\"}");
+         Assert.AreEqual(201, issued.status, issued.body);
+         string issuedId = Regex.Match(issued.body, "\"id\":(\\d+)").Groups[1].Value;
+
+         (int status, string body) revoked = AsAccount("dora@example.test", "DELETE", bossResources + "/app-passwords/" + issuedId);
+         Assert.AreEqual(403, revoked.status, "A domain administrator took back the server administrator's app password. Body: " + revoked.body);
+         Assert.AreEqual(1, AccountOverCom("boss@example.test").AppPasswords.Count);
+
+         // Reading is Authorize_'s decision and unchanged: the domain
+         // administrator lists the server administrator's app passwords, without
+         // the secrets, as it always could.
+         (int status, string body) listed = AsAccount("dora@example.test", "GET", bossResources + "/app-passwords");
+         Assert.AreEqual(200, listed.status, listed.body);
+
+         // An ordinary account of the domain is still the domain administrator's.
+         (int status, string body) ordinary = AsAccount("dora@example.test", "POST", "/api/v1/accounts/user@example.test/app-passwords", "{\"name\":\"Phone\"}");
+         Assert.AreEqual(201, ordinary.status, ordinary.body);
+
+         // And over COM, where the domain administrator reaches the account object.
+         var overCom = new Application();
+         Assert.IsNotNull(overCom.Authenticate("dora@example.test", AccountPassword));
+         Account bossOverCom = overCom.Domains.get_ItemByName("example.test").Accounts.get_ItemByAddress("boss@example.test");
+         var addRefused = Assert.Throws<COMException>(() => bossOverCom.AppPasswords.Add());
+         StringAssert.Contains("holds administrative authority that this credential does not", addRefused.Message);
+         var deleteRefused = Assert.Throws<COMException>(() => bossOverCom.AppPasswords.DeleteByDBID(int.Parse(issuedId)));
+         StringAssert.Contains("holds administrative authority that this credential does not", deleteRefused.Message);
+         Assert.AreEqual(1, AccountOverCom("boss@example.test").AppPasswords.Count);
+
+         Account userOverCom = overCom.Domains.get_ItemByName("example.test").Accounts.get_ItemByAddress("user@example.test");
+         var added = userOverCom.AppPasswords.Add();
+         added.Name = "Laptop";
+         added.Generate();
+         added.Save();
+         Assert.AreEqual(2, AccountOverCom("user@example.test").AppPasswords.Count);
+      }
+
+      [Test]
+      [Description("A domain administrator cannot delete, rename or move the server administrator's mailbox in its domain, over REST or COM, and still can an ordinary account's")]
+      public void ADomainAdministratorCannotDeleteOrMoveTheServerAdministrator()
+      {
+         // The negative control for HandleDeleteAccount_ and HandleMailboxMove_,
+         // which until 26 September 2026 were scoped to the account's domain and
+         // asked nothing else: the delete answered 200 and the move 200, with the
+         // server administrator's logon name gone. COM's Account.Delete and
+         // Accounts.DeleteByDBID asked only GetIsDomainAdmin.
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "other@example.test", AccountPassword);
+
+         (int status, string body) moved = AsAccount("dora@example.test", "POST", "/api/v1/accounts/boss@example.test/move",
+            "{\"new_address\":\"renamed@example.test\",\"keep_alias\":false}");
+         Assert.AreEqual(403, moved.status, "A domain administrator renamed the server administrator's mailbox. Body: " + moved.body);
+         StringAssert.Contains("holds authority this credential does not", moved.body);
+
+         (int status, string body) deleted = AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/boss@example.test");
+         Assert.AreEqual(403, deleted.status, "A domain administrator deleted the server administrator's mailbox. Body: " + deleted.body);
+         StringAssert.Contains("holds authority this credential does not", deleted.body);
+
+         Assert.IsNotNull(AccountOverCom("boss@example.test"), "The server administrator's mailbox is where it was.");
+         Assert.IsTrue(AccountOverCom("boss@example.test").ValidatePassword(AccountPassword));
+
+         var overCom = new Application();
+         Assert.IsNotNull(overCom.Authenticate("dora@example.test", AccountPassword));
+         Accounts accounts = overCom.Domains.get_ItemByName("example.test").Accounts;
+         Account bossOverCom = accounts.get_ItemByAddress("boss@example.test");
+         var deleteRefused = Assert.Throws<COMException>(() => bossOverCom.Delete());
+         StringAssert.Contains("holds administrative authority that this credential does not", deleteRefused.Message);
+         var byIdRefused = Assert.Throws<COMException>(() => accounts.DeleteByDBID(bossOverCom.ID));
+         StringAssert.Contains("holds administrative authority that this credential does not", byIdRefused.Message);
+         Assert.IsNotNull(AccountOverCom("boss@example.test"));
+
+         // Ordinary accounts of the domain are still the domain administrator's
+         // to move and to delete, over both.
+         (int status, string body) ordinaryMoved = AsAccount("dora@example.test", "POST", "/api/v1/accounts/user@example.test/move",
+            "{\"new_address\":\"user-renamed@example.test\",\"keep_alias\":false}");
+         Assert.AreEqual(200, ordinaryMoved.status, ordinaryMoved.body);
+
+         (int status, string body) ordinaryDeleted = AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/user-renamed@example.test");
+         Assert.AreEqual(200, ordinaryDeleted.status, ordinaryDeleted.body);
+
+         accounts.get_ItemByAddress("other@example.test").Delete();
+      }
+
+      [Test]
+      [Description("A domain administrator cannot repoint the server administrator's fetch account, set its rules or clear its recovery codes, and still does all three for an ordinary account of its domain")]
+      public void ADomainAdministratorCannotChangeWhatHangsOffTheServerAdministratorsAccount()
+      {
+         // The negative control for ChangesAccountByAddress_. Until 26
+         // September 2026 these routes were scoped to the account's domain and
+         // asked nothing else: a domain administrator could point the server
+         // administrator's fetch account at a host of its own - the server then
+         // signs in there with the kept password - set a rule on the mailbox,
+         // or end its recovery codes.
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+
+         const string FetchBody = "{\"name\":\"Remote\",\"server_address\":\"pop.example.net\",\"port\":110,\"username\":\"remote\",\"password\":\"External-secret-1\",\"enabled\":false}";
+         const string RuleBody = "{\"name\":\"Mine\",\"active\":true,\"all_criteria\":true,\"criteria\":[{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}],\"actions\":[{\"type\":\"delete\"}]}";
+
+         (int status, string body) bossFetch = Admin("POST", "/api/v1/accounts/boss@example.test/fetch-accounts", FetchBody);
+         Assert.AreEqual(201, bossFetch.status, bossFetch.body);
+         string fetchId = Regex.Match(bossFetch.body, "\"id\":(\\d+)").Groups[1].Value;
+
+         (int status, string body) repointed = AsAccount("dora@example.test", "PUT", "/api/v1/accounts/boss@example.test/fetch-accounts/" + fetchId,
+            "{\"server_address\":\"collector.evil.example\"}");
+         Assert.AreEqual(403, repointed.status, "A domain administrator repointed the server administrator's fetch account. Body: " + repointed.body);
+         StringAssert.Contains("holds authority this credential does not", repointed.body);
+         StringAssert.Contains("pop.example.net", Admin("GET", "/api/v1/accounts/boss@example.test/fetch-accounts/" + fetchId).body,
+            "The refused change changed nothing.");
+
+         (int status, string body) ruled = AsAccount("dora@example.test", "POST", "/api/v1/accounts/boss@example.test/rules", RuleBody);
+         Assert.AreEqual(403, ruled.status, "A domain administrator set a rule on the server administrator's mailbox. Body: " + ruled.body);
+
+         (int status, string body) codes = AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/boss@example.test/recovery/codes");
+         Assert.AreEqual(403, codes.status, "A domain administrator ended the server administrator's recovery codes. Body: " + codes.body);
+
+         // Its own domain's ordinary account is its own, for all of them - the
+         // recovery and push routes included, which until 26 September 2026
+         // read the whole address as a domain name and refused a domain
+         // administrator every account.
+         Assert.AreEqual(201, AsAccount("dora@example.test", "POST", "/api/v1/accounts/user@example.test/fetch-accounts", FetchBody).status);
+         Assert.AreEqual(201, AsAccount("dora@example.test", "POST", "/api/v1/accounts/user@example.test/rules", RuleBody).status);
+
+         (int status, string body) ownCodes = AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/user@example.test/recovery/codes");
+         Assert.AreEqual(200, ownCodes.status, ownCodes.body);
+         (int status, string body) ownAddress = AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/user@example.test/recovery");
+         Assert.AreEqual(200, ownAddress.status, ownAddress.body);
+         (int status, string body) ownPush = AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/user@example.test/push");
+         Assert.AreEqual(200, ownPush.status, ownPush.body);
+
+         // And the same routes in another domain stay refused.
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         SingletonProvider<TestSetup>.Instance.AddAccount(other, "far@" + OtherDomain, AccountPassword);
+         Assert.AreEqual(403, AsAccount("dora@example.test", "DELETE", "/api/v1/accounts/far@" + OtherDomain + "/recovery/codes").status);
+      }
+
+      [Test]
+      [Description("Every route that changes an account named in its path asks the one take-in question: a domain administrator is refused each of them on the server administrator's mailbox in its domain, and none of them on an ordinary account; a migration job into that mailbox is refused too")]
+      public void EveryRouteThatChangesAnAccountAsksTheTakeInQuestion()
+      {
+         // The negative control for the one rule, ChangesAccountByAddress_,
+         // across every route the audit named after the first fixes: until 26
+         // September 2026 each of these was scoped to the account's domain and
+         // asked nothing else, so a domain administrator could strip the server
+         // administrator's recovery, publish an OpenPGP key under its address,
+         // exempt it from the compromise detection, rewrite its directory entry,
+         // open a support session into it, or have a migration copy mail into it.
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+
+         const string Refusal = "holds authority this credential does not";
+
+         var routes = new (string method, string tail, string body)[]
+         {
+            ("PUT", "/review", "{\"exempt\":true}"),
+            ("DELETE", "/push", null),
+            ("DELETE", "/recovery", null),
+            ("DELETE", "/recovery/codes", null),
+            ("PUT", "/openpgp", "{\"key\":\"-----BEGIN PGP PUBLIC KEY BLOCK-----\"}"),
+            ("DELETE", "/openpgp/0123456789ABCDEF0123456789ABCDEF01234567", null),
+            ("PUT", "/directory", "{\"title\":\"Mine now\"}"),
+            ("PUT", "/booking-policy", "{\"auto_accept\":true}"),
+            ("POST", "/support-session", null),
+            ("DELETE", "/address-books/1/shares/dora@example.test", null),
+            // A device is named by its 32-hex key (RestApiAccountResources.cpp's
+            // parse); any other name is no route at all, and answers 404.
+            ("DELETE", "/devices/0123456789abcdef0123456789abcdef", null),
+         };
+
+         foreach (var (method, tail, body) in routes)
+         {
+            (int status, string body) onBoss = AsAccount("dora@example.test", method, "/api/v1/accounts/boss@example.test" + tail, body);
+            Assert.AreEqual(403, onBoss.status, method + " " + tail + " on the server administrator's mailbox was not refused. Body: " + onBoss.body);
+            StringAssert.Contains(Refusal, onBoss.body, method + " " + tail);
+
+            // On an ordinary account of the domain the rule refuses nothing:
+            // whatever the handler then answers, it is not this refusal.
+            (int status, string body) onUser = AsAccount("dora@example.test", method, "/api/v1/accounts/user@example.test" + tail, body);
+            StringAssert.DoesNotContain(Refusal, onUser.body, method + " " + tail + " on an ordinary account was refused as if it were wider than the domain administrator.");
+         }
+
+         // A migration: the server administrator makes it and gives it a job
+         // into the ordinary account, which is what lets the domain
+         // administrator reach it at all.
+         (int status, string body) migration = Admin("POST", "/api/v1/migrations", "{\"name\":\"Take-in\",\"kind\":\"imap\",\"host\":\"imap.example.net\"}");
+         Assert.AreEqual(201, migration.status, migration.body);
+         string migrationId = Regex.Match(migration.body, "\"id\":(\\d+)").Groups[1].Value;
+         string jobs = "/api/v1/migrations/" + migrationId + "/jobs";
+
+         Assert.AreEqual(201, Admin("POST", jobs, "{\"source_user\":\"one\",\"secret\":\"Source-1\",\"target\":\"user@example.test\"}").status);
+
+         (int status, string body) intoBoss = AsAccount("dora@example.test", "POST", jobs, "{\"source_user\":\"two\",\"secret\":\"Source-2\",\"target\":\"boss@example.test\"}");
+         Assert.AreEqual(403, intoBoss.status, "A domain administrator had mail copied into the server administrator's mailbox. Body: " + intoBoss.body);
+         StringAssert.Contains(Refusal, intoBoss.body);
+
+         (int status, string body) intoUser = AsAccount("dora@example.test", "POST", jobs, "{\"source_user\":\"three\",\"secret\":\"Source-3\",\"target\":\"user@example.test\"}");
+         Assert.AreEqual(201, intoUser.status, intoUser.body);
+
+         // Once the server administrator has a job into its own mailbox there,
+         // the domain administrator may read the migration and may not run it.
+         Assert.AreEqual(201, Admin("POST", jobs, "{\"source_user\":\"four\",\"secret\":\"Source-4\",\"target\":\"boss@example.test\"}").status);
+         Assert.AreEqual(200, AsAccount("dora@example.test", "GET", "/api/v1/migrations/" + migrationId).status);
+         (int status, string body) started = AsAccount("dora@example.test", "POST", "/api/v1/migrations/" + migrationId + "/start");
+         Assert.AreEqual(403, started.status, "A domain administrator ran a job into the server administrator's mailbox. Body: " + started.body);
+         Assert.AreEqual(200, Admin("DELETE", "/api/v1/migrations/" + migrationId).status);
+      }
+
+      [Test]
+      [Description("Over COM a domain administrator cannot add a fetch account, a rule, a folder grant or a folder to the server administrator's mailbox in its domain, delete its mail or clear its recovery, nor point a rule or a fetch account of its own domain at another domain's account; and still does all of it for an ordinary account")]
+      public void ADomainAdministratorOverComCannotChangeWhatIsInTheServerAdministratorsAccount()
+      {
+         // The negative control for COMAuthentication::MayChangeAccount and
+         // its neighbours. Until 26 September 2026 COM's FetchAccount, Rule,
+         // IMAPFolderPermission, IMAPFolder and Message writes asked nothing of
+         // the account they were in - what bounded them was how the object was
+         // reached - so a domain administrator reached the server
+         // administrator's mailbox in its domain as it did any other, and a
+         // rule or a fetch account reached in its own domain could be pointed
+         // at any account of any domain with AccountID and saved there.
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+         Account dora = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "dora@example.test", AccountPassword);
+         dora.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+         dora.Save();
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+         Domain other = SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+         Account far = SingletonProvider<TestSetup>.Instance.AddAccount(other, "far@" + OtherDomain, AccountPassword);
+
+         // A message in the server administrator's inbox, put there by the server administrator.
+         IMAPFolder bossInbox = AccountOverCom("boss@example.test").IMAPFolders.get_ItemByName("INBOX");
+         bossInbox.Save();
+         var kept = bossInbox.Messages.Add();
+         kept.Subject = "Keep me";
+         kept.Body = "The server administrator's own.";
+         kept.Save();
+         long keptId = kept.ID;
+
+         const string Refusal = "holds administrative authority that this credential does not";
+
+         var overCom = new Application();
+         Assert.IsNotNull(overCom.Authenticate("dora@example.test", AccountPassword));
+         Accounts accounts = overCom.Domains.get_ItemByName("example.test").Accounts;
+         Account bossOverCom = accounts.get_ItemByAddress("boss@example.test");
+
+         FetchAccount collector = bossOverCom.FetchAccounts.Add();
+         collector.Name = "Collector";
+         collector.ServerAddress = "collector.evil.example";
+         collector.Port = 110;
+         collector.Username = "remote";
+         collector.Password = "External-secret-1";
+         collector.Enabled = false;
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => collector.Save()).Message);
+         Assert.AreEqual(0, AccountOverCom("boss@example.test").FetchAccounts.Count, "The refused fetch account was not stored.");
+
+         Rule rule = bossOverCom.Rules.Add();
+         rule.Name = "Mine";
+         rule.Active = true;
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => rule.Save()).Message);
+         Assert.AreEqual(0, AccountOverCom("boss@example.test").Rules.Count, "The refused rule was not stored.");
+
+         IMAPFolder bossInboxOverCom = bossOverCom.IMAPFolders.get_ItemByName("INBOX");
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => bossInboxOverCom.Permissions.Add()).Message);
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => bossOverCom.IMAPFolders.Add("Mine")).Message);
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => bossInboxOverCom.Messages.DeleteByDBID(keptId)).Message);
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => bossOverCom.DeleteMessages()).Message);
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => { ((dynamic) bossOverCom).ClearRecoveryCodes(); }).Message);
+         Assert.AreEqual(1, AccountOverCom("boss@example.test").IMAPFolders.get_ItemByName("INBOX").Messages.Count, "The server administrator's mail is where it was.");
+
+         // An ordinary account of the domain is the domain administrator's, over COM as before.
+         Account userOverCom = accounts.get_ItemByAddress("user@example.test");
+         FetchAccount own = userOverCom.FetchAccounts.Add();
+         own.Name = "Remote";
+         own.ServerAddress = "pop.example.net";
+         own.Port = 110;
+         own.Username = "remote";
+         own.Password = "External-secret-1";
+         own.Enabled = false;
+         own.Save();
+         Rule ownRule = userOverCom.Rules.Add();
+         ownRule.Name = "Theirs";
+         ownRule.Active = true;
+         ownRule.Save();
+         Assert.AreEqual(1, AccountOverCom("user@example.test").FetchAccounts.Count);
+         Assert.AreEqual(1, AccountOverCom("user@example.test").Rules.Count);
+         userOverCom.IMAPFolders.get_ItemByName("INBOX").Permissions.Add();
+
+         // And an object reached in its own domain cannot be pointed at another
+         // domain's account, nor at the server administrator's.
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => ownRule.AccountID = far.ID).Message);
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => own.AccountID = far.ID).Message);
+         StringAssert.Contains(Refusal, Assert.Throws<COMException>(() => own.AccountID = boss.ID).Message);
+         Assert.AreEqual(0, far.Rules.Count + far.FetchAccounts.Count, "Nothing was moved into the other domain.");
+      }
+
+      [Test]
+      [Description("A header line written into a request's body is not a header: an Authorization and an X-Requested-With in the body start no session, and in the head they do")]
+      public void AHeaderInTheBodyIsNotAHeader()
+      {
+         // The negative control for GetHeader_, which until 26 September 2026
+         // searched the head and the body together: a cross-site text/plain form
+         // whose one field's value began with a CRLF put these lines in the body,
+         // the server read the credential from there, and answered 201 with a
+         // session cookie for the attacker's own account (login CSRF).
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "user@example.test", AccountPassword);
+
+         string credential = Convert.ToBase64String(Encoding.UTF8.GetBytes("user@example.test:" + AccountPassword));
+         string forged = "x=\r\nAuthorization: Basic " + credential + "\r\nX-Requested-With: hMailServer\r\n";
+
+         (int status, string body) fromBody = Http("POST", "/api/v1/session", null, forged);
+         Assert.AreEqual(401, fromBody.status, "A credential in the body started a session. Body: " + fromBody.body);
+         StringAssert.DoesNotContain("user@example.test", fromBody.body);
+
+         (int status, string body) fromHead = AsAccount("user@example.test", "POST", "/api/v1/session");
+         Assert.AreEqual(201, fromHead.status, "The same credential in the head starts a session. Body: " + fromHead.body);
+      }
+
+      [Test]
+      [Description("A full key issued for one domain sets its own domain's webmail branding and file-link policy, and is refused the server's, another domain's and a pass over the scheduled sends")]
+      public void ADomainConfinedKeyBrandsOnlyItsOwnDomain()
+      {
+         // The negative control for the two PUTs that name their domain in the
+         // body, where Authorize_ cannot see it, and the scheduled run: until 26
+         // September 2026 a key confined to example.test was answered 200 for
+         // the server's branding (the sign-in announcement every domain's people
+         // read), for another domain's, and for the policy of both.
+         SingletonProvider<TestSetup>.Instance.AddDomain(OtherDomain);
+
+         (int status, string body) key = Admin("POST", "/api/v1/apikeys", "{\"label\":\"rolestest branding\",\"scope\":\"full\",\"domains\":\"example.test\"}");
+         Assert.AreEqual(201, key.status, key.body);
+         string token = JsonValue(key.body, "key");
+
+         try
+         {
+            (int status, string body) server = Bearer(token, "PUT", "/api/v1/portal/branding", "{\"announcement\":\"Sign in again at evil.example\"}");
+            Assert.AreEqual(403, server.status, "A key for one domain rewrote the server's sign-in announcement. Body: " + server.body);
+
+            (int status, string body) other = Bearer(token, "PUT", "/api/v1/portal/branding",
+               "{\"domain\":\"" + OtherDomain + "\",\"announcement\":\"Sign in again at evil.example\"}");
+            Assert.AreEqual(403, other.status, "A key for one domain rewrote another domain's announcement. Body: " + other.body);
+
+            (int status, string body) serverPolicy = Bearer(token, "PUT", "/api/v1/portal/files", "{\"days\":1}");
+            Assert.AreEqual(403, serverPolicy.status, "A key for one domain set the server's file-link policy. Body: " + serverPolicy.body);
+
+            (int status, string body) otherPolicy = Bearer(token, "PUT", "/api/v1/portal/files", "{\"domain\":\"" + OtherDomain + "\",\"days\":1}");
+            Assert.AreEqual(403, otherPolicy.status, "A key for one domain set another domain's file-link policy. Body: " + otherPolicy.body);
+
+            (int status, string body) run = Bearer(token, "POST", "/api/v1/scheduled/run");
+            Assert.AreEqual(403, run.status, "A key for one domain ran every domain's scheduled sends. Body: " + run.body);
+
+            (int status, string body) read = Admin("GET", "/api/v1/portal/branding?domain=" + OtherDomain);
+            StringAssert.DoesNotContain("evil.example", read.body, "Nothing refused was stored.");
+
+            // Its own domain is its own.
+            (int status, string body) own = Bearer(token, "PUT", "/api/v1/portal/branding", "{\"domain\":\"example.test\",\"name\":\"Example Mail\"}");
+            Assert.AreEqual(200, own.status, own.body);
+            (int status, string body) ownPolicy = Bearer(token, "PUT", "/api/v1/portal/files", "{\"domain\":\"example.test\",\"days\":2}");
+            Assert.AreEqual(200, ownPolicy.status, ownPolicy.body);
+         }
+         finally
+         {
+            Admin("PUT", "/api/v1/portal/branding", "{\"domain\":\"example.test\",\"name\":\"\"}");
+            Admin("PUT", "/api/v1/portal/files", "{\"domain\":\"example.test\",\"days\":null}");
+
+            // What the old code stored, were it running: the settings are kept by
+            // domain name, and outlive the domain.
+            Admin("PUT", "/api/v1/portal/branding", "{\"domain\":\"" + OtherDomain + "\",\"announcement\":\"\"}");
+            Admin("PUT", "/api/v1/portal/files", "{\"domain\":\"" + OtherDomain + "\",\"days\":null}");
+         }
+      }
+
+      [Test]
+      [Description("An app password opens the mailbox and is never a COM logon, whatever role its account holds; the account's own password still is")]
+      public void AnAppPasswordIsNotAComLogon()
+      {
+         // The negative control for COMAuthentication, which until 26 September
+         // 2026 fell through to the account's app passwords and gave the logon
+         // the account's whole role, with no second factor asked.
+         Account boss = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "boss@example.test", AccountPassword);
+         boss.AdminLevel = eAdminLevel.hAdminLevelServerAdmin;
+         boss.Save();
+
+         (int status, string body) issued = Admin("POST", "/api/v1/accounts/boss@example.test/app-passwords", "{\"name\":\"Phone\"}");
+         Assert.AreEqual(201, issued.status, issued.body);
+         string appPassword = JsonValue(issued.body, "password");
+         Assert.IsFalse(string.IsNullOrEmpty(appPassword), issued.body);
+
+         Assert.IsNull(new Application().Authenticate("boss@example.test", appPassword),
+            "An app password logged on to COM as the server administrator.");
+         Assert.IsNull(new Application().AuthenticateWithCode("boss@example.test", appPassword, "000000"),
+            "An app password logged on to COM through the overload with a code.");
+
+         // What it is for, it still does.
+         var pop3 = new Pop3ClientSimulator();
+         Assert.IsTrue(pop3.ConnectAndLogon("boss@example.test", appPassword), "The app password must still open the mailbox.");
+         pop3.Disconnect();
+
+         var own = new Application();
+         Assert.IsNotNull(own.Authenticate("boss@example.test", AccountPassword), "The account's own password is still a COM logon.");
+         Assert.AreEqual("serveradmin", ComCurrentRole(own));
+      }
+
+      [Test]
       [Description("An auditor reads the configuration, the accounts, the logs, the queue and who holds which role")]
       public void AnAuditorReadsWhatAnAuditorIsFor()
       {

@@ -103,6 +103,17 @@ namespace HM
       if (!account)
          return BuildResponse_(404, "{\"error\":\"no such account\"}");
 
+      // The question COM's Account.MoveTo and Utilities.MoveMailbox ask: moving
+      // a mailbox is taking it over, and a rename of the server administrator's
+      // logon name by its domain's administrator would lock the server
+      // administrator out under the old one.
+      if (!CallerTakesInAccount_(caller, account))
+      {
+         LOG_APPLICATION("RestApi: Refused to move " + account->GetAddress() + " for " + String(caller.identity) +
+            ": it holds authority the credential does not.");
+         return AccountNotTakenIn_();
+      }
+
       const String previousAddress = account->GetAddress();
 
       MailboxMoveOutcome outcome;

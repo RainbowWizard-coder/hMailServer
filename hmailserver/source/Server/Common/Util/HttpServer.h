@@ -77,6 +77,16 @@ namespace HM
       // attachment, a file sent as a link - where a media type saying "text"
       // proves nothing about what is under it. See HttpCompression.cpp.
       bool no_compress = false;
+
+      // A body on disk rather than in memory: when set, `body` is ignored and
+      // the file's bytes are the body, read and written a piece at a time, so a
+      // download of hundreds of megabytes holds 64 KB of it at once rather than
+      // three copies of the whole. Content-Length is the file's size when it is
+      // opened; it is never compressed, and the connection is closed after it.
+      // body_file_delete removes the file once the response is done with it -
+      // written, refused or cut off - for a body built in a temporary file.
+      String body_file;
+      bool body_file_delete = false;
    };
 
    // Every ceiling is absolute - a deadline from a fixed moment - rather than
@@ -111,6 +121,20 @@ namespace HM
       // Connections beyond this are closed at accept, before any TLS
       // handshake, so a flood costs the server an accept and a close each.
       unsigned max_connections = 64;
+
+      // A response of at least large_response_bytes - a body file of any size,
+      // or one held in memory of that size - is a large download. At most
+      // max_large_responses of them are written at once, server-wide; one more
+      // is answered 503 with Retry-After and its body let go at once, so slow
+      // readers can pin neither every connection nor that many bodies. A large
+      // download's connection may live past connection_seconds, for as long as
+      // its size takes at download_bytes_per_second (plus request_seconds): a
+      // 500 MB file at 128 KB a second is some 70 minutes, where the connection
+      // timer alone cut every download off at five. Progress is still asked
+      // for every request_seconds, a piece at a time.
+      size_t large_response_bytes = 4 * 1024 * 1024;
+      unsigned max_large_responses = 16;
+      size_t download_bytes_per_second = 128 * 1024;
 
       // Threads running this server's own io_context - bounded, and separate
       // from the mail protocols' IOService so a request storm here cannot
@@ -188,6 +212,13 @@ namespace HM
       // The complete wire form of a response.
       static AnsiString Serialize(const HttpResponse &response, bool keep_alive);
 
+      // The status line and headers alone, for a body of content_length bytes
+      // that is sent after them - a body file's.
+      static AnsiString SerializeHead(const HttpResponse &response, bool keep_alive, unsigned long long content_length);
+
+      // The large downloads being written now (HttpLimits::max_large_responses).
+      unsigned GetLargeResponseCount() const { return large_responses_; }
+
       // "host:port" for log lines, with an IPv6 literal in brackets -
       // "[::1]:8080" - because "::1:8080" reads as a different IPv6 address.
       static String FormatEndpoint(const String &bind_address, int port);
@@ -200,6 +231,11 @@ namespace HM
       void Accept_(std::shared_ptr<Listener> listener);
       bool Track_(std::shared_ptr<HttpConnection> connection);
       void Untrack_(HttpConnection *connection);
+
+      // A slot for one large download, or false when max_large_responses are
+      // being written already; each true is given back once.
+      bool TakeLargeResponse_();
+      void GiveBackLargeResponse_();
       void RunWorker_();
 
       AnsiString name_;
@@ -220,5 +256,7 @@ namespace HM
       std::atomic<bool> running_;
       std::atomic<unsigned> refused_over_cap_;
       std::atomic<unsigned> pending_accepts_;
+      std::atomic<unsigned> large_responses_;
+      std::atomic<unsigned> refused_large_;
    };
 }

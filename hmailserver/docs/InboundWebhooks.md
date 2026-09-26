@@ -327,6 +327,18 @@ domains is listed only their routes and deliveries - the queue is read for its
 own routes, so another domain's busier queue never fills its page - and a
 delivery of a route outside them is the same `404` as none.
 
+A route takes an address's mail instead of its mailbox, or copies it, so it is
+also judged by the accounts it reaches, as every change to what is in an account
+is ([Roles.md](Roles.md)): a route is made, changed or removed only by a
+credential that takes in the account at its address - or the account a plus tag
+on it reaches - and, for a whole domain, every account of the domain with an admin
+level or a role. A key confined to a domain that also holds the server
+administrator's mailbox routes that domain's other addresses, and is refused, with
+`403` and *that account holds authority this credential does not*, the server
+administrator's address and the domain as a whole. Until 26 September 2026 a route
+was judged by its domain alone, and such a key could route the server
+administrator's mail to a URL of its own.
+
 A reader without `manage_inbound_webhooks` - a domain's administrator, the auditor
 - is answered a route's URL as its scheme and host alone, `https://helpdesk.example/...`:
 a receiver's URL very often carries a token in its path or its query, and the
