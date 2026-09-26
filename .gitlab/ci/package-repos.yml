@@ -1,0 +1,57 @@
+# The signed apt and dnf repositories on the update feed's site
+# (docs/PackageManagers.md, "apt and dnf"; build/generate-package-repos.py).
+#
+# The pages job in .gitlab-ci.yml renders the update feed into public/, as it always
+# has. package-repos takes that public/, adds apt/, rpm/, the repository key and one
+# _redirects rule per package, and deploys the whole as the Pages site. So the pages
+# job itself deploys nothing any more: GitLab merges an included file's keys into a
+# job of the same name in .gitlab-ci.yml, and .gitlab-ci.yml's pages job sets no
+# pages: key, so the one below turns its deployment off. Were both to deploy, the
+# feed alone would be live between the two, and apt and dnf would find nothing.
+#
+# package-repos runs in exactly the pipelines pages runs in (its rules are pages'
+# own), needs pages, and deploys in each:
+#   - with the signing key (HM_REPO_SIGNING_KEY, protected and masked, and the public
+#     key committed at .gitlab/package-repository-key.asc): the feed and the
+#     repositories;
+#   - without it: the feed alone, after a REFUSED line that says what is missing;
+#   - on any other failure - a key that is not the committed one, a package whose
+#     size or SHA-256 is not the registry's, more rules than Pages reads - nothing:
+#     the job fails and the site keeps what it had.
+# The packages are not copied onto the site; each answers a 302 to its file in the
+# package registry, which apt and dnf both follow.
+#
+# The tools are Debian 13's own packages - apt-utils (apt-ftparchive), dpkg-dev,
+# createrepo-c, gnupg - in Debian's image pinned by the digest of its amd64 manifest,
+# the one .gitlab/ci/packages-deb.yml pins. On the shared runners, like pages.
+pages:
+  pages: false
+
+package-repos:
+  stage: release
+  image: debian:13@sha256:d5ce19d4736f0ebbacd686d1040271a5aeb0cc920f5990c1bfae1717627f0674
+  needs:
+    - job: pages
+      artifacts: true
+  rules:
+    - !reference [pages, rules]
+  timeout: 30 minutes
+  # The packages, kept by SHA-256 between pipelines, so that a run downloads only
+  # those it has not seen; each is held to releases.json's size and SHA-256 anyway.
+  cache:
+    key: package-repos-files
+    paths:
+      - .package-cache/
+  script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends python3 ca-certificates apt-utils dpkg-dev createrepo-c gnupg > /dev/null
+    - python3 build/generate-package-repos.py --self-test
+    - python3 build/generate-package-repos.py --site public --cache .package-cache
+    - python3 build/generate-package-repos.py --check public
+    # The feed as a server reads it, now that _redirects has the packages' rules too.
+    - python3 build/generate-update-feed.py --serve-check public
+  pages: true
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - public

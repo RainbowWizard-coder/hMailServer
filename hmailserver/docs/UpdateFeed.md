@@ -512,9 +512,12 @@ How it is published
 
 `build/generate-update-feed.py` reads the releases and the package registry
 through GitLab's public API, with no token, and writes the site into `public/`.
-The `pages` job in `.gitlab-ci.yml` runs it on GitLab's shared runners, and
-GitLab Pages deploys what it writes. The job runs for a push to `master`, for a
-`v*` tag, and for a pipeline schedule on `master`, which runs that job alone.
+The `pages` job in `.gitlab-ci.yml` runs it on GitLab's shared runners. The
+`package-repos` job then adds the signed apt and dnf repositories to the same
+site, when their signing key is set ([PackageManagers.md](PackageManagers.md),
+"apt and dnf"), and GitLab Pages deploys the result. The two jobs run for a push
+to `master`, for a `v*` tag, and for a pipeline schedule on `master`, which runs
+those two alone.
 The schedule picks up a release made or edited after its tag's pipeline ran.
 What the job publishes depends on the releases at that moment and not on the
 commit, apart from the script itself. A merge request never runs it.
@@ -543,6 +546,8 @@ does a stable release that is a pre-release. `--check --site` fails when the
 deployed site is not what the releases say now, which is how to tell a stale
 feed from a current one. It checks the download links by what they answer,
 because Pages answers `/_redirects` with its page of the rules, not the file.
+`--check` of a directory also lists `package-repos`' files, `apt/`, `rpm/` and
+the repository key, as not in the releases.
 `--self-test` needs no network.
 
 The name is a CNAME, `updates` to `progressiverobot.gitlab.io`, served DNS-only

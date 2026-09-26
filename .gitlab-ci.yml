@@ -85,6 +85,8 @@ include:
   # GitLab's SAST and secret detection, on the shared runners (the file says what they add).
   - local: .gitlab/ci/gitlab-security.yml
   - local: .gitlab/ci/container-image.yml
+  # The signed apt and dnf repositories, added to the feed's site; it turns pages' own deployment off.
+  - local: .gitlab/ci/package-repos.yml
 
 stages:
   - check

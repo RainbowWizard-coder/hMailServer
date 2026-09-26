@@ -2,7 +2,9 @@ Package managers
 ================
 
 Installing hMailServer with `winget` or `choco`, and — for the maintainer — how
-the manifests behind those two commands are made, checked and submitted.
+the manifests behind those two commands are made, checked and submitted. On
+Linux, `apt` and `dnf` install it from the project's own signed repositories
+([apt and dnf](#apt-and-dnf), below).
 
 Where this stands today
 -----------------------
@@ -162,12 +164,326 @@ nothing. That was the deliberate default, and it holds for whatever replaces
 it: no release should open a pull request against somebody else's repository by
 surprise.
 
+apt and dnf
+-----------
+
+The project keeps a signed apt repository and signed dnf repositories on the
+same site as the update feed, https://updates.progressiverobot.com. `apt
+upgrade` and `dnf upgrade` then bring each new release, like any other
+package on the machine.
+
+**Not live yet.** The job that makes them is written and was tested on linix
+with a throwaway key and dummy packages ([What was tried](#what-was-tried)). It
+publishes nothing until the owner has made the signing key and set it
+([The signing key](#the-signing-key)). The site must also answer HTTPS with its
+own certificate, which it did not on 26 September 2026 (curl refused the certificate as
+issued for another name). apt and dnf refuse the
+repository until then.
+
+### What a user will type: Debian and Ubuntu
+
+```sh
+sudo install -d -m 0755 /etc/apt/keyrings
+sudo curl -fsSLo /etc/apt/keyrings/hmailserver.asc https://updates.progressiverobot.com/hmailserver-repository-key.asc
+gpg --show-keys /etc/apt/keyrings/hmailserver.asc   # compare the fingerprint with the one below
+echo "deb [signed-by=/etc/apt/keyrings/hmailserver.asc] https://updates.progressiverobot.com/apt $(. /etc/os-release && echo "$ID$VERSION_ID") main" \
+  | sudo tee /etc/apt/sources.list.d/hmailserver.list
+sudo apt update
+sudo apt install hmailserver
+```
+
+The key's fingerprint is **`(not made yet)`**. The owner writes it here when
+the key is committed. A minimal image may lack `curl` (`sudo apt install curl
+ca-certificates`) or `gpg`. The `gpg --show-keys` line is only for reading the
+fingerprint: apt reads the armoured `.asc` keyring as it is.
+
+The suite is the release's `$ID$VERSION_ID` from `/etc/os-release`, so the one
+line fits every release the project builds for:
+
+| Release | Suite | Its packages |
+|---|---|---|
+| Ubuntu 26.04 | `ubuntu26.04` | `hmailserver_<v>_<arch>.deb`, the generic name, from 6.3.4 on |
+| Ubuntu 24.04 | `ubuntu24.04` | `hmailserver_<v>-1~ubuntu24.04_<arch>.deb` |
+| Debian 13 | `debian13` | `hmailserver_<v>-1~debian13_<arch>.deb` |
+| Debian 12 | `debian12` | `hmailserver_<v>-1~debian12_<arch>.deb` |
+
+A suite exists once a stable release carries its packages. The package jobs
+make the suffixed names from the release after 6.3.4
+([Packages-deb.md](Packages-deb.md)), so until that release only `ubuntu26.04`
+exists, with 6.3.4's x86-64 `.deb`. On a release with no suite, `apt update`
+answers 404 for its `InRelease`.
+
+### What a user will type: Fedora and Enterprise Linux
+
+```sh
+sudo curl -fsSLo /etc/yum.repos.d/hmailserver.repo https://updates.progressiverobot.com/rpm/fc44/hmailserver.repo
+sudo dnf install hmailserver
+```
+
+Replace `fc44` with the release's directory. Each is named after the dist tag
+in the `.rpm`'s own name (`hmailserver-<v>-1.el9.x86_64.rpm` is in `rpm/el9/`):
+`fc44`, `fc43`, `el10` and `el9`. The first `dnf` command that reads the
+repository asks to import its key, and shows the fingerprint to compare.
+
+The generic `hmailserver-<v>-1.<arch>.rpm` is in no repository. `linux-build`
+makes it on Ubuntu 26.04, so its automatic `Requires` name Ubuntu's sonames, and
+`linux-package-rpm` installs it on Fedora 44 only with `--nodeps`
+(`build/ci/linux-package-install.sh`). dnf could not resolve it anywhere. So a
+dnf repository exists once a stable release carries the per-distribution
+`.rpm` files the package jobs make. A release that carries the generic `.rpm`
+alone, as 6.3.4 does today (the README's download line), adds nothing to them.
+openSUSE's packages (`.suse.lp160`, `.suse.tw`) are not served either: zypper
+is not dnf, and nothing here has been tried with it.
+
+The `.repo` file:
+
+```ini
+[hmailserver]
+name=hMailServer (fc44, $basearch)
+baseurl=https://updates.progressiverobot.com/rpm/fc44/$basearch/
+enabled=1
+repo_gpgcheck=1
+gpgcheck=0
+gpgkey=https://updates.progressiverobot.com/hmailserver-repository-key.asc
+```
+
+`gpgcheck=0` does not mean the packages go unchecked:
+
+- `repo_gpgcheck=1` makes dnf verify `repomd.xml` against its signature;
+- `repomd.xml` gives the SHA-256 of `primary.xml`, which gives the SHA-256 of
+  every package;
+- dnf refuses a package that does not match.
+
+That is the same chain apt uses. The packages carry no RPM signature of their
+own. They are the release's files, byte for byte, signed with Sigstore
+beside them, and signing them with `rpmsign` would change them.
+
+With Fedora's defaults, dnf **skips** a repository whose signature fails. It
+prints `>>> repomd.xml GPG signature verification error: Bad PGP signature`,
+installs nothing from that repository, and exits 0 from `makecache`. AlmaLinux
+9's dnf stops with an error instead. Add `skip_if_unavailable=0` to the file to
+make Fedora stop too. The cost is that an outage of the site then stops every
+`dnf upgrade` on the machine.
+
+### What the repositories hold
+
+- **Stable releases only.** A pre-release never reaches either repository.
+- **Every stable release from the first one each place takes**, unless the job
+  is given `--keep N`.
+- **Which file goes where comes from its name.** A suffixed name says its
+  release. The generic `.deb` goes where `GENERIC` in
+  `build/generate-package-repos.py` says (`ubuntu26.04`), and only from 6.3.4.
+  The generic `.deb`s of 6.3.0 to 6.3.3 were built on GitHub's Ubuntu 24.04
+  runners, so they are left out rather than offered to Ubuntu 26.04. The
+  generic `.rpm` goes nowhere (above). Were a release to carry both a generic
+  `.deb` and a suffixed one for the same suite, the repository would take the
+  suffixed one.
+- **The site holds only the metadata.** Each package's path on the site answers
+  a 302 to the file in the package registry: the same file the release page
+  and the update feed name, with the size and SHA-256 the signed metadata gives.
+  The site therefore stays a few kilobytes per suite, well under the size
+  GitLab allows a Pages site.
+- **The limit is `_redirects`.** GitLab Pages reads 1,000 rules and 64 KiB,
+  with one rule per package file. A rule is about 185 bytes, so the 64 KiB
+  comes first, at about 350 rules. A release with every `.deb` and `.rpm` the
+  package jobs make adds sixteen (eight `.deb`s: four suites, two architectures;
+  eight `.rpm`s: `fc44`, `fc43`, `el10` and `el9`, two architectures), so about
+  twenty releases fit beside the feed's own download links. The job fails, and deploys nothing, before a
+  rule would be lost; `--keep` is then the answer.
+
+### How it is made
+
+`.gitlab/ci/package-repos.yml` holds one job, `package-repos`, which runs in
+every pipeline `pages` runs in and needs it:
+
+1. `pages` renders the update feed into `public/`, as before.
+2. `package-repos` takes that `public/`. It reads `releases.json` for the
+   stable releases' `.deb` and `.rpm` files and downloads each one from the
+   registry. Each download must match the size and SHA-256 the registry records.
+   A cache keyed by the SHA-256 keeps later runs from downloading them again.
+3. It builds each apt suite with `apt-ftparchive`: `Packages`, `Packages.gz`
+   and `Release`, clear-signed into `InRelease` and detach-signed into
+   `Release.gpg`.
+4. It builds each dnf repository with `createrepo_c`, and signs `repomd.xml`
+   into `repomd.xml.asc`.
+5. It adds the committed public key and the `_redirects` rules.
+6. It reads everything back as a client would: the signatures by the
+   committed key alone, every hash, and every rule going to the right file.
+   Then it runs the feed's `--serve-check` again.
+7. GitLab Pages deploys the result.
+
+The `pages` job no longer deploys anything itself. The include turns its
+deployment off with `pages: false`, a key GitLab merges into the job of that
+name. If both deployed, the feed alone would be live between the two.
+
+The tools are Debian 13's own `apt-utils`, `dpkg-dev`, `createrepo-c` and
+`gnupg`. They run in `debian:13` pinned by digest, on the shared runners like
+`pages`.
+
+**Without the key, the feed alone.** If `HM_REPO_SIGNING_KEY` is not set, or
+the public key is not committed, the job prints what is missing, adds nothing
+and passes, so the site is the update feed alone. A protected variable reaches
+only a protected branch or tag, and `pages` runs only on those. Any other
+failure fails the job, and GitLab deploys nothing, so the site keeps what it
+had. Such failures include a key that is not the committed one, a package whose
+size or hash is not the registry's, and more rules than Pages reads.
+
+The same script by hand, from the repository root:
+
+```sh
+python3 build/generate-package-repos.py --self-test
+python3 build/generate-package-repos.py --site public            # after generate-update-feed.py --output public
+python3 build/generate-package-repos.py --check public
+python3 build/generate-package-repos.py --serve public --port 8080   # the site as Pages serves it, _redirects included
+```
+
+### The signing key
+
+The owner makes it, on a machine of their own and not on GitLab. The primary
+key certifies only, and stays offline. A signing subkey is the only secret
+GitLab holds, so if it leaks it can be revoked and replaced without users
+changing the key they trust. With GnuPG 2.2 or later:
+
+```sh
+# The primary key: certify only, no expiry. gpg asks for a passphrase.
+gpg --quick-generate-key "hMailServer package repository <chris.holloway@progressiverobot.com>" ed25519 cert never
+FPR=$(gpg --list-keys --with-colons "hMailServer package repository" | awk -F: '/^fpr/ {print $10; exit}')
+
+# The signing subkey, for five years.
+gpg --quick-add-key "$FPR" ed25519 sign 5y
+SUB=$(gpg --list-keys --with-colons "$FPR" | awk -F: '/^sub/ {getline; print $10; exit}')
+
+# The public key, which users trust: commit it.
+gpg --armor --export "$FPR" > .gitlab/package-repository-key.asc
+gpg --fingerprint "$FPR"     # write this fingerprint into this document, above
+
+# Offline, with the revocation certificate gpg wrote under ~/.gnupg/openpgp-revocs.d/:
+gpg --armor --export-secret-keys "$FPR" > hmailserver-repository-primary.asc
+
+# The subkey alone, for GitLab: the primary's secret is left out ("sec#").
+gpg --export-secret-subkeys "$SUB!" | base64 -w0 > repo-signing-subkey.b64
+```
+
+Then set the CI/CD variables, under Settings, CI/CD, Variables. Each is
+**Protected** and **Masked and hidden**:
+
+- `HM_REPO_SIGNING_KEY`: the content of `repo-signing-subkey.b64`. The job also
+  takes a File variable, or ASCII armour, but a masked value must be one line,
+  which base64 is.
+- `HM_REPO_SIGNING_PASSPHRASE`: the key's passphrase. Masking needs at least
+  eight characters from the base64 alphabet (and `@:.~`). Choose one like that
+  (`openssl rand -base64 24`), or change the passphrase before the export
+  (`gpg --passwd "$FPR"`).
+
+The same from a shell, with `glab` signed in as the owner:
+
+```sh
+glab variable set HM_REPO_SIGNING_KEY --protected --masked < repo-signing-subkey.b64
+read -rs PASS && printf '%s' "$PASS" | glab variable set HM_REPO_SIGNING_PASSPHRASE --protected --masked
+rm repo-signing-subkey.b64
+```
+
+The job refuses a key that does not verify as the committed one. It imports the
+committed public key and the variable's secret into a GnuPG home of its own, and
+requires a usable signing key under the committed fingerprint. It then signs a
+probe and verifies it with the public key alone. It notes if the variable holds
+the primary key's secret too.
+
+**Renewing.** From 180 days before the subkey expires, the job warns in its log.
+Extend it with the primary key (`gpg --quick-set-expire "$FPR" 5y "$SUB"`),
+commit the exported public key again, and ask users to fetch the key file again:
+neither apt nor dnf refreshes a key by itself. To replace a leaked subkey, revoke
+it with the primary, add a new one, commit the public key, and set the variable
+again.
+
+**Before it is announced:**
+
+1. Make the key, commit `.gitlab/package-repository-key.asc`, and write the
+   fingerprint above. Add the file to `.gitlab/CODEOWNERS` with the other
+   supply-chain files.
+2. Set the two variables.
+3. Make sure https://updates.progressiverobot.com answers with its own
+   certificate.
+4. Run a pipeline on `master`. In `package-repos`' log, look for `signing as`
+   and the fingerprint.
+5. Run the commands above against the live site on a real Debian, Ubuntu,
+   Fedora and Enterprise Linux machine. [What was tried](#what-was-tried) used
+   plain HTTP and an emulation of Pages, not GitLab Pages itself.
+
+### What was tried
+
+These ran on linix (26 September 2026), and again after a check of the work
+had the generic `.rpm` kept out of every repository, with `.fc44` packages
+added to the inputs:
+
+- **The builder:** Debian 13 by digest, with the four tools installed from
+  Debian (apt-utils 3.0.3, createrepo-c 1.2.0, gnupg 2.4.7, python3 3.13.5).
+- **The inputs:**
+  - a throwaway key, made with the commands above;
+  - dummy packages built with `dpkg-deb` and `rpmbuild`: generic and
+    `~debian13` `.deb`s, and generic, `.fc44` and `.el9` `.rpm`s, for 6.3.3,
+    6.3.5 and 6.3.6;
+  - a pre-release;
+  - a `releases.json` pointing at a stand-in registry, served by `python3 -m
+    http.server` on another port.
+- **The site** was served by `--serve`, which answers as GitLab Pages does: a
+  file first, then an exact `_redirects` rule, matched on the decoded path.
+
+What happened:
+
+- **The script's self-test passed with the tools there.** That includes a whole
+  apt repository built, read back, and caught three times: when `Packages` was
+  changed, when a rule sent a package elsewhere, and when another key was set.
+- **Without `HM_REPO_SIGNING_KEY`,** the job printed its refusal, exited 0 and
+  left the site as it was.
+- **With the key:**
+  - two apt suites (`debian13`, `ubuntu26.04`) and two dnf repositories (`el9`,
+    `fc44`) were built;
+  - the pre-release, 6.3.3's generic `.deb` and every generic `.rpm` were
+    left out, each said;
+  - `--check` found no problem.
+- **Debian 13 and Ubuntu 26.04, clean containers** (Debian 13's apt verified
+  with `sqv`, as its refusal below names):
+  - the sources line above, with the site's address changed;
+  - `apt-get update`;
+  - an install of the oldest version, then `apt-get upgrade` to the newest.
+- **Fedora 44 (dnf5) and AlmaLinux 9 (dnf 4), clean containers:**
+  - the published `.repo` file, with the site's address changed;
+  - the key imported from `gpgkey=`;
+  - `dnf install hmailserver-6.3.5`, then `dnf upgrade` to 6.3.6.
+- **Every package went through the redirect.** The site's log shows each `.deb`
+  and `.rpm` answered with a 302, and the registry's log shows each one
+  fetched. apt asks for `~` as `%7e`, and the rule, written with `~`, matched
+  once decoded. GitLab Pages matches rules on the decoded path too
+  (gitlab-pages, `internal/redirects/matching.go`).
+- **Refused, as they should be:**
+  - apt, with another key in `signed-by`: "is not signed", on both;
+  - apt, with a `Packages` file changed after signing: "File has unexpected
+    size";
+  - dnf, with `repomd.xml` changed after signing: nothing installed, on both.
+    Fedora skipped the repository (see above); AlmaLinux 9 stopped with "Bad
+    GPG signature", and so did Fedora with `skip_if_unavailable=0` in the
+    `.repo` (`makecache` exit 1 on both).
+- **GitLab's CI lint** (the API, which creates nothing) accepted the merged
+  configuration: `.gitlab-ci.yml` with `pages: false` in `pages`, plus
+  `package-repos`. Its dry run of a `master` pipeline created both jobs.
+
+Not tried:
+
+- the job on GitLab's runners, or a deployment to GitLab Pages;
+- a 302 from real GitLab Pages to the registry. gitlab-pages accepts an absolute
+  `http(s)` target for 301 and 302 (`internal/redirects/validations.go`), and
+  the registry answers a public project's file with 200, not a further redirect;
+- HTTPS end to end;
+- arm64 and aarch64;
+- Debian 12 and Ubuntu 24.04, whose packages do not exist yet.
+
 What this does not do
 ---------------------
 
-* **No Linux package manager.** The `.deb`, `.rpm` and AppImage are attached to
-  each release and are documented in the README; an apt or dnf repository, and
-  the Arch AUR, are separate roadmap rows.
+* **No Arch AUR package.** The `.deb` and `.rpm` have the apt and dnf
+  repositories below; the AppImage is attached to each release; the Arch AUR is
+  a separate roadmap row.
 * **No `winget install` of a pre-release.** The workflow refused a tag that was
   not three numbers, and a pre-release is not submitted by hand either, because package managers should not hand an alpha to
   somebody typing `winget install hmailserver`.
