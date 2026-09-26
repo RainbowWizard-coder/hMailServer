@@ -163,7 +163,7 @@ GitLab job can hold it. A `.sig` of the sums file is for a release made by hand.
 From 6.3.4, a release built and published by hand - 6.3.4 itself, made after
 GitHub's suspension and before the release jobs above existed, or any later one
 made outside the pipeline - carries `hmailserver-<v>-SHA256SUMS.txt`, the
-`<sha256>  <name>` line of every other file of the release, and
+`<sha256>  <name>` line of every file of the release but itself and its `.sig`, and
 `hmailserver-<v>-SHA256SUMS.txt.sig`, an SSH signature of it made with the key
 that signs the release tags: the one key `.gitlab/allowed_signers` lists, under
 the principal `christopher.j.holloway@outlook.com`. It stands where the

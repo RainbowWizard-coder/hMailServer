@@ -78,7 +78,7 @@ without a switch comes first. The operator documents named below are in `hmailse
 them than it had at 6.3.3. This release carries an Authenticode signature and no Sigstore bundle, so every server
 installs it by hand: a live update of any version that is offered it says it cannot be verified and downloads
 nothing ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)). Its `hmailserver-6.3.4-SHA256SUMS.txt` names every
-other file of the release and is signed with the release tag's SSH key, `hmailserver-6.3.4-SHA256SUMS.txt.sig`;
+file of the release but itself and its signature, and is signed with the release tag's SSH key, `hmailserver-6.3.4-SHA256SUMS.txt.sig`;
 SECURITY.md, "Verifying a release", has the two commands that check a download against it.
 
 ### What changes on upgrade without a switch

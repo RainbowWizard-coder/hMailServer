@@ -123,7 +123,8 @@ verified the original.
   ```
 
 - **The signed sums of a release built by hand** (from 6.3.4 on). Such a release carries
-  `hmailserver-<v>-SHA256SUMS.txt`, which names every other file of the release with its SHA-256, and
+  `hmailserver-<v>-SHA256SUMS.txt`, which names every file of the release but itself and its `.sig` with its
+  SHA-256, and
   `hmailserver-<v>-SHA256SUMS.txt.sig`, an SSH signature of it made with the key that signs the release tags - the
   one key in `.gitlab/allowed_signers`, under the principal `christopher.j.holloway@outlook.com`. With OpenSSH 8.1
   or later, in a clone (for `.gitlab/allowed_signers`) and with the downloads beside you:
