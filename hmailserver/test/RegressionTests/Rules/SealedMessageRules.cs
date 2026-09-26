@@ -45,8 +45,9 @@ namespace RegressionTests.Rules
       private const string Notice = "This message is confidential.";
       // Real OpenPGP packets, armoured - a session key packet and then encrypted
       // data - because the server decides "encrypted" from what the ciphertext
-      // part holds and not from the label.
-      private const string CiphertextMarker = "wQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=";
+      // part holds and not from the label. SealedMailSafety's, which gpg
+      // --list-packets reads as both packets; the checksum is their CRC-24.
+      private const string CiphertextMarker = "wQ0DAAAAAAAAAAABAAEB0hkBc2VhbGVkLWNpcGhlcnRleHQtbWFya2Vy";
 
       // SensitiveContent by its IDL number, as OutboundContentPolicy uses it.
       private const int SensitiveContent = 10;
@@ -119,7 +120,7 @@ namespace RegressionTests.Rules
                 "-----BEGIN PGP MESSAGE-----\r\n" +
                 "\r\n" +
                 CiphertextMarker + "\r\n" +
-                "=abcd\r\n" +
+                "=x/Ai\r\n" +
                 "-----END PGP MESSAGE-----\r\n" +
                 "\r\n" +
                 "--sealed-boundary--\r\n";

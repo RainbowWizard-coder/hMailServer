@@ -69,8 +69,17 @@ namespace HM
                return false;
          }
 
+         // The first name is MimeHeader::GetUnicodeFilename's, decoded from the
+         // raw name here rather than asked of it: it reads that raw name through
+         // the virtual GetRawFilename, and MimeBody's override invents
+         // "ATT-<n>.dat" (or "<subject>.eml") for a part that gives itself no
+         // name. The invented name is not one the sender wrote, and it refused
+         // every part that is rightly unnamed: RFC 3156's own example names
+         // neither part of a PGP/MIME message, and Thunderbird, Mutt and this
+         // server's OpenPgpWriter leave the control part unnamed, so no real
+         // PGP/MIME message was opaque.
          const String names[] = {
-            part.MimeHeader::GetUnicodeFilename(),
+            MimeHeader::GetUnicodeFieldValue(CMimeConst::ContentDisposition(), part.MimeHeader::GetRawFilename()),
             String(AnsiString(part.GetParameter(CMimeConst::ContentDisposition(), CMimeConst::Filename()))),
             String(AnsiString(part.GetParameter(CMimeConst::ContentType(), CMimeConst::Name()))) };
 
@@ -692,7 +701,10 @@ namespace HM
 
       // One public-key session key packet and then SEIPD, armoured: what
       // IsEncryptedEndToEnd, and now IsOpaque, take for a message under a key.
-      const char EncryptedPackets[] = "wQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=";
+      // A version 3 session key packet (RSA, the wildcard key ID, a one-bit
+      // MPI) and a version 1 SEIPD packet, which gpg --list-packets reads as
+      // both; the regression suite's fixtures carry the same packets.
+      const char EncryptedPackets[] = "wQ0DAAAAAAAAAAABAAEB0hkBc2VhbGVkLWNpcGhlcnRleHQtbWFya2Vy";
       // A literal data packet: an OpenPGP message that is not under any key.
       const char LiteralPackets[] = "ywhiAAAAAABoaQ==";
       // The first octets of a Windows executable.
@@ -769,6 +781,22 @@ namespace HM
          std::string("Content-Type: application/octet-stream\r\n\r\n-----BEGIN PGP MESSAGE-----\r\n\r\n") + EncryptedPackets + "\r\n-----END PGP MESSAGE-----\r\n"))),
          "A PGP/MIME message whose parts carry no names was not opaque.");
 
+      // A name the sender wrote still decides, on the control part as on the
+      // ciphertext: only a part with no name at all is taken as unnamed.
+      Require(!SealedMessage::IsOpaque(ParsedForTest(PgpMime("Content-Type: application/pgp-encrypted; name=\"invoice.exe\"\r\n\r\nVersion: 1\r\n",
+         CiphertextPart("encrypted.asc", EncryptedPackets)))),
+         "A control part named invoice.exe was called opaque.");
+
+      // And "no name" is what the parser that names the part for the
+      // blocked-attachment list finds, in every spelling it reads: a
+      // ciphertext part whose one name is FILENAME= in capitals, as a client
+      // reads it, is named invoice.exe and not unnamed.
+      Require(!SealedMessage::IsOpaque(ParsedForTest(PgpMime(ControlPart,
+         std::string("Content-Type: application/octet-stream\r\n"
+                     "Content-Disposition: attachment; FILENAME=\"invoice.exe\"\r\n\r\n"
+                     "-----BEGIN PGP MESSAGE-----\r\n\r\n") + EncryptedPackets + "\r\n-----END PGP MESSAGE-----\r\n"))),
+         "A ciphertext part whose only name is an upper-case FILENAME=\"invoice.exe\" was taken for unnamed and called opaque.");
+
       Require(!SealedMessage::IsOpaque(ParsedForTest(PgpMime(ControlPart, ExecutablePart))),
          "A multipart/encrypted label around invoice.exe was called opaque, which switches off the blocked-attachment list for it.");
 
@@ -807,6 +835,14 @@ namespace HM
 
       Require(SealedMessage::IsOpaque(ParsedForTest(Smime("smime.p7m", "MIAGCSqGSIb3DQEHAqCAMIACAQE="))),
          "An S/MIME opaque signed-data message was not opaque: its text is inside CMS this server does not unpack.");
+
+      Require(SealedMessage::IsOpaque(ParsedForTest("From: a@example.com\r\n"
+                                                    "MIME-Version: 1.0\r\n"
+                                                    "Content-Type: application/pkcs7-mime; smime-type=enveloped-data\r\n"
+                                                    "Content-Transfer-Encoding: base64\r\n"
+                                                    "\r\n"
+                                                    "MIAGCSqGSIb3DQEHA6CAMIACAQAAAAAAAAA=\r\n")),
+         "An S/MIME enveloped-data message with no name was not opaque.");
 
       Require(!SealedMessage::IsOpaque(ParsedForTest(Smime("smime.p7m", ExecutableBase64))),
          "An application/pkcs7-mime label on an executable was called opaque.");
@@ -862,6 +898,11 @@ namespace HM
          "Content-Type: application/pgp-signature; name=\"signature.asc\"\r\n\r\n-----BEGIN PGP SIGNATURE-----\r\n\r\niQEzBAEBCAAdFiEE\r\n-----END PGP SIGNATURE-----\r\n",
          std::string()))) != nullptr,
          "The signature.asc of a real PGP/MIME signed message was not recognised as its signature.");
+
+      Require(SealedMessage::DetachedSignaturePart(ParsedForTest(signedMessage("application/pgp-signature",
+         "Content-Type: application/pgp-signature\r\n\r\n-----BEGIN PGP SIGNATURE-----\r\n\r\niQEzBAEBCAAdFiEE\r\n-----END PGP SIGNATURE-----\r\n",
+         std::string()))) != nullptr,
+         "An unnamed PGP/MIME signature, as RFC 3156 writes it, was not recognised as the message's signature.");
 
       Require(SealedMessage::DetachedSignaturePart(ParsedForTest(signedMessage("application/pkcs7-signature",
          smimeSignature("application/pkcs7-signature", "invoice.exe", signedData), std::string()))) == nullptr,

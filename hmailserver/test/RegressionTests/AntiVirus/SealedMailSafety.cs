@@ -55,8 +55,11 @@ namespace RegressionTests.AntiVirus
       // Real OpenPGP packets, armoured: a public-key session key packet and then
       // symmetrically encrypted data. The server decides "encrypted" from what
       // the ciphertext part holds and not from the label, so a fixture whose
-      // "ciphertext" is any other base64 is, correctly, not encrypted.
-      private const string CiphertextMarker = "wQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=";
+      // "ciphertext" is any other base64 is, correctly, not encrypted. The packets
+      // are a version 3 session key packet (RSA, the wildcard key ID, a one-bit
+      // MPI) and a version 1 SEIPD packet, which gpg --list-packets reads as both;
+      // the armour's checksum is their CRC-24.
+      private const string CiphertextMarker = "wQ0DAAAAAAAAAAABAAEB0hkBc2VhbGVkLWNpcGhlcnRleHQtbWFya2Vy";
 
       // The first bytes of a Windows executable, as a sender would attach one.
       private const string ExecutableMarker = "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAA=";
@@ -180,7 +183,7 @@ namespace RegressionTests.AntiVirus
                 "-----BEGIN PGP MESSAGE-----\r\n" +
                 "\r\n" +
                 CiphertextMarker + "\r\n" +
-                "=abcd\r\n" +
+                "=x/Ai\r\n" +
                 "-----END PGP MESSAGE-----\r\n" +
                 "\r\n" +
                 "--sealed-boundary--\r\n";

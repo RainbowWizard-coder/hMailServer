@@ -542,10 +542,11 @@ namespace RegressionTests.SMTP
       {
          SwitchOn();
          // Real OpenPGP packets: a public-key session key packet and then
-         // encrypted data. What is under a key is decided from the packets, not
-         // the label, so a fixture of any other base64 is sealed (see
+         // encrypted data, which gpg --list-packets reads as both, under their
+         // CRC-24. What is under a key is decided from the packets, not the
+         // label, so a fixture of any other base64 is sealed (see
          // ALabelIsNotEnoughToBeStoredUnsealed).
-         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=\r\n=za00\r\n-----END PGP MESSAGE-----\r\n";
+         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwQ0DAAAAAAAAAAABAAEB0hkBc2VhbGVkLWNpcGhlcnRleHQtbWFya2Vy\r\n=x/Ai\r\n-----END PGP MESSAGE-----\r\n";
          string raw = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Already under a key\r\nMIME-Version: 1.0\r\n"
                       + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"za-fixture\"\r\n\r\n"
                       + "--za-fixture\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n"
@@ -611,7 +612,7 @@ namespace RegressionTests.SMTP
          // arrived, the third part's text on the disk in the clear.
          SwitchOn();
 
-         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=\r\n=za00\r\n-----END PGP MESSAGE-----\r\n";
+         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwQ0DAAAAAAAAAAABAAEB0hkBc2VhbGVkLWNpcGhlcnRleHQtbWFya2Vy\r\n=x/Ai\r\n-----END PGP MESSAGE-----\r\n";
          const string readable = "A readable part riding beside real ciphertext.";
          string raw = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Ciphertext and a passenger\r\nMIME-Version: 1.0\r\n"
                       + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"za-extra\"\r\n\r\n"
