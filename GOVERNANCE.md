@@ -43,7 +43,8 @@ Roles and responsibilities
 ### Maintainers
 
 **Currently: Christopher Holloway (`Progressiverobot` on GitLab, `chrisholloway5`
-on GitHub) and Zain Ul Abidin (`Zainulabidin90` on GitHub).**
+on GitHub) and Zain Ul Abidin (`zainulabidin1990` on GitLab, `Zainulabidin90` on
+GitHub).**
 
 The maintainers are accountable for the project. In practice this means:
 
@@ -81,16 +82,22 @@ need more than that, and neither is in place yet:
    `.gitlab-ci.yml` refuses a tag that does not verify against that file, as
    GitHub's signing workflow did before it. A release also needs
    a machine set up to run [RELEASE.md](RELEASE.md) steps 4 to 11 — the
-   regression suite, the fuzz runs and the installer build. Until both are in
-   place, releases are tagged by Christopher Holloway.
+   regression suite, the fuzz runs and the installer build. **Release tags are
+   created by Christopher Holloway, as the `Progressiverobot` account, alone**
+   (decided on 26 September 2026). GitLab's Free tier cannot hold tag creation
+   to one account - a protected-tag rule names a role, and `v*` allows
+   Maintainers - so the rule is held where a release is made: `.gitlab/allowed_signers`
+   lists his key alone, the `release` job refuses a tag that does not verify
+   against it, and the Azure federated credential that signs the installer is
+   issued for one tag at a time.
 2. **Security response** needs to see every report. Reports arrive as
    confidential issues on GitLab, opened directly or by mail to the Service
    Desk address ([SECURITY.md](SECURITY.md)), and GitLab shows a confidential
    issue only to its author, its assignees and the project's members with the
-   Planner role or above. Until Zain Ul Abidin is a member of the GitLab
-   project with such a role, Zain Ul Abidin sees a report only if Christopher
-   Holloway assigns it, so security response rests on Christopher Holloway in
-   practice. (On GitHub, until 18 September 2026, reports arrived through
+   Planner role or above. Zain Ul Abidin has been a member of the GitLab
+   project since 24 September 2026 (`zainulabidin1990`), so he can see every
+   report; taking the duty on is the maintainers' decision, and until it is
+   made, security response rests on Christopher Holloway. (On GitHub, until 18 September 2026, reports arrived through
    private vulnerability reporting, which showed every advisory only to
    repository admins, security managers and organisation owners.)
 
