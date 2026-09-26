@@ -176,6 +176,25 @@ wait_for_ssh() {
    return 1
 }
 
+# A command that only creates or copies, tried up to three times. Just after a revert
+# the VM's first SSH answer can come before its network has settled: on 26 September
+# 2026 the first scp of an installer, soon after "ready", ended in "Connection
+# reset by peer", and the run stopped with nothing tested. Creating the folders and
+# copying a file over again are safe to repeat; the smoke script itself is never
+# retried.
+retry_copy() {
+   local attempt
+   for attempt in 1 2 3; do
+      "$@" && return 0
+      if [ "$attempt" -lt 3 ]; then
+         say "   attempt $attempt failed; waiting for SSH and trying again"
+         sleep 10
+         wait_for_ssh || return 1
+      fi
+   done
+   return 1
+}
+
 # The address must be the VM's: ARP answers with the MAC of the .vmx.
 check_address() {
    ping -n 1 -w 1000 "$host" > /dev/null 2>&1
@@ -220,15 +239,16 @@ check_address || exit 3
 
 say "== copying the installers and the script"
 first_name=$(basename "$first_local")
-ssh "${ssh_opts[@]}" "$remote" 'powershell -NoProfile -Command "New-Item -ItemType Directory -Force C:/smoke/first, C:/smoke/second, C:/smoke/logs | Out-Null"' || exit 3
-scp "${ssh_opts[@]}" -q "$first_local" "$remote:C:/smoke/first/" || exit 3
+retry_copy ssh "${ssh_opts[@]}" "$remote" 'powershell -NoProfile -Command "New-Item -ItemType Directory -Force C:/smoke/first, C:/smoke/second, C:/smoke/logs | Out-Null"' ||
+   { say "C:\smoke could not be made on $host"; exit 3; }
+retry_copy scp "${ssh_opts[@]}" -q "$first_local" "$remote:C:/smoke/first/" || { say "the first installer could not be copied"; exit 3; }
 arguments="-Installer \"C:/smoke/first/$first_name\""
 if [ -n "$second_local" ]; then
    second_name=$(basename "$second_local")
-   scp "${ssh_opts[@]}" -q "$second_local" "$remote:C:/smoke/second/" || exit 3
+   retry_copy scp "${ssh_opts[@]}" -q "$second_local" "$remote:C:/smoke/second/" || { say "the second installer could not be copied"; exit 3; }
    arguments="$arguments -UpgradeInstaller \"C:/smoke/second/$second_name\""
 fi
-scp "${ssh_opts[@]}" -q "$smoke_ps1" "$remote:C:/smoke/installer-smoke.ps1" || exit 3
+retry_copy scp "${ssh_opts[@]}" -q "$smoke_ps1" "$remote:C:/smoke/installer-smoke.ps1" || { say "installer-smoke.ps1 could not be copied"; exit 3; }
 [ "$allow_unsigned" = 1 ] && arguments="$arguments -AllowUnsigned"
 
 say "== running installer-smoke.ps1 on $host"
@@ -238,7 +258,7 @@ ssh "${ssh_opts[@]}" "$remote" \
 result=${PIPESTATUS[0]}
 
 say "== collecting the logs"
-scp "${ssh_opts[@]}" -q -r "$remote:C:/smoke/logs" "$out/" || say "the logs could not be copied back"
+retry_copy scp "${ssh_opts[@]}" -q -r "$remote:C:/smoke/logs" "$out/" || say "the logs could not be copied back"
 
 passed=$(grep -c '^PASS ' "$console")
 failed=$(grep -c '^FAIL ' "$console")

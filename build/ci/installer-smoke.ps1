@@ -1046,8 +1046,13 @@ function Test-Uninstalled {
          foreach ($folder in 'ControlPanel', 'WebAdmin', 'DBScripts', 'Languages', 'Addons\DataDirectorySynchronizer', 'Addons\ImportTool') {
             if (Test-Path -LiteralPath (Join-Path $app $folder)) { throw "$folder is still there" }
          }
-         $binaries = @(Get-ChildItem -LiteralPath $app -Recurse -File -Force -Include '*.exe', '*.dll', '*.tlb' -ErrorAction SilentlyContinue)
-         if ($binaries.Count -gt 0) { throw "binaries are left: $(($binaries | ForEach-Object Name) -join ', ')" }
+         # Filtered by extension here, not with -Include: Windows PowerShell 5.1 ignores
+         # -Include beside -LiteralPath and lists every file, so the kept scripts, the
+         # INI, the database and the message were reported as "binaries" (the rehearsal
+         # of 26 September 2026).
+         $binaries = @(Get-ChildItem -LiteralPath $app -Recurse -File -Force -ErrorAction SilentlyContinue |
+               Where-Object { @('.exe', '.dll', '.tlb') -contains $_.Extension.ToLowerInvariant() })
+         if ($binaries.Count -gt 0) { throw "binaries are left: $(($binaries | ForEach-Object { $_.FullName.Substring($app.Length + 1) }) -join ', ')" }
          "$($left.Count) files left under $app, every one of them kept on purpose"
       })
 

@@ -879,8 +879,9 @@ The script does the following:
    runs the script there under Windows PowerShell 5.1, and copies back
    `C:\smoke\logs`. That folder holds `smoke.log`, Inno's `install.log`,
    `upgrade.log` and `uninstall.log`, and any server logs.
-5. It reverts the VM again. From the first revert to the last, a run takes
-   about two minutes.
+5. It reverts the VM again. From the first revert to the last, a run of an
+   install, an upgrade and an uninstall took about three and a half minutes on
+   26 September 2026, a little over two of them in `installer-smoke.ps1`.
 
 Only the SSH key is used, never a password. The administrator password given to
 the installer is made on the VM and never printed. The output is one line per
@@ -1050,6 +1051,29 @@ installer's signature is a SKIP.
    by an earlier installer still runs that installer's entries once more,
    which is now harmless.
 5. This one goes with item 3.
+
+**The rehearsal of 26 September 2026.** Before the 6.3.4 run, the whole
+harness was run with the 6.3.3 installer as both the first installer and the
+"upgrade", which proves every step but the new binary: the reverts, SSH, the
+copies, a same-version reinstall over the seeded data, the uninstall and the
+log collection. It found two defects in the test. First, the check that no
+binary is left used
+`Get-ChildItem -LiteralPath ... -Include '*.exe', '*.dll', '*.tlb'`, and
+Windows PowerShell 5.1 ignores `-Include` beside `-LiteralPath`, so every
+file the uninstall keeps on purpose (the INI, the database, the message and the
+scripts) was reported as a binary left behind. The 25 September runs never
+reached that line, because the check before it failed on item 2's real
+leftovers, so it would first have shown itself on the 6.3.4 run, as a failure
+of the fixed uninstaller. It now filters by extension. Second, one run stopped
+before the install with "Connection reset by peer" from the first `scp`, after
+the VM had answered SSH and within 81 seconds of the revert, and the harness
+tried nothing again. Making `C:\smoke`, the three copies to the VM and the
+copy of the logs back are now tried up to three times, waiting for SSH between
+tries; the smoke script itself is never run twice. With both fixes the
+rehearsal gave 62 passed and 3 failed in 219 seconds, and the three failures
+are 6.3.3's own items 3, 4 and 5: the "upgrade" runs `[UninstallRun]` twice,
+and the test registers the event source. Item 2 did not appear in these runs;
+it is a race, and it is fixed in the tree anyway.
 
 `build/check-installer-scripts.py` holds each fix in the text of the scripts and
 the server, and CI runs it on every push. The installer's own comments had the
