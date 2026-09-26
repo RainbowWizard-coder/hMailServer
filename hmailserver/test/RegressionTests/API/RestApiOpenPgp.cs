@@ -273,6 +273,68 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The key the address publishes is the account holder's alone: an app password and an administrator's support session can read the document and can neither upload a key, remove one nor throw the publishing switch; the account's own password does all three")]
+      public void ThePublishedKeyIsChangedByTheAccountHolderAlone()
+      {
+         // Against the code before the fix this fails: the three writes took any
+         // credential of the account, so a leaked app password - or an
+         // administrator in a support session - could put a key of their own
+         // where every correspondent looks the address up, and read what they
+         // then sent.
+         string key = "{\"key\":\"" + OpenPgpTestSupport.SuiteKeyBase64 + "\"}";
+         Assert.AreEqual(201, Http("PUT", "/api/v1/me/openpgp", UserHeader(), key).status);
+
+         (int status, string body) minted = Http("POST", "/api/v1/me/app-passwords", UserHeader(),
+            "{\"name\":\"Phone\",\"password\":\"" + UserPassword + "\"}");
+         Assert.AreEqual(201, minted.status, "Body: " + minted.body);
+         string program = BasicHeader(Address, System.Text.RegularExpressions.Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value);
+
+         Assert.AreEqual(200, Http("GET", "/api/v1/me/openpgp", program).status, "An app password still reads the document.");
+         (int status, string body)[] byProgram =
+         {
+            Http("PUT", "/api/v1/me/openpgp", program, key),
+            Http("DELETE", "/api/v1/me/openpgp/" + OpenPgpTestSupport.SuiteKeyFingerprint, program),
+            Http("PUT", "/api/v1/me/openpgp/publish", program, "{\"publish\":true}")
+         };
+         foreach ((int status, string body) answer in byProgram)
+         {
+            Assert.AreEqual(403, answer.status, "An app password changed the published key. Body: " + answer.body);
+            StringAssert.Contains("app password", answer.body);
+         }
+
+         Assert.AreEqual(200, Http("PUT", "/api/v1/me/preferences", UserHeader(), "{\"support_allowed\":\"1\"}").status);
+         (int status, string headers, string body) opened = RestRequest.Exchange("127.0.0.1", RestPort, "POST",
+            "/api/v1/accounts/" + Address + "/support-session", AdminHeader(), null, null);
+         Assert.AreEqual(201, opened.status, opened.body);
+         string cookie = System.Text.RegularExpressions.Regex.Match(opened.headers, "hmailsession=([^;\r\n]+)").Groups[1].Value;
+         Assert.IsFalse(string.IsNullOrEmpty(cookie), opened.headers);
+         string support = "Cookie: hmailsession=" + cookie + "\r\nX-Requested-With: hMailServer";
+
+         Assert.AreEqual(200, RestRequest.Send("127.0.0.1", RestPort, "GET", "/api/v1/me/openpgp", null, null, support).status,
+            "The support session is not a working session.");
+         (int status, string body)[] bySupport =
+         {
+            RestRequest.Send("127.0.0.1", RestPort, "PUT", "/api/v1/me/openpgp", null, key, support),
+            RestRequest.Send("127.0.0.1", RestPort, "DELETE", "/api/v1/me/openpgp/" + OpenPgpTestSupport.SuiteKeyFingerprint, null, null, support),
+            RestRequest.Send("127.0.0.1", RestPort, "PUT", "/api/v1/me/openpgp/publish", null, "{\"publish\":true}", support)
+         };
+         foreach ((int status, string body) answer in bySupport)
+         {
+            Assert.AreEqual(403, answer.status, "A support session changed the published key. Body: " + answer.body);
+            StringAssert.Contains("support_session", answer.body);
+         }
+
+         (int status, string body) unchanged = Http("GET", "/api/v1/me/openpgp", UserHeader());
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.SuiteKeyFingerprint + "\"", unchanged.body, "The key was removed.");
+         StringAssert.Contains("\"publish\":false", unchanged.body, "The switch was thrown.");
+
+         // The negative control: the account's own password does each of them.
+         Assert.AreEqual(200, Http("PUT", "/api/v1/me/openpgp/publish", UserHeader(), "{\"publish\":true}").status);
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/me/openpgp/" + OpenPgpTestSupport.SuiteKeyFingerprint, UserHeader()).status);
+         Http("PUT", "/api/v1/me/preferences", UserHeader(), "{\"support_allowed\":null}");
+      }
+
+      [Test]
       [Description("An administrator stores a key for an account and sees it in the domain's listing, with whether "
                    + "it is actually being served")]
       public void AnAdministratorStoresAKeyAndSeesTheDomainsListing()

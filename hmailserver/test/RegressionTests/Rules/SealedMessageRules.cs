@@ -43,7 +43,13 @@ namespace RegressionTests.Rules
       private const string RuleName = "Hold what carries no notice";
 
       private const string Notice = "This message is confidential.";
-      private const string CiphertextMarker = "c2VhbGVkLXJ1bGVzLWNpcGhlcnRleHQ=";
+      // Real OpenPGP packets, armoured - a session key packet and then encrypted
+      // data - because the server decides "encrypted" from what the ciphertext
+      // part holds and not from the label.
+      private const string CiphertextMarker = "wQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=";
+
+      // SensitiveContent by its IDL number, as OutboundContentPolicy uses it.
+      private const int SensitiveContent = 10;
 
       private Account _account;
 
@@ -117,6 +123,32 @@ namespace RegressionTests.Rules
                 "-----END PGP MESSAGE-----\r\n" +
                 "\r\n" +
                 "--sealed-boundary--\r\n";
+      }
+
+      /// <summary>
+      ///    A multipart/encrypted label over an ordinary text part: nothing in it is
+      ///    encrypted, so every rule reads the text as it would in any message.
+      /// </summary>
+      private static string FakeEncryptedMessage(string recipient, string body)
+      {
+         return "From: correspondent@example.com\r\n" +
+                "To: " + recipient + "\r\n" +
+                "Subject: Sealed rules\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\";\r\n" +
+                " boundary=\"fake-boundary\"\r\n" +
+                "\r\n" +
+                "--fake-boundary\r\n" +
+                "Content-Type: application/pgp-encrypted\r\n" +
+                "\r\n" +
+                "Version: 1\r\n" +
+                "\r\n" +
+                "--fake-boundary\r\n" +
+                "Content-Type: text/plain; charset=us-ascii\r\n" +
+                "\r\n" +
+                body + "\r\n" +
+                "\r\n" +
+                "--fake-boundary--\r\n";
       }
 
       /// <summary>
@@ -197,6 +229,58 @@ namespace RegressionTests.Rules
             "A rule that stopped applying to a message has to say so, once, naming the rule.");
          BounceTestSupport.AssertLogContains(RuleName,
             "The log line has to name the rule, or an administrator with thirty rules learns nothing from it.");
+      }
+
+      [Test]
+      [Description("A multipart/encrypted label over readable text does not make a body criterion decline: the text is read and the rule fires.")]
+      public void AnEncryptedLabelOverReadableTextIsStillReadByABodyCriterion()
+      {
+         // Against the code before the fix this fails: the label alone made the
+         // criterion decline, so the message went to the Inbox and the log said
+         // the body could not be evaluated.
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            FakeEncryptedMessage(_account.Address, "No notice here, and nothing is encrypted."));
+
+         ImapClientSimulator.AssertMessageCount(_account.Address, Password, HeldFolderName, 1);
+         ImapClientSimulator.AssertMessageCount(_account.Address, Password, "Inbox", 0);
+
+         StringAssert.DoesNotContain("could not be evaluated and did not match", LogHandler.ReadCurrentDefaultLog(),
+            "A body criterion declined on a message whose text is in the clear.");
+      }
+
+      [Test]
+      [Description("A multipart/encrypted label over readable text does not hide a card number from a sensitive-content rule.")]
+      public void AnEncryptedLabelDoesNotHideSensitiveContent()
+      {
+         // Against the code before the fix this fails: FTSensitiveContent declined
+         // on the label, so the card number inside ordinary text went nowhere.
+         const string cardsFolder = "INBOX.Cards";
+
+         var rule = _application.Rules.Add();
+         rule.Name = "Card numbers";
+         rule.Active = true;
+
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = (eRulePredefinedField) SensitiveContent;
+         criteria.MatchType = eRuleMatchType.eMTContains;
+         criteria.MatchValue = "card_number";
+         criteria.Save();
+
+         var action = rule.Actions.Add();
+         action.Type = eRuleActionType.eRAMoveToImapFolder;
+         action.IMAPFolder = cardsFolder;
+         action.Save();
+
+         rule.Save();
+
+         // The notice is in the text, so the fixture's own rule leaves it alone
+         // and only the card-number rule can move it.
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            FakeEncryptedMessage(_account.Address, Notice + " Please charge 4111 1111 1111 1111."));
+
+         ImapClientSimulator.AssertMessageCount(_account.Address, Password, "Inbox.Cards", 1);
+         ImapClientSimulator.AssertMessageCount(_account.Address, Password, "Inbox", 0);
       }
 
       [Test]

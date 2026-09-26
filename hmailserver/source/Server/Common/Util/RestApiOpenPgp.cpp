@@ -30,6 +30,15 @@
 // account's own address - and only an administrator has it. The account's own
 // PUT has no such field: a person publishing a key under their own address that
 // names somebody else's is the mistake the rule exists to catch.
+//
+// The account's own three writes are the account holder's alone
+// (RefuseUnlessAccountHolder_): refused to an app password, a mail program's
+// credential, and to an administrator's support session, which acts as the
+// person to help them. The key published here is the one every correspondent
+// who looks the address up encrypts to; either credential could otherwise put
+// its own key there and read what is sent to the person. An administrator who
+// keeps a person's key for them uses the administrator's routes below, under
+// manage_accounts, where the change is on the record as theirs.
 #include "StdAfx.h"
 
 #include "RestApiServer.h"
@@ -142,6 +151,10 @@ namespace HM
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "publishing an OpenPGP key", refusal))
+         return refusal;
+
       AnsiString keyText, problem;
       if (!ReadKeyText(requestBody, keyText, problem))
          return BuildResponse_(400, problem);
@@ -164,6 +177,10 @@ namespace HM
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "removing a published OpenPGP key", refusal))
+         return refusal;
+
       if (!OpenPgpKeyStore::Remove(caller.account->GetID(), fingerprint))
          return BuildResponse_(404, "{\"error\":\"this account holds no key with that fingerprint\"}");
 
@@ -175,6 +192,10 @@ namespace HM
    {
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "switching OpenPGP key publication", refusal))
+         return refusal;
 
       bool publish = false;
       bool present = false;
@@ -353,17 +374,17 @@ namespace HM
          "\"description\":\"address, publish (this account's switch), server_enabled and domain_enabled (the two switches above it), published (whether anything is actually served: all three, and at least one key), hashed_local_part, advanced_url and direct_url (where a client looks, draft-koch-openpgp-webkey-service), limit, and keys - each id, fingerprint, version, algorithm, bits, user_id, created, expires, bytes, uploaded and uploaded_by. No secret key is ever held, so none is ever reported.\","
          "\"responses\":{\"200\":{\"description\":\"The document\"}}},"
          "\"put\":{\"summary\":\"Upload the account's own OpenPGP public key\","
-         "\"description\":\"Body: key - an armoured PGP PUBLIC KEY BLOCK or base64 of the key's bytes. The bytes are parsed (RFC 9580 packet framing, a primary public-key packet, at least one user id and one self-signature, the packets adding up) and the fingerprint computed for the key's version. A SECRET key is refused with a sentence saying so, and so is a key with no user id, a key with no self-signature, a keyring, a truncated key, a key past OpenPGPKeyMaximumBytes and a key whose user ids do not carry this account's address. A key this account already holds by that fingerprint is replaced and answered 200 rather than refused. At most OpenPGPKeysPerAccount keys.\","
+         "\"description\":\"Body: key - an armoured PGP PUBLIC KEY BLOCK or base64 of the key's bytes. The bytes are parsed (RFC 9580 packet framing, a primary public-key packet, at least one user id and one self-signature, the packets adding up) and the fingerprint computed for the key's version. A SECRET key is refused with a sentence saying so, and so is a key with no user id, a key with no self-signature, a keyring, a truncated key, a key past OpenPGPKeyMaximumBytes and a key whose user ids do not carry this account's address. A key this account already holds by that fingerprint is replaced and answered 200 rather than refused. At most OpenPGPKeysPerAccount keys. Refused (403) to an app password and to an administrator's support session: the key published here is what correspondents encrypt to.\","
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"key\"],\"properties\":{\"key\":{\"type\":\"string\"}}}}}},"
-         "\"responses\":{\"201\":{\"description\":\"Stored; the key's row\"},\"200\":{\"description\":\"Replaced; the key's row\"},\"400\":{\"description\":\"The refusal, in one sentence\"}}}},"
+         "\"responses\":{\"201\":{\"description\":\"Stored; the key's row\"},\"200\":{\"description\":\"Replaced; the key's row\"},\"400\":{\"description\":\"The refusal, in one sentence\"},\"403\":{\"description\":\"An app password, or an administrator's support session\"}}}},"
          "\"/api/v1/me/openpgp/{fingerprint}\":{\"delete\":{\"summary\":\"Remove one of the account's own keys\","
-         "\"description\":\"By the fingerprint the listing shows, lower-case hex. A key of another account is not found here.\","
+         "\"description\":\"By the fingerprint the listing shows, lower-case hex. A key of another account is not found here. Refused (403) to an app password and to an administrator's support session.\","
          "\"parameters\":[{\"name\":\"fingerprint\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\"}}],"
-         "\"responses\":{\"200\":{\"description\":\"removed true\"},\"404\":{\"description\":\"This account holds no key with that fingerprint\"}}}},"
+         "\"responses\":{\"200\":{\"description\":\"removed true\"},\"404\":{\"description\":\"This account holds no key with that fingerprint\"},\"403\":{\"description\":\"An app password, or an administrator's support session\"}}}},"
          "\"/api/v1/me/openpgp/publish\":{\"put\":{\"summary\":\"Publish this account's keys, or stop\","
-         "\"description\":\"Body: publish, true or false. The account's own switch and nobody else's business: holding a key so that a mail client can find it is not the same decision as telling the whole internet about it. The server setting and the domain's switch still have to be on for anything to be served, and the answer says whether they are.\","
+         "\"description\":\"Body: publish, true or false. The account's own switch and nobody else's business: holding a key so that a mail client can find it is not the same decision as telling the whole internet about it. The server setting and the domain's switch still have to be on for anything to be served, and the answer says whether they are. Refused (403) to an app password and to an administrator's support session.\","
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"publish\"],\"properties\":{\"publish\":{\"type\":\"boolean\"}}}}}},"
-         "\"responses\":{\"200\":{\"description\":\"The document GET answers\"},\"400\":{\"description\":\"publish was not true or false\"}}}},"
+         "\"responses\":{\"200\":{\"description\":\"The document GET answers\"},\"400\":{\"description\":\"publish was not true or false\"},\"403\":{\"description\":\"An app password, or an administrator's support session\"}}}},"
          "\"/api/v1/accounts/{address}/openpgp\":{"
          "\"get\":{\"summary\":\"An account's OpenPGP public keys (administrator)\","
          "\"description\":\"The same document the account's own GET /api/v1/me/openpgp answers. A key restricted to named domains reaches the accounts of those domains only.\","

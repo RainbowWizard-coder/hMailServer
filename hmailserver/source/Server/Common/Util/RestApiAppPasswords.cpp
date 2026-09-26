@@ -101,6 +101,34 @@ namespace HM
    }
 
    bool
+   RestApiServer::RefuseUnlessAccountHolder_(const Caller &caller, const char *what, HttpResponse &failure)
+   {
+      if (RefuseAppPasswordCaller_(caller, what, failure))
+         return true;
+
+      if (caller.support_by.IsEmpty())
+         return false;
+
+      LOG_APPLICATION("REST API: " + String(what) + " for " + (caller.account ? caller.account->GetAddress() : String()) +
+         " was refused from " + String(caller.peer.ToString()) + " - the request came in a support session opened by " +
+         String(caller.support_by) + ".");
+      failure = BuildResponse_(403, "{\"error\":\"not in a support session: the account's keys and its zero-access switch are changed only by the account holder, signed in as themselves\",\"code\":\"support_session\"}");
+      return true;
+   }
+
+   bool
+   RestApiServer::WithholdsWrappedKeys_(const Caller &caller)
+   {
+      return caller.via_app_password || !caller.support_by.IsEmpty();
+   }
+
+   const char *
+   RestApiServer::WrappedKeysWithheld_()
+   {
+      return "the wrapped private keys are not given to a request made with an app password or in a support session: sign in with the account's own password to open them";
+   }
+
+   bool
    RestApiServer::ConfirmAccountPassword_(const Caller &caller, const AnsiString &request, HttpResponse &failure,
                                           const char *what, __int64 *recoveryCodeId)
    {

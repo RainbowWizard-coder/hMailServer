@@ -1877,6 +1877,153 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An app password is not given the account's S/MIME private keys as the page wrapped them under the account password - each an offline test of a guess at the password - and the account's own password is")]
+      public void SmimeWrappedKeysAreNotGivenToAnAppPassword()
+      {
+         // Against the code before the fix this fails: GET /api/v1/me/smime
+         // answered an app password every own certificate's wrapped key.
+         string certificate = Convert.ToBase64String(new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 });
+         string own = new string('c', 64);
+         string key = "{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
+         (int status, string body) added = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword),
+            "{\"address\":\"" + Address + "\",\"name\":\"Me\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"chain\":[],\"key\":" + key + "}");
+         Assert.AreEqual(201, added.status, "Body: " + added.body);
+
+         try
+         {
+            (int status, string body) minted = Http("POST", "/api/v1/me/app-passwords", UserHeader(UserPassword),
+               "{\"name\":\"Phone\",\"password\":\"" + UserPassword + "\"}");
+            Assert.AreEqual(201, minted.status, "Body: " + minted.body);
+            string appPassword = System.Text.RegularExpressions.Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value;
+
+            (int status, string body) program = Http("GET", "/api/v1/me/smime", UserHeader(appPassword));
+            Assert.AreEqual(200, program.status, "Body: " + program.body);
+            StringAssert.Contains("\"fingerprint\":\"" + own + "\"", program.body, "The certificate is still listed.");
+            StringAssert.Contains("\"key\":null,\"key_withheld\":true", program.body);
+            StringAssert.Contains("\"keys_withheld\":true", program.body);
+            StringAssert.DoesNotContain("PBKDF2", program.body, "The wrapped private key went to an app password.");
+            StringAssert.DoesNotContain("\"data\":\"AQIDBA==\"", program.body);
+
+            // The negative control: the password is given the key.
+            (int status, string body) owner = Http("GET", "/api/v1/me/smime", UserHeader(UserPassword));
+            StringAssert.Contains("\"key\":" + key, owner.body);
+            StringAssert.DoesNotContain("key_withheld", owner.body);
+         }
+         finally
+         {
+            Http("DELETE", "/api/v1/me/smime/own/" + own, UserHeader(UserPassword));
+         }
+      }
+
+      [Test]
+      [Description("An app password can neither replace nor remove an S/MIME certificate of the account's own, whose private key the store holds the only copy of; the account's own password can")]
+      public void AnAppPasswordCannotReplaceOrRemoveAnOwnSmimeKey()
+      {
+         // Against the code before the fix this fails: the own-key PUT and DELETE
+         // took an app password, so a leaked one could throw the account's
+         // private key away or put one of its own in its place.
+         string certificate = Convert.ToBase64String(new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 });
+         string own = new string('d', 64);
+         string key = "{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
+         string otherKey = "{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"BBBBBBBBBBBBBBBBBBBBBA==\",\"iv\":\"BBBBBBBBBBBBBBBB\",\"data\":\"BQYHCA==\"}";
+         string body = "{\"address\":\"" + Address + "\",\"name\":\"Me\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"chain\":[],\"key\":";
+         (int status, string body) added = Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword), body + key + "}");
+         Assert.AreEqual(201, added.status, "Body: " + added.body);
+
+         try
+         {
+            (int status, string body) minted = Http("POST", "/api/v1/me/app-passwords", UserHeader(UserPassword),
+               "{\"name\":\"Phone\",\"password\":\"" + UserPassword + "\"}");
+            Assert.AreEqual(201, minted.status, "Body: " + minted.body);
+            string appPassword = System.Text.RegularExpressions.Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value;
+
+            (int status, string body) replaced = Http("PUT", "/api/v1/me/smime/own", UserHeader(appPassword), body + otherKey + "}");
+            Assert.AreEqual(403, replaced.status, "An app password replaced the account's own key. Body: " + replaced.body);
+            (int status, string body) removed = Http("DELETE", "/api/v1/me/smime/own/" + own, UserHeader(appPassword));
+            Assert.AreEqual(403, removed.status, "An app password removed the account's own key. Body: " + removed.body);
+
+            (int status, string body) kept = Http("GET", "/api/v1/me/smime", UserHeader(UserPassword));
+            StringAssert.Contains("\"key\":" + key, kept.body, "The key the account holder stored is still the one stored.");
+         }
+         finally
+         {
+            (int status, string body) cleaned = Http("DELETE", "/api/v1/me/smime/own/" + own, UserHeader(UserPassword));
+            Assert.AreEqual(200, cleaned.status, "The account's own password removes it. Body: " + cleaned.body);
+         }
+      }
+
+      [Test]
+      [Description("The account's S/MIME store is changed by the account holder alone: an administrator's support session reads it and can neither store nor remove an own certificate or a correspondent's, and an app password cannot store or remove a correspondent's; the account's own password does both")]
+      public void TheSmimeStoreIsChangedByTheAccountHolderAlone()
+      {
+         // Against the code before the fix this fails: a support session was
+         // refused none of the four writes, and an app password none of the two
+         // to correspondents' certificates - so either could plant the
+         // certificate a reply to an address is then encrypted to, or throw away
+         // the only copy of the account's own private key.
+         string certificate = Convert.ToBase64String(new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 });
+         string own = new string('e', 64);
+         string bob = new string('f', 64);
+         string planted = new string('9', 64);
+         string key = "{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"AAAAAAAAAAAAAAAAAAAAAA==\",\"iv\":\"AAAAAAAAAAAAAAAA\",\"data\":\"AQIDBA==\"}";
+         string otherKey = "{\"v\":1,\"kdf\":\"PBKDF2-SHA256\",\"iterations\":600000,\"salt\":\"BBBBBBBBBBBBBBBBBBBBBA==\",\"iv\":\"BBBBBBBBBBBBBBBB\",\"data\":\"BQYHCA==\"}";
+         string ownBody = "{\"address\":\"" + Address + "\",\"name\":\"Me\",\"fingerprint\":\"" + own + "\",\"certificate\":\"" + certificate + "\",\"chain\":[],\"key\":";
+         string bobBody = "{\"address\":\"bob@example.test\",\"name\":\"Bob\",\"fingerprint\":\"" + bob + "\",\"certificate\":\"" + certificate + "\",\"not_after\":1900000000}";
+         string plantedBody = "{\"address\":\"bob@example.test\",\"name\":\"Bob\",\"fingerprint\":\"" + planted + "\",\"certificate\":\"" + certificate + "\",\"not_after\":1900000000}";
+
+         Assert.AreEqual(201, Http("PUT", "/api/v1/me/smime/own", UserHeader(UserPassword), ownBody + key + "}").status);
+         Assert.AreEqual(201, Http("PUT", "/api/v1/me/smime/recipients", UserHeader(UserPassword), bobBody).status);
+
+         try
+         {
+            Assert.AreEqual(200, Http("PUT", "/api/v1/me/preferences", UserHeader(UserPassword), "{\"support_allowed\":\"1\"}").status);
+            Response opened = Raw("POST", "/api/v1/accounts/" + Address + "/support-session", AdminHeader(), null);
+            Assert.AreEqual(201, opened.Status, opened.Body);
+            string support = "Cookie: hmailsession=" + CookieOf(opened.Header("Set-Cookie")) + "\r\nX-Requested-With: hMailServer\r\n";
+
+            Response reads = Raw("GET", "/api/v1/me/smime", null, null, support);
+            Assert.AreEqual(200, reads.Status, "The support session is not a working session: " + reads.Body);
+            StringAssert.Contains("\"fingerprint\":\"" + own + "\"", reads.Body);
+
+            Response[] refused =
+            {
+               Raw("PUT", "/api/v1/me/smime/own", null, ownBody + otherKey + "}", support),
+               Raw("DELETE", "/api/v1/me/smime/own/" + own, null, null, support),
+               Raw("PUT", "/api/v1/me/smime/recipients", null, plantedBody, support),
+               Raw("DELETE", "/api/v1/me/smime/recipients/" + bob, null, null, support)
+            };
+            string[] what = { "replaced the own key", "removed the own key", "stored a correspondent's certificate", "removed a correspondent's certificate" };
+            for (int i = 0; i < refused.Length; i++)
+            {
+               Assert.AreEqual(403, refused[i].Status, "A support session " + what[i] + ": " + refused[i].Body);
+               StringAssert.Contains("support_session", refused[i].Body);
+            }
+
+            (int status, string body) minted = Http("POST", "/api/v1/me/app-passwords", UserHeader(UserPassword),
+               "{\"name\":\"Phone\",\"password\":\"" + UserPassword + "\"}");
+            Assert.AreEqual(201, minted.status, "Body: " + minted.body);
+            string appPassword = System.Text.RegularExpressions.Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value;
+            (int status, string body) programStores = Http("PUT", "/api/v1/me/smime/recipients", UserHeader(appPassword), plantedBody);
+            Assert.AreEqual(403, programStores.status, "An app password stored a correspondent's certificate. Body: " + programStores.body);
+            StringAssert.Contains("app password", programStores.body);
+            (int status, string body) programRemoves = Http("DELETE", "/api/v1/me/smime/recipients/" + bob, UserHeader(appPassword));
+            Assert.AreEqual(403, programRemoves.status, "An app password removed a correspondent's certificate. Body: " + programRemoves.body);
+
+            (int status, string body) kept = Http("GET", "/api/v1/me/smime", UserHeader(UserPassword));
+            StringAssert.Contains("\"key\":" + key, kept.body, "The key the account holder stored is not the one stored.");
+            StringAssert.Contains("\"fingerprint\":\"" + bob + "\"", kept.body, "The correspondent's certificate was removed.");
+            StringAssert.DoesNotContain(planted, kept.body, "A planted certificate is in the store.");
+         }
+         finally
+         {
+            Http("PUT", "/api/v1/me/preferences", UserHeader(UserPassword), "{\"support_allowed\":null}");
+            // The negative control: the account's own password removes both.
+            Assert.AreEqual(200, Http("DELETE", "/api/v1/me/smime/recipients/" + bob, UserHeader(UserPassword)).status, "The account holder could not remove the correspondent's certificate.");
+            Assert.AreEqual(200, Http("DELETE", "/api/v1/me/smime/own/" + own, UserHeader(UserPassword)).status, "The account holder could not remove the own certificate.");
+         }
+      }
+
+      [Test]
       [Description("POST /api/v1/me/smime/chain: a certificate signed by no trusted root is answered untrusted with OpenSSL's reason, the subject read from it and the roots consulted counted; what is not a certificate is refused")]
       public void TheChainCheckAnswersForACertificateNoRootSigned()
       {
@@ -2492,6 +2639,60 @@ namespace RegressionTests.API
          Http("PUT", "/api/v1/me/preferences", UserHeader(UserPassword), "{\"support_allowed\":null}");
          (int status, string body) again = Http("POST", "/api/v1/accounts/" + Address + "/support-session", AdminHeader());
          Assert.AreEqual(403, again.status, "Body: " + again.body);
+      }
+
+      [Test]
+      [Description("A support session cannot erase or rewrite the account's record of it - the support_last note and the support_allowed consent - though it saves other preferences; an app password cannot give the consent but can withdraw it; the account's own password does all of it")]
+      public void ASupportSessionCannotEraseTheRecordOfItsVisit()
+      {
+         // Against the code before the fix this fails: PUT /api/v1/me/preferences
+         // took any key from any credential of the account, so the administrator
+         // in the session could remove the note the webmail shows the person, and
+         // a program's app password could consent to support access.
+         Assert.AreEqual(200, Http("PUT", "/api/v1/me/preferences", UserHeader(UserPassword), "{\"support_allowed\":\"1\"}").status);
+         Response opened = Raw("POST", "/api/v1/accounts/" + Address + "/support-session", AdminHeader(), null);
+         Assert.AreEqual(201, opened.Status, opened.Body);
+         string support = "Cookie: hmailsession=" + CookieOf(opened.Header("Set-Cookie")) + "\r\nX-Requested-With: hMailServer\r\n";
+
+         try
+         {
+            // The keys in another case too: MySQL's, SQL Server's and SQL Server
+            // Compact's comparison of prefname ignores case, so there
+            // "Support_Last" is the row the note is in.
+            string[] refusedBodies = { "{\"support_last\":null}", "{\"support_last\":\"never\"}", "{\"support_allowed\":null}", "{\"theme\":\"dark\",\"support_last\":null}",
+                                       "{\"Support_Last\":null}", "{\"SUPPORT_ALLOWED\":null}" };
+            foreach (string body in refusedBodies)
+            {
+               Response refused = Raw("PUT", "/api/v1/me/preferences", null, body, support);
+               Assert.AreEqual(403, refused.Status, "A support session wrote " + body + ": " + refused.Body);
+               StringAssert.Contains("support_session", refused.Body);
+            }
+
+            Response ordinary = Raw("PUT", "/api/v1/me/preferences", null, "{\"theme\":\"dark\"}", support);
+            Assert.AreEqual(200, ordinary.Status, "The support session could not save an ordinary preference: " + ordinary.Body);
+
+            (int status, string body) prefs = Http("GET", "/api/v1/me/preferences", UserHeader(UserPassword));
+            StringAssert.Contains("\"support_last\":\"", prefs.body, "The note of the visit is gone.");
+            StringAssert.Contains(" by administrator", prefs.body);
+            StringAssert.Contains("\"support_allowed\":\"1\"", prefs.body);
+
+            (int status, string body) minted = Http("POST", "/api/v1/me/app-passwords", UserHeader(UserPassword),
+               "{\"name\":\"Phone\",\"password\":\"" + UserPassword + "\"}");
+            Assert.AreEqual(201, minted.status, "Body: " + minted.body);
+            string appPassword = System.Text.RegularExpressions.Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value;
+            Assert.AreEqual(200, Http("PUT", "/api/v1/me/preferences", UserHeader(appPassword), "{\"support_allowed\":null}").status,
+               "An app password could not withdraw the consent.");
+            (int status, string body) consent = Http("PUT", "/api/v1/me/preferences", UserHeader(appPassword), "{\"support_allowed\":\"1\"}");
+            Assert.AreEqual(403, consent.status, "An app password consented to support access. Body: " + consent.body);
+            (int status, string body) otherCase = Http("PUT", "/api/v1/me/preferences", UserHeader(appPassword), "{\"Support_Allowed\":\"1\"}");
+            Assert.AreEqual(403, otherCase.status, "An app password consented to support access under another spelling of the key. Body: " + otherCase.body);
+         }
+         finally
+         {
+            // The negative control: the account's own password does both.
+            Assert.AreEqual(200, Http("PUT", "/api/v1/me/preferences", UserHeader(UserPassword), "{\"support_last\":null,\"support_allowed\":null,\"theme\":null}").status);
+            Http("DELETE", "/api/v1/me/sessions", UserHeader(UserPassword));
+         }
       }
 
       [Test]

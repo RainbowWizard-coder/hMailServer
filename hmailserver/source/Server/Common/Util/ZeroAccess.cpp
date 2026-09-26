@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "ZeroAccess.h"
+#include "GatewayEncryption.h"
 #include "MailboxKeys.h"
 #include "OpenPgpKey.h"
 #include "OpenPgpRing.h"
@@ -127,25 +128,6 @@ namespace HM
             return false;
          }
          return true;
-      }
-
-      // A message that arrived under S/MIME: an enveloped-data body, which
-      // is under a key already, as a PGP/MIME message is.
-      bool IsSmimeEnveloped(const AnsiString &message)
-      {
-         const int blank = message.Find("\r\n\r\n");
-         AnsiString header = blank < 0 ? message : message.Mid(0, blank);
-         header.MakeLower();
-         header.Replace("\r\n ", " ");
-         header.Replace("\r\n\t", " ");
-         int at = header.StartsWith("content-type:") ? 0 : header.Find("\ncontent-type:");
-         if (at < 0)
-            return false;
-         if (at > 0)
-            at += 1;
-         const int lineEnd = header.Find("\n", at);
-         const AnsiString field = lineEnd < 0 ? header.Mid(at) : header.Mid(at, lineEnd - at);
-         return (field.Find("application/pkcs7-mime") >= 0 || field.Find("application/x-pkcs7-mime") >= 0) && field.Find("signed-data") < 0;
       }
 
       bool ReadWhole(const String &fileName, AnsiString &out)
@@ -551,7 +533,25 @@ namespace HM
       // would make it a message no client shows, since the outer layer names
       // no key the person's mail client has. What arrives encrypted stays as
       // it arrived.
-      if (OpenPgpWriter::IsPgpMimeEncrypted(original) || IsSmimeEnveloped(original))
+      //
+      // Decided from what the body holds, not from the Content-Type, which the
+      // sender writes: GatewayEncryption asks the same question before adding
+      // a layer. An S/MIME object is under a key when its CMS content type is
+      // enveloped-data or authenticated-enveloped-data; an S/MIME v2 client's
+      // opaque SIGNED data, labelled application/pkcs7-mime with no
+      // smime-type, is readable by anyone and is sealed like plain mail. A
+      // multipart/encrypted label counts only with an OpenPGP message under a
+      // session key in it; one over ordinary text is sealed too.
+      //
+      // And the WHOLE message has to be under a key, not merely hold some
+      // ciphertext: a PGP/MIME message with a real encrypted part and a third,
+      // readable one beside it, stored as it arrived, would leave that part
+      // on the disk in the clear in a mailbox that promises the administrator
+      // cannot read it. IsEncryptedEndToEnd asks for the strict shape as well
+      // (SealedMessage::IsOpaque); anything else gets the second layer, which
+      // is the safe direction: nothing readable is left on the disk, and the
+      // mailbox key opens the outer layer to the message exactly as it came.
+      if (GatewayEncryption::IsEncryptedEndToEnd(original))
          return true;
 
       AnsiString sealed;

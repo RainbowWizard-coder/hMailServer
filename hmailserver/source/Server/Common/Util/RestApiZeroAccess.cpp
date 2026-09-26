@@ -32,9 +32,13 @@
 // would find out at the next sign-in, which is why the switch-on flow
 // (Portal.js) types the recovery key back before it stores anything.
 //
-// The three writes are refused to a request that came in on an app password:
-// a program's credential can read the row, since a program that reads mail
-// may need the key, but the switch and the copies are the person's own.
+// The three writes are refused to a request that came in on an app password
+// and to an administrator's support session (RefuseUnlessAccountHolder_):
+// either can read the row - without the wrapped copies (WithholdsWrappedKeys_)
+// - but the switch and the copies are the person's own. A support session
+// that could switch zero access off would store the next delivery in the
+// clear for the administrator the switch exists to keep out, and one that
+// could re-wrap would replace the copy the person opens their mailbox with.
 #include "StdAfx.h"
 
 #include "RestApiServer.h"
@@ -111,7 +115,7 @@ namespace HM
    }
 
    AnsiString
-   RestApiServer::ZeroAccessJson_(std::shared_ptr<const Account> account)
+   RestApiServer::ZeroAccessJson_(std::shared_ptr<const Account> account, bool keysIncluded)
    {
       AnsiString json = "{\"allowed\":";
       json += ZeroAccess::Allowed(account) ? "true" : "false";
@@ -120,6 +124,20 @@ namespace HM
       {
          if (ZeroAccess::Get(account->GetID(), row))
          {
+            // The two wrapped copies are the mailbox key sealed under the
+            // account password (by Argon2id with the salt and parameters
+            // beside it) and under the recovery key: each is an offline test
+            // of a guess at what it is sealed under. Only the page the account
+            // holder signed in to with the password needs them.
+            if (!keysIncluded)
+            {
+               AnsiString withheld;
+               withheld.Format(",\"enabled\":true,\"fingerprint\":\"%hs\",\"enabled_at\":%I64d,\"keys_withheld\":true,\"note\":\"%hs\"}",
+                               row.fingerprint.c_str(), row.enabled_at, WrappedKeysWithheld_());
+               json += withheld;
+               return json;
+            }
+
             AnsiString body = ZeroAccess::RowJson(row);
             // RowJson opens with {"enabled":true, and this document already
             // has its brace: join after the brace.
@@ -145,7 +163,7 @@ namespace HM
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
-      return BuildResponse_(200, ZeroAccessJson_(account));
+      return BuildResponse_(200, ZeroAccessJson_(account, !WithholdsWrappedKeys_(caller)));
    }
 
    HttpResponse
@@ -162,7 +180,7 @@ namespace HM
          return BuildResponse_(403, "{\"error\":\"OpenPGP is switched off in the webmail for this account\",\"code\":\"openpgp_unavailable\"}");
 
       HttpResponse refusal;
-      if (RefuseAppPasswordCaller_(caller, "switching the mailbox to zero access", refusal))
+      if (RefuseUnlessAccountHolder_(caller, "switching the mailbox to zero access", refusal))
          return refusal;
 
       JsonValue document;
@@ -183,7 +201,7 @@ namespace HM
       // The account object the caller holds is the cache's from before the
       // flag was written; the row is read back so the answer is the truth.
       std::shared_ptr<const Account> fresh = CacheContainer::Instance()->GetAccount(account->GetID());
-      return BuildResponse_(201, ZeroAccessJson_(fresh ? fresh : account));
+      return BuildResponse_(201, ZeroAccessJson_(fresh ? fresh : account, !WithholdsWrappedKeys_(caller)));
    }
 
    HttpResponse
@@ -194,7 +212,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
       HttpResponse refusal;
-      if (RefuseAppPasswordCaller_(caller, "re-wrapping the mailbox key", refusal))
+      if (RefuseUnlessAccountHolder_(caller, "re-wrapping the mailbox key", refusal))
          return refusal;
 
       JsonValue document;
@@ -211,7 +229,7 @@ namespace HM
          return BuildResponse_(status, "{\"error\":\"" + EscapeJson(problem) + "\"}");
 
       LOG_APPLICATION("REST API: " + account->GetAddress() + " re-wrapped its zero-access mailbox key from " + String(caller.peer.ToString()) + ".");
-      return BuildResponse_(200, ZeroAccessJson_(account));
+      return BuildResponse_(200, ZeroAccessJson_(account, !WithholdsWrappedKeys_(caller)));
    }
 
    HttpResponse
@@ -222,7 +240,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
 
       HttpResponse refusal;
-      if (RefuseAppPasswordCaller_(caller, "switching the mailbox off zero access", refusal))
+      if (RefuseUnlessAccountHolder_(caller, "switching the mailbox off zero access", refusal))
          return refusal;
 
       AnsiString problem;
@@ -302,9 +320,9 @@ namespace HM
    RestApiServer::OpenApiZeroAccessPaths_()
    {
       return
-         ",\"/api/v1/me/zero-access\":{\"get\":{\"summary\":\"Whether the signed-in account is a zero-access mailbox, and the key it stands on\",\"description\":\"allowed says whether the administrator permits the opt-in (the ZeroAccessAllowed setting); enabled whether this mailbox has made it. When enabled: fingerprint (the ring key every delivery is encrypted to), salt and argon2 (passes, memory_kib, lanes - what the browser derives the key-encryption passphrase from the account password with, RFC 9106), password_wrapped (the armoured OpenPGP secret key under that passphrase), recovery_wrapped (the same key under the recovery key the person wrote down) and enabled_at. This server holds both copies and can open neither. When the switch is on and the key row is missing (a restore that dropped the table, a database edited by hand), enabled is true with broken true and a sentence in problem, and every delivery is being refused until DELETE switches it off.\",\"responses\":{\"200\":{\"description\":\"allowed, enabled, and the row when enabled\"}}},"
-         "\"put\":{\"summary\":\"Switch the signed-in account to a zero-access mailbox\",\"description\":\"Body: fingerprint (one of the account's own ring keys, not revoked, one that does not expire, one this server can encrypt to - RSA or Curve25519; a key that expires is refused with a sentence, because every delivery would be refused from the day it did), salt (base64 of 16 octets), passes, memory_kib and lanes (the Argon2id parameters, within bounds), password_wrapped and recovery_wrapped (the armoured secret key sealed in the browser under the password-derived passphrase and under the recovery key). Each copy is checked to be an encrypted secret key of that fingerprint; nothing here can check that either opens, which is why the page types the recovery key back before it sends this. From the moment this answers 201 every message delivered to the account is encrypted to the key after the filters have run, the administrator's read and export of the mailbox answer 403, search sees the headers only, IMAP and POP hand out the ciphertext, and a forgotten password without the recovery key is the mail lost. 403 with code zero_access_not_allowed while the administrator has not allowed it; 403 on an app password; 409 while it is already on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"fingerprint\",\"salt\",\"passes\",\"memory_kib\",\"lanes\",\"password_wrapped\",\"recovery_wrapped\"],\"properties\":{\"fingerprint\":{\"type\":\"string\"},\"salt\":{\"type\":\"string\"},\"passes\":{\"type\":\"integer\"},\"memory_kib\":{\"type\":\"integer\"},\"lanes\":{\"type\":\"integer\"},\"password_wrapped\":{\"type\":\"string\"},\"recovery_wrapped\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"The row as stored\"},\"400\":{\"description\":\"A copy that is not an encrypted secret key of the fingerprint, a key this server cannot encrypt to, or parameters out of bounds\"},\"403\":{\"description\":\"Not allowed on this server, OpenPGP switched off in the webmail, or an app password\"},\"404\":{\"description\":\"No key of the account's own with that fingerprint\"},\"409\":{\"description\":\"Already on\"}}},"
-         "\"delete\":{\"summary\":\"Switch the signed-in account back to an ordinary mailbox\",\"description\":\"Clears the switch and removes the wrapped copies. DECRYPTS NOTHING: every message stored while the switch was on stays encrypted to the key, which remains in the ring and opens in the webmail with its own passphrase. New mail is stored as it arrives. 403 on an app password; 404 when it was not on.\",\"responses\":{\"200\":{\"description\":\"enabled false\"},\"403\":{\"description\":\"An app password\"},\"404\":{\"description\":\"Not on\"}}}},"
-         "\"/api/v1/me/zero-access/rewrap\":{\"put\":{\"summary\":\"Seal the mailbox key again under a new password-derived passphrase\",\"description\":\"Body: salt, passes, memory_kib, lanes and password_wrapped, as PUT /api/v1/me/zero-access takes them. The key stays the key and the recovery copy stays as it is; what changes is what the password copy is sealed under. This is what the page sends after the person unlocked the key with the recovery key because an administrator or a reset link had set a password the page never saw - and what a password change from the page carries inside POST /api/v1/me/password, which refuses a change without it for a zero-access mailbox. 403 on an app password; 404 when zero access is not on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"salt\",\"passes\",\"memory_kib\",\"lanes\",\"password_wrapped\"],\"properties\":{\"salt\":{\"type\":\"string\"},\"passes\":{\"type\":\"integer\"},\"memory_kib\":{\"type\":\"integer\"},\"lanes\":{\"type\":\"integer\"},\"password_wrapped\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The row as stored\"},\"400\":{\"description\":\"Not an encrypted secret key of the mailbox's key, or parameters out of bounds\"},\"403\":{\"description\":\"An app password\"},\"404\":{\"description\":\"Zero access is not on\"}}}}";
+         ",\"/api/v1/me/zero-access\":{\"get\":{\"summary\":\"Whether the signed-in account is a zero-access mailbox, and the key it stands on\",\"description\":\"allowed says whether the administrator permits the opt-in (the ZeroAccessAllowed setting); enabled whether this mailbox has made it. When enabled: fingerprint (the ring key every delivery is encrypted to), salt and argon2 (passes, memory_kib, lanes - what the browser derives the key-encryption passphrase from the account password with, RFC 9106), password_wrapped (the armoured OpenPGP secret key under that passphrase), recovery_wrapped (the same key under the recovery key the person wrote down) and enabled_at. This server holds both copies and can open neither. A request made with an app password, or in an administrator's support session, is answered fingerprint, enabled_at, keys_withheld true and a note, without salt, argon2 or either copy: each copy is an offline test of a guess at what it is sealed under. When the switch is on and the key row is missing (a restore that dropped the table, a database edited by hand), enabled is true with broken true and a sentence in problem, and every delivery is being refused until DELETE switches it off.\",\"responses\":{\"200\":{\"description\":\"allowed, enabled, and the row when enabled\"}}},"
+         "\"put\":{\"summary\":\"Switch the signed-in account to a zero-access mailbox\",\"description\":\"Body: fingerprint (one of the account's own ring keys, not revoked, one that does not expire, one this server can encrypt to - RSA or Curve25519; a key that expires is refused with a sentence, because every delivery would be refused from the day it did), salt (base64 of 16 octets), passes, memory_kib and lanes (the Argon2id parameters, within bounds), password_wrapped and recovery_wrapped (the armoured secret key sealed in the browser under the password-derived passphrase and under the recovery key). Each copy is checked to be an encrypted secret key of that fingerprint; nothing here can check that either opens, which is why the page types the recovery key back before it sends this. From the moment this answers 201 every message delivered to the account is encrypted to the key after the filters have run, the administrator's read and export of the mailbox answer 403, search sees the headers only, IMAP and POP hand out the ciphertext, and a forgotten password without the recovery key is the mail lost. 403 with code zero_access_not_allowed while the administrator has not allowed it; 403 on an app password or in an administrator's support session; 409 while it is already on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"fingerprint\",\"salt\",\"passes\",\"memory_kib\",\"lanes\",\"password_wrapped\",\"recovery_wrapped\"],\"properties\":{\"fingerprint\":{\"type\":\"string\"},\"salt\":{\"type\":\"string\"},\"passes\":{\"type\":\"integer\"},\"memory_kib\":{\"type\":\"integer\"},\"lanes\":{\"type\":\"integer\"},\"password_wrapped\":{\"type\":\"string\"},\"recovery_wrapped\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"The row as stored\"},\"400\":{\"description\":\"A copy that is not an encrypted secret key of the fingerprint, a key this server cannot encrypt to, or parameters out of bounds\"},\"403\":{\"description\":\"Not allowed on this server, OpenPGP switched off in the webmail, or an app password or a support session\"},\"404\":{\"description\":\"No key of the account's own with that fingerprint\"},\"409\":{\"description\":\"Already on\"}}},"
+         "\"delete\":{\"summary\":\"Switch the signed-in account back to an ordinary mailbox\",\"description\":\"Clears the switch and removes the wrapped copies. DECRYPTS NOTHING: every message stored while the switch was on stays encrypted to the key, which remains in the ring and opens in the webmail with its own passphrase. New mail is stored as it arrives. 403 on an app password or in an administrator's support session; 404 when it was not on.\",\"responses\":{\"200\":{\"description\":\"enabled false\"},\"403\":{\"description\":\"An app password or a support session\"},\"404\":{\"description\":\"Not on\"}}}},"
+         "\"/api/v1/me/zero-access/rewrap\":{\"put\":{\"summary\":\"Seal the mailbox key again under a new password-derived passphrase\",\"description\":\"Body: salt, passes, memory_kib, lanes and password_wrapped, as PUT /api/v1/me/zero-access takes them. The key stays the key and the recovery copy stays as it is; what changes is what the password copy is sealed under. This is what the page sends after the person unlocked the key with the recovery key because an administrator or a reset link had set a password the page never saw - and what a password change from the page carries inside POST /api/v1/me/password, which refuses a change without it for a zero-access mailbox. 403 on an app password or in an administrator's support session; 404 when zero access is not on.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"salt\",\"passes\",\"memory_kib\",\"lanes\",\"password_wrapped\"],\"properties\":{\"salt\":{\"type\":\"string\"},\"passes\":{\"type\":\"integer\"},\"memory_kib\":{\"type\":\"integer\"},\"lanes\":{\"type\":\"integer\"},\"password_wrapped\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The row as stored\"},\"400\":{\"description\":\"Not an encrypted secret key of the mailbox's key, or parameters out of bounds\"},\"403\":{\"description\":\"An app password or a support session\"},\"404\":{\"description\":\"Zero access is not on\"}}}}";
    }
 }

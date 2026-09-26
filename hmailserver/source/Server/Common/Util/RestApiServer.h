@@ -1720,6 +1720,31 @@ namespace HM
                                           const char *what = "making an app password",
                                           __int64 *recoveryCodeId = nullptr);
       static bool RefuseAppPasswordCaller_(const Caller &caller, const char *what, HttpResponse &failure);
+
+      // A write to what makes up the account's cryptographic identity - its
+      // OpenPGP ring and the trust it records, its S/MIME store, and the
+      // zero-access switch with the wrapped copies of the mailbox key - is the
+      // account holder's alone. Refused, with the 403 in failure, to an app
+      // password (RefuseAppPasswordCaller_, a program's credential) and to a
+      // support session: an administrator helping the person acts as them in
+      // the webmail, but must not plant a key the mail is then sealed to or
+      // read with, remove the only copy of one, mark a correspondent's key
+      // verified, or throw the switch whose whole promise is that an
+      // administrator cannot read the mailbox.
+      static bool RefuseUnlessAccountHolder_(const Caller &caller, const char *what, HttpResponse &failure);
+
+      // Whether the account's private keys, as the page wrapped them under the
+      // account's password or a passphrase, are left out of what a route
+      // answers: for a request on an app password, and for a session an
+      // administrator opened for support. Each wrapped copy is an offline test
+      // of a guess at the secret it is wrapped under - the account password,
+      // for the zero-access key and the S/MIME keys - and neither credential
+      // is the account holder's own: an app password is a program's, which
+      // reads mail but must not be a way to the password, and a support
+      // session is an administrator's, whom a zero-access mailbox exists to
+      // keep out. The answer says it withheld them (WrappedKeysWithheld_).
+      static bool WithholdsWrappedKeys_(const Caller &caller);
+      static const char *WrappedKeysWithheld_();
       static HttpResponse HandleMeAppPasswordDelete_(const Caller &caller, __int64 id);
       static AnsiString AppPasswordJson_(std::shared_ptr<AppPassword> password, const String &clearText);
       static HttpResponse HandleMeSessions_(const Caller &caller);
@@ -1782,7 +1807,9 @@ namespace HM
       static HttpResponse HandleMeZeroAccessPut_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandleMeZeroAccessRewrap_(const Caller &caller, const AnsiString &requestBody);
       static HttpResponse HandleMeZeroAccessDelete_(const Caller &caller);
-      static AnsiString ZeroAccessJson_(std::shared_ptr<const Account> account);
+      // keysIncluded false leaves out the wrapped copies of the mailbox key
+      // and what derives a key from the password (WithholdsWrappedKeys_).
+      static AnsiString ZeroAccessJson_(std::shared_ptr<const Account> account, bool keysIncluded);
 
       // Message recall within the server (RestApiMessageRecall.cpp).
       static HttpResponse HandleMeRecall_(const Caller &caller, const AnsiString &requestBody);

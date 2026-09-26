@@ -13,6 +13,15 @@
 // merges: each string member of the body is written, each null member is
 // removed, and everything else in the body is refused - so a page that knows
 // one key never disturbs another's.
+//
+// Two keys are the person's own record of an administrator's support access,
+// and the server does read them: support_allowed, the consent without which no
+// support session opens, and support_last, the note of who opened one and
+// when, which the webmail shows until the person dismisses it. A support
+// session may change neither - it would be the administrator erasing or
+// rewriting the trace of their own visit, or granting themselves the consent
+// - and an app password, a mail program's credential, may not give the
+// consent (it may still withdraw it, the safe direction).
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
@@ -58,6 +67,31 @@ namespace HM
             char c = key[i];
             bool ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_';
             if (!ok)
+               return false;
+         }
+
+         return true;
+      }
+
+      // Whether a key names one the server reads, in any case. The store
+      // compares prefname under the database's collation, which on MySQL
+      // (utf8mb4_general_ci), SQL Server and SQL Server Compact ignores case:
+      // "Support_Last" there IS support_last - a null for it removes that row,
+      // and "SUPPORT_ALLOWED" written as "1" is found by the support-session
+      // route's own lookup of support_allowed. An exact comparison would let
+      // either spelling past the refusals below.
+      bool SameKey(const std::string &key, const char *name)
+      {
+         const size_t length = strlen(name);
+         if (key.size() != length)
+            return false;
+
+         for (size_t i = 0; i < length; i++)
+         {
+            char c = key[i];
+            if (c >= 'A' && c <= 'Z')
+               c = (char) (c - 'A' + 'a');
+            if (c != name[i])
                return false;
          }
 
@@ -231,6 +265,19 @@ namespace HM
             return BuildResponse_(400, "{\"error\":\"a key is 1 to 64 letters, digits, dots, dashes or underscores: " + JsonEscape_(AnsiString(members[i].first.c_str())) + "\"}");
 
          const JsonValue &value = members[i].second;
+
+         // In any case (SameKey): the store's comparison may ignore it.
+         const bool consentKey = SameKey(members[i].first, "support_allowed");
+         const bool supportKey = consentKey || SameKey(members[i].first, "support_last");
+         if (supportKey && !caller.support_by.IsEmpty())
+            return BuildResponse_(403, "{\"error\":\"not in a support session: support_allowed and support_last are the account holder's record of support access\",\"code\":\"support_session\"}");
+         if (consentKey && !value.IsNull())
+         {
+            HttpResponse refusal;
+            if (RefuseAppPasswordCaller_(caller, "allowing support access", refusal))
+               return refusal;
+         }
+
          if (value.IsNull())
             continue;
          if (!value.IsString())

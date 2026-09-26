@@ -23,12 +23,14 @@
 //               declining costs nothing but a footer.
 //   IsOpaque  - "is the content of this message unreadable here?" Asked by the
 //               blocked-attachment list, the attachment stripper, the virus
-//               verdict line, the rule engine's body criterion and the Sieve
-//               log line.
+//               verdict line, the rule engine's body and content criteria and
+//               eDiscovery. It is answered from the body, never from the label:
+//               see IsOpaque below.
 //
 // The rewriters ask the NARROWER question on purpose. Nothing on this server
 // verifies a signature, so "multipart/signed" at the top of a message is a
-// claim any sender can make; if the blocked-attachment list or the stripper
+// claim any sender can make - and so is "multipart/encrypted", which is why
+// IsOpaque looks for ciphertext rather than for the words. If the blocked-attachment list or the stripper
 // declined a signed message, a multipart/signed wrapper around invoice.exe
 // would walk past both, and the stripper's case is worse still because a
 // signed message is the one sealed shape where the scanner can actually see a
@@ -50,6 +52,7 @@
 namespace HM
 {
    class MessageData;
+   class MimeBody;
 
    class SealedMessage
    {
@@ -90,31 +93,69 @@ namespace HM
       // leaves the caller's existing behaviour unchanged.
       static bool IsSealed(std::shared_ptr<MessageData> messageData);
 
-      // The narrower question: is the CONTENT of this message unreadable here?
-      //
-      // Sealed and opaque are different sets, and a caller that confuses them
-      // tells a lie in one direction or the other. Every sealed message must be
-      // left byte for byte as it arrived - that is the six above. But only four
-      // of the six hide their content:
-      //
-      //   multipart/encrypted, application/pkcs7-mime, application/x-pkcs7-mime
-      //   and application/pgp-encrypted
-      //
-      // are ciphertext (or, for an S/MIME opaque-signed message, CMS this
-      // server does not unpack) from the first byte of the body to the last. A
-      // multipart/signed message is NOT: its first part is the text exactly as
-      // the author wrote it, readable by the virus scanner, the rule engine and
-      // a Sieve script alike, and a body criterion on it evaluates honestly.
-      // Declining to read it would break every rule an organisation has on its
-      // own signed mail, and calling a clean scan of it "unexamined" would be
-      // false. So the verdict line, the rule engine, the Sieve log, the
-      // blocked-attachment list and the stripper ask this (see the note at the
-      // top of the file on why the last two do), and the disclaimer asks
-      // IsSealed.
+      // Whether a message whose top-level Content-Type is this one CLAIMS to
+      // be unreadable here: multipart/encrypted, application/pkcs7-mime,
+      // application/x-pkcs7-mime or application/pgp-encrypted. A claim is all
+      // it is - any sender can write the header - so nothing that skips a
+      // check may act on it; it is for describing a message in a log line,
+      // and for the Sieve log line that only reports. Every caller that
+      // decides something asks IsOpaque below.
       static bool IsOpaqueContentType(const String &contentType);
 
-      // IsOpaqueContentType asked of a loaded message. False for a null one.
+      // The narrower question, answered from the body: is the CONTENT of this
+      // message really unreadable here?
+      //
+      // Sealed and opaque are different sets, and a caller that confuses them
+      // tells a lie in one direction or the other. A multipart/signed message
+      // is sealed and NOT opaque: its first part is the text exactly as the
+      // author wrote it, readable by the virus scanner, the rule engine and a
+      // Sieve script alike. Only an encrypted message, or S/MIME's opaque
+      // signed-data, hides its content - and the blocked-attachment list, the
+      // stripper and the rule engine's body and content criteria all stand
+      // aside for one. So the answer is never taken from the label, which the
+      // sender writes, but from the shape the label promises:
+      //
+      //   application/pkcs7-mime or application/x-pkcs7-mime: one part whose
+      //     content begins a CMS ContentInfo of enveloped-data,
+      //     authenticated-enveloped-data or signed-data, named smime.p7m or
+      //     nothing (GatewayEncryption::IsEnvelopedCms, IsSignedCms).
+      //   multipart/encrypted: protocol="application/pgp-encrypted" and
+      //     EXACTLY two parts, application/pgp-encrypted holding "Version: 1"
+      //     and application/octet-stream holding one ASCII-armoured OpenPGP
+      //     message and nothing else, whose packets are session keys and then
+      //     encrypted data (GatewayEncryption::IsEncryptedOpenPgpPackets), each
+      //     named *.asc, *.pgp, *.gpg or nothing.
+      //   application/pgp-encrypted at the top: the second of those alone.
+      //
+      // Anything else - a multipart/encrypted around invoice.exe, around
+      // text/plain, with a third part, a ciphertext part called invoice.exe,
+      // an OpenPGP message under no key - is not opaque, and is blocked,
+      // stripped and filtered like any other message. Before 6.3.4 shipped
+      // this was the label alone, and one header switched all four off.
+      //
+      // It walks the top level's parts with FindFirstPart and FindNextPart, so
+      // it is not to be asked part of the way through such a walk.
+      static bool IsOpaque(MimeBody &message);
+      static bool IsOpaque(std::shared_ptr<MimeBody> message);
+
+      // IsOpaque asked of a loaded message's MIME tree. False for a null one.
       static bool IsOpaque(std::shared_ptr<MessageData> messageData);
+
+      // The detached signature of a signed message, or null: the part the
+      // blocked-attachment list leaves alone, because replacing it removes
+      // nothing and makes every client report the message as tampered with.
+      //
+      // Decided from the structure, like IsOpaque, because a content type is
+      // a label the sender writes and the list is there to stop the sender:
+      // the SECOND of exactly two parts of a top-level multipart/signed, of
+      // the type its protocol parameter names (application/pkcs7-signature or
+      // x-pkcs7-signature for S/MIME, application/pgp-signature for OpenPGP),
+      // named *.p7s - or *.asc, *.sig, *.pgp, *.gpg - or not at all, and
+      // holding CMS signed-data or an armoured OpenPGP signature. A part of
+      // a signature's type anywhere else, or called invoice.exe, is checked
+      // like any other attachment.
+      static std::shared_ptr<MimeBody> DetachedSignaturePart(MimeBody &message);
+      static std::shared_ptr<MimeBody> DetachedSignaturePart(std::shared_ptr<MimeBody> message);
    };
 
    // Run from ClassTester::DoTests.
@@ -122,5 +163,8 @@ namespace HM
    {
    public:
       void Test();
+
+   private:
+      void TestStructure_();
    };
 }

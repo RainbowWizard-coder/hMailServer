@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "GatewayEncryption.h"
+#include "SealedMessage.h"
 #include "OpenPgpKey.h"
 #include "OpenPgpWriter.h"
 #include "File.h"
@@ -13,6 +14,7 @@
 #include "Unicode.h"
 #include "Encoding/Base64.h"
 #include "Parsing/StringParser.h"
+#include "../Mime/Mime.h"
 
 #include <openssl/bio.h>
 #include <openssl/cms.h>
@@ -187,11 +189,16 @@ namespace HM
       const unsigned char OidEnvelopedData[] = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x07, 0x03 };
       const unsigned char OidAuthEnvelopedData[] = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x10, 0x01, 0x17 };
 
-      // Whether DER octets begin a ContentInfo (SEQUENCE { contentType OID,
-      // [0] content }) whose content type is one of the two above. The length
-      // of the SEQUENCE may be short, long or indefinite (BER, which some
-      // clients write).
-      bool IsEnvelopedContentInfo(const std::vector<unsigned char> &der)
+      // id-signedData 1.2.840.113549.1.7.2: opaque S/MIME signed-data, whose
+      // content is in the clear but inside CMS. Not under a key, so never
+      // "already encrypted" here; SealedMessage asks for it separately.
+      const unsigned char OidSignedData[] = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x07, 0x02 };
+
+      // Where the content type OID of a ContentInfo (SEQUENCE { contentType
+      // OID, [0] content }) starts in DER octets, and its length; false when
+      // the octets do not begin one. The length of the SEQUENCE may be short,
+      // long or indefinite (BER, which some clients write).
+      bool ContentInfoOid(const std::vector<unsigned char> &der, size_t &oidAt, size_t &oidLength)
       {
          if (der.size() < 4 || der[0] != 0x30)
             return false;
@@ -209,13 +216,36 @@ namespace HM
          if (at + 2 > der.size() || der[at] != 0x06)
             return false;
 
-         const size_t oidLength = der[at + 1];
+         oidLength = der[at + 1];
          at += 2;
          if (at + oidLength > der.size())
             return false;
 
+         oidAt = at;
+         return true;
+      }
+
+      // Whether DER octets begin a ContentInfo whose content type is one of
+      // the two above.
+      bool IsEnvelopedContentInfo(const std::vector<unsigned char> &der)
+      {
+         size_t at = 0;
+         size_t oidLength = 0;
+         if (!ContentInfoOid(der, at, oidLength))
+            return false;
+
          return (oidLength == sizeof(OidEnvelopedData) && memcmp(&der[at], OidEnvelopedData, oidLength) == 0) ||
                 (oidLength == sizeof(OidAuthEnvelopedData) && memcmp(&der[at], OidAuthEnvelopedData, oidLength) == 0);
+      }
+
+      bool IsSignedContentInfo(const std::vector<unsigned char> &der)
+      {
+         size_t at = 0;
+         size_t oidLength = 0;
+         if (!ContentInfoOid(der, at, oidLength))
+            return false;
+
+         return oidLength == sizeof(OidSignedData) && memcmp(&der[at], OidSignedData, oidLength) == 0;
       }
 
       // An OpenPGP packet header (RFC 9580 section 4.2) at 'at': the tag, the
@@ -291,6 +321,51 @@ namespace HM
       // which holds the session key packets of any ordinary number of
       // recipients; a message with more is taken for NOT encrypted, which is
       // the safe way round: it is encrypted a second time rather than sent.
+      bool BeginsWithSessionKeysThenEncryptedData(const std::vector<unsigned char> &packets)
+      {
+         size_t offset = 0;
+         bool sawSessionKey = false;
+         while (offset < packets.size())
+         {
+            int tag = 0;
+            size_t headerLength = 0;
+            size_t bodyLength = 0;
+            bool partial = false;
+            if (!ReadPacketHeader(packets, offset, tag, headerLength, bodyLength, partial))
+               return false;
+
+            if (tag == 1 || tag == 3)
+            {
+               if (partial)
+                  return false;
+               sawSessionKey = true;
+               offset += headerLength + bodyLength;
+               continue;
+            }
+
+            return sawSessionKey && (tag == 18 || tag == 20 || tag == 9);
+         }
+
+         return false;
+      }
+
+      // The message, parsed, has the shape of one WHOLLY under a key
+      // (SealedMessage::IsOpaque): PGP/MIME with exactly the version part and
+      // the ciphertext, or S/MIME as one part named smime.p7m or nothing. The
+      // byte tests below find ciphertext; this one says there is nothing
+      // beside it - a third, readable part of a multipart/encrypted message
+      // would otherwise go to a partner, or be stored in a zero-access
+      // mailbox, in the clear because the ciphertext next to it was real. A
+      // message that does not parse is not.
+      bool HasTheShapeOfOneUnderAKey(const AnsiString &message)
+      {
+         std::shared_ptr<MimeBody> mime = std::make_shared<MimeBody>();
+         if (mime->LoadFromMemory(std::make_shared<const std::string>(message.c_str(), (size_t) message.GetLength()),
+                                  _T("GatewayEncryption"), false) != MimeLoadResult::Loaded)
+            return false;
+         return SealedMessage::IsOpaque(*mime);
+      }
+
       bool HoldsEncryptedOpenPgpMessage(const AnsiString &message, size_t bodyStart)
       {
          static const char beginLine[] = "-----BEGIN PGP MESSAGE-----";
@@ -326,30 +401,7 @@ namespace HM
          std::vector<unsigned char> packets;
          DecodeBase64Prefix(message, (size_t) at, 12 * 1024, packets);
 
-         size_t offset = 0;
-         bool sawSessionKey = false;
-         while (offset < packets.size())
-         {
-            int tag = 0;
-            size_t headerLength = 0;
-            size_t bodyLength = 0;
-            bool partial = false;
-            if (!ReadPacketHeader(packets, offset, tag, headerLength, bodyLength, partial))
-               return false;
-
-            if (tag == 1 || tag == 3)
-            {
-               if (partial)
-                  return false;
-               sawSessionKey = true;
-               offset += headerLength + bodyLength;
-               continue;
-            }
-
-            return sawSessionKey && (tag == 18 || tag == 20 || tag == 9);
-         }
-
-         return false;
+         return BeginsWithSessionKeysThenEncryptedData(packets);
       }
 
       // A field the partner's copy does not carry. The Content-* fields and
@@ -1155,15 +1207,34 @@ namespace HM
             prefix.assign(message.c_str() + bodyStart, message.c_str() + end);
          }
 
-         return IsEnvelopedContentInfo(prefix);
+         return IsEnvelopedContentInfo(prefix) && HasTheShapeOfOneUnderAKey(message);
       }
 
       // PGP/MIME: the top-level multipart/encrypted with the OpenPGP protocol,
-      // AND an OpenPGP message in it that is under a key.
+      // AND an OpenPGP message in it that is under a key, AND nothing else in
+      // it but the version part.
       if (OpenPgpWriter::IsPgpMimeEncrypted(message))
-         return HoldsEncryptedOpenPgpMessage(message, bodyStart);
+         return HoldsEncryptedOpenPgpMessage(message, bodyStart) && HasTheShapeOfOneUnderAKey(message);
 
       return false;
+   }
+
+   bool
+   GatewayEncryption::IsEncryptedOpenPgpPackets(const std::vector<unsigned char> &packets)
+   {
+      return BeginsWithSessionKeysThenEncryptedData(packets);
+   }
+
+   bool
+   GatewayEncryption::IsEnvelopedCms(const std::vector<unsigned char> &der)
+   {
+      return IsEnvelopedContentInfo(der);
+   }
+
+   bool
+   GatewayEncryption::IsSignedCms(const std::vector<unsigned char> &der)
+   {
+      return IsSignedContentInfo(der);
    }
 
    AnsiString
@@ -1517,6 +1588,23 @@ namespace HM
          Require(!GatewayEncryption::IsEncryptedEndToEnd(PgpMime(nullptr)),
                  "A multipart/encrypted label with no OpenPGP message under it was taken for encrypted.");
 
+         // Real ciphertext with a readable part beside it is not a message
+         // under a key: the third part would travel, or be stored, in the
+         // clear. Nor is a ciphertext part that calls itself invoice.exe.
+         {
+            AnsiString passenger = PgpMime("wQoDAAAAAAAAAAAB0gUBqrvM3Q==");
+            passenger.Replace("\r\n--x--\r\n", "\r\n--x\r\nContent-Type: text/plain\r\n\r\nReadable text beside the ciphertext.\r\n--x--\r\n");
+            Require(passenger.Find("Readable text") > 0, "The passenger fixture was not built.");
+            Require(!GatewayEncryption::IsEncryptedEndToEnd(passenger),
+                    "PGP/MIME with real ciphertext and a readable third part was taken for wholly encrypted.");
+
+            AnsiString misnamed = PgpMime("wQoDAAAAAAAAAAAB0gUBqrvM3Q==");
+            misnamed.Replace("Content-Type: application/octet-stream\r\n", "Content-Type: application/octet-stream; name=\"invoice.exe\"\r\n");
+            Require(misnamed.Find("invoice.exe") > 0, "The misnamed fixture was not built.");
+            Require(!GatewayEncryption::IsEncryptedEndToEnd(misnamed),
+                    "PGP/MIME whose ciphertext part is named invoice.exe was taken for encrypted.");
+         }
+
          // S/MIME: the CMS content type, whatever the label says.
          Require(GatewayEncryption::IsEncryptedEndToEnd("Subject: s\r\nContent-Type: application/pkcs7-mime; smime-type=enveloped-data; name=smime.p7m\r\nContent-Transfer-Encoding: base64\r\n\r\nMIAGCSqGSIb3DQEHA6CAMIACAQAAAAAAAAA=\r\n"),
                  "S/MIME enveloped-data was not recognised.");
@@ -1534,6 +1622,8 @@ namespace HM
                  "A label with no CMS object under it was taken for encrypted.");
          Require(!GatewayEncryption::IsEncryptedEndToEnd("Content-Type: multipart/signed; protocol=\"application/pkcs7-signature\"; micalg=sha-256; boundary=x\r\n\r\n--x\r\n"),
                  "A clear-signed message was taken for encrypted.");
+         Require(!GatewayEncryption::IsEncryptedEndToEnd("Content-Type: application/pkcs7-mime; smime-type=enveloped-data; name=invoice.exe\r\nContent-Transfer-Encoding: base64\r\n\r\nMIAGCSqGSIb3DQEHA6CAMIACAQAAAAAAAAA=\r\n"),
+                 "Enveloped-data named invoice.exe was taken for a message wholly under a key.");
       }
 
       // ---- what Inspect refuses without needing a key, private-key material first

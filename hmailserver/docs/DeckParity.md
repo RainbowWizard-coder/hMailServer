@@ -980,14 +980,14 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/messages/{id}/snooze` | ? | `account`, `folder`, `inbox`, `message`, `to`, `until` | - |
 | `POST /api/v1/me/messages/{id}/unsubscribe` | ? | - | - |
 | `PUT /api/v1/me/offline` | ? | `account`, `all`, `days`, `days_max`, `first`, `inbox`, `keys`, `last`, `offline_days`, `to` | - |
-| `PUT /api/v1/me/openpgp` | Settings | `account`, `address`, `answered`, `fingerprint`, `ids`, `key`, `keys`, `signature` | - |
+| `PUT /api/v1/me/openpgp` | Settings | `account`, `address`, `answered`, `encrypt`, `fingerprint`, `ids`, `key`, `keys`, `password`, `signature`, `to` | - |
 | `PUT /api/v1/me/openpgp/keys/correspondents` | ? | `accepted`, `account`, `address`, `autocrypt`, `changed_at`, `changed_from`, `current`, `first_seen`, `from`, `header`, `ids`, `key`, `last_seen`, `message`, `name`, `password`, `prefer_encrypt`, `public_key`, `revoked`, `secret`, `source`, `to`, `until` | - |
 | `PUT /api/v1/me/openpgp/keys/own` | ? | `account`, `address`, `credential`, `fingerprint`, `key`, `name`, `new`, `passphrase`, `password`, `prefer_encrypt`, `program`, `public_key`, `revoked`, `secret`, `secret_key`, `source`, `to` | - |
 | `PUT /api/v1/me/openpgp/keys/{id}/accepted` | ? | `accepted`, `account`, `address`, `changed_at`, `changed_from`, `key`, `owner`, `password`, `to`, `until` | - |
 | `PUT /api/v1/me/openpgp/keys/{id}/verified` | ? | `account`, `address`, `fingerprint`, `key`, `new`, `owner`, `password`, `read`, `sender`, `signature`, `to`, `verified` | - |
-| `PUT /api/v1/me/openpgp/publish` | ? | `account`, `domain`, `key`, `publish`, `to` | - |
+| `PUT /api/v1/me/openpgp/publish` | ? | `account`, `domain`, `key`, `password`, `publish`, `to` | - |
 | `POST /api/v1/me/password` | ? | `account`, `breach_check_unavailable`, `code`, `current`, `new`, `password`, `reason`, `to` | - |
-| `PUT /api/v1/me/preferences` | ? | `account`, `keys` | - |
+| `PUT /api/v1/me/preferences` | ? | `account`, `code`, `keys`, `last`, `note`, `password`, `support_allowed`, `support_last`, `support_session`, `to` | - |
 | `POST /api/v1/me/protected` | ? | `account`, `address`, `days`, `expires_in`, `folder`, `from`, `hint`, `message`, `passphrase`, `password`, `protected_message_days`, `recipient`, `size`, `to` | - |
 | `PUT /api/v1/me/protected/{id}/content` | ? | `sent_copy` | - |
 | `POST /api/v1/me/push/subscriptions` | ? | `accepted`, `account`, `address`, `addresses`, `device`, `domain`, `key`, `keys`, `labels`, `max_devices`, `message`, `name`, `quiet_from`, `quiet_offset`, `quiet_to`, `sender`, `senders`, `subject` | - |
@@ -1009,8 +1009,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/me/smime/chain` | ? | `account`, `certificate`, `certificates`, `chain`, `current`, `domain`, `encrypt`, `first`, `not_after`, `purpose`, `reason`, `revoked`, `subject` | - |
 | `POST /api/v1/me/smime/enroll` | ? | `account`, `active`, `address`, `answered`, `certificate`, `certificates`, `confirm`, `csr`, `device`, `domain`, `fingerprint`, `keep`, `key`, `name`, `password`, `revoked`, `smime_authority_base_url`, `subject`, `to`, `until` | - |
 | `POST /api/v1/me/smime/issued/{serial}/confirm` | ? | - | - |
-| `PUT /api/v1/me/smime/own` | ? | `address`, `certificate`, `chain`, `data`, `fingerprint`, `key`, `name`, `not_after`, `salt` | - |
-| `PUT /api/v1/me/smime/recipients` | DistributionListRecipient | `address`, `certificate`, `fingerprint`, `name`, `not_after` | - |
+| `PUT /api/v1/me/smime/own` | ? | `address`, `certificate`, `chain`, `data`, `fingerprint`, `key`, `name`, `not_after`, `password`, `salt`, `to` | - |
+| `PUT /api/v1/me/smime/recipients` | DistributionListRecipient | `address`, `certificate`, `fingerprint`, `name`, `not_after`, `password`, `to` | - |
 | `POST /api/v1/me/tasks` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/tasks/{id}` | ? | `calendar`, `description`, `due`, `first`, `priority`, `summary`, `tz` | - |
 | `PUT /api/v1/me/vacation` | ? | `enabled`, `expires`, `expires_date`, `message`, `subject` | - |

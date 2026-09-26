@@ -261,10 +261,15 @@ the first one unchanged. What decides it is what the body holds, never the label
 an `application/pkcs7-mime` body whose CMS content type is enveloped-data or
 authenticated-enveloped-data - whatever its `smime-type` says, and whether or not it
 has one - or a PGP/MIME message whose encrypted part is an OpenPGP message that
-begins with session key packets and then encrypted data. A message only *labelled*
-encrypted is encrypted like any other: opaque signed-data labelled enveloped-data,
-the bare `application/pkcs7-mime` S/MIME v2 clients used for opaque *signed* data, a
-`multipart/encrypted` whose PGP MESSAGE is readable. (The first 12 KB of an OpenPGP
+begins with session key packets and then encrypted data - and, either way, a message
+that is *wholly* under the key: PGP/MIME with exactly the version part and the
+ciphertext, or S/MIME as one part named `smime.p7m` or not named
+(`SealedMessage::IsOpaque`). A message only *labelled* encrypted is encrypted like
+any other: opaque signed-data labelled enveloped-data, the bare
+`application/pkcs7-mime` S/MIME v2 clients used for opaque *signed* data, a
+`multipart/encrypted` whose PGP MESSAGE is readable, and a `multipart/encrypted`
+that carries real ciphertext with a readable part beside it, which would otherwise
+reach the partner in the clear. (The first 12 KB of an OpenPGP
 message are read, which hold the session key packets of any ordinary number of
 recipients; one encrypted to more is taken for not encrypted and gets a second
 layer, which is the safe way round.) A message that is *signed* but whose content is

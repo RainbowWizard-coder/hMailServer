@@ -5606,6 +5606,7 @@
   // derivation takes long enough that a sign-out can happen under it.
   var pgpUnlockWith = function (passphrase) {
     var state = pgpState;
+    if (state.withheld) { return Promise.reject(new Error(state.withheld)); }
     var chain = Promise.resolve();
     var failed = '';
     state.own.forEach(function (row) {
@@ -5725,6 +5726,7 @@
       }
       if (own) {
         add(t('Save the secret key'), function () {
+          if (!row.secret_key) { say('pgp-status', pgpState.withheld || t('The key could not be opened.'), false); return; }
           pgpSave(row.secret_key, row.address + '-secret.asc');
           say('pgp-status', t('The secret key was saved. It is still encrypted under its passphrase; keep the file and the passphrase apart.'), true);
         });
@@ -5778,6 +5780,9 @@
       state.peers = result.data.correspondents || [];
       state.limits = result.data.limits || {};
       state.lookup = result.data.lookup || {};
+      // On an app password the secret halves are withheld, and the server's
+      // note says why (keys_withheld).
+      state.withheld = result.data.keys_withheld ? String(result.data.note || '') : '';
       pgpRenderPage();
       pgpComposeHints();
       if (!state.own.length) { return; }
@@ -6303,6 +6308,9 @@
   // the module derives. Resolves with the key; rejects with 'wrong passphrase'
   // when the password is not the one the copy is sealed under.
   var zaOpenWithPassword = function (row, password) {
+    // A session on an app password is not given the copies (keys_withheld):
+    // the server's note says to sign in with the account's own password.
+    if (!row.password_wrapped) { return Promise.reject(new Error(String(row.note || 'keys_withheld'))); }
     return pgpLoad().then(function () {
       return pgpModule.zeroAccessPassphrase(password, row.salt, zaParams(row));
     }).then(function (passphrase) { return pgpModule.readKey(row.password_wrapped, passphrase); });
@@ -6310,6 +6318,7 @@
   var zaOpenWithRecovery = function (row, typed) {
     var canonical = pgpModule.canonicalRecoveryKey(typed);
     if (!canonical) { return Promise.reject(new Error('wrong passphrase')); }
+    if (!row.recovery_wrapped) { return Promise.reject(new Error(String(row.note || 'keys_withheld'))); }
     return pgpModule.readKey(row.recovery_wrapped, canonical);
   };
   // The key sealed again under a password: a fresh salt, the default

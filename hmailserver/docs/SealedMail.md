@@ -13,12 +13,37 @@ Two words are used with care throughout, because they name two different sets:
 | | Content types | What it means |
 |---|---|---|
 | **Sealed** | `multipart/signed`, `multipart/encrypted`, `application/pkcs7-mime`, `application/x-pkcs7-mime`, `application/pgp-encrypted`, `application/pgp-signature` | The message must leave this server byte for byte as it arrived. Changing anything breaks the signature in every client that checks, or makes the ciphertext undecryptable. |
-| **Opaque** | `multipart/encrypted`, `application/pkcs7-mime`, `application/x-pkcs7-mime`, `application/pgp-encrypted` | The server cannot read the content at all. Every opaque message is sealed; a `multipart/signed` message is sealed but **not** opaque - its first part is the text exactly as the author wrote it, and every reader on this server reads it as before. |
+| **Opaque** | `multipart/encrypted`, `application/pkcs7-mime`, `application/x-pkcs7-mime`, `application/pgp-encrypted` - **and a body that really is ciphertext** | The server cannot read the content at all. Every opaque message is sealed; a `multipart/signed` message is sealed but **not** opaque - its first part is the text exactly as the author wrote it, and every reader on this server reads it as before. |
 
-Both are decided from the message's top-level `Content-Type` alone, in
-`SealedMessage` (`source/Server/Common/Util/SealedMessage.cpp`), and every part of the
-server named below asks that one class, so the product tells its administrator one
-story about a given message. What is deliberately **not** on either list is inline
+Sealed is decided from the message's top-level `Content-Type`, in `SealedMessage`
+(`source/Server/Common/Util/SealedMessage.cpp`): declining to add a footer costs
+nothing, so a label is enough. **Opaque is not decided from the label**, because every
+check below that stands aside for an opaque message - the blocked-attachment list,
+the stripper, the rule engine's body and content conditions, eDiscovery's body search
+- would otherwise be one header away from being switched off by anyone sending mail.
+A message is opaque only when its body has the exact shape the label promises:
+
+* **S/MIME** (`application/pkcs7-mime` or `application/x-pkcs7-mime`): one part whose
+  content begins a CMS object of enveloped-data, authenticated-enveloped-data or
+  signed-data, named `smime.p7m` or not named at all.
+* **PGP/MIME** (`multipart/encrypted`): `protocol="application/pgp-encrypted"` and
+  **exactly two parts** - `application/pgp-encrypted` holding `Version: 1`, then
+  `application/octet-stream` holding one ASCII-armoured OpenPGP message and nothing
+  else, whose packets are session keys followed by encrypted data (the same test
+  gateway encryption makes, below) - each named `*.asc`, `*.pgp`, `*.gpg` or not
+  named at all.
+* **A bare `application/pgp-encrypted`** at the top: the second of those two parts on
+  its own.
+
+Anything else under one of those labels - a `multipart/encrypted` around `invoice.exe`
+or around readable text, a third part beside the two, a ciphertext part called
+`invoice.exe`, an OpenPGP message under no key - is **not** opaque, and is blocked,
+stripped, filtered and searched like any other message. Before this was tightened for
+6.3.4, the label alone decided, and one `Content-Type` line took a message past all
+four.
+
+Every part of the server named below asks that one class, so the product tells its
+administrator one story about a given message. What is deliberately **not** on either list is inline
 ("armoured in the body") OpenPGP, which is a `text/plain` message with a
 `-----BEGIN PGP MESSAGE-----` block in it: the MIME layer cannot tell one from ordinary
 text, so nothing here can either, and such a message is treated as plain text
@@ -29,7 +54,7 @@ is a message destroyed or a lie in the log.
 
 ## The blocked-attachment list
 
-**A sealed message is never rewritten by the blocked-attachment list.** It is delivered
+**An encrypted message is never rewritten by the blocked-attachment list.** It is delivered
 exactly as it arrived, and one line in the application log names the message, the
 sender and its content type and says that the list was not applied.
 
@@ -54,6 +79,20 @@ What the rewriter now writes to the application log, in both directions:
   it would destroy the message beyond recovery. The message has been delivered exactly
   as it arrived.`
 * A message it could not parse: also logged, and also left alone.
+* A message labelled encrypted whose body is not: `VirusScanner - Message 1234 from
+  a@example.com is labelled encrypted (multipart/encrypted; ...) but its body is not
+  an encrypted message, so it has been checked against the blocked-attachment list
+  like any other.` - and it is.
+
+What "a sealed message" means here is an **opaque** one, decided from its body as
+above. A signed message is checked like any other, with one part left alone: its
+detached signature, because replacing it removes nothing and makes every client report
+the message as tampered with. That part, too, is found by its place and not by its
+label - the second of exactly two parts of a top-level `multipart/signed`, of the type
+the `protocol` parameter names, called `*.p7s` (S/MIME) or `*.asc`, `*.sig`, `*.pgp`,
+`*.gpg` (OpenPGP) or nothing, and holding CMS signed-data or an armoured OpenPGP
+signature. A part anywhere else that calls itself `application/pkcs7-signature`, or a
+signature part called `invoice.exe`, is checked like any other attachment.
 
 An ordinary message carrying a file with the same name is still blocked; the fixture
 `RegressionTests.AntiVirus.SealedMailSafety` proves both directions.
@@ -88,8 +127,9 @@ Your mail client, and you, are the last check.**
 
 ## The "delete attachments" anti-virus action
 
-**A sealed message is never stripped.** When the anti-virus action is *delete
-attachments* and the scanner objects to a sealed message, the message is left exactly
+**An encrypted message is never stripped.** When the anti-virus action is *delete
+attachments* and the scanner objects to an opaque message - encrypted, judged from its
+body as above - the message is left exactly
 as it arrived and the application log says so, naming the message and its content type
 and ending with the sentence *Set the anti-virus action to delete the message if such
 a message must not be delivered* - which is the setting that still works on a message
@@ -100,6 +140,12 @@ the stripper keeps one text part and throws the rest of the message away, and on
 sealed message "the rest" is the ciphertext, or the signature that makes the text
 worth anything; what survived was a fragment of base64 under a header rebuilt without
 its `Content-Type`.
+
+A message only **labelled** encrypted, whose parts are ordinary, is stripped like any
+other, and the log says `Message 1234 is labelled encrypted (...) but its body is not
+an encrypted message, so its attachments have been stripped as for any other
+message.` A signed message is stripped too, and the log says the signature is now
+invalid.
 
 Two further defects in the stripper were fixed in the same pass because they came to
 light there, and neither is about sealed mail:
@@ -135,6 +181,9 @@ criterion the server cannot evaluate **does not match**. Precisely:
 * Under *any criterion may match* (OR), the other criteria are still evaluated, so
   *subject contains X or body contains Y* still fires on the subject.
 * A `multipart/signed` message is read as it always was. Its text is in the clear.
+* A message labelled encrypted whose parts are readable is read as it always was
+  too, by the body, `content` and `sensitive_content` conditions alike: the label
+  does not decide, the body does.
 * One line per rule per message: `RuleApplier - Message 1234 is encrypted
   (multipart/encrypted; ...), so the body criterion of rule "Hold what carries no
   notice" could not be evaluated and did not match. ...` An administrator with thirty
@@ -170,6 +219,8 @@ message.`
 `body :raw` is the undecoded body exactly as it arrived, so `if body :raw :contains
 "BEGIN PGP MESSAGE"` is the honest way a script can recognise a sealed message and
 decide what to do with it. The fixture is `RegressionTests.Sieve.SieveSealedBody`.
+This line is the one place the label alone still decides: it changes nothing about
+the evaluation, and it is written only when the test did come back empty.
 
 ## The domain disclaimer and the domain signature
 
@@ -221,7 +272,12 @@ type is enveloped-data or authenticated-enveloped-data - whatever its `smime-typ
 parameter says, and whether or not it has one - or a PGP/MIME message
 (`multipart/encrypted` with `protocol="application/pgp-encrypted"`) whose encrypted
 part is an OpenPGP message that begins with session key packets and then encrypted
-data. Such a message goes to the partner exactly as it arrived. A message that is
+data - and, either way, only when it has the opaque shape above: exactly the version
+part and the ciphertext, or one S/MIME part named `smime.p7m` or not named. Real
+ciphertext with a readable part beside it is encrypted for the partner, since that
+part would otherwise travel in the clear. A zero-access mailbox asks the same
+question before it seals a delivery ([ZeroAccess.md](ZeroAccess.md)). A message
+wholly under a key goes to the partner exactly as it arrived. A message that is
 sealed but not encrypted - a `multipart/signed` message, or opaque S/MIME
 `signed-data` however it is labelled, the bare `application/pkcs7-mime` label older
 S/MIME v2 clients gave it included - is encrypted for the partner whole, signature

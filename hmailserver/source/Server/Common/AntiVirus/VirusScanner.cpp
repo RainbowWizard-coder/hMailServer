@@ -250,7 +250,7 @@ namespace HM
 
       // Read once here, written up at the end: see the comment there.
       const char *topLevelContentType = pMimeBody->GetContentType();
-      const bool opaqueMessage = topLevelContentType != nullptr && SealedMessage::IsOpaqueContentType(String(topLevelContentType));
+      const bool opaqueMessage = SealedMessage::IsOpaque(pMimeBody);
 
       std::list<std::shared_ptr<MimeBody> > oList;
       pMimeBody->GetAttachmentList(pMimeBody, oList);
@@ -389,6 +389,14 @@ namespace HM
       // changes is that the log says the rewrite invalidated the signature,
       // which a client that checks will report as tampering - the honest
       // outcome when the administrator's list and a sender's signature disagree.
+      //
+      // And IsOpaque looks at the body, not at the label, for the same reason:
+      // "multipart/encrypted" is as much a claim any sender can make as
+      // "multipart/signed", and GetAttachmentList recurses into its parts
+      // whatever the label says. Only a message whose parts are exactly a real
+      // encrypted message's - the ciphertext and, for PGP/MIME, the version
+      // part, under the names clients give them - is left alone; with no other
+      // part in it, there is nothing else for the list to find.
       if (SealedMessage::IsOpaque(message_data))
       {
          LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} from {1} is encrypted ({2}), so it was NOT checked against the blocked-attachment list: its ciphertext is one attachment by MIME type and replacing it would destroy the message beyond recovery. The message has been delivered exactly as it arrived.",
@@ -396,7 +404,27 @@ namespace HM
          return;
       }
 
+      if (SealedMessage::IsOpaqueContentType(message_data->GetFieldValue(_T("Content-Type"))))
+      {
+         LOG_APPLICATION(Formatter::Format("VirusScanner - Message {0} from {1} is labelled encrypted ({2}) but its body is not an encrypted message, so it has been checked against the blocked-attachment list like any other.",
+            message->GetID(), message->GetFromAddress(), message_data->GetFieldValue(_T("Content-Type"))));
+      }
+
       const bool signedMessage = SealedMessage::IsSealed(message_data);
+
+      // The detached signature of a signed message is not a file the sender
+      // attached; it is what makes the message verifiable. It is left alone,
+      // because replacing it removes nothing and only makes every client report
+      // the message as tampered with - and the real attachments of the same
+      // message are still checked below.
+      //
+      // Which part that is, is decided from the structure and not from the
+      // part's own Content-Type: any part anywhere in the message can call
+      // itself application/pkcs7-signature, and "invoice.exe" under that type
+      // was spared the list whatever it held. SealedMessage names the one part
+      // that is a signature - the second of the two of a real multipart/signed,
+      // named and made as a signature is - and only that part is skipped.
+      const std::shared_ptr<MimeBody> signaturePart = SealedMessage::DetachedSignaturePart(message_data->GetMimeMessage());
 
       std::shared_ptr<Attachments> pAttachments = message_data->GetAttachments();
 
@@ -406,12 +434,7 @@ namespace HM
       // owned by this call: the attachments of the message this scan parsed, and Attachments::GetVector hands out a copy
       for (auto attachment : pAttachments->GetVector())
       {
-         // The detached signature of a signed message is not a file the sender
-         // attached; it is what makes the message verifiable. It is left alone
-         // whatever it is called, because replacing it removes nothing and only
-         // makes every client report the message as tampered with - and the
-         // real attachments of the same message are still checked below.
-         if (signedMessage && IsDetachedSignaturePart_(attachment->GetContentType()))
+         if (signaturePart && attachment->GetMimeBody() == signaturePart)
             continue;
 
          // Check if attachment matches blocked file - as it is named, and as
@@ -479,17 +502,6 @@ namespace HM
       }
 
 
-   }
-
-   bool
-   VirusScanner::IsDetachedSignaturePart_(const AnsiString &contentType)
-   {
-      String type = contentType;
-      type.ToLower();
-
-      return type.StartsWith(_T("application/pkcs7-signature")) ||
-             type.StartsWith(_T("application/x-pkcs7-signature")) ||
-             type.StartsWith(_T("application/pgp-signature"));
    }
 
    VirusScanningResult

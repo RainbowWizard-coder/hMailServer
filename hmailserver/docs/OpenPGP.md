@@ -185,6 +185,14 @@ DELETE /api/v1/me/openpgp/{fingerprint}
 GET /api/v1/me/openpgp
 ```
 
+The three writes are the account holder's alone: a request made with an app password,
+or in an administrator's support session, reads the document and is refused the
+writes with 403 (`code` `support_session` for the latter). The key published here is
+the one every correspondent who looks the address up encrypts to, so a credential that
+could replace it could read what they send. An administrator who keeps a person's key
+for them uses the administrator's routes below, where the change is theirs on the
+record.
+
 Over REST, by an administrator:
 
 ```
@@ -802,7 +810,7 @@ The routes
 
 | Route | What it does |
 |---|---|
-| `GET /api/v1/me/openpgp/keys` | The whole ring, the limits, and what lookup the administrator allows |
+| `GET /api/v1/me/openpgp/keys` | The whole ring, the limits, and what lookup the administrator allows. To an app password or an administrator's support session, own keys without their `secret_key` (`secret_key_withheld`): the encrypted secret key is an offline test of a guess at its passphrase |
 | `PUT /api/v1/me/openpgp/keys/own` | Add or replace a key of the account's own, secret half and all |
 | `DELETE /api/v1/me/openpgp/keys/own/{fingerprint}` | Remove one |
 | `PUT /api/v1/me/openpgp/keys/correspondents` | Add or replace a correspondent's public key |
@@ -815,13 +823,18 @@ The routes
 All of them are the **account's own** credentials and nothing else; the
 administrative roles do not reach them. Every **write** to the ring - the four
 that store or remove a key, and the two trust routes - is refused to a request
-authenticated with an app password, which is a program's credential: the ring
+authenticated with an app password, and to an administrator's support session
+(403 with `code` `support_session`). An app password is a program's credential,
+and a support session is an administrator helping the person, who must not change
+what their mail is sealed to or what they have said about a correspondent's key: the
+ring
 holds the account's secret key and decides what its mail is sealed to, and with
 an app password one could forget a settled key and a pending one and store the
 key again with no change on it, forget a verified key and store it again with no
 mark, or remove the only copy of the secret key. Reading the ring is not
-refused, since a program that reads mail may need the keys. (The S/MIME store's
-four writes have the same gap and are outside this row.) `POST
+refused, since a program that reads mail may need the keys. The S/MIME store's
+four writes (`PUT` and `DELETE` of `/api/v1/me/smime/own` and
+`/api/v1/me/smime/recipients`) are refused to both in the same way. `POST
 /api/v1/me/messages` gains `autocrypt`, the header value the page built.
 
 The page's own settings, all under `/api/v1/settings/openpgp`:
@@ -886,9 +899,9 @@ Who may
 | Storing or removing a key for an account | `manage_accounts` **in that domain** |
 | Changing the four server settings | `manage_settings`, and not a credential confined to domains |
 | Waiving the address rule for one upload | The server administrator |
-| An account's own keys and its own publish switch | The account's own credential (self-service; the roles do not reach it) |
+| An account's own keys and its own publish switch | The account's own credential (self-service; the roles do not reach it) - never an app password nor an administrator's support session |
 | Reading the webmail's key ring, and the lookup | The account's own credential; the roles do not reach it |
-| Storing or removing a key in the ring, marking one verified in person, or accepting a change of key | The account's own session - never an app password, which is a program's |
+| Storing or removing a key in the ring, marking one verified in person, or accepting a change of key | The account's own session - never an app password, which is a program's, nor an administrator's support session |
 | The webmail's five OpenPGP settings | `manage_settings`, and not a credential confined to domains |
 | The webmail's key ring, and the lookup | The account's own credential; the roles do not reach it |
 | The webmail's six OpenPGP settings | `manage_settings`, and not a credential confined to domains |

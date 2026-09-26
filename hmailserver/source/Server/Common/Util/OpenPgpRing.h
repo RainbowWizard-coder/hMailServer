@@ -148,8 +148,10 @@ namespace HM
       // never does, because there is none. Every row carries verified and
       // verified_at; a row that replaced another carries changed_from,
       // changed_at and accepted, and one that replaced none carries none of
-      // the three.
-      static AnsiString RowJson(const Row &row);
+      // the three. secretKeyIncluded false leaves a KindOwn row's secret key
+      // out and says so with secret_key_withheld: the answer to a request the
+      // REST API does not give it to (RestApiServer::WithholdsWrappedKeys_).
+      static AnsiString RowJson(const Row &row, bool secretKeyIncluded = true);
 
       // Fills fingerprint, key_id, algorithm, created, expires, address and
       // name from the key itself, so that a listing cannot say something the

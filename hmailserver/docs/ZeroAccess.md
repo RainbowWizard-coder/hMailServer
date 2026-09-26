@@ -118,7 +118,20 @@ work without the key.
 A message that arrives already encrypted - a PGP/MIME message from a correspondent,
 one the page sealed and sent to itself, or an S/MIME envelope - is stored as it
 arrived. It is under a key already, and a second layer to the mailbox key would make
-it a message no other client shows.
+it a message no other client shows. Whether it is under a key is decided from its
+body, as gateway encryption decides it (`GatewayEncryption::IsEncryptedEndToEnd`), and
+never from its `Content-Type`, which the sender writes: an S/MIME object counts when its
+CMS content type is enveloped-data or authenticated-enveloped-data, and a
+`multipart/encrypted` message when it holds an OpenPGP message whose packets are
+session keys and then encrypted data - and either only when the whole message is
+under the key: PGP/MIME with exactly the version part and the ciphertext, S/MIME as one
+part named `smime.p7m` or not named. A `multipart/encrypted` label over ordinary text,
+real ciphertext with a readable part beside it, and an S/MIME v2 client's opaque signed
+data (`application/pkcs7-mime` with no `smime-type`, readable by anyone), are sealed
+like any other message. So is an OpenPGP message whose session-key packets pass
+12 KB - more than about twenty RSA-4096 recipients - which is then stored under two
+layers, and so is a real encrypted message whose parts are named otherwise; two layers
+is the safe way round, since nothing readable is left on the disk.
 
 How it works
 ------------
@@ -221,8 +234,9 @@ derivation is the RFC's at every size. The parameters are RFC 9106's second
 recommendation, three passes over 64 MiB in four lanes. Measured on 18 September 2026: 1.6 seconds in Node
 24 on the development machine, once per sign-in; a phone is expected to take several
 seconds, and it was not measured on one. The row stores its parameters, so a page
-that lowers the memory for a device that cannot afford it (the server accepts 8 MiB
-to 1 GiB, one to ten passes, one to sixteen lanes) is read back with what it stored.
+that lowers the memory for a device that cannot afford it (the server accepts 19 MiB
+to 1 GiB, two to ten passes, one to sixteen lanes - OWASP's floor for Argon2id, since
+the row is an offline test of a guess at the password) is read back with what it stored.
 
 **A password change.** Through the webmail, the change carries the key sealed again
 under the new password in the same request (`POST /api/v1/me/password` with a
@@ -232,9 +246,30 @@ the key sealed under a password nobody has. A password an administrator sets, or
 reset link sets, cannot re-wrap: the page never saw the old one. At the next sign-in
 the page finds the copy will not open, and asks for the previous password or the
 recovery key; either opens the key, and the page seals it again under the current
-password at once (`PUT /api/v1/me/zero-access/rewrap`). A sign-in by passkey, or on
-an app password, has no password to derive from; the reader then offers **Unlock
-your mailbox**, which asks the same question.
+password at once (`PUT /api/v1/me/zero-access/rewrap`). A sign-in by passkey has no
+password to derive from; the reader then offers **Unlock your mailbox**, which asks
+the same question.
+
+**An app password, or an administrator's support session, is not given the copies.**
+Each wrapped copy is an offline test of a guess at what it is sealed under - the
+account password, or the recovery key - so `GET /api/v1/me/zero-access` answers such a
+request `enabled`, the fingerprint and `enabled_at` with `keys_withheld` true and a
+`note`, and no `salt`, `argon2`, `password_wrapped` or `recovery_wrapped`. A program
+holding an app password reads a zero-access mailbox as ciphertext and has no way from
+it to the password; the mailbox is opened in a session signed in with the account's
+own password. `GET /api/v1/me/openpgp/keys` leaves out every own key's `secret_key`
+(`secret_key_withheld`) and `GET /api/v1/me/smime` every own certificate's wrapped
+`key` (`key_withheld`) for the same two, for the same reason.
+
+**Nor does either change them.** Switching on, re-wrapping and switching off are
+refused (403) to an app password and to an administrator's support session (403 with
+`code` `support_session`), and so is every write to the OpenPGP ring and the S/MIME
+store they stand on. A support session is an administrator helping the person in the
+webmail; one that could switch zero access off would store the next delivery in the
+clear for the administrator the switch exists to keep out, one that could re-wrap would
+replace the copy the mailbox opens with, and one that could store a key would plant
+what the mail is then sealed to. The person makes those changes signed in as
+themselves.
 
 **Switching off** (`DELETE /api/v1/me/zero-access`) clears the account's switch and
 removes the two copies. The key stays in the ring, the mail already sealed stays
@@ -256,7 +291,8 @@ Switches and surfaces
   card on the Deck's account editor - because a switch an administrator could throw
   would not be a promise about what an administrator cannot read.
 * `GET`, `PUT`, `DELETE /api/v1/me/zero-access` and `PUT .../rewrap`, self-service;
-  the three writes are refused on an app password. The OpenAPI document describes
+  the three writes are refused on an app password and in a support session, and the
+  read withholds the wrapped copies from both. The OpenAPI document describes
   each.
 * The backup carries `hm_zeroaccess` (`AccountStores`), so a restore brings the
   switch and the copies back together; a restore of an archive taken before the
@@ -283,7 +319,8 @@ the sign-out that forgets it all); and `RegressionTests/SMTP/ZeroAccess.cs` on a
 delivery's file is PGP/MIME with the kept headers and no plaintext, to a Curve25519
 key and to an RSA one, IMAP FETCH answers the ciphertext, the administrator's read is
 403, search finds the subject and not the body, a journal rule's copy is plaintext, a
-message that arrived encrypted is stored as it arrived, the Sent copy of a message
+message that arrived encrypted is stored as it arrived and one that is only labelled
+encrypted is sealed, the Sent copy of a message
 sent from the webmail is sealed, a seal that cannot be made refuses the delivery and
 tells the sender, a key that expires is refused at the switch-on, the mailbox key
 cannot be removed or revoked while the switch is on, the opt-in is refused while the

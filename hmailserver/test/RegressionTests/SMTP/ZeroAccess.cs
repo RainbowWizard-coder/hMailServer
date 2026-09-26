@@ -102,6 +102,55 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
+      [Description("An app password learns that the mailbox is zero access and which key it stands on, and is not given the key's wrapped copies, the Argon2 parameters or the own keys' secret halves - each an offline test of a guess at the password; the account's own password is given all of them.")]
+      public void AnAppPasswordIsNotGivenTheWrappedKeys()
+      {
+         // Against the code before the fix this fails: GET /api/v1/me/zero-access
+         // and GET /api/v1/me/openpgp/keys answered an app password exactly as
+         // they answer the password, password_wrapped, salt and secret_key in it.
+         SwitchOn();
+
+         (int status, string body) minted = Send("POST", "/api/v1/me/app-passwords", _me, "{\"name\":\"Phone\",\"password\":\"" + Password + "\"}");
+         Assert.AreEqual(201, minted.status, minted.body);
+         string asProgram = Basic(_sealed.Address, Regex.Match(minted.body, "\"password\":\"([^\"]+)\"").Groups[1].Value);
+
+         (int status, string body) program = Send("GET", "/api/v1/me/zero-access", asProgram, null);
+         Assert.AreEqual(200, program.status, program.body);
+         StringAssert.Contains("\"enabled\":true", program.body, "The app password still learns the mailbox is zero access.");
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.RingOwnFingerprint + "\"", program.body);
+         StringAssert.Contains("\"keys_withheld\":true", program.body);
+         StringAssert.DoesNotContain("password_wrapped", program.body, "The copy sealed under the account password went to an app password.");
+         StringAssert.DoesNotContain("recovery_wrapped", program.body);
+         StringAssert.DoesNotContain("\"salt\"", program.body);
+         StringAssert.DoesNotContain("argon2", program.body);
+         StringAssert.DoesNotContain("PGP PRIVATE KEY", program.body);
+
+         (int status, string body) programKeys = Send("GET", "/api/v1/me/openpgp/keys", asProgram, null);
+         Assert.AreEqual(200, programKeys.status, programKeys.body);
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.RingOwnFingerprint + "\"", programKeys.body, "The ring is still listed.");
+         StringAssert.Contains("\"secret_key_withheld\":true", programKeys.body);
+         StringAssert.DoesNotContain("\"secret_key\"", programKeys.body, "An own key's secret half went to an app password.");
+
+         // The negative control: the account's own password is given everything,
+         // which is what the page it signs in to needs.
+         (int status, string body) owner = Send("GET", "/api/v1/me/zero-access", _me, null);
+         StringAssert.Contains("\"password_wrapped\":\"" + Escaped(OpenPgpTestSupport.RingOwnSecretArmoured) + "\"", owner.body);
+         StringAssert.Contains("\"argon2\":{\"passes\":3,\"memory_kib\":65536,\"lanes\":4}", owner.body);
+         StringAssert.DoesNotContain("keys_withheld", owner.body);
+         StringAssert.Contains("\"secret_key\":\"", Send("GET", "/api/v1/me/openpgp/keys", _me, null).body);
+
+         // And what the row may name is held to OWASP's Argon2id floor, two
+         // passes over 19 MiB: the 8 MiB and one pass the server took before
+         // would have made each guess cheap for whoever holds the copy.
+         (int status, string body) cheap = Send("PUT", "/api/v1/me/zero-access/rewrap", _me,
+            "{\"salt\":\"" + Salt + "\",\"passes\":1,\"memory_kib\":8192,\"lanes\":1,\"password_wrapped\":\"" + Escaped(OpenPgpTestSupport.RingOwnSecretArmoured) + "\"}");
+         Assert.AreEqual(400, cheap.status, "A re-wrap at 8 MiB and one pass was taken: " + cheap.body);
+         (int status, string body) floor = Send("PUT", "/api/v1/me/zero-access/rewrap", _me,
+            "{\"salt\":\"" + Salt + "\",\"passes\":2,\"memory_kib\":19456,\"lanes\":1,\"password_wrapped\":\"" + Escaped(OpenPgpTestSupport.RingOwnSecretArmoured) + "\"}");
+         Assert.AreEqual(200, floor.status, "A re-wrap at the floor was refused: " + floor.body);
+      }
+
+      [Test]
       [Description("A message delivered to a zero-access mailbox is stored as a PGP/MIME message: the outer headers the original's, the body nowhere in the file, the server's mark on it; the same message to an ordinary mailbox is stored in the clear.")]
       public void ADeliveryToAZeroAccessMailboxIsSealedOnDisk()
       {
@@ -492,7 +541,11 @@ namespace RegressionTests.SMTP
       public void AMessageThatArrivesEncryptedIsStoredAsItArrived()
       {
          SwitchOn();
-         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwV4DfixtureNotARealPacketButTheShapeOfOneAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\n=za00\r\n-----END PGP MESSAGE-----\r\n";
+         // Real OpenPGP packets: a public-key session key packet and then
+         // encrypted data. What is under a key is decided from the packets, not
+         // the label, so a fixture of any other base64 is sealed (see
+         // ALabelIsNotEnoughToBeStoredUnsealed).
+         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=\r\n=za00\r\n-----END PGP MESSAGE-----\r\n";
          string raw = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Already under a key\r\nMIME-Version: 1.0\r\n"
                       + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"za-fixture\"\r\n\r\n"
                       + "--za-fixture\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n"
@@ -511,6 +564,141 @@ namespace RegressionTests.SMTP
          string second = File.ReadAllText(FileOfMessage(_sealed, "INBOX", 1));
          StringAssert.Contains("X-hMailServer-Zero-Access: sealed on delivery\r\n", second);
          StringAssert.DoesNotContain(text, second);
+      }
+
+      [Test]
+      [Description("A message that only SAYS it is encrypted is sealed: a multipart/encrypted label over ordinary text, and an S/MIME v2 opaque-signed message labelled application/pkcs7-mime with no smime-type, whose content anyone can read. Neither is under a key, so neither is stored as it arrived.")]
+      public void ALabelIsNotEnoughToBeStoredUnsealed()
+      {
+         // Against the code before the fix this fails: the label alone decided
+         // "already encrypted", and both messages were stored in the clear in a
+         // mailbox that promises the administrator cannot read it.
+         SwitchOn();
+
+         const string secret = "Readable text under an encrypted label.";
+         string fakeLabel = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Only the label\r\nMIME-Version: 1.0\r\n"
+                            + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"za-label\"\r\n\r\n"
+                            + "--za-label\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n"
+                            + "--za-label\r\nContent-Type: text/plain; charset=us-ascii\r\n\r\n" + secret + "\r\n"
+                            + "--za-label--\r\n";
+         SmtpClientSimulator.StaticSendRaw("sender@example.org", _sealed.Address, fakeLabel);
+         Pop3ClientSimulator.AssertMessageCount(_sealed.Address, Password, 1);
+         string first = File.ReadAllText(FileOfFirstMessage(_sealed));
+         StringAssert.Contains("X-hMailServer-Zero-Access: sealed on delivery\r\n", first, "A multipart/encrypted label over plain text was stored as it arrived.");
+         StringAssert.DoesNotContain(secret, first, "The text under the label is on the disk in the clear.");
+
+         // The start of a CMS signed-data object (1.2.840.113549.1.7.2), which
+         // an S/MIME v2 client sends as application/pkcs7-mime with no
+         // smime-type: signed, not encrypted.
+         string opaqueSigned = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Signed, not encrypted\r\nMIME-Version: 1.0\r\n"
+                               + "Content-Type: application/pkcs7-mime; name=\"smime.p7m\"\r\nContent-Transfer-Encoding: base64\r\n"
+                               + "Content-Disposition: attachment; filename=\"smime.p7m\"\r\n\r\n"
+                               + "MIAGCSqGSIb3DQEHAqCAMIACAQE=\r\n";
+         SmtpClientSimulator.StaticSendRaw("sender@example.org", _sealed.Address, opaqueSigned);
+         Pop3ClientSimulator.AssertMessageCount(_sealed.Address, Password, 2);
+         string second = File.ReadAllText(FileOfMessage(_sealed, "INBOX", 1));
+         StringAssert.Contains("X-hMailServer-Zero-Access: sealed on delivery\r\n", second, "Opaque signed data, which anyone can read, was stored as it arrived.");
+         StringAssert.DoesNotContain("MIAGCSqGSIb3DQEHAqCAMIACAQE=", second, "The signed-data body is on the disk as it arrived.");
+      }
+
+      [Test]
+      [Description("A PGP/MIME message that holds real ciphertext AND a readable part beside it is sealed, not stored as it arrived: only a message wholly under a key - the version part and the ciphertext, and nothing else - is kept as it came.")]
+      public void AnEncryptedPartDoesNotCarryAReadablePartPastTheSeal()
+      {
+         // Against the code before the fix this fails: GatewayEncryption's
+         // question - is there an OpenPGP message under a key in here? - is
+         // answered yes by the ciphertext part, and the message was stored as it
+         // arrived, the third part's text on the disk in the clear.
+         SwitchOn();
+
+         const string armour = "-----BEGIN PGP MESSAGE-----\r\n\r\nwQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=\r\n=za00\r\n-----END PGP MESSAGE-----\r\n";
+         const string readable = "A readable part riding beside real ciphertext.";
+         string raw = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Ciphertext and a passenger\r\nMIME-Version: 1.0\r\n"
+                      + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"za-extra\"\r\n\r\n"
+                      + "--za-extra\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n"
+                      + "--za-extra\r\nContent-Type: application/octet-stream\r\n\r\n" + armour
+                      + "--za-extra\r\nContent-Type: text/plain; charset=us-ascii\r\n\r\n" + readable + "\r\n"
+                      + "--za-extra--\r\n";
+         SmtpClientSimulator.StaticSendRaw("sender@example.org", _sealed.Address, raw);
+         Pop3ClientSimulator.AssertMessageCount(_sealed.Address, Password, 1);
+         string stored = File.ReadAllText(FileOfFirstMessage(_sealed));
+         StringAssert.Contains("X-hMailServer-Zero-Access: sealed on delivery\r\n", stored, "Real ciphertext with a readable part beside it was stored as it arrived.");
+         StringAssert.DoesNotContain(readable, stored, "The readable part is on the disk in the clear.");
+
+         // The negative control, AMessageThatArrivesEncryptedIsStoredAsItArrived's
+         // message: the same two parts without the passenger stay as they came.
+         string whole = "From: sender@example.org\r\nTo: " + _sealed.Address + "\r\nSubject: Only ciphertext\r\nMIME-Version: 1.0\r\n"
+                        + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"za-whole\"\r\n\r\n"
+                        + "--za-whole\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n"
+                        + "--za-whole\r\nContent-Type: application/octet-stream\r\n\r\n" + armour + "--za-whole--\r\n";
+         SmtpClientSimulator.StaticSendRaw("sender@example.org", _sealed.Address, whole);
+         Pop3ClientSimulator.AssertMessageCount(_sealed.Address, Password, 2);
+         string second = File.ReadAllText(FileOfMessage(_sealed, "INBOX", 1));
+         StringAssert.Contains(armour, second);
+         StringAssert.DoesNotContain("X-hMailServer-Zero-Access", second, "A message wholly under a key was given a second layer.");
+      }
+
+      [Test]
+      [Description("An administrator's support session reads the zero-access state and the rings, and changes none of it: the switch on or off, the re-wrap, the account's own OpenPGP keys, a correspondent's key and what the account said about it are the account holder's alone. The account's own password does each of them.")]
+      public void ASupportSessionCannotChangeTheKeysOrTheSwitch()
+      {
+         // Against the code before the fix this fails: only an app password was
+         // refused on these writes, so an administrator who opened a support
+         // session could switch zero access off - the next delivery then stored
+         // in the clear for the administrator the switch keeps out - replace the
+         // password copy, plant a key of their own in the ring or a
+         // correspondent's, or mark one verified.
+         StoreOwnKey();
+         (int status, string body) peer = Send("PUT", "/api/v1/me/openpgp/keys/correspondents", _me, PeerKeyBody());
+         Assert.AreEqual(201, peer.status, peer.body);
+         long peerId = IdOf(peer.body);
+
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/preferences", _me, "{\"support_allowed\":\"1\"}").status, "The account could not allow support access.");
+         (int status, string headers, string body) opened = RestRequest.Exchange("127.0.0.1", RestPort, "POST", "/api/v1/accounts/" + _sealed.Address + "/support-session",
+            Basic("Administrator", AdminPassword), null, null);
+         Assert.AreEqual(201, opened.status, opened.body);
+         string cookie = Regex.Match(opened.headers, "hmailsession=([^;\r\n]+)").Groups[1].Value;
+         Assert.IsFalse(string.IsNullOrEmpty(cookie), opened.headers);
+         string session = "Cookie: hmailsession=" + cookie + "\r\nX-Requested-With: hMailServer";
+
+         // It is a working session: it reads as the account.
+         (int status, string body) reads = AsSupport("GET", "/api/v1/me/zero-access", session, null);
+         Assert.AreEqual(200, reads.status, reads.body);
+         StringAssert.Contains("\"enabled\":false", reads.body);
+
+         // The switch, thrown on.
+         (int status, string body) on = AsSupport("PUT", "/api/v1/me/zero-access", session,
+            SwitchBody(OpenPgpTestSupport.RingOwnFingerprint, OpenPgpTestSupport.RingOwnSecretArmoured, OpenPgpTestSupport.RingOwnSecretArmoured));
+         AssertSupportRefused(on, "switched the mailbox to zero access");
+         Assert.IsFalse(ZeroAccessOf(_sealed.Address), "The support session's switch-on went through.");
+
+         SwitchOn(false);
+
+         AssertSupportRefused(AsSupport("PUT", "/api/v1/me/zero-access/rewrap", session, RewrapBody(OpenPgpTestSupport.RingOwnSecretArmoured)), "re-wrapped the mailbox key");
+         AssertSupportRefused(AsSupport("DELETE", "/api/v1/me/zero-access", session, null), "switched zero access off");
+         Assert.IsTrue(ZeroAccessOf(_sealed.Address), "The support session switched zero access off.");
+
+         AssertSupportRefused(AsSupport("PUT", "/api/v1/me/openpgp/keys/own", session, OwnKeyBody(OpenPgpTestSupport.RingOwnPublicBase64, false)), "stored an own key");
+         AssertSupportRefused(AsSupport("DELETE", "/api/v1/me/openpgp/keys/own/" + OpenPgpTestSupport.RingOwnFingerprint, session, null), "removed an own key");
+         AssertSupportRefused(AsSupport("PUT", "/api/v1/me/openpgp/keys/correspondents", session, PeerKeyBody()), "stored a correspondent's key");
+         AssertSupportRefused(AsSupport("PUT", "/api/v1/me/openpgp/keys/" + peerId + "/verified", session, "{\"verified\":true}"), "marked a key verified");
+         AssertSupportRefused(AsSupport("PUT", "/api/v1/me/openpgp/keys/" + peerId + "/accepted", session, "{\"accepted\":true}"), "accepted a change of key");
+         AssertSupportRefused(AsSupport("DELETE", "/api/v1/me/openpgp/keys/correspondents/" + OpenPgpTestSupport.RingPeerFingerprint, session, null), "forgot a correspondent's key");
+
+         // Nothing changed, and the session still reads - without the copies.
+         (int status, string body) stillReads = AsSupport("GET", "/api/v1/me/zero-access", session, null);
+         Assert.AreEqual(200, stillReads.status, stillReads.body);
+         StringAssert.Contains("\"keys_withheld\":true", stillReads.body);
+         (int status, string body) ring = Send("GET", "/api/v1/me/openpgp/keys", _me, null);
+         StringAssert.Contains("\"fingerprint\":\"" + OpenPgpTestSupport.RingPeerFingerprint + "\"", ring.body, "The support session removed the correspondent's key.");
+         StringAssert.DoesNotContain("\"verified\":true", ring.body, "The support session's mark is on the key.");
+
+         // The negative control: the account's own password does each of them.
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/openpgp/keys/" + peerId + "/verified", _me, "{\"verified\":true}").status, "The account holder could not mark the key.");
+         Assert.AreEqual(200, Send("DELETE", "/api/v1/me/openpgp/keys/correspondents/" + OpenPgpTestSupport.RingPeerFingerprint, _me, null).status, "The account holder could not forget the key.");
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/zero-access/rewrap", _me, RewrapBody(OpenPgpTestSupport.RingOwnSecretArmoured)).status, "The account holder could not re-wrap.");
+         Assert.AreEqual(200, Send("DELETE", "/api/v1/me/zero-access", _me, null).status, "The account holder could not switch zero access off.");
+         Assert.IsFalse(ZeroAccessOf(_sealed.Address));
       }
 
       [Test]
@@ -726,6 +914,25 @@ namespace RegressionTests.SMTP
             }
             return process.ExitCode == 0;
          }
+      }
+
+      /// <summary>Bob's public key as the page stores a correspondent's.</summary>
+      private static string PeerKeyBody()
+      {
+         return "{\"public_key\":\"" + OpenPgpTestSupport.RingPeerPublicBase64 + "\",\"address\":\"" + OpenPgpTestSupport.RingPeerAddress
+                + "\",\"name\":\"Bob\",\"source\":\"imported\"}";
+      }
+
+      /// <summary>A request in the support session whose cookie and page header are in session.</summary>
+      private static (int status, string body) AsSupport(string method, string path, string session, string requestBody)
+      {
+         return RestRequest.Send("127.0.0.1", RestPort, method, path, null, requestBody, session);
+      }
+
+      private static void AssertSupportRefused((int status, string body) answer, string what)
+      {
+         Assert.AreEqual(403, answer.status, "A support session " + what + ": " + answer.body);
+         StringAssert.Contains("support_session", answer.body, "Refused, but not as a support session: " + answer.body);
       }
 
       /// <summary>An armoured block as one JSON string: its newlines escaped.</summary>

@@ -254,7 +254,7 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
-      [Description("A message that is PGP/MIME already - a real OpenPGP message GnuPG encrypted, a session key packet and encrypted data - goes to the partner as it is: the same body bytes, no second layer, and the log says why. The negative control: a message only LABELLED PGP/MIME, whose PGP MESSAGE is readable literal data, is encrypted.")]
+      [Description("A message that is PGP/MIME already - a real OpenPGP message GnuPG encrypted, a session key packet and encrypted data - goes to the partner as it is: the same body bytes, no second layer, and the log says why. The negative controls: a message only LABELLED PGP/MIME, whose PGP MESSAGE is readable literal data, is encrypted; and so is the real message with a readable third part beside the ciphertext.")]
       public void AMessageAlreadyPgpMimeGoesAsItIs()
       {
          AddPolicy_(PartnerDomain, EncryptOpenPgp, OpenPgpTestSupport.RingOwnPublicBase64, FallbackRefuse);
@@ -316,6 +316,28 @@ namespace RegressionTests.SMTP
             StringAssert.Contains("X-hMailServer-Gateway-Encrypted: OpenPGP to key", HeaderOf_(partner.MessageData),
                "A message only labelled PGP/MIME, its content readable, went to the partner as it was.");
             StringAssert.DoesNotContain("ywhiAAAAAABoaQ==", partner.MessageData, "The readable content reached the partner outside the key.");
+         }
+
+         // Real ciphertext with a passenger: the same GnuPG message and, beside
+         // it, a readable part. Before the fix the ciphertext alone answered
+         // "encrypted end to end already", and the third part went to a partner
+         // whose policy says every message is encrypted - in the clear.
+         const string passenger = "A readable part beside real ciphertext.";
+         string withPassenger = PgpMimeBody_(armour).Replace("--sealed-by-the-client--\r\n",
+            "--sealed-by-the-client\r\nContent-Type: text/plain; charset=us-ascii\r\n\r\n" + passenger + "\r\n--sealed-by-the-client--\r\n");
+         StringAssert.Contains(passenger, withPassenger, "The fixture was not built.");
+
+         using (SmtpServerSimulator partner = Simulator_(PartnerPort, "test@" + PartnerDomain))
+         {
+            new SmtpClientSimulator().SendRaw(_account.Address, "test@" + PartnerDomain,
+               PgpMimeMessage_("Ciphertext and a passenger", "passenger@example.test", withPassenger));
+
+            partner.WaitForCompletion();
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0, false);
+
+            StringAssert.Contains("X-hMailServer-Gateway-Encrypted: OpenPGP to key", HeaderOf_(partner.MessageData),
+               "Real ciphertext with a readable part beside it went to the partner as it was.");
+            StringAssert.DoesNotContain(passenger, partner.MessageData, "The readable part reached the partner outside the key.");
          }
       }
 

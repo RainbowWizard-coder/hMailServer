@@ -52,8 +52,17 @@ namespace RegressionTests.AntiVirus
       private const string AlwaysInfectedScanner = @"C:\Windows\System32\cmd.exe /c exit 3&rem %FILE%";
       private const int InfectedReturnValue = 3;
 
-      private const string CiphertextMarker = "c2VhbGVkLWNpcGhlcnRleHQtbWFya2Vy";
-      private const string SignaturePartMarker = "c2lnbmF0dXJlLWJ5dGVzLW1hcmtlcg";
+      // Real OpenPGP packets, armoured: a public-key session key packet and then
+      // symmetrically encrypted data. The server decides "encrypted" from what
+      // the ciphertext part holds and not from the label, so a fixture whose
+      // "ciphertext" is any other base64 is, correctly, not encrypted.
+      private const string CiphertextMarker = "wQwDAAAAAAAAAAABAAHSGQFzZWFsZWQtY2lwaGVydGV4dC1tYXJrZXI=";
+
+      // The first bytes of a Windows executable, as a sender would attach one.
+      private const string ExecutableMarker = "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAA=";
+      // The start of a CMS signed-data object: the server spares only a part that
+      // is a signature, not one that merely says it is.
+      private const string SignaturePartMarker = "MIAGCSqGSIb3DQEHAqCAMIACAQE=";
       private const string BinaryPartMarker = "YmluYXJ5LXBheWxvYWQtbWFya2Vy";
       private const string PlainTextMarker = "This note must survive the stripper.";
 
@@ -178,6 +187,52 @@ namespace RegressionTests.AntiVirus
       }
 
       /// <summary>
+      ///    The attack: a multipart/encrypted label, a real-looking version part,
+      ///    and then ordinary parts - a note and invoice.exe. Nothing in it is
+      ///    encrypted. A client without OpenPGP (Outlook without an add-in) shows the
+      ///    parts of a multipart/encrypted it cannot open as ordinary attachments,
+      ///    so the recipient sees, and can open, invoice.exe.
+      /// </summary>
+      private static string FakeEncryptedMessage(string recipient)
+      {
+         return "From: correspondent@example.com\r\n" +
+                "To: " + recipient + "\r\n" +
+                "Subject: Not sealed at all\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\";\r\n" +
+                " boundary=\"fake-boundary\"\r\n" +
+                "\r\n" +
+                "--fake-boundary\r\n" +
+                "Content-Type: application/pgp-encrypted\r\n" +
+                "\r\n" +
+                "Version: 1\r\n" +
+                "\r\n" +
+                "--fake-boundary\r\n" +
+                "Content-Type: text/plain; charset=us-ascii\r\n" +
+                "\r\n" +
+                PlainTextMarker + "\r\n" +
+                "\r\n" +
+                "--fake-boundary\r\n" +
+                "Content-Type: application/octet-stream; name=\"invoice.exe\"\r\n" +
+                "Content-Transfer-Encoding: base64\r\n" +
+                "Content-Disposition: attachment; filename=\"invoice.exe\"\r\n" +
+                "\r\n" +
+                ExecutableMarker + "\r\n" +
+                "\r\n" +
+                "--fake-boundary--\r\n";
+      }
+
+      /// <summary>
+      ///    A real PGP/MIME shape whose ciphertext part is called invoice.exe. The
+      ///    packets are genuine, but a client that does not decrypt offers the part
+      ///    as a file of that name, so the name is checked like any other.
+      /// </summary>
+      private static string PgpMimeMessageWithCiphertextNamed(string recipient, string name)
+      {
+         return PgpMimeMessage(recipient).Replace("encrypted.asc", name);
+      }
+
+      /// <summary>
       ///    An S/MIME detached signature (RFC 8551): the text as it was written,
       ///    plus smime.p7s. Blocking "*.p7s" used to replace the signature with a
       ///    notice, which makes every message the organisation signs arrive as
@@ -196,6 +251,48 @@ namespace RegressionTests.AntiVirus
                 "Content-Type: text/plain; charset=us-ascii\r\n" +
                 "\r\n" +
                 PlainTextMarker + "\r\n" +
+                "\r\n" +
+                "--signed-boundary\r\n" +
+                "Content-Type: application/pkcs7-signature; name=\"smime.p7s\"\r\n" +
+                "Content-Transfer-Encoding: base64\r\n" +
+                "Content-Disposition: attachment; filename=\"smime.p7s\"\r\n" +
+                "\r\n" +
+                SignaturePartMarker + "\r\n" +
+                "\r\n" +
+                "--signed-boundary--\r\n";
+      }
+
+      /// <summary>
+      ///    The attack on the signature exemption: a signed message whose signed
+      ///    content carries invoice.exe typed as application/pkcs7-signature. The
+      ///    type is a label; a client that does not check signatures offers the
+      ///    part as the file it is called.
+      /// </summary>
+      private static string SignedMessageWithExecutableTypedAsSignature(string recipient)
+      {
+         return "From: correspondent@example.com\r\n" +
+                "To: " + recipient + "\r\n" +
+                "Subject: Signed\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: multipart/signed; protocol=\"application/pkcs7-signature\";\r\n" +
+                " micalg=sha-256; boundary=\"signed-boundary\"\r\n" +
+                "\r\n" +
+                "--signed-boundary\r\n" +
+                "Content-Type: multipart/mixed; boundary=\"inner-boundary\"\r\n" +
+                "\r\n" +
+                "--inner-boundary\r\n" +
+                "Content-Type: text/plain; charset=us-ascii\r\n" +
+                "\r\n" +
+                PlainTextMarker + "\r\n" +
+                "\r\n" +
+                "--inner-boundary\r\n" +
+                "Content-Type: application/pkcs7-signature; name=\"invoice.exe\"\r\n" +
+                "Content-Transfer-Encoding: base64\r\n" +
+                "Content-Disposition: attachment; filename=\"invoice.exe\"\r\n" +
+                "\r\n" +
+                ExecutableMarker + "\r\n" +
+                "\r\n" +
+                "--inner-boundary--\r\n" +
                 "\r\n" +
                 "--signed-boundary\r\n" +
                 "Content-Type: application/pkcs7-signature; name=\"smime.p7s\"\r\n" +
@@ -337,6 +434,31 @@ namespace RegressionTests.AntiVirus
       }
 
       [Test]
+      [Description("A part typed as a signature is spared only when it is the signed message's own signature: invoice.exe under that type is blocked, and the real smime.p7s beside it is not touched.")]
+      public void AnExecutableTypedAsASignatureIsStillBlocked()
+      {
+         // Against the code before the fix this fails: every part whose own
+         // Content-Type was a signature type, anywhere in a message labelled
+         // sealed, was skipped, so invoice.exe was delivered as sent.
+         BlockWildcard("*.exe");
+         BlockWildcard("*.p7s");
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            SignedMessageWithExecutableTypedAsSignature(_account.Address));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.Contains("invoice.exe.txt", delivered,
+            "A part that called itself a signature walked past the blocked-attachment list.");
+         StringAssert.DoesNotContain(ExecutableMarker, delivered,
+            "The executable was delivered as sent.");
+         StringAssert.Contains(SignaturePartMarker, delivered,
+            "The message's real detached signature was replaced.");
+         StringAssert.DoesNotContain("smime.p7s.txt", delivered,
+            "The message's real detached signature was renamed.");
+      }
+
+      [Test]
       [Description("The negative control: an ordinary message carrying the same file name is still blocked, and the rewrite is now in the log.")]
       public void AnOrdinaryMessageWithTheSameFileNameIsStillBlocked()
       {
@@ -356,6 +478,68 @@ namespace RegressionTests.AntiVirus
 
          BounceTestSupport.AssertLogContains("matched the blocked-attachment list",
             "Rewriting somebody's mail has to leave a record naming the message and the file.");
+      }
+
+      [Test]
+      [Description("A multipart/encrypted label over ordinary parts does not switch off the blocked-attachment list: invoice.exe inside it is blocked.")]
+      public void AnEncryptedLabelAroundAnExecutableIsStillBlocked()
+      {
+         // Against the code before the fix this fails: the label alone made the
+         // message "opaque", BlockAttachments returned before its loop, and
+         // invoice.exe was delivered as sent.
+         BlockWildcard("*.exe");
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            FakeEncryptedMessage(_account.Address));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.Contains("was blocked for delivery", delivered,
+            "A multipart/encrypted header switched the blocked-attachment list off for the file inside it.");
+         StringAssert.Contains("invoice.exe.txt", delivered,
+            "The blocked attachment was not renamed.");
+         StringAssert.DoesNotContain(ExecutableMarker, delivered,
+            "The executable was delivered as sent.");
+
+         BounceTestSupport.AssertLogContains("is labelled encrypted",
+            "A message whose label and body disagree has to say which one was believed.");
+      }
+
+      [Test]
+      [Description("A real PGP/MIME ciphertext part called invoice.exe is checked against the list by its name.")]
+      public void ACiphertextPartNamedLikeAnExecutableIsBlocked()
+      {
+         BlockWildcard("*.exe");
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            PgpMimeMessageWithCiphertextNamed(_account.Address, "invoice.exe"));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.Contains("invoice.exe.txt", delivered,
+            "A part a client offers as invoice.exe walked past the blocked-attachment list because the message said it was encrypted.");
+      }
+
+      [Test]
+      [Description("A multipart/encrypted label over ordinary parts does not stop the stripper removing what the scanner found.")]
+      public void AnEncryptedLabelDoesNotStopTheStripper()
+      {
+         // Against the code before the fix this fails: the stripper declined on
+         // the label, and the message was delivered whole, the infected file in it.
+         EnableScanner(AlwaysInfectedScanner, InfectedReturnValue, eAntivirusAction.hDeleteAttachments);
+
+         SmtpClientSimulator.StaticSendRaw("correspondent@example.com", _account.Address,
+            FakeEncryptedMessage(_account.Address));
+
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(_account.Address, Password);
+
+         StringAssert.DoesNotContain(ExecutableMarker, delivered,
+            "The attachment the scanner objected to was delivered, because the message was labelled encrypted.");
+         StringAssert.Contains(PlainTextMarker, delivered,
+            "The stripper did not keep the text part.");
+
+         StringAssert.DoesNotContain("attachments have NOT been stripped", LogHandler.ReadCurrentDefaultLog(),
+            "The stripper declined a message that is not encrypted.");
       }
 
       [Test]

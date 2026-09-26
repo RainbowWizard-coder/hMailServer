@@ -267,7 +267,17 @@ An account that holds a role signs in to the Control Deck with its own address a
 password (and second factor, where it has one). A request authenticated with one of the
 account's **app passwords** never carries its role: an app password is a credential for
 a mail program. A **support session** an administrator opens into a mailbox is the
-portal as that person and does not carry their role either.
+portal as that person and does not carry their role either. Nor does it reach what makes
+up the person's cryptographic identity: it reads the OpenPGP ring, the key published for
+the address, the S/MIME store and the zero-access state without the wrapped private
+keys, and every write to them - a key stored, published or removed, a correspondent's
+key marked verified or its change accepted, zero access switched on or off or its key
+re-wrapped - is refused with 403 and `code` `support_session`, as the S/MIME
+authority's enrolment already was ([SmimeAuthority.md](SmimeAuthority.md)). Nor can it
+touch the person's record of support access: the `support_allowed` and `support_last`
+preferences - the consent, and the note of who last opened a session and when, which the
+webmail shows until the person dismisses it - are refused to a support session, and
+`support_allowed` cannot be given with an app password either.
 
 An account holding a role is still a mailbox holder: its own mail, vacation message and
 settings under `/api/v1/me` are its own to change, whatever the role.

@@ -37,6 +37,19 @@ namespace RegressionTests.Shared
       public static (int status, string body) Send(string host, int port, string method, string path,
                                                    string authorization, string requestBody, string extraHeader)
       {
+         (int status, string headers, string body) answer = Exchange(host, port, method, path, authorization, requestBody, extraHeader);
+         return (answer.status, answer.body);
+      }
+
+      /// <summary>
+      ///    The same request, answered with the response's header block as well
+      ///    as its status and body - for a Set-Cookie, such as the session cookie
+      ///    POST /api/v1/accounts/{address}/support-session hands back. extraHeader
+      ///    may hold more than one line, separated by CRLF.
+      /// </summary>
+      public static (int status, string headers, string body) Exchange(string host, int port, string method, string path,
+                                                                       string authorization, string requestBody, string extraHeader)
+      {
          using (var client = new TcpClient())
          {
             Exception last = null;
@@ -102,8 +115,9 @@ namespace RegressionTests.Shared
 
                int separator = raw.IndexOf("\r\n\r\n", StringComparison.Ordinal);
                string body = separator >= 0 ? raw.Substring(separator + 4) : "";
+               string head = separator >= 0 ? raw.Substring(0, separator) : raw;
 
-               return (statusCode, body);
+               return (statusCode, head, body);
             }
          }
       }

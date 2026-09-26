@@ -75,10 +75,16 @@ namespace HM
       // like any other, and the log says that doing so has invalidated the
       // signature, which is the honest outcome when the scanner's verdict and a
       // sender's signature disagree.
+      //
+      // And "encrypted" is decided from the body, not the label: a
+      // multipart/encrypted header over ordinary parts is one line any sender
+      // can write, and declining on it would deliver the virus the scanner has
+      // just found whole. SealedMessage::IsOpaque says encrypted only for the
+      // exact shape of a real encrypted message, which has no part to strip.
       const char *topLevelContentType = oMimeMessage.GetContentType();
       const String contentType = topLevelContentType != nullptr ? String(topLevelContentType) : String();
 
-      if (SealedMessage::IsOpaqueContentType(contentType))
+      if (SealedMessage::IsOpaque(oMimeMessage))
       {
          LOG_APPLICATION(Formatter::Format("Message {0} is encrypted ({1}), so its attachments have NOT been stripped: keeping one part of an encrypted message destroys it and leaves the recipient a fragment of ciphertext. The message has been left exactly as it was. Set the anti-virus action to delete the message if such a message must not be delivered.",
             pMessage->GetID(), contentType));
@@ -120,7 +126,12 @@ namespace HM
       // whole. So it is stripped to nothing: the header, the notice, and no body.
       WriteToDisk_(pMessage, oMimeMessage, pBody);
 
-      if (SealedMessage::IsSealedContentType(contentType))
+      if (SealedMessage::IsOpaqueContentType(contentType))
+      {
+         LOG_APPLICATION(Formatter::Format("Message {0} is labelled encrypted ({1}) but its body is not an encrypted message, so its attachments have been stripped as for any other message.",
+            pMessage->GetID(), contentType));
+      }
+      else if (SealedMessage::IsSealedContentType(contentType))
       {
          LOG_APPLICATION(Formatter::Format("Message {0} is signed ({1}) and its attachments have been stripped, which invalidates the signature: the recipient's client will report the message as tampered with. The signed text has been kept; the parts the anti-virus action removes have been removed as for any other message.",
             pMessage->GetID(), contentType));

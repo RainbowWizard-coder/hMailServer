@@ -173,8 +173,24 @@ namespace HM
       // Whether a message on disk is already encrypted end to end, judged from
       // its body as the header comment says: CMS enveloped-data or
       // authenticated-enveloped-data at the top level, or PGP/MIME whose
-      // encrypted part begins with a session key packet.
+      // encrypted part begins with a session key packet - AND, parsed, the
+      // shape of a message wholly under a key (SealedMessage::IsOpaque):
+      // exactly the version part and the ciphertext, or one S/MIME part named
+      // smime.p7m or nothing. Real ciphertext with a readable part beside it is
+      // not: that part would go to the partner, or into a zero-access mailbox,
+      // in the clear. Asked by the gateway before it adds a layer and by
+      // ZeroAccess::SealFile before it seals.
       static bool IsEncryptedEndToEnd(const AnsiString &message);
+
+      // The two tests IsEncryptedEndToEnd makes, on octets already decoded, for
+      // SealedMessage to make of one MIME part: whether OpenPGP packets are one
+      // or more session key packets and then encrypted data, and whether DER
+      // begins a CMS ContentInfo of enveloped-data or authenticated-enveloped-
+      // data. IsSignedCms is the third CMS shape a sealed message takes, opaque
+      // signed-data, which is not under a key.
+      static bool IsEncryptedOpenPgpPackets(const std::vector<unsigned char> &packets);
+      static bool IsEnvelopedCms(const std::vector<unsigned char> &der);
+      static bool IsSignedCms(const std::vector<unsigned char> &der);
 
       enum Outcome
       {

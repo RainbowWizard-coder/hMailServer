@@ -994,6 +994,11 @@ namespace HM
             // has always evaluated honestly; declining there would switch off
             // every body rule an organisation has on its own signed mail, which
             // is the opposite of what this fix is for.
+            //
+            // And IsOpaque reads the body, not the label: a multipart/encrypted
+            // header over ordinary text parts is one line anybody can write,
+            // and declining on it would let a message carry past every body
+            // and content rule exactly the text those rules exist to find.
             if (SealedMessage::IsOpaque(pMsgData))
             {
                sealedBodyDeclined = true;

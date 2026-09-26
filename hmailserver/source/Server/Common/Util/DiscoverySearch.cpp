@@ -1034,6 +1034,25 @@ namespace HM
             return true;
          }
 
+         // Whether a message labelled encrypted really is: its body read as the
+         // search would read it, and asked of SealedMessage. One too large to
+         // read is taken at its label, since its body would not be searched
+         // either way and it is listed as not searched for it.
+         bool HoldsCiphertext_(const Candidate &candidate)
+         {
+            unsigned __int64 fileSize = 0;
+            MessageStore::FileSize64(candidate.file, fileSize);
+            if (fileSize > (unsigned __int64) DiscoverySearch::MaxMessageBytes)
+               return true;
+
+            std::shared_ptr<MessageData> data = std::make_shared<MessageData>();
+            std::shared_ptr<Message> shell(new Message(false));
+            if (!data->LoadFromMessage(candidate.file, shell))
+               return true;
+
+            return SealedMessage::IsOpaque(data);
+         }
+
          void Consider_(const Candidate &candidate, const IndexPrune *prune)
          {
             // A search may read for hours; a service stop or a reinitialise
@@ -1090,9 +1109,16 @@ namespace HM
             // zero-access mailbox's miss is a miss, as decided, such a message
             // whose headers lack a word is listed as not searched, since its
             // body might hold it - never dropped as a non-match.
+            //
+            // The label only says where to look. "multipart/encrypted" over
+            // ordinary text is one header any sender can write, and taking it
+            // at its word would keep a readable message out of every hit list
+            // as "not searched"; so a labelled message is read, and is treated
+            // as encrypted only when SealedMessage finds ciphertext in it.
             const char *contentType = mime.GetContentType();
             const bool encrypted = !candidate.headers_only && contentType != nullptr &&
-                                   SealedMessage::IsOpaqueContentType(String(contentType));
+                                   SealedMessage::IsOpaqueContentType(String(contentType)) &&
+                                   HoldsCiphertext_(candidate);
 
             if (candidate.headers_only || encrypted)
             {

@@ -157,8 +157,11 @@ now. What the search could not read is paged on its own: `unsearched_list`, from
   it was received, is plain.
 * **Messages encrypted end to end: headers alone.** An S/MIME or PGP/MIME
   message - one whose top-level type is `multipart/encrypted`,
-  `application/pkcs7-mime` or `application/pgp-encrypted` - has no body this
-  server can read, in any mailbox, the deleted items or the archive. It is matched
+  `application/pkcs7-mime` or `application/pgp-encrypted` and whose body really
+  is ciphertext ([SealedMail.md](SealedMail.md): the label alone is not enough,
+  so a readable message under one of those labels is searched like any other) -
+  has no body this server can read, in any mailbox, the deleted items or the
+  archive. It is matched
   on its headers and marked `headers_only`; one whose headers lack a word, or
   asked about by an attachment criterion, is listed as not searched with that
   reason, since its body might hold what was asked. It is not withheld from an

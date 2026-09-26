@@ -91,10 +91,13 @@ namespace HM
       // with: three passes over 64 MiB in four lanes. The page may lower the
       // memory where a device cannot afford it (docs/ZeroAccess.md says what
       // was measured); these bound what a row may carry, so a row cannot
-      // name parameters that make the derivation trivial.
-      static const int MinimumPasses = 1;
+      // name parameters that make the derivation trivial. The floor is OWASP's
+      // for Argon2id, two passes over 19 MiB: a row is an offline test of a
+      // guess at the account password, and the cost of each guess is what the
+      // row names.
+      static const int MinimumPasses = 2;
       static const int MaximumPasses = 10;
-      static const int MinimumMemoryKiB = 8 * 1024;
+      static const int MinimumMemoryKiB = 19 * 1024;
       static const int MaximumMemoryKiB = 1024 * 1024;
       static const int MinimumLanes = 1;
       static const int MaximumLanes = 16;

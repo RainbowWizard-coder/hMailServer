@@ -500,7 +500,7 @@ namespace HM
    }
 
    AnsiString
-   OpenPgpRing::RowJson(const Row &row)
+   OpenPgpRing::RowJson(const Row &row, bool secretKeyIncluded)
    {
       AnsiString json;
       json.Format("{\"id\":%I64d,\"address\":\"%hs\",\"name\":\"%hs\",\"fingerprint\":\"%hs\",\"key_id\":\"%hs\","
@@ -539,8 +539,10 @@ namespace HM
       // It is encrypted under a passphrase this server has never had, so what
       // travels here is what the database holds: opaque to both ends of the
       // wire, and readable only in the browser that knows the passphrase.
-      if (row.kind == KindOwn)
+      if (row.kind == KindOwn && secretKeyIncluded)
          json += ",\"secret_key\":\"" + Escape(row.secret_key) + "\"";
+      else if (row.kind == KindOwn)
+         json += ",\"secret_key_withheld\":true";
 
       json += "}";
       return json;

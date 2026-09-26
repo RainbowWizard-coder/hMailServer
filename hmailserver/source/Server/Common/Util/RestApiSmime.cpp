@@ -272,7 +272,11 @@ namespace HM
       // the certificate alone. A row the domain's authority issued carries
       // authority_status - valid, revoked, expired or unknown - as the
       // authority's record says now.
-      AnsiString RowJson(const KeyRow &row, const AnsiString &authorityStatus)
+      // keyIncluded false leaves an own entry's wrapped key out, as
+      // key_withheld: it is sealed under a key derived from the account
+      // password, so it is an offline test of a guess at the password, and
+      // it goes only where WithholdsWrappedKeys_ says it may.
+      AnsiString RowJson(const KeyRow &row, const AnsiString &authorityStatus, bool keyIncluded = true)
       {
          AnsiString json;
          json.Format("{\"id\":%I64d,\"address\":\"%hs\",\"name\":\"%hs\",\"fingerprint\":\"%hs\",\"certificate\":\"%hs\",\"not_after\":%I64d,\"created\":%I64d,\"authority\":%hs",
@@ -300,7 +304,10 @@ namespace HM
                first = false;
                json += "\"" + parts[i] + "\"";
             }
-            json += "],\"key\":" + (row.key.IsEmpty() ? AnsiString("null") : row.key);
+            if (keyIncluded)
+               json += "],\"key\":" + (row.key.IsEmpty() ? AnsiString("null") : row.key);
+            else
+               json += "],\"key\":null,\"key_withheld\":true";
          }
          json += "}";
          return json;
@@ -702,6 +709,8 @@ namespace HM
       std::map<AnsiString, AnsiString> statuses;
       OrganisationCa::StoredStatuses(account->GetID(), account->GetDomainID(), statuses);
 
+      const bool keysIncluded = !WithholdsWrappedKeys_(caller);
+
       AnsiString json = "{\"own\":[";
       std::vector<KeyRow> own;
       ListRows(account->GetID(), OwnKind, own);
@@ -709,7 +718,7 @@ namespace HM
       {
          if (i > 0)
             json += ",";
-         json += RowJson(own[i], statuses[own[i].fingerprint]);
+         json += RowJson(own[i], statuses[own[i].fingerprint], keysIncluded);
       }
       json += "],\"recipients\":[";
       std::vector<KeyRow> recipients;
@@ -723,7 +732,10 @@ namespace HM
       json += "],\"limits\":{\"own\":" + Int64Text(OwnPerAccount) + ",\"recipients\":" + Int64Text(RecipientsPerAccount) + "}";
       // The domain's S/MIME authority as the account meets it: whether there is
       // one, its root, and the certificates it issued to this account.
-      json += ",\"authority\":" + MeSmimeAuthorityJson_(account) + "}";
+      json += ",\"authority\":" + MeSmimeAuthorityJson_(account);
+      if (!keysIncluded)
+         json += ",\"keys_withheld\":true,\"note\":\"" + AnsiString(WrappedKeysWithheld_()) + "\"";
+      json += "}";
       return BuildResponse_(200, json);
    }
 
@@ -733,6 +745,17 @@ namespace HM
       std::shared_ptr<const Account> account = caller.account;
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // An own certificate and its private key are the account's identity for
+      // signing and the only thing that opens mail encrypted to it. An app
+      // password is a mail program's credential, and a support session is an
+      // administrator's: neither replaces them nor removes them, as neither may
+      // do either to an OpenPGP key of the account's own
+      // (RestApiOpenPgpKeys.cpp) or to a certificate the domain's authority
+      // issues (RestApiSmimeAuthority.cpp).
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "storing an S/MIME certificate of your own", refusal))
+         return refusal;
 
       JsonValue document;
       std::string parseError;
@@ -775,6 +798,12 @@ namespace HM
    {
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+      // Removing one throws away the only copy of its private key this server
+      // has: not for an app password nor a support session (see
+      // HandleMeSmimeOwnPut_).
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "removing an S/MIME certificate of your own", refusal))
+         return refusal;
       Answer answer = Remove(caller.account, OwnKind, fingerprint);
       return BuildResponse_(answer.status, answer.body);
    }
@@ -785,6 +814,15 @@ namespace HM
       std::shared_ptr<const Account> account = caller.account;
       if (!account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // A correspondent's certificate is what the page encrypts a reply to
+      // that address with: one planted here is mail sealed to whoever holds
+      // its key. The account holder's alone to store, as a correspondent's
+      // OpenPGP key is (RestApiOpenPgpKeys.cpp) - not an app password's and
+      // not an administrator's support session's.
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "storing a correspondent's S/MIME certificate", refusal))
+         return refusal;
 
       JsonValue document;
       std::string parseError;
@@ -806,6 +844,10 @@ namespace HM
    {
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+      // Not an app password's nor a support session's (see the PUT above).
+      HttpResponse refusal;
+      if (RefuseUnlessAccountHolder_(caller, "forgetting a correspondent's S/MIME certificate", refusal))
+         return refusal;
       Answer answer = Remove(caller.account, RecipientKind, fingerprint);
       return BuildResponse_(answer.status, answer.body);
    }

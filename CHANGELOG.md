@@ -285,7 +285,16 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   ([CountryBlocking.md](hmailserver/docs/CountryBlocking.md)).
 - **Sealed mail** handled honestly: a message the server cannot read is no longer gutted by the
   blocked-attachment list or given a clean verdict by a scanner that saw only ciphertext
-  ([SealedMail.md](hmailserver/docs/SealedMail.md)).
+  ([SealedMail.md](hmailserver/docs/SealedMail.md)). "Cannot read" is judged from the body, never from the
+  `Content-Type` label: only a message that really is S/MIME enveloped or signed-data, or PGP/MIME of exactly a
+  version part and armoured ciphertext under a session key, named as clients name them, is spared the
+  blocked-attachment list, the anti-virus strip action, eDiscovery's body search and the rules' body, `content`
+  and `sensitive_content` conditions. Fixed before release: as first written, a `multipart/encrypted` header any
+  sender could add switched all of those off for the ordinary parts under it, `invoice.exe` included. The
+  detached signature of a signed message is likewise left alone only when it is one - the second of the two
+  parts of a `multipart/signed`, called and made as a signature is; as first written, any part anywhere that
+  typed itself `application/pkcs7-signature` or `application/pgp-signature` was spared the list, whatever it
+  was called.
 
 ### IMAP, POP3 and the webmail
 
@@ -375,6 +384,37 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   were not open through a password, a UID or an error text, and the Linux builds had no script engine. The code was
   there in every release from 6.0.0 to 6.3.3. Every JScript value is now escaped in one helper, and a rule's
   function name must be a plain identifier ([EventScripts.md](hmailserver/docs/EventScripts.md)).
+- **Fixed: an app password was given the account's private keys, sealed under the account password.**
+  `GET /api/v1/me/smime` answered a request made with an app password every own S/MIME key as the webmail
+  wrapped it, under a PBKDF2 key from the account password, as 6.3.3 already did; and, new in this release,
+  `GET /api/v1/me/zero-access` the zero-access mailbox key's two sealed copies with their Argon2id salt and
+  parameters, and `GET /api/v1/me/openpgp/keys` every own OpenPGP secret key. Whoever held a leaked app password -
+  a credential for a mail program, which cannot change any of these - could take the copies away and guess the
+  account password offline, and a right guess opened the mailbox key and the account. The three reads now leave
+  the keys out, with `keys_withheld`, for an app password and for an administrator's support session, so a webmail
+  session started with either cannot open them and says so. A zero-access row's Argon2id parameters
+  are held to at least two passes over 19 MiB, where 8 MiB and one pass were taken
+  ([ZeroAccess.md](hmailserver/docs/ZeroAccess.md)).
+- **Fixed: an app password could replace or remove the account's own S/MIME certificate and private key**
+  (`PUT /api/v1/me/smime/own`, `DELETE /api/v1/me/smime/own/{fingerprint}`), whose wrapped key the store holds the
+  only server copy of, as 6.3.3 already allowed; both are now refused to it with 403, as the same writes to an
+  OpenPGP key of the account's own always were.
+- **Fixed: an administrator's support session could change the account's keys.** A support session acts as the
+  person in the webmail so an administrator can help them, but it could store or remove the account's own S/MIME
+  certificate and key and a correspondent's certificate, as 6.3.3 already allowed, and - new in this release -
+  store or remove an OpenPGP key of the account's own or a correspondent's, mark a correspondent's key verified or
+  accept its change, upload, remove or publish the key the Web Key Directory serves for the address, and switch
+  zero access on or off or re-wrap its key: planting what the person's mail is then sealed to, or storing the next
+  delivery to a zero-access mailbox in the clear for the administrator it exists to keep out. Every one of those
+  writes is now refused to a support session with 403 and `code` `support_session`, as the S/MIME authority's
+  enrolment already was; the session still reads them, without the wrapped keys. A correspondent's S/MIME
+  certificate, and the published OpenPGP key and its switch (`PUT`/`DELETE /api/v1/me/openpgp`,
+  `PUT /api/v1/me/openpgp/publish`), are now refused to an app password too, as a correspondent's OpenPGP key
+  always was - a leaked app password could otherwise have published its own key for the address. A support
+  session can no longer remove or rewrite the webmail's note that an administrator opened the mailbox
+  (`support_last`) or the consent (`support_allowed`) in `PUT /api/v1/me/preferences`, and an app password can
+  no longer give that consent ([Roles.md](hmailserver/docs/Roles.md), [OpenPGP.md](hmailserver/docs/OpenPGP.md),
+  [ZeroAccess.md](hmailserver/docs/ZeroAccess.md)).
 - **A new installation is secure before anyone configures it.** A database this installation created - never an
   upgraded or attached one - is given a self-signed certificate for the machine (RSA 2048, 825 days), STARTTLS
   offered on 25, 587, 110 and 143, and TLS required for authentication on the Internet IP range, so that a password
@@ -410,7 +450,13 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   ([OpenPGP.md](hmailserver/docs/OpenPGP.md)).
 - **Zero-access mailboxes** (schema 6083): opt-in per account, delivered mail is encrypted to the account's own
   key once the filters have run, and the administrator cannot read, search or recover it
-  ([ZeroAccess.md](hmailserver/docs/ZeroAccess.md)).
+  ([ZeroAccess.md](hmailserver/docs/ZeroAccess.md)). A message that arrives already encrypted is stored as
+  it arrived; whether it is, is read from its body and not its `Content-Type` - fixed before release, when a
+  `multipart/encrypted` label over plain text, or an S/MIME v2 opaque-signed message with no `smime-type`,
+  was stored in the clear; and the whole message has to be under the key, not merely hold some ciphertext -
+  fixed before release, when real PGP/MIME ciphertext with a readable part beside it was stored as it arrived,
+  that part in the clear. Gateway encryption to partner domains makes the same decision the same way, and
+  encrypts such a message rather than sending the readable part as it was.
 - **Gateway encryption to partner domains** (schema 6094): a remote-domain policy encrypts mail to a partner's
   OpenPGP key or S/MIME certificate at this server, and says whether to refuse or send unencrypted when it
   cannot.

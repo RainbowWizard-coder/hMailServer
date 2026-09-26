@@ -23,7 +23,7 @@ Each condition is answered as a list with `;` between the entries, in the shape 
 
 **Marked internal.** There is no new condition for it, because the existing header condition is the right one: `header` `Sensitivity` `contains` `Company-Confidential` (RFC 2156's value; Outlook writes it when a message is marked confidential), combined with `external_recipient` `contains` `@`. A rule-set marker works the same way: an earlier rule sets a header, a later rule tests it.
 
-**A sealed message** - S/MIME or PGP/MIME encrypted end to end - has no text this server can read, so `sensitive_content` and `content` decline for it exactly as the body condition does ([SealedMail.md](SealedMail.md)): the condition does not match, whichever way it is phrased, and the application log says why once per rule. `attachment_type` and `external_recipient` still answer, since the envelope and the first bytes are not sealed.
+**A sealed message** - S/MIME or PGP/MIME encrypted end to end, decided from its body and not from its `Content-Type` label, so a `multipart/encrypted` header over ordinary text parts hides nothing - has no text this server can read, so `sensitive_content` and `content` decline for it exactly as the body condition does ([SealedMail.md](SealedMail.md)): the condition does not match, whichever way it is phrased, and the application log says why once per rule. `attachment_type` and `external_recipient` still answer, since the envelope and the first bytes are not sealed.
 
 ## What a rule can do
 

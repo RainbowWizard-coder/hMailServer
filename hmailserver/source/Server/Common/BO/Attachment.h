@@ -22,7 +22,13 @@ namespace HM
       void SaveAs(const String &sSaveTo) const;
       bool GetContent(AnsiString &decoded) const;
       AnsiString GetContentType() const;
-      
+
+      // The part itself, so that a caller can tell WHICH part of the message
+      // this is - VirusScanner compares it with the one detached signature
+      // SealedMessage finds - rather than what it says it is.
+      std::shared_ptr<MimeBody> GetMimeBody() const { return attachment_; }
+
+
    private:
       
       std::shared_ptr<MimeBody> attachment_;
