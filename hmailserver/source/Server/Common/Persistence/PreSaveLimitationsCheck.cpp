@@ -9,6 +9,7 @@
 #include "../BO/Domain.h"
 #include "../BO/DomainAlias.h"
 #include "../BO/DomainAliases.h"
+#include "../BO/Domains.h"
 #include "../BO/Accounts.h"
 #include "../BO/Aliases.h"
 #include "../BO/DistributionLists.h"
@@ -577,6 +578,21 @@ namespace HM
          return false;
       }
 
+      // A name no domain has yet - a new domain, or a rename to it - is refused
+      // when it is a directory the server keeps its own files in under the data
+      // directory. A domain that already has such a name (made before this
+      // check, or restored) is still saved under it, so that it can be managed
+      // and renamed away; it is reported at start and on the checklist instead.
+      // pDomain, when set here, is this domain itself: another domain of the
+      // name was refused above.
+      String collidesWith;
+      if (!pDomain && IsReservedDomainName(sName, collidesWith))
+      {
+         resultDescription = Formatter::Format("The name {0} is reserved for the server's own directory {1}: a domain's mail is kept in the directory named after the domain, in the same place, so the two would share it. Choose another name.",
+            sName, collidesWith);
+         return false;
+      }
+
       // Check if there's a domain alias with this name. If so, this domain would be a duplciate.
       std::shared_ptr<DomainAliases> pDomainAliases = ObjectCache::Instance()->GetDomainAliases();
       std::shared_ptr<DomainAlias> pDomainAlias = pDomainAliases->GetItemByName(domain->GetName());
@@ -787,4 +803,123 @@ namespace HM
       return true;
    }
 
+   namespace
+   {
+      // The directories the server keeps directly under the data directory, by
+      // the name each store's Root() gives it: the ACME client's account and
+      // certificates (AcmeClient.cpp), the parts held once (MessageStoreBlobs),
+      // the certificate a new installation made (NewInstallDefaults), the
+      // messages that expire (ConfidentialMessages), the DKIM rotation's keys,
+      // the eDiscovery cases (DiscoveryStore), the shared files (RestApiFiles),
+      // the list archives (ListArchive), the ciphertext of password-protected
+      // messages (ProtectedMessages), the quarantine (QuarantineStore), the
+      // deleted messages kept for recovery (RecoverableStore), the Sieve
+      // scripts (SieveStorage) and the downloaded updates (UpdateDownloader).
+      // Then the three directories the Linux packages' hMailServer.ini puts
+      // there, TempFolder, EventFolder and DatabaseFolder, reserved on every
+      // platform so that a server moved from one to the other keeps its names.
+      // The rest of what the server keeps there - _ObjectStore, #Public and the
+      // dot files - is no domain name to begin with.
+      const TCHAR *const ReservedStoreDirectories[] =
+      {
+         _T("ACME"), _T("Blobs"), _T("Certificates"), _T("Confidential"), _T("DKIM"), _T("Discovery"), _T("Files"),
+         _T("Lists"), _T("Protected"), _T("Quarantine"), _T("Recoverable"), _T("Sieve"), _T("Updates"),
+         _T("temp"), _T("events"), _T("database")
+      };
+
+      // A directory as the comparison below wants it: one separator, and none
+      // at the end.
+      String NormalisedDirectory_(const String &directory)
+      {
+         String normalised = directory;
+         normalised.Trim();
+#ifndef HM_PLATFORM_POSIX
+         normalised.Replace(_T("/"), _T("\\"));
+#endif
+         while (normalised.GetLength() > 1 && (normalised.EndsWith(_T("\\")) || normalised.EndsWith(_T("/"))))
+            normalised = normalised.Left(normalised.GetLength() - 1);
+         return normalised;
+      }
+   }
+
+   bool
+   PreSaveLimitationsCheck::IsReservedDomainName(const String &domainName, String &collidesWith)
+   {
+      collidesWith.Empty();
+
+      String name = domainName;
+      name.Trim();
+
+      // Only a single label can be a directory's name here: every store's name
+      // is one, and a name with a dot, or an address literal, is none of them.
+      if (name.IsEmpty() || name.Find(_T(".")) >= 0 || name.StartsWith(_T("[")))
+         return false;
+
+      const String data = NormalisedDirectory_(IniFileSettings::Instance()->GetDataDirectory());
+
+      for (const TCHAR *store : ReservedStoreDirectories)
+      {
+         if (name.CompareNoCase(store) == 0)
+         {
+            collidesWith = data.IsEmpty() ? String(store) : FileUtilities::Combine(data, store);
+            return true;
+         }
+      }
+
+      // A directory hMailServer.ini names directly under the data directory,
+      // whatever it is called: an installation that put its temp or log
+      // directory there has a directory of that name beside the domains.
+      if (data.IsEmpty())
+         return false;
+
+      IniFileSettings *ini = IniFileSettings::Instance();
+      const String configured[] =
+      {
+         ini->GetTempDirectory(), ini->GetEventDirectory(), ini->GetDatabaseDirectory(), ini->GetLogDirectory()
+      };
+
+      for (const String &entry : configured)
+      {
+         const String directory = NormalisedDirectory_(entry);
+         const int backslash = directory.ReverseFind(_T('\\'));
+         const int slash = directory.ReverseFind(_T('/'));
+         const int separator = backslash > slash ? backslash : slash;
+         if (separator <= 0)
+            continue;
+
+         const String parent = NormalisedDirectory_(directory.Left(separator));
+         const String leaf = directory.Mid(separator + 1);
+         if (parent.CompareNoCase(data) == 0 && leaf.CompareNoCase(name) == 0)
+         {
+            collidesWith = directory;
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   void
+   PreSaveLimitationsCheck::ReportReservedDomainNames()
+   {
+      Domains domains;
+      domains.Refresh();
+
+      // owned by this call: domains is a local collection loaded above
+      for (std::shared_ptr<Domain> domain : domains.GetVector())
+      {
+         if (!domain)
+            continue;
+
+         String collidesWith;
+         if (!IsReservedDomainName(domain->GetName(), collidesWith))
+            continue;
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7597, "PreSaveLimitationsCheck::ReportReservedDomainNames",
+            Formatter::Format(_T("The domain {0} has the name the server reserves for its own directory {1}, and a domain's mail is kept in the directory named after the domain: the two share it. ")
+                              _T("A backup leaves out the mail of a domain named as a store it does not carry and a restore does not put it back, and a store's clean-up can remove a mailbox directory it takes for one of its own. ")
+                              _T("Rename the domain: the rename moves its mailboxes and leaves the store's files where they are. A new domain can no longer be given such a name (docs/SetupChecklist.md)."),
+                              domain->GetName(), collidesWith));
+      }
+   }
 }

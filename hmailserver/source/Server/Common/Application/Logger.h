@@ -132,8 +132,9 @@ namespace HM
       void LogBackup(const String &sData);
 
       // Rewrites every hmailserver_*.log and ERROR_hmailserver_*.log in the log
-      // directory so that no line carries the needle: each occurrence becomes
-      // [erased], case-insensitively. The open log files are closed first and
+      // directory so that no line carries the address: each occurrence of it as a whole address becomes
+      // [erased], case-insensitively (StringParser::FindWholeAddress), each file
+      // replaced by a rename. The open log files are closed first and
       // reopened by the next line written. False when a file could not be
       // rewritten; the count is occurrences replaced.
       bool EraseFromLogs(const String &needle, int &occurrencesChanged);

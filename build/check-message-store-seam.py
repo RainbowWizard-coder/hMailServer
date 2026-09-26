@@ -334,7 +334,7 @@ REQUIRED = [
    ("Common/Persistence/MessageStoreMaintenance.cpp", "if (!ListKeptFiles(kept))",
     "an exact recount made while the object store does not answer counts too few and lowers the counts of blobs "
     "still in use, which a later release then deletes"),
-   ("Common/Persistence/PersistentDomain.cpp", "MessageStoreObjects::SweepLateArrivals(oldDirectory, newDirectory, lateMoved, lateProblem)",
+   ("Common/Persistence/PersistentDomain.cpp", "MessageStoreObjects::SweepLateArrivals(directories.first, directories.second, lateMoved, lateProblem)",
     "mail delivered under a domain's old name while it was renamed is left under the old keys, unreadable"),
    ("IMAP/IMAPFetch.cpp", "if (willReadMessageFile && MessageStore::Unavailable())",
     "a FETCH whose message the object store stopped giving after the existence check answers OK with an empty "

@@ -38,7 +38,28 @@ namespace HM
       static bool CheckLimitations(PersistenceMode mode, std::shared_ptr<RemoteDomainPolicy> policy, String &resultDescription);
     
       static bool IsValidAccountAddress_(const String &sEmailAddress);
-      
+
+      // A domain's mail is kept in the directory named after it directly under
+      // the data directory, beside the directories the server keeps its own
+      // stores in there: Protected, Confidential, Recoverable, Discovery,
+      // Quarantine, Files, Lists, Blobs and the rest (the list is in the .cpp),
+      // and the temp, events and database directories the Linux packages'
+      // hMailServer.ini puts there. A domain whose name is one of them - a single
+      // label, compared without regard to case - shares that directory with the
+      // store: a backup leaves the mail of a domain named as a store it does not
+      // carry out and a restore does not put it back, a store's clean-up removes
+      // a mailbox directory it takes for one of its own, and renaming the domain
+      // moved the whole store with it. True for such a name, with the directory
+      // it collides with in collidesWith; a directory hMailServer.ini names
+      // directly under the data directory counts as well.
+      static bool IsReservedDomainName(const String &domainName, String &collidesWith);
+
+      // Each domain whose name IsReservedDomainName answers true for - one made
+      // before 6.3.4 refused such names, or put back by a restore - reported in
+      // the error log, once each time the servers start. The first-hour
+      // checklist says the same (SetupChecklist.cpp, domain_name_reserved).
+      static void ReportReservedDomainNames();
+
    private:
 
       enum ObjectType

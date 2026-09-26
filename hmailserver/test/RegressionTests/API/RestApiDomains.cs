@@ -247,6 +247,44 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A domain named as a directory the server keeps its own files in under the data directory - Protected, Confidential, Recoverable, Quarantine and the rest - is refused with 400 and the limitation check's sentence, created or renamed to; the old check took each for a valid single-label name and answered 201.")]
+      public void TheNameOfAStoreDirectoryIsRefused()
+      {
+         int before = _application.Domains.Count;
+
+         try
+         {
+            foreach (string reserved in new[] { "protected", "Confidential", "recoverable", "QUARANTINE" })
+            {
+               (int status, string body) = Http("POST", "/api/v1/domains", "{\"name\":\"" + reserved + "\"}");
+               Assert.AreEqual(400, status, reserved + ": " + body);
+               StringAssert.Contains("is reserved", body);
+            }
+
+            Assert.AreEqual(before, _application.Domains.Count, "No refused POST may have created a domain.");
+
+            string name = UniqueDomainName();
+            Assert.AreEqual(201, Http("POST", "/api/v1/domains", "{\"name\":\"" + name + "\"}").status);
+
+            (int renameStatus, string renameBody) = Http("PUT", "/api/v1/domains/" + name, "{\"active\":true,\"name\":\"discovery\"}");
+            Assert.AreEqual(400, renameStatus, renameBody);
+            StringAssert.Contains("is reserved", renameBody);
+            Assert.IsNotNull(DomainOverCom(name), "The refused rename left the domain under its name.");
+         }
+         finally
+         {
+            // What the old check let through, removed again: the directory is the
+            // store's, which a domain delete leaves while files are in it.
+            foreach (string reserved in new[] { "protected", "Confidential", "recoverable", "QUARANTINE", "discovery" })
+            {
+               Domain made = DomainOverCom(reserved);
+               if (made != null)
+                  made.Delete();
+            }
+         }
+      }
+
+      [Test]
       [Description("A key restricted to named domains cannot create or delete a domain, whatever its scope; a read-only key cannot change one; an unrestricted full key can.")]
       public void ScopedAndReadOnlyKeysAreRefused()
       {

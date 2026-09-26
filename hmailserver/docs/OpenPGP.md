@@ -682,10 +682,12 @@ plaintext; nor is it also signed or encrypted to a key.
 | `POST /api/v1/protected/{token}/reply` | A reply, encrypted under the same password (no credential) |
 | `GET /portal/protected/{token}` | The reading page; `/portal-protected.js` its script |
 
-`hm_protectedmessages` is not in the backup: the ciphertext is behind links
-that name this server and end on a timer, a restore elsewhere could not serve
-them, the sender's copy of the notice is in the Sent folder the backup does
-carry, and what the recipient read is theirs. It is not on the audit trail:
+`hm_protectedmessages` is not in the backup, and **Back up messages** leaves
+`<data directory>\Protected`, where the ciphertext is, out of its copy of the
+data directory: the ciphertext is behind links that name this server and end on
+a timer, a restore elsewhere could not serve them, the sender's copy of the
+notice is in the Sent folder the backup does carry, and what the recipient read
+is theirs. A restore leaves that folder where it is. It is not on the audit trail:
 it is traffic, and ciphertext this server cannot open. An address's erasure
 ([PersonalData.md](PersonalData.md)) ends every message to the address and every
 reply it wrote - the ciphertext deleted, the row gone - unless the sending

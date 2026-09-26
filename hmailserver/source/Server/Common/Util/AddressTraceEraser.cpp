@@ -217,7 +217,7 @@ namespace HM
       // And their OpenPGP keys (kind 2 of hm_pgpring, OpenPgpRing.h), whose user
       // id names the person the same way. Compared lower-cased: a key filed
       // under the address its own user id carries keeps that address's case.
-      count = DeleteAddressRows_("hm_pgpring", "lower(pgraddress)", "", lowered, "pgrkind = 2");
+      count = DeleteAddressRows_("hm_pgpring", "pgraddress", "", lowered, "pgrkind = 2");
       if (count < 0)
          failedStores.push_back(_T("the correspondents' OpenPGP keys"));
       else
@@ -350,17 +350,27 @@ namespace HM
    AddressTraceEraser::DeleteAddressRows_(const AnsiString &table, const AnsiString &firstColumn, const AnsiString &secondColumn, const String &address,
                                           const AnsiString &condition)
    {
-      AnsiString where = "(" + firstColumn + " = @ADDRESS1";
+      // Compared lower-cased on both sides. The columns hold an address as it
+      // was written - an envelope's Ann@Example.com in the message trace, an
+      // alias or a list member as an administrator typed it - and PostgreSQL
+      // compares varchar by its bytes, so "column = @ADDRESS" left every row in
+      // another case behind there while the erasure reported success (SQL
+      // Server's and MySQL's collations hid it). The count and the delete ask
+      // the same question, so the number reported is the rows deleted.
+      String lowered = address;
+      lowered.ToLower();
+
+      AnsiString where = "(lower(" + firstColumn + ") = @ADDRESS1";
       if (!secondColumn.IsEmpty())
-         where += " or " + secondColumn + " = @ADDRESS2";
+         where += " or lower(" + secondColumn + ") = @ADDRESS2";
       where += ")";
       if (!condition.IsEmpty())
          where += " and " + condition;
 
       SQLCommand countCommand("select count(*) as c from " + table + " where " + where);
-      countCommand.AddParameter("@ADDRESS1", address);
+      countCommand.AddParameter("@ADDRESS1", lowered);
       if (!secondColumn.IsEmpty())
-         countCommand.AddParameter("@ADDRESS2", address);
+         countCommand.AddParameter("@ADDRESS2", lowered);
 
       std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(countCommand);
       if (!recordset)
@@ -372,9 +382,9 @@ namespace HM
          return 0;
 
       SQLCommand deleteCommand("delete from " + table + " where " + where);
-      deleteCommand.AddParameter("@ADDRESS1", address);
+      deleteCommand.AddParameter("@ADDRESS1", lowered);
       if (!secondColumn.IsEmpty())
-         deleteCommand.AddParameter("@ADDRESS2", address);
+         deleteCommand.AddParameter("@ADDRESS2", lowered);
 
       if (!Application::Instance()->GetDBManager()->Execute(deleteCommand))
          return -1;

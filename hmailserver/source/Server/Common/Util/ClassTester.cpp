@@ -38,6 +38,7 @@
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
 #include "Compression.h"
+#include "ZipWriter.h"
 #include "ReaderOAuth.h"
 #include "MigrationImapClient.h"
 #include "MigrationSources.h"
@@ -237,6 +238,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing Compression\n"));
       CompressionTester compressionTester;
       compressionTester.Test();
+
+      // The .zip the person's export and an eDiscovery export are written as:
+      // from 65,535 entries on the count goes into the ZIP64 end record, where a
+      // 16-bit count alone would have said 70,000 was 4,464.
+      OutputDebugString(_T("hMailServer: Testing ZipWriter\n"));
+      ZipWriterTester zipWriterTester;
+      zipWriterTester.Test();
 
       // The per-destination back-off: the signal table, the window and its
       // doubling to the ceiling, the probe, all against a clock the test moves.

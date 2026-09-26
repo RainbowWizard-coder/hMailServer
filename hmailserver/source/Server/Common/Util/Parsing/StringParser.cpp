@@ -583,6 +583,99 @@ namespace HM
       return 0;
    }
 
+   namespace
+   {
+      bool IsLocalPartByte_(unsigned char c)
+      {
+         if (c >= 0x80 || isalnum(c))
+            return true;
+
+         return strchr("!#$%&'*+-/=?^_`{|}~.", c) != 0 && c != 0;
+      }
+
+      bool IsLabelByte_(unsigned char c)
+      {
+         return c >= 0x80 || isalnum(c) || c == '-';
+      }
+
+      // Whether an address can begin at at: nothing before it, or a byte no
+      // local part would continue with. Three bytes RFC 5322 lets a local
+      // part hold are what the server's own log lines put in front of an
+      // address, so they count as a boundary here, or the erasure would leave
+      // those occurrences in the logs and the person's export would miss them:
+      // '=' of a key=value (XCLIENT's LOGIN=, BATV's prvs=<tag>=), '/' of a
+      // path, and a quotation mark that opens a quotation
+      // ("Authentication for 'ann@example.com' is locked", the mailing
+      // lists' "the request of '...' to join", a debug line's name='...'). An
+      // apostrophe inside a local part (o'ann@) is told from an opening one by
+      // what stands before it: the quotation marks are passed over and the
+      // byte before them decides. One '=' is not a boundary: an SRS address's
+      // (SRS0=<hash>=<time>=<domain>=<local>@<forwarder>, SRS1=... likewise),
+      // whose last part is another person's local part at the forwarder's
+      // domain - ann@forwarder.test in it is not ann@forwarder.test's mail.
+      bool IsSrsToken_(const std::string &text, size_t end)
+      {
+         size_t start = end;
+         while (start > 0 && IsLocalPartByte_((unsigned char) text[start - 1]))
+            start--;
+
+         // The token as far back as a local part reaches, with an '=' in front
+         // so that SRS0= at its start and after a key= (MAIL FROM's, a debug
+         // line's from=) are found alike.
+         std::string token = "=" + text.substr(start, end - start);
+         for (size_t i = 0; i < token.size(); i++)
+            token[i] = (char) tolower((unsigned char) token[i]);
+
+         return token.find("=srs0=") != std::string::npos || token.find("=srs1=") != std::string::npos;
+      }
+
+      bool BeginsAddress_(const std::string &text, size_t at)
+      {
+         while (at > 0 && text[at - 1] == '\'')
+            at--;
+
+         if (at == 0)
+            return true;
+
+         const unsigned char before = (unsigned char) text[at - 1];
+         if (before == '=')
+            return !IsSrsToken_(text, at);
+
+         if (before == '/')
+            return true;
+
+         return !IsLocalPartByte_(before);
+      }
+   }
+
+   size_t
+   StringParser::FindWholeAddress(const std::string &text, const std::string &address, size_t from)
+   {
+      if (address.empty())
+         return std::string::npos;
+
+      for (size_t at = text.find(address, from); at != std::string::npos; at = text.find(address, at + 1))
+      {
+         if (!BeginsAddress_(text, at))
+            continue;
+
+         const size_t end = at + address.size();
+         if (end < text.size())
+         {
+            const unsigned char next = (unsigned char) text[end];
+            if (IsLabelByte_(next))
+               continue;
+
+            if (next == '.' && end + 1 < text.size() && IsLabelByte_((unsigned char) text[end + 1]))
+               continue;
+         }
+
+         return at;
+      }
+
+      return std::string::npos;
+   }
+
    // Removes all duplicate items from the items collection.
    void 
    StringParser::RemoveDuplicateItems(std::vector<String> &items)
@@ -1267,6 +1360,43 @@ namespace HM
      // Bidi: a RandALCat string must start and end with RandALCat - a trailing ASCII
      // digit (European Number, not RandALCat) is rejected.
      Assert(!StringParser::SaslPrep(L"\u05D0\u05D11", saslPrepped));
+
+     // An address in a log line, found whole: the person's export and the log
+     // erasure ask this, and ann@ must never find joann@ or a longer domain.
+     const std::string ann = "ann@example.com";
+     const size_t none = std::string::npos;
+     Assert(StringParser::FindWholeAddress("ann@example.com", ann) == 0);
+     Assert(StringParser::FindWholeAddress("RCPT TO:<ann@example.com>", ann) == 9);
+     Assert(StringParser::FindWholeAddress("LOGIN ann@example.com \"x\"", ann) == 6);
+     Assert(StringParser::FindWholeAddress("mail for ann@example.com.", ann) == 9);
+     Assert(StringParser::FindWholeAddress("\"ann@example.com\"", ann) == 1);
+     Assert(StringParser::FindWholeAddress("joann@example.com", ann) == none);
+     Assert(StringParser::FindWholeAddress("jo.ann@example.com", ann) == none);
+     Assert(StringParser::FindWholeAddress("x+ann@example.com", ann) == none);
+     Assert(StringParser::FindWholeAddress("ann@example.com.au", ann) == none);
+     Assert(StringParser::FindWholeAddress("ann@example.community", ann) == none);
+     Assert(StringParser::FindWholeAddress("ann@example.com-mail.test", ann) == none);
+     // The longer address first, then the address itself on the same line.
+     Assert(StringParser::FindWholeAddress("joann@example.com, ann@example.com", ann) == 19);
+     Assert(StringParser::FindWholeAddress("ann@example.com ann@example.com", ann, 1) == 16);
+     Assert(StringParser::FindWholeAddress("anything", std::string()) == none);
+     // The delimiters the server's own log lines put before an address, which
+     // RFC 5322 would let a local part hold: a quotation, a key=value, BATV's
+     // tag and a path. Each is the address itself, to be erased and exported.
+     Assert(StringParser::FindWholeAddress("for 'ann@example.com' is locked", ann) == 5);
+     Assert(StringParser::FindWholeAddress("'ann@example.com'", ann) == 1);
+     Assert(StringParser::FindWholeAddress("LOGIN=ann@example.com", ann) == 6);
+     Assert(StringParser::FindWholeAddress("prvs=0123abcd=ann@example.com", ann) == 14);
+     Assert(StringParser::FindWholeAddress("GET /accounts/ann@example.com/export", ann) == 14);
+     Assert(StringParser::FindWholeAddress("address='ann@example.com'", ann) == 9);
+     // An apostrophe inside a local part is part of another address.
+     Assert(StringParser::FindWholeAddress("o'ann@example.com", ann) == none);
+     Assert(StringParser::FindWholeAddress("for o'ann@example.com", ann) == none);
+     // An SRS address ends in another person's local part at the forwarder's
+     // domain: not the address, in either form and after a key= too.
+     Assert(StringParser::FindWholeAddress("MAIL FROM:<SRS0=HHH=TT=orig.test=ann@example.com>", ann) == none);
+     Assert(StringParser::FindWholeAddress("from=srs1=HHH=fwd.test==HHH=TT=orig.test=ann@example.com", ann) == none);
+     Assert(StringParser::FindWholeAddress("<SRS0=HHH=TT=orig.test=bob@example.com> to <ann@example.com>", ann) == 44);
    }
  
    

@@ -7,7 +7,7 @@ items, in the order a new installation meets them:
 | Key | Item | Done when |
 |---|---|---|
 | `profile` | A profile for this server | a setting profile has been applied ([Profiles.md](Profiles.md)); asked for on a young server - fewer than ten accounts, the sample domain's not counted - and not needed on one past that, where a profile that closes a listener or turns a filter off is not something to suggest in a list of things left to do, nor where the shipped settings were chosen instead; asked for again when a profile could not be written in full |
-| `domain` | A domain | at least one domain exists and is active |
+| `domain` | A domain | at least one domain exists and is active, and none has the name of a directory the server keeps its own files in under the data directory (below) |
 | `account` | An account | at least one account exists in any domain |
 | `submission` | TLS on the submission port | every SMTP listener other than port 25 has STARTTLS or implicit TLS and a certificate that exists, other than the self-signed one a new installation made ([SecureDefaults.md](SecureDefaults.md)), which mail clients warn about |
 | `sign_in_tls` | Passwords only over TLS | every IP range that lets a client connect from an address other than this computer's requires TLS for authentication, or reaches only listeners that start TLS before a password ([SecureDefaults.md](SecureDefaults.md)) |
@@ -131,6 +131,7 @@ too. The Control Panel shows the item and opens its IP ranges page.
 | `domain_none` | | No domain has been added yet. |
 | `domain_none_active` | total | {0} domains, none of them active. |
 | `domain_count` | active, total | Active domains: {0} of {1}. |
+| `domain_name_reserved` | domain, directory | {0} has the name the server reserves for its own directory {1}, and the domain's mail is kept in the directory named after it: the two share it, which a backup, a restore and the store's clean-up do not expect. Rename the domain; its mailboxes move and the store's files stay. (action_needed) |
 | `account_none` | | No account has been added in any domain. |
 | `account_count` | count | Accounts: {0}. |
 | `submission_none` | | No port takes message submission, so mail clients cannot send through this server. |
@@ -174,6 +175,40 @@ counted in `domains_not_looked_up`, and the Deck's DNS records view checks any
 one of them on request. Each missing record costs the resolver's timeout, which
 is why a server hosting hundreds of domains - a server past its first hour - is
 not asked to wait for all of them.
+
+### Domain names the server keeps for itself
+
+A domain's mail is kept in the directory named after it directly under the data
+directory, and the server keeps its own stores in the same place: `ACME`, `Blobs`,
+`Certificates`, `Confidential`, `DKIM`, `Discovery`, `Files`, `Lists`, `Protected`,
+`Quarantine`, `Recoverable`, `Sieve` and `Updates`, and `temp`, `events` and
+`database`, which the Linux packages' `hMailServer.ini` puts there. A domain whose
+name is one of these - a single label, in any case - or the name of any directory
+`hMailServer.ini` places directly under the data directory, would share the store's
+directory. A backup leaves out the mail of a domain named as a store it does not
+carry (`Recoverable`, `Discovery`, `Confidential`, `Protected`; [Backup.md](Backup.md)),
+in any case, and a restore does not put it back. Where the two are one directory -
+always on Windows, whose file system does not tell `protected` from `Protected`, and
+on Linux, where a domain's directory is named in lower case, for `temp`, `events` and
+`database` -
+the clean-up of the recoverable, confidential and protected stores removes a
+directory named by a number whose account is gone, which a mailbox named by a number
+is, and a rename carried the whole directory, the store's files with it, into the
+renamed domain.
+
+Since 6.3.4 such a name is refused for a new domain, and for a rename, over COM
+(`Domain.Save`), the REST API (`POST /api/v1/domains`, `PUT /api/v1/domains/{domain}`)
+and so the Deck, with the sentence *The name ... is reserved*. The Control Panel
+refused every name without a dot already. A domain that already has one - made by
+an earlier version over COM or REST, or put back by a restore - is still saved, so
+that it can be managed; it is `domain_name_reserved` here and HM7597 in the error
+log each time the servers start. Rename it: the rename moves each of its accounts'
+mailboxes and leaves the rest of the directory, the store's files, where it is.
+The list is `PreSaveLimitationsCheck::IsReservedDomainName`; the regression tests
+are `test/RegressionTests/Infrastructure/Persistence/DomainNameValidation.cs` (COM:
+refused, renamed to, and a domain given such a name in the database reported and
+renamed away with the store's files left in place) and
+`API/RestApiDomains.cs`'s `TheNameOfAStoreDirectoryIsRefused`.
 
 ## Where the code is
 

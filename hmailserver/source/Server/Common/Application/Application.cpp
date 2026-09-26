@@ -76,6 +76,7 @@
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/PersistentAccount.h"
+#include "../Persistence/PreSaveLimitationsCheck.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "../Util/AuditTrail.h"
 #include "RemoveExpiredRecords.h"
@@ -779,6 +780,12 @@ namespace HM
       // visible in hm_mailboxmoves and nowhere else, so it is said here, once
       // per process, rather than waiting for somebody to go looking.
       MailboxMove::ReportInterrupted();
+
+      // A domain whose name is a directory the server keeps its own files in
+      // under the data directory - made before such names were refused, or put
+      // back by a restore - shares that directory with the store, and nothing
+      // else says so: said here, each time the servers start.
+      PreSaveLimitationsCheck::ReportReservedDomainNames();
 
       // Migration jobs (MigrationManager.h), last: a job reads its source over
       // the network - this server's own IMAP listener, when the source is a

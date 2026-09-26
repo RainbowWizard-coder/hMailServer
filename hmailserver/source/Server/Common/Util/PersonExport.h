@@ -14,7 +14,8 @@ namespace HM
    // who wants exactly that). Inside the .zip:
    //
    //   manifest.json            what is here, counted
-   //   mail/<folder path>.mbox  every folder with mail, one mbox each, From_ lines
+   //   mail/<folder path>.mbox  every folder with mail, one mbox each, From_ lines;
+   //                            past 256 MB in parts, <folder path>-part2.mbox on
    //   account.xml              what the backup carries for the account: the
    //                            settings, rules, fetch accounts, app passwords,
    //                            sender list, the address book, the calendars,

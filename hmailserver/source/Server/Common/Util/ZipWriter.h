@@ -11,10 +11,14 @@ namespace HM
 {
    // A .zip file written entry by entry: each entry deflated in memory (the
    // vendored zlib, raw deflate), its local header and bytes appended, and the
-   // central directory written on Close. The plain 32-bit format - an archive
-   // or an entry past 4 GB is refused rather than written wrong - with entry
-   // names marked as UTF-8, which every unpacker of the last fifteen years
-   // reads. What a person's export is handed as: one file, not a directory.
+   // central directory written on Close. The 32-bit format for sizes and
+   // offsets - an archive or an entry past 4 GB is refused rather than written
+   // wrong - with entry names marked as UTF-8, which every unpacker of the last
+   // fifteen years reads. The count of entries is 16 bits in the classic end
+   // record, so from 65,535 entries on Close writes the ZIP64 end record and
+   // its locator as well (APPNOTE 4.3.14, 4.3.15), which carry the count in 64
+   // bits: an eDiscovery export may hold 100,000 messages. What a person's
+   // export is handed as: one file, not a directory.
    class ZipWriter
    {
    public:
@@ -50,6 +54,7 @@ namespace HM
 
       static void Put16_(AnsiString &out, unsigned int value);
       static void Put32_(AnsiString &out, unsigned int value);
+      static void Put64_(AnsiString &out, unsigned long long value);
       static bool Deflate_(const AnsiString &bytes, AnsiString &deflated);
       bool Write_(const AnsiString &bytes);
       void Fail_(const String &reason);
@@ -61,5 +66,11 @@ namespace HM
       String error_;
       unsigned short time_;
       unsigned short date_;
+   };
+
+   class ZipWriterTester
+   {
+   public:
+      void Test();
    };
 }

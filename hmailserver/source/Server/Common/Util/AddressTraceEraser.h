@@ -96,6 +96,7 @@ namespace HM
    private:
 
       // Counts, then deletes, the rows matching one or two address columns,
+      // compared lower-cased on both sides whatever case the row was written in,
       // and - when condition is given - that condition too (a literal with no
       // parameter, such as "smimekind = 2"). Returns -1 on failure. Two
       // statements rather than one because the DAL reports success, not

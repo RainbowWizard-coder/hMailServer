@@ -205,6 +205,13 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
     ([EventScripts.md](hmailserver/docs/EventScripts.md)). On a JScript server every value a
     handler is given - a password, a remote UID, an error text - now arrives exactly as it was, backslashes
     included (see the fix under Security and identity).
+21. **A domain can no longer be named as a directory the server keeps its own files in.** A domain's mail is kept
+    in the directory named after it under the data directory, beside the server's stores, so a single-label name
+    such as `protected`, `confidential`, `recoverable`, `discovery`, `quarantine`, `files`, `lists` or `blobs` (in
+    any case), or `temp`, `events` and `database`, which the Linux packages put there, is refused for a new domain
+    and for a rename over COM and REST. A domain that already has one is still saved, and is named as `HM7597` at
+    every start and as `domain_name_reserved` on the first-hour checklist: rename it
+    ([SetupChecklist.md](hmailserver/docs/SetupChecklist.md)).
 
 ### Delivery and SMTP
 
@@ -520,6 +527,33 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
 - **A person's data as one archive**, and an erasure that reaches the rest of it
   ([PersonalData.md](hmailserver/docs/PersonalData.md)); **mailbox rename and move** as one operation (schema 6056)
   ([MailboxMove.md](hmailserver/docs/MailboxMove.md)).
+- Fixed, in the person's export new in this release: an app password could download the whole account at
+  `GET /api/v1/me/export.zip`, and the archive's `account.xml` carried the password's hash, the authenticator's
+  seed in the clear, the app passwords' hashes and the fetch accounts' passwords and OAuth tokens, sealed only
+  with a key built into every copy of the server. The download is now refused (403) to an app password and to a
+  webmail session started with one, and `account.xml` - in every form of the export - leaves out the password,
+  the seed, the hashes of the app passwords, recovery codes, password history and file passwords, the fetch
+  accounts' secrets, a browser's push secret and the wrapped mailbox key of an account encrypted at rest
+  ([PersonalData.md](hmailserver/docs/PersonalData.md)).
+- Fixed, in the same export: its `logs.txt` took every log line in which the address occurred inside another,
+  so that `ann@example.com`'s own download carried the sessions, peers and recipients of `joann@example.com` and
+  `ann@example.com.au`. The address is now matched whole.
+- Fixed, in the same export: each folder was built as one mbox in memory, deflated beside a copy of itself, and
+  the 500 MB download ceiling was checked only once the whole archive was written, with nothing limiting how
+  many were built at once - so any account, four requests at a time, could hold every HTTP worker (the webmail's
+  and the whole API's) for minutes and push the service toward running out of memory. A folder past 256 MB is
+  now written in parts, a mailbox whose mail alone is past 2 GB is refused (413) before anything is built, and a
+  download is refused while an archive of the same account is being built (409) or two are on the server (429).
+- Fixed, in the erasure of an address from the logs new in this release: every occurrence of the address inside
+  another was rewritten too, so that erasing `ann@example.com` turned `joann@example.com` into `jo[erased]` and
+  counted it as removed, and each log was truncated and written in place, so that a crash or a full disk part way
+  lost the rest of it. The address is matched whole - still where a line quotes it (`'ann@example.com'`) or
+  writes it after `=` or `/`, though not as the last part of an SRS address, which is another person's - and each
+  log is written beside itself and renamed over it.
+- Fixed: on PostgreSQL an erasure compared the message trace, the greylisting triplets, list memberships and
+  aliases with the address exactly as given, and PostgreSQL compares text by its bytes, so a row written in another
+  case (`Ann@Example.com`) survived an erasure of `ann@example.com` that reported success. Every store the
+  erasure deletes rows from now compares both sides lower-cased.
 - **eDiscovery** (schema 6097): a compliance officer opens a case, searches every mailbox, the deleted items and
   the archive by person, date, words and attachment, puts the mailboxes, domains or archived copies it is about on
   a legal hold, and exports what was found as EML and mbox with a manifest whose SHA-256s prove what was handed
@@ -529,12 +563,35 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   `view_discovery` (which the auditor role holds) and `manage_discovery`; the routes are `/api/v1/discovery/cases`,
   with a view on the Control Deck and a read-only page in the Control Panel
   ([Discovery.md](hmailserver/docs/Discovery.md)).
+- Fixed, in the eDiscovery export new in this release: the .zip counted its entries in the 16 bits of the
+  classic end record alone, so an export of more than 65,535 entries - a search may keep 100,000 hits, each
+  written as an .eml - ended with a count modulo 65,536, and a reader that trusts it, .NET's `ZipArchive` among
+  them, refused the evidence package or listed part of it. From 65,535 entries on the archive ends with the ZIP64
+  end record and its locator, which count them in 64 bits; the person's export is written the same way
+  ([Discovery.md](hmailserver/docs/Discovery.md)).
 - **An erasure reaches the stores beside the mailbox**: messages held for review, messages that expire,
   password-protected messages, the recipients an account remembers writing to, the out-of-office memory and the
   correspondents' S/MIME certificates and OpenPGP keys. Every comma-joined list is matched whole, so that erasing
   `ann@` never touches `joann@`, and the archive index's own match is fixed the same way. A legal hold outranks the
   erasure, and `POST /api/v1/addresses/erase` answers `held` beside `removed`
   ([PersonalData.md](hmailserver/docs/PersonalData.md)).
+- Fixed: a domain could be given the single-label name of a directory the server keeps its own files in under
+  the data directory - `protected`, `confidential`, `recoverable`, `discovery` and the rest - over COM and REST
+  (the Control Panel asked for a dot), and then shared that directory with the store. A backup left such a
+  domain's mail out and a restore did not put it back; on Windows the recoverable, confidential and protected
+  stores' clean-up could remove a mailbox directory named by a number; and renaming the domain carried the whole
+  directory, the store's files with it, into the new name and deleted it where the store looks. Such a name is
+  now refused for a new domain and for a rename; an existing one is reported at every start (`HM7597`) and on the
+  checklist, and renaming it moves only its accounts' mailboxes
+  ([SetupChecklist.md](hmailserver/docs/SetupChecklist.md)). The operator's `GET /api/v1/accounts/{address}/export.zip`
+  in the OpenAPI document now says, as the download does, that the credentials are left out of `account.xml`, and
+  lists its 403, 409 and 429 answers.
+- Fixed: renaming a domain failed half-way when any of its accounts had a Sieve script, a vacation reply's memory
+  or a duplicate check on disk. The domain's Sieve tree was moved first, and each account's rename then refused
+  to move its own Sieve directory onto the one that move had just made - after the mailboxes had moved and before
+  the row took the new name, so the domain's mail was where its name did not look, and a second rename was refused
+  because the new directory existed. An account's rename in the cascade now moves nothing that is not left under
+  the old name.
 - Fixed: 72 COM classes answered a refusal as a bare HRESULT; each now says why. The message trace's search
   answered nothing on SQL Server Compact (one parameter written twice and bound once).
 
@@ -641,6 +698,12 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   outcome is reported as soon as the service is back.
 - **Backups**: encrypted with AES-256, the passphrase never inside the archive (schema 6059); one mailbox or one
   message restored from an archive ([Backup.md](hmailserver/docs/Backup.md)).
+- Fixed: a backup with **Back up messages** copied `<data directory>\Confidential` and `<data directory>\Protected`,
+  so the whole of every live message that expires - attachments and all, in the clear even for a mailbox encrypted
+  at rest - and the ciphertext of every password-protected message outlived its expiry and withdrawal in each
+  archive, and a full restore deleted and replaced both folders. Both are now left out of the backup and left in
+  place by a restore, as the recoverable store and the eDiscovery files are. Archives taken by earlier 6.3.4 builds
+  still hold those copies ([Backup.md](hmailserver/docs/Backup.md)).
 - **Monitoring**: syslog (RFC 5424, or the journal under systemd; off) ([Syslog.md](hmailserver/docs/Syslog.md));
   per-domain reports ([Reports.md](hmailserver/docs/Reports.md)) with spam, virus and storage figures per domain
   (schema 6062); the DMARC and TLS-RPT reports a domain receives, read and charted (schema 6070)

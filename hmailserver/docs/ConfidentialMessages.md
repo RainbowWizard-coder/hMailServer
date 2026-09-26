@@ -153,4 +153,9 @@ A message whose account is under a legal hold is left as it is.
 The copies are not in the backup: the sender's own copy is in the mailbox the backup
 carries, and a message kept to be deleted at a time is not one to carry into an
 archive that outlives it. The table is listed in `AccountStores` under *elsewhere*
-with that reason.
+with that reason, and **Back up messages** leaves `<data directory>\Confidential`,
+where the copies are, out of its copy of the data directory; a restore leaves that
+folder where it is. Archives taken by 6.3.4 builds before that folder was left out
+do hold the copies - whole, attachments and all, and in the clear even for a mailbox
+encrypted at rest - including those that have expired or been withdrawn since, so
+treat them as you would the mail itself, or delete them ([Backup.md](Backup.md)).

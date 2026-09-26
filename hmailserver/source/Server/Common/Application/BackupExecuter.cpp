@@ -172,18 +172,26 @@ namespace HM
    // DESCRIPTION:
    // The directories at the data directory's root that a backup does not carry
    // and a restore neither deletes nor puts back: the recoverable store
-   // (docs/RecoverDeleted.md) and the eDiscovery cases' results and exports
-   // (docs/Discovery.md). Each is indexed by tables the XML backup does not hold
-   // - hm_recoverable, and the four discovery tables - and that a restore leaves
-   // as they are, so a backup's copy is files no row names, and a restore that
-   // replaced them would leave live rows naming files that are gone: a case's
-   // results and exports, and what a legal hold kept. An export is a copy of
-   // the custodians' mail of up to 4 GB besides, and a backup that carried every
-   // export ever made would grow with each one.
+   // (docs/RecoverDeleted.md), the eDiscovery cases' results and exports
+   // (docs/Discovery.md), the kept copies of messages that expire
+   // (docs/ConfidentialMessages.md) and the ciphertext of password-protected
+   // messages (docs/ProtectedMessages.md). Each is indexed by tables the XML
+   // backup does not hold - hm_recoverable, the four discovery tables,
+   // hm_confidential and hm_protectedmessages - so a backup's copy is files no
+   // row names, and a restore that replaced them would leave live rows naming
+   // files that are gone: a case's results and exports, what a legal hold kept,
+   // the message a link still being read points at. An export is a copy of
+   // the custodians' mail of up to 4 GB besides, and a backup that carried
+   // every export ever made would grow with each one. And a message that
+   // expires is a copy made to be deleted at a time: carried, the whole of it,
+   // attachments and all and in the clear even for a mailbox encrypted at
+   // rest, would outlive its expiry and its withdrawal in every archive taken
+   // while it was live (AccountStores.cpp, hm_confidential).
    //---------------------------------------------------------------------------()
    {
       const String name(directory.filename().wstring());
-      return name.CompareNoCase(_T("Recoverable")) == 0 || name.CompareNoCase(_T("Discovery")) == 0;
+      return name.CompareNoCase(_T("Recoverable")) == 0 || name.CompareNoCase(_T("Discovery")) == 0 ||
+             name.CompareNoCase(_T("Confidential")) == 0 || name.CompareNoCase(_T("Protected")) == 0;
    }
 
    static bool
@@ -309,7 +317,8 @@ namespace HM
    // DESCRIPTION:
    // FileUtilities::DeleteDirectoriesInDirectory, less what IsKeptOutOfBackup_
    // names: every directory at the data directory's root is removed but the
-   // recoverable store and the eDiscovery cases' files. Listed first and removed
+   // recoverable store, the eDiscovery cases' files and the stores of messages
+   // that expire and of password-protected messages. Listed first and removed
    // after, so the listing is not walked while it changes.
    //---------------------------------------------------------------------------()
    {
@@ -1115,7 +1124,8 @@ namespace HM
       // DataBackup folder from an earlier run was still there.
       TreeCopyOutcome outcome;
 
-      // Without the recoverable store and the eDiscovery cases' files: see
+      // Without the recoverable store, the eDiscovery cases' files and the
+      // stores of messages that expire and password-protected messages: see
       // IsKeptOutOfBackup_.
       bool bResult = CopyTreeGuarded_(sDataDir, sDataBackupDir, outcome, true);
       if (!bResult)
@@ -1673,8 +1683,9 @@ namespace HM
       // so that we're sure that we're doing a clean restore
       String sDataDirectory = IniFileSettings::Instance()->GetDataDirectory();
 
-      // Every directory but the recoverable store and the eDiscovery cases'
-      // files, which a backup does not carry and a restore leaves where they
+      // Every directory but the recoverable store, the eDiscovery cases' files
+      // and the stores of messages that expire and password-protected
+      // messages, which a backup does not carry and a restore leaves where they
       // are (IsKeptOutOfBackup_); the copy below leaves an older backup's copy
       // of them out in the same way.
       FileUtilities::DeleteFilesInDirectory(sDataDirectory);

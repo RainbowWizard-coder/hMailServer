@@ -155,6 +155,114 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An app password cannot download the account's export (403), and the archive's account.xml leaves out the password hash, the authenticator's seed, the app passwords' hashes and the fetch accounts' passwords")]
+      public void AnAppPasswordCannotDownloadTheExportAndTheArchiveCarriesNoCredentials()
+      {
+         Account account = APersonWithMailAndAContact("credentials@example.test");
+
+         FetchAccount fetch = account.FetchAccounts.Add();
+         fetch.Enabled = false;
+         fetch.Name = "Elsewhere";
+         fetch.Username = "someone@dummy-example.com";
+         fetch.Password = "fetch-account-secret";
+         fetch.ServerAddress = "pop.dummy-example.com";
+         fetch.Port = 110;
+         fetch.Save();
+
+         (int status, string body) minted = Http("POST", "/api/v1/me/app-passwords", "{\"name\":\"Phone\",\"password\":\"test\"}", UserHeader(account.Address));
+         ClassicAssert.AreEqual(201, minted.status, minted.body);
+         string appPassword = Extract(minted.body, "password");
+         string asProgram = "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(account.Address + ":" + appPassword));
+
+         // The app password works - it reads the account's own details - and is
+         // refused the whole account in one download.
+         ClassicAssert.AreEqual(200, Http("GET", "/api/v1/me", null, asProgram).status, "The app password signs in.");
+         (int status, string body) refused = Http("GET", "/api/v1/me/export.zip", null, asProgram);
+         ClassicAssert.AreEqual(403, refused.status, refused.body);
+
+         byte[] own = Download("/api/v1/me/export.zip", UserHeader(account.Address));
+         string accountXml;
+         using (var zip = new ZipArchive(new MemoryStream(own), ZipArchiveMode.Read))
+            accountXml = Read(zip, "account.xml");
+
+         // What the backup's form carries is there - the fetch account and the
+         // app password by name - and the secrets in them are not.
+         StringAssert.Contains("<FetchAccount", accountXml);
+         StringAssert.Contains("Elsewhere", accountXml);
+         StringAssert.Contains("<AppPassword", accountXml);
+         StringAssert.Contains("Phone", accountXml);
+         ClassicAssert.IsFalse(Regex.IsMatch(accountXml, "\\sPassword=\""), "No password, the account's or a fetch account's: " + accountXml);
+         ClassicAssert.IsFalse(accountXml.Contains("PasswordEncryption="), "No password scheme.");
+         ClassicAssert.IsFalse(accountXml.Contains("TotpSecret="), "No authenticator seed.");
+         ClassicAssert.IsFalse(accountXml.Contains("OAuthToken="), "No fetch account token.");
+         ClassicAssert.IsFalse(Regex.IsMatch(accountXml, "\\sHash=\""), "No app password hash.");
+
+         // The operator's download is the same archive, and leaves them out too.
+         byte[] operators = Download("/api/v1/accounts/" + Uri.EscapeDataString(account.Address) + "/export.zip", AdminHeader());
+         using (var zip = new ZipArchive(new MemoryStream(operators), ZipArchiveMode.Read))
+            ClassicAssert.IsFalse(Regex.IsMatch(Read(zip, "account.xml"), "\\s(Password|TotpSecret|Hash)=\""));
+      }
+
+      [Test]
+      [Description("A mailbox whose mail alone is past 2 GB is refused a download (413) before any archive is built, by the person and by the operator alike")]
+      public void AMailboxPastTwoGigabytesIsRefusedBeforeTheArchiveIsBuilt()
+      {
+         Account account = APersonWithMailAndAContact("large@example.test");
+
+         // Three small messages on disk, recorded in the database as a gigabyte
+         // each: what the refusal is decided on is the recorded size, before a
+         // byte of mail is read. The old code built the whole archive - here a
+         // small one - and answered 200.
+         _application.Database.ExecuteSQL("update hm_messages set messagesize = 1073741824 where messageaccountid = " + account.ID);
+
+         (int status, string body) own = Http("GET", "/api/v1/me/export.zip", null, UserHeader(account.Address));
+         ClassicAssert.AreEqual(413, own.status, own.body);
+         StringAssert.Contains("2 GB", own.body);
+
+         (int status, string body) operators = Http("GET", "/api/v1/accounts/" + Uri.EscapeDataString(account.Address) + "/export.zip");
+         ClassicAssert.AreEqual(413, operators.status, operators.body);
+
+         // The refusal is the recorded size and nothing else: back under it, the
+         // same mailbox downloads.
+         _application.Database.ExecuteSQL("update hm_messages set messagesize = 100 where messageaccountid = " + account.ID);
+         ClassicAssert.Greater(Download("/api/v1/me/export.zip", UserHeader(account.Address)).Length, 100, "Back under the ceiling, the download is built.");
+      }
+
+      [Test]
+      [Description("logs.txt holds the lines that name the address as a whole address: ann@'s export does not carry the log lines of joann@ or of ann@ at a longer domain")]
+      public void TheLogLinesAreThoseOfTheAddressAloneNotOfALongerOne()
+      {
+         Account ann = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "ann@example.test", "test");
+         Account joann = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "joann@example.test", "test");
+
+         SmtpClientSimulator.StaticSend("sender@dummy-example.com", ann.Address, "To Ann", "For ann.");
+         SmtpClientSimulator.StaticSend("sender@dummy-example.com", joann.Address, "To Joann", "For joann.");
+         Pop3ClientSimulator.AssertMessageCount(ann.Address, "test", 1);
+         Pop3ClientSimulator.AssertMessageCount(joann.Address, "test", 1);
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.Contains("joann@example.test", log, "The SMTP log names the other person, or this test proves nothing.");
+
+         string zipPath = Paths.Combine(Path.GetTempPath(), "hm-person-" + Guid.NewGuid().ToString("N") + ".zip");
+         try
+         {
+            ann.ExportArchive(zipPath);
+
+            using (ZipArchive zip = ZipFile.OpenRead(zipPath))
+            {
+               string lines = Read(zip, "logs.txt");
+               StringAssert.Contains("ann@example.test", lines, "Ann's own lines are there.");
+               StringAssert.DoesNotContain("joann@example.test", lines, "Nobody else's lines are.");
+            }
+         }
+         finally
+         {
+            if (File.Exists(zipPath))
+               File.Delete(zipPath);
+         }
+      }
+
+      [Test]
       [Description("An erasure reaches other people's address books and first-contact memory, and - asked for by name - the log files, where the address becomes [erased]")]
       public void ErasureReachesOtherPeoplesRecordsAndTheLogs()
       {
@@ -192,6 +300,48 @@ namespace RegressionTests.API
          StringAssert.Contains("[erased]", log, "The lines say they were changed rather than pretending nothing was there.");
 
          ClassicAssert.AreEqual(0, _application.Utilities.EraseAddressLogLines("erased@example.test"), "A second pass finds nothing.");
+      }
+
+      [Test]
+      [Description("Erasing an address from the logs rewrites it only where it is the whole address: joann@ and a longer domain keep their lines as they were")]
+      public void ErasingTheLogsLeavesALongerAddressAlone()
+      {
+         Account ann = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "ann@example.test", "test");
+         Account joann = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "joann@example.test", "test");
+
+         SmtpClientSimulator.StaticSend("sender@dummy-example.com", ann.Address, "To Ann", "For ann.");
+         SmtpClientSimulator.StaticSend("sender@dummy-example.com", joann.Address, "To Joann", "For joann.");
+         Pop3ClientSimulator.AssertMessageCount(ann.Address, "test", 1);
+         Pop3ClientSimulator.AssertMessageCount(joann.Address, "test", 1);
+         StringAssert.Contains("<joann@example.test>", LogHandler.ReadCurrentDefaultLog(), "The SMTP log names the other person, or this test proves nothing.");
+
+         int changed = _application.Utilities.EraseAddressLogLines("ann@example.test");
+         ClassicAssert.Greater(changed, 0, "Ann's occurrences were rewritten.");
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.Contains("<joann@example.test>", log, "Joann's lines are hers and stay as they were.");
+         StringAssert.DoesNotContain("jo[erased]", log, "No other address is cut into.");
+         ClassicAssert.IsFalse(Regex.IsMatch(log, "(?<![A-Za-z0-9.+_-])ann@example\\.test"), "Ann's own occurrences are gone.");
+         StringAssert.Contains("[erased]", log);
+      }
+
+      [Test]
+      [Description("Erasing an address from the logs rewrites it where a log line quotes it, as the application log's 'address' lines do: a quotation mark before an address is not part of it")]
+      public void ErasingTheLogsReachesTheAddressInQuotes()
+      {
+         // The application log writes "RestApi: Distribution list '<address>'
+         // created ...". An apostrophe is a byte RFC 5322 lets a local part
+         // hold, and a rule that read it as one left this occurrence behind.
+         (int status, string body) created = Http("POST", "/api/v1/domains/example.test/lists", "{\"address\":\"quoted-list@example.test\"}");
+         ClassicAssert.AreEqual(201, created.status, created.body);
+         StringAssert.Contains("'quoted-list@example.test'", LogHandler.ReadCurrentDefaultLog(), "The application log quotes the address, or this test proves nothing.");
+
+         int changed = _application.Utilities.EraseAddressLogLines("quoted-list@example.test");
+         ClassicAssert.Greater(changed, 0, "The quoted occurrence was rewritten.");
+
+         string log = LogHandler.ReadCurrentDefaultLog();
+         StringAssert.DoesNotContain("quoted-list@example.test", log, "No log line names the address any more.");
+         StringAssert.Contains("'[erased]'", log, "The quotation says it was changed.");
       }
 
       // ----------------------------------------------------------------- helpers

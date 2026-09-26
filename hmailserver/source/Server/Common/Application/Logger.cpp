@@ -585,6 +585,10 @@ namespace HM
       bool allRewritten = true;
       const AnsiString replacement = "[erased]";
 
+      // The files first, then the rewrites: each rewrite puts a new file in
+      // the directory under the old name, which an iterator still walking it
+      // could hand back a second time.
+      std::vector<boost::filesystem::path> logFiles;
       for (boost::filesystem::directory_iterator file(directory, errorCode);
            file != boost::filesystem::directory_iterator(); file.increment(errorCode))
       {
@@ -596,9 +600,12 @@ namespace HM
          String lowerName = fileName;
          lowerName.ToLower();
 
-         if (!((lowerName.StartsWith(_T("hmailserver_")) || lowerName.StartsWith(_T("error_hmailserver_"))) && lowerName.EndsWith(_T(".log"))))
-            continue;
+         if ((lowerName.StartsWith(_T("hmailserver_")) || lowerName.StartsWith(_T("error_hmailserver_"))) && lowerName.EndsWith(_T(".log")))
+            logFiles.push_back(current);
+      }
 
+      for (const boost::filesystem::path &current : logFiles)
+      {
          // A log past a quarter of a gigabyte is not rewritten in memory; it is
          // reported, and log retention is the answer for it.
          if (boost::filesystem::file_size(current, errorCode) > 256 * 1024 * 1024 || errorCode)
@@ -622,12 +629,16 @@ namespace HM
          std::string lowered = content;
          std::transform(lowered.begin(), lowered.end(), lowered.begin(), ::tolower);
 
-         std::string rewritten;
+         // The address as a whole address (StringParser::FindWholeAddress):
+         // erasing ann@example.com leaves joann@example.com and
+         // ann@example.com.au as they are - other people's records, which may
+         // be what a legal hold keeps.
+         AnsiString rewritten;
          size_t from = 0;
          int changed = 0;
          for (;;)
          {
-            size_t at = lowered.find(wanted, from);
+            size_t at = StringParser::FindWholeAddress(lowered, wanted, from);
             if (at == std::string::npos)
             {
                rewritten.append(content, from, std::string::npos);
@@ -642,14 +653,15 @@ namespace HM
          if (changed == 0)
             continue;
 
-         boost::filesystem::ofstream out(current, std::ios::out | std::ios::binary | std::ios::trunc);
-         if (!out)
+         // Beside the log and renamed over it, never truncated in place: a
+         // crash or a full disk part way through leaves the log as it was
+         // rather than cut short, with every other line in it gone.
+         const String logPath(current.wstring().c_str());
+         if (!FileUtilities::WriteToFileAtomically(logPath, rewritten))
          {
             allRewritten = false;
             continue;
          }
-         out.write(rewritten.data(), (std::streamsize) rewritten.size());
-         out.close();
 
          occurrencesChanged += changed;
       }

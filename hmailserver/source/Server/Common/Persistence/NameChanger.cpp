@@ -7,6 +7,7 @@
 #include "NameChanger.h"
 #include "MessageStore.h"
 #include "MessageStoreObjects.h"
+#include "PreSaveLimitationsCheck.h"
 #include "../Util/StorePath.h"
 #include "../BO/Domain.h"
 #include "../BO/Accounts.h"
@@ -41,7 +42,16 @@ namespace HM
    {
       const String& newDomainName = pDomain->GetName();
 
-      if (!RenameDomainDataDirectory_(oldDomainName, pDomain->GetName(), errorMessage))
+      // A domain whose name is one of the server's own directories under the
+      // data directory shares that directory with the store: its mailboxes are
+      // moved one by one, and the store's files stay where the store keeps them.
+      String collidesWith;
+      if (PreSaveLimitationsCheck::IsReservedDomainName(oldDomainName, collidesWith))
+      {
+         if (!MoveMailboxesOutOfReservedDirectory_(oldDomainName, pDomain, errorMessage))
+            return false;
+      }
+      else if (!RenameDomainDataDirectory_(oldDomainName, pDomain->GetName(), errorMessage))
          return false;
 
       // Update accounts...
@@ -181,7 +191,15 @@ namespace HM
       String oldDirectoryName = FileUtilities::Combine(domainDirectory, oldMailboxName);
       String newDirectoryName = FileUtilities::Combine(domainDirectory, newMailboxName);
 
-      if (!RenameDirectory_(oldDirectoryName, newDirectoryName, errorMessage))
+      // The one caller is the domain rename's cascade (PersistentAccount::
+      // SaveObject in PersistenceModeRename), which has moved the domain's
+      // mailboxes and its Sieve tree already and keeps each local part: both
+      // paths above are then the one directory under the old domain, where
+      // nothing is left to move. RenameDirectory_ refuses a destination that
+      // exists, so mail delivered there while the rename ran would have failed
+      // the whole rename half-way; one directory is not moved onto itself.
+      const bool sameMailboxDirectory = oldDirectoryName == newDirectoryName;
+      if (!sameMailboxDirectory && !RenameDirectory_(oldDirectoryName, newDirectoryName, errorMessage))
          return false;
 
       // And the messages an object store keeps under the old name, which the
@@ -208,7 +226,23 @@ namespace HM
       // has its own tree - so renaming the mailbox alone left the filter behind at
       // the old address, where nothing would ever read it again. The user's mail
       // then stopped being filed, discarded or redirected, silently.
-      return RenameDirectory_(SieveStorage::GetAccountDirectory(oldAccountName),
+      //
+      // In the domain rename's cascade the domain's whole Sieve tree has been
+      // moved before the accounts are walked (RenameDomainDataDirectory_,
+      // MoveMailboxesOutOfReservedDirectory_), so the account's directory is at
+      // the new address already and none is left at the old one. RenameDirectory_
+      // refuses a destination that exists before it looks at the source, so for
+      // every account with a Sieve script, a vacation reply's memory or a
+      // duplicate check the rename failed there - after the mailboxes and the
+      // Sieve tree had moved and before the row took the new name, which left
+      // the domain's mail where its name did not look and a second rename
+      // refused because the new directory existed. Nothing at the old address
+      // is nothing to move.
+      const String oldSieveDirectory = SieveStorage::GetAccountDirectory(oldAccountName);
+      if (!FileUtilities::Exists(oldSieveDirectory))
+         return true;
+
+      return RenameDirectory_(oldSieveDirectory,
                               SieveStorage::GetAccountDirectory(pAccount->GetAddress()),
                               errorMessage);
    }
@@ -250,7 +284,105 @@ namespace HM
                               errorMessage);
    }
 
-   bool 
+   bool
+   NameChanger::MoveMailbox_(const String &oldDirectory, const String &newDirectory, String &errorMessage)
+   {
+      if (!RenameDirectory_(oldDirectory, newDirectory, errorMessage))
+         return false;
+
+      // The messages an object store keeps under the old name, put back as in
+      // RenameAccount when a part of them cannot be moved.
+      unsigned int objectsMoved = 0;
+      if (!MessageStore::MoveTree(oldDirectory, newDirectory, objectsMoved, errorMessage))
+      {
+         unsigned int movedBack = 0;
+         String putBackProblem;
+         if (objectsMoved > 0 && !MessageStore::MoveTree(newDirectory, oldDirectory, movedBack, putBackProblem))
+            errorMessage += " Some of the objects moved before that could not be moved back (" + putBackProblem + "); they are under the new name until the rename is made again.";
+
+         String ignored;
+         RenameDirectory_(newDirectory, oldDirectory, ignored);
+         MessageStoreObjects::CommitTree(oldDirectory);
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
+   NameChanger::MoveMailboxesOutOfReservedDirectory_(const String &oldDomainName, std::shared_ptr<Domain> pDomain, String &errorMessage)
+   {
+      // The domain's directory is also a store's (PreSaveLimitationsCheck::
+      // IsReservedDomainName): moving the whole of it, as a rename otherwise
+      // does, took the store's files - the ciphertext behind every
+      // password-protected message's link, say - into the renamed domain and
+      // deleted them from where the store looks. Only the directories of the
+      // domain's own accounts move, each as an account rename moves its own;
+      // what else is in there stays.
+      const String dataDirectory = IniFileSettings::Instance()->GetDataDirectory();
+      const String oldDirectory = FileUtilities::Combine(dataDirectory, StoreDirectoryName(oldDomainName));
+      const String newDirectory = FileUtilities::Combine(dataDirectory, StoreDirectoryName(pDomain->GetName()));
+
+      if (FileUtilities::Exists(newDirectory))
+      {
+         errorMessage = Formatter::Format("Can't rename {0} to {1} since {1} already exists.", oldDirectory, newDirectory);
+         return false;
+      }
+
+      std::vector<std::pair<String, String> > moved;
+      bool failed = false;
+
+      std::vector<std::shared_ptr<Account> > accounts = pDomain->GetAccounts()->GetSnapshot();
+      for (std::shared_ptr<Account> account : accounts)
+      {
+         if (!account)
+            continue;
+
+         const String mailbox = StoreDirectoryName(StringParser::ExtractAddress(account->GetAddress()));
+         if (mailbox.IsEmpty())
+            continue;
+
+         const String from = FileUtilities::Combine(oldDirectory, mailbox);
+         const String to = FileUtilities::Combine(newDirectory, mailbox);
+
+         if (!FileUtilities::Exists(newDirectory) && !FileUtilities::CreateDirectory(newDirectory))
+         {
+            errorMessage = Formatter::Format("Can't rename {0} to {1} since {1} could not be created.", oldDirectory, newDirectory);
+            failed = true;
+            break;
+         }
+
+         if (!MoveMailbox_(from, to, errorMessage))
+         {
+            failed = true;
+            break;
+         }
+
+         moved.push_back(std::make_pair(from, to));
+      }
+
+      if (failed)
+      {
+         // The mailboxes moved before the failure go back, so that the rename,
+         // refused, leaves every mailbox under the name the row keeps.
+         for (auto entry = moved.rbegin(); entry != moved.rend(); ++entry)
+         {
+            String ignored;
+            MoveMailbox_(entry->second, entry->first, ignored);
+         }
+
+         FileUtilities::DeleteDirectory(newDirectory, false);
+         return false;
+      }
+
+      // And the domain's Sieve tree, which lives outside the mailbox tree, as
+      // RenameDomainDataDirectory_ moves it.
+      return RenameDirectory_(SieveStorage::GetDomainDirectory(oldDomainName),
+                              SieveStorage::GetDomainDirectory(pDomain->GetName()),
+                              errorMessage);
+   }
+
+   bool
    NameChanger::RenameDirectory_(const String &oldDirectory, const String &newDirectory, String &errorMessage)
    {
       if (FileUtilities::Exists(newDirectory))

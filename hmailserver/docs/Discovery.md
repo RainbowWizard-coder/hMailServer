@@ -347,9 +347,15 @@ erased since. Search again to find where a message is now.
 **4 GB.** The zip writer writes the 32-bit zip format, which cannot be larger
 than 4 GB. An export whose messages would pass that, written twice over as EML
 and in an mbox, fails before a byte is written, with the sentence: narrow the
-search and export each part. ZIP64 and split parts are not written. An export
-that would leave the data directory's volume - where the mail is delivered -
-with less than a gigabyte free fails the same way.
+search and export each part. ZIP64 sizes and offsets and split archives are not
+written. The count of entries is: an export of more than 65,534 entries - one
+.eml a message, the mbox parts, SHA256SUMS and the manifest - ends with the ZIP64
+end record and its locator, which count them in 64 bits, where the classic end
+record alone would have counted them modulo 65,536 and a reader that trusts it,
+.NET's among them, would have refused the archive or listed part of it. Every
+unpacker of the last twenty years reads that record. An export that would leave
+the data directory's volume - where the mail is delivered - with less than a
+gigabyte free fails the same way as one past 4 GB.
 
 **The download** is read into memory once, as the person export's is: an
 export past 500 MB answers `413` with where it is on the server's disk and its

@@ -23,6 +23,8 @@ namespace HM
       bool UpdateDomainName_(String &sAddress, const String &oldDomainName, const String& newDomainName);
       bool RenameDirectory_(const String &oldDirectory, const String &newDirectory, String &errorMessage);
       bool RenameDomainDataDirectory_(const String &oldDomainName, const String &newDomainName, String &errorMessage);
+      bool MoveMailbox_(const String &oldDirectory, const String &newDirectory, String &errorMessage);
+      bool MoveMailboxesOutOfReservedDirectory_(const String &oldDomainName, std::shared_ptr<Domain> pDomain, String &errorMessage);
    };
 
 }

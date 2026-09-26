@@ -110,8 +110,55 @@ namespace HM
          return MessageStore::ReadAll(fileName, bytes);
       }
 
+      // A folder's mbox is written in parts of at most this many bytes, as the
+      // eDiscovery export writes its own: ZipWriter takes an entry whole, with
+      // its deflated copy beside it while it is added, so a folder of two
+      // gigabytes held as one mbox would ask the mail server's process for
+      // three times that at once.
+      const size_t MaxMboxBytes = 256 * 1024 * 1024;
+
+      // One part of a folder's mbox into the archive: mail/<path>.mbox, and
+      // mail/<path>-part2.mbox and on. An entry name already written - a
+      // folder that happens to be called "INBOX-part2" beside a large INBOX -
+      // takes " (2)", " (3)" before its extension, so no entry is written
+      // twice under one name.
+      bool AddMbox(ZipWriter &zip, std::set<AnsiString> &entries, const String &folderPath, int part,
+                   const AnsiString &mbox, String &error)
+      {
+         String base = _T("mail/") + folderPath;
+         if (part > 1)
+         {
+            String suffix;
+            suffix.Format(_T("-part%d"), part);
+            base += suffix;
+         }
+
+         AnsiString name = Utf8(base + _T(".mbox"));
+         AnsiString lowered = name;
+         std::transform(lowered.begin(), lowered.end(), lowered.begin(), ::tolower);
+
+         for (int number = 2; entries.find(lowered) != entries.end(); number++)
+         {
+            String candidate;
+            candidate.Format(_T("%s (%d).mbox"), base.c_str(), number);
+            name = Utf8(candidate);
+            lowered = name;
+            std::transform(lowered.begin(), lowered.end(), lowered.begin(), ::tolower);
+         }
+
+         entries.insert(lowered);
+
+         if (!zip.Add(name, mbox))
+         {
+            error = zip.Error();
+            return false;
+         }
+
+         return true;
+      }
+
       bool ExportFolders(std::shared_ptr<Account> account, std::shared_ptr<IMAPFolders> folders, const String &prefix,
-                         ZipWriter &zip, PersonExport::Summary &summary, String &error)
+                         ZipWriter &zip, std::set<AnsiString> &entries, PersonExport::Summary &summary, String &error)
       {
          if (!folders)
             return true;
@@ -158,6 +205,7 @@ namespace HM
 
                AnsiString mbox;
                int count = 0;
+               int part = 1;
 
                for (unsigned int j = 0; j < (unsigned int) messages->GetCount(); j++)
                {
@@ -178,24 +226,33 @@ namespace HM
                   if (from.IsEmpty())
                      from = "MAILER-DAEMON";
 
+                  // The part so far goes into the archive before this message
+                  // would take it past the ceiling; a single message larger
+                  // than the ceiling is a part of its own.
+                  if (!mbox.empty() && mbox.size() + bytes.size() > MaxMboxBytes)
+                  {
+                     if (!AddMbox(zip, entries, folderPath, part, mbox, error))
+                        return false;
+
+                     mbox = AnsiString();
+                     part++;
+                  }
+
                   PersonExport::AppendMbox(mbox, bytes, from, Utf8(message->GetCreateTime()));
                   count++;
                }
 
                if (count > 0)
                {
-                  if (!zip.Add(Utf8(_T("mail/") + folderPath + _T(".mbox")), mbox))
-                  {
-                     error = zip.Error();
+                  if (!AddMbox(zip, entries, folderPath, part, mbox, error))
                      return false;
-                  }
 
                   summary.messages += count;
                   summary.folders++;
                }
             }
 
-            if (!ExportFolders(account, folder->GetSubFolders(), folderPath, zip, summary, error))
+            if (!ExportFolders(account, folder->GetSubFolders(), folderPath, zip, entries, summary, error))
                return false;
          }
 
@@ -294,6 +351,78 @@ namespace HM
          return true;
       }
 
+      void RemoveAttribute(XNode *node, const String &name)
+      {
+         // A value an AccountStores row could not hold as an attribute is
+         // written under the column's name with ".base64" after it.
+         const String names[2] = { name, name + _T(".base64") };
+         for (const String &candidate : names)
+         {
+            LPXAttr attribute = node->GetAttr(candidate.c_str());
+            if (attribute)
+               node->RemoveAttr(attribute);
+         }
+      }
+
+      // What account.xml leaves out of the backup's form: the secrets that
+      // prove who someone is or unlock something elsewhere, which a backup
+      // must carry to be restored from and a person's copy of their data has
+      // no use for. The password's hash and its scheme, the authenticator's
+      // seed, each app password's and recovery code's hash, the hashes of the
+      // password history and of a file sent behind a password, the fetch
+      // accounts' passwords and OAuth tokens (sealed with a key built into
+      // every copy of the server, so anyone can open them), a browser's push
+      // secret, and the mailbox key of an account encrypted at rest, wrapped
+      // by the password: the mail itself is in the archive in the clear, so
+      // the key opens nothing the person needs and is only something to
+      // crack. The account's own OpenPGP and S/MIME keys stay: they are
+      // wrapped under secrets this server never had, and they are what reads
+      // the mail that was encrypted to them - the person's to take along.
+      void LeaveOutCredentials(XNode *node)
+      {
+         if (!node)
+            return;
+
+         if (node->name == _T("Account"))
+         {
+            RemoveAttribute(node, _T("Password"));
+            RemoveAttribute(node, _T("PasswordEncryption"));
+            RemoveAttribute(node, _T("TotpSecret"));
+         }
+         else if (node->name == _T("FetchAccount"))
+         {
+            RemoveAttribute(node, _T("Password"));
+            RemoveAttribute(node, _T("OAuthToken"));
+         }
+         else if (node->name == _T("AppPassword"))
+         {
+            RemoveAttribute(node, _T("Hash"));
+         }
+         else if (node->name == _T("Row") && node->parent && node->parent->name == _T("Store"))
+         {
+            static const struct { const TCHAR *table; const TCHAR *column; } secrets[] =
+            {
+               { _T("hm_passwordhistory"), _T("phhash") },
+               { _T("hm_recoverycodes"), _T("rkhash") },
+               { _T("hm_files"), _T("filepasswordhash") },
+               { _T("hm_pushsubscriptions"), _T("pskeyauth") },
+               { _T("hm_accountkeys"), _T("akpassword") },
+               { _T("hm_accountkeys"), _T("akrecovery") },
+               { _T("hm_accountkeys"), _T("akpending") },
+            };
+
+            const String table = node->parent->GetAttrValue(_T("Name"));
+            for (const auto &secret : secrets)
+            {
+               if (table.CompareNoCase(secret.table) == 0)
+                  RemoveAttribute(node, secret.column);
+            }
+         }
+
+         for (int i = 0; i < node->GetChildCount(); i++)
+            LeaveOutCredentials(node->GetChild((unsigned int) i));
+      }
+
       bool PreferencesAsJson(__int64 accountId, AnsiString &json)
       {
          SQLCommand command("select prefname, prefvalue from hm_accountprefs where prefaccountid = @ACCOUNTID order by prefname");
@@ -383,9 +512,11 @@ namespace HM
          std::string line;
          while (std::getline(in, line))
          {
+            // The address as a whole address: ann@example.com's export is not
+            // handed the lines of joann@example.com or ann@example.com.au.
             std::string lowered = line;
             std::transform(lowered.begin(), lowered.end(), lowered.begin(), ::tolower);
-            if (lowered.find(needle) == std::string::npos)
+            if (StringParser::FindWholeAddress(lowered, needle) == std::string::npos)
                continue;
 
             if (lines.size() + line.size() + fileName.GetLength() + 4 > cap)
@@ -427,7 +558,8 @@ namespace HM
       if (rootFolders)
          rootFolders->Refresh();
 
-      if (!ExportFolders(account, rootFolders, String(), zip, summary, error))
+      std::set<AnsiString> mboxEntries;
+      if (!ExportFolders(account, rootFolders, String(), zip, mboxEntries, summary, error))
          return false;
 
       // Everything the backup carries for the account, in the backup's own
@@ -441,6 +573,10 @@ namespace HM
          error = _T("The account's settings could not be written out.");
          return false;
       }
+
+      // Less the credentials: this is the person's data, not an archive to
+      // restore from (LeaveOutCredentials says which, and why).
+      LeaveOutCredentials(root);
 
       if (!zip.Add("account.xml", Utf8(document.GetXML())))
       {

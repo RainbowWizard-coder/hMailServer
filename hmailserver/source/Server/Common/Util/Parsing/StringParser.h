@@ -33,6 +33,19 @@ namespace HM
 
       static char* Search(const char *haystack, size_t haystackSize, const char *needle);
 
+      // Where an e-mail address occurs in text as a whole address, from from on,
+      // or std::string::npos. Both are compared as they are given - lower-case
+      // both first for a match without case. A match is whole when the byte
+      // before it could not be part of a local part (RFC 5322 atext, '.', or a
+      // UTF-8 byte) and the byte after it could not continue the domain (a
+      // letter, a digit, '-', a UTF-8 byte, or a '.' followed by one of those),
+      // so ann@example.com is not found inside joann@example.com nor
+      // ann@example.com.au, and is found in <ann@example.com> and at the end of a
+      // sentence. Three atext bytes the logs write in front of an address count
+      // as a boundary before it: '=', '/', and a quotation mark that opens a
+      // quotation ('ann@example.com', not o'ann@example.com).
+      static size_t FindWholeAddress(const std::string &text, const std::string &address, size_t from = 0);
+
       static String IntToString(int lTheInt);
       static String IntToString(unsigned int lTheInt);
       static String IntToString(__int64 lTheInt);

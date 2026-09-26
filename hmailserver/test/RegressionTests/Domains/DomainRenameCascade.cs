@@ -173,5 +173,39 @@ namespace RegressionTests.Domains
 
          Assert.AreEqual("Target@renamedestination.test", _domain.Aliases.get_ItemByName("sales@example.test").Value);
       }
+
+      /// <summary>
+      ///    The domain's Sieve tree is moved before its accounts are walked, and
+      ///    each account's rename then moved its own Sieve directory again - to a
+      ///    destination the tree's move had just made, which RenameDirectory_
+      ///    refuses. Against the unfixed server Save() throws "Can't rename ...
+      ///    since ... already exists" for a domain with any account that has a
+      ///    filter, after the mailboxes and the Sieve tree had moved and before the
+      ///    row took the new name.
+      /// </summary>
+      [Test]
+      [Description("A domain whose account has a Sieve script is renamed, and the script follows the account to the new name; the old rename failed half-way for every such domain.")]
+      public void ADomainWithASieveScriptIsRenamed()
+      {
+         var secondary = SingletonProvider<TestSetup>.Instance.AddDomain("renamesource.test");
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(secondary, "filtered@renamesource.test", "secret1");
+
+         const string script = "keep;";
+         account.SieveScript = script;
+         Assert.AreEqual(script, account.SieveScript, "The script is on disk before the rename.");
+
+         string dataDirectory = _settings.Directories.DataDirectory;
+         string oldSieveDirectory = System.IO.Path.Combine(dataDirectory, "Sieve", "renamesource.test", "filtered");
+         Assert.IsTrue(System.IO.Directory.Exists(oldSieveDirectory), "The script is where SieveStorage keeps it.");
+
+         secondary.Name = "renamedestination.test";
+         secondary.Save();
+
+         Assert.AreEqual("renamedestination.test", _application.Domains.get_ItemByDBID(secondary.ID).Name, "The row took the new name.");
+
+         var renamed = _application.Domains.get_ItemByName("renamedestination.test").Accounts.get_ItemByAddress("filtered@renamedestination.test");
+         Assert.AreEqual(script, renamed.SieveScript, "The filter followed the account.");
+         Assert.IsFalse(System.IO.Directory.Exists(oldSieveDirectory), "Nothing is left under the old name.");
+      }
    }
 }

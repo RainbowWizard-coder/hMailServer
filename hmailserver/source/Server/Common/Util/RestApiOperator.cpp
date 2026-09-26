@@ -30,6 +30,8 @@
 #include "../BO/Account.h"
 #include "../Persistence/PersistentAccount.h"
 
+#include <mutex>
+#include <set>
 #include <string>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -60,6 +62,53 @@ namespace HM
          Unicode::MultiByteToWide(AnsiString(member->AsString().c_str()), value);
          return value;
       }
+
+      // The archives being built for a download, by account. The HTTP server
+      // has four workers, which serve the webmail and the whole API as well,
+      // and building an archive holds one for as long as it takes to read and
+      // deflate the whole mailbox: one at a time for an account, and two at a
+      // time on the server, so that downloads can never take every worker.
+      const size_t MaxArchiveDownloadsAtOnce = 2;
+      std::mutex archiveDownloadsMutex;
+      std::set<__int64> archiveDownloads;
+
+      class ArchiveDownloadSlot
+      {
+      public:
+         enum Outcome { Taken, AccountBusy, ServerBusy };
+
+         explicit ArchiveDownloadSlot(__int64 accountId) :
+            account_id_(accountId),
+            outcome_(Taken)
+         {
+            std::lock_guard<std::mutex> guard(archiveDownloadsMutex);
+
+            if (archiveDownloads.find(accountId) != archiveDownloads.end())
+               outcome_ = AccountBusy;
+            else if (archiveDownloads.size() >= MaxArchiveDownloadsAtOnce)
+               outcome_ = ServerBusy;
+            else
+               archiveDownloads.insert(accountId);
+         }
+
+         ~ArchiveDownloadSlot()
+         {
+            if (outcome_ != Taken)
+               return;
+
+            std::lock_guard<std::mutex> guard(archiveDownloadsMutex);
+            archiveDownloads.erase(account_id_);
+         }
+
+         Outcome GetOutcome() const { return outcome_; }
+
+      private:
+         ArchiveDownloadSlot(const ArchiveDownloadSlot &);
+         ArchiveDownloadSlot &operator=(const ArchiveDownloadSlot &);
+
+         __int64 account_id_;
+         Outcome outcome_;
+      };
    }
 
    HttpResponse
@@ -128,11 +177,32 @@ namespace HM
 
    // The archive built into the temp directory, read, and removed: what the
    // Deck's link and the person's own page download. In memory once, which is
-   // why there is a ceiling; past it, the operator writes it to disk.
+   // why there is a ceiling; past it, the operator writes it to disk. Two
+   // things are refused before any work is done: a mailbox whose mail alone
+   // is past four times the ceiling - mail does not deflate that far as a
+   // rule, and building it would take a worker and the memory for nothing -
+   // and a second archive while one is being built for the same account, or
+   // while two are being built on the server (ArchiveDownloadSlot).
    HttpResponse
    RestApiServer::ArchiveDownload_(std::shared_ptr<Account> account)
    {
       const size_t Ceiling = 500 * 1024 * 1024;
+      const __int64 MailCeiling = 4 * (__int64) Ceiling;
+
+      ArchiveDownloadSlot slot(account->GetID());
+      if (slot.GetOutcome() == ArchiveDownloadSlot::AccountBusy)
+         return BuildResponse_(409, "{\"error\":\"An archive of this account is already being built. Wait for that download to finish.\"}");
+
+      if (slot.GetOutcome() == ArchiveDownloadSlot::ServerBusy)
+      {
+         HttpResponse busy = BuildResponse_(429, "{\"error\":\"The server is building as many archives as it builds at once. Try again in a minute.\"}");
+         busy.extra_headers += "Retry-After: 60\r\n";
+         return busy;
+      }
+
+      const __int64 mailBytes = PersistentAccount::GetMessageBoxSize(account->GetID());
+      if (mailBytes > MailCeiling)
+         return BuildResponse_(413, "{\"error\":\"The mail alone is past 2 GB, which as an archive would be larger than the 500 MB a download carries; an administrator can write it to the server's disk with POST /api/v1/accounts/{address}/export and archive.\"}");
 
       String temporary = IniFileSettings::Instance()->GetTempDirectory();
       if (temporary.IsEmpty())
@@ -216,6 +286,17 @@ namespace HM
    {
       if (!caller.account)
          return BuildResponse_(500, "{\"error\":\"internal error\"}");
+
+      // Everything the account holds, in one download, is not for a program's
+      // credential: an app password is what a phone's mail client keeps, it
+      // passes the second factor by design, and the archive is the whole
+      // account - the settings, the rules, the address book and every folder.
+      // As on the other self-service routes that act for the account holder.
+      {
+         HttpResponse refusal;
+         if (RefuseAppPasswordCaller_(caller, "downloading the account's export", refusal))
+            return refusal;
+      }
 
       // Read afresh rather than the session's const copy: the export walks the
       // folder tree and the stores through the account object.
@@ -327,8 +408,8 @@ namespace HM
    {
       static const char *paths =
          ",\"/api/v1/accounts/{address}/export.zip\":{\"get\":{\"summary\":\"Everything the server holds on the account, as one archive\","
-         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) and a manifest.json that counts what is there - what a person exercising article 20 is handed. Built in the temp directory and held in memory once, so an archive past 500 MB is refused with 413: write it to disk with the POST and archive instead. The administrator password's alone.\","
-         "\"responses\":{\"200\":{\"description\":\"The archive\"},\"404\":{\"description\":\"Unknown account\"},\"413\":{\"description\":\"Past 500 MB\"},\"500\":{\"description\":\"The archive could not be built\"}}}}"
+         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) less the credentials - no password hash or its scheme, authenticator seed, app password, recovery code, password-history or shared-file password hash, push subscription key or wrapped mailbox key, nor a fetch account's password or token - and a manifest.json that counts what is there: what a person exercising article 20 is handed. A folder past 256 MB is written as mbox parts. Built in the temp directory and held in memory once, so an archive past 500 MB, or mail past 2 GB before anything is built, is refused with 413: write it to disk with the POST and archive instead. One archive at a time for an account (409) and two on the server (429, Retry-After). A zero-access mailbox is refused with 403. The administrator password's alone.\","
+         "\"responses\":{\"200\":{\"description\":\"The archive\"},\"403\":{\"description\":\"A zero-access mailbox\"},\"404\":{\"description\":\"Unknown account\"},\"409\":{\"description\":\"An archive of this account is being built\"},\"413\":{\"description\":\"Past 500 MB, or mail past 2 GB\"},\"429\":{\"description\":\"Two archives are being built on the server\"},\"500\":{\"description\":\"The archive could not be built\"}}}}"
          ",\"/api/v1/accounts/{address}/export\":{\"post\":{\"summary\":\"Write the mailbox to a directory on the server's disk as .eml files, or everything held on the account to one .zip archive there\","
          "\"description\":\"Every message of the account, one .eml file per message named by its UID, in directories mirroring the folder tree under the directory named - what a person exercising a data-access right is handed, and what Account.ExportMessages does over COM. Stops on the first failure with 500 naming the file, so a partial export never reports success. The administrator password's alone: the directory is anywhere on the server's disk the service can write.\","
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"directory\":{\"type\":\"string\"},\"archive\":{\"type\":\"string\",\"description\":\"The path of the .zip to write on the server's disk; what GET /export.zip downloads, with no size ceiling. One of directory and archive.\"}}}}}},"

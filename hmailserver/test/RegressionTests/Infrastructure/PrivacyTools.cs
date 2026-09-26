@@ -208,5 +208,30 @@ namespace RegressionTests.Infrastructure
          ClassicAssert.AreEqual(0, second,
             "A second erasure of the same address must find nothing left to remove.");
       }
+
+      [Test]
+      [Description("Erasure finds an address whatever case it was written in: an alias and a list member typed in capitals go when the address is erased in lower case - on PostgreSQL too, which compares text by its bytes")]
+      public void ErasureFindsTheAddressInAnyCase()
+      {
+         const string written = "Erased-Case@Example.Test";
+         const string erased = "erased-case@example.test";
+
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, "case-alias@example.test", written);
+         SingletonProvider<TestSetup>.Instance.AddDistributionList(_domain, "case-list@example.test",
+            new List<string> {written});
+
+         int removed = SingletonProvider<TestSetup>.Instance.GetApp().Utilities.EraseAddressTraces(erased, false);
+         Assert.GreaterOrEqual(removed, 2, "The alias and the list membership, written in capitals, are both counted.");
+
+         _domain.Aliases.Refresh();
+         for (int i = 0; i < _domain.Aliases.Count; i++)
+            ClassicAssert.AreNotEqual("case-alias@example.test", _domain.Aliases[i].Name.ToLowerInvariant(), "The alias forwarding to the erased address is gone.");
+
+         var list = _domain.DistributionLists.get_ItemByAddress("case-list@example.test");
+         ClassicAssert.AreEqual(0, list.Recipients.Count, "The member written in capitals is off the list.");
+
+         ClassicAssert.AreEqual(0, SingletonProvider<TestSetup>.Instance.GetApp().Utilities.EraseAddressTraces(erased, false),
+            "A second erasure finds nothing: the count and the delete asked the same question.");
+      }
    }
 }

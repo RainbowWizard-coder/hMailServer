@@ -54,6 +54,8 @@
 //   domain_none_active       {0} domains, none of them active.
 //   domain_count             Active domains: {0} of {1}.
 //   sample_domain            {0} is the sample domain and is not counted here.
+//   domain_name_reserved     {0} has the name the server reserves for its own
+//                            directory {1}. (action)
 //   account_none             No account has been added in any domain.
 //   account_count            Accounts: {0}.
 //   submission_none          No port takes message submission.
@@ -172,6 +174,7 @@
 #include "../BO/SSLCertificates.h"
 #include "../BO/TCPIPPort.h"
 #include "../BO/TCPIPPorts.h"
+#include "../Persistence/PreSaveLimitationsCheck.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../SQL/SQLCommand.h"
@@ -251,6 +254,7 @@ namespace HM
             { "domain_none_active", "{0} domains, none of them active." },
             { "domain_count", "Active domains: {0} of {1}." },
             { "sample_domain", "{0} is the sample domain and is not counted here; remove it when you are done with it." },
+            { "domain_name_reserved", "{0} has the name the server reserves for its own directory {1}, and the domain's mail is kept in the directory named after it: the two share it, which a backup, a restore and the store's clean-up do not expect. Rename the domain; its mailboxes move and the store's files stay." },
             { "account_none", "No account has been added in any domain." },
             { "account_count", "Accounts: {0}." },
             { "submission_none", "No port takes message submission, so mail clients cannot send through this server." },
@@ -658,6 +662,18 @@ namespace HM
          Add(domainItem, StateActionNeeded, "domain_none_active", { Number(total) });
       else
          Add(domainItem, StateDone, "domain_count", { Number((long long) active.size()), Number(total) });
+
+      // A domain whose name is a directory the server keeps its own files in
+      // under the data directory (PreSaveLimitationsCheck::IsReservedDomainName):
+      // one made before such names were refused, or restored. The sample
+      // domain is example.test, which is never one.
+      // owned by this call: domains is a local collection loaded above
+      for (std::shared_ptr<Domain> domain : domains.GetVector())
+      {
+         String collidesWith;
+         if (domain && PreSaveLimitationsCheck::IsReservedDomainName(domain->GetName(), collidesWith))
+            Add(domainItem, StateActionNeeded, "domain_name_reserved", { Utf8(domain->GetName()), Utf8(collidesWith) });
+      }
 
       // Last, and not_needed, so that it says why the count is what it is
       // without being able to change the item's state.

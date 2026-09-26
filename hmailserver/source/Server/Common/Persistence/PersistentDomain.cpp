@@ -980,14 +980,36 @@ namespace HM
          const String oldDirectory = FileUtilities::Combine(dataDirectory, StoreDirectoryName(renamedFromDomainName));
          const String newDirectory = FileUtilities::Combine(dataDirectory, StoreDirectoryName(pDomain->GetName()));
 
-         unsigned int lateMoved = 0;
-         String lateProblem;
-         if (!MessageStoreObjects::SweepLateArrivals(oldDirectory, newDirectory, lateMoved, lateProblem))
+         // The directories swept: the domain's, or - when the old name is a
+         // directory the server keeps a store in (PreSaveLimitationsCheck::
+         // IsReservedDomainName), whose files are not the domain's to carry -
+         // each of its accounts' own, as NameChanger moved them.
+         std::vector<std::pair<String, String> > swept;
+         String collidesWith;
+         if (PreSaveLimitationsCheck::IsReservedDomainName(renamedFromDomainName, collidesWith))
          {
-            ErrorManager::Instance()->ReportError(ErrorManager::High, 7478, "PersistentDomain::SaveObject",
-               Formatter::Format(_T("The domain {0} was renamed to {1}, but mail delivered under the old name while the rename ran could not all be carried across: {2} ")
-                                 _T("Those messages are left under {3}, never under neither; they are listed for their mailboxes and cannot be read until they are moved into {4}."),
-                                 renamedFromDomainName, pDomain->GetName(), lateProblem, oldDirectory, newDirectory));
+            std::vector<std::shared_ptr<Account> > accounts = pDomain->GetAccounts()->GetSnapshot();
+            for (std::shared_ptr<Account> account : accounts)
+            {
+               const String mailbox = account ? StoreDirectoryName(StringParser::ExtractAddress(account->GetAddress())) : String();
+               if (!mailbox.IsEmpty())
+                  swept.push_back(std::make_pair(FileUtilities::Combine(oldDirectory, mailbox), FileUtilities::Combine(newDirectory, mailbox)));
+            }
+         }
+         else
+            swept.push_back(std::make_pair(oldDirectory, newDirectory));
+
+         for (const std::pair<String, String> &directories : swept)
+         {
+            unsigned int lateMoved = 0;
+            String lateProblem;
+            if (!MessageStoreObjects::SweepLateArrivals(directories.first, directories.second, lateMoved, lateProblem))
+            {
+               ErrorManager::Instance()->ReportError(ErrorManager::High, 7478, "PersistentDomain::SaveObject",
+                  Formatter::Format(_T("The domain {0} was renamed to {1}, but mail delivered under the old name while the rename ran could not all be carried across: {2} ")
+                                    _T("Those messages are left under {3}, never under neither; they are listed for their mailboxes and cannot be read until they are moved into {4}."),
+                                    renamedFromDomainName, pDomain->GetName(), lateProblem, directories.first, directories.second));
+            }
          }
       }
 

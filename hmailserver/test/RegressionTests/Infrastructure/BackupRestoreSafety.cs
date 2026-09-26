@@ -749,5 +749,67 @@ namespace RegressionTests.Infrastructure
 
          CustomAsserts.AssertNoReportedError();
       }
+
+      [Test]
+      [Description("The message-store backup leaves out the kept copies of messages that expire and the ciphertext of password-protected messages, as it leaves out the recoverable store: a copy made to be deleted at a time is not carried into an archive that outlives it.")]
+      public void TestTheBackupLeavesOutMessagesThatExpireAndPasswordProtectedMessages()
+      {
+         string dataDirectory = _settings.Directories.DataDirectory;
+         string[] stores = { "Confidential", "Protected" };
+         var created = new List<string>();
+
+         // A directory name that is not a number: the stores' own sweeps look
+         // only at numbered account directories, so nothing removes these while
+         // the test runs.
+         const string planted = "backup-exclusion-test";
+
+         try
+         {
+            foreach (string store in stores)
+            {
+               string root = Paths.Combine(dataDirectory, store);
+               if (!Directory.Exists(root))
+                  created.Add(root);
+
+               string directory = Paths.Combine(root, planted);
+               Directory.CreateDirectory(directory);
+               File.WriteAllText(Paths.Combine(directory, "kept.eml"), "Subject: to be deleted at a time\r\n\r\nNot for an archive.\r\n");
+            }
+
+            // Uncompressed: the staged DataBackup folder is the backup, and can be
+            // looked at as it is.
+            ConfigureBackup(true, true, true, false);
+            RunBackupAndWaitForSuccess();
+
+            string stagedStore = Paths.Combine(_backupDirectory, "DataBackup");
+            Assert.IsTrue(Directory.Exists(stagedStore), "An uncompressed backup should leave the message store in " + stagedStore + ".");
+            Assert.IsTrue(Directory.Exists(Paths.Combine(stagedStore, "example.test")), "The mailboxes are carried, or this test proves nothing.");
+
+            foreach (string store in stores)
+            {
+               Assert.IsFalse(Directory.Exists(Paths.Combine(stagedStore, store)),
+                  "The backup carried <data directory>\\" + store + ".");
+               Assert.IsTrue(File.Exists(Paths.Combine(dataDirectory, store, planted, "kept.eml")),
+                  "The backup left the live copy in <data directory>\\" + store + " where it was.");
+            }
+
+            CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            foreach (string store in stores)
+            {
+               string directory = Paths.Combine(dataDirectory, store, planted);
+               if (Directory.Exists(directory))
+                  Directory.Delete(directory, true);
+            }
+
+            foreach (string root in created)
+            {
+               if (Directory.Exists(root) && !Directory.EnumerateFileSystemEntries(root).Any())
+                  Directory.Delete(root);
+            }
+         }
+      }
    }
 }
