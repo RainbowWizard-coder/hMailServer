@@ -117,9 +117,23 @@ namespace HM
             freeaddrinfo(result);
          }
 
+         // Three seconds for the connection, each send and the one recv. Windows
+         // takes a millisecond count in a DWORD; POSIX takes a timeval and refuses
+         // a shorter option with EINVAL, which left every step unbounded on Linux:
+         // a collector that accepted and never answered held the exporter's worker,
+         // and the Stop that joins it, for good. Linux bounds a blocking connect by
+         // SO_SNDTIMEO too.
+#ifdef HM_PLATFORM_POSIX
+         struct timeval timeout;
+         timeout.tv_sec = 3;
+         timeout.tv_usec = 0;
+         setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+         setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+#else
          DWORD timeout = 3000;
          setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
          setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+#endif
 
          if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR)
             break;

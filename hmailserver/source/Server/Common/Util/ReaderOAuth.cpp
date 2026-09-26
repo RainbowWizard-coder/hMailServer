@@ -54,6 +54,11 @@ namespace HM
       const time_t PendingSeconds = 10 * 60;
       const size_t PendingMaximum = 1000;
 
+      // Unfinished sign-ins one account, or one migration job, keeps at once. A
+      // fourth drops its own oldest: someone starting sign-in after sign-in
+      // loses only their own unfinished ones, never anybody else's.
+      const size_t PendingPerOwner = 3;
+
       struct Pending
       {
          __int64 account_id = 0;
@@ -66,6 +71,7 @@ namespace HM
          bool mirror = false;
          int days_to_keep = -1;
          time_t created = 0;
+         unsigned __int64 order = 0;     // when it was admitted, among the others
       };
 
       struct CachedToken
@@ -76,6 +82,7 @@ namespace HM
 
       boost::mutex stateLock;
       std::map<AnsiString, Pending> pending;
+      unsigned __int64 pendingOrder = 0;
       std::map<__int64, CachedToken> tokens;
 
       void Expect(bool condition, const char *message)
@@ -184,6 +191,55 @@ namespace HM
                ++it;
          }
       }
+
+      bool SameOwner(const Pending &one, const Pending &other)
+      {
+         if (one.migration_job_id > 0 || other.migration_job_id > 0)
+            return one.migration_job_id == other.migration_job_id;
+         return one.account_id == other.account_id;
+      }
+
+      // Keeps entry under state, making room first. A table that refused when
+      // it was full let one reader, a thousand requests in under a minute,
+      // switch every other reader's import and every migration job's sign-in
+      // off for as long as they kept it up; so, as OidcSignIn::MakeRoomLocked
+      // does, the oldest goes instead - the owner's own oldest past
+      // PendingPerOwner, then the table's oldest past PendingMaximum.
+      void AdmitLocked(const AnsiString &state, Pending entry)
+      {
+         PruneLocked(entry.created);
+
+         for (;;)
+         {
+            size_t owned = 0;
+            auto oldest = pending.end();
+            for (auto it = pending.begin(); it != pending.end(); ++it)
+            {
+               if (!SameOwner(it->second, entry))
+                  continue;
+               owned++;
+               if (oldest == pending.end() || it->second.order < oldest->second.order)
+                  oldest = it;
+            }
+            if (owned < PendingPerOwner)
+               break;
+            pending.erase(oldest);
+         }
+
+         while (pending.size() >= PendingMaximum)
+         {
+            auto oldest = pending.begin();
+            for (auto it = pending.begin(); it != pending.end(); ++it)
+            {
+               if (it->second.order < oldest->second.order)
+                  oldest = it;
+            }
+            pending.erase(oldest);
+         }
+
+         entry.order = ++pendingOrder;
+         pending[state] = entry;
+      }
    }
 
    const ReaderOAuth::Provider *
@@ -247,13 +303,7 @@ namespace HM
 
          {
             boost::lock_guard<boost::mutex> guard(stateLock);
-            PruneLocked(entry.created);
-            if (pending.size() >= PendingMaximum)
-            {
-               problem = "too many sign-ins are waiting to finish; try again in a few minutes";
-               return false;
-            }
-            pending[state] = entry;
+            AdmitLocked(state, entry);
          }
 
          AnsiString authorize = Utf8(Setting(provider.authorize_url_property));
@@ -308,13 +358,7 @@ namespace HM
 
       {
          boost::lock_guard<boost::mutex> guard(stateLock);
-         PruneLocked(entry.created);
-         if (pending.size() >= PendingMaximum)
-         {
-            problem = "too many sign-ins are waiting to finish; try again in a few minutes";
-            return false;
-         }
-         pending[state] = entry;
+         AdmitLocked(state, entry);
       }
 
       AnsiString authorize = Utf8(Setting(provider.authorize_url_property));
@@ -675,5 +719,56 @@ namespace HM
       Expect(R::AddressOfIdToken("not-a-jwt").IsEmpty(), "A string that is not a JWT gives none.");
 
       Expect(R::Find("google") != nullptr && R::Find("microsoft") != nullptr && R::Find("yahoo") == nullptr, "The two providers, and no other.");
+
+      // OUT-5: the pending table makes room rather than refusing. Before, a
+      // full table answered "too many sign-ins are waiting" to everybody and
+      // one account could fill it; the old code kept all five of account 7's
+      // below and refused the stranger's entry at the end. Run on a table of
+      // its own, swapped in under the lock, so a sign-in in flight is kept.
+      {
+         boost::lock_guard<boost::mutex> guard(stateLock);
+         std::map<AnsiString, Pending> kept;
+         kept.swap(pending);
+
+         try
+         {
+            const time_t now = time(nullptr);
+            auto admit = [now](const char *state, __int64 accountId, __int64 jobId)
+            {
+               Pending entry;
+               entry.account_id = accountId;
+               entry.migration_job_id = jobId;
+               entry.created = now;
+               AdmitLocked(state, entry);
+            };
+
+            admit("a1", 7, 0); admit("a2", 7, 0); admit("a3", 7, 0); admit("a4", 7, 0); admit("a5", 7, 0);
+            Expect(pending.size() == 3 && pending.count("a3") && pending.count("a4") && pending.count("a5"),
+                   "One account keeps its three newest unfinished sign-ins.");
+
+            admit("j1", 0, 9); admit("j2", 0, 9); admit("j3", 0, 9); admit("j4", 0, 9);
+            admit("other", 8, 0);
+            Expect(pending.size() == 7 && !pending.count("j1") && pending.count("j4") && pending.count("a3") && pending.count("other"),
+                   "A migration job keeps three of its own, and neither it nor account 7 costs account 8 its sign-in.");
+
+            pending.clear();
+            for (int i = 0; i < (int) PendingMaximum; i++)
+            {
+               AnsiString state;
+               state.Format("fill-%d", i);
+               admit(state.c_str(), 1000 + i, 0);
+            }
+            admit("stranger", 5, 0);
+            Expect(pending.size() == PendingMaximum && pending.count("stranger") && !pending.count("fill-0") && pending.count("fill-1"),
+                   "A full table drops its oldest for a new sign-in rather than refusing it.");
+         }
+         catch (...)
+         {
+            pending.swap(kept);
+            throw;
+         }
+
+         pending.swap(kept);
+      }
    }
 }

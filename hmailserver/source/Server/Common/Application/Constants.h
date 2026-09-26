@@ -580,6 +580,13 @@
 #define PROPERTY_WEB_PUSH_MAX_ATTEMPTS          _T("WebPushMaxAttempts")
 #define PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY      _T("WebPushVapidPublicKey")
 #define PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY     _T("WebPushVapidPrivateKey")
+// For the regression suite alone, off by default: whether a push endpoint may be
+// plain http to this machine's loopback (PushSubscriptions::IsLoopbackHttp),
+// taken from a request made on this machine and sent with HttpsClient::Request.
+// Off, every endpoint is https and every push goes out with RequestPublic, which
+// reaches no address inside the network - so a reverse proxy on this machine
+// that adds no forwarding header cannot make a reader's endpoint a local port.
+#define PROPERTY_WEB_PUSH_LOOPBACK_HTTP         _T("WebPushLoopbackHttpForTests")
 // Complaints, read: the feedback loops (SMTP/ComplaintTracker.h).
 #define PROPERTY_COMPLAINT_PROCESSING_ENABLED   _T("ComplaintProcessingEnabled")
 #define PROPERTY_COMPLAINT_MAILBOX              _T("ComplaintMailbox")
@@ -1203,4 +1210,15 @@
 //      step: the server seals the secrets still stored as generated at its start
 //      (PersistentAccount::ProtectStoredTotpSecrets), and reads either kind.
 //      (6099 to 6102 are other rows' steps, folded before this one.)
-#define REQUIRED_DB_VERSION            6103
+// 6104 adds hm_fetchaccounts.faorigin (BO/FetchAccount.h,
+//      ExternalFetcher/ExternalFetch.cpp): whose word the server and the
+//      username are. 1 for a fetch account a reader made in the webmail, or
+//      moved to another server or port there: the fetcher connects it only to
+//      the public addresses its name resolves to at that moment, unless
+//      ReaderFetchPrivateHosts is on. 2 for one whose server or username was
+//      named by somebody without the server's authority - a domain
+//      administrator, a key restricted to named domains, a reader who changed
+//      only the username. Neither 1 nor 2 is ever given this server's own
+//      OAuth2 token. Every row the step finds gets 0, so an administrator's
+//      fetch account behaves as it did.
+#define REQUIRED_DB_VERSION            6104

@@ -31,7 +31,8 @@ namespace HM
       use_anti_virus_(false),
       enable_route_recipients_(false),
       mirror_folders_(false),
-      connection_security_(CSNone)      
+      origin_(OriginServerAdministrator),
+      connection_security_(CSNone)
    {
  
    }
@@ -39,6 +40,35 @@ namespace HM
    FetchAccount::~FetchAccount(void)
    {
 
+   }
+
+   FetchAccount::Origin
+   FetchAccount::OriginFromNumber(long value)
+   {
+      switch (value)
+      {
+      case OriginServerAdministrator:
+         return OriginServerAdministrator;
+      case OriginWithoutServerAuthority:
+         return OriginWithoutServerAuthority;
+      default:
+         // 1, or a value this build does not know: the strictest.
+         return OriginReader;
+      }
+   }
+
+   bool
+   FetchAccount::CredentialsAreOneLine() const
+   {
+      for (const String *value : { &username_, &password_ })
+      {
+         if (value->FindOneOf(_T("\r\n")) != -1)
+            return false;
+         if ((size_t) value->GetLength() != wcslen(value->c_str()))
+            return false;
+      }
+
+      return true;
    }
 
    std::shared_ptr<FetchAccountUIDs>
@@ -82,6 +112,7 @@ namespace HM
       pNode->AppendAttr(_T("OAuthToken"), oauth_token_.IsEmpty() ? String() : Crypt::Instance()->EnCrypt(oauth_token_, Crypt::ETBlowFish));
       pNode->AppendAttr(_T("MirrorSkip"), mirror_skip_);
       pNode->AppendAttr(_T("MirrorSeen"), mirror_seen_);
+      pNode->AppendAttr(_T("Origin"), StringParser::IntToString((int) origin_));
       pNode->AppendAttr(_T("ConnectionSecurity"), StringParser::IntToString(connection_security_));
 
       if (!GetUIDs()->XMLStore(pNode, iOptions))
@@ -114,6 +145,9 @@ namespace HM
       oauth_token_ = protectedToken.IsEmpty() ? String() : Crypt::Instance()->DeCrypt(protectedToken, Crypt::ETBlowFish);
       mirror_skip_ = pNode->GetAttrValue(_T("MirrorSkip"));
       mirror_seen_ = pNode->GetAttrValue(_T("MirrorSeen"));
+      // An archive written before 6104 has no such attribute: the account is
+      // restored as it was judged then, an administrator's.
+      origin_ = OriginFromNumber(_ttoi(pNode->GetAttrValue(_T("Origin"))));
 
       // Backwards compatibiltiy
       if (pNode->GetAttrValue(_T("UseSSL")) == _T("1"))

@@ -10,6 +10,7 @@
 #include "../Application/IniFileSettings.h"
 #include "../TCPIP/CertificateVerifier.h"
 #include "Charset.h"
+#include "Parsing/StringParser.h"
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -42,6 +43,25 @@ namespace HM
 
    OutboundOAuth2TokenClient::OutboundOAuth2TokenClient()
    {
+   }
+
+   bool
+   OutboundOAuth2TokenClient::IsFetchHost(const String &serverAddress)
+   {
+      String address = serverAddress;
+      address.Trim();
+      if (address.IsEmpty())
+         return false;
+
+      std::vector<String> hosts = StringParser::SplitString(IniFileSettings::Instance()->GetFetchOAuth2Hosts(), ",");
+      for (String host : hosts)
+      {
+         host.Trim();
+         if (!host.IsEmpty() && host.CompareNoCase(address) == 0)
+            return true;
+      }
+
+      return false;
    }
 
    void

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 using hMailServer;
 
@@ -36,7 +37,7 @@ namespace RegressionTests.SMTP
          IniFileSetting.Write(key, value);
       }
 
-      private Route AddAuthedRoute(int port)
+      private Route AddAuthedRoute(int port, eConnectionSecurity security = eConnectionSecurity.eCSNone)
       {
          var route = _settings.Routes.Add();
          route.DomainName = "oauth-relay.test";
@@ -47,12 +48,13 @@ namespace RegressionTests.SMTP
          route.RelayerRequiresAuth = true;
          route.RelayerAuthUsername = "relay-account@example.test";
          route.SetRelayerAuthPassword("basic-password");
+         route.ConnectionSecurity = security;
          route.Save();
          return route;
       }
 
       [Test]
-      [Description("A destination on the OAuth host list gets AUTH XOAUTH2 with the exact Microsoft blob.")]
+      [Description("A destination on the OAuth host list gets AUTH XOAUTH2 with the exact Microsoft blob, over STARTTLS.")]
       public void TheConfiguredHostGetsTheBearerBlob()
       {
          WriteSetting("OutboundOAuth2Hosts", "localhost");
@@ -62,11 +64,11 @@ namespace RegressionTests.SMTP
          try
          {
             var smtpServerPort = TestSetup.GetNextFreePort();
-            AddAuthedRoute(smtpServerPort);
+            AddAuthedRoute(smtpServerPort, eConnectionSecurity.eCSSTARTTLSRequired);
 
             var deliveryResults = new Dictionary<string, int> { ["dummy@oauth-relay.test"] = 250 };
 
-            using (var server = new SmtpServerSimulator(1, smtpServerPort))
+            using (var server = new SmtpServerSimulator(1, smtpServerPort, eConnectionSecurity.eCSSTARTTLSRequired))
             {
                server.AddRecipientResult(deliveryResults);
                server.StartListen();
@@ -86,6 +88,61 @@ namespace RegressionTests.SMTP
                Assert.IsTrue(server.MessageData.Contains("OAuth relay"),
                   "The message did not deliver after the bearer login succeeded.");
             }
+         }
+         finally
+         {
+            WriteSetting("OutboundOAuth2Hosts", "smtp.office365.com");
+            WriteSetting("OutboundOAuth2FixedToken", "");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    The bearer token is this server's own client_credentials token, which
+      ///    sends as every mailbox the app registration was granted, so it goes
+      ///    over TLS only, as the fetchers' does. Before the fix a route on the list
+      ///    with connection security none sent AUTH XOAUTH2 - the token in base64 -
+      ///    in the clear, and this test's first assertion failed; now nothing is
+      ///    sent in its place, the message waits, and the error log says why.
+      /// </summary>
+      [Test]
+      [Description("A route on the OAuth host list without TLS never sends the bearer token, nor falls back to the password.")]
+      public void TheBearerTokenIsNeverSentInTheClear()
+      {
+         WriteSetting("OutboundOAuth2Hosts", "localhost");
+         WriteSetting("OutboundOAuth2FixedToken", "test-bearer-token-12345");
+         _application.Reinitialize();
+
+         try
+         {
+            var smtpServerPort = TestSetup.GetNextFreePort();
+            AddAuthedRoute(smtpServerPort);
+
+            // A local sender, so that the route's one try ends in a bounce that is
+            // read here rather than left in the queue.
+            var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "oauth-clear@" + _domain.Name, "test");
+
+            var deliveryResults = new Dictionary<string, int> { ["dummy@oauth-relay.test"] = 250 };
+
+            using (var server = new SmtpServerSimulator(1, smtpServerPort))
+            {
+               server.AddRecipientResult(deliveryResults);
+               server.StartListen();
+
+               SmtpClientSimulator.StaticSend(sender.Address, "dummy@oauth-relay.test", "Clear relay", "Body");
+
+               server.WaitForCompletion();
+
+               Assert.IsEmpty(server.XOAuth2Blob,
+                  "The server's bearer token went to a relay over a connection without TLS.");
+               Assert.IsFalse((server.MessageData ?? "").Contains("Clear relay"),
+                  "The message was delivered although the only login this route may use could not be sent.");
+            }
+
+            CustomAsserts.AssertReportedError("over TLS only");
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0, true);
+            StringAssert.Contains("sent over TLS only", Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"),
+               "The bounce does not say why the message was not relayed.");
          }
          finally
          {

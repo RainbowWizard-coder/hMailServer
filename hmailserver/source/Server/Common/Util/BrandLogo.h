@@ -50,6 +50,13 @@ namespace HM
       // The logo of a domain, or why there is none. reason is one sentence.
       static Outcome Lookup(const String &domain, AnsiString &svg, AnsiString &reason);
 
+      // The answer Lookup gives without asking anybody - a name that is not a
+      // domain, the feature switched off, or an answer kept from the last day -
+      // and true; false when Lookup would ask the DNS and the logo's host, which
+      // is what a REST worker has to be admitted for (RestApiServer's
+      // ReachingOut_).
+      static bool Known(const String &domain, Outcome &outcome, AnsiString &svg, AnsiString &reason);
+
       // The word an outcome is reported by: found, bad_domain, switched_off,
       // no_record, declined, weak_policy, not_https, fetch_failed, not_tiny_ps.
       static const char *Word(Outcome outcome);
@@ -63,6 +70,16 @@ namespace HM
       static bool ParseRecord(const AnsiString &record, AnsiString &location, AnsiString &authority);
       static bool IsTinyPs(const AnsiString &svg, AnsiString &reason);
       static bool PolicyEnforces(const String &p, const String &sp, int pct, bool atOrganizationalDomain);
+
+      // A logo host that did not answer within its deadline is held against the
+      // whole organizational domain (DMARC::GetOrganizationalDomain, the Public
+      // Suffix List) for an hour, not only the name asked: whoever owns
+      // attacker.example has a new subdomain for every request, each publishing
+      // a logo at a host that never answers, and each would otherwise hold a
+      // REST worker for the fetch's ten seconds. Known answers FetchFailed for
+      // every name under a held domain without asking anybody.
+      static void NoteUnreachable(const String &domain);
+      static bool OrganizationUnreachable(const String &domain);
 
       // Forgets every answer: a test that changes the zone asks again.
       static void ClearCache();

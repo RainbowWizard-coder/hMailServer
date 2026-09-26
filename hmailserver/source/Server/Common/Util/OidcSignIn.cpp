@@ -84,6 +84,22 @@ namespace HM
       std::map<AnsiString, Ticket> tickets;
       unsigned __int64 nextOrder = 1;
 
+      // The sign-in's own signing-key cache, apart from the one the token
+      // validator uses (JwksKeySet::Instance(), OAuth2JwksUrl). One JwksKeySet
+      // holds one URL, and a GetKey for another drops its keys and its failure
+      // hold: shared, a server using both would fetch again on every switch
+      // between an id_token and a bearer token - synchronously, under the
+      // set's lock, which every token check waits on - and, with the identity
+      // provider down, would try it again on each switch rather than holding
+      // off for FailureHoldSeconds.
+      JwksKeySet &SigningKeys()
+      {
+         // Never destroyed, as the Singleton one is not: the keys it holds are
+         // OpenSSL's, and no exit-time destructor frees them after OpenSSL has gone.
+         static JwksKeySet *keys = new JwksKeySet();
+         return *keys;
+      }
+
       AnsiString Utf8(const String &text)
       {
          AnsiString bytes;
@@ -312,7 +328,7 @@ namespace HM
 
          EVP_PKEY *key = nullptr;
          AnsiString keyError;
-         if (!JwksKeySet::Instance()->GetKey(provider.jwks, JwksCacheSeconds, kid, keyType, &key, keyError) || key == nullptr)
+         if (!SigningKeys().GetKey(provider.jwks, JwksCacheSeconds, kid, keyType, &key, keyError) || key == nullptr)
          {
             problem = "the identity provider's signing key could not be read: " + keyError;
             return false;
@@ -800,5 +816,6 @@ namespace HM
       discovery = Discovery();
       pending.clear();
       tickets.clear();
+      SigningKeys().Clear();
    }
 }

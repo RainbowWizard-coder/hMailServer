@@ -895,6 +895,17 @@ namespace HM
    }
 
    bool
+   HttpsClient::AddressIsPublic(const AnsiString &address)
+   {
+      boost::system::error_code ec;
+      const boost::asio::ip::address parsed = boost::asio::ip::make_address(std::string(address.c_str()), ec);
+      if (ec)
+         return false;
+
+      return IsPublicAddress(parsed);
+   }
+
+   bool
    HttpsClient::RequestPublic(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                               const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                               int timeout_seconds, size_t max_response_bytes, bool keep_head_of_long_answer)

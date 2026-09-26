@@ -47,6 +47,13 @@ namespace HM
 
       String GetPassword() const {return password_; }
       void SetPassword(const String &Value) {password_ = Value; }
+
+      // True when the username and the password are one line each, with no NUL:
+      // both go into a command line to the remote server (POP3 USER and PASS,
+      // IMAP LOGIN), where a CR or LF would end the command and start another
+      // of whoever set them. Every place that saves one asks it, and the
+      // fetchers ask it again before sending, for a row saved before.
+      bool CredentialsAreOneLine() const;
       
       int GetMinutesBetweenTry() const {return minutes_; }
       void SetMinutesBetweenTry(int iMinutes) {minutes_ = iMinutes; }
@@ -108,6 +115,47 @@ namespace HM
       String GetMirrorSeen() const {return mirror_seen_; }
       void SetMirrorSeen(const String &value) {mirror_seen_ = value; }
 
+      // Whose word the server and the username are (hm_fetchaccounts.faorigin,
+      // schema 6104; RestApiFetchAccounts.cpp and InterfaceFetchAccount::Save
+      // set it):
+      //
+      //   OriginServerAdministrator - a server administrator's, or a row saved
+      //      before 6104. As it always was.
+      //   OriginReader - a reader made it in the webmail, or moved it to another
+      //      server or port there. ExternalFetch connects only to the public
+      //      addresses the name resolves to when it connects, unless
+      //      ReaderFetchPrivateHosts is on, and the fetchers never give it this
+      //      server's own OAuth2 token.
+      //   OriginWithoutServerAuthority - somebody without the server's authority
+      //      named its server or its username: a domain administrator over COM,
+      //      a key restricted to named domains, or a reader who changed only the
+      //      username of an administrator's account. The fetchers never give it
+      //      this server's own OAuth2 token, which reaches every mailbox the app
+      //      registration was granted, as whatever username the account names;
+      //      where it connects is not judged, as an administrator's is not.
+      //
+      // Never lowered: nothing but deleting the account and making it again
+      // gives it back to a server administrator. An unknown stored value reads
+      // as OriginReader, the strictest.
+      enum Origin
+      {
+         OriginServerAdministrator = 0,
+         OriginReader = 1,
+         OriginWithoutServerAuthority = 2
+      };
+
+      Origin GetOrigin() const {return origin_; }
+      void SetOrigin(Origin value) {origin_ = value; }
+      static Origin OriginFromNumber(long value);
+      bool GetReaderCreated() const {return origin_ == OriginReader; }
+      bool GetServerTokenWithheld() const {return origin_ != OriginServerAdministrator; }
+      void MarkReaderCreated() {origin_ = OriginReader; }
+      void MarkWithoutServerAuthority() { if (origin_ == OriginServerAdministrator) origin_ = OriginWithoutServerAuthority; }
+      // The stricter of this copy's origin and the one stored: a COM object read
+      // before a reader moved the account does not take the mark away when it is
+      // saved (InterfaceFetchAccount::Save).
+      void KeepStricterOrigin(Origin stored) { if (stored == OriginReader) origin_ = OriginReader; else if (stored == OriginWithoutServerAuthority) MarkWithoutServerAuthority(); }
+
       bool XMLStore(XNode *pFetchAccountsNode, int iOptions);
       bool XMLLoad(XNode *pNode, int iOptions);
       bool XMLLoadSubItems(XNode *pNode, int iOptions);
@@ -141,6 +189,7 @@ namespace HM
       String oauth_token_;
       String mirror_skip_;
       String mirror_seen_;
+      Origin origin_;
       ConnectionSecurity connection_security_;
    };
 }

@@ -75,6 +75,49 @@ namespace HM
 #endif
       }
 
+      // How long one step of a stream transport may take: the connection, the
+      // TLS handshake, one entry written.
+      const int StreamStepSeconds = 10;
+
+      // Runs one asynchronous operation on the connection's own io_context and
+      // gives it seconds to finish; past that the socket is closed, which ends
+      // the operation, and its handler is run before this returns, so nothing
+      // it refers to outlives the call. start is given the completion handler
+      // to pass to the operation.
+      //
+      // Not the socket deadlines above: on POSIX, Asio's synchronous send and
+      // receive take the EAGAIN that SO_SNDTIMEO and SO_RCVTIMEO produce for a
+      // would-block and poll again with no timeout, so a collector that stopped
+      // reading, or a plain-TCP port answering a TLS ClientHello with silence,
+      // held the worker for good - and Stop, which joins it, with it. Windows
+      // failed the operation instead, which is why that was never seen there.
+      template <typename Start>
+      bool WithinDeadline_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, int seconds, Start start)
+      {
+         bool finished = false;
+         boost::system::error_code outcome;
+
+         start([&finished, &outcome](const boost::system::error_code &error, auto &&...)
+         {
+            outcome = error;
+            finished = true;
+         });
+
+         io.restart();
+         io.run_for(std::chrono::seconds(seconds));
+
+         if (!finished)
+         {
+            boost::system::error_code ignored;
+            socket.close(ignored);
+            io.restart();
+            io.run();
+            return false;
+         }
+
+         return !outcome;
+      }
+
       // The Logger's wide message as the UTF-8 bytes RFC 5424 asks for. A
       // conversion that fails leaves the entry with an empty body rather than
       // with mojibake, and empties are visible in the collector.
@@ -661,10 +704,20 @@ namespace HM
 
       try
       {
-         if (connection_->tls)
-            boost::asio::write(*connection_->tls, boost::asio::buffer(framed.c_str(), framed.GetLength()));
-         else
-            boost::asio::write(connection_->tcp, boost::asio::buffer(framed.c_str(), framed.GetLength()));
+         const boost::asio::const_buffer bytes = boost::asio::buffer(framed.c_str(), framed.GetLength());
+         Connection &connection = *connection_;
+
+         const bool written = connection.tls
+            ? WithinDeadline_(connection.io, connection.tls->next_layer(), StreamStepSeconds,
+                 [&connection, &bytes](auto handler) { boost::asio::async_write(*connection.tls, bytes, handler); })
+            : WithinDeadline_(connection.io, connection.tcp, StreamStepSeconds,
+                 [&connection, &bytes](auto handler) { boost::asio::async_write(connection.tcp, bytes, handler); });
+
+         if (!written)
+         {
+            CloseStream_();
+            return false;
+         }
 
          return true;
       }
@@ -704,8 +757,13 @@ namespace HM
             connection_->tls.reset(new boost::asio::ssl::stream<boost::asio::ip::tcp::socket>(
                connection_->io, *connection_->ssl_context));
 
-            boost::asio::connect(connection_->tls->next_layer(), endpoints);
-            SetSocketDeadline_(connection_->tls->next_layer().native_handle(), 10);
+            Connection &connection = *connection_;
+            if (!WithinDeadline_(connection.io, connection.tls->next_layer(), StreamStepSeconds,
+                   [&connection, &endpoints](auto handler) { boost::asio::async_connect(connection.tls->next_layer(), endpoints, handler); }))
+            {
+               CloseStream_();
+               return false;
+            }
 
             // The server's own verification, the same object the outbound mail
             // path and the HTTPS clients use: the chain against the machine's
@@ -721,19 +779,29 @@ namespace HM
                return false;
             }
 
-            connection_->tls->handshake(boost::asio::ssl::stream_base::client);
+            if (!WithinDeadline_(connection.io, connection.tls->next_layer(), StreamStepSeconds,
+                   [&connection](auto handler) { connection.tls->async_handshake(boost::asio::ssl::stream_base::client, handler); }))
+            {
+               CloseStream_();
+               return false;
+            }
          }
          else
          {
-            // A blocking connect, on the worker thread, exactly as HttpsClient and
-            // OtelExportChannel do theirs. It is bounded by the operating system
-            // rather than by us - a refused port answers at once, a host that drops
-            // the SYN takes the stack's own timeout, about twenty seconds - and the
-            // back-off above means it is attempted once per window rather than once
-            // per entry. Nothing waits on it but this thread: no message is delayed,
-            // and a shutdown never starts a new one (allow_connect is false then).
-            boost::asio::connect(connection_->tcp, endpoints);
-            SetSocketDeadline_(connection_->tcp.native_handle(), 10);
+            // On the worker thread, with a deadline of our own: a refused port
+            // answers at once, and a host that drops the SYN is given up on at
+            // StreamStepSeconds rather than at the stack's own timeout, which is
+            // two minutes on Linux. The back-off above means it is attempted once
+            // per window rather than once per entry. Nothing waits on it but this
+            // thread: no message is delayed, and a shutdown never starts a new one
+            // (allow_connect is false then).
+            Connection &connection = *connection_;
+            if (!WithinDeadline_(connection.io, connection.tcp, StreamStepSeconds,
+                   [&connection, &endpoints](auto handler) { boost::asio::async_connect(connection.tcp, endpoints, handler); }))
+            {
+               CloseStream_();
+               return false;
+            }
          }
 
          connection_->connected = true;

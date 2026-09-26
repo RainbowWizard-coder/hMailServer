@@ -17,6 +17,11 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
+#include "../AntiSpam/DMARC/DMARC.h"
+
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/lock_guard.hpp>
+#include <map>
 
 #include <ctime>
 #include <string>
@@ -596,6 +601,60 @@ namespace HM
       return true;
    }
 
+   namespace
+   {
+      // Organizational domains whose key directory did not answer, and when.
+      const time_t UnreachableSeconds = 60 * 60;
+      const time_t SlowSeconds = 3;
+      const size_t UnreachableKept = 2000;
+      boost::mutex unreachableLock;
+      std::map<String, time_t> unreachableDirectories;
+
+      String OrganizationOf(const String &domain)
+      {
+         String lowered = domain;
+         lowered.Trim();
+         lowered.MakeLower();
+         while (lowered.EndsWith(_T(".")))
+            lowered = lowered.Mid(0, lowered.GetLength() - 1);
+         if (lowered.IsEmpty())
+            return String();
+         return DMARC::GetOrganizationalDomain(lowered);
+      }
+   }
+
+   void
+   OpenPgpRing::NoteDirectoryUnreachable(const String &domain)
+   {
+      const String organizational = OrganizationOf(domain);
+      if (organizational.IsEmpty())
+         return;
+
+      boost::lock_guard<boost::mutex> guard(unreachableLock);
+      if (unreachableDirectories.size() >= UnreachableKept)
+         unreachableDirectories.clear();
+      unreachableDirectories[organizational] = time(nullptr);
+   }
+
+   bool
+   OpenPgpRing::DirectoryUnreachable(const String &domain)
+   {
+      const String organizational = OrganizationOf(domain);
+      if (organizational.IsEmpty())
+         return false;
+
+      boost::lock_guard<boost::mutex> guard(unreachableLock);
+      std::map<String, time_t>::const_iterator held = unreachableDirectories.find(organizational);
+      return held != unreachableDirectories.end() && time(nullptr) - held->second < UnreachableSeconds;
+   }
+
+   void
+   OpenPgpRing::ForgetUnreachable()
+   {
+      boost::lock_guard<boost::mutex> guard(unreachableLock);
+      unreachableDirectories.clear();
+   }
+
    OpenPgpRing::Found
    OpenPgpRing::Lookup(const String &address)
    {
@@ -617,8 +676,16 @@ namespace HM
          return found;
       }
 
-      if (Configuration::Instance()->GetOpenPGPLookupWkd())
+      if (Configuration::Instance()->GetOpenPGPLookupWkd() && DirectoryUnreachable(domain))
       {
+         // Held (NoteDirectoryUnreachable): the directory is not asked, and the
+         // keyserver, if it is on, still is.
+         found.error = _T("the key directory of that domain's organization did not answer within the last hour");
+      }
+      else if (Configuration::Instance()->GetOpenPGPLookupWkd())
+      {
+         const time_t directoryAsked = time(nullptr);
+         bool anyAnswer = false;
          const AnsiString urls[2] =
          {
             OpenPgpKeyStore::DirectoryUrl(address, true),
@@ -633,13 +700,19 @@ namespace HM
 
             if (remaining() <= 0)
             {
+               // The directory's first leg took the whole deadline without an
+               // answer: the tarpit NoteDirectoryUnreachable is for.
+               if (!anyAnswer && time(nullptr) - directoryAsked >= SlowSeconds)
+                  NoteDirectoryUnreachable(domain);
                found.error = _T("the lookup ran out of time");
                return found;
             }
             AnsiString body;
             int status = 0;
             String error;
-            if (!Fetch(urls[i], true, remaining(), body, status, error))
+            const bool fetched = Fetch(urls[i], true, remaining(), body, status, error);
+            anyAnswer = anyAnswer || fetched || status > 0;
+            if (!fetched)
             {
                found.status = status;
                // A directory that has no key answers 404, and a domain that has
@@ -668,6 +741,12 @@ namespace HM
             found.status = status;
             return found;
          }
+
+         // Neither leg answered at all, and that took a while: held against the
+         // organization. A quick refusal - a name with no such host, a port
+         // closed - costs nothing and is not held.
+         if (!anyAnswer && time(nullptr) - directoryAsked >= SlowSeconds)
+            NoteDirectoryUnreachable(domain);
       }
 
       if (Configuration::Instance()->GetOpenPGPLookupKeyserver())

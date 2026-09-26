@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using hMailServer;
 using RegressionTests.Shared;
+using RegressionTests.SSL;
 
 namespace RegressionTests.ExternalAccounts
 {
@@ -180,6 +181,21 @@ namespace RegressionTests.ExternalAccounts
       ///    LOGIN refuses it.
       /// </summary>
       public bool AcceptXOAuth2 { get; set; }
+
+      /// <summary>
+      ///    TLS from the first byte, with the suite's certificate: the fetcher sends a
+      ///    bearer token over TLS only, so a test that expects AUTHENTICATE XOAUTH2 turns
+      ///    this on and sets the account's connection security to tls.
+      /// </summary>
+      public bool ImplicitTls
+      {
+         get { return _connectionSecurity == eConnectionSecurity.eCSTLS; }
+         set
+         {
+            _connectionSecurity = value ? eConnectionSecurity.eCSTLS : eConnectionSecurity.eCSNone;
+            SetCertificate(value ? SslSetup.GetCertificate() : null);
+         }
+      }
 
       /// <summary>The XOAUTH2 initial response as it arrived, base64.</summary>
       public string XOAuth2Blob { get; private set; }

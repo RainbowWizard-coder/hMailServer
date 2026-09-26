@@ -222,13 +222,44 @@ namespace HM
       // the POP3 fetcher's - the Microsoft 365 cutover applies to IMAP just the
       // same. Sent as an initial response (RFC 4959 SASL-IR); a server that answers
       // with a continuation is telling us the token was refused.
-      String fetchHosts = IniFileSettings::Instance()->GetFetchOAuth2Hosts();
       String serverAddress = account_->GetServerAddress();
+
+      // LOGIN is a command line, and a quoted string cannot hold a CR or LF: one
+      // would end the command and send what follows as another.
+      if (!account_->CredentialsAreOneLine())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5906, "IMAPClientConnection::SendLogin_",
+            Formatter::Format("External account {0}: its username or password holds a CR, LF or NUL, and is not sent", account_->GetName()));
+         QuitNow_();
+         return;
+      }
+
+      const bool readerGrant = !account_->GetOAuthProvider().IsEmpty();
+      // Never for an account whose server or username somebody without the
+      // server's authority named - a reader, a domain administrator, a key
+      // restricted to named domains (FetchAccount::GetServerTokenWithheld): the
+      // server's token reaches every mailbox the registration was granted, as
+      // whatever username the account names. The save refuses them such a host;
+      // this holds for one an administrator adds to the list afterwards. Such an
+      // account logs in with its own password.
+      const bool serverToken = !readerGrant && !account_->GetServerTokenWithheld() && OutboundOAuth2TokenClient::IsFetchHost(serverAddress);
+
+      // A bearer token goes over TLS only. connection_security none, or
+      // STARTTLS optional against a server that did not offer it, would put
+      // the token - the reader's grant, or this server's own, which reaches
+      // every mailbox the registration was granted - on the wire in the clear.
+      if ((readerGrant || serverToken) && !IsSSLConnection())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, readerGrant ? 5908 : 5906, "IMAPClientConnection::SendLogin_",
+            Formatter::Format("External account {0}: an OAuth2 token is sent to {1} over TLS only; set its connection security to tls or starttls_required", account_->GetName(), serverAddress));
+         QuitNow_();
+         return;
+      }
 
       // An account the reader signed in to with a provider carries its own grant
       // (ReaderOAuth.h), whatever FetchOAuth2Hosts says: the token is the reader's,
       // for their mailbox there, and never the server-wide one.
-      if (!account_->GetOAuthProvider().IsEmpty())
+      if (readerGrant)
       {
          String token;
          String problem;
@@ -249,20 +280,7 @@ namespace HM
          return;
       }
 
-      bool oauthApplies = false;
-      std::vector<String> hosts = StringParser::SplitString(fetchHosts, ",");
-      for (String host : hosts)
-      {
-         host.TrimLeft();
-         host.TrimRight();
-         if (!host.IsEmpty() && host.CompareNoCase(serverAddress) == 0)
-         {
-            oauthApplies = true;
-            break;
-         }
-      }
-
-      if (oauthApplies)
+      if (serverToken)
       {
          String token = IniFileSettings::Instance()->GetOutboundOAuth2FixedToken();
          String tokenError;

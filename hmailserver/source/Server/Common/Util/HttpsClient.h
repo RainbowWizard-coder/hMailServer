@@ -145,6 +145,14 @@ namespace HM
       // the check at the moment it is asked, not a guarantee about the next lookup.
       static bool HostIsPublic(const AnsiString &host, String &error);
 
+      // Whether one address, written as text (a.b.c.d, or IPv6 without brackets),
+      // is public by the same judgement: not loopback, private, link-local,
+      // carrier NAT, reserved or documentation, and an IPv6 address that carries
+      // an IPv4 one judged as that. False for text that is not an address. For a
+      // caller that resolved a name itself and connects to what it got
+      // (ExternalFetch), so that the address judged is the address connected to.
+      static bool AddressIsPublic(const AnsiString &address);
+
       // application/x-www-form-urlencoded, one value.
       static AnsiString FormEncode(const AnsiString &value);
 

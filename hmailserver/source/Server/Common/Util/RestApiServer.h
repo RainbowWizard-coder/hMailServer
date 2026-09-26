@@ -1693,7 +1693,11 @@ namespace HM
       static AnsiString PushSubscriptionJson_(const PushSubscriptions::Subscription &subscription);
       static AnsiString PushStateJson_(__int64 accountId);
       static HttpResponse HandleMePush_(const Caller &caller);
-      static HttpResponse HandleMePushSubscribe_(const Caller &caller, const AnsiString &requestBody);
+      // fromThisMachine: the request came from this machine's loopback and
+      // through no proxy that says it forwarded it (Forwarded, X-Forwarded-For,
+      // X-Real-IP) - the one caller PushSubscriptions::Save takes a plain-http
+      // loopback endpoint from.
+      static HttpResponse HandleMePushSubscribe_(const Caller &caller, const AnsiString &requestBody, bool fromThisMachine);
       static HttpResponse HandleMePushUpdate_(const Caller &caller, __int64 id, const AnsiString &requestBody);
       static HttpResponse HandleMePushDelete_(const Caller &caller, __int64 id);
       static HttpResponse HandleMePushTest_(const Caller &caller, const AnsiString &requestBody);
@@ -1891,7 +1895,7 @@ namespace HM
       static HttpResponse HandleMeMessageReceipt_(const Caller &caller, __int64 messageId);
       static HttpResponse HandleMeMessageUnsubscribe_(const Caller &caller, __int64 messageId);
       static HttpResponse HandleMeSubscriptions_(const Caller &caller, const AnsiString &query);
-      static HttpResponse HandleMeBrandLogo_(const AnsiString &query);
+      static HttpResponse HandleMeBrandLogo_(const Caller &caller, const AnsiString &query);
       HttpResponse HandleMeFetchAccounts_(const Caller &caller, RouteKind kind, __int64 fetchAccountId, const AnsiString &requestBody);
       // Importing from the old provider with a sign-in (ReaderOAuth.h): what is
       // offered, the start that hands the page the provider's address and the
@@ -2194,6 +2198,31 @@ namespace HM
       static HttpResponse BuildForbiddenResponse_(const AnsiString &reason);
       static HttpResponse BuildTooManyRequestsResponse_();
 
+      // A request that makes this server wait on another one - a brand logo not
+      // yet known, a one-click unsubscribe, a key looked up by WKD or on a
+      // keyserver, a test push - holds one of the listener's four workers for
+      // as long as that server takes, up to its deadline. Admitted one at a
+      // time per account or credential, and at most half the workers at once
+      // in all, so the other half always answers the rest of the webmail and
+      // the Deck however slow the servers a caller names are. Held for the
+      // object's life; a request not admitted is answered
+      // BuildBusyReachingOutResponse_ (429).
+      class ReachingOut_
+      {
+      public:
+         explicit ReachingOut_(const Caller &caller);
+         ~ReachingOut_();
+         bool Admitted() const { return admitted_; }
+
+      private:
+         ReachingOut_(const ReachingOut_ &);
+         ReachingOut_ &operator=(const ReachingOut_ &);
+
+         AnsiString who_;
+         bool admitted_;
+      };
+      static HttpResponse BuildBusyReachingOutResponse_();
+
       // Per-credential request budget. Returns false when this request is over
       // it; firstRefusal is set only for the request that crosses the line, so
       // that a flood costs one log line per window rather than one per request.
@@ -2491,9 +2520,19 @@ namespace HM
       // The external (fetch) accounts of an account, under its address
       // (RestApiFetchAccounts.cpp): what Account.FetchAccounts does over COM.
       HttpResponse HandleListFetchAccounts_(const String &address);
-      HttpResponse HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody);
+      // serverAdministrator: the caller holds server authority
+      // (HoldsServerAuthority_). Only such a caller makes or changes a fetch
+      // account for a host on FetchOAuth2Hosts, which logs in with this
+      // server's own token as whatever username it names; one made by any other
+      // caller, or whose server or username such a caller changes, is marked
+      // so that it never gets that token (FetchAccount::GetServerTokenWithheld).
+      // byReader: the reader's own route (HandleMeFetchAccounts_). The account
+      // is then marked reader-made (FetchAccount::GetReaderCreated) when it is
+      // made or moved to another server or port, and the port of one made or
+      // moved is 110, 995, 143 or 993 unless ReaderFetchPrivateHosts is on.
+      HttpResponse HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody, bool serverAdministrator, bool byReader = false);
       HttpResponse HandleGetFetchAccount_(const String &address, __int64 fetchAccountId);
-      HttpResponse HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody);
+      HttpResponse HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody, bool serverAdministrator, bool byReader = false);
       HttpResponse HandleDeleteFetchAccount_(const String &address, __int64 fetchAccountId);
       HttpResponse HandleDownloadFetchAccount_(const String &address, __int64 fetchAccountId);
       static AnsiString OpenApiFetchAccountsPaths_();

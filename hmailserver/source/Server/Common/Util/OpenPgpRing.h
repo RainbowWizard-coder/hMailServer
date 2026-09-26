@@ -177,6 +177,16 @@ namespace HM
       // failure is an empty key_base64 with a sentence in error.
       static Found Lookup(const String &address);
 
+      // A domain whose key directory gave no answer at all, after a wait, is held
+      // for an hour against its whole organizational domain (the Public Suffix
+      // List), and Lookup does not ask the directory of any name under it: whoever
+      // owns attacker.example has a new subdomain for every lookup, each
+      // publishing a directory host that never answers, and each would otherwise
+      // hold a REST worker for the whole of OpenPGPLookupTimeout.
+      static void NoteDirectoryUnreachable(const String &domain);
+      static bool DirectoryUnreachable(const String &domain);
+      static void ForgetUnreachable();
+
       static bool IsFingerprint(const AnsiString &text);
 
       // imported, autocrypt, wkd, keyserver, generated - and nothing else, so a

@@ -687,7 +687,8 @@ create table hm_fetchaccounts
 	faoauthprovider nvarchar(16) not null DEFAULT '',
 	faoauthtoken ntext not null DEFAULT '',
 	famirrorskip ntext not null DEFAULT '',
-	famirrorseen ntext not null DEFAULT ''
+	famirrorseen ntext not null DEFAULT '',
+	faorigin tinyint not null DEFAULT 0
 ) 
 
 ALTER TABLE hm_fetchaccounts ADD CONSTRAINT hm_fetchaccounts_pk PRIMARY KEY NONCLUSTERED (faid) 
@@ -3297,4 +3298,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6103)
+insert into hm_dbversion values (6104)

@@ -486,6 +486,16 @@ mailbox here could aim this server at whatever only this server can reach. The
 keyserver is a URL an administrator set, so it is allowed to be an `http`
 address on this machine and nothing else in the clear.
 
+A domain whose key directory gave no answer at all - neither the advanced nor
+the direct address answered - after three seconds or more is held against its
+whole organizational domain (the Public Suffix List's answer) for an hour: a
+lookup of any address under it does not ask the directory, says so, and goes on
+to the keyserver if that is on. Whoever owns a domain has a new subdomain for
+every lookup, each with a directory host that never answers, and each would
+otherwise hold a REST worker for the whole `lookup_timeout`. A directory that
+answers, even 404, or a host that refuses at once, is not held
+(`OpenPgpRing::NoteDirectoryUnreachable`).
+
 **Nothing is stored by the lookup.** It answers the key and where it came from,
 the page shows the fingerprint, and the person decides. A key nobody looked at is
 not a key anybody has reason to trust.

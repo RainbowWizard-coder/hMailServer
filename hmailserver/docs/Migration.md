@@ -37,15 +37,42 @@ too** for a move. It is an external account like any other, made through
 - The spam and virus filters are on for new mail and the recipients are never read
   out of the collected messages; a request that asks otherwise is refused by name.
   (Folders brought over arrive as copies, as described below, without the filters.)
-- The host has to resolve to public addresses only. An administrator who wants
-  people to collect from a mail server inside the network turns on
-  `reader_fetch_accounts_private_addresses`. The check is made when the account is
-  saved.
+- The host has to resolve to public addresses only, and the port is 110 or 995
+  (POP3) or 143 or 993 (IMAP). An administrator who wants people to collect from a
+  mail server inside the network turns on `reader_fetch_accounts_private_addresses`,
+  which allows any address and any port. The host is checked when the account is
+  saved, and again every time the server collects: the account is marked
+  `reader_created` (`hm_fetchaccounts.faorigin`, schema 6104), and the
+  fetcher connects it only to the public addresses the name resolves to at that
+  moment, through the server's own DNS. A name that answered a public address at
+  the save and a private one later (DNS rebinding), or one the server's DNS
+  answers differently from the system's (split horizon), is then not collected,
+  and the error log says why (`HM5909`). An account a person moves to another
+  server or port on the page is marked the same way, including one an
+  administrator set up; a rename or a pause marks nothing. The mark stays when an
+  administrator changes the account afterwards. Accounts made before 6104, and
+  the ones the sign-in import makes (the provider's own server), are not marked
+  `reader_created`, so where they connect is not judged again.
 - The interval is at least 15 minutes, and a person has at most
   `reader_fetch_accounts_max` of them (3 by default; 0 takes the page away).
 - An external account an administrator set up with what a person cannot set - the
   recipients read from the message, routing by them, a filter off - is listed on the
   page and can be collected now, but not changed or removed from there.
+- A host on `FetchOAuth2Hosts` (`outlook.office365.com` by default) is refused, and an
+  external account an administrator set up for one is not changed from the page: such
+  an account logs in with the server's own OAuth2 token, which reaches every mailbox
+  the app registration was granted, as whatever user name the account gives. Only a
+  server administrator adds or changes one; a key restricted to named domains is
+  refused with 403, and a domain administrator's `FetchAccount.Save` over COM is
+  refused too. An account whose server, port or user name was named by somebody
+  without the server's authority - a person on the page (`reader_created`), a key
+  restricted to named domains, a domain administrator over COM, or a person who
+  changed only the user name of an administrator's account - is marked
+  `server_token_withheld` and never gets the server's token, even for a host an
+  administrator adds to the list afterwards: it logs in with its own user name and
+  password. So is one the sign-in import makes, which logs in with the person's own
+  grant. A rename or a pause marks nothing, and nothing but deleting the account and
+  making it again as a server administrator takes the mark away.
 
 Outlook.com no longer accepts a password from another mail server, and Gmail takes
 only an app password. Where an administrator has registered the server with them (below),
@@ -70,7 +97,10 @@ whatever language their names are in - starts unticked, so nothing arrives twice
 is left unticked stays where it is; the choice can be changed later with **Folders**.
 
 The flow is OAuth 2.0's authorization code grant with PKCE (S256). The state is good for
-ten minutes and once; the browser that started it carries a nonce in an HttpOnly,
+ten minutes and once, and an account - or a migration job - has at most three sign-ins
+waiting to finish: a fourth drops its own oldest, and a server with a thousand waiting
+drops the oldest of all, so nobody starting sign-in after sign-in can keep anybody
+else's from starting; the browser that started it carries a nonce in an HttpOnly,
 SameSite=Lax cookie that the callback checks, so a link someone else sends cannot attach
 their mailbox to this account. An account signed in this way keeps its server, port,
 address and encryption: the person can pause it, collect now, choose folders or remove
@@ -104,6 +134,10 @@ name exactly as the remote holds it.
    security (implicit TLS on 993, STARTTLS on 143, or a host on `FetchOAuth2Hosts`
    for XOAUTH2), the remote credentials, and **Mirror every folder** on. Over COM
    that is `FetchAccount.ServerType = 1` and `FetchAccount.MirrorFolders = true`.
+   A bearer token - the server's for a host on `FetchOAuth2Hosts`, or the person's
+   grant - is sent over TLS only: with security *none*, or STARTTLS optional against
+   a server that does not offer it, the fetcher logs in with nothing and says so in
+   the error log.
 3. Decide what happens on the far side. **Days to keep messages** is per collected
    message, as for any external account: 0 deletes each message from the remote
    folder once it is safely filed here - a move - and any other value leaves it

@@ -168,6 +168,477 @@ namespace RegressionTests.API
          Assert.AreEqual("Catch-all", reader.FetchAccounts.get_ItemByDBID(administrators.ID).Name);
       }
 
+      /// <summary>
+      ///    OUT-1. A fetch account for a host on FetchOAuth2Hosts logs in with this
+      ///    server's own client_credentials token, as whatever username it names -
+      ///    every mailbox the app registration was granted. Before the fix a reader
+      ///    made one for outlook.office365.com with the CEO's address, or renamed the
+      ///    user on one an administrator had set up, and collected (and, with
+      ///    days_to_keep_messages 0, deleted) that mailbox; a domain-restricted key
+      ///    and a domain administrator over COM could do the same. Each of the
+      ///    refusals below was a 201, a 200 or a successful Save against the old
+      ///    code, which compared server_address with nothing; the server
+      ///    administrator's own create and change are the control.
+      /// </summary>
+      [Test]
+      [Description("Only a server administrator makes or changes a fetch account for a host on FetchOAuth2Hosts: a reader, a domain-restricted key and a domain administrator over COM are refused, the server administrator is not.")]
+      public void OnlyAServerAdministratorGivesOutTheServersOAuthToken()
+      {
+         const string TokenHost = "m365-fetch.example.test";
+         IniFileSetting.Write("FetchOAuth2Hosts", TokenHost);
+         _application.Reinitialize();
+         Assert.AreEqual(200, Admin("GET", "/api/v1/status", null).status);
+         // No name lookup: the host is judged by name, not by where it resolves.
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+
+         string keyId = null;
+         try
+         {
+            Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-token@" + _domain.Name, ReaderPassword);
+            string me = Basic(reader.Address, ReaderPassword);
+            string body = "{\"name\":\"Theirs\",\"server_address\":\"" + TokenHost + "\",\"port\":993,\"server_type\":\"imap\"," +
+                          "\"username\":\"ceo@contoso.example\",\"connection_security\":\"tls\",\"days_to_keep_messages\":0,\"enabled\":false}";
+
+            (int status, string body) byReader = Send("POST", "/api/v1/me/fetch-accounts", me, body);
+            Assert.AreEqual(403, byReader.status, byReader.body);
+            StringAssert.Contains("FetchOAuth2Hosts", byReader.body);
+            Assert.AreEqual(403, Send("POST", "/api/v1/me/fetch-accounts", me, body.Replace(TokenHost, TokenHost.ToUpperInvariant())).status,
+               "The host is compared without regard to case, as the fetcher compares it.");
+            Assert.AreEqual(0, reader.FetchAccounts.Count, "Nothing is saved when the host is refused.");
+
+            // A reader's own account elsewhere, moved onto the host.
+            string elsewhere = body.Replace(TokenHost, "imap.elsewhere.example");
+            (int status, string body) own = Send("POST", "/api/v1/me/fetch-accounts", me, elsewhere);
+            Assert.AreEqual(201, own.status, own.body);
+            string ownId = NumberAfter(own.body, "\"id\":");
+            (int status, string body) moved = Send("PUT", "/api/v1/me/fetch-accounts/" + ownId, me, "{\"server_address\":\"" + TokenHost + "\"}");
+            Assert.AreEqual(403, moved.status, moved.body);
+            StringAssert.Contains("FetchOAuth2Hosts", moved.body);
+
+            // The server administrator's, with the reader's defaults - both filters
+            // on, as a reader's own account has them, so that AdministratorsOwn does
+            // not refuse the reader first and the refusal below is the token rule's:
+            // the reader cannot rename its user, the thing the token is presented for.
+            (int status, string body) byAdmin = Admin("POST", "/api/v1/accounts/" + reader.Address + "/fetch-accounts",
+               body.Replace("ceo@contoso.example", reader.Address).Replace("Theirs", "Microsoft 365")
+                   .Replace("\"enabled\":false}", "\"enabled\":false,\"use_antispam\":true,\"use_antivirus\":true}"));
+            Assert.AreEqual(201, byAdmin.status, byAdmin.body);
+            string adminsId = NumberAfter(byAdmin.body, "\"id\":");
+            (int status, string body) renamed = Send("PUT", "/api/v1/me/fetch-accounts/" + adminsId, me, "{\"username\":\"ceo@contoso.example\"}");
+            Assert.AreEqual(403, renamed.status, renamed.body);
+            StringAssert.Contains("FetchOAuth2Hosts", renamed.body, "Refused by the token rule, not because an administrator set it up with a filter off.");
+            Assert.AreEqual(reader.Address, reader.FetchAccounts.get_ItemByDBID(int.Parse(adminsId)).Username, "The refused change changed nothing.");
+            Assert.AreEqual(200, Admin("PUT", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + adminsId, "{\"minutes_between_fetch\":45}").status,
+               "The server administrator still changes it.");
+
+            // A key restricted to the reader's domain.
+            (int keyStatus, string keyBody) = Admin("POST", "/api/v1/apikeys", "{\"label\":\"fetch token - own domain\",\"scope\":\"full\",\"domains\":\"" + _domain.Name + "\"}");
+            Assert.AreEqual(201, keyStatus, keyBody);
+            keyId = System.Text.RegularExpressions.Regex.Match(keyBody, "\"id\":\"([^\"]*)\"").Groups[1].Value;
+            string domainKey = "Bearer " + System.Text.RegularExpressions.Regex.Match(keyBody, "\"key\":\"([^\"]*)\"").Groups[1].Value;
+            Assert.AreEqual(403, Send("POST", "/api/v1/accounts/" + reader.Address + "/fetch-accounts", domainKey, body).status);
+            Assert.AreEqual(403, Send("PUT", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + adminsId, domainKey, "{\"username\":\"ceo@contoso.example\"}").status);
+            Assert.AreEqual(200, Send("PUT", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + ownId, domainKey, "{\"minutes_between_fetch\":60}").status,
+               "The same key still changes a fetch account for any other host.");
+
+            // A domain administrator over COM.
+            Account domainAdmin = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "domain-admin-token@" + _domain.Name, "test");
+            domainAdmin.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+            domainAdmin.Save();
+            var asDomainAdmin = new hMailServer.Application();
+            Assert.IsNotNull(asDomainAdmin.Authenticate(domainAdmin.Address, "test"));
+            FetchAccount viaDomainAdmin = asDomainAdmin.Domains[0].Accounts.get_ItemByAddress(reader.Address).FetchAccounts.Add();
+            viaDomainAdmin.Name = "Theirs over COM";
+            viaDomainAdmin.ServerAddress = TokenHost;
+            viaDomainAdmin.Port = 993;
+            viaDomainAdmin.Username = "ceo@contoso.example";
+            viaDomainAdmin.Enabled = false;
+            Assert.Throws<System.Runtime.InteropServices.COMException>(() => viaDomainAdmin.Save());
+            viaDomainAdmin.ServerAddress = "imap.elsewhere.example";
+            viaDomainAdmin.Save();
+
+            Assert.AreEqual(3, reader.FetchAccounts.Count, "The reader's own, the administrator's and the domain administrator's for another host.");
+         }
+         finally
+         {
+            if (keyId != null)
+               Admin("DELETE", "/api/v1/apikeys/" + keyId, null);
+            IniFileSetting.Write("FetchOAuth2Hosts", "outlook.office365.com");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    OUT-4. The username and password go into command lines to the remote
+      ///    server - POP3 "USER %s" and "PASS %s", IMAP LOGIN in a quoted string that
+      ///    escaped only the backslash and the quote - so a CR LF in either ended the
+      ///    command and sent what followed as another, to whatever host and port the
+      ///    reader chose. Against the old code the reader's create was a 201, the
+      ///    administrator's too, and the COM Save succeeded; the account with a plain
+      ///    username is the control.
+      /// </summary>
+      [Test]
+      [Description("A username or password with a CR, LF or NUL is refused by the reader's route, the administrator's route and COM.")]
+      public void AFetchAccountsCredentialsAreOneLineEach()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+
+         Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-lines@" + _domain.Name, ReaderPassword);
+         string me = Basic(reader.Address, ReaderPassword);
+         string body = "{\"name\":\"Lines\",\"server_address\":\"localhost\",\"port\":110,\"server_type\":\"pop3\"," +
+                       "\"username\":\"old\",\"password\":\"old-password\",\"enabled\":false}";
+
+         foreach (string injected in new[] { "old\\r\\nDELE 1", "old\\nDELE 1", "old\\rDELE 1" })
+         {
+            (int status, string body) user = Send("POST", "/api/v1/me/fetch-accounts", me, body.Replace("\"username\":\"old\"", "\"username\":\"" + injected + "\""));
+            Assert.AreEqual(400, user.status, injected + ": " + user.body);
+            StringAssert.Contains("one line", user.body);
+            Assert.AreEqual(400, Send("POST", "/api/v1/me/fetch-accounts", me, body.Replace("old-password", injected)).status, injected);
+            Assert.AreEqual(400, Admin("POST", "/api/v1/accounts/" + reader.Address + "/fetch-accounts", body.Replace("\"username\":\"old\"", "\"username\":\"" + injected + "\"")).status, injected);
+         }
+         Assert.AreEqual(0, reader.FetchAccounts.Count, "Nothing is saved when a credential is refused.");
+
+         (int status, string body) plain = Send("POST", "/api/v1/me/fetch-accounts", me, body);
+         Assert.AreEqual(201, plain.status, plain.body);
+         string id = NumberAfter(plain.body, "\"id\":");
+         Assert.AreEqual(400, Send("PUT", "/api/v1/me/fetch-accounts/" + id, me, "{\"password\":\"new\\r\\nDELE 1\"}").status, "A change is judged as a new one is.");
+
+         FetchAccount viaCom = reader.FetchAccounts.Add();
+         viaCom.Name = "Lines over COM";
+         viaCom.ServerAddress = "localhost";
+         viaCom.Port = 110;
+         viaCom.Enabled = false;
+         viaCom.Username = "old\r\nDELE 1";
+         Assert.Throws<System.Runtime.InteropServices.COMException>(() => viaCom.Save());
+         viaCom.Username = "old";
+         viaCom.Password = "old\nDELE 1";
+         Assert.Throws<System.Runtime.InteropServices.COMException>(() => viaCom.Save());
+         viaCom.Password = "old-password";
+         viaCom.Save();
+
+         Assert.AreEqual(2, reader.FetchAccounts.Count);
+      }
+
+      /// <summary>
+      ///    OUT-4, the rest. A reader's host was judged public once, when it was
+      ///    saved, by the system resolver; the fetcher later resolved it again with
+      ///    the server's own DNS and connected to whatever came back. A name whose
+      ///    owner answers a public address at the save and 127.0.0.1 afterwards (DNS
+      ///    rebinding), or one the server's DNSServer answers differently (split
+      ///    horizon), reached the inside of the network every interval. The account a
+      ///    reader makes is now marked reader_created and the fetcher keeps only the
+      ///    public addresses it resolved, unless the administrator allows private
+      ///    hosts. The rebinding is played here by the setting: saved while private
+      ///    hosts were allowed, collected after they no longer are. Against the old
+      ///    code the collection went ahead and the message arrived; the collection
+      ///    with the setting on again, and the administrator's account over COM that
+      ///    is not marked, are the controls.
+      /// </summary>
+      [Test]
+      [Description("A reader's account is judged where the fetcher connects: a private address it resolves to is not connected to unless private hosts are allowed.")]
+      public void AReadersAccountIsJudgedWhereItConnects()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+
+         Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-rebind@" + _domain.Name, ReaderPassword);
+         string me = Basic(reader.Address, ReaderPassword);
+
+         var messages = new List<string>
+         {
+            "From: old-friend@dummy-example.com\r\nTo: reader@old-provider.test\r\nSubject: Collected once allowed\r\n\r\nHello.\r\n"
+         };
+         int port = TestSetup.GetNextFreePort();
+
+         using (var pop3Server = new Pop3ServerSimulator(1, port, messages))
+         {
+            pop3Server.StartListen();
+
+            (int status, string body) created = Send("POST", "/api/v1/me/fetch-accounts", me,
+               "{\"name\":\"Rebinding\",\"server_address\":\"localhost\",\"port\":" + port +
+               ",\"server_type\":\"pop3\",\"username\":\"old\",\"password\":\"old-password\",\"connection_security\":\"none\",\"days_to_keep_messages\":-1,\"enabled\":false}");
+            Assert.AreEqual(201, created.status, created.body);
+            StringAssert.Contains("\"reader_created\":true", created.body, "An account a reader adds is marked as a reader's.");
+            string id = NumberAfter(created.body, "\"id\":");
+
+            // The name now leads inside the network, and private hosts are not
+            // allowed. Switched on only now, so that no collection ran before.
+            Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":false}").status);
+            Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + id, me, "{\"enabled\":true}").status);
+            Assert.AreEqual(202, Send("POST", "/api/v1/me/fetch-accounts/" + id + "/download", me, null).status);
+
+            CustomAsserts.AssertReportedError("which a reader added in the webmail", "not a public address");
+            WaitUntilUnlocked(me, id);
+            Assert.AreEqual("", pop3Server.Conversation, "The fetcher connected to a private address for a reader's account.");
+            Pop3ClientSimulator.AssertMessageCount(reader.Address, ReaderPassword, 0);
+
+            // Allowed again: the same account is collected.
+            Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+            Assert.AreEqual(202, Send("POST", "/api/v1/me/fetch-accounts/" + id + "/download", me, null).status);
+            pop3Server.WaitForCompletion();
+            Pop3ClientSimulator.AssertMessageCount(reader.Address, ReaderPassword, 1);
+            WaitUntilUnlocked(me, id);
+         }
+
+         // An administrator's account is not marked, and not judged.
+         FetchAccount administrators = reader.FetchAccounts.Add();
+         administrators.Name = "Inside, by the administrator";
+         administrators.ServerAddress = "localhost";
+         administrators.Port = 9;
+         administrators.MinutesBetweenFetch = 60;
+         administrators.UseAntiSpam = true;
+         administrators.UseAntiVirus = true;
+         administrators.Enabled = false;
+         administrators.Save();
+         (int status, string body) listed = Admin("GET", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + administrators.ID, null);
+         Assert.AreEqual(200, listed.status, listed.body);
+         StringAssert.Contains("\"reader_created\":false", listed.body);
+
+         // A reader's rename of it marks nothing; moving it to another port does.
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + administrators.ID, me, "{\"name\":\"Renamed by the reader\"}").status);
+         StringAssert.Contains("\"reader_created\":false", Admin("GET", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + administrators.ID, null).body);
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + administrators.ID, me, "{\"port\":110}").status);
+         StringAssert.Contains("\"reader_created\":true", Admin("GET", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + administrators.ID, null).body);
+      }
+
+      /// <summary>
+      ///    OUT-4: a reader's account named any port from 1 to 65535, so the server
+      ///    knocked, from inside its network, on whatever service a reader chose and
+      ///    sent it a username and a password. A reader now names 110, 995, 143 or
+      ///    993, unless the administrator allows private hosts (an old mail server
+      ///    inside the network, on a port of its own). Against the old code the first
+      ///    create below was a 201.
+      /// </summary>
+      [Test]
+      [Description("A reader's account is collected from the POP3 and IMAP ports only, unless private hosts are allowed.")]
+      public void AReadersAccountUsesThePop3AndImapPorts()
+      {
+         Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-ports@" + _domain.Name, ReaderPassword);
+         string me = Basic(reader.Address, ReaderPassword);
+         // A public address written as one: judged without a name lookup, and never
+         // connected to, since the account is off.
+         string body = "{\"name\":\"Ports\",\"server_address\":\"8.8.8.8\",\"port\":25,\"server_type\":\"pop3\"," +
+                       "\"username\":\"old\",\"password\":\"old-password\",\"enabled\":false}";
+
+         foreach (int refused in new[] { 25, 6379, 8080, 1 })
+         {
+            (int status, string body) made = Send("POST", "/api/v1/me/fetch-accounts", me, body.Replace("\"port\":25", "\"port\":" + refused));
+            Assert.AreEqual(400, made.status, refused + ": " + made.body);
+            StringAssert.Contains("port", made.body);
+         }
+         Assert.AreEqual(0, reader.FetchAccounts.Count, "Nothing is saved when the port is refused.");
+
+         (int status, string body) pop3s = Send("POST", "/api/v1/me/fetch-accounts", me, body.Replace("\"port\":25", "\"port\":995"));
+         Assert.AreEqual(201, pop3s.status, pop3s.body);
+         string id = NumberAfter(pop3s.body, "\"id\":");
+         Assert.AreEqual(400, Send("PUT", "/api/v1/me/fetch-accounts/" + id, me, "{\"port\":8080}").status, "A change is judged as a new one is.");
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + id, me, "{\"port\":993,\"server_type\":\"imap\"}").status);
+
+         // The administrator's own route is not limited.
+         Assert.AreEqual(201, Admin("POST", "/api/v1/accounts/" + reader.Address + "/fetch-accounts", body.Replace("Ports", "Administrator's")).status);
+
+         // Private hosts allowed: any port with them.
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+         Assert.AreEqual(201, Send("POST", "/api/v1/me/fetch-accounts", me, body.Replace("\"port\":25", "\"port\":1110").Replace("Ports", "Inside")).status);
+      }
+
+      /// <summary>
+      ///    The fetchers' side of OUT-1, which the check of the first fix left open:
+      ///    the save refuses a reader a host on FetchOAuth2Hosts, but a host the
+      ///    administrator adds to the list afterwards - or a row saved before the
+      ///    save refused it - still got this server's token, as whatever username the
+      ///    reader had named. An account a reader made now never gets it, and logs in
+      ///    with its own USER and PASS. Against the old code the POP3 server below
+      ///    received the XOAUTH2 blob.
+      /// </summary>
+      [Test]
+      [Description("A reader's account on a host added to FetchOAuth2Hosts later logs in with its own password, never this server's token.")]
+      public void AReadersAccountNeverGetsTheServersToken()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+
+         Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-later-host@" + _domain.Name, ReaderPassword);
+         string me = Basic(reader.Address, ReaderPassword);
+         int port = TestSetup.GetNextFreePort();
+
+         (int status, string body) created = Send("POST", "/api/v1/me/fetch-accounts", me,
+            "{\"name\":\"Later on the list\",\"server_address\":\"localhost\",\"port\":" + port +
+            ",\"server_type\":\"pop3\",\"username\":\"ceo@contoso.example\",\"password\":\"old-password\",\"connection_security\":\"tls\",\"days_to_keep_messages\":-1,\"enabled\":false}");
+         Assert.AreEqual(201, created.status, created.body);
+         string id = NumberAfter(created.body, "\"id\":");
+
+         IniFileSetting.Write("FetchOAuth2Hosts", "localhost");
+         IniFileSetting.Write("OutboundOAuth2FixedToken", "fetch-bearer-for-admins");
+         _application.Reinitialize();
+         try
+         {
+            Assert.AreEqual(200, Admin("GET", "/api/v1/status", null).status);
+            var messages = new List<string> { "Subject: Collected with the reader's password\r\n\r\nBody.\r\n" };
+            using (var pop3Server = new Pop3ServerSimulator(1, port, messages, eConnectionSecurity.eCSTLS))
+            {
+               pop3Server.SetCertificate(RegressionTests.SSL.SslSetup.GetCertificate());
+               pop3Server.StartListen();
+
+               // Switched on by the server administrator over COM - the reader's own
+               // route now refuses any change to an account on the list - which keeps
+               // the mark: the account was still made on a reader's word.
+               FetchAccount viaCom = reader.FetchAccounts.get_ItemByDBID(int.Parse(id));
+               viaCom.Enabled = true;
+               viaCom.Save();
+               viaCom.DownloadNow();
+               pop3Server.WaitForCompletion();
+
+               Assert.IsEmpty(pop3Server.XOAuth2Blob, "This server's token went to a reader's account.");
+               Assert.IsTrue(pop3Server.UserCommandReceived, "A reader's account logs in with its own username and password.");
+            }
+         }
+         finally
+         {
+            IniFileSetting.Write("FetchOAuth2Hosts", "outlook.office365.com");
+            IniFileSetting.Write("OutboundOAuth2FixedToken", "");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    The rest of the fetchers' side of OUT-1. Marking only what a reader made
+      ///    left the other callers without the server's authority: an account a key
+      ///    restricted to named domains or a domain administrator over COM set up -
+      ///    or one whose user name a reader changed on an administrator's account -
+      ///    for a host the administrator put on FetchOAuth2Hosts afterwards logged in
+      ///    with this server's own token, as whatever user name they had given. Each
+      ///    is now server_token_withheld; a rename or a pause marks nothing, and a
+      ///    server administrator's account is the control. Against the previous code
+      ///    no listing carried server_token_withheld, and the POP3 server below
+      ///    received the XOAUTH2 blob for the domain key's account.
+      /// </summary>
+      [Test]
+      [Description("An account whose server or user name somebody without the server's authority named never gets this server's token, even for a host added to FetchOAuth2Hosts afterwards.")]
+      public void AnAccountOthersNamedNeverGetsTheServersToken()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);
+
+         Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-others-named@" + _domain.Name, ReaderPassword);
+         string me = Basic(reader.Address, ReaderPassword);
+         string collection = "/api/v1/accounts/" + reader.Address + "/fetch-accounts";
+         int port = TestSetup.GetNextFreePort();
+         string body = "{\"name\":\"NAME\",\"server_address\":\"localhost\",\"port\":" + port + ",\"server_type\":\"pop3\"," +
+                       "\"username\":\"" + reader.Address + "\",\"password\":\"old-password\",\"connection_security\":\"tls\"," +
+                       "\"days_to_keep_messages\":-1,\"enabled\":false,\"use_antispam\":true,\"use_antivirus\":true}";
+         Func<string, string> withheld = id =>
+         {
+            (int status, string body) got = Admin("GET", collection + "/" + id, null);
+            Assert.AreEqual(200, got.status, got.body);
+            return got.body.Contains("\"server_token_withheld\":true") ? "withheld" :
+                   got.body.Contains("\"server_token_withheld\":false") ? "given" : "not reported: " + got.body;
+         };
+
+         // The server administrator's: given, and a reader's rename leaves it so;
+         // a reader's change of the user name does not.
+         string admins = NumberAfter(Admin("POST", collection, body.Replace("NAME", "The administrator's")).body, "\"id\":");
+         Assert.AreEqual("given", withheld(admins));
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + admins, me, "{\"name\":\"Renamed by the reader\"}").status);
+         Assert.AreEqual("given", withheld(admins), "A rename names neither the server nor the user.");
+         string renamedUser = NumberAfter(Admin("POST", collection, body.Replace("NAME", "User renamed")).body, "\"id\":");
+         Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + renamedUser, me, "{\"username\":\"ceo@contoso.example\"}").status);
+         Assert.AreEqual("withheld", withheld(renamedUser), "A reader named the user the token would be presented as.");
+         StringAssert.Contains("\"reader_created\":false", Admin("GET", collection + "/" + renamedUser, null).body,
+            "Only the user changed: where it connects is still the administrator's word.");
+
+         // A key restricted to the reader's domain.
+         string keyId = null;
+         try
+         {
+            (int keyStatus, string keyBody) = Admin("POST", "/api/v1/apikeys", "{\"label\":\"fetch origin - own domain\",\"scope\":\"full\",\"domains\":\"" + _domain.Name + "\"}");
+            Assert.AreEqual(201, keyStatus, keyBody);
+            keyId = System.Text.RegularExpressions.Regex.Match(keyBody, "\"id\":\"([^\"]*)\"").Groups[1].Value;
+            string domainKey = "Bearer " + System.Text.RegularExpressions.Regex.Match(keyBody, "\"key\":\"([^\"]*)\"").Groups[1].Value;
+
+            (int status, string body) byKey = Send("POST", collection, domainKey, body.Replace("NAME", "The domain key's").Replace(reader.Address, "ceo@contoso.example"));
+            Assert.AreEqual(201, byKey.status, byKey.body);
+            string keys = NumberAfter(byKey.body, "\"id\":");
+            Assert.AreEqual("withheld", withheld(keys));
+            Assert.AreEqual(200, Send("PUT", collection + "/" + admins, domainKey, "{\"minutes_between_fetch\":60}").status);
+            Assert.AreEqual("given", withheld(admins), "A change of the interval names neither the server nor the user.");
+
+            // A domain administrator over COM: one made, and one whose user it changes.
+            Account domainAdmin = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "domain-admin-origin@" + _domain.Name, "test");
+            domainAdmin.AdminLevel = eAdminLevel.hAdminLevelDomainAdmin;
+            domainAdmin.Save();
+            var asDomainAdmin = new hMailServer.Application();
+            Assert.IsNotNull(asDomainAdmin.Authenticate(domainAdmin.Address, "test"));
+            FetchAccounts theirs = asDomainAdmin.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(reader.Address).FetchAccounts;
+            FetchAccount made = theirs.Add();
+            made.Name = "The domain administrator's";
+            made.ServerAddress = "localhost";
+            made.Port = port;
+            made.Username = "ceo@contoso.example";
+            made.UseAntiSpam = true;
+            made.UseAntiVirus = true;
+            made.Enabled = false;
+            made.Save();
+            Assert.AreEqual("withheld", withheld(made.ID.ToString()));
+            FetchAccount paused = theirs.get_ItemByDBID(int.Parse(admins));
+            paused.Enabled = false;
+            paused.Save();
+            Assert.AreEqual("given", withheld(admins), "A domain administrator's pause names neither the server nor the user.");
+            paused.Username = "ceo@contoso.example";
+            paused.Save();
+            Assert.AreEqual("withheld", withheld(admins));
+
+            // A save of a copy read before the mark does not take it away.
+            FetchAccount stale = reader.FetchAccounts.get_ItemByDBID(int.Parse(renamedUser));
+            Assert.AreEqual(200, Send("PUT", "/api/v1/me/fetch-accounts/" + renamedUser, me, "{\"port\":995}").status);
+            stale.MinutesBetweenFetch = 90;
+            stale.Save();
+            StringAssert.Contains("\"reader_created\":true", Admin("GET", collection + "/" + renamedUser, null).body,
+               "A server administrator's save of a copy read before a reader moved the account took the mark away.");
+
+            // The host goes on the list afterwards: the domain key's account still logs
+            // in with its own USER and PASS.
+            IniFileSetting.Write("FetchOAuth2Hosts", "localhost");
+            IniFileSetting.Write("OutboundOAuth2FixedToken", "fetch-bearer-for-admins");
+            _application.Reinitialize();
+            try
+            {
+               Assert.AreEqual(200, Admin("GET", "/api/v1/status", null).status);
+               var messages = new List<string> { "Subject: Collected with the account's own password\r\n\r\nBody.\r\n" };
+               using (var pop3Server = new Pop3ServerSimulator(1, port, messages, eConnectionSecurity.eCSTLS))
+               {
+                  pop3Server.SetCertificate(RegressionTests.SSL.SslSetup.GetCertificate());
+                  pop3Server.StartListen();
+
+                  FetchAccount viaCom = reader.FetchAccounts.get_ItemByDBID(int.Parse(keys));
+                  viaCom.Enabled = true;
+                  viaCom.Save();
+                  Assert.AreEqual("withheld", withheld(keys), "The server administrator's own save keeps the mark.");
+                  viaCom.DownloadNow();
+                  pop3Server.WaitForCompletion();
+
+                  Assert.IsEmpty(pop3Server.XOAuth2Blob, "This server's token went to an account a domain key set up.");
+                  Assert.IsTrue(pop3Server.UserCommandReceived, "The account logs in with its own username and password.");
+               }
+            }
+            finally
+            {
+               IniFileSetting.Write("FetchOAuth2Hosts", "outlook.office365.com");
+               IniFileSetting.Write("OutboundOAuth2FixedToken", "");
+               _application.Reinitialize();
+            }
+         }
+         finally
+         {
+            if (keyId != null)
+               Admin("DELETE", "/api/v1/apikeys/" + keyId, null);
+         }
+      }
+
+      private static void WaitUntilUnlocked(string authorization, string id)
+      {
+         DateTime deadline = DateTime.UtcNow.AddSeconds(30);
+         while (DateTime.UtcNow < deadline && Send("GET", "/api/v1/me/fetch-accounts/" + id, authorization, null).body.Contains("\"locked\":true"))
+            Thread.Sleep(100);
+      }
+
       private static string Basic(string user, string password)
       {
          return "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(user + ":" + password));

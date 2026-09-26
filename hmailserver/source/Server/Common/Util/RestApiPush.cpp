@@ -30,6 +30,7 @@
 #include "RestApiServer.h"
 #include "HttpServer.h"
 #include "JsonDocument.h"
+#include "HttpsClient.h"
 #include "PushNotifier.h"
 #include "PushSubscriptions.h"
 #include "Unicode.h"
@@ -173,7 +174,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleMePushSubscribe_(const Caller &caller, const AnsiString &requestBody)
+   RestApiServer::HandleMePushSubscribe_(const Caller &caller, const AnsiString &requestBody, bool fromThisMachine)
    {
       std::shared_ptr<const Account> account = caller.account;
       if (!account)
@@ -240,7 +241,7 @@ namespace HM
          return BuildResponse_(400, "{\"error\":\"this account already has as many devices as the server allows; remove one first\"}");
 
       String refusal;
-      if (!PushSubscriptions::Save(subscription, refusal))
+      if (!PushSubscriptions::Save(subscription, refusal, fromThisMachine))
          return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(refusal)) + "\"}");
 
       LOG_APPLICATION("RestApi: " + account->GetAddress() + " turned Web Push notifications on for a device.");
@@ -335,6 +336,12 @@ namespace HM
       PushSubscriptions::Subscription subscription;
       if (!PushSubscriptions::ById(account->GetID(), id, subscription))
          return BuildResponse_(404, "{\"error\":\"no such device of this account\"}");
+
+      // The push service is another server, on one of the REST workers: it
+      // waits its turn with the other requests that reach out (ReachingOut_).
+      ReachingOut_ turn(caller);
+      if (!turn.Admitted())
+         return BuildBusyReachingOutResponse_();
 
       String error;
       if (!PushNotifier::Instance()->SendTest(subscription, error))

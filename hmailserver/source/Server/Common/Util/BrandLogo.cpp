@@ -40,6 +40,12 @@ namespace HM
       boost::mutex cacheLock;
       std::map<String, Answer> cache;
 
+      // Organizational domains whose logo host did not answer, and when
+      // (BrandLogo::NoteUnreachable). Under cacheLock, bounded as the cache is.
+      const time_t UnreachableSeconds = 60 * 60;
+      const time_t SlowSeconds = 3;
+      std::map<String, time_t> unreachable;
+
       AnsiString Lower(const AnsiString &text)
       {
          AnsiString lower = text;
@@ -279,10 +285,36 @@ namespace HM
    {
       boost::lock_guard<boost::mutex> guard(cacheLock);
       cache.clear();
+      unreachable.clear();
    }
 
-   BrandLogo::Outcome
-   BrandLogo::Lookup(const String &requested, AnsiString &svg, AnsiString &reason)
+   void
+   BrandLogo::NoteUnreachable(const String &domain)
+   {
+      const String organizational = DMARC::GetOrganizationalDomain(NormaliseDomain(domain));
+      if (organizational.IsEmpty())
+         return;
+
+      boost::lock_guard<boost::mutex> guard(cacheLock);
+      if (unreachable.size() >= KeptDomains)
+         unreachable.clear();
+      unreachable[organizational] = std::time(nullptr);
+   }
+
+   bool
+   BrandLogo::OrganizationUnreachable(const String &domain)
+   {
+      const String organizational = DMARC::GetOrganizationalDomain(NormaliseDomain(domain));
+      if (organizational.IsEmpty())
+         return false;
+
+      boost::lock_guard<boost::mutex> guard(cacheLock);
+      std::map<String, time_t>::const_iterator held = unreachable.find(organizational);
+      return held != unreachable.end() && std::time(nullptr) - held->second < UnreachableSeconds;
+   }
+
+   bool
+   BrandLogo::Known(const String &requested, Outcome &outcome, AnsiString &svg, AnsiString &reason)
    {
       svg = "";
 
@@ -290,13 +322,15 @@ namespace HM
       if (domain.IsEmpty())
       {
          reason = "That is not a domain name.";
-         return BadDomain;
+         outcome = BadDomain;
+         return true;
       }
 
       if (!Configuration::Instance()->GetBrandLogosEnabled())
       {
          reason = "Brand logos are switched off on this server (BrandLogosEnabled).";
-         return SwitchedOff;
+         outcome = SwitchedOff;
+         return true;
       }
 
       const time_t now = std::time(nullptr);
@@ -307,9 +341,30 @@ namespace HM
          {
             svg = known->second.svg;
             reason = known->second.reason;
-            return known->second.outcome;
+            outcome = known->second.outcome;
+            return true;
          }
       }
+
+      if (OrganizationUnreachable(domain))
+      {
+         reason = "The logo host of this domain's organization did not answer within the last hour, so it is not asked again yet.";
+         outcome = FetchFailed;
+         return true;
+      }
+
+      return false;
+   }
+
+   BrandLogo::Outcome
+   BrandLogo::Lookup(const String &requested, AnsiString &svg, AnsiString &reason)
+   {
+      Outcome kept = NoRecord;
+      if (Known(requested, kept, svg, reason))
+         return kept;
+
+      const String domain = NormaliseDomain(requested);
+      const time_t now = std::time(nullptr);
 
       Answer answer;
       answer.at = now;
@@ -365,7 +420,13 @@ namespace HM
             String error;
             std::vector<AnsiString> headers;
             headers.push_back("Accept: image/svg+xml");
+            const time_t asked = std::time(nullptr);
             const bool ok = HttpsClient::RequestPublic("GET", location, headers, "", "", response, error, 10, MaximumLogoBytes);
+            // No answer, after a wait: held against the organization, so that its
+            // next subdomain is not another ten seconds (NoteUnreachable). A quick
+            // refusal costs nothing and is not held.
+            if (!ok && std::time(nullptr) - asked >= SlowSeconds)
+               NoteUnreachable(domain);
             if (!ok || response.status_code != 200)
             {
                answer.outcome = FetchFailed;
@@ -446,5 +507,18 @@ namespace HM
       const std::string padding(33000, ' ');
       Expect(!B::IsTinyPs(AnsiString(padding.c_str()) + good, why), "More than 32 KB is refused.");
       Expect(!B::IsTinyPs("<html><body>not a logo</body></html>", why), "Not an SVG is refused.");
+
+      // OUT-2: a logo host that never answered is held against the organization,
+      // so a fresh subdomain of it is not another ten seconds on a REST worker.
+      // The old cache was keyed by the full name alone and had no such hold.
+      B::ClearCache();
+      Expect(!B::OrganizationUnreachable(_T("a1.tarpit.example")), "Nothing is held before anything failed.");
+      B::NoteUnreachable(_T("a1.tarpit.example"));
+      Expect(B::OrganizationUnreachable(_T("b2.tarpit.example")), "Another subdomain of the same organization is held.");
+      Expect(B::OrganizationUnreachable(_T("tarpit.example")), "The organization's own name is held.");
+      Expect(!B::OrganizationUnreachable(_T("tarpit2.example")), "Another organization is not held.");
+      Expect(!B::OrganizationUnreachable(_T("tarpit.example.net")), "A name that merely contains it is not held.");
+      B::ClearCache();
+      Expect(!B::OrganizationUnreachable(_T("b2.tarpit.example")), "Clearing the cache clears the hold.");
    }
 }

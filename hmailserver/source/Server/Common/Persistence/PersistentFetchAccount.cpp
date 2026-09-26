@@ -115,8 +115,9 @@ namespace HM
       oFA->SetOAuthToken(protectedToken.IsEmpty() ? String() : Crypt::Instance()->UnprotectSecret(protectedToken));
       oFA->SetMirrorSkip(pRS->GetStringValue("famirrorskip"));
       oFA->SetMirrorSeen(pRS->GetStringValue("famirrorseen"));
+      oFA->SetOrigin(FetchAccount::OriginFromNumber(pRS->GetLongValue("faorigin")));
 
-      
+
       return true;
    }
 
@@ -185,6 +186,7 @@ namespace HM
       oStatement.AddColumn("faoauthtoken", pFA->GetOAuthToken().IsEmpty() ? String() : Crypt::Instance()->ProtectSecret(pFA->GetOAuthToken()));
       oStatement.AddColumn("famirrorskip", pFA->GetMirrorSkip());
       oStatement.AddColumn("famirrorseen", pFA->GetMirrorSeen());
+      oStatement.AddColumn("faorigin", (int) pFA->GetOrigin());
 
       if (bNewObject)
       {

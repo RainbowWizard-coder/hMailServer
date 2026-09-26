@@ -15,6 +15,7 @@
 #include "DavSupport.h"
 #include "HttpServer.h"
 #include "HttpCompression.h"
+#include "HttpsClient.h"
 #include "JsonDocument.h"
 #include "Encoding/ModifiedUTF7.h"
 #include <boost/thread/thread.hpp>
@@ -2750,7 +2751,11 @@ namespace HM
          case RouteMePush:
             return HandleMePush_(caller);
          case RouteMePushSubscribe:
-            return HandleMePushSubscribe_(caller, GetRequestBody_(request));
+            return HandleMePushSubscribe_(caller, GetRequestBody_(request),
+                                          HttpsClient::IsLoopbackHost(caller.peer.ToString()) &&
+                                          GetHeader_(request, "forwarded").IsEmpty() &&
+                                          GetHeader_(request, "x-forwarded-for").IsEmpty() &&
+                                          GetHeader_(request, "x-real-ip").IsEmpty());
          case RouteMePushUpdate:
             return HandleMePushUpdate_(caller, route.message_id, GetRequestBody_(request));
          case RouteMePushDelete:
@@ -2901,11 +2906,11 @@ namespace HM
          case RouteFetchAccountList:
             return HandleListFetchAccounts_(String(route.identifier));
          case RouteFetchAccountCreate:
-            return HandleCreateFetchAccount_(String(route.identifier), GetRequestBody_(request));
+            return HandleCreateFetchAccount_(String(route.identifier), GetRequestBody_(request), HoldsServerAuthority_(caller));
          case RouteFetchAccountGet:
             return HandleGetFetchAccount_(String(route.identifier), route.record_id);
          case RouteFetchAccountUpdate:
-            return HandleUpdateFetchAccount_(String(route.identifier), route.record_id, GetRequestBody_(request));
+            return HandleUpdateFetchAccount_(String(route.identifier), route.record_id, GetRequestBody_(request), HoldsServerAuthority_(caller));
          case RouteFetchAccountDelete:
             return HandleDeleteFetchAccount_(String(route.identifier), route.record_id);
          case RouteFetchAccountDownload:
@@ -3258,7 +3263,7 @@ namespace HM
             return HandleMeLists_(caller, route.kind, String(route.identifier), GetRequestBody_(request));
 
          case RouteMeBrandLogo:
-            return HandleMeBrandLogo_(route.query);
+            return HandleMeBrandLogo_(caller, route.query);
 
          case RouteMeFetchAccounts:
          case RouteMeFetchAccountCreate:
@@ -9860,6 +9865,51 @@ namespace HM
       retryAfter.Format("Retry-After: %d\r\n", (int) (RateWindowMilliseconds / 1000));
 
       return BuildResponse_(429, "{\"error\":\"too many requests\"}", retryAfter);
+   }
+
+   namespace
+   {
+      // Who is waiting on another server now, by account or credential. The
+      // set's size is how many workers are; see ReachingOut_ in the header.
+      std::mutex reachingOutLock;
+      std::set<AnsiString> reachingOut;
+      const size_t ReachingOutMaximum = WorkerThreads / 2;
+   }
+
+   RestApiServer::ReachingOut_::ReachingOut_(const Caller &caller) :
+      admitted_(false)
+   {
+      // Every session and app password of one account is the one account: a
+      // reader with four tabs, or four app passwords, is still one reader.
+      if (caller.account)
+         who_.Format("account:%I64d", caller.account->GetID());
+      else
+         who_ = caller.identity;
+
+      std::lock_guard<std::mutex> guard(reachingOutLock);
+      if (reachingOut.size() >= ReachingOutMaximum || reachingOut.count(who_) > 0)
+         return;
+
+      reachingOut.insert(who_);
+      admitted_ = true;
+   }
+
+   RestApiServer::ReachingOut_::~ReachingOut_()
+   {
+      if (!admitted_)
+         return;
+
+      std::lock_guard<std::mutex> guard(reachingOutLock);
+      reachingOut.erase(who_);
+   }
+
+   HttpResponse
+   RestApiServer::BuildBusyReachingOutResponse_()
+   {
+      // A second is plenty: every request admitted is held to a deadline of
+      // ten seconds or less, and most take far under one.
+      return BuildResponse_(429, "{\"error\":\"this server is waiting on another one for you, or for as many callers as it waits for at once; try again in a moment\",\"code\":\"reaching_out_busy\"}",
+                            "Retry-After: 1\r\n");
    }
 
    String
@@ -19494,9 +19544,9 @@ namespace HM
          "\"/api/v1/me/identities\":{\"get\":{\"summary\":\"The addresses the signed-in account may write as\",\"description\":\"The account's own address (kind account), every active alias that resolves to it (alias), and every account whose INBOX grants this one the post right (granted) - the rule SMTP submission applies to MAIL FROM. Each carries the From header the page would send. A send or a draft names one in its from field; anything else is refused with 403.\",\"responses\":{\"200\":{\"description\":\"identities (address, name, kind, header)\"}}}},"
          "\"/api/v1/me/preferences\":{\"get\":{\"summary\":\"The signed-in account's preferences\",\"description\":\"A key/value store the webmail keeps its choices in (theme, density, undo-send delay, notifications) so they follow the account between browsers. The server attaches no meaning to a key.\",\"responses\":{\"200\":{\"description\":\"preferences: an object of string values\"}}},\"put\":{\"summary\":\"Change preferences\",\"description\":\"Body: an object. Each string member is written, each null member removed, anything else refused. Keys are 1-64 letters, digits, dots, dashes or underscores; values at most 4000 characters; at most 100 keys per account. Two keys the server reads: support_allowed, the account's consent to an administrator's support session, and support_last, the note of the last one - in any case, since the store's comparison may ignore it. A support session may change neither (403, code support_session), and an app password may not set support_allowed (403), though it may still withdraw it.\",\"responses\":{\"200\":{\"description\":\"The preferences after the change\"},\"400\":{\"description\":\"Not an object of strings, a bad key, a long value, or too many keys\"},\"403\":{\"description\":\"support_allowed or support_last in a support session, or support_allowed set with an app password\"}}}},"
          "\"/api/v1/me/push\":{\"get\":{\"summary\":\"The signed-in account's Web Push devices\",\"description\":\"enabled: whether the server has Web Push switched on at all. vapid_public_key: the application server key a browser needs for pushManager.subscribe; empty when the administrator has not generated a key pair, and a page must say so rather than subscribing. max_devices: how many devices this account may have at once. subscriptions: one object per device with id, device (the name the person gave it), service (the origin of the push service, so a row can be recognised), created, last_sent, state (active or dead-lettered), failures, next_attempt, last_detail (why the last attempt failed), and the person's own choices - detail (0 a count only, 1 and the sender, 2 and the subject), senders, labels, quiet_from, quiet_to and quiet_offset. The endpoint and the two keys are NEVER in this answer: together they are the capability to send a notification to that device, and echoing them would put it in every log and cache this route touches.\",\"responses\":{\"200\":{\"description\":\"enabled, vapid_public_key, max_devices, subscriptions\"}}}},"
-         "\"/api/v1/me/push/subscriptions\":{\"post\":{\"summary\":\"Tell this account's device about new mail\",\"description\":\"Body: endpoint (the https address pushManager.subscribe returned), keys: {p256dh, auth} as the browser gave them (also accepted at the top level), device (a name for this browser or phone, at most 64 characters), and optionally the choices - detail (0 a count only, 1 and the sender, 2 and the subject; 1 by default), senders (a comma-separated list of addresses and @domain suffixes, empty for anyone), labels (a comma-separated list of IMAP keywords the message must carry, empty for any), quiet_from and quiet_to (minutes past midnight in the device's own time, -1 for no quiet hours) and quiet_offset (the minutes that device's clock is ahead of UTC). A device subscribing again under the same endpoint replaces its own row. Refused with 409 when the server has Web Push off or no key pair, and with 400 when the account already has max_devices devices or a key is not the length RFC 8291 needs.\",\"responses\":{\"201\":{\"description\":\"The device, as the listing gives it\"},\"400\":{\"description\":\"A key of the wrong shape, a bad choice, or too many devices\"},\"409\":{\"description\":\"Web Push is off on this server, or it has no key pair\"},\"413\":{\"description\":\"The body is too large\"}}}},"
+         "\"/api/v1/me/push/subscriptions\":{\"post\":{\"summary\":\"Tell this account's device about new mail\",\"description\":\"Body: endpoint (the https address pushManager.subscribe returned; a push is sent to it only at a public address, and plain http to this machine's loopback is taken only from a request made on this machine that no proxy forwarded), keys: {p256dh, auth} as the browser gave them (also accepted at the top level), device (a name for this browser or phone, at most 64 characters), and optionally the choices - detail (0 a count only, 1 and the sender, 2 and the subject; 1 by default), senders (a comma-separated list of addresses and @domain suffixes, empty for anyone), labels (a comma-separated list of IMAP keywords the message must carry, empty for any), quiet_from and quiet_to (minutes past midnight in the device's own time, -1 for no quiet hours) and quiet_offset (the minutes that device's clock is ahead of UTC). A device subscribing again under the same endpoint replaces its own row. Refused with 409 when the server has Web Push off or no key pair, and with 400 when the account already has max_devices devices or a key is not the length RFC 8291 needs.\",\"responses\":{\"201\":{\"description\":\"The device, as the listing gives it\"},\"400\":{\"description\":\"A key of the wrong shape, a bad choice, or too many devices\"},\"409\":{\"description\":\"Web Push is off on this server, or it has no key pair\"},\"413\":{\"description\":\"The body is too large\"}}}},"
          "\"/api/v1/me/push/subscriptions/{id}\":{\"put\":{\"summary\":\"Change what one device is told\",\"description\":\"Body: any of detail, senders, labels, quiet_from, quiet_to, quiet_offset. Each member left out keeps the value it had. The endpoint and the keys cannot be changed here: a device that has a new endpoint subscribes again.\",\"responses\":{\"200\":{\"description\":\"The device after the change\"},\"400\":{\"description\":\"A choice outside its range\"},\"404\":{\"description\":\"No such device of this account\"}}},\"delete\":{\"summary\":\"Stop telling one device\",\"description\":\"The row is removed. The browser's own subscription is the browser's to remove; this server simply stops sending to it.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such device of this account\"}}}},"
-         "\"/api/v1/me/push/test\":{\"post\":{\"summary\":\"Send one push to a device now\",\"description\":\"Body: id, the device. Sends a notification at once, marked test, so a person can find out whether their device is reachable before they rely on it. Neither the quiet hours nor the sender list applies - this is a button being pressed, not mail arriving. A push service that answers 404 or 410 means the subscription is gone, and the device is removed. 502 carries the push service's own refusal.\",\"responses\":{\"200\":{\"description\":\"sent\"},\"400\":{\"description\":\"No device named\"},\"404\":{\"description\":\"No such device of this account\"},\"502\":{\"description\":\"The push service refused it, or the subscription is gone\"}}}},"
+         "\"/api/v1/me/push/test\":{\"post\":{\"summary\":\"Send one push to a device now\",\"description\":\"Body: id, the device. Sends a notification at once, marked test, so a person can find out whether their device is reachable before they rely on it. Neither the quiet hours nor the sender list applies - this is a button being pressed, not mail arriving. A push service that answers 404 or 410 means the subscription is gone, and the device is removed. 502 carries the status the push service answered, or says only that it could not be reached: the push goes to a public address alone, within five seconds, and why a connection failed is written to the application log rather than answered.\",\"responses\":{\"200\":{\"description\":\"sent\"},\"400\":{\"description\":\"No device named\"},\"404\":{\"description\":\"No such device of this account\"},\"502\":{\"description\":\"The push service refused it, or the subscription is gone\"}}}},"
          "\"/api/v1/me/app-passwords\":{\"get\":{\"summary\":\"The signed-in account's app passwords\",\"description\":\"id, name, created, last_used, active - never the password.\",\"responses\":{\"200\":{\"description\":\"app_passwords\"}}},\"post\":{\"summary\":\"Make an app password\",\"description\":\"Body: name (what it is for) and password - the account's own password, proving it is the account holder asking; never an app password. An account with a second factor enrolled sends the code in X-hMailServer-OTP, and the 401 that asks for it says X-hMailServer-OTP: required. Refused (403) to a request that was itself authenticated with an app password, or by a session started with one. The answer carries the password in clear text, the only time it exists outside the caller; at most 20 per account. Logged, with the caller's address.\",\"responses\":{\"201\":{\"description\":\"id, name, created, active, password\"},\"400\":{\"description\":\"No name, no password, or twenty already\"},\"401\":{\"description\":\"The one-time code is missing or wrong\"},\"403\":{\"description\":\"The password is not the account's own, or the request came in on an app password\"}}}},"
          "\"/api/v1/me/app-passwords/{id}\":{\"delete\":{\"summary\":\"Remove an app password\",\"description\":\"Refused to a request authenticated with an app password. Logged, with the caller's address.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"403\":{\"description\":\"The request came in on an app password\"},\"404\":{\"description\":\"No such app password of this account\"}}}},"
          "\"/api/v1/me/smime\":{\"get\":{\"summary\":\"The account's S/MIME key store\",\"description\":\"own: the account's certificates, each with its chain and its private key as the page wrapped it (AES-256-GCM under a PBKDF2 key from the account password; this server cannot open it; to a request made with an app password or in an administrator's support session key is null with key_withheld true, and the answer carries keys_withheld true and a note, since the wrapped key is an offline test of a guess at the password); recipients: the certificates of correspondents. Each carries address, name, fingerprint (SHA-256, hex), certificate (base64 DER), not_after and created (Unix seconds), authority (true when the account's domain's own S/MIME authority issued it - decided by the server from the SHA-256 of the certificate's own bytes, which must also be the fingerprint the page gave, never from anything the page claims) and, for such a certificate, authority_status: valid, revoked or expired as the authority's record says now, or unknown when the domain's record no longer has it - a page encrypts to and signs with valid ones only. limits: how many of each. authority: the account's domain's S/MIME authority (docs/SmimeAuthority.md) - domain and available, and when available the root's subject, fingerprint, key_type, not_after and certificate, and issued, the certificates it issued to this account with serial, address, fingerprint, not_before, not_after, status (valid, revoked or expired), confirmed (false until its key is stored), revoked and reason.\",\"responses\":{\"200\":{\"description\":\"own, recipients, limits\"}}}},"

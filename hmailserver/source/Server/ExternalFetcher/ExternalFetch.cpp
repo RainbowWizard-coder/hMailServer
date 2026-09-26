@@ -10,6 +10,8 @@
 #include "../Common/TCPIP/IOService.h"
 #include "../Common/TCPIP/DNSResolver.h"
 #include "../Common/TCPIP/TCPConnection.h"
+#include "../Common/Util/HttpsClient.h"
+#include "../Common/Application/Configuration.h"
 #include "POP3ClientConnection.h"
 #include "IMAPClientConnection.h"
 
@@ -68,17 +70,45 @@ namespace HM
       std::vector<String> ip_addresses;
       resolver.GetIpAddresses(pFA->GetServerAddress(), ip_addresses, true);
 
-      String ip_address;
-      if (ip_addresses.size())
-      {
-         ip_address = *(ip_addresses.begin());
-      }
-      else
+      if (ip_addresses.empty())
       {
          String error_message = Formatter::Format("The IP address for external account {0} could not be resolved. Aborting fetch.", pFA->GetName());
          LOG_APPLICATION(error_message);
          return;
       }
+
+      // An account a reader made names a server on a mailbox user's word, and the
+      // connection is made from inside this server's network. The name was judged
+      // public when it was saved (RestApiFetchAccounts.cpp), by another resolver
+      // and at another moment: a name whose owner answers a public address then
+      // and 127.0.0.1 or 10.x now (DNS rebinding), or one this server's DNSServer
+      // answers differently from the system's (split horizon), would otherwise
+      // reach the inside of the network every interval. So the addresses judged
+      // here are the ones connected to, and only the public ones are kept -
+      // unless the administrator allowed readers private hosts. An
+      // administrator's account is not judged: collecting from a server inside
+      // the network is what one is often for.
+      if (pFA->GetReaderCreated() && !Configuration::Instance()->GetReaderFetchAccountsPrivateAddresses())
+      {
+         std::vector<String> public_addresses;
+         for (const String &candidate : ip_addresses)
+         {
+            if (HttpsClient::AddressIsPublic(AnsiString(candidate)))
+               public_addresses.push_back(candidate);
+         }
+
+         if (public_addresses.empty())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5909, "ExternalFetch::Start",
+               Formatter::Format("External account {0}, which a reader added in the webmail, was not collected: {1} resolves to {2}, which is not a public address (loopback, private, link-local or reserved). Turn on reader_fetch_accounts_private_addresses to allow it.",
+                  pFA->GetName(), pFA->GetServerAddress(), ip_addresses.front()));
+            return;
+         }
+
+         ip_addresses.swap(public_addresses);
+      }
+
+      const String ip_address = ip_addresses.front();
 
       if (pClientConnection->Connect(ip_address, pFA->GetPort(), IPAddress()))
       {

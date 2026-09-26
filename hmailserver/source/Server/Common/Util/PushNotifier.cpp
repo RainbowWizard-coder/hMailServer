@@ -68,6 +68,16 @@ namespace HM
       // few minutes out on either side is never the reason a push is refused.
       const __int64 TokenLifetimeSeconds = 12 * 60 * 60;
 
+      // How long one push may take. The drain sends every account's devices in
+      // turn, so a push service that answers slowly holds everybody's behind it;
+      // the test holds one of the REST server's four workers. A push service in
+      // the field answers in well under a second.
+      const int DrainTimeoutSeconds = 10;
+      const int TestTimeoutSeconds = 5;
+
+      // A push service's answer is a status and a line or two.
+      const size_t MaximumAnswerBytes = 32 * 1024;
+
       AnsiString Utf8Of(const String &value)
       {
          AnsiString utf8;
@@ -309,7 +319,7 @@ namespace HM
 
    bool
    PushNotifier::SendOne_(const PushSubscriptions::Subscription &subscription, const AnsiString &payload,
-                          int &statusCode, String &error)
+                          int timeoutSeconds, int &statusCode, String &error)
    {
       statusCode = 0;
       error.Empty();
@@ -345,9 +355,32 @@ namespace HM
 
       HttpsClient::Response response;
 
-      if (!HttpsClient::Request("POST", AnsiString(subscription.endpoint), headers, "application/octet-stream",
-                                body, response, error))
+      // The endpoint is whatever a person's browser - or the person - handed
+      // over, so it is reached only at a public address (RequestPublic), with
+      // the one exception PushSubscriptions::Save takes from this machine
+      // alone: plain http to its own loopback. The reason a request failed is
+      // the administrator's, in the application log; what the person is shown
+      // says only that it failed, since "refused", "timed out" and a TLS error
+      // from an address they chose would map the network for them.
+      String transportError;
+      // A loopback endpoint saved while the regression suite's switch was on is
+      // sent to with RequestPublic once it is off, which refuses it.
+      const bool loopbackForTests = PushSubscriptions::IsLoopbackHttp(subscription.endpoint) &&
+                                    Configuration::Instance()->GetWebPushLoopbackHttpForTests();
+      const bool answered = loopbackForTests
+         ? HttpsClient::Request("POST", AnsiString(subscription.endpoint), headers, "application/octet-stream",
+                                body, response, transportError, timeoutSeconds, MaximumAnswerBytes)
+         : HttpsClient::RequestPublic("POST", AnsiString(subscription.endpoint), headers, "application/octet-stream",
+                                      body, response, transportError, timeoutSeconds, MaximumAnswerBytes);
+      if (!answered)
+      {
+         AnsiString audience;
+         WebPush::AudienceOf(AnsiString(subscription.endpoint), audience);
+         LOG_APPLICATION(Formatter::Format("Web Push: the push service {0} for device \"{1}\" was not reached: {2}",
+            String(audience), subscription.device, transportError));
+         error = _T("the push service could not be reached");
          return false;
+      }
 
       statusCode = response.status_code;
 
@@ -379,8 +412,10 @@ namespace HM
       // is never left wondering which message it was about.
       payload = payload.Mid(0, payload.GetLength() - 1) + ",\"test\":true}";
 
+      // A shorter deadline than the drain's: this one holds a REST worker, of
+      // which there are four, while it waits.
       int statusCode = 0;
-      if (SendOne_(subscription, payload, statusCode, error))
+      if (SendOne_(subscription, payload, TestTimeoutSeconds, statusCode, error))
       {
          PushSubscriptions::MarkDelivered(subscription.id, (__int64) time(nullptr));
          return true;
@@ -513,7 +548,7 @@ namespace HM
             int statusCode = 0;
             String error;
 
-            if (SendOne_(subscription, payload, statusCode, error))
+            if (SendOne_(subscription, payload, DrainTimeoutSeconds, statusCode, error))
             {
                PushSubscriptions::MarkDelivered(subscription.id, now);
                subscription.failures = 0;

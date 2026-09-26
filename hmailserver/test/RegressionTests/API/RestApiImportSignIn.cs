@@ -144,6 +144,10 @@ namespace RegressionTests.API
             (int status, string body) made = Send("GET", "/api/v1/me/fetch-accounts/" + id, me, null);
             Assert.AreEqual(200, made.status, made.body);
             StringAssert.Contains("\"oauth_provider\":\"google\"", made.body);
+            // The reader's grant, never this server's token; and the provider's own
+            // server, not a host of the reader's choosing.
+            StringAssert.Contains("\"server_token_withheld\":true", made.body);
+            StringAssert.Contains("\"reader_created\":false", made.body);
             StringAssert.Contains("\"server_address\":\"imap.gmail.com\",\"port\":993,\"server_type\":\"imap\"", made.body);
             StringAssert.Contains("\"username\":\"" + SignedInAddress + "\"", made.body);
             StringAssert.Contains("\"connection_security\":\"tls\"", made.body);
@@ -164,7 +168,7 @@ namespace RegressionTests.API
             // points it at the scripted one for the test.
             Assert.AreEqual(400, Send("PUT", "/api/v1/me/fetch-accounts/" + id, me, "{\"server_address\":\"imap.elsewhere.example\"}").status);
             Assert.AreEqual(200, Admin("PUT", "/api/v1/accounts/" + reader.Address + "/fetch-accounts/" + id,
-               "{\"server_address\":\"localhost\",\"port\":" + ImapPort + ",\"connection_security\":\"none\"}").status);
+               "{\"server_address\":\"localhost\",\"port\":" + ImapPort + ",\"connection_security\":\"tls\"}").status);
 
             // A token that lives a second, and a provider that rotates the refresh token.
             provider.SetResponse(200, TokenAnswer("access-2", "refresh-2", 1));
@@ -178,7 +182,7 @@ namespace RegressionTests.API
             FetchAccount fetchAccount = reader.FetchAccounts.get_ItemByDBID(int.Parse(id));
 
             // First collection: the folders are listed for the reader, nothing is brought.
-            var listing = new ScriptedImapServer(ImapPort, mailboxes) { AcceptXOAuth2 = true };
+            var listing = new ScriptedImapServer(ImapPort, mailboxes) { AcceptXOAuth2 = true, ImplicitTls = true };
             Poll(listing, fetchAccount);
             Assert.AreEqual("user=" + SignedInAddress + "auth=Bearer access-2",
                Encoding.UTF8.GetString(Convert.FromBase64String(listing.XOAuth2Blob ?? "")), "The bearer the refresh gave, for the address that signed in.");
@@ -194,7 +198,7 @@ namespace RegressionTests.API
             StringAssert.Contains("\"mirror_pending\":false", chosen.body);
             StringAssert.Contains("\"mirror_skip\":[\"Archive\"]", chosen.body);
 
-            var collecting = new ScriptedImapServer(ImapPort, mailboxes) { AcceptXOAuth2 = true };
+            var collecting = new ScriptedImapServer(ImapPort, mailboxes) { AcceptXOAuth2 = true, ImplicitTls = true };
             Poll(collecting, fetchAccount);
             CollectionAssert.AreEqual(new[] { 101 }, collecting.FetchedUids, "The inbox is brought and the archive is not.");
             StringAssert.Contains("grant_type=refresh_token&refresh_token=refresh-2", Encoding.ASCII.GetString(provider.RequestBodies.Last()),

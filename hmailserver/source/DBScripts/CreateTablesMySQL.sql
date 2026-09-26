@@ -585,7 +585,8 @@ create table hm_fetchaccounts
 	faoauthprovider varchar(16) not null DEFAULT '',
 	faoauthtoken text not null,
 	famirrorskip text not null,
-	famirrorseen text not null
+	famirrorseen text not null,
+	faorigin tinyint not null DEFAULT 0
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_fetchaccounts_uids
@@ -3162,4 +3163,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6103);
+insert into hm_dbversion values (6104);

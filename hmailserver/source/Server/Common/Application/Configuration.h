@@ -688,6 +688,11 @@ namespace HM
       void SetWebPushMaxPerAccount(int maximum);
       int GetWebPushMaxAttempts();                 // 1 to 20
       void SetWebPushMaxAttempts(int attempts);
+      // The regression suite's switch for a push service on this machine's
+      // loopback over plain http (PROPERTY_WEB_PUSH_LOOPBACK_HTTP). Off by
+      // default, and off on every server in the field.
+      bool GetWebPushLoopbackHttpForTests();
+      void SetWebPushLoopbackHttpForTests(bool allowed);
 
       // The public half of the VAPID key pair, which every page needs to
       // subscribe at all, and which is therefore emitted freely.

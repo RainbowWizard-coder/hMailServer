@@ -262,6 +262,8 @@ namespace HM
       property_set_->EnsureLong(PROPERTY_WEB_PUSH_MAX_ATTEMPTS, 5);
       property_set_->EnsureString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, _T(""));
       property_set_->EnsureString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, _T(""));
+      // The regression suite's loopback push service, and nothing else: off.
+      property_set_->EnsureLong(PROPERTY_WEB_PUSH_LOOPBACK_HTTP, 0);
 
       // The Web Key Directory. Off, which is the server as it has always been: no
       // key of anybody's is served until an administrator switches this on AND the
@@ -2911,6 +2913,18 @@ namespace HM
    Configuration::SetWebPushEnabled(bool enabled)
    {
       GetSettings()->SetBool(PROPERTY_WEB_PUSH_ENABLED, enabled);
+   }
+
+   bool
+   Configuration::GetWebPushLoopbackHttpForTests()
+   {
+      return GetSettings()->GetBool(PROPERTY_WEB_PUSH_LOOPBACK_HTTP);
+   }
+
+   void
+   Configuration::SetWebPushLoopbackHttpForTests(bool allowed)
+   {
+      GetSettings()->SetBool(PROPERTY_WEB_PUSH_LOOPBACK_HTTP, allowed);
    }
 
    String

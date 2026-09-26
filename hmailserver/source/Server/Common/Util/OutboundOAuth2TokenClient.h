@@ -39,6 +39,15 @@ namespace HM
       // skew both look exactly like that from here.
       void Invalidate();
 
+      // True when serverAddress is one of FetchOAuth2Hosts: a fetch account
+      // for it logs in with THIS server's token, as whatever username it
+      // names. The fetchers ask it before presenting the token, and the
+      // places a fetch account is saved ask it before letting anyone but a
+      // server administrator make or change one (RestApiFetchAccounts.cpp,
+      // InterfaceFetchAccount::Save): the token reaches every mailbox the
+      // registration was granted, not only the saver's.
+      static bool IsFetchHost(const String &serverAddress);
+
    private:
       bool FetchToken_(String &token, __int64 &expiresInSeconds, String &errorMessage);
 

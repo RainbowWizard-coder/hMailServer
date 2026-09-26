@@ -502,6 +502,24 @@ namespace HM
 
       if (use_smtpauth_)
       {
+         if (!oauth_bearer_.IsEmpty() && !IsSSLConnection())
+         {
+            // The bearer token goes over TLS only, as the fetchers send theirs
+            // (IMAPClientConnection::SendLogin_). It is this server's own
+            // client_credentials token, which can send as every mailbox the app
+            // registration was granted; a route or a smart host with connection
+            // security none - or STARTTLS optional against a server that did not
+            // offer it - would put it on the wire in the clear. Temporary, so the
+            // message waits for the administrator to set the security rather
+            // than bouncing; nothing is sent in the token's place.
+            String destination = GetRemoteEndpointAddress().ToString();
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5912, "SMTPClientConnection::ProtocolEHLOSent_",
+               Formatter::Format("An OAuth2 token is sent to {0} over TLS only, and this connection has none; set the route's or the SMTP relay's connection security to TLS or STARTTLS (required). The delivery will be retried.", destination));
+            UpdateAllRecipientsWithError_(450, "The OAuth2 token for this destination is sent over TLS only, and the connection has no TLS.", false, _T("4.7.0"), false);
+            SendQUIT_();
+            return;
+         }
+
          if (!oauth_bearer_.IsEmpty())
          {
             // XOAUTH2 (the Microsoft variant - Exchange Online implements this

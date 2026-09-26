@@ -337,7 +337,12 @@ namespace HM
             // public - judged by the addresses the name resolves to, and
             // connected to those very addresses (HttpsClient::RequestPublic)
             // - and with a short deadline and a small cap, since this runs
-            // on a REST worker: a slow list must not hold one for long.
+            // on a REST worker: a slow list must not hold one for long, and
+            // it waits its turn with the other requests that reach out.
+            ReachingOut_ turn(caller);
+            if (!turn.Admitted())
+               return BuildBusyReachingOutResponse_();
+
             HttpsClient::Response response;
             String error;
             bool ok = HttpsClient::RequestPublic("POST", https, std::vector<AnsiString>(), "application/x-www-form-urlencoded",
@@ -590,13 +595,24 @@ namespace HM
    // Served as an image the page puts in an <img>, where an SVG runs nothing;
    // the policy header says so again for a reader who opens the address itself.
    HttpResponse
-   RestApiServer::HandleMeBrandLogo_(const AnsiString &query)
+   RestApiServer::HandleMeBrandLogo_(const Caller &caller, const AnsiString &query)
    {
       String domain;
       Unicode::MultiByteToWide(QueryParameter_(query, "domain"), domain);
 
+      // An answer already known is served at once; one that has to be asked
+      // for - the DNS, then the logo's own host, for up to ten seconds - waits
+      // its turn with the other requests that reach out (ReachingOut_), so that
+      // a list of made-up subdomains cannot hold every REST worker.
       AnsiString svg, reason;
-      const BrandLogo::Outcome outcome = BrandLogo::Lookup(domain, svg, reason);
+      BrandLogo::Outcome outcome = BrandLogo::NoRecord;
+      if (!BrandLogo::Known(domain, outcome, svg, reason))
+      {
+         ReachingOut_ turn(caller);
+         if (!turn.Admitted())
+            return BuildBusyReachingOutResponse_();
+         outcome = BrandLogo::Lookup(domain, svg, reason);
+      }
       if (outcome != BrandLogo::Found)
       {
          AnsiString body = "{\"error\":\"" + JsonEscape_(reason) + "\",\"outcome\":\"" + AnsiString(BrandLogo::Word(outcome)) + "\"}";

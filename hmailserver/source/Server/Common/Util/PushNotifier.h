@@ -123,7 +123,7 @@ namespace HM
       bool FolderIsAnnounced_(__int64 folderId, String &name);
 
       bool SendOne_(const PushSubscriptions::Subscription &subscription, const AnsiString &payload,
-                    int &statusCode, String &error);
+                    int timeoutSeconds, int &statusCode, String &error);
 
       // The subject line of a message file, decoded, at most 120 characters.
       static String SubjectOf_(const String &fileName);

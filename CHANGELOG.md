@@ -73,7 +73,7 @@ Nothing yet.
 
 Everything that landed on `master` after the `v6.3.3` tag, between 15 and 26 September 2026 ([compare `v6.3.3` with
 `v6.3.4`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.3...v6.3.4)). The schema moves from **6040
-to 6103 in 63 steps**. Most of what is new is off until an administrator turns it on; what changes on upgrade
+to 6104 in 64 steps**. Most of what is new is off until an administrator turns it on; what changes on upgrade
 without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has 90 more of
 them than it had at 6.3.3. This release carries an Authenticode signature and no Sigstore bundle, so every server
 installs it by hand: a live update of any version that is offered it says it cannot be verified and downloads
@@ -220,6 +220,12 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
     such a script does not lock the administrator out. Somebody asked for a code twice within half a minute - to sign in to
     the Control Deck and then to register a passkey, say - waits for the authenticator's next one
     ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)).
+23. **The outbound relay sends its OAuth2 token over TLS only.** A route or the SMTP relay whose host is on
+    `OutboundOAuth2Hosts` and whose connection security is none - or STARTTLS optional against a server that does
+    not offer it - sent `AUTH XOAUTH2` with the server's own token in the clear. Such a delivery now sends
+    nothing in its place, fails with a temporary `450 4.7.0`, and the error log says to set the security to TLS
+    or STARTTLS required (`HM5912`); the message waits for the retries the route allows. Exchange Online offers
+    STARTTLS on 587, so a route set up as Microsoft documents it is not affected.
 
 ### Delivery and SMTP
 
@@ -511,6 +517,58 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   (`support_last`) or the consent (`support_allowed`) in `PUT /api/v1/me/preferences`, and an app password can
   no longer give that consent ([Roles.md](hmailserver/docs/Roles.md), [OpenPGP.md](hmailserver/docs/OpenPGP.md),
   [ZeroAccess.md](hmailserver/docs/ZeroAccess.md)).
+- **Fixed: a person could collect any Microsoft 365 mailbox with the server's own token.** On a server set up to
+  collect Microsoft 365 mail with its own OAuth2 app token (`OutboundOAuth2*` or `OutboundOAuth2FixedToken`), an
+  external account for a host on `FetchOAuth2Hosts` logs in with that token as whatever user name it gives. The new
+  Other accounts page (`/api/v1/me/fetch-accounts`) let any person add one for `outlook.office365.com` naming
+  another person's address, or rename the user on one an administrator had set up, and so copy - and with days to
+  keep 0, delete - any mailbox the app registration reaches; a key restricted to named domains could do the same,
+  and so could a domain administrator over COM, which had been open since 6.2.23 Alpha 1. Only a server
+  administrator now adds or changes such an account. The fetchers also sent a bearer token without TLS when the account's security was none: they now
+  send one over TLS only ([Migration.md](hmailserver/docs/Migration.md)).
+- **Fixed: an external account's user name or password could add commands to the collection.** Both are sent in
+  command lines - POP3 `USER` and `PASS`, IMAP `LOGIN` - and a CR or LF in either ended the command and sent what
+  followed as another, to the host and port the account names; the new Other accounts page let any person set
+  them. A user name or password with a CR, LF or NUL is now refused by the REST routes and by `FetchAccount.Save`
+  over COM, and the fetchers do not send one saved before.
+- **Fixed: a person's other account could reach inside the network after it was saved.** Its host was judged
+  public once, when it was saved, by the system's resolver; the server later resolved it again with its own DNS
+  and connected to whatever came back, on any port from 1 to 65535. A name that answered a public address at
+  the save and 127.0.0.1 or 10.x afterwards (DNS rebinding), or one the server's DNS answered differently (split
+  horizon), made the server connect inside its own network every fifteen minutes and send a user name and
+  password there. Schema 6104 marks an account a person makes on the Other accounts page, or moves to another
+  server or port there, as `reader_created`; the fetcher connects such an account only to the public addresses
+  the name resolves to at that moment (`HM5909` when there are none), and a person names port 110, 995, 143 or
+  993 - both unless `reader_fetch_accounts_private_addresses` is on. Accounts from before 6104, and an
+  administrator's, are not marked and behave as they did ([Migration.md](hmailserver/docs/Migration.md)).
+- **Fixed: a host added to `FetchOAuth2Hosts` later gave the server's token to accounts others had named.**
+  The save refuses anybody without the server's authority a fetch account for a host on the list, but the
+  fetchers judged only the host at collection time, so an account a person, a key restricted to named domains
+  or a domain administrator had set up for a host the administrator put on the list afterwards logged in with
+  the server's own OAuth2 token as whatever user name it gave. Schema 6104 records whose word the server and
+  the user name are (`hm_fetchaccounts.faorigin`): an account such a caller makes, or whose server, port or
+  user name it changes, is `server_token_withheld`, and the fetchers log it in with its own user name and
+  password instead. Accounts from before 6104 are not marked; a domain administrator's saved before this
+  release cannot be told apart from a server administrator's
+  ([Migration.md](hmailserver/docs/Migration.md)).
+- **Fixed: a Web Push endpoint could point the server inside its own network.** With Web Push on (off by
+  default), a person could subscribe an https endpoint at any address - a host on the private network, a cloud's
+  metadata address - or plain http to any port of the server's own loopback, and the test push answered why the
+  connection failed word for word, which mapped the network behind the server one request at a time. A push now
+  goes to a public address only; plain http to the loopback is taken only while `WebPushLoopbackHttpForTests`
+  (`loopback_http_for_tests` under `/api/v1/settings/push`), a switch for the regression suite that is off by
+  default, is on, and then only from a request made on the machine itself that no proxy forwarded - a reverse
+  proxy on the same machine that adds no forwarding header makes every person a caller from the machine; a
+  failure is shown to the person as "could not be reached" and its reason written to the application log; and a
+  push waits ten seconds at most, a test push five.
+- **Fixed: one person could stall the webmail and the Deck for everybody.** The REST listener has four workers,
+  and a request that waits on another server - a brand logo not yet known, a one-click unsubscribe, an OpenPGP key
+  lookup, a test push - held one for up to its deadline, so one account keeping four of them in flight against a
+  host that never answers, a made-up subdomain for each logo, left nothing to answer anybody else. An account now
+  has one such request in flight at a time and the server two in all; the rest are answered `429` at once. A
+  logo host or a key directory that gave no answer for three seconds or more is held against its whole
+  organizational domain for an hour, so the next made-up subdomain is answered at once without asking it
+  ([BrandLogos.md](hmailserver/docs/BrandLogos.md)).
 - **A new installation is secure before anyone configures it.** A database this installation created - never an
   upgraded or attached one - is given a self-signed certificate for the machine (RSA 2048, 825 days), STARTTLS
   offered on 25, 587, 110 and 143, and TLS required for authentication on the Internet IP range, so that a password
@@ -909,6 +967,11 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   with contacts and calendars beside the mail ([Migration.md](hmailserver/docs/Migration.md)).
 - **Other accounts in the webmail** (schema 6065): POP3 and IMAP accounts fetched from the page, and an import
   from Gmail or Outlook.com with a sign-in (OAuth with PKCE).
+- **Fixed: one person could switch every import sign-in off.** The table of sign-ins waiting to finish refused new
+  ones once it held a thousand, and each lived ten minutes, so one account starting an import a thousand times in
+  under a minute kept every other person's import and every migration job's Google or Microsoft sign-in refused
+  for as long as it went on. An account or a job now keeps three at most, a fourth dropping its own oldest, and a
+  full table drops its oldest instead of refusing ([Migration.md](hmailserver/docs/Migration.md)).
 - **PST import**: the server reads Outlook data files itself, with a reader of this project's own written from
   Microsoft's published specifications, as a migration of kind `pst` - one job per file into one account, with the
   migration row's throttle, resume marks, report and Deck view. Mail, folders and their flags and categories come
@@ -1018,6 +1081,15 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   ([Webhooks.md](hmailserver/docs/Webhooks.md)); a daily check of the server's own addresses against block lists
   (schema 6057), on in a new installation and off after an upgrade
   ([ReputationWatch.md](hmailserver/docs/ReputationWatch.md)).
+- **Fixed: on Linux, a syslog collector that went quiet held the service.** Over TCP or TLS the sink's connection,
+  handshake and writes had only the socket's own timeouts, which Asio's synchronous calls do not honour on Linux,
+  so TLS pointed at a plain-TCP port, or a collector that accepted and stopped reading, stopped the sink for good
+  and left a reinitialise or a service stop waiting on it until systemd killed the service. Each step now has ten
+  seconds and is given up on after that ([Syslog.md](hmailserver/docs/Syslog.md)).
+- **Fixed: on Linux, an OpenTelemetry collector that went quiet held its exporter.** The OTLP exporters' three-second
+  send and receive deadlines were passed in the Windows form, which Linux refuses, so a collector that accepted the
+  connection and never answered held the exporter, and the stop that waits for it, for good. Linux is given the
+  deadlines in its own form. This was so in every release with Linux packages, from 6.3.0.
 - **Linux**: the live update applies on Linux through a root helper outside the server's unit; a Helm chart and a
   Compose file beside the container image; `hmailserver --set-setting`, `--sample-domain` and
   `--apply-environment`.

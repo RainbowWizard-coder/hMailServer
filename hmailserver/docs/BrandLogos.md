@@ -25,6 +25,10 @@ For the logo, `GET /api/v1/me/brand-logo?domain=` answers the SVG itself only wh
 
 Every answer, found or refused, is kept a day per domain. A newsletter that sends a hundred messages causes one lookup a day.
 
+An answer that is kept is served at once. One that has to be asked for waits on the DNS and the logo's host on one of the REST listener's four workers, so it takes its turn with the other requests that wait on another server - a one-click unsubscribe, an OpenPGP key lookup, a test push: an account has one of them in flight at a time, and the server two at most in all. A request past that is answered `429` with `code` `reaching_out_busy` and `Retry-After: 1`, and the webmail shows the initials for it until the list is shown again. However slow the hosts a caller names, the other two workers go on answering everybody else.
+
+A logo host that gives no answer at all for three seconds or more - a host that takes the connection and says nothing, or one that drops it - is held against the whole organizational domain of the name asked (the Public Suffix List's answer, as DMARC finds it) for an hour: every name under it is answered `fetch_failed` at once, without asking the DNS or the host. Whoever owns a domain has a new subdomain for every request, each publishing a logo at such a host, and without the hold each would take ten seconds of a worker. A host that refuses at once, or answers with an error, costs nothing and is not held. `BrandLogo::NoteUnreachable`.
+
 A refusal is `404` with `error` (the reason in a sentence) and `outcome`: `no_record`, `declined`, `weak_policy`, `not_https`, `fetch_failed`, `not_tiny_ps` or `switched_off`. A domain that is not a domain name is `400 bad_domain`. The webmail shows the initials whenever the logo does not come.
 
 ## What is not checked

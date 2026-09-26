@@ -323,6 +323,7 @@ WebhookMaxPerMinute server
 WebhookRetentionDays server
 WebhooksEnabled server
 WebPushEnabled server
+WebPushLoopbackHttpForTests server
 WebPushMaxAttempts server
 WebPushMaxPerAccount server
 WebPushSubject server

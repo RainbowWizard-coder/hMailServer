@@ -111,6 +111,11 @@ the feature rather than an afterthought:
 * A stream transport that cannot connect backs off: one second, then two, four,
   and so on to a minute. Nothing is attempted while the back-off is in force, so
   a dead collector does not cost a connect timeout per log line.
+* Each step of a stream transport - the connection, the TLS handshake, one entry
+  written - is given ten seconds, and the connection is closed when they are up.
+  A collector that accepts the connection and then goes quiet, or a TLS transport
+  pointed at a plain-TCP port, is a failure like a refused one, and stopping or
+  reinitialising the server waits for that step at most.
 * The application log gets **one** line when an outage starts and **one** when
   the collector comes back, with the number of entries dropped. It does not get
   one per failure: a collector that has been down for a day would otherwise write

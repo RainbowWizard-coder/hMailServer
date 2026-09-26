@@ -9,6 +9,7 @@
 
 #include "../Common/BO/FetchAccounts.h"
 #include "../Common/Persistence/PersistentFetchAccount.h"
+#include "../Common/Util/OutboundOAuth2TokenClient.h"
 
 #include "COMError.h"
 #include "../Common/Util/AuditTrail.h"
@@ -360,8 +361,46 @@ STDMETHODIMP InterfaceFetchAccount::Save(void)
       if (!authentication_->MayChangeAccount(object_->GetAccountID()))
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
+      // A fetch account for a host on FetchOAuth2Hosts logs in with this
+      // server's own OAuth2 token as whatever username it names, reaching
+      // every mailbox the app registration was granted: a server
+      // administrator's to save, never a domain administrator's.
+      if (!authentication_->GetIsServerAdmin() && object_->GetOAuthProvider().IsEmpty() &&
+          HM::OutboundOAuth2TokenClient::IsFetchHost(object_->GetServerAddress()))
+         return authentication_->GetAccessDenied();
+
+      if (!object_->CredentialsAreOneLine())
+         return COMError::GenerateError("The username and the password are one line each: no CR, LF or NUL.");
+
+      // Whose word the server and the username are (FetchAccount::GetOrigin).
+      // The row as stored first: this object may have been read before a reader
+      // moved the account, and saving it must not take that mark away. Then a
+      // domain administrator who makes the account, or names its server, its
+      // port or its username, makes it one the server's token is never given
+      // to, even for a host a server administrator adds to FetchOAuth2Hosts
+      // afterwards. A pause or a rename names none of them and marks nothing.
+      std::shared_ptr<HM::FetchAccount> before;
+      if (object_->GetID() != 0)
+      {
+         HM::FetchAccounts stored(object_->GetAccountID());
+         stored.Refresh();
+         before = stored.GetItemByDBID(object_->GetID());
+         if (before)
+            object_->KeepStricterOrigin(before->GetOrigin());
+      }
+
+      if (!authentication_->GetIsServerAdmin())
+      {
+         const bool named = !before ||
+                            before->GetServerAddress().CompareNoCase(object_->GetServerAddress()) != 0 ||
+                            before->GetPort() != object_->GetPort() ||
+                            before->GetUsername() != object_->GetUsername();
+         if (named)
+            object_->MarkWithoutServerAuthority();
+      }
+
       HM::PersistentFetchAccount oPersAccount;
-      
+
       if (oPersAccount.SaveObject(object_))
       {
          // Add to parent collection

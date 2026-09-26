@@ -1924,6 +1924,11 @@ namespace DBUpdater
          // password has since 6039 (probing proves the column exists, not its width).
          new SchemaProbe(6103, "hm_accounts.accounttotpsecret",
                          "update hm_accounts set accounttotpsecret = accounttotpsecret where 1 = 0"),
+         // Upgrade6103to6104* - whose word a fetch account's server and username
+         // are: the fetcher judges the addresses a reader's connects to, and gives
+         // this server's own OAuth2 token to a server administrator's alone.
+         new SchemaProbe(6104, "hm_fetchaccounts.faorigin",
+                         "update hm_fetchaccounts set faorigin = faorigin where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

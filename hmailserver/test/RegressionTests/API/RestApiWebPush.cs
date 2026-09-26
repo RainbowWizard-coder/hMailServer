@@ -64,8 +64,10 @@ namespace RegressionTests.API
          Assert.AreEqual(200, probe.status, "REST API did not answer /api/v1/status. Body: " + probe.body);
 
          // On, with a fresh key pair, so that the tests below start from a server
-         // that can send. TearDown puts both back.
-         (int status, string body) on = Http("PUT", SettingsPath, AdminHeader(), "{\"enabled\":true}");
+         // that can send - to the FakeHttpEndpoint on 127.0.0.1, which is plain
+         // http to this machine's loopback and taken only while the suite's own
+         // switch is on (loopback_http_for_tests). TearDown puts all three back.
+         (int status, string body) on = Http("PUT", SettingsPath, AdminHeader(), "{\"enabled\":true,\"loopback_http_for_tests\":true}");
          Assert.AreEqual(200, on.status, on.body);
 
          (int status, string body) pair = Http("POST", SettingsPath + "/vapid", AdminHeader(), "{}");
@@ -79,7 +81,7 @@ namespace RegressionTests.API
       {
          // Off, and the key pair cleared - a setting left behind here would let every
          // fixture after this one queue pushes for a service that is not there.
-         Http("PUT", SettingsPath, AdminHeader(), "{\"enabled\":false,\"vapid_private_key\":\"\"}");
+         Http("PUT", SettingsPath, AdminHeader(), "{\"enabled\":false,\"loopback_http_for_tests\":false,\"vapid_private_key\":\"\"}");
 
          RestListener.Stop();
          _application.Reinitialize();
@@ -301,6 +303,174 @@ namespace RegressionTests.API
             StringAssert.Contains("\"state\":\"active\"", listing, listing);
             StringAssert.Contains("\"failures\":1", listing, listing);
             StringAssert.Contains("answered 500", listing, "The reason is shown to the person: " + listing);
+         }
+      }
+
+      /// <summary>
+      ///    OUT-3. A push endpoint is whatever the person hands over, and the push went
+      ///    out with HttpsClient::Request, which reaches any address - an internal
+      ///    https host, a metadata address - and the test route answered the
+      ///    transport's reason (refused, timed out, a TLS error) word for word: a
+      ///    scanner of the network behind the server. An https endpoint is now
+      ///    reached only at a public address. Against the old code the listener below
+      ///    was connected to, and the answer named the failure; now nothing connects
+      ///    and the answer says only that the service could not be reached.
+      /// </summary>
+      [Test]
+      [Description("An https push endpoint at an address inside the network is never connected to, and the reason is not shown to the person.")]
+      public void APushEndpointInsideTheNetworkIsNeverReached()
+      {
+         var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+         listener.Start();
+         try
+         {
+            int port = ((System.Net.IPEndPoint) listener.LocalEndpoint).Port;
+            Device device = Device.Make(this, "https://127.0.0.1:" + port + "/push/inside");
+            long id = Subscribe(device, "\"device\":\"Inside\"");
+
+            (int status, string body) sent = Http("POST", MePath + "/test", UserHeader(), "{\"id\":" + id + "}");
+            Assert.AreEqual(502, sent.status, sent.body);
+            StringAssert.Contains("could not be reached", sent.body);
+            StringAssert.DoesNotContain("127.0.0.1", sent.body, "The answer names the address it was refused for.");
+            Assert.IsFalse(listener.Pending(), "The server connected to an https push endpoint on an internal address.");
+
+            string listing = Read(MePath, UserHeader());
+            StringAssert.Contains("could not be reached", listing, "The failure is recorded for the device, in the same words.");
+            StringAssert.DoesNotContain("not a public address", listing, "The transport's reason reached the person's listing: " + listing);
+         }
+         finally
+         {
+            listener.Stop();
+         }
+      }
+
+      /// <summary>
+      ///    OUT-3. Plain http to this machine's loopback is the push fixture's endpoint,
+      ///    and a push is sent to it with HttpsClient::Request, which reaches the
+      ///    loopback - so it is taken only from a request made on this machine and
+      ///    through no proxy. A reverse proxy on the same machine makes every reader's
+      ///    request come from the loopback; one that says it forwarded the request
+      ///    (X-Forwarded-For, Forwarded) is a reader somewhere else. Against the old
+      ///    code both subscriptions below were 201.
+      /// </summary>
+      [Test]
+      [Description("A plain-http loopback push endpoint is refused from a request a proxy forwarded, and taken from one made on this machine.")]
+      public void ALoopbackPushEndpointIsTakenFromThisMachineAlone()
+      {
+         using (var service = new FakeHttpEndpoint(201, ""))
+         {
+            Device forwarded = Device.Make(this, service.UrlFor("/push/forwarded"));
+            (int status, string body) viaProxy = RestRequest.Send("127.0.0.1", RestPort, "POST", MePath + "/subscriptions", UserHeader(),
+               forwarded.SubscriptionJson("\"device\":\"Forwarded\""), "X-Forwarded-For: 203.0.113.9");
+            Assert.AreEqual(400, viaProxy.status, viaProxy.body);
+            StringAssert.Contains("https address", viaProxy.body);
+
+            (int status, string body) viaForwarded = RestRequest.Send("127.0.0.1", RestPort, "POST", MePath + "/subscriptions", UserHeader(),
+               forwarded.SubscriptionJson("\"device\":\"Forwarded\""), "Forwarded: for=203.0.113.9");
+            Assert.AreEqual(400, viaForwarded.status, viaForwarded.body);
+            StringAssert.Contains("\"subscriptions\":[]", Read(MePath, UserHeader()), "Nothing is stored when the endpoint is refused.");
+
+            Subscribe(forwarded, "\"device\":\"Here\"");
+         }
+      }
+
+      /// <summary>
+      ///    OUT-3, what was left: a reverse proxy on this machine that forwards
+      ///    without Forwarded, X-Forwarded-For or X-Real-IP (nginx's proxy_pass adds
+      ///    none) makes every reader's request one from this machine, so the header
+      ///    check alone still took a reader's http://127.0.0.1:&lt;any port&gt;/ and
+      ///    POSTed to it. Plain http to loopback is now taken only while the suite's
+      ///    own switch is on, which is off on every server in the field; and a device
+      ///    saved while it was on is not reached once it is off. Against the old code
+      ///    the first subscription below was a 201, and the last push reached the
+      ///    endpoint.
+      /// </summary>
+      [Test]
+      [Description("With the test switch off, a plain-http loopback push endpoint is refused even from this machine, and one already stored is not reached.")]
+      public void ALoopbackPushEndpointNeedsTheTestSwitch()
+      {
+         using (var service = new FakeHttpEndpoint(201, ""))
+         {
+            (int status, string body) off = Http("PUT", SettingsPath, AdminHeader(), "{\"loopback_http_for_tests\":false}");
+            Assert.AreEqual(200, off.status, off.body);
+
+            Device refused = Device.Make(this, service.UrlFor("/push/refused"));
+            (int status, string body) made = Http("POST", MePath + "/subscriptions", UserHeader(), refused.SubscriptionJson("\"device\":\"Refused\""));
+            Assert.AreEqual(400, made.status, "A loopback endpoint from this machine with the switch off: " + made.body);
+            StringAssert.Contains("https address", made.body);
+            StringAssert.Contains("\"subscriptions\":[]", Read(MePath, UserHeader()), "Nothing is stored when the endpoint is refused.");
+
+            // Stored while the switch was on, then the switch goes off.
+            (int status, string body) on = Http("PUT", SettingsPath, AdminHeader(), "{\"loopback_http_for_tests\":true}");
+            Assert.AreEqual(200, on.status, on.body);
+            long id = Subscribe(Device.Make(this, service.UrlFor("/push/stored")), "\"device\":\"Stored\"");
+            off = Http("PUT", SettingsPath, AdminHeader(), "{\"loopback_http_for_tests\":false}");
+            Assert.AreEqual(200, off.status, off.body);
+
+            (int status, string body) sent = Http("POST", MePath + "/test", UserHeader(), "{\"id\":" + id + "}");
+            Assert.AreEqual(502, sent.status, sent.body);
+            StringAssert.Contains("could not be reached", sent.body);
+            Assert.AreEqual(0, service.CountRequests("POST", "/push/stored"), "A loopback endpoint was reached with the switch off.");
+         }
+      }
+
+      /// <summary>
+      ///    OUT-2. The REST listener has four workers, and a request that waits on
+      ///    another server - a test push, a brand logo not yet known, a one-click
+      ///    unsubscribe, a WKD lookup - held one for as long as that server took.
+      ///    One reader keeping four such requests in flight against a tarpit stalled
+      ///    the webmail, the portal and the Deck for everybody. Now an account waits
+      ///    on one other server at a time and all callers together on two. Against the
+      ///    old code the same account's second request and the third account's were
+      ///    admitted - and answered 200 by the quick push service - instead of 429,
+      ///    while the two stalled ones each held a worker for twenty seconds.
+      /// </summary>
+      [Test]
+      [Description("An account waits on one other server at a time, and all callers together on half the REST workers at most; the rest are answered 429 at once.")]
+      public void RequestsThatReachOutTakeTurns()
+      {
+         Account second = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "push-second@" + _domain.Name, UserPassword);
+         Account third = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "push-third@" + _domain.Name, UserPassword);
+         string secondHeader = BasicHeader(second.Address, UserPassword);
+         string thirdHeader = BasicHeader(third.Address, UserPassword);
+
+         using (var stalled = new FakeHttpEndpoint(201, ""))
+         using (var quick = new FakeHttpEndpoint(201, ""))
+         {
+            stalled.SetStall("/push/slow", 15);
+
+            long mine = Subscribe(Device.Make(this, stalled.UrlFor("/push/slow")), "\"device\":\"Slow\"");
+            long mineQuick = Subscribe(Device.Make(this, quick.UrlFor("/push/mine")), "\"device\":\"Quick\"");
+
+            (int status, string body) madeSecond = Http("POST", MePath + "/subscriptions", secondHeader,
+               Device.Make(this, stalled.UrlFor("/push/slow")).SubscriptionJson("\"device\":\"Slow too\""));
+            Assert.AreEqual(201, madeSecond.status, madeSecond.body);
+            long secondsSlow = long.Parse(Extract(madeSecond.body, "id"));
+
+            (int status, string body) madeThird = Http("POST", MePath + "/subscriptions", thirdHeader,
+               Device.Make(this, quick.UrlFor("/push/third")).SubscriptionJson("\"device\":\"Quick too\""));
+            Assert.AreEqual(201, madeThird.status, madeThird.body);
+            long thirdsQuick = long.Parse(Extract(madeThird.body, "id"));
+
+            var first = System.Threading.Tasks.Task.Run(() => Http("POST", MePath + "/test", UserHeader(), "{\"id\":" + mine + "}"));
+            Thread.Sleep(1000);
+            var other = System.Threading.Tasks.Task.Run(() => Http("POST", MePath + "/test", secondHeader, "{\"id\":" + secondsSlow + "}"));
+            Thread.Sleep(1000);
+
+            (int status, string body) again = Http("POST", MePath + "/test", UserHeader(), "{\"id\":" + mineQuick + "}");
+            Assert.AreEqual(429, again.status, "The same account, while it waits on one server: " + again.body);
+            StringAssert.Contains("reaching_out_busy", again.body);
+
+            (int status, string body) full = Http("POST", MePath + "/test", thirdHeader, "{\"id\":" + thirdsQuick + "}");
+            Assert.AreEqual(429, full.status, "A third account, while two wait on other servers: " + full.body);
+
+            Assert.AreEqual(200, Http("GET", MePath, UserHeader()).status, "A request that reaches nowhere is answered meanwhile.");
+
+            Assert.AreEqual(502, first.Result.status, first.Result.body);
+            Assert.AreEqual(502, other.Result.status, other.Result.body);
+
+            (int status, string body) afterwards = Http("POST", MePath + "/test", thirdHeader, "{\"id\":" + thirdsQuick + "}");
+            Assert.AreEqual(200, afterwards.status, "Their turns over, the third account is admitted: " + afterwards.body);
          }
       }
 

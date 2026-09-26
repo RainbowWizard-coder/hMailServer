@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "OpenPgpKey.h"
+#include "OpenPgpRing.h"
 
 #include <openssl/sha.h>
 
@@ -1638,6 +1639,21 @@ namespace HM
                  "A user id with no address was read as one.");
          Require(OpenPgpKey::AddressOfUserId("Joe <a@b> and <joe@example.org>") == "joe@example.org",
                  "The LAST pair of angle brackets is the address, so a display name that contains one cannot be the answer.");
+      }
+
+      // ---- OUT-2: a key directory that never answered is held against the
+      // organization, so a fresh subdomain of it is not another whole lookup
+      // timeout on a REST worker. Nothing was held before.
+      {
+         OpenPgpRing::ForgetUnreachable();
+         Require(!OpenPgpRing::DirectoryUnreachable(_T("a1.tarpit.example")), "A directory was held before anything failed.");
+         OpenPgpRing::NoteDirectoryUnreachable(_T("a1.tarpit.example"));
+         Require(OpenPgpRing::DirectoryUnreachable(_T("B2.Tarpit.Example")), "Another subdomain of the same organization is not held.");
+         Require(OpenPgpRing::DirectoryUnreachable(_T("tarpit.example")), "The organization's own name is not held.");
+         Require(!OpenPgpRing::DirectoryUnreachable(_T("tarpit2.example")), "Another organization is held.");
+         Require(!OpenPgpRing::DirectoryUnreachable(_T("tarpit.example.net")), "A name that merely contains the organization is held.");
+         OpenPgpRing::ForgetUnreachable();
+         Require(!OpenPgpRing::DirectoryUnreachable(_T("b2.tarpit.example")), "Forgetting did not clear the hold.");
       }
    }
 }

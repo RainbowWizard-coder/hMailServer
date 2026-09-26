@@ -490,6 +490,14 @@ namespace HM
          ~Release() { std::lock_guard<std::mutex> guard(lookupsMutex); lookupsInFlight.erase(id); }
       } release = { caller.account->GetID() };
 
+      // And with every other request that reaches out, a logo or an
+      // unsubscribe or a test push of this account's among them: one account
+      // holds one worker waiting on another server, and no more than half of
+      // them wait at once in all (ReachingOut_).
+      ReachingOut_ turn(caller);
+      if (!turn.Admitted())
+         return BuildBusyReachingOutResponse_();
+
       const OpenPgpRing::Found found = OpenPgpRing::Lookup(address);
       if (!found.Ok())
       {

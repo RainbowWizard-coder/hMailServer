@@ -99,7 +99,18 @@ namespace HM
       // row rather than making a second, which is why the unique index is on the
       // account and the endpoint hash rather than on the id alone. Returns false
       // with a sentence when the subscription is refused.
-      static bool Save(Subscription &subscription, String &refusal);
+      //
+      // fromThisMachine: the request came from this machine's own loopback. Only
+      // then is a plain-http endpoint on a loopback address taken (IsLoopbackHttp):
+      // someone on this machine reaches its loopback already, and anyone else
+      // would be using the server to reach it for them.
+      static bool Save(Subscription &subscription, String &refusal, bool fromThisMachine);
+
+      // Plain http to 127.0.0.0/8, localhost or ::1, judged by the host of the
+      // URL: the one exception to "an endpoint is https", and the same exception
+      // HttpsClient makes. PushNotifier sends to such an endpoint with
+      // HttpsClient::Request and to every other with RequestPublic.
+      static bool IsLoopbackHttp(const String &endpoint);
 
       // The person's choice about an existing row; the keys are never changed by
       // this, only by a fresh subscription.
@@ -147,10 +158,6 @@ namespace HM
    private:
 
       static Subscription Read_(const std::shared_ptr<DALRecordset> &recordset);
-
-      // Plain http to 127.0.0.1, localhost or [::1]: the one exception to "an
-      // endpoint is https", and the same exception HttpsClient makes.
-      static bool IsLoopbackHttp_(const String &lowerCaseEndpoint);
    };
 
    // Run from ClassTester::DoTests: the choice rules above, which are the part a

@@ -473,6 +473,66 @@ namespace RegressionTests.Infrastructure
             "The server should say once in the application log that the collector is not accepting entries.");
       }
 
+      /// <summary>
+      ///    OUT-6. The stream transports ran Asio's synchronous connect, handshake and
+      ///    write with SO_SNDTIMEO and SO_RCVTIMEO as their only deadline. On Linux,
+      ///    Asio takes the EAGAIN those produce for a would-block and polls again with
+      ///    no timeout, so TLS against a port that accepts and never answers held the
+      ///    sink's worker for good, and Stop - which Reinitialize and a service stop
+      ///    call, and which joins the worker - never returned: against the old code
+      ///    this test's Reinitialize does not come back on Linux. Windows failed the
+      ///    handshake after ten seconds instead, so there the test passes either way.
+      /// </summary>
+      [Test]
+      [Description("TLS to a collector that accepts the connection and never answers the handshake gives up at a deadline: " +
+                   "a reinitialize comes back, and the application log says the collector is not accepting entries.")]
+      public void TestACollectorThatNeverAnswersDoesNotHoldTheSink()
+      {
+         const int TransportTls = 2;
+
+         collector_.Dispose();
+         collector_ = null;
+
+         // Listening, and never accepting: the kernel completes the connection from
+         // its backlog, and the ClientHello waits there unread.
+         var silent = new TcpListener(IPAddress.Loopback, CollectorPort);
+         silent.Start();
+         try
+         {
+            ConfigureSyslog(TransportTls, FacilityMail, SeverityInformational, CollectorPort);
+
+            string address = "syslog-silent-collector@example.test";
+            SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, "test");
+            SmtpClientSimulator.StaticSend("sender@external.example", address, "Silent collector", "Body");
+            Pop3ClientSimulator.AssertMessageCount(address, "test", 1);
+
+            DateTime connectDeadline = DateTime.UtcNow.AddSeconds(30);
+            while (!silent.Pending() && DateTime.UtcNow < connectDeadline)
+               Thread.Sleep(100);
+            Assert.IsTrue(silent.Pending(), "The sink never connected to the collector, so there is no handshake to wait on.");
+
+            var started = DateTime.UtcNow;
+            _application.Reinitialize();
+            double seconds = (DateTime.UtcNow - started).TotalSeconds;
+            Assert.Less(seconds, 45, "A reinitialize took " + seconds + " seconds with a collector that never answers the handshake.");
+
+            string log = "";
+            DateTime logDeadline = DateTime.UtcNow.AddSeconds(40);
+            while (DateTime.UtcNow < logDeadline)
+            {
+               log = LogHandler.ReadCurrentDefaultLog();
+               if (log.Contains("is not accepting entries"))
+                  break;
+               Thread.Sleep(500);
+            }
+            StringAssert.Contains("is not accepting entries", log, "The handshake that never finished was not given up on.");
+         }
+         finally
+         {
+            silent.Stop();
+         }
+      }
+
       [Test]
       [Description("A category that is switched off is not sent, and one that is switched on is - " +
                    "which is what the log-types setting has to mean.")]

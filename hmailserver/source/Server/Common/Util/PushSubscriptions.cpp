@@ -8,7 +8,9 @@
 
 #include "Hashing/HashCreator.h"
 #include "WebPush.h"
+#include "HttpsClient.h"
 #include "../Application/Application.h"
+#include "../Application/Configuration.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
@@ -175,18 +177,20 @@ namespace HM
    }
 
    bool
-   PushSubscriptions::IsLoopbackHttp_(const String &lowerCaseEndpoint)
+   PushSubscriptions::IsLoopbackHttp(const String &endpoint)
    {
-      // "http://127.0.0.1:port/...", "http://localhost:port/..." or "http://[::1]:port/...".
-      if (!lowerCaseEndpoint.StartsWith(_T("http://")))
+      // By the host, not by the letters it starts with: "http://localhost.example"
+      // and "http://127.0.0.1.example" are names somewhere else.
+      bool https = false;
+      AnsiString host, port, path;
+      if (!HttpsClient::ParseUrl(AnsiString(endpoint), https, host, port, path) || https)
          return false;
 
-      String rest = lowerCaseEndpoint.Mid(7);
-      return rest.StartsWith(_T("127.0.0.1")) || rest.StartsWith(_T("localhost")) || rest.StartsWith(_T("[::1]"));
+      return HttpsClient::IsLoopbackHost(host);
    }
 
    bool
-   PushSubscriptions::Save(Subscription &subscription, String &refusal)
+   PushSubscriptions::Save(Subscription &subscription, String &refusal, bool fromThisMachine)
    {
       refusal.Empty();
 
@@ -206,7 +210,26 @@ namespace HM
       // token that authorises sending to that device in the clear.
       String lower = endpoint;
       lower.MakeLower();
-      if (!lower.StartsWith(_T("https://")) && !IsLoopbackHttp_(lower))
+      const bool loopbackHttp = IsLoopbackHttp(lower);
+      if (!lower.StartsWith(_T("https://")) && !loopbackHttp)
+      {
+         refusal = _T("a push endpoint is an https address");
+         return false;
+      }
+
+      // A push service on this machine's loopback, from anywhere but this
+      // machine, is somebody using the server to reach a port only it can: the
+      // push goes out with HttpsClient::Request, which reaches loopback. Every
+      // https endpoint goes out with RequestPublic, which reaches no address
+      // inside the network whatever it was saved as.
+      //
+      // And only while the regression suite's switch is on
+      // (WebPushLoopbackHttpForTests, off by default): a reverse proxy on this
+      // machine that forwards without Forwarded, X-Forwarded-For or X-Real-IP -
+      // nginx's proxy_pass adds none - makes every reader a peer on this
+      // machine, and the header check alone would then take a reader's
+      // http://127.0.0.1:<any port>/ and POST to it.
+      if (loopbackHttp && (!fromThisMachine || !Configuration::Instance()->GetWebPushLoopbackHttpForTests()))
       {
          refusal = _T("a push endpoint is an https address");
          return false;
@@ -566,6 +589,24 @@ namespace HM
          throw std::logic_error("An @domain entry must not match a domain that merely ends with the same letters.");
       if (PushSubscriptions::SenderMatches(_T("@work.example"), _T("")))
          throw std::logic_error("A message with no sender must not match a sender list.");
+
+      // OUT-3: plain http is taken for this machine's loopback alone, judged by
+      // the host rather than by the letters the address starts with, and only
+      // from a request made on this machine. The old prefix check took
+      // "http://localhost.example" and took a loopback endpoint from anyone,
+      // so the refusal below was an acceptance against it.
+      if (!PushSubscriptions::IsLoopbackHttp(_T("http://127.0.0.1:6379/")) || !PushSubscriptions::IsLoopbackHttp(_T("http://localhost:8080/push")))
+         throw std::logic_error("Plain http to this machine's loopback is the one exception to https.");
+      if (PushSubscriptions::IsLoopbackHttp(_T("http://localhost.example/push")) || PushSubscriptions::IsLoopbackHttp(_T("http://127.0.0.1.example/push")) ||
+          PushSubscriptions::IsLoopbackHttp(_T("https://127.0.0.1/push")) || PushSubscriptions::IsLoopbackHttp(_T("http://10.0.0.5/push")))
+         throw std::logic_error("A name that merely starts like a loopback address, an https address or another host is not plain http to loopback.");
+      {
+         PushSubscriptions::Subscription remote;
+         remote.endpoint = _T("http://127.0.0.1:6379/");
+         String refusal;
+         if (PushSubscriptions::Save(remote, refusal, false) || refusal.IsEmpty())
+            throw std::logic_error("A loopback push endpoint from another machine must be refused before anything is stored.");
+      }
 
       // The labels. The message's keywords are space-separated as IMAP stores them.
       if (!PushSubscriptions::LabelMatches(_T(""), _T("")))

@@ -9,6 +9,7 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
+using RegressionTests.SSL;
 using hMailServer;
 
 namespace RegressionTests.ExternalAccounts
@@ -36,7 +37,8 @@ namespace RegressionTests.ExternalAccounts
          IniFileSetting.Write(key, value);
       }
 
-      private FetchAccount AddFetchAccount(Account account, int port)
+      private FetchAccount AddFetchAccount(Account account, int port,
+         string serverAddress = "127.0.0.1", eConnectionSecurity security = eConnectionSecurity.eCSNone)
       {
          var fa = account.FetchAccounts.Add();
          fa.DaysToKeepMessages = 5;
@@ -44,18 +46,18 @@ namespace RegressionTests.ExternalAccounts
          fa.MinutesBetweenFetch = 10;
          fa.Name = "oauth-fetch";
          fa.Port = port;
-         fa.ServerAddress = "127.0.0.1";
+         fa.ServerAddress = serverAddress;
          fa.Username = "fetch-user@example.test";
-         fa.UseSSL = false;
+         fa.ConnectionSecurity = security;
          fa.Save();
          return fa;
       }
 
       [Test]
-      [Description("A fetch server on the OAuth host list gets AUTH XOAUTH2 with the exact blob, and the mail arrives.")]
+      [Description("A fetch server on the OAuth host list gets AUTH XOAUTH2 with the exact blob over TLS, and the mail arrives.")]
       public void TheConfiguredHostGetsTheBearerBlob()
       {
-         WriteSetting("FetchOAuth2Hosts", "127.0.0.1");
+         WriteSetting("FetchOAuth2Hosts", "localhost");
          WriteSetting("OutboundOAuth2FixedToken", "fetch-bearer-98765");
          _application.Reinitialize();
 
@@ -65,12 +67,13 @@ namespace RegressionTests.ExternalAccounts
                _domain, "fetch-oauth@example.test", "test");
 
             int port = TestSetup.GetNextFreePort();
-            var fa = AddFetchAccount(account, port);
+            var fa = AddFetchAccount(account, port, "localhost", eConnectionSecurity.eCSTLS);
 
             var messages = new List<string> { "Subject: Fetched over OAuth\r\n\r\nBody.\r\n" };
 
-            using (var pop3Server = new Pop3ServerSimulator(1, port, messages))
+            using (var pop3Server = new Pop3ServerSimulator(1, port, messages, eConnectionSecurity.eCSTLS))
             {
+               pop3Server.SetCertificate(SslSetup.GetCertificate());
                pop3Server.StartListen();
                fa.DownloadNow();
                pop3Server.WaitForCompletion();
@@ -87,6 +90,55 @@ namespace RegressionTests.ExternalAccounts
 
             CustomAsserts.AssertRecipientsInDeliveryQueue(0);
             Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
+         }
+         finally
+         {
+            WriteSetting("FetchOAuth2Hosts", "outlook.office365.com");
+            WriteSetting("OutboundOAuth2FixedToken", "");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    OUT-1: the server's token reaches every mailbox the app registration was
+      ///    granted, so it goes over TLS only. Before the fix a fetch account on the
+      ///    list with connection security none sent AUTH XOAUTH2 - the token in
+      ///    base64 - in the clear, and this test's first assertion failed; now the
+      ///    fetcher sends neither the token nor USER/PASS, and says why in the error
+      ///    log.
+      /// </summary>
+      [Test]
+      [Description("A fetch account on the OAuth host list without TLS never sends the bearer token, nor falls back to USER/PASS.")]
+      public void TheServersTokenIsNeverSentInTheClear()
+      {
+         WriteSetting("FetchOAuth2Hosts", "127.0.0.1");
+         WriteSetting("OutboundOAuth2FixedToken", "fetch-bearer-98765");
+         _application.Reinitialize();
+
+         try
+         {
+            var account = SingletonProvider<TestSetup>.Instance.AddAccount(
+               _domain, "fetch-clear@example.test", "test");
+
+            int port = TestSetup.GetNextFreePort();
+            var fa = AddFetchAccount(account, port);
+
+            var messages = new List<string> { "Subject: Never fetched\r\n\r\nBody.\r\n" };
+
+            using (var pop3Server = new Pop3ServerSimulator(1, port, messages))
+            {
+               pop3Server.StartListen();
+               fa.DownloadNow();
+               pop3Server.WaitForCompletion();
+
+               Assert.IsEmpty(pop3Server.XOAuth2Blob,
+                  "The server's bearer token went to a fetch server over a connection without TLS.");
+               Assert.IsFalse(pop3Server.UserCommandReceived,
+                  "USER/PASS is no fallback for a host on FetchOAuth2Hosts.");
+            }
+
+            CustomAsserts.AssertReportedError("over TLS only");
+            Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 0);
          }
          finally
          {

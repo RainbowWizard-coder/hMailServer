@@ -1054,7 +1054,7 @@ namespace
            return String();
         } },
       { "reader_fetch_accounts_private_addresses", KindBoolean, ReadWrite, EffectNow, nullptr,
-        "Whether a reader's other account may be on a host that resolves to a private, loopback or link-local address. Off by default: the server makes the connection from inside its own network, on the reader's word. Turn it on to let people collect from an old mail server inside the network.",
+        "Whether a reader's other account may be on a host that resolves to a private, loopback or link-local address, and on a port other than 110, 995, 143 and 993. Off by default: the server makes the connection from inside its own network, on the reader's word, so the name is judged when it is saved and again each time the server collects, when it connects only to the public addresses the name resolves to then. Turn it on to let people collect from an old mail server inside the network.",
         ROW_FLAG(Config()->GetReaderFetchAccountsPrivateAddresses()), ROW_SET(Config()->SetReaderFetchAccountsPrivateAddresses(v.flag)), ROW_NO_CHECK },
 
       // The recovery address and the recovery codes (Util/AccountRecovery.h).
@@ -2400,6 +2400,9 @@ namespace
         "How many times a push to one device is attempted before that device is dead-lettered. 1 to 20; 5 by default, as the alert webhooks are.",
         ROW_NUMBER(Config()->GetWebPushMaxAttempts()), ROW_SET(Config()->SetWebPushMaxAttempts((int) v.number)),
         [] (const Value &v) { return (v.number < 1 || v.number > 20) ? String(_T("max_attempts must be between 1 and 20.")) : String(); } },
+      { "loopback_http_for_tests", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "For the regression suite only; leave it off. On, a device's endpoint may be plain http to this machine's loopback (127.0.0.1, ::1 or localhost) when the subscription is made from this machine with no forwarding header, and a push to it is sent without the public-address check. Off, the default, every endpoint is https and every push goes to a public address only - so a reverse proxy on this machine cannot make a person's endpoint one of its local ports.",
+        ROW_FLAG(Config()->GetWebPushLoopbackHttpForTests()), ROW_SET(Config()->SetWebPushLoopbackHttpForTests(v.flag)), ROW_NO_CHECK },
       { "vapid_public_key", KindString, ReadOnly, EffectNow, nullptr,
         "The public half of this server's VAPID key pair, base64url. Every page that subscribes needs it, so it is public by construction. Derived from the private half; POST /api/v1/settings/push/vapid makes a new pair.",
         ROW_TEXT(Config()->GetWebPushVapidPublicKey()), nullptr, ROW_NO_CHECK },

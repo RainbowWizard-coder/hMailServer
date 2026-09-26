@@ -284,24 +284,40 @@ namespace HM
       // the outbound SMTP client's. The password is not a fallback here either -
       // a host on the OAuth list has Basic auth off, and USER/PASS against it is
       // a guaranteed, slower failure.
-      String fetchHosts = IniFileSettings::Instance()->GetFetchOAuth2Hosts();
       String serverAddress = account_->GetServerAddress();
 
-      bool oauthApplies = false;
-      std::vector<String> hosts = StringParser::SplitString(fetchHosts, ",");
-      for (String host : hosts)
+      // USER and PASS are command lines: a CR or LF in either would end the
+      // command and send what follows as another, of whoever set the account.
+      if (!account_->CredentialsAreOneLine())
       {
-         host.TrimLeft();
-         host.TrimRight();
-         if (!host.IsEmpty() && host.CompareNoCase(serverAddress) == 0)
-         {
-            oauthApplies = true;
-            break;
-         }
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5905, "POP3ClientConnection::SendUserName_",
+            Formatter::Format("External account {0}: its username or password holds a CR, LF or NUL, and is not sent", account_->GetName()));
+         QuitNow_();
+         return;
       }
 
-      if (oauthApplies)
+      // Never for an account a reader signed in to with a provider: its grant
+      // is the reader's, for IMAP (IMAPClientConnection::SendLogin_), and the
+      // server's own token is not its fallback. Nor for an account whose server
+      // or username somebody without the server's authority named - a reader, a
+      // domain administrator, a key restricted to named domains
+      // (FetchAccount::GetServerTokenWithheld): the save refuses them a host on
+      // the list, and this holds for one an administrator adds to the list
+      // afterwards. Such an account logs in with its own USER and PASS.
+      if (account_->GetOAuthProvider().IsEmpty() && !account_->GetServerTokenWithheld() && OutboundOAuth2TokenClient::IsFetchHost(serverAddress))
       {
+         // Over TLS only: this server's token reaches every mailbox the
+         // registration was granted, and connection security none - or
+         // STARTTLS optional against a server that did not offer STLS -
+         // would send it in the clear.
+         if (!IsSSLConnection())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5905, "POP3ClientConnection::SendUserName_",
+               Formatter::Format("External account {0}: an OAuth2 token is sent to {1} over TLS only; set its connection security to tls or starttls_required", account_->GetName(), serverAddress));
+            QuitNow_();
+            return;
+         }
+
          String token = IniFileSettings::Instance()->GetOutboundOAuth2FixedToken();
          String tokenError;
 

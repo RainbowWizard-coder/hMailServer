@@ -28,6 +28,12 @@
 // allows private ones, the interval is at least 15 minutes, and an account has
 // at most ReaderFetchAccountsMax of them.
 //
+// A fetch account for a host on FetchOAuth2Hosts logs in with this server's
+// own client_credentials token as whatever username it names, which reaches
+// every mailbox the app registration was granted. Only a caller with the
+// server's authority makes or changes one: a reader and a domain-confined key
+// get 403 (InterfaceFetchAccount::Save refuses a domain administrator the same).
+//
 // Each handler does what the COM member does with the same persistence call:
 // a create is InterfaceFetchAccounts::Add + the setters + InterfaceFetchAccount::Save,
 // which is PersistentFetchAccount::SaveObject; a delete goes through the
@@ -51,6 +57,7 @@
 #include "../Application/Configuration.h"
 #include "../Application/EffectiveSetting.h"
 #include "HttpsClient.h"
+#include "OutboundOAuth2TokenClient.h"
 #include "ReaderOAuth.h"
 #include "Parsing/StringParser.h"
 
@@ -179,6 +186,13 @@ namespace HM
          flag("enable_route_recipients", fetchAccount->GetEnableRouteRecipients());
          flag("mirror_folders", fetchAccount->GetMirrorFolders());
          flag("locked", PersistentFetchAccount::IsLocked(fetchAccount->GetID()));
+         // Made or moved by a reader in the webmail: collected from public
+         // addresses only, judged when it connects (FetchAccount.h). And whether
+         // its server or username is anybody's word but a server
+         // administrator's, so that this server's own OAuth2 token is never
+         // given to it.
+         flag("reader_created", fetchAccount->GetReaderCreated());
+         flag("server_token_withheld", fetchAccount->GetServerTokenWithheld());
 
          // Signed in with a provider; the folders the other server listed, and
          // the reader's choice of them - pending until they have made one.
@@ -397,6 +411,17 @@ namespace HM
             error = "server_address is required";
             return false;
          }
+         {
+            // Both go into a command line to the remote server (FetchAccount.h).
+            FetchAccount credentials;
+            credentials.SetUsername(username);
+            credentials.SetPassword(password);
+            if (!credentials.CredentialsAreOneLine())
+            {
+               error = "username and password are one line each: no CR, LF or NUL";
+               return false;
+            }
+         }
          if (port == 0)
          {
             error = "port is required";
@@ -447,8 +472,8 @@ namespace HM
    {
       static const char *paths =
          ",\"/api/v1/accounts/{address}/fetch-accounts\":{"
-         "\"get\":{\"summary\":\"The account's external (fetch) accounts\",\"description\":\"The remote POP3 or IMAP mailboxes the server collects into this account - Account.FetchAccounts over COM. Each entry: id, name, server_address, port, server_type (pop3 or imap), username, enabled, minutes_between_fetch, days_to_keep_messages, connection_security, process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders, locked (a collection is running now) and next_download_time. The remote password is never emitted. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"Array of fetch accounts\"},\"404\":{\"description\":\"No such account\"}}},"
-         "\"post\":{\"summary\":\"Create an external (fetch) account\",\"description\":\"Body: name, server_address and port (required); server_type (pop3, the default, or imap), username, password (write-only), enabled (default true), minutes_between_fetch (default 30), days_to_keep_messages (default 0: delete after collecting; -1 keeps every message; for IMAP the remote INBOX is collected once by UID and left intact when this says so), connection_security (none, starttls_optional, starttls_required, tls; default none), process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders. What InterfaceFetchAccounts.Add and Save do; the first collection is scheduled at once. Everything is checked before anything is saved: an unknown field, a value of the wrong type or a value out of range is a 400 naming it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"server_address\",\"port\"],\"properties\":{\"name\":{\"type\":\"string\"},\"server_address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"server_type\":{\"type\":\"string\",\"enum\":[\"pop3\",\"imap\"]},\"username\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"enabled\":{\"type\":\"boolean\"},\"minutes_between_fetch\":{\"type\":\"integer\"},\"days_to_keep_messages\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"starttls_optional\",\"starttls_required\",\"tls\"]},\"process_mime_recipients\":{\"type\":\"boolean\"},\"process_mime_date\":{\"type\":\"boolean\"},\"use_antispam\":{\"type\":\"boolean\"},\"use_antivirus\":{\"type\":\"boolean\"},\"enable_route_recipients\":{\"type\":\"boolean\"},\"mime_recipient_headers\":{\"type\":\"string\"},\"mirror_folders\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the fetch account as the listing shows it, with its id\"},\"400\":{\"description\":\"A required field missing, an unknown field, or a value refused (error names it)\"},\"404\":{\"description\":\"No such account\"}}}},"
+         "\"get\":{\"summary\":\"The account's external (fetch) accounts\",\"description\":\"The remote POP3 or IMAP mailboxes the server collects into this account - Account.FetchAccounts over COM. Each entry: id, name, server_address, port, server_type (pop3 or imap), username, enabled, minutes_between_fetch, days_to_keep_messages, connection_security, process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders, locked (a collection is running now), reader_created (a reader made it in the webmail, or moved it to another server or port there: the server connects it only to public addresses unless reader_fetch_accounts_private_addresses is on, and never gives it this server's own OAuth2 token), server_token_withheld (true for one a reader made or moved, and for one whose server, port or username somebody without the server's authority named - a key restricted to named domains, a domain administrator over COM, a reader who changed only the username: the fetchers never give it this server's own OAuth2 token, even for a host added to FetchOAuth2Hosts afterwards; false for a server administrator's) and next_download_time. The remote password is never emitted. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"Array of fetch accounts\"},\"404\":{\"description\":\"No such account\"}}},"
+         "\"post\":{\"summary\":\"Create an external (fetch) account\",\"description\":\"Body: name, server_address and port (required); server_type (pop3, the default, or imap), username, password (write-only), enabled (default true), minutes_between_fetch (default 30), days_to_keep_messages (default 0: delete after collecting; -1 keeps every message; for IMAP the remote INBOX is collected once by UID and left intact when this says so), connection_security (none, starttls_optional, starttls_required, tls; default none), process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders. What InterfaceFetchAccounts.Add and Save do; the first collection is scheduled at once. Everything is checked before anything is saved: an unknown field, a value of the wrong type or a value out of range is a 400 naming it, and so is a username or password with a CR or LF, since both are sent in command lines. A fetch account for a host on FetchOAuth2Hosts logs in with this server's own OAuth2 token as whatever username it names, so only a credential with the server's authority adds or changes one; a key restricted to named domains gets 403, and one it adds, or whose server, port or username it changes, is marked server_token_withheld.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"server_address\",\"port\"],\"properties\":{\"name\":{\"type\":\"string\"},\"server_address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"server_type\":{\"type\":\"string\",\"enum\":[\"pop3\",\"imap\"]},\"username\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"enabled\":{\"type\":\"boolean\"},\"minutes_between_fetch\":{\"type\":\"integer\"},\"days_to_keep_messages\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"starttls_optional\",\"starttls_required\",\"tls\"]},\"process_mime_recipients\":{\"type\":\"boolean\"},\"process_mime_date\":{\"type\":\"boolean\"},\"use_antispam\":{\"type\":\"boolean\"},\"use_antivirus\":{\"type\":\"boolean\"},\"enable_route_recipients\":{\"type\":\"boolean\"},\"mime_recipient_headers\":{\"type\":\"string\"},\"mirror_folders\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the fetch account as the listing shows it, with its id\"},\"400\":{\"description\":\"A required field missing, an unknown field, or a value refused (error names it)\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/accounts/{address}/fetch-accounts/{id}\":{"
          "\"get\":{\"summary\":\"One external (fetch) account\",\"description\":\"As the listing shows it. A fetch account that belongs to another account is not found here.\",\"responses\":{\"200\":{\"description\":\"The fetch account\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"}}},"
          "\"put\":{\"summary\":\"Change an external (fetch) account\",\"description\":\"Body: any subset of the fields POST takes; a field left out keeps its value, and a password left out is kept. The same checks as POST, and nothing changes when one fails. What the setters and Save do over COM.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The fetch account as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"}}},"
@@ -486,8 +511,36 @@ namespace HM
       return BuildResponse_(200, body);
    }
 
+   namespace
+   {
+      // A fetch account for a host on FetchOAuth2Hosts logs in with this
+      // server's own client_credentials token, as whatever username the
+      // account names - so it reaches every mailbox the app registration was
+      // granted, whoever's. Only a caller with the server's authority makes
+      // one, or changes one; a domain-confined key and a reader do not.
+      const char *const ServerTokenRefusal =
+         "{\"error\":\"a fetch account for a host on FetchOAuth2Hosts logs in with this server's own OAuth2 token, and only a server administrator adds or changes one\"}";
+
+      // The ports a reader's account may name: POP3 and IMAP, plain and over
+      // TLS. The server connects from inside its network, on the reader's word,
+      // and sends a username and a password when it gets there; any port would
+      // let a reader have it knock on any service, and read in the account's
+      // state whether something answered. An administrator who allows readers
+      // private hosts (ReaderFetchPrivateHosts) - an old mail server inside the
+      // network being moved from - allows any port with them.
+      bool ReaderPortAllowed(int port)
+      {
+         if (port == 110 || port == 995 || port == 143 || port == 993)
+            return true;
+         return Configuration::Instance()->GetReaderFetchAccountsPrivateAddresses();
+      }
+
+      const char *const ReaderPortRefusal =
+         "{\"error\":\"port: an account added in the webmail is collected from port 110 or 995 (POP3) or 143 or 993 (IMAP), unless reader_fetch_accounts_private_addresses is on\"}";
+   }
+
    HttpResponse
-   RestApiServer::HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody)
+   RestApiServer::HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody, bool serverAdministrator, bool byReader)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -507,6 +560,25 @@ namespace HM
       AnsiString error;
       if (!ApplyBody(body, fetchAccount, error))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
+
+      if (!serverAdministrator && OutboundOAuth2TokenClient::IsFetchHost(fetchAccount->GetServerAddress()))
+         return BuildResponse_(403, ServerTokenRefusal);
+
+      if (byReader)
+      {
+         if (!ReaderPortAllowed(fetchAccount->GetPort()))
+            return BuildResponse_(400, ReaderPortRefusal);
+
+         // Judged again where it connects (ExternalFetch::Start).
+         fetchAccount->MarkReaderCreated();
+      }
+      else if (!serverAdministrator)
+      {
+         // A key restricted to named domains: its server and username are not
+         // the server administrator's word, so a host added to FetchOAuth2Hosts
+         // afterwards does not give it the server's token.
+         fetchAccount->MarkWithoutServerAuthority();
+      }
 
       if (!PersistentFetchAccount::SaveObject(fetchAccount))
          return BuildResponse_(500, "{\"error\":\"failed to save the fetch account; see the error log\"}");
@@ -536,7 +608,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody)
+   RestApiServer::HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody, bool serverAdministrator, bool byReader)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -555,9 +627,51 @@ namespace HM
       if (!fetchAccount)
          return BuildResponse_(404, "{\"error\":\"fetch account not found\"}");
 
+      // Before and after: a change of the username alone on an account a
+      // server administrator set up for Microsoft 365 is the same reach. An
+      // account a reader signed in to with a provider logs in with the
+      // reader's own grant (IMAPClientConnection::SendLogin_), never the
+      // server's, and no body changes that.
+      const bool readerGrant = !fetchAccount->GetOAuthProvider().IsEmpty();
+      const bool serverTokenBefore = !readerGrant && OutboundOAuth2TokenClient::IsFetchHost(fetchAccount->GetServerAddress());
+      const String serverBefore = fetchAccount->GetServerAddress();
+      const int portBefore = fetchAccount->GetPort();
+      const String usernameBefore = fetchAccount->GetUsername();
+
       AnsiString error;
       if (!ApplyBody(body, fetchAccount, error))
          return BuildResponse_(400, ErrorBody(quote, String(error)));
+
+      if (!serverAdministrator && !readerGrant &&
+          (serverTokenBefore || OutboundOAuth2TokenClient::IsFetchHost(fetchAccount->GetServerAddress())))
+         return BuildResponse_(403, ServerTokenRefusal);
+
+      // A reader who points an account somewhere else - its own, or one an
+      // administrator set up with a reader's defaults - makes where it connects
+      // their word from then on. A change that keeps the server and the port
+      // (a rename, a pause, the page sending back what it showed) marks nothing,
+      // and does not judge again a port an administrator gave the account; a
+      // move judges the port with the server, since the two together are where
+      // the reader now points it.
+      const bool moved = fetchAccount->GetPort() != portBefore ||
+                         fetchAccount->GetServerAddress().CompareNoCase(serverBefore) != 0;
+      if (byReader)
+      {
+         if (moved && !ReaderPortAllowed(fetchAccount->GetPort()))
+            return BuildResponse_(400, ReaderPortRefusal);
+
+         if (moved)
+            fetchAccount->MarkReaderCreated();
+      }
+
+      // Whoever lacks the server's authority - a key restricted to named
+      // domains, or a reader who changed only the username - and names the
+      // server or the username the account logs in as makes the account one
+      // this server's own OAuth2 token is never given to, even for a host an
+      // administrator adds to FetchOAuth2Hosts afterwards (FetchAccount.h). A
+      // rename or a pause names neither and marks nothing.
+      if (!serverAdministrator && (moved || fetchAccount->GetUsername() != usernameBefore))
+         fetchAccount->MarkWithoutServerAuthority();
 
       if (!PersistentFetchAccount::SaveObject(fetchAccount))
          return BuildResponse_(500, "{\"error\":\"failed to save the fetch account; see the error log\"}");
@@ -721,7 +835,7 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/me/fetch-accounts\":{"
          "\"get\":{\"summary\":\"The signed-in account's other accounts\",\"description\":\"The remote POP3 or IMAP mailboxes collected into this account, whoever added them - each as GET /api/v1/accounts/{address}/fetch-accounts shows it, the password never. 403 when ReaderFetchAccountsMax is 0.\",\"responses\":{\"200\":{\"description\":\"Array of fetch accounts\"},\"403\":{\"description\":\"Not offered on this server\"}}},"
-         "\"post\":{\"summary\":\"Add another account to collect from\",\"description\":\"Body: name, server_address and port (required); server_type (pop3 or imap), username, password (write-only), enabled, minutes_between_fetch (at least 15, default 30), days_to_keep_messages (0 deletes from the remote after collecting, -1 keeps every message there), connection_security (none, starttls_optional, starttls_required, tls) and mirror_folders (IMAP: bring the remote folders over as folders here). Any other field is refused: the spam and virus filters are on and the recipients are not re-read from the message, whatever is sent. The host has to resolve to public addresses only unless reader_fetch_accounts_private_addresses is on - checked when it is saved - and an account has at most reader_fetch_accounts_max. The first collection is scheduled at once. A mutating route: a browser session carries X-Requested-With.\",\"responses\":{\"201\":{\"description\":\"The fetch account\"},\"400\":{\"description\":\"A field refused (error names it), a host that is not public, or an interval under 15 minutes\"},\"403\":{\"description\":\"Not offered on this server, or the account has as many as it may\"}}}},"
+         "\"post\":{\"summary\":\"Add another account to collect from\",\"description\":\"Body: name, server_address and port (required); server_type (pop3 or imap), username, password (write-only), enabled, minutes_between_fetch (at least 15, default 30), days_to_keep_messages (0 deletes from the remote after collecting, -1 keeps every message there), connection_security (none, starttls_optional, starttls_required, tls) and mirror_folders (IMAP: bring the remote folders over as folders here). Any other field is refused: the spam and virus filters are on and the recipients are not re-read from the message, whatever is sent. The host has to resolve to public addresses only unless reader_fetch_accounts_private_addresses is on - checked when it is saved, and again each time the server collects, when it connects only to the public addresses the name resolves to then - and the port is 110, 995, 143 or 993 unless that setting is on; an account has at most reader_fetch_accounts_max. The account is marked reader_created, and so is one a reader later moves to another server or port. A host on FetchOAuth2Hosts is refused: a fetch account for it logs in with this server's own OAuth2 token, which only a server administrator gives out. The first collection is scheduled at once. A mutating route: a browser session carries X-Requested-With.\",\"responses\":{\"201\":{\"description\":\"The fetch account\"},\"400\":{\"description\":\"A field refused (error names it), a host that is not public, a port other than 110, 995, 143 and 993, or an interval under 15 minutes\"},\"403\":{\"description\":\"Not offered on this server, the account has as many as it may, or a host on FetchOAuth2Hosts\"}}}},"
          "\"/api/v1/me/fetch-accounts/{id}\":{"
          "\"get\":{\"summary\":\"One of the signed-in account's other accounts\",\"responses\":{\"200\":{\"description\":\"The fetch account\"},\"404\":{\"description\":\"Not one of this account's\"}}},"
          "\"put\":{\"summary\":\"Change one of the signed-in account's other accounts\",\"description\":\"Any subset of the fields POST takes, with the same refusals; a password left out is kept.\",\"responses\":{\"200\":{\"description\":\"The fetch account as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"404\":{\"description\":\"Not one of this account's\"}}},"
@@ -801,8 +915,8 @@ namespace HM
          if (narrowed.IsEmpty())
             return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
 
-         return creating ? HandleCreateFetchAccount_(address, narrowed)
-                         : HandleUpdateFetchAccount_(address, fetchAccountId, narrowed);
+         return creating ? HandleCreateFetchAccount_(address, narrowed, false, true)
+                         : HandleUpdateFetchAccount_(address, fetchAccountId, narrowed, false, true);
       }
 
       default:
@@ -987,6 +1101,11 @@ namespace HM
       fetchAccount->SetMirrorSkip(grant.mirror ? String(_T("*")) : String());
       fetchAccount->SetOAuthProvider(String(grant.provider));
       fetchAccount->SetOAuthToken(String(grant.refresh_token));
+      // A reader's, logging in with the reader's own grant: never this server's
+      // token (FetchAccount::GetServerTokenWithheld), as the listing then says.
+      // Where it connects is the provider's server from this server's own
+      // configuration, so it is not judged as a reader's own choice would be.
+      fetchAccount->MarkWithoutServerAuthority();
 
       if (!PersistentFetchAccount::SaveObject(fetchAccount))
          return back("?import_error=" + HttpsClient::FormEncode("the account could not be saved; see the error log"));
