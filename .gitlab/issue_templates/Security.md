@@ -21,7 +21,7 @@ Text between these comment markers is not shown once the issue is saved.
 
 ## Affected
 
-- **Version(s):** <!-- e.g. 6.3.3, or a commit in the tree after it -->
+- **Version(s):** <!-- e.g. 6.3.3 (the Control Panel's administrator menu or About page; on Linux, `hmailserver --version`), or a commit in the tree after it -->
 - **Platform:** <!-- Windows, a Linux distribution, or a container -->
 - **Database backend:** <!-- if it matters -->
 - **Component:** <!-- SMTP, IMAP, POP3, the REST API, the webmail, the Control Deck, the COM API, the installer, the update path, ... -->

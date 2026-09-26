@@ -31,7 +31,7 @@ issue.
 GitLab files the message as a confidential issue, which only the maintainers see, and their replies reach you by
 email.
 
-**General hMailServer questions** not specific to this fork are often better answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/), which has years of accumulated configuration knowledge.
+**The forum** at <https://www.hmailserver.co.uk/>, where this fork's releases are announced, answers questions about running it too: [General support](https://www.hmailserver.co.uk/category/8/general-support) is the place for one that is not a defect. General hMailServer questions not specific to this fork are often answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/), which has years of accumulated configuration knowledge.
 
 ## What to expect
 

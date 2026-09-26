@@ -50,6 +50,8 @@ Contents:
 | Merge requests | <https://gitlab.com/Progressiverobot/hmailserver/-/merge_requests> |
 | Releases | <https://gitlab.com/Progressiverobot/hmailserver/-/releases>; the latest is always at <https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest> |
 | The wiki | <https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home> |
+| The issue board | <https://gitlab.com/Progressiverobot/hmailserver/-/boards> |
+| The forum | <https://www.hmailserver.co.uk/> |
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
 
 The latest release is **6.3.3, published on 15 September 2026**. Anything this repository describes that
@@ -95,8 +97,9 @@ from the description-template list when you open the issue.
 
 * **A defect**: the **Bug** template. The log matters more than anything else in the report;
   [SUPPORT.md](SUPPORT.md) says which log and how to get it.
-* **A question**: the **Question** template. General hMailServer questions that are not about this fork are
-  often better answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/).
+* **A question**: the **Question** template, or the forum at <https://www.hmailserver.co.uk/>, where this
+  fork's releases are announced. General hMailServer questions that are not about this fork are often better
+  answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/).
 * **A feature**: the **Feature** template. Read [Roadmap2.md](Roadmap2.md) first: it may already be a row, and
   [Roadmap.md](Roadmap.md) records what was deliberately not done, with the reason. A concrete problem with a
   log beats a list of wishes.

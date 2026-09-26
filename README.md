@@ -1,7 +1,7 @@
 hMailServer
 ===========
 
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949) [![Latest release](https://gitlab.com/Progressiverobot/hmailserver/-/badges/release.svg)](https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest)
 
 **The project's home is [GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and every release up to 6.3.3 is re-published there, byte for byte, under its original date.
 
@@ -14,6 +14,18 @@ This repository is a maintained fork of the original project, which is no longer
 Every release is validated by the full regression suite before it ships — the complete suite, run against the exact binary being released, with live SpamAssassin and ClamAV (real EICAR detection), SPF, DKIM and DMARC evaluated through the resolver code path against the suite's own DNS zone (one fake resolver the server is pointed at for the whole run, so no result depends on the Internet), and TLS 1.2/1.3 handshakes end to end. Nothing is skipped, and nothing but DNS is mocked. Before that run, the same suite runs once more on a build that keeps every internal assertion and reports a violated one to the ERROR log (`build\build.ps1 -Configuration Release -Asserts`), so the invariants the shipped binary compiles out are still exercised by every test.
 
 **What changed in each version** is on the [Releases page](https://gitlab.com/Progressiverobot/hmailserver/-/releases). What is planned next, and what is deliberately not, is in [Roadmap.md](Roadmap.md). The release process itself is documented in [RELEASE.md](RELEASE.md), and the codebase map is in [ARCHITECTURE.md](ARCHITECTURE.md).
+
+Where things are
+----------------
+
+* **Issues**: <https://gitlab.com/Progressiverobot/hmailserver/-/issues>, with a template for a bug, a feature and a question. A question is an issue with the `question` label; GitLab has no Discussions.
+* **Board**: <https://gitlab.com/Progressiverobot/hmailserver/-/boards>, the issue board.
+* **Wiki**: <https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home>, the operator guides and the reference pages.
+* **Releases**: <https://gitlab.com/Progressiverobot/hmailserver/-/releases>; the latest is always at <https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest>.
+* **Forum**: <https://www.hmailserver.co.uk/>, where this fork's releases are announced and questions about running it are answered.
+* **Service Desk**: an email address for anyone without a GitLab account, which GitLab files as a confidential issue; the address is under [Getting help](#getting-help).
+* **Security**: [SECURITY.md](SECURITY.md). A vulnerability goes to a confidential issue or the Service Desk address, never a public issue.
+* **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md), and [SUPPORT.md](SUPPORT.md) for what makes a report useful.
 
 Contents
 --------

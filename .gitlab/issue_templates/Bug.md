@@ -22,7 +22,7 @@ Text between these comment markers is not shown once the issue is saved.
 
 ## Environment
 
-- **hMailServer version:** <!-- e.g. 6.3.3. The Control Panel shows it; on Linux, `hmailserver --version`. If you built it, the commit. -->
+- **hMailServer version:** <!-- e.g. 6.3.3. The Control Panel shows it in the administrator menu at the top right and on its About page; on Linux, `hmailserver --version`. If you built it, the commit. -->
 - **Operating system:** <!-- One of:
   Windows: the edition and version, e.g. Windows Server 2025.
   Linux: the distribution and version, the architecture (x86-64 or AArch64), and how it was installed (.deb, .rpm, AppImage, PKGBUILD, or built with CMake).

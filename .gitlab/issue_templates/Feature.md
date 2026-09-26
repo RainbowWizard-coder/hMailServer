@@ -23,6 +23,15 @@ Text between these comment markers is not shown once the issue is saved.
 
 ## Where it applies
 
-<!-- Windows, Linux or a container; the database backend, if it matters; and whether the Roadmap2.md row it belongs to exists. -->
+- **hMailServer version you run:** <!-- e.g. 6.3.3: the Control Panel's administrator menu or About page, or `hmailserver --version` on Linux -->
+- **Platform:** <!-- Windows, a Linux distribution, or a container -->
+- **Database backend:** <!-- if it matters: SQL Server Compact, Microsoft SQL Server, MySQL or MariaDB, or PostgreSQL -->
+- **Roadmap2.md row:** <!-- the row it belongs to, if there is one -->
+
+<!-- If the problem shows in the server's behaviour, paste the log lines that show it between the fences. -->
+
+```text
+
+```
 
 /label ~enhancement

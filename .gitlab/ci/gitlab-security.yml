@@ -1,0 +1,88 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# GitLab's own security scanners, from the templates GitLab publishes, on GitLab's
+# shared runners: included from .gitlab-ci.yml.
+#
+# What they add to the scans .gitlab-ci.yml already runs (static-analysis, semgrep,
+# dependency-scan and repo-hygiene, on linix, for a protected ref only):
+#
+#   semgrep-sast      GitLab's Semgrep analyzer with GitLab's own rules. It reads the
+#                     C and C++ of the server as well as the C#, Python and JavaScript
+#                     (GitLab 18.6 and later), where the semgrep job leaves the C++ to
+#                     cppcheck and clang-tidy and uses Semgrep's registry packs; and it
+#                     runs on a merge request, which no job on linix ever does.
+#   secret_detection  GitLab's secrets analyzer over the commits a pipeline brings: a
+#                     key, token or password committed by mistake. Nothing on linix
+#                     looks for one.
+#
+# Not included, and why:
+#
+#   Dependency-Scanning   its jobs run only where GITLAB_FEATURES names
+#                         dependency_scanning, which is GitLab Ultimate; on the Free tier
+#                         the template creates no job. dependency-scan (Trivy and OSV,
+#                         on linix) covers the lock files and the CI image.
+#   Container-Scanning    Free runs it, but it scans an image in a registry, and this
+#                         project pushes none yet: linux-image builds the image and
+#                         inspects it without pushing it. It is worth adding when the
+#                         release chain publishes the image.
+#   GitLab Advanced SAST  Ultimate only: its jobs never start on the Free tier.
+#
+# On the Free tier each job leaves its report as an artifact that project members
+# with the Developer role or above can download (artifacts:access in the templates);
+# the merge request widget, the pipeline's Security tab and the vulnerability report
+# are GitLab Ultimate. Both jobs are allow_failure, as the templates make them: a
+# finding does not fail a pipeline.
+#
+# When they run: in a merge request's pipeline and in a pipeline for the default
+# branch, and in no other. Never in the fuzz schedule's, Renovate's or the update
+# feed's pipeline, which each run their one job (.not-a-fuzz-pipeline in
+# .gitlab-ci.yml), nor for a v* tag, whose commit master's pipeline scanned already.
+#
+# Where they run: GitLab's shared runners, never linix or bench150. Those two are
+# registered with run_untagged off and take only a job tagged for them, and these
+# jobs carry no tag.
+#
+# The analyzer images are pinned by digest, as every image in .gitlab-ci.yml is,
+# rather than taken by the moving major tag the templates name: registry.gitlab.com's
+# security-products/semgrep:6 and security-products/secrets:7 as they were on
+# 26 September 2026. Renovate's gitlabci manager reads this file through the include
+# and proposes a new digest; a new major version is a change to the tag here.
+#
+# Security/SAST.gitlab-ci.yml and Security/Secret-Detection.gitlab-ci.yml, the names
+# GitLab's older documentation gives, are one-line files that include these two.
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+
+.gitlab-security-rules:
+  rules:
+    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+semgrep-sast:
+  image:
+    name: registry.gitlab.com/security-products/semgrep:6@sha256:84b751f34142359eedc8c1a785f869862c94910109725cb0003cac8a70d14407
+  needs: []
+  timeout: 30 minutes
+  variables:
+    # What build/ci/semgrepignore leaves out of the semgrep job: the tests and their
+    # fixtures, the vendored third-party sources and the scans' own output.
+    SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, build/deck-script-test.js, build/portal-script-test.js, libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, security"
+  rules:
+    - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1'
+      when: never
+    - !reference [.gitlab-security-rules, rules]
+
+secret_detection:
+  image: registry.gitlab.com/security-products/secrets:7@sha256:77ac5c87f73b709cad2e4bfb2b255caba7e63fb3c832314b3fb88aaa3c129af7
+  needs: []
+  timeout: 20 minutes
+  rules:
+    - if: $SECRET_DETECTION_DISABLED == 'true' || $SECRET_DETECTION_DISABLED == '1'
+      when: never
+    - !reference [.gitlab-security-rules, rules]

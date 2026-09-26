@@ -73,6 +73,11 @@
 # build/ci/*.sh and the Dockerfile), and a shebang line ending in a carriage return
 # names an interpreter that does not exist.
 
+# Jobs kept in files of their own under .gitlab/ci/, one line each.
+include:
+  # GitLab's SAST and secret detection, on the shared runners (the file says what they add).
+  - local: .gitlab/ci/gitlab-security.yml
+
 stages:
   - check
   - build
