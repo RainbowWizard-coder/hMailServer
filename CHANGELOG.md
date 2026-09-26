@@ -322,8 +322,8 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   blocked-attachment list or given a clean verdict by a scanner that saw only ciphertext
   ([SealedMail.md](hmailserver/docs/SealedMail.md)). "Cannot read" is judged from the body, never from the
   `Content-Type` label: only a message that really is S/MIME enveloped or signed-data, or PGP/MIME of exactly a
-  version part and armoured ciphertext under a session key, named as clients name them, is spared the
-  blocked-attachment list, the anti-virus strip action, eDiscovery's body search and the rules' body, `content`
+  version part and armoured ciphertext under a session key, named as clients name them or not named at all, is
+  spared the blocked-attachment list, the anti-virus strip action, eDiscovery's body search and the rules' body, `content`
   and `sensitive_content` conditions. Fixed before release: as first written, a `multipart/encrypted` header any
   sender could add switched all of those off for the ordinary parts under it, `invoice.exe` included. The
   detached signature of a signed message is likewise left alone only when it is one - the second of the two
@@ -439,9 +439,10 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   owner's key is closed, as a delegate meets it, or a damaged one (`HM7350`) - was answered `OK` with an
   `ENVELOPE` of `NIL`s, an empty structure and empty sections, which clients keep by UID for good, and a
   non-`PEEK` section set `\Seen`. It is now answered `NO [UNAVAILABLE]` for a closed key, with nothing of the
-  message sent; a damaged one is left out and the rest of the range fetched, and the command ends `NO`, as for a
-  message lost from an object store, so one damaged message does not stop a whole folder's sync at itself. Every
-  part is read before any is sent, so a failure can no longer leave an untagged `FETCH` unfinished
+  message sent, and said in the debug log only, not the error log: a closed key is not damage. A damaged one is
+  left out and the rest of the range fetched, and the command ends `NO`, as for a message lost from an object
+  store, so one damaged message does not stop a whole folder's sync at itself. Every part is read before any is
+  sent, so a failure can no longer leave an untagged `FETCH` unfinished
   ([EncryptionAtRest.md](hmailserver/docs/EncryptionAtRest.md)).
 - Fixed: an IMAP `LIST` or `LSUB` pattern cost its length times each folder name's, for every folder listed, on
   the threads every protocol shares, and nothing bounded it: one authenticated client's ten-megabyte pattern of
