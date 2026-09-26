@@ -50,8 +50,8 @@ export.
 ### What this package does
 
 It downloads the release's Authenticode-signed installer from the project's release on GitLab,
-checks it against the SHA-256 recorded in this package, and runs it unattended. That installs the server, the Control Panel and
-the setup tools, and configures the embedded database.
+checks it against the SHA-256 recorded in this package, and runs it unattended. That installs
+the server, the Control Panel and the setup tools, and configures the embedded database.
 
 An unattended install leaves the administrator password unset, because the wizard page that asks
 for one is skipped. Set one before the server is reachable from anywhere but the machine itself:
