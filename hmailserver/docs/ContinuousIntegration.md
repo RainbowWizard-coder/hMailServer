@@ -456,7 +456,7 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 | `upstream-watch.yml` | not ported: see below | | |
 | `sign-release.yml` | `release-authenticode`, `release-sign` and `release-verify`: Authenticode with a federated credential in place of a client secret, and Sigstore; not the SLSA provenance (see below) | bench150, shared, linix | a `v*` tag |
 | `verify-binary-provenance.yml` | not ported: the release-chain row (137) | | |
-| `installer-smoke.yml` | ported separately, by its own change | | |
+| `installer-smoke.yml` | `build/ci/installer-smoke-run.sh` from the VMware host, and a placeholder `installer-smoke` job ([The installer smoke test](#the-installer-smoke-test)) | the VMware host, not a runner | by hand, before a release is published |
 
 **Not ported, and why:**
 
@@ -476,7 +476,6 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
   reads GitHub. They stay with the Roadmap2 row "The release chain off a single
   forge" (137); the signing and publishing it built are
   [The release](#the-release).
-- `installer-smoke.yml`. Another change ports it.
 - `ci.yml`'s coverage upload. It went to GitHub's code-quality page. The tests
   still run; the coverage is not collected.
 - The GCC build and the native AArch64 build of `linux-build.yml`'s matrix. linix

@@ -171,14 +171,16 @@ already hold its files.
    `hmailserver/source/Server/CMakeLists.txt` is **not** on the list, and this
    is the one line of this step worth reading twice: it used to be, and a stamp
    missed there produced Linux packages named at the wrong version, which
-   `sign-release.yml` and the server's own update checker - both of which match
-   those file names by exact equality - would simply never find. It now reads
+   the release jobs (`build/ci/release-chain.py`; the GitHub workflow
+   `sign-release.yml` up to 6.3.3) and the server's own update checker - all of
+   which match those file names by exact equality - would simply never find. It now reads
    `Version.h` with `file(STRINGS)` before `project()`, so there is nothing
    there to stamp.
 
    Then run **`build/check-linux-version-stamp.sh`** (Git Bash, WSL or the
-   runner; it needs no toolchain, which is why the Linux workflow runs it as its
-   first job before anything is compiled). It proves Version.h agrees with
+   runner; it needs no toolchain, which is why the `checkers` job of
+   `.gitlab-ci.yml` runs it before anything is compiled, and `linux-build` again
+   before it packages). It proves Version.h agrees with
    itself, that the CMakeLists still derives rather than declares, that
    `pkgver` matches, and that no version literal has crept back into anything
    else under `platform/packaging/`.
@@ -222,13 +224,16 @@ already hold its files.
    The Linux packages keep the same promise by a different mechanism, and
    what is proven is narrower, so it is stated narrowly. `CMakeLists.txt`
    passes `-ffile-prefix-map=<source>=.` so no absolute path reaches the
-   binary, and the *Linux build* workflow exports `SOURCE_DATE_EPOCH` from
-   the tagged commit's own date, which is what `__DATE__`, the archiver,
-   `dpkg-deb` and `rpmbuild` stamp instead of the clock. Two builds of the
-   same tag on the same runner image therefore produce the same `hmailserver`
-   binary. What is *not* pinned is the image: `ubuntu-latest` moves, and a
-   compiler or a Boost that moved between two runs changes the binary
-   legitimately. The workflow log records the versions it built with, and the
+   binary, and the `linux-build` job of `.gitlab-ci.yml`
+   (`build/ci/linux-build.sh`, as the *Linux build* workflow did on GitHub up
+   to 6.3.3) exports `SOURCE_DATE_EPOCH` from the commit's own date, which is
+   what `__DATE__`, the archiver, `dpkg-deb` and `rpmbuild` stamp instead of
+   the clock. Two builds of the same tag in the same image therefore produce
+   the same `hmailserver` binary. What is *not* pinned is what the image
+   holds: its Ubuntu packages are the archive's of the day it was built (on
+   GitHub, `ubuntu-latest` moved the same way), and a compiler or a Boost that
+   moved between two builds changes the binary legitimately. The job log
+   records the versions it built with, and the
    release notes say "reproducible on the runner image of the day" and give
    the binary's SHA-256 from that log, rather than claiming what the MSVC line
    above can claim. Measured on 8 September 2026: commit 8926f5c3f built twice

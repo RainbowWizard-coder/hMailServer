@@ -70,11 +70,11 @@ Who holds which today:
 | Direction | Yes | Yes |
 | Infrastructure | Yes | No |
 
-Christopher Holloway holds admin rights on the GitHub repository and the
-signing and release path. Zain Ul Abidin holds write access to the
-repository, which is enough to review and merge pull requests and to run the
-release workflows. Two of the duties above need more than write access, and
-neither is in place yet:
+Christopher Holloway owns the GitLab project and holds the signing and release
+path. On GitHub, until 18 September 2026, he held admin rights on the
+repository, and Zain Ul Abidin held write access, which was enough to review and
+merge pull requests and to run the release workflows. Two of the duties above
+need more than that, and neither is in place yet:
 
 1. **Releasing** needs Zain Ul Abidin's SSH signing key in
    [.gitlab/allowed_signers](.gitlab/allowed_signers): the `release` job of
@@ -83,16 +83,16 @@ neither is in place yet:
    a machine set up to run [RELEASE.md](RELEASE.md) steps 4 to 11 — the
    regression suite, the fuzz runs and the installer build. Until both are in
    place, releases are tagged by Christopher Holloway.
-2. **Security response** needs repository admin or the organisation's
-   security manager role. Reports arrive through GitHub's private
-   vulnerability reporting: GitHub notifies repository admins and security
-   managers of a new report and lets them, and organisation owners, see every
-   advisory, while anyone else sees a report only once added to it as a
-   collaborator, and cannot publish it. Until one of the roles is granted, Zain
-   Ul Abidin sees a report only if Christopher Holloway adds Zain Ul Abidin to
-   it, so security response rests on Christopher Holloway in practice. (The
-   security manager role is organisation-wide: it also gives read access to
-   every Progressiverobot repository.)
+2. **Security response** needs to see every report. Reports arrive as
+   confidential issues on GitLab, opened directly or by mail to the Service
+   Desk address ([SECURITY.md](SECURITY.md)), and GitLab shows a confidential
+   issue only to its author, its assignees and the project's members with the
+   Planner role or above. Until Zain Ul Abidin is a member of the GitLab
+   project with such a role, Zain Ul Abidin sees a report only if Christopher
+   Holloway assigns it, so security response rests on Christopher Holloway in
+   practice. (On GitHub, until 18 September 2026, reports arrived through
+   private vulnerability reporting, which showed every advisory only to
+   repository admins, security managers and organisation owners.)
 
 ### Contributor
 
@@ -219,11 +219,11 @@ confirmed unavailable, together with the legal authority to use them, so the
 project could create and close issues, accept changes and publish a release
 within days rather than being locked out. A second maintainer with write
 access means a contributor's pull request can be reviewed and merged without
-that arrangement. Zain Ul Abidin's own pull requests cannot: the master
-ruleset requires an approval from someone other than the last person to push,
-and GitHub does not let authors approve their own pull requests, so while
-Christopher Holloway is unavailable, those pull requests wait on the
-arrangement too.
+that arrangement. On GitHub, Zain Ul Abidin's own pull requests could not: the
+master ruleset required an approval from someone other than the last person to
+push until 14 September 2026, and GitHub does not let authors approve their own
+pull requests. On GitLab no approval is required, so a maintainer who can push
+to `master` does not wait on the arrangement.
 
 What remains true, stated as plainly as the single-maintainer position was:
 

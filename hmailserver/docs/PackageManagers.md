@@ -7,8 +7,10 @@ the manifests behind those two commands are made, checked and submitted.
 Where this stands today
 -----------------------
 
-The manifests and the Chocolatey package are **built and validated on every
-release**, from the release's own signed installer. They are **not yet in the
+The manifests and the Chocolatey package are **built and validated for a
+release**, from the release's own signed installer: by the GitHub workflow
+`package-managers.yml` for the releases up to 6.3.3, and by hand since, because
+the workflow was not ported to GitLab (below). They are **not yet in the
 public repositories**: `winget install hMailServer` and `choco install
 hmailserver` do not work until the first submission has been reviewed and
 merged by the people who keep those repositories, which is a manual step for a
@@ -88,8 +90,8 @@ administrator had left it out.
 Making the files for a release
 ------------------------------
 
-The workflow does this on `release: published`, and this is the same thing by
-hand:
+Up to 6.3.3 the GitHub workflow did this on `release: published`. Since then it
+is done by hand, once the release is published:
 
 ```powershell
 # From the release that has been published (downloads the asset and hashes it):
@@ -140,8 +142,13 @@ Chocolatey:
 Arming the automatic submission
 -------------------------------
 
-Once the first version of each is accepted, every release can submit itself.
-Set, in the repository's settings:
+*History: this is how the GitHub workflow `package-managers.yml` (in the git
+history at `6399e08a5`) was to submit each release by itself. It has not run
+since GitHub suspended the project's account on 18 September 2026, and no GitLab
+job replaces it, so until one does, every submission is made by hand as above.*
+
+Once the first version of each was accepted, every release could submit
+itself. The workflow read, from the repository's settings:
 
 | Kind | Name | Value |
 |---|---|---|
@@ -149,10 +156,11 @@ Set, in the repository's settings:
 | Secret | `WINGET_TOKEN` | The classic PAT with `public_repo` on the fork of `winget-pkgs` |
 | Secret | `CHOCO_API_KEY` | The Chocolatey community feed key |
 
-With the variable unset, or a secret missing, the workflow still renders,
-validates and keeps the files — it just says in the log that it submitted
-nothing. That is the deliberate default: no release should open a pull request
-against somebody else's repository by surprise.
+With the variable unset, or a secret missing, the workflow still rendered,
+validated and kept the files — it just said in the log that it submitted
+nothing. That was the deliberate default, and it holds for whatever replaces
+it: no release should open a pull request against somebody else's repository by
+surprise.
 
 What this does not do
 ---------------------
@@ -160,8 +168,8 @@ What this does not do
 * **No Linux package manager.** The `.deb`, `.rpm` and AppImage are attached to
   each release and are documented in the README; an apt or dnf repository, and
   the Arch AUR, are separate roadmap rows.
-* **No `winget install` of a pre-release.** The workflow refuses a tag that is
-  not three numbers, because package managers should not hand an alpha to
+* **No `winget install` of a pre-release.** The workflow refused a tag that was
+  not three numbers, and a pre-release is not submitted by hand either, because package managers should not hand an alpha to
   somebody typing `winget install hmailserver`.
 * **No unattended configuration.** Neither package sets an administrator
   password, adds a domain, or opens a firewall port. Installing a mail server is

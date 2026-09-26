@@ -428,7 +428,7 @@ How it was proved
 -----------------
 
 **The signatures**: `ObjectStoreSignatureTester` (in `ClassTester` on Windows, and
-`object-store-signature-tests`, run by `linux-build.yml`, on Linux) holds SigV4 to AWS's
+`object-store-signature-tests`, run by the `linux-build` job of `.gitlab-ci.yml`, on Linux) holds SigV4 to AWS's
 own Signature Version 4 test suite - `get-vanilla`, `get-vanilla-query`,
 `get-vanilla-empty-query-key`, `get-vanilla-query-order-key`,
 `get-vanilla-query-order-key-case`, `get-vanilla-query-order-value`,
