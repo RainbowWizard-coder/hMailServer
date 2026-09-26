@@ -1,0 +1,57 @@
+# Code owners for Progressiverobot/hmailserver, in GitLab's CODEOWNERS format
+# (https://docs.gitlab.com/user/project/codeowners/).
+#
+# GitLab reads this file from the root, docs/ or .gitlab/; it is here. Code
+# Owners is a GitLab Premium and Ultimate feature: on the Free tier GitLab does
+# not use the file at all, and on a paid tier it names who is asked to review a
+# merge request and gates the merge only when master's protected-branch rule
+# turns on "Require approval from code owners".
+#
+# The owner below is the project's group, @Progressiverobot, so that every
+# member with at least the Developer role counts - GitLab does not let an author
+# approve their own merge request by default, and a single named owner would put
+# every change that owner makes behind someone else. A person named here must be
+# a project member with at least the Developer role, or GitLab ignores the name.
+#
+# Until 18 September 2026 this was .github/CODEOWNERS on GitHub, naming the two
+# maintainers' GitHub accounts; the paths are the same.
+#
+# The LAST matching pattern wins, as in .gitignore, so a later, narrower pattern
+# replaces the owners of an earlier one rather than adding to them. A pattern
+# that matches nothing is silently ignored, so each path below is one that
+# exists in the tree.
+
+# Default owners for everything in the repository.
+*                                   @Progressiverobot
+
+# Supply chain and CI. A change here can alter what ships or what is trusted
+# without touching a line of server code, so it deserves the same scrutiny as
+# the protocol handlers.
+/.gitlab/                           @Progressiverobot
+/.gitlab-ci.yml                     @Progressiverobot
+/.gitlab/CODEOWNERS                 @Progressiverobot
+/.gitlab/allowed_signers            @Progressiverobot
+/SECURITY.md                        @Progressiverobot
+/renovate.json                      @Progressiverobot
+/hmailserver/docs/ThirdPartyBinaries.md   @Progressiverobot
+/hmailserver/docs/third-party-binaries.json @Progressiverobot
+
+# Where the third-party executables and libraries used to be committed. Since
+# 11 September 2026 the build fetches, gathers or copies them instead
+# (build/get-installer-binaries.ps1 and hmailserver/docs/third-party-binaries.json,
+# both owned in this file); these paths still hold the installer scripts and
+# library build scripts that use them.
+/libraries/                         @Progressiverobot
+/hmailserver/installation/          @Progressiverobot
+/hmailserver/source/Tools/Interop/  @Progressiverobot
+
+# Security-relevant server code: TLS, certificate and DANE verification, and
+# the crypto helpers that the security policy names as in scope.
+/hmailserver/source/Server/Common/TCPIP/        @Progressiverobot
+/hmailserver/source/Server/Common/Util/Crypt.cpp @Progressiverobot
+/hmailserver/source/Server/Common/Util/Crypt.h  @Progressiverobot
+/hmailserver/source/Server/Common/LDAP/         @Progressiverobot
+
+# Release and signing.
+/RELEASE.md                         @Progressiverobot
+/build/                             @Progressiverobot

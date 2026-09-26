@@ -9,7 +9,7 @@
 # THE KEYS IN THESE FIXTURES ARE TEST KEYS AND THE PASSPHRASE IS PRINTED HERE.
 # They are made for this check, they belong to addresses in the .test TLD that
 # can never be delivered to, and nothing on any server ever trusts them. They
-# are committed so that the style workflow needs no GnuPG; the check uses GnuPG
+# are committed so that the harnesses job needs no GnuPG; the check uses GnuPG
 # as well when it finds it, which is how the other direction - what the page
 # made, read by GnuPG - is proved.
 #
@@ -196,8 +196,8 @@ module is checked against an implementation that is not this one.
 `openpgp-fixture-pass`** (the symmetric message's is
 `openpgp-fixture-symmetric`). They were made for this check, their addresses
 are in the `.test` top-level domain, which can never be delivered to, and
-nothing anywhere trusts them. They are committed so that the style workflow
-needs no GnuPG; where the check finds `gpg` on the PATH it also runs the other
+nothing anywhere trusts them. They are committed so that the check (the
+harnesses job of .gitlab-ci.yml) needs no GnuPG; where the check finds `gpg` on the PATH it also runs the other
 direction - what the module made, handed to GnuPG - which is the half that
 cannot be proved from a file.
 

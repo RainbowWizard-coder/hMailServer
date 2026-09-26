@@ -5,7 +5,7 @@
 
 """Known vulnerabilities in what the server is built from: the dependency-scan job.
 
-What replaced GitHub's dependency review (.github/workflows/dependency-review.yml)
+What replaced GitHub's dependency review (the GitHub workflow dependency-review.yml)
 and Dependabot's alerts. Three scans, one report:
 
   1. The lock files, with Trivy (trivy fs): the eleven NuGet packages.lock.json,
@@ -40,7 +40,7 @@ api.osv.dev. (Both databases carry, among their sources, GitHub's advisory
 database; what is avoided is GitHub as a place to download from, not its data.)
 
 A finding that does not affect the project is dismissed in the VEX document,
-.github/hmailserver.openvex.json, as SECURITY.md says: Trivy reads it with --vex
+.gitlab/hmailserver.openvex.json, as SECURITY.md says: Trivy reads it with --vex
 and the OSV step drops every advisory the document says is not_affected.
 
 Writes to --out (default security/dependency-scan): the tools' raw output, a
@@ -76,7 +76,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 SCHEMA_VERSION = "15.2.5"
 ID_NAMESPACE = uuid.UUID("0f6a8d3e-4c1b-5e2a-8d7f-6b9c2e1a4f03")
-VEX = os.path.join(".github", "hmailserver.openvex.json")
+VEX = os.path.join(".gitlab", "hmailserver.openvex.json")
 OSV_API = "https://api.osv.dev/v1"
 
 # The vulnerability database's mirrors, tried in order, one at a time. Trivy's

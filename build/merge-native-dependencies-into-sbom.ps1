@@ -9,8 +9,8 @@
 # mail server with no TLS library. This adds them - and, since 25 September 2026, every
 # other component build/native-dependencies.ps1 lists: the vendored zlib and QuickJS, what
 # the Windows installer carries with the hash each is pinned by, and the Linux packages'
-# system libraries - in whichever of the two formats the file is. The workflow produces
-# SPDX 2.3 and CycloneDX, and both go out with the release.
+# system libraries - in whichever of the two formats the file is. The linux-sbom job
+# (build/ci/linux-sbom.sh) produces SPDX 2.3 and CycloneDX, and both go out with the release.
 #
 # Each component is added under an identifier made from its id - SPDXRef-Package-native-<id>
 # in SPDX, hmailserver-native-<id> as the CycloneDX bom-ref - which is what
@@ -19,7 +19,7 @@
 # Linux distribution's library, is added without one rather than with a guess.
 #
 # Written to be safe to run twice: a package already present by PURL is left alone rather
-# than duplicated, so a re-run of the workflow cannot produce an SBOM claiming OpenSSL
+# than duplicated, so a re-run of the job cannot produce an SBOM claiming OpenSSL
 # twice. Written to fail loudly on an unrecognised file, because an SBOM this step silently
 # declined to touch is exactly the failure it exists to fix.
 

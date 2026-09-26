@@ -527,10 +527,11 @@ windows-gate:
 
 # ---------------------------------------------------------------- ported from GitHub Actions
 #
-# What the old .github/workflows ran beside the builds and the suites, each job in a
-# block of its own; docs/ContinuousIntegration.md, "From GitHub Actions to GitLab CI",
-# has the table of old job to new. Nothing here downloads from GitHub: each job says
-# where its tools come from.
+# What the old GitHub workflows ran beside the builds and the suites, each job in a
+# block of its own. The workflows left the tree on 26 September 2026 (they are in
+# the history, at v6.3.3 for instance); docs/ContinuousIntegration.md, "From GitHub
+# Actions to GitLab CI", has the table of old job to new. Nothing here downloads
+# from GitHub: each job says where its tools come from.
 
 # style.yml's editorconfig job. editorconfig-checker publishes its binaries on GitHub
 # releases alone, and its npm and PyPI packages fetch them from there when installed,
@@ -906,7 +907,7 @@ linux-fuzz:
 # ---------------------------------------------------------------- security scanning
 #
 # What replaced the three GitHub workflows that stopped with the account on 18
-# September 2026: CodeQL (.github/workflows/codeql.yml) by static-analysis and
+# September 2026: CodeQL (the GitHub workflow codeql.yml) by static-analysis and
 # semgrep, dependency review and Dependabot's alerts (dependency-review.yml) by
 # dependency-scan, OpenSSF Scorecard (scorecard.yml) by repo-hygiene. They run on
 # linix, for a protected ref only (.own-runners), and download nothing from GitHub:
@@ -1103,7 +1104,7 @@ renovate:
 #                         the bench's checkout under the gate lock;
 #   release               started by hand, after every gate: nothing is signed or sent
 #                         anywhere until a maintainer says so. It checks the tag (an
-#                         annotated tag signed by a key in .github/allowed_signers),
+#                         annotated tag signed by a key in .gitlab/allowed_signers),
 #                         Version.h against the tag, the cosign pin and the Azure
 #                         settings, and collects the six files a release carries;
 #   release-authenticode  bench150: the installer signed with Authenticode;

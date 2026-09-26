@@ -25,7 +25,7 @@
 //
 // Usage: node build/check-portal-openpgp.js [module.js] [fixtures dir]
 // Needs Node 20 or later (Web Crypto, Ed25519 and X25519). gpg is optional:
-// the committed fixtures are what the style workflow reads, so the check runs
+// the committed fixtures are what the harnesses job reads, so the check runs
 // with no GnuPG installed - it then says which half it could not run.
 'use strict';
 const fs = require('fs');
@@ -414,7 +414,7 @@ function gpgStatus(home, args, input, passphrase) {
   // proved to work here before anything is asked of it, and where it does not
   // this half is skipped by name rather than reported as a failure of the
   // module - the committed fixtures are the GnuPG half in that case, and the
-  // style workflow's Ubuntu runner has a gpg that works.
+  // harnesses job of .gitlab-ci.yml installs Debian's gnupg, which works.
   const home = haveGpg() ? fs.mkdtempSync(path.join(os.tmpdir(), 'hm-openpgp-')) : '';
   let gpgWhy = haveGpg() ? '' : 'gpg is not on the PATH';
   if (home) {

@@ -7,7 +7,7 @@
    hmailserver\source\Tools\Interop\Interop.hMailServer.dll, from this
    repository's own hMailServer.idl. The wrapper is TlbImp output and is not in
    git since 11 September 2026: every .NET build - build-tools.ps1, the CI
-   workflows, a plain dotnet build after this script - makes it from source,
+   jobs, a plain dotnet build after this script - makes it from source,
    the way the server makes the type library from the same IDL.
 
    WHERE THE TYPE LIBRARY COMES FROM. Two sources, and they are the same bytes

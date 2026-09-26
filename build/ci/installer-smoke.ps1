@@ -10,7 +10,8 @@
    machine anybody depends on: it registers a service, a COM server and ports 25, 110
    and 143, and it removes them again.
 
-   It replaces GitHub's .github/workflows/installer-smoke.yml and keeps what that
+   It replaces the GitHub workflow installer-smoke.yml (in the history at v6.3.3)
+   and keeps what that
    checked: a silent install bounded in time with Inno's log kept, the database
    step's own error when the install fails, the service registered on the installed
    hMailServer.exe, listening on 25, 110 and 143, and the COM object creatable. To

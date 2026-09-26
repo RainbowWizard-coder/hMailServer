@@ -62,7 +62,7 @@ param(
     [string] $InstallerPath,
 
     # Where the installer will be downloaded from by winget and Chocolatey.
-    # Defaults to the release asset URL for the tag.
+    # Defaults to the release's installer in the GitLab package registry.
     [string] $InstallerUrl,
 
     # The SHA-256, when it is already known and neither the file nor the network
@@ -119,7 +119,11 @@ if ($ReleaseDate -notmatch '^\d{4}-\d{2}-\d{2}$') {
 
 $installerName = "hMailServer-$Version-x64.exe"
 if (-not $InstallerUrl) {
-    $InstallerUrl = "https://github.com/Progressiverobot/hmailserver/releases/download/$Tag/$installerName"
+    # The release's installer in the project's GitLab package registry, where the
+    # release links it from (build/ci/release-chain.py publish) - a versioned address
+    # that does not move. Releases up to 6.3.3 were on GitHub until its suspension of
+    # 18 September 2026; they are re-hosted at the same kind of address.
+    $InstallerUrl = "https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/$Version/$installerName"
 }
 
 if ($InstallerUrl -notmatch '^https://') {

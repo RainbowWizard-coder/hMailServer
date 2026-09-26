@@ -34,7 +34,7 @@ The headers literal keeps a shape this can parse:
 - a name, '=', then string literals one per line until the semicolon.
 
 Run from the repository root:  python3 build/check-portal-script.py
-Needs node on PATH (every GitHub-hosted runner has it). --no-node runs the
+Needs node on PATH (the harnesses job of .gitlab-ci.yml runs in a node image). --no-node runs the
 static checks only.
 """
 

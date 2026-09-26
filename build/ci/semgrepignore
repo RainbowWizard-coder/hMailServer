@@ -9,8 +9,8 @@
 # so. The syntax is .gitignore's.
 
 # The regression suites and the tools' test projects: fixtures and harness code
-# that is not shipped. CodeQL's configuration (.github/codeql/codeql-config.yml)
-# left the suites out for the same reason.
+# that is not shipped. CodeQL's configuration on GitHub (codeql-config.yml, in the
+# history at v6.3.3) left the suites out for the same reason.
 hmailserver/test/
 hmailserver/source/Tools/ControlPanel.Tests/
 hmailserver/source/Tools/ImportTool.Tests/

@@ -22,7 +22,7 @@ its answers, each form sending the JSON its route takes, each refusal shown in
 the server's own words, each change read back after the round trip.
 
 Run from the repository root:  python3 build/check-deck-script.py
-Needs node on PATH (every GitHub-hosted runner has it). --keep names a directory
+Needs node on PATH (the harnesses job of .gitlab-ci.yml runs in a node image). --keep names a directory
 to leave the extracted files in, for looking at by hand.
 """
 import argparse

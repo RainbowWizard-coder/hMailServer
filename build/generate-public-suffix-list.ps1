@@ -65,7 +65,7 @@ $lines = [System.IO.File]::ReadAllLines($ListFile, [System.Text.Encoding]::UTF8)
 # ---------------------------------------------------------------------------
 # Parse.
 #
-# The file format (https://github.com/publicsuffix/list/wiki/Format): one rule
+# The file format (https://publicsuffix.org/list/, "Format"): one rule
 # per line; '//' lines are comments; a leading '!' marks an exception rule; a
 # leading '*.' is a wildcard whose '*' matches exactly one label. The format
 # guarantees '*' only ever appears as the entire leftmost label, and the lookup

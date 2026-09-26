@@ -5,7 +5,7 @@
 # Emits, as JSON, every component the SBOM has to name that Syft cannot find in the
 # tree, for build/merge-native-dependencies-into-sbom.ps1 to add to it.
 #
-# Why this has to exist. The SBOM workflow runs Syft over the repository, and Syft can
+# Why this has to exist. The linux-sbom job runs Syft over the repository, and Syft can
 # only report what it can see. Boost, OpenSSL and libpq are not in the repository - they
 # are built separately and referenced through $(hMailServerLibs) - so a directory scan
 # finds no trace of them. The result was a shipped SBOM listing 54 packages, every one of
@@ -63,7 +63,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 # Built up a segment at a time rather than as one backslash-separated string, because this
-# runs on the Linux runner in the SBOM workflow as well as on Windows, and a literal
+# runs on linix in the linux-sbom job as well as on Windows, and a literal
 # 'a\b\c' is one filename containing backslashes there rather than a path.
 function Join-RepoPath([string[]] $Segments) {
    $path = $repoRoot

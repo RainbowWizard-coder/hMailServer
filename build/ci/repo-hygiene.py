@@ -5,7 +5,7 @@
 
 """The repository-hygiene checks OpenSSF Scorecard ran, answered from GitLab.
 
-Scorecard (.github/workflows/scorecard.yml) stopped with the GitHub account on 18
+Scorecard (the GitHub workflow scorecard.yml) stopped with the GitHub account on 18
 September 2026, and it reads GitHub's API only. This is the part of it that GitLab
 and the tree can answer, as the repo-hygiene job of .gitlab-ci.yml runs it. Six
 checks, each PASS, FAIL or UNKNOWN (UNKNOWN when the answer is not public, and never
@@ -17,12 +17,11 @@ counted as a pass):
   Signed-Releases      the five newest v* releases each carry a signature asset
                        (Sigstore bundle, cosign bundle, .sig, .asc) - Scorecard's
                        rule - and each of their tags carries an SSH signature by a
-                       key in .github/allowed_signers, which git verifies here.
+                       key in .gitlab/allowed_signers, which git verifies here.
   Security-Policy      SECURITY.md, with a way to report a vulnerability privately.
   Pinned-Dependencies  every image in .gitlab-ci.yml and every FROM in a Dockerfile
                        pinned by digest (or, for the CI image, by the tag made from
                        its Dockerfile's hash that build/check-ci-image.py enforces);
-                       every action a kept GitHub workflow uses pinned by commit;
                        no pip install without hashes, npm install, or piped curl in
                        a CI script; a NuGet lock file beside every project that
                        has package references.
@@ -200,8 +199,8 @@ PROVENANCE_SUFFIXES = (".intoto.jsonl",)
 
 
 def verify_tags(names):
-    """{tag: (verified, text)} for each tag, by git verify-tag against .github/allowed_signers; None if git cannot."""
-    signers = os.path.join(ROOT, ".github", "allowed_signers")
+    """{tag: (verified, text)} for each tag, by git verify-tag against .gitlab/allowed_signers; None if git cannot."""
+    signers = os.path.join(ROOT, ".gitlab", "allowed_signers")
     if not shutil.which("git") or not shutil.which("ssh-keygen") or not os.path.exists(signers):
         return None
     work = tempfile.mkdtemp(prefix="hm-tags-")
@@ -270,7 +269,7 @@ def check_signed_releases():
             if good:
                 r.ok("tag %s: %s" % (tag, text))
             else:
-                r.fail("tag %s: not verified against .github/allowed_signers - %s" % (tag, text))
+                r.fail("tag %s: not verified against .gitlab/allowed_signers - %s" % (tag, text))
     return r
 
 
@@ -367,29 +366,9 @@ def check_pinned_dependencies(files):
     else:
         r.ok("every FROM in the %d Dockerfile(s) pinned by digest" % len(dockerfiles))
 
-    workflows = [f for f in files if f.startswith(".github/workflows/") and f.endswith((".yml", ".yaml"))]
-    actions = loose_actions = 0
-    loose_list = []
-    for path in workflows:
-        for i, line in enumerate(read(path).splitlines()):
-            m = re.match(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", line)
-            if not m or m.group(1).startswith("./") or m.group(1).startswith("docker://"):
-                continue
-            actions += 1
-            ref = m.group(1).rsplit("@", 1)[-1] if "@" in m.group(1) else ""
-            # The SLSA generator's reusable workflow has to be called by its tag: its
-            # provenance names the tag, and the verifier refuses a commit. Scorecard
-            # exempts it for the same reason.
-            if m.group(1).startswith("slsa-framework/slsa-github-generator/") and re.fullmatch(r"v\d+\.\d+\.\d+", ref):
-                continue
-            if not re.fullmatch(r"[0-9a-f]{40}", ref):
-                loose_actions += 1
-                loose_list.append("%s line %d: %s" % (path, i + 1, m.group(1)))
-    if loose_actions:
-        r.fail("%d GitHub action reference(s) not pinned by commit: %s" % (loose_actions, "; ".join(loose_list[:10])))
-    elif workflows:
-        r.ok("all %d action references in the %d kept GitHub workflows pinned by commit (they do not run on GitLab)" % (
-            actions, len(workflows)))
+    # No GitHub workflow is left to check: .github/workflows left the tree on 26
+    # September 2026 (they are in the history, at v6.3.3 for instance), so the
+    # check that their actions were pinned by commit is retired with them.
 
     scripts = [f for f in files if f == ".gitlab-ci.yml" or re.match(r"^build/(ci/)?[^/]+\.sh$", f)
                or (f.startswith("build/ci/") and f.endswith(".Dockerfile")) or f in dockerfiles]

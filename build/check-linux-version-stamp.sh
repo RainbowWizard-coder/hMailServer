@@ -6,9 +6,9 @@
 # WHY THIS EXISTS
 #
 # The version of a Linux package is not decoration. CPACK_PACKAGE_VERSION decides
-# the four file names the packages are written with, and
-# .github/workflows/sign-release.yml matches those names by EXACT equality when it
-# reports which platforms a release carries - as does the server's own Linux
+# the four file names the packages are written with, and build/ci/release-chain.py
+# collects a release's packages by those names EXACTLY (as the GitHub workflow
+# sign-release.yml matched them up to 6.3.3) - as does the server's own Linux
 # update checker, which builds the name its package manager and architecture would
 # install and looks for precisely that asset. A package built at the wrong version
 # is not a mislabelled package; it is a package nothing will ever find.
@@ -34,8 +34,9 @@
 #      literal from creeping back in and going stale.
 #
 # It reads files and prints. It changes nothing, and it needs no toolchain - which
-# is what lets it run as the FIRST step of the Linux workflow, before anything is
-# compiled, so a missed stamp is reported in seconds rather than after a build.
+# is what lets it run in the checkers job of .gitlab-ci.yml, before anything is
+# compiled, so a missed stamp is reported in seconds rather than after a build
+# (linux-build runs it again before it packages).
 #
 # USAGE
 #   build/check-linux-version-stamp.sh [--repo-root DIR]
@@ -73,8 +74,9 @@ PKGBUILD="${PACKAGING}/PKGBUILD"
 
 failures=0
 
-# GitHub renders "::error::" as an annotation on the run; anywhere else it is
-# just a line that begins with the word. Both are meant to be read.
+# "::error::" is GitHub Actions' annotation syntax, kept from when this ran there;
+# in a GitLab job log, as anywhere else, it is just a line that begins with the
+# word, and it is meant to be read.
 fail()
 {
    echo "::error::$*"

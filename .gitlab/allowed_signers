@@ -1,8 +1,12 @@
 # Keys that may sign this repository's release tags (git's SSH signature
-# format; see `git help gpg.ssh.allowedSignersFile`). Read by the tag check in
-# .github/workflows/sign-release.yml and usable locally:
+# format; see `git help gpg.ssh.allowedSignersFile`). Read by the release job's
+# tag check (build/ci/release-chain.py collect), by the repo-hygiene job
+# (build/ci/repo-hygiene.py), and usable locally:
 #
-#   git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag vX.Y.Z
+#   git -c gpg.ssh.allowedSignersFile=.gitlab/allowed_signers verify-tag vX.Y.Z
+#
+# It was .github/allowed_signers, read by the GitHub workflow sign-release.yml,
+# until the project moved to GitLab; the keys did not change.
 #
 # One principal per line: the identity the signature must carry, then the key.
 # A key that is rotated is removed here and the tags it signed stay verifiable

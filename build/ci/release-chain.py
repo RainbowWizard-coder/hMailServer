@@ -10,7 +10,7 @@ A v* tag's pipeline (.gitlab-ci.yml, the release stage; docs/ContinuousIntegrati
 job. That job runs `collect`; the signing jobs follow it, and `release-publish`, also
 started by hand, runs `publish`:
 
-  collect   the tag is an annotated tag signed by a key in .github/allowed_signers,
+  collect   the tag is an annotated tag signed by a key in .gitlab/allowed_signers,
             and it still points at the commit this pipeline built;
             Version.h says the version the tag names, so every file name made from
             it is the name a server looks for; the cosign image is gcr.io's pinned
@@ -75,7 +75,7 @@ API_BASE = "https://gitlab.com/api/v4"
 SIGNER_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/"
 SIGNER_ISSUER = "https://gitlab.com"
 VERSION_H = os.path.join("hmailserver", "source", "Server", "Common", "Application", "Version.h")
-ALLOWED_SIGNERS = os.path.join(".github", "allowed_signers")
+ALLOWED_SIGNERS = os.path.join(".gitlab", "allowed_signers")
 CHANGELOG = "CHANGELOG.md"
 # The settings release-authenticode reads (build/ci/windows-authenticode.ps1). Names
 # only are ever printed.
@@ -206,7 +206,7 @@ def changelog_section(text, version):
 # ---------------------------------------------------------------- collect
 
 def check_tag(root, tag, commit, run=subprocess.run):
-    """The tag is an annotated tag object signed by a key in .github/allowed_signers,
+    """The tag is an annotated tag object signed by a key in .gitlab/allowed_signers,
     and it points at the commit this pipeline built: a tag deleted and made again on
     another commit after the pipeline started is refused, not signed for."""
     problems = []

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # The static-analysis job of .gitlab-ci.yml: cppcheck and clang-tidy over the
-# server's C++, the part of the old CodeQL job (.github/workflows/codeql.yml) that
+# server's C++, the part of the old CodeQL job (the GitHub workflow codeql.yml) that
 # runs without GitHub. Run in the image of build/ci/linux.Dockerfile, from the root
 # of a checkout; by hand it is the same:
 #

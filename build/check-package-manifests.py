@@ -9,12 +9,18 @@ and the Chocolatey package beside them against what Chocolatey requires.
 
 Why this exists and `winget validate` does not stand in for it: winget validate
 is the authoritative check and it is what a maintainer runs locally, but the
-winget client is not present on a GitHub-hosted runner in a headless session,
+winget client is not present on a CI runner in a headless session,
 and installing it there to check three YAML files is a great deal of moving
 parts for one answer. The manifests are JSON Schema documents; the schemas are
 published; this validates against them with nothing but Python, which every
-runner has. When the winget client IS present, the workflow runs it too - two
+runner has. When the winget client IS present, run it too - two
 checks that agree is better than one.
+
+The schemas are read through Microsoft's aka.ms aliases, and a redirect from
+there to GitHub is refused: this project downloads nothing from GitHub. Where
+that is where the schemas are, put a copy of each in the .schema-cache
+directory beside the manifests (the refusal names the file), or run with
+--offline, as the package-templates job of .gitlab-ci.yml does.
 
 What it checks, beyond the schemas:
 
@@ -46,18 +52,19 @@ import os
 import ssl
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 
 try:
     import yaml
-except ImportError:  # pragma: no cover - the workflow installs it
+except ImportError:  # pragma: no cover - the package-templates job installs it
     print("PyYAML is not installed: pip install pyyaml jsonschema", file=sys.stderr)
     raise SystemExit(2)
 
 try:
     import jsonschema
-except ImportError:  # pragma: no cover - the workflow installs it
+except ImportError:  # pragma: no cover - the package-templates job installs it
     print("jsonschema is not installed: pip install pyyaml jsonschema", file=sys.stderr)
     raise SystemExit(2)
 
@@ -68,25 +75,53 @@ PROBLEMS = []
 # schema fetched here is the schema the manifest claims to be written against.
 SCHEMA_URL = "https://aka.ms/winget-manifest.{type}.{version}.schema.json"
 
-RELEASE_HOST_PREFIX = "https://github.com/Progressiverobot/hmailserver/releases/download/"
+# A release's files are in the project's GitLab package registry, and the release
+# links them from there (build/ci/release-chain.py publish).
+RELEASE_HOST_PREFIX = "https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/"
 
 
 def problem(message):
     PROBLEMS.append(message)
 
 
+# The project downloads nothing from GitHub. The aka.ms schema aliases answer with a
+# redirect to wherever Microsoft keeps the schemas, which has been GitHub; a
+# redirect to a GitHub host is refused, and the cache is the way round it.
+GITHUB_HOSTS = ("github.com", "githubusercontent.com", "ghcr.io")
+
+
+def is_github(url):
+    host = (urllib.parse.urlsplit(url).hostname or "").lower()
+    return any(host == h or host.endswith("." + h) for h in GITHUB_HOSTS)
+
+
+class RefuseGitHubRedirects(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if is_github(newurl):
+            raise urllib.error.URLError("%s redirects to %s, on GitHub, which this project does not download from" % (req.full_url, newurl))
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def fetch(url, cache_directory):
-    """Fetches a URL, keeping a copy so a re-run offline still works."""
+    """Fetches a URL, keeping a copy so a re-run offline still works. A copy put
+    in the cache by hand is read as it is, which is how a schema that is only
+    published on GitHub gets here."""
     name = "".join(c if c.isalnum() or c in "._-" else "_" for c in url)
     cached = os.path.join(cache_directory, name)
     if os.path.exists(cached):
         with open(cached, "rb") as handle:
             return handle.read()
+    if is_github(url):
+        raise urllib.error.URLError("%s is on GitHub, which this project does not download from" % url)
 
     context = ssl.create_default_context()
+    opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context), RefuseGitHubRedirects())
     request = urllib.request.Request(url, headers={"User-Agent": "hmailserver-package-check"})
-    with urllib.request.urlopen(request, timeout=60, context=context) as response:
-        body = response.read()
+    try:
+        with opener.open(request, timeout=60) as response:
+            body = response.read()
+    except urllib.error.URLError as error:
+        raise urllib.error.URLError("%s - put a copy at %s, or run with --offline" % (error.reason, cached))
 
     os.makedirs(cache_directory, exist_ok=True)
     with open(cached, "wb") as handle:

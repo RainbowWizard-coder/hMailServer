@@ -2,8 +2,12 @@
 #
 # The fork's git history is squashed and disjoint from upstream's, so comparing
 # by commit reports all ~730 upstream commits as "missing" - including "First
-# commit" - which is useless. The upstream-watch workflow therefore reports only
-# commits AFTER the SHA below, and this SHA is advanced as each batch is triaged.
+# commit" - which is useless. A triage therefore reads only the commits AFTER
+# the SHA below, and this SHA is advanced as each batch is triaged. (The GitHub
+# workflow upstream-watch.yml read it for that until GitHub suspended the
+# account on 18 September 2026; nothing on GitLab reads it, and a triage now
+# starts by hand from `git log <SHA>..master` in a clone of upstream
+# hMailServer, https://github.com/hmailserver/hmailserver.)
 #
 # Triaged 2026-08-12, content-first (reading our functions, not matching commit
 # hashes), covering the 22 commits from 4fb63e806758 to 5ce853685dec:
@@ -53,7 +57,7 @@
 # read-only passes partitioned by area, every "already present" verdict tied to
 # a named function in our tree. The previous month's scheduled run had computed
 # this list and then lost it on a token permission error creating the tracking
-# issue; upstream-watch.yml now creates the issue through the REST endpoint.
+# issue; upstream-watch.yml then created the issue through the REST endpoint.
 #
 #   PORTED in 6.2.23 Alpha 2 (each with a test where the suite can reach it):
 #   - b558cc7b8 (#546/#168) Received-header IP parsing: the first bracketed

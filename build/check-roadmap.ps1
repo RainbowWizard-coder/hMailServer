@@ -46,7 +46,8 @@ $names = @('shipped', 'underway', 'not started', 'deferred')
 
 function Get-Anchor
 {
-   # GitHub's heading anchors: lower case, punctuation dropped, spaces to hyphens.
+   # GitLab's heading anchors (since GitLab 17.0, and GitHub's before them): lower
+   # case, punctuation dropped, spaces to hyphens, a run of hyphens kept as it is.
    # An em dash is dropped and the spaces around it are not, which is why
    # "Dated items - the forcing functions" anchors with a double hyphen.
    param([string] $Text)

@@ -12,21 +12,20 @@
     hMailServer.vcxproj. This script reads them back out, so callers do not have to
     hard-code a version that then has to be remembered on every upgrade.
 
-    The CI build uses it for the cache keys of the prebuilt libraries (so bumping a
-    version invalidates exactly the caches that depend on it) and for the paths of the
-    runtime DLLs that go into the build artifact. A version bump is therefore an edit to
-    the project file and to the digest table of the matching libraries\build-*.ps1, and
-    the workflow follows on its own.
+    The GitHub CI build used it, until GitHub suspended the account on 18 September
+    2026, for the cache keys of the prebuilt libraries and the paths of the runtime
+    DLLs. Nothing in the GitLab CI calls it; it is a maintainer's tool now. A version
+    bump is an edit to the project file and to the digest table of the matching
+    libraries\build-*.ps1.
 
-    Output is one 'name=value' line per value, and, when running inside GitHub Actions
-    ($env:GITHUB_OUTPUT set), the same lines are appended there as step outputs:
+    Output is one 'name=value' line per value:
 
         openssl=4.0.2               openssl_dir=openssl-4.0.2
         boost=1.92.0                boost_dir=boost_1_92_0
         postgresql=18.3             postgresql_dir=postgresql-18.3
 
     The *_dir values are the folder names under %hMailServerLibs% that the build scripts
-    create, which is what the workflow caches.
+    create.
 
 .EXAMPLE
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File build\Get-LibraryVersions.ps1
@@ -89,12 +88,4 @@ $values = [ordered]@{
 foreach ($name in $values.Keys)
 {
     "$name=$($values[$name])"
-}
-
-if ($env:GITHUB_OUTPUT)
-{
-    foreach ($name in $values.Keys)
-    {
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "$name=$($values[$name])"
-    }
 }
