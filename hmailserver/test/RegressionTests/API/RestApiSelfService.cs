@@ -3044,6 +3044,10 @@ namespace RegressionTests.API
          Assert.IsFalse(plain.Body.Contains("id=\"lang-data\""), "No catalogue for English.");
          Response englishFirst = Raw("GET", "/portal", null, null, "Accept-Language: en-GB,de;q=0.7\r\n");
          Assert.IsFalse(englishFirst.Body.Contains("id=\"lang-data\""), "English before German is the page as it is.");
+         // A weight that is not a number is no weight: "q=nan" was read as NaN,
+         // passed the test for a weight of 0, and the sort left French first.
+         Response notANumber = Raw("GET", "/portal", null, null, "Accept-Language: fr;q=nan, de\r\n");
+         StringAssert.Contains("data-lang=\"de\"", notANumber.Body, "A tag weighted q=nan is not taken.");
 
          // The direction of the first paint, not only the catalogue. The page is
          // shipped left to right and the script turns it round from the catalogue it

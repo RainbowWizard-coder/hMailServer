@@ -143,7 +143,18 @@ namespace HM
             item = item.Mid(0, semicolon);
             const int q = parameters.Find("q=");
             if (q >= 0)
-               weight = atof(parameters.Mid(q + 2).c_str());
+            {
+               // A weight that is not a number of at least 0 weighs 0, and its
+               // tag is not taken. atof read "q=nan" as NaN, which passed the
+               // weight <= 0 test below, and the sort, whose order needs every
+               // two weights comparable, left that tag first: a tag the client
+               // gave no weight won over the ones it did.
+               const AnsiString number = parameters.Mid(q + 2);
+               const char *const begin = number.c_str();
+               char *end = nullptr;
+               const double parsed = strtod(begin, &end);
+               weight = (end != begin && parsed >= 0) ? parsed : 0;
+            }
          }
          item.TrimLeft();
          item.TrimRight();
