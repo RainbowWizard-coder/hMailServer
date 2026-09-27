@@ -28,14 +28,20 @@
   --bg:#f6f8fc; --surface:#fff; --surface-2:#f1f3f4; --surface-3:#e8eaed; --line:#e0e3e8; --line-2:#c9ced6;
   --text:#1f1f1f; --text-2:#444746; --muted:#5f6368; --accent:#1a73e8; --accent-2:#174ea6; --accent-soft:#e8f0fe; --accent-text:#0b57d0;
   --unread:#fff; --read:#f2f6fc; --cursor:#e8f0fe; --selected:#c2dbff;
-  --danger:#d93025; --danger-soft:#fce8e6; --good:#188038; --good-soft:#e6f4ea; --warn:#b06000; --warn-soft:#fef7e0; --star:#f4b400;
+  --danger:#d93025; --danger-soft:#fce8e6; --good:#188038; --good-soft:#e6f4ea; --warn:#9a5200; --warn-soft:#fef7e0; --star:#f4b400;
   --shadow:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
   --shadow-2:0 4px 8px 3px rgba(60,64,67,.15),0 1px 3px rgba(60,64,67,.3);
   --radius:8px; --pill:16px;
   --font:system-ui,'Segoe UI Variable','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   --mono:'Cascadia Mono',Consolas,'SFMono-Regular',Menlo,monospace;
   --row:52px; --nav:256px; --top:64px;
-  --a1:#5c6bc0; --a2:#26a69a; --a3:#ec407a; --a4:#7e57c2; --a5:#ffa726; --a6:#42a5f5; --a7:#8d6e63; --a8:#66bb6a; --a9:#ef5350; --a10:#78909c;
+  /* The avatars' colours carry white initials: each is at least 4.5:1 against
+     white (the lighter set of Roadmap2 row 43's audit went down to 1.9:1). */
+  --a1:#3f51b5; --a2:#00796b; --a3:#c2185b; --a4:#673ab7; --a5:#b45309; --a6:#1565c0; --a7:#6d4c41; --a8:#2e7d32; --a9:#c62828; --a10:#546e7a;
+  /* What is written ON the accent or the danger colour: white on the light
+     theme's, dark on the dark theme's pale ones (white there was 2.1:1). */
+  --on-accent:#fff; --on-danger:#fff;
+  color-scheme:light;
 }
 [data-theme="dark"]{
   --bg:#111418; --surface:#1b1f24; --surface-2:#262b31; --surface-3:#30363d; --line:#2e343b; --line-2:#3f464e;
@@ -44,6 +50,10 @@
   --danger:#f28b82; --danger-soft:#3c2422; --good:#81c995; --good-soft:#1e3325; --warn:#fdd663; --warn-soft:#3a3120; --star:#fdd663;
   --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 3px 1px rgba(0,0,0,.3);
   --shadow-2:0 4px 8px 3px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.5);
+  --on-accent:#062e6f; --on-danger:#410e0b;
+  /* The browser's own parts of a control - an unticked box, a date field's
+     calendar button, a scroll bar - drawn for a dark page, not a white one. */
+  color-scheme:dark;
 }
 [data-density="compact"]{--row:40px}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -78,7 +88,7 @@ html{--lead:1}
 .btn.ghost:hover{background:var(--accent-soft);box-shadow:none}
 .btn.quiet{background:transparent;color:var(--text-2)}
 .btn.quiet:hover{background:var(--surface-2);box-shadow:none}
-.btn.danger{background:var(--danger);color:#fff}
+.btn.danger{background:var(--danger);color:var(--on-danger)}
 .btn.sm{height:30px;padding:0 12px;font-size:13px;border-radius:15px}
 .btn.wide{width:100%}
 .btn:disabled{opacity:.5;cursor:default}
@@ -91,15 +101,17 @@ html{--lead:1}
 label{display:block;margin:14px 0 6px;font-size:13px;color:var(--text-2);font-weight:500}
 label.inline{display:flex;align-items:center;gap:10px;margin:12px 0;font-weight:400;color:var(--text);font-size:14px}
 input,select,textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);color:var(--text);padding:9px 12px;font-size:14px;font-family:var(--font);outline:none;max-width:100%;transition:border-color .15s,box-shadow .15s}
-input[type=text],input[type=password],input[type=date],input[type=datetime-local],input[type=search],input[type=color],select,textarea{width:100%}
+input[type=text],input[type=email],input[type=tel],input[type=password],input[type=date],input[type=datetime-local],input[type=search],input[type=color],select,textarea{width:100%}
 textarea{min-height:8rem;line-height:1.5;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+/* The browser's grey was 3.6:1 on the dark theme and 3.8:1 in the search box. */
+::placeholder{color:var(--muted);opacity:1}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0;flex:none;cursor:pointer}
 input[type=file]{padding:7px;color:var(--muted);width:100%}
 input[type=color]{width:44px;height:36px;padding:2px}
 option{background:var(--surface);color:var(--text)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.row input[type=text],.row input[type=password],.row select{width:auto;flex:1 1 12rem;min-width:9rem}
+.row input[type=text],.row input[type=email],.row input[type=tel],.row input[type=password],.row select{width:auto;flex:1 1 12rem;min-width:9rem}
 form .btn{margin-top:14px}
 form .row .btn,.row .btn{margin-top:0}
 .status{margin-top:10px;font-size:13px;min-height:1.1rem;line-height:1.5}
@@ -125,6 +137,9 @@ table.list th{text-align:start;font-weight:500;color:var(--muted);font-size:12px
 table.list td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
 table.list tr:last-child td{border-bottom:none}
 table.list td .btn{margin:0;margin-inline-end:4px}
+table.list tr.clickable{cursor:pointer}
+table.list tr.clickable:hover td{background:var(--surface-2)}
+table.list tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 ul.plain{list-style:none}
 ul.plain li{padding:6px 0;border-bottom:1px solid var(--line)}
 kbd{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
@@ -138,7 +153,7 @@ kbd{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1p
 .login p{text-align:center;color:var(--muted);font-size:13.5px;margin-bottom:18px}
 .login .btn{margin-top:18px}
 .login .announce{margin:0 0 12px}
-.logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:15px;background:var(--accent);color:#fff;overflow:hidden;flex:none}
+.logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:15px;background:var(--accent);color:var(--on-accent);overflow:hidden;flex:none}
 .logo img{width:100%;height:100%;object-fit:cover}
 
 /* ---------- The shell ---------- */
@@ -273,15 +288,20 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .view.page{overflow:auto;padding:12px 28px 48px}
 .page-head{display:flex;align-items:center;gap:14px;padding:12px 0 4px;position:sticky;top:0;background:var(--surface);z-index:2}
 .page-head h1{font-size:22px;font-weight:400;flex:1}
+/* The settings pages' heading and tabs stand above the page, in line with it. */
+#settings-head{padding:0 28px;flex:none}
 .tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:8px 0 18px;position:sticky;top:44px;background:var(--surface);z-index:2}
 .tabs button{all:unset;cursor:pointer;padding:10px 14px;font-size:14px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
 .tabs button:hover{color:var(--text);background:var(--surface-2);border-radius:8px 8px 0 0}
 .tabs button.on{color:var(--accent-text);border-bottom-color:var(--accent-text);font-weight:500}
-.inbox-tabs{margin:0;position:static;flex:none;flex-wrap:nowrap;overflow-x:auto;padding:0 6px;gap:0}
+.inbox-tabs{margin:0;position:static;flex:none;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:0 6px;gap:0}
 .inbox-tabs button{display:flex;align-items:center;gap:8px;padding:11px 16px;font-size:13.5px;white-space:nowrap;margin-bottom:-1px}
 .inbox-tabs button svg.i{width:18px;height:18px;flex:none}
-.inbox-tabs .n{font-size:11px;font-weight:600;background:var(--accent);color:#fff;border-radius:10px;padding:0 6px;line-height:16px;min-width:16px;text-align:center}
-@container (max-width:640px){.inbox-tabs button{padding:11px 12px}.inbox-tabs button:not(.on) .lbl{display:none}}
+.inbox-tabs .n{font-size:11px;font-weight:600;background:var(--accent);color:var(--on-accent);border-radius:10px;padding:0 6px;line-height:16px;min-width:16px;text-align:center}
+/* A narrow list shows only the icons of the tabs not chosen. The name is
+   hidden from the eye, not from a screen reader: display:none left a tab
+   that had unread mail named only by its count ("1"). */
+@container (max-width:640px){.inbox-tabs button{padding:11px 12px}.inbox-tabs button:not(.on) .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 #select-note{background:var(--surface-2);color:var(--text-2);font-size:13px;padding:8px 16px;text-align:center;border-bottom:1px solid var(--line);flex:none}
 .linkbtn{all:unset;cursor:pointer;color:var(--accent-text);font-weight:500;padding:0 4px}
 .linkbtn:hover{text-decoration:underline}
@@ -365,7 +385,7 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .msg .due.now{background:var(--warn-soft);color:var(--warn)}
 .msg .due.late{background:var(--danger-soft);color:var(--danger)}
 .msg .avatar{margin:0;margin-inline:2px 6px}
-.msg .who{width:190px;min-width:0;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--text-2);padding-inline-end:8px}
+.msg .who{width:190px;min-width:0;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--text-2);padding-inline-end:8px;position:relative}
 /* A row that carries the importance marker gives the column the marker's
    width, so the sender's name is no shorter than on a row without one */
 .msg.has-imp .who{width:218px}
@@ -459,11 +479,16 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 #message-text{font-family:var(--font);font-size:14.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;margin:16px 0 0;margin-inline-start:52px;color:var(--text)}
 iframe#message-html{width:100%;min-height:24rem;border:none;border-radius:8px;background:#fff;margin:12px 0 0 0}
 #message-attachments{margin:18px 0 0;margin-inline-start:52px;display:flex;flex-wrap:wrap;gap:10px}
-#message-attachments .att{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 0;padding-inline:10px 12px;max-width:280px;color:var(--text);text-decoration:none;background:var(--surface)}
-#message-attachments .att:hover{background:var(--surface-2)}
-#message-attachments .att .n{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#message-attachments .att .s{font-size:12px;color:var(--muted)}
-#message-attachments .att svg.i{color:var(--accent-text)}
+:is(#message-attachments,#conversation .atts) .att{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 0;padding-inline:10px 12px;max-width:280px;color:var(--text);text-decoration:none;background:var(--surface)}
+:is(#message-attachments,#conversation .atts) .att:hover{background:var(--surface-2)}
+:is(#message-attachments,#conversation .atts) .att .n{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:is(#message-attachments,#conversation .atts) .att .s{font-size:12px;color:var(--muted)}
+:is(#message-attachments,#conversation .atts) .att svg.i{color:var(--accent-text)}
+/* A long file name is cut with an ellipsis inside its card (its title holds
+   the whole name), and a Preview button with one wraps: the name had run out
+   of the card and the button off the pane, which then scrolled sideways. */
+:is(#message-attachments,#conversation .atts) .att>div{min-width:0}
+#message-previews .btn{max-width:100%;height:auto;min-height:30px;white-space:normal;text-align:start;overflow-wrap:anywhere;padding-block:5px}
 #message-previews{margin:12px 0 0;margin-inline-start:52px;display:flex;flex-wrap:wrap;gap:10px}
 #message-previews img{max-width:min(100%,420px);max-height:360px;border-radius:8px;border:1px solid var(--line)}
 #message-previews iframe{width:100%;min-height:30rem;border:1px solid var(--line);border-radius:8px}
@@ -512,7 +537,7 @@ iframe#message-html{width:100%;min-height:24rem;border:none;border-radius:8px;ba
 .field .links button:hover{color:var(--text);background:var(--surface-2)}
 .complete-wrap{position:relative;flex:1;display:flex}
 .complete-wrap input{width:100%}
-.msg .mention{display:inline-block;margin-inline-end:6px;padding:0 6px;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;font-size:12px;line-height:18px}
+.msg .mention{display:inline-block;margin-inline-end:6px;padding:0 6px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:12px;line-height:18px}
 .complete{position:absolute;top:100%;inset-inline:0;background:var(--surface);border-radius:8px;box-shadow:var(--shadow-2);z-index:30;max-height:14rem;overflow:auto;padding:6px}
 .complete button{all:unset;display:block;width:100%;box-sizing:border-box;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13.5px}
 .complete button:hover,.complete button.hit{background:var(--surface-2)}
@@ -581,6 +606,25 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 #palette-list li small{color:var(--muted);margin-inline-start:auto;font-size:12px}
 .keys-help{margin-top:8px;font-size:13px;color:var(--muted)}
 
+/* ---------- Where the keyboard is ----------
+   Every control reset with all:unset lost the browser's focus ring with the
+   rest, so a keyboard alone could not see where it was on a settings tab, an
+   inbox tab, a menu item, a star, a calendar day or a Cc link (Roadmap2 row
+   43). They are given one back here, after the rules that reset them. */
+.tabs button:focus-visible,.textbtn:focus-visible,.linkbtn:focus-visible,.msg .star:focus-visible,.msg .imp:focus-visible,
+.more-menu button:focus-visible,.more-menu a:focus-visible,#select-menu button:focus-visible,.list-sect-toggle:focus-visible,
+.cal-daynum:focus-visible,.cal-chip:focus-visible,.cal-ev:focus-visible,.task-title:focus-visible,.field .links button:focus-visible,
+.msg-head .from .to button:focus-visible,.complete button:focus-visible,#conversation .msg-head:focus-visible,.cbhit:focus-within{outline:2px solid var(--accent);outline-offset:-2px}
+.toast button:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
+/* The compose window's fields have no box of their own: the line under a
+   field turns the accent while it has the keyboard, and the message body
+   shows a bar at its leading edge. The list shows the row under its cursor
+   ringed while the list itself has the keyboard. */
+.field:focus-within{border-bottom-color:var(--accent);box-shadow:0 1px 0 0 var(--accent)}
+#compose-text:focus-visible,.editor:focus-visible{box-shadow:inset calc(2px * var(--lead)) 0 0 var(--accent)}
+#message-list:focus-visible .msg.msg-cursor{outline:2px solid var(--accent);outline-offset:-2px}
+.cbhit{display:inline-flex;align-items:center;justify-content:center;margin:0;border-radius:6px;cursor:pointer}
+
 /* ---------- Narrow screens ---------- */
 .nav-scrim{display:none}
 @media (max-width:1100px){
@@ -609,8 +653,49 @@ table.keys td:first-child{white-space:nowrap;width:40%}
   .msg-body{padding:12px 16px 32px}
   #message-text,#message-attachments,#message-previews,.reply-bar,#message-details{margin-inline-start:0}
   .view.page{padding:8px 16px 40px}
-  #compose-section{padding:0 16px 32px}
-  .search{height:40px;min-width:0}
+  #settings-head{padding:0 16px}
+  #compose-section .dock-body{padding-bottom:32px}
+  .search{height:44px;min-width:0}
+  /* The search box has the width the top bar leaves: the spacer beside it
+     took half, and the box was two icons with no room to type (row 43). */
+  .top .sp{display:none}
+  /* Search options: a sheet under the top bar as wide as the screen. Hung
+     from the box, it was as narrow as the box, its fields ran off the right,
+     and focusing the first one scrolled the whole page sideways. */
+  #search-advanced{position:fixed;top:calc(var(--top) - 8px);inset-inline:8px;max-height:calc(100vh - var(--top));overflow:auto;padding:14px 16px}
+  #search-advanced .grid{grid-template-columns:1fr;gap:4px}
+  #search-advanced .grid label{margin-top:8px}
+  #search-advanced .foot{flex-wrap:wrap}
+  #search-advanced .foot input{flex:1 1 100%}
+  /* Help on a phone covers the page rather than squeezing it to a strip. */
+  .helppane{position:fixed;inset:0;width:auto;margin:0;z-index:46;border-radius:0}
+  /* The settings pages' tabs are one line that scrolls sideways; wrapped,
+     they were four lines held at the top of every settings page. */
+  #view-nav{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  #view-nav button{white-space:nowrap}
+  /* A table keeps to the screen: a long address or name breaks rather than
+     pushing the last columns off the right edge. */
+  table.list td{overflow-wrap:anywhere}
+  /* A label and its field stay together when a row of them wraps. */
+  :is(#fetch-form,#sendas-form,#import-signin) .row>label:not(.inline){flex:0 0 100%;margin-bottom:0}
+  /* Everything a finger presses is at least 44 pixels each way. */
+  .iconbtn,.iconbtn.sm,.msg .acts .iconbtn,.dock-head .iconbtn{width:44px;height:44px}
+  .btn,.btn.sm,#rich-tools .btn,#emoji-open{height:auto;min-height:44px}
+  .textbtn,.linkbtn,.field .links button,.history .head button{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+  .nav button,.nav a.item,.nav.accounts button{height:44px}
+  .tabs button,.inbox-tabs button{min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center}
+  .more-menu button,.more-menu a,#select-menu button,.menu button.item,.complete button,.helppane .heads button,.list-sect-toggle{min-height:44px;box-sizing:border-box;display:flex;align-items:center}
+  input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]),select,.toolbar select,.msg-toolbar select,#template-row select,#emoji-search,#table-panel input[type=number]{min-height:44px;height:auto}
+  input[type=color]{width:44px;height:44px}
+  label.inline,#compose-section label.inline{min-height:44px;margin-block:0}
+  .cbhit{width:44px;height:44px}
+  .msg{grid-template-columns:0 44px 44px minmax(0,1fr) auto}
+  .msg .star{width:44px;height:44px}
+  /* The importance marker is shown, not pressed, on a phone: 24 pixels
+     beside the name a finger means to open. The message's More menu marks it. */
+  .msg .imp{pointer-events:none}
+  button.emoji{width:44px;height:44px}
+  .cal-daynum{width:44px;height:44px;line-height:44px}
   #keys-btn,#theme-btn,#settings-btn{display:none}
   #toasts{inset-inline:12px;bottom:12px}
   .dock,.dock.full{position:fixed;inset:0;width:auto;max-width:none;height:auto;max-height:none;border-radius:0;transform:none}
@@ -630,6 +715,9 @@ table.keys td:first-child{white-space:nowrap;width:40%}
   /* A new window is not a thing a phone has. */
   #message-popout,#compose-popout{display:none}
 }
+/* A phone's top bar is the menu, the search box and the account: the logo
+   gave the box its last 56 pixels, and "Search mail" was cut to "Search". */
+@media (max-width:600px){.top .brand{display:none}}
 @media (min-width:901px){
   #nav-toggle{display:none}
   #mail-section.has-pane #message-back{display:none}
@@ -680,7 +768,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 .cal-cell.other{background:var(--read);color:var(--muted)}
 .cal-cell.over,.cal-slot.over,.cal-allday-cell.over{background:var(--accent-soft)}
 .cal-daynum{all:unset;cursor:pointer;align-self:flex-end;width:26px;height:26px;border-radius:50%;text-align:center;line-height:26px;font-size:13px}
-.cal-cell.today .cal-daynum{background:var(--accent);color:#fff;font-weight:600}
+.cal-cell.today .cal-daynum{background:var(--accent);color:var(--on-accent);font-weight:600}
 .cal-chip{all:unset;cursor:pointer;display:flex;gap:4px;align-items:baseline;padding:2px 6px;border-radius:4px;font-size:12px;color:#fff;background:var(--accent);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
 .cal-chip .tm{opacity:.85;flex:none;font-variant-numeric:tabular-nums}
 .cal-chip .nm{overflow:hidden;text-overflow:ellipsis}
@@ -708,7 +796,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 .cal-agenda-row .tm{width:64px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
 .cal-agenda-row .textbtn{color:var(--text);font-size:14px;padding:2px 4px}
 #event-form .row{margin-top:12px}
-#event-form label{display:flex;align-items:center;gap:8px;font-size:13.5px}
+#event-form label{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:0}
 #event-form input[type=number]{width:5rem}
 #event-days{display:flex;gap:6px;flex-wrap:wrap}
 #event-days label{gap:4px;font-size:13px}
@@ -739,6 +827,21 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 .invite .inv-status{margin:10px 0 6px;font-size:13.5px}
 .invite .inv-status.error{color:var(--danger)}
 @media (max-width:900px){.cal-body{grid-template-columns:1fr}.cal-side{position:static}.cal-cell{min-height:64px}}
+/* The phone's 44-pixel targets for what is defined after the narrow-screen
+   rules above, or by an id that outranks them (Roadmap2 row 43). */
+@media (max-width:900px){
+  #account-btn{width:44px;height:44px}
+  .btn,.btn.sm{min-width:44px}
+  #message-previews .btn{min-height:44px}
+  .inbox-tabs button{min-width:44px;justify-content:center}
+  input[type=file]{min-height:44px}
+  label.row,#event-form label{min-height:44px}
+  .msg-head .from .to button{padding-block:13px;margin-block:-13px}
+  .cal-daynum{width:44px;height:44px;line-height:44px}
+  .task-title{min-height:44px;display:flex;align-items:center}
+  #palette-list li{min-height:44px}
+  .helppane .foot a{min-height:44px;display:inline-flex;align-items:center}
+}
 </style>
 </head>
 <body data-theme="light">
@@ -803,7 +906,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
   </defs>
 </svg>
 
-<div class="gate" id="signin">
+<div class="gate" id="signin" role="main">
 <form class="login" id="signin-form">
 <div class="logo" id="signin-logo">hM</div>
 <h1 id="signin-title">Sign in</h1>
@@ -858,7 +961,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label for="adv-label">Label</label><input id="adv-label" type="text" autocomplete="off">
 <label for="adv-after">Date after</label><input id="adv-after" type="date">
 <label for="adv-before">Date before</label><input id="adv-before" type="date">
-<label for="adv-size">Size</label><div class="row"><select id="adv-size-kind"><option value="larger">Larger than</option><option value="smaller">Smaller than</option></select><input id="adv-size" type="text" placeholder="10M" autocomplete="off"></div>
+<label for="adv-size" id="adv-size-label">Size</label><div class="row"><select id="adv-size-kind" aria-labelledby="adv-size-label"><option value="larger">Larger than</option><option value="smaller">Smaller than</option></select><input id="adv-size" type="text" placeholder="10M" autocomplete="off"></div>
 <label for="adv-age">Newer than</label><select id="adv-age"><option value="">Any time</option><option value="1d">1 day</option><option value="1w">1 week</option><option value="1m">1 month</option><option value="6m">6 months</option><option value="1y">1 year</option></select>
 <label for="adv-where">Search in</label><select id="adv-where"><option value="folder">This folder</option><option value="all">All folders</option></select>
 </div>
@@ -925,7 +1028,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <section id="mail-section" class="view" hidden>
 <div class="list-pane">
 <div class="toolbar" id="list-tools">
-<div id="select-all-wrap"><input id="select-all" type="checkbox" aria-label="Select all"><button class="iconbtn sm" id="select-menu-btn" type="button" title="Select" aria-label="Select" aria-haspopup="true"><svg class="i sm"><use href="#i-down"/></svg></button>
+<div id="select-all-wrap"><label class="cbhit"><input id="select-all" type="checkbox" aria-label="Select all"></label><button class="iconbtn sm" id="select-menu-btn" type="button" title="Select" aria-label="Select" aria-haspopup="true"><svg class="i sm"><use href="#i-down"/></svg></button>
 <div id="select-menu" hidden><button type="button" data-pick="all">All</button><button type="button" data-pick="none">None</button><button type="button" data-pick="read">Read</button><button type="button" data-pick="unread">Unread</button><button type="button" data-pick="starred">Starred</button><button type="button" data-pick="unstarred">Unstarred</button></div></div>
 <button class="iconbtn sm" id="list-refresh" type="button" title="Refresh" aria-label="Refresh"><svg class="i"><use href="#i-refresh"/></svg></button>
 <button class="iconbtn sm" id="list-more-btn" type="button" title="More" aria-label="More" aria-haspopup="true"><svg class="i"><use href="#i-more"/></svg></button>
@@ -957,10 +1060,11 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button class="iconbtn sm" id="page-older" type="button" title="Older" aria-label="Older" hidden><svg class="i"><use href="#i-right"/></svg></button>
 <button class="iconbtn sm" id="page-oldest" type="button" title="Oldest" aria-label="Oldest" hidden><svg class="i"><use href="#i-last"/></svg></button>
 </div>
-<nav class="tabs inbox-tabs" id="inbox-tabs" aria-label="Inbox tabs" hidden></nav>
+<nav class="tabs inbox-tabs" id="inbox-tabs" role="tablist" aria-label="Inbox tabs" hidden></nav>
 <div id="select-note" hidden><span id="select-note-text"></span> <button id="select-folder" class="linkbtn" type="button"></button></div>
 <p class="note" id="list-hint" hidden>Arrow keys or j and k move, Enter opens, x ticks the box, e archives, ! files as junk, # deletes. ? lists every shortcut; Ctrl+K opens the palette.</p>
 <div id="message-list" role="list" aria-label="Messages" tabindex="0"></div>
+<div id="list-say" class="sr" aria-live="polite"></div>
 <div id="mail-status" class="status" aria-live="polite"></div>
 </div>
 <div class="read-pane">
@@ -1332,7 +1436,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div style="flex:1;min-width:12rem"><label for="pref-sections">Inbox sections</label><select id="pref-sections"><option value="0">No sections</option><option value="1">Important, Starred, Everything else</option></select></div>
 </div>
 <label class="inline"><input id="pref-notify" type="checkbox"> Notify me of new mail in these folders</label>
-<p class="note"><button type="button" id="pref-mailto">Open mailto: links here</button></p>
+<p class="note"><button class="btn ghost sm" type="button" id="pref-mailto">Open mailto: links here</button></p>
 <div id="notify-folders" class="row"></div>
 <label class="inline"><input id="pref-nudges" type="checkbox"> Nudges: suggest a reply or a follow-up on a message that got none</label>
 <div><button class="btn" type="submit">Save</button></div>
@@ -1707,11 +1811,11 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="pgp-status" class="status" aria-live="polite"></div>
 <h3>Make a key</h3>
 <form id="pgp-make-form">
-<div class="field"><label for="pgp-make-name">Name</label><input id="pgp-make-name" type="text" maxlength="120" autocomplete="off"></div>
-<div class="field"><label for="pgp-make-address">Address</label><input id="pgp-make-address" type="email" maxlength="255" autocomplete="off"></div>
+<div><label for="pgp-make-name">Name</label><input id="pgp-make-name" type="text" maxlength="120" autocomplete="off"></div>
+<div><label for="pgp-make-address">Address</label><input id="pgp-make-address" type="email" maxlength="255" autocomplete="off"></div>
 <div class="row"><label for="pgp-make-kind" class="inline">Kind</label><select id="pgp-make-kind" style="width:auto"><option value="curve25519" selected>Curve25519</option><option value="rsa3072">RSA 3072</option><option value="rsa4096">RSA 4096</option></select><label for="pgp-make-expiry" class="inline">Expires</label><select id="pgp-make-expiry" style="width:auto"><option value="0">Never</option><option value="31536000">In a year</option><option value="63072000" selected>In two years</option><option value="157680000">In five years</option></select></div>
-<div class="field"><label for="pgp-make-passphrase">Passphrase</label><input id="pgp-make-passphrase" type="password" autocomplete="new-password"></div>
-<div class="field"><label for="pgp-make-passphrase2">Passphrase again</label><input id="pgp-make-passphrase2" type="password" autocomplete="new-password"></div>
+<div><label for="pgp-make-passphrase">Passphrase</label><input id="pgp-make-passphrase" type="password" autocomplete="new-password"></div>
+<div><label for="pgp-make-passphrase2">Passphrase again</label><input id="pgp-make-passphrase2" type="password" autocomplete="new-password"></div>
 <p class="row"><button class="btn sm" type="submit">Make a key</button></p>
 </form>
 <h3>Import a key</h3>
@@ -1818,10 +1922,10 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="field" id="compose-cc-row" hidden><label for="compose-cc">Cc</label><div class="complete-wrap"><input id="compose-cc" type="text" autocomplete="off"></div></div>
 <div class="field" id="compose-bcc-row" hidden><label for="compose-bcc">Bcc</label><div class="complete-wrap"><input id="compose-bcc" type="text" autocomplete="off"></div></div>
 <div class="field"><label for="compose-subject">Subject</label><input id="compose-subject" type="text" maxlength="500" autocomplete="off" dir="auto"></div>
-<div id="rich-row" class="row"><button id="rich-toggle" class="btn quiet sm" type="button">Formatting</button><div id="rich-tools" class="row" hidden><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="insertUnorderedList" title="List">List</button><button class="btn quiet sm" type="button" data-cmd="formatBlock" data-arg="blockquote" title="Quote">Quote</button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><button class="btn quiet sm" type="button" data-cmd="removeFormat" title="Remove formatting">Plain</button><button class="btn quiet sm" type="button" id="image-open" title="Insert an image from a file">Image</button><button class="btn quiet sm" type="button" id="table-open" title="Insert a table, or change the one the cursor is in" aria-expanded="false">Table</button></div><button id="emoji-open" class="btn quiet sm" type="button" title="Insert an emoji" aria-expanded="false">Emoji</button></div>
+<div id="rich-row" class="row"><button id="rich-toggle" class="btn quiet sm" type="button">Formatting</button><div id="rich-tools" class="row" hidden><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="insertUnorderedList" title="List">List</button><button class="btn quiet sm" type="button" data-cmd="formatBlock" data-arg="blockquote" title="Quote">Quote</button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><button class="btn quiet sm" type="button" data-cmd="removeFormat" title="Remove formatting">Remove formatting</button><button class="btn quiet sm" type="button" id="image-open" title="Insert an image from a file">Image</button><button class="btn quiet sm" type="button" id="table-open" title="Insert a table, or change the one the cursor is in" aria-expanded="false">Table</button></div><button id="emoji-open" class="btn quiet sm" type="button" title="Insert an emoji" aria-expanded="false">Emoji</button></div>
 <div id="emoji-panel" hidden><label for="emoji-search" class="sr">Search emoji</label><input id="emoji-search" type="text" placeholder="Search emoji" autocomplete="off" spellcheck="false"><div id="emoji-grid" role="group" aria-label="Emoji"></div></div>
 <div id="table-panel" hidden><div id="table-insert" class="row"><label for="table-rows" class="inline">Rows</label><input id="table-rows" type="number" min="1" max="50" value="3" aria-label="Rows"><label for="table-columns" class="inline">Columns</label><input id="table-columns" type="number" min="1" max="20" value="3" aria-label="Columns"><label class="inline"><input id="table-header" type="checkbox" checked> Header row</label><button id="table-insert-go" class="btn sm" type="button">Insert table</button></div><div id="table-edit" class="row" hidden><button class="btn ghost sm" type="button" data-op="row-above">Row above</button><button class="btn ghost sm" type="button" data-op="row-below">Row below</button><button class="btn ghost sm" type="button" data-op="column-left">Column left</button><button class="btn ghost sm" type="button" data-op="column-right">Column right</button><button class="btn ghost sm" type="button" data-op="delete-row">Delete row</button><button class="btn ghost sm" type="button" data-op="delete-column">Delete column</button><button class="btn ghost sm" type="button" data-op="delete-table">Delete table</button></div></div>
-<label for="compose-image" class="sr">Choose an image</label><input id="compose-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="sr">
+<label for="compose-image" class="sr">Choose an image</label><input id="compose-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="sr" tabindex="-1">
 <label for="compose-text" class="sr">Message</label>
 <textarea id="compose-text" placeholder="Write your message" dir="auto"></textarea>
 <div id="compose-editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Message, formatted" dir="auto" hidden></div>
@@ -1844,7 +1948,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="compose-protect-strength" class="hint" aria-live="polite"></div>
 <div class="row"><label for="compose-protect-hint" class="inline">Hint</label><input id="compose-protect-hint" type="text" maxlength="255" placeholder="Something only they would understand (optional)" aria-label="Hint"></div>
 </div>
-<label for="compose-files" class="sr">Attach files</label><input id="compose-files" type="file" multiple class="sr"><div id="compose-files-note" class="note"></div>
+<label for="compose-files" class="sr">Attach files</label><input id="compose-files" type="file" multiple class="sr" tabindex="-1"><div id="compose-files-note" class="note"></div>
 <div id="compose-links" class="note" hidden></div>
 <div class="compose-foot"><button class="btn" id="compose-send" type="submit"><svg class="i"><use href="#i-send"/></svg>Send</button><button id="compose-save" type="button" class="btn ghost">Save draft</button><button id="compose-attach" type="button" class="iconbtn sm" title="Attach files" aria-label="Attach files"><svg class="i"><use href="#i-clip"/></svg></button><div class="sp"></div><button id="compose-discard" type="button" class="iconbtn sm" title="Discard" aria-label="Discard"><svg class="i"><use href="#i-trash"/></svg></button></div>
 <div id="compose-status" class="status" aria-live="polite"></div>

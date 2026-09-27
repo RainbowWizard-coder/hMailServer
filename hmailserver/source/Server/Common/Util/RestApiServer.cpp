@@ -15606,6 +15606,16 @@ namespace HM
             std::shared_ptr<MimeBody> part = stack.back();
             stack.pop_back();
             AnsiString type = part->GetContentType() ? part->GetContentType() : "";
+            // The MIME reader hands back the field's whole value, parameters and
+            // all - "text/calendar; charset=utf-8; method=REQUEST" - so the media
+            // type is what stands before the first ';' (Imip.cpp's MediaTypeOf
+            // reads it the same way). Compared whole, a calendar part without an
+            // .ics name - what Outlook sends - never marked the message, and the
+            // webmail showed no invitation card for it (Roadmap2 row 43).
+            int semicolon = type.Find(";");
+            if (semicolon >= 0)
+               type = type.Mid(0, semicolon);
+            type.Trim();
             type.ToLower();
             AnsiString name = AnsiString(part->GetName().c_str());
             name.ToLower();

@@ -236,6 +236,66 @@
   var clear = function (n) { while (n.firstChild) { n.removeChild(n.firstChild); } };
   var button = function (text, className) { var b = node('button', text, className || 'btn ghost sm'); b.type = 'button'; return b; };
 
+  // ---- The keyboard: where a key belongs -----------------------------------
+  // A key typed where text is typed is the text's: an input, a text area, a
+  // select, and anything edited in place. The page's shortcuts asked for the
+  // tag alone, and the formatted signature is a div, so a "c" typed into it
+  // opened a new message (Roadmap2 row 43).
+  var typingIn = function (event) {
+    var n = event && event.target;
+    var tag = (n && n.tagName) || '';
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!(n && n.isContentEditable);
+  };
+  // Enter on something that presses - a button, a link, a tab - presses it.
+  // The list's Enter (open the row under the cursor) took it from every
+  // button in the mail view, so a keyboard could press none of them.
+  var pressable = function (n) {
+    if (!n || !n.tagName) { return false; }
+    if (n.tagName === 'BUTTON' || n.tagName === 'A' || n.tagName === 'SUMMARY') { return true; }
+    var role = n.getAttribute ? n.getAttribute('role') : null;
+    return role === 'button' || role === 'link' || role === 'tab' || role === 'menuitem' || role === 'option' || role === 'checkbox';
+  };
+
+  // ---- Modal dialogues -------------------------------------------------------
+  // The shortcut list, the palette, the event and task editors, and the
+  // unlock and confirm sheets. While one is open the page under it is inert -
+  // Tab stays in the dialogue, a screen reader reads only the dialogue, and
+  // the page's own shortcuts wait - Escape closes it as its Cancel does, and
+  // when the last one closes the keyboard is put back where it was when the
+  // first one opened. Before row 43 only the list and the palette heard
+  // Escape, none gave the focus back, and Tab walked out into the page.
+  var MODALS = ['keys-overlay', 'palette', 'event-overlay', 'task-overlay', 'pgp-unlock', 'za-confirm', 'za-unlock', 'smime-unlock'];
+  var MODAL_CANCEL = { 'keys-overlay': 'keys-close', 'event-overlay': 'event-cancel', 'task-overlay': 'task-cancel', 'pgp-unlock': 'pgp-unlock-cancel', 'za-confirm': 'za-confirm-cancel', 'za-unlock': 'za-unlock-cancel', 'smime-unlock': 'smime-unlock-cancel' };
+  var modalBack = null;
+  var modalOpen = function () {
+    for (var i = 0; i < MODALS.length; i++) { if (!el(MODALS[i]).hidden) { return MODALS[i]; } }
+    return '';
+  };
+  // Shown: not under anything hidden, and - in a browser - drawn at all. The
+  // walk stops short of the document, whose hidden is the tab's visibility.
+  var shownNow = function (n) {
+    for (var x = n; x && x !== document; x = x.parentNode) { if (x.hidden) { return false; } }
+    return !(n.getClientRects && n.getClientRects().length === 0);
+  };
+  var modalInert = function (on) { el('account').inert = on; el('compose-section').inert = on; };
+  var modalShow = function (id) {
+    if (!modalOpen()) { modalBack = document.activeElement || null; }
+    el(id).hidden = false;
+    modalInert(true);
+  };
+  var modalHide = function (id) {
+    if (el(id).hidden) { return; }
+    el(id).hidden = true;
+    if (modalOpen()) { return; }
+    modalInert(false);
+    var back = modalBack;
+    modalBack = null;
+    if (back && back !== document.body && back.focus && shownNow(back)) { back.focus(); }
+  };
+  var modalCancel = function (id) {
+    if (MODAL_CANCEL[id]) { el(MODAL_CANCEL[id]).click(); } else { modalHide(id); }
+  };
+
   // ---- Where the reader is: the address bar -------------------------------
   //
   // Routes live in the fragment, not the path. The page is served by the
@@ -317,6 +377,18 @@
         children[i].classList.toggle('on', !!hash && children[i].getAttribute('data-route') === hash);
       }
     });
+    // On a phone the settings tabs are one line that scrolls sideways: the
+    // chosen one is brought to the middle of it. By its own offset, not
+    // scrollIntoView, which would scroll the page itself sideways as well.
+    var bar = el('view-nav');
+    if (bar.scrollWidth > bar.clientWidth && bar.getBoundingClientRect) {
+      var tabs = bar.children;
+      for (var k = 0; k < tabs.length; k++) {
+        if (!tabs[k].classList.contains('on')) { continue; }
+        var outer = bar.getBoundingClientRect(), inner = tabs[k].getBoundingClientRect();
+        bar.scrollLeft += (inner.left - outer.left) - (outer.width - inner.width) / 2;
+      }
+    }
   };
 
   // ---- Folders ------------------------------------------------------------
@@ -472,12 +544,44 @@
       el('mail-section').classList.remove('has-message');
     }
   };
+  // The list is one stop for the keyboard. Its keys reach what a row holds -
+  // x ticks, s stars, + and - mark, e archives, # deletes, Enter opens - so
+  // the row's own box and buttons are not Tab stops as well: they were three
+  // a row, six hundred between the list and the reading pane (row 43). A
+  // screen reader in browse mode still reaches and presses each of them.
+  // A table row that opens something, for the keyboard as for the pointer:
+  // the storage page's rows answered a click and nothing else.
+  var rowOpens = function (tr, open) {
+    tr.className = 'clickable';
+    tr.setAttribute('tabindex', '0');
+    tr.addEventListener('click', open);
+    tr.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); open(); } });
+  };
+  var outOfTabOrder = function (n) {
+    (n.childNodes || []).forEach(function (c) {
+      if (c.tagName === 'INPUT' || c.tagName === 'BUTTON' || c.tagName === 'A') { c.setAttribute('tabindex', '-1'); }
+      if (c.childNodes && c.childNodes.length) { outOfTabOrder(c); }
+    });
+  };
+  // What the cursor's row says when the keyboard moves onto it: the sender
+  // (and unread), the subject and the time, said in the list's live region -
+  // the list is a list, which cannot name an active row of its own.
+  var rowWords = function (entry) {
+    var words = [];
+    (entry.row.childNodes || []).forEach(function (c) {
+      if (c.className === 'who') { var who = ''; (c.childNodes || []).forEach(function (x) { if (x.tagName === 'SPAN' && x.className !== 'tc') { who += x.textContent; } }); words.push(who); }
+      else if (c.className === 'what' && c.firstChild) { words.push(c.firstChild.textContent); }
+      else if (c.className === 'meta') { (c.childNodes || []).forEach(function (x) { if (x.className === 'when') { words.push(x.textContent); } }); }
+    });
+    return words.join(', ');
+  };
   var setCursor = function (index, silent) {
     if (!listRows.length) { cursor = -1; return; }
     if (typeof prefetchNext === 'function') { setTimeout0(prefetchNext); }
     cursor = Math.max(0, Math.min(listRows.length - 1, index));
     listRows.forEach(function (r, i) { r.row.classList.toggle('msg-cursor', i === cursor); });
     if (!silent) { listRows[cursor].row.scrollIntoView({ block: 'nearest' }); }
+    if (!silent && document.activeElement === el('message-list')) { el('list-say').textContent = rowWords(listRows[cursor]); }
   };
   var selectedIds = function () { return Object.keys(selected).filter(function (k) { return selected[k]; }).map(Number); };
   var renderBulk = function () {
@@ -763,6 +867,8 @@
     // widened for it, so that the name is no shorter than on a row without one.
     if (markable(folderId)) { entry.imp = importanceButton([m]); who.appendChild(entry.imp); row.classList.add('has-imp'); }
     who.appendChild(node('span', outgoing ? t('To: ') + (recipientsOf(m.to).slice(0, 2).join(', ') || '?') : nameOf(m.from)));
+    // Bold is how an unread row looks; this is how it sounds.
+    if (!m.flags.seen) { who.appendChild(node('span', ', ' + t('Unread'), 'sr')); }
     who.setAttribute('title', (outgoing ? m.to : m.from) || '');
     row.appendChild(who);
     var what = node('div', undefined, 'what');
@@ -790,6 +896,7 @@
     act(m.flags.seen ? 'mail' : 'mail-open', m.flags.seen ? t('Mark as unread') : t('Mark as read'), function () { markRows([entry], !m.flags.seen); });
     row.appendChild(acts);
     row.addEventListener('click', function (event) { if (selectingClick(event, entry)) { return; } go('/m/' + m.id); });
+    outOfTabOrder(row);
     // On a touch screen: a swipe to the right archives, to the left deletes.
     var touchX = null;
     row.addEventListener('touchstart', function (e) { touchX = e.touches && e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
@@ -857,6 +964,7 @@
       var who = node('div', undefined, 'who');
       if (markable(folderId)) { entry.imp = importanceButton(g.messages); who.appendChild(entry.imp); row.classList.add('has-imp'); }
       who.appendChild(node('span', senders.slice(0, 3).join(', ') + (senders.length > 3 ? ', ...' : '')));
+      if (unseen) { who.appendChild(node('span', ', ' + t('Unread'), 'sr')); }
       var count = node('span', String(g.messages.length), 'tc');
       count.setAttribute('title', t('Show every message of the conversation'));
       who.appendChild(count);
@@ -891,6 +999,7 @@
       };
       count.addEventListener('click', function (event) { event.stopPropagation(); toggle(); });
       row.addEventListener('click', function (event) { if (selectingClick(event, entry)) { return; } go('/m/' + newest.id); });
+      outOfTabOrder(row);
       entry.toggle = toggle;
       listRows.push(entry);
       list.appendChild(row);
@@ -1992,6 +2101,11 @@
     var r = parseHash();
     var head = r.parts[0] || '';
     if (head !== 'security') { forgetSecret(); }
+    // The event and task editors belong to their pages: leaving the page -
+    // Back, a link, a shortcut - closes them, where before the editor stayed
+    // open over whatever page came next.
+    if (head !== 'calendar' && !el('event-overlay').hidden) { modalCancel('event-overlay'); }
+    if (head !== 'tasks' && !el('task-overlay').hidden) { modalCancel('task-overlay'); }
     helpCurrent = head || 'f';
     helpFollow();
     if (head === 'f' && r.parts[1]) { cameFromList = true; showMail(Number(r.parts[1]), r.params); return; }
@@ -2010,23 +2124,23 @@
       return;
     }
     if (head === 'held') { showPanel('quarantine-section', 'Held as suspected spam'); markNav('/held'); loadQuarantine(); return; }
-    if (head === 'folders') { showPanel('folders-section', 'Manage folders'); markNav('/folders'); renderFolderAdmin(); return; }
-    if (head === 'settings') { showPanel('settings-section', 'Settings'); markNav('/settings'); loadPush(); loadOffline(); loadDirectoryCard(); return; }
-    if (head === 'filters') { showPanel('filter-section', 'Filters'); markNav('/filters'); renderColourRules(); return; }
-    if (head === 'contacts') { showPanel('contacts-section', 'Contacts'); markNav('/contacts'); loadBooks().then(loadContacts); return; }
+    if (head === 'folders') { showPanel('folders-section', t('Folders')); markNav('/folders'); renderFolderAdmin(); return; }
+    if (head === 'settings') { showPanel('settings-section', t('Settings')); markNav('/settings'); loadPush(); loadOffline(); loadDirectoryCard(); return; }
+    if (head === 'filters') { showPanel('filter-section', t('Filters')); markNav('/filters'); renderColourRules(); return; }
+    if (head === 'contacts') { showPanel('contacts-section', t('Contacts')); markNav('/contacts'); loadBooks().then(loadContacts); return; }
     if (head === 'directory') { showPanel('directory-section', t('Directory')); markNav('/directory'); loadDirectory(); return; }
     if (head === 'calendar') { showPanel('calendar-section', t('Calendar')); markNav('/calendar'); openCalendar(r.params); return; }
     if (head === 'tasks') { showPanel('tasks-section', t('Tasks')); markNav('/tasks'); loadTasks(); return; }
-    if (head === 'away') { showPanel('away-section', 'Away and forwarding'); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
-    if (head === 'storage') { showPanel('storage-section', 'Storage'); markNav('/storage'); loadStorage(); loadFiles(); return; }
+    if (head === 'away') { showPanel('away-section', t('Away and forwarding')); markNav('/away'); renderAwayAddresses(); loadScheduled(); return; }
+    if (head === 'storage') { showPanel('storage-section', t('Storage')); markNav('/storage'); loadStorage(); loadFiles(); return; }
     if (head === 'senders') { showPanel('senders-section', t('Safe senders')); markNav('/senders'); loadSenderList(); loadDigestSetting(); return; }
     if (head === 'subscriptions') { showPanel('subscriptions-section', t('Subscriptions')); markNav('/subscriptions'); loadSubscriptions(); loadMyLists(); return; }
     if (head === 'masked') { showPanel('masked-section', t('Masked addresses')); markNav('/masked'); loadMaskedAddresses(); return; }
     if (head === 'accounts') { showPanel('accounts-section', t('Other accounts')); markNav('/accounts'); renderSecondCard(); loadFetchAccounts().then(function () { importOutcome(r.params); }); loadSenderAddresses(); return; }
-    if (head === 'security') { showPanel('security-section', 'Security'); markNav('/security'); loadSecurity(); return; }
+    if (head === 'security') { showPanel('security-section', t('Security')); markNav('/security'); loadSecurity(); return; }
     if (head === 'password') {
       if (directoryLinked) { replaceWith('/f/' + inboxId); return; }
-      showPanel('password-section', 'Change password'); markNav('/password'); return;
+      showPanel('password-section', t('Change password')); markNav('/password'); return;
     }
     replaceWith('/f/' + (state.folderId || inboxId));
   };
@@ -2364,6 +2478,11 @@
     // sign-out has ended it already and there is nothing to do.
     secondEndQuietly();
     forgetAccount();
+    // A dialogue open when the session ended is cancelled, not left over the
+    // sign-in form with the page under it inert.
+    MODALS.forEach(function (id) { if (!el(id).hidden) { modalCancel(id); } });
+    modalBack = null;
+    modalInert(false);
     el('account').hidden = true;
     el('signin').hidden = false;
     // The gate holds two forms - signing in, and asking for a reset link -
@@ -2807,8 +2926,7 @@
     el('message-headers-toggle').textContent = pane.hidden ? 'Headers' : 'Hide headers';
   });
   document.addEventListener('keydown', function (event) {
-    var tag = (event.target && event.target.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || event.ctrlKey || event.metaKey || event.altKey) { return; }
+    if (typingIn(event) || event.ctrlKey || event.metaKey || event.altKey || modalOpen()) { return; }
     if (el('account').hidden || el('mail-section').hidden || el('message-view').hidden || !current) { return; }
     if (event.key === 'e') { fileCurrent('archive'); event.preventDefault(); }
     else if (event.key === '!') { fileCurrent(junkTargetFor(current.folder_id)); event.preventDefault(); }
@@ -3474,7 +3592,7 @@
       if (e.key === 'ArrowDown') { e.preventDefault(); mark((marked + 1) % items.length); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); mark((marked - 1 + items.length) % items.length); }
       else if (e.key === 'Enter' || e.key === 'Tab') { if (marked >= 0) { e.preventDefault(); take(items[marked]); } }
-      else if (e.key === 'Escape') { close(); }
+      else if (e.key === 'Escape') { e.preventDefault(); close(); }
     });
     input.addEventListener('blur', function () { setTimeout(close, 150); });
   };
@@ -3773,7 +3891,7 @@
       if (e.key === 'ArrowDown') { e.preventDefault(); mark((marked + 1) % items.length); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); mark((marked - 1 + items.length) % items.length); }
       else if (e.key === 'Enter' || e.key === 'Tab') { if (marked >= 0) { e.preventDefault(); take(items[marked]); } }
-      else if (e.key === 'Escape') { close(); }
+      else if (e.key === 'Escape') { e.preventDefault(); close(); }
     });
     input.addEventListener('blur', function () { setTimeout(close, 150); });
   };
@@ -4368,8 +4486,7 @@
         tr.appendChild(node('td', f.path));
         tr.appendChild(node('td', String(f.messages), 'num'));
         tr.appendChild(node('td', format(f.bytes), 'num'));
-        tr.addEventListener('click', function () { go('/f/' + f.id); });
-        tr.className = 'clickable';
+        rowOpens(tr, function () { go('/f/' + f.id); });
         rows.appendChild(tr);
       });
       var largest = el('storage-largest-rows');
@@ -4377,11 +4494,14 @@
       (s.largest || []).forEach(function (m) {
         var tr = document.createElement('tr');
         tr.appendChild(node('td', m.subject || t('(no subject)')));
-        tr.appendChild(node('td', m.from || ''));
+        // The sender by name, the whole address in the title: the raw header
+        // pushed the Folder and Size columns off a phone's screen.
+        var fromCell = node('td', m.from ? nameOf(m.from) : '');
+        if (m.from) { fromCell.setAttribute('title', m.from); }
+        tr.appendChild(fromCell);
         tr.appendChild(node('td', m.folder || ''));
         tr.appendChild(node('td', format(m.size), 'num'));
-        tr.className = 'clickable';
-        tr.addEventListener('click', function () { state.folderId = m.folder_id; go('/m/' + m.id); });
+        rowOpens(tr, function () { state.folderId = m.folder_id; go('/m/' + m.id); });
         largest.appendChild(tr);
       });
       el('storage-largest-empty').hidden = (s.largest || []).length > 0;
@@ -5173,11 +5293,11 @@
     el('smime-unlock-form').setAttribute('data-ask', mode);
     say('smime-unlock-status', '', true);
     el('smime-unlock-password').value = '';
-    el('smime-unlock').hidden = false;
+    modalShow('smime-unlock');
     el('smime-unlock-password').focus();
     return new Promise(function (resolve, reject) { smimeWaiters.push({ resolve: resolve, reject: reject }); });
   };
-  var smimeSettle = function (ok, value) { el('smime-unlock').hidden = true; smimeWaiters.splice(0).forEach(function (w) { if (ok) { w.resolve(value); } else { w.reject(value); } }); };
+  var smimeSettle = function (ok, value) { modalHide('smime-unlock'); smimeWaiters.splice(0).forEach(function (w) { if (ok) { w.resolve(value); } else { w.reject(value); } }); };
   var smimeUnlock = function () {
     if (smimeAllUnlocked()) { return Promise.resolve(''); }
     return smimeAsk(t('Unlock your keys'), t('Your password unwraps the private key in this browser; nothing is sent to the server.'), 'unlock');
@@ -5592,12 +5712,12 @@
     el('pgp-unlock-form').setAttribute('data-ask', mode);
     say('pgp-unlock-status', '', true);
     el('pgp-unlock-passphrase').value = '';
-    el('pgp-unlock').hidden = false;
+    modalShow('pgp-unlock');
     el('pgp-unlock-passphrase').focus();
     return new Promise(function (resolve, reject) { pgpWaiters.push({ resolve: resolve, reject: reject }); });
   };
   var pgpSettle = function (ok, value) {
-    el('pgp-unlock').hidden = true;
+    modalHide('pgp-unlock');
     el('pgp-unlock-passphrase').value = '';
     pgpWaiters.splice(0).forEach(function (w) { if (ok) { w.resolve(value); } else { w.reject(value); } });
   };
@@ -6418,12 +6538,12 @@
   var zaAsk = function () {
     say('za-unlock-status', '', true);
     el('za-unlock-secret').value = '';
-    el('za-unlock').hidden = false;
+    modalShow('za-unlock');
     el('za-unlock-secret').focus();
     return new Promise(function (resolve, reject) { zaWaiters.push({ resolve: resolve, reject: reject }); });
   };
   var zaSettle = function (ok, value) {
-    el('za-unlock').hidden = true;
+    modalHide('za-unlock');
     el('za-unlock-secret').value = '';
     zaWaiters.splice(0).forEach(function (w) { if (ok) { w.resolve(value); } else { w.reject(value); } });
   };
@@ -6463,7 +6583,7 @@
   // ---- switching on: the dialogue that says the cost and takes the key back
   var zaPending = null;
   var zaConfirmClose = function () {
-    el('za-confirm').hidden = true;
+    modalHide('za-confirm');
     el('za-recovery-key').textContent = '';
     el('za-recovery-typed').value = '';
     el('za-password').value = '';
@@ -6480,7 +6600,7 @@
       zaPending = { row: row, recovery: pgpModule.makeRecoveryKey() };
       el('za-recovery-key').textContent = zaPending.recovery;
       say('za-confirm-status', '', true);
-      el('za-confirm').hidden = false;
+      modalShow('za-confirm');
       el('za-recovery-typed').focus();
     }).catch(function (e) { say('za-status', String(e && e.message || e), false); });
   });
@@ -8149,13 +8269,12 @@
     }, function (r) { say('mail-status', describe(r, t('Could not read the folder')), false); });
   };
   document.addEventListener('keydown', function (event) {
-    var tag = (event.target && event.target.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || event.ctrlKey || event.metaKey || event.altKey) { return; }
+    if (typingIn(event) || event.ctrlKey || event.metaKey || event.altKey || modalOpen()) { return; }
     if (el('account').hidden || el('mail-section').hidden || el('message-list').hidden) { return; }
     if (current && !el('message-view').hidden && (event.key === 'e' || event.key === '!' || event.key === '#' || event.key === 'm')) { return; }
     if (event.key === 'ArrowDown' || event.key === 'j') { setCursor(cursor + 1); event.preventDefault(); }
     else if (event.key === 'ArrowUp' || event.key === 'k') { setCursor(cursor - 1); event.preventDefault(); }
-    else if (event.key === 'Enter' && cursor >= 0) { var hit = listRows[cursor]; if (hit.toggle) { hit.toggle(); } else { go('/m/' + hit.id); } event.preventDefault(); }
+    else if (event.key === 'Enter' && cursor >= 0 && !pressable(event.target)) { var hit = listRows[cursor]; if (hit.toggle) { hit.toggle(); } else { go('/m/' + hit.id); } event.preventDefault(); }
     else if (event.key === 'e' && cursor >= 0) { fileRow(listRows[cursor], 'archive'); event.preventDefault(); }
     else if (event.key === '!' && cursor >= 0) { fileRow(listRows[cursor], junkTargetFor(state.folderId)); event.preventDefault(); }
     else if (event.key === '#' && cursor >= 0) { fileRow(listRows[cursor], 'delete'); event.preventDefault(); }
@@ -8960,8 +9079,8 @@
   el('message-sweep').addEventListener('click', function () { closeMenus(); if (current) { sweepSender(addressOf(current.from), current.folder_id || state.folderId); } });
 
   // ---- The shortcut list and the palette -------------------------------------
-  var closeOverlays = function () { el('keys-overlay').hidden = true; el('palette').hidden = true; el('event-overlay').hidden = true; el('task-overlay').hidden = true; };
-  var openKeys = function () { el('palette').hidden = true; el('keys-overlay').hidden = false; el('keys-close').focus(); };
+  var closeOverlays = function () { modalHide('keys-overlay'); modalHide('palette'); modalHide('event-overlay'); modalHide('task-overlay'); };
+  var openKeys = function () { modalHide('palette'); modalShow('keys-overlay'); el('keys-close').focus(); };
   el('keys-close').addEventListener('click', closeOverlays);
   ['keys-overlay', 'palette'].forEach(function (id) { el(id).addEventListener('click', function (e) { if (e.target === el(id)) { closeOverlays(); } }); });
   // Every entry is something the page already has a button for; the palette
@@ -9061,8 +9180,8 @@
     }, 150);
   };
   var openPalette = function () {
-    el('keys-overlay').hidden = true;
-    el('palette').hidden = false;
+    modalHide('keys-overlay');
+    modalShow('palette');
     el('palette-input').value = '';
     filterPalette();
     el('palette-input').focus();
@@ -9076,8 +9195,14 @@
   });
   document.addEventListener('keydown', function (event) {
     if (el('account').hidden) { return; }
-    if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === 'k' || event.key === 'K')) { event.preventDefault(); openPalette(); return; }
-    if (event.key === 'Escape' && (!el('keys-overlay').hidden || !el('palette').hidden)) { closeOverlays(); return; }
+    // With a dialogue open the page's keys wait: Escape closes the dialogue,
+    // Ctrl+K and ? still move between the palette and the shortcut list, and
+    // nothing opens over the event editor or an unlock sheet.
+    var open = modalOpen();
+    var listOrPalette = !open || open === 'keys-overlay' || open === 'palette';
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === 'k' || event.key === 'K')) { event.preventDefault(); if (listOrPalette) { openPalette(); } return; }
+    if (event.key === 'Escape' && open) { if (!event.defaultPrevented) { event.preventDefault(); modalCancel(open); } return; }
+    if (open && !(event.key === '?' && open === 'keys-overlay')) { return; }
     if (event.key === 'F1' && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); helpToggle(); return; }
     var tag = (event.target && event.target.tagName) || '';
     // Escape closes the pane from the page and from inside the pane; a
@@ -9090,7 +9215,7 @@
       var inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
       if ((!inField || inPane) && !(inPane && event.target.id === 'help-search' && event.target.value)) { helpClose(); return; }
     }
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || event.ctrlKey || event.metaKey || event.altKey) { return; }
+    if (typingIn(event) || event.ctrlKey || event.metaKey || event.altKey) { return; }
     if (event.key === '?') { event.preventDefault(); if (el('keys-overlay').hidden) { openKeys(); } else { closeOverlays(); } }
   });
 
@@ -9665,6 +9790,16 @@
     var inside = open.some(function (pair) { return within(event.target, el(pair[1])) || within(event.target, el(pair[0])); });
     if (!inside) { closeMenus(); }
   });
+  // And on Escape, which puts the keyboard back on the menu's button: a menu
+  // opened from the keyboard could be closed only by a click (row 43).
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape' || event.defaultPrevented) { return; }
+    var open = menus.filter(function (pair) { return !el(pair[1]).hidden; })[0];
+    if (!open) { return; }
+    event.preventDefault();
+    closeMenus();
+    el(open[0]).focus();
+  });
   el('select-menu').addEventListener('click', function (event) {
     var pick = event.target && event.target.getAttribute ? event.target.getAttribute('data-pick') : '';
     if (!pick) { return; }
@@ -9812,10 +9947,35 @@
   // From this step onwards, the first that can be shown. A step whose element
   // is missing is skipped; one marked missing 'end' stops the tour instead,
   // which is for the step whose absence makes the rest meaningless.
+  // Whether the page is laid out at all: a browser's body has a width, the
+  // test DOM's has none, and there every element has only the rectangle a
+  // check gives it.
+  var tourLaidOut = function () {
+    var b = document.body && document.body.getBoundingClientRect ? document.body.getBoundingClientRect() : null;
+    return !!(b && b.width);
+  };
+  // In a browser, a step whose element the stylesheet does not draw - the
+  // reading pane on a phone - is as missing as one the page hides: the tour
+  // chose it, drew no ring, and left its card below the bottom of the screen.
+  var tourDrawn = function (node) {
+    if (!tourLaidOut() || !node.getBoundingClientRect) { return true; }
+    var r = node.getBoundingClientRect();
+    return r.width > 0 || r.height > 0;
+  };
+  // A step that points into the navigation column on a phone opens it, and
+  // the tour closes it again when it moves on.
+  var tourDrawer = function (node) {
+    var inSide = false;
+    for (var n = node; n; n = n.parentNode) { if (n === el('side')) { inSide = true; break; } }
+    var want = inSide && tourLaidOut() && !!window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    if (want && !el('account').classList.contains('nav-open')) { el('account').classList.add('nav-open'); tourNow.drawer = true; }
+    else if (!want && tourNow.drawer) { el('account').classList.remove('nav-open'); tourNow.drawer = false; }
+  };
   var tourSettle = function (from) {
     for (var at = from; at < tourNow.walk.steps.length; at++) {
       var step = tourNow.walk.steps[at];
-      if (tourElement(step)) { tourNow.at = at; tourNow.entry = tourCondition(step); return true; }
+      var found = tourElement(step);
+      if (found && tourDrawn(found)) { tourNow.at = at; tourNow.entry = tourCondition(step); return true; }
       if (step.missing === 'end') { tourNow.at = at; tourEnd('missing'); return false; }
     }
     tourEnd('finished');
@@ -9826,15 +9986,24 @@
     var step = tourNow.walk.steps[tourNow.at];
     var node = tourVisible(step.target);
     var ring = el('tour-ring'), card = el('tour-card');
-    if (!node || !node.getBoundingClientRect) { ring.hidden = true; return; }
-    var at = node.getBoundingClientRect();
-    if (!at.width && !at.height) { ring.hidden = true; return; }
-    ring.hidden = false;
-    ring.style.left = at.left + 'px'; ring.style.top = at.top + 'px';
-    ring.style.width = at.width + 'px'; ring.style.height = at.height + 'px';
     var height = card.offsetHeight || 190;
     var room = typeof window === 'undefined' || typeof window.innerHeight !== 'number' ? 900 : window.innerHeight;
     var wide = typeof window === 'undefined' || typeof window.innerWidth !== 'number' ? 1280 : window.innerWidth;
+    // Nothing on the screen to point at: no ring, and the card where it can be
+    // read and pressed, at the foot of the screen - never left wherever the
+    // last step put it, or nowhere.
+    var dock = function () {
+      ring.hidden = true;
+      card.style.top = Math.max(8, room - height - 8) + 'px';
+      card.style.left = Math.max(8, Math.round((wide - 330) / 2)) + 'px';
+    };
+    if (!node || !node.getBoundingClientRect) { dock(); return; }
+    var at = node.getBoundingClientRect();
+    if (!at.width || !at.height) { dock(); return; }
+    if (tourLaidOut() && (at.right <= 0 || at.left >= wide || at.bottom <= 0 || at.top >= room)) { dock(); return; }
+    ring.hidden = false;
+    ring.style.left = at.left + 'px'; ring.style.top = at.top + 'px';
+    ring.style.width = at.width + 'px'; ring.style.height = at.height + 'px';
     var top = at.bottom + 12;
     if (top + height > room) { top = Math.max(8, at.top - 12 - height); }
     card.style.top = Math.max(8, Math.min(top, Math.max(8, room - height - 8))) + 'px';
@@ -9848,6 +10017,7 @@
     el('tour-back').hidden = tourNow.at === 0;
     el('tour-next').textContent = tourNow.at === tourNow.walk.steps.length - 1 ? t('Finish') : t('Next');
     el('tour-card').hidden = false;
+    tourDrawer(tourVisible(step.target));
     tourPlace();
   };
   var tourTick = function () {
@@ -9873,7 +10043,8 @@
   var tourBack = function () {
     if (!tourNow) { return; }
     for (var at = tourNow.at - 1; at >= 0; at--) {
-      if (tourElement(tourNow.walk.steps[at])) {
+      var back = tourElement(tourNow.walk.steps[at]);
+      if (back && tourDrawn(back)) {
         tourNow.at = at; tourNow.entry = tourCondition(tourNow.walk.steps[at]); tourDraw(); return;
       }
     }
@@ -9896,6 +10067,7 @@
       delete progress.stopped[walk.id];
     }
     tourSaveProgress(progress);
+    if (tourNow.drawer) { el('account').classList.remove('nav-open'); }
     tourNow = null;
     if (tourTimer) { clearInterval(tourTimer); tourTimer = null; }
     el('tour-card').hidden = true;
@@ -10020,16 +10192,15 @@
 
   // ---- The keys a mail client has, on top of the list's own ----------------
   document.addEventListener('keydown', function (event) {
-    var tag = (event.target && event.target.tagName) || '';
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || event.ctrlKey || event.metaKey || event.altKey) { return; }
-    if (el('account').hidden || !el('keys-overlay').hidden || !el('palette').hidden) { return; }
+    if (typingIn(event) || event.ctrlKey || event.metaKey || event.altKey || modalOpen()) { return; }
+    if (el('account').hidden) { return; }
     if (event.key === '/') { event.preventDefault(); el('mail-search').focus(); return; }
     if (event.key === 'c') { event.preventDefault(); go('/compose'); return; }
     if (el('mail-section').hidden) { return; }
     // A digit runs the quick step given that key.
     if (/^[1-9]$/.test(event.key)) { var step = quickStepByKey(event.key); if (step) { event.preventDefault(); runQuickStep(step); } return; }
     var open = current && !el('message-view').hidden;
-    if (event.key === 'u' || (event.key === 'Escape' && open)) { if (open) { event.preventDefault(); closeMessage(false); } return; }
+    if (event.key === 'u' || (event.key === 'Escape' && open && !event.defaultPrevented)) { if (open) { event.preventDefault(); closeMessage(false); } return; }
     if (open && event.key === 'r') { event.preventDefault(); go('/compose?reply=' + current.id); return; }
     if (open && event.key === 'a') { event.preventDefault(); go('/compose?replyall=' + current.id); return; }
     if (open && event.key === 'f') { event.preventDefault(); go('/compose?forward=' + current.id); return; }
@@ -10157,6 +10328,12 @@
       from.appendChild(node('div', x.snippet || '', 'snip'));
       head.appendChild(from);
       var when = node('div', whenText(x), 'date'); when.setAttribute('title', fullDate(x)); head.appendChild(when);
+      // The head is the card's button for the keyboard, as it is for the
+      // pointer: an earlier message could not be opened without a mouse.
+      head.setAttribute('role', 'button');
+      head.setAttribute('tabindex', '0');
+      head.setAttribute('aria-expanded', 'false');
+      head.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); head.click(); } });
       card.appendChild(head);
       var body = node('div', undefined, 'body'); body.hidden = true; body.setAttribute('dir', 'auto'); card.appendChild(body);
       var atts = node('div', undefined, 'atts'); atts.hidden = true; card.appendChild(atts);
@@ -10164,6 +10341,7 @@
       card.addEventListener('click', function () {
         var open = card.classList.contains('collapsed');
         card.classList.toggle('collapsed', !open);
+        head.setAttribute('aria-expanded', open ? 'true' : 'false');
         body.hidden = !open; atts.hidden = !open;
         from.childNodes[1].hidden = open;
         if (!open || loaded) { return; }
@@ -10240,6 +10418,9 @@
       b.setAttribute('title', tabName(tab));
       b.appendChild(node('span', tabName(tab), 'lbl'));
       if (unseen[tab]) { var n = node('span', String(unseen[tab]), 'n'); n.setAttribute('title', tf('{0} unread', unseen[tab])); b.appendChild(n); }
+      // Its name is the tab's, and how much in it is unread: the count alone
+      // was the name of a narrow list's tab ("1"), whose label is not shown.
+      b.setAttribute('aria-label', unseen[tab] ? tabName(tab) + ', ' + tf('{0} unread', unseen[tab]) : tabName(tab));
       b.addEventListener('click', function () { activeTab = tab; if (lastPage) { renderMessages(lastPage); } });
       bar.appendChild(b);
     });
@@ -12402,7 +12583,17 @@
     if (calState.view === 'day') { return dayName(dayKeyOf(w.y, w.m, w.d), 'long'); }
     var range = calWindow();
     var a = wallOf(range.start, calZone()), b = wallOf(new Date(range.end.getTime() - 60000), calZone());
-    return dayName(dayKeyOf(a.y, a.m, a.d)) + ' – ' + dayName(dayKeyOf(b.y, b.m, b.d)) + ', ' + b.y;
+    // A week or the agenda's span with its month and year, in the reader's
+    // language: "21 – 27 Sept 2026", "28 Sept – 4 Oct 2026". The weekday and
+    // the day alone ("21 Mon – 27 Sun, 2026") never said which month.
+    try {
+      return new Intl.DateTimeFormat(languageActive, { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' })
+        .formatRange(new Date(Date.UTC(a.y, a.m - 1, a.d, 12)), new Date(Date.UTC(b.y, b.m - 1, b.d, 12)));
+    } catch (e) { /* a browser without formatRange: the day and the month each way */ }
+    try {
+      var f = new Intl.DateTimeFormat(languageActive, { timeZone: 'UTC', day: 'numeric', month: 'short' });
+      return f.format(new Date(Date.UTC(a.y, a.m - 1, a.d, 12))) + ' – ' + f.format(new Date(Date.UTC(b.y, b.m - 1, b.d, 12))) + ' ' + b.y;
+    } catch (e2) { return dayName(dayKeyOf(a.y, a.m, a.d)) + ' – ' + dayName(dayKeyOf(b.y, b.m, b.d)) + ', ' + b.y; }
   };
 
   var loadCalendars = function (force) {
@@ -12455,7 +12646,8 @@
         try { localStorage.setItem(CAL_HIDDEN, JSON.stringify(hidden)); } catch (e) { /* no storage */ }
         renderCalendar();
       });
-      row.appendChild(box);
+      // In a label that is the box's target: 44 pixels a side on a phone.
+      var boxHit = node('label', undefined, 'cbhit'); boxHit.appendChild(box); row.appendChild(boxHit);
       var dot = node('span', undefined, 'cal-dot');
       dot.style.background = c.color || 'var(--accent)';
       row.appendChild(dot);
@@ -12893,7 +13085,7 @@
     say('event-status', '', true);
     updateEventForm();
     renderAvailability();
-    el('event-overlay').hidden = false;
+    modalShow('event-overlay');
     el('event-summary').focus();
   };
   // An invitation in the calendar answered from the editor: by the owner on
@@ -13017,7 +13209,7 @@
     el('event-count').hidden = el('event-ends').value !== 'after';
   };
   ['event-allday', 'event-repeat', 'event-ends', 'event-scope'].forEach(function (id) { el(id).addEventListener('change', updateEventForm); });
-  var closeEvent = function () { el('event-overlay').hidden = true; calState.editing = null; };
+  var closeEvent = function () { modalHide('event-overlay'); calState.editing = null; };
   el('event-cancel').addEventListener('click', closeEvent);
   el('event-overlay').addEventListener('click', function (event) { if (event.target === el('event-overlay')) { closeEvent(); } });
   var eventBody = function () {
@@ -13201,7 +13393,7 @@
           loadTasks();
         });
       });
-      row.appendChild(box);
+      var boxHit = node('label', undefined, 'cbhit'); boxHit.appendChild(box); row.appendChild(boxHit);
       var words = node('div', undefined, 'task-words');
       var title = node('button', task.summary || t('(no title)'), 'task-title');
       title.type = 'button';
@@ -13249,10 +13441,10 @@
     el('task-save').hidden = !task.writable;
     el('task-delete').hidden = !task.writable;
     say('task-edit-status', '', true);
-    el('task-overlay').hidden = false;
+    modalShow('task-overlay');
     el('task-summary').focus();
   };
-  var closeTask = function () { el('task-overlay').hidden = true; taskState.editing = null; };
+  var closeTask = function () { modalHide('task-overlay'); taskState.editing = null; };
   el('task-cancel').addEventListener('click', closeTask);
   el('task-overlay').addEventListener('click', function (event) { if (event.target === el('task-overlay')) { closeTask(); } });
   el('task-form').addEventListener('submit', function (event) {
