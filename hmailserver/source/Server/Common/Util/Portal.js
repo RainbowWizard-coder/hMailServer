@@ -9615,6 +9615,9 @@
     one.appendChild(node('span', undefined, 'sp'));
     if (undo) {
       var u = node('button', label || t('Undo')); u.type = 'button';
+      // What z presses: an Undo, never another action a toast offers (the
+      // follow-up reminder's Open and Show them).
+      if (!label) { u.setAttribute('data-undo', '1'); }
       u.addEventListener('click', function () { dismissToast(); undo(); });
       one.appendChild(u);
     }
@@ -10472,10 +10475,11 @@
     if (event.key === 'c') { event.preventDefault(); go('/compose'); return; }
     // z presses the Undo of the toast on the screen, Gmail's key: the toast
     // is the last thing on the page, a long way from the keyboard, and a
-    // screen reader is told what it says but not taken to it.
+    // screen reader is told what it says but not taken to it. A toast whose
+    // button is not an Undo has nothing for z to press.
     if (event.key === 'z') {
       var undoing = null;
-      (function walk(n) { for (var i = 0; i < n.children.length && !undoing; i++) { var c = n.children[i]; if (c.tagName === 'BUTTON' && c.className !== 'x') { undoing = c; } else { walk(c); } } })(el('toasts'));
+      (function walk(n) { for (var i = 0; i < n.children.length && !undoing; i++) { var c = n.children[i]; if (c.tagName === 'BUTTON') { if (c.getAttribute('data-undo') === '1') { undoing = c; } } else { walk(c); } } })(el('toasts'));
       if (undoing) { event.preventDefault(); undoing.click(); }
       return;
     }

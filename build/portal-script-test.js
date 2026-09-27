@@ -2454,6 +2454,13 @@ async function main() {
    check('the follow-ups are asked for once at sign-in', since(before).filter((r) => r.method === 'GET' && r.path === '/api/v1/me/search?q=label%3A%24FollowUp&limit=200').length === 1,
       JSON.stringify(since(before).map((r) => r.path)));
    check('and the one due today is announced, with a way to open it', toastBox.textContent.indexOf('Due for follow-up: First') >= 0 && toastBox.textContent.indexOf('Open') >= 0, toastBox.textContent);
+   // z is Undo: the notice's Open is not one, and z leaves it alone.
+   const zOnNotice = makeEvent('keydown', { key: 'z', target: document.body });
+   document.dispatchEvent(zOnNotice);
+   await flush();
+   check('z does not press the notice\'s Open, which is no Undo: the page stays where it is and the notice with it',
+      location.hash === '#/settings' && toastBox.textContent.indexOf('Due for follow-up: First') >= 0 && zOnNotice.defaultPrevented === false,
+      location.hash + ' ' + JSON.stringify(toastBox.textContent));
    check('which was announced is kept for the day, in this browser', (() => { try { const v = JSON.parse(store.get('hmPortalDueShown')); return v.day === todayStamp && v.ids.length === 1 && v.ids[0] === 101; } catch (e) { return false; } })(),
       String(store.get('hmPortalDueShown')));
    // Dismissed for now; what Open does is checked at the end, on a second sign-in.
