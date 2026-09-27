@@ -45,7 +45,10 @@
                         <ui:TextBox.Icon><ui:SymbolIcon Symbol="Person24" /></ui:TextBox.Icon>
                     </ui:TextBox>
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Label="{loc:L '_Password'}" Margin="0,0,0,18">
+                <!-- The hint answers the first question a new administrator has
+                     on this card: which password? -->
+                <scaffold:FieldRow Label="{loc:L '_Password'}" Margin="0,0,0,18"
+                                   Hint="{loc:L 'The administrator password chosen when hMailServer was installed.'}">
                     <local:PasswordField x:Name="PasswordBox">
                         <local:PasswordField.Icon><ui:SymbolIcon Symbol="Key24" /></local:PasswordField.Icon>
                     </local:PasswordField>

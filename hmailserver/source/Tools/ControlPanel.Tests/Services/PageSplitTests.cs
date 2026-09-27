@@ -45,8 +45,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(autoban != null, "There is no 'autoban' page, so the brute-force half of the split is unreachable.");
          Assert.True(tls != null, "There is no 'tls' page.");
 
-         Assert.Equal("Access & abuse protection", NavigationMap.GroupOf("autoban"));
-         Assert.Equal("TLS & certificates", NavigationMap.GroupOf("tls"));
+         // The two groups were put into plain words when the navigation was
+         // ordered for a new administrator (27 September 2026): "Access & abuse
+         // protection" is "Sign-in & access" and "TLS & certificates" is
+         // "Certificates & encryption", each keeping its old name as an alias.
+         // The halves are still in the groups their subjects belong to.
+         Assert.Equal("Sign-in & access", NavigationMap.GroupOf("autoban"));
+         Assert.Equal("Certificates & encryption", NavigationMap.GroupOf("tls"));
       }
 
       /// <summary>

@@ -1710,7 +1710,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>A button that opens the page owning a related setting - the same
-      /// escape hatch the spam overview and External setup use.</summary>
+      /// escape hatch the spam overview and the setup checklist use.</summary>
       private static FrameworkElement PageLink(string page, string caption, string accessibleName)
       {
          var button = new Wpf.Ui.Controls.Button

@@ -280,6 +280,27 @@ namespace hMailServer.ControlPanel.Services
          Publish("AppDividerBrush", FromArgb(surfaces.Divider));
          PublishValue("AppNoticeTintOpacity", DesignTokens.NoticeTintOpacityFor(CurrentChartTheme));
 
+         // The status pill's box: a fill and the colour of the word on it per
+         // level, and its outline, which only High Contrast draws.
+         foreach (StatusLevel level in StatusSemantics.AllLevels)
+         {
+            StatusPresentation presentation = StatusSemantics.For(level);
+            DesignTokens.StatusFillArgb fill = DesignTokens.StatusFill(level, CurrentChartTheme, CurrentSystemColors);
+            Publish(presentation.FillBrushKey, FromArgb(fill.Fill));
+            Publish(presentation.FillTextBrushKey, FromArgb(fill.Text));
+         }
+         PublishValue("AppStatusFillBorderThickness", new Thickness(DesignTokens.StatusFillBorderFor(CurrentChartTheme)));
+
+         // The light theme's tertiary text, darkened to clear 4.5:1 (the reason
+         // is at DesignTokens.LightTertiaryText). Set on the application's own
+         // dictionary it shadows the theme's for every DynamicResource user -
+         // the TextCaptionTertiary hints, the breadcrumb, the shell - and taken
+         // away again it hands the dark and High Contrast themes back theirs.
+         if (DesignTokens.TertiaryTextFor(CurrentChartTheme) is uint tertiary)
+            Publish("TextFillColorTertiaryBrush", FromArgb(tertiary));
+         else
+            Application.Current?.Resources.Remove("TextFillColorTertiaryBrush");
+
          Publish("LogDefaultBrush", logDefault);
          Publish("LogSmtpBrush", logSmtp);
          Publish("LogImapBrush", logImap);

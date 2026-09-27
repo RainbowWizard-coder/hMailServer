@@ -41,12 +41,17 @@ namespace hMailServer.ControlPanel.Services
          public static IReadOnlyList<double> All { get; } = new[] { Xs, Sm, Md, Lg, Xl, Xxl };
       }
 
-      /// <summary>Corner radii. Controls and rows take the small one, cards and dialogs the large one, a pill is a capsule.</summary>
+      /// <summary>
+      /// Corner radii. Controls and rows take the small one, cards and dialogs
+      /// the large one. The status pill is a filled box with the control's
+      /// radius: it was a capsule outlined in the level's colour, which read as
+      /// a stray line drawn round the word rather than as a box the word is in.
+      /// </summary>
       public static class Radius
       {
          public const double Control = 4;
          public const double Card = 8;
-         public const double Pill = 999;
+         public const double Pill = 4;
       }
 
       /// <summary>The shell's fixed dimensions.</summary>
@@ -101,6 +106,88 @@ namespace hMailServer.ControlPanel.Services
 
       public static double NoticeTintOpacityFor(ChartTheme theme)
          => theme == ChartTheme.HighContrast ? 0 : NoticeTintOpacity;
+
+      /// <summary>
+      /// A status pill's box for one level: the fill, and the colour of the
+      /// word and the mark drawn on it, as 0xAARRGGBB. The text colour is not
+      /// the level's status colour but a deeper (light theme) or brighter
+      /// (dark theme) shade of it, because the status colours are measured
+      /// against the page and lose that contrast on a tinted fill: the light
+      /// success green on the old grey pill measured 4.2:1. Every pair here
+      /// clears 4.5:1 with room to spare, and a test holds them to it.
+      /// </summary>
+      public readonly struct StatusFillArgb
+      {
+         public StatusFillArgb(uint fill, uint text)
+         {
+            Fill = fill;
+            Text = text;
+         }
+
+         public uint Fill { get; }
+
+         /// <summary>The word and the mark on the fill.</summary>
+         public uint Text { get; }
+      }
+
+      /// <summary>
+      /// The pill's fill and text for a level and a theme. Normal is the
+      /// neutral grey. Under High Contrast the fill is the window colour and
+      /// the text the level's own system colour - a tinted fill is a colour the
+      /// user asked Windows not to show them - and the box keeps its outline
+      /// instead (<see cref="StatusFillBorderFor"/>).
+      /// </summary>
+      public static StatusFillArgb StatusFill(StatusLevel level, ChartTheme theme, ChartSystemColors system)
+      {
+         if (theme == ChartTheme.HighContrast)
+         {
+            StatusArgb status = Status(theme, system);
+            uint text = level switch
+            {
+               StatusLevel.Good => status.Success,
+               StatusLevel.Information => status.Info,
+               StatusLevel.Warning => status.Warning,
+               StatusLevel.Critical => status.Danger,
+               _ => status.Neutral
+            };
+            return new StatusFillArgb(system.Window, text);
+         }
+
+         bool light = theme == ChartTheme.Light;
+         return level switch
+         {
+            StatusLevel.Good => light ? new StatusFillArgb(0xFFCCF0D6, 0xFF116329) : new StatusFillArgb(0xFF1C4128, 0xFF56D364),
+            StatusLevel.Information => light ? new StatusFillArgb(0xFFEBE0FF, 0xFF5A32A3) : new StatusFillArgb(0xFF3A2A63, 0xFFC8A2FF),
+            StatusLevel.Warning => light ? new StatusFillArgb(0xFFFBE7AE, 0xFF7D4E00) : new StatusFillArgb(0xFF45350F, 0xFFE3B341),
+            StatusLevel.Critical => light ? new StatusFillArgb(0xFFFFDAD6, 0xFFA40E26) : new StatusFillArgb(0xFF522024, 0xFFFF9492),
+            _ => light ? new StatusFillArgb(0xFFDFE4E9, 0xFF424A53) : new StatusFillArgb(0xFF3A4048, 0xFFD1D9E0)
+         };
+      }
+
+      /// <summary>
+      /// The light theme's tertiary text, which replaces Wpf.Ui's. Wpf.Ui's
+      /// light tertiary is black at 45% (#72000000), which composites to #8B8B8B
+      /// on the page and measures 3.3:1 against it - and the Control Panel
+      /// sets real sentences in it: every field's hint and "Applies on save"
+      /// line, the Related links' caption, the search box's shortcut. Black at
+      /// 58% composites to #696969 on the page (5.3:1) and #656565 on the
+      /// darkest light surface, a hovered row (5.1:1), and stays a step lighter
+      /// than the secondary text (62%). The dark theme's tertiary (#87FFFFFF,
+      /// 6.4:1 on the page) and High Contrast's are left as the theme has them.
+      /// </summary>
+      public const uint LightTertiaryText = 0x94000000;
+
+      /// <summary>The tertiary text colour this theme needs in place of Wpf.Ui's, or null to keep the theme's own.</summary>
+      public static uint? TertiaryTextFor(ChartTheme theme)
+         => theme == ChartTheme.Light ? LightTertiaryText : null;
+
+      /// <summary>
+      /// The pill's outline, in pixels: none in the light and dark themes,
+      /// where the fill is the box, and one under High Contrast, where the
+      /// fill is the window colour and only an outline can draw the box.
+      /// </summary>
+      public static double StatusFillBorderFor(ChartTheme theme)
+         => theme == ChartTheme.HighContrast ? 1 : 0;
 
       /// <summary>The status palette for one theme, as 0xAARRGGBB.</summary>
       public readonly struct StatusArgb

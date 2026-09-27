@@ -321,8 +321,13 @@ namespace hMailServer.ControlPanel
       /// </summary>
       private static object BuildNavHeader_(NavNode node)
       {
+         // A page's row is a trimming TextBlock rather than the bare string: the
+         // presenter's own TextBlock does not trim, so in a narrow window
+         // "Diagnosing stalled mail" and "Journaling and dual delivery" were cut
+         // mid-word with no ellipsis while the group rows above them had one.
+         // The full title is in the row's tool tip and its accessible name.
          if (string.IsNullOrEmpty(node.Icon))
-            return L(node.Title);
+            return new TextBlock { Text = L(node.Title), TextTrimming = TextTrimming.CharacterEllipsis };
 
          if (!System.Enum.TryParse(node.Icon, out Wpf.Ui.Controls.SymbolRegular symbol))
          {
@@ -1143,7 +1148,7 @@ namespace hMailServer.ControlPanel
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Services.Toast.Info(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
+            Services.Toast.Failure(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
                L("Server unavailable"));
          }
          finally
@@ -1283,7 +1288,7 @@ namespace hMailServer.ControlPanel
          }
          else
          {
-            Services.Toast.Info(F("Could not reinitialize: {0}", failure), L("Control Panel"));
+            Services.Toast.Failure(F("Could not reinitialize: {0}", failure), L("Control Panel"));
          }
 
          // Entering the page again refreshes the bar and puts what the server now

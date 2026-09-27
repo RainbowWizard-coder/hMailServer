@@ -14,6 +14,32 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public static class GridStyles
    {
+      /// <summary>
+      /// A text column whose cells end in an ellipsis when the column is too
+      /// narrow, and say the whole of themselves in a tool tip. A grid cell's
+      /// TextBlock does not trim by default, so a sentence in a fixed column was
+      /// cut mid-word with nothing to say so - "The accounts, mailboxes and
+      /// quarantine of nam" on the roles page.
+      /// </summary>
+      public static T Trimmed<T>(T column) where T : DataGridBoundColumn
+      {
+         if (column == null)
+            return column;
+
+         var style = new Style(typeof(TextBlock));
+         if (column.ElementStyle != null)
+            style.BasedOn = column.ElementStyle;
+         style.Setters.Add(new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis));
+         style.Setters.Add(new Setter(FrameworkElement.ToolTipProperty,
+            new System.Windows.Data.Binding(nameof(TextBlock.Text)) { RelativeSource = System.Windows.Data.RelativeSource.Self }));
+         // An empty cell has nothing to say, and an empty tool tip is a small grey box.
+         var empty = new Trigger { Property = TextBlock.TextProperty, Value = "" };
+         empty.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, null));
+         style.Triggers.Add(empty);
+         column.ElementStyle = style;
+         return column;
+      }
+
       /// <summary>Right-aligns a number column's cells and its header.</summary>
       public static void Number(DataGridBoundColumn column)
       {

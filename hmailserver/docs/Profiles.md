@@ -268,10 +268,10 @@ read.
   installation still succeeds with the shipped settings.
 * **The container** applies `HM_PROFILE` once (`--once`), before the server starts:
   see `platform/packaging/README.md`.
-* **The Control Panel** has a **Setting profiles** page under Maintenance, beside
-  the backup: the profile in effect, each profile's diff, apply - with a box to tick
+* **The Control Panel** has a **Setting profiles** page under *Set up this
+  server*, beside the setup checklist: the profile in effect, each profile's diff, apply - with a box to tick
   where an entry asks for the confirmation - put back, discard and keep the shipped
-  settings, over the COM members above. Its checklist on the External setup page
+  settings, over the COM members above. Its *Setup checklist* page
   has the same first item.
 * **`hmctl`**: `settings profiles`, `settings profile NAME` (which prints the
   diff's token), `settings apply-profile NAME [--confirm TOKEN | --token TOKEN]`,

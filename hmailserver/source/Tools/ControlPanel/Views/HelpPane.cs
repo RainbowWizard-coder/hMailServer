@@ -342,7 +342,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            Services.Toast.Info(L("The wiki could not be opened in a browser."), L("Help"));
+            Services.Toast.Failure(L("The wiki could not be opened in a browser."), L("Help"));
          }
       }
 

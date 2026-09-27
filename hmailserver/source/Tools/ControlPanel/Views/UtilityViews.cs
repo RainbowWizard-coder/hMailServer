@@ -29,7 +29,9 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox name_ = new();
       private readonly Wpf.Ui.Controls.TextBox lower_ = new();
       private readonly Wpf.Ui.Controls.TextBox upper_ = new();
-      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.ArrowRouting24, Visibility = Visibility.Collapsed };
+      // Router24, not ArrowRouting24: that one's code point is past U+FFFF,
+      // which Wpf.Ui's SymbolIcon draws as a g with a caron (see RoutesView.xaml).
+      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Router24, Visibility = Visibility.Collapsed };
 
       public IncomingRelaysView()
       {
@@ -39,7 +41,8 @@ namespace hMailServer.ControlPanel.Views
          grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-         var del = new Wpf.Ui.Controls.Button { Content = L("_Delete selected"), Appearance = Wpf.Ui.Controls.ControlAppearance.Danger };
+         var del = new Wpf.Ui.Controls.Button { Content = L("_Delete selected") };
+         ButtonStyles.DangerText(del);
          del.Click += (s, e) => DeleteSelected();
 
          grid.Children.Add(new PageHeader
@@ -50,6 +53,10 @@ namespace hMailServer.ControlPanel.Views
          });
 
          System.Windows.Automation.AutomationProperties.SetName(list_, L("Incoming relays"));
+
+         // Delete selected acts on the selected relay; it was a live red button
+         // with an empty list, the only one of its kind on a list page.
+         SelectionGate.Bind(list_, del);
          var listHost = new Grid();
          listHost.Children.Add(list_);
          listHost.Children.Add(empty_);
@@ -250,7 +257,11 @@ namespace hMailServer.ControlPanel.Views
          grid.Children.Add(inputRow);
 
          System.Windows.Automation.AutomationProperties.SetName(output_, L("MX query"));
-         var card = new Card { Padding = new Thickness(12), Content = output_ };
+         var card = new Card
+         {
+            Padding = new Thickness(12),
+            Content = ResultHint.Wrap(output_, L("Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them."))
+         };
          Grid.SetRow(card, 2);
          grid.Children.Add(card);
 
@@ -519,7 +530,11 @@ namespace hMailServer.ControlPanel.Views
          grid.Children.Add(inputRow);
 
          System.Windows.Automation.AutomationProperties.SetName(output_, L("Diagnostics"));
-         var card = new Card { Padding = new Thickness(12), Content = output_ };
+         var card = new Card
+         {
+            Padding = new Thickness(12),
+            Content = ResultHint.Wrap(output_, L("Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails."))
+         };
          card.SetResourceReference(MarginProperty, "AppCardGap");
          Grid.SetRow(card, 2);
          grid.Children.Add(card);
@@ -850,6 +865,37 @@ namespace hMailServer.ControlPanel.Views
                MessageBox.Show(F("Could not open {0}: {1}", reportPath_, ex.Message), L("Control Panel"));
             }
          }
+      }
+   }
+
+   /// <summary>
+   /// A read-only result box that says what to do while it is empty. The MX
+   /// query and the diagnostics opened on a large blank card with nothing to say
+   /// that the button above fills it; the sentence goes as soon as a result
+   /// arrives, and it is the box's help text for a screen reader meanwhile.
+   /// </summary>
+   internal static class ResultHint
+   {
+      public static FrameworkElement Wrap(TextBox output, string hint)
+      {
+         var hintText = new TextBlock
+         {
+            Text = hint,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(4, 2, 4, 0),
+            IsHitTestVisible = false
+         };
+         hintText.SetResourceReference(FrameworkElement.StyleProperty, "TextSecondary");
+         System.Windows.Automation.AutomationProperties.SetHelpText(output, hint);
+
+         void Apply() => hintText.Visibility = string.IsNullOrEmpty(output.Text) ? Visibility.Visible : Visibility.Collapsed;
+         output.TextChanged += (_, _) => Apply();
+         Apply();
+
+         var host = new Grid();
+         host.Children.Add(output);
+         host.Children.Add(hintText);
+         return host;
       }
    }
 }

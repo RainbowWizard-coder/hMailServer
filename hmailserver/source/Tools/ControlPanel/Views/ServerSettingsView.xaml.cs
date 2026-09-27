@@ -2036,7 +2036,7 @@ namespace hMailServer.ControlPanel.Views
 
          // Attachments opened somewhere safe (docs/Sandbox.md). Inert until an
          // administrator names a sandbox, which is a service outside this server,
-         // so the card says so; External setup says it too. The two addresses
+         // so the card says so; the setup checklist says it too. The two addresses
          // come BEFORE the switch, because a save writes the rows in this order
          // and the server refuses the switch on while an address is empty:
          // setting both and turning it on in one save has to write the addresses
@@ -3973,7 +3973,7 @@ namespace hMailServer.ControlPanel.Views
                ? L(" \u2014 INI settings need a service restart.")
                : waiting > 0 ? F(" \u2014 {0} wait for a reinitialize or a restart.", waiting.Value) : L(" \u2014 applied immediately.")));
          else
-            Services.Toast.Info(F("{0} setting(s) could not be written.", failed), L("Partly saved"));
+            Services.Toast.Failure(F("{0} setting(s) could not be written.", failed), L("Partly saved"));
 
          // Reload the script engine after scripting changes.
          if (section_ == Section.Advanced)

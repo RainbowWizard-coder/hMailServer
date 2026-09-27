@@ -145,13 +145,15 @@ namespace hMailServer.ControlPanel.Views
          Content = root;
       }
 
+      // Trimmed: a role's purpose and permissions are sentences in fixed
+      // columns, and ended mid-word; the cell's tool tip holds the whole.
       private static DataGridTextColumn TextColumn_(string header, string property, double width)
-         => new DataGridTextColumn
+         => GridStyles.Trimmed(new DataGridTextColumn
          {
             Header = header,
             Binding = new System.Windows.Data.Binding(property),
             Width = new DataGridLength(width)
-         };
+         });
 
       public void OnEnter() => Reload_();
 

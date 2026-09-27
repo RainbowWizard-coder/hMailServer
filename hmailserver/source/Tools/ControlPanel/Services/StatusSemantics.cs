@@ -24,12 +24,15 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public sealed class StatusPresentation
    {
-      internal StatusPresentation(StatusLevel level, string severityWord, ShapeMark shape, string brushKey)
+      internal StatusPresentation(StatusLevel level, string severityWord, ShapeMark shape, string brushKey,
+         string fillBrushKey, string fillTextBrushKey)
       {
          Level = level;
          SeverityWord = severityWord;
          Shape = shape;
          BrushKey = brushKey;
+         FillBrushKey = fillBrushKey;
+         FillTextBrushKey = fillTextBrushKey;
       }
 
       public StatusLevel Level { get; }
@@ -55,6 +58,20 @@ namespace hMailServer.ControlPanel.Services
       /// change, so anything holding a resolved brush would keep the old colour.
       /// </summary>
       public string BrushKey { get; }
+
+      /// <summary>
+      /// Application resource key of the fill a status pill draws its box with,
+      /// e.g. "AppWarningFillBrush" (<see cref="DesignTokens.StatusFill"/>).
+      /// Normal takes the neutral fill.
+      /// </summary>
+      public string FillBrushKey { get; }
+
+      /// <summary>
+      /// Application resource key of the colour of the word and the mark on
+      /// that fill, e.g. "AppWarningFillTextBrush" - a shade of the level's
+      /// colour chosen to clear 4.5:1 against the fill.
+      /// </summary>
+      public string FillTextBrushKey { get; }
    }
 
    /// <summary>
@@ -101,15 +118,20 @@ namespace hMailServer.ControlPanel.Services
       private static readonly Dictionary<StatusLevel, StatusPresentation> Map = new()
       {
          [StatusLevel.Normal] =
-            new StatusPresentation(StatusLevel.Normal, L("Normal"), ShapeMark.Circle, "TextFillColorPrimaryBrush"),
+            new StatusPresentation(StatusLevel.Normal, L("Normal"), ShapeMark.Circle, "TextFillColorPrimaryBrush",
+               "AppNeutralFillBrush", "AppNeutralFillTextBrush"),
          [StatusLevel.Good] =
-            new StatusPresentation(StatusLevel.Good, "OK", ShapeMark.Square, "AppSuccessBrush"),
+            new StatusPresentation(StatusLevel.Good, "OK", ShapeMark.Square, "AppSuccessBrush",
+               "AppSuccessFillBrush", "AppSuccessFillTextBrush"),
          [StatusLevel.Information] =
-            new StatusPresentation(StatusLevel.Information, L("Information"), ShapeMark.Diamond, "AppInfoBrush"),
+            new StatusPresentation(StatusLevel.Information, L("Information"), ShapeMark.Diamond, "AppInfoBrush",
+               "AppInfoFillBrush", "AppInfoFillTextBrush"),
          [StatusLevel.Warning] =
-            new StatusPresentation(StatusLevel.Warning, L("Warning"), ShapeMark.Triangle, "AppWarningBrush"),
+            new StatusPresentation(StatusLevel.Warning, L("Warning"), ShapeMark.Triangle, "AppWarningBrush",
+               "AppWarningFillBrush", "AppWarningFillTextBrush"),
          [StatusLevel.Critical] =
-            new StatusPresentation(StatusLevel.Critical, L("Critical"), ShapeMark.Cross, "AppDangerBrush")
+            new StatusPresentation(StatusLevel.Critical, L("Critical"), ShapeMark.Cross, "AppDangerBrush",
+               "AppDangerFillBrush", "AppDangerFillTextBrush")
       };
 
       /// <summary>Never returns null; an unknown level is treated as Normal.</summary>

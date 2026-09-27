@@ -20,8 +20,8 @@
                                  Subtitle="{loc:L 'Live server statistics, refreshed every 2 seconds.'}" />
 
             <!-- "Needs attention" summary. The dashboard is the page an
-                 administrator lands on, so the one question the External setup
-                 page can answer - "is this server actually set up, and if not
+                 administrator lands on, so the one question the setup checklist
+                 can answer - "is this server actually set up, and if not
                  what next?" - is answered here too, or it is only answered for
                  people who already knew where to look. The checks themselves are
                  ExternalSetupChecks, the same code that page runs, so the two can
@@ -30,7 +30,7 @@
                  click from the page that fixes it. The check starts after first
                  paint and its DNS half runs off the UI thread, so this card never
                  delays the dashboard. -->
-            <scaffold:Card Margin="{StaticResource AppCardGap}" AutomationProperties.Name="{loc:L 'External setup'}"
+            <scaffold:Card Margin="{StaticResource AppCardGap}" AutomationProperties.Name="{loc:L 'Setup checklist'}"
                            AutomationProperties.AutomationId="dashboard-verdict">
                 <StackPanel>
                     <Grid>
@@ -44,11 +44,11 @@
                         <TextBlock x:Name="AttentionSummary" Grid.Column="1" Style="{StaticResource TextBodyStrong}"
                                    VerticalAlignment="Center"
                                    Text="{loc:L 'Checking what this server still needs done outside it…'}" />
-                        <ui:Button x:Name="OpenExternalSetupButton" Grid.Column="2" Content="{loc:L '_External setup…'}"
+                        <ui:Button x:Name="OpenExternalSetupButton" Grid.Column="2" Content="{loc:L 'Setup _checklist…'}"
                                    Appearance="Transparent" FontSize="12" Padding="8,3,8,3"
                                    VerticalAlignment="Top" Cursor="Hand" Click="OpenExternalSetup_Click"
-                                   ToolTip="{loc:L 'Open External setup, the full checklist of what this server needs done outside it'}"
-                                   AutomationProperties.Name="{loc:L 'Open External setup, the full checklist of what this server needs done outside it'}"
+                                   ToolTip="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
+                                   AutomationProperties.Name="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
                                    AutomationProperties.AutomationId="dashboard-open-external-setup" />
                     </Grid>
                     <StackPanel x:Name="AttentionItems" Margin="0,4,0,0" />

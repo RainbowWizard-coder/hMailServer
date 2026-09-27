@@ -71,7 +71,7 @@ namespace hMailServer.ControlPanel.Services
    /// the same answer for its "needs attention" card. It is one class used by
    /// both, rather than two copies, because two copies of a checklist drift and
    /// then disagree in front of the administrator - which is worse than no
-   /// checklist. The External setup page renders every item; the dashboard
+   /// checklist. The Setup checklist page renders every item; the dashboard
    /// renders the aggregate and the items that need action.
    ///
    /// Usage, in three steps that mirror the threading rules of the data:

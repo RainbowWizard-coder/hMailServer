@@ -47,7 +47,7 @@ RESOURCES = os.path.join(ROOT, "hmailserver", "source", "Tools", "ControlPanel",
 PAGE_TITLES = [
    "Anti-spam settings", "Anti-virus settings", "Blocked attachments",
    "Delivery of e-mail", "Transport security", "TCP/IP ports", "IP ranges",
-   "SSL certificates", "Live logs", "External setup", "Event scripts",
+   "SSL certificates", "Live logs", "Setup checklist", "Event scripts",
    "Web services & autoconfiguration", "Auto-ban", "Logging", "Domains",
    "API & monitoring", "Authentication", "App passwords", "Advanced",
    "REST API keys", "Message trace", "Quarantine", "Delivery queue",

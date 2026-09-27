@@ -701,8 +701,8 @@ Salvare comunque questa password debole?</value>
   <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
     <value>ACME è disattivato (AcmeEnabled=0, l'impostazione predefinita), quindi non serve nulla di esterno.</value>
   </data>
-  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the External setup page checks exactly that." xml:space="preserve">
-    <value>ACME è attivo ma nessun certificato è ancora stato emesso - fullchain.pem e privkey.pem non sono entrambi in {0}. L'emissione avviene secondo la pianificazione del server, quindi è normale per qualche minuto dopo l'attivazione; se persiste, la CA non è riuscita a raggiungere questo server, e la pagina Configurazione esterna verifica esattamente questo.</value>
+  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
+    <value>ACME è attivo ma nessun certificato è ancora stato emesso - fullchain.pem e privkey.pem non sono entrambi in {0}. L'emissione avviene secondo la pianificazione del server, quindi è normale per qualche minuto dopo l'attivazione; se persiste, la CA non è riuscita a raggiungere questo server, e la pagina Checklist di configurazione verifica esattamente questo.</value>
   </data>
   <data name="AD do_main of that user" xml:space="preserve">
     <value>Dominio _AD di quell'utente</value>
@@ -793,9 +793,6 @@ Salvare comunque questa password debole?</value>
   </data>
   <data name="Accepting: the sender times out after sending the message" xml:space="preserve">
     <value>Accettazione: il mittente va in timeout dopo aver inviato il messaggio</value>
-  </data>
-  <data name="Access &amp; abuse protection" xml:space="preserve">
-    <value>Accesso e protezione dagli abusi</value>
   </data>
   <data name="Access control: which addresses may connect and what they are allowed to do. Higher priority wins." xml:space="preserve">
     <value>Controllo degli accessi: quali indirizzi possono connettersi e cosa possono fare. Vince la priorità più alta.</value>
@@ -1103,8 +1100,8 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Indirizzi e interi domini che gli account di {0} vogliono, o non vogliono. Consultato dopo l'elenco proprio di un account e prima di quello del server.</value>
   </data>
-  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
-    <value>Aggiunge sigilli ARC alla posta inoltrata così che i server a valle possano fidarsi dei risultati di autenticazione originali (RFC 8617). La sigillatura prende in prestito il selettore DKIM e la chiave privata del dominio che inoltra, quindi richiede almeno un dominio ospitato con la firma DKIM configurata - senza di esso l'interruttore risulta attivo e non sigilla nulla, con solo una riga di debug nel registro a dirlo. La pagina Configurazione esterna verifica i tuoi domini per questo.</value>
+  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
+    <value>Aggiunge sigilli ARC alla posta inoltrata così che i server a valle possano fidarsi dei risultati di autenticazione originali (RFC 8617). La sigillatura prende in prestito il selettore DKIM e la chiave privata del dominio che inoltra, quindi richiede almeno un dominio ospitato con la firma DKIM configurata - senza di esso l'interruttore risulta attivo e non sigilla nulla, con solo una riga di debug nel registro a dirlo. La pagina Checklist di configurazione verifica i tuoi domini per questo.</value>
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Amministra (gestisci ACL)</value>
@@ -1916,6 +1913,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certificati</value>
+  </data>
+  <data name="Certificates &amp; encryption" xml:space="preserve">
+    <value>Certificati e crittografia</value>
   </data>
   <data name="Certificates (ACME)" xml:space="preserve">
     <value>Certificati (ACME)</value>
@@ -3060,6 +3060,9 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Consegna: il messaggio viene accettato ma non parte mai</value>
   </data>
+  <data name="Delivers to" xml:space="preserve">
+    <value>Consegna a</value>
+  </data>
   <data name="Delivery" xml:space="preserve">
     <value>Consegna</value>
   </data>
@@ -3650,9 +3653,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Everything that decides whether a message is wanted." xml:space="preserve">
     <value>Tutto ciò che decide se un messaggio è desiderato.</value>
   </data>
-  <data name="Everything this server needs done outside it - DNS records, key and CA files, trusted lists - and the state of each one." xml:space="preserve">
-    <value>Tutto ciò che questo server richiede venga fatto al suo esterno - record DNS, file di chiavi e di CA, elenchi di fiducia - e lo stato di ciascuna cosa.</value>
-  </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Tutto, debug incluso (gravità 7)</value>
   </data>
@@ -3748,9 +3748,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Destinatari esterni (indirizzi che questo server non ospita)</value>
-  </data>
-  <data name="External setup" xml:space="preserve">
-    <value>Configurazione esterna</value>
   </data>
   <data name="External to external (_open relay!)" xml:space="preserve">
     <value>Da esterno a esterno (_open relay!)</value>
@@ -5418,6 +5415,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Prossima rotazione prevista {0}</value>
   </data>
+  <data name="Next step" xml:space="preserve">
+    <value>Passo successivo</value>
+  </data>
+  <data name="Next step: {0}." xml:space="preserve">
+    <value>Passo successivo: {0}.</value>
+  </data>
   <data name="Next try" xml:space="preserve">
     <value>Prossimo tentativo</value>
   </data>
@@ -5664,6 +5667,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Non è stato applicato alcun profilo. Un profilo imposta circa trenta impostazioni per il tipo di server che è questo - un piccolo ufficio, dietro un gateway di filtraggio, un relay in uscita, un mittente ad alto volume - e mostra ogni modifica prima di farla.</value>
   </data>
+  <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
+    <value>Nessuna cartella pubblica per ora. Aggiungi cartella ne crea una che più account possono aprire; Autorizzazioni decide poi chi può leggerla e scriverci.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Nelle impostazioni SMTP non è configurato alcun nome host pubblico.</value>
   </data>
@@ -5807,6 +5813,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Non è stato ancora registrato nulla. Ogni modifica amministrativa compare qui.</value>
+  </data>
+  <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
+    <value>Non è stato ancora eseguito nulla. Premi Esegui la diagnostica e qui compare il risultato di ogni controllo, con cosa fare per quelli che non riescono.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Qui non serve alcuna decisione: nessuna casella viene saltata e nessuna viene disattivata.</value>
@@ -6090,9 +6099,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Open Domains…" xml:space="preserve">
     <value>Apri Domini…</value>
   </data>
-  <data name="Open External setup, the full checklist of what this server needs done outside it" xml:space="preserve">
-    <value>Apri Configurazione esterna, l'elenco completo di ciò che va fatto per questo server al di fuori di esso</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Apri Intervalli IP, a cui appartiene l'impostazione che richiede TLS per l'autenticazione</value>
   </data>
@@ -6152,6 +6158,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Open the member list of '" xml:space="preserve">
     <value>Apri l'elenco dei membri di '</value>
+  </data>
+  <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
+    <value>Apri la checklist di configurazione: ogni voce, cosa è fatto e cosa fare dopo</value>
   </data>
   <data name="Open {0}" xml:space="preserve">
     <value>Apri {0}</value>
@@ -8301,6 +8310,9 @@ Continuare?</value>
   <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
     <value>Configura o disattiva il secondo fattore imposto dal server…</value>
   </data>
+  <data name="Set up this server" xml:space="preserve">
+    <value>Configurare questo server</value>
+  </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Configura l'autenticazione a due fattori…</value>
   </data>
@@ -8331,6 +8343,12 @@ Riavviarlo ora?</value>
   </data>
   <data name="Settings…" xml:space="preserve">
     <value>Impostazioni…</value>
+  </data>
+  <data name="Setup _checklist…" xml:space="preserve">
+    <value>_Checklist di configurazione…</value>
+  </data>
+  <data name="Setup checklist" xml:space="preserve">
+    <value>Checklist di configurazione</value>
   </data>
   <data name="Setup key (for manual entry)" xml:space="preserve">
     <value>Chiave di configurazione (per l'inserimento manuale)</value>
@@ -8406,6 +8424,9 @@ Riavviarlo ora?</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Accedi con la credenziale di amministratore di hMailServer.</value>
+  </data>
+  <data name="Sign-in &amp; access" xml:space="preserve">
+    <value>Autenticazione e accesso</value>
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Accesso annullato.</value>
@@ -8721,9 +8742,6 @@ Riavviarlo ora?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>ALLORA</value>
-  </data>
-  <data name="TLS &amp; certificates" xml:space="preserve">
-    <value>TLS e certificati</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -9053,6 +9071,9 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>La password di amministratore e l'autenticazione a due fattori si trovano nella pagina Accesso amministrativo.</value>
+  </data>
+  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
+    <value>La password di amministratore scelta durante l'installazione di hMailServer.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>La password dell'amministratore apre tutto; un codice monouso accanto a essa impedisce che una password trapelata basti.</value>
@@ -9879,14 +9900,14 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Questo Control Panel si chiude non appena l'helper è stato avviato, perché il programma di installazione possa sostituire i suoi file; riaprilo tra un minuto per vedere l'esito.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Questo Control Panel è connesso a un server remoto, ed entrambi i file si trovano sul disco di quella macchina - non possono essere letti da questa macchina, quindi nulla al loro riguardo è verificato. Questo è "sconosciuto", non "OK": controllarli sul server stesso, o dalla sua pagina Configurazione esterna.</value>
+  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Questo Control Panel è connesso a un server remoto, ed entrambi i file si trovano sul disco di quella macchina - non possono essere letti da questa macchina, quindi nulla al loro riguardo è verificato. Questo è "sconosciuto", non "OK": controllarli sul server stesso, o dalla sua pagina Checklist di configurazione.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Questo Control Panel è connesso a un server remoto, e il file del certificato si trova sul disco di quella macchina - non può essere letto da questa macchina, quindi nulla al suo riguardo è verificato. Questo è "sconosciuto", non "OK": controllarlo sul server stesso, o dalla sua pagina Configurazione esterna.</value>
+  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Questo Control Panel è connesso a un server remoto, e il file del certificato si trova sul disco di quella macchina - non può essere letto da questa macchina, quindi nulla al suo riguardo è verificato. Questo è "sconosciuto", non "OK": controllarlo sul server stesso, o dalla sua pagina Checklist di configurazione.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Questo Control Panel è connesso a un server remoto, e il file della chiave si trova sul disco di quella macchina - non può essere letto da questa macchina, quindi nulla al suo riguardo è verificato. Questo è "sconosciuto", non "OK": controllarlo sul server stesso, o dalla sua pagina Configurazione esterna.</value>
+  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Questo Control Panel è connesso a un server remoto, e il file della chiave si trova sul disco di quella macchina - non può essere letto da questa macchina, quindi nulla al suo riguardo è verificato. Questo è "sconosciuto", non "OK": controllarlo sul server stesso, o dalla sua pagina Checklist di configurazione.</value>
   </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Questo account ha una foto.</value>
@@ -9920,8 +9941,8 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Questo è Impostazioni &gt; Consegna della posta &gt; Nome host, il nome che il server annuncia in HELO/EHLO a ogni consegna in uscita (Utilities::ComputerName). Chiedere al proprietario dell'IP di far risolvere il PTR del proprio IP pubblico esattamente in questo nome, e pubblicare un record A per questo nome che punti allo stesso IP - i destinatari verificano entrambe le direzioni.</value>
   </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (the globe button in the sidebar) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>Questo è [Settings] UseLanguage in hMailServer.INI. Il server si limita a restituirlo tramite l'API COM - non traduce nulla da sé, e questo Control Panel ha una propria impostazione della lingua (il pulsante a forma di globo nella barra laterale) - quindi riguarda solo gli strumenti di amministrazione di terze parti. I testi di mancato recapito e di errore si trovano nella pagina Messaggi del server.</value>
+  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>Questo è [Settings] UseLanguage in hMailServer.INI. Il server si limita a restituirlo tramite l'API COM - non traduce nulla da sé, e questo Control Panel ha una propria impostazione della lingua (Cambia la lingua, nel menu dell'amministratore in alto a destra) - quindi riguarda solo gli strumenti di amministrazione di terze parti. I testi di mancato recapito e di errore si trovano nella pagina Messaggi del server.</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Questa è la versione più recente</value>
@@ -10180,6 +10201,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Type" xml:space="preserve">
     <value>Tipo</value>
+  </data>
+  <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
+    <value>Digita un dominio e premi Query. La risposta elenca i server che ricevono la posta di quel dominio, il preferito per primo, come li vede il resolver di questo server.</value>
   </data>
   <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
     <value>Digitare un nome utente e una password per provare un accesso reale tramite il modello di DN.</value>
@@ -10448,6 +10472,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Che cosa contiene un backup, la pianificazione, la verifica di ogni archivio e il ripristino.</value>
   </data>
+  <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
+    <value>Ciò di cui ha bisogno un nuovo server, in ordine: la checklist di cosa è fatto e cosa viene dopo, un profilo di impostazioni per il tipo di server che è e i record DNS che ogni dominio pubblica.</value>
+  </data>
   <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
     <value>Che cosa cambia un account proprio. hMailServer.INI è di sola lettura per esso, di proposito: la password di amministratore, il suo secondo fattore, le cartelle e il database si cambiano come indica il Control Panel quando ci provate, e le impostazioni restano nel database come sempre. Una cartella impostata in seguito fuori dalla cartella del programma - una cartella di backup o di archivio - viene raggiunta non appena Concedi accesso la approva. Un account diverso da NT SERVICE\hMailServer si imposta in services.msc e richiede il diritto «Accesso come servizio»; un database esterno con autenticazione di Windows richiede un accesso per esso. Un servizio che non riesce ad accedere segnala l'errore 1069 nel registro eventi di Windows e non si avvia.</value>
   </data>
@@ -10523,8 +10550,11 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else." xml:space="preserve">
     <value>Che cosa fa questo server quando parla con un dominio remoto indicato: quale TLS pretende dalla connessione in ciascuna direzione, quanto grande un messaggio e quante connessioni tenterà, se una risposta automatica o un inoltro possono andarci, e se un destinatario viene verificato presso il server del dominio prima che la posta per lui venga accettata. Un nome può contenere un carattere jolly: la voce attiva più specifica decide una consegna. Un requisito di TLS qui si aggiunge a quanto il dominio pubblica per conto proprio: una voce di questa pagina non indebolisce mai un criterio MTA-STS o DANE. La verifica dei destinatari serve per un dominio di cui questo server è MX di riserva, e per nient'altro.</value>
   </data>
-  <data name="What this server needs done outside it - DNS records, key and CA files, trusted lists. Each item shows a state; where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
-    <value>Che cosa questo server richiede venga fatto al di fuori di esso - record DNS, file di chiavi e di CA, elenchi di fiducia. Ogni voce mostra uno stato; dove la risposta non può essere letta da qui, la voce indica che cosa controllare anziché tirare a indovinare.</value>
+  <data name="What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one." xml:space="preserve">
+    <value>Ciò di cui questo server ha ancora bisogno prima che qualcuno possa usarlo, in ordine - un dominio, un account, TLS per i client di posta, i record DNS, un backup - con cosa è fatto, cosa viene dopo e un pulsante verso la pagina che fa ciascuna cosa.</value>
+  </data>
+  <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
+    <value>Ciò di cui questo server ha ancora bisogno, nell'ordine in cui una nuova installazione lo incontra. Ogni voce dice se è fatta, il passo successivo è segnalato e il pulsante accanto apre la pagina che lo fa. Dove la risposta non si può leggere da qui, la voce dice cosa controllare invece di tirare a indovinare.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
     <value>Che cosa fare: </value>
@@ -10993,9 +11023,6 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Data di _scadenza</value>
-  </data>
-  <data name="_External setup…" xml:space="preserve">
-    <value>_Configurazione esterna…</value>
   </data>
   <data name="_Field" xml:space="preserve">
     <value>_Campo</value>

@@ -12,7 +12,7 @@ using hMailServer.ControlPanel.Services;
 namespace hMailServer.ControlPanel.Views.Scaffold
 {
    /// <summary>
-   /// A status as a capsule: the shape and the colour of its level
+   /// A status as a filled, rounded box: the shape and the colour of its level
    /// (<see cref="StatusSemantics"/>) and a short word - "Connected", "Backlog",
    /// "Expires in 12 days". The shell's server status is one; a page header's
    /// status is one; a grid cell that says the state of a row is one. Its
@@ -66,15 +66,27 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       private static void OnPresentationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
          => ((StatusPill)d).Apply_();
 
+      /// <summary>
+      /// Paints the level into the template's parts: the level's fill behind,
+      /// and the word and the mark in the shade of the level's colour chosen
+      /// for that fill (<see cref="DesignTokens.StatusFill"/>). It used to be a
+      /// capsule on the theme's subtle grey with a one-pixel outline in the
+      /// status colour, which read as a stray line drawn round the word, and
+      /// whose light-theme green measured 4.2:1 against that grey. The outline
+      /// brush is the text colour, drawn only where the thickness token is
+      /// non-zero - under High Contrast, whose fill is the window colour.
+      /// Brushes go by resource key, never by instance, so a theme change
+      /// reaches the pill (see InlineNotice).
+      /// </summary>
       private void Apply_()
       {
          StatusPresentation status = StatusSemantics.For(Level);
          string text = Text ?? "";
 
-         // Normal is the level that says nothing, and it is drawn in the neutral
-         // grey rather than in StatusSemantics' primary text: a capsule outlined
-         // in the text colour reads as the loudest thing on the bar.
-         string brushKey = Level == StatusLevel.Normal ? "AppNeutralBrush" : status.BrushKey;
+         // Normal is the level that says nothing, and it takes the neutral
+         // grey box (StatusSemantics gives Normal the neutral fill keys).
+         string fillKey = status.FillBrushKey;
+         string textKey = status.FillTextBrushKey;
 
          string current = AutomationProperties.GetName(this);
          if (string.IsNullOrEmpty(current) || string.Equals(current, ownName_, System.StringComparison.Ordinal))
@@ -84,13 +96,16 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          }
 
          if (Part<Path>("PART_Mark") is { } mark)
-            ShapeMarkVisuals.ApplyMark(mark, status.Shape, brushKey);
+            ShapeMarkVisuals.ApplyMark(mark, status.Shape, textKey);
 
          if (Part<TextBlock>("PART_Text") is { } label)
-            label.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
+            label.SetResourceReference(TextBlock.ForegroundProperty, textKey);
 
          if (Part<Border>("PART_Frame") is { } frame)
-            frame.SetResourceReference(Border.BorderBrushProperty, brushKey);
+         {
+            frame.SetResourceReference(Border.BackgroundProperty, fillKey);
+            frame.SetResourceReference(Border.BorderBrushProperty, textKey);
+         }
       }
    }
 }

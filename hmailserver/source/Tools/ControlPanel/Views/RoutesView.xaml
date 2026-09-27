@@ -27,7 +27,7 @@
             <scaffold:Toolbar.Actions>
                 <StackPanel Orientation="Horizontal">
                     <ui:Button x:Name="PropertiesButton" Content="{loc:L '_Properties'}" Click="Edit_Click" Margin="0,0,8,0" />
-                    <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Appearance="Danger" Click="Delete_Click" />
+                    <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" />
                 </StackPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
@@ -47,7 +47,10 @@
                         <DataGridTextColumn Header="{loc:L 'Auth'}" Binding="{Binding Auth}" Width="80" />
                     </DataGrid.Columns>
                 </DataGrid>
-                <scaffold:EmptyState x:Name="EmptyStatus" Icon="ArrowRouting24" Visibility="Collapsed"
+                <!-- Not ArrowRouting24: its code point is past U+FFFF, and
+                     Wpf.Ui's SymbolIcon draws it as one 16-bit character, so it
+                     rendered as a g with a caron (U+01E7). -->
+                <scaffold:EmptyState x:Name="EmptyStatus" Icon="ArrowSplit24" Visibility="Collapsed"
                                      AutomationProperties.LiveSetting="Polite" />
             </Grid>
         </scaffold:Card>

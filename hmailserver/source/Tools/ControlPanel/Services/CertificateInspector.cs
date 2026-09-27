@@ -381,10 +381,10 @@ namespace hMailServer.ControlPanel.Services
       private static CertificateFinding CannotCheckFromHere_(string what)
       {
          string text = what == "files"
-            ? L("This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is \"unknown\", not \"OK\": check them on the server itself, or from its External setup page.")
+            ? L("This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is \"unknown\", not \"OK\": check them on the server itself, or from its Setup checklist page.")
             : what == "key"
-               ? L("This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is \"unknown\", not \"OK\": check it on the server itself, or from its External setup page.")
-               : L("This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is \"unknown\", not \"OK\": check it on the server itself, or from its External setup page.");
+               ? L("This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is \"unknown\", not \"OK\": check it on the server itself, or from its Setup checklist page.")
+               : L("This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is \"unknown\", not \"OK\": check it on the server itself, or from its Setup checklist page.");
          return new CertificateFinding(StatusLevel.Information, L("Cannot be checked from here"), text);
       }
 

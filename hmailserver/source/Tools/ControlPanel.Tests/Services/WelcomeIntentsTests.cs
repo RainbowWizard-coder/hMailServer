@@ -29,9 +29,13 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheStallDiagnosisPathIsTheFirstStartingPoint()
       {
          // The reason the row existed: the information was in a document nothing
-         // in the product pointed at. It is first because it is the commonest
-         // reason the application gets opened in anger.
-         Assert.Equal("stalledmail", WelcomeIntents.Entries[0].Page);
+         // in the product pointed at. It is the first troubleshooting path because
+         // it is the commonest reason the application gets opened in anger; since
+         // the navigation was ordered for a new administrator (27 September 2026)
+         // it follows only "Set up this server", the setup checklist, which is the
+         // reason a new installation is opened at all.
+         Assert.Equal("externalsetup", WelcomeIntents.Entries[0].Page);
+         Assert.Equal("stalledmail", WelcomeIntents.Entries[1].Page);
          Assert.Contains("stalledmail", NavigationMap.Pages.Select(p => p.Key));
       }
 

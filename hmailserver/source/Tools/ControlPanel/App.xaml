@@ -345,6 +345,19 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
                 <Setter Property="HorizontalContentAlignment" Value="Left" />
                 <Setter Property="SeparatorVisibility" Value="Collapsed" />
+                <!-- A header wider than its column ends in an ellipsis and says
+                     the whole of itself in a tool tip. Left to the default
+                     presenter it was cut mid-word with nothing to say so -
+                     "Require TLS o", "Simultaneous co", "Requires ar" on the
+                     remote domains and greylisting bypass lists. The header's
+                     content stays the string, so its accessible name is whole. -->
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}" />
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
@@ -356,6 +369,19 @@
                 <Setter Property="CanUserResizeRows" Value="False" />
                 <Setter Property="MinRowHeight" Value="{DynamicResource AppNavRowHeight}" />
                 <Setter Property="SelectionUnit" Value="FullRow" />
+            </Style>
+
+            <!-- A secondary button whose action destroys something - Delete,
+                 Delete selected - with its words in the danger colour while it
+                 can be pressed. A style setter, not a local Foreground: the
+                 button template's disabled trigger outranks a style setter and
+                 loses to a local value, so a local red left a disabled Delete
+                 looking live beside a greyed Edit. The shade is the danger
+                 fill's text colour, which clears 4.5:1 on the button's fill in
+                 both themes; the dark theme's danger colour measured 4.1:1. -->
+            <Style x:Key="DangerTextButton" TargetType="{x:Type ui:Button}" BasedOn="{StaticResource {x:Type ui:Button}}">
+                <Setter Property="Appearance" Value="Secondary" />
+                <Setter Property="Foreground" Value="{DynamicResource AppDangerFillTextBrush}" />
             </Style>
 
             <!-- A number column's header, right-aligned over its right-aligned

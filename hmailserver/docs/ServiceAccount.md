@@ -242,7 +242,7 @@ holding their copy is written by whichever account last could. A registration
 that read them would let any of those make the next elevated `/Register` give the
 service LocalSystem back. Asking whether the file is writable by administrators
 alone would answer for one of the two places the value comes from, so the value is
-not read at all. The Control Panel no longer edits them; its *External setup* page
+not read at all. The Control Panel no longer edits them; its *Setup checklist* page
 asks for a stored password to be deleted.
 
 ## What LocalSystem could do and the virtual account cannot

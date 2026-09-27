@@ -701,8 +701,8 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
     <value>ACME staat uit (AcmeEnabled=0, de standaard), dus er is niets externs vereist.</value>
   </data>
-  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the External setup page checks exactly that." xml:space="preserve">
-    <value>ACME is ingeschakeld maar er is nog geen certificaat uitgegeven - fullchain.pem en privkey.pem staan niet allebei in {0}. Uitgifte gebeurt volgens het eigen schema van de server, dus dit is normaal gedurende enkele minuten na het inschakelen; houdt het aan, dan kon de CA deze server niet bereiken, en de pagina Externe configuratie controleert precies dat.</value>
+  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
+    <value>ACME is ingeschakeld maar er is nog geen certificaat uitgegeven - fullchain.pem en privkey.pem staan niet allebei in {0}. Uitgifte gebeurt volgens het eigen schema van de server, dus dit is normaal gedurende enkele minuten na het inschakelen; houdt het aan, dan kon de CA deze server niet bereiken, en de pagina Configuratiechecklist controleert precies dat.</value>
   </data>
   <data name="AD do_main of that user" xml:space="preserve">
     <value>AD-do_mein van die gebruiker</value>
@@ -793,9 +793,6 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="Accepting: the sender times out after sending the message" xml:space="preserve">
     <value>Accepteren: de afzender krijgt een time-out na het verzenden van het bericht</value>
-  </data>
-  <data name="Access &amp; abuse protection" xml:space="preserve">
-    <value>Toegang en misbruikbescherming</value>
   </data>
   <data name="Access control: which addresses may connect and what they are allowed to do. Higher priority wins." xml:space="preserve">
     <value>Toegangsbeheer: welke adressen mogen verbinden en wat ze mogen doen. De hoogste prioriteit wint.</value>
@@ -1103,8 +1100,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adressen en hele domeinen die de accounts van {0} willen, of niet. Geldt na de eigen lijst van een account en voor die van de server.</value>
   </data>
-  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
-    <value>Voegt ARC-zegels toe aan doorgestuurde mail zodat servers verderop de oorspronkelijke authenticatieresultaten kunnen vertrouwen (RFC 8617). Verzegeling leent de DKIM-selector en privésleutel van het doorsturende domein, dus het vereist minstens één gehost domein met DKIM-ondertekening geconfigureerd - zonder dat leest de schakelaar als ingeschakeld en verzegelt hij niets, met alleen een debuglogregel die dat zegt. De pagina Externe configuratie controleert uw domeinen hierop.</value>
+  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
+    <value>Voegt ARC-zegels toe aan doorgestuurde mail zodat servers verderop de oorspronkelijke authenticatieresultaten kunnen vertrouwen (RFC 8617). Verzegeling leent de DKIM-selector en privésleutel van het doorsturende domein, dus het vereist minstens één gehost domein met DKIM-ondertekening geconfigureerd - zonder dat leest de schakelaar als ingeschakeld en verzegelt hij niets, met alleen een debuglogregel die dat zegt. De pagina Configuratiechecklist controleert uw domeinen hierop.</value>
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Beheren (ACL beheren)</value>
@@ -1916,6 +1913,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certificaten</value>
+  </data>
+  <data name="Certificates &amp; encryption" xml:space="preserve">
+    <value>Certificaten en versleuteling</value>
   </data>
   <data name="Certificates (ACME)" xml:space="preserve">
     <value>Certificaten (ACME)</value>
@@ -3060,6 +3060,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Bezorgen: het bericht wordt geaccepteerd maar vertrekt nooit</value>
   </data>
+  <data name="Delivers to" xml:space="preserve">
+    <value>Bezorgt bij</value>
+  </data>
   <data name="Delivery" xml:space="preserve">
     <value>Bezorging</value>
   </data>
@@ -3650,9 +3653,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Everything that decides whether a message is wanted." xml:space="preserve">
     <value>Alles wat bepaalt of een bericht gewenst is.</value>
   </data>
-  <data name="Everything this server needs done outside it - DNS records, key and CA files, trusted lists - and the state of each one." xml:space="preserve">
-    <value>Alles wat buiten deze server moet gebeuren - DNS-records, sleutel- en CA-bestanden, vertrouwde lijsten - en de toestand van elk daarvan.</value>
-  </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Alles, inclusief debug (ernst 7)</value>
   </data>
@@ -3748,9 +3748,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externe ontvangers (adressen die deze server niet host)</value>
-  </data>
-  <data name="External setup" xml:space="preserve">
-    <value>Externe configuratie</value>
   </data>
   <data name="External to external (_open relay!)" xml:space="preserve">
     <value>Extern naar extern (_open relay!)</value>
@@ -5418,6 +5415,12 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Volgende rotatie gepland {0}</value>
   </data>
+  <data name="Next step" xml:space="preserve">
+    <value>Volgende stap</value>
+  </data>
+  <data name="Next step: {0}." xml:space="preserve">
+    <value>Volgende stap: {0}.</value>
+  </data>
   <data name="Next try" xml:space="preserve">
     <value>Volgende poging</value>
   </data>
@@ -5664,6 +5667,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Er is geen profiel toegepast. Een profiel stelt ongeveer dertig instellingen in voor het soort server dat dit is - een klein kantoor, achter een filterende gateway, een uitgaand relay, een verzender van grote volumes - en toont elke wijziging voordat die wordt gedaan.</value>
   </data>
+  <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
+    <value>Nog geen openbare mappen. Map toevoegen maakt er een die meerdere accounts kunnen openen; Rechten bepaalt daarna wie erin mag lezen en schrijven.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Er is geen openbare hostnaam geconfigureerd in de SMTP-instellingen.</value>
   </data>
@@ -5807,6 +5813,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Er is nog niets vastgelegd. Elke beheerwijziging verschijnt hier.</value>
+  </data>
+  <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
+    <value>Er is nog niets uitgevoerd. Klik op Diagnose uitvoeren en het resultaat van elke controle verschijnt hier, met wat u moet doen bij een controle die mislukt.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Hier hoeft niets te worden besloten: er wordt geen postvak overgeslagen en er wordt er geen uitgeschakeld.</value>
@@ -6090,9 +6099,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open Domains…" xml:space="preserve">
     <value>Domeinen openen…</value>
   </data>
-  <data name="Open External setup, the full checklist of what this server needs done outside it" xml:space="preserve">
-    <value>Externe configuratie openen, de volledige checklist van wat er buiten deze server moet gebeuren</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>IP-bereiken openen, waar de instelling 'TLS vereisen bij authenticatie' is ondergebracht</value>
   </data>
@@ -6152,6 +6158,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Open the member list of '" xml:space="preserve">
     <value>De ledenlijst openen van '</value>
+  </data>
+  <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
+    <value>De configuratiechecklist openen: elk onderdeel, wat klaar is en wat de volgende stap is</value>
   </data>
   <data name="Open {0}" xml:space="preserve">
     <value>{0} openen</value>
@@ -8301,6 +8310,9 @@ Doorgaan?</value>
   <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
     <value>De door de server afgedwongen tweede factor instellen of uitschakelen…</value>
   </data>
+  <data name="Set up this server" xml:space="preserve">
+    <value>Deze server inrichten</value>
+  </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Tweefactorauthenticatie instellen…</value>
   </data>
@@ -8331,6 +8343,12 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Settings…" xml:space="preserve">
     <value>Instellingen…</value>
+  </data>
+  <data name="Setup _checklist…" xml:space="preserve">
+    <value>_Configuratiechecklist…</value>
+  </data>
+  <data name="Setup checklist" xml:space="preserve">
+    <value>Configuratiechecklist</value>
   </data>
   <data name="Setup key (for manual entry)" xml:space="preserve">
     <value>Instelsleutel (voor handmatige invoer)</value>
@@ -8406,6 +8424,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Meld u aan met de beheerdersreferentie van hMailServer.</value>
+  </data>
+  <data name="Sign-in &amp; access" xml:space="preserve">
+    <value>Aanmelden en toegang</value>
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Aanmelden geannuleerd.</value>
@@ -8721,9 +8742,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>DAN</value>
-  </data>
-  <data name="TLS &amp; certificates" xml:space="preserve">
-    <value>TLS en certificaten</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -9053,6 +9071,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Het beheerderswachtwoord en tweefactorauthenticatie staan op de pagina Beheerderstoegang.</value>
+  </data>
+  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
+    <value>Het beheerderswachtwoord dat bij de installatie van hMailServer is gekozen.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Het beheerderswachtwoord opent alles; een eenmalige code ernaast zorgt dat een gelekt wachtwoord niet genoeg is.</value>
@@ -9879,14 +9900,14 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Dit Control Panel sluit zodra de helper is gestart, zodat het installatieprogramma zijn bestanden kan vervangen; open het over een minuut opnieuw om de uitkomst te zien.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Dit Control Panel is verbonden met een server op afstand, en beide bestanden staan op de schijf van die machine - ze kunnen niet vanaf deze machine worden gelezen, dus er is niets aan geverifieerd. Dit is "onbekend", niet "OK": controleer ze op de server zelf, of vanaf de pagina Externe configuratie daar.</value>
+  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Dit Control Panel is verbonden met een server op afstand, en beide bestanden staan op de schijf van die machine - ze kunnen niet vanaf deze machine worden gelezen, dus er is niets aan geverifieerd. Dit is "onbekend", niet "OK": controleer ze op de server zelf, of vanaf de pagina Configuratiechecklist daar.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Dit Control Panel is verbonden met een server op afstand, en het certificaatbestand staat op de schijf van die machine - het kan niet vanaf deze machine worden gelezen, dus er is niets aan geverifieerd. Dit is "onbekend", niet "OK": controleer het op de server zelf, of vanaf de pagina Externe configuratie daar.</value>
+  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Dit Control Panel is verbonden met een server op afstand, en het certificaatbestand staat op de schijf van die machine - het kan niet vanaf deze machine worden gelezen, dus er is niets aan geverifieerd. Dit is "onbekend", niet "OK": controleer het op de server zelf, of vanaf de pagina Configuratiechecklist daar.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Dit Control Panel is verbonden met een server op afstand, en het sleutelbestand staat op de schijf van die machine - het kan niet vanaf deze machine worden gelezen, dus er is niets aan geverifieerd. Dit is "onbekend", niet "OK": controleer het op de server zelf, of vanaf de pagina Externe configuratie daar.</value>
+  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Dit Control Panel is verbonden met een server op afstand, en het sleutelbestand staat op de schijf van die machine - het kan niet vanaf deze machine worden gelezen, dus er is niets aan geverifieerd. Dit is "onbekend", niet "OK": controleer het op de server zelf, of vanaf de pagina Configuratiechecklist daar.</value>
   </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Dit account heeft een foto.</value>
@@ -9920,8 +9941,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Dit is Instellingen &gt; E-mailbezorging &gt; Hostnaam, de naam die de server bij elke uitgaande bezorging aankondigt in HELO/EHLO (Utilities::ComputerName). Vraag de eigenaar van het IP-adres om de PTR van uw publieke IP-adres precies naar deze naam te laten verwijzen, en publiceer een A-record voor deze naam dat terugwijst naar hetzelfde IP-adres - ontvangers controleren beide richtingen.</value>
   </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (the globe button in the sidebar) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>Dit is [Settings] UseLanguage in hMailServer.INI. De server geeft de waarde alleen terug via de COM-API - hij vertaalt zelf niets, en dit Control Panel heeft een eigen taalinstelling (de wereldbolknop in de zijbalk) - dus het raakt alleen beheerhulpmiddelen van derden. De formulering van bounces en fouten staat op de pagina Serverberichten.</value>
+  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>Dit is [Settings] UseLanguage in hMailServer.INI. De server geeft de waarde alleen terug via de COM-API - hij vertaalt zelf niets, en dit Control Panel heeft een eigen taalinstelling (De taal wijzigen, in het beheerdersmenu rechtsboven) - dus het raakt alleen beheerhulpmiddelen van derden. De formulering van bounces en fouten staat op de pagina Serverberichten.</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Dit is de nieuwste release</value>
@@ -10180,6 +10201,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Type" xml:space="preserve">
     <value>Type</value>
+  </data>
+  <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
+    <value>Typ een domein en klik op Query. Het antwoord toont de servers die de mail voor dat domein ontvangen, de voorkeursserver eerst, zoals de eigen resolver van deze server ze ziet.</value>
   </data>
   <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
     <value>Typ een gebruikersnaam en wachtwoord om een echte aanmelding via het DN-sjabloon te testen.</value>
@@ -10448,6 +10472,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Wat een back-up bevat, het schema, de verificatie van elk archief, en terugzetten.</value>
   </data>
+  <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
+    <value>Wat een nieuwe server nodig heeft, op volgorde: de checklist van wat klaar is en wat de volgende stap is, een instellingsprofiel voor het soort server dat het is, en de DNS-records die elk domein publiceert.</value>
+  </data>
   <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
     <value>Wat een eigen account verandert. hMailServer.INI is voor dat account bewust alleen-lezen: het beheerderswachtwoord, de tweede factor ervan, de mappen en de database worden gewijzigd zoals het Control Panel zegt wanneer u het probeert, en instellingen blijven zoals altijd in de database. Een later ingestelde map buiten de programmamap - een back-up- of archiefmap - wordt bereikt zodra Toegang verlenen hem goedkeurt. Een ander account dan NT SERVICE\hMailServer wordt ingesteld in services.msc en heeft het recht 'Aanmelden als service' nodig; een externe database met Windows-verificatie heeft er een aanmelding voor nodig. Een service die zich niet kan aanmelden, meldt fout 1069 in het Windows-logboek en start niet.</value>
   </data>
@@ -10523,8 +10550,11 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else." xml:space="preserve">
     <value>Wat deze server doet als hij met een benoemd extern domein praat: welke TLS hij van de verbinding in elke richting eist, hoe groot een bericht en hoeveel verbindingen hij zal proberen, of een automatisch antwoord of een doorstuur daarheen mag gaan, en of een ontvanger bij de eigen server van het domein wordt geverifieerd voordat post voor hem wordt aangenomen. Een naam mag een jokerteken bevatten - de meest specifieke actieve regel bepaalt een aflevering. Een TLS-eis hier komt boven op wat het domein zelf publiceert: een regel op deze pagina verzwakt een MTA-STS- of DANE-beleid nooit. Ontvangerverificatie is bedoeld voor een domein waarvoor deze server back-up-MX is, en nergens anders voor.</value>
   </data>
-  <data name="What this server needs done outside it - DNS records, key and CA files, trusted lists. Each item shows a state; where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
-    <value>Wat er buiten deze server moet gebeuren - DNS-records, sleutel- en CA-bestanden, lijsten met vertrouwde partijen. Elk item toont een status; waar het antwoord hiervandaan niet te lezen is, zegt het item wat u moet controleren in plaats van te gokken.</value>
+  <data name="What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one." xml:space="preserve">
+    <value>Wat deze server nog nodig heeft voordat iemand hem kan gebruiken, op volgorde - een domein, een account, TLS voor mailprogramma's, de DNS-records, een back-up - met wat klaar is, wat de volgende stap is en een knop naar de pagina die elk onderdeel regelt.</value>
+  </data>
+  <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
+    <value>Wat deze server nog nodig heeft, in de volgorde waarin een nieuwe installatie het tegenkomt. Elk onderdeel zegt of het klaar is, de volgende stap is gemarkeerd en de knop ernaast opent de pagina die het regelt. Waar het antwoord hier niet te lezen is, zegt het onderdeel wat u moet controleren in plaats van te gokken.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
     <value>Wat te doen:</value>
@@ -10993,9 +11023,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>_Vervaldatum</value>
-  </data>
-  <data name="_External setup…" xml:space="preserve">
-    <value>_Externe configuratie…</value>
   </data>
   <data name="_Field" xml:space="preserve">
     <value>_Veld</value>

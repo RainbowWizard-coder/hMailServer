@@ -29,6 +29,10 @@ namespace hMailServer.ControlPanel.Views
       public IPRangesView()
       {
          InitializeComponent();
+
+         // Properties and Delete act on the selected range: live with nothing
+         // selected, one answered with a message box and the other with nothing.
+         SelectionGate.Bind(RangeGrid, PropertiesButton, DeleteRangeButton);
       }
 
       public void OnEnter() => Reload();

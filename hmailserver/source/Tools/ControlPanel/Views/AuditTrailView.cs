@@ -253,7 +253,10 @@ namespace hMailServer.ControlPanel.Views
 
          toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { offset_ = 0; Reload(); } };
 
-         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         // A WrapPanel, so that in a narrow window the last buttons move to a
+         // second line rather than off the edge (the toolbar gives the actions
+         // the width that is left).
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal };
          var putBack = MakeButton(L("_Put back"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => PutBackSelected());
          actions.Children.Add(putBack);
          SelectionGate.Bind(rows_, putBack);
@@ -261,6 +264,8 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(MakeButton(L("_Newer"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { offset_ = Math.Max(0, offset_ - PageSize); Reload(); }));
          actions.Children.Add(MakeButton(L("_Older"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => { if (offset_ + PageSize < total_) { offset_ += PageSize; Reload(); } }));
          actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         foreach (FrameworkElement button in actions.Children)
+            button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
          toolbar_.Actions = actions;
          Grid.SetRow(toolbar_, 1);
          root.Children.Add(toolbar_);
@@ -297,7 +302,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private static DataGridTextColumn Text_(string header, string path, DataGridLength width)
-         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width };
+         => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width });
 
       private static Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)
       {

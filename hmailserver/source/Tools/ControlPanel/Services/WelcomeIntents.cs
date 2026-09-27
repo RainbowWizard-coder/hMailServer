@@ -34,8 +34,10 @@ namespace hMailServer.ControlPanel.Services
    /// The Welcome page's "What do you want to do?" list.
    ///
    /// A starting page rather than a directory: a dozen tasks, ordered by how often
-   /// they are the reason the application was opened, with the one that used to be
-   /// findable nowhere - mail that has stalled - first. The palette (Ctrl+K) knows
+   /// they are the reason the application was opened. Setting the server up comes
+   /// first - it is the reason a new installation is opened at all, and the setup
+   /// checklist says what is done and what is next - and then the one that used to
+   /// be findable nowhere, mail that has stalled. The palette (Ctrl+K) knows
    /// hundreds of phrasings through <see cref="IntentIndex"/>; this is the short
    /// list somebody who has not learned the product yet can scan in a moment.
    /// </summary>
@@ -43,6 +45,11 @@ namespace hMailServer.ControlPanel.Services
    {
       public static readonly IReadOnlyList<WelcomeIntent> Entries = new List<WelcomeIntent>
       {
+         // The heading is the setup group's and the text the checklist page's
+         // purpose, so this row is the navigation's own words.
+         new WelcomeIntent(N("Set up this server"),
+            N("What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one."),
+            "externalsetup"),
          new WelcomeIntent(N("Mail is stuck or slow"),
             N("Work out which half has stalled - accepting or delivering - turn on the logging that names the cause, and read the lines that do."),
             "stalledmail"),

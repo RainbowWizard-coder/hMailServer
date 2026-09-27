@@ -28,7 +28,7 @@ namespace hMailServer.ControlPanel.Views
    /// per series into each card.
    ///
    /// The setup summary runs <see cref="ExternalSetupChecks"/> - the same checks
-   /// the External setup page shows in full - because the administrator who most
+   /// the Setup checklist page shows in full - because the administrator who most
    /// needs that page is the one who does not know it exists. The dashboard is
    /// where they land, so it is where "3 things need attention" has to appear.
    /// </summary>
@@ -460,7 +460,7 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// Renders the aggregate and the items that need action. The full page
-      /// (External setup) shows all four states per item; this card shows the
+      /// (the setup checklist) shows all four states per item; this card shows the
       /// counts, the action items as one-line links to the page that fixes each,
       /// and a positive all-clear when there is nothing to do - an empty box
       /// would read as broken, and silence would read as "never checked".
@@ -540,7 +540,20 @@ namespace hMailServer.ControlPanel.Views
       {
          var row = new Grid { Margin = new Thickness(0, 2, 0, 0) };
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+         // Numbered, in the checklist's own order - the order a new
+         // installation meets them - so the list reads as steps and the first
+         // one is where to start; it carries a "Next step" box as well.
+         var number = new TextBlock
+         {
+            Text = (index + 1).ToString(System.Globalization.CultureInfo.CurrentCulture) + ".",
+            MinWidth = 22,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         number.SetResourceReference(StyleProperty, "TextBodyStrong");
+         row.Children.Add(number);
 
          StatusPresentation presentation = StatusSemantics.For(ExternalSetupChecks.LevelFor(item.State));
 
@@ -553,13 +566,23 @@ namespace hMailServer.ControlPanel.Views
             VerticalAlignment = VerticalAlignment.Center
          };
          ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.BrushKey);
+         Grid.SetColumn(mark, 1);
          row.Children.Add(mark);
 
-         // Every item on the External setup page records the navigation key of
-         // the page that owns its settings; fall back to the checklist itself if
-         // one ever does not.
+         // Every item on the setup checklist records the navigation key of the
+         // page that owns its settings; fall back to the checklist itself if
+         // one ever does not. The title is translated: it was passed through in
+         // English, so a translated dashboard named the page in English.
          string page = item.Page ?? "externalsetup";
-         string pageTitle = NavigationMap.TitleOf(page);
+         string pageTitle = L(NavigationMap.TitleOf(page));
+
+         // The link says where it goes as well as what it is for: the item,
+         // then an arrow and the page it opens, in the secondary colour.
+         var caption = new TextBlock { TextWrapping = TextWrapping.Wrap };
+         caption.Inlines.Add(new System.Windows.Documents.Run(item.Title));
+         var destination = new System.Windows.Documents.Run("  →  " + pageTitle); // no-loc: the arrow, then the translated page title
+         destination.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "TextFillColorSecondaryBrush");
+         caption.Inlines.Add(destination);
 
          var link = new Wpf.Ui.Controls.Button
          {
@@ -568,14 +591,19 @@ namespace hMailServer.ControlPanel.Views
             Padding = new Thickness(6, 2, 8, 2),
             HorizontalAlignment = HorizontalAlignment.Left,
             Cursor = System.Windows.Input.Cursors.Hand,
-            Content = new TextBlock { Text = item.Title, TextWrapping = TextWrapping.Wrap },
+            Content = caption,
             ToolTip = F("Open {0}, which owns the settings for: {1}", pageTitle, item.Title)
          };
-         AutomationProperties.SetName(link, F("Action needed: {0}. Opens {1}.", item.Title, pageTitle));
+         AutomationProperties.SetName(link, (index == 0 ? L("Next step") + ". " : "") + F("Action needed: {0}. Opens {1}.", item.Title, pageTitle));
          AutomationProperties.SetAutomationId(link, "dashboard-attention-" + index);
          link.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
-         Grid.SetColumn(link, 1);
-         row.Children.Add(link);
+
+         var linkRow = new WrapPanel { Orientation = Orientation.Horizontal };
+         linkRow.Children.Add(link);
+         if (index == 0)
+            linkRow.Children.Add(new Scaffold.StatusPill { Level = StatusLevel.Information, Text = L("Next step"), Margin = new Thickness(6, 0, 0, 0) });
+         Grid.SetColumn(linkRow, 2);
+         row.Children.Add(linkRow);
 
          return row;
       }

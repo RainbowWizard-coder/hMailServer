@@ -70,9 +70,12 @@ the server administrator.
 **In the Control Deck**, the *Checklist* view, first in the navigation after the
 dashboard, with a card per item and *Check again*.
 
-**In the Control Panel**, the *External setup* page and the dashboard's
-"needs attention" card carry the first-hour items ahead of the twelve external
-prerequisites they already had. The panel asks the server for the list without
+**In the Control Panel**, the *Setup checklist* page - first under *Set up this
+server*, the group after the dashboard, and called *External setup* up to 6.3.4 -
+and the dashboard's "needs attention" card carry the first-hour items ahead of
+the twelve external prerequisites they already had, numbered in this order, the
+first item that needs action marked as the next step, and each opening the page
+that does it. The panel asks the server for the list without
 DNS lookups, so that its window is not held for the resolver's timeout, and
 looks the SPF and DMARC records up itself off the window thread, as it already
 did for DKIM; the server's DKIM item is left out there, because the panel's own

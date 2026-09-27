@@ -1078,7 +1078,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Warning,
-               Text = F("ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the External setup page checks exactly that.", folder)
+               Text = F("ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that.", folder)
             };
          }
 
@@ -1552,9 +1552,9 @@ namespace hMailServer.ControlPanel.Views
                   // whether a hosted domain has a DKIM selector and key file lives
                   // in the database, behind the COM API, and this page works from
                   // hMailServer.INI alone - it must keep telling the truth when no
-                  // COM session exists. The External setup page holds the live
+                  // COM session exists. The Setup checklist page holds the live
                   // check and walks the actual domains.
-                  Blurb = L("Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this."),
+                  Blurb = L("Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this."),
                   Settings =
                   {
                      new BoolSetting { Key = "ArcSealingEnabled", Default = false, Label = L("Seal forwarded messages with the domain's DKIM key") }
@@ -2423,7 +2423,7 @@ namespace hMailServer.ControlPanel.Views
                      // from its command line now, which these buttons pass, and
                      // an account with a password is set in services.msc
                      // (docs/ServiceAccount.md). The keys are still read, and a
-                     // stored password is raised on the External setup page.
+                     // stored password is raised on the Setup checklist page.
                      new ServiceAccountActionSetting
                      {
                         Does = ServiceAccountActionSetting.Action.Grant,

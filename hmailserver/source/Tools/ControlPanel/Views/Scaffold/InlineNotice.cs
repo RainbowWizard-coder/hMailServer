@@ -99,8 +99,17 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             AutomationProperties.SetName(this, ownName_);
          }
 
+         // The mark and the severity word are drawn in the shade of the level's
+         // colour made for a status fill (the pill's), not in the status colour
+         // itself: on the notice's own tint the status colours measured 4.0:1
+         // (light warning), 4.2:1 (light danger, dark danger) and 3.6:1 (dark
+         // information on a card), under the 4.5:1 a 14-pixel word needs. The
+         // fill-text shades clear 5.5:1 on every tint, page and card. The tint
+         // and the outline stay in the status colour.
+         string textKey = status.FillTextBrushKey;
+
          if (Part<Path>("PART_Mark") is { } mark)
-            ShapeMarkVisuals.ApplyMark(mark, status.Shape, brushKey);
+            ShapeMarkVisuals.ApplyMark(mark, status.Shape, textKey);
 
          if (Part<TextBlock>("PART_Word") is { } word)
          {
@@ -112,7 +121,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             // left the word out at Normal (above); the visual agrees with it.
             word.Visibility = Level == StatusLevel.Normal ? Visibility.Collapsed : Visibility.Visible;
             word.Text = status.SeverityWord;
-            word.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
+            word.SetResourceReference(TextBlock.ForegroundProperty, textKey);
          }
 
          if (Part<Border>("PART_Tint") is { } tint)

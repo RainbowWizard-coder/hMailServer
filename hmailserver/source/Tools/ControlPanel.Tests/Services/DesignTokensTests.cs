@@ -127,6 +127,138 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The status pill is a filled box with its word in a shade of the level's
+      /// colour, and the word has to be readable on the fill: 4.5:1, the WCAG AA
+      /// floor for text of the pill's size, for every level in both themes. The
+      /// pill it replaced drew the light success green on the theme's grey at
+      /// 4.2:1, which nobody saw until the ratio was computed.
+      /// </summary>
+      [Theory]
+      [InlineData(ChartTheme.Light)]
+      [InlineData(ChartTheme.Dark)]
+      public void EveryStatusPillWordClearsFourPointFiveToOneOnItsFill(ChartTheme theme)
+      {
+         foreach (StatusLevel level in StatusSemantics.AllLevels)
+         {
+            DesignTokens.StatusFillArgb fill = DesignTokens.StatusFill(level, theme, ChartSystemColors.Fallback);
+
+            Assert.Equal(0xFFu, fill.Fill >> 24);
+            Assert.Equal(0xFFu, fill.Text >> 24);
+
+            double ratio = ChartPalette.ContrastRatio(fill.Text, fill.Fill);
+            Assert.True(ratio >= 4.5, $"{theme} {level}: the pill's word is {ratio:F2}:1 on its fill, under 4.5:1.");
+         }
+      }
+
+      /// <summary>
+      /// The same shades are the severity word of an InlineNotice, on the notice's
+      /// tint - the status colour at the tint opacity over the page or a card.
+      /// On that tint the status colours themselves measured 4.0:1 (light
+      /// warning), 4.2:1 (light and dark danger) and 3.6:1 (dark information on
+      /// a card).
+      /// </summary>
+      [Theory]
+      [InlineData(ChartTheme.Light, 0xFFFAFAFAu)]
+      [InlineData(ChartTheme.Light, 0xFFFFFFFFu)]
+      [InlineData(ChartTheme.Dark, 0xFF202020u)]
+      [InlineData(ChartTheme.Dark, 0xFF2B2B2Bu)]
+      public void EveryNoticeWordClearsFourPointFiveToOneOnItsTint(ChartTheme theme, uint surface)
+      {
+         DesignTokens.StatusArgb status = DesignTokens.Status(theme, ChartSystemColors.Fallback);
+
+         foreach ((StatusLevel level, uint colour) in new[]
+         {
+            (StatusLevel.Good, status.Success), (StatusLevel.Information, status.Info),
+            (StatusLevel.Warning, status.Warning), (StatusLevel.Critical, status.Danger)
+         })
+         {
+            uint tint = Over(colour, DesignTokens.NoticeTintOpacityFor(theme), surface);
+            uint word = DesignTokens.StatusFill(level, theme, ChartSystemColors.Fallback).Text;
+
+            double ratio = ChartPalette.ContrastRatio(word, tint);
+            Assert.True(ratio >= 4.5, $"{theme} {level} on {surface:X8}: the notice's word is {ratio:F2}:1 on its tint, under 4.5:1.");
+         }
+      }
+
+      /// <summary>
+      /// Under High Contrast the pill invents no colour: the fill is the window,
+      /// the word is the level's own system colour, and the box is drawn by an
+      /// outline, which is the only theme that draws one.
+      /// </summary>
+      [Fact]
+      public void UnderHighContrastThePillIsTheWindowWithAnOutline()
+      {
+         var system = new ChartSystemColors(0xFF112233, 0xFFEEDDCC, 0xFF445566, 0xFF778899, 0xFFAABBCC);
+         DesignTokens.StatusArgb status = DesignTokens.Status(ChartTheme.HighContrast, system);
+
+         foreach (StatusLevel level in StatusSemantics.AllLevels)
+            Assert.Equal(system.Window, DesignTokens.StatusFill(level, ChartTheme.HighContrast, system).Fill);
+
+         Assert.Equal(status.Success, DesignTokens.StatusFill(StatusLevel.Good, ChartTheme.HighContrast, system).Text);
+         Assert.Equal(status.Info, DesignTokens.StatusFill(StatusLevel.Information, ChartTheme.HighContrast, system).Text);
+         Assert.Equal(status.Warning, DesignTokens.StatusFill(StatusLevel.Warning, ChartTheme.HighContrast, system).Text);
+         Assert.Equal(status.Danger, DesignTokens.StatusFill(StatusLevel.Critical, ChartTheme.HighContrast, system).Text);
+         Assert.Equal(status.Neutral, DesignTokens.StatusFill(StatusLevel.Normal, ChartTheme.HighContrast, system).Text);
+
+         Assert.Equal(1, DesignTokens.StatusFillBorderFor(ChartTheme.HighContrast));
+         Assert.Equal(0, DesignTokens.StatusFillBorderFor(ChartTheme.Light));
+         Assert.Equal(0, DesignTokens.StatusFillBorderFor(ChartTheme.Dark));
+      }
+
+      /// <summary>
+      /// Every level has its own fill and text keys, and the pill's keys are the
+      /// ones ThemeTokens publishes and Tokens.xaml declares.
+      /// </summary>
+      [Fact]
+      public void EveryLevelNamesAFillAndATextKeyOfItsOwn()
+      {
+         var fills = StatusSemantics.AllLevels.Select(l => StatusSemantics.For(l).FillBrushKey).ToList();
+         var texts = StatusSemantics.AllLevels.Select(l => StatusSemantics.For(l).FillTextBrushKey).ToList();
+
+         Assert.Equal(fills.Count, fills.Distinct().Count());
+         Assert.Equal(texts.Count, texts.Distinct().Count());
+         Assert.All(fills, key => Assert.Matches("^App[A-Za-z]+FillBrush$", key));
+         Assert.All(texts, key => Assert.Matches("^App[A-Za-z]+FillTextBrush$", key));
+      }
+
+      /// <summary>
+      /// The light theme's tertiary text - every field hint, every "Applies on
+      /// save" line - clears 4.5:1 on the page, on a card and on a hovered row.
+      /// Wpf.Ui's own (black at 45%) measured 3.3:1 on the page. The dark theme
+      /// and High Contrast keep the theme's.
+      /// </summary>
+      [Theory]
+      [InlineData(0xFFFAFAFAu)]
+      [InlineData(0xFFFFFFFFu)]
+      [InlineData(0xFFF3F3F3u)]
+      [InlineData(0xFFF0F0F0u)]
+      public void TheLightThemesTertiaryTextClearsFourPointFiveToOne(uint surface)
+      {
+         uint? tertiary = DesignTokens.TertiaryTextFor(ChartTheme.Light);
+         Assert.True(tertiary.HasValue);
+
+         uint text = Over(tertiary.Value, (tertiary.Value >> 24) / 255.0, surface);
+         double ratio = ChartPalette.ContrastRatio(text, surface);
+         Assert.True(ratio >= 4.5, $"tertiary text on {surface:X8} is {ratio:F2}:1.");
+
+         Assert.Null(DesignTokens.TertiaryTextFor(ChartTheme.Dark));
+         Assert.Null(DesignTokens.TertiaryTextFor(ChartTheme.HighContrast));
+      }
+
+      /// <summary>An opaque colour laid over a surface at an opacity, as the screen composites it.</summary>
+      private static uint Over(uint colour, double opacity, uint surface)
+      {
+         uint Channel(int shift)
+         {
+            double top = (colour >> shift) & 0xFF;
+            double bottom = (surface >> shift) & 0xFF;
+            return (uint)Math.Round(top * opacity + bottom * (1 - opacity));
+         }
+
+         return 0xFF000000u | (Channel(16) << 16) | (Channel(8) << 8) | Channel(0);
+      }
+
+      /// <summary>
       /// The card surfaces of the light and dark themes are translucent - they
       /// sit on Mica in the sidebar and on a solid page in the content area, and
       /// an opaque card would be a different colour in the two places.
@@ -255,6 +387,15 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(surfaces.CardBorder.ToString("X8"), Colour("AppCardBorderBrush"));
          Assert.Equal(surfaces.CardHover.ToString("X8"), Colour("AppCardHoverBrush"));
          Assert.Equal(surfaces.Divider.ToString("X8"), Colour("AppDividerBrush"));
+
+         // The status pill's fills and words, declared with the dark table.
+         foreach (StatusLevel level in StatusSemantics.AllLevels)
+         {
+            StatusPresentation presentation = StatusSemantics.For(level);
+            DesignTokens.StatusFillArgb fill = DesignTokens.StatusFill(level, ChartTheme.Dark, ChartSystemColors.Fallback);
+            Assert.Equal(fill.Fill.ToString("X8"), Colour(presentation.FillBrushKey));
+            Assert.Equal(fill.Text.ToString("X8"), Colour(presentation.FillTextBrushKey));
+         }
       }
 
       private static string ReadControlPanelFile(string relativePath)

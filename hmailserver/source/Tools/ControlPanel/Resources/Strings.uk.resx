@@ -701,8 +701,8 @@
   <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
     <value>ACME вимкнено (AcmeEnabled=0, типове значення), тому нічого зовнішнього не потрібно.</value>
   </data>
-  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the External setup page checks exactly that." xml:space="preserve">
-    <value>ACME увімкнено, але сертифікат ще не видано — у {0} немає обох файлів fullchain.pem і privkey.pem. Видача відбувається за власним розкладом сервера, тож протягом кількох хвилин після ввімкнення це нормально; якщо стан не змінюється, ЦС не зміг дістатися цього сервера, і сторінка «Зовнішнє налаштування» перевіряє саме це.</value>
+  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
+    <value>ACME увімкнено, але сертифікат ще не видано — у {0} немає обох файлів fullchain.pem і privkey.pem. Видача відбувається за власним розкладом сервера, тож протягом кількох хвилин після ввімкнення це нормально; якщо стан не змінюється, ЦС не зміг дістатися цього сервера, і сторінка «Контрольний список налаштування» перевіряє саме це.</value>
   </data>
   <data name="AD do_main of that user" xml:space="preserve">
     <value>Домен _AD цього користувача</value>
@@ -793,9 +793,6 @@
   </data>
   <data name="Accepting: the sender times out after sending the message" xml:space="preserve">
     <value>Приймання: у відправника вичерпується час очікування після надсилання повідомлення</value>
-  </data>
-  <data name="Access &amp; abuse protection" xml:space="preserve">
-    <value>Доступ і захист від зловживань</value>
   </data>
   <data name="Access control: which addresses may connect and what they are allowed to do. Higher priority wins." xml:space="preserve">
     <value>Контроль доступу: які адреси можуть підключатися та що їм дозволено робити. Перемагає вищий пріоритет.</value>
@@ -1103,8 +1100,8 @@
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреси й цілі домени, які облікові записи {0} хочуть або не хочуть отримувати. Діє після власного списку облікового запису та перед списком сервера.</value>
   </data>
-  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
-    <value>Додає печатки ARC до пересланої пошти, щоб сервери далі за ланцюжком могли довіряти початковим результатам автентифікації (RFC 8617). Запечатування позичає селектор DKIM і закритий ключ домену, який пересилає пошту, тому потребує принаймні одного обслуговуваного домену з налаштованим підписуванням DKIM — без цього перемикач показує «увімкнено», але нічого не запечатує, і сказати про це може лише рядок у журналі налагодження. Сторінка «Зовнішнє налаштування» перевіряє ваші домени саме на це.</value>
+  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
+    <value>Додає печатки ARC до пересланої пошти, щоб сервери далі за ланцюжком могли довіряти початковим результатам автентифікації (RFC 8617). Запечатування позичає селектор DKIM і закритий ключ домену, який пересилає пошту, тому потребує принаймні одного обслуговуваного домену з налаштованим підписуванням DKIM — без цього перемикач показує «увімкнено», але нічого не запечатує, і сказати про це може лише рядок у журналі налагодження. Сторінка «Контрольний список налаштування» перевіряє ваші домени саме на це.</value>
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Адмініструвати (керувати ACL)</value>
@@ -1916,6 +1913,9 @@
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Сертифікати</value>
+  </data>
+  <data name="Certificates &amp; encryption" xml:space="preserve">
+    <value>Сертифікати та шифрування</value>
   </data>
   <data name="Certificates (ACME)" xml:space="preserve">
     <value>Сертифікати (ACME)</value>
@@ -3060,6 +3060,9 @@
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: повідомлення прийнято, але воно ніколи не виходить</value>
   </data>
+  <data name="Delivers to" xml:space="preserve">
+    <value>Доставляє на</value>
+  </data>
   <data name="Delivery" xml:space="preserve">
     <value>Доставка</value>
   </data>
@@ -3650,9 +3653,6 @@
   <data name="Everything that decides whether a message is wanted." xml:space="preserve">
     <value>Усе, що вирішує, чи є повідомлення бажаним.</value>
   </data>
-  <data name="Everything this server needs done outside it - DNS records, key and CA files, trusted lists - and the state of each one." xml:space="preserve">
-    <value>Усе, що цьому серверу потрібно зробити поза ним - записи DNS, файли ключів і ЦС, довірені списки - і стан кожного.</value>
-  </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Усе, включно з налагодженням (важливість 7)</value>
   </data>
@@ -3748,9 +3748,6 @@
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Зовнішні одержувачі (адреси, які цей сервер не обслуговує)</value>
-  </data>
-  <data name="External setup" xml:space="preserve">
-    <value>Зовнішнє налаштування</value>
   </data>
   <data name="External to external (_open relay!)" xml:space="preserve">
     <value>Зовнішні до зовнішніх (_відкритий ретранслятор!)</value>
@@ -5418,6 +5415,12 @@
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Наступна ротація {0}</value>
   </data>
+  <data name="Next step" xml:space="preserve">
+    <value>Наступний крок</value>
+  </data>
+  <data name="Next step: {0}." xml:space="preserve">
+    <value>Наступний крок: {0}.</value>
+  </data>
   <data name="Next try" xml:space="preserve">
     <value>Наступна спроба</value>
   </data>
@@ -5664,6 +5667,9 @@
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Жодного профілю не застосовано. Профіль задає близько тридцяти параметрів для типу сервера - невеликий офіс, за фільтрувальним шлюзом, вихідний ретранслятор, масовий відправник - і показує кожну зміну до того, як її буде зроблено.</value>
   </data>
+  <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
+    <value>Спільних папок ще немає. Додати папку створює папку, яку можуть відкривати кілька облікових записів; Дозволи потім визначає, хто може читати й записувати в неї.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>У параметрах SMTP не налаштовано публічне ім’я вузла.</value>
   </data>
@@ -5807,6 +5813,9 @@
   </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Поки нічого не записано. Кожна адміністративна зміна з'являється тут.</value>
+  </data>
+  <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
+    <value>Ще нічого не запускалося. Натисніть Запустити діагностику, і тут з'явиться результат кожної перевірки, а для невдалих - що з ними робити.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Тут нічого не потребує рішення: жодну поштову скриньку не пропущено й жодну не вимикають.</value>
@@ -6090,9 +6099,6 @@
   <data name="Open Domains…" xml:space="preserve">
     <value>Відкрити «Домени»…</value>
   </data>
-  <data name="Open External setup, the full checklist of what this server needs done outside it" xml:space="preserve">
-    <value>Відкрити «Зовнішнє налаштування» — повний список того, що цьому серверу потрібно зробити поза ним</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Відкрити «Діапазони IP», де задається параметр «вимагати TLS для автентифікації»</value>
   </data>
@@ -6152,6 +6158,9 @@
   </data>
   <data name="Open the member list of '" xml:space="preserve">
     <value>Відкрити список учасників '</value>
+  </data>
+  <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
+    <value>Відкрити контрольний список налаштування: кожен пункт, що зроблено і що робити далі</value>
   </data>
   <data name="Open {0}" xml:space="preserve">
     <value>Відкрити {0}</value>
@@ -8301,6 +8310,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
     <value>Налаштувати або вимкнути другий фактор, який забезпечує сервер…</value>
   </data>
+  <data name="Set up this server" xml:space="preserve">
+    <value>Налаштування цього сервера</value>
+  </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Налаштувати двофакторну автентифікацію…</value>
   </data>
@@ -8331,6 +8343,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Settings…" xml:space="preserve">
     <value>Параметри…</value>
+  </data>
+  <data name="Setup _checklist…" xml:space="preserve">
+    <value>_Контрольний список налаштування…</value>
+  </data>
+  <data name="Setup checklist" xml:space="preserve">
+    <value>Контрольний список налаштування</value>
   </data>
   <data name="Setup key (for manual entry)" xml:space="preserve">
     <value>Ключ налаштування (для ручного введення)</value>
@@ -8406,6 +8424,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Увійдіть з обліковими даними адміністратора hMailServer.</value>
+  </data>
+  <data name="Sign-in &amp; access" xml:space="preserve">
+    <value>Вхід і доступ</value>
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Вхід скасовано.</value>
@@ -8721,9 +8742,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="THEN" xml:space="preserve">
     <value>ТО</value>
-  </data>
-  <data name="TLS &amp; certificates" xml:space="preserve">
-    <value>TLS і сертифікати</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -9053,6 +9071,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль адміністратора і двофакторна автентифікація - на сторінці «Адміністративний доступ».</value>
+  </data>
+  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
+    <value>Пароль адміністратора, вибраний під час встановлення hMailServer.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Пароль адміністратора відкриває все; одноразовий код поруч із ним не дає витеклому паролю бути достатнім.</value>
@@ -9879,14 +9900,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Ця Панель керування закриється, щойно запуститься помічник, щоб інсталятор міг замінити її файли; відкрийте її знову за хвилину, щоб побачити результат.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Ця Панель керування під'єднана до віддаленого сервера, і обидва файли розташовані на диску того комп'ютера - з цього комп'ютера їх прочитати неможливо, тому нічого про них не перевірено. Це «невідомо», а не «OK»: перевірте їх на самому сервері або з його сторінки «Зовнішнє налаштування».</value>
+  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Ця Панель керування під'єднана до віддаленого сервера, і обидва файли розташовані на диску того комп'ютера - з цього комп'ютера їх прочитати неможливо, тому нічого про них не перевірено. Це «невідомо», а не «OK»: перевірте їх на самому сервері або з його сторінки «Контрольний список налаштування».</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Ця Панель керування під'єднана до віддаленого сервера, і файл сертифіката розташований на диску того комп'ютера - з цього комп'ютера його прочитати неможливо, тому нічого про нього не перевірено. Це «невідомо», а не «OK»: перевірте його на самому сервері або з його сторінки «Зовнішнє налаштування».</value>
+  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Ця Панель керування під'єднана до віддаленого сервера, і файл сертифіката розташований на диску того комп'ютера - з цього комп'ютера його прочитати неможливо, тому нічого про нього не перевірено. Це «невідомо», а не «OK»: перевірте його на самому сервері або з його сторінки «Контрольний список налаштування».</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Ця Панель керування під'єднана до віддаленого сервера, і файл ключа розташований на диску того комп'ютера - з цього комп'ютера його прочитати неможливо, тому нічого про нього не перевірено. Це «невідомо», а не «OK»: перевірте його на самому сервері або з його сторінки «Зовнішнє налаштування».</value>
+  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Ця Панель керування під'єднана до віддаленого сервера, і файл ключа розташований на диску того комп'ютера - з цього комп'ютера його прочитати неможливо, тому нічого про нього не перевірено. Це «невідомо», а не «OK»: перевірте його на самому сервері або з його сторінки «Контрольний список налаштування».</value>
   </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Цей обліковий запис має фотографію.</value>
@@ -9920,8 +9941,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Це «Параметри» &gt; «Доставка пошти» &gt; «Ім'я вузла» - ім'я, яке сервер оголошує в HELO/EHLO під час кожної вихідної доставки (Utilities::ComputerName). Попросіть власника IP зробити так, щоб PTR вашого публічного IP розв'язувався саме в це ім'я, і опублікуйте запис A для цього імені, що вказує назад на той самий IP - отримувачі перевіряють обидва напрямки.</value>
   </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (the globe button in the sidebar) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>Це [Settings] UseLanguage у hMailServer.INI. Сервер лише віддає його назад через COM API - сам він нічого не перекладає, а ця Панель керування має власний параметр мови (кнопка з глобусом на бічній панелі), - тому він впливає лише на сторонні інструменти адміністрування. Формулювання повернень і помилок - на сторінці «Повідомлення сервера».</value>
+  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>Це [Settings] UseLanguage у hMailServer.INI. Сервер лише віддає його назад через COM API - сам він нічого не перекладає, а ця Панель керування має власний параметр мови (Змінити мову в меню адміністратора праворуч угорі), - тому він впливає лише на сторонні інструменти адміністрування. Формулювання повернень і помилок - на сторінці «Повідомлення сервера».</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Це найновіший випуск</value>
@@ -10180,6 +10201,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Type" xml:space="preserve">
     <value>Тип</value>
+  </data>
+  <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
+    <value>Введіть домен і натисніть Запит. У відповіді перелічено сервери, які приймають пошту цього домену, починаючи з пріоритетного, так, як їх бачить власний резолвер цього сервера.</value>
   </data>
   <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
     <value>Введіть ім'я користувача і пароль, щоб перевірити справжній вхід через шаблон DN.</value>
@@ -10448,6 +10472,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Що містить резервна копія, розклад, перевірка кожного архіву та відновлення.</value>
   </data>
+  <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
+    <value>Що потрібно новому серверу, по черзі: контрольний список того, що зроблено і що далі, профіль параметрів для того типу сервера, яким він є, і записи DNS, які публікує кожен домен.</value>
+  </data>
   <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
     <value>Що змінює власний обліковий запис. hMailServer.INI для нього навмисно лише для читання: пароль адміністратора, його другий фактор, папки та база даних змінюються так, як скаже Control Panel під час спроби, а параметри, як завжди, зберігаються в базі даних. Задана пізніше папка поза папкою програми — папка резервних копій чи архіву — стає досяжною, щойно «Надати доступ» її схвалить. Обліковий запис, відмінний від NT SERVICE\hMailServer, задається в services.msc, і йому потрібне право «Вхід як служба»; зовнішній базі даних з автентифікацією Windows потрібне ім'я входу для нього. Служба, яка не може ввійти, повідомляє про помилку 1069 у журналі подій Windows і не запускається.</value>
   </data>
@@ -10523,8 +10550,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else." xml:space="preserve">
     <value>Що робить цей сервер, коли спілкується з названим зовнішнім доменом: який TLS він вимагає від з'єднання в кожному напрямку, повідомлення якого розміру та скільки з'єднань він спробує, чи можна надсилати туди автовідповідь або пересилання, і чи перевіряється одержувач на власному сервері домену перед тим, як пошту для нього буде прийнято. Ім'я може містити символ підстановки: доставку вирішує найточніший активний запис. Вимога TLS тут додається до того, що домен публікує сам: запис на цій сторінці ніколи не послаблює політику MTA-STS чи DANE. Перевірка одержувача призначена для домену, для якого цей сервер є резервним MX, і ні для чого іншого.</value>
   </data>
-  <data name="What this server needs done outside it - DNS records, key and CA files, trusted lists. Each item shows a state; where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
-    <value>Що цьому серверу потрібно зробити поза ним - записи DNS, файли ключів і ЦС, довірені списки. Для кожного елемента показано стан; там, де відповідь звідси прочитати неможливо, елемент каже, що перевірити, замість того щоб вгадувати.</value>
+  <data name="What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one." xml:space="preserve">
+    <value>Що ще потрібно цьому серверу, перш ніж ним зможе користуватися будь-хто, по черзі - домен, обліковий запис, TLS для поштових клієнтів, записи DNS, резервна копія - з тим, що зроблено, що далі, і кнопкою на сторінку, яка виконує кожен пункт.</value>
+  </data>
+  <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
+    <value>Що ще потрібно цьому серверу, у тому порядку, в якому з цим стикається нове встановлення. Кожен пункт каже, чи його виконано, наступний крок позначено, а кнопка поруч відкриває сторінку, яка його виконує. Там, де відповідь звідси прочитати не можна, пункт каже, що перевірити, замість того щоб угадувати.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
     <value>Що робити:</value>
@@ -10993,9 +11023,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Дата _завершення терміну дії</value>
-  </data>
-  <data name="_External setup…" xml:space="preserve">
-    <value>_Зовнішнє налаштування…</value>
   </data>
   <data name="_Field" xml:space="preserve">
     <value>_Поле</value>

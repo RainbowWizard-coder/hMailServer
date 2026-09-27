@@ -133,7 +133,7 @@ EXEMPT = {
       "card changes the account with buttons that pass it; an editor would change nothing.",
    "ServiceAccountPassword":
       "Retired with ServiceAccountName, and a Windows credential in plain text besides: "
-      "an account with a password is set in services.msc. The External setup page asks "
+      "an account with a password is set in services.msc. The Setup checklist page asks "
       "for a stored one to be deleted.",
 }
 

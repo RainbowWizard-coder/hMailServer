@@ -53,7 +53,8 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(MakeButton(L("_Add folder"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddFolder()));
          var permissions = MakeButton(L("_Permissions"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => EditPermissions());
          actions.Children.Add(permissions);
-         var delete = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Danger, (_, _) => DeleteFolder());
+         var delete = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeleteFolder());
+         hMailServer.ControlPanel.Services.ButtonStyles.DangerText(delete);
          actions.Children.Add(delete);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, permissions, delete);
          actions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
@@ -121,7 +122,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          list_.ItemsSource = names;
-         StatusText.Show(empty_, notice_, names.Count, error, F("{0} public folders.", 0));
+         // The empty state says what to do, not only that there is nothing:
+         // "0 public folders." left a first-time administrator with a blank card.
+         StatusText.Show(empty_, notice_, names.Count, error,
+            L("No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it."));
       }
 
       private void AddFolder()

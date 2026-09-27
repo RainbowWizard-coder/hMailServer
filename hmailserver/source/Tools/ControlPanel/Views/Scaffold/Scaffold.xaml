@@ -33,12 +33,16 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal">
+                            <!-- A WrapPanel, not a horizontal StackPanel: in a narrow
+                                 window the status beside the title moves under it
+                                 instead of being clipped ("0 remote do"). -->
+                            <WrapPanel Orientation="Horizontal">
                                 <TextBlock x:Name="PART_Title" Text="{TemplateBinding Title}"
-                                           Style="{StaticResource TextTitle}" VerticalAlignment="Center" />
+                                           Style="{StaticResource TextTitle}" VerticalAlignment="Center"
+                                           Margin="0,0,12,0" />
                                 <ContentPresenter x:Name="PART_Status" Content="{TemplateBinding Status}"
-                                                  Margin="12,6,0,0" VerticalAlignment="Center" />
-                            </StackPanel>
+                                                  Margin="0,6,0,0" VerticalAlignment="Center" />
+                            </WrapPanel>
                             <TextBlock x:Name="PART_Subtitle" Text="{TemplateBinding Subtitle}"
                                        Style="{StaticResource TextSecondary}" Margin="0,4,0,0" />
                         </StackPanel>
@@ -147,7 +151,12 @@
                                     MinWidth="220" MaxWidth="360" VerticalAlignment="Center" />
                         <ContentPresenter x:Name="PART_Filters" Grid.Column="1" Content="{TemplateBinding Filters}"
                                           Margin="12,0,0,0" VerticalAlignment="Center" />
-                        <ContentPresenter x:Name="PART_Actions" Grid.Column="3" Content="{TemplateBinding Actions}"
+                        <!-- The actions take the width that is left, not the width
+                             they would like: in an Auto column a row of buttons
+                             wider than the window ran off its right edge, and
+                             Refresh was cut in half at 1000 pixels. Given the
+                             width, a WrapPanel of actions wraps instead. -->
+                        <ContentPresenter x:Name="PART_Actions" Grid.Column="2" Grid.ColumnSpan="2" Content="{TemplateBinding Actions}"
                                           Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -256,7 +265,11 @@
         </Setter>
     </Style>
 
-    <!-- StatusPill: mark and word in a capsule outlined in the level's colour. -->
+    <!-- StatusPill: mark and word in a filled, rounded box - the level's fill
+         behind, the word and mark in a shade of the level's colour that clears
+         4.5:1 on it. No outline in the light and dark themes (the thickness
+         token is 0); High Contrast, whose fill is the window colour, draws one
+         in the text colour instead. The brushes are set by the class. -->
     <Style TargetType="{x:Type scaffold:StatusPill}">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="IsTabStop" Value="False" />
@@ -265,15 +278,21 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type scaffold:StatusPill}">
                     <Border x:Name="PART_Frame" CornerRadius="{StaticResource AppPillCornerRadius}"
-                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
-                            BorderThickness="1" Padding="9,2,10,3" SnapsToDevicePixels="True">
-                        <StackPanel Orientation="Horizontal">
+                            BorderThickness="{DynamicResource AppStatusFillBorderThickness}"
+                            Padding="8,3,10,4" SnapsToDevicePixels="True">
+                        <!-- A Grid, not a horizontal StackPanel: a pill squeezed by
+                             its row ellipsizes its word instead of clipping it. -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <Path x:Name="PART_Mark" Width="8" Height="8" Stretch="Fill"
                                   Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <TextBlock x:Name="PART_Text" Text="{TemplateBinding Text}"
+                            <TextBlock x:Name="PART_Text" Grid.Column="1" Text="{TemplateBinding Text}"
                                        FontSize="{StaticResource AppFontSizeCaption}" FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
+                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

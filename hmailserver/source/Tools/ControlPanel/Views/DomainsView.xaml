@@ -26,9 +26,12 @@
                 <ColumnDefinition Width="2*" MinWidth="280" />
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
+            <!-- The aliases and lists row keeps room for its two add forms: at
+                 two fifths of a 700-pixel window it was shorter than the alias
+                 form, which ran off the bottom of its card. -->
             <Grid.RowDefinitions>
                 <RowDefinition Height="3*" />
-                <RowDefinition Height="2*" />
+                <RowDefinition Height="2*" MinHeight="250" />
             </Grid.RowDefinitions>
 
             <!-- Domain list -->
@@ -227,17 +230,30 @@
                         </ListView>
                         <scaffold:EmptyState x:Name="AliasStatus" Visibility="Collapsed" Padding="12"
                                              AutomationProperties.LiveSetting="Polite" />
-                        <!-- The example placeholders are the whole caption of these
-                             two boxes: alias@domain forwards to target@anywhere. -->
+                        <!-- Captioned, as the account row above is. The example
+                             placeholders were the whole caption of these two boxes,
+                             and half a card is too narrow for them: they read
+                             "alias@domai" and "target@anyw", and at 1000 pixels
+                             "alia" and "targ", with nothing to name either box.
+                             One above the other, so that each box has the card's
+                             width however narrow the window. -->
                         <Grid Grid.Row="1" Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ui:TextBox x:Name="NewAliasName" PlaceholderText="alias@domain" FontSize="12" Margin="0,0,6,0" />
-                            <ui:TextBox x:Name="NewAliasValue" Grid.Column="1" PlaceholderText="target@anywhere" FontSize="12" Margin="0,0,6,0" />
-                            <ui:Button Grid.Column="2" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Alias address'}" Margin="0,0,0,8">
+                                <ui:TextBox x:Name="NewAliasName" PlaceholderText="alias@domain" FontSize="12" />
+                            </scaffold:FieldRow>
+                            <scaffold:FieldRow Grid.Row="1" Label="{loc:L 'Delivers to'}" Margin="0,0,6,0">
+                                <ui:TextBox x:Name="NewAliasValue" PlaceholderText="target@anywhere" FontSize="12" />
+                            </scaffold:FieldRow>
+                            <ui:Button Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
+                                       VerticalAlignment="Bottom" Margin="0,0,0,12"
                                        AutomationProperties.Name="{loc:L 'Add alias'}" />
                         </Grid>
                     </Grid>
@@ -279,8 +295,11 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ui:TextBox x:Name="NewDistAddress" PlaceholderText="list@domain" FontSize="12" Margin="0,0,6,0" />
+                            <scaffold:FieldRow Label="{loc:L 'Address'}" Margin="0,0,6,0">
+                                <ui:TextBox x:Name="NewDistAddress" PlaceholderText="list@domain" FontSize="12" />
+                            </scaffold:FieldRow>
                             <ui:Button Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
+                                       VerticalAlignment="Bottom" Margin="0,0,0,12"
                                        AutomationProperties.Name="{loc:L 'Add distribution list'}" />
                         </Grid>
                     </Grid>

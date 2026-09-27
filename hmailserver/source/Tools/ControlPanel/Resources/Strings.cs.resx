@@ -701,8 +701,8 @@ Přesto toto slabé heslo uložit?</value>
   <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
     <value>ACME je vypnuto (AcmeEnabled=0, výchozí), takže není potřeba nic vnějšího.</value>
   </data>
-  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the External setup page checks exactly that." xml:space="preserve">
-    <value>ACME je zapnuto, ale zatím nebyl vydán žádný certifikát – v {0} nejsou oba soubory fullchain.pem a privkey.pem. Vydání probíhá podle vlastního plánu serveru, takže je to pár minut po zapnutí normální; pokud to přetrvává, certifikační autorita na tento server nedosáhla a stránka Externí nastavení kontroluje přesně to.</value>
+  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
+    <value>ACME je zapnuto, ale zatím nebyl vydán žádný certifikát – v {0} nejsou oba soubory fullchain.pem a privkey.pem. Vydání probíhá podle vlastního plánu serveru, takže je to pár minut po zapnutí normální; pokud to přetrvává, certifikační autorita na tento server nedosáhla a stránka Kontrolní seznam nastavení kontroluje přesně to.</value>
   </data>
   <data name="AD do_main of that user" xml:space="preserve">
     <value>_AD doména daného uživatele</value>
@@ -793,9 +793,6 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="Accepting: the sender times out after sending the message" xml:space="preserve">
     <value>Přijímání: odesílateli vyprší časový limit po odeslání zprávy</value>
-  </data>
-  <data name="Access &amp; abuse protection" xml:space="preserve">
-    <value>Přístup a ochrana proti zneužití</value>
   </data>
   <data name="Access control: which addresses may connect and what they are allowed to do. Higher priority wins." xml:space="preserve">
     <value>Řízení přístupu: které adresy se smějí připojit a co smějí dělat. Vyhrává vyšší priorita.</value>
@@ -1103,8 +1100,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Adresy a celé domény, které účty domény {0} chtějí, nebo nechtějí. Použije se po vlastním seznamu účtu a před seznamem serveru.</value>
   </data>
-  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
-    <value>Přidává pečeti ARC k přeposlané poště, aby navazující servery mohly důvěřovat původním výsledkům ověření (RFC 8617). Pečetění si vypůjčuje DKIM selektor a soukromý klíč přeposílající domény, takže vyžaduje alespoň jednu hostovanou doménu s nastaveným podepisováním DKIM – bez toho přepínač hlásí, že je zapnuto, a nepečetí nic, přičemž to oznámí jen jedním ladicím řádkem v logu. Stránka Externí nastavení vaše domény kvůli tomu kontroluje.</value>
+  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
+    <value>Přidává pečeti ARC k přeposlané poště, aby navazující servery mohly důvěřovat původním výsledkům ověření (RFC 8617). Pečetění si vypůjčuje DKIM selektor a soukromý klíč přeposílající domény, takže vyžaduje alespoň jednu hostovanou doménu s nastaveným podepisováním DKIM – bez toho přepínač hlásí, že je zapnuto, a nepečetí nic, přičemž to oznámí jen jedním ladicím řádkem v logu. Stránka Kontrolní seznam nastavení vaše domény kvůli tomu kontroluje.</value>
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Spravovat (správa ACL)</value>
@@ -1916,6 +1913,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certifikáty</value>
+  </data>
+  <data name="Certificates &amp; encryption" xml:space="preserve">
+    <value>Certifikáty a šifrování</value>
   </data>
   <data name="Certificates (ACME)" xml:space="preserve">
     <value>Certifikáty (ACME)</value>
@@ -3060,6 +3060,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Doručování: zpráva je přijata, ale nikdy neodejde</value>
   </data>
+  <data name="Delivers to" xml:space="preserve">
+    <value>Doručuje na</value>
+  </data>
   <data name="Delivery" xml:space="preserve">
     <value>Doručování</value>
   </data>
@@ -3650,9 +3653,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Everything that decides whether a message is wanted." xml:space="preserve">
     <value>Vše, co rozhoduje, zda je zpráva žádoucí.</value>
   </data>
-  <data name="Everything this server needs done outside it - DNS records, key and CA files, trusted lists - and the state of each one." xml:space="preserve">
-    <value>Vše, co tento server potřebuje mít hotovo mimo sebe - záznamy DNS, soubory klíčů a CA, důvěryhodné seznamy - a stav každé položky.</value>
-  </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Vše včetně ladění (závažnost 7)</value>
   </data>
@@ -3748,9 +3748,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Externí příjemci (adresy, které tento server nehostuje)</value>
-  </data>
-  <data name="External setup" xml:space="preserve">
-    <value>Externí nastavení</value>
   </data>
   <data name="External to external (_open relay!)" xml:space="preserve">
     <value>Externí do externí (_otevřený relay!)</value>
@@ -5418,6 +5415,12 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Další rotace naplánována {0}</value>
   </data>
+  <data name="Next step" xml:space="preserve">
+    <value>Další krok</value>
+  </data>
+  <data name="Next step: {0}." xml:space="preserve">
+    <value>Další krok: {0}.</value>
+  </data>
   <data name="Next try" xml:space="preserve">
     <value>Další pokus</value>
   </data>
@@ -5664,6 +5667,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Nebyl použit žádný profil. Profil nastaví zhruba třicet nastavení podle druhu serveru - malá kancelář, za filtrující bránou, odchozí relay, hromadný odesílatel - a každou změnu ukáže dříve, než ji provede.</value>
   </data>
+  <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
+    <value>Zatím žádné veřejné složky. Přidat složku vytvoří složku, kterou může otevřít více účtů; Oprávnění pak určí, kdo do ní smí číst a zapisovat.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>V nastavení SMTP není nastaven žádný veřejný název hostitele.</value>
   </data>
@@ -5807,6 +5813,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Zatím nebylo nic zaznamenáno. Každá administrativní změna se objeví zde.</value>
+  </data>
+  <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
+    <value>Zatím nebylo nic spuštěno. Stiskněte Spustit diagnostiku a zde se zobrazí výsledek každé kontroly, u neúspěšných i s tím, co s nimi dělat.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Nic zde nevyžaduje rozhodnutí: žádná poštovní schránka se nepřeskakuje a žádná se nezakazuje.</value>
@@ -6090,9 +6099,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open Domains…" xml:space="preserve">
     <value>Otevřít Domény…</value>
   </data>
-  <data name="Open External setup, the full checklist of what this server needs done outside it" xml:space="preserve">
-    <value>Otevřít Externí nastavení, úplný seznam toho, co je pro tento server třeba udělat mimo něj</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Otevřít Rozsahy IP, kde se spravuje nastavení vyžadování TLS pro ověřování</value>
   </data>
@@ -6152,6 +6158,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Open the member list of '" xml:space="preserve">
     <value>Otevřít seznam členů seznamu '</value>
+  </data>
+  <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
+    <value>Otevřít kontrolní seznam nastavení: všechny položky, co je hotovo a co udělat dál</value>
   </data>
   <data name="Open {0}" xml:space="preserve">
     <value>Otevřít {0}</value>
@@ -8301,6 +8310,9 @@ Pokračovat?</value>
   <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
     <value>Nastavit nebo vypnout druhý faktor vynucený serverem…</value>
   </data>
+  <data name="Set up this server" xml:space="preserve">
+    <value>Nastavení tohoto serveru</value>
+  </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Nastavit dvoufaktorové ověření…</value>
   </data>
@@ -8331,6 +8343,12 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Settings…" xml:space="preserve">
     <value>Nastavení…</value>
+  </data>
+  <data name="Setup _checklist…" xml:space="preserve">
+    <value>_Kontrolní seznam nastavení…</value>
+  </data>
+  <data name="Setup checklist" xml:space="preserve">
+    <value>Kontrolní seznam nastavení</value>
   </data>
   <data name="Setup key (for manual entry)" xml:space="preserve">
     <value>Klíč pro nastavení (pro ruční zadání)</value>
@@ -8406,6 +8424,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Přihlaste se přihlašovacími údaji správce hMailServeru.</value>
+  </data>
+  <data name="Sign-in &amp; access" xml:space="preserve">
+    <value>Přihlášení a přístup</value>
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Přihlášení zrušeno.</value>
@@ -8721,9 +8742,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>POTOM</value>
-  </data>
-  <data name="TLS &amp; certificates" xml:space="preserve">
-    <value>TLS a certifikáty</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -9053,6 +9071,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Heslo správce a dvoufaktorové ověření najdete na stránce Přístup pro správu.</value>
+  </data>
+  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
+    <value>Heslo správce zvolené při instalaci hMailServeru.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Heslo správce otevírá vše; jednorázový kód vedle něj zajistí, že uniklé heslo nestačí.</value>
@@ -9879,14 +9900,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Tento Control Panel se zavře, jakmile se pomocník spustí, aby instalátor mohl nahradit jeho soubory; za minutu jej znovu otevřete a uvidíte výsledek.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Tento Control Panel je připojen ke vzdálenému serveru a oba soubory jsou na disku toho počítače - z tohoto počítače je nelze přečíst, takže o nich není nic ověřeno. Je to „neznámo“, ne „OK“: zkontrolujte je na samotném serveru, nebo z jeho stránky Externí nastavení.</value>
+  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Tento Control Panel je připojen ke vzdálenému serveru a oba soubory jsou na disku toho počítače - z tohoto počítače je nelze přečíst, takže o nich není nic ověřeno. Je to „neznámo“, ne „OK“: zkontrolujte je na samotném serveru, nebo z jeho stránky Kontrolní seznam nastavení.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Tento Control Panel je připojen ke vzdálenému serveru a soubor certifikátu je na disku toho počítače - z tohoto počítače ho nelze přečíst, takže o něm není nic ověřeno. Je to „neznámo“, ne „OK“: zkontrolujte ho na samotném serveru, nebo z jeho stránky Externí nastavení.</value>
+  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Tento Control Panel je připojen ke vzdálenému serveru a soubor certifikátu je na disku toho počítače - z tohoto počítače ho nelze přečíst, takže o něm není nic ověřeno. Je to „neznámo“, ne „OK“: zkontrolujte ho na samotném serveru, nebo z jeho stránky Kontrolní seznam nastavení.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Tento Control Panel je připojen ke vzdálenému serveru a soubor klíče je na disku toho počítače - z tohoto počítače ho nelze přečíst, takže o něm není nic ověřeno. Je to „neznámo“, ne „OK“: zkontrolujte ho na samotném serveru, nebo z jeho stránky Externí nastavení.</value>
+  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Tento Control Panel je připojen ke vzdálenému serveru a soubor klíče je na disku toho počítače - z tohoto počítače ho nelze přečíst, takže o něm není nic ověřeno. Je to „neznámo“, ne „OK“: zkontrolujte ho na samotném serveru, nebo z jeho stránky Kontrolní seznam nastavení.</value>
   </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Tento účet má fotografii.</value>
@@ -9920,8 +9941,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Toto je Nastavení &gt; Doručování pošty &gt; Název hostitele, název, který server oznamuje v HELO/EHLO při každém odchozím doručení (Utilities::ComputerName). Požádejte vlastníka IP, aby PTR vaší veřejné IP překládal přesně na tento název, a publikujte záznam A pro tento název ukazující zpět na tutéž IP - příjemci kontrolují oba směry.</value>
   </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (the globe button in the sidebar) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>Toto je [Settings] UseLanguage v hMailServer.INI. Server ho jen vrací přes COM API - sám nic nepřekládá a tento Control Panel má vlastní nastavení jazyka (tlačítko s glóbem v patičce postranního panelu) - takže ovlivňuje jen nástroje pro správu třetích stran. Znění nedoručenek a chyb je na stránce Zprávy serveru.</value>
+  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>Toto je [Settings] UseLanguage v hMailServer.INI. Server ho jen vrací přes COM API - sám nic nepřekládá a tento Control Panel má vlastní nastavení jazyka (Změnit jazyk v nabídce správce vpravo nahoře) - takže ovlivňuje jen nástroje pro správu třetích stran. Znění nedoručenek a chyb je na stránce Zprávy serveru.</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Toto je nejnovější vydání</value>
@@ -10180,6 +10201,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Type" xml:space="preserve">
     <value>Typ</value>
+  </data>
+  <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
+    <value>Zadejte doménu a stiskněte Dotaz. Odpověď vypíše servery, které přijímají poštu této domény, od nejpreferovanějšího, tak jak je vidí vlastní resolver tohoto serveru.</value>
   </data>
   <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
     <value>Zadejte uživatelské jméno a heslo k otestování skutečného přihlášení přes šablonu DN.</value>
@@ -10448,6 +10472,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Co záloha obsahuje, plán, ověření každého archivu a obnovení.</value>
   </data>
+  <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
+    <value>Co nový server potřebuje, v tomto pořadí: kontrolní seznam toho, co je hotovo a co je na řadě, profil nastavení pro druh serveru, kterým je, a záznamy DNS, které každá doména zveřejňuje.</value>
+  </data>
   <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
     <value>Co mění vlastní účet. hMailServer.INI je pro něj záměrně jen pro čtení: heslo správce, jeho druhý faktor, složky a databáze se mění tak, jak Control Panel řekne při pokusu, a nastavení zůstávají jako vždy v databázi. Později nastavená složka mimo složku programu - složka záloh nebo archivu - je dosažitelná, jakmile ji Udělit přístup schválí. Jiný účet než NT SERVICE\hMailServer se nastavuje v services.msc a potřebuje právo „Přihlásit se jako služba“; externí databáze s ověřováním Windows pro něj potřebuje přihlášení. Služba, která se nemůže přihlásit, hlásí chybu 1069 v protokolu událostí Windows a nespustí se.</value>
   </data>
@@ -10523,8 +10550,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else." xml:space="preserve">
     <value>Co tento server dělá, když komunikuje s pojmenovanou vzdálenou doménou: jaké TLS vyžaduje na spojení v každém směru, jak velkou zprávu a kolik spojení se pokusí použít, zda tam smí jít automatická odpověď nebo přeposlání a zda se příjemce ověří u vlastního serveru té domény dříve, než je pošta pro něj přijata. Název může obsahovat zástupný znak - o doručení rozhoduje nejpřesnější aktivní záznam. Požadavek na TLS zde se přidává k tomu, co doména zveřejňuje sama o sobě: záznam na této stránce nikdy neoslabí politiku MTA-STS ani DANE. Ověřování příjemců je určeno pro doménu, pro kterou je tento server záložním MX, a pro nic jiného.</value>
   </data>
-  <data name="What this server needs done outside it - DNS records, key and CA files, trusted lists. Each item shows a state; where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
-    <value>Co tento server potřebuje mít hotovo mimo sebe - záznamy DNS, soubory klíčů a CA, důvěryhodné seznamy. Každá položka ukazuje stav; kde odpověď odsud nelze přečíst, položka říká, co zkontrolovat, místo aby hádala.</value>
+  <data name="What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one." xml:space="preserve">
+    <value>Co tento server ještě potřebuje, než ho bude moci kdokoli používat, v pořadí - doménu, účet, TLS pro poštovní klienty, záznamy DNS, zálohu - s tím, co je hotovo, co je na řadě, a s tlačítkem na stránku, která každou věc udělá.</value>
+  </data>
+  <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
+    <value>Co tento server ještě potřebuje, v pořadí, v jakém to nová instalace potkává. U každé položky je uvedeno, zda je hotová, další krok je označen a tlačítko vedle něj otevře stránku, která ho udělá. Kde odpověď odsud nelze přečíst, položka místo hádání uvede, co zkontrolovat.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
     <value>Co dělat:</value>
@@ -10993,9 +11023,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Datum _vypršení platnosti</value>
-  </data>
-  <data name="_External setup…" xml:space="preserve">
-    <value>_Externí nastavení…</value>
   </data>
   <data name="_Field" xml:space="preserve">
     <value>_Pole</value>

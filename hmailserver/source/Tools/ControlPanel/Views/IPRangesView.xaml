@@ -27,9 +27,9 @@
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
                 <StackPanel Orientation="Horizontal">
-                    <ui:Button Content="{loc:L 'Pr_operties…'}" Click="Edit_Click" Margin="0,0,8,0" />
-                    <ui:Button Content="{loc:L 'Delete selected ra_nge'}" Appearance="Secondary"
-                               Foreground="{DynamicResource AppDangerBrush}" Click="Delete_Click" Margin="0,0,8,0" />
+                    <ui:Button x:Name="PropertiesButton" Content="{loc:L 'Pr_operties…'}" Click="Edit_Click" Margin="0,0,8,0" />
+                    <ui:Button x:Name="DeleteRangeButton" Content="{loc:L 'Delete selected ra_nge'}"
+                               Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,0,8,0" />
                     <ui:Button Content="{loc:L 'Restore de_faults'}" Click="RestoreDefaults_Click"
                                ToolTip="{loc:L 'Replaces every range with the standard two: \'My computer\' (127.0.0.1) and \'Internet\' (everything else).'}" />
                 </StackPanel>
@@ -62,6 +62,20 @@
              Save is the card's own action, in its footer. -->
         <scaffold:Card x:Name="PermCard" Grid.Row="3" Title="{loc:L 'Permissions (select a range)'}" Margin="0,12,0,0">
             <UniformGrid Columns="4">
+                <!-- A caption longer than its quarter of the card wraps under
+                     itself: "Deliver remote → remote (relay)" was cut at "(rela".
+                     AccessText, not TextBlock, so the Alt key still works. -->
+                <UniformGrid.Resources>
+                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                        <Setter Property="ContentTemplate">
+                            <Setter.Value>
+                                <DataTemplate>
+                                    <AccessText Text="{Binding}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </UniformGrid.Resources>
                 <CheckBox x:Name="PermSmtp" Content="{loc:L 'Allow _SMTP'}" Margin="0,0,12,8" />
                 <CheckBox x:Name="PermImap" Content="{loc:L 'Allow _IMAP'}" Margin="0,0,12,8" />
                 <CheckBox x:Name="PermPop3" Content="{loc:L 'Allow _POP3'}" Margin="0,0,12,8" />

@@ -405,9 +405,17 @@ namespace hMailServer.ControlPanel.Services
             : pipeSeparated.Split('|').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
 
       /// <summary>
-      /// The tree itself. Group order is the order an administrator meets these
-      /// subjects: first "is it working", then the things they were asked to
-      /// change, then the things they configure once.
+      /// The tree itself, in the order a new administrator needs it (27
+      /// September 2026; it was ordered "is it working" first, which put the
+      /// setup checklist twelfth under Monitoring). Getting started first - the
+      /// welcome, the dashboard and the setup group, whose checklist opens the
+      /// page for each step; then the domains and accounts; then how mail gets
+      /// in and out - delivery, the ports and protocols, the certificates; then
+      /// protection - spam and viruses, sign-in and access; then the day-to-day
+      /// - monitoring and troubleshooting; and last the maintenance and expert
+      /// settings a server rarely needs changed. The keys, and so the automation
+      /// ids nav-&lt;key&gt;, are what they were; two group headings were renamed
+      /// into plain words and keep their old names as aliases.
       /// </summary>
       private static List<NavNode> BuildRoots()
       {
@@ -424,128 +432,43 @@ namespace hMailServer.ControlPanel.Services
                aliases: "Overview|Charts|Graphs|Statistics|Counters|Throughput",
                seeAlso: "status|queue"),
 
-            Group("Pulse24", N("Monitoring & troubleshooting"),
-               N("Is mail flowing, and if it is not, where has it stopped?"),
-               "Status|Health|Troubleshooting|Problems|Something is wrong|Observability",
+            // First after the dashboard, because it is what a new server needs
+            // first: the checklist that says what is done and what is next, the
+            // profile that sets thirty settings for the kind of server this is,
+            // and the DNS records each domain has to publish. Every item on the
+            // checklist opens the page that does it, wherever that page lives.
+            Group("ClipboardTaskListLtr24", N("Set up this server"),
+               N("What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes."),
+               "Getting started|First steps|Setup|Set up|Onboarding|New server|New installation|Wizard|Setup wizard|First-hour checklist|Where do I start",
 
-               Page("status", N("Server status"),
-                  N("Which services are running, who is connected right now, and how long the server has been up."),
-                  aliases: "Sessions|Connections|Uptime|Running|Service state|Live sessions",
-                  seeAlso: "queue|dashboard|logs"),
+               // The server's first-hour checklist (docs/SetupChecklist.md) and
+               // everything else this server needs done outside it - a DNS zone,
+               // a CA, an identity provider - numbered in the order a new
+               // installation meets them, each item opening the page that does
+               // it. Called "External setup" until the reordering made it the
+               // way in; that title is an alias, and the key is unchanged, so
+               // every link and automation id still arrives here.
+               Page("externalsetup", N("Setup checklist"),
+                  N("What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one."),
+                  aliases: "External setup|External prerequisites|Prerequisites|Checklist|First-hour checklist|Outside the server|What still needs doing|What next|Publish a DNS record|TXT record|Inert features|Action needed",
+                  seeAlso: "dnsrecords|domains|profiles"),
 
-               Page("queue", N("Delivery queue"),
-                  N("Messages still waiting to be delivered, why each is waiting, and when it will be retried."),
-                  aliases: "Spool|Stuck mail|Pending mail|Outbound queue|Retry|Not delivered|Backlog",
-                  seeAlso: "logs|delivery|status|stalledmail"),
+               // The setting profiles (docs/Profiles.md): which profile is in effect,
+               // each one's diff against this server, apply and the way back. In
+               // the setup group because a profile is the checklist's first item:
+               // it sets thirty settings at once for the kind of server this is.
+               Page("profiles", N("Setting profiles"),
+                  N("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
+                  aliases: "Profile|Profiles|Server profile|Small office|Office server|Filtering gateway|Behind a gateway|Outbound relay|Relay server|High-volume sender|Bulk sender|Newsletter server|Recommended settings|Starting settings|Presets|Baseline|Kind of server",
+                  seeAlso: "hardening|backup"),
 
-               // The guide to mail that stops moving on a healthy-looking server,
-               // as a page with a button beside each step. The queue shows that a
-               // message is waiting; this is what to do when the reason is not on
-               // the queue page - which is the case the guide was written for.
-               Page("stalledmail", N("Diagnosing stalled mail"),
-                  N("Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage."),
-                  aliases: "Stalled mail|Slow mail|Mail is stalled|Timed out while sending end of data|Accepted but never delivered|Hung|Wedged|Stall diagnosis|Diagnosing slow mail",
-                  seeAlso: "queue|logs|diagnostics"),
-
-               // Next to the queue on purpose: the two answer the same question at
-               // different moments. The queue says where a message is now; the trace
-               // says what happened to one that has already gone.
-               Page("messagetrace", N("Message trace"),
-                  N("What happened to a particular message - searchable by sender or recipient, instead of grepping logs."),
-                  aliases: "Message trace|Delivery history|Where did my email go|Did it arrive|Track a message|Was it delivered|Message log|Audit|What happened to|Trace",
-                  seeAlso: "queue|logs|quarantine"),
-
-               // Beside the trace, because it answers the question that follows
-               // one: the message bounced, and now the address is not being sent
-               // to - why, since when, and how to undo it. A domain administrator's
-               // page as well: Utilities.GetSuppressionList and the rest answer the
-               // administrator of that domain, and the domains it picks from are
-               // Application.Domains, narrowed to the credential's own.
-               Page("suppressions", N("Suppression list"),
-                  N("Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand."),
-                  aliases: "Bounces|Hard bounce|Dead addresses|Suppression|Bounce list|Why is mail to this address refused|Stop sending to an address",
-                  seeAlso: "messagetrace|queue|delivery",
-                  needs: "administer_domain"),
-
-               // Who changed what: every administrative change as one row of a hash
-               // chain, over Utilities.GetAuditTrail, with a setting's change put back
-               // from its row. The server administrator's: the trail records every
-               // domain's changes.
-               // Beside the audit trail, because both answer a compliance
-               // question: who changed what, and where a copy of the mail goes.
-               Page("journaling", N("Journaling and dual delivery"),
-                  N("A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself."),
-                  aliases: "Journaling|Journal|Dual delivery|Compliance archive|Copy every message|Send a copy elsewhere|Archive to another system|Migration copy|Envelope report|Blind copy to an archive",
-                  seeAlso: "audit|messagetrace",
-                  needs: "administer_server"),
-
-               Page("audit", N("Audit trail"),
-                  N("Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had."),
-                  aliases: "Audit|Who changed|History|Change log|Put back|Undo a setting|Revert a change|Compliance",
-                  seeAlso: "adminaccess|logs",
-                  needs: "administer_server"),
-
-               // eDiscovery, read-only, beside the audit trail its lines come from.
-               // Read over the REST API, since discovery has no COM surface; the
-               // cases are opened, searched, held and exported in the Deck. The
-               // permission is the discovery reader's, so an auditor sees it.
-               Page("discovery", N("Discovery"),
-                  N("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
-                  aliases: "eDiscovery|Legal hold|Litigation hold|Case|Custodian|Preserve mail|Search every mailbox|Export for a lawyer|Discovery search",
-                  seeAlso: "audit|journaling",
-                  needs: "view_discovery"),
-
-               Page("logs", N("Live logs"),
-                  N("Stream the server log as it is written - the fastest way to see what happened to one message."),
-                  aliases: "Log viewer|Tail|Trace|Debug|SMTP conversation|Error log|Awstats",
-                  seeAlso: "logging|queue|diagnostics"),
-
-               Page("diagnostics", N("Diagnostics"),
-                  N("Run the built-in connectivity and configuration checks, and read the last message-store consistency scan."),
-                  aliases: "Self test|Health check|Port 25 test|Connectivity|Message store consistency|Missing files",
-                  seeAlso: "mxquery|logs|queue"),
-
-               Page("mxquery", N("MX query"),
-                  N("Look up where e-mail for a domain is delivered, to check DNS before blaming the server."),
-                  aliases: "MX-query|MX lookup|DNS lookup|nslookup|Mail exchanger|Where does mail go",
-                  seeAlso: "routes|dns|diagnostics"),
-
-               // Several shipped features are inert until something is done where
-               // the server has no reach - a DNS zone, a CA, an identity provider.
-               // This page is the one place that says which of those are still
-               // outstanding, so it lives with the other "is it actually working"
-               // pages rather than beside any one feature's settings.
-               Page("externalsetup", N("External setup"),
-                  N("Everything this server needs done outside it - DNS records, key and CA files, trusted lists - and the state of each one."),
-                  aliases: "External prerequisites|Prerequisites|Setup checklist|Checklist|Outside the server|What still needs doing|Publish a DNS record|TXT record|Inert features|Action needed",
-                  seeAlso: "security|diagnostics|domains"),
-
-               // Sits beside External setup on purpose: that page says WHICH
-               // external steps are outstanding, this one produces the exact
-               // DNS records those steps need and checks each one.
+               // Sits beside the setup checklist on purpose: that page says WHICH
+               // steps are outstanding, this one produces the exact DNS records
+               // those steps need and checks each one.
                Page("dnsrecords", N("DNS records"),
                   N("The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live."),
                   aliases: "SPF record|DKIM record|DMARC record|MTA-STS record|TLS-RPT record|TXT records|Reverse DNS|PTR record|What DNS records do I need|Publish DNS records|DNS checklist|Sender authentication",
-                  seeAlso: "externalsetup|domains|security"),
-
-               Page("logging", N("Logging"),
-                  N("Which log files the server writes, how much detail they carry, and how long they are kept."),
-                  aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging",
-                  seeAlso: "logs|performance"),
-
-               Page("api", N("API & monitoring"),
-                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads."),
-                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Webhooks|Automation",
-                  seeAlso: "apikeys|logging|status|webservices"),
-
-               // Its own page rather than a card on API & monitoring: keys are a
-               // list of objects with their own lifecycle, and the page has to be
-               // usable while the REST listener is switched off - which is the
-               // state every installation is in when it first comes here.
-               Page("apikeys", N("REST API keys"),
-                  N("Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password."),
-                  aliases: "API key|Bearer token|Access token|Credential|Service account for the API|Revoke a key|hmapi|Automation credential|Read-only key",
-                  seeAlso: "api|adminaccess")),
+                  seeAlso: "externalsetup|domains|security")),
 
             Group("Globe24", N("Accounts & domains"),
                N("The people and the domains this server carries mail for."),
@@ -561,15 +484,15 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "publicfolders|groups|rules",
                   needs: "administer_domain"),
 
-               Page("publicfolders", N("Public folders"),
-                  N("Shared IMAP folders, and which accounts or groups may read and write each one."),
-                  aliases: "Shared folders|Shared mailbox|IMAP ACL|Permissions|Team folder|Shared calendar",
-                  seeAlso: "groups|domains"),
-
                Page("groups", N("Groups"),
                   N("Security groups, so shared-folder permissions can be granted to several accounts at once."),
                   aliases: "Security groups|Membership|Permission groups",
                   seeAlso: "publicfolders|domains"),
+
+               Page("publicfolders", N("Public folders"),
+                  N("Shared IMAP folders, and which accounts or groups may read and write each one."),
+                  aliases: "Shared folders|Shared mailbox|IMAP ACL|Permissions|Team folder|Shared calendar",
+                  seeAlso: "groups|domains"),
 
                Page("roles", N("Administrator roles"),
                   N("Who may administer what: the named roles this server has, and the accounts that hold them."),
@@ -620,6 +543,80 @@ namespace hMailServer.ControlPanel.Services
                   N("E-mail every account on the server at once - for maintenance announcements."),
                   aliases: "Announcement|Mail all users|Broadcast|Notify everyone|Maintenance notice",
                   seeAlso: "domains")),
+
+            Group("PlugConnected24", N("Connections & protocols"),
+               N("Which services listen, on what, and how clients reach them."),
+               "Network|Ports|Listeners|Protocols|Bindings|Client access",
+
+               Page("ports", N("TCP/IP ports"),
+                  N("The addresses and ports each protocol listens on, and the connection security used on each."),
+                  aliases: "Listeners|Bindings|Port 25|Port 465|Port 587|Submission|Port 993|Port 995|STARTTLS|Implicit TLS|Interface|Bind address|Open a port",
+                  seeAlso: "certs|tls|protocols"),
+
+               Page("protocols", N("Protocols"),
+                  N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP."),
+                  aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Authentication required|Welcome banner",
+                  seeAlso: "ports|delivery|authentication"),
+
+               Page("webservices", N("Web services & autoconfiguration"),
+                  N("The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges."),
+                  aliases: "HTTP|Autodiscover|Autoconfig|Outlook setup|Thunderbird setup|Mobile setup|MTA-STS policy|Well-known|Web server",
+                  seeAlso: "acme|security|api"),
+
+               Page("dns", N("DNS resolver"),
+                  N("Which name servers the server asks, and whether answers are DNSSEC validated."),
+                  aliases: "Name servers|Resolver|DNSSEC|Lookup failures|DNS cache|EDNS",
+                  seeAlso: "security|antispam|mxquery")),
+
+            Group("LockClosed24", N("Certificates & encryption"),
+               N("Is transport security correct, and will it still be correct next month?"),
+               "TLS & certificates|TLS|SSL|Certificates|Encryption|MTA-STS|DANE|Transport security",
+
+               Page("certs", N("SSL certificates"),
+                  N("The certificates this server presents, which port uses which, and when each expires."),
+                  aliases: "Certificate|SSL certificate|TLS certificate|PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
+                  seeAlso: "acme|ports|security"),
+
+               Page("acme", N("Certificates (ACME)"),
+                  N("Issue and renew certificates automatically from Let's Encrypt or another ACME authority."),
+                  aliases: "ACME|Let's Encrypt|Letsencrypt|Automatic renewal|http-01|Certbot|Free certificate",
+                  seeAlso: "certs|webservices|ports"),
+
+               // The TLS half of what used to be "Auto-ban & SSL/TLS". The title
+               // is new because the old one named two subjects and this page is
+               // now one of them; the old title stays as an alias, and it is also
+               // an alias on the Auto-ban page, so a note naming it reaches
+               // whichever half its reader wanted.
+               // Four pages own the pieces of transport security and none of them
+               // can answer the question an administrator arrives with: is anything
+               // here carrying a password in the clear, and will it still serve a
+               // valid certificate next month? The interesting states only exist in
+               // the combination - a port set to use TLS with no certificate does
+               // not fall back to plaintext, it fails to start; the AEAD-ONLY preset
+               // leaves TLS 1.0 and 1.1 advertised with no suite they can use; the
+               // one control that refuses a plaintext password lives on the IP
+               // ranges page, which is why it is so often never seen.
+               //
+               // Read-only, like the spam and virus overviews, and for the same
+               // reason: it must not become a fifth place to change the same value.
+               Page("tlsoverview", N("Transport encryption overview"),
+                  N("What every listener protects, which certificate it presents and when that expires, and what can still be negotiated."),
+                  aliases: "TLS overview|SSL overview|Encryption overview|Is my mail encrypted|Plaintext password|Passwords in the clear|Unencrypted port|Certificate expiry|Certificate expiring|What TLS am I using|STARTTLS not required",
+                  seeAlso: "tls|certs|ports"),
+
+               Page("tls", N("SSL/TLS"),
+                  N("Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to."),
+                  aliases: "Auto-ban & SSL/TLS|TLS versions|TLS 1.0|TLS 1.1|TLS 1.2|TLS 1.3|Ciphers|Cipher list|Cipher suites|OpenSSL cipher string|Disable old TLS|Weak ciphers|ChaCha20|Verify remote certificate",
+                  // autoban stays in this list. This page and Auto-ban are the two
+                  // halves of the old "Auto-ban & SSL/TLS", and PageSplitTests holds
+                  // them to signposting each other so a reader who followed the old
+                  // title and landed on the wrong half can get to the right one.
+                  seeAlso: "tlsoverview|certs|ports|security|autoban"),
+
+               Page("security", N("Transport security"),
+                  N("DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required."),
+                  aliases: "DANE|TLSA|MTA-STS|TLS-RPT|TLS reporting|ARC|Downgrade|Opportunistic TLS|Enforce TLS",
+                  seeAlso: "certs|dns|webservices")),
 
             Group("ShieldCheckmark24", N("Spam & virus filtering"),
                N("Everything that decides whether a message is wanted."),
@@ -734,112 +731,24 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Attachment blocking|Block exe|File extensions|Strip attachments|Dangerous files|Zip",
                   seeAlso: "virusoverview|antivirus")),
 
-            Group("PlugConnected24", N("Connections & protocols"),
-               N("Which services listen, on what, and how clients reach them."),
-               "Network|Ports|Listeners|Protocols|Bindings|Client access",
-
-               Page("protocols", N("Protocols"),
-                  N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP."),
-                  aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Authentication required|Welcome banner",
-                  seeAlso: "ports|delivery|authentication"),
-
-               Page("ports", N("TCP/IP ports"),
-                  N("The addresses and ports each protocol listens on, and the connection security used on each."),
-                  aliases: "Listeners|Bindings|Port 25|Port 465|Port 587|Submission|Port 993|Port 995|STARTTLS|Implicit TLS|Interface|Bind address|Open a port",
-                  seeAlso: "certs|tls|protocols"),
-
-               Page("webservices", N("Web services & autoconfiguration"),
-                  N("The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges."),
-                  aliases: "HTTP|Autodiscover|Autoconfig|Outlook setup|Thunderbird setup|Mobile setup|MTA-STS policy|Well-known|Web server",
-                  seeAlso: "acme|security|api"),
-
-               Page("dns", N("DNS resolver"),
-                  N("Which name servers the server asks, and whether answers are DNSSEC validated."),
-                  aliases: "Name servers|Resolver|DNSSEC|Lookup failures|DNS cache|EDNS",
-                  seeAlso: "security|antispam|mxquery")),
-
-            Group("LockClosed24", N("TLS & certificates"),
-               N("Is transport security correct, and will it still be correct next month?"),
-               "TLS|SSL|Certificates|Encryption|MTA-STS|DANE|Transport security",
-
-               Page("certs", N("SSL certificates"),
-                  N("The certificates this server presents, which port uses which, and when each expires."),
-                  aliases: "Certificate|SSL certificate|TLS certificate|PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
-                  seeAlso: "acme|ports|security"),
-
-               Page("acme", N("Certificates (ACME)"),
-                  N("Issue and renew certificates automatically from Let's Encrypt or another ACME authority."),
-                  aliases: "ACME|Let's Encrypt|Letsencrypt|Automatic renewal|http-01|Certbot|Free certificate",
-                  seeAlso: "certs|webservices|ports"),
-
-               // The TLS half of what used to be "Auto-ban & SSL/TLS". The title
-               // is new because the old one named two subjects and this page is
-               // now one of them; the old title stays as an alias, and it is also
-               // an alias on the Auto-ban page, so a note naming it reaches
-               // whichever half its reader wanted.
-               // Four pages own the pieces of transport security and none of them
-               // can answer the question an administrator arrives with: is anything
-               // here carrying a password in the clear, and will it still serve a
-               // valid certificate next month? The interesting states only exist in
-               // the combination - a port set to use TLS with no certificate does
-               // not fall back to plaintext, it fails to start; the AEAD-ONLY preset
-               // leaves TLS 1.0 and 1.1 advertised with no suite they can use; the
-               // one control that refuses a plaintext password lives on the IP
-               // ranges page, which is why it is so often never seen.
-               //
-               // Read-only, like the spam and virus overviews, and for the same
-               // reason: it must not become a fifth place to change the same value.
-               Page("tlsoverview", N("Transport encryption overview"),
-                  N("What every listener protects, which certificate it presents and when that expires, and what can still be negotiated."),
-                  aliases: "TLS overview|SSL overview|Encryption overview|Is my mail encrypted|Plaintext password|Passwords in the clear|Unencrypted port|Certificate expiry|Certificate expiring|What TLS am I using|STARTTLS not required",
-                  seeAlso: "tls|certs|ports"),
-
-               Page("tls", N("SSL/TLS"),
-                  N("Which TLS versions and ciphers this server will negotiate, and whether it verifies the certificate of the server it delivers to."),
-                  aliases: "Auto-ban & SSL/TLS|TLS versions|TLS 1.0|TLS 1.1|TLS 1.2|TLS 1.3|Ciphers|Cipher list|Cipher suites|OpenSSL cipher string|Disable old TLS|Weak ciphers|ChaCha20|Verify remote certificate",
-                  // autoban stays in this list. This page and Auto-ban are the two
-                  // halves of the old "Auto-ban & SSL/TLS", and PageSplitTests holds
-                  // them to signposting each other so a reader who followed the old
-                  // title and landed on the wrong half can get to the right one.
-                  seeAlso: "tlsoverview|certs|ports|security|autoban"),
-
-               Page("security", N("Transport security"),
-                  N("DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required."),
-                  aliases: "DANE|TLSA|MTA-STS|TLS-RPT|TLS reporting|ARC|Downgrade|Opportunistic TLS|Enforce TLS",
-                  seeAlso: "certs|dns|webservices")),
-
-            Group("ShieldKeyhole24", N("Access & abuse protection"),
+            Group("ShieldKeyhole24", N("Sign-in & access"),
                N("Who may connect, who may authenticate, and what happens when someone keeps trying."),
-               "Security|Access control|Authentication|Abuse|Brute force|Who can connect",
+               "Access & abuse protection|Security|Access control|Authentication|Abuse|Brute force|Who can connect",
 
                Page("authentication", N("Authentication"),
                   N("How accounts prove who they are: password hashing, OAuth2 / XOAUTH2, and required mechanisms."),
                   aliases: "Password hashing|bcrypt|Argon2|OAuth2|XOAUTH2|Modern authentication|Microsoft 365|Google|SASL|CRAM-MD5|APOP|Two-factor|Pepper",
                   seeAlso: "adminaccess|autoban|ipranges|protocols"),
 
-               // Directory authentication is how accounts prove who they are, so it
-               // belongs beside Authentication - not filed under "advanced INI" because
-               // that happens to be where its settings are stored.
-               Page("ldap", N("Directory authentication (LDAP)"),
-                  N("Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password."),
-                  aliases: "LDAP|Active Directory|AD|Directory|Domain password|Bind|LDAPS|StartTLS|Single sign-on|Domain accounts|DC",
-                  seeAlso: "authentication|adminaccess|domains|directorysync"),
-
-               // Beside directory authentication, and deliberately not folded into it.
-               // The two answer different questions: that page is about whether somebody
-               // who already has a mailbox can log into it, this one about which people
-               // have a mailbox at all. Somebody arriving to bulk-create accounts from
-               // the directory is not looking for a bind method, and somebody debugging
-               // a logon does not want a provisioning run one click away.
-               Page("directorysync", N("Directory synchronisation"),
-                  N("Create and update mailboxes to match an LDAP directory - preview first, then apply."),
-                  aliases: "Directory sync|Provisioning|Provision accounts|Account source|Bulk create accounts|Import users|Sync users|LDAP sync|AD sync|Create accounts from Active Directory|Onboarding|Leavers",
-                  seeAlso: "ldap|domains"),
-
                Page("adminaccess", N("Administrative access"),
                   N("The server administration password, and who is allowed to use these tools at all."),
                   aliases: "Admin password|Administrator password|Change the admin password|Remote administration|COM API access",
                   seeAlso: "authentication"),
+
+               Page("ipranges", N("IP ranges"),
+                  N("Which addresses may connect, which may relay without authenticating, and which must authenticate first."),
+                  aliases: "IP range|Firewall|Block an IP|Allow an IP|Open relay|Relay permissions|Require authentication|Let a device send mail|Printer|Scanner|LAN|Localhost|My IP",
+                  seeAlso: "authentication|autoban|relays|delivery"),
 
                // The brute-force half of what used to be "Auto-ban & SSL/TLS".
                // The two subjects on that page shared nothing: an administrator
@@ -859,23 +768,133 @@ namespace hMailServer.ControlPanel.Services
                   // one, because this is the half the documented path resolves to.
                   seeAlso: "ipranges|authentication|tls|logs"),
 
-               Page("ipranges", N("IP ranges"),
-                  N("Which addresses may connect, which may relay without authenticating, and which must authenticate first."),
-                  aliases: "IP range|Firewall|Block an IP|Allow an IP|Open relay|Relay permissions|Require authentication|Let a device send mail|Printer|Scanner|LAN|Localhost|My IP",
-                  seeAlso: "authentication|autoban|relays|delivery")),
+               // Directory authentication is how accounts prove who they are, so it
+               // belongs beside Authentication - not filed under "advanced INI" because
+               // that happens to be where its settings are stored.
+               Page("ldap", N("Directory authentication (LDAP)"),
+                  N("Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password."),
+                  aliases: "LDAP|Active Directory|AD|Directory|Domain password|Bind|LDAPS|StartTLS|Single sign-on|Domain accounts|DC",
+                  seeAlso: "authentication|adminaccess|domains|directorysync"),
+
+               // Beside directory authentication, and deliberately not folded into it.
+               // The two answer different questions: that page is about whether somebody
+               // who already has a mailbox can log into it, this one about which people
+               // have a mailbox at all. Somebody arriving to bulk-create accounts from
+               // the directory is not looking for a bind method, and somebody debugging
+               // a logon does not want a provisioning run one click away.
+               Page("directorysync", N("Directory synchronisation"),
+                  N("Create and update mailboxes to match an LDAP directory - preview first, then apply."),
+                  aliases: "Directory sync|Provisioning|Provision accounts|Account source|Bulk create accounts|Import users|Sync users|LDAP sync|AD sync|Create accounts from Active Directory|Onboarding|Leavers",
+                  seeAlso: "ldap|domains")),
+
+            Group("Pulse24", N("Monitoring & troubleshooting"),
+               N("Is mail flowing, and if it is not, where has it stopped?"),
+               "Status|Health|Troubleshooting|Problems|Something is wrong|Observability",
+
+               Page("status", N("Server status"),
+                  N("Which services are running, who is connected right now, and how long the server has been up."),
+                  aliases: "Sessions|Connections|Uptime|Running|Service state|Live sessions",
+                  seeAlso: "queue|dashboard|logs"),
+
+               Page("queue", N("Delivery queue"),
+                  N("Messages still waiting to be delivered, why each is waiting, and when it will be retried."),
+                  aliases: "Spool|Stuck mail|Pending mail|Outbound queue|Retry|Not delivered|Backlog",
+                  seeAlso: "logs|delivery|status|stalledmail"),
+
+               Page("logs", N("Live logs"),
+                  N("Stream the server log as it is written - the fastest way to see what happened to one message."),
+                  aliases: "Log viewer|Tail|Trace|Debug|SMTP conversation|Error log|Awstats",
+                  seeAlso: "logging|queue|diagnostics"),
+
+               Page("logging", N("Logging"),
+                  N("Which log files the server writes, how much detail they carry, and how long they are kept."),
+                  aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging",
+                  seeAlso: "logs|performance"),
+
+               // The guide to mail that stops moving on a healthy-looking server,
+               // as a page with a button beside each step. The queue shows that a
+               // message is waiting; this is what to do when the reason is not on
+               // the queue page - which is the case the guide was written for.
+               Page("stalledmail", N("Diagnosing stalled mail"),
+                  N("Mail is not moving and nothing has crashed: which half has stalled, the log lines that name the cause, and the setting that bounds each stage."),
+                  aliases: "Stalled mail|Slow mail|Mail is stalled|Timed out while sending end of data|Accepted but never delivered|Hung|Wedged|Stall diagnosis|Diagnosing slow mail",
+                  seeAlso: "queue|logs|diagnostics"),
+
+               // Next to the queue on purpose: the two answer the same question at
+               // different moments. The queue says where a message is now; the trace
+               // says what happened to one that has already gone.
+               Page("messagetrace", N("Message trace"),
+                  N("What happened to a particular message - searchable by sender or recipient, instead of grepping logs."),
+                  aliases: "Message trace|Delivery history|Where did my email go|Did it arrive|Track a message|Was it delivered|Message log|Audit|What happened to|Trace",
+                  seeAlso: "queue|logs|quarantine"),
+
+               Page("diagnostics", N("Diagnostics"),
+                  N("Run the built-in connectivity and configuration checks, and read the last message-store consistency scan."),
+                  aliases: "Self test|Health check|Port 25 test|Connectivity|Message store consistency|Missing files",
+                  seeAlso: "mxquery|logs|queue"),
+
+               Page("mxquery", N("MX query"),
+                  N("Look up where e-mail for a domain is delivered, to check DNS before blaming the server."),
+                  aliases: "MX-query|MX lookup|DNS lookup|nslookup|Mail exchanger|Where does mail go",
+                  seeAlso: "routes|dns|diagnostics"),
+
+               // Beside the trace, because it answers the question that follows
+               // one: the message bounced, and now the address is not being sent
+               // to - why, since when, and how to undo it. A domain administrator's
+               // page as well: Utilities.GetSuppressionList and the rest answer the
+               // administrator of that domain, and the domains it picks from are
+               // Application.Domains, narrowed to the credential's own.
+               Page("suppressions", N("Suppression list"),
+                  N("Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand."),
+                  aliases: "Bounces|Hard bounce|Dead addresses|Suppression|Bounce list|Why is mail to this address refused|Stop sending to an address",
+                  seeAlso: "messagetrace|queue|delivery",
+                  needs: "administer_domain"),
+
+               // Who changed what: every administrative change as one row of a hash
+               // chain, over Utilities.GetAuditTrail, with a setting's change put back
+               // from its row. The server administrator's: the trail records every
+               // domain's changes.
+               Page("audit", N("Audit trail"),
+                  N("Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had."),
+                  aliases: "Audit|Who changed|History|Change log|Put back|Undo a setting|Revert a change|Compliance",
+                  seeAlso: "adminaccess|logs",
+                  needs: "administer_server"),
+
+               // Beside the audit trail, because both answer a compliance
+               // question: who changed what, and where a copy of the mail goes.
+               Page("journaling", N("Journaling and dual delivery"),
+                  N("A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself."),
+                  aliases: "Journaling|Journal|Dual delivery|Compliance archive|Copy every message|Send a copy elsewhere|Archive to another system|Migration copy|Envelope report|Blind copy to an archive",
+                  seeAlso: "audit|messagetrace",
+                  needs: "administer_server"),
+
+               // eDiscovery, read-only, beside the audit trail its lines come from.
+               // Read over the REST API, since discovery has no COM surface; the
+               // cases are opened, searched, held and exported in the Deck. The
+               // permission is the discovery reader's, so an auditor sees it.
+               Page("discovery", N("Discovery"),
+                  N("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
+                  aliases: "eDiscovery|Legal hold|Litigation hold|Case|Custodian|Preserve mail|Search every mailbox|Export for a lawyer|Discovery search",
+                  seeAlso: "audit|journaling",
+                  needs: "view_discovery"),
+
+               Page("api", N("API & monitoring"),
+                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads."),
+                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Webhooks|Automation",
+                  seeAlso: "apikeys|logging|status|webservices"),
+
+               // Its own page rather than a card on API & monitoring: keys are a
+               // list of objects with their own lifecycle, and the page has to be
+               // usable while the REST listener is switched off - which is the
+               // state every installation is in when it first comes here.
+               Page("apikeys", N("REST API keys"),
+                  N("Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password."),
+                  aliases: "API key|Bearer token|Access token|Credential|Service account for the API|Revoke a key|hmapi|Automation credential|Read-only key",
+                  seeAlso: "api|adminaccess")),
 
             Group("Wrench24", N("Maintenance"),
                N("Housekeeping, tuning, and the settings that still have no better home."),
                "Housekeeping|Backup|Tuning|Advanced|Scripting|INI",
-
-               // The setting profiles (docs/Profiles.md): which profile is in effect,
-               // each one's diff against this server, apply and the way back. Beside
-               // the backup, because both are about the server's configuration as a
-               // whole rather than one feature's.
-               Page("profiles", N("Setting profiles"),
-                  N("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
-                  aliases: "Profile|Profiles|Server profile|Small office|Office server|Filtering gateway|Behind a gateway|Outbound relay|Relay server|High-volume sender|Bulk sender|Newsletter server|Recommended settings|Starting settings|Presets|Baseline|Kind of server",
-                  seeAlso: "hardening|backup"),
 
                Page("backup", N("Backup & restore"),
                   N("Back up or restore the configuration, the domains and the messages."),

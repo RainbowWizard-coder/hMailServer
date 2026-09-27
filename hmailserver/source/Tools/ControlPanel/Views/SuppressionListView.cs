@@ -373,12 +373,17 @@ namespace hMailServer.ControlPanel.Views
          filters.Children.Add(domainChoice_);
          toolbar_.Filters = filters;
 
-         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         // A WrapPanel, so that in a narrow window Refresh moves to a second
+         // line rather than off the edge.
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal };
          actions.Children.Add(MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry()));
-         var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Danger, (_, _) => RemoveSelected());
+         var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
+         ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
          actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         foreach (FrameworkElement button in actions.Children)
+            button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
          toolbar_.Actions = actions;
          Grid.SetRow(toolbar_, 1);
          root.Children.Add(toolbar_);

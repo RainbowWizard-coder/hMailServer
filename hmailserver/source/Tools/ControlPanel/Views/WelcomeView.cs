@@ -156,6 +156,9 @@ namespace hMailServer.ControlPanel.Views
             Padding = new Thickness(16, 12, 16, 12),
             HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            // Stretched to the row's height: centred, a two-line tile sat lower
+            // than the three-line one beside it and the two columns never lined up.
+            VerticalAlignment = VerticalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Top,
             Cursor = System.Windows.Input.Cursors.Hand
          };

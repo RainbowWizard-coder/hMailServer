@@ -701,8 +701,8 @@
   <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
     <value>ACME выключен (AcmeEnabled=0, значение по умолчанию), поэтому ничего внешнего не требуется.</value>
   </data>
-  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the External setup page checks exactly that." xml:space="preserve">
-    <value>ACME включён, но сертификат ещё не выпущен — в {0} нет одновременно fullchain.pem и privkey.pem. Выпуск происходит по собственному расписанию сервера, поэтому в течение нескольких минут после включения это нормально; если состояние сохраняется, значит ЦС не смог достучаться до этого сервера, и страница «Внешняя настройка» проверяет именно это.</value>
+  <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
+    <value>ACME включён, но сертификат ещё не выпущен — в {0} нет одновременно fullchain.pem и privkey.pem. Выпуск происходит по собственному расписанию сервера, поэтому в течение нескольких минут после включения это нормально; если состояние сохраняется, значит ЦС не смог достучаться до этого сервера, и страница «Контрольный список настройки» проверяет именно это.</value>
   </data>
   <data name="AD do_main of that user" xml:space="preserve">
     <value>Домен _AD этого пользователя</value>
@@ -793,9 +793,6 @@
   </data>
   <data name="Accepting: the sender times out after sending the message" xml:space="preserve">
     <value>Приём: у отправителя истекает тайм-аут после отправки сообщения</value>
-  </data>
-  <data name="Access &amp; abuse protection" xml:space="preserve">
-    <value>Доступ и защита от злоупотреблений</value>
   </data>
   <data name="Access control: which addresses may connect and what they are allowed to do. Higher priority wins." xml:space="preserve">
     <value>Управление доступом: какие адреса могут подключаться и что им разрешено делать. Побеждает более высокий приоритет.</value>
@@ -1103,8 +1100,8 @@ Control Panel может читать файлы сообщений только
   <data name="Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's." xml:space="preserve">
     <value>Адреса и целые домены, которые учётные записи {0} хотят или не хотят получать. Действует после собственного списка учётной записи и перед списком сервера.</value>
   </data>
-  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The External setup page checks your domains for this." xml:space="preserve">
-    <value>Добавляет печати ARC к пересылаемой почте, чтобы серверы дальше по цепочке могли доверять исходным результатам аутентификации (RFC 8617). Запечатывание заимствует селектор DKIM и закрытый ключ пересылающего домена, поэтому нужен хотя бы один размещённый домен с настроенным подписыванием DKIM — без него переключатель выглядит включённым, но не запечатывает ничего, сообщая об этом лишь строкой отладочного журнала. Страница «Внешняя настройка» проверяет ваши домены на этот счёт.</value>
+  <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
+    <value>Добавляет печати ARC к пересылаемой почте, чтобы серверы дальше по цепочке могли доверять исходным результатам аутентификации (RFC 8617). Запечатывание заимствует селектор DKIM и закрытый ключ пересылающего домена, поэтому нужен хотя бы один размещённый домен с настроенным подписыванием DKIM — без него переключатель выглядит включённым, но не запечатывает ничего, сообщая об этом лишь строкой отладочного журнала. Страница «Контрольный список настройки» проверяет ваши домены на этот счёт.</value>
   </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Администрирование (управление ACL)</value>
@@ -1916,6 +1913,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Сертификаты</value>
+  </data>
+  <data name="Certificates &amp; encryption" xml:space="preserve">
+    <value>Сертификаты и шифрование</value>
   </data>
   <data name="Certificates (ACME)" xml:space="preserve">
     <value>Сертификаты (ACME)</value>
@@ -3060,6 +3060,9 @@ Control Panel может читать файлы сообщений только
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: сообщение принимается, но так и не уходит</value>
   </data>
+  <data name="Delivers to" xml:space="preserve">
+    <value>Доставляет на</value>
+  </data>
   <data name="Delivery" xml:space="preserve">
     <value>Доставка</value>
   </data>
@@ -3650,9 +3653,6 @@ Control Panel может читать файлы сообщений только
   <data name="Everything that decides whether a message is wanted." xml:space="preserve">
     <value>Всё, что решает, нужное ли это сообщение.</value>
   </data>
-  <data name="Everything this server needs done outside it - DNS records, key and CA files, trusted lists - and the state of each one." xml:space="preserve">
-    <value>Всё, что нужно сделать за пределами этого сервера, — записи DNS, файлы ключей и ЦС, списки доверия, — и состояние каждого пункта.</value>
-  </data>
   <data name="Everything, debug included (severity 7)" xml:space="preserve">
     <value>Всё, включая отладку (важность 7)</value>
   </data>
@@ -3748,9 +3748,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="External recipients (addresses this server does not host)" xml:space="preserve">
     <value>Внешние получатели (адреса, которые этот сервер не обслуживает)</value>
-  </data>
-  <data name="External setup" xml:space="preserve">
-    <value>Внешняя настройка</value>
   </data>
   <data name="External to external (_open relay!)" xml:space="preserve">
     <value>Внешний → внешний (_открытая ретрансляция!)</value>
@@ -5418,6 +5415,12 @@ Control Panel может читать файлы сообщений только
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Следующая ротация {0}</value>
   </data>
+  <data name="Next step" xml:space="preserve">
+    <value>Следующий шаг</value>
+  </data>
+  <data name="Next step: {0}." xml:space="preserve">
+    <value>Следующий шаг: {0}.</value>
+  </data>
   <data name="Next try" xml:space="preserve">
     <value>Следующая попытка</value>
   </data>
@@ -5664,6 +5667,9 @@ Control Panel может читать файлы сообщений только
   <data name="No profile has been applied. A profile sets about thirty settings for the kind of server this is - a small office, behind a filtering gateway, an outbound relay, a high-volume sender - and shows every change before it is made." xml:space="preserve">
     <value>Профиль не применён. Профиль задаёт около тридцати параметров для типа сервера - небольшой офис, за фильтрующим шлюзом, исходящий ретранслятор, массовый отправитель - и показывает каждое изменение до того, как оно будет сделано.</value>
   </data>
+  <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
+    <value>Общих папок пока нет. Добавить папку создаёт папку, которую могут открывать несколько учётных записей; Разрешения затем определяет, кто может читать и записывать в неё.</value>
+  </data>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>В параметрах SMTP не задано публичное имя узла.</value>
   </data>
@@ -5807,6 +5813,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Пока ничего не записано. Каждое административное изменение появляется здесь.</value>
+  </data>
+  <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
+    <value>Пока ничего не запускалось. Нажмите Запустить диагностику, и здесь появится результат каждой проверки, а для неудачных - что с ними делать.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Здесь ничего решать не нужно: ни один почтовый ящик не пропускается и ни один не отключается.</value>
@@ -6090,9 +6099,6 @@ Control Panel может читать файлы сообщений только
   <data name="Open Domains…" xml:space="preserve">
     <value>Открыть «Домены»…</value>
   </data>
-  <data name="Open External setup, the full checklist of what this server needs done outside it" xml:space="preserve">
-    <value>Открыть «Внешняя настройка» — полный перечень того, что нужно сделать для этого сервера за его пределами</value>
-  </data>
   <data name="Open IP ranges, which owns the require-TLS-for-authentication setting" xml:space="preserve">
     <value>Открыть «Диапазоны IP», где находится параметр «Требовать TLS при аутентификации»</value>
   </data>
@@ -6152,6 +6158,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Open the member list of '" xml:space="preserve">
     <value>Открыть список участников «</value>
+  </data>
+  <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
+    <value>Открыть контрольный список настройки: все пункты, что сделано и что делать дальше</value>
   </data>
   <data name="Open {0}" xml:space="preserve">
     <value>Открыть {0}</value>
@@ -8301,6 +8310,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
     <value>Настроить или отключить второй фактор, обеспечиваемый сервером…</value>
   </data>
+  <data name="Set up this server" xml:space="preserve">
+    <value>Настройка этого сервера</value>
+  </data>
   <data name="Set up two-factor authentication…" xml:space="preserve">
     <value>Настроить двухфакторную аутентификацию…</value>
   </data>
@@ -8331,6 +8343,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Settings…" xml:space="preserve">
     <value>Параметры…</value>
+  </data>
+  <data name="Setup _checklist…" xml:space="preserve">
+    <value>_Контрольный список настройки…</value>
+  </data>
+  <data name="Setup checklist" xml:space="preserve">
+    <value>Контрольный список настройки</value>
   </data>
   <data name="Setup key (for manual entry)" xml:space="preserve">
     <value>Ключ настройки (для ручного ввода)</value>
@@ -8406,6 +8424,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Войдите с учётными данными администратора hMailServer.</value>
+  </data>
+  <data name="Sign-in &amp; access" xml:space="preserve">
+    <value>Вход и доступ</value>
   </data>
   <data name="Sign-in cancelled." xml:space="preserve">
     <value>Вход отменён.</value>
@@ -8721,9 +8742,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="THEN" xml:space="preserve">
     <value>ТО</value>
-  </data>
-  <data name="TLS &amp; certificates" xml:space="preserve">
-    <value>TLS и сертификаты</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -9053,6 +9071,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль администратора и двухфакторная аутентификация находятся на странице «Административный доступ».</value>
+  </data>
+  <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
+    <value>Пароль администратора, выбранный при установке hMailServer.</value>
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Пароль администратора открывает всё; одноразовый код рядом с ним не даёт утёкшему паролю быть достаточным.</value>
@@ -9879,14 +9900,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Этот Control Panel закроется, как только запустится вспомогательная программа, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Этот Control Panel подключён к удалённому серверу, и оба файла находятся на диске той машины - с этой машины их прочитать нельзя, поэтому ничего о них не проверено. Это «неизвестно», а не «OK»: проверьте их на самом сервере или с его страницы «Внешняя настройка».</value>
+  <data name="This Control Panel is connected to a remote server, and both files are on that machine's disk - they cannot be read from this machine, so nothing about them is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check them on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Этот Control Panel подключён к удалённому серверу, и оба файла находятся на диске той машины - с этой машины их прочитать нельзя, поэтому ничего о них не проверено. Это «неизвестно», а не «OK»: проверьте их на самом сервере или с его страницы «Контрольный список настройки».</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Этот Control Panel подключён к удалённому серверу, и файл сертификата находится на диске той машины - с этой машины его прочитать нельзя, поэтому ничего о нём не проверено. Это «неизвестно», а не «OK»: проверьте его на самом сервере или с его страницы «Внешняя настройка».</value>
+  <data name="This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Этот Control Panel подключён к удалённому серверу, и файл сертификата находится на диске той машины - с этой машины его прочитать нельзя, поэтому ничего о нём не проверено. Это «неизвестно», а не «OK»: проверьте его на самом сервере или с его страницы «Контрольный список настройки».</value>
   </data>
-  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its External setup page." xml:space="preserve">
-    <value>Этот Control Panel подключён к удалённому серверу, и файл ключа находится на диске той машины - с этой машины его прочитать нельзя, поэтому ничего о нём не проверено. Это «неизвестно», а не «OK»: проверьте его на самом сервере или с его страницы «Внешняя настройка».</value>
+  <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
+    <value>Этот Control Panel подключён к удалённому серверу, и файл ключа находится на диске той машины - с этой машины его прочитать нельзя, поэтому ничего о нём не проверено. Это «неизвестно», а не «OK»: проверьте его на самом сервере или с его страницы «Контрольный список настройки».</value>
   </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>У этой учётной записи есть фотография.</value>
@@ -9920,8 +9941,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Это «Параметры» &gt; «Доставка почты» &gt; «Имя хоста» - имя, которое сервер объявляет в HELO/EHLO при каждой исходящей доставке (Utilities::ComputerName). Попросите владельца IP сделать так, чтобы PTR вашего публичного IP разрешался ровно в это имя, и опубликуйте запись A для этого имени, указывающую обратно на тот же IP - получатели проверяют оба направления.</value>
   </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (the globe button in the sidebar) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>Это [Settings] UseLanguage в hMailServer.INI. Сервер лишь отдаёт его обратно через COM API - сам он ничего не переводит, а у этого Control Panel есть собственный параметр языка (кнопка с глобусом в боковой панели), - поэтому он влияет только на сторонние инструменты администрирования. Формулировки возвратов и ошибок - на странице «Сообщения сервера».</value>
+  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>Это [Settings] UseLanguage в hMailServer.INI. Сервер лишь отдаёт его обратно через COM API - сам он ничего не переводит, а у этого Control Panel есть собственный параметр языка (Сменить язык в меню администратора в правом верхнем углу), - поэтому он влияет только на сторонние инструменты администрирования. Формулировки возвратов и ошибок - на странице «Сообщения сервера».</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Это последний выпуск</value>
@@ -10180,6 +10201,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Type" xml:space="preserve">
     <value>Тип</value>
+  </data>
+  <data name="Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them." xml:space="preserve">
+    <value>Введите домен и нажмите Запрос. В ответе перечислены серверы, принимающие почту этого домена, начиная с предпочтительного, так, как их видит собственный резолвер этого сервера.</value>
   </data>
   <data name="Type a user name and password to test a real logon through the DN template." xml:space="preserve">
     <value>Введите имя пользователя и пароль, чтобы проверить реальный вход через шаблон DN.</value>
@@ -10448,6 +10472,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Что содержит резервная копия, расписание, проверка каждого архива и восстановление.</value>
   </data>
+  <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
+    <value>Что нужно новому серверу, по порядку: контрольный список того, что сделано и что дальше, профиль параметров для того типа сервера, которым он является, и записи DNS, которые публикует каждый домен.</value>
+  </data>
   <data name="What an account of its own changes. hMailServer.INI is read-only to it, on purpose: the administrator password, its second factor, the folders and the database are changed as the Control Panel says when you try, and settings are kept in the database as always. A folder set later outside the program folder - a backup or archive folder - is reached once Grant access approves it. An account other than NT SERVICE\hMailServer is set in services.msc and needs the &quot;Log on as a service&quot; right; an external database with Windows authentication needs a login for it. A service that cannot log on reports error 1069 in the Windows event log and does not start." xml:space="preserve">
     <value>Что меняет собственная учётная запись. hMailServer.INI для неё намеренно доступен только для чтения: пароль администратора, его второй фактор, папки и база данных меняются так, как скажет Control Panel при попытке, а параметры, как всегда, хранятся в базе данных. Заданная позже папка вне папки программы — папка резервных копий или архива — становится доступной, как только «Предоставить доступ» её одобрит. Учётная запись, отличная от NT SERVICE\hMailServer, задаётся в services.msc, и ей нужно право «Вход в качестве службы»; внешней базе данных с проверкой подлинности Windows нужно имя входа для неё. Служба, которая не может войти, сообщает об ошибке 1069 в журнале событий Windows и не запускается.</value>
   </data>
@@ -10523,8 +10550,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else." xml:space="preserve">
     <value>Что делает этот сервер, когда разговаривает с названным внешним доменом: какой TLS он требует от соединения в каждую сторону, сообщение какого размера и сколько соединений он попытается использовать, можно ли отправлять туда автоответ или пересылку и проверяется ли получатель на собственном сервере домена до того, как почта для него будет принята. В имени допустим шаблон: доставку решает самая точная активная запись. Требование TLS здесь добавляется к тому, что домен публикует сам: запись на этой странице никогда не ослабляет политику MTA-STS или DANE. Проверка получателя предназначена для домена, для которого этот сервер является резервным MX, и ни для чего другого.</value>
   </data>
-  <data name="What this server needs done outside it - DNS records, key and CA files, trusted lists. Each item shows a state; where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
-    <value>Что этому серверу нужно сделать вне его - записи DNS, файлы ключей и ЦС, доверенные списки. У каждого элемента показано состояние; там, где ответ отсюда прочитать нельзя, элемент говорит, что проверить, вместо того чтобы гадать.</value>
+  <data name="What this server still needs before anybody can use it, in order - a domain, an account, TLS for mail clients, the DNS records, a backup - with what is done, what is next, and a button to the page that does each one." xml:space="preserve">
+    <value>Что ещё нужно этому серверу, прежде чем им сможет пользоваться кто-либо, по порядку - домен, учётная запись, TLS для почтовых клиентов, записи DNS, резервная копия - с тем, что сделано, что дальше, и кнопкой на страницу, которая выполняет каждый пункт.</value>
+  </data>
+  <data name="What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing." xml:space="preserve">
+    <value>Что ещё нужно этому серверу, в том порядке, в каком с этим сталкивается новая установка. Каждый пункт говорит, выполнен ли он, следующий шаг отмечен, а кнопка рядом открывает страницу, которая его выполняет. Там, где ответ отсюда прочитать нельзя, пункт говорит, что проверить, вместо того чтобы гадать.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
     <value>Что делать:</value>
@@ -10993,9 +11023,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Дата окончания _срока действия</value>
-  </data>
-  <data name="_External setup…" xml:space="preserve">
-    <value>_Внешняя настройка…</value>
   </data>
   <data name="_Field" xml:space="preserve">
     <value>_Поле</value>

@@ -536,8 +536,10 @@ namespace hMailServer.ControlPanel.Views
          Content = root;
       }
 
+      // Trimmed, with the whole reason in the cell's tool tip: "Why" is a
+      // sentence and was cut mid-word.
       private static DataGridTextColumn Column_(string header, string path, DataGridLength width)
-         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width };
+         => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width });
 
       private static Wpf.Ui.Controls.Button MakeButton(string text, Wpf.Ui.Controls.ControlAppearance appearance, RoutedEventHandler onClick)
       {

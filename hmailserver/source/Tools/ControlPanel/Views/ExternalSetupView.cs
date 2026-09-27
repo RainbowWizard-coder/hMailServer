@@ -105,8 +105,8 @@ namespace hMailServer.ControlPanel.Views
 
          page.Children.Add(new PageHeader
          {
-            Title = L("External setup"),
-            Subtitle = L("What this server needs done outside it - DNS records, key and CA files, trusted lists. Each item shows a state; where the answer cannot be read from here, the item says what to check instead of guessing."),
+            Title = L("Setup checklist"),
+            Subtitle = L("What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing."),
             Actions = refresh
          });
 
@@ -192,8 +192,15 @@ namespace hMailServer.ControlPanel.Views
       private void RenderItems(string dnsNote)
       {
          body_.Children.Clear();
+
+         // The next step is the first item, in the checklist's own order, that
+         // needs action: the order is the one a new installation meets them in
+         // (docs/SetupChecklist.md), so the first open item is the one to do.
+         SetupItem next = checks_.Items.FirstOrDefault(i => i.State == SetupItemState.ActionNeeded);
+
+         int number = 0;
          foreach (SetupItem item in checks_.Items)
-            body_.Children.Add(ItemCard(item));
+            body_.Children.Add(ItemCard(item, ++number, ReferenceEquals(item, next)));
 
          int action = checks_.Items.Count(i => i.State == SetupItemState.ActionNeeded);
          int unknown = checks_.Items.Count(i => i.State == SetupItemState.CannotTell);
@@ -203,52 +210,78 @@ namespace hMailServer.ControlPanel.Views
          summary_.Level = action > 0 ? StatusLevel.Warning
             : unknown > 0 ? StatusLevel.Information
             : StatusLevel.Good;
-         summary_.Text = F("{0} need action, {1} cannot be told from here, {2} done, {3} not needed.", action, unknown, done, unused);
+         summary_.Text = F("{0} need action, {1} cannot be told from here, {2} done, {3} not needed.", action, unknown, done, unused)
+            + (next != null ? " " + F("Next step: {0}.", next.Title) : "");
          summary_.Visibility = Visibility.Visible;
 
          status_.Text = baseStatus_ + dnsNote;
       }
 
-      private Card ItemCard(SetupItem item)
+      private Card ItemCard(SetupItem item, int number, bool isNext)
       {
          var card = new Card();
          card.SetResourceReference(MarginProperty, "AppCardGap");
 
          var content = new StackPanel();
 
-         // Header: the state as a pill - colour, shape and word together, so no
-         // single channel is load-bearing - then the title, then the link to the
-         // page that owns the settings.
+         // Header: the item's number, the state as a pill - colour, shape and
+         // word together, so no single channel is load-bearing - then the title,
+         // then the button to the page that does it. The next step carries a
+         // second pill that says so, and its button is the primary one on the
+         // page: the eye goes to it first, which is where it should go.
          var header = new Grid();
+         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-         header.Children.Add(new StatusPill
+         var numberText = new TextBlock
+         {
+            Text = number.ToString(System.Globalization.CultureInfo.CurrentCulture) + ".",
+            MinWidth = 24,
+            Margin = new Thickness(0, 1, 4, 0),
+            VerticalAlignment = VerticalAlignment.Top
+         };
+         numberText.SetResourceReference(StyleProperty, "TextBodyStrong");
+         header.Children.Add(numberText);
+
+         var pills = new WrapPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 0, 12, 0) };
+         pills.Children.Add(new StatusPill
          {
             Level = ExternalSetupChecks.LevelFor(item.State),
-            Text = ExternalSetupChecks.StateWord(item.State),
-            Margin = new Thickness(0, 0, 12, 0),
-            VerticalAlignment = VerticalAlignment.Top
+            Text = ExternalSetupChecks.StateWord(item.State)
          });
+         if (isNext)
+         {
+            var nextPill = new StatusPill { Level = StatusLevel.Information, Text = L("Next step"), Margin = new Thickness(6, 0, 0, 0) };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(nextPill, "external-setup-next");
+            pills.Children.Add(nextPill);
+         }
+         Grid.SetColumn(pills, 1);
+         header.Children.Add(pills);
 
          var title = new TextBlock { Text = item.Title, TextWrapping = TextWrapping.Wrap };
          title.SetResourceReference(StyleProperty, "TextBodyStrong");
 
          // The whole item, as one utterance, on the one header element that has
-         // an automation peer: a listener hears the state, the subject, what it
-         // is for and what to do, instead of four unrelated fragments.
+         // an automation peer: a listener hears the number, the state, the
+         // subject, what it is for and what to do, instead of unrelated fragments.
          System.Windows.Automation.AutomationProperties.SetName(title,
-            ExternalSetupChecks.StateWord(item.State) + ": " + item.Title + ". " + item.Purpose + " " + item.Action);
-         Grid.SetColumn(title, 1);
+            number.ToString(System.Globalization.CultureInfo.CurrentCulture) + ". "
+            + (isNext ? L("Next step") + ". " : "")
+            + ExternalSetupChecks.StateWord(item.State) + ": " + item.Title + ". " + item.Purpose + " " + item.Action);
+         Grid.SetColumn(title, 2);
          header.Children.Add(title);
 
          if (item.Page != null)
          {
-            FrameworkElement link = PageLink(item.Page, L("Settings…"),
-               F("Open {0}, which owns the settings for: {1}", L(NavigationMap.TitleOf(item.Page)), L(item.Title)));
+            // The button names the page it opens. It said "Settings…" on every
+            // item, which left the reader to guess where each one went.
+            string pageTitle = L(NavigationMap.TitleOf(item.Page));
+            FrameworkElement link = PageLink(item.Page, F("Open {0}", pageTitle),
+               F("Open {0}, which owns the settings for: {1}", pageTitle, L(item.Title)), isNext);
             link.VerticalAlignment = VerticalAlignment.Top;
-            Grid.SetColumn(link, 2);
+            Grid.SetColumn(link, 3);
             header.Children.Add(link);
          }
 
@@ -306,12 +339,12 @@ namespace hMailServer.ControlPanel.Views
       /// what keeps it read-only: every state shown here is one click from the
       /// single place that changes it.
       /// </summary>
-      private static FrameworkElement PageLink(string page, string caption, string accessibleName)
+      private static FrameworkElement PageLink(string page, string caption, string accessibleName, bool primary)
       {
          var button = new Wpf.Ui.Controls.Button
          {
             Content = caption,
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
+            Appearance = primary ? Wpf.Ui.Controls.ControlAppearance.Primary : Wpf.Ui.Controls.ControlAppearance.Secondary,
             FontSize = Typography.Caption,
             Padding = new Thickness(8, 3, 8, 3),
             VerticalAlignment = VerticalAlignment.Center,

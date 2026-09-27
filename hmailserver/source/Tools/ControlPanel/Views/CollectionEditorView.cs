@@ -148,7 +148,10 @@ namespace hMailServer.ControlPanel.Views
          if (spec_.CanDelete)
          {
             del = MakeButton(L("_Delete"), ControlAppearance.Secondary, SymbolRegular.Delete24, (_, _) => DeleteSelected());
-            del.Foreground = Services.ThemeTokens.Danger;
+            // Red words only while it can be pressed (App.xaml says why a
+            // style and not a local Foreground).
+            if (Application.Current?.TryFindResource("DangerTextButton") is Style danger)
+               del.Style = danger;
             actions.Children.Add(del);
          }
          actions.Children.Add(MakeButton(L("_Refresh"), ControlAppearance.Secondary, SymbolRegular.ArrowSync24, (_, _) => Reload()));
@@ -223,6 +226,10 @@ namespace hMailServer.ControlPanel.Views
             // line up and a column of scores can be read down.
             if (f.Kind == FieldKind.Number)
                GridStyles.Number(col);
+
+            // A value wider than its column ends in an ellipsis and is whole in
+            // the cell's tool tip, as the header is.
+            GridStyles.Trimmed(col);
 
             grid_.Columns.Add(col);
          }

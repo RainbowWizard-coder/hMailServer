@@ -31,10 +31,10 @@
     <Thickness x:Key="AppFieldGap">0,0,0,12</Thickness>
     <Thickness x:Key="AppSectionGap">0,0,0,24</Thickness>
 
-    <!-- Corner radii: controls and rows, cards and dialogs, capsules. -->
+    <!-- Corner radii: controls and rows, cards and dialogs, the status pill's box. -->
     <CornerRadius x:Key="AppControlCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="AppCardCornerRadius">8</CornerRadius>
-    <CornerRadius x:Key="AppPillCornerRadius">999</CornerRadius>
+    <CornerRadius x:Key="AppPillCornerRadius">4</CornerRadius>
 
     <!-- The shell's fixed dimensions. -->
     <sys:Double x:Key="AppCommandBarHeight">48</sys:Double>
@@ -112,4 +112,19 @@
     <SolidColorBrush x:Key="AppCardHoverBrush" Color="#15FFFFFF" />
     <SolidColorBrush x:Key="AppDividerBrush" Color="#14FFFFFF" />
     <sys:Double x:Key="AppNoticeTintOpacity">0.12</sys:Double>
+
+    <!-- The status pill's box: a fill per level and the colour of the word and
+         mark on it (DesignTokens.StatusFill), and the outline only High
+         Contrast draws. Dark values here, the theme's from ThemeTokens. -->
+    <SolidColorBrush x:Key="AppSuccessFillBrush" Color="#1C4128" />
+    <SolidColorBrush x:Key="AppSuccessFillTextBrush" Color="#56D364" />
+    <SolidColorBrush x:Key="AppInfoFillBrush" Color="#3A2A63" />
+    <SolidColorBrush x:Key="AppInfoFillTextBrush" Color="#C8A2FF" />
+    <SolidColorBrush x:Key="AppWarningFillBrush" Color="#45350F" />
+    <SolidColorBrush x:Key="AppWarningFillTextBrush" Color="#E3B341" />
+    <SolidColorBrush x:Key="AppDangerFillBrush" Color="#522024" />
+    <SolidColorBrush x:Key="AppDangerFillTextBrush" Color="#FF9492" />
+    <SolidColorBrush x:Key="AppNeutralFillBrush" Color="#3A4048" />
+    <SolidColorBrush x:Key="AppNeutralFillTextBrush" Color="#D1D9E0" />
+    <Thickness x:Key="AppStatusFillBorderThickness">0</Thickness>
 </ResourceDictionary>
