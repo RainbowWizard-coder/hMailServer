@@ -5075,6 +5075,9 @@ function qTrap(e,host,escape){
   // The page's own keys - Enter opening the row under the cursor, / and ? -
   // act on what the dialog covers, so none of them is let past it.
   e.stopPropagation();
+  // F1 is the page's help, and the page's handler is not reached from here:
+  // the browser's own help is kept from opening, and the pane waits.
+  if(e.key==="F1"){e.preventDefault();return;}
   if(e.key==="Escape"){e.preventDefault();escape();return;}
   const radio=e.target&&e.target.closest?e.target.closest(".qpick"):null;
   if(radio&&(e.key==="ArrowDown"||e.key==="ArrowUp"||e.key==="ArrowLeft"||e.key==="ArrowRight")){

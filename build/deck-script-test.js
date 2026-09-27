@@ -7709,6 +7709,12 @@ async function main() {
          called(before, 'GET', '/api/v1/quarantine/42/preview').length === 1 && $('#qReadText').textContent.indexOf('<script>') >= 0 &&
          $('#qRead').querySelector('script') === null && $('#qReadNote').hidden === false && $('#qReadNote').textContent.indexOf('16384') >= 0,
          paths(before) + ' ' + ($('#qReadNote') ? $('#qReadNote').textContent : ''));
+      const paneBefore = $('#helpPane').hidden;
+      const helpKey = makeEvent('keydown', { key: 'F1', target: $('#qReadText') });
+      $('#qReadText').dispatchEvent(helpKey);
+      await flush();
+      check('F1 in the panel is kept from the browser, which would open its own help, and the panel stays',
+         helpKey.defaultPrevented === true && $('#qRead') !== null && $('#helpPane').hidden === paneBefore, 'prevented=' + helpKey.defaultPrevented);
       press('Escape', $('#qReadText'));
       await flush();
       check('and Escape takes it away', $('#qRead') === null);

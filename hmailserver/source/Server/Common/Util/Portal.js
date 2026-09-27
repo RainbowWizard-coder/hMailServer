@@ -9446,6 +9446,9 @@
     var listOrPalette = !open || open === 'keys-overlay' || open === 'palette';
     if ((event.ctrlKey || event.metaKey) && !event.altKey && (event.key === 'k' || event.key === 'K')) { event.preventDefault(); if (listOrPalette) { openPalette(); } return; }
     if (event.key === 'Escape' && open) { if (!event.defaultPrevented) { event.preventDefault(); modalCancel(open); } return; }
+    // F1 is the page's help, not the browser's, with a dialogue open too;
+    // the pane waits, as everything does, for the dialogue to close.
+    if (open && event.key === 'F1') { event.preventDefault(); return; }
     if (open && !(event.key === '?' && open === 'keys-overlay')) { return; }
     if (event.key === 'F1' && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); helpToggle(); return; }
     var tag = (event.target && event.target.tagName) || '';

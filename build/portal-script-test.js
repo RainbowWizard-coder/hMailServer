@@ -8230,6 +8230,19 @@ async function screenReaderChecks() {
    key('Escape', document.getElementById('keys-title'));
    await settle();
    check('S8: and Escape closes it', document.getElementById('keys-overlay').hidden === true);
+   // With a dialogue open F1 is still the page's: the browser's own help is
+   // kept from opening, and the pane waits for the dialogue.
+   document.dispatchEvent(makeEvent('keydown', { key: 'k', ctrlKey: true, target: document.body }));
+   await settle();
+   const paletteInput = document.getElementById('palette-input');
+   const helpInPalette = makeEvent('keydown', { key: 'F1', target: paletteInput });
+   paletteInput.dispatchEvent(helpInPalette);
+   await settle();
+   check('S8: F1 with the palette open is kept from the browser, and nothing opens over the palette',
+      document.getElementById('palette').hidden === false && helpInPalette.defaultPrevented === true && document.getElementById('help-pane').hidden === true,
+      'palette hidden=' + document.getElementById('palette').hidden + ' prevented=' + helpInPalette.defaultPrevented + ' pane hidden=' + document.getElementById('help-pane').hidden);
+   paletteInput.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: paletteInput }));
+   await settle();
    key('F1', document.body);
    await settle();
    check('S8: F1 opens the help beside the page with the focus on its heading',
