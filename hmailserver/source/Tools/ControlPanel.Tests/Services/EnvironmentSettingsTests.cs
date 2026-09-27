@@ -155,6 +155,22 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
+      public void WhatWasTypedOverAWithheldYesOrNo_IsTrueFalseOneOrZero_AndNothingElseIsNo()
+      {
+         Assert.True(EnvironmentSettings.TypedFlag("true"));
+         Assert.True(EnvironmentSettings.TypedFlag(" TRUE "));
+         Assert.True(EnvironmentSettings.TypedFlag("1"));
+         Assert.False(EnvironmentSettings.TypedFlag("False"));
+         Assert.False(EnvironmentSettings.TypedFlag("0"));
+
+         // "yes" was written to the COM property as no - the opposite of what was
+         // typed. It is now no yes/no at all, and the save counts the row as not saved.
+         Assert.Throws<FormatException>(() => EnvironmentSettings.TypedFlag("yes"));
+         Assert.Throws<FormatException>(() => EnvironmentSettings.TypedFlag("on"));
+         Assert.Throws<FormatException>(() => EnvironmentSettings.TypedFlag("no"));
+      }
+
+      [Fact]
       public void AFieldWhoseValueAFileSuppliedIsKnownByItsKeyOrItsPropertysName()
       {
          IniFeatureStore.ComChangedDocument = () => Withheld;

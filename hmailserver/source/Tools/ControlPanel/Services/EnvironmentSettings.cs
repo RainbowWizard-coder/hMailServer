@@ -151,6 +151,21 @@ namespace hMailServer.ControlPanel.Services
          => L("Set from a file of the server's environment, so not shown. Type a new value to replace it.");
 
       /// <summary>
+      /// What was typed over a withheld yes/no value, as the yes or no a COM property
+      /// takes: true or 1 is yes, false or 0 is no, in any case. Anything else - "yes",
+      /// "on" - is neither, and throws FormatException, so that the save counts the
+      /// row as not saved and says why, as it does a withheld number or list row typed
+      /// over with no number; it was written as no. A yes/no row reached over the REST
+      /// API sends such text to the server instead, which refuses it
+      /// (RestSettings.FlagChange).
+      /// </summary>
+      public static bool TypedFlag(string typed)
+      {
+         string text = (typed ?? "").Trim();
+         return text == "1" || (text != "0" && bool.Parse(text)); // no-loc
+      }
+
+      /// <summary>
       /// The mark beside a field the environment sets: "Set by the environment", or
       /// "... from a file" for a value a Secret supplied. Null for anything else, so
       /// that an unmanaged field shows its own mark.

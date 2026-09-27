@@ -170,14 +170,17 @@ namespace hMailServer.ControlPanel.Views
          /// Whether this row's value came from a file of the server's environment -
          /// a Secret's - which the server withholds from every answer until an
          /// administrator writes another (Services/EnvironmentSettings.ParseFromFile).
-         /// A password row never shows its value anyway, and a row that persists
-         /// nothing has none.
+         /// A password row never shows its value anyway, nor does a row a certificate
+         /// is pasted into (RestPaste), whose box starts empty and keeps what the
+         /// server holds unless something is pasted - it reads its own box, and a
+         /// withheld box in its place had what was pasted into it dropped and counted
+         /// as saved. A row that persists nothing has no value.
          /// </summary>
          private bool IsWithheld
          {
             get
             {
-               if (this is INotPersisted || this is SectionIniNumber || this is ComPassword || string.IsNullOrEmpty(Path))
+               if (this is INotPersisted || this is SectionIniNumber || this is ComPassword || this is RestPaste || string.IsNullOrEmpty(Path))
                   return false;
 
                if (RestEnvironment == EnvironmentSettings.File)
@@ -482,7 +485,7 @@ namespace hMailServer.ControlPanel.Views
 
                object typed = WithheldEntry;
                if (this is ComBool)
-                  typed = WithheldEntry == "1" || string.Equals(WithheldEntry, "true", StringComparison.OrdinalIgnoreCase); // no-loc
+                  typed = EnvironmentSettings.TypedFlag(WithheldEntry);
                else if (this is ComCombo)
                   typed = int.Parse(WithheldEntry, System.Globalization.CultureInfo.InvariantCulture);
                else if (this is ComText text && text.Numeric)
