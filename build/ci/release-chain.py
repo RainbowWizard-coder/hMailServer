@@ -663,27 +663,23 @@ def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_pat
     return path
 
 
-def milestone_of(api, version):
-    """[version] when the project has a milestone of exactly that title, so the release
-    page lists the issues closed for it; otherwise [], and the release is created
-    without one. Never a reason to stop: the release matters, the link does not."""
-    url = "%s/milestones?title=%s" % (feed.API, urllib.parse.quote(version, safe=""))
-    try:
-        status, body, _ = api.request("GET", url)
-    except ReleaseError as e:
-        say("no milestone linked: %s" % e)
-        return []
-    if status != 200:
-        say("no milestone linked: asking for the milestone %s answered HTTP %d: %s" % (version, status, message_of(body)))
-        return []
-    try:
-        found = [m for m in json.loads(body.decode("utf-8")) if isinstance(m, dict) and m.get("title") == version]
-    except (ValueError, UnicodeDecodeError, TypeError):
-        found = []
-    if not found:
-        say("no milestone linked: the project has no milestone called %s" % version)
-        return []
-    return [version]
+def create_release(api, payload, version):
+    """POSTs the release in the milestone of its version, so the release page lists
+    the issues closed for it, and again without one when GitLab refuses the
+    milestone, as it does when the project has none of that title. The title is
+    named in the request, not looked up first: a job's token may use the Releases
+    API, which finds the milestone as the job's user, and not the Milestones API
+    (GitLab's job token documentation lists the APIs it may use). Never a reason to
+    stop: the release matters, the link does not. Leaves payload as it was last
+    sent, and returns GitLab's status and body."""
+    payload["milestones"] = [version]
+    status, body, _ = api.request("POST", feed.API + "/releases", json.dumps(payload).encode("utf-8"), "application/json")
+    if status in (400, 422) and "milestone" in message_of(body).lower():
+        say("no milestone linked: creating the release in the milestone %s answered HTTP %d: %s. Creating it without one"
+            % (version, status, message_of(body)))
+        del payload["milestones"]
+        status, body, _ = api.request("POST", feed.API + "/releases", json.dumps(payload).encode("utf-8"), "application/json")
+    return status, body
 
 
 def publish(assets, tag, env, api, notes, verification, render_check=True):
@@ -752,14 +748,11 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
     description = "# hMailServer %s\n\n%s\n\n%s\n" % (version, notes.strip(), verification.strip())
     payload = {"tag_name": tag, "name": "hMailServer %s" % version, "description": description,
                "assets": {"links": release_links(version, wanted)}}
-    milestones = milestone_of(api, version)
-    if milestones:
-        payload["milestones"] = milestones
-    status, body, _ = api.request("POST", feed.API + "/releases", json.dumps(payload).encode("utf-8"), "application/json")
+    status, body = create_release(api, payload, version)
     if status not in (200, 201):
         raise ReleaseError("creating the release %s answered HTTP %d: %s. The files are in the registry; run the job "
                            "again once the cause is fixed" % (tag, status, message_of(body)))
-    say("created the release %s with %d links%s" % (tag, len(wanted), ", in the milestone " + version if milestones else ""))
+    say("created the release %s with %d links%s" % (tag, len(wanted), ", in the milestone " + version if "milestones" in payload else ""))
 
     if render_check:
         try:
@@ -951,6 +944,7 @@ def self_test():
                 self.calls = []
                 self.next_id = [100]
                 self.milestones = []
+                self.posted = []
 
             def seed(self, name, data):
                 """A file the registry holds before this run, as an earlier one or someone else left it."""
@@ -973,6 +967,12 @@ def self_test():
                     return 201, b"{}", {}
                 if method == "POST" and path == "/releases":
                     value = json.loads(body.decode("utf-8"))
+                    self.posted.append(value)
+                    # As GitLab's Releases API: a milestone is named by its exact
+                    # title, and one the project does not have refuses the release.
+                    missing = [t for t in value.get("milestones", []) if t not in self.milestones]
+                    if missing:
+                        return 400, json.dumps({"message": "Milestone(s) not found: " + ", ".join(missing)}).encode("utf-8"), {}
                     self.releases.insert(0, {"tag_name": value["tag_name"], "name": value["name"], "upcoming_release": False,
                                              "released_at": "2026-10-10T10:00:00.000Z", "description": value["description"],
                                              "_links": {"self": feed.PROJECT_URL + "/-/releases/" + value["tag_name"]},
@@ -984,10 +984,8 @@ def self_test():
                         found = [r for r in self.releases if r["tag_name"] == urllib.parse.unquote(m.group(1))]
                         return (200, json.dumps(found[0]).encode("utf-8"), {}) if found else (404, b'{"message":"404 Not Found"}', {})
                     if path == "/milestones":
-                        # Looser than GitLab's exact title, so the script's own match is what is tested.
-                        title = query.get("title", [""])[0]
-                        found = [{"id": 7, "title": t, "state": "active"} for t in self.milestones if title and title in t]
-                        return 200, json.dumps(found).encode("utf-8"), {}
+                        # A job's token may not use the Milestones API.
+                        return 401, b'{"message":"401 Unauthorized"}', {}
                     page = int(query.get("page", ["1"])[0])
                     if path == "/releases":
                         items = self.releases
@@ -1181,26 +1179,45 @@ def self_test():
             expect("releases/tags/v6.3.5" in tree and latest["tag_name"] == "v6.3.5" and not warnings,
                    "the feed publishes the release as the stable one: %s" % warnings)
             expect("milestones" not in payload, "a release is created without a milestone when the project has none of its name")
+            expect([p.get("milestones") for p in api.posted] == [["6.3.5"], None],
+                   "the release is asked for in the milestone 6.3.5, and when GitLab refuses it, created without one: %s"
+                   % [p.get("milestones") for p in api.posted])
 
-        # The milestone of the release's own name, and only that one, is linked; a refused lookup links none.
+        # The milestone of the release's own name, and only that one, is linked, named
+        # in the request: the job's token cannot read the Milestones API, which the
+        # fake answers 401 as GitLab does, and nothing asks it.
         def milestones_linked(milestones, api_class=FakeGitLab):
             fake = api_class()
             fake.milestones = milestones
             try:
-                return publish(signed, tag, publish_env, fake, section, verification, render_check=False).get("milestones")
+                linked = publish(signed, tag, publish_env, fake, section, verification, render_check=False).get("milestones")
             except ReleaseError as e:
-                return "refused: %s" % e
+                linked = "refused: %s" % e
+            expect(not any(c[1].endswith("/milestones") for c in fake.calls), "the Milestones API, which a job's token cannot use, is not asked")
+            return linked, len(fake.posted)
 
-        expect(milestones_linked(["6.3.4", "6.3.5", "6.3.50"]) == ["6.3.5"], "the release is created in the milestone 6.3.5")
-        expect(milestones_linked(["6.3.50", "v6.3.5"]) is None, "a milestone whose title only resembles the version is not linked")
+        expect(milestones_linked(["6.3.4", "6.3.5", "6.3.50"]) == (["6.3.5"], 1), "the release is created in the milestone 6.3.5")
+        expect(milestones_linked(["6.3.50", "v6.3.5"]) == (None, 2), "a milestone whose title only resembles the version is not linked")
 
-        class NoMilestones(FakeGitLab):
+        class Refusing(FakeGitLab):
+            """Answers a release POST that names a milestone with status and message."""
+            answer = (422, "Validation failed: Milestone releases should belong to the same project as the release")
+
             def request(self, method, url, body=None, content_type=None):
-                if "/milestones" in url:
-                    return 403, b'{"message":"403 Forbidden"}', {}
+                if method == "POST" and url.endswith("/releases") and "milestones" in json.loads(body.decode("utf-8")):
+                    self.calls.append((method, url))
+                    self.posted.append(json.loads(body.decode("utf-8")))
+                    return self.answer[0], json.dumps({"message": self.answer[1]}).encode("utf-8"), {}
                 return FakeGitLab.request(self, method, url, body, content_type)
 
-        expect(milestones_linked(["6.3.5"], NoMilestones) is None, "a milestone lookup that is refused still publishes, without one")
+        expect(milestones_linked(["6.3.5"], Refusing) == (None, 2), "a milestone GitLab refuses with a 422 still publishes, without one")
+
+        class RefusingOther(Refusing):
+            answer = (422, "Validation failed: Tag name is invalid")
+
+        linked, posts = milestones_linked(["6.3.5"], RefusingOther)
+        expect(str(linked).startswith("refused: creating the release v6.3.5 answered HTTP 422") and posts == 1,
+               "a release GitLab refuses for another reason is not created again without the milestone: %s, %d POST(s)" % (linked, posts))
 
         # A retry after a run that stopped part-way: what is up already, with the
         # same bytes, is not sent again, and the release is made.
