@@ -563,6 +563,15 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "HTTP|Autodiscover|Autoconfig|Outlook setup|Thunderbird setup|Mobile setup|MTA-STS policy|Well-known|Web server",
                   seeAlso: "acme|security|api"),
 
+               // The webmail's settings, and the other browser pages people sign in to
+               // (the self-service portal, the Control Deck): sign-in, sessions, what a
+               // person may do, OpenPGP, Web Push, importing. One self-contained block,
+               // added with the page after 6.3.4.
+               Page("webmail", N("Webmail"),
+                  N("How people sign in to the webmail and the Control Deck, how long a session lasts, and what a person may do: passkeys, single sign-on, recovery, OpenPGP, notifications and importing."),
+                  aliases: "Webmail|Portal|Self-service|Browser sessions|Session timeout|Passkeys|WebAuthn|Single sign-on|SSO|OpenID Connect|OIDC|SAML|Entra ID|Okta|Account recovery|Forgotten password|OpenPGP|Web Key Directory|Zero-access|Web Push|Notifications|VAPID|Import from Gmail|Import from Outlook.com|Masked addresses|Recall|Offline mail|Directory|BIMI|Brand logos",
+                  seeAlso: "authentication|webservices|api"),
+
                Page("dns", N("DNS resolver"),
                   N("Which name servers the server asks, and whether answers are DNSSEC validated."),
                   aliases: "Name servers|Resolver|DNSSEC|Lookup failures|DNS cache|EDNS",

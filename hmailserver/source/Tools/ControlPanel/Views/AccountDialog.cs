@@ -141,6 +141,14 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox dirOffice_ = NewInput(100);
       private readonly TextBox dirNote_ = NewInput(255);
       private readonly CheckBox dirOptOut_ = new() { Content = L("Leave this account _out of the directory") };
+
+      // What the account is, who it is at the identity provider, and whether its
+      // OpenPGP keys are published (Account.Kind, Account.ExternalId,
+      // Account.OpenPGPPublish). Loaded one by one: each arrived with its own
+      // schema, and a server without one leaves its control disabled.
+      private readonly ComboBox kind_ = new();
+      private readonly TextBox externalId_ = new Wpf.Ui.Controls.TextBox();
+      private readonly CheckBox openPgpPublish_ = new() { Content = L("_Publish this account's OpenPGP public keys in the Web Key Directory") };
       private readonly TextBlock dirPhotoState_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
 
       // The photo as the column keeps it - base64 - or null while nothing has
@@ -193,6 +201,7 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Folders"), Content = BuildFolders() });
          tabs.Items.Add(new TabItem { Header = L("Windows directory"), Content = BuildDirectory() });
          tabs.Items.Add(new TabItem { Header = L("Directory entry"), Content = BuildDirectoryEntry() });
+         tabs.Items.Add(new TabItem { Header = L("Identity"), Content = BuildIdentity() });
          tabs.Items.Add(new TabItem { Header = L("Levels"), Content = BuildLevels() });
          DialogFields.FillTabs(tabs);
 
@@ -481,6 +490,24 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says.")));
 
          RefreshDirectoryPhotoState_();
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildIdentity()
+      {
+         kind_.Items.Add(DialogFields.Combo(L("A person"), 0));
+         kind_.Items.Add(DialogFields.Combo(L("A room"), 1));
+         kind_.Items.Add(DialogFields.Combo(L("A piece of equipment"), 2));
+
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(Label(L("_Kind of account"), kind_));
+         panel.Children.Add(DialogFields.Note(L("A room or a piece of equipment answers the meeting invitations it is sent by itself, and nobody can sign in as it on any protocol, whatever its password. Its booking policy is set in the Control Deck.")));
+
+         panel.Children.Add(Label(L("E_xternal ID (the identity provider's ID for this person; empty = none)"), externalId_));
+         panel.Children.Add(DialogFields.Note(L("What SCIM provisioning matches this account by: at most 255 characters on one line, compared exactly.")));
+
+         panel.Children.Add(DialogFields.Check(openPgpPublish_));
+         panel.Children.Add(DialogFields.Note(L("A key is published only while the server's switch on the Webmail page and the domain's, in the domain's dialog, are on as well.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -1034,6 +1061,33 @@ namespace hMailServer.ControlPanel.Views
             adDomain_.Text = (string)a.ADDomain ?? "";
             adUser_.Text = (string)a.ADUsername ?? "";
 
+            try
+            {
+               DialogFields.SelectCombo(kind_, (int)a.Kind);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               kind_.IsEnabled = false;
+            }
+
+            try
+            {
+               externalId_.Text = (string)a.ExternalId ?? "";
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               externalId_.IsEnabled = false;
+            }
+
+            try
+            {
+               openPgpPublish_.IsChecked = (bool)a.OpenPGPPublish;
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               openPgpPublish_.IsEnabled = false;
+            }
+
             ServerSession.Release(a);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1191,6 +1245,20 @@ namespace hMailServer.ControlPanel.Views
                if (dirPhotoChanged_)
                   a.DirectoryPhoto = dirPhotoPending_ ?? "";
             }
+
+            // The server refuses a kind it does not know and an external id that
+            // is too long or more than one line; its sentence reaches the dialog.
+            if (kind_.IsEnabled)
+            {
+               int kind = DialogFields.ComboValue(kind_, -1);
+               if (kind >= 0) a.Kind = kind;
+            }
+
+            if (externalId_.IsEnabled)
+               a.ExternalId = externalId_.Text.Trim();
+
+            if (openPgpPublish_.IsEnabled)
+               a.OpenPGPPublish = openPgpPublish_.IsChecked is true;
 
             if (password_.Password.Length > 0)
                a.Password = password_.Password;

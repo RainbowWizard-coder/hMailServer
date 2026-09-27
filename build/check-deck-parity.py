@@ -340,7 +340,10 @@ class Interface:
 
 
 IFACE_RE = re.compile(r'^\s*interface\s+(\w+)\s*:\s*IDispatch\s*\{(.*?)^\s*\};', re.S | re.M)
-MEMBER_RE = re.compile(r'\[([^\]]*)\]\s*HRESULT\s+(\w+)\s*\(([^)]*)\)')
+# The attribute list may hold a helpstring with a ] of its own - "[ipv4:|ipv6:]zone"
+# in ReputationWatchLists' - so a quoted string is read whole: stopping at the
+# first ] lost sixteen members, ReputationWatchLists and GetIniSetting among them.
+MEMBER_RE = re.compile(r'\[((?:[^\]"]|"(?:[^"\\]|\\.)*")*)\]\s*HRESULT\s+(\w+)\s*\(([^)]*)\)')
 
 
 def read_idl():

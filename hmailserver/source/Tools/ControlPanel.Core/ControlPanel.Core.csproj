@@ -36,6 +36,11 @@
          shape RestApiDiscovery writes and the listener's own address rules. -->
     <Compile Include="..\ControlPanel\Services\AuditTrailReport.cs" />
     <Compile Include="..\ControlPanel\Services\DiscoveryReport.cs" />
+    <!-- The settings pages' reading of the REST API's settings groups, for the
+         settings with no COM property: where the listener is, one group's answer
+         and the body of a save. No WPF and no network, so the tests can pin the
+         shape RestApiSettings.cpp answers and takes. -->
+    <Compile Include="..\ControlPanel\Services\RestSettings.cs" />
     <!-- Settings search index: plain data plus a search function, no WPF, so the
          tests can verify it still matches the settings pages. -->
     <Compile Include="..\ControlPanel\Services\SettingsSearchIndex.cs" />

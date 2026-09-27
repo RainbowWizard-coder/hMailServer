@@ -30,6 +30,13 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox addBox_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
+      // How the selected member of a managed list is sent its mail
+      // (DistributionListRecipient.Delivery, docs/MailingLists.md): written at once,
+      // as the adds and removes on this dialog are. Disabled until a member is
+      // selected, and on a server that has no such property.
+      private readonly ComboBox delivery_ = new() { IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Left, MinWidth = 240 };
+      private bool showingDelivery_;
+
       public RecipientsDialog(Window owner, string domainName, string listAddress)
       {
          domainName_ = domainName;
@@ -43,6 +50,21 @@ namespace hMailServer.ControlPanel.Views
 
          AutomationProperties.SetName(listBox_, F("Recipients of {0}", listAddress));
          body.Children.Add(listBox_);
+
+         delivery_.Items.Add(DialogFields.Combo(L("Each message"), 0));
+         delivery_.Items.Add(DialogFields.Combo(L("The daily digest"), 1));
+         delivery_.Items.Add(DialogFields.Combo(L("Nothing, while staying a member"), 2));
+         var deliveryRow = DialogFields.Field(L("How the selected member is sent a managed list's mail"), delivery_);
+         deliveryRow.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
+         body.Children.Add(deliveryRow);
+         body.Children.Add(DialogFields.Note(L("Only a managed list reads it, and the member can change it on their own page. The digest goes out once a day on a list whose digest is on; on one whose digest is off, a digest member is sent each message.")));
+
+         listBox_.SelectionChanged += (s, e) => ShowDelivery_();
+         delivery_.SelectionChanged += (s, e) =>
+         {
+            if (!showingDelivery_)
+               SaveDelivery_();
+         };
 
          var bottom = new Grid { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
          bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -242,6 +264,102 @@ namespace hMailServer.ControlPanel.Views
          Reload();
          if (skipped > 0)
             notice_.Show(StatusLevel.Information, F("{0} recipient(s) added. {1} account(s) had no e-mail address and were skipped.", added, skipped));
+      }
+
+      /// <summary>The selected member's delivery, read from the server.</summary>
+      private void ShowDelivery_()
+      {
+         string address = listBox_.SelectedItem as string;
+         showingDelivery_ = true;
+         try
+         {
+            delivery_.IsEnabled = false;
+            delivery_.SelectedIndex = -1;
+            if (address == null)
+               return;
+
+            int? delivery = WithRecipient_(address, recipient => (int)recipient.Delivery);
+            if (delivery.HasValue)
+            {
+               DialogFields.SelectCombo(delivery_, delivery.Value);
+               delivery_.IsEnabled = true;
+            }
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            // A server without DistributionListRecipient.Delivery: the choice stays
+            // disabled rather than offering one that cannot be read back.
+         }
+         finally
+         {
+            showingDelivery_ = false;
+         }
+      }
+
+      /// <summary>Writes the selected member's delivery, at once.</summary>
+      private void SaveDelivery_()
+      {
+         string address = listBox_.SelectedItem as string;
+         int value = DialogFields.ComboValue(delivery_, -1);
+         if (address == null || value < 0)
+            return;
+
+         notice_.Hide();
+         try
+         {
+            WithRecipient_(address, recipient =>
+            {
+               recipient.Delivery = value;
+               recipient.Save();
+               return value;
+            });
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            notice_.Show(StatusLevel.Critical, F("Could not change how the member is sent mail: {0}", ServerSession.DescribeComError(ex)));
+            ShowDelivery_();
+         }
+      }
+
+      /// <summary>Runs <paramref name="use"/> on the recipient row with this address; null when there is none.</summary>
+      private int? WithRecipient_(string address, Func<dynamic, int> use)
+      {
+         dynamic domains = ServerSession.Current.Application.Domains;
+         try
+         {
+            dynamic list = OpenList(domains);
+            if (list == null)
+               return null;
+
+            dynamic recipients = list.Recipients;
+            try
+            {
+               int count = (int)recipients.Count;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic recipient = recipients.Item[i];
+                  try
+                  {
+                     if ((string)recipient.RecipientAddress == address)
+                        return use(recipient);
+                  }
+                  finally
+                  {
+                     ServerSession.Release(recipient);
+                  }
+               }
+               return null;
+            }
+            finally
+            {
+               ServerSession.Release(recipients);
+               ServerSession.Release(list);
+            }
+         }
+         finally
+         {
+            ServerSession.Release(domains);
+         }
       }
 
       private void RemoveSelected()

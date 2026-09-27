@@ -110,6 +110,7 @@ namespace hMailServer.ControlPanel.Services
             ["protocols"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
             ["ports"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
             ["webservices"] = new HelpTarget("Calendar.md"),
+            ["webmail"] = new HelpTarget("PasskeysAndSingleSignOn.md"),
             ["dns"] = new HelpTarget("DiagnosingStalledMail.md", "Delivering: the message is accepted but never leaves"),
             ["certs"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),
             ["acme"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),

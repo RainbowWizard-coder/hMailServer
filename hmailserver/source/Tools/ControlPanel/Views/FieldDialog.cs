@@ -100,14 +100,22 @@ namespace hMailServer.ControlPanel.Views
          {
             case CollectionEditorView.FieldKind.Bool:
                {
-                  var box = new CheckBox { Content = f.Label, IsChecked = current is bool b && b };
-                  // A checkbox is named by its Content, so it only needs an override
-                  // when the name was qualified to tell it from an identically worded
-                  // field elsewhere in the dialog.
+                  // The caption wraps: the dialog is 460 wide, and a caption that says
+                  // what the option does ("Deliver each message to the accounts its
+                  // headers name (a mailbox shared by several people)") was cut off at
+                  // its edge. AccessText keeps the access key a string caption had.
+                  var caption = new AccessText { Text = f.Label, TextWrapping = TextWrapping.Wrap };
+                  var box = new CheckBox { Content = caption, IsChecked = current is bool b && b };
+                  // Named by its caption, or by the qualified name when that tells it
+                  // from an identically worded field elsewhere in the dialog. The
+                  // caption is no longer a string Content, so the name is set.
                   if (!string.Equals(accessibleName, f.Label, StringComparison.Ordinal))
                      Describe(box, prop, accessibleName);
                   else
+                  {
                      AutomationProperties.SetAutomationId(box, prop);
+                     AutomationProperties.SetName(box, f.Label);
+                  }
                   committers_.Add(() => { Result[prop] = box.IsChecked is true; return true; });
                   return DialogFields.Field(null, box);
                }

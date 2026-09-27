@@ -56,7 +56,16 @@ namespace hMailServer.ControlPanel.Views
          Logging,
          Performance,
          Advanced,
-         AdminAccess
+         AdminAccess,
+
+         /// <summary>
+         /// The webmail and the other browser pages people sign in to: how they sign
+         /// in, how long a session lasts, what a person may add for themselves,
+         /// OpenPGP, Web Push and importing from another provider. Nearly all of it is
+         /// kept by the server with no COM property and reached over the REST API,
+         /// which is the listener that serves the webmail (Services/RestSettings).
+         /// </summary>
+         Webmail
       }
 
       // ---- editor model ------------------------------------------------------
@@ -65,6 +74,27 @@ namespace hMailServer.ControlPanel.Views
       {
          public string Path;   // dotted path under app.Settings
          public string Label;
+
+         /// <summary>
+         /// The argument of an indexed COM property - Settings.CountryPolicy("smtp") -
+         /// or null for an ordinary one. Read and written with it.
+         /// </summary>
+         public string Index;
+
+         /// <summary>
+         /// Where the server's environment says the value came from - variable or
+         /// file - for a row read over the REST API, which answers it beside the value
+         /// (&lt;key&gt;_environment); null otherwise, and for every COM row, which the
+         /// page ties to the environment by its property's name instead.
+         /// </summary>
+         public string RestEnvironment;
+
+         /// <summary>
+         /// When a save of this row reaches the running server, for a row whose store
+         /// does not say so itself: one of SettingApplies' three marks, or null for
+         /// none. The SNMP agent's settings, read when the agent starts, are restart.
+         /// </summary>
+         public string AppliesMark;
 
          /// <summary>
          /// What a screen reader should call this editor. Assigned by
@@ -138,6 +168,9 @@ namespace hMailServer.ControlPanel.Views
                if (this is INotPersisted || this is SectionIniNumber || this is ComPassword || string.IsNullOrEmpty(Path))
                   return false;
 
+               if (RestEnvironment == EnvironmentSettings.File)
+                  return true;
+
                return this is IIniSetting ? IniFeatureStore.WithheldKey(Path) : IniFeatureStore.WithheldComPath(Path);
             }
          }
@@ -186,6 +219,9 @@ namespace hMailServer.ControlPanel.Views
                if (this is INotPersisted || this is SectionIniNumber)
                   return null;
 
+               if (RestEnvironment != null)
+                  return EnvironmentSettings.Caption(RestEnvironment);
+
                string source = this is IIniSetting
                   ? IniFeatureStore.EnvironmentForKey(Path)
                   : IniFeatureStore.EnvironmentForComPath(Path);
@@ -201,9 +237,11 @@ namespace hMailServer.ControlPanel.Views
          /// once before the database is open. Nothing for a COM row.
          /// </summary>
          protected virtual string AppliesCaption
-            => this is IIniSetting
-               ? SettingApplies.Caption(this is SectionIniNumber ? SettingApplies.Restart : IniFeatureStore.AppliesFor(Path))
-               : null;
+            => AppliesMark != null
+               ? SettingApplies.Caption(AppliesMark)
+               : this is IIniSetting
+                  ? SettingApplies.Caption(this is SectionIniNumber ? SettingApplies.Restart : IniFeatureStore.AppliesFor(Path))
+                  : null;
 
          public abstract object ReadEditor();
 
@@ -291,7 +329,7 @@ namespace hMailServer.ControlPanel.Views
          /// is not a number at all, which for an INI row is its documented default
          /// and for a COM row is zero.
          /// </summary>
-         protected Wpf.Ui.Controls.NumberBox NumberEditor(object value, int minimum, int fallback)
+         protected Wpf.Ui.Controls.NumberBox NumberEditor(object value, int minimum, int fallback, int? maximum = null)
          {
             double current;
             try { current = Convert.ToDouble(value); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { current = fallback; }
@@ -307,6 +345,12 @@ namespace hMailServer.ControlPanel.Views
                Width = NumberWidth,
                HorizontalAlignment = HorizontalAlignment.Left
             };
+
+            // The server's own ceiling, where it has one: a value past it is refused
+            // on save, so the box does not offer it.
+            if (maximum.HasValue)
+               box.Maximum = maximum.Value;
+
             Describe(box, Path);
             Watch(box);
             return box;
@@ -432,16 +476,31 @@ namespace hMailServer.ControlPanel.Views
                else if (this is ComText text && text.Numeric)
                   typed = (int)(long.Parse(WithheldEntry, System.Globalization.CultureInfo.InvariantCulture) * text.Divisor);
 
-               SetProperty(owner, property, typed);
+               Store(owner, property, typed);
                return;
             }
 
             object value = ReadEditor();
             if (value is long n)
-               SetProperty(owner, property, (int)n);
+               Store(owner, property, (int)n);
             else
-               SetProperty(owner, property, value);
+               Store(owner, property, value);
          }
+
+         /// <summary>Writes the property, with its argument when it is an indexed one.</summary>
+         protected void Store(object owner, string property, object value)
+         {
+            if (Index == null)
+               SetProperty(owner, property, value);
+            else
+               owner.GetType().InvokeMember(property, BindingFlags.SetProperty, null, owner, new[] { Index, value });
+         }
+
+         /// <summary>Reads the property, with its argument when it is an indexed one.</summary>
+         public object Fetch(object owner, string property)
+            => Index == null
+               ? GetProperty(owner, property)
+               : owner.GetType().InvokeMember(property, BindingFlags.GetProperty, null, owner, new object[] { Index });
       }
 
       private class ComBool : ComSetting
@@ -472,6 +531,14 @@ namespace hMailServer.ControlPanel.Views
          public bool BrowseFile;   // show a "..." file picker next to the box
          public bool BrowseFolder; // show a "..." folder picker next to the box
          public string FileFilter = L("All files (*.*)|*.*");
+
+         /// <summary>The lowest and highest value a numeric row offers: the server's own bounds, where it has them.</summary>
+         public int Minimum;
+         public int? Maximum;
+
+         /// <summary>Shown in an empty free-text box: an example of what goes there, never a value.</summary>
+         public string Placeholder;
+
          private TextBox box_;
          private Wpf.Ui.Controls.NumberBox number_;
 
@@ -499,9 +566,9 @@ namespace hMailServer.ControlPanel.Views
 
             // Numeric settings get an up/down NumberBox; everything else a text box.
             if (Numeric)
-               return number_ = NumberEditor(shown, 0, 0);
+               return number_ = NumberEditor(shown, Minimum, Minimum, Maximum);
 
-            box_ = TextEditor(Convert.ToString(shown));
+            box_ = TextEditor(Convert.ToString(shown), Placeholder);
             return BrowseFile || BrowseFolder ? WithBrowse(box_, BrowseFolder, FileFilter) : box_;
          }
 
@@ -781,7 +848,14 @@ namespace hMailServer.ControlPanel.Views
             return box_;
          }
 
-         public override object ReadEditor() => box_.Password;
+         public override object ReadEditor() => box_?.Password ?? "";
+
+         /// <summary>Empties the box once what was typed has been stored.</summary>
+         public void Clear()
+         {
+            if (box_ != null)
+               box_.Password = "";
+         }
 
          public override void Write(object owner, string property)
          {
@@ -1032,6 +1106,328 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      // ---- settings reached over the REST API ------------------------------------
+
+      /// <summary>
+      /// A setting the server keeps in hm_settings and answers over its REST API's
+      /// settings groups, but over no COM property (Services/RestSettings). Path is
+      /// the setting's own hm_settings name - what the settings search finds it by,
+      /// what ties it to a value the server's environment sets, and what
+      /// build/check-db-settings-coverage.py looks for - and Key is its name in the
+      /// group, which is what is read and sent.
+      ///
+      /// The page reads each group once when it is built and writes each group once
+      /// when it is saved, with only the keys that changed, as the server asks of a
+      /// client that reads a group and writes it back. A group that cannot be reached
+      /// - the REST API off, a second factor not given, a listener this machine cannot
+      /// reach - is said once on each card that has its rows, in place of them, and
+      /// nothing of it is written: a row that could not read its value is not offered,
+      /// because it would show a default as though the server held it.
+      /// </summary>
+      private interface IRestSetting
+      {
+         /// <summary>The group's route, such as /api/v1/settings.</summary>
+         string Group { get; }
+
+         /// <summary>The setting's key in the group, such as alerts_enabled.</summary>
+         string Key { get; }
+
+         /// <summary>What the group answered, as the editor is filled with it.</summary>
+         object ToEditor(object answered);
+
+         /// <summary>The group's value, remembered as what the editor started from.</summary>
+         void Loaded(object answered);
+
+         /// <summary>The value to send when the editor no longer holds what it started from.</summary>
+         bool TryGetChange(out object value);
+
+         /// <summary>The save went through: what is on screen is what the server holds now.</summary>
+         void Accepted();
+      }
+
+      /// <summary>A yes/no setting reached over the REST API.</summary>
+      private sealed class RestBool : ComBool, IRestSetting
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+         private bool? loaded_;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public object ToEditor(object answered) => answered;
+
+         public void Loaded(object answered) => loaded_ = answered as bool?;
+
+         public bool TryGetChange(out object value)
+         {
+            if (WithheldEntry != null)
+            {
+               value = WithheldEntry == "1" || string.Equals(WithheldEntry, "true", StringComparison.OrdinalIgnoreCase); // no-loc
+               return WithheldEntry.Length > 0;
+            }
+
+            bool now = ReadEditor() is true;
+            value = now;
+            return loaded_ != now;
+         }
+
+         public void Accepted()
+         {
+            if (WithheldEntry == null)
+               loaded_ = ReadEditor() is true;
+         }
+      }
+
+      /// <summary>
+      /// A whole number reached over the REST API, offered between the bounds the
+      /// server's own check puts on it (Minimum and Maximum).
+      /// </summary>
+      private sealed class RestNumber : ComText, IRestSetting
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+         private long? loaded_;
+
+         public RestNumber() => Numeric = true;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public object ToEditor(object answered) => answered;
+
+         public void Loaded(object answered) => loaded_ = answered is long number ? number : null;
+
+         public bool TryGetChange(out object value)
+         {
+            if (WithheldEntry != null)
+            {
+               bool typed = long.TryParse(WithheldEntry, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out long entered);
+               value = entered;
+               return WithheldEntry.Length > 0 && typed;
+            }
+
+            long now = ReadEditor() is long number ? number : 0;
+            value = now;
+            return loaded_ != now;
+         }
+
+         public void Accepted()
+         {
+            if (WithheldEntry == null)
+               loaded_ = ReadEditor() is long number ? number : null;
+         }
+      }
+
+      /// <summary>Free text reached over the REST API.</summary>
+      private sealed class RestText : ComText, IRestSetting
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+         private string loaded_;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public object ToEditor(object answered) => answered as string ?? "";
+
+         public void Loaded(object answered) => loaded_ = ((answered as string) ?? "").Trim();
+
+         public bool TryGetChange(out object value)
+         {
+            if (WithheldEntry != null)
+            {
+               value = WithheldEntry;
+               return WithheldEntry.Length > 0;
+            }
+
+            string now = (ReadEditor() as string ?? "").Trim();
+            value = now;
+            return !string.Equals(loaded_, now, StringComparison.Ordinal);
+         }
+
+         public void Accepted()
+         {
+            if (WithheldEntry == null)
+               loaded_ = (ReadEditor() as string ?? "").Trim();
+         }
+      }
+
+      /// <summary>
+      /// A secret reached over the REST API: a password, a client secret, a key. The
+      /// server takes one and never answers it back, so the box starts empty and a
+      /// save sends it only when something was typed - an empty box keeps what the
+      /// server holds, as every password row on these pages does.
+      /// </summary>
+      private sealed class RestSecret : ComPassword, IRestSetting
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public object ToEditor(object answered) => null;
+
+         public void Loaded(object answered)
+         {
+         }
+
+         public bool TryGetChange(out object value)
+         {
+            string typed = ReadEditor() as string ?? "";
+            value = typed;
+            return typed.Length > 0;
+         }
+
+         public void Accepted() => Clear();
+      }
+
+      /// <summary>
+      /// Text the server takes over the REST API and never answers back, though it is
+      /// not a secret - a certificate in PEM, which is several lines and is pasted, so
+      /// the box takes line breaks. It starts empty; a save sends it only when
+      /// something was pasted, and an empty box keeps what the server holds.
+      /// </summary>
+      private sealed class RestPaste : ComSetting, IRestSetting
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+         private TextBox box_;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public override bool WantsInitialValue => false;
+
+         public object ToEditor(object answered) => null;
+
+         public void Loaded(object answered)
+         {
+         }
+
+         protected override FrameworkElement BuildEditor(object value)
+         {
+            box_ = TextEditor("");
+            box_.AcceptsReturn = true;
+            box_.TextWrapping = TextWrapping.Wrap;
+            box_.MinHeight = 96;
+            box_.MaxHeight = 220;
+            box_.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            box_.FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily);
+            return box_;
+         }
+
+         public override object ReadEditor() => box_?.Text?.Trim() ?? "";
+
+         public bool TryGetChange(out object value)
+         {
+            string pasted = ReadEditor() as string ?? "";
+            value = pasted;
+            return pasted.Length > 0;
+         }
+
+         public void Accepted()
+         {
+            if (box_ != null)
+               box_.Text = "";
+         }
+
+         public override void Write(object owner, string property)
+         {
+         }
+      }
+
+      /// <summary>
+      /// One of a few words reached over the REST API, which answers and takes the
+      /// word (off, watch, enforce) rather than the number behind it. Words is in the
+      /// order of Options: the word of the option at the same place.
+      /// </summary>
+      private sealed class RestChoice : ComCombo, IRestSetting
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+         public string[] Words;
+         private string loaded_;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public object ToEditor(object answered)
+         {
+            int at = Array.IndexOf(Words, answered as string);
+            return at >= 0 ? Options[at].Value : Options[0].Value;
+         }
+
+         public void Loaded(object answered) => loaded_ = answered as string;
+
+         public bool TryGetChange(out object value)
+         {
+            int selected = ReadEditor() is int number ? number : 0;
+            int at = Array.FindIndex(Options, option => option.Value == selected);
+            string word = at >= 0 ? Words[at] : null;
+            value = word;
+            return word != null && !string.Equals(loaded_, word, StringComparison.Ordinal);
+         }
+
+         public void Accepted()
+         {
+            if (TryGetChange(out object word))
+               loaded_ = word as string;
+         }
+      }
+
+      /// <summary>
+      /// A line the server answers over the REST API and nobody sets - what a
+      /// certificate that was pasted holds, for one. Read-only, and written by nothing.
+      /// </summary>
+      private sealed class RestStat : ComSetting, IRestSetting, INotPersisted
+      {
+         public string Group = RestSettings.ServerGroup;
+         public string Key;
+
+         /// <summary>What the line says when the server answers nothing for it.</summary>
+         public string WhenEmpty;
+
+         string IRestSetting.Group => Group;
+         string IRestSetting.Key => Key;
+
+         public object ToEditor(object answered) => answered;
+
+         public void Loaded(object answered)
+         {
+         }
+
+         public bool TryGetChange(out object value)
+         {
+            value = null;
+            return false;
+         }
+
+         public void Accepted()
+         {
+         }
+
+         protected override FrameworkElement BuildEditor(object value)
+         {
+            string text = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+            var line = new TextBlock
+            {
+               Text = string.IsNullOrWhiteSpace(text) ? WhenEmpty ?? "" : text,
+               FontSize = Typography.Body,
+               TextWrapping = TextWrapping.Wrap
+            };
+            Describe(line, Path);
+            return line;
+         }
+
+         public override object ReadEditor() => null;
+
+         public override void Write(object owner, string property)
+         {
+         }
+      }
+
       private class CardDef
       {
          public string Title;
@@ -1092,6 +1488,20 @@ namespace hMailServer.ControlPanel.Views
       // Most settings on these pages live in the COM settings tree, but a few
       // (log retention) live in hMailServer.ini; IniNumber rows use this store.
       private readonly IniFeatureStore iniStore_ = new IniFeatureStore();
+
+      /// <summary>One REST settings group as this page last read it: its values, or why they could not be read.</summary>
+      private sealed class RestGroup
+      {
+         public IReadOnlyDictionary<string, System.Text.Json.JsonElement> Values;
+         public string Refusal;
+      }
+
+      // The REST settings groups this page's rows are in, read when the page is built.
+      private readonly Dictionary<string, RestGroup> restGroups_ = new(StringComparer.Ordinal);
+
+      // Set by Reload: a one-time code the administrator declined to give is asked
+      // for again, once, rather than on every page opened.
+      private bool restAskAgain_;
 
       public ServerSettingsView(Section section)
       {
@@ -1176,6 +1586,7 @@ namespace hMailServer.ControlPanel.Views
             case Section.Performance: BuildPerformance(); break;
             case Section.Advanced: BuildAdvanced(); break;
             case Section.AdminAccess: BuildAdminAccess(); break;
+            case Section.Webmail: BuildWebmail(); break;
          }
       }
 
@@ -1597,6 +2008,134 @@ namespace hMailServer.ControlPanel.Views
          var rules = Card(L("Rules"));
          rules.Settings.Add(new ComText { Path = "RuleLoopLimit", Label = L("Rule loop limit"), Numeric = true });
          Tab(L("Rules")).Cards.Add(rules);
+
+         // The one detector of the sensitive-content rule condition that has to be
+         // told what to look for (docs/OutboundContentPolicy.md). Beside the rules
+         // that use it; kept by the server with no COM property.
+         var sensitive = Card(L("Sensitive content in rules"),
+            L("The sensitive-content condition of a rule looks for card numbers, IBANs and, when a pattern is set here, this organisation's own account numbers."));
+         sensitive.Settings.Add(new RestText
+         {
+            Path = "DlpAccountNumberPattern",
+            Label = L("Account-number pattern (a regular expression; empty = none)"),
+            Key = "dlp_account_number_pattern",
+            Placeholder = "ACC-\\d{8}", // no-loc
+            Blurb = L("Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused.")
+         });
+         Tab(L("Rules")).Cards.Add(sensitive);
+
+         // What comes back after delivery besides bounces: the providers' abuse
+         // reports and the reports other servers write about this one's domains.
+         var complaints = Card(L("Complaints from mailbox providers (feedback loops)"),
+            L("Reads the abuse reports (RFC 5965) that providers send when a reader presses the spam button, counts them per address, and can put an address that complains on its sending domain's suppression list. Nothing arrives until the complaint mailbox is registered with each provider's feedback loop - that is done at the provider, not here."));
+         complaints.Settings.Add(new ComBool
+         {
+            Path = "ComplaintProcessingEnabled",
+            Label = L("Read complaints sent to the complaint mailbox"),
+            Blurb = L("Off by default. With it off nothing is read, counted or written.")
+         });
+         complaints.Settings.Add(new ComText
+         {
+            Path = "ComplaintMailbox",
+            Label = L("Complaint mailbox (comma separated for several)"),
+            Placeholder = "fbl@example.com", // no-loc
+            Blurb = L("The address the feedback loops are registered against, which must be one this server hosts. Only a report delivered here is read, because arriving where the provider was told to send it is what tells a report from a forgery. Empty, the default, reads nothing.")
+         });
+         complaints.Settings.Add(new ComText
+         {
+            Path = "ComplaintSuppressionThreshold",
+            Label = L("Complaints before an address is suppressed (0 = never; up to 100)"),
+            Numeric = true,
+            Maximum = 100,
+            Blurb = L("0 by default: every report is recorded and counted and nobody is listed. Read some real entries first; 1 is then the usual value.")
+         });
+         complaints.Settings.Add(new ComText
+         {
+            Path = "ComplaintRetentionDays",
+            Label = L("Days a complaint is kept (0 = for ever; up to 3650)"),
+            Numeric = true,
+            Maximum = 3650,
+            Blurb = L("180 by default. A suppression list entry a complaint made keeps its own expiry, set with the bounces.")
+         });
+         Tab(L("Feedback")).Cards.Add(complaints);
+
+         var domainReports = Card(L("Reports your domains receive"),
+            L("The DMARC aggregate and TLS-RPT reports other servers send about your domains, read from each domain's report mailbox - which is set in the domain's dialog."));
+         domainReports.Settings.Add(new RestNumber
+         {
+            Path = "DomainReportRetentionDays",
+            Label = L("Days a received report is kept (0 = for ever; up to 3650)"),
+            Key = "domain_report_retention_days",
+            Maximum = 3650,
+            Blurb = L("365 by default.")
+         });
+         Tab(L("Feedback")).Cards.Add(domainReports);
+
+         // Whether this server's own sending addresses are on the block lists its
+         // recipients consult - the outbound half of reputation.
+         var reputation = Card(L("Block lists and this server's own addresses"),
+            L("Once a day the server asks the DNS block lists below whether an address it sends from is listed, and raises the reputation.listed alert when one is. It checks the delivery bind address and the addresses the global rules bind; a server behind NAT has to be told its public address here, because nothing on the machine can find it."));
+         reputation.Settings.Add(new ComBool
+         {
+            Path = "ReputationWatchEnabled",
+            Label = L("Check this server's sending addresses against block lists every day"),
+            Blurb = L("On in a new installation and off after an upgrade. With no address to check it looks nothing up.")
+         });
+         reputation.Settings.Add(new ComText
+         {
+            Path = "ReputationWatchAddresses",
+            Label = L("Other addresses to check (commas or spaces)"),
+            Placeholder = "203.0.113.25", // no-loc
+            Blurb = L("The public address other servers see, when it is not an address of this machine.")
+         });
+         reputation.Settings.Add(new ComText
+         {
+            Path = "ReputationWatchLists",
+            Label = L("Block lists to ask"),
+            Blurb = L("Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike.")
+         });
+         Tab(L("Reputation")).Cards.Add(reputation);
+
+         // The distribution lists switched to managed in the list dialog
+         // (docs/MailingLists.md). Kept by the server with no COM property.
+         var lists = Card(L("Managed mailing lists"),
+            L("For the distribution lists switched to managed in the list dialog: where the links in their mail point, and when a member whose mail bounces stops being sent it. The member stays on the list, and the list's owner is told once."));
+         lists.Settings.Add(new RestText
+         {
+            Path = "ListBaseUrl",
+            Label = L("Base address of the list pages (empty = no links)"),
+            Key = "list_base_url",
+            Placeholder = "https://lists.example.com", // no-loc
+            Blurb = L("The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only.")
+         });
+         lists.Settings.Add(new RestNumber
+         {
+            Path = "ListHardBouncesToUnsubscribe",
+            Label = L("Hard bounces before a member is no longer sent mail (1 to 100)"),
+            Key = "list_hard_bounces_to_unsubscribe",
+            Minimum = 1,
+            Maximum = 100,
+            Blurb = L("1 by default.")
+         });
+         lists.Settings.Add(new RestNumber
+         {
+            Path = "ListSoftBouncesToUnsubscribe",
+            Label = L("Soft bounces within the window before a member is no longer sent mail (1 to 100)"),
+            Key = "list_soft_bounces_to_unsubscribe",
+            Minimum = 1,
+            Maximum = 100,
+            Blurb = L("5 by default. A delivery that succeeds does not clear the count; the window does.")
+         });
+         lists.Settings.Add(new RestNumber
+         {
+            Path = "ListBounceWindowDays",
+            Label = L("Days the soft bounces are counted within (1 to 365)"),
+            Key = "list_bounce_window_days",
+            Minimum = 1,
+            Maximum = 365,
+            Blurb = L("30 by default.")
+         });
+         Tab(L("Mailing lists")).Cards.Add(lists);
       }
 
       private void BuildAntiSpam()
@@ -1925,6 +2464,44 @@ namespace hMailServer.ControlPanel.Views
             IniStore = iniStore_
          });
          Tab(L("SpamAssassin")).Cards.Add(hook);
+
+         // What happens to a server that writes to a spam trap (docs/SpamTraps.md).
+         // The traps themselves are declared per domain, in the Control Deck or over
+         // COM and REST; nothing here does anything until a domain has one.
+         var traps = Card(L("Spam traps"),
+            L("A spam trap is an address in one of your domains that nobody uses, so whoever writes to it is sending spam. These settings say what happens to a server that does. The trap addresses are declared per domain in the Control Deck; until a domain has one, nothing here does anything."));
+         traps.Settings.Add(new ComText
+         {
+            Path = "SpamTrapBanMinutes",
+            Label = L("Minutes the sending address is banned (0 = no ban; up to 525600)"),
+            Numeric = true,
+            Maximum = 525600,
+            Blurb = L("1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the anti-spam white list, an incoming relay and an address on the never-ban list are never banned.")
+         });
+         traps.Settings.Add(new ComText
+         {
+            Path = "SpamTrapBlockDays",
+            Label = L("Days the envelope sender stays blocked (0 = no block; up to 3650)"),
+            Numeric = true,
+            Maximum = 3650,
+            Blurb = L("30 by default: an ordinary block at server scope, which a nearer allow entry still overrules. The null sender, a sender in a domain this server hosts and a sender on the allow list are never blocked.")
+         });
+         traps.Settings.Add(new ComText
+         {
+            Path = "SpamTrapHitRetentionDays",
+            Label = L("Days the record of trap hits is kept (1 to 3650)"),
+            Numeric = true,
+            Minimum = 1,
+            Maximum = 3650,
+            Blurb = L("90 by default. A ban or a block a hit made is not removed with its record.")
+         });
+         traps.Settings.Add(new ComBool
+         {
+            Path = "SpamTrapTeachSpamAssassin",
+            Label = L("Teach SpamAssassin the other messages of a session that wrote to a trap"),
+            Blurb = L("Off by default. Does nothing unless SpamAssassin is enabled and its spamd allows TELL.")
+         });
+         Tab(L("Spam traps")).Cards.Add(traps);
       }
 
       private void BuildAntiVirus()
@@ -2349,6 +2926,159 @@ namespace hMailServer.ControlPanel.Views
             IniStore = iniStore_
          });
          Tab(L("Auto-ban")).Cards.Add(tarpit);
+
+         // Country blocking (docs/CountryBlocking.md): who may connect at all, by
+         // where the address is. A domain's own policy, applied at sign-in, is in the
+         // domain's dialog; these are the server's, applied when a connection is
+         // accepted. Inert until a database file is named.
+         var countries = Card(L("Country blocking"),
+            L("Refuse, or allow only, connections from the countries you name, by the country a MaxMind database places the address in. This server ships no database and downloads none: until you supply the file, nothing is judged by country. A policy is empty (off), allow:GB,IE or block:CN,RU."));
+         countries.Settings.Add(new ComText
+         {
+            Path = "GeoIpDatabaseFile",
+            Label = L("MaxMind country database (.mmdb)"),
+            BrowseFile = true,
+            FileFilter = L("MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*"),
+            Blurb = L("Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say.")
+         });
+         countries.Settings.Add(new ComText
+         {
+            Path = "GeoIpDatabaseMaxAgeDays",
+            Label = L("Days before the database is reported as stale (0 = never)"),
+            Numeric = true,
+            Maximum = 3650,
+            Blurb = L("45 by default. A stale database is still used; the application log says it is stale.")
+         });
+         countries.Settings.Add(new ComText
+         {
+            Path = "CountryPolicy",
+            Label = L("SMTP connections"),
+            Index = "smtp", // no-loc
+            Placeholder = "block:CN,RU", // no-loc
+            Blurb = L("Applied when a connection is accepted, before the greeting. An allow list refuses an address whose country the database does not know; a block list lets it in.")
+         });
+         countries.Settings.Add(new ComText
+         {
+            Path = "CountryPolicy",
+            Label = L("IMAP connections"),
+            Index = "imap", // no-loc
+            Placeholder = "block:CN,RU" // no-loc
+         });
+         countries.Settings.Add(new ComText
+         {
+            Path = "CountryPolicy",
+            Label = L("POP3 connections"),
+            Index = "pop3", // no-loc
+            Placeholder = "block:CN,RU" // no-loc
+         });
+         countries.Settings.Add(new ComText
+         {
+            Path = "CountryPolicy",
+            Label = L("Webmail, REST API and web services connections"),
+            Index = "http", // no-loc
+            Placeholder = "block:CN,RU", // no-loc
+            Blurb = L("The REST API's listener and the web services listener share this one.")
+         });
+         countries.Settings.Add(new ComText
+         {
+            Path = "CountryBlockingExemptRanges",
+            Label = L("Never judged by country (addresses and CIDR ranges, comma separated)"),
+            Blurb = L("The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included.")
+         });
+         Tab(L("Countries")).Cards.Add(countries);
+
+         // Compromised-account detection (docs/CompromisedAccounts.md): the other
+         // half of a stolen password - not the guessing, which auto-ban and the
+         // lockout meet, but what an account does once somebody else has it.
+         // Kept by the server with no COM property.
+         var compromise = Card(L("Compromised accounts"),
+            L("Scores each account's submissions for the shape of a takeover: far more mail than its busiest hour, mostly to addresses it has never written to, at an hour it never sends, from a network it never used. Watch raises the account.compromised alert; enforce also holds the message for review, holds the account's other queued mail and locks the account until an administrator unlocks it. Held messages are reviewed in the Control Deck."));
+         compromise.Settings.Add(new RestChoice
+         {
+            Path = "CompromiseDetectionMode",
+            Label = L("What a takeover-shaped submission does"),
+            Key = "compromise_detection_mode",
+            Options = new (int, string)[]
+            {
+               (0, L("Off: record and judge nothing")),
+               (1, L("Watch: raise the alert only (default)")),
+               (2, L("Enforce: hold the mail and lock the account"))
+            },
+            Words = new[] { "off", "watch", "enforce" } // no-loc
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseBaselineDays",
+            Label = L("Days of submissions that make an account's baseline (7 to 365)"),
+            Key = "compromise_baseline_days",
+            Minimum = 7,
+            Maximum = 365,
+            Blurb = L("30 by default. The record of whom an account wrote to is kept as long.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseMinimumHistory",
+            Label = L("Submissions before an account's baseline counts (1 to 10000)"),
+            Key = "compromise_minimum_history",
+            Minimum = 1,
+            Maximum = 10000,
+            Blurb = L("20 by default. Below it only the two floors are judged.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseVolumeFactor",
+            Label = L("Volume signal: times the account's busiest hour (2 to 100)"),
+            Key = "compromise_volume_factor",
+            Minimum = 2,
+            Maximum = 100,
+            Blurb = L("4 by default. The last hour's messages have to exceed this many times the busiest hour of the baseline, and reach the floor below.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseVolumeFloor",
+            Label = L("Fewest messages in an hour that can be a volume signal (1 to 100000)"),
+            Key = "compromise_volume_floor",
+            Minimum = 1,
+            Maximum = 100000,
+            Blurb = L("30 by default. For an account with no baseline yet, this floor is the whole test.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseRecipientFloor",
+            Label = L("Fewest recipients in an hour that can be a recipients signal (1 to 100000)"),
+            Key = "compromise_recipient_floor",
+            Minimum = 1,
+            Maximum = 100000,
+            Blurb = L("20 by default.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseNewRecipientShare",
+            Label = L("Recipients signal: percentage never written to before (1 to 100)"),
+            Key = "compromise_new_recipient_share",
+            Minimum = 1,
+            Maximum = 100,
+            Blurb = L("80 by default.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseScoreToLock",
+            Label = L("Score that counts as a takeover (1 to 6)"),
+            Key = "compromise_score_to_lock",
+            Minimum = 1,
+            Maximum = 6,
+            Blurb = L("3 by default. Volume and recipients score 2 each; an hour of the day the account has never sent at and a network it has never sent from score 1 each.")
+         });
+         compromise.Settings.Add(new RestNumber
+         {
+            Path = "CompromiseHeldDays",
+            Label = L("Days a held message waits for review (1 to 90)"),
+            Key = "compromise_held_days",
+            Minimum = 1,
+            Maximum = 90,
+            Blurb = L("7 by default. After that the message is discarded.")
+         });
+         Tab(L("Compromised accounts")).Cards.Add(compromise);
       }
 
       private void BuildLogging()
@@ -2568,6 +3298,224 @@ namespace hMailServer.ControlPanel.Views
          });
 
          logging.Cards.Add(logFiles);
+
+         // The audit trail (docs/AlertsAndAuditTrail.md): read on the Audit trail
+         // page, switched and kept here. Kept by the server with no COM property.
+         var audit = Card(L("Audit trail"),
+            L("Every administrative change - from this Control Panel, the Control Deck, the REST API or a script - recorded in a hash-chained trail, so that a row removed or altered afterwards shows. It is read on the Audit trail page."));
+         audit.Settings.Add(new RestBool
+         {
+            Path = "AuditTrailEnabled",
+            Label = L("Record administrative changes in the audit trail"),
+            Key = "audit_trail_enabled",
+            Blurb = L("On by default.")
+         });
+         audit.Settings.Add(new RestNumber
+         {
+            Path = "AuditRetentionDays",
+            Label = L("Days of audit trail to keep (0 = everything)"),
+            Key = "audit_retention_days",
+            Blurb = L("0, keep everything, by default. Removing the oldest rows starts the chain again at the oldest row kept.")
+         });
+         Tab(L("Audit trail")).Cards.Add(audit);
+
+         // Alerts (docs/AlertsAndAuditTrail.md): the conditions themselves are the
+         // alert rules, which are the Control Deck's; the switch, where they go and
+         // how many are the server's settings, kept with no COM property.
+         var alerts = Card(L("Alerts"),
+            L("Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set."));
+         alerts.Settings.Add(new RestBool
+         {
+            Path = "AlertsEnabled",
+            Label = L("Watch for alert conditions"),
+            Key = "alerts_enabled",
+            Blurb = L("On by default.")
+         });
+         alerts.Settings.Add(new RestText
+         {
+            Path = "AlertRecipient",
+            Label = L("Send alerts and the daily digest to"),
+            Key = "alert_recipient",
+            Placeholder = "postmaster@example.com", // no-loc
+            Blurb = L("Empty, the default, mails nothing.")
+         });
+         alerts.Settings.Add(new RestText
+         {
+            Path = "AlertSenderAddress",
+            Label = L("Send alerts from"),
+            Key = "alert_sender_address",
+            Placeholder = "hmailserver@example.com", // no-loc
+            Blurb = L("Empty, the default, mails nothing.")
+         });
+         alerts.Settings.Add(new RestNumber
+         {
+            Path = "AlertMaxPerHour",
+            Label = L("Alerts sent one at a time in an hour, at most"),
+            Key = "alert_max_per_hour",
+            Minimum = 1,
+            Blurb = L("20 by default. Past it the rest wait for the digest.")
+         });
+         alerts.Settings.Add(new RestBool
+         {
+            Path = "AlertDigestEnabled",
+            Label = L("Send the conditions marked for the digest in one daily message"),
+            Key = "alert_digest_enabled",
+            Blurb = L("On by default.")
+         });
+         alerts.Settings.Add(new RestNumber
+         {
+            Path = "AlertDigestHour",
+            Label = L("Hour the digest is sent (UTC, 0 to 23)"),
+            Key = "alert_digest_hour",
+            Maximum = 23,
+            Blurb = L("7 by default.")
+         });
+         alerts.Settings.Add(new RestNumber
+         {
+            Path = "AlertWebhookMaxAttempts",
+            Label = L("Attempts at an alert's webhook before it is given up (1 to 20)"),
+            Key = "alert_webhook_max_attempts",
+            Minimum = 1,
+            Maximum = 20,
+            Blurb = L("5 by default.")
+         });
+         Tab(L("Alerts & webhooks")).Cards.Add(alerts);
+
+         // Outbound webhooks (docs/Webhooks.md): the subscriptions are the Control
+         // Deck's and the REST API's; these four are the server's.
+         var webhooks = Card(L("Outbound webhooks"),
+            L("Events - a message received, delivered, bounced or quarantined, an account locked - posted to the receivers subscribed in the Control Deck or over the REST API. Nothing is sent until a subscription exists."));
+         webhooks.Settings.Add(new ComBool
+         {
+            Path = "WebhooksEnabled",
+            Label = L("Send webhook events"),
+            Blurb = L("On by default. Off silences every receiver at once and keeps the subscriptions; inbound webhooks are not affected.")
+         });
+         webhooks.Settings.Add(new ComText
+         {
+            Path = "WebhookMaxAttempts",
+            Label = L("Attempts before a delivery is dead-lettered (1 to 20)"),
+            Numeric = true,
+            Minimum = 1,
+            Maximum = 20,
+            Blurb = L("5 by default. The waits between them are none, then 1, 5, 15 and 60 minutes.")
+         });
+         webhooks.Settings.Add(new ComText
+         {
+            Path = "WebhookMaxPerMinute",
+            Label = L("Events a minute for a subscription with no limit of its own (1 to 100000)"),
+            Numeric = true,
+            Minimum = 1,
+            Maximum = 100000,
+            Blurb = L("60 by default. Events past it are dropped and counted, not queued.")
+         });
+         webhooks.Settings.Add(new ComText
+         {
+            Path = "WebhookRetentionDays",
+            Label = L("Days delivered and dead-lettered deliveries are kept (0 = everything; up to 3650)"),
+            Numeric = true,
+            Maximum = 3650,
+            Blurb = L("7 by default.")
+         });
+         Tab(L("Alerts & webhooks")).Cards.Add(webhooks);
+
+         // The SNMP agent (docs/Snmp.md). Read when the agent starts, so each is
+         // marked as waiting for a restart; kept by the server with no COM property.
+         var snmp = Card(L("SNMP agent"),
+            L("A read-only SNMP agent for a monitoring system: SNMPv3 with authentication and encryption, and SNMPv2c only if you switch it on. It answers nobody until the managers are listed, and the port has to be open to them in any firewall between."));
+         snmp.Settings.Add(new RestBool
+         {
+            Path = "SnmpEnabled",
+            Label = L("Run the SNMP agent"),
+            Key = "snmp_enabled",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Off by default.")
+         });
+         snmp.Settings.Add(new RestNumber
+         {
+            Path = "SnmpPort",
+            Label = L("UDP port (1 to 65535)"),
+            Key = "snmp_port",
+            Minimum = 1,
+            Maximum = 65535,
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("161 by default.")
+         });
+         snmp.Settings.Add(new RestText
+         {
+            Path = "SnmpBindAddress",
+            Label = L("Listen on this address (empty = every address)"),
+            Key = "snmp_bind_address",
+            Placeholder = "127.0.0.1", // no-loc
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network.")
+         });
+         snmp.Settings.Add(new RestText
+         {
+            Path = "SnmpAllowedAddresses",
+            Label = L("Managers allowed to ask (addresses or CIDR ranges, comma separated)"),
+            Key = "snmp_allowed_addresses",
+            Placeholder = "192.0.2.10, 192.0.2.11", // no-loc
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Empty, the default, answers nobody. Name the managers one by one: UDP does not prove where a request came from.")
+         });
+         snmp.Settings.Add(new RestText
+         {
+            Path = "SnmpV3User",
+            Label = L("SNMPv3 user name (empty = none)"),
+            Key = "snmp_v3_user",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128.")
+         });
+         snmp.Settings.Add(new RestSecret
+         {
+            Path = "SnmpV3AuthPassword",
+            Label = L("SNMPv3 authentication password (leave empty to keep current)"),
+            Key = "snmp_v3_auth_password",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("8 to 64 ASCII characters.")
+         });
+         snmp.Settings.Add(new RestSecret
+         {
+            Path = "SnmpV3PrivPassword",
+            Label = L("SNMPv3 privacy password (leave empty to keep current)"),
+            Key = "snmp_v3_priv_password",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("8 to 64 ASCII characters.")
+         });
+         snmp.Settings.Add(new RestBool
+         {
+            Path = "SnmpV2cEnabled",
+            Label = L("Also answer SNMPv2c"),
+            Key = "snmp_v2c_enabled",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Off by default. Its community crosses the network in the clear, so anyone who can see the traffic can read what the agent serves.")
+         });
+         snmp.Settings.Add(new RestSecret
+         {
+            Path = "SnmpV2cCommunity",
+            Label = L("SNMPv2c community (leave empty to keep current)"),
+            Key = "snmp_v2c_community",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Up to 64 visible ASCII characters.")
+         });
+         snmp.Settings.Add(new RestText
+         {
+            Path = "SnmpContact",
+            Label = L("Contact (sysContact)"),
+            Key = "snmp_contact",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Who to ask about this server: one line of printable ASCII, up to 255 characters.")
+         });
+         snmp.Settings.Add(new RestText
+         {
+            Path = "SnmpLocation",
+            Label = L("Location (sysLocation)"),
+            Key = "snmp_location",
+            AppliesMark = SettingApplies.Restart,
+            Blurb = L("Where this server is: one line of printable ASCII, up to 255 characters.")
+         });
+         Tab(L("SNMP")).Cards.Add(snmp);
       }
 
       /// <summary>
@@ -2750,6 +3698,134 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("Measured by the server on its own time, and at most a quarter of an hour old. A file with several names is counted once.")
          });
          Tab(L("Message store")).Cards.Add(store);
+
+         // Messages kept in an object store rather than the data directory
+         // (docs/ObjectStorage.md). Kept by the server with no COM property; the
+         // bucket and its credentials are made at the provider, not here.
+         var objects = Card(L("Object storage (S3 or Azure)"),
+            L("Keep messages in an S3-compatible store (AWS S3, MinIO, Wasabi, Backblaze B2, Ceph) or in Azure Blob Storage instead of the data directory. The bucket or container has to exist already and be reachable from this server. Copy what is stored now with hmailserver --copy-store-to-object-storage before switching new messages to the object store."));
+         objects.Settings.Add(new RestChoice
+         {
+            Path = "MessageStoreBackend",
+            Label = L("Where new messages are stored"),
+            Key = "message_store_backend",
+            Options = new (int, string)[]
+            {
+               (0, L("In the data directory (default)")),
+               (1, L("In the object store"))
+            },
+            Words = new[] { "file", "object" }, // no-loc
+            Blurb = L("A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds.")
+         });
+         objects.Settings.Add(new RestChoice
+         {
+            Path = "MessageStoreObjectService",
+            Label = L("Object store"),
+            Key = "message_store_object_service",
+            Options = new (int, string)[]
+            {
+               (0, L("None (default)")),
+               (1, L("S3 or S3-compatible")),
+               (2, L("Azure Blob Storage"))
+            },
+            Words = new[] { "", "s3", "azure" } // no-loc
+         });
+         objects.Settings.Add(new RestText
+         {
+            Path = "MessageStoreObjectEndpoint",
+            Label = L("Endpoint (empty = the service's own)"),
+            Key = "message_store_object_endpoint",
+            Placeholder = "https://minio.example.com:9000", // no-loc
+            Blurb = L("https, with its certificate verified; plain http only to this machine. Empty uses AWS's regional endpoint, or the storage account's own for Azure.")
+         });
+         objects.Settings.Add(new RestText
+         {
+            Path = "MessageStoreObjectRegion",
+            Label = L("Region (S3)"),
+            Key = "message_store_object_region",
+            Blurb = L("us-east-1 by default, which MinIO and Ceph take unless they were set up with another.")
+         });
+         objects.Settings.Add(new RestText
+         {
+            Path = "MessageStoreObjectBucket",
+            Label = L("Bucket (S3) or container (Azure)"),
+            Key = "message_store_object_bucket",
+            Blurb = L("It has to exist: this server makes none.")
+         });
+         objects.Settings.Add(new RestChoice
+         {
+            Path = "MessageStoreObjectAddressing",
+            Label = L("How a request names the bucket (S3)"),
+            Key = "message_store_object_addressing",
+            Options = new (int, string)[]
+            {
+               (0, L("Automatic: virtual host for AWS, path for another endpoint (default)")),
+               (1, L("Path: https://endpoint/bucket/key")),
+               (2, L("Virtual host: https://bucket.endpoint/key"))
+            },
+            Words = new[] { "auto", "path", "virtual" } // no-loc
+         });
+         objects.Settings.Add(new RestText
+         {
+            Path = "MessageStoreObjectPrefix",
+            Label = L("Key prefix (empty = none)"),
+            Key = "message_store_object_prefix",
+            Placeholder = "mail/", // no-loc
+            Blurb = L("Lets one bucket hold more than one server's store. Change it only with the store copied under the new prefix: what is under the old one is not looked for.")
+         });
+         objects.Settings.Add(new RestText
+         {
+            Path = "MessageStoreObjectAccessKey",
+            Label = L("Access key ID (S3) or storage account name (Azure)"),
+            Key = "message_store_object_access_key"
+         });
+         objects.Settings.Add(new RestSecret
+         {
+            Path = "MessageStoreObjectSecret",
+            Label = L("Secret access key (S3) or account key (Azure) (leave empty to keep current)"),
+            Key = "message_store_object_secret",
+            Blurb = L("Stored protected and never shown again.")
+         });
+         objects.Settings.Add(new RestSecret
+         {
+            Path = "MessageStoreObjectSasToken",
+            Label = L("Shared access signature, instead of the account key (Azure) (leave empty to keep current)"),
+            Key = "message_store_object_sas_token",
+            Blurb = L("The query string the Azure portal gives, beginning sv=. Stored protected and never shown again.")
+         });
+         objects.Settings.Add(new RestText
+         {
+            Path = "MessageStoreObjectCaFile",
+            Label = L("CA certificate for a private endpoint (PEM; empty = the machine's roots)"),
+            Key = "message_store_object_ca_file",
+            BrowseFile = true,
+            FileFilter = L("Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"),
+            Blurb = L("For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way.")
+         });
+         objects.Settings.Add(new RestNumber
+         {
+            Path = "MessageStoreObjectCacheMB",
+            Label = L("Read cache in MB (0 = none; up to 4096)"),
+            Key = "message_store_object_cache_mb",
+            Maximum = 4096,
+            Blurb = L("32 by default. What was read a moment ago is kept for half a minute, so that one IMAP FETCH is one request and not five.")
+         });
+         Tab(L("Message store")).Cards.Add(objects);
+
+         // Mailbox encryption at rest (docs/EncryptionAtRest.md): the one server-wide
+         // setting of it. Kept by the server with no COM property.
+         var atRest = Card(L("Mailboxes encrypted at rest"),
+            L("An account encrypted at rest can be read by the server only while its mailbox key is open, which the account's password opens at sign-in."));
+         atRest.Settings.Add(new RestNumber
+         {
+            Path = "MailboxKeyIdleMinutes",
+            Label = L("Minutes a mailbox key stays open after its last use (1 to 1440)"),
+            Key = "mailbox_key_idle_minutes",
+            Minimum = 1,
+            Maximum = 1440,
+            Blurb = L("15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password.")
+         });
+         Tab(L("Message store")).Cards.Add(atRest);
 
          // The three [Database] values that are tuning rather than connection detail.
          //
@@ -2945,6 +4021,648 @@ namespace hMailServer.ControlPanel.Views
             IniStore = iniStore_
          });
          Tab(L("Scripting")).Cards.Add(script);
+
+         // Migrations from another server and PST imports (docs/Migration.md): the
+         // jobs are started in the Control Deck or over the REST API; these two are
+         // the server's. Kept with no COM property.
+         var migration = Card(L("Migrations"),
+            L("Mailbox migrations from another server, and imports of Outlook data files (PST). The jobs are started in the Control Deck or over the REST API."));
+         migration.Settings.Add(new RestNumber
+         {
+            Path = "MigrationConnectionsPerHost",
+            Label = L("Connections to one source host, across every running migration (1 to 64)"),
+            Key = "migration_connections_per_host",
+            Minimum = 1,
+            Maximum = 64,
+            Blurb = L("4 by default. A provider counts sessions per client address, and too many at once gets an address throttled for the rest of the day.")
+         });
+         migration.Settings.Add(new RestText
+         {
+            Path = "PstImportDirectory",
+            Label = L("Folder PST files are copied into for import (empty = no PST import)"),
+            Key = "pst_import_directory",
+            BrowseFolder = true,
+            Blurb = L("An absolute path on the server. A PST job names a file in the subfolder for the target account's domain, such as example.com\\archive.pst, and nowhere else.")
+         });
+         Tab(L("Migrations")).Cards.Add(migration);
+      }
+
+      /// <summary>
+      /// The webmail and the other pages people sign in to in a browser - the
+      /// self-service portal and the Control Deck. Until 6.3.5 none of this was in
+      /// the Control Panel: nearly every one of these settings is kept by the server
+      /// with no COM property, and is reached over the REST API, which is also the
+      /// listener that serves the webmail - so a server whose webmail works is a
+      /// server this page can read. The few with a COM property (the session
+      /// policies, OpenPGP's limits, Web Push's switch and contact) are written over
+      /// COM, as every other page's are.
+      /// </summary>
+      private void BuildWebmail()
+      {
+         Header.Title = L("Webmail");
+         Header.Subtitle = L("The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail.");
+
+         // ---- Sign-in -------------------------------------------------------
+
+         var passkeys = Card(L("Passkeys"),
+            L("People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password."));
+         passkeys.Settings.Add(new RestBool
+         {
+            Path = "PasskeysEnabled",
+            Label = L("Offer passkeys"),
+            Key = "passkeys_enabled",
+            Blurb = L("On by default. Off refuses every passkey sign-in; the passkeys already enrolled stay until their owners remove them.")
+         });
+         passkeys.Settings.Add(new RestText
+         {
+            Path = "PasskeyRelyingParty",
+            Label = L("Relying party (empty = the host the page is on)"),
+            Key = "passkey_relying_party",
+            Placeholder = "example.com", // no-loc
+            Blurb = L("A host name, not an address. Set a parent domain when the webmail and the Control Deck are reached at several names, so that one passkey works at all of them.")
+         });
+         passkeys.Settings.Add(new RestText
+         {
+            Path = "PasskeyAllowedOrigins",
+            Label = L("Origins passkeys may be used at (comma separated)"),
+            Key = "passkey_allowed_origins",
+            Placeholder = "https://mail.example.com, https://webmail.example.com", // no-loc
+            Blurb = L("Each as the browser writes it: https, the host and any port. Empty, the default, is right while the relying party is empty; once a relying party is set, no passkey is registered or taken until this names the origins.")
+         });
+         Tab(L("Sign-in")).Cards.Add(passkeys);
+
+         var oidc = Card(L("Single sign-on with OpenID Connect"),
+            L("Sign people in with your identity provider - Entra ID, Okta, Keycloak, Google. Register this server with the provider first, as a web client whose redirect address is the base address below followed by /portal/oidc/callback. Single sign-on is off until the issuer is set."));
+         oidc.Settings.Add(new RestText
+         {
+            Path = "OidcIssuer",
+            Label = L("Issuer (empty = no single sign-on)"),
+            Key = "oidc_issuer",
+            Placeholder = "https://login.example.com", // no-loc
+            Blurb = L("Its discovery document is read from the issuer followed by /.well-known/openid-configuration.")
+         });
+         oidc.Settings.Add(new RestText
+         {
+            Path = "OidcClientId",
+            Label = L("Client ID"),
+            Key = "oidc_client_id"
+         });
+         oidc.Settings.Add(new RestSecret
+         {
+            Path = "OidcClientSecret",
+            Label = L("Client secret (leave empty to keep current)"),
+            Key = "oidc_client_secret",
+            Blurb = L("None is needed for a public client, which PKCE makes safe.")
+         });
+         oidc.Settings.Add(new RestText
+         {
+            Path = "OidcScopes",
+            Label = L("Scopes (space separated)"),
+            Key = "oidc_scopes",
+            Blurb = L("openid email by default, which is what the sign-in needs: the verified email names the account.")
+         });
+         oidc.Settings.Add(new RestText
+         {
+            Path = "OidcRedirectBaseUrl",
+            Label = L("Base address of the webmail, as the provider reaches it"),
+            Key = "oidc_redirect_base_url",
+            Placeholder = "https://mail.example.com", // no-loc
+            Blurb = L("SAML sign-in is under it too. Empty uses the import sign-in's base address, on the Import tab.")
+         });
+         oidc.Settings.Add(new RestBool
+         {
+            Path = "OidcAutoProvision",
+            Label = L("Make a mailbox at the first sign-in of a verified address that has none"),
+            Key = "oidc_auto_provision",
+            Blurb = L("Off by default: an address this server does not know is refused. A mailbox made this way has no password of its own and is in a domain the server already has.")
+         });
+         oidc.Settings.Add(new RestText
+         {
+            Path = "OidcAdministrators",
+            Label = L("Addresses that sign in to the Control Deck as the administrator through OpenID Connect (comma separated)"),
+            Key = "oidc_administrators",
+            Blurb = L("Empty, the default: single sign-on reaches the webmail only, and the Control Deck still asks for the administrator password.")
+         });
+         Tab(L("Sign-in")).Cards.Add(oidc);
+
+         var saml = Card(L("Single sign-on with SAML"),
+            L("Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set."));
+         saml.Settings.Add(new RestText
+         {
+            Path = "SamlIdpEntityId",
+            Label = L("Identity provider's entity ID (empty = no SAML sign-in)"),
+            Key = "saml_idp_entity_id",
+            Blurb = L("Exactly as its metadata writes it: the Microsoft Entra Identifier, Okta's Identity Provider Issuer, the ADFS Federation Service Identifier.")
+         });
+         saml.Settings.Add(new RestText
+         {
+            Path = "SamlIdpSsoUrl",
+            Label = L("Identity provider's sign-in address"),
+            Key = "saml_idp_sso_url",
+            Placeholder = "https://idp.example.com/sso", // no-loc
+            Blurb = L("For the HTTP-Redirect binding: Entra ID's Login URL, Okta's Identity Provider Single Sign-On URL.")
+         });
+         saml.Settings.Add(new RestPaste
+         {
+            Path = "SamlIdpCertificate",
+            Label = L("Identity provider's signing certificate, in PEM (leave empty to keep current)"),
+            Key = "saml_idp_certificate",
+            Blurb = L("Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held.")
+         });
+         saml.Settings.Add(new RestStat
+         {
+            Path = "SamlIdpCertificateFingerprints",
+            Label = L("Certificates held"),
+            Key = "saml_idp_certificate_fingerprints",
+            WhenEmpty = L("None.")
+         });
+         saml.Settings.Add(new RestText
+         {
+            Path = "SamlSpEntityId",
+            Label = L("This server's entity ID (empty = the base address followed by /saml)"),
+            Key = "saml_sp_entity_id",
+            Blurb = L("What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI.")
+         });
+         saml.Settings.Add(new RestText
+         {
+            Path = "SamlEmailAttribute",
+            Label = L("Attribute the address is read from"),
+            Key = "saml_email_attribute",
+            Blurb = L("Used when the NameID is not an email address. By default the emailaddress claim that Entra ID and ADFS send.")
+         });
+         saml.Settings.Add(new RestBool
+         {
+            Path = "SamlRequireSignedAssertion",
+            Label = L("Require the assertion itself to be signed"),
+            Key = "saml_require_signed_assertion",
+            Blurb = L("On by default, which is how Entra ID and ADFS sign. Off accepts a signature over the whole response.")
+         });
+         saml.Settings.Add(new RestBool
+         {
+            Path = "SamlAutoProvision",
+            Label = L("Make a mailbox at the first sign-in of an address that has none"),
+            Key = "saml_auto_provision",
+            Blurb = L("Off by default.")
+         });
+         saml.Settings.Add(new RestText
+         {
+            Path = "SamlAdministrators",
+            Label = L("Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)"),
+            Key = "saml_administrators",
+            Blurb = L("Empty, the default: SAML reaches the webmail only.")
+         });
+         saml.Settings.Add(new RestText
+         {
+            Path = "SamlButtonLabel",
+            Label = L("Words on the SAML sign-in button"),
+            Key = "saml_button_label",
+            Blurb = L("One line of up to 60 characters. The default, Sign in with SAML, is shown in each reader's language; anything else as written.")
+         });
+         Tab(L("Sign-in")).Cards.Add(saml);
+
+         var recovery = Card(L("Account recovery"),
+            L("People may set a recovery address and one-time recovery codes in the webmail, and reset a forgotten password with them. A reset link can be sent only when the server knows its own public address: the base address for messages that expire, the quarantine digest's or the import sign-in's."));
+         recovery.Settings.Add(new RestBool
+         {
+            Path = "AccountRecoveryEnabled",
+            Label = L("Let people recover a forgotten password"),
+            Key = "account_recovery_enabled",
+            Blurb = L("On by default, and inert until somebody sets a recovery address.")
+         });
+         recovery.Settings.Add(new RestNumber
+         {
+            Path = "RecoveryResetLinkMinutes",
+            Label = L("Minutes a password-reset link works (5 to 1440)"),
+            Key = "recovery_reset_link_minutes",
+            Minimum = 5,
+            Maximum = 1440,
+            Blurb = L("30 by default.")
+         });
+         recovery.Settings.Add(new RestNumber
+         {
+            Path = "RecoveryVerifyLinkHours",
+            Label = L("Hours the link that proves a recovery address works (1 to 168)"),
+            Key = "recovery_verify_link_hours",
+            Minimum = 1,
+            Maximum = 168,
+            Blurb = L("24 by default.")
+         });
+         Tab(L("Sign-in")).Cards.Add(recovery);
+
+         // ---- Sessions ------------------------------------------------------
+
+         var sessions = Card(L("Browser sessions"),
+            L("How long a signed-in session of the webmail, the self-service portal or the Control Deck lasts. A domain or an account can hold its own value, on the Levels tab of its dialog."));
+         sessions.Settings.Add(new ComText
+         {
+            Path = "SessionIdleSeconds",
+            Label = L("Seconds a session may go unused (0 = the server's own 1800)"),
+            Numeric = true,
+            Maximum = 2592000,
+            Blurb = L("At most 2592000, thirty days.")
+         });
+         sessions.Settings.Add(new ComText
+         {
+            Path = "SessionLifetimeSeconds",
+            Label = L("Seconds a session may last at all (0 = the server's own 43200)"),
+            Numeric = true,
+            Maximum = 2592000,
+            Blurb = L("43200 is twelve hours. At most 2592000, thirty days.")
+         });
+         sessions.Settings.Add(new ComBool
+         {
+            Path = "SessionOnePerDevice",
+            Label = L("Signing in again from the same device ends the earlier session"),
+            Blurb = L("Off by default. Useful on shared machines.")
+         });
+         sessions.Settings.Add(new ComBool
+         {
+            Path = "SessionBindToAddress",
+            Label = L("Refuse a session from any address but the one it began on"),
+            Blurb = L("Off by default. A phone moving between wi-fi and a mobile network loses its session while this is on.")
+         });
+         Tab(L("Browser sessions")).Cards.Add(sessions);
+
+         // ---- What people may do --------------------------------------------
+
+         var reader = Card(L("What people may do in the webmail"),
+            L("The ceilings on what a person may add for themselves in the webmail."));
+         reader.Settings.Add(new RestNumber
+         {
+            Path = "ReaderFetchAccountsMax",
+            Label = L("Other POP3 or IMAP accounts a person may collect from (0 = none; up to 20)"),
+            Key = "reader_fetch_accounts_max",
+            Maximum = 20,
+            Blurb = L("3 by default. The external accounts an administrator adds are not counted.")
+         });
+         reader.Settings.Add(new RestBool
+         {
+            Path = "ReaderFetchPrivateHosts",
+            Label = L("Let those accounts be on a private address or an unusual port"),
+            Key = "reader_fetch_accounts_private_addresses",
+            Blurb = L("Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network.")
+         });
+         reader.Settings.Add(new RestNumber
+         {
+            Path = "ReaderMaskedAddressesMax",
+            Label = L("Masked addresses a person may make (0 = none; up to 200)"),
+            Key = "reader_masked_addresses_max",
+            Maximum = 200,
+            Blurb = L("20 by default.")
+         });
+         reader.Settings.Add(new RestNumber
+         {
+            Path = "ReaderSenderAddressesMax",
+            Label = L("Addresses at other providers a person may send as (0 = none; up to 20)"),
+            Key = "reader_sender_addresses_max",
+            Maximum = 20,
+            Blurb = L("5 by default. Each is proved with a code first; mail sent as one may be refused where its domain's DMARC policy is strict.")
+         });
+         reader.Settings.Add(new RestNumber
+         {
+            Path = "ReaderOfflineDaysMax",
+            Label = L("Days of mail a person may keep in the browser to read offline (0 = none; up to 365)"),
+            Key = "reader_offline_days_max",
+            Maximum = 365,
+            Blurb = L("30 by default.")
+         });
+         reader.Settings.Add(new RestNumber
+         {
+            Path = "RecallDays",
+            Label = L("Days after sending that mail to this server's accounts may be recalled (1 to 365)"),
+            Key = "recall_days",
+            Minimum = 1,
+            Maximum = 365,
+            Blurb = L("14 by default. The unread copies are deleted; the read ones stay.")
+         });
+         reader.Settings.Add(new RestNumber
+         {
+            Path = "RecoverDeletedDays",
+            Label = L("Days deleted messages are kept for the person to put back (0 = none; up to 365)"),
+            Key = "recover_deleted_days",
+            Maximum = 365,
+            Blurb = L("0 by default. The copies count against no quota.")
+         });
+         reader.Settings.Add(new RestBool
+         {
+            Path = "BrandLogosEnabled",
+            Label = L("Show senders' brand logos (BIMI)"),
+            Key = "brand_logos_enabled",
+            Blurb = L("On by default. Only for mail that passed DMARC from a domain whose policy is quarantine or reject, which needs Authentication-Results headers on inbound mail, on the Transport security page.")
+         });
+         reader.Settings.Add(new RestText
+         {
+            Path = "ConfidentialBaseUrl",
+            Label = L("Base address for the link in a message that expires"),
+            Key = "confidential_base_url",
+            Placeholder = "https://mail.example.com", // no-loc
+            Blurb = L("The address the webmail is reached at from outside. Empty uses the quarantine digest's base address, then the import sign-in's; with none set, the webmail does not offer an expiry.")
+         });
+         Tab(L("What people may do")).Cards.Add(reader);
+
+         var directory = Card(L("Directory"),
+            L("Every active account and enabled list of a domain, shown to the people of that domain: in the webmail, in address completion, and as a read-only CardDAV address book. It never crosses a domain."));
+         directory.Settings.Add(new RestBool
+         {
+            Path = "DirectoryEnabled",
+            Label = L("Show each domain's directory to its people"),
+            Key = "directory_enabled",
+            Blurb = L("On by default. Turn it off where one domain holds people who are not one organisation.")
+         });
+         directory.Settings.Add(new RestBool
+         {
+            Path = "DirectoryUserEditable",
+            Label = L("Let people edit their own directory entry"),
+            Key = "directory_user_editable",
+            Blurb = L("On by default: title, department, telephone numbers and photo. Off leaves them to the administrator; a person can always take themselves out of the directory.")
+         });
+         Tab(L("What people may do")).Cards.Add(directory);
+
+         // ---- Encryption ----------------------------------------------------
+
+         var pgp = Card(L("OpenPGP"),
+            L("OpenPGP in the webmail - keys, signing, encrypting and decrypting, all in the browser - and publishing and looking up keys."));
+         pgp.Settings.Add(new RestBool
+         {
+            Path = "OpenPGPPortalEnabled",
+            Label = L("Offer OpenPGP in the webmail"),
+            Key = "portal_enabled",
+            Group = RestSettings.OpenPgpGroup,
+            Blurb = L("On by default. Off leaves the keys people already have in the database untouched.")
+         });
+         pgp.Settings.Add(new ComText
+         {
+            Path = "OpenPGPKeysPerAccount",
+            Label = L("Keys one account may hold (1 to 64)"),
+            Numeric = true,
+            Minimum = 1,
+            Maximum = 64,
+            Blurb = L("8 by default, so that a key being replaced and its replacement can both be found.")
+         });
+         pgp.Settings.Add(new ComText
+         {
+            Path = "OpenPGPKeyMaximumBytes",
+            Label = L("Largest key accepted, in bytes (1024 to 1048576)"),
+            Numeric = true,
+            Minimum = 1024,
+            Maximum = 1048576,
+            Blurb = L("65536 by default.")
+         });
+         pgp.Settings.Add(new ComBool
+         {
+            Path = "OpenPGPRequireAddressInUserId",
+            Label = L("Refuse a key that does not name the account's own address"),
+            Blurb = L("On by default.")
+         });
+         pgp.Settings.Add(new ComBool
+         {
+            Path = "OpenPGPWebKeyDirectoryEnabled",
+            Label = L("Publish keys in the Web Key Directory"),
+            Blurb = L("Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs.")
+         });
+         pgp.Settings.Add(new RestBool
+         {
+            Path = "OpenPGPLookupWkd",
+            Label = L("Look up a correspondent's key in their domain's Web Key Directory"),
+            Key = "lookup_wkd",
+            Group = RestSettings.OpenPgpGroup,
+            Blurb = L("On by default.")
+         });
+         pgp.Settings.Add(new RestBool
+         {
+            Path = "OpenPGPLookupKeyserver",
+            Label = L("Ask a keyserver when their domain has no key"),
+            Key = "lookup_keyserver",
+            Group = RestSettings.OpenPgpGroup,
+            Blurb = L("Off by default: the keyserver learns who is about to write to whom.")
+         });
+         pgp.Settings.Add(new RestText
+         {
+            Path = "OpenPGPKeyserverUrl",
+            Label = L("Keyserver"),
+            Key = "keyserver_url",
+            Group = RestSettings.OpenPgpGroup,
+            Blurb = L("https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine.")
+         });
+         pgp.Settings.Add(new RestNumber
+         {
+            Path = "OpenPGPLookupTimeout",
+            Label = L("Seconds a key lookup may take (2 to 30)"),
+            Key = "lookup_timeout",
+            Group = RestSettings.OpenPgpGroup,
+            Minimum = 2,
+            Maximum = 30,
+            Blurb = L("10 by default. The webmail waits on it.")
+         });
+         pgp.Settings.Add(new RestNumber
+         {
+            Path = "ProtectedMessageDays",
+            Label = L("Days a password-protected message is kept for its reader (1 to 365)"),
+            Key = "protected_message_days",
+            Group = RestSettings.OpenPgpGroup,
+            Minimum = 1,
+            Maximum = 365,
+            Blurb = L("30 by default, and the most a sender may ask for.")
+         });
+         pgp.Settings.Add(new RestBool
+         {
+            Path = "ZeroAccessAllowed",
+            Label = L("Let people make their mailbox zero-access"),
+            Key = "zero_access_allowed",
+            Group = RestSettings.OpenPgpGroup,
+            Blurb = L("Off by default. A zero-access mailbox is encrypted to the person's own key: this server can no longer read, search, export or recover its mail, and a forgotten password without the recovery key loses it. Allowing it switches nobody on.")
+         });
+         Tab(L("Encryption")).Cards.Add(pgp);
+
+         var smime = Card(L("S/MIME certificate authority"),
+            L("A domain may issue S/MIME certificates to its people from its own authority."));
+         smime.Settings.Add(new RestText
+         {
+            Path = "SmimeAuthorityBaseUrl",
+            Label = L("Base address new certificates name for revocation"),
+            Key = "smime_authority_base_url",
+            Placeholder = "http://pki.example.com", // no-loc
+            Blurb = L("Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with.")
+         });
+         Tab(L("Encryption")).Cards.Add(smime);
+
+         // ---- Notifications -------------------------------------------------
+
+         var push = Card(L("Web Push notifications"),
+            L("Notifications of new mail sent to the browsers and phones people allow. The server signs them with its own VAPID key pair, made once with the button below."));
+         push.Settings.Add(new ComBool
+         {
+            Path = "WebPushEnabled",
+            Label = L("Send Web Push notifications"),
+            Blurb = L("Off by default. With it off nothing is queued and no push service is reached.")
+         });
+         push.Settings.Add(new ComText
+         {
+            Path = "WebPushSubject",
+            Label = L("Contact for push services (a mailto: or https: address)"),
+            Placeholder = "mailto:postmaster@example.com", // no-loc
+            Blurb = L("Empty means postmaster at this server's host name.")
+         });
+         push.Settings.Add(new RestNumber
+         {
+            Path = "WebPushTimeToLiveSeconds",
+            Label = L("Seconds a push service holds a notification for a device that is offline (0 to 2419200)"),
+            Key = "time_to_live_seconds",
+            Group = RestSettings.PushGroup,
+            Maximum = 2419200,
+            Blurb = L("86400 by default; 0 delivers at once or not at all.")
+         });
+         push.Settings.Add(new RestNumber
+         {
+            Path = "WebPushMaxPerAccount",
+            Label = L("Devices one account may have notifications on (1 to 50)"),
+            Key = "max_devices_per_account",
+            Group = RestSettings.PushGroup,
+            Minimum = 1,
+            Maximum = 50,
+            Blurb = L("10 by default.")
+         });
+         push.Settings.Add(new RestNumber
+         {
+            Path = "WebPushMaxAttempts",
+            Label = L("Attempts at a device before it is given up (1 to 20)"),
+            Key = "max_attempts",
+            Group = RestSettings.PushGroup,
+            Minimum = 1,
+            Maximum = 20,
+            Blurb = L("5 by default.")
+         });
+         push.Settings.Add(new ComStat
+         {
+            Path = "WebPushVapidPublicKey",
+            Label = L("This server's VAPID public key"),
+            Read = () =>
+            {
+               dynamic settings = ServerSession.Current.Application.Settings;
+               try
+               {
+                  string key = (string)settings.WebPushVapidPublicKey;
+                  return string.IsNullOrEmpty(key) ? L("None yet: make one with the button below.") : key;
+               }
+               finally
+               {
+                  ServerSession.Release((object)settings);
+               }
+            }
+         });
+         push.Settings.Add(new ComAction
+         {
+            ButtonText = L("Make a new VAPID key pair"),
+            Action = MakeWebPushKeys_
+         });
+         push.Settings.Add(new RestSecret
+         {
+            Path = "WebPushVapidPrivateKey",
+            Label = L("VAPID private key, to bring the pair from another server (leave empty to keep current)"),
+            Key = "vapid_private_key",
+            Group = RestSettings.PushGroup,
+            Blurb = L("base64url of the P-256 key; the public half is worked out from it. Every subscription made under the old pair stops working.")
+         });
+         Tab(L("Notifications")).Cards.Add(push);
+
+         // ---- Import --------------------------------------------------------
+
+         var import = Card(L("Importing from Gmail and Outlook.com with a sign-in"),
+            L("Lets a person bring their mail over from Gmail or Outlook.com by signing in there, without giving this server their password. Register this server with Google and with Microsoft first, with the redirect address that is the base address below followed by /portal/oauth/callback. A provider is offered once it has a client ID - and, for Google, a secret."));
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthRedirectBaseUrl",
+            Label = L("Base address of the webmail, as the providers reach it (empty = no import sign-in)"),
+            Key = "import_oauth_redirect_base_url",
+            Placeholder = "https://mail.example.com" // no-loc
+         });
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthGoogleClientId",
+            Label = L("Google client ID"),
+            Key = "import_oauth_google_client_id",
+            Blurb = L("A Web application client in the Google Cloud console, with the Gmail API's mail scope.")
+         });
+         import.Settings.Add(new RestSecret
+         {
+            Path = "ImportOAuthGoogleClientSecret",
+            Label = L("Google client secret (leave empty to keep current)"),
+            Key = "import_oauth_google_client_secret"
+         });
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthGoogleAuthorizeUrl",
+            Label = L("Google authorization endpoint"),
+            Key = "import_oauth_google_authorize_url",
+            Blurb = L("Google's public one by default.")
+         });
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthGoogleTokenUrl",
+            Label = L("Google token endpoint"),
+            Key = "import_oauth_google_token_url",
+            Blurb = L("Google's public one by default.")
+         });
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthMsClientId",
+            Label = L("Microsoft application (client) ID"),
+            Key = "import_oauth_microsoft_client_id",
+            Blurb = L("Registered in Microsoft Entra with the delegated IMAP.AccessAsUser.All and offline_access permissions, and personal Microsoft accounts allowed for Outlook.com.")
+         });
+         import.Settings.Add(new RestSecret
+         {
+            Path = "ImportOAuthMsClientSecret",
+            Label = L("Microsoft client secret (leave empty to keep current)"),
+            Key = "import_oauth_microsoft_client_secret"
+         });
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthMsAuthorizeUrl",
+            Label = L("Microsoft authorization endpoint"),
+            Key = "import_oauth_microsoft_authorize_url",
+            Blurb = L("The common one by default; a tenant's own or a national cloud's otherwise.")
+         });
+         import.Settings.Add(new RestText
+         {
+            Path = "ImportOAuthMsTokenUrl",
+            Label = L("Microsoft token endpoint"),
+            Key = "import_oauth_microsoft_token_url",
+            Blurb = L("Matching the authorization endpoint.")
+         });
+         Tab(L("Import")).Cards.Add(import);
+      }
+
+      /// <summary>
+      /// Settings.GenerateWebPushKeys, after asking when a pair exists already: every
+      /// subscription made under the old pair stops working at once, and each device
+      /// has to be asked again - which is what to do when the private key may have
+      /// been copied, and not a thing to press by accident.
+      /// </summary>
+      private static (bool ok, string text) MakeWebPushKeys_()
+      {
+         dynamic settings = ServerSession.Current.Application.Settings;
+         try
+         {
+            string existing = (string)settings.WebPushVapidPublicKey;
+            if (!string.IsNullOrEmpty(existing) &&
+                MessageBox.Show(L("Make a new VAPID key pair?\n\nEvery Web Push subscription made under the present pair stops working at once, and each person has to allow notifications again. Do this when the private key may have been copied."),
+                   L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            {
+               return (true, L("Nothing was changed."));
+            }
+
+            string made = (string)settings.GenerateWebPushKeys();
+            return (true, F("A new key pair was made. The public key is {0}. Open the page again to see it above.", made));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return (false, F("The key pair was not made: {0}", L(ServerSentences.MessageOf(ex))));
+         }
+         finally
+         {
+            ServerSession.Release((object)settings);
+         }
       }
 
       /// <summary>
@@ -3169,6 +4887,10 @@ namespace hMailServer.ControlPanel.Views
 
          AssignAccessibleNames();
 
+         // The settings this page reaches over the REST API, read group by group
+         // before any editor is built, so that no editor is filled with a default.
+         LoadRestGroups_();
+
          foreach (TabDef tab in tabs_)
          {
             // Cap the settings form to a readable column instead of letting cards
@@ -3187,15 +4909,46 @@ namespace hMailServer.ControlPanel.Views
                var fields = new StackPanel();
 
                Scaffold.FieldRow lastRow = null;
+
+               // Why this card's REST rows are not shown, when they are not: said
+               // once, at the top of the card, in place of them.
+               string restProblem = null;
+
                foreach (ComSetting setting in card.Settings)
                {
                   object value = null;
-                  if (setting.WantsInitialValue)
+                  if (setting is IRestSetting rest)
+                  {
+                     if (!restGroups_.TryGetValue(rest.Group, out RestGroup group) || group.Values == null)
+                     {
+                        restProblem ??= group?.Refusal ?? L("These settings could not be read from the server.");
+                        continue;
+                     }
+
+                     setting.RestEnvironment = RestSettings.ValueOf(group.Values, rest.Key + "_environment") as string; // no-loc
+
+                     if (setting.WantsInitialValue)
+                     {
+                        // A key the server does not answer is not shown with a
+                        // default: an older server, which has no such setting.
+                        if (!group.Values.ContainsKey(rest.Key))
+                        {
+                           failedReads_++;
+                           diag_ ??= F("The server does not answer {0} in {1}; it may be older than this Control Panel.", rest.Key, rest.Group);
+                           continue;
+                        }
+
+                        object answered = RestSettings.ValueOf(group.Values, rest.Key);
+                        rest.Loaded(answered);
+                        value = rest.ToEditor(answered);
+                     }
+                  }
+                  else if (setting.WantsInitialValue)
                   {
                      try
                      {
                         object owner = ResolveOwner(setting.Path, out string property);
-                        value = GetProperty(owner, property);
+                        value = setting.Fetch(owner, property);
                      }
                      catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
                      {
@@ -3214,6 +4967,16 @@ namespace hMailServer.ControlPanel.Views
                // make that card taller than the one beside it for no reason.
                if (lastRow != null)
                   lastRow.Margin = new Thickness(0);
+
+               if (restProblem != null)
+               {
+                  fields.Children.Insert(0, new Scaffold.InlineNotice
+                  {
+                     Level = StatusLevel.Warning,
+                     Text = restProblem,
+                     Margin = new Thickness(0, 0, 0, lastRow != null ? DesignTokens.Space.Md : 0)
+                  });
+               }
 
                // The card is the surface; the section inside it is the heading, the
                // description and the fields - and a level-2 heading in the
@@ -3862,7 +5625,116 @@ namespace hMailServer.ControlPanel.Views
          Update();
       }
 
-      private void Reload_Click(object sender, RoutedEventArgs e) => BuildUi();
+      private void Reload_Click(object sender, RoutedEventArgs e)
+      {
+         restAskAgain_ = true;
+         BuildUi();
+      }
+
+      /// <summary>
+      /// Reads every REST settings group this page's rows are in, once, through the
+      /// Control Panel's REST session (Services/RestSettingsClient) - signing it in
+      /// first, and asking for the administrator's one-time code if the server wants
+      /// one. A group that cannot be read keeps the reason, which its cards show.
+      /// </summary>
+      private void LoadRestGroups_()
+      {
+         restGroups_.Clear();
+
+         List<string> groups = tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings)
+            .OfType<IRestSetting>().Select(row => row.Group).Distinct(StringComparer.Ordinal).ToList();
+         if (groups.Count == 0)
+            return;
+
+         ServerSession session = ServerSession.Current;
+         RestSettingsClient client = session == null ? null : RestSettingsClient.For(session);
+
+         string refusal = null;
+         if (client == null)
+            refusal = L("Sign in to a server first.");
+         else
+            client.Open(AskForCode_, restAskAgain_, out refusal);
+         restAskAgain_ = false;
+
+         foreach (string group in groups)
+         {
+            if (refusal != null)
+            {
+               restGroups_[group] = new RestGroup { Refusal = refusal };
+               continue;
+            }
+
+            RestSettingsClient.Reply reply = client.Get(group, AskForCode_);
+            if (!reply.Ok)
+            {
+               restGroups_[group] = new RestGroup { Refusal = client.RefusalFor(reply) };
+               continue;
+            }
+
+            IReadOnlyDictionary<string, System.Text.Json.JsonElement> values = RestSettings.ParseGroup(reply.Body, out string error);
+            restGroups_[group] = values == null ? new RestGroup { Refusal = error } : new RestGroup { Values = values };
+         }
+      }
+
+      /// <summary>The administrator's one-time code, for the REST session; null when none was given.</summary>
+      private string AskForCode_()
+      {
+         var prompt = new TotpPromptDialog(Window.GetWindow(this) ?? Application.Current?.MainWindow);
+         return prompt.ShowDialog() == true ? prompt.Code : null;
+      }
+
+      /// <summary>
+      /// Writes the changed REST rows, one PUT per group, and counts them as the COM
+      /// rows are counted. The server checks every key of a PUT before it applies any
+      /// of them, so a refusal leaves the whole group as it was, and it is said with
+      /// the server's own sentence.
+      /// </summary>
+      private void SaveRest_(List<IRestSetting> rows, ref int saved, ref int failed, ref string firstFailure)
+      {
+         if (rows.Count == 0)
+            return;
+
+         ServerSession session = ServerSession.Current;
+         RestSettingsClient client = session == null ? null : RestSettingsClient.For(session);
+
+         foreach (IGrouping<string, IRestSetting> group in rows.GroupBy(row => row.Group, StringComparer.Ordinal))
+         {
+            var changes = new List<KeyValuePair<string, object>>();
+            var changed = new List<IRestSetting>();
+            foreach (IRestSetting row in group)
+            {
+               if (row.TryGetChange(out object value))
+               {
+                  changes.Add(new KeyValuePair<string, object>(row.Key, value));
+                  changed.Add(row);
+               }
+            }
+
+            // A row still holding what it was filled with is what the server holds,
+            // and is counted as saved, as an unchanged INI row is.
+            int unchanged = group.Count() - changed.Count;
+            if (changes.Count == 0)
+            {
+               saved += unchanged;
+               continue;
+            }
+
+            RestSettingsClient.Reply reply = client?.Put(group.Key, RestSettings.Body(changes), AskForCode_);
+            if (reply != null && reply.Ok)
+            {
+               foreach (IRestSetting row in changed)
+                  row.Accepted();
+               saved += group.Count();
+               continue;
+            }
+
+            saved += unchanged;
+            failed += changed.Count;
+            string reason = reply == null ? L("Sign in to a server first.") : client.RefusalFor(reply);
+            ComSetting first = changed[0] as ComSetting;
+            firstFailure ??= F("\"{0}\" was not saved: {1}", first?.Label ?? changed[0].Key, L(reason));
+         }
+      }
 
       private void Save_Click(object sender, RoutedEventArgs e)
       {
@@ -3889,6 +5761,9 @@ namespace hMailServer.ControlPanel.Views
          // as waiting by itself.
          var iniKeys = new List<string>();
          int databaseRowsChanged = 0;
+
+         // The rows reached over the REST API, written a group at a time after the rest.
+         var restRows = new List<IRestSetting>();
 
          foreach (ComSetting setting in tabs_.SelectMany(tab => tab.Cards).SelectMany(card => card.Settings))
          {
@@ -3919,6 +5794,17 @@ namespace hMailServer.ControlPanel.Views
                if (setting is INotPersisted)
                   continue;
 
+               // A row reached over the REST API is written with the rest of its
+               // group, below - and not at all when its group could not be read,
+               // since the card showed no editor for it.
+               if (setting is IRestSetting rest)
+               {
+                  if (restGroups_.TryGetValue(rest.Group, out RestGroup group) && group.Values != null &&
+                      (!setting.WantsInitialValue || group.Values.ContainsKey(rest.Key)))
+                     restRows.Add(rest);
+                  continue;
+               }
+
                // Buttons and preset pickers persist nothing and name no property;
                // resolving one would fail and be counted as a save error.
                if (string.IsNullOrEmpty(setting.Path))
@@ -3934,6 +5820,8 @@ namespace hMailServer.ControlPanel.Views
                firstFailure ??= F("\"{0}\" was not saved: {1}", setting.Label ?? setting.Path, L(ServerSentences.MessageOf(fatalCheck)));
             }
          }
+
+         SaveRest_(restRows, ref saved, ref failed, ref firstFailure);
 
          // A save publishes (docs/SettingsApply.md): a key marked now is in effect
          // already, and the ones that are not are what the server lists as pending.

@@ -192,6 +192,20 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox protectedPersons_ = NewMemo();
       private readonly TextBox protectedPartners_ = NewMemo();
 
+      // Country blocking at sign-in (Domain.CountryPolicy, docs/CountryBlocking.md):
+      // the domain's own policy, beside the server's for connecting.
+      private readonly TextBox countryPolicy_ = NewInput();
+
+      // Publishing OpenPGP keys in the Web Key Directory (Domain.OpenPGPPublishKeys,
+      // Domain.OpenPGPPublishNewAccounts; docs/OpenPGP.md).
+      private readonly CheckBox publishKeys_ = new() { Content = L("_Publish the OpenPGP public keys of this domain's accounts in the Web Key Directory") };
+      private readonly CheckBox publishNewAccounts_ = new() { Content = L("_New accounts start with their keys published") };
+
+      // Outbound webhooks (Domain.WebhooksEnabled, Domain.WebhookSubjects;
+      // docs/Webhooks.md).
+      private readonly CheckBox webhooksOn_ = new() { Content = L("_Raise webhook events about this domain's mail and accounts") };
+      private readonly CheckBox webhookSubjects_ = new() { Content = L("Let those events carry a message's s_ubject") };
+
       public DomainDialog(Window owner, string domainName)
       {
          domainName_ = domainName;
@@ -213,6 +227,9 @@ namespace hMailServer.ControlPanel.Views
          tabs.Items.Add(new TabItem { Header = L("Quarantine digest"), Content = BuildQuarantineDigest() });
          tabs.Items.Add(new TabItem { Header = L("Reports received"), Content = BuildReportsReceived() });
          tabs.Items.Add(new TabItem { Header = L("Restricted delivery"), Content = BuildRestrictedDelivery() });
+         tabs.Items.Add(new TabItem { Header = L("Country blocking"), Content = BuildCountryPolicy() });
+         tabs.Items.Add(new TabItem { Header = L("OpenPGP"), Content = BuildOpenPgp() });
+         tabs.Items.Add(new TabItem { Header = L("Webhooks"), Content = BuildWebhooks() });
          tabs.Items.Add(new TabItem { Header = L("Levels"), Content = BuildLevels() });
          DialogFields.FillTabs(tabs);
 
@@ -375,6 +392,34 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Note(L("Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it.")));
          panel.Children.Add(Label(L("Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)"), restrictedDomains_));
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildCountryPolicy()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("Who may sign in to an account of this domain, by the country a MaxMind database places the address in: on every protocol, after the server's own policies for connecting, which are on the Auto-ban page with the database file. Nothing is judged until that file is set. A refused sign-in gets the ordinary wrong-password answer and is not counted against the account or the address.")));
+         panel.Children.Add(Label(L("_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)"), countryPolicy_));
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildOpenPgp()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("Publishing puts an account's OpenPGP public keys where other people's mail programs look for them: the Web Key Directory, served by the web services listener. A key is published only while the server's switch on the Webmail page, this domain's and the account's own are all on.")));
+         panel.Children.Add(DialogFields.Check(publishKeys_));
+         panel.Children.Add(DialogFields.Check(publishNewAccounts_));
+         panel.Children.Add(DialogFields.Note(L("Applies to the accounts made from now on; it changes no account that already exists.")));
+         return DialogFields.Scroll(panel);
+      }
+
+      private ScrollViewer BuildWebhooks()
+      {
+         var panel = DialogFields.TabPanel();
+         panel.Children.Add(DialogFields.Note(L("Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page.")));
+         panel.Children.Add(DialogFields.Check(webhooksOn_));
+         panel.Children.Add(DialogFields.Check(webhookSubjects_));
+         panel.Children.Add(DialogFields.Note(L("Off by default: a subject line is what a message is about. It travels only where this and the subscription both allow it, and only on message.received and message.quarantined.")));
          return DialogFields.Scroll(panel);
       }
 
@@ -1026,6 +1071,40 @@ namespace hMailServer.ControlPanel.Views
                protectedPartners_.IsEnabled = false;
             }
 
+            // The country policy, OpenPGP publishing and the webhook switches, the
+            // same way: each arrived with its own schema, and a server without one
+            // leaves its controls disabled rather than saved back as empty or off.
+            try
+            {
+               countryPolicy_.Text = (string)d.CountryPolicy ?? "";
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               countryPolicy_.IsEnabled = false;
+            }
+
+            try
+            {
+               publishKeys_.IsChecked = (bool)d.OpenPGPPublishKeys;
+               publishNewAccounts_.IsChecked = (bool)d.OpenPGPPublishNewAccounts;
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               publishKeys_.IsEnabled = false;
+               publishNewAccounts_.IsEnabled = false;
+            }
+
+            try
+            {
+               webhooksOn_.IsChecked = (bool)d.WebhooksEnabled;
+               webhookSubjects_.IsChecked = (bool)d.WebhookSubjects;
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               webhooksOn_.IsEnabled = false;
+               webhookSubjects_.IsEnabled = false;
+            }
+
             ServerSession.Release(d);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -1218,6 +1297,23 @@ namespace hMailServer.ControlPanel.Views
                if (impersonation >= 0) d.ImpersonationAction = impersonation;
                d.ProtectedPersons = protectedPersons_.Text.Trim();
                d.ProtectedPartners = protectedPartners_.Text.Trim();
+            }
+
+            // The server canonicalises the policy and refuses one it cannot read;
+            // its sentence reaches the dialog as the save's error.
+            if (countryPolicy_.IsEnabled)
+               d.CountryPolicy = countryPolicy_.Text.Trim();
+
+            if (publishKeys_.IsEnabled)
+            {
+               d.OpenPGPPublishKeys = publishKeys_.IsChecked is true;
+               d.OpenPGPPublishNewAccounts = publishNewAccounts_.IsChecked is true;
+            }
+
+            if (webhooksOn_.IsEnabled)
+            {
+               d.WebhooksEnabled = webhooksOn_.IsChecked is true;
+               d.WebhookSubjects = webhookSubjects_.IsChecked is true;
             }
 
             d.DKIMSignEnabled = dkimOn_.IsChecked is true;

@@ -2157,6 +2157,17 @@ namespace hMailServer.ControlPanel.Views
                      new TextSetting { Key = "ShutdownDrainSeconds", Default = "0", Label = L("On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)"), Placeholder = "30" }
                   }
                });
+               // Monitoring and integration that the server keeps in its database
+               // rather than here, named where an administrator looks for it.
+               cards_.Add(new CardDef
+               {
+                  Title = L("On other pages"),
+                  Settings =
+                  {
+                     new ElsewhereSetting("logging", L("The SNMP agent, alerts, outbound webhooks and the audit trail")),
+                     new ElsewhereSetting("webmail", L("What the webmail and the Control Deck offer: sign-in, sessions, Web Push"))
+                  }
+               });
                break;
 
             // "Advanced INI settings" filed by storage mechanism, which is the one
@@ -2585,6 +2596,16 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new TextSetting { Key = "DisableAUTHList", Label = L("Do not offer AUTH on these local TCP ports (comma separated)"), Placeholder = "25" }
+                  }
+               });
+               // How people sign in to the browser pages is the Webmail page's: those
+               // settings are kept in the server's database, not in this file.
+               cards_.Add(new CardDef
+               {
+                  Title = L("Sign-in to the webmail and the Control Deck"),
+                  Settings =
+                  {
+                     new ElsewhereSetting("webmail", L("Passkeys, single sign-on with OpenID Connect or SAML, and account recovery"))
                   }
                });
                break;

@@ -65,6 +65,21 @@ for a stray `#` number or `@` name.
 
 ## Unreleased - in the tree after 6.3.4, not yet released
 
+### Administration
+
+- **Every database setting can be set from the Control Panel.** 137 of the 314 settings the server keeps in its
+  database had no editor in the Control Panel: the webmail's sign-in (passkeys, OpenID Connect, SAML, account
+  recovery), its sessions and limits, OpenPGP, Web Push, the alerts, the SNMP agent, the audit trail, outbound
+  webhooks, the spam traps, the complaint feedback loops, the reputation watch, country blocking, compromised-account
+  detection, the object store, the managed lists and the migrations. They are now on the pages an administrator
+  looks for them on, and a new **Webmail** page holds the ones that are the webmail's. Those a COM property carries
+  are edited over COM; the rest, which the server reaches over its REST API alone, are read and saved over that API,
+  and a page says so, and why, when the REST API is off or out of reach. The domain dialog gains Country blocking,
+  OpenPGP and Webhooks tabs, the account dialog an Identity tab (a person, a room or a piece of equipment, and the
+  external ID SCIM matches on), an external account the options for a mailbox several people share, and a managed
+  list's member how they receive the list's mail. `build/check-db-settings-coverage.py` now fails any database
+  setting with no editor and no recorded reason for having none.
+
 ### Build and tests
 
 - **Coverage on Linux, with branches.** `build/ci/linux-coverage.sh` builds the server and its tester programs with

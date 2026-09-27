@@ -47,7 +47,7 @@ $featurePages = @{ 'Security' = 'security'; 'Automation' = 'acme'; 'Integration'
                    'Authentication' = 'authentication'; 'Dns' = 'dns'; 'WebServices' = 'webservices' }
 $serverPages = @{ 'Protocols' = 'protocols'; 'Delivery' = 'delivery'; 'AntiSpam' = 'antispam'; 'AntiVirus' = 'antivirus';
                   'Tls' = 'tls'; 'Logging' = 'logging'; 'Performance' = 'performance'; 'Advanced' = 'advanced';
-                  'AdminAccess' = 'adminaccess'; 'AutoBan' = 'autoban' }
+                  'AdminAccess' = 'adminaccess'; 'AutoBan' = 'autoban'; 'Webmail' = 'webmail' }
 
 # Hand-written pages carry settings too - they just declare them as ordinary
 # XAML controls instead of a table, so the two scans above cannot see them.

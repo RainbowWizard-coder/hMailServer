@@ -406,6 +406,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-com-dispids.py` | No two members of one COM interface share a dispatch id | |
 | `check-com-error-info.py` | Every COM class that raises errors answers `ISupportErrorInfo` | `--self-test` |
 | `check-com-shared-copies.py` | A COM change to an item of one of the running server's collections is written onto a copy, and every hand-out attaches the shared collection | `--self-test` |
+| `check-db-settings-coverage.py` | Every database setting `SettingsDefaults.h` names has a Control Panel editor - through a COM property the Control Panel writes, or a REST settings row one of its pages names - or a recorded reason for having none | `--self-test`; `--list` prints how each setting is reached |
 | `check-deck-languages.py` | The Control Deck's catalogues against its page | `--keys` |
 | `check-deck-parity.py` | A census of the desktop Control Panel's writes against the REST API and the Deck | **Rewrites** `hmailserver/docs/DeckParity.md` by default; `--no-doc` prints only; `--strict` exits 1 when anything is missing. After a change, run it and commit `DeckParity.md` if it moved |
 | `check-deck-script.py` | Runs the Deck's script against a small DOM and a recorded server | Needs `node`; `--extract-only` does without |
@@ -477,12 +478,12 @@ something which already exists.
 | C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-password-choice-sites.py`, `check-setting-levels.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `check-cli.py` if a client verb changed |
-| The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-help-map.py`, `generate-settings-index.ps1`, `dotnet format` |
+| The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-help-map.py`, `generate-settings-index.ps1`, `dotnet format` |
 | The Control Deck | `check-deck-script.py`, `check-deck-languages.py`, `check-help-map.py`, `check-deck-parity.py` |
 | The webmail | `generate-portal-page.py --check`, `check-portal-script.py`, `check-portal-languages.py`, `check-help-map.py`; the S/MIME and OpenPGP pairs if those modules changed |
 | The Windows installer | `check-installer-scripts.py`; then an installer build and the installer smoke test ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-installer-smoke-test)) |
 | `hmailserver/docs/` | `generate-help-pages.py --check`, `check-help-map.py`, `check-environment-names.py` |
-| A setting | `check-ini-coverage.py`, `check-settings-rows.py`, `generate-settings-defaults.py --check`, `check-setting-levels.py`, `check-environment-names.py`, `check-test-settings-writes.py` |
+| A setting | `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-settings-rows.py`, `generate-settings-defaults.py --check`, `check-setting-levels.py`, `check-environment-names.py`, `check-test-settings-writes.py` |
 | `Roadmap2.md` or `Roadmap.md` | `check-roadmap2.py`, `check-roadmap.ps1` |
 
 ## Code style and licence headers
@@ -568,7 +569,10 @@ a `PROPERTY_…` name in `Common/Application/Constants.h`, its default row on ex
 `Configuration::EnsureSettingDefaults_` or an upgrade script's insert (`check-settings-rows.py`), and
 `SettingsDefaults.h` regenerated (`generate-settings-defaults.py`). Do not add a key to the `[Settings]` section:
 `build/check-ini-coverage.py` compares every key the server reads against `build/ini-settings-baseline.txt` and
-fails if a new one appears there.
+fails if a new one appears there. `build/check-db-settings-coverage.py` fails when a database setting has no Control
+Panel editor: a COM property the Control Panel writes, or, for a setting the server reaches over the REST API
+alone, a REST row on a settings page (`Views/ServerSettingsView.xaml.cs`, `new RestText { Key = "...", Group = ... }`).
+A setting that should have no editor goes in its `EXEMPT` list, with the reason.
 
 The file keeps only what is needed to reach the database, or to be let in without one: `[Directories]`,
 `[Database]`, `[Security]`'s administrator password and second-factor secret, and `[GUILanguages]`, which
@@ -636,8 +640,9 @@ And, for any new setting:
   fr, it, ja, nb, nl, pl, pt-BR, ru, sv, tr, uk, zh-Hans). An unmarked or untranslated caption fails
   `check-localisation.py`; `check-catalogues.py` holds the literals, page names and numbers a translation must
   keep. The English text is the key, so changing an English caption is a new key in all eighteen catalogues.
-* Every `[Settings]` key the server reads has an editor or a recorded reason for none (`check-ini-coverage.py`), and folder-access
-  decisions stay in `ACLManager` (`check-authz-choke-point.py`).
+* Every `[Settings]` key the server reads has an editor or a recorded reason for none (`check-ini-coverage.py`), so does
+  every database setting (`check-db-settings-coverage.py`), and folder-access decisions stay in `ACLManager`
+  (`check-authz-choke-point.py`).
 * A new page has a help entry in `Services/HelpMap.cs`, keyed by `Services/NavigationMap.cs`
   (`check-help-map.py`), and the settings search index is regenerated.
 * Build with `-warnaserror`, run `ControlPanel.Tests`, and run `dotnet format --verify-no-changes`.

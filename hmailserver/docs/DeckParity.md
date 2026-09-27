@@ -10,10 +10,10 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 466 |
-| of them writable over REST | 458 |
-| of them reachable from a Deck view | 458 |
-| missing over REST | 8 |
+| COM properties the desktop program writes | 508 |
+| of them writable over REST | 498 |
+| of them reachable from a Deck view | 498 |
+| missing over REST | 10 |
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
@@ -25,7 +25,8 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Interface | Count | Properties the desktop writes and no route covers |
 |---|---|---|
-| Account | 8 | `DirectoryDepartment`, `DirectoryMobile`, `DirectoryNote`, `DirectoryOffice`, `DirectoryOptOut`, `DirectoryPhone`, `DirectoryPhoto`, `DirectoryTitle` |
+| Account | 9 | `DirectoryDepartment`, `DirectoryMobile`, `DirectoryNote`, `DirectoryOffice`, `DirectoryOptOut`, `DirectoryPhone`, `DirectoryPhoto`, `DirectoryTitle`, `ExternalId` |
+| Settings | 1 | `CountryPolicy` |
 
 ## Over REST but not reached by any Deck view
 
@@ -84,10 +85,18 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `BreachCheckMinimumCount` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `BreachCheckUnreachableAction` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `BreachCheckUrl` | ServerSettingsView | `POST /api/v1/settings/breach-check/test` (name)<br>`PUT /api/v1/settings` (setter) | backup, lists, settings |
+| `ComplaintMailbox` | ServerSettingsView | `PUT /api/v1/settings/complaints` (setter, scope unknown) | backup, settings |
+| `ComplaintProcessingEnabled` | ServerSettingsView | `PUT /api/v1/settings/complaints` (setter, scope unknown) | backup, settings |
+| `ComplaintRetentionDays` | ServerSettingsView | `PUT /api/v1/settings/complaints` (setter, scope unknown) | backup, settings |
+| `ComplaintSuppressionThreshold` | ServerSettingsView | `PUT /api/v1/settings/complaints` (setter, scope unknown) | backup, settings |
+| `CountryBlockingExemptRanges` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `CountryPolicy` | ServerSettingsView | - | - |
 | `CreateDefaultSpecialUseFoldersEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `DefaultDomain` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `DenyMailFromNull` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `DisconnectInvalidClients` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `GeoIpDatabaseFile` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `GeoIpDatabaseMaxAgeDays` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `HelpWikiBaseUrl` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `HostName` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `IMAPACLEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
@@ -116,12 +125,19 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `MessageStoreCompression` | ServerSettingsView | `PUT /api/v1/accounts/{address}/mailbox-encryption` (name, scope unknown)<br>`PUT /api/v1/settings` (setter) | backup, domains, settings |
 | `MessageStoreDedupMinKB` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `MirrorEMailAddress` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `OpenPGPKeyMaximumBytes` | ServerSettingsView | `PUT /api/v1/settings/openpgp` (setter) | backup, settings |
+| `OpenPGPKeysPerAccount` | ServerSettingsView | `PUT /api/v1/settings/openpgp` (setter) | backup, settings |
+| `OpenPGPRequireAddressInUserId` | ServerSettingsView | `PUT /api/v1/settings/openpgp` (setter) | backup, settings |
+| `OpenPGPWebKeyDirectoryEnabled` | ServerSettingsView | `PUT /api/v1/settings/openpgp` (setter) | backup, settings |
 | `OutboundBackoffMaxMinutes` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `OutboundBackoffMinutes` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `QuarantineDigestBaseUrl` | QuarantineView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `QuarantineDigestLinkHours` | QuarantineView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `QuotaGracePercent` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `QuotaSendStopPercent` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `ReputationWatchAddresses` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `ReputationWatchEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `ReputationWatchLists` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `RuleLoopLimit` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `SMTPConnectionSecurity` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `SMTPDeliveryBindToIP` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
@@ -147,6 +163,14 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `ServiceIMAP` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `ServicePOP3` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `ServiceSMTP` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SessionBindToAddress` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SessionIdleSeconds` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SessionLifetimeSeconds` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SessionOnePerDevice` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SpamTrapBanMinutes` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SpamTrapBlockDays` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SpamTrapHitRetentionDays` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `SpamTrapTeachSpamAssassin` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `SslCipherList` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `TCPIPThreads` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `TlsOptionPreferServerCiphersEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
@@ -157,6 +181,12 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `TlsVersion13Enabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `UserInterfaceLanguage` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `VerifyRemoteSslCertificate` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `WebPushEnabled` | ServerSettingsView | `PUT /api/v1/settings/push` (setter, scope unknown) | backup, settings |
+| `WebPushSubject` | ServerSettingsView | `PUT /api/v1/settings/push` (setter, scope unknown) | backup, settings |
+| `WebhookMaxAttempts` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `WebhookMaxPerMinute` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `WebhookRetentionDays` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
+| `WebhooksEnabled` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `WelcomeIMAP` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `WelcomePOP3` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
 | `WelcomeSMTP` | ServerSettingsView | `PUT /api/v1/settings` (setter) | backup, settings |
@@ -170,6 +200,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `AddSignaturesToLocalMail` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `AddSignaturesToReplies` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `AntiSpamEnableGreylisting` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `CountryPolicy` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMBodyCanonicalizationMethod` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMHeaderCanonicalizationMethod` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `DKIMPrivateKeyFile` | DnsRecordsView, DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
@@ -201,6 +232,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `MaxSize` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `MessageRetentionDays` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `Name` | DomainDialog, DomainsView | `POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, domains, passkeys, roles, webhooks |
+| `OpenPGPPublishKeys` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `OpenPGPPublishNewAccounts` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `PlusAddressingCharacter` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `PlusAddressingEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `Postmaster` | DomainDialog | `POST /api/v1/protected/{token}/reply` (name, scope unknown)<br>`POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
@@ -232,6 +265,8 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `VacationMessage` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `VacationMessageIsOn` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 | `VacationSubject` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
+| `WebhookSubjects` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | domains, webhooks |
+| `WebhooksEnabled` | DomainDialog | `POST /api/v1/domains` (setter)<br>`PUT /api/v1/domains/{domain}` (setter) | domains |
 
 ### Account
 
@@ -251,13 +286,16 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | `DirectoryPhone` | AccountDialog | - | - |
 | `DirectoryPhoto` | AccountDialog | - | - |
 | `DirectoryTitle` | AccountDialog | - | - |
+| `ExternalId` | AccountDialog | - | - |
 | `ForwardAbortSpamFlagged` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ForwardAddress` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ForwardEnabled` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `ForwardKeepOriginal` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `IsAD` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
+| `Kind` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `MaxSize` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `MessageRetentionDays` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
+| `OpenPGPPublish` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter) | domains |
 | `Password` | AccountDialog, DomainsView | `POST /api/v1/password-reset/complete` (name, scope unknown)<br>`PUT /api/v1/accounts/{address}/mailbox-encryption` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/mailbox-encryption/recover` (name, scope unknown)<br>`PUT /api/v1/domains/{domain}/mailbox-recovery` (setter, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/protected/{token}/reply` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, passkeys, webhooks |
 | `PersonFirstName` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
 | `PersonLastName` | AccountDialog | `PUT /api/v1/accounts/{address}` (setter)<br>`POST /api/v1/domains/{domain}/accounts` (setter) | domains |
@@ -344,6 +382,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
+| `Delivery` | RecipientsDialog | `POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/warmup` (name, scope unknown)<br>`PUT /api/v1/warmup/{id}` (name, scope unknown) | domains, queue |
 | `RecipientAddress` | RecipientsDialog | `POST /api/v1/password-reset` (words, loose, scope unknown)<br>`POST /api/v1/password-reset/complete` (words, loose, scope unknown)<br>`POST /api/v1/groups/{id}/members` (words, loose)<br>`PUT /api/v1/domains/{domain}/mailbox-recovery` (words, loose, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (words, loose, scope unknown)<br>`POST /api/v1/addresses/erase` (words, loose, scope unknown)<br>`POST /api/v1/warmup` (words, loose, scope unknown)<br>`PUT /api/v1/warmup/{id}` (words, loose, scope unknown)<br>`POST /api/v1/webhooks` (words, loose, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (words, loose, scope unknown) | domains, groups, queue, webhooks |
 
 ### SecurityRange
@@ -453,12 +492,16 @@ Every COM property the desktop program writes, the page that writes it, the REST
 |---|---|---|---|
 | `ConnectionSecurity` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `DaysToKeepMessages` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
+| `EnableRouteRecipients` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `Enabled` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`PUT /api/v1/accounts/{address}/mailbox-encryption` (name, scope unknown)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/warmup` (name, scope unknown)<br>`PUT /api/v1/warmup/{id}` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, domains, fetch, passkeys, queue, settings, webhooks |
+| `MIMERecipientHeaders` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `MinutesBetweenFetch` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `MirrorFolders` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `Name` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/settings/profiles/{name}/apply` (path, scope unknown)<br>`POST /api/v1/roles` (name, scope unknown)<br>`PUT /api/v1/roles/{name}` (name, scope unknown)<br>`PUT /api/v1/role-assignments/{address}` (name, scope unknown)<br>`POST /api/v1/diagnostics/run` (name, scope unknown)<br>`POST /api/v1/backup/{archive}/mailboxes/{address}/restore` (name, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown) | checklist, diagnostics, fetch, passkeys, roles, webhooks |
 | `Password` | CollectionSpecs | `POST /api/v1/password-reset/complete` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`PUT /api/v1/accounts/{address}/mailbox-encryption` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/mailbox-encryption/recover` (name, scope unknown)<br>`PUT /api/v1/domains/{domain}/mailbox-recovery` (setter, scope unknown)<br>`POST /api/v1/accounts/{address}/move` (name, scope unknown)<br>`POST /api/v1/passkeys` (setter, scope unknown)<br>`POST /api/v1/protected/{token}/reply` (name, scope unknown)<br>`POST /api/v1/accounts/{address}/password` (setter, scope unknown)<br>`POST /api/v1/webhooks` (setter, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (setter, scope unknown)<br>`POST /api/v1/webhooks/test` (name, scope unknown) | domains, fetch, passkeys, webhooks |
 | `Port` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | fetch, webhooks |
+| `ProcessMIMEDate` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
+| `ProcessMIMERecipients` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `ServerAddress` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `ServerType` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
 | `UseAntiSpam` | CollectionSpecs | `POST /api/v1/accounts/{address}/fetch-accounts` (setter)<br>`PUT /api/v1/accounts/{address}/fetch-accounts/{id}` (setter) | fetch |
@@ -735,6 +778,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `DisableAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `DiscardProfileSnapshot` | ProfilesView | `POST /api/v1/settings/profiles/discard` |
 | Settings | `EnrolAdministratorTOTP` | AdministratorTwoFactorDialog | - |
+| Settings | `GenerateWebPushKeys` | ServerSettingsView | `DELETE /api/v1/accounts/{address}/push`<br>`PUT /api/v1/settings/push` |
 | Settings | `GetProfile` | ProfilesView | - |
 | Settings | `GetProfiles` | ProfilesView | - |
 | Settings | `PreviewDirectorySync` | DirectorySyncView | `DELETE /api/v1/review/{id}`<br>`PUT /api/v1/accounts/{address}/review`<br>`PUT /api/v1/accounts/{address}/directory` |
@@ -762,6 +806,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Utilities | `CreateSampleDomain` | WelcomeView | `POST /api/v1/setup/sample-domain`<br>`DELETE /api/v1/setup/sample-domain` |
 | Utilities | `DeleteJournalRule` | JournalingView | - |
 | Utilities | `EmailAllAccounts` | UtilityViews | - |
+| Utilities | `EraseAddressLogLines` | AccountDialog | `POST /api/v1/addresses/erase` |
 | Utilities | `EraseAddressTraces` | AccountDialog | `POST /api/v1/addresses/erase` |
 | Utilities | `GetAuditTrail` | AuditTrailView | - |
 | Utilities | `GetBounceCounts` | SuppressionListView | - |
@@ -773,6 +818,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Utilities | `RemoveSampleDomain` | WelcomeView | `POST /api/v1/accounts/{address}/move`<br>`POST /api/v1/setup/sample-domain`<br>`DELETE /api/v1/setup/sample-domain` |
 | Utilities | `RemoveSuppression` | SuppressionListView | `POST /api/v1/accounts/{address}/move` |
 | Utilities | `ResolveMXRecords` | UtilityViews | - |
+| Utilities | `RevertAuditedChange` | AuditTrailView | `POST /api/v1/audit/{id}/revert`<br>`POST /api/v1/settings/profiles/revert` |
 | Utilities | `SaveJournalRule` | JournalingView | - |
 | Utilities | `VerifyAuditTrail` | AuditTrailView | - |
 | DistributionLists | `Add` | DomainsView | - |

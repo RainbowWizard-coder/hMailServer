@@ -242,6 +242,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["performance"] = () => new ServerSettingsView(ServerSettingsView.Section.Performance);
          pageFactories_["advanced"] = () => new ServerSettingsView(ServerSettingsView.Section.Advanced);
          pageFactories_["adminaccess"] = () => new ServerSettingsView(ServerSettingsView.Section.AdminAccess);
+         pageFactories_["webmail"] = () => new ServerSettingsView(ServerSettingsView.Section.Webmail);
          pageFactories_["groups"] = () => CollectionSpecs.Groups();
          pageFactories_["servermessages"] = () => CollectionSpecs.ServerMessages();
          pageFactories_["scripts"] = () => new ScriptsView();

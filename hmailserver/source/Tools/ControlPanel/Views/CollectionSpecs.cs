@@ -422,6 +422,15 @@ namespace hMailServer.ControlPanel.Views
             },
             new FieldSpec { Prop = "UseAntiSpam", Label = L("Run anti-spam on downloaded mail"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
             new FieldSpec { Prop = "UseAntiVirus", Label = L("Run anti-virus on downloaded mail"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
+            // A mailbox that collects for several people - one catch-all at the
+            // provider for a whole domain: each message is delivered to the
+            // accounts its headers and its Received lines name, and only to those
+            // that are accounts here (or, with the route option, a route's too),
+            // and to this account when it names none (ExternalFetchClientBase).
+            new FieldSpec { Prop = "ProcessMIMERecipients", Label = L("Deliver each message to the accounts its headers name (a mailbox shared by several people)"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
+            new FieldSpec { Prop = "MIMERecipientHeaders", Label = L("Headers those addresses are read from (needed for the option above; such as To, CC, X-RCPT-TO, X-Envelope-To)"), ShowInGrid = false, Default = "" },
+            new FieldSpec { Prop = "EnableRouteRecipients", Label = L("Deliver to addresses a route covers as well as to this server's accounts"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
+            new FieldSpec { Prop = "ProcessMIMEDate", Label = L("Date each message by its Received header rather than by when it was downloaded"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
             // IMAP accounts only; the server ignores it for POP3. A migration rather than a
             // collection: every folder, verbatim, flags and dates kept, nothing delivered.
             new FieldSpec { Prop = "MirrorFolders", Label = L("Mirror every folder (IMAP only: a migration, verbatim, with flags and dates)"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false }
