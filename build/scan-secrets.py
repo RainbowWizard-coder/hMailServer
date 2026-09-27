@@ -323,9 +323,20 @@ def run_gitleaks(repo, mode, log_opts, ignore_text, stream):
 
 # ---------------------------------------------------------------- the verdict
 
-def findings_of(report_text):
-    """gitleaks' JSON report, or ScanError when there is none: gitleaks writes it, [] when
-    it found nothing, whenever the scan ran to its end."""
+# A line gitleaks logs at the error level, in zerolog's console form (--no-color):
+# "8:22AM ERR [git] fatal: ...".
+GITLEAKS_ERROR = re.compile(r"^\S+ ERR\b", re.MULTILINE)
+
+
+def findings_of(report_text, code, err=""):
+    """gitleaks' JSON report, or ScanError when there is none or it is not a whole scan's.
+
+    gitleaks writes the report whenever it stops, so [] alone does not say the scan ran to
+    its end. When the git log it reads fails - a range whose base the repository does not
+    have, an object that is missing - gitleaks 8.30.1 logs "ERR [git] fatal: ..." and
+    'ERR error="stderr is not empty"', then "no leaks found", writes [] and exits 0 (the
+    pinned image, 27 September 2026). So [] is a clean scan only with exit 0 and no error
+    logged. Findings are findings whatever the code and the log."""
     if report_text is None or not report_text.strip():
         raise ScanError("gitleaks wrote no report: the scan did not run to its end")
     try:
@@ -334,6 +345,10 @@ def findings_of(report_text):
         raise ScanError("gitleaks' report is not JSON: %s" % e)
     if not isinstance(value, list):
         raise ScanError("gitleaks' report is not a list of findings")
+    if not value and code != 0:
+        raise ScanError("gitleaks reported nothing but exited %s: the scan did not run to its end" % code)
+    if not value and GITLEAKS_ERROR.search(err or ""):
+        raise ScanError("gitleaks reported nothing but logged an error: the scan did not run to its end")
     return value
 
 
@@ -370,6 +385,11 @@ def scan(repo, what, engine, say=print):
         tip = tip_of(log_opts)
         if git(repo, "cat-file", "-e", tip + "^{commit}", check=False).returncode != 0:
             raise ScanError("%s is not a commit here" % tip)
+        # Every revision the range names, not the tip alone: a range git log refuses is one
+        # gitleaks scans as empty (findings_of).
+        listed = git(repo, "rev-list", "--count", *log_opts.split(), check=False)
+        if listed.returncode != 0:
+            raise ScanError("git cannot list %s here: %s" % (log_opts, listed.stderr.decode("utf-8", "replace").strip()))
         rev = tip
     security = text_of(repo, rev, SECURITY_YML) or text_of(repo, None, SECURITY_YML) or text_of(ROOT, None, SECURITY_YML)
     ignore_text = text_of(repo, rev, IGNORE)
@@ -390,7 +410,7 @@ def scan(repo, what, engine, say=print):
         code, report, err = run_gitleaks(repo, mode, log_opts, ignore_text, stream)
         how = "gitleaks on PATH with its own rules"
     try:
-        findings = findings_of(report)
+        findings = findings_of(report, code, err)
     except ScanError as e:
         say("scan-secrets: %s (exit %d). What the scanner said:" % (e, code))
         for line in err.strip().split("\n")[-15:]:
@@ -458,13 +478,47 @@ def self_test():
     except ScanError as e:
         failures.append("the tree's %s names the scanner's image: %s" % (SECURITY_YML, e))
 
-    expect(findings_of("[]") == [], "an empty report is a clean scan")
+    expect(findings_of("[]", 0) == [], "an empty report is a clean scan")
     for bad in (None, "", "{", "{}"):
         try:
-            findings_of(bad)
+            findings_of(bad, 0)
             failures.append("a report that is %r is not taken for a clean scan" % bad)
         except ScanError:
             pass
+    for code in (1, 2, 126):
+        try:
+            findings_of("[]", code)
+            failures.append("an empty report with exit %d is not taken for a clean scan" % code)
+        except ScanError:
+            pass
+    # What gitleaks 8.30.1 in the pinned image logged, wrote and exited with for a range
+    # whose base the repository does not have (27 September 2026, on linix).
+    partial = ("8:22AM ERR [git] fatal: Invalid revision range 1111111111111111111111111111111111111111..HEAD\n"
+               "8:22AM ERR error=\"stderr is not empty\"\n8:22AM INF 0 commits scanned.\n"
+               "8:22AM INF scanned ~0 bytes (0) in 124ms\n8:22AM INF no leaks found\n")
+    try:
+        findings_of("[]", 0, partial)
+        failures.append("a scan whose git log failed is not taken for a clean scan")
+    except ScanError:
+        pass
+    clean = "8:22AM INF 1 commits scanned.\n8:22AM INF scanned ~2 bytes (2 bytes) in 152ms\n8:22AM INF no leaks found\n"
+    expect(findings_of("[]", 0, clean) == [], "a whole scan's log with nothing found is a clean scan")
+    expect(len(findings_of('[{"RuleID": "x"}]', 1, partial)) == 1 and len(findings_of('[{"RuleID": "x"}]', 0)) == 1,
+           "a finding is a finding whatever gitleaks exited with and logged")
+    if git(ROOT, "rev-parse", "--verify", "-q", "HEAD", check=False).returncode == 0:
+        # A scanner that would say the range is clean, as gitleaks does of a range git log
+        # refuses: the range must be refused before it is asked.
+        held_run = globals()["run_gitleaks"]
+        asked = []
+        globals()["run_gitleaks"] = lambda *a: asked.append(a) or (0, "[]", "")
+        try:
+            said = []
+            code = scan(ROOT, ("range", "1111111111111111111111111111111111111111..HEAD"), "gitleaks", say=said.append)
+            failures.append("a range whose base is not here is refused before any scanner runs: exit %s, %s" % (code, said))
+        except ScanError:
+            expect(not asked, "the scanner is not asked about a range git cannot list")
+        finally:
+            globals()["run_gitleaks"] = held_run
     leak = {"RuleID": "gitlab_personal_access_token", "Description": "GitLab personal access token", "StartLine": 2,
             "File": "", "Commit": "", "Fingerprint": "stdin:gitlab_personal_access_token:2", "Secret": "REDACTED"}
     shown = describe(leak, places)
