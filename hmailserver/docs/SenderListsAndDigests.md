@@ -247,7 +247,7 @@ domain by the Public Suffix List, lower-cased - so `bounces.notify.example` and
 it out (`sender_domain` and `helo_domain` over REST, `SenderDomain` and
 `HeloDomain` over COM) so that every page groups a message the same way. Messages
 with no sender domain (the null sender) or no HELO domain (none recorded, or an
-address literal) are one group of their own. The group whose newest message is
+address, bracketed or not) are one group of their own. The group whose newest message is
 newest comes first. A group's row folds and unfolds; folding hides its messages
 and keeps their checks.
 
@@ -289,7 +289,7 @@ Before anything is written, the dialog asks the server what the choice would
 write (a dry run) and lists it: one entry per distinct sender or domain, whether
 each is new, already there, or on the list the other way (an entry already there
 is changed to this action rather than duplicated), and the messages no entry can
-be made for - the null sender, no HELO recorded, an address literal - which are
+be made for - the null sender, no HELO recorded, a HELO that is an address - which are
 then left where they are. A domain that is itself a **public suffix** (`co.uk`,
 a one-label HELO name such as `localhost`, a name from the list's private section
 such as `github.io`) would cover every domain registered beneath it, so the

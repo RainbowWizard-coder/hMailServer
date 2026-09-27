@@ -50,7 +50,10 @@ namespace RegressionTests.AntiSpam
          ".review-helo-block.test",
          ".review-sender-allow.test",
          ".co.uk",
-         "held-at-delivery@review-sender.test"
+         "held-at-delivery@review-sender.test",
+         // What blocking a HELO of 192.0.2.77 by its domain wrote before an
+         // address was no name: removed should a regression write it again.
+         ".2.77"
       };
 
       private Account _recipient;
@@ -508,6 +511,29 @@ namespace RegressionTests.AntiSpam
          SendSpam("HELO mx.review-helo.test", "offers@review-sender-allow.test", "White again");
          Assert.IsNull(Held("White again"), "A white domain's message must not be held on the score.");
          Pop3ClientSimulator.AssertMessageCount(_recipient.Address, "test", 2);
+      }
+
+      [Test]
+      [Description("A HELO that is an address without brackets, stored as the client gave it, has no HELO domain: blocking by the HELO domain writes nothing for it and leaves it held")]
+      public void AHeloThatIsAnAddressHasNoDomainToList()
+      {
+         SendSpam("HELO 192.0.2.77", "outsider@review-sender.test", "Address HELO");
+
+         Dictionary<string, object> held = Held("Address HELO");
+         Assert.IsNotNull(held);
+         Assert.AreEqual("192.0.2.77", MiniJson.Text(held, "helo"), "Stored as the client gave it.");
+         Assert.AreEqual("", MiniJson.Text(held, "helo_domain"),
+            "An address has no organization's domain; the Public Suffix List's implicit rule would have made it 2.77.");
+
+         long id = MiniJson.Number(held, "id");
+         Dictionary<string, object> answer = Bulk("{\"ids\":[" + id + "],\"action\":\"block\",\"list\":\"domain\",\"domain_from\":\"helo\"}");
+
+         Assert.AreEqual(0, MiniJson.List(answer, "entries").Count, "No entry can be made for an address.");
+         Assert.IsFalse(MiniJson.Flag(ResultFor(answer, id), "ok"));
+         StringAssert.Contains("address", MiniJson.Text(ResultFor(answer, id), "error"));
+         Assert.IsNull(PolicyEntry(".2.77", "helo"),
+            "Nothing may be written on the domain list: .2.77 would refuse every client whose HELO is an address ending in .2.77.");
+         Assert.IsNotNull(Held("Address HELO"), "A message no entry can be made for is left where it is.");
       }
 
       [Test]

@@ -119,7 +119,7 @@ namespace HM
 
       // The organization's domain the review pages group a held message by:
       // of the sender's address, and of the HELO name. Empty for the null
-      // sender, for no HELO, and for a HELO that is an address literal.
+      // sender, for no HELO, and for a HELO that is an address, bracketed or not.
       static String SenderDomain(const String &sender);
       static String HeloDomain(const String &helo);
 

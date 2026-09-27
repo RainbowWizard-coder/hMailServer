@@ -349,6 +349,14 @@ namespace HM
       if (normalisedName.IsEmpty())
          return String();
 
+      // An address is not a name. The session stores the HELO as the client
+      // gave it, and a client that says HELO 192.0.2.7 would otherwise be
+      // grouped under 2.7 - the list's implicit rule takes the last number for
+      // a top-level domain - and blocking that group would write .2.7 on the
+      // domain list, refusing every client whose HELO is an address ending so.
+      if (StringParser::IsValidIPAddress(normalisedName))
+         return String();
+
       return DMARC::GetOrganizationalDomainByPublicSuffixList(normalisedName);
    }
 
@@ -428,7 +436,7 @@ namespace HM
          organization = HeloDomain(helo);
          if (organization.IsEmpty())
          {
-            problem = "The HELO name is an address literal, which the domain list does not name.";
+            problem = "The HELO name is an address, which the domain list does not name.";
             return false;
          }
       }
@@ -809,6 +817,15 @@ namespace HM
 
       if (!QuarantineReview::HeloDomain(_T("[192.0.2.7]")).IsEmpty())
          throw std::logic_error("QuarantineReview::HeloDomain gave a domain for an address literal.");
+
+      // An address without its brackets, as a client may say it and the session
+      // stores it, is no name either: not 2.7, which as .2.7 on the domain list
+      // would cover every HELO that is an address ending in those two numbers.
+      if (!QuarantineReview::HeloDomain(_T("192.0.2.7")).IsEmpty() || !QuarantineReview::HeloDomain(_T("2001:db8::7")).IsEmpty())
+         throw std::logic_error("QuarantineReview::HeloDomain gave a domain for a HELO that is an address.");
+
+      if (!QuarantineReview::SenderDomain(_T("someone@192.0.2.7")).IsEmpty())
+         throw std::logic_error("QuarantineReview::SenderDomain gave a domain for an address.");
 
       // A name that is itself a public suffix, and one that is not.
       if (!QuarantineReview::IsPublicSuffix(_T("co.uk")) || !QuarantineReview::IsPublicSuffix(_T(".com")) ||
