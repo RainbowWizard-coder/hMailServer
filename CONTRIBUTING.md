@@ -193,9 +193,10 @@ them.
 No build step downloads from GitHub, the owner's rule since GitHub suspended the project's account.
 OpenSSL publishes its release archives only there, so `libraries\build-openssl.ps1` takes the same archive from
 Debian's archive, which ships it unchanged as `openssl_<version>.orig.tar.gz`, and holds it to OpenSSL's own
-SHA-256 pinned in the script (`-Archive` takes a copy you have instead). `build-appimage.sh` uses linuxdeploy and
-its AppImage plugin only when they are already in `TOOLS_DIR` and refuses otherwise; which non-GitHub source to
-take them from is the owner's decision. `build-pgsql.ps1` names
+SHA-256 pinned in the script (`-Archive` takes a copy you have instead). `build-appimage.sh` no longer uses
+linuxdeploy: the AppImage's runtime is the project's own, `platform/packaging/appimage/runtime.c`, built by
+`build/ci/packages/appimage-runtime.sh` from Alpine's packages, and the script packs the AppDir with ldd, patchelf
+and mksquashfs from the distribution. `build-pgsql.ps1` names
 winflexbison's SourceForge page, and the fuzz build takes clang from the Visual Studio component.
 
 ### Linux

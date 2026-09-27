@@ -305,14 +305,21 @@ CycloneDX document to the same rule.
 
 Not pinned, and why:
 
-* **The AppImage tools.** `hmailserver/source/Server/platform/packaging/build-appimage.sh`
-  no longer downloads linuxdeploy and its AppImage plugin: they are published
-  only on GitHub, which the project does not download from, so the script
-  uses copies already in `TOOLS_DIR` and refuses otherwise, and checks no
-  hash. Until 18 September 2026 it took them from their GitHub releases'
-  `continuous` tag, which moves. The plugin's runtime is inside every AppImage
-  built. A pin needs a chosen non-GitHub source and a hash read from a copy;
-  it is the input most in need of one.
+* **The AppImage's runtime and packing tools.**
+  `hmailserver/source/Server/platform/packaging/build-appimage.sh` no longer
+  uses linuxdeploy or its AppImage plugin, which are published only on GitHub;
+  until 18 September 2026 it took them from their GitHub releases' `continuous`
+  tag, which moves, and the plugin's runtime was inside every AppImage built.
+  The runtime is now the project's own, `appimage/runtime.c` beside the script,
+  built by `build/ci/packages/appimage-runtime.sh` in an `alpine:3.24` image
+  pinned by digest and linked statically against Alpine's squashfuse, libfuse3
+  and decompressor packages; the script packs the AppDir with ldd, patchelf and
+  mksquashfs from the Ubuntu 24.04 image's archive
+  ([PackagesAppImage.md](PackagesAppImage.md)). Those packages are not pinned
+  by version: `apk add` and `apt-get install` take what the release's archive
+  holds that day. `runtime-<arch>.txt`, kept beside each runtime, records each
+  Alpine package it was linked from with its version, and the runtime's
+  SHA-256.
 * **The Public Suffix List.** `build/generate-public-suffix-list.ps1` downloads
   the current list from publicsuffix.org, as its maintainers ask. What the
   build compiles is the generated `PublicSuffixListData.h`, committed with the

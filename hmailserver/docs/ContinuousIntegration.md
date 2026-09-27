@@ -637,7 +637,7 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 | `linux-build.yml` build, x86-64 clang | `linux-build` (with the packages) | linix | a protected ref |
 | `linux-build.yml` build, x86-64 GCC | not ported: see below | | |
 | `linux-build.yml` build, AArch64 | not ported: see below | | |
-| `linux-build.yml` build, the AppImage | not ported: see below | | |
+| `linux-build.yml` build, the AppImage | the `appimage-*` jobs of `.gitlab/ci/packages-appimage.yml`, x86_64 and aarch64, with a runtime of the project's own and no linuxdeploy ([PackagesAppImage.md](PackagesAppImage.md)); CI job artifacts, not in a release | linix | a `v*` tag; by hand on `master` or a `batch*` branch |
 | `linux-build.yml` cross | `linux-cross` | linix | a protected ref |
 | `linux-build.yml` package-install | `linux-package-deb`, `linux-package-rpm` | linix | a protected ref |
 | `linux-build.yml` regression-on-linux | `linux-suite` (row 139), the whole suite in one run | linix | a protected ref |
@@ -683,8 +683,6 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
   is one x86-64 machine, and a second whole build per pipeline would add
   twelve minutes to its queue; `linux-cross` compiles every file for AArch64,
   and `bash build/linux-tu-census.sh --cc g++` is the GCC census by hand.
-- The AppImage. Its build script runs linuxdeploy, whose only distribution is
-  GitHub's releases. It waits for the release-chain row.
 
 Where the tools come from
 -------------------------
