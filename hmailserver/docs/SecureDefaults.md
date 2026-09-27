@@ -307,8 +307,8 @@ service.
 
 The regression fixtures drive the verb without the installer. The proof that the
 installer and the packages do it is an installation on a clean machine, and these
-checks are **not yet written**: the installer smoke test, `build/ci/installer-smoke.ps1`
-on the branch `ci-installer-smoke`, is to add them.
+checks are **not yet written**: the installer smoke test, `build/ci/installer-smoke.ps1`,
+is in the tree and does not make them yet; it is where they are to go.
 
 * **After a new installation with the built-in database**: the certificate record
   *Self-signed (made at installation)* over COM, its two files under

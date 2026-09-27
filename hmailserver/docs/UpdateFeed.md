@@ -14,9 +14,9 @@ from this project, and it is made from the project's releases on GitLab. A
 server built after 6.3.3 reads it without being told. A server from 6.2.28 to
 6.3.3 still reads GitHub, and one line in its configuration points it here.
 
-*Written on 25 September 2026, before the site's first deployment and before
-any release has been signed on GitLab. Until the first deployment and GitLab's
-certificate for the name, the address answers nothing a server can use.*
+*The site has been deployed since 26 September 2026 and answers over HTTPS with a
+certificate for its name. No release has been signed on GitLab yet: 6.3.4 was
+built and signed by hand, as below.*
 
 A server from 6.2.28 to 6.3.3
 -----------------------------
@@ -132,7 +132,7 @@ checks](#what-a-server-built-after-633-checks)).
   by name, `UNSIGNED_BY_DESIGN` in `build/generate-update-feed.py`). It is
   installed by hand, as below. An old server's check will find a release
   signed on GitLab, but its download will be refused: "The certificate names
-  https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v...,
+  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v...`,
   not this repository's release workflow." Nothing is installed, and the server
   runs on as it was.
 - **Turn automatic download off until then.** With `UpdateAutoDownload=1`

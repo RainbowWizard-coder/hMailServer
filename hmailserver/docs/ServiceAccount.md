@@ -233,7 +233,8 @@ one LocalSystem. `DOMAIN\name$` is a group managed service account, which has no
 password. Any other account has one, and is refused: it is set in `services.msc`
 (the service's *Log on* tab), and every upgrade keeps it.
 
-`ServiceAccountName` and `ServiceAccountPassword` are no longer read. They were
+`ServiceAccountName` and `ServiceAccountPassword` are no longer used: the server still
+loads them with its other settings (`IniFileSettings.cpp`), and nothing reads them. They were
 what `/Register` used, and they are written by others: they are rows of the
 settings store, which hMailServer administrators - who need not be Windows
 administrators - set over REST and COM, and which the service writes; and the file
