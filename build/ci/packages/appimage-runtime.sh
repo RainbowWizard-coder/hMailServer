@@ -83,9 +83,13 @@ fi
 # -Wformat=2 with -Werror: a format that is not a string literal, at a printf
 # call or at a call of runtime.c's die(), which is declared a printf-style
 # function, fails the build (.gitlab/security-exceptions.yml accepts die()'s
-# vfprintf on the strength of that).
+# vfprintf on the strength of that). It has a line of its own because
+# build/ci/semgrep-baseline.txt knows this command - its $static_libs is split
+# into words on purpose - by the text of its first line, which a change there
+# would make a new finding that holds a release.
 # shellcheck disable=SC2086
-cc -std=gnu11 -O2 -Wall -Wextra -Wformat=2 -Werror -Wno-unused-parameter \
+cc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter \
+   -Wformat=2 \
    -ffunction-sections -fdata-sections \
    -DHM_RUNTIME_VERSION="\"$version\"" \
    -I/usr/include/squashfuse -I/usr/include/fuse3 \
