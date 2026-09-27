@@ -1344,8 +1344,10 @@ installer, the x86-64 `.deb` and `.rpm` and their sums, each of the three
 compiled files' own SBOM (`<file>.cdx.json`, CycloneDX 1.6; SECURITY.md,
 "Software bills of materials"), and the SPDX and CycloneDX SBOMs of the tree.
 No AArch64 packages, no AppImages, no SLSA provenance and no
-`.sigstore.json` copies, which the GitHub releases had: linix builds x86-64
-only, the AppImage tool is published only on GitHub, and the provenance
+`.sigstore.json` copies, which the GitHub releases had. The pipeline builds the
+`.deb` or `.rpm` of each supported distribution release, x86-64 and AArch64, the
+AppImages and the ARM64 installer (`.gitlab/ci/packages-*.yml`), but as CI job
+artifacts only: they are not signed and not in the release. The SLSA provenance
 generator is GitHub's. The verification section `release-verify` writes into a
 release's notes says so. The server and the tools in the installer are the
 bench checkout's incremental build of the tag's commit, not a clean one, and its
