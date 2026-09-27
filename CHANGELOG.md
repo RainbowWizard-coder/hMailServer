@@ -8,7 +8,7 @@ the tests and the verification - are on its GitLab release page,
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.4, published on 26 September 2026.** Anything that arrived after it is in the tree
+**The latest release is 6.3.4, published on 27 September 2026.** Anything that arrived after it is in the tree
 after 6.3.4 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-634-not-yet-released)
 and will carry a version number when a release is cut.
 
@@ -69,7 +69,7 @@ Nothing yet.
 
 ---
 
-## [6.3.4](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.4) - 2026-09-26
+## [6.3.4](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.4) - 2026-09-27
 
 Everything that landed on `master` after the `v6.3.3` tag, between 15 and 26 September 2026 ([compare `v6.3.3` with
 `v6.3.4`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.3...v6.3.4)). The schema moves from **6040
@@ -511,9 +511,9 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   JScript and an `OnClientValidatePassword` handler in `EventHandlers.js`, any client that could reach a sign-in -
   SMTP AUTH, POP3, IMAP or anything else that checks an account's password - and name an existing, active account
   could have JScript of its own run inside `hMailServer.exe`, with the rights of the service's account, before it
-  had authenticated. With `ScriptAllowedObjects` at its shipped `*`, that script could create any COM object,
-  `WScript.Shell` among them, and so run any command the service's account may. The server built each call as
-  source text and escaped the apostrophe but not the backslash before it. The same shape was open to a remote POP3
+  had authenticated. That script could create any COM object, `WScript.Shell` among them - before 6.2.25 always,
+  from 6.2.25 with `ScriptAllowedObjects` at its shipped `*` - and so run any command the service's account may.
+  The server built each call as source text and escaped the apostrophe but not the backslash before it. The same shape was open to a remote POP3
   server through the UID it answers (`OnExternalAccountDownload`), and to a remote mail server through the error
   text it refuses a delivery with and the failed recipient's address (`OnDeliveryFailed`), each on a JScript server
   with that handler; and a rule's Run function action wrote its function name into the call unescaped in either
@@ -1395,7 +1395,8 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   in the release's commit, and the release job - or, for a release made by hand, its runbook - refuses while one
   of them did not finish or found something `SECURITY.md`'s policy counts that is in no baseline and is not
   accepted, for at most a year, in `.gitlab/security-exceptions.yml`, which the owner keeps on `master`. That file
-  accepts 169 findings of GitLab's Semgrep analyzer over `master` at `40c7d3e0c`, each read by two review agents
+  accepts 455 findings at the release - 188 of GitLab's Semgrep analyzer, 263 of the static analysis and 4 of
+  Semgrep's open rules, from the scans of `40c7d3e0c` and of the release tree - each read by two review agents
   under the owner's delegation and each with the reason it is not exploitable; the seven it found real are fixed
   in this release (under Security and identity). `build/scan-secrets.py` runs gitleaks with GitLab's rules in the
   two git hooks the repository ships (`build/hooks`, turned on with `git config core.hooksPath build/hooks`) and
