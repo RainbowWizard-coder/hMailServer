@@ -4,17 +4,25 @@
 
 // The webmail in the reader's language. English is the page; a catalogue
 // maps every text of it to one language. GET /portal-lang/<code>.json
-// answers a catalogue to anyone (the sign-in page has no account), cached a
-// day; the page itself carries the catalogue for the reader's
-// Accept-Language so the first paint is already translated; the script
-// fetches another when the reader chooses one (kept in the browser, and in
-// the account's preferences once signed in).
+// answers a catalogue to anyone (the sign-in page has no account); the page
+// itself carries the catalogue for the reader's Accept-Language so the first
+// paint is already translated; the script fetches another when the reader
+// chooses one (kept in the browser, and in the account's preferences once
+// signed in).
+//
+// A catalogue is revalidated on every use (no-cache, an ETag of its digest,
+// 304 to an If-None-Match naming it). It was cached for a day, and the page it
+// translates is never cached: after an upgrade a reader who had chosen a
+// language got the new page with yesterday's catalogue, and every text the
+// upgrade added stayed English for a day - a screen reader read them out in
+// the page's voice (the NVDA pass of Roadmap2 row 43 met exactly that).
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "HttpServer.h"
 #include "HttpCompression.h"
 #include "PortalLanguages.h"
+#include "DavSupport.h"
 #include <algorithm>
 #include <cstdlib>
 #include <map>
@@ -155,11 +163,31 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandlePortalLanguage_(const AnsiString &code)
+   RestApiServer::HandlePortalLanguage_(const AnsiString &code, const AnsiString &request)
    {
       const AnsiString json = PortalLanguageJson_(code);
       if (json.IsEmpty())
          return BuildResponse_(404, "{\"error\":\"no such language\"}");
+      // The tag is the catalogue's own digest: it changes when the texts do,
+      // in whatever build, and not otherwise.
+      const AnsiString etag = AnsiString("\"lang-") + Known(code) + "-" + Dav::Sha256Hex(json).Left(16) + "\"";
+      const AnsiString headers = AnsiString("Cache-Control: no-cache\r\nX-Content-Type-Options: nosniff\r\nETag: ") + etag + "\r\n";
+      std::vector<AnsiString> named = StringParser::SplitString(GetHeader_(request, "if-none-match"), ",");
+      for (size_t i = 0; i < named.size(); i++)
+      {
+         AnsiString candidate = named[i];
+         candidate.Trim();
+         if (candidate.StartsWith("W/"))
+            candidate = candidate.Mid(2);
+         if (candidate == etag)
+         {
+            HttpResponse unchanged;
+            unchanged.status = 304;
+            unchanged.content_type = "application/json; charset=utf-8";
+            unchanged.extra_headers = headers;
+            return unchanged;
+         }
+      }
       HttpResponse response;
       response.status = 200;
       response.content_type = "application/json; charset=utf-8";
@@ -167,7 +195,7 @@ namespace HM
       // Compressed once per language rather than once per request; the cache
       // is RestApiServer.cpp's, shared with the page.
       PortalPageCache().Fill(response);
-      response.extra_headers = "Cache-Control: public, max-age=86400\r\nX-Content-Type-Options: nosniff\r\n";
+      response.extra_headers = headers;
       return response;
    }
 }

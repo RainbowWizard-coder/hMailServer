@@ -2128,7 +2128,7 @@ namespace HM
       HttpResponse HandleAccountSupportSession_(const Caller &caller, const AnsiString &address, const AnsiString &request);
 
       // The webmail's catalogues (RestApiLanguages.cpp).
-      static HttpResponse HandlePortalLanguage_(const AnsiString &code);
+      static HttpResponse HandlePortalLanguage_(const AnsiString &code, const AnsiString &request);
       static AnsiString PortalLanguageJson_(const AnsiString &code);
       static AnsiString NegotiatePortalLanguage_(const AnsiString &request);
 

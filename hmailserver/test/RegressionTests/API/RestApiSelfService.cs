@@ -2998,15 +2998,28 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A catalogue is served to anyone and cached, an unknown language is not, and the page carries the catalogue for the request's Accept-Language - none for English")]
+      [Description("A catalogue is served to anyone, revalidated on every use - no-cache, an ETag of its digest, 304 to an If-None-Match naming it - an unknown language is not, and the page carries the catalogue for the request's Accept-Language - none for English")]
       public void TheCatalogueIsServedAndThePageCarriesTheNegotiatedOne()
       {
          Response german = Raw("GET", "/portal-lang/de.json", null, null);
          Assert.AreEqual(200, german.Status, german.Body.Length > 200 ? german.Body.Substring(0, 200) : german.Body);
          StringAssert.Contains("application/json", german.Header("Content-Type"));
-         StringAssert.Contains("public, max-age=86400", german.Header("Cache-Control"));
+         // Revalidated, not kept a day: the page is never cached, and a day-old
+         // catalogue under a new page left every text an upgrade added in
+         // English (the NVDA pass of Roadmap2 row 43).
+         Assert.AreEqual("no-cache", german.Header("Cache-Control"));
+         string tag = german.Header("ETag");
+         StringAssert.StartsWith("\"lang-de-", tag);
          StringAssert.StartsWith("{\"", german.Body);
          StringAssert.Contains("\"Sign in\":\"", german.Body);
+         Response unchanged = Raw("GET", "/portal-lang/de.json", null, null, "If-None-Match: " + tag + "\r\n");
+         Assert.AreEqual(304, unchanged.Status, unchanged.Body);
+         Assert.AreEqual(string.Empty, unchanged.Body);
+         Assert.AreEqual(tag, unchanged.Header("ETag"));
+         Response otherTag = Raw("GET", "/portal-lang/de.json", null, null, "If-None-Match: \"lang-de-0000000000000000\"\r\n");
+         Assert.AreEqual(200, otherTag.Status, "A tag the catalogue does not have is a fresh request.");
+         Response french = Raw("GET", "/portal-lang/fr.json", null, null, "If-None-Match: " + tag + "\r\n");
+         Assert.AreEqual(200, french.Status, "One language's tag is not another's.");
 
          Response anyCase = Raw("GET", "/portal-lang/DE.json", null, null);
          Assert.AreEqual(200, anyCase.Status, anyCase.Body.Length > 200 ? anyCase.Body.Substring(0, 200) : anyCase.Body);
