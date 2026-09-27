@@ -140,6 +140,11 @@ FILES = {
     "image": os.path.join(".gitlab", "ci", "container-image.yml"),
     "image-sign": os.path.join("build", "ci", "container-image-sign.sh"),
     "export": os.path.join(".gitlab", "ci", "forge-export.yml"),
+    # The package builds (.gitlab-ci.yml includes them): held to the old routes too.
+    "packages-deb": os.path.join(".gitlab", "ci", "packages-deb.yml"),
+    "packages-rpm": os.path.join(".gitlab", "ci", "packages-rpm.yml"),
+    "packages-appimage": os.path.join(".gitlab", "ci", "packages-appimage.yml"),
+    "packages-windows": os.path.join(".gitlab", "ci", "packages-windows.yml"),
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
     "exceptions": os.path.join(".gitlab", "security-exceptions.yml"),
     "codeowners": os.path.join(".gitlab", "CODEOWNERS"),
@@ -864,7 +869,11 @@ def check(texts, chain, feed):
     if REPOS_RULES not in repos_job or len(re.findall(r"^    - ", repos_job.split("  rules:\n", 1)[-1].split("\n  script:")[0], re.MULTILINE)) != 1:
         problems.append("package-repos's rules are not pages' alone (%s): it would deploy the site in a pipeline "
                         "pages refuses, the schedules of one job each among them" % REPOS_RULES.strip())
-    for key, found in (("ci", jobs), ("security", security_jobs), ("export", blocks(texts["export"]))):
+    # The package files too, whose build rules refuse before they make a job by hand: a
+    # refusal that reads an old route refuses a build in a pipeline where .own-runners still
+    # makes the install job that needs it, and GitLab then creates no pipeline at all.
+    packages = [(key, blocks(texts[key])) for key in ("packages-deb", "packages-rpm", "packages-appimage", "packages-windows")]
+    for key, found in [("ci", jobs), ("security", security_jobs), ("export", blocks(texts["export"]))] + packages:
         for name, text in sorted(found.items()):
             for old in OLD_ROUTES:
                 if "$" + old in text:
@@ -1073,6 +1082,10 @@ def self_test(chain, feed):
            '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $RUN_RENOVATE == "1" && $CI_COMMIT_REF_PROTECTED', "still reads $RUN_RENOVATE")
     broken("an old route back in a refusal", "security", '    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"',
            '    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"', "still reads $HM_PIPELINE")
+    for key in ("packages-deb", "packages-rpm", "packages-appimage"):
+        broken("an old route back in %s's build refusal" % key, key,
+               '    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"',
+               '    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"', "still reads $HM_PIPELINE")
     broken("pages in the coverage schedule's pipeline", "ci", ' || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage"', "",
            "pages would run in the pipeline of the schedule described \"coverage\"")
     broken("the coverage job without its schedule", "ci", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" &&',
