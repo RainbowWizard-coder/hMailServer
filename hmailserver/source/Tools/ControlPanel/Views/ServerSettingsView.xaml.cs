@@ -150,9 +150,21 @@ namespace hMailServer.ControlPanel.Views
             {
                Label = CaptionOnRow ? Label : null,
                Hint = Blurb,
-               Content = HeldByEnvironment(IsWithheld ? WithheldEditor() : BuildEditor(value)),
+               Content = HeldByEnvironment(IsWithheld ? WithheldEditor() : OwnEditor(value)),
                Applies = EnvironmentCaption ?? AppliesCaption
             };
+
+         /// <summary>
+         /// The row's own editor, for a row that is not withheld this time. It may
+         /// have been when the page was last built - a value was typed over it and
+         /// saved since - and the box it had then must not go on answering for the
+         /// editor built in its place (<see cref="WithheldEntry"/>).
+         /// </summary>
+         private FrameworkElement OwnEditor(object value)
+         {
+            withheld_ = null;
+            return BuildEditor(value);
+         }
 
          /// <summary>
          /// Whether this row's value came from a file of the server's environment -
