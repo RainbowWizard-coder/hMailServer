@@ -1,0 +1,301 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The RPM packages for Fedora, RHEL and openSUSE, x86_64 and aarch64, one per
+# distribution release and architecture, each built with that release's own
+# compiler and libraries so that its Requires name the sonames that release
+# ships, and then installed in a clean container of it (docs/Packages-rpm.md
+# says what each makes, and what has run). Included by .gitlab-ci.yml.
+#
+#   rpm-<target>-<arch>           linix: build/ci/packages/rpm-build.sh in the
+#                                 release's own x86_64 container; aarch64 is
+#                                 cross-compiled there with the release's clang
+#                                 and lld against a sysroot of the same release's
+#                                 aarch64 packages
+#   rpm-<target>-<arch>-install   linix: build/ci/packages/rpm-install-test.sh in
+#                                 a clean container of that release and
+#                                 architecture, whose dnf or zypper resolves every
+#                                 Requires; the aarch64 one runs under qemu-user,
+#                                 through the qemu-aarch64 binfmt handler of
+#                                 linix's kernel
+#
+#   target      image                                      package
+#   fedora44    registry.fedoraproject.org/fedora:44       hmailserver-<v>-1.fc44.<arch>.rpm, and for
+#                                                          aarch64 generic/hmailserver-<v>-1.aarch64.rpm
+#   fedora43    registry.fedoraproject.org/fedora:43       hmailserver-<v>-1.fc43.<arch>.rpm
+#   el10        registry.access.redhat.com/ubi10/ubi       hmailserver-<v>-1.el10.<arch>.rpm
+#   el9         registry.access.redhat.com/ubi9/ubi        hmailserver-<v>-1.el9.<arch>.rpm
+#   leap16      registry.opensuse.org/opensuse/leap:16.0   hmailserver-<v>-1.suse.lp160.<arch>.rpm
+#   tumbleweed  registry.opensuse.org/opensuse/tumbleweed  hmailserver-<v>-1.suse.tw.<arch>.rpm
+#
+# When: every v* tag and batch* branch, at once; on any other protected branch
+# (master) by hand - a build is started with its play button, and its install
+# job follows it. Never for a merge request or an unprotected ref: these run on
+# the project's own runner (.own-runners in .gitlab-ci.yml says why), and never
+# in a scheduled, fuzz or feed pipeline. A tag's and a batch's builds, and every
+# install job, are made by .own-runners' own rules, taken by !reference, so they
+# refuse what every job on the project's runners refuses and follow any change
+# made to that. The by-hand rule for the other branches is this file's, and it
+# comes after a refusal of its own; like every rule that makes a job, it asks for
+# a protected ref itself, so that a check reading one rule at a time
+# (build/ci/repo-hygiene.py's Token-Permissions, once it reads included files)
+# sees at once that an unprotected ref gets no job. On this tree
+# packages-deb.yml's rules make the same jobs at the same times, so that the
+# package files behave as one.
+#
+# The images are the distributions' own, pinned by the digest of each
+# architecture's own manifest rather than the multi-architecture index, so that
+# the x86_64 and the aarch64 image are two references in the runner's image
+# store and if-not-present can never hand an aarch64 job the x86_64 image it
+# already holds under the same name (or the reverse). Nothing here is fetched
+# from GitHub: the packages come from each distribution's repositories, and
+# Boost's release tarball from archives.boost.io, checked by its SHA-256
+# (rpm-build.sh).
+
+# ------------------------------------------------------------------ images
+# Read from each registry on 26 September 2026: the tag's index, then the
+# linux/amd64 and linux/arm64 manifests it lists.
+#   fedora:44   index sha256:72de8cab9539c06d525c73867d5b46b4390a7c71e441a7d99506dd47cd4f7b75
+#   fedora:43   index sha256:9d9dd6da1cbd0dfbba26f854fcabd4d16d27df4a4386c2ccd8b58b7cafe28e96
+#   ubi10/ubi   index sha256:223f8b83bcaa1159416724627ff2fadbfd2444653756b0c00d9dae1eacccbfbc
+#   ubi9/ubi    index sha256:a4b9ec09b1e790a53ef25b7777c539976abe519248264298e5194dcbceac8c31
+#   leap:16.0   index sha256:5bc9e1242fc2c92dbbcaf4db5e2eadad062c4c0434550c53822201f18799d55a
+#   tumbleweed  index sha256:f1c043e88b3b54cb88ad07a07b462d7635be945add678d732429c67f12754f7e
+.rpm-image-fedora44-x86_64:
+  image:
+    name: registry.fedoraproject.org/fedora:44@sha256:7ab582427716ae32b2e4aa593cdef8f5708d8ec3ab8e3488e1b5e2da28dd9283
+    pull_policy: if-not-present
+.rpm-image-fedora44-aarch64:
+  image:
+    name: registry.fedoraproject.org/fedora:44@sha256:e75c580674741c20556f49c24e2d1417b0455abcbda807ce9e3e3acd8765379a
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.rpm-image-fedora43-x86_64:
+  image:
+    name: registry.fedoraproject.org/fedora:43@sha256:57c64ac4b0cd8bd9cde6e8a8337a2435f1308f192bc5f88015e25c5d2f0fbc9a
+    pull_policy: if-not-present
+.rpm-image-fedora43-aarch64:
+  image:
+    name: registry.fedoraproject.org/fedora:43@sha256:4afedb55e33c909aa1241c112ba6447170c06b1ad1042b9ff83a241cc13b3d6e
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.rpm-image-el10-x86_64:
+  image:
+    name: registry.access.redhat.com/ubi10/ubi:latest@sha256:bd8e226cde9bd8ada5be5855cd5f15d29af127d50d889a69cc9a82ed7de3ffaf
+    pull_policy: if-not-present
+.rpm-image-el10-aarch64:
+  image:
+    name: registry.access.redhat.com/ubi10/ubi:latest@sha256:88b644ab99ba96bbc12e823d52aebb6914ad84dd68736991f3a07f3062cd961c
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.rpm-image-el9-x86_64:
+  image:
+    name: registry.access.redhat.com/ubi9/ubi:latest@sha256:abdef1603c7dd3281d9223b0419e3cc59446e4a8137f2a7ed5cc5bd7da981f8b
+    pull_policy: if-not-present
+.rpm-image-el9-aarch64:
+  image:
+    name: registry.access.redhat.com/ubi9/ubi:latest@sha256:e3592b3a358542945b2fe547a59d2d8bc6de7a2b855c2d92e4dfe2adff79979d
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.rpm-image-leap16-x86_64:
+  image:
+    name: registry.opensuse.org/opensuse/leap:16.0@sha256:64de8a3cd5caabcfc24d64dd6717e0e9634468d2335d303deeedc7db19ea7620
+    pull_policy: if-not-present
+.rpm-image-leap16-aarch64:
+  image:
+    name: registry.opensuse.org/opensuse/leap:16.0@sha256:5e1f0dd90e302255329e54afad636a2a2211345890a57e15679dffe6dfd2013d
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.rpm-image-tumbleweed-x86_64:
+  image:
+    name: registry.opensuse.org/opensuse/tumbleweed:latest@sha256:bc34ab330bd6bc3161ba8f0c4e7d01811b8c70944f0191d068b7dd25f54f2722
+    pull_policy: if-not-present
+.rpm-image-tumbleweed-aarch64:
+  image:
+    name: registry.opensuse.org/opensuse/tumbleweed:latest@sha256:421d25528f23154024e900af2eb7ec3eba06b21727af8bc36d541f139c0f2ec2
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+
+# ------------------------------------------------------------------ templates
+# The refusal first, because the by-hand rule after it comes before
+# .own-runners' own; then a v* tag and a batch* branch fall through to
+# .own-runners, which makes the job for a protected ref.
+.rpm-rules:
+  rules:
+    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+    - !reference [.own-runners, rules]
+
+# The install jobs are never manual themselves: each needs its build, so it waits
+# for it, and starts once the build has passed. With the build's rules (manual)
+# it would wait for a second press of its own. Where .own-runners makes an
+# install job it makes its build too (the build's by-hand rule makes one in more
+# pipelines, never in fewer), so no install job needs a build the pipeline lacks.
+.rpm-install-rules:
+  rules:
+    - !reference [.own-runners, rules]
+
+.rpm-build:
+  stage: build
+  tags: [linix]
+  needs: []
+  timeout: 1 hour
+  # One package build at a time on linix, across pipelines and across the
+  # package files that name this group (packages-deb.yml does): each runs six
+  # compilers at once, and linux-build and linux-suite need the machine too.
+  resource_group: linix-package-build
+  rules:
+    - !reference [.rpm-rules, rules]
+  variables:
+    HM_BUILD_JOBS: "6"
+  script:
+    - bash build/ci/packages/rpm-build.sh "$HM_RPM_TARGET" "$HM_RPM_ARCH"
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - packages-rpm/
+
+# Its needs are the build of the same release and architecture, with its artifacts.
+.rpm-install:
+  stage: test
+  tags: [linix]
+  timeout: 30 minutes
+  rules:
+    - !reference [.rpm-install-rules, rules]
+  script:
+    - bash build/ci/packages/rpm-install-test.sh "$HM_RPM_TARGET" "$HM_RPM_ARCH"
+
+# ------------------------------------------------------------------ Fedora 44: and the generic aarch64 name
+# rpm-fedora44-aarch64 also leaves hmailserver-<v>-1.aarch64.rpm, the name
+# installed servers' update checker asks for, from the same build. The generic
+# x86_64 name, hmailserver-<v>-1.x86_64.rpm, stays linux-build's, which
+# linux-package-rpm installs on Fedora 44 (docs/Packages-rpm.md, "The generic
+# names").
+rpm-fedora44-x86_64:
+  extends: [.rpm-build, .rpm-image-fedora44-x86_64]
+  variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: x86_64}
+
+rpm-fedora44-aarch64:
+  extends: [.rpm-build, .rpm-image-fedora44-x86_64]
+  variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: aarch64}
+
+rpm-fedora44-x86_64-install:
+  extends: [.rpm-install, .rpm-image-fedora44-x86_64]
+  needs: [rpm-fedora44-x86_64]
+  variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: x86_64}
+
+rpm-fedora44-aarch64-install:
+  extends: [.rpm-install, .rpm-image-fedora44-aarch64]
+  needs: [rpm-fedora44-aarch64]
+  variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: aarch64}
+
+# ------------------------------------------------------------------ Fedora 43
+rpm-fedora43-x86_64:
+  extends: [.rpm-build, .rpm-image-fedora43-x86_64]
+  variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: x86_64}
+
+rpm-fedora43-aarch64:
+  extends: [.rpm-build, .rpm-image-fedora43-x86_64]
+  variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: aarch64}
+
+rpm-fedora43-x86_64-install:
+  extends: [.rpm-install, .rpm-image-fedora43-x86_64]
+  needs: [rpm-fedora43-x86_64]
+  variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: x86_64}
+
+rpm-fedora43-aarch64-install:
+  extends: [.rpm-install, .rpm-image-fedora43-aarch64]
+  needs: [rpm-fedora43-aarch64]
+  variables: {HM_RPM_TARGET: fedora43, HM_RPM_ARCH: aarch64}
+
+# ------------------------------------------------------------------ RHEL 10 (UBI 10)
+# Boost is built from boost.org's tarball in the job: UBI carries no boost-devel.
+rpm-el10-x86_64:
+  extends: [.rpm-build, .rpm-image-el10-x86_64]
+  variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: x86_64}
+
+rpm-el10-aarch64:
+  extends: [.rpm-build, .rpm-image-el10-x86_64]
+  variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: aarch64}
+
+rpm-el10-x86_64-install:
+  extends: [.rpm-install, .rpm-image-el10-x86_64]
+  needs: [rpm-el10-x86_64]
+  variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: x86_64}
+
+rpm-el10-aarch64-install:
+  extends: [.rpm-install, .rpm-image-el10-aarch64]
+  needs: [rpm-el10-aarch64]
+  variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: aarch64}
+
+# ------------------------------------------------------------------ RHEL 9 (UBI 9)
+# RHEL 9's own Boost is 1.75, older than the 1.83 the build needs.
+rpm-el9-x86_64:
+  extends: [.rpm-build, .rpm-image-el9-x86_64]
+  variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}
+
+rpm-el9-aarch64:
+  extends: [.rpm-build, .rpm-image-el9-x86_64]
+  variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: aarch64}
+
+rpm-el9-x86_64-install:
+  extends: [.rpm-install, .rpm-image-el9-x86_64]
+  needs: [rpm-el9-x86_64]
+  variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}
+
+rpm-el9-aarch64-install:
+  extends: [.rpm-install, .rpm-image-el9-aarch64]
+  needs: [rpm-el9-aarch64]
+  variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: aarch64}
+
+# ------------------------------------------------------------------ openSUSE Leap 16.0
+# openSUSE ships no static Boost archives, so Boost is built in the job.
+rpm-leap16-x86_64:
+  extends: [.rpm-build, .rpm-image-leap16-x86_64]
+  variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: x86_64}
+
+rpm-leap16-aarch64:
+  extends: [.rpm-build, .rpm-image-leap16-x86_64]
+  variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: aarch64}
+
+rpm-leap16-x86_64-install:
+  extends: [.rpm-install, .rpm-image-leap16-x86_64]
+  needs: [rpm-leap16-x86_64]
+  variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: x86_64}
+
+rpm-leap16-aarch64-install:
+  extends: [.rpm-install, .rpm-image-leap16-aarch64]
+  needs: [rpm-leap16-aarch64]
+  variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: aarch64}
+
+# ------------------------------------------------------------------ openSUSE Tumbleweed
+rpm-tumbleweed-x86_64:
+  extends: [.rpm-build, .rpm-image-tumbleweed-x86_64]
+  variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: x86_64}
+
+rpm-tumbleweed-aarch64:
+  extends: [.rpm-build, .rpm-image-tumbleweed-x86_64]
+  variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: aarch64}
+
+rpm-tumbleweed-x86_64-install:
+  extends: [.rpm-install, .rpm-image-tumbleweed-x86_64]
+  needs: [rpm-tumbleweed-x86_64]
+  variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: x86_64}
+
+rpm-tumbleweed-aarch64-install:
+  extends: [.rpm-install, .rpm-image-tumbleweed-aarch64]
+  needs: [rpm-tumbleweed-aarch64]
+  variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: aarch64}

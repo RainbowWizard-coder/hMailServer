@@ -134,17 +134,21 @@ somebody who does not have your working copy.
 ### The AppImage
 
 ```sh
-hmailserver/source/Server/platform/packaging/build-appimage.sh --build-dir build/linux
+sh build/ci/packages/appimage-runtime.sh          # in an alpine container: appimage/runtime-<arch>
+hmailserver/source/Server/platform/packaging/build-appimage.sh --build-dir build/linux \
+   --runtime appimage/runtime-x86_64
 ```
 
-It packages what is already built with `linuxdeploy` and its AppImage plugin, and
-writes `hMailServer-<version>-x86_64.AppImage`. It no longer downloads the two
-tools: they are published only on GitHub, which the project does not download
-from since GitHub suspended its account on 18 September 2026, and no other source
-has been chosen - the owner's decision. Put them in `build/.appimage-tools` (or
-`TOOLS_DIR`) by hand, or the script refuses. The GitHub workflow `linux-build.yml`
-built one on every release tag until 18 September 2026; GitLab CI builds none,
-so the releases since carry no AppImage.
+It packages what is already built and writes `hMailServer-<version>-<arch>.AppImage`.
+Nothing is downloaded: the runtime at the front of the image is the project's own,
+`appimage/runtime.c` here, linked statically from Alpine's packages by
+`build/ci/packages/appimage-runtime.sh`, because the AppImage project's runtime and
+tools (linuxdeploy, appimagetool) are published only on GitHub. The script gathers
+the libraries with `ldd`, sets their RUNPATH with `patchelf`, and packs the AppDir
+with `mksquashfs`; its header says which libraries it leaves to the host and why.
+The GitLab jobs in `.gitlab/ci/packages-appimage.yml` build both architectures on
+Ubuntu 24.04 (glibc 2.39) and run the result on Fedora; `docs/Packages-appimage.md`
+says what has been run.
 
 ## What lands where
 

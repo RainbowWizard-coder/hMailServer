@@ -1,0 +1,237 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The Debian and Ubuntu packages, x86-64 (amd64) and AArch64 (arm64), one per
+# release and architecture, each built in its own release's container and then
+# installed in a clean one (docs/Packages-deb.md says what each makes, and what
+# has run). Included by .gitlab-ci.yml.
+#
+#   deb-<distro>-<arch>          linix: build/ci/packages/deb-build.sh in the
+#                                release's own amd64 container; arm64 is
+#                                cross-compiled there with the release's own
+#                                crossbuild-essential-arm64 and :arm64 -dev packages
+#   deb-<distro>-<arch>-install  linix: build/ci/packages/deb-install.sh in a clean
+#                                container of that release and architecture; the
+#                                arm64 one runs under qemu-user, through the
+#                                qemu-aarch64 binfmt handler of linix's kernel
+#
+# for debian12, debian13 and ubuntu24.04, amd64 and arm64, and for ubuntu26.04
+# arm64 only. The names: ubuntu26.04 arm64 makes the generic
+# hmailserver_<v>_arm64.deb the update checker looks for. Its amd64 twin,
+# hmailserver_<v>_amd64.deb, is linux-build's (.gitlab-ci.yml), the one the
+# release collects and linux-package-deb installs, so no job here makes a second
+# file of that name. Every other release makes hmailserver_<v>-1~<distro>_<arch>.deb,
+# Version <v>-1~<distro>.
+#
+# When: every v* tag and batch* branch, at once; on any other protected branch
+# (master) by hand - a build is started with its play button, and its install
+# job follows it. Never for a merge request or an unprotected ref: these run on
+# the project's own runner (.own-runners in .gitlab-ci.yml says why), and never
+# in a scheduled, fuzz or feed pipeline. A tag's and a batch's builds, and every
+# install job, are made by .own-runners' own rules, taken by !reference, so they
+# refuse what every job on the project's runners refuses and follow any change
+# made to that. The by-hand rule for the other branches is this file's, and it
+# comes after a refusal of its own; like every rule that makes a job, it asks for
+# a protected ref itself, so that a check reading one rule at a time
+# (build/ci/repo-hygiene.py's Token-Permissions) sees at once that an unprotected
+# ref gets no job. packages-rpm.yml's rules are the same, so that the package
+# files behave as one.
+#
+# The images are the distributions' own from Docker Hub, pinned by the digest of
+# each architecture's own manifest rather than the multi-architecture index, so
+# that the amd64 and the arm64 image are two references in the runner's image
+# store and if-not-present can never hand an arm64 job the amd64 image it
+# already holds under the same name (or the reverse). Nothing here is fetched
+# from GitHub; Debian 12's Boost comes from boost.org's archive, by its hash
+# (deb-build.sh).
+
+# ------------------------------------------------------------------ images
+.deb-image-debian12-amd64:
+  image:
+    name: debian:12@sha256:704583dbf243593da87cf949fc0543ffeca24a28d36c2760dc9545410cb8ed02
+    pull_policy: if-not-present
+.deb-image-debian12-arm64:
+  image:
+    name: debian:12@sha256:9a2bafc2cebc397fc253a4b80c6d4bc425eb5a2a819cd25ada003c7facd48f1d
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.deb-image-debian13-amd64:
+  image:
+    name: debian:13@sha256:d5ce19d4736f0ebbacd686d1040271a5aeb0cc920f5990c1bfae1717627f0674
+    pull_policy: if-not-present
+.deb-image-debian13-arm64:
+  image:
+    name: debian:13@sha256:1808211ab6f37c6fc6a75368651697536f7bf47993f2797befa8908b1254979d
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+.deb-image-ubuntu24.04-amd64:
+  image:
+    name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
+    pull_policy: if-not-present
+.deb-image-ubuntu24.04-arm64:
+  image:
+    name: ubuntu:24.04@sha256:11dc1ccb427f0464a2369e645454c272bb0baece7357c892ba69d313b3a332cf
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+# The same Ubuntu 26.04 image as the CI image and linux-package-deb (their index
+# digest 513c0741...), by its two architectures' manifests.
+.deb-image-ubuntu26.04-amd64:
+  image:
+    name: ubuntu:26.04@sha256:e5a4d6262ab5dbc25a85e60550dd7c87fd41a74fe43881534ed8288b2a7a3f8d
+    pull_policy: if-not-present
+.deb-image-ubuntu26.04-arm64:
+  image:
+    name: ubuntu:26.04@sha256:a6757b311b671e9379ac0548b5abf7a7e68d33bff51f6044bbd60f68f781489a
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+
+# ------------------------------------------------------------------ templates
+# The refusal first, because the by-hand rule after it comes before
+# .own-runners' own; then a v* tag and a batch* branch fall through to
+# .own-runners, which makes the job for a protected ref.
+.deb-rules:
+  rules:
+    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+    - !reference [.own-runners, rules]
+
+# The install jobs are never manual themselves: each needs its build, so it waits
+# for it. On master GitLab skips it while its manual build has not been played,
+# and starts it once the build has passed. With the build's rules (manual) it
+# would wait for a second press of its own. Where .own-runners makes an install
+# job it makes its build too (the build's by-hand rule makes one in more
+# pipelines, never in fewer), so no install job needs a build the pipeline lacks.
+.deb-install-rules:
+  rules:
+    - !reference [.own-runners, rules]
+
+.deb-build:
+  stage: build
+  tags: [linix]
+  needs: []
+  timeout: 1 hour
+  # One of these builds at a time on linix, across pipelines: each runs six
+  # compilers at once (it had 16 cores and 11 GB on 26 September 2026), and
+  # linux-build and linux-suite need the machine too. The other package files'
+  # builds join this group only if they name it too.
+  resource_group: linix-package-build
+  rules:
+    - !reference [.deb-rules, rules]
+  variables:
+    HM_BUILD_JOBS: "6"
+  script:
+    - bash build/ci/packages/deb-build.sh
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - packages-deb/
+
+# Its needs are the build of the same release and architecture, with its artifacts.
+.deb-install:
+  stage: test
+  tags: [linix]
+  timeout: 20 minutes
+  rules:
+    - !reference [.deb-install-rules, rules]
+  script:
+    - bash build/ci/packages/deb-install.sh
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - packages-deb/*/install-*.txt
+
+# ------------------------------------------------------------------ Debian 12 (bookworm)
+# Boost 1.74 in the archive: 1.83.0 is built from boost.org's tarball in the job
+# and kept in the runner's cache, per architecture.
+.deb-debian12-build:
+  extends: [.deb-build, .deb-image-debian12-amd64]
+  timeout: 1 hour 30 minutes
+  cache:
+    key: boost-1.83.0-debian12-$HM_DEB_ARCH
+    paths:
+      - .cache/boost/
+
+deb-debian12-amd64:
+  extends: .deb-debian12-build
+  variables: {HM_DEB_DISTRO: debian12, HM_DEB_ARCH: amd64}
+
+deb-debian12-arm64:
+  extends: .deb-debian12-build
+  variables: {HM_DEB_DISTRO: debian12, HM_DEB_ARCH: arm64}
+
+deb-debian12-amd64-install:
+  extends: [.deb-install, .deb-image-debian12-amd64]
+  needs: [deb-debian12-amd64]
+  variables: {HM_DEB_DISTRO: debian12, HM_DEB_ARCH: amd64}
+
+deb-debian12-arm64-install:
+  extends: [.deb-install, .deb-image-debian12-arm64]
+  needs: [deb-debian12-arm64]
+  variables: {HM_DEB_DISTRO: debian12, HM_DEB_ARCH: arm64}
+
+# ------------------------------------------------------------------ Debian 13 (trixie)
+deb-debian13-amd64:
+  extends: [.deb-build, .deb-image-debian13-amd64]
+  variables: {HM_DEB_DISTRO: debian13, HM_DEB_ARCH: amd64}
+
+deb-debian13-arm64:
+  extends: [.deb-build, .deb-image-debian13-amd64]
+  variables: {HM_DEB_DISTRO: debian13, HM_DEB_ARCH: arm64}
+
+deb-debian13-amd64-install:
+  extends: [.deb-install, .deb-image-debian13-amd64]
+  needs: [deb-debian13-amd64]
+  variables: {HM_DEB_DISTRO: debian13, HM_DEB_ARCH: amd64}
+
+deb-debian13-arm64-install:
+  extends: [.deb-install, .deb-image-debian13-arm64]
+  needs: [deb-debian13-arm64]
+  variables: {HM_DEB_DISTRO: debian13, HM_DEB_ARCH: arm64}
+
+# ------------------------------------------------------------------ Ubuntu 24.04 (noble)
+deb-ubuntu24.04-amd64:
+  extends: [.deb-build, .deb-image-ubuntu24.04-amd64]
+  variables: {HM_DEB_DISTRO: ubuntu24.04, HM_DEB_ARCH: amd64}
+
+deb-ubuntu24.04-arm64:
+  extends: [.deb-build, .deb-image-ubuntu24.04-amd64]
+  variables: {HM_DEB_DISTRO: ubuntu24.04, HM_DEB_ARCH: arm64}
+
+deb-ubuntu24.04-amd64-install:
+  extends: [.deb-install, .deb-image-ubuntu24.04-amd64]
+  needs: [deb-ubuntu24.04-amd64]
+  variables: {HM_DEB_DISTRO: ubuntu24.04, HM_DEB_ARCH: amd64}
+
+deb-ubuntu24.04-arm64-install:
+  extends: [.deb-install, .deb-image-ubuntu24.04-arm64]
+  needs: [deb-ubuntu24.04-arm64]
+  variables: {HM_DEB_DISTRO: ubuntu24.04, HM_DEB_ARCH: arm64}
+
+# ------------------------------------------------------------------ Ubuntu 26.04: the generic arm64 name
+# hmailserver_<v>_arm64.deb, the name installed arm64 servers' update checker
+# asks for. There is no amd64 job here: hmailserver_<v>_amd64.deb is linux-build's
+# (clang, in the CI image, which is this same Ubuntu 26.04): the file the release
+# collects with linux-build's SHA256SUMS.txt (release-chain.py, sources()), and the
+# one linux-package-deb installs and starts. A second job making that name would
+# leave the release two files to choose from (docs/Packages-deb.md, "The names").
+# The amd64 image is still the one the arm64 package is cross-compiled in.
+deb-ubuntu26.04-arm64:
+  extends: [.deb-build, .deb-image-ubuntu26.04-amd64]
+  variables: {HM_DEB_DISTRO: ubuntu26.04, HM_DEB_ARCH: arm64}
+
+deb-ubuntu26.04-arm64-install:
+  extends: [.deb-install, .deb-image-ubuntu26.04-arm64]
+  needs: [deb-ubuntu26.04-arm64]
+  variables: {HM_DEB_DISTRO: ubuntu26.04, HM_DEB_ARCH: arm64}

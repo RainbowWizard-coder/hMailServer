@@ -34,18 +34,50 @@
 # to install anything. Not to run mail.
 #
 # USAGE
-#   build-appimage.sh [--build-dir DIR] [--output-dir DIR]
+#   build-appimage.sh --runtime FILE [--build-dir DIR] [--output-dir DIR] [--no-strip]
 #
+#   --runtime     the AppImage runtime to put in front of the filesystem: the
+#                 project's own, built from appimage/runtime.c beside this script
+#                 by build/ci/packages/appimage-runtime.sh, for the binary's
+#                 architecture. Also taken from APPIMAGE_RUNTIME. Nothing is
+#                 downloaded: the runtime the AppImage tools use is published
+#                 only on GitHub, and this script no longer uses those tools.
 #   --build-dir   a tree that has ALREADY been built, i.e. one where
 #                 "cmake --build" has produced the hmailserver executable.
 #                 Default: build/linux relative to the repository root.
 #   --output-dir  where the .AppImage is written. Default: the build directory.
+#   --no-strip    keep the symbols in the AppImage's copy of the server.
 #
 # It builds nothing itself. Build first:
 #
 #   cmake -S hmailserver/source/Server -B build/linux -G Ninja \
 #         -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-#   cmake --build build/linux
+#   cmake --build build/linux --target hmailserver
+#
+# What it needs on PATH: ldd (glibc's), readelf and strip (binutils), patchelf,
+# and mksquashfs (squashfs-tools) - each a distribution package.
+#
+# HOW THE AppImage IS MADE
+#
+# An AppImage is the runtime - a small static ELF - with a SquashFS image of an
+# AppDir appended. This script makes the AppDir (the server, its data files,
+# the shared libraries it needs, an AppRun, a desktop file and an icon), packs
+# it with mksquashfs and writes the runtime and the image one after the other.
+# linuxdeploy used to do the middle of that; it is gone because it is published
+# only on GitHub, and what it did for this program is short:
+#
+#   * the libraries: every one ldd resolves for the server is copied into
+#     usr/lib, except the ones the AppImage convention leaves to the host (the
+#     EXCLUDED list below says which and why), and the server's RUNPATH is set
+#     to $ORIGIN/../lib and each copied library's to $ORIGIN, so they are found
+#     inside the image and nowhere else;
+#   * the desktop file and the icon at the AppDir's root, and .DirIcon.
+#
+# The server is built on the oldest distribution release that has the Boost it
+# needs (1.83): Ubuntu 24.04, glibc 2.39. The AppImage runs where glibc is 2.39
+# or later - Ubuntu 24.04 and later, Debian 13, Fedora 40 and later, RHEL 10,
+# openSUSE Leap 16 and Tumbleweed - and not on Debian 12, Ubuntu 22.04, RHEL 9
+# or Leap 15, whose glibc is older.
 
 set -euo pipefail
 
@@ -56,9 +88,20 @@ SERVER_DIR="${REPO_ROOT}/hmailserver/source/Server"
 
 BUILD_DIR="${REPO_ROOT}/build/linux"
 OUTPUT_DIR=""
+RUNTIME="${APPIMAGE_RUNTIME:-}"
+STRIP=1
 
 while [ "$#" -gt 0 ]; do
    case "$1" in
+      --runtime)
+         [ "$#" -ge 2 ] || { echo "--runtime needs a file." >&2; exit 2; }
+         RUNTIME="$2"
+         shift 2
+         ;;
+      --no-strip)
+         STRIP=0
+         shift
+         ;;
       --build-dir)
          [ "$#" -ge 2 ] || { echo "--build-dir needs a directory." >&2; exit 2; }
          BUILD_DIR="$2"
@@ -70,7 +113,7 @@ while [ "$#" -gt 0 ]; do
          shift 2
          ;;
       -h|--help)
-         sed -n '5,50p' "${BASH_SOURCE[0]}"
+         sed -n '5,80p' "${BASH_SOURCE[0]}"
          exit 0
          ;;
       *)
@@ -113,61 +156,63 @@ if [ -z "${VERSION}" ]; then
    exit 1
 fi
 
-ARCH="$(uname -m)"
-case "${ARCH}" in
-   x86_64|aarch64) ;;
-   arm64) ARCH="aarch64" ;;
+# ---------------------------------------------------------------- the tools
+
+missing=""
+for tool in ldd readelf strip patchelf mksquashfs; do
+   command -v "${tool}" > /dev/null 2>&1 || missing="${missing} ${tool}"
+done
+if [ -n "${missing}" ]; then
+   echo "Missing:${missing}. On Debian and Ubuntu: apt-get install libc-bin binutils patchelf squashfs-tools." >&2
+   exit 1
+fi
+
+# The architecture is the BINARY's, not this machine's: the name the update
+# checker looks for (UpdateChecker.cpp) carries uname -m's spelling of the
+# machine the server was compiled for, and the runtime in front of it must be
+# for the same one.
+machine_of()
+{
+   readelf -h "$1" 2>/dev/null | sed -n 's/^[[:space:]]*Machine:[[:space:]]*//p'
+}
+
+case "$(machine_of "${BINARY}")" in
+   *X86-64*) ARCH="x86_64" ;;
+   AArch64) ARCH="aarch64" ;;
    *)
-      echo "No linuxdeploy build is published for ${ARCH}; only x86_64 and aarch64 are packaged this way." >&2
+      echo "${BINARY} is for $(machine_of "${BINARY}"); only x86_64 and aarch64 are packaged as AppImages." >&2
       exit 1
       ;;
 esac
 
-echo "hMailServer ${VERSION} (${ARCH}) from ${BUILD_DIR}"
-
-# ---------------------------------------------------------------- the tools
-
-# NOT DOWNLOADED ANY MORE. linuxdeploy and its AppImage plugin are published
-# only as GitHub release assets, and the project downloads nothing from GitHub:
-# the owner's standing rule since GitHub suspended the project's account on
-# 18 September 2026 ('do not use github'). No non-GitHub source for them has
-# been chosen; that is the owner's decision to make, and until it is made this
-# script uses the two tools only if they are already in TOOLS_DIR - put there
-# by hand, executable, under the names below - and refuses otherwise. Override
-# TOOLS_DIR to share one copy between checkouts.
-TOOLS_DIR="${TOOLS_DIR:-${REPO_ROOT}/build/.appimage-tools}"
-mkdir -p "${TOOLS_DIR}"
-
-LINUXDEPLOY="${TOOLS_DIR}/linuxdeploy-${ARCH}.AppImage"
-LINUXDEPLOY_PLUGIN="${TOOLS_DIR}/linuxdeploy-plugin-appimage-${ARCH}.AppImage"
-
-require_tool()
-{
-   local destination="$1"
-
-   if [ -x "${destination}" ]; then
-      return 0
-   fi
-
-   echo "$(basename "${destination}") is not in ${TOOLS_DIR}, and this script does not download it." >&2
-   echo "linuxdeploy and its AppImage plugin are published only on GitHub, and the project downloads" >&2
-   echo "nothing from GitHub (the owner's rule since GitHub suspended the project's account on" >&2
-   echo "18 September 2026). Which non-GitHub source to take them from is the owner's decision and" >&2
-   echo "has not been made. Put the file there yourself, executable, or build the .deb or the .rpm." >&2
+if [ -z "${RUNTIME}" ]; then
+   echo "No runtime given. Build one with build/ci/packages/appimage-runtime.sh and pass --runtime." >&2
    exit 1
-}
+fi
+if [ ! -f "${RUNTIME}" ]; then
+   echo "The runtime ${RUNTIME} does not exist." >&2
+   exit 1
+fi
+RUNTIME="$(cd "$(dirname "${RUNTIME}")" && pwd)/$(basename "${RUNTIME}")"
+# "AI" and 2 at offset 8: the AppImage type 2 magic appimage-runtime.sh writes.
+if [ "$(od -An -tx1 -j8 -N3 "${RUNTIME}" | tr -d ' \n')" != "414902" ]; then
+   echo "${RUNTIME} does not carry the AppImage type 2 magic at offset 8; it is not a runtime." >&2
+   exit 1
+fi
+if [ "$(machine_of "${RUNTIME}")" != "$(machine_of "${BINARY}")" ]; then
+   echo "The runtime is for $(machine_of "${RUNTIME}") and the server for $(machine_of "${BINARY}")." >&2
+   exit 1
+fi
 
-require_tool "${LINUXDEPLOY}"
-require_tool "${LINUXDEPLOY_PLUGIN}"
+# ldd resolves the libraries by running the binary's own dynamic loader, so the
+# binary has to be runnable here: natively, or through qemu-user where binfmt_misc
+# is registered for its machine.
+if ! ldd "${BINARY}" > /dev/null 2>&1; then
+   echo "ldd cannot resolve ${BINARY} on this machine ($(uname -m)). Package it on its own architecture, or in a container of it under qemu-user." >&2
+   exit 1
+fi
 
-# An AppImage needs FUSE to mount itself, and a container or a CI runner usually
-# has none. Extracting instead of mounting works everywhere and costs a little
-# disk, so it is simply always on for the TOOLS - it says nothing about how the
-# AppImage this script produces will be run.
-export APPIMAGE_EXTRACT_AND_RUN=1
-
-# linuxdeploy finds its plugins on PATH, by file name.
-export PATH="${TOOLS_DIR}:${PATH}"
+echo "hMailServer ${VERSION} (${ARCH}) from ${BUILD_DIR}, with the runtime ${RUNTIME}"
 
 # ---------------------------------------------------------------- the AppDir
 
@@ -238,7 +283,7 @@ install -m 0644 "${HERE}/hMailServer.ini" "${APPDIR}/usr/share/hmailserver/hMail
 
 # There is no Linux icon in this repository - the only icon is a Windows .ico for
 # the Control Panel - so one is drawn here rather than a placeholder being
-# committed. Replace it when the project has artwork; linuxdeploy takes SVG.
+# committed. Replace it when the project has artwork.
 cat > "${BUILD_DIR}/hmailserver.svg" <<'ICON'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
   <rect width="128" height="128" rx="16" fill="#1f4e79"/>
@@ -259,8 +304,8 @@ Terminal=true
 Categories=Network;Email;
 DESKTOP
 
-# The AppRun. linuxdeploy would otherwise write one that is a bare symlink to the
-# executable, which would leave the server looking for hMailServer.ini beside a
+# The AppRun. A bare symlink to the executable - what the AppImage tools write
+# when given none - would leave the server looking for hMailServer.ini beside a
 # binary inside a read-only mount and finding none.
 #
 # What this does instead is the whole difference between an AppImage that works
@@ -334,30 +379,184 @@ exec "${APPDIR}/usr/bin/hmailserver" --config "${CONFIG}" "$@"
 APPRUN
 chmod +x "${BUILD_DIR}/AppRun"
 
+# ---------------------------------------------------------------- the AppDir's root
+
+# What the format asks for at the top of an AppDir: the entry point, one desktop
+# file and the icon it names, and .DirIcon, which file managers show. The same
+# desktop file and icon also go where the freedesktop layout puts them, for a
+# desktop integration tool that looks there.
+install -m 0755 "${BUILD_DIR}/AppRun" "${APPDIR}/AppRun"
+install -m 0644 "${BUILD_DIR}/hmailserver.desktop" "${APPDIR}/hmailserver.desktop"
+install -m 0644 "${BUILD_DIR}/hmailserver.desktop" "${APPDIR}/usr/share/applications/hmailserver.desktop"
+install -m 0644 "${BUILD_DIR}/hmailserver.svg" "${APPDIR}/hmailserver.svg"
+install -Dm 0644 "${BUILD_DIR}/hmailserver.svg" "${APPDIR}/usr/share/icons/hicolor/scalable/apps/hmailserver.svg"
+ln -s hmailserver.svg "${APPDIR}/.DirIcon"
+if command -v desktop-file-validate > /dev/null 2>&1; then
+   desktop-file-validate "${APPDIR}/hmailserver.desktop"
+fi
+
+# What the runtime was built from, and under which licences, beside the other
+# notices: the runtime sits outside the filesystem, so its notice goes in.
+if [ -f "${RUNTIME}.txt" ]; then
+   install -Dm 0644 "${RUNTIME}.txt" "${APPDIR}/usr/share/hmailserver/licenses/appimage-runtime.txt"
+fi
+
+# ---------------------------------------------------------------- the libraries
+
+# What is NOT copied into the image: the AppImage convention (the "excludelist"
+# the AppImage project keeps, which linuxdeploy applies) leaves to the host the
+# libraries that are part of every installation, that are tied to the host's
+# kernel, loader or drivers, or that break when two copies meet in one process -
+# above all glibc, which cannot be bundled at all: its loader is named by an
+# absolute path in the binary, and a libc from another release than the loader
+# fails in the first call. The convention also lists the graphics and sound
+# stack, which a mail server does not link.
+#
+# This list is that convention applied to what this server links, with two
+# decisions of the project's beside it, each for a reason of its own:
+#
+#   glibc and its loader     ld-linux-*, libc, libm, libdl, libpthread, librt,
+#                            libresolv, libutil, libanl, libnsl, libmvec,
+#                            libBrokenLocale, libthread_db, libc_malloc_debug and
+#                            the NSS modules: the convention's own core
+#   libgcc_s, libstdc++      the compiler's runtime. The convention bundles
+#                            libstdc++ when it must; here it need not, because the
+#                            glibc this build needs (2.39) is only found on
+#                            releases whose libstdc++ is newer than Ubuntu 24.04's,
+#                            and a bundled older copy would be the one loaded by
+#                            anything of the host's that the server loads (the
+#                            MariaDB client, below) and wants a newer one
+#   libz                     in every installation, with an ABI that has not
+#                            changed in twenty years: the convention's
+#   libssl, libcrypto        OpenSSL 3, from the host - the project's decision:
+#                            its ABI is stable across 3.x, every release with this
+#                            glibc ships it, and the host's copy is the one its
+#                            distribution patches, that reads its configuration
+#                            (and on Fedora and RHEL its crypto policy), and that
+#                            finds its certificate store where that distribution
+#                            keeps it. A bundled Ubuntu OpenSSL on Fedora would do
+#                            none of that.
+#
+# libmariadb.so.3 is not linked: the server opens it with dlopen when a MySQL or
+# MariaDB database is configured (MySQLInterface.cpp), so it is the host's, as
+# it was with linuxdeploy, and a host with MySQL wants its client installed.
+EXCLUDED_PATTERNS="
+ld-linux*.so.*
+libc.so.*
+libm.so.*
+libdl.so.*
+libpthread.so.*
+librt.so.*
+libresolv.so.*
+libutil.so.*
+libanl.so.*
+libnsl.so.*
+libmvec.so.*
+libBrokenLocale.so.*
+libthread_db.so.*
+libc_malloc_debug.so.*
+libnss_*.so.*
+libgcc_s.so.*
+libstdc++.so.*
+libz.so.*
+libssl.so.*
+libcrypto.so.*
+"
+
+is_excluded()
+{
+   local name="$1" pattern
+   for pattern in ${EXCLUDED_PATTERNS}; do
+      # shellcheck disable=SC2254
+      case "${name}" in
+         ${pattern}) return 0 ;;
+      esac
+   done
+   return 1
+}
+
+mkdir -p "${APPDIR}/usr/lib"
+
+# ldd lists the whole closure - every library the server needs, directly or
+# through another - as this machine's loader resolves it. Its lines are
+# "soname => /path (0xaddress)", "soname (0xaddress)" for the vDSO, and
+# "/lib64/ld-linux-x86-64.so.2 (0x...)" for the loader; a "not found" is fatal.
+LDD_OUTPUT="$(ldd "${BINARY}")"
+if printf '%s\n' "${LDD_OUTPUT}" | grep -q 'not found'; then
+   printf '%s\n' "${LDD_OUTPUT}" >&2
+   echo "The server needs a library this machine does not have." >&2
+   exit 1
+fi
+
+BUNDLED=""
+LEFT_TO_HOST=""
+while read -r soname arrow path _; do
+   [ "${arrow}" = "=>" ] || continue
+   [ -n "${path}" ] && [ -f "${path}" ] || continue
+   if is_excluded "${soname}"; then
+      LEFT_TO_HOST="${LEFT_TO_HOST} ${soname}"
+      continue
+   fi
+   # -L: the file the soname's symbolic link points at, under the soname.
+   cp -L "${path}" "${APPDIR}/usr/lib/${soname}"
+   chmod 0644 "${APPDIR}/usr/lib/${soname}"
+   BUNDLED="${BUNDLED} ${soname}"
+done <<< "${LDD_OUTPUT}"
+
+# The server finds them in ../lib from wherever the image is mounted, and each of
+# them finds the others beside itself. RUNPATH (patchelf writes DT_RUNPATH) is
+# searched for the object's own direct dependencies, and for its dlopen calls,
+# which is why each copied library carries one too.
+patchelf --set-rpath '$ORIGIN/../lib' "${APPDIR}/usr/bin/hmailserver"
+for soname in ${BUNDLED}; do
+   patchelf --set-rpath '$ORIGIN' "${APPDIR}/usr/lib/${soname}"
+done
+
+if [ "${STRIP}" -eq 1 ]; then
+   strip --strip-unneeded "${APPDIR}/usr/bin/hmailserver"
+fi
+
+echo "Bundled:${BUNDLED:- none}"
+echo "Left to the host:${LEFT_TO_HOST:- none}"
+
+# Proved rather than assumed: resolved again with no help from the environment,
+# every library the image's own server needs is either one of the copies in the
+# image or one the list above leaves to the host - none comes from this
+# machine's /usr/lib by accident.
+while read -r soname arrow path _; do
+   [ "${arrow}" = "=>" ] || continue
+   # The loader prints $ORIGIN expanded and unnormalised: .../usr/bin/../lib/x.
+   path="$(realpath -m -- "${path}")"
+   case "${path}" in
+      "${APPDIR}/usr/lib/"*) ;;
+      *)
+         if ! is_excluded "${soname}"; then
+            echo "${soname} resolves to ${path}, outside the image, and is not one the host is meant to provide." >&2
+            exit 1
+         fi
+         ;;
+   esac
+done <<< "$(env -u LD_LIBRARY_PATH ldd "${APPDIR}/usr/bin/hmailserver")"
+
 # ---------------------------------------------------------------- build it
 
 OUTPUT_NAME="hMailServer-${VERSION}-${ARCH}.AppImage"
+OUTPUT="${OUTPUT_DIR}/${OUTPUT_NAME}"
+SQUASHFS="${BUILD_DIR}/AppDir.squashfs"
 
-# OUTPUT is how linuxdeploy-plugin-appimage is told what to call the file; VERSION
-# stops it from inventing one out of the git description of whatever directory it
-# happens to be run from.
-export OUTPUT="${OUTPUT_DIR}/${OUTPUT_NAME}"
-export VERSION
+rm -f "${OUTPUT}" "${SQUASHFS}"
 
-rm -f "${OUTPUT}"
+# -root-owned: every file root's, as in a package, not the builder's uid.
+# zstd: what the runtime reads fastest; the runtime is linked with every
+# decompressor squashfuse was built with, and appimage-runtime.sh's self-test
+# packs with zstd. SOURCE_DATE_EPOCH, when the caller sets it (the CI jobs set
+# the commit's time), is what mksquashfs stamps on the image and every inode, so
+# the same tree packs to the same bytes.
+mksquashfs "${APPDIR}" "${SQUASHFS}" -root-owned -noappend -comp zstd -no-progress -quiet
 
-"${LINUXDEPLOY}" \
-   --appdir "${APPDIR}" \
-   --executable "${APPDIR}/usr/bin/hmailserver" \
-   --desktop-file "${BUILD_DIR}/hmailserver.desktop" \
-   --icon-file "${BUILD_DIR}/hmailserver.svg" \
-   --custom-apprun "${BUILD_DIR}/AppRun" \
-   --output appimage
-
-if [ ! -f "${OUTPUT}" ]; then
-   echo "linuxdeploy finished but ${OUTPUT} is not there." >&2
-   exit 1
-fi
+cat "${RUNTIME}" "${SQUASHFS}" > "${OUTPUT}"
+chmod 0755 "${OUTPUT}"
+rm -f "${SQUASHFS}"
 
 echo
 echo "${OUTPUT}"

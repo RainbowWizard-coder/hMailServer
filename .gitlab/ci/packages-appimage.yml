@@ -1,0 +1,197 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The AppImages, x86_64 and aarch64, included from .gitlab-ci.yml. No tool from
+# GitHub: the AppImage runtime is the project's own (platform/packaging/appimage/
+# runtime.c), linked statically from Alpine's packages, and build-appimage.sh packs
+# the AppDir with ldd, patchelf and mksquashfs from Ubuntu's archive
+# (hmailserver/docs/Packages-appimage.md says why, and what each job has been run).
+#
+#   appimage-runtime-x86_64, appimage-runtime-aarch64
+#       linix, alpine: the runtime, proved on an AppImage of its own
+#       (build/ci/packages/appimage-runtime.sh)
+#   appimage-aarch64-compile
+#       linix, ubuntu:24.04 amd64: the aarch64 server cross-compiled against
+#       Ubuntu 24.04's arm64 libraries (build/ci/packages/appimage-cross.sh)
+#   appimage-x86_64, appimage-aarch64
+#       linix, ubuntu:24.04: the server built (x86_64) or taken from the compile
+#       job (aarch64), packed as hMailServer-<version>-<arch>.AppImage - the name
+#       the update checker and the update feed look for - and run
+#       (build/ci/packages/appimage-build.sh)
+#   appimage-test-x86_64, appimage-test-aarch64
+#       linix, fedora:44: the AppImage run on a distribution it was not built on,
+#       with nothing the build installed (build/ci/packages/appimage-test.sh)
+#
+# The aarch64 runtime, packing and test jobs run in arm64 containers on linix,
+# which is x86-64, under qemu-user: the image's platform is named below, and the
+# host must have qemu-user registered with binfmt_misc for aarch64
+# (docs/Packages-appimage.md, "What the owner must do").
+#
+# When: on a protected v* tag, every job, as part of the release; on any other
+# protected ref (master, batch*), the runtime and compile jobs wait to be started
+# by hand and the rest follow them - an AppImage is a release artefact, and the
+# two builds add half an hour to linix's queue. Never for a merge request or an
+# unprotected ref: these run on the project's own runner, which takes protected
+# refs only. A tag's jobs, and every job that follows another, are made by
+# .own-runners' own rules (.gitlab-ci.yml), taken by !reference; the by-hand rule
+# for the other refs comes after a refusal of its own and asks for a protected ref
+# itself, so that build/ci/repo-hygiene.py's Token-Permissions, which reads one
+# rule at a time, sees that an unprotected ref gets no job.
+#
+# Every image is pinned by the digest of its manifest for the one platform the job
+# runs, not by the multi-platform index: the runner's pull policy is if-not-present,
+# and a per-platform digest cannot be satisfied by the other platform's copy
+# already in linix's image store.
+
+.appimage-start-rules:
+  rules:
+    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+    - !reference [.own-runners, rules]
+
+.appimage-follow-rules:
+  rules:
+    - !reference [.own-runners, rules]
+
+.appimage:
+  extends: .own-runners
+  tags: [linix]
+
+# ---------------------------------------------------------------- the runtime
+
+appimage-runtime-x86_64:
+  extends: [.appimage, .appimage-start-rules]
+  stage: build
+  needs: []
+  image:
+    # alpine:3.24, linux/amd64
+    name: alpine:3.24@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
+    pull_policy: if-not-present
+    docker:
+      platform: linux/amd64
+  timeout: 15 minutes
+  script:
+    - sh build/ci/packages/appimage-runtime.sh
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - appimage/
+
+appimage-runtime-aarch64:
+  extends: [.appimage, .appimage-start-rules]
+  stage: build
+  needs: []
+  image:
+    # alpine:3.24, linux/arm64/v8, under qemu-user on linix
+    name: alpine:3.24@sha256:260479a1cfaf304c4c20da7f8405d3ce313513dcd534bb743257bdd2fe0f3e2d
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+  timeout: 45 minutes
+  script:
+    - sh build/ci/packages/appimage-runtime.sh
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - appimage/
+
+# ---------------------------------------------------------------- the AppImages
+
+appimage-x86_64:
+  extends: [.appimage, .appimage-follow-rules]
+  stage: build
+  needs: [appimage-runtime-x86_64]
+  image:
+    # ubuntu:24.04, linux/amd64
+    name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
+    pull_policy: if-not-present
+    docker:
+      platform: linux/amd64
+  timeout: 1 hour
+  script:
+    - bash build/ci/packages/appimage-build.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - appimage/
+
+# The aarch64 server is cross-compiled on x86-64, against Ubuntu 24.04's own arm64
+# libraries (build/ci/packages/appimage-cross.sh): natively under qemu-user it would
+# take hours. Only the packing, which runs ldd and so needs the target's own loader,
+# is done in an arm64 container under qemu-user, and takes minutes.
+appimage-aarch64-compile:
+  extends: [.appimage, .appimage-start-rules]
+  stage: build
+  needs: []
+  image:
+    # ubuntu:24.04, linux/amd64
+    name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
+    pull_policy: if-not-present
+    docker:
+      platform: linux/amd64
+  timeout: 1 hour
+  script:
+    - bash build/ci/packages/appimage-cross.sh
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths:
+      - appimage/
+
+appimage-aarch64:
+  extends: [.appimage, .appimage-follow-rules]
+  stage: build
+  needs: [appimage-runtime-aarch64, appimage-aarch64-compile]
+  image:
+    # ubuntu:24.04, linux/arm64/v8, under qemu-user on linix
+    name: ubuntu:24.04@sha256:11dc1ccb427f0464a2369e645454c272bb0baece7357c892ba69d313b3a332cf
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+  timeout: 1 hour
+  variables:
+    HM_PREBUILT: appimage/hmailserver-aarch64
+  script:
+    - bash build/ci/packages/appimage-build.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - appimage/
+
+# ---------------------------------------------------------------- on another distribution
+
+appimage-test-x86_64:
+  extends: [.appimage, .appimage-follow-rules]
+  stage: test
+  needs: [appimage-x86_64]
+  image:
+    # registry.fedoraproject.org/fedora:44, linux/amd64
+    name: registry.fedoraproject.org/fedora:44@sha256:0ee3afdf450deaeb3bddd66e74ae78a2c6804820b2658d52a04fe6f79cc5a703
+    pull_policy: if-not-present
+    docker:
+      platform: linux/amd64
+  timeout: 15 minutes
+  script:
+    - bash build/ci/packages/appimage-test.sh appimage/hMailServer-*-x86_64.AppImage
+
+appimage-test-aarch64:
+  extends: [.appimage, .appimage-follow-rules]
+  stage: test
+  needs: [appimage-aarch64]
+  image:
+    # registry.fedoraproject.org/fedora:44, linux/arm64, under qemu-user on linix
+    name: registry.fedoraproject.org/fedora:44@sha256:c61b46d9d6a76b37a765368fb78149e220bccf14019605846cb8558e983dc131
+    pull_policy: if-not-present
+    docker:
+      platform: linux/arm64
+  timeout: 30 minutes
+  script:
+    - bash build/ci/packages/appimage-test.sh appimage/hMailServer-*-aarch64.AppImage

@@ -36,6 +36,9 @@ build/ci/*.Dockerfile text eol=lf
 # The git hooks the repository ships (core.hooksPath build/hooks), which sh runs on
 # every platform: a shebang ending in a carriage return names no interpreter.
 build/hooks/* text eol=lf
+# The package builds' scripts and the CMake toolchain file beside them
+# (.gitlab/ci/packages-*.yml), which bash and CMake read on linix.
+build/ci/packages/** text eol=lf
 # The test lab on linix (build/lab/README.md): its scripts, which bash, node and
 # python3 run there, and the compose file and the configuration files the
 # containers read.
