@@ -7,7 +7,7 @@
 | 6.3.x   | :white_check_mark: |
 | < 6.3   | :x:                |
 
-The 6.3 line is the one that receives security fixes. Its latest release is 6.3.4, published on 27 September
+The 6.3 line is the one that receives security fixes. Its latest release is 6.3.5, published on 28 September
 2026. A fix for a confirmed vulnerability ships in the next release; it is not back-ported to 6.2 or anything
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier hMailServer version,

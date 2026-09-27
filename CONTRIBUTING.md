@@ -56,7 +56,7 @@ Contents:
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
 | Copies off GitLab | The repository by a push mirror to a second forge, and the issues, merge requests, releases and wiki by the weekly `forge-export` job: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for setting both up |
 
-The latest release is **6.3.4, published on 27 September 2026**. Anything this repository describes that
+The latest release is **6.3.5, published on 28 September 2026**. Anything this repository describes that
 arrived after it is in the tree after 6.3.4 and not yet released.
 
 The documents at the repository root:

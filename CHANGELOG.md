@@ -8,8 +8,8 @@ the tests and the verification - are on its GitLab release page,
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.4, published on 27 September 2026.** Anything that arrived after it is in the tree
-after 6.3.4 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-634-not-yet-released)
+**The latest release is 6.3.5, published on 28 September 2026.** Anything that arrived after it is in the tree
+after 6.3.5 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-635-not-yet-released)
 and will carry a version number when a release is cut.
 
 ## Where the releases are
@@ -63,7 +63,13 @@ for a stray `#` number or `@` name.
 
 ---
 
-## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-DD
+## Unreleased - in the tree after 6.3.5, not yet released
+
+Nothing yet.
+
+---
+
+## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28
 
 Everything that landed on `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
 `v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104
@@ -71,15 +77,6 @@ to 6105 in one step**, which adds a column to the quarantine's table, `hm_quaran
 on upgrade without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has
 five more of them than it had at 6.3.4.
 
-<!-- INTEGRATOR: the next paragraph says what the release pipeline is BUILT to do; none of it had run when it was
-written (batch41 at 508984eb6: no release job has run on GitLab, and 6.3.4 was made by hand). After v6.3.5's
-pipeline has run, confirm each claim - windows-installer built the installer; release-authenticode signed it with a
-timestamp; release-sign signed every file as https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5
-with issuer https://gitlab.com; release-verify passed every bundle (note the project id it found in the
-certificate); release-publish and update-feed ran - and that a 6.3.4 server's live update did install 6.3.5, on
-Windows and on Linux. Then rewrite the paragraph on master as what happened, and the release's notes to match.
-GitLab does not render this comment, but release-publish copies the section into the release's notes as it is:
-take the comment out before tagging if it should not be there. -->
 
 This is the first release built to be made by the project's GitLab CI from its tag ([RELEASE.md](RELEASE.md), *The
 release on GitLab* and *On GitLab, from 6.3.5*). The tag's pipeline builds the Windows installer on the project's
@@ -269,12 +266,6 @@ leave in CI only, is under Operations.
     command that adds them, while the Windows runner lacks Visual Studio's ARM64 tools
     ([PackagesWindows.md](hmailserver/docs/PackagesWindows.md)).
 
-  <!-- INTEGRATOR: at 508984eb6 none of the package jobs above had run in a GitLab pipeline (every batch41
-  pipeline was skipped with ci.skip); the Linux ones were run by hand on linix, and the Windows ones only
-  parse-checked. Say what the batch's and the tag's pipelines show if it matters to a reader. PackagesWindows.md
-  still says the ARM64 job will stop at an x64-marked Interop.hMailServer.dll and that build-openssl.ps1 fetches
-  from GitHub; at batch41 generate-com-wrapper.ps1 -Platform ARM64 makes an Agnostic wrapper and build-openssl.ps1
-  takes Debian's archive. -->
 
 - **What the release carries.** The release collects the x64 installer built by its own `windows-installer` job,
   the amd64 `.deb` and the x86-64 `.rpm` that `linux-build` makes (clang, in the CI's Ubuntu 26.04 image), the
@@ -315,8 +306,6 @@ leave in CI only, is under Operations.
   server starts, as the suite asks since the settings moved into the database. Seventeen class constants the
   server passes to `Format` by reference are defined now (`static constexpr`): six of them kept the instrumented
   build from linking, and the other eleven had the same defect and linked only because the optimiser folded them.
-  <!-- INTEGRATOR: "it has not run on GitLab yet" and "not yet run from it" were so at 508984eb6; change them if the
-  coverage schedule or the Windows script has run before the tag. -->
 - **Twenty-nine more fixtures run on Linux**, among them DKIM signing, ARC sealing, the OpenPGP keys, message
   recall, shared address books, the IMAP mirror, journaling, per-domain relay and the webmail's footers: each
   already compiled against the REST shims and ran clean on linix, and none was linked. `API/RestApiRouteSweep` is
@@ -349,24 +338,29 @@ leave in CI only, is under Operations.
     is known rather than fixed into the baseline.
   - The installer smoke test takes an upgrade that writes `[Security] AdministratorPassword` again as a PBKDF2
     hash, which is the documented upgrade of an older hash, and still requires every other `[Security]` key as it
-    was.
+    was. And it now makes the checks [SecureDefaults.md](hmailserver/docs/SecureDefaults.md) lists for an
+    installation on a clean machine: after a new installation, the certificate made at installation (its record,
+    its two files, a key only SYSTEM, the administrators and the service can read, RSA 2048 for 825 days naming
+    the host), STARTTLS on ports 25, 587, 110 and 143, authentication refused without TLS from the *Internet*
+    range and not from *My computer*, the audit rows and the setup checklist; after an upgrade, the ports and
+    ranges exactly as they were. Against the signed 6.3.4 installer on a clean Windows Server 2025: a new
+    installation passed 59 checks and an upgrade from 6.3.3 73, none failed. The run script follows the VM to the
+    address its DHCP lease moved to after a snapshot revert.
 - **The CI**: `secret_detection` failed `master`'s first pipeline after 6.3.4 on the 24 vetted test keys and
   fixtures, because a pipeline started by a push scans the checkout as files and names a finding by its path, not
-  its commit; `.gitleaksignore` now names each of them that way too. The `static-analysis` baseline is written
-  again from a run over the tree, 1,163 findings, each of the 249 new to it with the reason it is known rather
-  than fixed, and the 393 no scan reports any more gone. The package builds no longer read `$HM_PIPELINE`, which
+  its commit; `.gitleaksignore` now names each of them that way too. The `static-analysis` and `semgrep`
+  baselines are written again from runs over the release's tree in the jobs' own images - 1,165 and 122 known
+  findings, 264 and 37 of them with the reason each is known rather than fixed, and every finding no scan reports
+  any more removed - and a clang-tidy that did not finish on a file (an abort, a kill) is run again alone and
+  fails the job if it still does not finish, where before the file's findings read as fixed and the job passed. The package builds no longer read `$HM_PIPELINE`, which
   in a pipeline where the variable was defined would have refused every build and left GitLab making no pipeline
   for `master`, a batch or a tag; `build/check-release-chain.py` now reads the four package files and fails such a
   rule.
-  <!-- INTEGRATOR: the baseline was written from a run over the tree of the pipeline-fix fold (386942e75), before
-  the quarantine review's C++ was folded. The static-analysis job over batch41's tip has not run; security-gate.py
-  refuses a release while it reports a finding no baseline holds and no exception accepts. -->
 - **The documents, corrected**: 6.3.4's own notes - it was published on 27 September, not 26; the security
   exceptions file accepted 455 findings at the release, not 169; and `ScriptAllowedObjects` first exists in
   6.2.25, so before it an event script could create any COM object. `ServiceAccountName` and
   `ServiceAccountPassword` are no longer used, though still loaded
-  ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md)); the installer smoke test is in the tree and does not
-  yet make the secure-defaults checks ([SecureDefaults.md](hmailserver/docs/SecureDefaults.md)); the update feed's
+  ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md)); the update feed's
   site has served over HTTPS since 26 September 2026 ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)); an
   inbound webhook's URL writes an international domain name in its `xn--` form
   ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)), and before 6.3.4's fix the check let a URL outside
