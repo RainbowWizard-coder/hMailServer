@@ -54,6 +54,28 @@ namespace HM
          text = text.Left(cut);
          return true;
       }
+
+      // Where a tag ("<head", "</head") next starts at or after from, by its
+      // whole name: the name is followed by a space, '/' or '>', or the text
+      // ends. "<head" also starts <header> and <headline>, whose text a person
+      // reads. A match that is not the whole name is passed over and the
+      // search goes on from the character after it, so the text is still read
+      // once.
+      int FindTag(const String &lower, const String &tag, int from)
+      {
+         for (int at = lower.Find(tag.c_str(), from); at >= 0; at = lower.Find(tag.c_str(), at + 1))
+         {
+            const int after = at + tag.GetLength();
+            if (after >= lower.GetLength())
+               return at;
+
+            const wchar_t c = lower[after];
+            if (c == L'>' || c == L'/' || c == L' ' || c == L'\t' || c == L'\r' || c == L'\n' || c == L'\f')
+               return at;
+         }
+
+         return -1;
+      }
    }
 
    bool
@@ -374,7 +396,9 @@ namespace HM
    {
       // What is between <style> and </style>, <script> and </script>, and
       // <head> and </head> is not text a person reads; ContentPolicy's stripper
-      // takes out the tags and would leave it.
+      // takes out the tags and would leave it. Each is found by its whole name
+      // (FindTag): found by "<head", a <header> was cut to the next </head - its
+      // text lost, and with no </head after it the rest of the message.
       String lower = html;
       lower.MakeLower();
 
@@ -389,23 +413,32 @@ namespace HM
       // thread that previews it for half a minute a megabyte, rising with the
       // square of the size.
       const TCHAR *const elements[] = { _T("style"), _T("script"), _T("head") };
+      const int head = 2;
       int next[] = { -2, -2, -2 };
+
+      // A head's end tag may be left out, as HTML allows, and the head then
+      // ends where the body starts; with neither, only the <head> tag goes.
+      // Where </head> and <body> next are is kept the way next[] is: looked for
+      // afresh at every <head>, a message of many heads and no </head> was read
+      // to its end once for every one of them.
+      int headEnd = -2;
+      int bodyStart = -2;
 
       int position = 0;
       while (position < html.GetLength())
       {
          int cut = -1;
-         String closing;
+         int element = -1;
 
          for (int e = 0; e < 3; e++)
          {
             if (next[e] == -2 || (next[e] >= 0 && next[e] < position))
-               next[e] = lower.Find((String(_T("<")) + elements[e]).c_str(), position);
+               next[e] = FindTag(lower, String(_T("<")) + elements[e], position);
 
             if (next[e] >= 0 && (cut < 0 || next[e] < cut))
             {
                cut = next[e];
-               closing = String(_T("</")) + elements[e];
+               element = e;
             }
          }
 
@@ -417,9 +450,41 @@ namespace HM
 
          kept += html.Mid(position, cut - position);
 
-         const int end = lower.Find(closing.c_str(), cut);
-         if (end < 0)
-            break;
+         int end = -1;
+         if (element == head)
+         {
+            if (headEnd == -2 || (headEnd >= 0 && headEnd < cut))
+               headEnd = FindTag(lower, _T("</head"), cut);
+            if (bodyStart == -2 || (bodyStart >= 0 && bodyStart < cut))
+               bodyStart = FindTag(lower, _T("<body"), cut);
+
+            if (bodyStart >= 0 && (headEnd < 0 || bodyStart < headEnd))
+            {
+               // The <body> tag itself is left to the stripper.
+               kept += _T(" ");
+               position = bodyStart;
+               continue;
+            }
+
+            if (headEnd < 0)
+            {
+               const int tagClose = lower.Find(_T(">"), cut);
+               if (tagClose < 0)
+                  break;
+
+               kept += _T(" ");
+               position = tagClose + 1;
+               continue;
+            }
+
+            end = headEnd;
+         }
+         else
+         {
+            end = FindTag(lower, String(_T("</")) + elements[element], cut);
+            if (end < 0)
+               break;
+         }
 
          const int close = lower.Find(_T(">"), end);
          if (close < 0)

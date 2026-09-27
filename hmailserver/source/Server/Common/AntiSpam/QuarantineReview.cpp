@@ -871,6 +871,28 @@ namespace HM
       if (text.Find(_T("Hello & welcome")) < 0 || text.Find(_T("color")) >= 0 || text.Find(_T("x()")) >= 0)
          throw std::logic_error("QuarantineStore::TextOfHtml left markup, a style sheet or a script in the preview.");
 
+      // An element is cut by its whole name. Cut by "<head", a <header> or a
+      // <headline> lost its text, and an unclosed <header> everything after it.
+      // A head may leave out its end tag, and then ends where the body starts.
+      struct NamedCase { const TCHAR *html; const TCHAR *kept; const TCHAR *dropped; };
+      const NamedCase named[] = {
+         { _T("<body><header><h1>Invoice 42 overdue</h1></header><p>Pay now</p></body>"), _T("Invoice 42 overdue Pay now"), nullptr },
+         { _T("<body><header>Invoice 42 overdue<p>Pay now</p></body>"), _T("Invoice 42 overdue Pay now"), nullptr },
+         { _T("<p>Hello</p><headline>Big news</headline><p>after</p>"), _T("Hello Big news after"), nullptr },
+         { _T("<HTML><HEAD lang=\"en\"><TITLE>Head only</TITLE></HEAD\r\n><body><p>Body text</p></body></HTML>"), _T("Body text"), _T("Head only") },
+         { _T("<html><head><title>Head only</title><body><p>Body text</p></body></html>"), _T("Body text"), _T("Head only") },
+         { _T("<head><title>Title</title><p>Body text</p>"), _T("Body text"), nullptr },
+         { _T("<style type=\"text/css\">p{color:red}</style ><p>Body text</p><script\n>x()</script>"), _T("Body text"), _T("color") }
+      };
+
+      for (size_t i = 0; i < sizeof(named) / sizeof(named[0]); i++)
+      {
+         const String namedText = QuarantineStore::TextOfHtml(named[i].html);
+         if (namedText.Find(named[i].kept) < 0 || (named[i].dropped && namedText.Find(named[i].dropped) >= 0))
+            throw std::logic_error("QuarantineStore::TextOfHtml cut an element by the start of its name, or a head without its end tag, in case " +
+                                   std::to_string(i + 1) + " of its element names.");
+      }
+
       // A held message is whatever its sender wrote, and a reviewer opening its
       // preview must not hand a thread to it: 80,000 empty style sheets - 1.2
       // million characters, a message of 1.2 MB - once took over half a minute,
@@ -892,5 +914,37 @@ namespace HM
       if (took >= 3000)
          throw std::logic_error("QuarantineStore::TextOfHtml took " + std::to_string(took) +
                                 " ms over 80,000 style sheets, and the bound is 3000 ms.");
+
+      // The same bound for what the whole names and a head's missing end tag
+      // add: 80,000 heads with neither an end nor a body, each followed by a
+      // </header> the search for </head> passes over; 80,000 heads each ended
+      // by the body after it; and 80,000 headers, none of them a head.
+      struct RepeatedCase { const TCHAR *unit; const char *name; };
+      const RepeatedCase repeated[] = {
+         { _T("<head></header>"), "<head></header>" },
+         { _T("<head><body>"), "<head><body>" },
+         { _T("<header>x</header>"), "<header>x</header>" }
+      };
+
+      for (const RepeatedCase &unit : repeated)
+      {
+         String many;
+         many.reserve(80000 * 18 + 16);
+         for (int i = 0; i < 80000; i++)
+            many += unit.unit;
+         many += _T("<p>after</p>");
+
+         const std::chrono::steady_clock::time_point began = std::chrono::steady_clock::now();
+         const String manyText = QuarantineStore::TextOfHtml(many);
+         const long long spent = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - began).count();
+
+         if (manyText.Find(_T("after")) < 0)
+            throw std::logic_error(std::string("QuarantineStore::TextOfHtml did not read the text after 80,000 ") + unit.name + ".");
+
+         if (spent >= 3000)
+            throw std::logic_error("QuarantineStore::TextOfHtml took " + std::to_string(spent) + " ms over 80,000 " + unit.name +
+                                   ", and the bound is 3000 ms.");
+      }
    }
 }
