@@ -198,7 +198,22 @@ leave in CI only, is under Operations.
   avatar colours, white on the dark theme's pale accent and danger colours (dark text now), the placeholders, and
   the light theme's warning colour (5.5:1, from 4.3:1); and the page declares its colour scheme, so that the
   browser draws its own parts of a control for the dark theme. Also: a long attachment name is cut with an
-  ellipsis, and the week and agenda views name their month. The pass by a screen reader (NVDA) is still to do.
+  ellipsis, and the week and agenda views name their month.
+- **The webmail heard through a screen reader.** Every view was walked with NVDA 2026.2 in Chromium, in English
+  and German, and what it said fixed. The message list is one control that reads each message as one line, its
+  state first ("unread, starred, Grace Hopper, Re: The migration plan, Sep 26, has attachments, 3 of 51"), where
+  Tab used to read all fifty rows and each row's controls; Home, End and the list's own keys work in it, Enter or
+  `o` opens a message at its subject and Escape comes back to the same row, and Shift+F10 opens a message's menu
+  from the keyboard. The star says whether it is pressed. What happens without the focus moving - a toast, once,
+  not its countdown; a search's count; an attachment added; a new calendar month; a send that failed after the
+  undo delay, which now also reopens the message and says why - is said in one place, and `z` presses a toast's
+  Undo. Address suggestions, the command palette and mentions say the suggestion Enter will take; folders say
+  their unread count in words and a subfolder its parent; the current folder, page, tab and view are said;
+  dialogs and help open at their headings; the logo, the avatars' initials and a duplicate heading are hidden
+  from a screen reader. 82 texts that were English on a translated page are in all 23 languages, and the server
+  has a browser check the webmail's language file on each use instead of keeping it for a day, so new texts are
+  not left in English after an upgrade. A dialog's name is said twice as the focus enters it, and a colour
+  picker's name is not said; both are NVDA's reading of what Chromium exposes. Roadmap2 row 43 is done.
 - Fixed: an invitation whose calendar part carries parameters in its `Content-Type` and no `.ics` name - the shape
   Outlook sends - was never marked as an invitation, so the webmail showed no card for it. The part's media type is
   now read without its parameters, as the server's iMIP code already read it. 6.3.4 had it too.
