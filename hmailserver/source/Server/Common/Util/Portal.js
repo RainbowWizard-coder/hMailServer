@@ -301,6 +301,10 @@
   var MODALS = ['keys-overlay', 'palette', 'event-overlay', 'task-overlay', 'pgp-unlock', 'za-confirm', 'za-unlock', 'smime-unlock'];
   var MODAL_CANCEL = { 'keys-overlay': 'keys-close', 'event-overlay': 'event-cancel', 'task-overlay': 'task-cancel', 'pgp-unlock': 'pgp-unlock-cancel', 'za-confirm': 'za-confirm-cancel', 'za-unlock': 'za-unlock-cancel', 'smime-unlock': 'smime-unlock-cancel' };
   var modalBack = null;
+  // A dialogue opened over another - the passphrase sheet the zero-access
+  // dialogue asks for - gives the keyboard back to where it was in the one
+  // under it, which stays open.
+  var modalOver = {};
   var modalOpen = function () {
     for (var i = 0; i < MODALS.length; i++) { if (!el(MODALS[i]).hidden) { return MODALS[i]; } }
     return '';
@@ -318,6 +322,7 @@
   // ("banner landmark, button") before the dialogue (NVDA pass, row 43).
   var modalShow = function (id, first) {
     if (!modalOpen()) { modalBack = document.activeElement || null; }
+    else if (el(id).hidden) { modalOver[id] = document.activeElement || null; }
     el(id).hidden = false;
     if (first && first.focus) { first.focus(); }
     modalInert(true);
@@ -325,8 +330,11 @@
   var modalHide = function (id) {
     if (el(id).hidden) { return; }
     el(id).hidden = true;
-    if (modalOpen()) { return; }
+    var over = modalOver[id];
+    delete modalOver[id];
+    if (modalOpen()) { if (over && over.focus && shownNow(over)) { over.focus(); } return; }
     modalInert(false);
+    modalOver = {};
     var back = modalBack;
     modalBack = null;
     if (back && back !== document.body && back.focus && shownNow(back)) { back.focus(); }

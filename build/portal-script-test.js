@@ -9518,6 +9518,27 @@ async function zeroAccessChecks() {
    // The key may be locked (a session that never unlocked it): the page
    // then asks for its passphrase first, through the OpenPGP dialogue.
    if (document.getElementById('pgp-unlock').hidden === false) {
+      // Both are overlays at one height, and the passphrase sheet comes first
+      // in the page: without a height of its own it was drawn under the
+      // dialogue that asked for it, and every click landed on that one.
+      const pageCss = fs.readFileSync(pagePath, 'utf8');
+      const heightOf = (selector) => { const m = new RegExp('(^|[}\\s])' + selector.replace(/[.#]/g, (c) => '\\' + c) + '\\{[^}]*z-index:(\\d+)').exec(pageCss); return m ? Number(m[2]) : 0; };
+      const pageOrder = pageCss.indexOf('id="pgp-unlock"') < pageCss.indexOf('id="za-confirm"');
+      check('Zero access: the passphrase sheet opens over the dialogue that asked for it, drawn above it',
+         document.getElementById('za-confirm').hidden === false && heightOf('.overlay') === 70 && heightOf('#pgp-unlock') > heightOf('.overlay') &&
+         heightOf('#pgp-unlock') >= heightOf('#za-confirm') && pageOrder && document.activeElement === document.getElementById('pgp-unlock-passphrase'),
+         'overlay ' + heightOf('.overlay') + ', pgp-unlock ' + heightOf('#pgp-unlock') + ', page order ' + pageOrder);
+      // Cancelled, it gives the keyboard back to the dialogue under it.
+      const insideConfirm = () => { for (let n = document.activeElement; n; n = n.parentNode) { if (n === document.getElementById('za-confirm')) { return true; } } return false; };
+      document.getElementById('pgp-unlock-cancel').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('Zero access: the passphrase sheet cancelled, the keyboard is back in the dialogue under it, which stays open with nothing sent',
+         document.getElementById('pgp-unlock').hidden === true && document.getElementById('za-confirm').hidden === false && insideConfirm() && putsOfSwitch(beforeSwitch).length === 0,
+         'focus=' + (document.activeElement && document.activeElement.id));
+      document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      await flush();
+      check('Zero access: switching on again asks for the passphrase again', document.getElementById('pgp-unlock').hidden === false);
       document.getElementById('pgp-unlock-passphrase').value = PASSPHRASE;
       document.getElementById('pgp-unlock-form').dispatchEvent(makeEvent('submit'));
    }

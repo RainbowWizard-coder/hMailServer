@@ -591,6 +591,9 @@ button.emoji:hover,button.emoji:focus-visible{background:var(--surface)}
 
 /* ---------- Overlays ---------- */
 .overlay{position:fixed;inset:0;background:rgba(32,33,36,.55);display:grid;place-items:center;z-index:70;padding:16px}
+/* The passphrase sheet opens over the dialogue that asks for it - switching
+   zero access on with the key still locked - and comes before it in the page. */
+#pgp-unlock{z-index:71}
 .sheet{width:100%;max-width:560px;max-height:90vh;overflow:auto;background:var(--surface);border-radius:16px;padding:24px 28px;box-shadow:var(--shadow-2);animation:rise .15s ease-out}
 .sheet h2{font-size:18px;font-weight:500;margin-bottom:12px}
 .sheet .row{margin-top:16px}
