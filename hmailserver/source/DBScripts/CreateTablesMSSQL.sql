@@ -1859,7 +1859,8 @@ create table hm_quarantine
 	quarantinereason nvarchar(255) not null,
 	quarantinescore int not null,
 	quarantinesize int not null,
-	quarantinecreated datetime not null
+	quarantinecreated datetime not null,
+	quarantinehelo nvarchar(255) not null default ''
 )
 
 ALTER TABLE hm_quarantine ADD CONSTRAINT hm_quarantine_pk PRIMARY KEY NONCLUSTERED (quarantineid)
@@ -3298,4 +3299,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6104)
+insert into hm_dbversion values (6105)

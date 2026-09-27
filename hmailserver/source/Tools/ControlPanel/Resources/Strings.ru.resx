@@ -227,6 +227,9 @@
   <data name="(no address)" xml:space="preserve">
     <value>(нет адреса)</value>
   </data>
+  <data name="(no domain)" xml:space="preserve">
+    <value>(нет домена)</value>
+  </data>
   <data name="(no label)" xml:space="preserve">
     <value>(нет метки)</value>
   </data>
@@ -331,6 +334,12 @@
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 пункт невозможно проверить отсюда.</value>
+  </data>
+  <data name="1 message" xml:space="preserve">
+    <value>1 сообщение</value>
+  </data>
+  <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
+    <value>Для 1 сообщения нельзя создать запись; оно останется там, где есть: {0}</value>
   </data>
   <data name="1 message held." xml:space="preserve">
     <value>1 сообщение задержано.</value>
@@ -1707,6 +1716,27 @@ Control Panel может читать файлы сообщений только
   <data name="Black: refused at MAIL FROM" xml:space="preserve">
     <value>Чёрный: отказ на MAIL FROM</value>
   </data>
+  <data name="Blacklist and delete" xml:space="preserve">
+    <value>Внести в чёрный список и удалить</value>
+  </data>
+  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
+    <value>Внести отправителей отмеченных сообщений в чёрный список, затем удалить их</value>
+  </data>
+  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
+    <value>Внести отправителя этого сообщения в чёрный список, затем удалить его</value>
+  </data>
+  <data name="Blacklist the sender, then delete" xml:space="preserve">
+    <value>Внести отправителя в чёрный список, затем удалить</value>
+  </data>
+  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>Внести отправителей {0} сообщений в чёрный список, затем удалить их</value>
+  </data>
+  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
+    <value>Внести отправителей этой группы в чёрный список, затем удалить</value>
+  </data>
+  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Внесено в чёрный список. Записей в списке: {0}. Удалено сообщений: {1}.</value>
+  </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>Чёрные списки, по которым проверяется адрес подключающегося узла.</value>
   </data>
@@ -1962,6 +1992,12 @@ Control Panel может читать файлы сообщений только
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Проверить _политику (HTTPS)</value>
   </data>
+  <data name="Check every message" xml:space="preserve">
+    <value>Отметить каждое сообщение</value>
+  </data>
+  <data name="Check every message from {0}" xml:space="preserve">
+    <value>Отметить каждое сообщение от {0}</value>
+  </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Проверить _обновления</value>
   </data>
@@ -1977,11 +2013,17 @@ Control Panel может читать файлы сообщений только
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Убедитесь, что диапазон «весь интернет» не разрешает доставку внешним учётным записям.</value>
   </data>
+  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
+    <value>Сначала отметьте сообщения: значки в заголовке действуют на каждое отмеченное сообщение.</value>
+  </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Посмотрите в очереди, о какой ошибке сообщил удалённый сервер.</value>
   </data>
   <data name="Check the server is healthy" xml:space="preserve">
     <value>Проверьте, что сервер исправен</value>
+  </data>
+  <data name="Check this message" xml:space="preserve">
+    <value>Отметить это сообщение</value>
   </data>
   <data name="Check whether the {0} record is published in DNS" xml:space="preserve">
     <value>Проверить, опубликована ли запись {0} в DNS</value>
@@ -2975,6 +3017,9 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Удалить псевдоним {0}?</value>
   </data>
+  <data name="Delete the checked messages" xml:space="preserve">
+    <value>Удалить отмеченные сообщения</value>
+  </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Удалить список рассылки {0}?</value>
   </data>
@@ -2998,11 +3043,24 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Удалить выбранный сертификат</value>
   </data>
+  <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Удалить {0} отмеченных сообщений безвозвратно?
+
+Отправителям сообщили, что письма приняты, поэтому повторных попыток не будет и другой копии не существует.</value>
+  </data>
+  <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Удалить {0} сообщений от {1} безвозвратно?
+
+Отправителям сообщили, что письма приняты, поэтому повторных попыток не будет и другой копии не существует.</value>
+  </data>
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Удалить привязку {0} к порту {1}?</value>
   </data>
   <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
     <value>Удалить этот пароль приложения? Клиент, который им пользуется, сразу перестанет подключаться.</value>
+  </data>
+  <data name="Delete this group" xml:space="preserve">
+    <value>Удалить эту группу</value>
   </data>
   <data name="Delete this message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Удалить это сообщение безвозвратно?
@@ -3023,6 +3081,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Удалено</value>
+  </data>
+  <data name="Deleted 1 message." xml:space="preserve">
+    <value>Удалено 1 сообщение.</value>
+  </data>
+  <data name="Deleted {0} messages." xml:space="preserve">
+    <value>Удалено {0} сообщений.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Удаление домена удаляет и учётные записи внутри него. Сначала проверьте, нет ли псевдонимов и списков, указывающих на него.</value>
@@ -3851,6 +3915,9 @@ Control Panel может читать файлы сообщений только
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Сбрасывать каждое принятое сообщение на диск до подтверждения приёма (надёжно, медленнее)</value>
   </data>
+  <data name="Fold this group" xml:space="preserve">
+    <value>Свернуть эту группу</value>
+  </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Разделитель иерархии папок</value>
   </data>
@@ -4016,8 +4083,14 @@ Control Panel может читать файлы сообщений только
   <data name="Greylisting white list" xml:space="preserve">
     <value>Белый список серых списков</value>
   </data>
+  <data name="Gro_up by" xml:space="preserve">
+    <value>Гр_уппировать по</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Группа</value>
+  </data>
+  <data name="Group by" xml:space="preserve">
+    <value>Группировать по</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Имя группы</value>
@@ -4025,8 +4098,14 @@ Control Panel может читать файлы сообщений только
   <data name="Groups" xml:space="preserve">
     <value>Группы</value>
   </data>
+  <data name="HELO" xml:space="preserve">
+    <value>HELO</value>
+  </data>
   <data name="HELO check score" xml:space="preserve">
     <value>Оценка проверки HELO</value>
+  </data>
+  <data name="HELO domain" xml:space="preserve">
+    <value>Домен HELO</value>
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>Проверка узла HELO</value>
@@ -4084,6 +4163,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Размер блока чтения заголовков (байты)</value>
+  </data>
+  <data name="Headers of the message from {0}" xml:space="preserve">
+    <value>Заголовки сообщения от {0}</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Заголовки</value>
@@ -4644,6 +4726,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Если поле оставлено пустым, сервер использует поставляемый фильтр, показанный серым: сначала objectCategory, потому что он проиндексирован в Active Directory, и затем sAMAccountName, потому что именно его хранит вкладка «Каталог» учётной записи. %u — имя пользователя учётной записи в Active Directory, %d — её домен AD, %m — её полный почтовый адрес; все три экранируются перед подстановкой, поэтому враждебное имя для входа не может переписать фильтр. Фильтр, которому соответствует более одной записи, намеренно не аутентифицирует никого.</value>
+  </data>
+  <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
+    <value>Оставлено на месте: {0}. Первая причина: {1}</value>
   </data>
   <data name="Length is the requirement that buys the most, and the one people mind least." xml:space="preserve">
     <value>Длина — это требование, которое даёт больше всего и которое меньше всего раздражает людей.</value>
@@ -5211,8 +5296,8 @@ Control Panel может читать файлы сообщений только
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Сообщения, обработку которых сервер завершил, в минуту; выборка каждые 2 секунды.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final." xml:space="preserve">
-    <value>Сообщения, которые сервер иначе отклонил бы, задержаны, чтобы кто-нибудь их посмотрел. Отправителю про каждое из них сказано, что оно принято, поэтому само по себе ничего повторно не придёт: выпуск сообщения доставляет его, а удаление окончательно.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
+    <value>Сообщения, которые сервер иначе отклонил бы, задержаны, чтобы кто-то мог их посмотреть. Отправителю каждого из них сообщили, что оно принято, поэтому ничто не придёт снова само по себе: выпуск одного доставляет его, а удаление окончательно. Значки действуют на одно сообщение, на группу или - в заголовке - на каждое отмеченное сообщение.</value>
   </data>
   <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
     <value>Сообщения размером до {0} проверяет {1}; всё, что крупнее, доставляется вообще без проверки</value>
@@ -5438,6 +5523,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
     <value>Для {0} ключ DKIM ещё не настроен. Создайте его здесь: закрытый ключ сохраняется в выбранный вами файл на этом компьютере, селектор и файл ключа хранятся в домене, а подписывание остаётся ВЫКЛЮЧЕННЫМ, пока запись DNS ниже не опубликована и проверка на этой странице её не увидела; включить подписывание раньше означало бы подписывать почту ключом, который мир не может найти.</value>
+  </data>
+  <data name="No HELO name was recorded" xml:space="preserve">
+    <value>Имя HELO не было записано</value>
   </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>Ни один диапазон IP не требует TLS перед аутентификацией. Этот параметр находится в каждом диапазоне IP, а не рядом с остальными настройками TLS, поэтому его легко ни разу не увидеть: это единственный элемент управления, который отклоняет пароль открытым текстом независимо от того, что разрешает порт.</value>
@@ -6057,6 +6145,9 @@ Control Panel может читать файлы сообщений только
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Требуется только тогда, когда файл ключа зашифрован: если ключ зашифрован, а парольная фраза не задана, ключ не загружается (ошибка сервера 6170) и ни один порт TLS, использующий этот сертификат, не запускается — приём почты на этих портах прекращается. Парольная фраза — это секрет: она хранится на сервере под защитой и здесь больше никогда не показывается, а сохранение новой заменяет ту, что была сохранена раньше.</value>
   </data>
+  <data name="Only the first {0} characters are shown." xml:space="preserve">
+    <value>Показаны только первые {0} символов.</value>
+  </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Подключаться может только этот компьютер, поэтому ни один пароль не передаётся по сети.</value>
   </data>
@@ -6548,6 +6639,12 @@ Control Panel может читать файлы сообщений только
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>Предварительный просмотр ничего не изменяет и в точности сообщает, что сделало бы применение: в сервере у них общий механизм принятия решений, поэтому предварительный просмотр не может описать действие, которого применение не выполнило бы. Применение остаётся недоступным, пока предварительный просмотр не будет выполнен с текущими значениями параметров.</value>
   </data>
+  <data name="Preview of &quot;{0}&quot;" xml:space="preserve">
+    <value>Просмотр «{0}»</value>
+  </data>
+  <data name="Preview the text" xml:space="preserve">
+    <value>Просмотр текста</value>
+  </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Сначала предварительный просмотр, затем применение</value>
   </data>
@@ -6830,6 +6927,18 @@ Control Panel может читать файлы сообщений только
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Отозвать / восстановить</value>
   </data>
+  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Считывается при MAIL FROM: чёрный домен отклоняется кодом 550 раньше, чем выполнится что-либо ещё, для каждого получателя. Запись охватывает домен организации и всё, что ниже него.</value>
+  </data>
+  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Считывается при MAIL FROM: белый домен не подвергается greylisting и не отклоняется и не задерживается по баллам спама, при этом каждая проверка всё равно выполняется, а порог пометки всё равно помечает. Запись охватывает домен организации и всё, что ниже него.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
+    <value>Считывается при доставке, для каждого получателя: почта заблокированного отправителя задерживается для него там, где карантин включён, и помечается как спам там, где нет.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
+    <value>Считывается при доставке, для каждого получателя: почта разрешённого отправителя доставляется без пометки, а собственные пороги спама учётных записей не применяются. Сообщение, которое общесерверный балл спама задерживает во время SMTP-сеанса, всё равно остаётся задержанным; это останавливает именно список доменов.</value>
+  </data>
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Читать отчёты о доставке, приходящие для отправителей этого сервера</value>
   </data>
@@ -7074,8 +7183,20 @@ Control Panel может читать файлы сообщений только
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Ретрансляция на вышестоящий сервер, интервалы повторных попыток, обработка возвратов и то, что происходит с локальной почтой.</value>
   </data>
-  <data name="Released. It has been delivered to the recipients it was addressed to." xml:space="preserve">
-    <value>Выпущено из карантина. Сообщение доставлено тем получателям, которым было адресовано.</value>
+  <data name="Release" xml:space="preserve">
+    <value>Выпустить</value>
+  </data>
+  <data name="Release the checked messages" xml:space="preserve">
+    <value>Выпустить отмеченные сообщения</value>
+  </data>
+  <data name="Release this group" xml:space="preserve">
+    <value>Выпустить эту группу</value>
+  </data>
+  <data name="Released 1 message to its recipients." xml:space="preserve">
+    <value>Выпущено 1 сообщение его получателям.</value>
+  </data>
+  <data name="Released {0} messages to their recipients." xml:space="preserve">
+    <value>Выпущено {0} сообщений их получателям.</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Запоминать столько предыдущих паролей (0 — без истории)</value>
@@ -8076,6 +8197,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sender authentication" xml:space="preserve">
     <value>Аутентификация отправителя</value>
   </data>
+  <data name="Sender domain" xml:space="preserve">
+    <value>Домен отправителя</value>
+  </data>
   <data name="Sender name, as recipients see it" xml:space="preserve">
     <value>Имя отправителя, как его увидят получатели</value>
   </data>
@@ -8394,6 +8518,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Показывать группу {0} в навигации</value>
+  </data>
+  <data name="Show the headers" xml:space="preserve">
+    <value>Показать заголовки</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Показать, что сделала бы синхронизация, ничего при этом не изменяя</value>
@@ -9042,6 +9169,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Не удалось прочитать список портов TCP/IP — {0}</value>
   </data>
+  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
+    <value>_Домен имени HELO, в белом и чёрном списке доменов</value>
+  </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>Здесь задаются принимаемые версии TLS и наборы шифров.</value>
   </data>
@@ -9454,6 +9584,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>Соответствие нельзя проверить, пока оба файла не будут на месте и доступны для чтения.</value>
   </data>
+  <data name="The message has no text to show." xml:space="preserve">
+    <value>В сообщении нет текста для показа.</value>
+  </data>
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>Сообщение принято - отправитель получил 250, - видно в очереди доставки и никогда её не покидает.</value>
   </data>
@@ -9662,6 +9795,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Раздел ниже заполнен; установка переключателя выше его активирует.</value>
+  </data>
+  <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
+    <value>_Адрес отправителя, в списке разрешённых и заблокированных сервера</value>
+  </data>
+  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
+    <value>Д_омен отправителя, в белом и чёрном списке доменов</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Отправляющий сервер подключается, отправляет сообщение, а затем ждёт. С его стороны вы видите тайм-аут после того, как тело сообщения было передано - Postfix сообщает «timed out while sending end of data». Сообщение так и не появляется в вашей очереди.</value>
@@ -9989,6 +10128,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>На этом сервере учётных записей: {0}, значит, он в работе: профиль предлагается новому серверу, но любой из четырёх можно по-прежнему сравнить с этим.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
+    <value>Этот сервер старше, чем Control Panel, и не может показать заголовки или текст задержанного сообщения. Обновите сервер.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Этот сервер старше, чем Control Panel, и не может вносить в белый или чёрный список из карантина. Обновите сервер.</value>
+  </data>
   <data name="This server now" xml:space="preserve">
     <value>Этот сервер сейчас</value>
   </data>
@@ -10241,6 +10386,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Unavailable" xml:space="preserve">
     <value>Недоступно</value>
   </data>
+  <data name="Unfold this group" xml:space="preserve">
+    <value>Развернуть эту группу</value>
+  </data>
   <data name="Unknown" xml:space="preserve">
     <value>Неизвестно</value>
   </data>
@@ -10439,6 +10587,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Т_екст предупреждения (пустой = сообщение сервера; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
+  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>Предупреждение: {0} — публичный суффикс. Запись для него охватывает каждый домен, зарегистрированный под ним, что почти никогда не является тем, что имеется в виду.</value>
+  </data>
   <data name="Warnings" xml:space="preserve">
     <value>Предупреждения</value>
   </data>
@@ -10559,6 +10710,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What to do: " xml:space="preserve">
     <value>Что делать:</value>
   </data>
+  <data name="What will be written:" xml:space="preserve">
+    <value>Что будет записано:</value>
+  </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>То, что сервер сделал бы и так, включая MTA-STS и DANE</value>
   </data>
@@ -10667,6 +10821,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Which domain to synchronise" xml:space="preserve">
     <value>Какой домен синхронизировать</value>
   </data>
+  <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
+    <value>Какой список? Для каждого отдельного отправителя или домена записывается одна запись, а затем на каждом сообщении выполняется действие. Сообщение, для которого запись создать нельзя, остаётся там, где есть.</value>
+  </data>
   <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
     <value>Какие файлы журналов пишет сервер, сколько деталей они содержат и как долго хранятся.</value>
   </data>
@@ -10711,6 +10868,27 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Белый: без greylisting, без отказа по антиспам-баллу</value>
+  </data>
+  <data name="Whitelist and release" xml:space="preserve">
+    <value>Внести в белый список и выпустить</value>
+  </data>
+  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
+    <value>Внести отправителей отмеченных сообщений в белый список, затем выпустить их</value>
+  </data>
+  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
+    <value>Внести отправителя этого сообщения в белый список, затем выпустить его</value>
+  </data>
+  <data name="Whitelist the sender, then release" xml:space="preserve">
+    <value>Внести отправителя в белый список, затем выпустить</value>
+  </data>
+  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
+    <value>Внести отправителей {0} сообщений в белый список, затем выпустить их</value>
+  </data>
+  <data name="Whitelist this group's senders, then release" xml:space="preserve">
+    <value>Внести отправителей этой группы в белый список, затем выпустить</value>
+  </data>
+  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Внесено в белый список. Записей в списке: {0}. Выпущено сообщений: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Кто</value>
@@ -10900,6 +11078,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Метод привязки (BindMethod)</value>
+  </data>
+  <data name="_Blacklist and delete" xml:space="preserve">
+    <value>_Внести в чёрный список и удалить</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>Канонизация _тела</value>
@@ -11102,6 +11283,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_List address" xml:space="preserve">
     <value>А_дрес списка</value>
   </data>
+  <data name="_List it anyway" xml:space="preserve">
+    <value>Всё равно внести в _список</value>
+  </data>
   <data name="_Local to local" xml:space="preserve">
     <value>_Локальное → локальное</value>
   </data>
@@ -11234,9 +11418,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Узел ретрансляции (пусто — использовать общесерверный ретранслятор)</value>
   </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Выпустить</value>
-  </data>
   <data name="_Reload" xml:space="preserve">
     <value>П_ерезагрузить</value>
   </data>
@@ -11348,6 +11529,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Предупред_ить владельца при (% лимита; -1 = значение сервера, 0 = никогда)</value>
   </data>
+  <data name="_Whitelist and release" xml:space="preserve">
+    <value>Внести в _белый список и выпустить</value>
+  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Кто может отправлять в этот список</value>
   </data>
@@ -11398,6 +11582,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="an uppercase letter" xml:space="preserve">
     <value>прописная буква</value>
+  </data>
+  <data name="and {0} more" xml:space="preserve">
+    <value>и ещё {0}</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>какой-либо алгоритм, который этот сервер умеет проверять, — он реализует только RS256, ES256 и HS256, а «{0}» не называет ни один из них, поэтому любой токен отклоняется, какой бы ключевой материал ни был установлен</value>
@@ -11670,6 +11857,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="install a certificate" xml:space="preserve">
     <value>установить сертификат</value>
   </data>
+  <data name="is already on the list" xml:space="preserve">
+    <value>уже в списке</value>
+  </data>
   <data name="is anyone connected" xml:space="preserve">
     <value>кто-нибудь сейчас подключён</value>
   </data>
@@ -11681,6 +11871,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="is not set" xml:space="preserve">
     <value>не задан</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to allow" xml:space="preserve">
+    <value>в списке в противоположную сторону и будет изменено на разрешение</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to block" xml:space="preserve">
+    <value>в списке в противоположную сторону и будет изменено на блокировку</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>в INI задан как «{0}»</value>
@@ -12183,6 +12379,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="why is my spam filter not catching anything" xml:space="preserve">
     <value>почему мой спам-фильтр ничего не ловит</value>
   </data>
+  <data name="will be added" xml:space="preserve">
+    <value>будет добавлено</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>записывать журнал в базу данных</value>
   </data>
@@ -12204,8 +12403,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (неактивно)</value>
   </data>
+  <data name="{0} + {1} more" xml:space="preserve">
+    <value>{0} + ещё {1}</value>
+  </data>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} — учётные записи</value>
+  </data>
+  <data name="{0} - {1}" xml:space="preserve">
+    <value>{0} - {1}</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>Записей DNS проверяется в фоне: {0}; эта сводка будет обновлена.</value>
@@ -12384,6 +12589,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} message(s) waiting for delivery." xml:space="preserve">
     <value>Сообщений в ожидании доставки: {0}.</value>
   </data>
+  <data name="{0} messages" xml:space="preserve">
+    <value>{0} сообщений</value>
+  </data>
+  <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
+    <value>Для {0} сообщений нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
+  </data>
   <data name="{0} messages held." xml:space="preserve">
     <value>Задержано сообщений: {0}.</value>
   </data>
@@ -12551,6 +12762,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}, checked {1}." xml:space="preserve">
     <value>{0}, проверено {1}.</value>
+  </data>
+  <data name="{0}, from {1}, score {2}" xml:space="preserve">
+    <value>{0}, от {1}, баллы {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, оценка {2}. {3}</value>

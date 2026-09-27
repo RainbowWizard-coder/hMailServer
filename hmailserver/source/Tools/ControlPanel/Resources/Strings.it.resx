@@ -227,6 +227,9 @@ Salvare comunque questa password debole?</value>
   <data name="(no address)" xml:space="preserve">
     <value>(nessun indirizzo)</value>
   </data>
+  <data name="(no domain)" xml:space="preserve">
+    <value>(nessun dominio)</value>
+  </data>
   <data name="(no label)" xml:space="preserve">
     <value>(nessuna etichetta)</value>
   </data>
@@ -331,6 +334,12 @@ Salvare comunque questa password debole?</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 elemento non può essere verificato da qui.</value>
+  </data>
+  <data name="1 message" xml:space="preserve">
+    <value>1 messaggio</value>
+  </data>
+  <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
+    <value>1 messaggio non può essere elencato e sarà lasciato dove si trova: {0}</value>
   </data>
   <data name="1 message held." xml:space="preserve">
     <value>1 messaggio trattenuto.</value>
@@ -1707,6 +1716,27 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Black: refused at MAIL FROM" xml:space="preserve">
     <value>Nera: rifiutata al MAIL FROM</value>
   </data>
+  <data name="Blacklist and delete" xml:space="preserve">
+    <value>Metti nella lista nera ed elimina</value>
+  </data>
+  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
+    <value>Metti nella lista nera i mittenti dei messaggi selezionati, poi eliminali</value>
+  </data>
+  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
+    <value>Metti nella lista nera il mittente di questo messaggio, poi eliminalo</value>
+  </data>
+  <data name="Blacklist the sender, then delete" xml:space="preserve">
+    <value>Metti il mittente nella lista nera, poi elimina</value>
+  </data>
+  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>Metti nella lista nera i mittenti di {0} messaggi, poi eliminali</value>
+  </data>
+  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
+    <value>Metti nella lista nera i mittenti di questo gruppo, poi elimina</value>
+  </data>
+  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Aggiunto alla lista nera. Voci nell'elenco: {0}. Messaggi eliminati: {1}.</value>
+  </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>Blocklist verificate rispetto all'indirizzo IP che si connette.</value>
   </data>
@@ -1962,6 +1992,12 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Verifica il _criterio (HTTPS)</value>
   </data>
+  <data name="Check every message" xml:space="preserve">
+    <value>Seleziona tutti i messaggi</value>
+  </data>
+  <data name="Check every message from {0}" xml:space="preserve">
+    <value>Seleziona tutti i messaggi da {0}</value>
+  </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Verifica gli _aggiornamenti</value>
   </data>
@@ -1977,11 +2013,17 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Verifica che l'intervallo esteso a tutta Internet non consenta consegne verso account esterni.</value>
   </data>
+  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
+    <value>Seleziona prima i messaggi: le icone dell'intestazione agiscono su ogni messaggio selezionato.</value>
+  </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Controlla nella coda l'errore segnalato dal server remoto.</value>
   </data>
   <data name="Check the server is healthy" xml:space="preserve">
     <value>Verifica che il server sia integro</value>
+  </data>
+  <data name="Check this message" xml:space="preserve">
+    <value>Seleziona questo messaggio</value>
   </data>
   <data name="Check whether the {0} record is published in DNS" xml:space="preserve">
     <value>Verifica se il record {0} è pubblicato nel DNS</value>
@@ -2975,6 +3017,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Eliminare l'alias {0}?</value>
   </data>
+  <data name="Delete the checked messages" xml:space="preserve">
+    <value>Elimina i messaggi selezionati</value>
+  </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Eliminare la lista di distribuzione {0}?</value>
   </data>
@@ -2998,11 +3043,24 @@ Questo rimuove definitivamente {1}, ogni messaggio in essi memorizzato e tutti g
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Elimina il certificato selezionato</value>
   </data>
+  <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Eliminare definitivamente i {0} messaggi selezionati?
+
+Ai mittenti è stato detto che erano stati accettati, quindi nulla verrà ritentato e non esiste un'altra copia.</value>
+  </data>
+  <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Eliminare definitivamente i {0} messaggi da {1}?
+
+Ai mittenti è stato detto che erano stati accettati, quindi nulla verrà ritentato e non esiste un'altra copia.</value>
+  </data>
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Eliminare il binding {0} sulla porta {1}?</value>
   </data>
   <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
     <value>Eliminare questa password per app? Il client che la usa smetterà subito di connettersi.</value>
+  </data>
+  <data name="Delete this group" xml:space="preserve">
+    <value>Elimina questo gruppo</value>
   </data>
   <data name="Delete this message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Eliminare definitivamente questo messaggio?
@@ -3023,6 +3081,12 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Eliminato</value>
+  </data>
+  <data name="Deleted 1 message." xml:space="preserve">
+    <value>1 messaggio eliminato.</value>
+  </data>
+  <data name="Deleted {0} messages." xml:space="preserve">
+    <value>{0} messaggi eliminati.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Eliminare un dominio elimina gli account che contiene. Controlla prima se ci sono alias e liste che puntano a esso.</value>
@@ -3851,6 +3915,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Scrivi su disco ogni messaggio ricevuto prima di confermarlo (durevole, più lento)</value>
   </data>
+  <data name="Fold this group" xml:space="preserve">
+    <value>Comprimi questo gruppo</value>
+  </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Delimitatore della gerarchia di cartelle</value>
   </data>
@@ -4016,8 +4083,14 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Greylisting white list" xml:space="preserve">
     <value>Whitelist del greylisting</value>
   </data>
+  <data name="Gro_up by" xml:space="preserve">
+    <value>Raggr_uppa per</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Gruppo</value>
+  </data>
+  <data name="Group by" xml:space="preserve">
+    <value>Raggruppa per</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Nome del gruppo</value>
@@ -4025,8 +4098,14 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Groups" xml:space="preserve">
     <value>Gruppi</value>
   </data>
+  <data name="HELO" xml:space="preserve">
+    <value>HELO</value>
+  </data>
   <data name="HELO check score" xml:space="preserve">
     <value>Punteggio del controllo HELO</value>
+  </data>
+  <data name="HELO domain" xml:space="preserve">
+    <value>Dominio HELO</value>
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>Controllo dell'host HELO</value>
@@ -4084,6 +4163,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Dimensione dei blocchi di lettura delle intestazioni (byte)</value>
+  </data>
+  <data name="Headers of the message from {0}" xml:space="preserve">
+    <value>Intestazioni del messaggio da {0}</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Intestazioni</value>
@@ -4644,6 +4726,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Se lasciato vuoto, il server usa il filtro di fabbrica mostrato in grigio - prima objectCategory perché è indicizzato in Active Directory, e sAMAccountName perché è ciò che la scheda Directory dell'account memorizza. %u è il nome utente Active Directory dell'account, %d il suo dominio AD, %m il suo indirizzo di posta completo; tutti e tre vengono sottoposti a escape prima della sostituzione, così un nome di accesso ostile non può riscrivere il filtro. Un filtro che corrisponde a più di una voce non autentica nessuno, per scelta progettuale.</value>
+  </data>
+  <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
+    <value>Lasciati dove erano: {0}. Il primo motivo: {1}</value>
   </data>
   <data name="Length is the requirement that buys the most, and the one people mind least." xml:space="preserve">
     <value>La lunghezza è il requisito che rende di più, ed è anche quello che le persone accettano più volentieri.</value>
@@ -5211,8 +5296,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Messaggi la cui elaborazione il server ha completato, al minuto, campionati ogni 2 secondi.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final." xml:space="preserve">
-    <value>Messaggi che il server avrebbe altrimenti rifiutato, trattenuti perché qualcuno possa esaminarli. Al mittente è stato detto che ciascuno di essi era accettato, quindi nulla arriverà di nuovo da solo: rilasciarne uno lo consegna, ed eliminarne uno è definitivo.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
+    <value>Messaggi che il server avrebbe altrimenti rifiutato, trattenuti perché qualcuno possa esaminarli. Al mittente di ciascuno è stato detto che era stato accettato, quindi nessuno arriverà di nuovo da solo: rilasciarne uno lo consegna, ed eliminarne uno è definitivo. Le icone agiscono su un messaggio, su un gruppo, o - nell'intestazione - su ogni messaggio selezionato.</value>
   </data>
   <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
     <value>I messaggi fino a {0} vengono scansionati da {1}; tutto ciò che è più grande viene consegnato senza alcuna scansione</value>
@@ -5438,6 +5523,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
     <value>Per {0} non è ancora configurata alcuna chiave DKIM. È possibile generarne una qui: la chiave privata viene salvata in un file a scelta su questa macchina, il selettore e il file della chiave vengono memorizzati sul dominio, e la firma resta DISATTIVATA finché il record DNS qui sotto non è stato pubblicato e un controllo in questa pagina non lo ha visto - attivare la firma prima di allora firmerebbe la posta con una chiave che il mondo non può cercare.</value>
+  </data>
+  <data name="No HELO name was recorded" xml:space="preserve">
+    <value>Non è stato registrato alcun nome HELO</value>
   </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>Nessun intervallo IP richiede il TLS prima dell'autenticazione. Quell'impostazione si trova su ciascun intervallo IP anziché insieme al resto del TLS, ed è per questo che è facile non averla mai notata: è l'unico controllo che rifiuta una password in chiaro indipendentemente da ciò che la porta consente.</value>
@@ -6057,6 +6145,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Serve solo quando il file della chiave è cifrato: con una chiave cifrata e nessuna passphrase, la chiave non viene caricata (errore del server 6170) e ogni porta TLS che usa questo certificato non si avvia - la posta in ingresso su quelle porte si ferma. La passphrase è un segreto: viene memorizzata protetta sul server e non viene mai più mostrata qui, e salvarne una nuova sostituisce quella memorizzata in precedenza.</value>
   </data>
+  <data name="Only the first {0} characters are shown." xml:space="preserve">
+    <value>Sono mostrati solo i primi {0} caratteri.</value>
+  </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Solo questo computer può connettersi, quindi nessuna password attraversa una rete.</value>
   </data>
@@ -6548,6 +6639,12 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>L'anteprima non cambia nulla e riporta esattamente ciò che farebbe Applica - condividono un unico decisore nel server, quindi un'anteprima non può descrivere un'azione che l'applicazione non compirebbe. Applica resta disattivato finché non viene eseguita un'anteprima con le opzioni così come sono.</value>
   </data>
+  <data name="Preview of &quot;{0}&quot;" xml:space="preserve">
+    <value>Anteprima di «{0}»</value>
+  </data>
+  <data name="Preview the text" xml:space="preserve">
+    <value>Visualizza l'anteprima del testo</value>
+  </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Prima l'anteprima, poi applica</value>
   </data>
@@ -6830,6 +6927,18 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Re_voca / ripristina</value>
   </data>
+  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Letto a MAIL FROM: un dominio nero viene rifiutato con 550 prima che venga eseguito qualsiasi altro controllo, per ogni destinatario. La voce copre il dominio dell'organizzazione e tutto ciò che sta sotto di esso.</value>
+  </data>
+  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Letto a MAIL FROM: un dominio bianco non viene sottoposto al greylisting, e non viene rifiutato né trattenuto in base al punteggio spam, mentre ogni test continua a essere eseguito e la soglia di marcatura continua a marcare. La voce copre il dominio dell'organizzazione e tutto ciò che sta sotto di esso.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
+    <value>Letto alla consegna, per ogni destinatario: la posta di un mittente bloccato viene trattenuta per lui dove la quarantena è attiva, e contrassegnata come spam dove non lo è.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
+    <value>Letto alla consegna, per ogni destinatario: la posta di un mittente consentito viene consegnata senza contrassegno, e le soglie di spam proprie degli account non vengono eseguite. Un messaggio che il punteggio spam a livello di server trattiene durante la conversazione SMTP resta trattenuto; è la lista dei domini a fermare questo.</value>
+  </data>
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Leggi i rapporti di consegna che arrivano per i mittenti di questo server</value>
   </data>
@@ -7074,8 +7183,20 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Inoltro verso un server upstream, intervalli tra i nuovi tentativi, gestione dei bounce e cosa succede alla posta locale.</value>
   </data>
-  <data name="Released. It has been delivered to the recipients it was addressed to." xml:space="preserve">
-    <value>Rilasciato. È stato consegnato ai destinatari a cui era indirizzato.</value>
+  <data name="Release" xml:space="preserve">
+    <value>Rilascia</value>
+  </data>
+  <data name="Release the checked messages" xml:space="preserve">
+    <value>Rilascia i messaggi selezionati</value>
+  </data>
+  <data name="Release this group" xml:space="preserve">
+    <value>Rilascia questo gruppo</value>
+  </data>
+  <data name="Released 1 message to its recipients." xml:space="preserve">
+    <value>1 messaggio rilasciato ai destinatari.</value>
+  </data>
+  <data name="Released {0} messages to their recipients." xml:space="preserve">
+    <value>{0} messaggi rilasciati ai destinatari.</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Ricorda questo numero di password precedenti (0 = nessuno storico)</value>
@@ -8076,6 +8197,9 @@ Continuare?</value>
   <data name="Sender authentication" xml:space="preserve">
     <value>Autenticazione del mittente</value>
   </data>
+  <data name="Sender domain" xml:space="preserve">
+    <value>Dominio del mittente</value>
+  </data>
   <data name="Sender name, as recipients see it" xml:space="preserve">
     <value>Nome del mittente, come lo vedono i destinatari</value>
   </data>
@@ -8394,6 +8518,9 @@ Riavviarlo ora?</value>
   </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Mostra il gruppo {0} nella navigazione</value>
+  </data>
+  <data name="Show the headers" xml:space="preserve">
+    <value>Mostra le intestazioni</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Mostra cosa farebbe una sincronizzazione, senza cambiare nulla</value>
@@ -9042,6 +9169,9 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Non è stato possibile leggere l'elenco delle porte TCP/IP - {0}</value>
   </data>
+  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
+    <value>Il do_minio del nome HELO, nella lista bianca e nera dei domini</value>
+  </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>Qui si impostano le versioni di TLS accettate e le suite di cifratura.</value>
   </data>
@@ -9454,6 +9584,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>La corrispondenza non può essere verificata finché entrambi i file non sono presenti e leggibili.</value>
   </data>
+  <data name="The message has no text to show." xml:space="preserve">
+    <value>Il messaggio non ha testo da mostrare.</value>
+  </data>
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>Il messaggio viene accettato - il mittente ha ricevuto un 250 - è visibile nella coda di consegna, e non parte mai.</value>
   </data>
@@ -9662,6 +9795,12 @@ Aggiungerlo comunque?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>La sezione qui sotto è compilata; attivando l'interruttore qui sopra entrerebbe in funzione.</value>
+  </data>
+  <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
+    <value>L'in_dirizzo del mittente, nell'elenco consentiti e bloccati del server</value>
+  </data>
+  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
+    <value>Il d_ominio del mittente, nella lista bianca e nera dei domini</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Il server mittente si connette, invia il messaggio e poi attende. Dal suo lato si vede un timeout dopo la trasmissione del corpo del messaggio - Postfix segnala "timed out while sending end of data". Il messaggio non compare mai nella propria coda.</value>
@@ -9989,6 +10128,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Questo server ha {0} account, quindi è in servizio: un profilo viene proposto a un server nuovo, e ciascuno dei quattro può comunque essere confrontato con questo.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
+    <value>Questo server è più vecchio del Control Panel e non può mostrare le intestazioni o il testo di un messaggio trattenuto. Aggiorna il server.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Questo server è più vecchio del Control Panel e non può mettere nella lista bianca o nella lista nera dalla quarantena. Aggiorna il server.</value>
+  </data>
   <data name="This server now" xml:space="preserve">
     <value>Questo server ora</value>
   </data>
@@ -10241,6 +10386,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="Unavailable" xml:space="preserve">
     <value>Non disponibile</value>
   </data>
+  <data name="Unfold this group" xml:space="preserve">
+    <value>Espandi questo gruppo</value>
+  </data>
   <data name="Unknown" xml:space="preserve">
     <value>Sconosciuto</value>
   </data>
@@ -10439,6 +10587,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Te_sto dell'avviso (vuoto = messaggio del server; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
+  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>Attenzione: {0} è un suffisso pubblico. Una voce per esso copre ogni dominio registrato sotto di esso, il che quasi mai è ciò che si intende.</value>
+  </data>
   <data name="Warnings" xml:space="preserve">
     <value>Avvisi</value>
   </data>
@@ -10559,6 +10710,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="What to do: " xml:space="preserve">
     <value>Che cosa fare: </value>
   </data>
+  <data name="What will be written:" xml:space="preserve">
+    <value>Cosa verrà scritto:</value>
+  </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Ciò che il server farebbe comunque - MTA-STS e DANE compresi</value>
   </data>
@@ -10667,6 +10821,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="Which domain to synchronise" xml:space="preserve">
     <value>Quale dominio sincronizzare</value>
   </data>
+  <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
+    <value>Quale lista? Viene scritta una voce per ogni mittente o dominio distinto, e poi si agisce su ogni messaggio. Un messaggio per cui non si può creare una voce viene lasciato dove si trova.</value>
+  </data>
   <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
     <value>Quali file di registro il server scrive, quanto dettaglio contengono e per quanto tempo vengono conservati.</value>
   </data>
@@ -10711,6 +10868,27 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Bianca: niente greylisting, nessun rifiuto per il punteggio antispam</value>
+  </data>
+  <data name="Whitelist and release" xml:space="preserve">
+    <value>Metti nella lista bianca e rilascia</value>
+  </data>
+  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
+    <value>Metti nella lista bianca i mittenti dei messaggi selezionati, poi rilasciali</value>
+  </data>
+  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
+    <value>Metti nella lista bianca il mittente di questo messaggio, poi rilascialo</value>
+  </data>
+  <data name="Whitelist the sender, then release" xml:space="preserve">
+    <value>Metti il mittente nella lista bianca, poi rilascia</value>
+  </data>
+  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
+    <value>Metti nella lista bianca i mittenti di {0} messaggi, poi rilasciali</value>
+  </data>
+  <data name="Whitelist this group's senders, then release" xml:space="preserve">
+    <value>Metti nella lista bianca i mittenti di questo gruppo, poi rilascia</value>
+  </data>
+  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Aggiunto alla lista bianca. Voci nell'elenco: {0}. Messaggi rilasciati: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Chi</value>
@@ -10900,6 +11078,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Metodo di bind (BindMethod)</value>
+  </data>
+  <data name="_Blacklist and delete" xml:space="preserve">
+    <value>Me_tti nella lista nera ed elimina</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>Ca_nonicalizzazione del corpo</value>
@@ -11102,6 +11283,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_List address" xml:space="preserve">
     <value>Indirizzo della _lista</value>
   </data>
+  <data name="_List it anyway" xml:space="preserve">
+    <value>Inserir_lo comunque</value>
+  </data>
   <data name="_Local to local" xml:space="preserve">
     <value>Da _locale a locale</value>
   </data>
@@ -11234,9 +11418,6 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Host di relay (vuoto = il relayer valido per l'intero server)</value>
   </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Rilascia</value>
-  </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Ricarica</value>
   </data>
@@ -11348,6 +11529,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Avvisa il p_roprietario al (% del limite; -1 = valore del server, 0 = mai)</value>
   </data>
+  <data name="_Whitelist and release" xml:space="preserve">
+    <value>Metti n_ella lista bianca e rilascia</value>
+  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Chi può inviare a questa lista</value>
   </data>
@@ -11398,6 +11582,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="an uppercase letter" xml:space="preserve">
     <value>una lettera maiuscola</value>
+  </data>
+  <data name="and {0} more" xml:space="preserve">
+    <value>e altri {0}</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>un algoritmo qualsiasi che questo server sappia verificare - implementa soltanto RS256, ES256 e HS256, e "{0}" non ne indica nessuno, quindi ogni token viene rifiutato qualunque materiale di chiave sia installato</value>
@@ -11670,6 +11857,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="install a certificate" xml:space="preserve">
     <value>installare un certificato</value>
   </data>
+  <data name="is already on the list" xml:space="preserve">
+    <value>è già nella lista</value>
+  </data>
   <data name="is anyone connected" xml:space="preserve">
     <value>c'è qualcuno connesso</value>
   </data>
@@ -11681,6 +11871,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="is not set" xml:space="preserve">
     <value>non è impostato</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to allow" xml:space="preserve">
+    <value>è nella lista al contrario, e verrà cambiato in consentito</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to block" xml:space="preserve">
+    <value>è nella lista al contrario, e verrà cambiato in bloccato</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>è impostato su "{0}" nel file INI</value>
@@ -12183,6 +12379,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="why is my spam filter not catching anything" xml:space="preserve">
     <value>perché il mio filtro antispam non intercetta nulla</value>
   </data>
+  <data name="will be added" xml:space="preserve">
+    <value>verrà aggiunto</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>scrivere il registro su un database</value>
   </data>
@@ -12204,8 +12403,14 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inattivo)</value>
   </data>
+  <data name="{0} + {1} more" xml:space="preserve">
+    <value>{0} + {1} altri</value>
+  </data>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} - account</value>
+  </data>
+  <data name="{0} - {1}" xml:space="preserve">
+    <value>{0} - {1}</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} record DNS sono ancora in verifica in background; questo riepilogo si aggiornerà.</value>
@@ -12384,6 +12589,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} message(s) waiting for delivery." xml:space="preserve">
     <value>{0} messaggi in attesa di consegna.</value>
   </data>
+  <data name="{0} messages" xml:space="preserve">
+    <value>{0} messaggi</value>
+  </data>
+  <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
+    <value>{0} messaggi non possono essere elencati e saranno lasciati dove si trovano. Il primo motivo: {1}</value>
+  </data>
   <data name="{0} messages held." xml:space="preserve">
     <value>{0} messaggi trattenuti.</value>
   </data>
@@ -12551,6 +12762,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0}, checked {1}." xml:space="preserve">
     <value>{0}, controllato {1}.</value>
+  </data>
+  <data name="{0}, from {1}, score {2}" xml:space="preserve">
+    <value>{0}, da {1}, punteggio {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, punteggio {2}. {3}</value>

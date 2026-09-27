@@ -92,7 +92,7 @@ namespace hMailServer.ControlPanel.Services
 
             // Spam and virus filtering.
             ["spamoverview"] = new HelpTarget("SmtpPolicy.md"),
-            ["quarantine"] = new HelpTarget("SenderListsAndDigests.md", "The quarantine digest"),
+            ["quarantine"] = new HelpTarget("SenderListsAndDigests.md", "Reviewing the quarantine"),
             ["antispam"] = new HelpTarget("SmtpPolicy.md"),
             ["surbl"] = new HelpTarget("SmtpPolicy.md"),
             ["dnsbl"] = new HelpTarget("ReputationWatch.md", "Which lists"),

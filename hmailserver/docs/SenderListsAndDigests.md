@@ -11,6 +11,11 @@ them. Three features that are one idea seen from three sides:
 * **The quarantine digest** — one message to each account listing what the
   quarantine is holding for it, with a link that delivers each message.
 
+And the administrator's side of the same queue: **reviewing the quarantine**,
+where held messages are grouped, released, deleted, and their senders allowed or
+blocked on these lists or on the domain white and black list, one message or a
+whole burst at a time.
+
 They are one table (`hm_senderlist`, schema 6046) with a scope on each row, one
 matching rule, one precedence and one REST shape. Nothing here is on until
 somebody adds an entry or switches a domain's digest on.
@@ -161,6 +166,11 @@ getting through. Rules written that way before are left exactly where they are.)
 Expiry can be set over REST and in the Deck; the Control Panel and the webmail
 do not offer it yet.
 
+The server's list is also written from the quarantine: **Whitelist** and
+**Blacklist** on a held message, a group or the checked messages put the sender's
+address on it as allowed or blocked, and then release or delete (see
+[Reviewing the quarantine](#reviewing-the-quarantine)).
+
 One thing writes to the server's list by itself: a **spam trap**. A message to
 an address that was never real puts its envelope sender on the server's block
 list with an expiry, under a reason naming the trap and the address it came
@@ -193,6 +203,147 @@ account holding a role reads a list with `view_configuration`, writes a domain's
 with `manage_accounts` in that domain and writes the server's with
 `manage_settings`: a domain administrator keeps its own domains' lists, and an
 auditor reads every list and writes none. See [Roles.md](Roles.md).
+
+Reviewing the quarantine
+------------------------
+
+The Control Panel's **Quarantine** page and the Deck's **Quarantine** view are the
+review queue: every message the server held rather than delivered, newest first,
+at most the thousand newest over REST and the five hundred newest over COM.
+Quarantining is off until `QuarantineEnabled` is on in `hMailServer.ini`; until
+then spam over the delete threshold is refused during the SMTP conversation and
+nothing is held.
+
+### What each row shows
+
+| Column | What it is |
+|---|---|
+| **Held** | When it was held. |
+| **HELO** | The HELO or EHLO name the client gave in the SMTP session that brought the message in, as it gave it (schema 6105, `hm_quarantine.quarantinehelo`). A message held during the session records the session's own name; one held later, at delivery - a rule, a block list above, an account's own spam threshold, the sandbox, impersonation protection - takes the name from the `Received` header this server wrote when it accepted the message, and only from this server's own header, never from one another server wrote. Empty for a message held before 6105, for a client that gave no HELO, and for a message that did not arrive over SMTP. |
+| **Sender** | The envelope sender; `<>` is the null sender. A long address ends in an ellipsis and its tooltip is the whole of it. |
+| **Recipients** | The first envelope recipient and how many more; the tooltip lists them all. |
+| **Score** | The spam score it reached; 0 for a hold that was not a score's (a rule, a block list). |
+| **Subject** | The subject, read from the held file. |
+
+Why it was held is the row's tooltip in the Control Panel and a line under the
+subject in the Deck. Every column sorts from its header; a sort orders the
+messages **inside** each group and leaves the groups where they are.
+
+The icon before the HELO name opens the message's **headers**, and the icon before
+the subject a **plain-text preview**: its text part, decoded, or when it has none
+its HTML part with the markup, style sheets and scripts taken out. Nothing is
+rendered as HTML, anywhere. The headers are cut at 65,536 characters and the
+preview at 16,384, and each says so when it was cut. If those and the columns are
+not enough to decide, release the message to the person it was addressed to rather
+than guess.
+
+### Groups
+
+**Group by** folds the rows under their **sender domain** (the default), their
+**HELO domain**, or **None**. The domain is the organization's - the registrable
+domain by the Public Suffix List, lower-cased - so `bounces.notify.example` and
+`notify.example` are one group, and a Microsoft 365 connector's
+`mail.protection.outlook.com` HELO names are all `outlook.com`. The server works
+it out (`sender_domain` and `helo_domain` over REST, `SenderDomain` and
+`HeloDomain` over COM) so that every page groups a message the same way. Messages
+with no sender domain (the null sender) or no HELO domain (none recorded, or an
+address literal) are one group of their own. The group whose newest message is
+newest comes first. A group's row folds and unfolds; folding hides its messages
+and keeps their checks.
+
+### The four actions
+
+Every message, every group and the header carry the same four icons:
+
+| Icon | On a message | On a group | In the header |
+|---|---|---|---|
+| Green tick | Release it to its recipients | Release every message in the group | Release every checked message |
+| Red cross | Delete it | Delete the group | Delete the checked messages |
+| Open list with green lines | **Whitelist** its sender, then release it | The same for each distinct sender or domain in the group | The same for the checked messages |
+| Dark list with red lines | **Blacklist** its sender, then delete it | The same | The same |
+
+The box before each row checks it; a group's box checks every message in it,
+folded or not, and shows a dash when only some are; the header's box checks
+everything. The header's icons act on every checked message; with nothing
+checked they say so and do nothing.
+
+**Delete asks once**, Yes or No, with **No** as the default for Enter and Escape
+in the Control Panel and in the Deck (whose dialog is its own, because the
+browser's `confirm()` answers OK to Enter). The sender was told `250`, so nothing
+will retry and there is no other copy. A release is not asked about.
+
+**Whitelist and blacklist ask which list**, and write one of the two that already
+exist - never a third:
+
+| Choice | What is written | Read when | What it does |
+|---|---|---|---|
+| **The sender's address** (the default) | The address on the **server's allow and block list** (`hm_senderlist`, above) | At delivery, for every recipient | Allowed: delivered unmarked, and the accounts' own thresholds do not run. Blocked: held for the recipient where the quarantine is on, marked where it is not. |
+| **The domain** | `.example.com` - the organization's domain and everything beneath it - on the **domain white and black list** ([SmtpPolicy.md](SmtpPolicy.md)), matched on the envelope sender's domain; when the page is grouped by **HELO domain**, the HELO name's organization instead, matched on the HELO name | At `MAIL FROM` | White: not greylisted, not refused or held on the spam score. Black: refused with `550` before anything else runs. |
+
+The address is the narrow choice and the default. It has one limit worth knowing:
+the server's allow list is read at delivery, so a message whose **server-wide**
+score reaches the delete threshold during the SMTP conversation is held there
+before the list is read. The domain white list is the one that stops that.
+
+Before anything is written, the dialog asks the server what the choice would
+write (a dry run) and lists it: one entry per distinct sender or domain, whether
+each is new, already there, or on the list the other way (an entry already there
+is changed to this action rather than duplicated), and the messages no entry can
+be made for - the null sender, no HELO recorded, an address literal - which are
+then left where they are. A domain that is itself a **public suffix** (`co.uk`,
+a one-label HELO name such as `localhost`, a name from the list's private section
+such as `github.io`) would cover every domain registered beneath it, so the
+dialog names it and writes it only after a box is ticked. There is no list of
+free-mail providers in the server to warn about `gmail.com` and the like; that is
+what the default, the sender's address, is for. Blacklist then deletes, so in its
+dialog Cancel has the keyboard.
+
+The entries are written first and the messages acted on after, so a message whose
+entry could not be written - the server's list full at a thousand entries, a
+database error - is left in the quarantine with the reason, rather than released
+with its sender never allowed. An entry written from here carries the reason
+*Added from the quarantine review.* and is in the audit trail as any list entry is.
+
+**Remove expired** deletes now what the retention sweep would (everything held
+longer than `QuarantineRetentionDays`; 0 keeps everything). **Refresh** reads the
+queue again. **Digest settings** is the two settings below: a dialog in the
+Control Panel, the Settings view filtered to them in the Deck.
+
+### REST and COM
+
+```
+GET  /api/v1/quarantine                 each message: id, sender, recipients, subject,
+                                        reason, score, size, created, helo,
+                                        sender_domain, helo_domain
+POST /api/v1/quarantine/bulk            {"ids": [12, 13], "action": "allow",
+                                         "list": "domain", "domain_from": "helo",
+                                         "dry_run": false, "confirm_public_suffix": false}
+POST /api/v1/quarantine/expire          {"removed": 3, "retention_days": 30}
+GET  /api/v1/quarantine/{id}/headers    {"id", "headers", "truncated", "limit"}
+GET  /api/v1/quarantine/{id}/preview    {"id", "text", "truncated", "from_html", "limit"}
+```
+
+`bulk` takes 1 to 1000 ids (an id named twice is acted on once) and `action` -
+`release`, `delete`, `allow` or `block`; `list` (`address` or `domain`) and
+`domain_from` (`sender` or `helo`) go with `allow` and `block` only. It answers
+`200` with `entries` (`value`, `list`, `match_on`, `public_suffix`, `outcome` -
+`added`, `changed` or `unchanged`, or `add`, `change` or `unchanged` for a dry
+run - `error`, `ids`) and `results` (`id`, `ok`, `outcome` - `released` or
+`deleted` - and `error`), with `succeeded` and `failed`; a request that is not one
+is a `400` and changes nothing, and an entry naming a public suffix without
+`confirm_public_suffix` is a `409` naming it and changes nothing.
+
+All five are server-wide and refused for a credential confined to named domains.
+The list and the headers and preview need `view_quarantine`, and the headers and
+preview `view_mailbox` beside it, since they are the mail itself; `bulk` and
+`expire` need `manage_quarantine`, and `allow` and `block` `manage_settings`
+beside it, because they change who is let in for everyone - the same permission
+the two lists' own routes ask for.
+
+Over COM, `Settings.AntiSpam.Quarantine.Bulk(request)` takes and answers the same
+JSON, `DeleteExpired()` is the sweep, and each `QuarantinedMessage` has `Helo`,
+`SenderDomain`, `HeloDomain`, `ReadHeaders()` and `ReadPreview()`. Server
+administrators.
 
 The quarantine digest
 ---------------------

@@ -227,6 +227,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="(no address)" xml:space="preserve">
     <value>(bez adresy)</value>
   </data>
+  <data name="(no domain)" xml:space="preserve">
+    <value>(žádná doména)</value>
+  </data>
   <data name="(no label)" xml:space="preserve">
     <value>(bez popisku)</value>
   </data>
@@ -331,6 +334,12 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 položku odsud nelze zkontrolovat.</value>
+  </data>
+  <data name="1 message" xml:space="preserve">
+    <value>1 zpráva</value>
+  </data>
+  <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
+    <value>Pro 1 zprávu nelze zapsat záznam; zůstane tam, kde je: {0}</value>
   </data>
   <data name="1 message held." xml:space="preserve">
     <value>1 pozdržená zpráva.</value>
@@ -1707,6 +1716,27 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Black: refused at MAIL FROM" xml:space="preserve">
     <value>Černá: odmítnuto při MAIL FROM</value>
   </data>
+  <data name="Blacklist and delete" xml:space="preserve">
+    <value>Zařadit na černou listinu a odstranit</value>
+  </data>
+  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
+    <value>Zařadit odesílatele zaškrtnutých zpráv na černou listinu a poté je odstranit</value>
+  </data>
+  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
+    <value>Zařadit odesílatele této zprávy na černou listinu a poté ji odstranit</value>
+  </data>
+  <data name="Blacklist the sender, then delete" xml:space="preserve">
+    <value>Zařadit odesílatele na černou listinu a poté odstranit</value>
+  </data>
+  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>Zařadit odesílatele {0} zpráv na černou listinu a poté je odstranit</value>
+  </data>
+  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
+    <value>Zařadit odesílatele této skupiny na černou listinu a poté odstranit</value>
+  </data>
+  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Zařazeno na černou listinu. Záznamů na listině: {0}. Odstraněných zpráv: {1}.</value>
+  </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>Blokační seznamy, proti kterým se kontroluje připojující se IP adresa.</value>
   </data>
@@ -1962,6 +1992,12 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Zkontrolovat politiku (HTTPS)</value>
   </data>
+  <data name="Check every message" xml:space="preserve">
+    <value>Zaškrtnout každou zprávu</value>
+  </data>
+  <data name="Check every message from {0}" xml:space="preserve">
+    <value>Zaškrtnout každou zprávu od {0}</value>
+  </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Zkontrolovat akt_ualizace</value>
   </data>
@@ -1977,11 +2013,17 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Zkontrolujte, že rozsah pokrývající celý internet nepovoluje doručování na externí účty.</value>
   </data>
+  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
+    <value>Nejprve zaškrtněte zprávy: ikony v záhlaví působí na každou zaškrtnutou zprávu.</value>
+  </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Ve frontě najdete chybu, kterou vzdálený server ohlásil.</value>
   </data>
   <data name="Check the server is healthy" xml:space="preserve">
     <value>Zkontrolovat, že je server v pořádku</value>
+  </data>
+  <data name="Check this message" xml:space="preserve">
+    <value>Zaškrtnout tuto zprávu</value>
   </data>
   <data name="Check whether the {0} record is published in DNS" xml:space="preserve">
     <value>Zkontrolovat, zda je záznam {0} publikován v DNS</value>
@@ -2975,6 +3017,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Odstranit alias {0}?</value>
   </data>
+  <data name="Delete the checked messages" xml:space="preserve">
+    <value>Odstranit zaškrtnuté zprávy</value>
+  </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Odstranit distribuční seznam {0}?</value>
   </data>
@@ -2998,11 +3043,24 @@ Tím se trvale odstraní {1}, každá zpráva v nich uložená a všechny aliasy
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Odstranit vybraný certifikát</value>
   </data>
+  <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Trvale odstranit {0} zaškrtnutých zpráv?
+
+Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jiná kopie neexistuje.</value>
+  </data>
+  <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Trvale odstranit {0} zpráv od {1}?
+
+Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jiná kopie neexistuje.</value>
+  </data>
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Odstranit vazbu portu {0} {1}?</value>
   </data>
   <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
     <value>Odstranit toto heslo aplikace? Klient, který ho používá, se okamžitě přestane připojovat.</value>
+  </data>
+  <data name="Delete this group" xml:space="preserve">
+    <value>Odstranit tuto skupinu</value>
   </data>
   <data name="Delete this message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Trvale odstranit tuto zprávu?
@@ -3023,6 +3081,12 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Smazáno</value>
+  </data>
+  <data name="Deleted 1 message." xml:space="preserve">
+    <value>Odstraněna 1 zpráva.</value>
+  </data>
+  <data name="Deleted {0} messages." xml:space="preserve">
+    <value>Odstraněno {0} zpráv.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Odstranění domény odstraní účty v ní. Nejdřív zkontrolujte aliasy a seznamy, které na ni ukazují.</value>
@@ -3851,6 +3915,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Zapsat každou přijatou zprávu na disk před potvrzením (trvanlivé, pomalejší)</value>
   </data>
+  <data name="Fold this group" xml:space="preserve">
+    <value>Sbalit tuto skupinu</value>
+  </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Oddělovač hierarchie složek</value>
   </data>
@@ -4016,8 +4083,14 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Greylisting white list" xml:space="preserve">
     <value>Seznam povolených pro greylisting</value>
   </data>
+  <data name="Gro_up by" xml:space="preserve">
+    <value>Sesk_upit podle</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Skupina</value>
+  </data>
+  <data name="Group by" xml:space="preserve">
+    <value>Seskupit podle</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Název skupiny</value>
@@ -4025,8 +4098,14 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Groups" xml:space="preserve">
     <value>Skupiny</value>
   </data>
+  <data name="HELO" xml:space="preserve">
+    <value>HELO</value>
+  </data>
   <data name="HELO check score" xml:space="preserve">
     <value>Skóre kontroly HELO</value>
+  </data>
+  <data name="HELO domain" xml:space="preserve">
+    <value>Doména HELO</value>
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>Kontrola hostitele HELO</value>
@@ -4084,6 +4163,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Velikost bloku čtení hlaviček (bajty)</value>
+  </data>
+  <data name="Headers of the message from {0}" xml:space="preserve">
+    <value>Záhlaví zprávy od {0}</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Nadpisy</value>
@@ -4644,6 +4726,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Když zůstane prázdné, použije server dodávaný filtr zobrazený šedě – objectCategory na prvním místě, protože je v Active Directory indexován, a sAMAccountName proto, že právě to ukládá karta Adresář u účtu. %u je uživatelské jméno účtu v Active Directory, %d jeho AD doména a %m jeho celá poštovní adresa; všechny tři se před dosazením escapují, takže nepřátelské přihlašovací jméno nemůže filtr přepsat. Filtr, který odpovídá více než jedné položce, záměrně neověří nikoho.</value>
+  </data>
+  <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
+    <value>Ponecháno tam, kde bylo: {0}. První důvod: {1}</value>
   </data>
   <data name="Length is the requirement that buys the most, and the one people mind least." xml:space="preserve">
     <value>Délka je požadavek, který přináší nejvíc, a zároveň ten, který lidem vadí nejméně.</value>
@@ -5211,8 +5296,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Zprávy, které server dokončil, za minutu, vzorkováno každé 2 sekundy.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final." xml:space="preserve">
-    <value>Zprávy, které by server jinak odmítl, pozdržené, aby se na ně někdo podíval. Odesílateli bylo u každé z nich řečeno, že byla přijata, takže sama od sebe už znovu nepřijde: uvolněním se doručí a smazání je konečné.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
+    <value>Zprávy, které by server jinak odmítl, zadržené, aby se na ně někdo mohl podívat. Odesílateli každé z nich bylo řečeno, že byla přijata, takže nic nedorazí znovu samo od sebe: uvolnění jednu doručí a odstranění je konečné. Ikony působí na jednu zprávu, na skupinu, nebo - v záhlaví - na každou zaškrtnutou zprávu.</value>
   </data>
   <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
     <value>Zprávy do velikosti {0} kontroluje {1}; cokoli většího se doručí zcela bez kontroly</value>
@@ -5438,6 +5523,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
     <value>Pro {0} zatím není nastaven žádný DKIM klíč. Vygenerujte jej zde: soukromý klíč se uloží do souboru dle vaší volby na tomto počítači, selektor a soubor klíče se uloží na doméně a podepisování zůstane VYPNUTÉ, dokud nebude publikován DNS záznam níže a dokud jej neuvidí kontrola na této stránce – zapnout podepisování dříve by znamenalo podepisovat poštu klíčem, který si svět nemůže vyhledat.</value>
+  </data>
+  <data name="No HELO name was recorded" xml:space="preserve">
+    <value>Nebyl zaznamenán žádný název HELO</value>
   </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>Žádný IP rozsah nevyžaduje TLS před ověřením. Toto nastavení je u každého IP rozsahu, ne u zbytku TLS, a proto je snadné je nikdy nevidět: je to jediný ovládací prvek, který odmítne heslo v otevřeném textu bez ohledu na to, co port povoluje.</value>
@@ -6057,6 +6145,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Potřebné pouze tehdy, když je soubor klíče šifrovaný: se šifrovaným klíčem a bez přístupového hesla se klíč nenačte (chyba serveru 6170) a žádný TLS port používající tento certifikát se nespustí – příchozí pošta na těchto portech se zastaví. Přístupové heslo je tajemství: na serveru je uloženo chráněné, zde se už nikdy znovu nezobrazí a uložení nového nahradí to, co bylo uloženo dříve.</value>
   </data>
+  <data name="Only the first {0} characters are shown." xml:space="preserve">
+    <value>Zobrazeno je jen prvních {0} znaků.</value>
+  </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Připojit se smí jen tento počítač, takže žádné heslo nepřechází sítí.</value>
   </data>
@@ -6548,6 +6639,12 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>Náhled nic nemění a hlásí přesně to, co by Použít udělalo – na serveru sdílejí jednoho rozhodovatele, takže náhled nemůže popsat akci, kterou by použití neprovedlo. Použít zůstává vypnuté, dokud neproběhne náhled s volbami v jejich aktuálním stavu.</value>
   </data>
+  <data name="Preview of &quot;{0}&quot;" xml:space="preserve">
+    <value>Náhled „{0}“</value>
+  </data>
+  <data name="Preview the text" xml:space="preserve">
+    <value>Náhled textu</value>
+  </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Náhled, poté použít</value>
   </data>
@@ -6830,6 +6927,18 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Odvolat / obnovit</value>
   </data>
+  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Načteno při MAIL FROM: černá doména je odmítnuta kódem 550 dříve, než proběhne cokoli dalšího, pro každého příjemce. Záznam pokrývá doménu organizace a vše pod ní.</value>
+  </data>
+  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Načteno při MAIL FROM: bílá doména není podrobena greylistingu ani odmítnuta či zadržena kvůli skóre spamu, zatímco každý test se přesto provede a práh označení stále označuje. Záznam pokrývá doménu organizace a vše pod ní.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
+    <value>Načteno při doručování, pro každého příjemce: pošta blokovaného odesílatele je pro něj zadržena tam, kde je karanténa zapnutá, a označena jako spam tam, kde není.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
+    <value>Načteno při doručování, pro každého příjemce: pošta povoleného odesílatele je doručena bez označení a vlastní prahy spamu účtů se neuplatní. Zpráva, kterou celoserverové skóre spamu zadrží během SMTP komunikace, zůstává zadržena; zastavuje to seznam domén.</value>
+  </data>
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Číst zprávy o doručení, které přicházejí pro odesílatele tohoto serveru</value>
   </data>
@@ -7074,8 +7183,20 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Relay přes nadřazený server, intervaly opakování, zacházení s bounce zprávami a co se děje s místní poštou.</value>
   </data>
-  <data name="Released. It has been delivered to the recipients it was addressed to." xml:space="preserve">
-    <value>Uvolněno. Bylo doručeno příjemcům, kterým bylo adresováno.</value>
+  <data name="Release" xml:space="preserve">
+    <value>Uvolnit</value>
+  </data>
+  <data name="Release the checked messages" xml:space="preserve">
+    <value>Uvolnit zaškrtnuté zprávy</value>
+  </data>
+  <data name="Release this group" xml:space="preserve">
+    <value>Uvolnit tuto skupinu</value>
+  </data>
+  <data name="Released 1 message to its recipients." xml:space="preserve">
+    <value>Uvolněna 1 zpráva jejím příjemcům.</value>
+  </data>
+  <data name="Released {0} messages to their recipients." xml:space="preserve">
+    <value>Uvolněno {0} zpráv jejich příjemcům.</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Pamatovat si tento počet předchozích hesel (0 = žádná historie)</value>
@@ -8076,6 +8197,9 @@ Pokračovat?</value>
   <data name="Sender authentication" xml:space="preserve">
     <value>Ověřování odesílatele</value>
   </data>
+  <data name="Sender domain" xml:space="preserve">
+    <value>Doména odesílatele</value>
+  </data>
   <data name="Sender name, as recipients see it" xml:space="preserve">
     <value>Jméno odesílatele, jak je uvidí příjemci</value>
   </data>
@@ -8394,6 +8518,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Zobrazit skupinu {0} v navigaci</value>
+  </data>
+  <data name="Show the headers" xml:space="preserve">
+    <value>Zobrazit záhlaví</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Ukázat, co by synchronizace udělala, aniž by se cokoli změnilo</value>
@@ -9042,6 +9169,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Seznam portů TCP/IP nelze načíst – {0}</value>
   </data>
+  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
+    <value>_Doména názvu HELO, na bílé a černé listině domén</value>
+  </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>Zde se nastavují přijímané verze TLS a šifrovací sady.</value>
   </data>
@@ -9454,6 +9584,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>Shodu nelze ověřit, dokud nejsou přítomny a čitelné oba soubory.</value>
   </data>
+  <data name="The message has no text to show." xml:space="preserve">
+    <value>Zpráva nemá žádný text k zobrazení.</value>
+  </data>
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>Zpráva je přijata - odesílatel dostal 250 - je vidět v doručovací frontě a nikdy neodejde.</value>
   </data>
@@ -9662,6 +9795,12 @@ Přesto přidat?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Část níže je vyplněná; zaškrtnutí přepínače výše by ji aktivovalo.</value>
+  </data>
+  <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
+    <value>_Adresa odesílatele, na serverovém seznamu povolených a blokovaných</value>
+  </data>
+  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
+    <value>D_oména odesílatele, na bílé a černé listině domén</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>Odesílající server se připojí, pošle zprávu a pak čeká. Z jeho strany vidíte timeout poté, co bylo tělo zprávy odesláno - Postfix hlásí „timed out while sending end of data“. Zpráva se ve vaší frontě nikdy neobjeví.</value>
@@ -9989,6 +10128,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Tento server má {0} účtů, je tedy v provozu: profil se nabízí novému serveru a kterýkoli ze čtyř lze s tímto stále porovnat.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
+    <value>Tento server je starší než Control Panel a nedokáže zobrazit záhlaví ani text zadržené zprávy. Aktualizujte server.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Tento server je starší než Control Panel a nedokáže z karantény zařadit na bílou ani černou listinu. Aktualizujte server.</value>
+  </data>
   <data name="This server now" xml:space="preserve">
     <value>Tento server nyní</value>
   </data>
@@ -10241,6 +10386,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Unavailable" xml:space="preserve">
     <value>Nedostupné</value>
   </data>
+  <data name="Unfold this group" xml:space="preserve">
+    <value>Rozbalit tuto skupinu</value>
+  </data>
   <data name="Unknown" xml:space="preserve">
     <value>Neznámo</value>
   </data>
@@ -10439,6 +10587,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Te_xt upozornění (prázdný = zpráva serveru; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
+  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>Upozornění: {0} je veřejná přípona. Záznam pro ni pokrývá každou doménu registrovanou pod ní, což téměř nikdy není záměr.</value>
+  </data>
   <data name="Warnings" xml:space="preserve">
     <value>Varování</value>
   </data>
@@ -10559,6 +10710,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What to do: " xml:space="preserve">
     <value>Co dělat:</value>
   </data>
+  <data name="What will be written:" xml:space="preserve">
+    <value>Co se zapíše:</value>
+  </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Cokoli by server udělal i tak - včetně MTA-STS a DANE</value>
   </data>
@@ -10667,6 +10821,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which domain to synchronise" xml:space="preserve">
     <value>Kterou doménu synchronizovat</value>
   </data>
+  <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
+    <value>Která listina? Pro každého odlišného odesílatele nebo doménu se zapíše jeden záznam a poté se na každé zprávě provede akce. Zpráva, pro kterou nelze záznam vytvořit, zůstane tam, kde je.</value>
+  </data>
   <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
     <value>Které soubory logu server zapisuje, kolik detailů nesou a jak dlouho se uchovávají.</value>
   </data>
@@ -10711,6 +10868,27 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Bílá: bez greylistingu, bez odmítnutí kvůli antispamovému skóre</value>
+  </data>
+  <data name="Whitelist and release" xml:space="preserve">
+    <value>Zařadit na bílou listinu a uvolnit</value>
+  </data>
+  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
+    <value>Zařadit odesílatele zaškrtnutých zpráv na bílou listinu a poté je uvolnit</value>
+  </data>
+  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
+    <value>Zařadit odesílatele této zprávy na bílou listinu a poté ji uvolnit</value>
+  </data>
+  <data name="Whitelist the sender, then release" xml:space="preserve">
+    <value>Zařadit odesílatele na bílou listinu a poté uvolnit</value>
+  </data>
+  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
+    <value>Zařadit odesílatele {0} zpráv na bílou listinu a poté je uvolnit</value>
+  </data>
+  <data name="Whitelist this group's senders, then release" xml:space="preserve">
+    <value>Zařadit odesílatele této skupiny na bílou listinu a poté uvolnit</value>
+  </data>
+  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Zařazeno na bílou listinu. Záznamů na listině: {0}. Uvolněných zpráv: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Kdo</value>
@@ -10900,6 +11078,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Metoda bindu (BindMethod)</value>
+  </data>
+  <data name="_Blacklist and delete" xml:space="preserve">
+    <value>_Zařadit na černou listinu a odstranit</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>K_anonizace těla</value>
@@ -11102,6 +11283,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_List address" xml:space="preserve">
     <value>Adresa _seznamu</value>
   </data>
+  <data name="_List it anyway" xml:space="preserve">
+    <value>Přesto zapsat na _listinu</value>
+  </data>
   <data name="_Local to local" xml:space="preserve">
     <value>_Místní do místní</value>
   </data>
@@ -11234,9 +11418,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay hostitel (prázdné = použít relayer platný pro celý server)</value>
   </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Uvolnit</value>
-  </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Znovu načíst</value>
   </data>
@@ -11348,6 +11529,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Upozornit _majitele při (% limitu; -1 = hodnota serveru, 0 = nikdy)</value>
   </data>
+  <data name="_Whitelist and release" xml:space="preserve">
+    <value>Zařadit na bílou listinu a _uvolnit</value>
+  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Kdo smí posílat do tohoto seznamu</value>
   </data>
@@ -11398,6 +11582,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="an uppercase letter" xml:space="preserve">
     <value>velké písmeno</value>
+  </data>
+  <data name="and {0} more" xml:space="preserve">
+    <value>a ještě {0}</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>žádný algoritmus, který tento server umí ověřit – implementuje pouze RS256, ES256 a HS256 a „{0}“ neoznačuje žádný z nich, takže každý token je odmítnut bez ohledu na to, jaký klíčový materiál je nainstalován</value>
@@ -11670,6 +11857,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>nainstalovat certifikát</value>
   </data>
+  <data name="is already on the list" xml:space="preserve">
+    <value>je již na listině</value>
+  </data>
   <data name="is anyone connected" xml:space="preserve">
     <value>je někdo připojen</value>
   </data>
@@ -11681,6 +11871,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="is not set" xml:space="preserve">
     <value>není nastaveno</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to allow" xml:space="preserve">
+    <value>je na listině opačně a bude změněno na povolené</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to block" xml:space="preserve">
+    <value>je na listině opačně a bude změněno na blokované</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>je v INI nastaveno na „{0}“</value>
@@ -12183,6 +12379,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="why is my spam filter not catching anything" xml:space="preserve">
     <value>proč můj spamový filtr nic nezachytí</value>
   </data>
+  <data name="will be added" xml:space="preserve">
+    <value>bude přidáno</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>zapisovat log do databáze</value>
   </data>
@@ -12204,8 +12403,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (neaktivní)</value>
   </data>
+  <data name="{0} + {1} more" xml:space="preserve">
+    <value>{0} + ještě {1}</value>
+  </data>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} – účty</value>
+  </data>
+  <data name="{0} - {1}" xml:space="preserve">
+    <value>{0} - {1}</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>Na pozadí se stále kontroluje {0} záznamů DNS; tento souhrn se aktualizuje.</value>
@@ -12384,6 +12589,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} message(s) waiting for delivery." xml:space="preserve">
     <value>{0} zpráv čeká na doručení.</value>
   </data>
+  <data name="{0} messages" xml:space="preserve">
+    <value>{0} zpráv</value>
+  </data>
+  <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
+    <value>Pro {0} zpráv nelze zapsat záznam; zůstanou tam, kde jsou. První důvod: {1}</value>
+  </data>
   <data name="{0} messages held." xml:space="preserve">
     <value>{0} zpráv pozdrženo.</value>
   </data>
@@ -12551,6 +12762,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}, checked {1}." xml:space="preserve">
     <value>{0}, zkontrolováno {1}.</value>
+  </data>
+  <data name="{0}, from {1}, score {2}" xml:space="preserve">
+    <value>{0}, od {1}, skóre {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, skóre {2}. {3}</value>

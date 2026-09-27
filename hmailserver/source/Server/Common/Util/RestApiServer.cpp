@@ -55,6 +55,7 @@
 #include "IniFile.h"
 #endif
 #include "../AntiSpam/QuarantineStore.h"
+#include "../AntiSpam/QuarantineReview.h"
 #include "../AntiSpam/SpamAssassin/SpamAssassinLearner.h"
 #include "../BO/IMAPFolders.h"
 #include "../BO/IMAPFolder.h"
@@ -2454,6 +2455,18 @@ namespace HM
 
          case RouteQuarantineDelete:
             return HandleQuarantineDelete_(route.message_id);
+
+         case RouteQuarantineBulk:
+            return HandleQuarantineBulk_(caller, GetRequestBody_(request));
+
+         case RouteQuarantineExpire:
+            return HandleQuarantineExpire_();
+
+         case RouteQuarantineHeaders:
+            return HandleQuarantineHeaders_(route.message_id);
+
+         case RouteQuarantinePreview:
+            return HandleQuarantinePreview_(route.message_id);
 
          case RouteAliasList:
             return HandleListAliases_(String(route.identifier));
@@ -5574,11 +5587,40 @@ namespace HM
          return;
       }
 
+      // /api/v1/quarantine/bulk and /expire, and /api/v1/quarantine/<id>/headers
+      // and /preview. Words before ids: neither word is an id, so the order is
+      // only for the reader.
+      if (method == "POST" && path == "/api/v1/quarantine/bulk")
+      {
+         route.kind = RouteQuarantineBulk;
+         return;
+      }
+
+      if (method == "POST" && path == "/api/v1/quarantine/expire")
+      {
+         route.kind = RouteQuarantineExpire;
+         return;
+      }
+
       const AnsiString quarantinePrefix = "/api/v1/quarantine/";
 
       if (path.StartsWith(quarantinePrefix))
       {
          AnsiString remainder = path.Mid(quarantinePrefix.GetLength());
+
+         if (method == "GET" && (remainder.EndsWith("/headers") || remainder.EndsWith("/preview")))
+         {
+            const bool headers = remainder.EndsWith("/headers");
+            AnsiString idPart = remainder.Mid(0, remainder.GetLength() - AnsiString(headers ? "/headers" : "/preview").GetLength());
+
+            __int64 quarantineId = 0;
+            if (ParseQueueId(idPart, quarantineId))
+            {
+               route.kind = headers ? RouteQuarantineHeaders : RouteQuarantinePreview;
+               route.message_id = quarantineId;
+               return;
+            }
+         }
 
          if (method == "POST" && remainder.EndsWith("/release"))
          {
@@ -7473,6 +7515,8 @@ namespace HM
       case RouteWarmupDelete:
       case RouteQuarantineRelease:
       case RouteQuarantineDelete:
+      case RouteQuarantineBulk:
+      case RouteQuarantineExpire:
       case RouteIpRangeCreate:
       case RouteIpRangeDelete:
       case RouteListCreate:
@@ -8433,13 +8477,21 @@ namespace HM
       case RouteSandboxHeldDiscard:
          return RolePermission::ManageQueue;
 
-      // What was held back, and why.
+      // What was held back, and why - and what one held message says, which
+      // SecondPermissionFor_ also asks view_mailbox for, since it is the mail.
       case RouteQuarantineList:
+      case RouteQuarantineHeaders:
+      case RouteQuarantinePreview:
          return RolePermission::ViewQuarantine;
 
-      // Releasing held mail, which delivers it, or throwing it away.
+      // Releasing held mail, which delivers it, or throwing it away - one at
+      // a time, many at once, or everything past the retention window. The
+      // bulk route's allow and block also write the server's own lists, which
+      // HandleQuarantineBulk_ asks manage_settings for.
       case RouteQuarantineRelease:
       case RouteQuarantineDelete:
+      case RouteQuarantineBulk:
+      case RouteQuarantineExpire:
          return RolePermission::ManageQuarantine;
 
       // The archive index, and one archived message.
@@ -8934,6 +8986,15 @@ namespace HM
       // is not thereby a role that may read what they carry. The auditor holds
       // both permissions.
       case RouteInboundWebhookDeliveryMessage:
+         permission = RolePermission::ViewMailbox;
+         return true;
+
+      // A held message's headers and its text are the message itself: who
+      // wrote to whom about what, beyond the row the list shows. A role that
+      // may see what was held is not thereby a role that may read it. The
+      // auditor holds both, as do the server's and the domain's administrator.
+      case RouteQuarantineHeaders:
+      case RouteQuarantinePreview:
          permission = RolePermission::ViewMailbox;
          return true;
 
@@ -9439,7 +9500,9 @@ namespace HM
       // mail. The same reasoning gives the same answer.
       // An archive holds every domain on the server, so a credential confined to
       // named domains is no more able to restore one than to take one.
-      if (route.kind == RouteQuarantineList || route.kind == RouteQuarantineRelease || route.kind == RouteQuarantineDelete)
+      if (route.kind == RouteQuarantineList || route.kind == RouteQuarantineRelease || route.kind == RouteQuarantineDelete ||
+          route.kind == RouteQuarantineBulk || route.kind == RouteQuarantineExpire ||
+          route.kind == RouteQuarantineHeaders || route.kind == RouteQuarantinePreview)
       {
          refusalReason = "this credential is restricted to named domains, and the quarantine is server-wide";
          return AuthorizationForbidden;
@@ -11498,8 +11561,12 @@ namespace HM
          if (count > 0)
             body += ",";
 
+         // helo is the name the client gave; sender_domain and helo_domain are
+         // the organizations' domains the review pages group by (the Public
+         // Suffix List's registrable domain), computed here so that every
+         // surface groups a message the same way.
          AnsiString entry;
-         entry.Format("{\"id\":%I64d,\"sender\":\"%hs\",\"recipients\":\"%hs\",\"subject\":\"%hs\",\"reason\":\"%hs\",\"score\":%d,\"size\":%d,\"created\":\"%hs\"}",
+         entry.Format("{\"id\":%I64d,\"sender\":\"%hs\",\"recipients\":\"%hs\",\"subject\":\"%hs\",\"reason\":\"%hs\",\"score\":%d,\"size\":%d,\"created\":\"%hs\",\"helo\":\"%hs\",\"sender_domain\":\"%hs\",\"helo_domain\":\"%hs\"}",
             message.id,
             JsonEscape_(Utf8_(message.sender)).c_str(),
             JsonEscape_(Utf8_(message.recipients)).c_str(),
@@ -11507,7 +11574,10 @@ namespace HM
             JsonEscape_(Utf8_(message.reason)).c_str(),
             message.score,
             message.size,
-            JsonEscape_(Utf8_(message.created)).c_str());
+            JsonEscape_(Utf8_(message.created)).c_str(),
+            JsonEscape_(Utf8_(message.helo)).c_str(),
+            JsonEscape_(Utf8_(QuarantineReview::SenderDomain(message.sender))).c_str(),
+            JsonEscape_(Utf8_(QuarantineReview::HeloDomain(message.helo))).c_str());
 
          body += entry;
          count++;
@@ -11550,6 +11620,107 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"the quarantined message could not be deleted\"}");
 
       return BuildResponse_(200, "{\"deleted\":true}");
+   }
+
+   HttpResponse
+   RestApiServer::HandleQuarantineBulk_(const Caller &caller, const AnsiString &requestBody)
+   {
+      // One action over many held messages, answered per message. The body
+      // is read whole before anything is done, so a request that is not one
+      // changes nothing (AntiSpam/QuarantineReview.h).
+      QuarantineReview::Request request;
+      String error;
+
+      if (!QuarantineReview::ParseRequest(requestBody, request, error))
+         return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+
+      // manage_quarantine let the request in. Allow and block also write the
+      // server's allow and block list or the domain white and black list,
+      // which are the settings' - manage_settings, as their own routes ask -
+      // so a role that may release held mail may not thereby change who is
+      // let in for everyone. A dry run of them reads those lists, and is asked
+      // the same, since it answers what they hold.
+      if (QuarantineReview::WritesAList(request.action) && !RoleManager::Allows(caller.grant, RolePermission::ManageSettings))
+      {
+         return BuildResponse_(403, "{\"error\":\"allow and block write the server's allow and block list or the domain white and black list, "
+                                    "which needs manage_settings; release and delete need manage_quarantine alone\"}");
+      }
+
+      AnsiString answer;
+      const QuarantineReview::Outcome outcome = QuarantineReview::Run(request, answer, error);
+
+      switch (outcome)
+      {
+      case QuarantineReview::OutcomeBadRequest:
+         return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+
+      case QuarantineReview::OutcomeNeedsConfirmation:
+         return BuildResponse_(409, answer);
+
+      default:
+         break;
+      }
+
+      return BuildResponse_(200, answer);
+   }
+
+   HttpResponse
+   RestApiServer::HandleQuarantineExpire_()
+   {
+      // The retention sweep the scheduler runs, now. The window is
+      // QuarantineRetentionDays; 0 keeps everything, and the answer says so
+      // rather than leaving a 0 removed to look like an empty store.
+      const int retentionDays = IniFileSettings::Instance()->GetQuarantineRetentionDays();
+      const int removed = QuarantineStore::DeleteExpired();
+
+      AnsiString body;
+      body.Format("{\"removed\":%d,\"retention_days\":%d}", removed, retentionDays);
+      return BuildResponse_(200, body);
+   }
+
+   HttpResponse
+   RestApiServer::HandleQuarantineHeaders_(__int64 id)
+   {
+      QuarantinedMessage message;
+      if (!QuarantineStore::GetById(id, message))
+         return BuildResponse_(404, "{\"error\":\"quarantined message not found\"}");
+
+      String headers;
+      String error;
+      bool truncated = false;
+
+      if (!QuarantineStore::ReadHeaders(id, headers, truncated, error))
+         return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+
+      // Joined rather than formatted: the header block is up to 64 KiB, and a
+      // formatted buffer is the wrong place to find out how long it may be.
+      AnsiString head;
+      head.Format("{\"id\":%I64d,\"truncated\":%hs,\"limit\":%d,\"headers\":\"",
+         id, truncated ? "true" : "false", (int) QuarantineStore::MaxHeaderCharacters);
+
+      return BuildResponse_(200, head + JsonEscape_(Utf8_(headers)) + "\"}");
+   }
+
+   HttpResponse
+   RestApiServer::HandleQuarantinePreview_(__int64 id)
+   {
+      QuarantinedMessage message;
+      if (!QuarantineStore::GetById(id, message))
+         return BuildResponse_(404, "{\"error\":\"quarantined message not found\"}");
+
+      String text;
+      String error;
+      bool truncated = false;
+      bool fromHtml = false;
+
+      if (!QuarantineStore::ReadPreview(id, text, truncated, fromHtml, error))
+         return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+
+      AnsiString head;
+      head.Format("{\"id\":%I64d,\"truncated\":%hs,\"from_html\":%hs,\"limit\":%d,\"text\":\"",
+         id, truncated ? "true" : "false", fromHtml ? "true" : "false", (int) QuarantineStore::MaxPreviewCharacters);
+
+      return BuildResponse_(200, head + JsonEscape_(Utf8_(text)) + "\"}");
    }
 
    HttpResponse
@@ -19634,9 +19805,13 @@ namespace HM
          "\"/api/v1/queue/{id}\":{\"delete\":{\"summary\":\"Remove a message from the queue\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Held for the sandbox's verdict: {error}, naming /api/v1/sandbox/held/{id}, whose release and discard decide it\"}}}},"
          "\"/api/v1/queue/shaping\":{\"get\":{\"summary\":\"The destinations that asked this server to slow down, and the outbound connections in use\",\"description\":\"backoffs: one per destination in a back-off window - destination (the recipient domain, or the host of a route), since, until, window_minutes, reply (the remote's own words, at most 200 characters), host, deferred (how many deliveries the window has held back) and probing (the window has passed and one delivery is finding out); connections: destinations and tenants, each a map of name to the sessions open right now under a ceiling - a remote domain policy's, max_outbound_connections_per_destination's or max_outbound_connections_per_tenant's. In memory, per process: a restart forgets all of it. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"backoffs and connections\"}}}},"
          "\"/api/v1/queue/shaping/{destination}\":{\"delete\":{\"summary\":\"Clear one destination's back-off, so deliveries to it resume at once\",\"description\":\"For an administrator who has fixed the cause and need not wait for the window. The next slow-down reply opens a new window from the base. Recorded on the audit trail. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Cleared\"},\"404\":{\"description\":\"No back-off is open for that destination\"}}}},"
-         "\"/api/v1/quarantine\":{\"get\":{\"summary\":\"List quarantined messages\",\"description\":\"Server-wide; refused for domain-restricted keys. Bounded to the newest 1000.\",\"responses\":{\"200\":{\"description\":\"Array of quarantined messages\"}}}},"
+         "\"/api/v1/quarantine\":{\"get\":{\"summary\":\"List quarantined messages\",\"description\":\"Server-wide; refused for domain-restricted keys. Bounded to the newest 1000. Each message: id, sender, recipients, subject, reason, score, size, created, helo (the HELO or EHLO name the client gave in the SMTP session that brought it in, as it gave it; empty for a message held before schema 6105 and for one that did not arrive over SMTP), sender_domain and helo_domain (the organizations' domains, the Public Suffix List's registrable domain of the sender's address and of the HELO name, which the review pages group by; empty for the null sender, for no HELO and for an address literal).\",\"responses\":{\"200\":{\"description\":\"Array of quarantined messages\"}}}},"
          "\"/api/v1/quarantine/{id}/release\":{\"post\":{\"summary\":\"Release a quarantined message to its original recipients\",\"description\":\"Delivery is direct rather than back through the filters: a release is an administrator overruling them.\",\"responses\":{\"200\":{\"description\":\"Released\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/quarantine/{id}\":{\"delete\":{\"summary\":\"Delete a quarantined message\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
+         "\"/api/v1/quarantine/bulk\":{\"post\":{\"summary\":\"One review action over many held messages\",\"description\":\"Body: ids (1 to 1000 quarantine ids, required; an id named twice is acted on once), action (release, delete, allow or block, required), and for allow and block: list - address (the default: the sender's address on the server's allow and block list, /api/v1/sender-list, read at delivery for every recipient) or domain (the organization's domain as .example.com, which covers it and everything beneath it, on the domain white and black list, /api/v1/domain-policy-list, read at MAIL FROM) - and with list domain, domain_from - sender (the default: the envelope sender's domain, matched on envelope) or helo (the HELO name's, matched on helo). dry_run (default false) answers what would be written and done and does neither. Allow writes the allow or white entry and then releases; block writes the block or black entry and then deletes; one entry is written per distinct sender or domain in the set, and a list entry already there is rewritten to this action rather than duplicated. A message whose entry could not be written - the null sender, no HELO recorded, an address literal, a full list - is left where it is and its result says why. An entry naming a public suffix (co.uk, a one-label HELO such as localhost) would cover every domain registered beneath it: without confirm_public_suffix true the request is refused with 409 and nothing is changed. Allow and block need manage_settings beside manage_quarantine, since they change who is let in for everyone. Server-wide; refused for domain-restricted keys. A mutating route, so a browser session must also carry X-Requested-With: hMailServer.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"ids\",\"action\"],\"properties\":{\"ids\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}},\"action\":{\"type\":\"string\",\"enum\":[\"release\",\"delete\",\"allow\",\"block\"]},\"list\":{\"type\":\"string\",\"enum\":[\"address\",\"domain\"]},\"domain_from\":{\"type\":\"string\",\"enum\":[\"sender\",\"helo\"]},\"dry_run\":{\"type\":\"boolean\"},\"confirm_public_suffix\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"action, list, domain_from, dry_run, entries (value, list, match_on, public_suffix, outcome - added, changed or unchanged; add, change or unchanged for a dry run - error, ids), results (id, ok, outcome - released or deleted; release or delete for a dry run - error), succeeded, failed\"},\"400\":{\"description\":\"Not a request: ids or action missing or wrong, list or domain_from where they do not go, an unknown field\"},\"403\":{\"description\":\"allow or block without manage_settings, or a domain-restricted key\"},\"409\":{\"description\":\"An entry names a public suffix and confirm_public_suffix was not sent; error, public_suffix (the names). Nothing was changed\"}}}},"
+         "\"/api/v1/quarantine/expire\":{\"post\":{\"summary\":\"Delete every held message past the retention window now\",\"description\":\"The sweep the server runs on its own schedule, run now: everything held longer than QuarantineRetentionDays is deleted with its file. 0 days keeps everything, and nothing is removed. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"removed, retention_days\"}}}},"
+         "\"/api/v1/quarantine/{id}/headers\":{\"get\":{\"summary\":\"The header block of a held message\",\"description\":\"The headers as they are stored, read from the held file, at most limit (65536) characters; truncated says whether they were cut. What a reviewer reads before deciding, without releasing the message. The message itself, so it needs view_mailbox beside view_quarantine. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"id, headers, truncated, limit\"},\"404\":{\"description\":\"Unknown id\"},\"500\":{\"description\":\"The held file is missing or could not be read\"}}}},"
+         "\"/api/v1/quarantine/{id}/preview\":{\"get\":{\"summary\":\"A plain-text preview of a held message\",\"description\":\"Its text part, decoded, or when it has none its HTML part with the markup, style sheets and scripts taken out (from_html true): plain text either way, never HTML to render. At most limit (16384) characters; truncated says whether it was cut. Empty for a message with neither part. The message itself, so it needs view_mailbox beside view_quarantine. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"id, text, truncated, from_html, limit\"},\"404\":{\"description\":\"Unknown id\"},\"500\":{\"description\":\"The held file is missing or could not be parsed\"}}}},"
          "\"/api/v1/tlsa\":{\"get\":{\"summary\":\"Recommended DANE TLSA records for the configured certificates\",\"responses\":{\"200\":{\"description\":\"Array of TLSA records\"}}}},"
          "\"/api/v1/srv\":{\"get\":{\"summary\":\"Recommended client-discovery SRV records (RFC 6186/8314 and Outlook autodiscover) for the enabled listeners\",\"description\":\"One record set per active domain; a domain-restricted key sees only its own domains. Only services that are enabled and not loopback-bound are advertised.\",\"responses\":{\"200\":{\"description\":\"Array of SRV records\"}}}},"
          "\"/api/v1/update\":{\"get\":{\"summary\":\"The update check\'s verdict\",\"description\":\"state: 0 not checked since the service started, 1 up to date, 2 a newer release is available, 3 its installer is downloaded and verified, 4 installing, 5 the last check failed (lastError). availableVersion, releaseName, publishedAt, releaseUrl and installer describe the newer release when there is one. Nothing is fetched by this route; the scheduled check (UpdateCheckEnabled) or POST /api/v1/update/check does that.\",\"responses\":{\"200\":{\"description\":\"The verdict\"}}}},"

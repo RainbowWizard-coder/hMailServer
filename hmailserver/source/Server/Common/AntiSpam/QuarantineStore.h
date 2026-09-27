@@ -51,6 +51,11 @@ namespace HM
       int score = 0;
       int size = 0;
       String created;
+
+      // The HELO or EHLO name the client gave in the SMTP session that brought
+      // the message in (schema 6105). Empty for a message held before that
+      // step, and for one that did not arrive over SMTP.
+      String helo;
    };
 
    class QuarantineStore
@@ -62,6 +67,11 @@ namespace HM
       // anything failed, in which case the caller must fall back to refusing the
       // message: quietly accepting mail that was not actually stored would turn a
       // spam refusal into silent deletion, which is the one outcome nobody wants.
+      //
+      // The HELO name is taken from the Received header this server wrote when
+      // the message arrived (HeloFromReceivedHeader): a hold made at delivery -
+      // a rule, a block list, an account's own threshold, the sandbox - happens
+      // long after the SMTP session has gone.
       static bool Quarantine(std::shared_ptr<Message> message, const String &reason, int score);
 
       // The same, for a caller who already knows where the message file is. The
@@ -72,8 +82,34 @@ namespace HM
       // per-account delete threshold passes that path in here.
       static bool Quarantine(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFile);
 
+      // The hold the SMTP session makes itself, which knows the HELO name the
+      // client gave and records it as it was given.
+      static bool QuarantineFromSession(std::shared_ptr<Message> message, const String &reason, int score, const String &heloName);
+
       static std::vector<QuarantinedMessage> List(int maxCount);
       static bool GetById(__int64 id, QuarantinedMessage &out_message);
+
+      // What a reviewer may read of a held message without releasing it: the
+      // header block as it is stored, and a plain-text preview - the text part,
+      // decoded, or failing that the HTML part with its markup taken out. The
+      // HTML is never rendered anywhere. Each is cut at its limit, and
+      // out_truncated says so. False, with the reason, when there is no such
+      // entry or its file cannot be read.
+      static constexpr int MaxHeaderCharacters = 65536;
+      static constexpr int MaxPreviewCharacters = 16384;
+      static bool ReadHeaders(__int64 id, String &out_headers, bool &out_truncated, String &out_error);
+      static bool ReadPreview(__int64 id, String &out_text, bool &out_truncated, bool &out_fromHtml, String &out_error);
+
+      // The HELO name in the Received header this server writes for a message it
+      // receives over SMTP ("from <helo> (<ptr> [<address>]) by <this computer>
+      // ..."), when localComputerName is the host the header says received it.
+      // Empty for somebody else's Received header, and for one written for a
+      // client that gave no HELO, whose place the server fills with the address.
+      static String HeloFromReceivedHeader(const String &receivedValue, const String &localComputerName);
+
+      // The HTML part's text, for the preview: markup, style sheets and scripts
+      // taken out and the entities a reader would see unwrapped.
+      static String TextOfHtml(const String &html);
 
       // Delivers a quarantined message to its original recipients and removes it
       // from the store. Delivery is direct rather than back through the filters:
@@ -107,6 +143,10 @@ namespace HM
       static String GetQuarantineDirectory();
 
    private:
+      static bool Quarantine_(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFile,
+                              bool heloKnown, const String &heloName);
+      static String HeloOfStoredCopy_(const String &file);
+      static bool OpenFile_(__int64 id, String &out_file, String &out_error);
       static String BuildRelativePath_();
       static bool ReadRow_(std::shared_ptr<DALRecordset> recordset, QuarantinedMessage &out_message);
       static bool RemoveRecipient_(__int64 id, const QuarantinedMessage &quarantined, const String &recipient);

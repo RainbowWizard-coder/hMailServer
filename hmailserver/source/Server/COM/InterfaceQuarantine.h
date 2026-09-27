@@ -54,6 +54,7 @@ public:
    STDMETHOD(ReleaseByDBID)(/*[in]*/ long DBID);
    STDMETHOD(DeleteByDBID)(/*[in]*/ long DBID);
    STDMETHOD(DeleteExpired)(/*[out, retval]*/ LONG* pVal);
+   STDMETHOD(Bulk)(/*[in]*/ BSTR Request, /*[out, retval]*/ BSTR* Result);
 
 private:
 

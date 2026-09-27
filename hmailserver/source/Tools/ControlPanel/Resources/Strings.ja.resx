@@ -227,6 +227,9 @@
   <data name="(no address)" xml:space="preserve">
     <value>(アドレスなし)</value>
   </data>
+  <data name="(no domain)" xml:space="preserve">
+    <value>(ドメインなし)</value>
+  </data>
   <data name="(no label)" xml:space="preserve">
     <value>(ラベルなし)</value>
   </data>
@@ -331,6 +334,12 @@
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 件はここからは確認できません。</value>
+  </data>
+  <data name="1 message" xml:space="preserve">
+    <value>1 件のメッセージ</value>
+  </data>
+  <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
+    <value>1 件のメッセージは一覧に登録できないため、そのままにします: {0}</value>
   </data>
   <data name="1 message held." xml:space="preserve">
     <value>1 件のメッセージを保留しています。</value>
@@ -1707,6 +1716,27 @@
   <data name="Black: refused at MAIL FROM" xml:space="preserve">
     <value>ブラック: MAIL FROM で拒否</value>
   </data>
+  <data name="Blacklist and delete" xml:space="preserve">
+    <value>ブラックリストに登録して削除</value>
+  </data>
+  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
+    <value>チェックしたメッセージの送信者をブラックリストに登録してから削除</value>
+  </data>
+  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
+    <value>このメッセージの送信者をブラックリストに登録してから、このメッセージを削除</value>
+  </data>
+  <data name="Blacklist the sender, then delete" xml:space="preserve">
+    <value>送信者をブラックリストに登録してから削除</value>
+  </data>
+  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>{0} 件のメッセージの送信者をブラックリストに登録してから、それらを削除</value>
+  </data>
+  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
+    <value>このグループの送信者をブラックリストに登録してから削除</value>
+  </data>
+  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>ブラックリストに登録しました。エントリ数: {0}。削除したメッセージ: {1}。</value>
+  </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>接続してきた IP アドレスに対して照会されるブロック リスト。</value>
   </data>
@@ -1962,6 +1992,12 @@
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>ポリシーを確認 (HTTPS)(_P)</value>
   </data>
+  <data name="Check every message" xml:space="preserve">
+    <value>すべてのメッセージをチェック</value>
+  </data>
+  <data name="Check every message from {0}" xml:space="preserve">
+    <value>{0} からのすべてのメッセージをチェック</value>
+  </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>更新プログラムを確認(_U)</value>
   </data>
@@ -1977,11 +2013,17 @@
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>インターネット全体の範囲が外部アカウントへの配信を許可していないことを確認してください。</value>
   </data>
+  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
+    <value>先にメッセージをチェックしてください。ヘッダーのアイコンは、チェックしたすべてのメッセージに作用します。</value>
+  </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>リモート サーバーが報告した失敗をキューで確認してください。</value>
   </data>
   <data name="Check the server is healthy" xml:space="preserve">
     <value>サーバーが正常かどうかを確認する</value>
+  </data>
+  <data name="Check this message" xml:space="preserve">
+    <value>このメッセージをチェック</value>
   </data>
   <data name="Check whether the {0} record is published in DNS" xml:space="preserve">
     <value>{0} レコードが DNS に公開されているかどうかを確認</value>
@@ -2975,6 +3017,9 @@
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>エイリアス {0} を削除しますか?</value>
   </data>
+  <data name="Delete the checked messages" xml:space="preserve">
+    <value>チェックしたメッセージを削除</value>
+  </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>配布リスト {0} を削除しますか?</value>
   </data>
@@ -2998,11 +3043,24 @@
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>選択した証明書を削除</value>
   </data>
+  <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>チェックした {0} 件のメッセージを完全に削除しますか？
+
+送信者にはメッセージが受理されたと伝えてあるため、再試行されることはなく、ほかにコピーもありません。</value>
+  </data>
+  <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>{1} からの {0} 件のメッセージを完全に削除しますか？
+
+送信者にはメッセージが受理されたと伝えてあるため、再試行されることはなく、ほかにコピーもありません。</value>
+  </data>
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>{0} ポート {1} のバインドを削除しますか?</value>
   </data>
   <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
     <value>このアプリ パスワードを削除しますか? これを使っているクライアントは直ちに接続できなくなります。</value>
+  </data>
+  <data name="Delete this group" xml:space="preserve">
+    <value>このグループを削除</value>
   </data>
   <data name="Delete this message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>このメッセージを完全に削除しますか?
@@ -3023,6 +3081,12 @@
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>削除</value>
+  </data>
+  <data name="Deleted 1 message." xml:space="preserve">
+    <value>1 件のメッセージを削除しました。</value>
+  </data>
+  <data name="Deleted {0} messages." xml:space="preserve">
+    <value>{0} 件のメッセージを削除しました。</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>ドメインを削除すると、その中のアカウントも削除されます。先に、そのドメインを指しているエイリアスとリストがないか確認してください。</value>
@@ -3851,6 +3915,9 @@
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>受信した各メッセージを、応答を返す前にディスクにフラッシュする (耐久性が高く、低速)</value>
   </data>
+  <data name="Fold this group" xml:space="preserve">
+    <value>このグループを折りたたむ</value>
+  </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>フォルダー階層の区切り文字</value>
   </data>
@@ -4016,8 +4083,14 @@
   <data name="Greylisting white list" xml:space="preserve">
     <value>グレイリスティングのホワイト リスト</value>
   </data>
+  <data name="Gro_up by" xml:space="preserve">
+    <value>グループ化(_U)</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>グループ</value>
+  </data>
+  <data name="Group by" xml:space="preserve">
+    <value>グループ化</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>グループ名</value>
@@ -4025,8 +4098,14 @@
   <data name="Groups" xml:space="preserve">
     <value>グループ</value>
   </data>
+  <data name="HELO" xml:space="preserve">
+    <value>HELO</value>
+  </data>
   <data name="HELO check score" xml:space="preserve">
     <value>HELO チェック スコア</value>
+  </data>
+  <data name="HELO domain" xml:space="preserve">
+    <value>HELO ドメイン</value>
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>HELO ホスト チェック</value>
@@ -4084,6 +4163,9 @@
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>ヘッダーの読み取りチャンク サイズ (バイト)</value>
+  </data>
+  <data name="Headers of the message from {0}" xml:space="preserve">
+    <value>{0} からのメッセージのヘッダー</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>見出し</value>
@@ -4644,6 +4726,9 @@
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>空のままにすると、サーバーは灰色で表示されている出荷時のフィルターを使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントのディレクトリ タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるログオン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
+  </data>
+  <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
+    <value>そのままにしたメッセージ: {0} 件。最初の理由: {1}</value>
   </data>
   <data name="Length is the requirement that buys the most, and the one people mind least." xml:space="preserve">
     <value>長さは、最も効果が大きく、人が最も気にしない要件です。</value>
@@ -5211,8 +5296,8 @@
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>サーバーが処理を終えたメッセージ数 (毎分)。2 秒ごとにサンプリングされます。</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final." xml:space="preserve">
-    <value>本来ならサーバーが拒否していたはずのメッセージを、誰かが確認できるように保留したものです。送信者にはそれぞれ受け入れたと伝えているため、自然に再び届くことはありません。解放すると配信され、削除は取り消せません。</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
+    <value>本来ならサーバーが拒否していたはずのメッセージを、誰かが確認できるよう保留しています。送信者にはそれぞれ受理されたと伝えてあるため、放っておいても再び届くことはありません。解放すれば配信され、削除すれば元に戻せません。アイコンは 1 件のメッセージ、1 つのグループ、またはヘッダーではチェックしたすべてのメッセージに作用します。</value>
   </data>
   <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
     <value>{0} までのメッセージは {1} によってスキャンされます。それより大きいものはまったくスキャンされずに配信されます</value>
@@ -5438,6 +5523,9 @@
   </data>
   <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
     <value>{0} にはまだ DKIM 鍵が設定されていません。ここで生成してください: 秘密鍵はこのコンピューター上の任意のファイルに保存され、セレクターと鍵ファイルはドメインに保存されます。署名は、下の DNS レコードが公開され、このページのチェックがそれを確認するまでオフのままです。それより前に署名をオンにすると、世界中の誰も参照できない鍵でメールに署名することになります。</value>
+  </data>
+  <data name="No HELO name was recorded" xml:space="preserve">
+    <value>HELO 名は記録されていません</value>
   </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>認証前に TLS を必須とする IP 範囲がありません。この設定はほかの TLS 設定と一緒ではなく各 IP 範囲にあるため、見たことがなくても不思議ではありません。ポートが何を許可していても平文のパスワードを拒否する、唯一のコントロールです。</value>
@@ -6057,6 +6145,9 @@
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>鍵ファイルが暗号化されている場合にのみ必要です。鍵が暗号化されていてパスフレーズがないと、鍵は読み込まれず (サーバー エラー 6170)、この証明書を使うすべての TLS ポートが起動しません。それらのポートでの受信メールは止まります。パスフレーズはシークレットです。サーバー上で保護された状態で保存され、ここに再び表示されることはありません。新しいものを保存すると、以前保存されていたものが置き換えられます。</value>
   </data>
+  <data name="Only the first {0} characters are shown." xml:space="preserve">
+    <value>最初の {0} 文字だけが表示されます。</value>
+  </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>接続できるのはこのコンピューターだけなので、パスワードがネットワークを通ることはありません。</value>
   </data>
@@ -6548,6 +6639,12 @@
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>「プレビュー」は何も変更せず、「適用」が行うことをそのまま報告します。両者はサーバー内で 1 つの判定処理を共有しているため、プレビューが、適用では行われない動作を説明することはありません。現在のオプションでプレビューを実行するまで、「適用」は無効のままです。</value>
   </data>
+  <data name="Preview of &quot;{0}&quot;" xml:space="preserve">
+    <value>「{0}」のプレビュー</value>
+  </data>
+  <data name="Preview the text" xml:space="preserve">
+    <value>テキストをプレビュー</value>
+  </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>プレビューしてから適用</value>
   </data>
@@ -6830,6 +6927,18 @@
   <data name="Re_voke / restore" xml:space="preserve">
     <value>取り消し / 復元(_V)</value>
   </data>
+  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>MAIL FROM の時点で読み取られます: ブラックのドメインは、ほかの処理が動く前に、すべての受信者に対して 550 で拒否されます。エントリはその組織のドメインと、その配下のすべてに適用されます。</value>
+  </data>
+  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>MAIL FROM の時点で読み取られます: ホワイトのドメインはグレイリストされず、スパムスコアによる拒否や保留もされませんが、各テストは引き続き実行され、マークのしきい値によるマーク付けも行われます。エントリはその組織のドメインと、その配下のすべてに適用されます。</value>
+  </data>
+  <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
+    <value>配送時に、すべての受信者について読み取られます: ブロックされた送信者からのメールは、検疫がオンの場合はその受信者宛てに保留され、オフの場合はスパムとしてマークされます。</value>
+  </data>
+  <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
+    <value>配送時に、すべての受信者について読み取られます: 許可された送信者からのメールはマークなしで配信され、各アカウント自身のスパムしきい値は働きません。SMTP のやり取り中にサーバー全体のスパムスコアが保留するメッセージは、それでも保留されます。それを止めるのはドメインの一覧です。</value>
+  </data>
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>このサーバーの送信者宛てに届く配信レポートを読む</value>
   </data>
@@ -7074,8 +7183,20 @@
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>上流サーバーへのリレー、再試行間隔、バウンスの処理、そしてローカル メールの扱い。</value>
   </data>
-  <data name="Released. It has been delivered to the recipients it was addressed to." xml:space="preserve">
-    <value>解放しました。宛先の受信者に配信されました。</value>
+  <data name="Release" xml:space="preserve">
+    <value>解放</value>
+  </data>
+  <data name="Release the checked messages" xml:space="preserve">
+    <value>チェックしたメッセージを解放</value>
+  </data>
+  <data name="Release this group" xml:space="preserve">
+    <value>このグループを解放</value>
+  </data>
+  <data name="Released 1 message to its recipients." xml:space="preserve">
+    <value>1 件のメッセージを受信者に解放しました。</value>
+  </data>
+  <data name="Released {0} messages to their recipients." xml:space="preserve">
+    <value>{0} 件のメッセージを受信者に解放しました。</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>記憶する過去のパスワードの数 (0 = 履歴なし)</value>
@@ -8076,6 +8197,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Sender authentication" xml:space="preserve">
     <value>送信者認証</value>
   </data>
+  <data name="Sender domain" xml:space="preserve">
+    <value>送信者ドメイン</value>
+  </data>
   <data name="Sender name, as recipients see it" xml:space="preserve">
     <value>受信者に表示される差出人名</value>
   </data>
@@ -8394,6 +8518,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>ナビゲーションにグループ {0} を表示する</value>
+  </data>
+  <data name="Show the headers" xml:space="preserve">
+    <value>ヘッダーを表示</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>同期が行う内容を、何も変更せずに表示</value>
@@ -9042,6 +9169,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP ポート一覧を読み取れませんでした - {0}</value>
   </data>
+  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
+    <value>HELO 名のドメイン、ドメインのホワイトリストとブラックリストへ(_H)</value>
+  </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>受け入れる TLS バージョンと暗号スイートはここで設定します。</value>
   </data>
@@ -9454,6 +9584,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>両方のファイルが存在し読み取り可能になるまで、一致を確認できません。</value>
   </data>
+  <data name="The message has no text to show." xml:space="preserve">
+    <value>このメッセージには表示できるテキストがありません。</value>
+  </data>
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>メッセージは受け入れられ (送信者は 250 を受け取り)、配信キューに表示されますが、決して出て行きません。</value>
   </data>
@@ -9662,6 +9795,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>下のセクションは入力済みです。上のスイッチをオンにすると有効になります。</value>
+  </data>
+  <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
+    <value>送信者のアドレス、サーバーの許可・ブロック一覧へ(_A)</value>
+  </data>
+  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
+    <value>送信者のドメイン、ドメインのホワイトリストとブラックリストへ(_D)</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>送信側サーバーは接続し、メッセージを送信してから待機します。送信側からは、メッセージ本文を送信した後にタイムアウトが見えます。Postfix は "timed out while sending end of data" と報告します。メッセージはあなたのキューには決して現れません。</value>
@@ -9989,6 +10128,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>このサーバーには {0} 個のアカウントがあるため運用中です。プロファイルは新しいサーバーに提示されますが、四つのいずれともこのサーバーを比較できます。</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
+    <value>このサーバーは Control Panel より古く、保留中のメッセージのヘッダーやテキストを表示できません。サーバーをアップグレードしてください。</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>このサーバーは Control Panel より古く、検疫からホワイトリストやブラックリストへの登録ができません。サーバーをアップグレードしてください。</value>
+  </data>
   <data name="This server now" xml:space="preserve">
     <value>このサーバーの現在値</value>
   </data>
@@ -10241,6 +10386,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Unavailable" xml:space="preserve">
     <value>利用できません</value>
   </data>
+  <data name="Unfold this group" xml:space="preserve">
+    <value>このグループを展開</value>
+  </data>
   <data name="Unknown" xml:space="preserve">
     <value>不明</value>
   </data>
@@ -10439,6 +10587,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>警告の本文(_X) (空 = サーバーメッセージ、%MACRO_MAILBOX%、%MACRO_QUOTA%、%MACRO_USED%、%MACRO_PERCENT%)</value>
   </data>
+  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>警告: {0} はパブリック接尾辞です。これに対するエントリは、その配下に登録されたすべてのドメインに適用されますが、意図した動作であることはまずありません。</value>
+  </data>
   <data name="Warnings" xml:space="preserve">
     <value>警告</value>
   </data>
@@ -10559,6 +10710,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="What to do: " xml:space="preserve">
     <value>対応:</value>
   </data>
+  <data name="What will be written:" xml:space="preserve">
+    <value>書き込まれる内容:</value>
+  </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>サーバーが本来行う動作のまま（MTA-STS と DANE を含む）</value>
   </data>
@@ -10667,6 +10821,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Which domain to synchronise" xml:space="preserve">
     <value>同期するドメイン</value>
   </data>
+  <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
+    <value>どちらの一覧ですか? 異なる送信者またはドメインごとに 1 件のエントリが書き込まれ、それから各メッセージが処理されます。エントリを作成できないメッセージは、そのままにされます。</value>
+  </data>
   <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
     <value>サーバーがどのログ ファイルを書き、どれだけの詳細を含み、どれだけの期間保持するか。</value>
   </data>
@@ -10711,6 +10868,27 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>ホワイト: グレイリストせず、スパムスコアで拒否しない</value>
+  </data>
+  <data name="Whitelist and release" xml:space="preserve">
+    <value>ホワイトリストに登録して解放</value>
+  </data>
+  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
+    <value>チェックしたメッセージの送信者をホワイトリストに登録してから解放</value>
+  </data>
+  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
+    <value>このメッセージの送信者をホワイトリストに登録してから、このメッセージを解放</value>
+  </data>
+  <data name="Whitelist the sender, then release" xml:space="preserve">
+    <value>送信者をホワイトリストに登録してから解放</value>
+  </data>
+  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
+    <value>{0} 件のメッセージの送信者をホワイトリストに登録してから、それらを解放</value>
+  </data>
+  <data name="Whitelist this group's senders, then release" xml:space="preserve">
+    <value>このグループの送信者をホワイトリストに登録してから解放</value>
+  </data>
+  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>ホワイトリストに登録しました。エントリ数: {0}。解放したメッセージ: {1}。</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>実行者</value>
@@ -10900,6 +11078,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>バインド方式 (BindMethod)(_B)</value>
+  </data>
+  <data name="_Blacklist and delete" xml:space="preserve">
+    <value>ブラックリストに登録して削除(_B)</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>本文の正規化(_B)</value>
@@ -11102,6 +11283,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_List address" xml:space="preserve">
     <value>リストのアドレス(_L)</value>
   </data>
+  <data name="_List it anyway" xml:space="preserve">
+    <value>それでも登録する(_L)</value>
+  </data>
   <data name="_Local to local" xml:space="preserve">
     <value>ローカルからローカル(_L)</value>
   </data>
@@ -11234,9 +11418,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>リレー ホスト (空 = サーバー全体のリレーを使用)(_R)</value>
   </data>
-  <data name="_Release" xml:space="preserve">
-    <value>解放(_R)</value>
-  </data>
   <data name="_Reload" xml:space="preserve">
     <value>再読み込み(_R)</value>
   </data>
@@ -11348,6 +11529,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>所有者に警告する時点(_W) (上限の %、-1 = サーバーの値、0 = 警告しない)</value>
   </data>
+  <data name="_Whitelist and release" xml:space="preserve">
+    <value>ホワイトリストに登録して解放(_W)</value>
+  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>このリストに送信できる相手(_W)</value>
   </data>
@@ -11398,6 +11582,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="an uppercase letter" xml:space="preserve">
     <value>大文字</value>
+  </data>
+  <data name="and {0} more" xml:space="preserve">
+    <value>ほか {0} 件</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>このサーバーが検証できるアルゴリズムのいずれか。実装しているのは RS256、ES256、HS256 のみで、"{0}" はそのどれでもないため、どのような鍵素材をインストールしてもすべてのトークンが拒否されます</value>
@@ -11670,6 +11857,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="install a certificate" xml:space="preserve">
     <value>証明書をインストールする</value>
   </data>
+  <data name="is already on the list" xml:space="preserve">
+    <value>すでに一覧にあります</value>
+  </data>
   <data name="is anyone connected" xml:space="preserve">
     <value>誰か接続しているか</value>
   </data>
@@ -11681,6 +11871,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="is not set" xml:space="preserve">
     <value>設定されていません</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to allow" xml:space="preserve">
+    <value>反対の種別で一覧にあり、許可に変更されます</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to block" xml:space="preserve">
+    <value>反対の種別で一覧にあり、ブロックに変更されます</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>INI では "{0}" に設定されています</value>
@@ -12183,6 +12379,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="why is my spam filter not catching anything" xml:space="preserve">
     <value>なぜスパム フィルターが何も捕まえないのか</value>
   </data>
+  <data name="will be added" xml:space="preserve">
+    <value>追加されます</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>ログをデータベースに書き込む</value>
   </data>
@@ -12204,8 +12403,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (無効)</value>
   </data>
+  <data name="{0} + {1} more" xml:space="preserve">
+    <value>{0} + ほか {1} 件</value>
+  </data>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} - アカウント</value>
+  </data>
+  <data name="{0} - {1}" xml:space="preserve">
+    <value>{0} - {1}</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} 件の DNS レコードをバックグラウンドで確認中です。この概要は自動的に更新されます。</value>
@@ -12384,6 +12589,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0} message(s) waiting for delivery." xml:space="preserve">
     <value>{0} 件のメッセージが配信を待っています。</value>
   </data>
+  <data name="{0} messages" xml:space="preserve">
+    <value>{0} 件のメッセージ</value>
+  </data>
+  <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
+    <value>{0} 件のメッセージは一覧に登録できないため、そのままにします。最初の理由: {1}</value>
+  </data>
   <data name="{0} messages held." xml:space="preserve">
     <value>{0} 件のメッセージが保留されています。</value>
   </data>
@@ -12551,6 +12762,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0}, checked {1}." xml:space="preserve">
     <value>{0}、確認 {1}。</value>
+  </data>
+  <data name="{0}, from {1}, score {2}" xml:space="preserve">
+    <value>{0}、{1} から、スコア {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}、{1}、スコア {2}。{3}</value>

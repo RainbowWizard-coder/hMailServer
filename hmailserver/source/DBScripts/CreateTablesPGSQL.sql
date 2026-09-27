@@ -1646,7 +1646,8 @@ create table hm_quarantine
 	quarantinereason varchar(255) not null,
 	quarantinescore int not null,
 	quarantinesize int not null,
-	quarantinecreated timestamp not null
+	quarantinecreated timestamp not null,
+	quarantinehelo varchar(255) not null default ''
 );
 
 CREATE INDEX idx_hm_quarantine_created ON hm_quarantine (quarantinecreated);
@@ -2965,4 +2966,4 @@ CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6104);
+insert into hm_dbversion values (6105);

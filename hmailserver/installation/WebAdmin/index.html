@@ -283,6 +283,47 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
 .login select{padding:5px var(--s2);font-size:var(--fs-caption);border-radius:var(--radius-control)}
 .login .langrow{display:flex;justify-content:flex-end;margin-top:var(--s3)}
 
+/* ---------- The quarantine ----------
+   A box and four icons at the start of every row, a group's header across the
+   width, and long senders, HELO names and subjects cut with an ellipsis whose
+   tooltip is the whole value. The boxes are buttons with role="checkbox", so
+   the page's one click handler reads them as it reads every other control. */
+.qtable td,.qtable th{vertical-align:middle}
+.qtable .qc{width:30px;padding-inline-end:0}
+.qtable .qa{width:118px;white-space:nowrap;padding-inline:var(--s1)}
+.qtable .num{text-align:end}
+.qtable tr.qgroup td{background:var(--surface-2);font-weight:600}
+.qtable tr.qmsg.in td.qc{padding-inline-start:var(--s5)}
+.qtrim{max-width:16em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qreason{display:block;color:var(--muted);font-size:var(--fs-caption);white-space:normal;font-weight:400}
+.qbox{all:unset;box-sizing:border-box;cursor:pointer;width:18px;height:18px;border:1.5px solid var(--line-2);border-radius:4px;
+  display:inline-flex;align-items:center;justify-content:center;background:var(--surface);vertical-align:middle}
+.qbox[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
+.qbox[aria-checked="true"]::after{content:"";width:5px;height:9px;border:solid var(--on-accent);border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.qbox[aria-checked="mixed"]{border-color:var(--accent)}
+.qbox[aria-checked="mixed"]::after{content:"";width:8px;height:2px;background:var(--accent)}
+.qact,.qmini,.qfold{all:unset;box-sizing:border-box;cursor:pointer;width:26px;height:26px;display:inline-flex;align-items:center;
+  justify-content:center;border-radius:6px;color:var(--text-2);vertical-align:middle}
+.qmini{width:22px;height:22px}
+.qact:hover,.qmini:hover,.qfold:hover{background:var(--surface-3)}
+.qact.good{color:var(--good)}
+.qact.bad{color:var(--danger)}
+.qact .ql-good{stroke:var(--good)}
+.qact .ql-bad{stroke:var(--danger)}
+.thsort{all:unset;cursor:pointer;color:inherit;font:inherit}
+.qbox:focus-visible,.qact:focus-visible,.qmini:focus-visible,.qfold:focus-visible,.thsort:focus-visible,.qpick:focus-visible,.qbox-line:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qpick,.qbox-line{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:flex-start;gap:var(--s2);font-weight:600;padding:2px 0}
+.qpick::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;border:1.5px solid var(--line-2);background:var(--surface)}
+.qpick[aria-checked="true"]::before{border:5px solid var(--accent)}
+.qbox-line{font-weight:400;margin-top:var(--s2)}
+.qbox-line::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:4px;border:1.5px solid var(--line-2);background:var(--surface)}
+.qbox-line[aria-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
+.qplan,.qpanel pre{white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12.5px;line-height:1.5;
+  background:var(--surface-2);padding:var(--s3);border-radius:var(--radius-control);margin-top:var(--s3)}
+.qplan{max-height:30vh;overflow:auto}
+.qpanel pre{max-height:60vh;overflow:auto}
+.sheet.wide{max-width:880px}
+
 /* ---------- The shortcut list ---------- */
 .overlay{position:fixed;inset:0;z-index:65;display:grid;place-items:center;background:var(--scrim);padding:var(--s4)}
 .sheet{width:100%;max-width:520px;max-height:80vh;overflow:auto;background:var(--surface);border:1px solid var(--line);
@@ -1241,8 +1282,21 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="keyrevoke")revokeApiKey(d.id,d.label);
   else if(d.act==="keycopy")navigator.clipboard.writeText($("#keyToken").textContent).then(()=>toast(t("Copied to clipboard")));
   else if(d.act==="keyhide"){apiKeyToken="";render();}
-  else if(d.act==="qrelease")quarantineAct(d.id,true);
-  else if(d.act==="qdelete")quarantineAct(d.id,false);
+  else if(d.act==="qcheck")qCheck(d);
+  else if(d.act==="qsort")qSort(d.col);
+  else if(d.act==="qfold")qFold(d.key);
+  else if(d.act==="qact")qAct(d);
+  else if(d.act==="qread")qRead(d.id,d.what);
+  else if(d.act==="qreadclose")qReadClose();
+  else if(d.act==="qexpire")qExpire();
+  else if(d.act==="qrefresh")render();
+  else if(d.act==="qdigest")qDigest();
+  else if(d.act==="qaskyes")qAnswer(true);
+  else if(d.act==="qaskno")qAnswer(false);
+  else if(d.act==="qlistpick")qListPick(d.list);
+  else if(d.act==="qlistsuffix")qListSuffix();
+  else if(d.act==="qlistyes")qListYes();
+  else if(d.act==="qlistno")qListClose(null);
   else if(d.act==="rvrelease")reviewAct(d.id,true);
   else if(d.act==="rvdiscard")reviewAct(d.id,false);
   else if(d.act==="rvlookup")reviewLookup();
@@ -1843,7 +1897,7 @@ const HELP_MAP={
   audit:["AlertsAndAuditTrail.md","The audit trail"],
   webhooks:["Webhooks.md"],
   inboundwebhooks:["InboundWebhooks.md"],
-  quarantine:["SenderListsAndDigests.md","The quarantine digest"],
+  quarantine:["SenderListsAndDigests.md","Reviewing the quarantine"],
   review:["CompromisedAccounts.md","Reviewing"],
   archive:["Journaling.md"],
   discovery:["Discovery.md"],
@@ -4831,37 +4885,364 @@ $("#ssoBtn").onclick=()=>{location.href="/portal/oidc/start?deck=1";};
 $("#samlBtn").onclick=()=>{location.href="/portal/saml/start?deck=1";};
 
 /* ---------- Quarantine ----------
-   What the filters held back rather than delivered, newest first: released to
-   its recipients as an administrator's overruling, or deleted. The search box
-   above narrows the rows as it does everywhere. */
+   What the filters held back rather than delivered, newest first, grouped the
+   way a burst arrives - by the organization's domain of the sender or of the
+   HELO name, which the server computes, or not at all - and each group folds.
+   Every message, every group and the header carry the same four actions:
+   release, delete, whitelist the sender and release, blacklist the sender and
+   delete; the header's act on every checked message, through one request to
+   POST /api/v1/quarantine/bulk that answers for each message. Delete asks one
+   question whose default is No, in a dialog of the page's own, because the
+   browser's confirm() defaults to OK. Whitelist and blacklist ask which list -
+   the sender's address on the server's allow and block list, or the domain on
+   the domain white and black list - and show what the server says it would
+   write before anything is. A sort orders the messages inside each group. The
+   headers and a plain-text preview open in a panel, as text: nothing a held
+   message says is ever drawn as HTML. The search box above narrows the rows
+   as it does everywhere. */
+const Q={items:[],group:"sender",sort:null,desc:false,folded:new Set(),checked:new Set(),ask:null,list:null,said:""};
+const QICON={
+  release:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.1 8.2l2 2 3.9-4.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  delete:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.8 5.8l4.4 4.4M10.2 5.8l-4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  allow:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><rect x="2.3" y="2.3" width="11.4" height="11.4" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path class="ql-good" d="M5 6h6M5 8h6M5 10h6" fill="none" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  block:'<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><rect x="2.3" y="2.3" width="11.4" height="11.4" rx="2" fill="currentColor" stroke="currentColor" stroke-width="1.3"/><path class="ql-bad" d="M5 6h6M5 8h6M5 10h6" fill="none" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  headers:'<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><rect x="2.5" y="1.8" width="11" height="12.4" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 5h6M5 7.5h6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  preview:'<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M1.5 8s2.4-4.4 6.5-4.4S14.5 8 14.5 8s-2.4 4.4-6.5 4.4S1.5 8 1.5 8z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>'
+};
 async function renderQuarantine(){
   const answer=await api("/api/v1/quarantine");
-  const list=asList(answer,"messages");
-  const rows=list.map(m=>`
-    <tr><td>${escHtml(m.created||"")}</td>
-        <td style="word-break:break-all">${escHtml(m.sender||"")}</td>
-        <td style="word-break:break-all">${escHtml(m.recipients||"")}</td>
-        <td>${escHtml(m.subject||"")}</td>
-        <td>${escHtml(m.reason||"")}${m.score?' <span class="badge warn">'+escHtml(String(m.score))+'</span>':""}</td>
-        <td>${escHtml(fmtBytes(m.size))}</td>
-        <td style="text-align:right;white-space:nowrap">${may("manage_quarantine")?`<button class="btn ghost sm" data-act="qrelease" data-id="${escHtml(m.id)}">${t("Release")}</button>
-          <button class="btn danger sm" data-act="qdelete" data-id="${escHtml(m.id)}">${t("Delete")}</button>`:""}</td></tr>`).join("");
-  $("#content").innerHTML=`<div class="view"><div class="card view">
-    <p class="note">${escHtml(operation("/api/v1/quarantine","get").summary||"")}. ${escHtml(operation("/api/v1/quarantine/{id}/release","post").description||"")}</p>
-    <div class="err" id="err_quarantine"></div>
-    <div class="tablewrap"><table><thead><tr><th>${t("Held")}</th><th>${t("From")}</th><th>${t("To")}</th><th>${t("Subject")}</th><th>${t("Reason")}</th><th>${t("Size")}</th><th></th></tr></thead>
-    <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("Nothing is held. ✦")+'</td></tr>'}</tbody></table></div>
-    </div></div>`;
+  Q.items=asList(answer,"messages");
+  // A check survives a refresh for as long as its message is still held.
+  const present=new Set(Q.items.map(m=>String(m.id)));
+  Array.from(Q.checked).forEach(id=>{if(!present.has(id))Q.checked.delete(id);});
+  drawQuarantine();
 }
-async function quarantineAct(id,release){
-  setErr("err_quarantine","");
-  if(!release&&!confirm(t("Delete this held message for good?")))return;
+function qKey(m){return String((Q.group==="helo"?m.helo_domain:m.sender_domain)||"").toLowerCase();}
+function qGroups(){
+  // The server lists newest first, so the order in which the keys are first
+  // met is the order of each group's newest message.
+  const order=[],members={};
+  Q.items.forEach(m=>{const k=qKey(m);if(!members[k]){members[k]=[];order.push(k);}members[k].push(m);});
+  return order.map(k=>({key:k,members:members[k]}));
+}
+function qSorted(list){
+  if(!Q.sort)return list.slice();
+  const text=v=>String(v||"").toLowerCase();
+  const key=Q.sort==="score"?(m=>Number(m.score)||0):Q.sort==="created"?(m=>String(m.created||"")):(m=>text(m[Q.sort]));
+  const dir=Q.desc?-1:1;
+  return list.slice().sort((a,b)=>{const x=key(a),y=key(b);return (x<y?-1:x>y?1:(Number(a.id)-Number(b.id)))*dir;});
+}
+function qOrdered(){return Q.group==="none"?qSorted(Q.items):[].concat(...qGroups().map(g=>qSorted(g.members)));}
+function qState(members){
+  let on=0;members.forEach(m=>{if(Q.checked.has(String(m.id)))on++;});
+  return on===0?"false":on===members.length?"true":"mixed";
+}
+function qBox(state,label,attrs){
+  return '<button class="qbox" role="checkbox" aria-checked="'+state+'" data-act="qcheck" '+attrs+' aria-label="'+escHtml(label)+'" title="'+escHtml(label)+'"></button>';
+}
+function qActs(scope,attrs,tips){
+  if(!may("manage_quarantine"))return "";
+  const one=(what,cls,tip)=>'<button class="qact '+cls+'" data-act="qact" data-do="'+what+'" data-scope="'+scope+'" '+attrs+' title="'+escHtml(tip)+'" aria-label="'+escHtml(tip)+'">'+QICON[what]+'</button>';
+  // Whitelist and blacklist write the server's own lists, which the server asks
+  // manage_settings for beside manage_quarantine; a role without it is not
+  // offered what it would be refused.
+  const lists=may("manage_settings")?one("allow","",tips[2])+one("block","",tips[3]):"";
+  return one("release","good",tips[0])+one("delete","bad",tips[1])+lists;
+}
+function qMessageRow(m,indented){
+  const id=String(m.id);
+  const recipients=String(m.recipients||"").split(",").map(r=>r.trim()).filter(Boolean);
+  const shown=recipients.length>1?tf("{0} + {1} more",recipients[0],recipients.length-1):(recipients[0]||"");
+  const sender=String(m.sender||"")||"<>";
+  const helo=String(m.helo||"");
+  const subject=String(m.subject||"")||t("(no subject)");
+  const mail=may("view_mailbox");
+  return '<tr class="qmsg'+(indented?" in":"")+'"><td class="qc">'+qBox(Q.checked.has(id)?"true":"false",t("Check this message"),'data-id="'+escHtml(id)+'"')+'</td>'+
+    '<td class="qa">'+qActs("row",'data-id="'+escHtml(id)+'"',[t("Release"),t("Delete"),t("Whitelist the sender, then release"),t("Blacklist the sender, then delete")])+'</td>'+
+    '<td style="white-space:nowrap">'+escHtml(m.created||"")+'</td>'+
+    '<td class="qtrim" title="'+escHtml(helo||t("No HELO name was recorded"))+'">'+(mail?'<button class="qmini" data-act="qread" data-what="headers" data-id="'+escHtml(id)+'" title="'+escHtml(t("Show the headers"))+'" aria-label="'+escHtml(t("Show the headers"))+'">'+QICON.headers+'</button> ':"")+'<span>'+escHtml(helo||"—")+'</span></td>'+
+    '<td class="qtrim" title="'+escHtml(sender)+'">'+escHtml(sender)+'</td>'+
+    '<td class="qtrim" title="'+escHtml(recipients.join("\n"))+'">'+escHtml(shown)+'</td>'+
+    '<td class="num">'+escHtml(String(Number(m.score)||0))+'</td>'+
+    '<td class="qtrim" title="'+escHtml(subject)+'">'+(mail?'<button class="qmini" data-act="qread" data-what="preview" data-id="'+escHtml(id)+'" title="'+escHtml(t("Preview the text"))+'" aria-label="'+escHtml(t("Preview the text"))+'">'+QICON.preview+'</button> ':"")+'<span>'+escHtml(subject)+'</span>'+
+      '<span class="qreason">'+escHtml(tf("Held because: {0}",m.reason||""))+'</span></td></tr>';
+}
+function drawQuarantine(){
+  const head=(col,label,cls)=>{
+    const on=Q.sort===col;
+    return '<th'+(cls?' class="'+cls+'"':"")+' aria-sort="'+(on?(Q.desc?"descending":"ascending"):"none")+'"><button class="thsort" data-act="qsort" data-col="'+col+'">'+escHtml(label)+(on?(Q.desc?" ↓":" ↑"):"")+'</button></th>';
+  };
+  let body="";
+  if(Q.group==="none"){
+    body=qSorted(Q.items).map(m=>qMessageRow(m,false)).join("");
+  }else{
+    qGroups().forEach(g=>{
+      const title=g.key||t("(no domain)");
+      const open=!Q.folded.has(g.key);
+      const count=g.members.length===1?t("1 message"):tf("{0} messages",g.members.length);
+      body+='<tr class="qgroup"><td class="qc">'+qBox(qState(g.members),tf("Check every message from {0}",title),'data-key="'+escHtml(g.key)+'"')+'</td>'+
+        '<td class="qa">'+qActs("group",'data-key="'+escHtml(g.key)+'"',[t("Release this group"),t("Delete this group"),t("Whitelist this group's senders, then release"),t("Blacklist this group's senders, then delete")])+'</td>'+
+        '<td colspan="6"><button class="qfold" data-act="qfold" data-key="'+escHtml(g.key)+'" aria-expanded="'+(open?"true":"false")+'" title="'+escHtml(open?t("Fold this group"):t("Unfold this group"))+'" aria-label="'+escHtml(open?t("Fold this group"):t("Unfold this group"))+'">'+(open?"▾":"▸")+'</button> '+escHtml(title)+' <span class="muted">'+escHtml(count)+'</span></td></tr>';
+      if(open)body+=qSorted(g.members).map(m=>qMessageRow(m,true)).join("");
+    });
+  }
+  const total=Q.items.length;
+  const manage=may("manage_quarantine");
+  const option=(v,label)=>'<option value="'+v+'"'+(Q.group===v?" selected":"")+'>'+escHtml(label)+'</option>';
+  $("#content").innerHTML=`<div class="view"><div class="card view">
+    <div class="row" style="margin-bottom:12px">
+      <label class="row" for="qGroup">${t("Group by")}</label>
+      <select id="qGroup">${option("sender",t("Sender domain"))}${option("helo",t("HELO domain"))}${option("none",t("None"))}</select>
+      <span style="flex:1"></span>
+      ${manage?`<button class="btn ghost sm" data-act="qexpire">${t("Remove expired")}</button>`:""}
+      <button class="btn ghost sm" data-act="qrefresh">${t("Refresh")}</button>
+      ${viewShown("settings")?`<button class="btn ghost sm" data-act="qdigest">${t("Digest settings")}</button>`:""}
+    </div>
+    <p class="note">${escHtml(operation("/api/v1/quarantine","get").summary||"")}. ${escHtml(operation("/api/v1/quarantine/{id}/release","post").description||"")}</p>
+    <p class="note" id="qSaid">${escHtml(Q.said||(total===1?t("1 message held."):tf("{0} messages held.",total)))}</p>
+    <div class="err" id="err_quarantine"></div>
+    <div class="tablewrap"><table class="qtable"><thead><tr>
+      <th class="qc">${total?qBox(qState(Q.items),t("Check every message"),'data-all="1"'):""}</th>
+      <th class="qa">${total?qActs("checked","",[t("Release the checked messages"),t("Delete the checked messages"),t("Whitelist the checked messages' senders, then release"),t("Blacklist the checked messages' senders, then delete")]):""}</th>
+      ${head("created",t("Held"))}${head("helo",t("HELO"))}${head("sender",t("Sender"))}${head("recipients",t("Recipients"))}${head("score",t("Score"),"num")}${head("subject",t("Subject"))}
+    </tr></thead>
+    <tbody>${body||'<tr><td colspan="8" class="empty">'+t("Nothing is held. ✦")+'</td></tr>'}</tbody></table></div>
+    </div></div>`;
+  Q.said="";
+  $("#qGroup").onchange=()=>{Q.group=$("#qGroup").value;drawQuarantine();};
+  filterRows();
+}
+function qCheck(d){
+  if(d.all){const all=qState(Q.items)==="true";Q.checked.clear();if(!all)Q.items.forEach(m=>Q.checked.add(String(m.id)));}
+  else if(d.key!==undefined){
+    const g=qGroups().filter(x=>x.key===d.key)[0];if(!g)return;
+    const all=qState(g.members)==="true";
+    g.members.forEach(m=>{if(all)Q.checked.delete(String(m.id));else Q.checked.add(String(m.id));});
+  }else if(Q.checked.has(d.id))Q.checked.delete(d.id);
+  else Q.checked.add(d.id);
+  drawQuarantine();
+}
+function qSort(col){
+  // The same column again turns the order round; Held and Score start with the
+  // largest, which is what anybody sorting by them wants first.
+  if(Q.sort===col)Q.desc=!Q.desc;
+  else{Q.sort=col;Q.desc=col==="created"||col==="score";}
+  drawQuarantine();
+}
+function qFold(key){if(Q.folded.has(key))Q.folded.delete(key);else Q.folded.add(key);drawQuarantine();}
+function qIds(d){
+  if(d.scope==="row")return [Number(d.id)];
+  if(d.scope==="group"){const g=qGroups().filter(x=>x.key===d.key)[0];return g?g.members.map(m=>Number(m.id)):[];}
+  return qOrdered().filter(m=>Q.checked.has(String(m.id))).map(m=>Number(m.id));
+}
+/* The page's own question, because the browser's confirm() answers OK to Enter:
+   No has the keyboard when the dialog opens, Escape is No, and Tab stays in it. */
+function qAsk(title,text,yes){
+  return new Promise(resolve=>{
+    qAnswer(false);
+    Q.ask=resolve;
+    const host=document.createElement("div");
+    host.id="qAsk";host.className="overlay";
+    host.innerHTML='<div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="qAskTitle" aria-describedby="qAskText">'+
+      '<h2 id="qAskTitle">'+escHtml(title)+'</h2><p id="qAskText" class="note" style="white-space:pre-line">'+escHtml(text)+'</p>'+
+      '<div class="row"><button class="btn ghost" data-act="qaskno">'+t("No")+'</button><button class="btn danger" data-act="qaskyes">'+escHtml(yes)+'</button></div></div>';
+    host.onkeydown=e=>qTrap(e,host,()=>qAnswer(false));
+    $("#content").appendChild(host);
+    host.querySelector('[data-act="qaskno"]').focus();
+  });
+}
+function qAnswer(yes){
+  const host=document.getElementById("qAsk");
+  if(host&&host.parentNode)host.parentNode.removeChild(host);
+  const r=Q.ask;Q.ask=null;
+  if(r)r(!!yes);
+}
+function qTrap(e,host,escape){
+  // The page's own keys - Enter opening the row under the cursor, / and ? -
+  // act on what the dialog covers, so none of them is let past it.
+  e.stopPropagation();
+  if(e.key==="Escape"){e.preventDefault();escape();return;}
+  const radio=e.target&&e.target.closest?e.target.closest(".qpick"):null;
+  if(radio&&(e.key==="ArrowDown"||e.key==="ArrowUp"||e.key==="ArrowLeft"||e.key==="ArrowRight")){
+    const other=Array.from(host.querySelectorAll(".qpick")).filter(b=>b!==radio)[0];
+    if(other){e.preventDefault();qListPick(other.dataset.list);other.focus();}
+    return;
+  }
+  if(e.key!=="Tab")return;
+  const all=Array.from(host.querySelectorAll("button,select,input,pre[tabindex]")).filter(x=>!x.hidden&&!x.disabled);
+  if(!all.length)return;
+  const first=all[0],last=all[all.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+}
+/* Which list, asked of the server before anything is written: a dry run of the
+   same request answers the entries it would write and the messages it could
+   not list. A public suffix is written only after the box says so. Blacklist
+   then deletes, so Cancel has the keyboard, as for every delete here. */
+function qListDialog(ids,action){
+  return new Promise(resolve=>{
+    qListClose(null);
+    const block=action==="block";
+    const helo=Q.group==="helo";
+    Q.list={ids:ids,action:action,resolve:resolve,choice:"address",suffixOk:false,usable:false,domainFrom:helo?"helo":"sender"};
+    const host=document.createElement("div");
+    host.id="qList";host.className="overlay";
+    const pick=(v,label,note)=>'<button class="qpick" role="radio" data-act="qlistpick" data-list="'+v+'" aria-checked="'+(v==="address"?"true":"false")+'">'+escHtml(label)+'</button><p class="note" style="margin:2px 0 10px 26px">'+escHtml(note)+'</p>';
+    host.innerHTML='<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qListTitle">'+
+      '<h2 id="qListTitle">'+escHtml(block?t("Blacklist and delete"):t("Whitelist and release"))+'</h2>'+
+      '<div role="radiogroup" aria-labelledby="qListTitle">'+
+      pick("address",t("The sender's address, on the server's allow and block list"),block
+        ?t("Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not.")
+        :t("Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that."))+
+      pick("domain",helo?t("The HELO name's domain, on the domain white and black list"):t("The sender's domain, on the domain white and black list"),block
+        ?t("Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it.")
+        :t("Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it."))+
+      '</div><pre id="qPlan" class="qplan" tabindex="0"></pre>'+
+      '<button class="qbox-line" role="checkbox" aria-checked="false" data-act="qlistsuffix" id="qSuffix" hidden>'+t("List it anyway")+'</button>'+
+      '<div class="row" style="margin-top:12px"><button class="btn ghost" data-act="qlistno">'+t("Cancel")+'</button>'+
+      '<button class="btn'+(block?" danger":"")+'" data-act="qlistyes" id="qListYes" disabled>'+escHtml(block?t("Blacklist and delete"):t("Whitelist and release"))+'</button></div></div>';
+    host.onkeydown=e=>qTrap(e,host,()=>qListClose(null));
+    $("#content").appendChild(host);
+    host.querySelector('[data-act="'+(block?"qlistno":"qlistpick")+'"]').focus();
+    qListPlan();
+  });
+}
+function qListClose(answer){
+  const host=document.getElementById("qList");
+  if(host&&host.parentNode)host.parentNode.removeChild(host);
+  const l=Q.list;Q.list=null;
+  if(l&&l.resolve)l.resolve(answer);
+}
+async function qListPlan(){
+  const l=Q.list;if(!l)return;
+  const plan=$("#qPlan"),yes=$("#qListYes"),box=$("#qSuffix");
+  l.usable=false;l.suffixOk=false;
+  box.hidden=true;box.setAttribute("aria-checked","false");
+  yes.disabled=true;
+  plan.textContent="…";
+  const body={ids:l.ids,action:l.action,list:l.choice,dry_run:true};
+  if(l.choice==="domain")body.domain_from=l.domainFrom;
   try{
-    await api("/api/v1/quarantine/"+encodeURIComponent(id)+(release?"/release":""),{method:release?"POST":"DELETE",body:release?"{}":undefined});
-    toast(release?t("Released to its recipients"):t("Deleted"));
+    const a=await api("/api/v1/quarantine/bulk",{method:"POST",body:JSON.stringify(body)});
+    if(Q.list!==l)return;
+    const outcome={add:t("will be added"),change:l.action==="block"?t("is on the list the other way, and will be changed to block"):t("is on the list the other way, and will be changed to allow"),unchanged:t("is already on the list")};
+    const entries=asList(a.entries,"entries"),refused=asList(a.results,"results").filter(r=>!r.ok);
+    const lines=[];
+    if(entries.length){
+      lines.push(t("What will be written:"));
+      entries.slice(0,12).forEach(e=>lines.push("  "+tf("{0} - {1}",e.value,outcome[e.outcome]||e.outcome)));
+      if(entries.length>12)lines.push("  "+tf("and {0} more",entries.length-12));
+    }
+    if(refused.length)lines.push(refused.length===1?tf("1 message cannot be listed and will be left where it is: {0}",refused[0].error):tf("{0} messages cannot be listed and will be left where they are. The first reason: {1}",refused.length,refused[0].error));
+    const suffixes=entries.filter(e=>e.public_suffix).map(e=>e.value);
+    if(suffixes.length){lines.push(tf("Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant.",suffixes.join(", ")));box.hidden=false;}
+    plan.textContent=lines.join("\n");
+    l.usable=entries.length>0;
+  }catch(e){
+    if(e.message==="auth"){qListClose(null);signedOut(t("The session ended. Sign in again."));return;}
+    plan.textContent=e.message;
+  }
+  qListUpdate();
+}
+function qListUpdate(){
+  const l=Q.list;if(!l)return;
+  const box=$("#qSuffix");
+  $("#qListYes").disabled=!(l.usable&&(box.hidden||l.suffixOk));
+}
+function qListPick(v){
+  const l=Q.list;if(!l||l.choice===v)return;
+  l.choice=v;
+  document.querySelectorAll("#qList .qpick").forEach(b=>b.setAttribute("aria-checked",b.dataset.list===v?"true":"false"));
+  qListPlan();
+}
+function qListSuffix(){
+  const l=Q.list;if(!l)return;
+  l.suffixOk=!l.suffixOk;
+  $("#qSuffix").setAttribute("aria-checked",l.suffixOk?"true":"false");
+  qListUpdate();
+}
+function qListYes(){
+  const l=Q.list;if(!l||$("#qListYes").disabled)return;
+  const choice={list:l.choice};
+  if(l.choice==="domain")choice.domain_from=l.domainFrom;
+  if(!$("#qSuffix").hidden&&l.suffixOk)choice.confirm_public_suffix=true;
+  qListClose(choice);
+}
+async function qAct(d){
+  setErr("err_quarantine","");
+  const ids=qIds(d);
+  if(!ids.length){setErr("err_quarantine",t("Check the messages first: the header's icons act on every checked message."));return;}
+  const action=d.do;
+  const body={ids:ids,action:action};
+  if(action==="delete"){
+    const text=ids.length===1?t("Delete this held message for good?"):tf("Delete these {0} held messages for good?",ids.length);
+    if(!await qAsk(t("Delete quarantined message"),text+"\n\n"+t("The sender was told it was accepted, so nothing will retry and there is no other copy."),t("Delete")))return;
+  }
+  if(action==="allow"||action==="block"){
+    const choice=await qListDialog(ids,action);
+    if(!choice)return;
+    Object.assign(body,choice);
+  }
+  try{
+    const a=await api("/api/v1/quarantine/bulk",{method:"POST",body:JSON.stringify(body)});
+    const done=Number(a.succeeded)||0,failed=Number(a.failed)||0;
+    const entries=asList(a.entries,"entries").filter(e=>!e.error).length;
+    const said=action==="release"?(done===1?t("Released to its recipients"):tf("Released {0} messages to their recipients.",done))
+      :action==="delete"?(done===1?t("Deleted"):tf("Deleted {0} messages.",done))
+      :action==="allow"?tf("Whitelisted. List entries: {0}. Messages released: {1}.",entries,done)
+      :tf("Blacklisted. List entries: {0}. Messages deleted: {1}.",entries,done);
+    const refused=asList(a.results,"results").filter(r=>!r.ok);
+    Q.said=failed?said+" "+tf("Left where they were: {0}. The first reason: {1}",failed,refused.length?refused[0].error:""):"";
+    toast(said);
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
 }
+async function qExpire(){
+  setErr("err_quarantine","");
+  try{
+    const a=await api("/api/v1/quarantine/expire",{method:"POST",body:"{}"});
+    const removed=Number(a.removed)||0;
+    Q.said=removed?tf("{0} message(s) past the retention window were removed.",removed):t("Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.");
+    await render();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
+}
+/* The two server-wide settings the digest needs are on the Settings view; this
+   goes there with its filter set to them. Which domains send one, and when,
+   is on each domain. */
+async function qDigest(){
+  const b=Array.from(document.querySelectorAll("#nav button[data-view]")).filter(x=>x.dataset.view==="settings")[0];
+  if(!b||b.hidden)return;
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+  $("#deckSearch").value="";
+  view="settings";editing=null;
+  await render();
+  const f=document.getElementById("setFilter");
+  if(f){f.value="quarantine_digest";filterRows();f.focus();}
+}
+/* One held message's headers or its text, read from the held file and shown
+   as text in a panel: textContent, never innerHTML, whatever the message says. */
+async function qRead(id,what){
+  setErr("err_quarantine","");
+  const m=Q.items.filter(x=>String(x.id)===String(id))[0]||{};
+  try{
+    const a=await api("/api/v1/quarantine/"+encodeURIComponent(id)+"/"+(what==="headers"?"headers":"preview"));
+    const text=String((what==="headers"?a.headers:a.text)||"");
+    const host=document.createElement("div");
+    host.id="qRead";host.className="overlay";
+    host.innerHTML='<div class="sheet wide qpanel" role="dialog" aria-modal="true" aria-labelledby="qReadTitle">'+
+      '<div class="row"><h2 id="qReadTitle" style="flex:1;margin:0"></h2><button class="btn ghost sm" data-act="qreadclose">'+t("Close")+'</button></div>'+
+      '<p class="note" id="qReadNote" hidden></p><pre id="qReadText" tabindex="0"></pre></div>';
+    const old=document.getElementById("qRead");if(old&&old.parentNode)old.parentNode.removeChild(old);
+    $("#content").appendChild(host);
+    $("#qReadTitle").textContent=what==="headers"?tf("Headers of the message from {0}",String(m.sender||"")||"<>"):tf("Preview of \"{0}\"",String(m.subject||"")||t("(no subject)"));
+    const note=a.truncated?tf("Only the first {0} characters are shown.",Number(a.limit)||text.length):(what!=="headers"&&!text?t("The message has no text to show."):"");
+    if(note){$("#qReadNote").textContent=note;$("#qReadNote").hidden=false;}
+    $("#qReadText").textContent=text;
+    host.onkeydown=e=>qTrap(e,host,qReadClose);
+    $("#qReadText").focus();
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
+}
+function qReadClose(){const host=document.getElementById("qRead");if(host&&host.parentNode)host.parentNode.removeChild(host);}
 
 /* ---------- Held for review ----------
    What the compromised-account detection kept out of the delivery queue: an

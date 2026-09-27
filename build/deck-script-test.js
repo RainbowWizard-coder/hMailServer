@@ -1687,11 +1687,23 @@ const state = {
       { id: 13, name: 'Yubico key', created: 1789500000, last_used: 0, transports: 'usb,nfc', algorithm: -7, aaguid: 'AAECAwQFBgcICQoLDA0ODw' }
    ],
    // What the filters held back. The subject is hostile, as a held message's
-   // is: it was written by whoever the server refused to deliver for.
+   // is: it was written by whoever the server refused to deliver for. helo is
+   // the name the client gave; sender_domain and helo_domain are the
+   // organizations' domains the server computes, which the page groups by.
    quarantine: [
-      { id: 41, sender: 'seller@spammer.example', recipients: 'anna@example.com', subject: 'Your invoice is ready', reason: 'Score 12 (SURBL, SPF)', score: 12, size: 34816, created: '2026-09-16 21:04:11' },
-      { id: 42, sender: 'notice@' + HOSTILE, recipients: 'bob@example.com', subject: HOSTILE, reason: 'Rule: Hold for review', score: 0, size: 2048, created: '2026-09-16 22:15:00' }
+      { id: 41, sender: 'seller@spammer.example', recipients: 'anna@example.com', subject: 'Your invoice is ready', reason: 'Score 12 (SURBL, SPF)', score: 12, size: 34816, created: '2026-09-16 21:04:11',
+        helo: 'mail.spammer.example', sender_domain: 'spammer.example', helo_domain: 'spammer.example' },
+      { id: 42, sender: 'notice@' + HOSTILE, recipients: 'bob@example.com', subject: HOSTILE, reason: 'Rule: Hold for review', score: 0, size: 2048, created: '2026-09-16 22:15:00',
+        helo: 'localhost', sender_domain: '', helo_domain: 'localhost' },
+      { id: 43, sender: 'offers@bounces.spammer.example', recipients: 'anna@example.com,bob@example.com,carol@example.com', subject: 'Weekly offers', reason: 'Score 9 (DNSBL)', score: 9, size: 4096, created: '2026-09-16 20:00:00',
+        helo: 'mx.spammer-mail.example', sender_domain: 'spammer.example', helo_domain: 'spammer-mail.example' },
+      { id: 44, sender: 'billing@supply.example', recipients: 'anna@example.com', subject: 'Invoice 4417', reason: 'Score 22 (SURBL)', score: 22, size: 8192, created: '2026-09-16 19:00:00',
+        helo: 'mx.supply.example', sender_domain: 'supply.example', helo_domain: 'supply.example' },
+      { id: 45, sender: 'news@supply.example', recipients: 'bob@example.com', subject: 'Newsletter', reason: 'Score 18 (SURBL)', score: 18, size: 8192, created: '2026-09-16 18:00:00',
+        helo: 'mx.supply.example', sender_domain: 'supply.example', helo_domain: 'supply.example' }
    ],
+   // What the quarantine's allow and block wrote, for the checks to read.
+   quarantineListed: [],
    // What the compromised-account detection kept out of the delivery queue,
    // and the review state of the account it locked. The subject is hostile
    // here too: it was written by whoever had the password.
@@ -3619,19 +3631,59 @@ function answer(method, path, headers, raw) {
    }
 
    if (path === '/api/v1/quarantine' && method === 'GET') { return json(200, state.quarantine); }
-   if (/^\/api\/v1\/quarantine\/\d+\/release$/.test(path) && method === 'POST') {
-      const id = Number(segment(path, 4));
-      const at = state.quarantine.findIndex((m) => m.id === id);
-      if (at < 0) { return json(404, { error: 'quarantined message not found' }); }
-      state.quarantine.splice(at, 1);
-      return json(200, { released: true });
+   // One action over many held messages, answered per message, as
+   // QuarantineReview::Run answers: the entries allow and block write (one per
+   // distinct sender or domain), then what became of each id. A public suffix
+   // is refused with 409 unless the request confirms it; a dry run writes and
+   // does nothing.
+   if (path === '/api/v1/quarantine/bulk' && method === 'POST') {
+      const body = parsed || {};
+      const ids = Array.isArray(body.ids) ? body.ids : [];
+      if (!ids.length || ['release', 'delete', 'allow', 'block'].indexOf(body.action) < 0) { return json(400, { error: 'action is required: release, delete, allow or block' }); }
+      const lists = body.action === 'allow' || body.action === 'block';
+      const list = lists ? (body.list || 'address') : '';
+      const from = list === 'domain' ? (body.domain_from || 'sender') : '';
+      const entries = [];
+      const results = [];
+      ids.forEach((id) => {
+         const m = state.quarantine.filter((x) => x.id === id)[0];
+         if (!m) { results.push({ id, ok: false, outcome: '', error: 'No quarantined message with that id.' }); return; }
+         if (lists) {
+            const org = from === 'helo' ? m.helo_domain : m.sender_domain;
+            const value = list === 'address' ? m.sender : (org ? '.' + org : '');
+            if (!value) { results.push({ id, ok: false, outcome: '', error: 'The message has the null sender, so there is no sender domain to list.' }); return; }
+            let entry = entries.filter((e) => e.value === value)[0];
+            if (!entry) {
+               entry = { value, list, match_on: list === 'domain' ? (from === 'helo' ? 'helo' : 'envelope') : '', public_suffix: list === 'domain' && ['.localhost', '.co.uk'].indexOf(value) >= 0,
+                         outcome: body.dry_run ? 'add' : 'added', error: '', ids: [] };
+               entries.push(entry);
+            }
+            entry.ids.push(id);
+         }
+         results.push({ id, ok: true, outcome: '', error: '' });
+      });
+      const suffixes = entries.filter((e) => e.public_suffix).map((e) => e.value);
+      if (suffixes.length && !body.dry_run && body.confirm_public_suffix !== true) {
+         return json(409, { error: 'Nothing was changed: ' + suffixes.join(', ') + ' is a public suffix, and an entry for it covers every domain registered beneath it. Send confirm_public_suffix to list it anyway.', public_suffix: suffixes });
+      }
+      const releasing = body.action === 'release' || body.action === 'allow';
+      results.forEach((r) => {
+         if (!r.ok) { return; }
+         r.outcome = body.dry_run ? (releasing ? 'release' : 'delete') : (releasing ? 'released' : 'deleted');
+         if (!body.dry_run) { state.quarantine = state.quarantine.filter((x) => x.id !== r.id); }
+      });
+      if (!body.dry_run) { entries.forEach((e) => state.quarantineListed.push({ value: e.value, list: e.list, match_on: e.match_on, blocked: body.action === 'block' })); }
+      return json(200, { action: body.action, list, domain_from: from, dry_run: !!body.dry_run, entries, results,
+                         succeeded: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length });
    }
-   if (/^\/api\/v1\/quarantine\/\d+$/.test(path) && method === 'DELETE') {
+   if (path === '/api/v1/quarantine/expire' && method === 'POST') { return json(200, { removed: 0, retention_days: 30 }); }
+   if (/^\/api\/v1\/quarantine\/\d+\/(headers|preview)$/.test(path) && method === 'GET') {
       const id = Number(segment(path, 4));
-      const at = state.quarantine.findIndex((m) => m.id === id);
-      if (at < 0) { return json(404, { error: 'quarantined message not found' }); }
-      state.quarantine.splice(at, 1);
-      return json(200, { deleted: true });
+      if (!state.quarantine.some((m) => m.id === id)) { return json(404, { error: 'quarantined message not found' }); }
+      // Hostile, as a held message's own words are: the page must show them as text.
+      return segment(path, 5) === 'headers'
+         ? json(200, { id, truncated: false, limit: 65536, headers: 'Received: from localhost ([192.0.2.9])\r\nFrom: <' + HOSTILE + '>\r\nSubject: <b>held</b>\r\n' })
+         : json(200, { id, truncated: true, from_html: false, limit: 16384, text: 'Pay now <script>alert(1)</script> at ' + HOSTILE });
    }
 
    if (/^\/api\/v1\/archive(\?|$)/.test(path) && method === 'GET') {
@@ -7521,29 +7573,187 @@ async function main() {
       // ---- the quarantine
       before = requests.length;
       await goTo('quarantine');
+      const qRows = () => rows().filter((r) => r.className.indexOf('qmsg') >= 0);
+      const qGroups = () => rows().filter((r) => r.className.indexOf('qgroup') >= 0);
+      const qText = () => rows().map((r) => r.textContent).join(' | ');
+      const qBulk = (from) => called(from, 'POST', '/api/v1/quarantine/bulk').map((r) => JSON.parse(r.body));
+      const regroup = async (value) => { setValue('qGroup', value); $('#qGroup').dispatchEvent(makeEvent('change')); await flush(); };
       check('the quarantine view reads what is held, once', called(before, 'GET', '/api/v1/quarantine').length === 1, paths(before));
-      check('a row per held message, with the reason and the score', rows().length === 2 &&
-         rows()[0].textContent.indexOf('SURBL') >= 0 && rows()[0].textContent.indexOf('12') >= 0,
-         rows().map((r) => r.textContent).join(' | '));
-      check('a held message\'s subject is drawn as text, tags and all',
-         content().textContent.indexOf(HOSTILE) >= 0 && content().querySelector('img') === null,
-         content().textContent.slice(0, 300));
+      check('grouped by the sender\'s organization, as the server names it, the group with the newest message first',
+         qGroups().length === 3 && qGroups()[0].textContent.indexOf('spammer.example') >= 0 && qGroups()[0].textContent.indexOf('2 messages') >= 0 &&
+         qGroups()[1].textContent.indexOf('(no domain)') >= 0 && qGroups()[2].textContent.indexOf('supply.example') >= 0, qText());
+      check('a row per held message under its group, with the HELO name, the score and the reason',
+         qRows().length === 5 && qRows()[0].textContent.indexOf('mail.spammer.example') >= 0 && qRows()[0].textContent.indexOf('12') >= 0 &&
+         qRows()[0].textContent.indexOf('SURBL') >= 0 && qRows()[1].textContent.indexOf('Weekly offers') >= 0, qText());
+      check('a held message\'s subject and sender are drawn as text, tags and all',
+         content().textContent.indexOf(HOSTILE) >= 0 && content().querySelector('img') === null, content().textContent.slice(0, 300));
+      check('several recipients are the first and how many more, and the tooltip names every one',
+         qRows()[1].textContent.indexOf('anna@example.com + 2 more') >= 0 &&
+         qRows()[1].querySelectorAll('td').some((td) => String(td.attributes.title || '').indexOf('carol@example.com') >= 0), qRows()[1].innerHTML.slice(0, 600));
+      check('a long sender is cut in its cell and whole in its tooltip',
+         qRows()[1].querySelectorAll('td.qtrim').some((td) => td.attributes.title === 'offers@bounces.spammer.example'), qRows()[1].innerHTML.slice(0, 600));
+      check('the box before each row, and the four icons, and the header\'s box and icons for the checked ones',
+         content().querySelectorAll('button[data-act="qcheck"]').length === 1 + 3 + 5 &&
+         content().querySelectorAll('button[data-act="qact"][data-scope="checked"]').length === 4 &&
+         content().querySelectorAll('button[data-act="qact"][data-scope="group"]').length === 12 &&
+         content().querySelectorAll('button[data-act="qact"][data-scope="row"]').length === 20, content().innerHTML.length);
+
+      click(act('qsort', { col: 'score' }));
+      await flush();
+      check('a header sorts the messages inside each group, the largest score first, and leaves the groups where they were',
+         qGroups()[0].textContent.indexOf('spammer.example') >= 0 && qRows()[0].textContent.indexOf('Your invoice') >= 0 &&
+         qRows()[3].textContent.indexOf('Invoice 4417') >= 0 && content().querySelector('th[aria-sort="descending"]') !== null, qText());
+      click(act('qsort', { col: 'score' }));
+      await flush();
+      check('and the same header again turns the order round',
+         qRows()[0].textContent.indexOf('Weekly offers') >= 0 && content().querySelector('th[aria-sort="ascending"]') !== null, qText());
+
+      await regroup('helo');
+      check('grouped by the HELO name\'s organization instead', qGroups().length === 4 &&
+         qGroups().some((r) => r.textContent.indexOf('localhost') >= 0) && qGroups().some((r) => r.textContent.indexOf('spammer-mail.example') >= 0), qText());
+      await regroup('none');
+      check('and not grouped at all: a row for each message and no group rows', qGroups().length === 0 && qRows().length === 5, qText());
+      await regroup('sender');
+
+      click(act('qfold', { key: 'spammer.example' }));
+      await flush();
+      check('a group folds: its messages go and its row stays, marked folded',
+         qGroups().length === 3 && qRows().length === 3 && act('qfold', { key: 'spammer.example' }).attributes['aria-expanded'] === 'false', qText());
+      click(act('qfold', { key: 'spammer.example' }));
+      await flush();
+      check('and unfolds', qRows().length === 5, qText());
 
       before = requests.length;
-      click(act('qrelease', { id: 41 }));
+      click(act('qact', { do: 'release', scope: 'checked' }));
       await flush();
-      check('releasing posts to the message\'s own release route and reads the queue again',
-         called(before, 'POST', '/api/v1/quarantine/41/release').length === 1 &&
-         called(before, 'GET', '/api/v1/quarantine').length === 1 && rows().length === 1, paths(before));
-      check('and says what happened to it', toastText().indexOf('recipients') >= 0, toastText());
+      check('the header\'s icons with nothing checked say so and send nothing', qBulk(before).length === 0 &&
+         $('#err_quarantine').textContent.indexOf('Check the messages first') >= 0, $('#err_quarantine').textContent);
 
-      before = requests.length;
-      click(act('qdelete', { id: 42 }));
+      click(act('qcheck', { id: 41 }));
       await flush();
-      check('deleting one asks first, because nothing brings it back',
-         confirmations[confirmations.length - 1].indexOf('for good') >= 0, confirmations[confirmations.length - 1]);
-      check('and deletes it', called(before, 'DELETE', '/api/v1/quarantine/42').length === 1, paths(before));
+      check('checking one message of a group shows the group\'s box, and the header\'s, as partly checked',
+         act('qcheck', { key: 'spammer.example' }).attributes['aria-checked'] === 'mixed' && act('qcheck', { all: 1 }).attributes['aria-checked'] === 'mixed' &&
+         act('qcheck', { id: 41 }).attributes['aria-checked'] === 'true', content().innerHTML.length);
+      click(act('qcheck', { key: 'spammer.example' }));
+      await flush();
+      check('and the group\'s box checks the rest of it', act('qcheck', { key: 'spammer.example' }).attributes['aria-checked'] === 'true' &&
+         act('qcheck', { id: 43 }).attributes['aria-checked'] === 'true' && act('qcheck', { id: 44 }).attributes['aria-checked'] === 'false', content().innerHTML.length);
+
+      // The headers and the preview: read from the server, shown as text.
+      before = requests.length;
+      click(act('qread', { what: 'headers', id: 42 }));
+      await flush();
+      check('the headers icon reads that message\'s headers and shows them in a panel, as text',
+         called(before, 'GET', '/api/v1/quarantine/42/headers').length === 1 && $('#qReadText') !== null &&
+         $('#qReadText').textContent.indexOf('Subject: <b>held</b>') >= 0 && $('#qRead').querySelector('b') === null && $('#qRead').querySelector('img') === null,
+         paths(before) + ' ' + ($('#qReadText') ? $('#qReadText').textContent : ''));
+      click(act('qreadclose'));
+      await flush();
+      check('and Close takes the panel away', $('#qRead') === null);
+      before = requests.length;
+      click(act('qread', { what: 'preview', id: 42 }));
+      await flush();
+      check('the preview icon reads the message\'s text, shows it as text, and says it was cut',
+         called(before, 'GET', '/api/v1/quarantine/42/preview').length === 1 && $('#qReadText').textContent.indexOf('<script>') >= 0 &&
+         $('#qRead').querySelector('script') === null && $('#qReadNote').hidden === false && $('#qReadNote').textContent.indexOf('16384') >= 0,
+         paths(before) + ' ' + ($('#qReadNote') ? $('#qReadNote').textContent : ''));
+      press('Escape', $('#qReadText'));
+      await flush();
+      check('and Escape takes it away', $('#qRead') === null);
+
+      // Whitelist a group: which list, asked of the server before anything is written.
+      before = requests.length;
+      click(act('qact', { do: 'allow', scope: 'group', key: 'supply.example' }));
+      await flush();
+      let dry = qBulk(before);
+      check('whitelisting a group asks which list, and asks the server what the default - the senders\' addresses - would write',
+         $('#qList') !== null && dry.length === 1 && dry[0].dry_run === true && dry[0].action === 'allow' && dry[0].list === 'address' &&
+         JSON.stringify(dry[0].ids) === '[44,45]' && $('#qPlan').textContent.indexOf('billing@supply.example') >= 0 && $('#qPlan').textContent.indexOf('news@supply.example') >= 0,
+         JSON.stringify(dry) + ' ' + ($('#qPlan') ? $('#qPlan').textContent : ''));
+      before = requests.length;
+      click(act('qlistpick', { list: 'domain' }));
+      await flush();
+      dry = qBulk(before);
+      check('the domain instead is the sender\'s organization on the domain white and black list, one entry for the group',
+         dry.length === 1 && dry[0].dry_run === true && dry[0].list === 'domain' && dry[0].domain_from === 'sender' &&
+         $('#qPlan').textContent.indexOf('.supply.example') >= 0 && $('#qListYes').disabled === false, JSON.stringify(dry) + ' ' + $('#qPlan').textContent);
+      before = requests.length;
+      click(act('qlistyes'));
+      await flush();
+      let sent = qBulk(before);
+      check('and the button writes it and releases the group, in one request',
+         sent.length === 1 && sent[0].action === 'allow' && sent[0].list === 'domain' && sent[0].domain_from === 'sender' && !sent[0].dry_run &&
+         sent[0].confirm_public_suffix === undefined && state.quarantineListed.some((e) => e.value === '.supply.example' && !e.blocked) &&
+         $('#qList') === null && qRows().length === 3, JSON.stringify(sent) + ' ' + qText());
+
+      // Blacklist by the HELO name's domain, which is a public suffix here.
+      await regroup('helo');
+      before = requests.length;
+      click(act('qact', { do: 'block', scope: 'group', key: 'localhost' }));
+      await flush();
+      check('blacklisting asks the same question, and Cancel has the keyboard because it deletes',
+         $('#qList') !== null && document.activeElement === act('qlistno') && $('#qListTitle').textContent.indexOf('Blacklist') >= 0, String(document.activeElement && document.activeElement.attributes['data-act']));
+      click(act('qlistpick', { list: 'domain' }));
+      await flush();
+      check('grouped by HELO name, the domain is the HELO\'s: a public suffix is named, and the button waits for the box',
+         qBulk(before).some((b) => b.list === 'domain' && b.domain_from === 'helo' && b.dry_run === true) &&
+         $('#qPlan').textContent.indexOf('public suffix') >= 0 && $('#qSuffix').hidden === false && $('#qListYes').disabled === true,
+         $('#qPlan').textContent);
+      click(act('qlistsuffix'));
+      await flush();
+      check('the box ticked, the button is there to press', $('#qSuffix').attributes['aria-checked'] === 'true' && $('#qListYes').disabled === false);
+      before = requests.length;
+      click(act('qlistyes'));
+      await flush();
+      sent = qBulk(before);
+      check('and it sends the confirmation with the request, blocks the name and deletes the message',
+         sent.length === 1 && sent[0].action === 'block' && sent[0].confirm_public_suffix === true &&
+         state.quarantineListed.some((e) => e.value === '.localhost' && e.blocked && e.match_on === 'helo') && qRows().length === 2, JSON.stringify(sent));
+      await regroup('sender');
+
+      // Delete asks the page's own question, whose default is No.
+      const confirmsBefore = confirmations.length;
+      before = requests.length;
+      click(act('qact', { do: 'delete', scope: 'row', id: 41 }));
+      await flush();
+      check('deleting asks first, in a dialog of the page\'s own rather than the browser\'s confirm, which answers OK to Enter',
+         $('#qAsk') !== null && confirmations.length === confirmsBefore && qBulk(before).length === 0 &&
+         $('#qAskText').textContent.indexOf('for good') >= 0, $('#qAsk') ? $('#qAsk').textContent : 'no dialog');
+      check('and No has the keyboard when it opens', document.activeElement === act('qaskno'), String(document.activeElement && document.activeElement.attributes['data-act']));
+      press('Enter', document.activeElement);
+      await flush();
+      check('Enter there is not a way past it: the page\'s own Enter does not act behind the dialog', $('#qAsk') !== null && qBulk(before).length === 0);
+      press('Escape', document.activeElement);
+      await flush();
+      check('Escape is No: the dialog goes and nothing is sent', $('#qAsk') === null && qBulk(before).length === 0, paths(before));
+      click(act('qact', { do: 'delete', scope: 'row', id: 41 }));
+      await flush();
+      click(act('qaskyes'));
+      await flush();
+      sent = qBulk(before);
+      check('Yes deletes it, through the bulk request, and the page reads what is held again',
+         sent.length === 1 && sent[0].action === 'delete' && JSON.stringify(sent[0].ids) === '[41]' && called(before, 'GET', '/api/v1/quarantine').length >= 1 && qRows().length === 1,
+         JSON.stringify(sent) + ' ' + qText());
+
+      // The header's release acts on what is still checked, in one request.
+      before = requests.length;
+      click(act('qact', { do: 'release', scope: 'checked' }));
+      await flush();
+      sent = qBulk(before);
+      check('the header\'s release sends every checked message in one request, not one per message, and says what happened',
+         sent.length === 1 && sent[0].action === 'release' && JSON.stringify(sent[0].ids) === '[43]' && toastText().indexOf('recipients') >= 0, JSON.stringify(sent) + ' ' + toastText());
       check('with nothing held the page says so', content().textContent.indexOf('Nothing is held') >= 0, content().textContent.slice(0, 200));
+
+      before = requests.length;
+      click(act('qexpire'));
+      await flush();
+      check('Remove expired runs the sweep and says what it removed', called(before, 'POST', '/api/v1/quarantine/expire').length === 1 &&
+         content().textContent.indexOf('Nothing was old enough') >= 0, paths(before));
+
+      click(act('qdigest'));
+      await flush();
+      check('Digest settings goes to the settings with the digest\'s own filtered in', $('#viewTitle').textContent === 'Settings' &&
+         $('#setFilter') !== null && $('#setFilter').value === 'quarantine_digest', $('#viewTitle').textContent);
 
       // ---- held for review: the compromised-account detection
       before = requests.length;

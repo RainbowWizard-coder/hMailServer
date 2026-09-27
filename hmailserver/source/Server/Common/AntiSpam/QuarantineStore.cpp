@@ -27,6 +27,8 @@
 #include "../Util/Parsing/StringParser.h"
 #include "../BO/MessageData.h"
 #include "../AntiVirus/Sandbox.h"
+#include "../Util/ContentPolicy.h"
+#include "../Util/Unicode.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -35,6 +37,25 @@
 
 namespace HM
 {
+   namespace
+   {
+      // Cuts a text to at most limit characters, and never between the two
+      // halves of a UTF-16 surrogate pair: half a character is no character, and
+      // the JSON it is written into would carry a lone surrogate.
+      bool CutAt(String &text, int limit)
+      {
+         if (text.GetLength() <= limit)
+            return false;
+
+         int cut = limit;
+         if (cut > 0 && (unsigned int) text[cut - 1] >= 0xD800 && (unsigned int) text[cut - 1] <= 0xDBFF)
+            cut--;
+
+         text = text.Left(cut);
+         return true;
+      }
+   }
+
    bool
    QuarantineStore::GetEnabled()
    {
@@ -74,6 +95,91 @@ namespace HM
 
    bool
    QuarantineStore::Quarantine(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFileName)
+   {
+      return Quarantine_(message, reason, score, sourceFileName, false, String());
+   }
+
+   bool
+   QuarantineStore::QuarantineFromSession(std::shared_ptr<Message> message, const String &reason, int score, const String &heloName)
+   {
+      if (!message)
+         return false;
+
+      return Quarantine_(message, reason, score, MessageStore::WorkingFile(message), true, heloName);
+   }
+
+   String
+   QuarantineStore::HeloFromReceivedHeader(const String &receivedValue, const String &localComputerName)
+   {
+      // The header SMTPMessageHeaderCreator::GenerateReceivedHeader_ writes:
+      //
+      //    from <helo> (<ptr> [<address>])
+      //       by <computer name> with ESMTP id <session>
+      //
+      // folded over lines. Only a header naming this computer after "by" is
+      // this server's own; anybody else's Received header says what a client of
+      // theirs claimed, which is not what the review queue shows.
+      String value = receivedValue;
+      value.Replace(_T("\r"), _T(" "));
+      value.Replace(_T("\n"), _T(" "));
+      value.Replace(_T("\t"), _T(" "));
+      value.Trim();
+
+      if (localComputerName.IsEmpty() || value.GetLength() < 5 || value.Left(5).CompareNoCase(_T("from ")) != 0)
+         return String();
+
+      // Searched from the end of "from" on, so that "from by host" - a from
+      // clause with no name in it - is read as no name rather than cut at a
+      // negative length.
+      const int byPosition = value.Find(_T(" by "), 4);
+      if (byPosition < 5)
+         return String();
+
+      String by = value.Mid(byPosition + 4);
+      by.Trim();
+      const int byEnd = by.Find(_T(" "));
+      if (byEnd >= 0)
+         by = by.Left(byEnd);
+
+      if (by.CompareNoCase(localComputerName) != 0)
+         return String();
+
+      String helo = value.Mid(5, byPosition - 5);
+      helo.Trim();
+      const int heloEnd = helo.Find(_T(" "));
+      if (heloEnd >= 0)
+         helo = helo.Left(heloEnd);
+
+      // A client that gave no HELO has its address written in the name's place.
+      // The address is already beside it in brackets; it is not a name.
+      if (helo.IsEmpty() || StringParser::IsValidIPAddress(helo))
+         return String();
+
+      return helo.Mid(0, 255);
+   }
+
+   String
+   QuarantineStore::HeloOfStoredCopy_(const String &file)
+   {
+      // The newest Received header is the first one, and for a message this
+      // server received over SMTP it is the one the server wrote.
+      AnsiString header = PersistentMessage::LoadHeader(file, false);
+      if (header.IsEmpty())
+         return String();
+
+      MimeHeader mimeHeader;
+      mimeHeader.Load(header, header.GetLength(), true);
+
+      MimeField *received = mimeHeader.GetField("Received");
+      if (received == nullptr)
+         return String();
+
+      return HeloFromReceivedHeader(String(received->GetValue()), Utilities::ComputerName());
+   }
+
+   bool
+   QuarantineStore::Quarantine_(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFileName,
+                                bool heloKnown, const String &heloName)
    {
       try
       {
@@ -122,6 +228,9 @@ namespace HM
                subject = messageData.GetSubject();
          }
 
+         String helo = heloKnown ? heloName : HeloOfStoredCopy_(targetFile);
+         helo.Trim();
+
          SQLStatement statement;
 
          statement.SetTable("hm_quarantine");
@@ -133,6 +242,7 @@ namespace HM
          statement.AddColumnInt64("quarantinescore", score);
          statement.AddColumnInt64("quarantinesize", FileUtilities::FileSize(targetFile));
          statement.AddColumnDate("quarantinecreated", Time::GetDateFromSystemDate(Time::GetCurrentDateTime()));
+         statement.AddColumn("quarantinehelo", helo.Mid(0, 255));
          statement.SetStatementType(SQLStatement::STInsert);
          statement.SetIdentityColumn("quarantineid");
 
@@ -203,7 +313,149 @@ namespace HM
       out_message.score = (int) recordset->GetLongValue("quarantinescore");
       out_message.size = (int) recordset->GetLongValue("quarantinesize");
       out_message.created = recordset->GetStringValue("quarantinecreated");
+      out_message.helo = recordset->GetStringValue("quarantinehelo");
 
+      return true;
+   }
+
+   bool
+   QuarantineStore::OpenFile_(__int64 id, String &out_file, String &out_error)
+   {
+      QuarantinedMessage quarantined;
+
+      if (!GetById(id, quarantined))
+      {
+         out_error = "No quarantined message with that id.";
+         return false;
+      }
+
+      out_file = FileUtilities::Combine(GetQuarantineDirectory(), quarantined.file_name);
+
+      if (!FileUtilities::Exists(out_file))
+      {
+         out_error = "The quarantined message file is missing. Delete the entry to clear it.";
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
+   QuarantineStore::ReadHeaders(__int64 id, String &out_headers, bool &out_truncated, String &out_error)
+   {
+      out_headers.Empty();
+      out_truncated = false;
+
+      String file;
+      if (!OpenFile_(id, file, out_error))
+         return false;
+
+      const AnsiString header = PersistentMessage::LoadHeader(file, false);
+
+      // As the bytes are: UTF-8 where a header carries any (RFC 6532), and every
+      // other byte kept as the character of that value, so that an 8-bit header
+      // in another character set is shown garbled rather than dropped.
+      String text;
+      if (!Unicode::MultiByteToWide(header, text))
+      {
+         text.Empty();
+         for (int i = 0; i < header.GetLength(); i++)
+            text += (wchar_t) (unsigned char) header[i];
+      }
+
+      out_truncated = CutAt(text, MaxHeaderCharacters);
+
+      out_headers = text;
+      return true;
+   }
+
+   String
+   QuarantineStore::TextOfHtml(const String &html)
+   {
+      // What is between <style> and </style>, <script> and </script>, and
+      // <head> and </head> is not text a person reads; ContentPolicy's stripper
+      // takes out the tags and would leave it.
+      String lower = html;
+      lower.MakeLower();
+
+      String kept;
+      kept.reserve(html.GetLength());
+
+      int position = 0;
+      while (position < html.GetLength())
+      {
+         int cut = -1;
+         String closing;
+
+         for (const TCHAR *element : { _T("style"), _T("script"), _T("head") })
+         {
+            const String opening = String(_T("<")) + element;
+            const int at = lower.Find(opening.c_str(), position);
+            if (at >= 0 && (cut < 0 || at < cut))
+            {
+               cut = at;
+               closing = String(_T("</")) + element;
+            }
+         }
+
+         if (cut < 0)
+         {
+            kept += html.Mid(position);
+            break;
+         }
+
+         kept += html.Mid(position, cut - position);
+
+         const int end = lower.Find(closing.c_str(), cut);
+         if (end < 0)
+            break;
+
+         const int close = lower.Find(_T(">"), end);
+         if (close < 0)
+            break;
+
+         kept += _T(" ");
+         position = close + 1;
+      }
+
+      return ContentPolicy::StripHtml(kept);
+   }
+
+   bool
+   QuarantineStore::ReadPreview(__int64 id, String &out_text, bool &out_truncated, bool &out_fromHtml, String &out_error)
+   {
+      out_text.Empty();
+      out_truncated = false;
+      out_fromHtml = false;
+
+      String file;
+      if (!OpenFile_(id, file, out_error))
+         return false;
+
+      std::shared_ptr<Message> message = std::shared_ptr<Message>(new Message(false));
+      std::shared_ptr<MessageData> data = std::shared_ptr<MessageData>(new MessageData());
+
+      if (!data->LoadFromMessage(file, message))
+      {
+         out_error = "The quarantined message could not be read. It may be larger than the parser reads, or damaged.";
+         return false;
+      }
+
+      String text = data->GetBody();
+
+      if (text.IsEmpty())
+      {
+         const String html = data->GetHTMLBody();
+         if (!html.IsEmpty())
+         {
+            text = TextOfHtml(html);
+            out_fromHtml = true;
+         }
+      }
+
+      out_truncated = CutAt(text, MaxPreviewCharacters);
+
+      out_text = text;
       return true;
    }
 

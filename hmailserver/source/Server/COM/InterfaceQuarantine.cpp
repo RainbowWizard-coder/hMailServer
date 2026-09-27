@@ -8,6 +8,9 @@
 
 #include "COMError.h"
 
+#include "../Common/AntiSpam/QuarantineReview.h"
+#include "../Common/Util/Unicode.h"
+
 STDMETHODIMP InterfaceQuarantine::Refresh()
 {
    try
@@ -148,6 +151,42 @@ STDMETHODIMP InterfaceQuarantine::DeleteExpired(LONG* pVal)
 
       *pVal = (LONG) HM::QuarantineStore::DeleteExpired();
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceQuarantine::Bulk(BSTR Request, BSTR* Result)
+{
+   try
+   {
+      // Releasing, deleting and writing the server's own lists: each of them
+      // is the server administrator's, so the whole of it is.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::AnsiString body;
+      HM::Unicode::WideToMultiByte(HM::String(Request), body);
+
+      HM::QuarantineReview::Request request;
+      HM::String error;
+
+      if (!HM::QuarantineReview::ParseRequest(body, request, error))
+         return COMError::GenerateError(error);
+
+      HM::AnsiString answer;
+      const HM::QuarantineReview::Outcome outcome = HM::QuarantineReview::Run(request, answer, error);
+
+      if (outcome != HM::QuarantineReview::OutcomeDone)
+         return COMError::GenerateError(error);
+
+      HM::String text;
+      HM::Unicode::MultiByteToWide(answer, text);
+
+      *Result = text.AllocSysString();
       return S_OK;
    }
    catch (...)

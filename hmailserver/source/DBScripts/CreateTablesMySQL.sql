@@ -1652,7 +1652,8 @@ create table hm_quarantine
 	quarantinereason varchar(255) not null,
 	quarantinescore int not null,
 	quarantinesize int not null,
-	quarantinecreated datetime not null
+	quarantinecreated datetime not null,
+	quarantinehelo varchar(255) not null default ''
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE INDEX idx_hm_quarantine_created ON hm_quarantine (quarantinecreated);
@@ -3163,4 +3164,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6104);
+insert into hm_dbversion values (6105);

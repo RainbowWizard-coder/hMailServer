@@ -226,7 +226,10 @@ VERB_SEGMENTS = {'reload', 'check', 'clear', 'retry', 'release', 'hold', 'downlo
                  'rotate',
                  # An eDiscovery case closed, and a search's hits exported - the
                  # verb an account's export is, too.
-                 'close', 'export'}
+                 'close', 'export',
+                 # One action over many of the resource's items at once: the
+                 # quarantine's release, delete, allow and block.
+                 'bulk'}
 
 UNIT_SUFFIXES = ('seconds', 'minutes', 'hours', 'days', 'secs', 'mins', 'kb', 'mb', 'ms', 'sec', 'min')
 STOP_WORDS = {'of', 'number', 'no', 'the', 'a', 'an', 'is', 'in', 'to', 'use',

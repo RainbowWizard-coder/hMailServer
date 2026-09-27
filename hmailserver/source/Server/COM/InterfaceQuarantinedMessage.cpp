@@ -7,6 +7,8 @@
 
 #include "COMError.h"
 
+#include "../Common/AntiSpam/QuarantineReview.h"
+
 void
 InterfaceQuarantinedMessage::Attach(const HM::QuarantinedMessage &message)
 {
@@ -154,6 +156,94 @@ STDMETHODIMP InterfaceQuarantinedMessage::Delete()
       if (!HM::QuarantineStore::Delete(message_.id))
          return COMError::GenerateError("The quarantined message could not be deleted.");
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceQuarantinedMessage::get_Helo(BSTR* pVal)
+{
+   try
+   {
+      *pVal = message_.helo.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceQuarantinedMessage::get_SenderDomain(BSTR* pVal)
+{
+   try
+   {
+      *pVal = HM::QuarantineReview::SenderDomain(message_.sender).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceQuarantinedMessage::get_HeloDomain(BSTR* pVal)
+{
+   try
+   {
+      *pVal = HM::QuarantineReview::HeloDomain(message_.helo).AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceQuarantinedMessage::ReadHeaders(BSTR* pVal)
+{
+   try
+   {
+      // The message itself, not the row about it: held to the bar the release
+      // is held to.
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String headers;
+      HM::String error;
+      bool truncated = false;
+
+      if (!HM::QuarantineStore::ReadHeaders(message_.id, headers, truncated, error))
+         return COMError::GenerateError(error);
+
+      *pVal = headers.AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceQuarantinedMessage::ReadPreview(BSTR* pVal)
+{
+   try
+   {
+      if (!authentication_->GetIsServerAdmin())
+         return authentication_->GetAccessDenied();
+
+      HM::String text;
+      HM::String error;
+      bool truncated = false;
+      bool fromHtml = false;
+
+      if (!HM::QuarantineStore::ReadPreview(message_.id, text, truncated, fromHtml, error))
+         return COMError::GenerateError(error);
+
+      *pVal = text.AllocSysString();
       return S_OK;
    }
    catch (...)

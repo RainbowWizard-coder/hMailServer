@@ -16,6 +16,7 @@
 #include "../Util/PasswordBreachCheck.h"
 #include "../Util/ObjectStoreSignature.h"
 #include "../Util/ContentPolicy.h"
+#include "../AntiSpam/QuarantineReview.h"
 #include "../Util/WebPush.h"
 #include "../Util/PushSubscriptions.h"
 #include "../Util/PushNotifier.h"
@@ -221,6 +222,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ContentPolicy\n"));
       ContentPolicyTester contentPolicyTester;
       contentPolicyTester.Test();
+
+      // The quarantine review: the HELO read back from this server's own
+      // Received header and nobody else's, the organizations' domains the
+      // pages group by, the public-suffix guard, the bulk request's refusals,
+      // and the preview's text of an HTML part.
+      OutputDebugString(_T("hMailServer: Testing QuarantineReview\n"));
+      QuarantineReviewTester quarantineReviewTester;
+      quarantineReviewTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing ExternalSenderTagger\n"));
       ExternalSenderTaggerTester externalSenderTaggerTester;

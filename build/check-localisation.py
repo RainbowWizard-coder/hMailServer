@@ -137,6 +137,8 @@ LOCALISED = {
    "Views/MessageTraceView.cs",
    "Views/AboutView.cs",
    "Views/QuarantineView.cs",
+   "Views/QuarantineListDialog.cs",
+   "Services/QuarantineReview.cs",
    "Views/SuppressionListView.cs",
    "Views/DiscoveryView.cs",
    "Views/ScriptsView.cs",

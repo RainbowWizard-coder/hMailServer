@@ -227,6 +227,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="(no address)" xml:space="preserve">
     <value>(geen adres)</value>
   </data>
+  <data name="(no domain)" xml:space="preserve">
+    <value>(geen domein)</value>
+  </data>
   <data name="(no label)" xml:space="preserve">
     <value>(geen label)</value>
   </data>
@@ -331,6 +334,12 @@ Dit zwakke wachtwoord toch opslaan?</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 item kan vanaf hier niet worden gecontroleerd.</value>
+  </data>
+  <data name="1 message" xml:space="preserve">
+    <value>1 bericht</value>
+  </data>
+  <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
+    <value>1 bericht kan niet worden vermeld en blijft waar het is: {0}</value>
   </data>
   <data name="1 message held." xml:space="preserve">
     <value>1 bericht vastgehouden.</value>
@@ -1707,6 +1716,27 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Black: refused at MAIL FROM" xml:space="preserve">
     <value>Zwart: geweigerd bij MAIL FROM</value>
   </data>
+  <data name="Blacklist and delete" xml:space="preserve">
+    <value>Op de zwarte lijst zetten en verwijderen</value>
+  </data>
+  <data name="Blacklist the checked messages' senders, then delete" xml:space="preserve">
+    <value>De afzenders van de aangevinkte berichten op de zwarte lijst zetten en dan verwijderen</value>
+  </data>
+  <data name="Blacklist the sender of this message, then delete it" xml:space="preserve">
+    <value>De afzender van dit bericht op de zwarte lijst zetten en het dan verwijderen</value>
+  </data>
+  <data name="Blacklist the sender, then delete" xml:space="preserve">
+    <value>De afzender op de zwarte lijst zetten en dan verwijderen</value>
+  </data>
+  <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
+    <value>De afzenders van {0} berichten op de zwarte lijst zetten en ze dan verwijderen</value>
+  </data>
+  <data name="Blacklist this group's senders, then delete" xml:space="preserve">
+    <value>De afzenders van deze groep op de zwarte lijst zetten en dan verwijderen</value>
+  </data>
+  <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
+    <value>Op de zwarte lijst gezet. Lijstitems: {0}. Berichten verwijderd: {1}.</value>
+  </data>
   <data name="Block lists checked against the IP address that is connecting." xml:space="preserve">
     <value>Blokkeerlijsten die worden gecontroleerd tegen het IP-adres dat verbinding maakt.</value>
   </data>
@@ -1962,6 +1992,12 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Beleid controleren (HTTPS)</value>
   </data>
+  <data name="Check every message" xml:space="preserve">
+    <value>Alle berichten aanvinken</value>
+  </data>
+  <data name="Check every message from {0}" xml:space="preserve">
+    <value>Alle berichten van {0} aanvinken</value>
+  </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Op _updates controleren</value>
   </data>
@@ -1977,11 +2013,17 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Check that the internet-wide range does not allow deliveries to external accounts." xml:space="preserve">
     <value>Controleer of het internetbrede bereik geen bezorgingen naar externe accounts toestaat.</value>
   </data>
+  <data name="Check the messages first: the header's icons act on every checked message." xml:space="preserve">
+    <value>Vink eerst de berichten aan: de pictogrammen in de header werken op elk aangevinkt bericht.</value>
+  </data>
   <data name="Check the queue for the failure the remote server reported." xml:space="preserve">
     <value>Kijk in de wachtrij naar de fout die de externe server meldde.</value>
   </data>
   <data name="Check the server is healthy" xml:space="preserve">
     <value>Controleren of de server gezond is</value>
+  </data>
+  <data name="Check this message" xml:space="preserve">
+    <value>Dit bericht aanvinken</value>
   </data>
   <data name="Check whether the {0} record is published in DNS" xml:space="preserve">
     <value>Controleren of het {0}-record in DNS is gepubliceerd</value>
@@ -2975,6 +3017,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>De alias {0} verwijderen?</value>
   </data>
+  <data name="Delete the checked messages" xml:space="preserve">
+    <value>De aangevinkte berichten verwijderen</value>
+  </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>De distributielijst {0} verwijderen?</value>
   </data>
@@ -2998,11 +3043,24 @@ Dit verwijdert {1} definitief, samen met elk bericht dat daarin is opgeslagen en
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Het geselecteerde certificaat verwijderen</value>
   </data>
+  <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>De {0} aangevinkte berichten definitief verwijderen?
+
+De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opnieuw geprobeerd en er is geen andere kopie.</value>
+  </data>
+  <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>De {0} berichten van {1} definitief verwijderen?
+
+De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opnieuw geprobeerd en er is geen andere kopie.</value>
+  </data>
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>De {0}-binding op poort {1} verwijderen?</value>
   </data>
   <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
     <value>Dit app-wachtwoord verwijderen? De client die het gebruikt kan meteen geen verbinding meer maken.</value>
+  </data>
+  <data name="Delete this group" xml:space="preserve">
+    <value>Deze groep verwijderen</value>
   </data>
   <data name="Delete this message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Dit bericht definitief verwijderen?
@@ -3023,6 +3081,12 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Deleted" xml:space="preserve">
     <value>Verwijderd</value>
+  </data>
+  <data name="Deleted 1 message." xml:space="preserve">
+    <value>1 bericht verwijderd.</value>
+  </data>
+  <data name="Deleted {0} messages." xml:space="preserve">
+    <value>{0} berichten verwijderd.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Een domein verwijderen verwijdert de accounts erin. Controleer eerst op aliassen en lijsten die ernaar verwijzen.</value>
@@ -3851,6 +3915,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Elk ontvangen bericht naar schijf doorspoelen voordat het wordt bevestigd (duurzaam, langzamer)</value>
   </data>
+  <data name="Fold this group" xml:space="preserve">
+    <value>Deze groep samenvouwen</value>
+  </data>
   <data name="Folder hierarchy delimiter" xml:space="preserve">
     <value>Scheidingsteken voor de mappenhiërarchie</value>
   </data>
@@ -4016,8 +4083,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Greylisting white list" xml:space="preserve">
     <value>Greylisting-witte lijst</value>
   </data>
+  <data name="Gro_up by" xml:space="preserve">
+    <value>Gro_eperen op</value>
+  </data>
   <data name="Group" xml:space="preserve">
     <value>Groep</value>
+  </data>
+  <data name="Group by" xml:space="preserve">
+    <value>Groeperen op</value>
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Groepsnaam</value>
@@ -4025,8 +4098,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Groups" xml:space="preserve">
     <value>Groepen</value>
   </data>
+  <data name="HELO" xml:space="preserve">
+    <value>HELO</value>
+  </data>
   <data name="HELO check score" xml:space="preserve">
     <value>Score van de HELO-controle</value>
+  </data>
+  <data name="HELO domain" xml:space="preserve">
+    <value>HELO-domein</value>
   </data>
   <data name="HELO host check" xml:space="preserve">
     <value>HELO-hostcontrole</value>
@@ -4084,6 +4163,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Header read chunk size (bytes)" xml:space="preserve">
     <value>Blokgrootte voor het lezen van headers (bytes)</value>
+  </data>
+  <data name="Headers of the message from {0}" xml:space="preserve">
+    <value>Headers van het bericht van {0}</value>
   </data>
   <data name="Headings" xml:space="preserve">
     <value>Koppen</value>
@@ -4644,6 +4726,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Leeg gelaten gebruikt de server het meegeleverde filter dat in het grijs wordt getoond - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
+  </data>
+  <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
+    <value>Gelaten waar ze waren: {0}. De eerste reden: {1}</value>
   </data>
   <data name="Length is the requirement that buys the most, and the one people mind least." xml:space="preserve">
     <value>Lengte is de eis die het meeste oplevert, en degene waar mensen zich het minst aan storen.</value>
@@ -5211,8 +5296,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Berichten die de server klaar heeft verwerkt, per minuut, elke 2 seconden bemonsterd.</value>
   </data>
-  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final." xml:space="preserve">
-    <value>Berichten die de server anders geweigerd zou hebben, vastgehouden zodat iemand ernaar kan kijken. De afzender heeft van elk van deze berichten te horen gekregen dat het is geaccepteerd, dus er komt niets uit zichzelf opnieuw binnen: er een vrijgeven bezorgt het, en er een verwijderen is definitief.</value>
+  <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
+    <value>Berichten die de server anders zou hebben geweigerd, vastgehouden zodat iemand ernaar kan kijken. Elke afzender is verteld dat zijn bericht was geaccepteerd, dus geen ervan komt vanzelf opnieuw binnen: één vrijgeven bezorgt het, en één verwijderen is definitief. De pictogrammen werken op één bericht, op een groep, of - in de header - op elk aangevinkt bericht.</value>
   </data>
   <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
     <value>Berichten tot {0} worden gescand door {1}; alles wat groter is, wordt bezorgd zonder ook maar te zijn gescand</value>
@@ -5438,6 +5523,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No DKIM key is configured for {0} yet. Generate one here: the private key is saved to a file of your choosing on this machine, the selector and key file are stored on the domain, and signing stays OFF until the DNS record below has been published and a check on this page has seen it - switching signing on before then would sign mail with a key the world cannot look up." xml:space="preserve">
     <value>Er is nog geen DKIM-sleutel geconfigureerd voor {0}. Genereer er hier een: de privésleutel wordt opgeslagen in een bestand van uw keuze op deze machine, de selector en het sleutelbestand worden op het domein bewaard, en het ondertekenen blijft UIT totdat het DNS-record hieronder is gepubliceerd en een controle op deze pagina het heeft gezien - ondertekenen eerder inschakelen zou mail ondertekenen met een sleutel die de wereld niet kan opzoeken.</value>
+  </data>
+  <data name="No HELO name was recorded" xml:space="preserve">
+    <value>Er is geen HELO-naam vastgelegd</value>
   </data>
   <data name="No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows." xml:space="preserve">
     <value>Geen enkel IP-bereik vereist TLS vóór authenticatie. Die instelling staat op elk IP-bereik in plaats van bij de rest van TLS, en daarom is het gemakkelijk om hem nooit gezien te hebben: het is de enige knop die een wachtwoord in klare tekst weigert, ongeacht wat de poort toestaat.</value>
@@ -6057,6 +6145,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before." xml:space="preserve">
     <value>Alleen nodig wanneer het sleutelbestand versleuteld is: met een versleutelde sleutel en zonder wachtwoordzin laadt de sleutel niet (serverfout 6170) en start elke TLS-poort die dit certificaat gebruikt niet - inkomende mail op die poorten stopt. De wachtwoordzin is een geheim: hij wordt beschermd op de server opgeslagen en wordt hier nooit meer getoond, en een nieuwe opslaan vervangt wat er eerder was opgeslagen.</value>
   </data>
+  <data name="Only the first {0} characters are shown." xml:space="preserve">
+    <value>Alleen de eerste {0} tekens worden getoond.</value>
+  </data>
   <data name="Only this computer may connect, so no password crosses a network." xml:space="preserve">
     <value>Alleen deze computer mag verbinden, dus er gaat geen wachtwoord over een netwerk.</value>
   </data>
@@ -6548,6 +6639,12 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand." xml:space="preserve">
     <value>Een voorbeeld wijzigt niets en meldt precies wat Toepassen zou doen - ze delen één beslisser in de server, dus een voorbeeld kan geen actie beschrijven die het toepassen niet zou uitvoeren. Toepassen blijft uitgeschakeld totdat er een voorbeeld is uitgevoerd met de opties zoals ze nu staan.</value>
   </data>
+  <data name="Preview of &quot;{0}&quot;" xml:space="preserve">
+    <value>Voorbeeld van “{0}”</value>
+  </data>
+  <data name="Preview the text" xml:space="preserve">
+    <value>De tekst als voorbeeld tonen</value>
+  </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Eerst een voorbeeld, dan toepassen</value>
   </data>
@@ -6830,6 +6927,18 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Intrekken / _herstellen</value>
   </data>
+  <data name="Read at MAIL FROM: a black domain is refused with 550 before anything else runs, for every recipient. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Gelezen bij MAIL FROM: een zwart domein wordt met 550 geweigerd voordat er iets anders wordt uitgevoerd, voor elke ontvanger. De vermelding dekt het domein van de organisatie en alles daaronder.</value>
+  </data>
+  <data name="Read at MAIL FROM: a white domain is not greylisted, and not refused or held on the spam score, while every test still runs and the mark threshold still marks. The entry covers the organization's domain and everything beneath it." xml:space="preserve">
+    <value>Gelezen bij MAIL FROM: een wit domein wordt niet onderworpen aan greylisting, en niet geweigerd of vastgehouden op basis van de spamscore, terwijl elke test toch wordt uitgevoerd en de markeringsdrempel toch markeert. De vermelding dekt het domein van de organisatie en alles daaronder.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: a blocked sender's mail is held for them where the quarantine is on, and marked as spam where it is not." xml:space="preserve">
+    <value>Gelezen bij bezorging, voor elke ontvanger: de mail van een geblokkeerde afzender wordt voor hem vastgehouden waar de quarantaine aan staat, en gemarkeerd als spam waar dat niet zo is.</value>
+  </data>
+  <data name="Read at delivery, for every recipient: an allowed sender's mail is delivered unmarked, and the accounts' own spam thresholds do not run. A message the server-wide spam score holds during the SMTP conversation is still held; the domain list is the one that stops that." xml:space="preserve">
+    <value>Gelezen bij bezorging, voor elke ontvanger: de mail van een toegestane afzender wordt ongemarkeerd bezorgd, en de eigen spamdrempels van de accounts worden niet uitgevoerd. Een bericht dat de serverbrede spamscore tijdens het SMTP-gesprek vasthoudt, blijft vastgehouden; de domeinlijst is degene die dat stopt.</value>
+  </data>
   <data name="Read delivery reports that arrive for this server's senders" xml:space="preserve">
     <value>Afleverrapporten lezen die binnenkomen voor de afzenders van deze server</value>
   </data>
@@ -7074,8 +7183,20 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail." xml:space="preserve">
     <value>Relayen naar een upstreamserver, intervallen voor nieuwe pogingen, de afhandeling van bounces en wat er met lokale mail gebeurt.</value>
   </data>
-  <data name="Released. It has been delivered to the recipients it was addressed to." xml:space="preserve">
-    <value>Vrijgegeven. Het is bezorgd bij de ontvangers aan wie het was geadresseerd.</value>
+  <data name="Release" xml:space="preserve">
+    <value>Vrijgeven</value>
+  </data>
+  <data name="Release the checked messages" xml:space="preserve">
+    <value>De aangevinkte berichten vrijgeven</value>
+  </data>
+  <data name="Release this group" xml:space="preserve">
+    <value>Deze groep vrijgeven</value>
+  </data>
+  <data name="Released 1 message to its recipients." xml:space="preserve">
+    <value>1 bericht vrijgegeven aan de ontvangers.</value>
+  </data>
+  <data name="Released {0} messages to their recipients." xml:space="preserve">
+    <value>{0} berichten vrijgegeven aan de ontvangers.</value>
   </data>
   <data name="Remember this many previous passwords (0 = no history)" xml:space="preserve">
     <value>Dit aantal vorige wachtwoorden onthouden (0 = geen geschiedenis)</value>
@@ -8076,6 +8197,9 @@ Doorgaan?</value>
   <data name="Sender authentication" xml:space="preserve">
     <value>Afzenderauthenticatie</value>
   </data>
+  <data name="Sender domain" xml:space="preserve">
+    <value>Afzenderdomein</value>
+  </data>
   <data name="Sender name, as recipients see it" xml:space="preserve">
     <value>Afzendernaam, zoals ontvangers die zien</value>
   </data>
@@ -8394,6 +8518,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>De groep {0} in de navigatie tonen</value>
+  </data>
+  <data name="Show the headers" xml:space="preserve">
+    <value>De headers tonen</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Tonen wat een synchronisatie zou doen, zonder iets te wijzigen</value>
@@ -9042,6 +9169,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>De lijst met TCP/IP-poorten kon niet worden gelezen - {0}</value>
   </data>
+  <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
+    <value>Het do_mein van de HELO-naam, op de witte en zwarte lijst van domeinen</value>
+  </data>
   <data name="The accepted TLS versions and cipher suites are set here." xml:space="preserve">
     <value>De geaccepteerde TLS-versies en ciphersuites worden hier ingesteld.</value>
   </data>
@@ -9454,6 +9584,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The match cannot be checked until both files are present and readable." xml:space="preserve">
     <value>De overeenkomst kan pas worden gecontroleerd wanneer beide bestanden aanwezig en leesbaar zijn.</value>
   </data>
+  <data name="The message has no text to show." xml:space="preserve">
+    <value>Het bericht heeft geen tekst om te tonen.</value>
+  </data>
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>Het bericht wordt geaccepteerd - de afzender kreeg een 250 - is zichtbaar in de bezorgwachtrij, en vertrekt nooit.</value>
   </data>
@@ -9662,6 +9795,12 @@ Toch toevoegen?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>De sectie hieronder is ingevuld; de schakelaar hierboven aanvinken zou haar activeren.</value>
+  </data>
+  <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
+    <value>Het _adres van de afzender, op de toestaan- en blokkeerlijst van de server</value>
+  </data>
+  <data name="The sender's _domain, on the domain white and black list" xml:space="preserve">
+    <value>Het _domein van de afzender, op de witte en zwarte lijst van domeinen</value>
   </data>
   <data name="The sending server connects, sends the message, and then waits. From its side you see a timeout after the message body was transmitted - Postfix reports &quot;timed out while sending end of data&quot;. The message never appears in your queue." xml:space="preserve">
     <value>De verzendende server maakt verbinding, stuurt het bericht en wacht dan. Van zijn kant ziet u een time-out nadat de berichtinhoud is verzonden - Postfix meldt "timed out while sending end of data". Het bericht verschijnt nooit in uw wachtrij.</value>
@@ -9989,6 +10128,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Deze server heeft {0} accounts en is dus in gebruik: een profiel wordt aangeboden aan een nieuwe server, en elk van de vier kan nog steeds met deze worden vergeleken.</value>
   </data>
+  <data name="This server is older than the Control Panel and cannot show a held message's headers or text. Upgrade the server." xml:space="preserve">
+    <value>Deze server is ouder dan het Control Panel en kan de headers of de tekst van een vastgehouden bericht niet tonen. Werk de server bij.</value>
+  </data>
+  <data name="This server is older than the Control Panel and cannot whitelist or blacklist from the quarantine. Upgrade the server." xml:space="preserve">
+    <value>Deze server is ouder dan het Control Panel en kan vanuit de quarantaine niet op de witte of zwarte lijst zetten. Werk de server bij.</value>
+  </data>
   <data name="This server now" xml:space="preserve">
     <value>Deze server nu</value>
   </data>
@@ -10241,6 +10386,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Unavailable" xml:space="preserve">
     <value>Niet beschikbaar</value>
   </data>
+  <data name="Unfold this group" xml:space="preserve">
+    <value>Deze groep uitvouwen</value>
+  </data>
   <data name="Unknown" xml:space="preserve">
     <value>Onbekend</value>
   </data>
@@ -10439,6 +10587,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
     <value>Te_kst van de waarschuwing (leeg = serverbericht; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
+  <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
+    <value>Waarschuwing: {0} is een publieke suffix. Een vermelding ervoor dekt elk domein dat eronder is geregistreerd, wat bijna nooit is bedoeld.</value>
+  </data>
   <data name="Warnings" xml:space="preserve">
     <value>Waarschuwingen</value>
   </data>
@@ -10559,6 +10710,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="What to do: " xml:space="preserve">
     <value>Wat te doen:</value>
   </data>
+  <data name="What will be written:" xml:space="preserve">
+    <value>Wat wordt geschreven:</value>
+  </data>
   <data name="Whatever the server would do anyway - including MTA-STS and DANE" xml:space="preserve">
     <value>Wat de server toch al zou doen - inclusief MTA-STS en DANE</value>
   </data>
@@ -10667,6 +10821,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Which domain to synchronise" xml:space="preserve">
     <value>Welk domein moet worden gesynchroniseerd</value>
   </data>
+  <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
+    <value>Welke lijst? Voor elke afzonderlijke afzender of elk afzonderlijk domein wordt één vermelding geschreven, en daarna wordt op elk bericht gehandeld. Een bericht waarvoor geen vermelding kan worden gemaakt, blijft waar het is.</value>
+  </data>
   <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
     <value>Welke logbestanden de server schrijft, hoeveel detail ze bevatten, en hoe lang ze worden bewaard.</value>
   </data>
@@ -10711,6 +10868,27 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="White: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Wit: niet gegreylist, niet geweigerd op de spamscore</value>
+  </data>
+  <data name="Whitelist and release" xml:space="preserve">
+    <value>Op de witte lijst zetten en vrijgeven</value>
+  </data>
+  <data name="Whitelist the checked messages' senders, then release" xml:space="preserve">
+    <value>De afzenders van de aangevinkte berichten op de witte lijst zetten en dan vrijgeven</value>
+  </data>
+  <data name="Whitelist the sender of this message, then release it" xml:space="preserve">
+    <value>De afzender van dit bericht op de witte lijst zetten en het dan vrijgeven</value>
+  </data>
+  <data name="Whitelist the sender, then release" xml:space="preserve">
+    <value>De afzender op de witte lijst zetten en dan vrijgeven</value>
+  </data>
+  <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
+    <value>De afzenders van {0} berichten op de witte lijst zetten en ze dan vrijgeven</value>
+  </data>
+  <data name="Whitelist this group's senders, then release" xml:space="preserve">
+    <value>De afzenders van deze groep op de witte lijst zetten en dan vrijgeven</value>
+  </data>
+  <data name="Whitelisted. List entries: {0}. Messages released: {1}." xml:space="preserve">
+    <value>Op de witte lijst gezet. Lijstitems: {0}. Berichten vrijgegeven: {1}.</value>
   </data>
   <data name="Who" xml:space="preserve">
     <value>Wie</value>
@@ -10900,6 +11078,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Bindmethode (BindMethod)</value>
+  </data>
+  <data name="_Blacklist and delete" xml:space="preserve">
+    <value>O_p de zwarte lijst zetten en verwijderen</value>
   </data>
   <data name="_Body canonicalization" xml:space="preserve">
     <value>_Body-canonicalisatie</value>
@@ -11102,6 +11283,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_List address" xml:space="preserve">
     <value>_Lijstadres</value>
   </data>
+  <data name="_List it anyway" xml:space="preserve">
+    <value>Toch verme_lden</value>
+  </data>
   <data name="_Local to local" xml:space="preserve">
     <value>_Lokaal naar lokaal</value>
   </data>
@@ -11234,9 +11418,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relayhost (leeg = de serverbrede relayer gebruiken)</value>
   </data>
-  <data name="_Release" xml:space="preserve">
-    <value>_Vrijgeven</value>
-  </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Opnieuw laden</value>
   </data>
@@ -11348,6 +11529,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Warn the owner at (% of the limit; -1 = the server's, 0 = never)" xml:space="preserve">
     <value>Eigenaar _waarschuwen bij (% van de limiet; -1 = de waarde van de server, 0 = nooit)</value>
   </data>
+  <data name="_Whitelist and release" xml:space="preserve">
+    <value>Op d_e witte lijst zetten en vrijgeven</value>
+  </data>
   <data name="_Who may send to this list" xml:space="preserve">
     <value>_Wie naar deze lijst mag verzenden</value>
   </data>
@@ -11398,6 +11582,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="an uppercase letter" xml:space="preserve">
     <value>een hoofdletter</value>
+  </data>
+  <data name="and {0} more" xml:space="preserve">
+    <value>en nog {0}</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>een algoritme dat deze server kan verifiëren - hij implementeert alleen RS256, ES256 en HS256, en "{0}" noemt geen van die drie, dus elk token wordt geweigerd, welk sleutelmateriaal er ook is geïnstalleerd</value>
@@ -11670,6 +11857,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="install a certificate" xml:space="preserve">
     <value>een certificaat installeren</value>
   </data>
+  <data name="is already on the list" xml:space="preserve">
+    <value>staat al op de lijst</value>
+  </data>
   <data name="is anyone connected" xml:space="preserve">
     <value>is er iemand verbonden</value>
   </data>
@@ -11681,6 +11871,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="is not set" xml:space="preserve">
     <value>is niet ingesteld</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to allow" xml:space="preserve">
+    <value>staat andersom op de lijst en wordt gewijzigd in toestaan</value>
+  </data>
+  <data name="is on the list the other way, and will be changed to block" xml:space="preserve">
+    <value>staat andersom op de lijst en wordt gewijzigd in blokkeren</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>staat in de INI op "{0}"</value>
@@ -12183,6 +12379,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="why is my spam filter not catching anything" xml:space="preserve">
     <value>waarom vangt mijn spamfilter niets</value>
   </data>
+  <data name="will be added" xml:space="preserve">
+    <value>wordt toegevoegd</value>
+  </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>het logboek naar een database schrijven</value>
   </data>
@@ -12204,8 +12403,14 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inactief)</value>
   </data>
+  <data name="{0} + {1} more" xml:space="preserve">
+    <value>{0} + {1} meer</value>
+  </data>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} - accounts</value>
+  </data>
+  <data name="{0} - {1}" xml:space="preserve">
+    <value>{0} - {1}</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-records worden nog op de achtergrond gecontroleerd; deze samenvatting wordt bijgewerkt.</value>
@@ -12384,6 +12589,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} message(s) waiting for delivery." xml:space="preserve">
     <value>{0} bericht(en) wachten op bezorging.</value>
   </data>
+  <data name="{0} messages" xml:space="preserve">
+    <value>{0} berichten</value>
+  </data>
+  <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
+    <value>{0} berichten kunnen niet worden vermeld en blijven waar ze zijn. De eerste reden: {1}</value>
+  </data>
   <data name="{0} messages held." xml:space="preserve">
     <value>{0} berichten vastgehouden.</value>
   </data>
@@ -12551,6 +12762,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}, checked {1}." xml:space="preserve">
     <value>{0}, gecontroleerd {1}.</value>
+  </data>
+  <data name="{0}, from {1}, score {2}" xml:space="preserve">
+    <value>{0}, van {1}, score {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>

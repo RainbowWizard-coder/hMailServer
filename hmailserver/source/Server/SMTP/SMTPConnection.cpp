@@ -2267,7 +2267,7 @@ namespace HM
          // was not stored would turn a spam refusal into silent deletion.
          if (spType == SPPostTransmission &&
              QuarantineStore::GetEnabled() &&
-             QuarantineStore::Quarantine(current_message_, messageText, iTotalSpamScore))
+             QuarantineStore::QuarantineFromSession(current_message_, messageText, iTotalSpamScore, helo_host_))
          {
             SendResponse_(250, _T("2.0.0"), _T("Queued for delivery"));
 

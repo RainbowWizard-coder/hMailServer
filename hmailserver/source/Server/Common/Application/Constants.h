@@ -1221,4 +1221,10 @@
 //      only the username. Neither 1 nor 2 is ever given this server's own
 //      OAuth2 token. Every row the step finds gets 0, so an administrator's
 //      fetch account behaves as it did.
-#define REQUIRED_DB_VERSION            6104
+// 6105 adds hm_quarantine.quarantinehelo (AntiSpam/QuarantineStore.h,
+//      docs/SenderListsAndDigests.md): the HELO or EHLO name the client gave in
+//      the SMTP session that brought a held message in, written when it is
+//      held, so that the review queue can show it and group by it. A message
+//      held later, at delivery, takes it from the Received header this server
+//      wrote for it. Rows held before the step have it empty.
+#define REQUIRED_DB_VERSION            6105

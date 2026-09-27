@@ -1929,6 +1929,10 @@ namespace DBUpdater
          // this server's own OAuth2 token to a server administrator's alone.
          new SchemaProbe(6104, "hm_fetchaccounts.faorigin",
                          "update hm_fetchaccounts set faorigin = faorigin where 1 = 0"),
+         // Upgrade6104to6105* - the HELO or EHLO name the client gave, stored with
+         // a held message so the quarantine can show it and group by it.
+         new SchemaProbe(6105, "hm_quarantine.quarantinehelo",
+                         "update hm_quarantine set quarantinehelo = quarantinehelo where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

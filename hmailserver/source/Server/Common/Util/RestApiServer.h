@@ -281,6 +281,13 @@ namespace HM
          RouteQuarantineList,
          RouteQuarantineRelease,
          RouteQuarantineDelete,
+         // The review actions over many held messages at once, the sweep of
+         // what is past the retention window, and what a reviewer reads of one
+         // held message without releasing it (GitLab issue 1).
+         RouteQuarantineBulk,
+         RouteQuarantineExpire,
+         RouteQuarantineHeaders,
+         RouteQuarantinePreview,
          RouteAliasList,
          // Wave 88: the surfaces that were COM-only. Server-wide ones are refused
          // for domain-restricted keys in Authorize_; the list routes are scoped to
@@ -2339,6 +2346,10 @@ namespace HM
       HttpResponse HandleListQuarantine_();
       HttpResponse HandleQuarantineRelease_(__int64 id);
       HttpResponse HandleQuarantineDelete_(__int64 id);
+      HttpResponse HandleQuarantineBulk_(const Caller &caller, const AnsiString &requestBody);
+      HttpResponse HandleQuarantineExpire_();
+      HttpResponse HandleQuarantineHeaders_(__int64 id);
+      HttpResponse HandleQuarantinePreview_(__int64 id);
       HttpResponse HandleListAliases_(const String &domainName);
       HttpResponse HandleListIpRanges_();
       HttpResponse HandleCreateIpRange_(const AnsiString &requestBody);
