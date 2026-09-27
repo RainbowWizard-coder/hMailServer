@@ -1411,6 +1411,93 @@ exceptions:
     reviewed: 2026-09-26
     expires: 2027-09-25
 
+  # The ten entries from here to the note on the 6.3.4 release scan below are semgrep-sast
+  # findings in the AppImage runtime, new in 6.3.5
+  # (hmailserver/source/Server/platform/packaging/appimage/runtime.c). The pinned analyzer
+  # (.gitlab/ci/gitlab-security.yml), run on linix over batch41's tree at 70eb52b94 on 27
+  # September 2026, flagged 19 of its lines High, and they would have held the release.
+  # Nine were changed instead of accepted, and the analyzer no longer flags them: eight
+  # fprintf calls whose format was PREFIX "..." now take a literal format with the prefix as
+  # an argument, or are fputs of a literal, and safe_relative finds a ".." component without
+  # strlen. The ten below are what the runtime is for: reading the variables the AppImage
+  # format and --appimage-help document, running AppRun and fusermount3, its one printf-style
+  # error function, and finding its own file. Each was read on 27 September 2026 by one AI
+  # agent under the owner's delegation, not line by line by the owner, so their reviewed-by
+  # names the owner, who delegated the reading, not a reader. They expire after six months,
+  # on 27 March 2027.
+
+  # hmailserver/source/Server/platform/packaging/appimage/runtime.c
+  - scan: semgrep-sast
+    finding: 784b0ebe404e4afbf2c2
+    what: 'vfprintf(stderr, format, arguments) in die(), the AppImage runtime''s error printer'
+    reason: 'die() (line 107) writes the prefix, then vfprintf of its own format and va_list to stderr, then exits 127. It is declared __attribute__((format(printf, 1, 2))), and build/ci/packages/appimage-runtime.sh builds the runtime with -Wformat=2 -Werror, so a call of die whose format is not a string literal fails the build (checked: die(argument) fails it with -Werror=format-security, and builds without -Wformat=2). Every call passes a literal; paths and strerror text arrive only as %s arguments. The rule flags every vfprintf, whose first argument is the stream, not the format.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: e8ab82b0ca10559dfe82
+    what: 'getenv("TMPDIR") in temporary_directory() of the AppImage runtime'
+    reason: 'temporary_directory() (line 173) returns TMPDIR when it is set and not empty, else "/tmp": where extract_and_run and mount_and_run make their directory. Both snprintf it with a template into a PATH_MAX buffer, refuse a result that does not fit (the >= sizeof check), and pass it to mkdtemp, which makes a new directory of mode 0700 and never takes an existing one. The runtime is not set-user-ID: it runs with the privileges and the environment of whoever runs the AppImage, so TMPDIR only chooses among directories that user can write anyway.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 6c39c5b24c6dc6a5f1e2
+    what: 'getenv("NO_CLEANUP") in extract_and_run() of the AppImage runtime'
+    reason: 'Only whether NO_CLEANUP is set is read, never its value (line 491): when it is, extract_and_run does not fork the helper that deletes the extracted copy after the program exits, as --appimage-help says. The runtime runs with the privileges of whoever runs it, so the variable can only keep that user''s own copy under that user''s TMPDIR.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 9969f27620382808fa88
+    what: 'getenv("APPIMAGE_DEBUG") in serve() of the AppImage runtime'
+    reason: 'Only whether APPIMAGE_DEBUG is set is read (line 573, compared with NULL): it decides whether quiet_standard_streams leaves the FUSE helper''s stderr open for libfuse''s own messages or points it at /dev/null. No value is used.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 54805c4858075771cbaf
+    what: 'getenv("APPIMAGE_EXTRACT_AND_RUN") in main() of the AppImage runtime'
+    reason: 'The value is only compared with the literal "1" by strcmp, after a NULL check (lines 771-772), to extract instead of mounting, as the AppImage format documents the variable; nothing else of it is used, and either way the same AppRun of the same image runs with the same arguments.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 9e72085c40cf4b0994d9
+    what: execv of AppRun in exec_apprun() of the AppImage runtime
+    reason: 'Running AppRun is the runtime''s purpose. exec_apprun (line 206) runs it from the directory the runtime has just mounted or extracted the image to, a fresh mkdtemp directory, by the path snprintf built as that directory and "/AppRun" (refused when it does not fit PATH_MAX). The path has a slash in it, so execv searches nothing, and there is no shell: the arguments are the runtime''s own argv, each a separate element of a calloc''d array ending in NULL.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 19a90ef82771baae8c63
+    what: execl of /usr/bin/fusermount3 in watch() of the AppImage runtime
+    reason: 'Once the server has exited, the forked child in watch() (line 547) lazily unmounts the runtime''s own mount point the way libfuse does, when umount2 was not open to it (the runtime is not root) or failed: execl of the absolute path /usr/bin/fusermount3, the constant arguments -u -q -z and --, then the mount point, which mount_and_run made with mkdtemp. The -- ends the options, so the mount point cannot be taken for one; there is no shell and no search.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 5ed26830ac1cde15d4fc
+    what: execlp of fusermount3 in watch() of the AppImage runtime
+    reason: 'Reached only when the execl of /usr/bin/fusermount3 on the line before failed (line 548), in the same unmount (not root, or root''s umount2 failed): execlp finds fusermount3 on PATH, as libfuse does, with the same constant arguments and -- before the mkdtemp mount point, and no shell. The runtime has only the privileges of whoever runs it, so PATH chooses only among programs that user could run anyway.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 571240b3cc3966869594
+    what: execlp of fusermount in watch() of the AppImage runtime
+    reason: 'The last fallback (line 549), for a system with only FUSE 2''s fusermount, reached only when both fusermount3 execs failed: the same constant arguments and -- before the mkdtemp mount point, found on PATH with no shell, by a runtime with only the privileges of whoever runs it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 18cf1c6486a7c8aac6d1
+    what: 'realpath("/proc/self/exe", image) in main() of the AppImage runtime'
+    reason: 'main() (line 724) resolves the constant /proc/self/exe into image, a char[PATH_MAX]: the size POSIX requires of realpath''s buffer, and musl''s realpath builds the result in a PATH_MAX buffer of its own and fails with ENAMETOOLONG rather than write more. A failure ends the runtime (die). The rule, flawfinder.realpath-1, is the pattern realpath(...) in the pinned image, so realpath(path, NULL) would be flagged the same.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+
   # The entries from here to the end of the file are the static-analysis, semgrep and
   # semgrep-sast findings of the 6.3.4 release scan (the scans of c76ff7e49 made on linix for
   # the release, ~/release-6.3.4/c76ff7e49/scans) that held the release: 263 static-analysis, 4

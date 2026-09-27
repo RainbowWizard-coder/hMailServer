@@ -235,17 +235,18 @@ safe_relative(const char *path)
 
    if (!*path || *path == '/')
       return 0;
-   while (*p)
+   for (;;)
    {
-      const char *slash = strchr(p, '/');
-      size_t length = slash ? (size_t) (slash - p) : strlen(p);
-      if (length == 2 && p[0] == '.' && p[1] == '.')
+      /* p is where a component starts: ".." is two dots and then a slash or
+         the end, and each character is read only after the one before it was
+         found not to be the end. */
+      if (p[0] == '.' && p[1] == '.' && (p[2] == '/' || p[2] == '\0'))
          return 0;
-      if (!slash)
-         break;
-      p = slash + 1;
+      p = strchr(p, '/');
+      if (!p)
+         return 1;
+      p++;
    }
-   return 1;
 }
 
 static int
@@ -325,13 +326,13 @@ extract(const char *image, off_t offset, const char *destination, const char *pa
    memset(&fs, 0, sizeof fs);
    if (sqfs_open_image(&fs, image, (size_t) offset) != SQFS_OK)
    {
-      fprintf(stderr, PREFIX "the filesystem at offset %lld of %s cannot be read\n", (long long) offset, image);
+      fprintf(stderr, "%sthe filesystem at offset %lld of %s cannot be read\n", PREFIX, (long long) offset, image);
       return -1;
    }
 
    if (mkdir(destination, 0755) != 0 && errno != EEXIST)
    {
-      fprintf(stderr, PREFIX "cannot create %s: %s\n", destination, strerror(errno));
+      fprintf(stderr, "%scannot create %s: %s\n", PREFIX, destination, strerror(errno));
       sqfs_destroy(&fs);
       close(fs.fd);
       return -1;
@@ -339,7 +340,7 @@ extract(const char *image, off_t offset, const char *destination, const char *pa
 
    if (sqfs_traverse_open(&traversal, &fs, sqfs_inode_root(&fs)) != SQFS_OK)
    {
-      fprintf(stderr, PREFIX "the filesystem's root cannot be read\n");
+      fputs(PREFIX "the filesystem's root cannot be read\n", stderr);
       sqfs_destroy(&fs);
       close(fs.fd);
       return -1;
@@ -354,7 +355,7 @@ extract(const char *image, off_t offset, const char *destination, const char *pa
          continue;
       if (!safe_relative(traversal.path))
       {
-         fprintf(stderr, PREFIX "refusing the path \"%s\" in the image\n", traversal.path);
+         fprintf(stderr, "%srefusing the path \"%s\" in the image\n", PREFIX, traversal.path);
          failed = 1;
          break;
       }
@@ -364,7 +365,7 @@ extract(const char *image, off_t offset, const char *destination, const char *pa
           mkdir_parents(path) != 0 ||
           sqfs_inode_get(&fs, &inode, traversal.entry.inode) != SQFS_OK)
       {
-         fprintf(stderr, PREFIX "cannot extract %s\n", traversal.path);
+         fprintf(stderr, "%scannot extract %s\n", PREFIX, traversal.path);
          failed = 1;
          break;
       }
@@ -407,7 +408,7 @@ extract(const char *image, off_t offset, const char *destination, const char *pa
 
       if (failed)
       {
-         fprintf(stderr, PREFIX "cannot extract %s: %s\n", traversal.path, strerror(errno));
+         fprintf(stderr, "%scannot extract %s: %s\n", PREFIX, traversal.path, strerror(errno));
          break;
       }
       if (verbose)
@@ -416,7 +417,7 @@ extract(const char *image, off_t offset, const char *destination, const char *pa
 
    if (error != SQFS_OK)
    {
-      fprintf(stderr, PREFIX "the filesystem could not be read to its end\n");
+      fputs(PREFIX "the filesystem could not be read to its end\n", stderr);
       failed = 1;
    }
 
@@ -773,8 +774,8 @@ main(int argc, char **argv)
    }
 
    mount_and_run(image, offset, argv0, argc - 1, argv + 1, 0);
-   fprintf(stderr, PREFIX "FUSE is not available here (no /dev/fuse, or no fusermount3), so this runs\n"
-                   PREFIX "from a copy extracted under %s instead. APPIMAGE_EXTRACT_AND_RUN=1 skips the attempt.\n",
-           temporary_directory());
+   fprintf(stderr, "%sFUSE is not available here (no /dev/fuse, or no fusermount3), so this runs\n"
+                   "%sfrom a copy extracted under %s instead. APPIMAGE_EXTRACT_AND_RUN=1 skips the attempt.\n",
+           PREFIX, PREFIX, temporary_directory());
    return extract_and_run(image, offset, argv0, argc - 1, argv + 1);
 }

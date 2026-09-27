@@ -80,8 +80,12 @@ if [ -n "${CI_COMMIT_SHORT_SHA:-}" ]; then
 fi
 
 # -I the squashfuse directory: its headers include each other by bare name.
+# -Wformat=2 with -Werror: a format that is not a string literal, at a printf
+# call or at a call of runtime.c's die(), which is declared a printf-style
+# function, fails the build (.gitlab/security-exceptions.yml accepts die()'s
+# vfprintf on the strength of that).
 # shellcheck disable=SC2086
-cc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter \
+cc -std=gnu11 -O2 -Wall -Wextra -Wformat=2 -Werror -Wno-unused-parameter \
    -ffunction-sections -fdata-sections \
    -DHM_RUNTIME_VERSION="\"$version\"" \
    -I/usr/include/squashfuse -I/usr/include/fuse3 \
@@ -201,6 +205,48 @@ code=$?
 set -e
 [ "$code" -eq 7 ] && grep -qx "ARGS=x" "$work/run/flag.log" || { cat "$work/run/flag.log"; echo "--appimage-extract-and-run did not run AppRun with its arguments."; exit 1; }
 echo "--appimage-extract-and-run: the same"
+
+# With neither flag the runtime mounts; a container has no /dev/fuse, so it
+# falls back to extracting and says so, each line of what it says under its
+# prefix. Only where there is no /dev/fuse: with one, it would mount.
+if [ ! -e /dev/fuse ]; then
+  set +e
+  ( cd "$work/run" && TMPDIR="$tmp" ./probe.AppImage fell back > fallback.log 2> fallback.err )
+  code=$?
+  set -e
+  if [ "$code" -ne 7 ] || ! grep -qx "ARGS=fell back" "$work/run/fallback.log" ||
+     ! grep -qx "hMailServer AppImage: FUSE is not available here (no /dev/fuse, or no fusermount3), so this runs" "$work/run/fallback.err" ||
+     ! grep -qx "hMailServer AppImage: from a copy extracted under $tmp instead. APPIMAGE_EXTRACT_AND_RUN=1 skips the attempt." "$work/run/fallback.err"; then
+    cat "$work/run/fallback.log" "$work/run/fallback.err"
+    echo "Without FUSE the runtime did not say so and extract and run instead (exit $code)."
+    exit 1
+  fi
+  tries=0
+  while [ -n "$(ls -A "$tmp")" ] && [ "$tries" -lt 50 ]; do sleep 0.1; tries=$((tries + 1)); done
+  if [ -n "$(ls -A "$tmp")" ]; then
+    echo "The fallback left something in $tmp after the program exited:"
+    ls -la "$tmp"
+    exit 1
+  fi
+  echo "without FUSE: said so under its prefix, extracted and ran, and removed the copy and the mount point"
+else
+  echo "/dev/fuse is here, so the fallback to extracting is not tried"
+fi
+
+# An extraction that fails says which path, why, under its prefix, and exits
+# non-zero: squashfs-root here is a file, so nothing can be written under it.
+mkdir -p "$work/blocked"
+: > "$work/blocked/squashfs-root"
+set +e
+( cd "$work/blocked" && "$work/run/probe.AppImage" --appimage-extract > extract.log 2> extract.err )
+code=$?
+set -e
+if [ "$code" -eq 0 ] || ! grep -q "^hMailServer AppImage: cannot extract [^ ]*: Not a directory$" "$work/blocked/extract.err"; then
+  cat "$work/blocked/extract.err"
+  echo "An extraction into a file did not fail with the path and the reason (exit $code)."
+  exit 1
+fi
+echo "--appimage-extract into a file: refused, naming the path and the reason"
 
 set +e
 "$tested_runtime" --appimage-extract > "$work/bare.log" 2>&1
