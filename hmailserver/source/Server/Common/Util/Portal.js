@@ -4150,6 +4150,8 @@
   // Said once: the form's status is a live region of its own, emptied at
   // Send, and with the form on the screen all along (Send at once) it is
   // heard there; the page's voice as well had the same words queued twice.
+  // A form under an open dialogue is inert, and nothing in it is heard: the
+  // page's voice says it then.
   var sendFailed = function (queued, text, kept) {
     var wasHidden = el('compose-section').hidden;
     if (!kept && wasHidden && composeKey === queued.key) {
@@ -4158,7 +4160,7 @@
       el('compose-to').focus();
     }
     say('compose-status', text, false);
-    if (wasHidden) { announce(text); }
+    if (wasHidden || el('compose-section').inert) { announce(text); }
   };
   var submitMessage = function (queued) {
     // A message to a password goes its own way: encrypted here, filed on

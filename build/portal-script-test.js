@@ -2990,6 +2990,21 @@ async function main() {
    check('the same refusal again: Send empties the status, and the reason comes back to it, and only to it',
       document.getElementById('compose-status').textContent === atOnceStatus && voiceBox.textContent === '' && compose.hidden === false,
       JSON.stringify(voiceBox.textContent));
+   // A dialogue opened while the message is on its way makes the form inert,
+   // and nothing in an inert form is heard: the page's voice says it then.
+   sendRefusal = bounceRefusal();
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   document.dispatchEvent(makeEvent('keydown', { key: 'k', ctrlKey: true, target: document.body }));
+   const underPalette = document.getElementById('palette').hidden === false && compose.inert === true;
+   voiceBox.textContent = '';
+   await flush();
+   await flush();
+   check('sent at once and refused while a dialogue is open over the form, the page\'s voice says it',
+      underPalette && document.getElementById('compose-status').textContent === atOnceStatus && voiceBox.textContent.trim() === atOnceStatus,
+      'palette open and form inert=' + underPalette + ' voice=' + JSON.stringify(voiceBox.textContent));
+   document.getElementById('palette-input').dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.getElementById('palette-input') }));
+   await flush();
+   check('and the dialogue closed, the form is in reach again', document.getElementById('palette').hidden === true && compose.inert === false && compose.hidden === false);
    // With the delay, the form is put away while it runs; the reason then
    // reopens it, and a region just shown is not heard, so the voice says it.
    const beforeDelayed = requests.length;
