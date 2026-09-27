@@ -166,7 +166,9 @@ namespace RegressionTests.AntiSpam
          (int status, string body) domains = Rest("GET", "/api/v1/domain-policy-list");
          if (domains.status == 200)
          {
-            foreach (object item in MiniJson.List(MiniJson.Object(domains.body), "items"))
+            // The domain white and black list answers a bare array (RestApiDomainPolicyList.cpp,
+            // List), not the sender lists' {scope, items}.
+            foreach (object item in (List<object>) MiniJson.Parse(domains.body))
             {
                var entry = (Dictionary<string, object>) item;
                if (Listed.Contains(MiniJson.Text(entry, "pattern")))
@@ -275,7 +277,7 @@ namespace RegressionTests.AntiSpam
       {
          (int status, string body) list = Rest("GET", "/api/v1/domain-policy-list");
          Assert.AreEqual(200, list.status, list.body);
-         return MiniJson.List(MiniJson.Object(list.body), "items").Cast<Dictionary<string, object>>()
+         return ((List<object>) MiniJson.Parse(list.body)).Cast<Dictionary<string, object>>()
             .FirstOrDefault(e => MiniJson.Text(e, "pattern") == pattern && MiniJson.Text(e, "match_on") == matchOn);
       }
 
