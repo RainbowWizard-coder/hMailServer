@@ -22,6 +22,7 @@
 #include "../Util/Unicode.h"
 #include "../Util/Parsing/StringParser.h"
 
+#include <chrono>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -852,5 +853,27 @@ namespace HM
       const String text = QuarantineStore::TextOfHtml(_T("<html><head><title>t</title><style>p{color:red}</style></head><body><script>x()</script><p>Hello &amp; welcome</p></body></html>"));
       if (text.Find(_T("Hello & welcome")) < 0 || text.Find(_T("color")) >= 0 || text.Find(_T("x()")) >= 0)
          throw std::logic_error("QuarantineStore::TextOfHtml left markup, a style sheet or a script in the preview.");
+
+      // A held message is whatever its sender wrote, and a reviewer opening its
+      // preview must not hand a thread to it: 80,000 empty style sheets - 1.2
+      // million characters, a message of 1.2 MB - once took over half a minute,
+      // since every pass read to the end for the two elements it has none of.
+      String sheets;
+      sheets.reserve(80000 * 15 + 16);
+      for (int i = 0; i < 80000; i++)
+         sheets += _T("<style></style>");
+      sheets += _T("<p>after</p>");
+
+      const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+      const String sheetsText = QuarantineStore::TextOfHtml(sheets);
+      const long long took = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(
+         std::chrono::steady_clock::now() - started).count();
+
+      if (sheetsText.Find(_T("after")) < 0 || sheetsText.Find(_T("style")) >= 0)
+         throw std::logic_error("QuarantineStore::TextOfHtml did not skip 80,000 style sheets to the text after them.");
+
+      if (took >= 3000)
+         throw std::logic_error("QuarantineStore::TextOfHtml took " + std::to_string(took) +
+                                " ms over 80,000 style sheets, and the bound is 3000 ms.");
    }
 }

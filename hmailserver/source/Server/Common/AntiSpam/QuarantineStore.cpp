@@ -381,20 +381,31 @@ namespace HM
       String kept;
       kept.reserve(html.GetLength());
 
+      // Where each element next opens at or after the position reached: looked
+      // for again only once the position has passed it, and never again once
+      // there is no more of it (-1). Looked for afresh on every pass, the two
+      // elements a part does not have were read to its end once for every one
+      // it does, so a held message of many <style></style> pairs kept the
+      // thread that previews it for half a minute a megabyte, rising with the
+      // square of the size.
+      const TCHAR *const elements[] = { _T("style"), _T("script"), _T("head") };
+      int next[] = { -2, -2, -2 };
+
       int position = 0;
       while (position < html.GetLength())
       {
          int cut = -1;
          String closing;
 
-         for (const TCHAR *element : { _T("style"), _T("script"), _T("head") })
+         for (int e = 0; e < 3; e++)
          {
-            const String opening = String(_T("<")) + element;
-            const int at = lower.Find(opening.c_str(), position);
-            if (at >= 0 && (cut < 0 || at < cut))
+            if (next[e] == -2 || (next[e] >= 0 && next[e] < position))
+               next[e] = lower.Find((String(_T("<")) + elements[e]).c_str(), position);
+
+            if (next[e] >= 0 && (cut < 0 || next[e] < cut))
             {
-               cut = at;
-               closing = String(_T("</")) + element;
+               cut = next[e];
+               closing = String(_T("</")) + elements[e];
             }
          }
 

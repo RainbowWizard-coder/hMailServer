@@ -24,6 +24,7 @@
 #include "../Rules/RuleGuard.h"
 
 #include <cctype>
+#include <chrono>
 #include <cstring>
 #include <vector>
 #include <boost/regex.hpp>
@@ -91,6 +92,32 @@ namespace HM
             return false;
          return memcmp(bytes.c_str(), prefix, length) == 0;
       }
+
+      // What String::Replace does - every occurrence, left to right, the search
+      // going on after each one replaced - written into a new string in one pass.
+      // Replace closes each gap in place and so moves the whole rest of the text
+      // once per occurrence: a text of a megabyte of &amp; took ten seconds, and
+      // one of two megabytes fifty.
+      String ReplacedAll(const String &text, const String &from, const String &to)
+      {
+         String out;
+         out.reserve(text.GetLength());
+
+         int position = 0;
+         for (;;)
+         {
+            const int at = text.Find(from.c_str(), position);
+            if (at < 0)
+               break;
+
+            out.append(text, (size_t) position, (size_t) (at - position));
+            out += to;
+            position = at + from.GetLength();
+         }
+
+         out.append(text, (size_t) position, (size_t) (text.GetLength() - position));
+         return out;
+      }
    }
 
    // ---------------------------------------------------------------------
@@ -129,12 +156,12 @@ namespace HM
          text += c;
       }
 
-      text.Replace(_T("&nbsp;"), _T(" "));
-      text.Replace(_T("&#160;"), _T(" "));
-      text.Replace(_T("&amp;"), _T("&"));
-      text.Replace(_T("&lt;"), _T("<"));
-      text.Replace(_T("&gt;"), _T(">"));
-      text.Replace(_T("&quot;"), _T("\""));
+      text = ReplacedAll(text, _T("&nbsp;"), _T(" "));
+      text = ReplacedAll(text, _T("&#160;"), _T(" "));
+      text = ReplacedAll(text, _T("&amp;"), _T("&"));
+      text = ReplacedAll(text, _T("&lt;"), _T("<"));
+      text = ReplacedAll(text, _T("&gt;"), _T(">"));
+      text = ReplacedAll(text, _T("&quot;"), _T("\""));
 
       // One space where several fell together. Two adjacent tags - the
       // "</td><td>" between a table's cells, a "</p>\n<p>" between paragraphs -
@@ -819,6 +846,31 @@ namespace HM
       // words together nor leaves a gap the card scan would trip on.
       if (!ContentPolicy::StripHtml(_T("<p>one</p>\r\n<p>two</p>")).Contains(_T("one two")))
          throw std::logic_error("ContentPolicy::StripHtml did not put one space between two paragraphs.");
+
+      // The entities are unwrapped in one pass each. HTML is what a sender
+      // writes, and a rule's content test and the quarantine's preview both
+      // strip a whole part: 400,000 &amp; - two million characters - once took
+      // fifty seconds, because each replacement moved the rest of the text.
+      String entities;
+      entities.reserve(400000 * 5);
+      for (int i = 0; i < 400000; i++)
+         entities += _T("&amp;");
+
+      const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+      const String unwrapped = ContentPolicy::StripHtml(entities);
+      const long long took = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(
+         std::chrono::steady_clock::now() - started).count();
+
+      if (unwrapped.GetLength() != 400000 || unwrapped.Find(_T("amp;")) >= 0)
+         throw std::logic_error("ContentPolicy::StripHtml did not unwrap 400,000 &amp; into as many ampersands.");
+
+      if (took >= 3000)
+         throw std::logic_error("ContentPolicy::StripHtml took " + std::to_string(took) +
+                                " ms over 400,000 &amp;, and the bound is 3000 ms.");
+
+      // In order, as before: &amp;lt; is unwrapped twice, to <, and &amp;amp; once more only.
+      if (ContentPolicy::StripHtml(_T("a&amp;lt;b &amp;amp; &nbsp;&quot;c&quot;")) != _T("a<b &amp; \"c\""))
+         throw std::logic_error("ContentPolicy::StripHtml changed the order its entities are unwrapped in.");
    }
 
    void
