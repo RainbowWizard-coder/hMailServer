@@ -43,9 +43,11 @@ refuses it. This checker holds them to each other. It fails when:
     allow_failure: false), a release job can run for anything but a protected v*
     tag, or the jobs' needs no longer put Authenticode before Sigstore, Sigstore
     before the verifier, and the verifier before the upload;
-  * release does not wait for every job that can fail a tag's pipeline (every job
-    that is neither allow_failure nor manual, nor one of the few that never runs in
-    one), or brings the artifacts of any but the three whose files it collects;
+  * release does not wait for every job of .gitlab-ci.yml that can fail a tag's
+    pipeline (every job that is neither allow_failure nor manual, nor one of the few
+    that never runs in one; the package jobs of the included .gitlab/ci/packages-*.yml
+    are not release gates), or brings the artifacts of any but the three whose files
+    it collects and the four scans whose reports it reads;
   * the release job's tag check (build/ci/release-chain.py collect), given a git
     that answers as the job's checkout would, accepts a tag signed by a key the
     tagged tree's own .gitlab/allowed_signers lists and master's does not, a tag
@@ -348,8 +350,10 @@ def inherited(name, jobs):
 
 
 def gates(jobs):
-    """Every job that can fail a v* tag's pipeline before release: not a release job,
-    not EXEMPT (none of which is a gate of a tag), not allow_failure, not manual."""
+    """Every job of .gitlab-ci.yml that can fail a v* tag's pipeline before release: not
+    a release job, not EXEMPT (none of which is a gate of a tag), not allow_failure, not
+    manual. The included files' jobs are not read: the package jobs there are not
+    release gates."""
     found = []
     for name in sorted(jobs):
         if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in EXEMPT:

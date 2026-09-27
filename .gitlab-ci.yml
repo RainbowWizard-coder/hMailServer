@@ -1388,11 +1388,14 @@ windows-installer:
       - release-windows/
 
 # The go-ahead, and the manifest of what is released. Nothing before it signs or sends
-# anything; nothing after it starts until it has passed. Its needs are every job that
-# can fail a tag's pipeline - a manual job can be started as soon as its own needs have
-# finished, so a gate left out here could be released past - every job whose files
-# the release carries, and the four security scans whose reports it reads; only those
-# seven bring their artifacts. The scans are allow_failure, so their failure does not
+# anything; nothing after it starts until it has passed. Its needs are every job of this
+# file that can fail a tag's pipeline - a manual job can be started as soon as its own
+# needs have finished, so a gate left out here could be released past - every job whose
+# files the release carries, and the four security scans whose reports it reads; only
+# those seven bring their artifacts. The package jobs of .gitlab/ci/packages-*.yml,
+# which a tag's pipeline runs too, are not gates of a release: they make CI artifacts
+# that no release carries, and release can start while they are still running or after
+# one has failed. The scans are allow_failure, so their failure does not
 # stop the pipeline: release-chain.py collect reads their reports instead
 # (build/ci/security-gate.py) and refuses while a scan did not finish, or found
 # something SECURITY.md's policy counts that is in no baseline and not accepted in
@@ -1403,7 +1406,8 @@ windows-installer:
 # checks run for every tag (a tag counts every file as changed) and are optional needs
 # only so that a pipeline without one is still created; the scans are not optional, so
 # a tag's pipeline without one of them is not created at all.
-# build/check-release-chain.py fails when a job that can fail, or a scan, is missing here.
+# build/check-release-chain.py fails when a job of this file that can fail, or a scan, is
+# missing here.
 release:
   stage: release
   image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0

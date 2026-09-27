@@ -1270,14 +1270,20 @@ has the runbook.
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
 `release`, after every gate of the tag has passed. A manual job can be started
-as soon as its own needs have finished, so `release` needs every job that can
-fail the tag's pipeline, and brings the artifacts of only the three whose files
-it collects. It does not wait for the scans that are `allow_failure`
-(`static-analysis`, `semgrep`, `ci-image-packages`, `dependency-scan`,
-`repo-hygiene`), whose failure would not hold it anyway, nor for the manual
-`db-matrix` and `installer-smoke`: read the scans' findings before starting it.
-`build/check-release-chain.py` fails when a job that can fail is not among its
-needs. `release-publish` waits for
+as soon as its own needs have finished, so `release` needs every job of
+`.gitlab-ci.yml` that can fail the tag's pipeline, and waits for the four
+security scans whose reports it reads (`static-analysis`, `semgrep`,
+`dependency-scan` and `semgrep-sast`), which are `allow_failure`: it reads
+their reports and refuses on what they found
+([Before a release](#before-a-release-the-scans-hold-it)). It brings the
+artifacts of seven jobs, the three whose files it collects and those four. It
+does not wait for `ci-image-packages` and `repo-hygiene`, which are
+`allow_failure`, for the manual `db-matrix` and `installer-smoke`, or for the
+package jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too:
+they make CI artifacts that no release carries, so they are not gates of a
+release, and `release` can start while they are still running or after one
+has failed. `build/check-release-chain.py` fails when a job of
+`.gitlab-ci.yml` that can fail is not among its needs. `release-publish` waits for
 the second button so that the installer smoke test can run on the signed
 installer first ([The installer smoke test](#the-installer-smoke-test)):
 download `release-signed/` from `release-sign`'s artifacts, run the test with

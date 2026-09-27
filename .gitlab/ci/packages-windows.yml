@@ -34,7 +34,10 @@
 # with exit 10. So they need windows-gate and windows-dotnet, and on a v* tag
 # windows-installer (optional: it is in a tag's pipeline only), which is why they sit
 # in the release stage: a job can need a job of its own or an earlier stage only. The
-# release job does not need them, so they add no wait to a release.
+# release job does not need them, but on a tag they are pending on bench150 before
+# release-authenticode is, and the bench runs one job at a time, so the signing waits
+# behind them: a few minutes in batch41's pipeline 2887115157, where the x64 job took
+# about six and the ARM64 one, stopping for its missing tools, seconds.
 #
 # The x64 libraries are the bench's own (C:\Dev\hMailLibs, as windows-gate's); the
 # ARM64 ones live in C:\bench\hMailLibs-arm64, apart from them.

@@ -100,11 +100,15 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    bench150 after `windows-gate` and signs nothing.
 3. **Start `release`** once every job before it has passed, within three days of
    the tag's pipeline (`linux-build`'s artifact is kept three days; retry
-   `linux-build` otherwise). GitLab offers the button only when every job that
-   can fail the pipeline has passed and `static-analysis`, `semgrep`,
-   `dependency-scan` and `semgrep-sast` have finished, whatever they found; it
-   does not wait for `ci-image-packages` or `repo-hygiene`, which are
-   `allow_failure`, or for the manual `db-matrix`. It reads the four scans'
+   `linux-build` otherwise). GitLab offers the button only when every job of
+   `.gitlab-ci.yml` that can fail the pipeline has passed and `static-analysis`,
+   `semgrep`, `dependency-scan` and `semgrep-sast` have finished, whatever they
+   found; it does not wait for `ci-image-packages` or `repo-hygiene`, which are
+   `allow_failure`, or for the manual `db-matrix`. Nor does it wait for the
+   package jobs of `.gitlab/ci/packages-*.yml` - the `.deb` and `.rpm` of each
+   distribution release, the AppImages and the Windows packages - which make CI
+   artifacts no release carries: they may still be running, or have failed,
+   when it starts, and their failure does not stop it. It reads the four scans'
    reports first (`build/ci/security-gate.py`) and refuses while one did not
    finish, or found something `SECURITY.md`'s policy counts ("Before a
    release") that no baseline and no entry of `.gitlab/security-exceptions.yml`
@@ -148,7 +152,12 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    checked (`hmailserver/docs/SecureDefaults.md`)
    (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
    Both must pass before the next step.
-6. **Start `release-publish`.** It uploads the nine files and their bundles to
+6. **Start `release-publish`, as the owner.** The job uploads and creates the
+   release with its `CI_JOB_TOKEN`, which acts with the permissions of whoever
+   started it, and the package protection rules let only an Owner push to the
+   package `hmailserver`: started by anyone else, its uploads are refused
+   (`hmailserver/docs/ContinuousIntegration.md`, "What waits for the owner").
+   It uploads the nine files and their bundles to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
    compiled file whose SBOM is missing or describes other bytes, and a name
    the package holds with other bytes, and not sending again a file it holds
