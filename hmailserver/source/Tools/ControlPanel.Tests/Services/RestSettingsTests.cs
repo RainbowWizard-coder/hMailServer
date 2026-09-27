@@ -4,6 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -151,6 +154,155 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("/api/v1/settings", RestSettings.ServerGroup);
          Assert.Equal("/api/v1/settings/openpgp", RestSettings.OpenPgpGroup);
          Assert.Equal("/api/v1/settings/push", RestSettings.PushGroup);
+      }
+
+      // compromise_detection_mode's options and words, as the Auto-ban page has them.
+      private static readonly int[] ModeValues = { 0, 1, 2 };
+      private static readonly string[] ModeWords = { "off", "watch", "enforce" };
+
+      [Fact]
+      public void ChoiceChange_OfAWithheldRow_SendsWhatWasTyped_AndReadsNoList()
+      {
+         // A mode a file of the environment supplied is withheld: the row is a text
+         // box, its list was never built (selected is null), and a save of the page
+         // threw a NullReferenceException reading that list - every save of the page,
+         // typed over or not, before any group after it was sent.
+         Assert.False(RestSettings.ChoiceChange("", null, ModeValues, ModeWords, null, out _));
+         Assert.False(RestSettings.ChoiceChange("  ", null, ModeValues, ModeWords, null, out _));
+
+         Assert.True(RestSettings.ChoiceChange("enforce", null, ModeValues, ModeWords, null, out object typed));
+         Assert.Equal("enforce", typed);
+
+         // In the word's own case, which is the only one the server takes.
+         Assert.True(RestSettings.ChoiceChange("  Enforce ", null, ModeValues, ModeWords, null, out object cased));
+         Assert.Equal("enforce", cased);
+
+         // A word that is none of them is sent as typed, and the server refuses it
+         // with its own sentence ("must be one of off, watch, enforce").
+         Assert.True(RestSettings.ChoiceChange("strict", null, ModeValues, ModeWords, null, out object unknown));
+         Assert.Equal("strict", unknown);
+
+         // A row with no list and nothing withheld sends nothing, and reads nothing.
+         Assert.False(RestSettings.ChoiceChange(null, null, ModeValues, ModeWords, "watch", out object none));
+         Assert.Null(none);
+      }
+
+      [Fact]
+      public void ChoiceChange_OfAList_SendsTheChosenWord_WhenItIsNotTheOneRead()
+      {
+         Assert.True(RestSettings.ChoiceChange(null, 2, ModeValues, ModeWords, "watch", out object changed));
+         Assert.Equal("enforce", changed);
+
+         Assert.False(RestSettings.ChoiceChange(null, 1, ModeValues, ModeWords, "watch", out object same));
+         Assert.Equal("watch", same);
+
+         // The value the server answered that is none of the words is offered under
+         // a number no option has, and never sent back as a word.
+         Assert.False(RestSettings.ChoiceChange(null, int.MinValue, ModeValues, ModeWords, "paranoid", out object kept));
+         Assert.Null(kept);
+      }
+
+      [Fact]
+      public void NumberChange_OfAWithheldRow_SendsWhatWasTyped_EvenWhenItIsNoNumber()
+      {
+         Assert.True(RestSettings.NumberChange("30", 0, null, out object number));
+         Assert.Equal(30L, number);
+
+         // Typed text that is no number was dropped, and the row counted as saved.
+         // It is sent as typed, and the server's check of a KindInteger key refuses
+         // it ("must be an integer"), so the save says the row was not saved.
+         Assert.True(RestSettings.NumberChange("30 days", 0, null, out object words));
+         Assert.Equal("30 days", words);
+         Assert.True(RestSettings.NumberChange("1,000", 0, null, out object grouped));
+         Assert.Equal("1,000", grouped);
+
+         using (JsonDocument body = JsonDocument.Parse(RestSettings.Body(new[] { new KeyValuePair<string, object>("snmp_port", words) })))
+            Assert.Equal(JsonValueKind.String, body.RootElement.GetProperty("snmp_port").ValueKind);
+
+         // Nothing typed: nothing sent, and the withheld value is left as it is.
+         Assert.False(RestSettings.NumberChange("", 0, null, out _));
+         Assert.False(RestSettings.NumberChange("   ", 0, null, out _));
+
+         // A row that is not withheld: its box, when it is not what was read.
+         Assert.True(RestSettings.NumberChange(null, 45, 60, out object box));
+         Assert.Equal(45L, box);
+         Assert.False(RestSettings.NumberChange(null, 60, 60, out _));
+      }
+
+      [Fact]
+      public void FlagChange_OfAWithheldRow_SendsTrueFalseOrWhatWasTyped()
+      {
+         Assert.True(RestSettings.FlagChange("true", false, null, out object yes));
+         Assert.Equal(true, yes);
+         Assert.True(RestSettings.FlagChange("1", false, null, out object one));
+         Assert.Equal(true, one);
+         Assert.True(RestSettings.FlagChange("FALSE", false, null, out object no));
+         Assert.Equal(false, no);
+         Assert.True(RestSettings.FlagChange("0", false, null, out object zero));
+         Assert.Equal(false, zero);
+
+         // "yes" was sent as false - the opposite of what was typed.
+         Assert.True(RestSettings.FlagChange("yes", false, null, out object word));
+         Assert.Equal("yes", word);
+
+         Assert.False(RestSettings.FlagChange("", true, null, out _));
+
+         Assert.True(RestSettings.FlagChange(null, true, false, out object box));
+         Assert.Equal(true, box);
+         Assert.False(RestSettings.FlagChange(null, true, true, out _));
+      }
+
+      [Fact]
+      public void ServedCertificateFile_IsTheListenersOwn_ThenTheAcmeChain()
+      {
+         Assert.Equal(@"C:\certs\api.pem", RestSettings.ServedCertificateFile(@" C:\certs\api.pem ", @"C:\Data\ACME", true));
+         Assert.Equal(System.IO.Path.Combine(@"C:\Data\ACME", "fullchain.pem"), RestSettings.ServedCertificateFile("", @"C:\Data\ACME", true));
+         Assert.Null(RestSettings.ServedCertificateFile("", @"C:\Data\ACME", false));
+         Assert.Null(RestSettings.ServedCertificateFile("", null, null));
+      }
+
+      [Fact]
+      public void TrustsCertificate_ThatIsTheOneTheListenerServes_OnlyThat()
+      {
+         using X509Certificate2 served = SelfSigned("mail.example.com");
+         using X509Certificate2 other = SelfSigned("mail.example.com");
+
+         // As the listener's file has it: its certificate, then its chain - and, in a
+         // file that holds both, perhaps the key before either.
+         string chainFile = served.ExportCertificatePem() + "\n" + other.ExportCertificatePem() + "\n";
+         string keyFirst = "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----\n" + chainFile;
+
+         // Asked as https://127.0.0.1 or https://localhost, the ACME certificate names
+         // neither, and is not issued by an authority this test trusts.
+         const SslPolicyErrors nameAndChain = SslPolicyErrors.RemoteCertificateNameMismatch | SslPolicyErrors.RemoteCertificateChainErrors;
+         Assert.True(RestSettings.TrustsCertificate(nameAndChain, served.RawData, chainFile));
+         Assert.True(RestSettings.TrustsCertificate(nameAndChain, served.RawData, keyFirst));
+
+         // Anything else is refused: another certificate for the same name, the
+         // chain's second, no file to hold it to, no certificate at all.
+         Assert.False(RestSettings.TrustsCertificate(nameAndChain, other.RawData, chainFile));
+         Assert.False(RestSettings.TrustsCertificate(nameAndChain, served.RawData, null));
+         Assert.False(RestSettings.TrustsCertificate(nameAndChain, served.RawData, "not a certificate"));
+         Assert.False(RestSettings.TrustsCertificate(SslPolicyErrors.RemoteCertificateNotAvailable, null, chainFile));
+
+         // What the platform accepts needs no file.
+         Assert.True(RestSettings.TrustsCertificate(SslPolicyErrors.None, other.RawData, null));
+
+         Assert.Equal(served.RawData, RestSettings.LeafCertificateOf(keyFirst));
+         Assert.Null(RestSettings.LeafCertificateOf(""));
+      }
+
+      internal static X509Certificate2 SelfSigned(string name)
+      {
+         using RSA key = RSA.Create(2048);
+         var request = new CertificateRequest("CN=" + name, key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+         var names = new SubjectAlternativeNameBuilder();
+         names.AddDnsName(name);
+         request.CertificateExtensions.Add(names.Build());
+         using X509Certificate2 made = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(30));
+
+         // Through PKCS#12, so that the key is one SChannel will serve with.
+         return X509CertificateLoader.LoadPkcs12(made.Export(X509ContentType.Pfx), null);
       }
 
       private static int CountMembers(JsonElement element)

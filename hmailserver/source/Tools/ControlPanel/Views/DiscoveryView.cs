@@ -29,15 +29,29 @@ namespace hMailServer.ControlPanel.Views
    /// signed-in role may read and nothing more. What it cannot do is said where
    /// the table would be, never guessed around: a listener that is off, one bound
    /// to a loopback address of another machine, a certificate that does not name
-   /// the address asked (the password is not sent past a certificate that cannot
-   /// be checked), and an administrator with a second factor, whose one-time code
-   /// the REST API asks for with every request made with the password.
+   /// the address asked and, on the server itself, is not the certificate the
+   /// listener serves either (the password is not sent past a certificate that
+   /// cannot be checked), and an administrator with a second factor, whose
+   /// one-time code the REST API asks for with every request made with the
+   /// password.
    /// </summary>
    public class DiscoveryView : UserControl, IPageLifecycle
    {
+      /// <summary>
+      /// On the server itself, the certificate file the listener serves, which the
+      /// certificate it presents may be held to when its name is not the address
+      /// asked (RestSettings.TrustsCertificate); null otherwise.
+      /// </summary>
+      private static volatile string servedCertificateFile_;
+
       /// <summary>Redirects are not followed: a password is not sent to wherever
       /// a listener points it.</summary>
-      private static readonly HttpClient http_ = new(new HttpClientHandler { AllowAutoRedirect = false })
+      private static readonly HttpClient http_ = new(new HttpClientHandler
+      {
+         AllowAutoRedirect = false,
+         ServerCertificateCustomValidationCallback = (request, certificate, chain, errors)
+            => RestSettingsClient.TrustsServedCertificate(servedCertificateFile_, certificate, errors)
+      })
       {
          Timeout = TimeSpan.FromSeconds(15)
       };
@@ -111,17 +125,23 @@ namespace hMailServer.ControlPanel.Views
             // of its own: looked for on this machine's disk when it is the
             // server's, and not known from another machine.
             bool? acmeCertificate = null;
+            string acmeFolder = null;
             if (ServerSession.IsLocalSession)
             {
                string dataFolder = ini.IniPath == null ? "" : ProfileApi.ReadString("Directories", "DataFolder", "", ini.IniPath, 4096); // no-loc
-               string acmeFolder = DiscoveryReport.AcmeCertificateFolder(ini.Read("AcmeCertificateDirectory", ""), dataFolder); // no-loc
+               acmeFolder = DiscoveryReport.AcmeCertificateFolder(ini.Read("AcmeCertificateDirectory", ""), dataFolder); // no-loc
                acmeCertificate = DiscoveryReport.AcmeCertificateIn(acmeFolder, System.IO.File.Exists);
             }
 
+            string certificateFile = ini.Read("RestApiCertificateFile", ""); // no-loc
             endpoint = DiscoveryReport.Endpoint(
                ini.Read("RestApiPort", "0"), ini.Read("RestApiBindAddress", "127.0.0.1"), // no-loc
-               ini.Read("RestApiCertificateFile", ""), ini.Read("RestApiPrivateKeyFile", ""), // no-loc
+               certificateFile, ini.Read("RestApiPrivateKeyFile", ""), // no-loc
                acmeCertificate, ServerSession.IsLocalSession, session.Host, out string refusal);
+
+            servedCertificateFile_ = ServerSession.IsLocalSession
+               ? RestSettings.ServedCertificateFile(certificateFile, acmeFolder, acmeCertificate)
+               : null;
 
             if (endpoint == null)
             {

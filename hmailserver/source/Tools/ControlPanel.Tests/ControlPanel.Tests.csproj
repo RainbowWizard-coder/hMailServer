@@ -129,6 +129,14 @@
          by an administrator looking at an empty slot. It uses StatusLevel, which is
          compiled in above, so it is here and not in ControlPanel.Core. -->
     <Compile Include="..\ControlPanel\Services\DkimRotationStatus.cs" />
+
+    <!-- The settings pages' REST session, without the half that ties it to the
+         server signed in to (RestSettingsClient.Session.cs, which needs COM). What
+         is worth testing is what it does with a listener's answers: a session made
+         again after the server ended it, a listener that has gone by then, one that
+         takes the connection and says nothing, and a certificate that is the one
+         the listener serves - each against a listener the test runs itself. -->
+    <Compile Include="..\ControlPanel\Services\RestSettingsClient.cs" />
   </ItemGroup>
 
   <ItemGroup>

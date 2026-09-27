@@ -178,8 +178,10 @@ namespace hMailServer.ControlPanel.Services
       /// "localhost", when the listener is bound to every address; and the bind
       /// address, when it is bound to one. A certificate that does not name it -
       /// the ACME one, on a loopback bind, names the server's host names - is
-      /// refused by the request rather than accepted here: this page sends a
-      /// password, and does not send it past a certificate it cannot check.
+      /// checked by the request rather than here: this page sends a password, and
+      /// sends it past such a certificate only on the server itself and only when
+      /// it is byte for byte the one the listener serves, read from this machine's
+      /// disk (RestSettings.TrustsCertificate); anything else is refused.
       /// </summary>
       public static Uri Endpoint(string port, string bindAddress, string certificateFile, string privateKeyFile,
          bool? acmeCertificate, bool localSession, string host, out string refusal)

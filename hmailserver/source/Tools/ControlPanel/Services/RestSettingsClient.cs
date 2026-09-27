@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using static hMailServer.ControlPanel.Services.Loc;
@@ -17,7 +20,9 @@ namespace hMailServer.ControlPanel.Services
    /// This Control Panel's session with the server's REST API, for the settings the
    /// server keeps and answers over REST alone (Services/RestSettings). One per
    /// signed-in server: made on the first page that needs it, and replaced when the
-   /// Control Panel signs in again.
+   /// Control Panel signs in again (RestSettingsClient.Session.cs, which ties it to
+   /// the server signed in to; this half knows nothing of that, so a test can drive
+   /// it against a listener of its own).
    ///
    /// It signs in once, with the user name and password the Control Panel signed in
    /// with, at POST /api/v1/session, and uses the session's cookie from then on - the
@@ -31,56 +36,87 @@ namespace hMailServer.ControlPanel.Services
    /// Synchronous on purpose: the settings pages read and save their COM values
    /// synchronously too, and a page built before its REST values had arrived would
    /// show defaults as if the server held them. The requests run on a pool thread,
-   /// so the dispatcher's context is never waited on by the task it is running.
+   /// so the dispatcher's context is never waited on by the task it is running. The
+   /// page does wait, so a listener that does not answer is given a few seconds and
+   /// no more (ConnectTimeout, RequestTimeout), and a page asks no further group of a
+   /// listener that has not answered one.
    /// </summary>
-   internal sealed class RestSettingsClient
+   internal sealed partial class RestSettingsClient
    {
-      /// <summary>One answer: the status (0 when there was none), the body, and whether a one-time code was asked for.</summary>
-      public sealed record Reply(int Status, string Body, bool SecondFactorRequired, string Failure)
+      /// <summary>
+      /// One answer: the status (0 when there was none), the body, whether a one-time
+      /// code was asked for, and why there was no answer. Refusal, when it is set, is
+      /// the whole sentence for a request that was not sent, or not answered, because
+      /// the session could not be made - the listener is off, or moved, or the code
+      /// was not given - and RefusalFor says it as it is.
+      /// </summary>
+      public sealed record Reply(int Status, string Body, bool SecondFactorRequired, string Failure, string Refusal = null)
       {
          public bool Ok => Status >= 200 && Status < 300;
       }
 
-      private static readonly object gate_ = new();
-      private static RestSettingsClient current_;
+      /// <summary>
+      /// Where the listener is - or null, and why not - and, on the server itself, the
+      /// certificate file it serves (RestSettings.ServedCertificateFile), which a
+      /// certificate it presents may be held to.
+      /// </summary>
+      public sealed record Listener(Uri Endpoint, string Refusal, string ServedCertificateFile);
 
-      private readonly ServerSession session_;
+      /// <summary>
+      /// How long a connection, TCP and TLS, may take. A port a firewall drops - which
+      /// Windows Firewall does to inbound traffic by default - never refuses, and the
+      /// page waits for this on the dispatcher, so it is short: a listener on this
+      /// machine or the next one connects in far less.
+      /// </summary>
+      public static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(3);
+
+      /// <summary>
+      /// How long a request may take in all. A settings group is read or written in
+      /// well under a second; a listener that took the connection and says nothing is
+      /// waited for this long, once per page (see the class).
+      /// </summary>
+      public static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
+
+      private readonly Func<string> authorization_;
+      private readonly Func<Listener> find_;
       private readonly CookieContainer cookies_ = new();
       private readonly HttpClient http_;
       private Uri endpoint_;
+      private volatile string servedCertificateFile_;
       private bool signedIn_;
 
       // Set when the administrator was asked for a code and gave none: the pages then
       // say so rather than asking again on every page opened. Reload asks again.
       private bool declined_;
 
-      private RestSettingsClient(ServerSession session)
+      /// <summary>
+      /// A client that signs in with what authorization answers (null: not signed in to
+      /// a server) at the listener find answers.
+      /// </summary>
+      internal RestSettingsClient(Func<string> authorization, Func<Listener> find,
+         TimeSpan? connectTimeout = null, TimeSpan? requestTimeout = null)
       {
-         session_ = session;
+         authorization_ = authorization;
+         find_ = find;
 
          // Redirects are not followed: a password is not sent to wherever a
          // listener points it.
-         http_ = new HttpClient(new HttpClientHandler
+         http_ = new HttpClient(new SocketsHttpHandler
          {
             AllowAutoRedirect = false,
             UseCookies = true,
-            CookieContainer = cookies_
+            CookieContainer = cookies_,
+            ConnectTimeout = connectTimeout ?? ConnectTimeout,
+            SslOptions = new SslClientAuthenticationOptions
+            {
+               RemoteCertificateValidationCallback = (sender, certificate, chain, errors)
+                  => TrustsServedCertificate(servedCertificateFile_, certificate, errors)
+            }
          })
          {
-            Timeout = TimeSpan.FromSeconds(15)
+            Timeout = requestTimeout ?? RequestTimeout
          };
          http_.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "hMailServer-ControlPanel"); // no-loc
-      }
-
-      /// <summary>The client for the server this Control Panel is signed in to.</summary>
-      public static RestSettingsClient For(ServerSession session)
-      {
-         lock (gate_)
-         {
-            if (current_ == null || !ReferenceEquals(current_.session_, session))
-               current_ = new RestSettingsClient(session);
-            return current_;
-         }
       }
 
       /// <summary>Where the listener was found, for a sentence; null before Open.</summary>
@@ -101,16 +137,21 @@ namespace hMailServer.ControlPanel.Services
          if (signedIn_ && endpoint_ != null)
             return true;
 
-         string authorization = session_?.RestAuthorization();
+         string authorization = authorization_?.Invoke();
          if (authorization == null)
          {
             refusal = L("Sign in to a server first.");
             return false;
          }
 
-         endpoint_ = ResolveEndpoint_(out refusal);
+         Listener listener = find_?.Invoke();
+         endpoint_ = listener?.Endpoint;
+         servedCertificateFile_ = listener?.ServedCertificateFile;
          if (endpoint_ == null)
+         {
+            refusal = listener?.Refusal ?? RestSettings.Refusal(0, null, false);
             return false;
+         }
 
          if (declined_)
          {
@@ -150,12 +191,85 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>The sentence for a refused answer.</summary>
       public string RefusalFor(Reply reply)
-         => reply.Status == 0 && endpoint_ != null
+      {
+         if (!string.IsNullOrEmpty(reply?.Refusal))
+            return reply.Refusal;
+
+         if (reply == null)
+            return RestSettings.Refusal(0, null, false);
+
+         return reply.Status == 0 && endpoint_ != null
             ? F("The REST API at {0} could not be reached: {1}", endpoint_, reply.Failure ?? "")
             : RestSettings.Refusal(reply.Status, reply.Body, reply.SecondFactorRequired, reply.Failure);
+      }
+
+      /// <summary>
+      /// Whether a password may be sent past the certificate a listener presented: one
+      /// the platform accepts, or the very certificate in servedFile, read from this
+      /// machine's disk (RestSettings.TrustsCertificate). Shared with the Discovery
+      /// page, which asks the same listener.
+      /// </summary>
+      internal static bool TrustsServedCertificate(string servedFile, X509Certificate certificate, SslPolicyErrors errors)
+      {
+         if (errors == SslPolicyErrors.None)
+            return true;
+
+         string served = null;
+         if (!string.IsNullOrEmpty(servedFile))
+         {
+            try
+            {
+               served = File.ReadAllText(servedFile);
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               // Not readable from here: nothing to hold the certificate to, so it is
+               // refused as the platform refused it.
+               served = null;
+            }
+         }
+
+         return RestSettings.TrustsCertificate(errors, certificate?.GetRawCertData(), served);
+      }
+
+      /// <summary>
+      /// Why a request had no answer, from what it threw: the innermost message, which
+      /// names the cause - a refused certificate, a listener that is not there - unless
+      /// the request timed out, when the innermost is the socket's "The I/O operation
+      /// has been aborted", which does not say so. A timeout is said in the words that
+      /// say it: the TimeoutException's own ("A connection could not be established
+      /// within the configured ConnectTimeout"), or, where it only repeats the
+      /// cancellation it wraps - HttpClient's own timeout does that - the words of the
+      /// exception around it ("... the configured HttpClient.Timeout of 5 seconds
+      /// elapsing").
+      /// </summary>
+      internal static string FailureOf(Exception ex)
+      {
+         Exception outer = null;
+         for (Exception at = ex; at != null; outer = at, at = at.InnerException)
+         {
+            if (at is TimeoutException)
+            {
+               bool repeats = at.InnerException != null && string.Equals(at.Message, at.InnerException.Message, StringComparison.Ordinal);
+               return repeats && outer != null ? outer.Message : at.Message;
+            }
+         }
+
+         Exception real = ex;
+         while (real.InnerException != null)
+            real = real.InnerException;
+
+         return real.Message;
+      }
 
       private Reply Call_(HttpMethod method, string path, string json, Func<string> askForCode)
       {
+         // No session - none was made, or the last one ended and could not be made
+         // again because the listener had gone or the code was not given: made now,
+         // or the reason is the answer. Nothing is sent to no listener at all.
+         if (!Open(askForCode, false, out string unopened))
+            return new Reply(0, "", false, null, unopened);
+
          string relative = (path ?? "").TrimStart('/');
          Reply reply = Send_(method, relative, json, null, null);
 
@@ -165,13 +279,13 @@ namespace hMailServer.ControlPanel.Services
          {
             signedIn_ = false;
             if (!Open(askForCode, false, out string refusal))
-               return new Reply(401, reply.Body, reply.SecondFactorRequired, refusal);
+               return new Reply(401, reply.Body, reply.SecondFactorRequired, null, refusal);
 
             reply = Send_(method, relative, json, null, null);
          }
 
          // No answer at all: the listener may have moved or stopped, so the next
-         // page finds it again rather than asking the old address.
+         // request finds it again rather than asking the old address.
          if (reply.Status == 0)
             signedIn_ = false;
 
@@ -180,10 +294,12 @@ namespace hMailServer.ControlPanel.Services
 
       private Reply Send_(HttpMethod method, string relative, string json, string authorization, string code)
       {
-         Uri target = new Uri(endpoint_, relative);
-
          try
          {
+            // Inside the try with the rest: an address that cannot be made is a
+            // request with no answer, never an exception out of a page's save.
+            Uri target = new Uri(endpoint_, relative);
+
             return Task.Run(async () =>
             {
                using var request = new HttpRequestMessage(method, target);
@@ -208,36 +324,8 @@ namespace hMailServer.ControlPanel.Services
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            // A refused certificate, a listener that is not there, a timeout: the
-            // innermost message is the one that names the cause.
-            Exception real = ex;
-            while (real.InnerException != null)
-               real = real.InnerException;
-
-            return new Reply(0, "", false, real.Message);
+            return new Reply(0, "", false, FailureOf(ex));
          }
-      }
-
-      /// <summary>
-      /// The listener, from its four settings and - on the server itself - whether the
-      /// ACME certificate it falls back to is there, as the Discovery page finds it.
-      /// </summary>
-      private Uri ResolveEndpoint_(out string refusal)
-      {
-         var ini = new IniFeatureStore();
-
-         bool? acmeCertificate = null;
-         if (ServerSession.IsLocalSession)
-         {
-            string dataFolder = ini.IniPath == null ? "" : ProfileApi.ReadString("Directories", "DataFolder", "", ini.IniPath, 4096); // no-loc
-            string acmeFolder = DiscoveryReport.AcmeCertificateFolder(ini.Read("AcmeCertificateDirectory", ""), dataFolder); // no-loc
-            acmeCertificate = DiscoveryReport.AcmeCertificateIn(acmeFolder, System.IO.File.Exists);
-         }
-
-         return RestSettings.Endpoint(
-            ini.Read("RestApiPort", "0"), ini.Read("RestApiBindAddress", "127.0.0.1"), // no-loc
-            ini.Read("RestApiCertificateFile", ""), ini.Read("RestApiPrivateKeyFile", ""), // no-loc
-            acmeCertificate, ServerSession.IsLocalSession, session_.Host, out refusal);
       }
    }
 }

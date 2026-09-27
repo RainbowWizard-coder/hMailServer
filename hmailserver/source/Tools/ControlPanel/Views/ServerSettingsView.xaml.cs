@@ -1226,18 +1226,10 @@ namespace hMailServer.ControlPanel.Views
 
          public void Loaded(object answered) => loaded_ = answered as bool?;
 
+         // A withheld row has a text box, not this check box, and sends what was typed
+         // (RestSettings.FlagChange).
          public bool TryGetChange(out object value)
-         {
-            if (WithheldEntry != null)
-            {
-               value = WithheldEntry == "1" || string.Equals(WithheldEntry, "true", StringComparison.OrdinalIgnoreCase); // no-loc
-               return WithheldEntry.Length > 0;
-            }
-
-            bool now = ReadEditor() is true;
-            value = now;
-            return loaded_ != now;
-         }
+            => RestSettings.FlagChange(WithheldEntry, WithheldEntry == null && ReadEditor() is true, loaded_, out value);
 
          public void Accepted()
          {
@@ -1265,18 +1257,12 @@ namespace hMailServer.ControlPanel.Views
 
          public void Loaded(object answered) => loaded_ = answered is long number ? number : null;
 
+         // What was typed over a withheld value is sent even when it is no number, so
+         // that the server refuses it and the save says so (RestSettings.NumberChange).
          public bool TryGetChange(out object value)
          {
-            if (WithheldEntry != null)
-            {
-               bool typed = long.TryParse(WithheldEntry, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out long entered);
-               value = entered;
-               return WithheldEntry.Length > 0 && typed;
-            }
-
-            long now = ReadEditor() is long number ? number : 0;
-            value = now;
-            return loaded_ != now;
+            long now = WithheldEntry == null && ReadEditor() is long number ? number : 0;
+            return RestSettings.NumberChange(WithheldEntry, now, loaded_, out value);
          }
 
          public void Accepted()
@@ -1441,18 +1427,15 @@ namespace hMailServer.ControlPanel.Views
 
          public void Loaded(object answered) => loaded_ = answered as string;
 
+         // A withheld row is a text box, and its list was never built: what was typed
+         // is sent, and the list is not read (RestSettings.ChoiceChange).
          public bool TryGetChange(out object value)
-         {
-            int selected = ReadEditor() is int number ? number : 0;
-            int at = Array.FindIndex(Options, option => option.Value == selected);
-            string word = at >= 0 ? Words[at] : null;
-            value = word;
-            return word != null && !string.Equals(loaded_, word, StringComparison.Ordinal);
-         }
+            => RestSettings.ChoiceChange(WithheldEntry, Combo == null ? null : (int?)SelectedValue,
+               Array.ConvertAll(Options, option => option.Value), Words, loaded_, out value);
 
          public void Accepted()
          {
-            if (TryGetChange(out object word))
+            if (WithheldEntry == null && TryGetChange(out object word))
                loaded_ = word as string;
          }
       }
@@ -5756,6 +5739,13 @@ namespace hMailServer.ControlPanel.Views
             if (!reply.Ok)
             {
                restGroups_[group] = new RestGroup { Refusal = client.RefusalFor(reply) };
+
+               // No answer at all - a port a firewall drops, a listener that took the
+               // connection and said nothing: the groups after it are not asked, each
+               // of which would wait out the same timeout while the page waits, and
+               // they say the same.
+               if (reply.Status == 0)
+                  refusal = restGroups_[group].Refusal;
                continue;
             }
 
@@ -5790,6 +5780,10 @@ namespace hMailServer.ControlPanel.Views
          ServerSession session = ServerSession.Current;
          RestSettingsClient client = session == null ? null : RestSettingsClient.For(session);
 
+         // Why a group had no answer at all: the groups after it are not sent, each of
+         // which would wait out the same timeout, and are not saved for the same reason.
+         string unanswered = null;
+
          foreach (IGrouping<string, IRestSetting> group in rows.GroupBy(row => row.Group, StringComparer.Ordinal))
          {
             var changes = new List<KeyValuePair<string, object>>();
@@ -5812,7 +5806,7 @@ namespace hMailServer.ControlPanel.Views
                continue;
             }
 
-            RestSettingsClient.Reply reply = client?.Put(group.Key, RestSettings.Body(changes), AskForCode_);
+            RestSettingsClient.Reply reply = unanswered == null ? client?.Put(group.Key, RestSettings.Body(changes), AskForCode_) : null;
             if (reply != null && reply.Ok)
             {
                foreach (IRestSetting row in changed)
@@ -5827,7 +5821,9 @@ namespace hMailServer.ControlPanel.Views
 
             saved += unchanged;
             failed += changed.Count;
-            string reason = reply == null ? L("Sign in to a server first.") : client.RefusalFor(reply);
+            string reason = unanswered ?? (reply == null ? L("Sign in to a server first.") : client.RefusalFor(reply));
+            if (reply != null && reply.Status == 0)
+               unanswered = reason;
             ComSetting first = changed[0] as ComSetting;
             firstFailure ??= F("\"{0}\" was not saved: {1}", first?.Label ?? changed[0].Key, L(reason));
          }
