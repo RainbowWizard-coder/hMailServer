@@ -423,6 +423,57 @@ namespace RegressionTests.API
          Assert.AreEqual(403, Me("GET", "/api/v1/me/messages/" + messageId + "x/invitation", null, GuestAddress, GuestPassword).status);
       }
 
+      [Test]
+      [Description("An invitation shaped as Outlook sends one - a text/calendar alternative whose Content-Type carries method and charset, and no .ics name - is marked as one in the message JSON, and a message with no calendar part is not")]
+      public void AnOutlookShapedInvitationIsMarkedAsOne()
+      {
+         string calendar = string.Join("\r\n", new[]
+         {
+            "BEGIN:VCALENDAR", "METHOD:REQUEST", "PRODID:Microsoft Exchange Server 2010", "VERSION:2.0", "BEGIN:VEVENT",
+            "ORGANIZER;CN=Olga Organiser:mailto:olga@example.org",
+            "ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:" + GuestAddress,
+            "SUMMARY:Outlook planning", "DTSTART:20261021T090000Z", "DTEND:20261021T100000Z",
+            "UID:040000008200E00074C5B7101A82E00800000000outlook-shaped", "DTSTAMP:20260927T080000Z", "SEQUENCE:0",
+            "END:VEVENT", "END:VCALENDAR"
+         });
+
+         // No name on the calendar part, and its Content-Type in Outlook's order:
+         // the part is recognised by its media type alone.
+         SmtpClientSimulator.StaticSendRaw("olga@example.org", GuestAddress, string.Join("\r\n", new[]
+         {
+            "From: Olga Organiser <olga@example.org>", "To: " + GuestAddress, "Subject: Outlook planning",
+            "Date: Sun, 27 Sep 2026 08:00:00 +0000", "Message-ID: <outlook-shaped-invitation@example.org>", "MIME-Version: 1.0",
+            "Content-Type: multipart/alternative; boundary=\"outlook-boundary\"", "",
+            "--outlook-boundary", "Content-Type: text/plain; charset=\"utf-8\"", "", "Planning, as Outlook sends it.", "",
+            "--outlook-boundary", "Content-Type: text/calendar; method=REQUEST; charset=utf-8", "Content-Transfer-Encoding: 7bit", "",
+            calendar, "",
+            "--outlook-boundary--", ""
+         }));
+
+         SmtpClientSimulator.StaticSendRaw("olga@example.org", GuestAddress, string.Join("\r\n", new[]
+         {
+            "From: Olga Organiser <olga@example.org>", "To: " + GuestAddress, "Subject: Outlook plain note",
+            "Date: Sun, 27 Sep 2026 08:01:00 +0000", "MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8", "",
+            "No calendar here.", ""
+         }));
+
+         long invitationId = MessageIdOf(GuestAddress, GuestPassword, "Outlook planning");
+         (int status, string body) message = Me("GET", "/api/v1/me/messages/" + invitationId, null, GuestAddress, GuestPassword);
+         Assert.AreEqual(200, message.status, message.body);
+         StringAssert.Contains("\"invitation\":true", message.body,
+            "A text/calendar part whose Content-Type carries parameters is an invitation. Body: " + message.body);
+
+         (int status, string body) invitation = Me("GET", "/api/v1/me/messages/" + invitationId + "/invitation", null, GuestAddress, GuestPassword);
+         Assert.AreEqual(200, invitation.status, invitation.body);
+         StringAssert.Contains("\"method\":\"REQUEST\"", invitation.body);
+         StringAssert.Contains("\"summary\":\"Outlook planning\"", invitation.body);
+
+         long noteId = MessageIdOf(GuestAddress, GuestPassword, "Outlook plain note");
+         (int status, string body) note = Me("GET", "/api/v1/me/messages/" + noteId, null, GuestAddress, GuestPassword);
+         Assert.AreEqual(200, note.status, note.body);
+         StringAssert.Contains("\"invitation\":false", note.body, "A message with no calendar part is no invitation.");
+      }
+
       // ------------------------------------------------------------- helpers
 
       private static long IdOf(string json)
