@@ -68,6 +68,10 @@
       document.documentElement.setAttribute('dir', RTL[code] ? 'rtl' : 'ltr');
     }
     if (document.body) { localiseTree(document.body); }
+    // The tab's title is in the head, where the walk does not go: NVDA read
+    // "hMailServer - my account" in English on a German page.
+    if (typeof updateTitle === 'function') { updateTitle(); } else { document.title = t('hMailServer - my account'); }
+    if (typeof relocalise === 'function') { relocalise(); }
     var select = el('pref-language');
     if (select) { select.value = code; }
   };
@@ -112,6 +116,17 @@
   })();
   var applyLanguagePref = function () { var code = knownLanguage(pref('language') || ''); if (code) { loadLanguage(code); } };
   var say = function (id, text, ok) { var s = el(id); s.textContent = text || ''; s.className = 'status' + (text ? (ok ? ' ok' : ' error') : ''); };
+  // The page's own voice, for what happens without the focus moving: a
+  // toast, a search's count, a file attached, a failure behind a closed
+  // window. One polite live region; the same words twice are made to differ
+  // by a no-break space, which is not heard, so that they are said twice
+  // (NVDA pass, Roadmap2 row 43).
+  var announce = function (text) {
+    var box = el('say');
+    if (!box) { return; }
+    text = String(text || '');
+    box.textContent = box.textContent === text ? text + ' ' : text;
+  };
   // The password is sent exactly once, to start the session; from then on
   // the browser's cookie is the credential and nothing is kept in memory -
   // with one exception the reader asks for: a second account added beside
@@ -204,9 +219,18 @@
       return tf('Not sent to {0}: mail to this address has bounced, and it is on the suppression list of your domain. Your administrator can remove it.', result.data.address);
     }
     if (result.data && result.data.error) { return result.data.error; }
-    if (result.status === 401) { return 'The address or password is not right, or the session has ended.'; }
-    if (result.status === 429) { return 'Too many attempts; wait a minute and try again.'; }
+    if (result.status === 401) { return t('The address or password is not right, or the session has ended.'); }
+    if (result.status === 429) { return t('Too many attempts; wait a minute and try again.'); }
     return fallback + ' (' + result.status + ')';
+  };
+  // A refused sign-in in the reader's language. The server's sentence is
+  // English ("authentication failed"), and NVDA read it out in the page's
+  // voice on a translated page; a wrong password and too many tries are the
+  // two a sign-in meets, and both have the page's own words.
+  var signinRefusal = function (result) {
+    if (result.status === 401 && !(result.data && result.data.second_factor)) { return t('The address or password is not right, or the session has ended.'); }
+    if (result.status === 429) { return t('Too many attempts; wait a minute and try again.'); }
+    return describe(result, t('Could not sign in'));
   };
   // A refusal the server gives a reason word for, shown in the reader's language
   // rather than in the server's English: the password breach check's two. Any
@@ -224,7 +248,7 @@
     if (bytes >= 1073741824) { return (bytes / 1073741824).toFixed(1) + ' GB'; }
     if (bytes >= 1048576) { return (bytes / 1048576).toFixed(1) + ' MB'; }
     if (bytes >= 1024) { return (bytes / 1024).toFixed(0) + ' KB'; }
-    return bytes + ' bytes';
+    return tf('{0} bytes', bytes);
   };
   // Every value from the server is written as text, never as markup.
   var node = function (tag, text, className) {
@@ -241,9 +265,14 @@
   // select, and anything edited in place. The page's shortcuts asked for the
   // tag alone, and the formatted signature is a div, so a "c" typed into it
   // opened a new message (Roadmap2 row 43).
+  // A box, a radio button, a colour or a file field takes no text: the keys
+  // are the page's there too. NVDA's focus mode put the keyboard on a row's
+  // box, and j, k and e did nothing (NVDA pass).
+  var NOT_TYPED = { checkbox: true, radio: true, button: true, submit: true, reset: true, color: true, file: true, range: true, image: true };
   var typingIn = function (event) {
     var n = event && event.target;
     var tag = (n && n.tagName) || '';
+    if (tag === 'INPUT' && NOT_TYPED[String(n.type || '').toLowerCase()]) { return false; }
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!(n && n.isContentEditable);
   };
   // Enter on something that presses - a button, a link, a tab - presses it.
@@ -251,7 +280,7 @@
   // button in the mail view, so a keyboard could press none of them.
   var pressable = function (n) {
     if (!n || !n.tagName) { return false; }
-    if (n.tagName === 'BUTTON' || n.tagName === 'A' || n.tagName === 'SUMMARY') { return true; }
+    if (n.tagName === 'BUTTON' || n.tagName === 'A' || n.tagName === 'SUMMARY' || n.tagName === 'INPUT') { return true; }
     var role = n.getAttribute ? n.getAttribute('role') : null;
     return role === 'button' || role === 'link' || role === 'tab' || role === 'menuitem' || role === 'option' || role === 'checkbox';
   };
@@ -278,9 +307,14 @@
     return !(n.getClientRects && n.getClientRects().length === 0);
   };
   var modalInert = function (on) { el('account').inert = on; el('compose-section').inert = on; };
-  var modalShow = function (id) {
+  // The focus goes into the dialogue BEFORE the page under it turns inert:
+  // made inert with the focus still on the button that opened it, the page
+  // dropped the focus, and NVDA announced the button again with no name
+  // ("banner landmark, button") before the dialogue (NVDA pass, row 43).
+  var modalShow = function (id, first) {
     if (!modalOpen()) { modalBack = document.activeElement || null; }
     el(id).hidden = false;
+    if (first && first.focus) { first.focus(); }
     modalInert(true);
   };
   var modalHide = function (id) {
@@ -374,7 +408,11 @@
       if (!nav) { return; }
       var children = nav.children;
       for (var i = 0; i < children.length; i++) {
-        children[i].classList.toggle('on', !!hash && children[i].getAttribute('data-route') === hash);
+        var here = !!hash && children[i].getAttribute('data-route') === hash;
+        children[i].classList.toggle('on', here);
+        // Said as well as drawn: the folder, the page and the settings tab
+        // the reader is on were only a colour to NVDA ("General, button").
+        if (here) { children[i].setAttribute('aria-current', 'page'); } else { children[i].removeAttribute('aria-current'); }
       }
     });
     // On a phone the settings tabs are one line that scrolls sideways: the
@@ -415,6 +453,24 @@
       var option = node('option', f.path); option.value = f.id; select.appendChild(option);
     });
   };
+  // What a folder's button says besides its name: where it sits, for a
+  // folder inside another, and its count in words. The count alone came
+  // straight after the name - NVDA read "Inbox10", "Drafts1" - and a folder
+  // inside another could not be told from one of the reader's own at the top
+  // (NVDA pass, Roadmap2 row 43).
+  var folderWords = function (f, shown, drafts) {
+    var words = '';
+    if (f && f.parentName) { words += ', ' + tf('in {0}', f.parentName); }
+    if (shown) { words += ', ' + (drafts ? (Number(shown) === 1 ? t('1 message') : tf('{0} messages', shown)) : tf('{0} unread', shown)); }
+    return words;
+  };
+  var parentNameOf = function (f, folders) {
+    var cut = f.path.lastIndexOf(delimiter);
+    if (cut <= 0) { return ''; }
+    var path = f.path.slice(0, cut);
+    var parent = folders.filter(function (p) { return p.path === path && p.owner === f.owner; })[0];
+    return parent ? (parent.path.toUpperCase() === 'INBOX' ? t('Inbox') : parent.name || parent.path) : path.slice(path.lastIndexOf(delimiter) + 1);
+  };
   var renderFolders = function (tree) {
     delimiter = tree.delimiter || delimiter;
     var folders = flatten(tree.folders, [], 0);
@@ -432,14 +488,18 @@
     clear(nav);
     var special = function (f, use) { return String(f.special_use || '').indexOf(String.fromCharCode(92) + use) >= 0; };
     // One entry: an icon, the name, the count - the third child, which the
-    // change probe updates in place.
+    // change probe updates in place - and the fourth, the same count in
+    // words for a screen reader, with where the folder sits.
     var entry = function (f, iconName, route, label, count, cls) {
       var b = node('button', undefined, cls || '');
       b.type = 'button';
       b.setAttribute('data-route', route);
       var ico = node('span', undefined, 'ico'); ico.appendChild(icon(iconName)); b.appendChild(ico);
       b.appendChild(node('span', label, 'nm'));
-      b.appendChild(node('span', count ? String(count) : '', 'ct'));
+      var ct = node('span', count ? String(count) : '', 'ct');
+      ct.setAttribute('aria-hidden', 'true');
+      b.appendChild(ct);
+      b.appendChild(node('span', folderWords(f, count, !!(f && special(f, 'Drafts'))), 'sr'));
       if (count && !(f && special(f, 'Drafts'))) { b.classList.add('unread'); }
       b.addEventListener('click', function () { go(route); });
       if (f && route.indexOf('/f/') === 0) { dropTarget(b, f.id); }
@@ -483,6 +543,7 @@
       // is listed as one of the reader's own, not as the inbox's child.
       rest.forEach(function (f) {
         var indent = f.path.toUpperCase().indexOf('INBOX' + delimiter.toUpperCase()) === 0 ? f.depth - 1 : f.depth;
+        f.parentName = indent > 0 ? parentNameOf(f, folders) : '';
         entry(f, 'folder', '/f/' + f.id, f.name || f.path, f.unseen, indent > 0 ? (indent > 1 ? 'child2' : 'child') : '');
       });
     }
@@ -492,6 +553,7 @@
         nav.appendChild(node('div', f.owner.charAt(0) === '#' ? t('Public folders') : t('Shared by ') + f.owner, 'navhead'));
         lastOwner = f.owner;
       }
+      f.parentName = f.depth ? parentNameOf(f, folders) : '';
       entry(f, 'folder', '/f/' + f.id, f.name || f.path, f.unseen, f.depth ? 'child' : '');
     });
     markNav(currentNavHash());
@@ -522,6 +584,10 @@
   // ---- The listing --------------------------------------------------------
   var listRows = [];
   var cursor = -1;
+  // The message the list is to come back to when the one open is closed:
+  // the listing is often fetched again by then (a star or a flag changed
+  // it), and the cursor went back to the top.
+  var cursorBack = 0;
   var selected = {};
   var wholeFolder = false;
   var lastListing = null;
@@ -551,11 +617,19 @@
   // screen reader in browse mode still reaches and presses each of them.
   // A table row that opens something, for the keyboard as for the pointer:
   // the storage page's rows answered a click and nothing else.
+  // The keyboard's way in is a button in the row's first cell, named by what
+  // it opens; the pointer can press the whole row. The row itself was the
+  // Tab stop, and NVDA read each one as "row" and nothing else (NVDA pass).
   var rowOpens = function (tr, open) {
     tr.className = 'clickable';
-    tr.setAttribute('tabindex', '0');
     tr.addEventListener('click', open);
-    tr.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); open(); } });
+    var first = tr.firstChild;
+    if (!first) { return; }
+    var b = node('button', first.textContent, 'linkbtn');
+    b.type = 'button';
+    b.addEventListener('click', function (event) { event.stopPropagation(); open(); });
+    clear(first);
+    first.appendChild(b);
   };
   var outOfTabOrder = function (n) {
     (n.childNodes || []).forEach(function (c) {
@@ -563,25 +637,39 @@
       if (c.childNodes && c.childNodes.length) { outOfTabOrder(c); }
     });
   };
-  // What the cursor's row says when the keyboard moves onto it: the sender
-  // (and unread), the subject and the time, said in the list's live region -
-  // the list is a list, which cannot name an active row of its own.
-  var rowWords = function (entry) {
+  // The list is a listbox and each row one option of it, named whole: its
+  // state first, then who, what and when, then what else it carries, the
+  // preview last - the order a reader moving down the list needs, since the
+  // next arrow cuts the rest short. The row's box, star, marker and buttons
+  // are the pointer's; the keys reach the same things (x, s, + and -, e, #,
+  // and the row's menu on Shift+F10 or the menu key). Before the NVDA pass
+  // (Roadmap2 row 43) the list was a list: Tab onto it had NVDA read every
+  // row out, controls and all, and browse mode took seven lines a message,
+  // starting each with "Select, check box". The cursor is the listbox's
+  // active option (aria-activedescendant), so a screen reader follows it and
+  // the page's keys reach it - the live region that stood in for it is gone.
+  // The state words are keys of their own, in lower case: one message is
+  // "unread" where the folder list's "Unread" and "Starred" are the names of
+  // views, which several languages say in the plural.
+  var labelRow = function (entry) {
+    var ms = entry.ms || [entry.m];
     var words = [];
-    (entry.row.childNodes || []).forEach(function (c) {
-      if (c.className === 'who') { var who = ''; (c.childNodes || []).forEach(function (x) { if (x.tagName === 'SPAN' && x.className !== 'tc') { who += x.textContent; } }); words.push(who); }
-      else if (c.className === 'what' && c.firstChild) { words.push(c.firstChild.textContent); }
-      else if (c.className === 'meta') { (c.childNodes || []).forEach(function (x) { if (x.className === 'when') { words.push(x.textContent); } }); }
-    });
-    return words.join(', ');
+    if ((entry.ids || [entry.id]).every(function (id) { return !!selected[id]; })) { words.push(t('ticked')); }
+    if (ms.some(function (x) { return !(x.flags && x.flags.seen); })) { words.push(t('unread')); }
+    var stage = starStage(entry.m);
+    if (stage) { words.push(stage === 1 ? t('starred') : stage === 2 ? t('second star') : t('third star')); }
+    if (entry.imp && ms.some(isImportant)) { words.push(t('important')); }
+    if (ms.some(isPinned)) { words.push(t('pinned')); }
+    entry.row.setAttribute('aria-label', words.concat(entry.say || []).filter(Boolean).join(', '));
   };
+  var labelRows = function () { listRows.forEach(labelRow); };
   var setCursor = function (index, silent) {
-    if (!listRows.length) { cursor = -1; return; }
+    if (!listRows.length) { cursor = -1; el('message-list').removeAttribute('aria-activedescendant'); return; }
     if (typeof prefetchNext === 'function') { setTimeout0(prefetchNext); }
     cursor = Math.max(0, Math.min(listRows.length - 1, index));
-    listRows.forEach(function (r, i) { r.row.classList.toggle('msg-cursor', i === cursor); });
+    listRows.forEach(function (r, i) { r.row.classList.toggle('msg-cursor', i === cursor); r.row.setAttribute('aria-selected', i === cursor ? 'true' : 'false'); });
+    el('message-list').setAttribute('aria-activedescendant', listRows[cursor].row.id);
     if (!silent) { listRows[cursor].row.scrollIntoView({ block: 'nearest' }); }
-    if (!silent && document.activeElement === el('message-list')) { el('list-say').textContent = rowWords(listRows[cursor]); }
   };
   var selectedIds = function () { return Object.keys(selected).filter(function (k) { return selected[k]; }).map(Number); };
   var renderBulk = function () {
@@ -597,6 +685,7 @@
     el('bulk-bar').hidden = ids.length === 0;
     el('bulk-count').textContent = wholeFolder ? tf('All of {0} selected', selectionScope()) : ids.length ? tf('{0} selected', ids.length) : '';
     listRows.forEach(function (r) { r.row.classList.toggle('selected', !!selected[r.id]); });
+    labelRows();
   };
   var clearSelection = function () { selected = {}; wholeFolder = false; renderBulk(); };
   // Shift-click and Ctrl-click in the list, as the file manager has them: a
@@ -628,10 +717,15 @@
     renderBulk();
     return true;
   };
+  // Under the list, not in it: the listbox holds options and nothing else, and
+  // its one Tab stop would have hidden the button this carries. In the
+  // reader's language - NVDA read it out in English on a German page.
   var renderSearchNote = function (list, page) {
+    list = el('list-foot');
+    clear(list);
     if (!page.query) { return; }
-    var note = 'Searched ' + page.scanned + ' message' + (page.scanned === 1 ? '' : 's') + ' for \'' + page.query + '\'.';
-    if (page.more) { note += ' Only the newest are shown.'; }
+    var note = page.scanned === 1 ? tf('Searched 1 message for \'{0}\'.', page.query) : tf('Searched {0} messages for \'{1}\'.', page.scanned, page.query);
+    if (page.more) { note += ' ' + t('Only the newest are shown.'); }
     var row = node('div', note, 'listfoot');
     // A folder's search goes on from a UID, a search of every folder from a
     // message id; either way the server says where.
@@ -714,7 +808,11 @@
     var nav = el('label-nav');
     clear(nav);
     var names = labelNames();
-    if (!names.length) { return; }
+    // No labels, no landmark: NVDA stopped on an empty "Labels, navigation
+    // landmark" on every page. It stays drawn - the tour's labels step points
+    // at it - and is taken out of what a screen reader is given.
+    if (!names.length) { nav.setAttribute('aria-hidden', 'true'); return; }
+    nav.removeAttribute('aria-hidden');
     nav.appendChild(node('div', t('Labels'), 'nav-heading'));
     names.forEach(function (name) {
       var b = document.createElement('button');
@@ -845,7 +943,9 @@
 
   var messageRow = function (m, inThread) {
     var row = node('div', undefined, 'msg' + (m.flags.seen ? '' : ' unseen') + (inThread ? ' in-thread' : ''));
-    row.setAttribute('role', 'listitem');
+    row.setAttribute('role', 'option');
+    row.id = 'msg-row-' + listRows.length;
+    row.setAttribute('aria-selected', 'false');
     paintRow(row, colourFor(m));
     var folderId = m.folder_id || state.folderId;
     var entry = { id: m.id, row: row, m: m, folderId: folderId };
@@ -866,12 +966,12 @@
     // The marker stands at the head of the sender, and the sender's column is
     // widened for it, so that the name is no shorter than on a row without one.
     if (markable(folderId)) { entry.imp = importanceButton([m]); who.appendChild(entry.imp); row.classList.add('has-imp'); }
-    who.appendChild(node('span', outgoing ? t('To: ') + (recipientsOf(m.to).slice(0, 2).join(', ') || '?') : nameOf(m.from)));
-    // Bold is how an unread row looks; this is how it sounds.
-    if (!m.flags.seen) { who.appendChild(node('span', ', ' + t('Unread'), 'sr')); }
+    var whoText = outgoing ? t('To: ') + (recipientsOf(m.to).slice(0, 2).join(', ') || '?') : nameOf(m.from);
+    who.appendChild(node('span', whoText));
     who.setAttribute('title', (outgoing ? m.to : m.from) || '');
     row.appendChild(who);
     var what = node('div', undefined, 'what');
+    var say = [whoText, m.subject || t('(no subject)'), whenText(m)];
     what.appendChild(node('span', m.subject || t('(no subject)'), 'subject'));
     if (m.flags && m.flags.keywords && m.flags.keywords.length) { what.appendChild(chipsFor(m.flags.keywords)); }
     if (isRecalled(m)) { what.appendChild(node('span', t('Recalled'), 'badge warn')); }
@@ -883,20 +983,29 @@
     what.appendChild(node('span', m.snippet || '', 'snip'));
     row.appendChild(what);
     var meta = node('div', undefined, 'meta');
-    if (m.has_attachments) { var clip = node('span', undefined, 'clip'); clip.setAttribute('title', t('Has attachments')); clip.appendChild(icon('clip', true)); meta.appendChild(clip); }
-    if (isMuted(m)) { meta.appendChild(muteMark()); }
+    if (m.has_attachments) { var clip = node('span', undefined, 'clip'); clip.setAttribute('title', t('Has attachments')); clip.appendChild(icon('clip', true)); meta.appendChild(clip); say.push(t('has attachments')); }
+    if (isMuted(m)) { meta.appendChild(muteMark()); say.push(t('muted')); }
     var due = dueMark(m);
-    if (due) { meta.appendChild(due); }
+    if (due) { meta.appendChild(due); say.push(due.textContent); }
     var when = node('span', whenText(m), 'when'); when.setAttribute('title', fullDate(m)); meta.appendChild(when);
     row.appendChild(meta);
+    (m.flags.keywords || []).filter(function (k) { return !ownKeyword(k); }).forEach(function (k) { say.push(k); });
+    if (isRecalled(m)) { say.push(t('Recalled')); }
+    if (m.impersonation) { say.push(t('Suspicious sender')); }
+    if (m.folder && state.everywhere) { say.push(m.folder); }
+    if (nudge) { say.push(nudge); }
+    if (mentionsReader(m)) { say.push(t('mentions you')); }
+    say.push(m.snippet || '');
+    entry.say = say;
     var acts = node('div', undefined, 'acts');
     var act = function (name, title, fn) { var b = iconButton(name, title); b.addEventListener('click', function (e) { e.stopPropagation(); fn(); }); acts.appendChild(b); };
     act('archive', t('Archive'), function () { fileRow(entry, 'archive'); });
     act('trash', t('Delete'), function () { fileRow(entry, 'delete'); });
     act(m.flags.seen ? 'mail' : 'mail-open', m.flags.seen ? t('Mark as unread') : t('Mark as read'), function () { markRows([entry], !m.flags.seen); });
     row.appendChild(acts);
-    row.addEventListener('click', function (event) { if (selectingClick(event, entry)) { return; } go('/m/' + m.id); });
+    row.addEventListener('click', function (event) { if (selectingClick(event, entry)) { return; } readerFocusNext = true; go('/m/' + m.id); });
     outOfTabOrder(row);
+    labelRow(entry);
     // On a touch screen: a swipe to the right archives, to the left deletes.
     var touchX = null;
     row.addEventListener('touchstart', function (e) { touchX = e.touches && e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
@@ -944,7 +1053,9 @@
       var newest = g.messages[0];
       var unseen = g.messages.some(function (m) { return !m.flags.seen; });
       var row = node('div', undefined, 'msg thread' + (unseen ? ' unseen' : ''));
-      row.setAttribute('role', 'listitem');
+      row.setAttribute('role', 'option');
+      row.id = 'msg-row-' + listRows.length;
+      row.setAttribute('aria-selected', 'false');
       paintRow(row, g.messages.map(colourFor).filter(function (c) { return c; })[0] || '');
       var folderId = newest.folder_id || state.folderId;
       var entry = { id: newest.id, ids: g.messages.map(function (m) { return m.id; }), ms: g.messages, row: row, m: newest, folderId: folderId };
@@ -963,8 +1074,8 @@
       g.messages.forEach(function (m) { var s = nameOf(m.from); if (senders.indexOf(s) < 0) { senders.push(s); } });
       var who = node('div', undefined, 'who');
       if (markable(folderId)) { entry.imp = importanceButton(g.messages); who.appendChild(entry.imp); row.classList.add('has-imp'); }
-      who.appendChild(node('span', senders.slice(0, 3).join(', ') + (senders.length > 3 ? ', ...' : '')));
-      if (unseen) { who.appendChild(node('span', ', ' + t('Unread'), 'sr')); }
+      var whoText = senders.slice(0, 3).join(', ') + (senders.length > 3 ? ', ...' : '');
+      who.appendChild(node('span', whoText));
       var count = node('span', String(g.messages.length), 'tc');
       count.setAttribute('title', t('Show every message of the conversation'));
       who.appendChild(count);
@@ -979,12 +1090,20 @@
       what.appendChild(node('span', newest.snippet || '', 'snip'));
       row.appendChild(what);
       var meta = node('div', undefined, 'meta');
-      if (g.messages.some(function (m) { return m.has_attachments; })) { var clip = node('span', undefined, 'clip'); clip.appendChild(icon('clip', true)); meta.appendChild(clip); }
-      if (g.messages.some(isMuted)) { meta.appendChild(muteMark()); }
+      // Enter shows the conversation's rows under it (entry.toggle) rather
+      // than opening it, so the row says whether they are shown; an option
+      // has no expanded state of its own for a screen reader to read.
+      var say = [whoText, newest.subject || t('(no subject)'), whenText(newest), tf('{0} messages', g.messages.length), expandedThreads[g.key] ? t('expanded') : t('collapsed')];
+      if (g.messages.some(function (m) { return m.has_attachments; })) { var clip = node('span', undefined, 'clip'); clip.appendChild(icon('clip', true)); meta.appendChild(clip); say.push(t('has attachments')); }
+      if (g.messages.some(isMuted)) { meta.appendChild(muteMark()); say.push(t('muted')); }
       var soonest = soonestDue(g.messages);
-      if (soonest) { meta.appendChild(dueMark(soonest)); }
+      if (soonest) { var soonMark = dueMark(soonest); meta.appendChild(soonMark); say.push(soonMark.textContent); }
       var when = node('span', whenText(newest), 'when'); when.setAttribute('title', fullDate(newest)); meta.appendChild(when);
       row.appendChild(meta);
+      keywords.filter(function (k) { return !ownKeyword(k); }).forEach(function (k) { say.push(k); });
+      if (nudge) { say.push(nudge); }
+      say.push(newest.snippet || '');
+      entry.say = say;
       var acts = node('div', undefined, 'acts');
       var act = function (name, title, fn) { var b = iconButton(name, title); b.addEventListener('click', function (e) { e.stopPropagation(); fn(); }); acts.appendChild(b); };
       act('archive', t('Archive'), function () { fileRow(entry, 'archive'); });
@@ -998,8 +1117,9 @@
         listRows.forEach(function (r, i) { if (r.toggle && r.id === newest.id) { setCursor(i, true); } });
       };
       count.addEventListener('click', function (event) { event.stopPropagation(); toggle(); });
-      row.addEventListener('click', function (event) { if (selectingClick(event, entry)) { return; } go('/m/' + newest.id); });
+      row.addEventListener('click', function (event) { if (selectingClick(event, entry)) { return; } readerFocusNext = true; go('/m/' + newest.id); });
       outOfTabOrder(row);
+      labelRow(entry);
       entry.toggle = toggle;
       listRows.push(entry);
       list.appendChild(row);
@@ -1020,12 +1140,19 @@
     renderTabs(page);
     var tabbed = tabsActive(page);
     var visible = tabbed ? page.messages.filter(function (m) { return tabOf(m) === activeTab; }) : page.messages;
+    list.removeAttribute('aria-activedescendant');
+    list.removeAttribute('aria-describedby');
     if (!visible.length) {
       selected = {}; renderBulk(); renderCount(page);
       var empty = node('div', undefined, 'empty');
       empty.appendChild(icon('empty'));
-      empty.appendChild(node('div', page.query ? t('Nothing matched.') : tabbed && page.messages.length ? tf('Nothing under {0}.', tabName(activeTab)) : t('This folder is empty.')));
+      // A listbox with no option: the sentence is its description, so that
+      // the list says why it is empty when it takes the focus.
+      var why = node('div', page.query ? t('Nothing matched.') : tabbed && page.messages.length ? tf('Nothing under {0}.', tabName(activeTab)) : t('This folder is empty.'));
+      why.id = 'list-empty';
+      empty.appendChild(why);
       list.appendChild(empty);
+      list.setAttribute('aria-describedby', 'list-empty');
       renderSearchNote(list, page);
       return;
     }
@@ -1058,6 +1185,7 @@
     });
     return true;
   };
+  var searchToSay = false;
   var loadMessages = function () {
     var url;
     if (state.query && state.everywhere) {
@@ -1071,6 +1199,19 @@
     return call('GET', url).then(function (result) {
       if (result.status === 200 && result.data) {
         renderMessages(result.data);
+        if (cursorBack) {
+          var backAt = -1;
+          listRows.forEach(function (r, i) { if (r.id === cursorBack || (r.ids || []).indexOf(cursorBack) >= 0) { backAt = i; } });
+          if (backAt >= 0) { setCursor(backAt, true); }
+          cursorBack = 0;
+        }
+        // A search run from the box says what it found: the focus stays in
+        // the box, and NVDA said nothing at all (NVDA pass, Roadmap2 row 43).
+        if (searchToSay && state.query) {
+          searchToSay = false;
+          var found = (result.data.messages || []).length;
+          announce(found ? tf('{0} results', found) : t('Nothing matched.'));
+        }
         lastListing = { key: listingKey(), page: result.data };
         askReplies(result.data);
         if (!state.everywhere && !state.query && !state.before && state.folderId === inboxId) { offlineKeep('list', result.data); }
@@ -1417,13 +1558,26 @@
       });
     });
   };
+  // A message opened from the list - Enter or o on it, or a press of its row -
+  // takes the focus to its subject, so that a screen reader says what opened
+  // and reads on from there; NVDA said nothing at all, the focus left on the
+  // list (NVDA pass, Roadmap2 row 43). The cursor moving through the list
+  // with the reading pane open changes the message without taking the focus
+  // from the list.
+  var readerFocusNext = false;
+  var focusReader = function () {
+    if (!readerFocusNext) { return; }
+    readerFocusNext = false;
+    if (!el('message-view').hidden) { el('message-subject').focus(); }
+  };
   var openMessage = function (id) {
     say('mail-status', '', true);
-    if (current && current.id === id) { renderMessage(current); return Promise.resolve(current); }
+    if (current && current.id === id) { renderMessage(current); focusReader(); return Promise.resolve(current); }
     var show = function (data) {
       showHtml = false;
-      el('message-html-toggle').textContent = 'Show as sent';
+      el('message-html-toggle').textContent = t('Show as sent');
       renderMessage(data);
+      focusReader();
       learnOpened(data);
       if (!data.flags.seen) { setFlags({ seen: true }, true); }
       offlineKeep('m' + data.id, data);
@@ -1518,7 +1672,7 @@
       return !(embeddedStay && OWN_IMAGE_ID.test(cid) && String(message.html || '').toLowerCase().indexOf('cid:' + cid) >= 0);
     });
     if (!list.length) { return Promise.resolve(); }
-    el('compose-files-note').textContent = 'Fetching ' + list.length + ' attachment(s)...';
+    el('compose-files-note').textContent = tf('Fetching {0} attachment(s)...', list.length);
     return Promise.all(list.map(function (a) {
       return apiFetch('/api/v1/me/messages/' + message.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
         if (response.status !== 200) { throw new Error(a.name); }
@@ -1533,10 +1687,10 @@
       });
     })).then(function (files) {
       carried = files;
-      el('compose-files-note').textContent = 'Attached from the original: ' + files.map(function (f) { return f.name; }).join(', ');
+      filesNote(tf('Attached from the original: {0}', files.map(function (f) { return f.name; }).join(', ')));
     }, function (why) {
       carried = [];
-      el('compose-files-note').textContent = 'The attachment ' + why.message + ' could not be fetched, so it is not attached.';
+      filesNote(tf('The attachment {0} could not be fetched, so it is not attached.', why.message));
     });
   };
   // Reply, Reply all, Forward and Edit draft are addresses of their own, so
@@ -1625,7 +1779,7 @@
     var offset = 0;
     var next = function () {
       if (offset >= file.size) { return record; }
-      el('compose-files-note').textContent = 'Sending ' + file.name + ' as a link: ' + Math.round(100 * offset / file.size) + '%';
+      el('compose-files-note').textContent = tf('Sending {0} as a link: {1}%', file.name, Math.round(100 * offset / file.size));
       var slice = file.slice(offset, Math.min(file.size, offset + CHUNK));
       return apiFetch('/api/v1/me/files/' + record.id + '/content?offset=' + offset, { method: 'PUT', body: slice, headers: { 'X-Requested-With': 'hMailServer', 'Content-Type': 'application/octet-stream' }, cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
         return response.text().then(function (text) {
@@ -1698,12 +1852,12 @@
     if (total + brought + pictures > 12 * 1024 * 1024) { return Promise.reject(pictures ? t('The pictures in the message and the files are larger than 12 MB together.') : t('The files are larger than 12 MB together.')); }
     var uploads = large.reduce(function (chain, f) { return chain.then(function () { return uploadLinked(f); }); }, Promise.resolve());
     return uploads.then(function () {
-      if (large.length) { el('compose-files-note').textContent = large.length + ' file' + (large.length === 1 ? '' : 's') + ' sent as ' + (large.length === 1 ? 'a link' : 'links') + '.'; }
+      if (large.length) { el('compose-files-note').textContent = large.length === 1 ? t('1 file sent as a link.') : tf('{0} files sent as links.', large.length); }
       return Promise.all(small.map(function (file) {
         return new Promise(function (resolve, reject) {
           var reader = new FileReader();
           reader.onload = function () { resolve({ name: file.name, type: file.type || 'application/octet-stream', data: String(reader.result).split(',')[1] || '' }); };
-          reader.onerror = function () { reject('Could not read ' + file.name); };
+          reader.onerror = function () { reject(tf('Could not read {0}', file.name)); };
           reader.readAsDataURL(file);
         });
       }));
@@ -1732,9 +1886,9 @@
     clear(list);
     quarantineOn = !!held.enabled;
     el('held-count').textContent = held.enabled && held.messages.length ? String(held.messages.length) : '';
-    if (!held.enabled) { el('quarantine-note').textContent = 'The server does not hold suspected spam for review; it refuses it.'; return; }
-    if (!held.messages.length) { el('quarantine-note').textContent = 'Nothing is being held for you.'; return; }
-    el('quarantine-note').textContent = held.messages.length + ' message' + (held.messages.length === 1 ? '' : 's') + ' held as suspected spam. Releasing one delivers it to you; deleting one is final.';
+    if (!held.enabled) { el('quarantine-note').textContent = t('The server does not hold suspected spam for review; it refuses it.'); return; }
+    if (!held.messages.length) { el('quarantine-note').textContent = t('Nothing is being held for you.'); return; }
+    el('quarantine-note').textContent = held.messages.length === 1 ? t('1 message held as suspected spam. Releasing it delivers it to you; deleting it is final.') : tf('{0} messages held as suspected spam. Releasing one delivers it to you; deleting one is final.', held.messages.length);
     held.messages.forEach(function (m) {
       var row = node('div', undefined, 'frow');
       var body = node('div', undefined, 'fname');
@@ -1880,6 +2034,7 @@
       if (folder && count) {
         var shown = folderIs(id, 'Drafts') ? folder.count : folder.unseen;
         count.textContent = shown ? String(shown) : '';
+        if (children[i].children[3]) { children[i].children[3].textContent = folderWords(folder, shown, folderIs(id, 'Drafts')); }
         children[i].classList.toggle('unread', !!folder.unseen && !folderIs(id, 'Drafts'));
       }
     }
@@ -1896,7 +2051,7 @@
     if (el('account').hidden || probe.off) { return Promise.resolve(); }
     // A background tab stops asking - unless notifications are on, in
     // which case it keeps asking, slowly, since that is what they are for.
-    if (document.hidden && pref('notify') !== '1') { probe.paused = true; setProbeState('Paused - this tab is in the background', true); return Promise.resolve(); }
+    if (document.hidden && pref('notify') !== '1') { probe.paused = true; setProbeState(t('Paused - this tab is in the background'), true); return Promise.resolve(); }
     probe.paused = false;
     return call('GET', '/api/v1/me/changes' + (probe.token ? '?since=' + encodeURIComponent(probe.token) : '')).then(function (result) {
       if (result.status === 200 && result.data) {
@@ -1904,7 +2059,7 @@
         probe.token = result.data.token || probe.token;
         var unknown = applyCounts(result.data.folders || []);
         probeIn = document.hidden ? probeSlowly : probeEvery;
-        setProbeState('Watching for new mail', false);
+        setProbeState(t('Watching for new mail'), false);
         // A page left open overnight: the follow-ups due today are asked for once the day turns.
         if (followUps.day && followUps.day !== dueToday()) { followUpsCheck(); }
         if (had && (result.data.changed || unknown)) {
@@ -1920,13 +2075,13 @@
         // of the account's own. Asking it again every six seconds for the rest
         // of the day would be a defect of this page, so it is asked once.
         probe.off = true;
-        setProbeState('This server does not report changes', true);
+        setProbeState(t('This server does not report changes'), true);
         return;
       } else if (result.status !== 401) {
         // Something transient - a restart, a rate limit. Keep watching, but
         // stop leaning on it.
         probeIn = probeSlowly;
-        setProbeState('Not watching (' + result.status + ')', true);
+        setProbeState(tf('Not watching ({0})', result.status), true);
       }
       probeLater();
     });
@@ -1966,7 +2121,7 @@
     el('mail-search-everywhere').checked = true;
     dropMessage();
     var saved = params.saved !== undefined ? savedSearches()[Number(params.saved)] : null;
-    showPanel('mail-section', saved && saved.q === state.query ? saved.name : 'Search - \'' + state.query + '\'');
+    showPanel('mail-section', saved && saved.q === state.query ? saved.name : tf('Search - \'{0}\'', state.query));
     markNav(saved && saved.q === state.query ? savedSearchRoute(saved, Number(params.saved)) : '');
     showList();
     renderListTools();
@@ -2070,7 +2225,7 @@
       fillCompose({ subject: shared.title, body: body });
       if (shared.files.length) {
         shared.files.forEach(function (f) { dropped.push(f); });
-        el('compose-files-note').textContent = 'Attached from the share: ' + shared.files.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', ');
+        filesNote(tf('Attached from the share: {0}', shared.files.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', ')));
       }
     });
   };
@@ -2123,7 +2278,7 @@
       showCompose(r.params);
       return;
     }
-    if (head === 'held') { showPanel('quarantine-section', 'Held as suspected spam'); markNav('/held'); loadQuarantine(); return; }
+    if (head === 'held') { showPanel('quarantine-section', t('Held mail')); markNav('/held'); loadQuarantine(); return; }
     if (head === 'folders') { showPanel('folders-section', t('Folders')); markNav('/folders'); renderFolderAdmin(); return; }
     if (head === 'settings') { showPanel('settings-section', t('Settings')); markNav('/settings'); loadPush(); loadOffline(); loadDirectoryCard(); return; }
     if (head === 'filters') { showPanel('filter-section', t('Filters')); markNav('/filters'); renderColourRules(); return; }
@@ -2312,14 +2467,20 @@
     var at = target.name + '#' + target.heading;
     if (at === helpAt) { return; }
     helpAt = at;
-    helpShow(target.name, target.heading);
+    return helpShow(target.name, target.heading);
   };
   var helpClose = function () { el('help-pane').hidden = true; helpRemember(false); helpAt = ''; el('help-btn').focus(); };
   var helpToggle = function () {
     if (helpOpen()) { helpClose(); return; }
     helpRemember(true);
     helpAt = '';
-    if (helpTarget()) { helpFollow(); } else { helpList(); }
+    var shown = helpTarget() ? helpFollow() : helpList();
+    // Opened, the pane takes the focus at its heading, as closing it gives
+    // the focus back to the Help button: F1 opened it without a word, the
+    // focus left behind on the page (NVDA pass, Roadmap2 row 43). Once the
+    // document is in, so that the heading is its title and not its file name.
+    var arrive = function () { if (helpOpen()) { el('help-title').focus(); } };
+    if (shown && shown.then) { shown.then(arrive, arrive); } else { arrive(); }
   };
   // The search box over the open document: every match marked, the first
   // scrolled to, Enter moving to the next.
@@ -2400,7 +2561,7 @@
     if (el('nav-directory')) { el('nav-directory').hidden = true; }
     signature = { enabled: false, text: '' };
     prefs = {};
-    document.title = baseTitle;
+    document.title = baseTitle();
     hideSearchHistory();
     hideSuggestions();
     clear(el('search-suggest-list'));
@@ -2503,10 +2664,10 @@
     el('password-user').value = account.address;
     var used = account.quota.used_bytes, limit = account.quota.limit_mb * 1048576;
     if (limit > 0) {
-      el('quota').textContent = format(used) + ' of ' + account.quota.limit_mb + ' MB used';
+      el('quota').textContent = tf('{0} of {1} MB used', format(used), account.quota.limit_mb);
       el('quota-bar').style.width = Math.min(100, Math.round(100 * used / limit)) + '%';
     } else {
-      el('quota').textContent = format(used) + ' used, no limit';
+      el('quota').textContent = tf('{0} used, no limit', format(used));
       el('quota-bar').style.width = '0';
     }
     el('password-changed').textContent = account.password_changed ? t('Password last changed ') + account.password_changed : '';
@@ -2596,7 +2757,7 @@
       // kept for reading offline: show that, and ask again when the
       // connection is back. A refusal - a session that ended - is not this.
       if (result.status === 0 && offlineOwner()) { enterOffline(); return false; }
-      if (!quiet) { say('signin-status', describe(result, t('Could not sign in')), false); }
+      if (!quiet) { say('signin-status', signinRefusal(result), false); }
       pending = parseHash().hash;
       showSignIn();
       return false;
@@ -2624,12 +2785,17 @@
     call('POST', '/api/v1/session', undefined, { 'Authorization': basic, 'X-hMailServer-Recovery-Code': recoveryCode }).then(function (result) {
       if (result.status === 201) {
         var left = result.data && typeof result.data.recovery_codes_left === 'number' ? result.data.recovery_codes_left : -1;
-        load(false).then(function () {
+        load(false).then(function (ok) {
+          // The sign-in form is gone and the focus with it: the view's
+          // heading takes it, so a screen reader says where the reader has
+          // arrived. NVDA said the page's title and nothing else.
+          var active = document.activeElement;
+          if (ok && (!active || active === document.body || !shownNow(active))) { el('view-title').focus(); }
           if (left >= 0) { toast(tf('A recovery code was used to sign in. {0} of your codes are left.', String(left)), null, true); }
         });
         return;
       }
-      say('signin-status', describe(result, t('Could not sign in')), false);
+      say('signin-status', signinRefusal(result), false);
     });
   });
   el('signin-code-toggle').addEventListener('click', function () {
@@ -2786,7 +2952,7 @@
     var list = remoteSenders();
     if (sender && list.indexOf(sender) < 0) { list.push(sender); }
     savePrefs({ remote_senders: list.join(',') }).then(function (ok) {
-      if (!ok) { say('mail-status', 'Could not remember this sender: the list is full.', false); return; }
+      if (!ok) { say('mail-status', t('Could not remember this sender: the list is full.'), false); return; }
       renderHtml();
     });
   });
@@ -2808,7 +2974,7 @@
       if (!/^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(text)) { continue; }
       var said = hostOf(/^https?:/i.test(text) ? text : 'https://' + text);
       var goes = hostOf(anchors[i].getAttribute('href') || '');
-      if (said && goes && said !== goes) { out.push('A link that says ' + text + ' goes to ' + goes + '.'); }
+      if (said && goes && said !== goes) { out.push(tf('A link that says {0} goes to {1}.', text, goes)); }
     }
     return out;
   };
@@ -2856,7 +3022,7 @@
       var address = addressOf(m.from).toLowerCase();
       if (!name) { return; }
       var same = (list || []).filter(function (c) { return c.kind !== 'group' && (c.name || '').toLowerCase() === name.toLowerCase() && c.address.toLowerCase() !== address; })[0];
-      if (same) { warnings.push('The sender is named like your contact ' + same.name + ' <' + same.address + '>, but this came from ' + address + '.'); showWarnings(warnings); }
+      if (same) { warnings.push(tf('The sender is named like your contact {0}, but this came from {1}.', same.name + ' <' + same.address + '>', address)); showWarnings(warnings); }
     });
   };
   // Images among the attachments are shown; a PDF is previewed on request,
@@ -2923,7 +3089,7 @@
   el('message-headers-toggle').addEventListener('click', function () {
     var pane = el('message-headers');
     pane.hidden = !pane.hidden;
-    el('message-headers-toggle').textContent = pane.hidden ? 'Headers' : 'Hide headers';
+    el('message-headers-toggle').textContent = pane.hidden ? t('Headers') : t('Hide headers');
   });
   document.addEventListener('keydown', function (event) {
     if (typingIn(event) || event.ctrlKey || event.metaKey || event.altKey || modalOpen()) { return; }
@@ -2956,7 +3122,7 @@
   });
   el('message-html-toggle').addEventListener('click', function () {
     showHtml = !showHtml;
-    el('message-html-toggle').textContent = showHtml ? 'Show as text' : 'Show as sent';
+    el('message-html-toggle').textContent = showHtml ? t('Show as text') : t('Show as sent');
     renderHtml();
   });
   el('message-reply').addEventListener('click', function () { if (current) { go('/compose?reply=' + current.id); } });
@@ -3128,7 +3294,11 @@
       imageFrom(img, '/api/v1/me/contacts/' + c.id + '/photo');
       return img;
     }
-    return node('span', initialsOf(c.name || c.address), 'avatar');
+    // Initials are the picture's stand-in, not words: NVDA read "GH" before
+    // every contact's name.
+    var initials = node('span', initialsOf(c.name || c.address), 'avatar');
+    initials.setAttribute('aria-hidden', 'true');
+    return initials;
   };
   var contactButtons = function (c) {
     var write = document.createElement('button'); write.type = 'button'; write.className = 'btn ghost'; write.textContent = t('Write');
@@ -3220,7 +3390,8 @@
     event.preventDefault();
     say('contact-status', '', true);
     call('POST', '/api/v1/me/contacts', { name: el('contact-name').value, address: el('contact-address').value, book: bookState.current }).then(function (result) {
-      if (result.status === 201) { el('contact-name').value = ''; el('contact-address').value = ''; contactsCache = null; loadContacts(); return; }
+      // Said as well as drawn, as a new task is (NVDA pass).
+      if (result.status === 201) { el('contact-name').value = ''; el('contact-address').value = ''; contactsCache = null; loadContacts(); announce(t('Added.')); return; }
       say('contact-status', describe(result, t('Could not add the contact')), false);
     });
   });
@@ -3517,17 +3688,46 @@
   // A group is offered by its name with how many it reaches, and taking it
   // writes every recipient into the field, as Gmail and Outlook do; the
   // member field of a group asks for people only (options.persons).
+  // A completion list a screen reader can follow: the field is a combobox
+  // that owns the list, says whether it is open, and points at the
+  // suggestion Enter would take (aria-activedescendant), each suggestion
+  // named whole. The lists were drawn and marked for the eye alone: NVDA said
+  // nothing when one opened, and the arrows only read the field out again
+  // (NVDA pass, Roadmap2 row 43). The palette's list is the same.
+  var comboLists = 0;
+  var comboOf = function (input, list) {
+    comboLists += 1;
+    if (!list.id) { list.id = 'combo-list-' + comboLists; }
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-controls', list.id);
+    return {
+      open: function (on) {
+        input.setAttribute('aria-expanded', on ? 'true' : 'false');
+        if (!on) { input.removeAttribute('aria-activedescendant'); }
+      },
+      mark: function (n) {
+        for (var i = 0; i < list.children.length; i++) {
+          list.children[i].id = list.id + '-' + i;
+          list.children[i].setAttribute('aria-selected', i === n ? 'true' : 'false');
+        }
+        if (list.children[n]) { input.setAttribute('aria-activedescendant', list.children[n].id); } else { input.removeAttribute('aria-activedescendant'); }
+      }
+    };
+  };
   var complete = function (inputOrId, options) {
     var input = typeof inputOrId === 'string' ? el(inputOrId) : inputOrId;
     var persons = !!(options && options.persons);
     var list = document.createElement('ul'); list.className = 'complete'; list.hidden = true; list.setAttribute('role', 'listbox');
     input.parentNode.appendChild(list);
+    var combo = comboOf(input, list);
     var items = []; var marked = -1; var timer = null;
-    var close = function () { list.hidden = true; list.textContent = ''; items = []; marked = -1; };
+    var close = function () { list.hidden = true; list.textContent = ''; items = []; marked = -1; combo.open(false); };
     var token = function () { var v = input.value; var i = v.lastIndexOf(','); return { head: i >= 0 ? v.slice(0, i + 1) : '', tail: (i >= 0 ? v.slice(i + 1) : v).replace(/^\s+/, '') }; };
     var entryOf = function (c) { return c.kind === 'group' ? groupEntries(c) : (c.name ? c.name + ' <' + c.address + '>' : c.address); };
     var take = function (c) { var t = token(); var entry = entryOf(c); if (!entry) { close(); return; } input.value = (t.head ? t.head + ' ' : '') + entry + ', '; close(); input.focus(); };
-    var mark = function (n) { marked = n; for (var i = 0; i < list.children.length; i++) { list.children[i].classList.toggle('on', i === marked); } };
+    var mark = function (n) { marked = n; for (var i = 0; i < list.children.length; i++) { list.children[i].classList.toggle('on', i === marked); } combo.mark(marked); };
     var show = function (offered) {
       close();
       // A group is one account's own address book entry and expands against
@@ -3549,10 +3749,12 @@
           : (c.name ? c.address : '');
         if (c.book_mine === false) { ad.textContent = (ad.textContent ? ad.textContent + ' \u00b7 ' : '') + c.book_name; }
         li.appendChild(nm); li.appendChild(ad);
+        // The name and the address as two words, not run together.
+        li.setAttribute('aria-label', nm.textContent + (ad.textContent ? ', ' + ad.textContent : ''));
         li.addEventListener('mousedown', function (e) { e.preventDefault(); take(c); });
         list.appendChild(li);
       });
-      list.hidden = false; mark(0);
+      list.hidden = false; combo.open(true); mark(0);
     };
     input.setAttribute('autocomplete', 'off');
     input.addEventListener('input', function () {
@@ -3858,7 +4060,13 @@
       close();
       input.focus();
     };
-    var mark = function (n) { marked = n; for (var i = 0; i < list.children.length; i++) { list.children[i].classList.toggle('on', i === marked); } };
+    // The message field is a text area, not a combobox: the suggestion Enter
+    // would take is said in the page's voice as the arrows move to it.
+    var mark = function (n) {
+      marked = n;
+      for (var i = 0; i < list.children.length; i++) { list.children[i].classList.toggle('on', i === marked); }
+      if (list.children[marked]) { announce(list.children[marked].getAttribute('aria-label')); }
+    };
     var show = function (found) {
       close();
       if (!found.length) { return; }
@@ -3867,6 +4075,7 @@
         var li = document.createElement('li'); li.setAttribute('role', 'option');
         var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = '@' + (c.name || c.address);
         var ad = document.createElement('span'); ad.className = 'ad'; ad.textContent = c.name ? c.address : '';
+        li.setAttribute('aria-label', nm.textContent + (ad.textContent ? ', ' + ad.textContent : ''));
         li.appendChild(nm); li.appendChild(ad);
         li.addEventListener('mousedown', function (e) { e.preventDefault(); take(c); });
         list.appendChild(li);
@@ -3914,6 +4123,21 @@
   // there is none). The form is emptied only when it still holds the
   // message that was sent: during the delay the reader may have gone on to
   // write another.
+  // A send that fails once the undo delay has run fails behind a closed
+  // window: the form was put away when the countdown began. It is opened
+  // again with the message as it was written, and the reason is said as well
+  // as shown - NVDA heard "Sending in 1 s" and then nothing, and nothing on
+  // the screen said the message had not gone either (NVDA pass, row 43).
+  // A message the outbox kept is not a failure: it goes when it can.
+  var sendFailed = function (queued, text, kept) {
+    if (!kept && el('compose-section').hidden && composeKey === queued.key) {
+      openCompose(queued.mode || composeMode, queued.id || composeId);
+      el('compose-send').disabled = false;
+      el('compose-to').focus();
+    }
+    say('compose-status', text, false);
+    announce(text);
+  };
   var submitMessage = function (queued) {
     // A message to a password goes its own way: encrypted here, filed on
     // the server as ciphertext, and only a notice sent (protectedSubmit).
@@ -3924,7 +4148,7 @@
       queued.body = prepared;
       return call('POST', '/api/v1/me/messages', prepared);
     }, function (why) {
-      say('compose-status', String(why && why.message ? why.message : why), false);
+      sendFailed(queued, String(why && why.message ? why.message : why), false);
       el('compose-send').disabled = false;
       return { status: -1 };
     }).then(function (result) {
@@ -3934,8 +4158,8 @@
         // the connection is back. The form is left as it is. The outbox is
         // the first account's; a second account's message stays in the form,
         // and the form says so.
-        if (outboxAdd(queued.body)) { say('compose-status', t('No connection. The message waits here and will be sent when the connection is back.'), false); }
-        else { say('compose-status', t('No connection. The message is still here; send it again when the connection is back.'), false); }
+        if (outboxAdd(queued.body)) { sendFailed(queued, t('No connection. The message waits here and will be sent when the connection is back.'), true); }
+        else { sendFailed(queued, t('No connection. The message is still here; send it again when the connection is back.'), false); }
         return;
       }
       if (result.status === 201) {
@@ -3950,7 +4174,7 @@
         loadFolders();
         return;
       }
-      say('compose-status', describe(result, t('Could not send')), false);
+      sendFailed(queued, describe(result, t('Could not send')), false);
     });
   };
   // Undo send: for the delay the account chose, the message waits here, in
@@ -4068,11 +4292,15 @@
     if (!files.length) { return; }
     event.preventDefault();
     files.forEach(function (f) { dropped.push(f); });
-    if (files.length) { el('compose-files-note').textContent = 'Dropped: ' + dropped.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', '); }
+    if (files.length) { filesNote(tf('Dropped: {0}', dropped.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', '))); }
   });
+  // What was attached is said as well as listed: the file chooser closed, the
+  // focus came back to Attach files, and NVDA said nothing of the file
+  // (NVDA pass, Roadmap2 row 43).
+  var filesNote = function (text) { el('compose-files-note').textContent = text; if (text) { announce(text); } };
   el('compose-files').addEventListener('change', function () {
     var files = Array.prototype.slice.call(el('compose-files').files || []);
-    el('compose-files-note').textContent = files.length ? files.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', ') : '';
+    filesNote(files.length ? tf('Attached: {0}', files.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', ')) : '');
   });
   // ---- Search history: the last ten searches, kept in this browser --------
   // Offered under the box while it is focused and empty; an entry runs that
@@ -4209,6 +4437,7 @@
     state.before = 0;
     lastListing = null;
     if (!text) { go('/f/' + (state.folderId || inboxId)); return; }
+    searchToSay = true;
     rememberSearch(text);
     if (el('mail-search-everywhere').checked) { go('/search?q=' + encodeURIComponent(text)); return; }
     go('/f/' + (state.folderId || inboxId) + '?q=' + encodeURIComponent(text));
@@ -4421,9 +4650,9 @@
       clear(rows);
       el('files-empty').hidden = files.length > 0;
       el('files-note').textContent = (Number(filesPolicy.link_above_kb) > 0
-        ? 'A file above ' + format(Number(filesPolicy.link_above_kb) * 1024) + ' on a message goes here and the message carries a link that lives ' + filesPolicy.days + ' days. '
-        : 'Files are attached to messages here, never sent as links. ')
-        + format(result.data.used_bytes || 0) + ' of ' + filesPolicy.quota_mb + ' MB used.';
+        ? tf('A file above {0} on a message goes here and the message carries a link that lives {1} days.', format(Number(filesPolicy.link_above_kb) * 1024), filesPolicy.days)
+        : t('Files are attached to messages here, never sent as links.'))
+        + ' ' + tf('{0} of {1} MB used.', format(result.data.used_bytes || 0), filesPolicy.quota_mb);
       files.forEach(function (f) {
         var tr = document.createElement('tr');
         var name = document.createElement('td');
@@ -4444,7 +4673,7 @@
         });
         var protect = button(f.protected ? t('Change password') : t('Set password'), 'btn ghost sm');
         protect.addEventListener('click', function () {
-          var given = window.prompt('A password for ' + f.name + ' (empty removes it):', '');
+          var given = window.prompt(tf('A password for {0} (empty removes it):', f.name), '');
           if (given === null) { return; }
           call('PUT', '/api/v1/me/files/' + f.id, { password: given }).then(function (r) {
             say('files-status', r.status === 200 ? (given ? t('Password set.') : t('Password removed.')) : describe(r, t('Could not change it')), r.status === 200);
@@ -4477,8 +4706,8 @@
       if (result.status !== 200 || !result.data) { say('storage-status', describe(result, t('Could not read the storage')), false); return; }
       var s = result.data;
       el('storage-quota').textContent = s.limit_mb > 0
-        ? format(s.used_bytes) + ' of ' + s.limit_mb + ' MB used (' + Math.min(100, Math.round(100 * s.used_bytes / (s.limit_mb * 1048576))) + '%)'
-        : format(s.used_bytes) + ' used, no limit';
+        ? tf('{0} of {1} MB used ({2}%)', format(s.used_bytes), s.limit_mb, Math.min(100, Math.round(100 * s.used_bytes / (s.limit_mb * 1048576))))
+        : tf('{0} used, no limit', format(s.used_bytes));
       var rows = el('storage-folder-rows');
       clear(rows);
       (s.folders || []).slice().sort(function (a, b) { return b.bytes - a.bytes; }).forEach(function (f) {
@@ -4535,10 +4764,10 @@
 
   // ---- Security: app passwords and sessions ----------------------------------
   var ago = function (seconds) {
-    if (seconds < 60) { return 'just now'; }
-    if (seconds < 3600) { return Math.round(seconds / 60) + ' min ago'; }
-    if (seconds < 86400) { return Math.round(seconds / 3600) + ' h ago'; }
-    return Math.round(seconds / 86400) + ' d ago';
+    if (seconds < 60) { return t('just now'); }
+    if (seconds < 3600) { return tf('{0} min ago', Math.round(seconds / 60)); }
+    if (seconds < 86400) { return tf('{0} h ago', Math.round(seconds / 3600)); }
+    return tf('{0} d ago', Math.round(seconds / 86400));
   };
   var loadAppPasswords = function () {
     return call('GET', '/api/v1/me/app-passwords').then(function (result) {
@@ -4883,9 +5112,10 @@
       rules.map(function (r) { return 'if ' + conditionOf(r) + ' {\n  ' + actionOf(r) + '\n}'; }).join('\n') + '\n';
   };
   var describeRule = function (r) {
-    if (r.field === 'thread') { return { when: tf('A reply in the conversation "{0}"', r.subject || ''), then: 'move to ' + r.folder }; }
-    var when = (r.field === 'any' ? 'From, To or Subject' : r.field === 'to' ? 'To or Cc' : r.field.charAt(0).toUpperCase() + r.field.slice(1)) + ' contains "' + r.text + '"';
-    var then = r.action === 'move' ? 'move to ' + r.folder : r.action === 'label' ? 'label ' + r.label : r.action === 'flag' ? 'flag' : r.action === 'read' ? 'mark as read' : 'delete';
+    if (r.field === 'thread') { return { when: tf('A reply in the conversation "{0}"', r.subject || ''), then: tf('move to {0}', r.folder) }; }
+    var field = r.field === 'any' ? t('From, To or Subject') : r.field === 'to' ? t('To or Cc') : t(r.field.charAt(0).toUpperCase() + r.field.slice(1));
+    var when = tf('{0} contains "{1}"', field, r.text);
+    var then = r.action === 'move' ? tf('move to {0}', r.folder) : r.action === 'label' ? tf('label {0}', r.label) : r.action === 'flag' ? t('flag') : r.action === 'read' ? t('mark as read') : t('delete');
     return { when: when, then: then };
   };
   var currentRules = [];
@@ -5293,7 +5523,7 @@
     el('smime-unlock-form').setAttribute('data-ask', mode);
     say('smime-unlock-status', '', true);
     el('smime-unlock-password').value = '';
-    modalShow('smime-unlock');
+    modalShow('smime-unlock', el('smime-unlock-password'));
     el('smime-unlock-password').focus();
     return new Promise(function (resolve, reject) { smimeWaiters.push({ resolve: resolve, reject: reject }); });
   };
@@ -5430,7 +5660,7 @@
     if (result.content && result.encrypted && result.encrypted.ok) {
       var c = result.content;
       var text = c.text || (c.html ? (new DOMParser().parseFromString(c.html, 'text/html').body.textContent || '') : '');
-      el('message-text').textContent = text || '(no text)';
+      el('message-text').textContent = text || t('(no text)');
       var attachments = el('message-attachments');
       clear(attachments);
       if (c.attachments.length) {
@@ -5712,7 +5942,7 @@
     el('pgp-unlock-form').setAttribute('data-ask', mode);
     say('pgp-unlock-status', '', true);
     el('pgp-unlock-passphrase').value = '';
-    modalShow('pgp-unlock');
+    modalShow('pgp-unlock', el('pgp-unlock-passphrase'));
     el('pgp-unlock-passphrase').focus();
     return new Promise(function (resolve, reject) { pgpWaiters.push({ resolve: resolve, reject: reject }); });
   };
@@ -6272,7 +6502,7 @@
     if (result.content && ((result.encrypted && result.encrypted.ok) || result.inline)) {
       var c = result.content;
       var text = c.text || (c.html ? (new DOMParser().parseFromString(c.html, 'text/html').body.textContent || '') : '');
-      el('message-text').textContent = text || '(no text)';
+      el('message-text').textContent = text || t('(no text)');
       var attachments = el('message-attachments');
       clear(attachments);
       if (c.attachments.length) {
@@ -6538,7 +6768,7 @@
   var zaAsk = function () {
     say('za-unlock-status', '', true);
     el('za-unlock-secret').value = '';
-    modalShow('za-unlock');
+    modalShow('za-unlock', el('za-unlock-secret'));
     el('za-unlock-secret').focus();
     return new Promise(function (resolve, reject) { zaWaiters.push({ resolve: resolve, reject: reject }); });
   };
@@ -6600,7 +6830,7 @@
       zaPending = { row: row, recovery: pgpModule.makeRecoveryKey() };
       el('za-recovery-key').textContent = zaPending.recovery;
       say('za-confirm-status', '', true);
-      modalShow('za-confirm');
+      modalShow('za-confirm', el('za-recovery-typed'));
       el('za-recovery-typed').focus();
     }).catch(function (e) { say('za-status', String(e && e.message || e), false); });
   });
@@ -6756,7 +6986,7 @@
   var showRich = function (on) {
     richOn = on;
     el('compose-editor').hidden = !on; el('compose-text').hidden = on; el('rich-tools').hidden = !on;
-    el('rich-toggle').textContent = on ? 'Plain text' : 'Formatting';
+    el('rich-toggle').textContent = on ? t('Plain text') : t('Formatting');
     if (!on) { el('emoji-panel').hidden = true; el('table-panel').hidden = true; el('emoji-open').setAttribute('aria-expanded', 'false'); el('table-open').setAttribute('aria-expanded', 'false'); }
   };
   var setRich = function (on) {
@@ -6796,7 +7026,7 @@
         if (!b.getAttribute('data-cmd')) { return; }
         b.addEventListener('click', function () {
           var cmd = b.getAttribute('data-cmd'), arg = b.getAttribute('data-arg') || null;
-          if (cmd === 'createLink') { arg = window.prompt ? window.prompt('The address to link to') : ''; if (!arg) { return; } }
+          if (cmd === 'createLink') { arg = window.prompt ? window.prompt(t('The address to link to')) : ''; if (!arg) { return; } }
           el('compose-editor').focus();
           try { document.execCommand(cmd, false, arg); } catch (e) { /* a browser without the command keeps the text */ }
         });
@@ -7175,7 +7405,7 @@
       el('compose-form').classList.remove('dropping');
       var others = files.filter(function (f) { return !isImageFile(f); });
       others.forEach(function (f) { dropped.push(f); });
-      if (others.length) { el('compose-files-note').textContent = 'Dropped: ' + dropped.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', '); }
+      if (others.length) { filesNote(tf('Dropped: {0}', dropped.map(function (f) { return f.name + ' (' + format(f.size) + ')'; }).join(', '))); }
       addImages(images, id === 'compose-editor' ? (pointRange(event) || editorRange()) : null);
     });
   });
@@ -8274,7 +8504,9 @@
     if (current && !el('message-view').hidden && (event.key === 'e' || event.key === '!' || event.key === '#' || event.key === 'm')) { return; }
     if (event.key === 'ArrowDown' || event.key === 'j') { setCursor(cursor + 1); event.preventDefault(); }
     else if (event.key === 'ArrowUp' || event.key === 'k') { setCursor(cursor - 1); event.preventDefault(); }
-    else if (event.key === 'Enter' && cursor >= 0 && !pressable(event.target)) { var hit = listRows[cursor]; if (hit.toggle) { hit.toggle(); } else { go('/m/' + hit.id); } event.preventDefault(); }
+    // A listbox's own keys, while it has the focus: the first row and the last.
+    else if ((event.key === 'Home' || event.key === 'End') && event.target === el('message-list') && listRows.length) { setCursor(event.key === 'Home' ? 0 : listRows.length - 1); event.preventDefault(); }
+    else if (event.key === 'Enter' && cursor >= 0 && !pressable(event.target)) { var hit = listRows[cursor]; if (hit.toggle) { hit.toggle(); } else { readerFocusNext = true; go('/m/' + hit.id); } event.preventDefault(); }
     else if (event.key === 'e' && cursor >= 0) { fileRow(listRows[cursor], 'archive'); event.preventDefault(); }
     else if (event.key === '!' && cursor >= 0) { fileRow(listRows[cursor], junkTargetFor(state.folderId)); event.preventDefault(); }
     else if (event.key === '#' && cursor >= 0) { fileRow(listRows[cursor], 'delete'); event.preventDefault(); }
@@ -8300,7 +8532,7 @@
   });
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden) { probeNow(); return; }
-    if (document.hidden && pref('notify') !== '1') { probeStop(); probe.paused = true; setProbeState('Paused - this tab is in the background', true); }
+    if (document.hidden && pref('notify') !== '1') { probeStop(); probe.paused = true; setProbeState(t('Paused - this tab is in the background'), true); }
   });
 
   // A session from an earlier visit is still good until it has been idle
@@ -8394,7 +8626,7 @@
   var notifyNewMail = function (grew) {
     if (!grew.length || !('Notification' in window) || Notification.permission !== 'granted') { return; }
     grew.forEach(function (g) {
-      try { new Notification('New mail in ' + (g.folder.name || g.folder.path), { body: g.added + ' new, ' + g.unseen + ' unread', tag: 'hm-folder-' + g.folder.id }); } catch (e) { /* a browser without notifications is still a browser */ }
+      try { new Notification(tf('New mail in {0}', g.folder.name || g.folder.path), { body: tf('{0} new, {1} unread', g.added, g.unseen), tag: 'hm-folder-' + g.folder.id }); } catch (e) { /* a browser without notifications is still a browser */ }
     });
   };
   // ---- Web Push: a notification with the page closed --------------------------
@@ -8624,11 +8856,13 @@
     });
   }
 
-  var baseTitle = document.title || 'hMailServer - my account';
+  // The tab's title in the reader's language, the domain's name in it when
+  // the domain has one: it was the page's <title>, read once, in English.
+  var baseTitle = function () { return branding && branding.name ? branding.name + t(' - my account') : t('hMailServer - my account'); };
   var updateTitle = function () {
     var total = 0;
     notifyFolderIds().forEach(function (id) { var f = foldersById[id]; if (f) { total += f.unseen || 0; } });
-    document.title = (total ? '(' + total + ') ' : '') + baseTitle;
+    document.title = (total ? '(' + total + ') ' : '') + baseTitle();
     // The installed app's badge is the first account's, as the app is; the
     // tab's title follows whichever account is shown.
     if (offlineMine()) { updateBadge(total); }
@@ -8852,7 +9086,7 @@
     box.focus();
   });
   el('template-save').addEventListener('click', function () {
-    var name = window.prompt ? window.prompt('A name for this template') : '';
+    var name = window.prompt ? window.prompt(t('A name for this template')) : '';
     if (!name) { return; }
     name = name.trim().slice(0, 60);
     var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'template';
@@ -8881,8 +9115,6 @@
     branding = { name: (b && b.name) || '', logo: (b && b.logo) || '', announcement: (b && b.announcement) || '' };
     if (branding.name) {
       el('signin-title').textContent = branding.name;
-      document.title = branding.name + t(' - my account');
-      baseTitle = document.title;
       updateTitle();
     }
     var logo = el('signin-logo');
@@ -8921,9 +9153,9 @@
   var renderSupport = function () {
     el('support-allowed').checked = pref('support_allowed') === '1';
     var last = pref('support_last') || '';
-    el('support-last').textContent = last ? 'An administrator last opened this mailbox for support on ' + last + '.' : '';
+    el('support-last').textContent = last ? tf('An administrator last opened this mailbox for support on {0}.', last) : '';
     el('support-last').hidden = !last;
-    el('support-note-text').textContent = last ? 'An administrator opened this mailbox for support on ' + last + '.' : '';
+    el('support-note-text').textContent = last ? tf('An administrator opened this mailbox for support on {0}.', last) : '';
     el('support-note').hidden = !last;
   };
 
@@ -8975,7 +9207,7 @@
   var renderAwayAddresses = function () {
     var list = el('away-addresses');
     clear(list);
-    var kinds = { account: 'your address', alias: 'an alias that points here', granted: 'a mailbox that lets you write as it' };
+    var kinds = { account: t('your address'), alias: t('an alias that points here'), granted: t('a mailbox that lets you write as it') };
     identities.forEach(function (i) {
       var li = document.createElement('li');
       li.appendChild(node('span', i.address));
@@ -9080,7 +9312,9 @@
 
   // ---- The shortcut list and the palette -------------------------------------
   var closeOverlays = function () { modalHide('keys-overlay'); modalHide('palette'); modalHide('event-overlay'); modalHide('task-overlay'); };
-  var openKeys = function () { modalHide('palette'); modalShow('keys-overlay'); el('keys-close').focus(); };
+  // The list opens at its heading, so a screen reader reads it from the top;
+  // the focus on Close, at its foot, left the list above it unread.
+  var openKeys = function () { modalHide('palette'); modalShow('keys-overlay', el('keys-title')); };
   el('keys-close').addEventListener('click', closeOverlays);
   ['keys-overlay', 'palette'].forEach(function (id) { el(id).addEventListener('click', function (e) { if (e.target === el(id)) { closeOverlays(); } }); });
   // Every entry is something the page already has a button for; the palette
@@ -9089,58 +9323,63 @@
   var paletteMarked = 0;
   var paletteActions = function () {
     var items = [];
-    var add = function (label, kind, run) { items.push({ label: label, kind: kind, run: run }); };
-    add('Write a message', 'action', function () { go('/compose'); });
-    add('Held mail', 'page', function () { go('/held'); });
-    add('Manage folders', 'page', function () { go('/folders'); });
-    add('Settings', 'page', function () { go('/settings'); });
-    add('Filters', 'page', function () { go('/filters'); });
-    add('Contacts', 'page', function () { go('/contacts'); });
-    add('Calendar', 'page', function () { go('/calendar'); });
-    add('Tasks', 'page', function () { go('/tasks'); });
-    add('New event', 'action', function () { go('/calendar'); openEvent(null, { day: wallKey(new Date()) }); });
-    add('Away and forwarding', 'page', function () { go('/away'); });
-    add('Storage', 'page', function () { go('/storage'); });
-    add('Recover deleted items', 'page', function () { go('/recover'); });
-    add('Messages that expire', 'page', function () { go('/confidential'); });
-    add('Password-protected messages', 'page', function () { go('/protected'); });
-    add('Safe senders', 'page', function () { go('/senders'); });
-    add('Subscriptions', 'page', function () { go('/subscriptions'); });
-    add('Other accounts', 'page', function () { go('/accounts'); });
-    add('Masked addresses', 'page', function () { go('/masked'); });
-    add('Security', 'page', function () { go('/security'); });
-    if (!directoryLinked) { add('Change password', 'page', function () { go('/password'); }); }
-    add('Light or dark', 'action', function () { el('theme-btn').click(); });
-    add('Keyboard shortcuts', 'action', openKeys);
-    add(t('Help for this page'), 'action', helpToggle);
-    add('Sign out', 'action', function () { el('signout').click(); });
+    // The entry in the reader's language, found by its words in either the
+    // reader's or English: the palette was English on every translated page.
+    var KINDS = { action: t('action'), page: t('page'), message: t('message'), folder: t('folder'), contact: t('contact') };
+    var add = function (label, kind, run, en) { items.push({ label: t(label), en: en || label, kind: KINDS[kind] || kind, run: run }); };
+    add(K('Write a message'), 'action', function () { go('/compose'); });
+    add(K('Held mail'), 'page', function () { go('/held'); });
+    add(K('Manage folders'), 'page', function () { go('/folders'); });
+    add(K('Settings'), 'page', function () { go('/settings'); });
+    add(K('Filters'), 'page', function () { go('/filters'); });
+    add(K('Contacts'), 'page', function () { go('/contacts'); });
+    add(K('Calendar'), 'page', function () { go('/calendar'); });
+    add(K('Tasks'), 'page', function () { go('/tasks'); });
+    add(K('New event'), 'action', function () { go('/calendar'); openEvent(null, { day: wallKey(new Date()) }); });
+    add(K('Away and forwarding'), 'page', function () { go('/away'); });
+    add(K('Storage'), 'page', function () { go('/storage'); });
+    add(K('Recover deleted items'), 'page', function () { go('/recover'); });
+    add(K('Messages that expire'), 'page', function () { go('/confidential'); });
+    add(K('Password-protected messages'), 'page', function () { go('/protected'); });
+    add(K('Safe senders'), 'page', function () { go('/senders'); });
+    add(K('Subscriptions'), 'page', function () { go('/subscriptions'); });
+    add(K('Other accounts'), 'page', function () { go('/accounts'); });
+    add(K('Masked addresses'), 'page', function () { go('/masked'); });
+    add(K('Security'), 'page', function () { go('/security'); });
+    if (!directoryLinked) { add(K('Change password'), 'page', function () { go('/password'); }); }
+    add(K('Light or dark'), 'action', function () { el('theme-btn').click(); });
+    add(K('Keyboard shortcuts'), 'action', openKeys);
+    add(K('Help for this page'), 'action', helpToggle);
+    add(K('Sign out'), 'action', function () { el('signout').click(); });
     var open = current && !el('mail-section').hidden && !el('message-view').hidden;
     if (open) {
-      add('Reply', 'message', function () { el('message-reply').click(); });
-      add('Reply all', 'message', function () { el('message-reply-all').click(); });
-      add('Forward', 'message', function () { el('message-forward').click(); });
-      add(current.flags.seen ? 'Mark as unread' : 'Mark as read', 'message', function () { el('message-unread').click(); });
+      add(K('Reply'), 'message', function () { el('message-reply').click(); });
+      add(K('Reply all'), 'message', function () { el('message-reply-all').click(); });
+      add(K('Forward'), 'message', function () { el('message-forward').click(); });
+      add(current.flags.seen ? K('Mark as unread') : K('Mark as read'), 'message', function () { el('message-unread').click(); });
       // Named for the star this entry will give; it presses the star over the
       // open message, as the entries around it press their own buttons, so it
       // acts on whatever is open when it is chosen rather than on the message
       // the palette was built for.
-      add(['Star', 'Second star', 'Third star', 'Unstar'][starStage(current)], 'message', function () { el('message-flag').click(); });
-      if (markable(current.folder_id)) { add(isImportant(current) ? 'Not important' : 'Mark as important', 'message', function () { el('message-important').click(); }); }
-      add('Delete', 'message', function () { el('message-delete').click(); });
-      add('Print', 'message', function () { window.print(); });
+      add([K('Star'), K('Second star'), K('Third star'), K('Unstar')][starStage(current)], 'message', function () { el('message-flag').click(); });
+      if (markable(current.folder_id)) { add(isImportant(current) ? K('Not important') : K('Mark as important'), 'message', function () { el('message-important').click(); }); }
+      add(K('Delete'), 'message', function () { el('message-delete').click(); });
+      add(K('Print'), 'message', function () { window.print(); });
       allFolders.forEach(function (f) {
-        if (f.id !== current.folder_id) { add('Move to ' + f.path, 'message', function () { el('message-move').value = String(f.id); el('message-move-go').click(); }); }
+        if (f.id !== current.folder_id) { add(tf('Move to {0}', f.path), 'message', function () { el('message-move').value = String(f.id); el('message-move-go').click(); }, 'Move to ' + f.path); }
       });
     }
-    allFolders.forEach(function (f) { add('Go to ' + f.path, 'folder', function () { go('/f/' + f.id); }); });
+    allFolders.forEach(function (f) { add(tf('Go to {0}', f.path), 'folder', function () { go('/f/' + f.id); }, 'Go to ' + f.path); });
     return items;
   };
   var runPalette = function (item) { closeOverlays(); item.run(); };
+  var paletteCombo = comboOf(el('palette-input'), el('palette-list'));
   var markPalette = function (n) {
     if (!paletteItems.length) { return; }
     paletteMarked = (n + paletteItems.length) % paletteItems.length;
     var kids = el('palette-list').children;
     for (var i = 0; i < kids.length; i++) { kids[i].classList.toggle('on', i === paletteMarked); }
+    paletteCombo.mark(paletteMarked);
   };
   var renderPalette = function (items) {
     var list = el('palette-list');
@@ -9150,17 +9389,20 @@
     paletteItems.forEach(function (item, i) {
       var li = document.createElement('li'); li.setAttribute('role', 'option');
       li.appendChild(node('span', item.label)); li.appendChild(node('span', item.kind, 'kind'));
+      li.setAttribute('aria-label', item.label);
       li.classList.toggle('on', i === 0);
       li.addEventListener('mousedown', function (e) { e.preventDefault(); runPalette(item); });
       list.appendChild(li);
     });
+    paletteCombo.open(paletteItems.length > 0);
+    paletteCombo.mark(paletteItems.length ? 0 : -1);
   };
   var paletteTimer = null;
   var filterPalette = function () {
     var q = el('palette-input').value.trim().toLowerCase();
     var words = q ? q.split(/\s+/) : [];
     var matches = function (label) { var l = label.toLowerCase(); return words.every(function (w) { return l.indexOf(w) >= 0; }); };
-    var items = paletteActions().filter(function (i) { return matches(i.label); });
+    var items = paletteActions().filter(function (i) { return matches(i.label) || matches(i.en || ''); });
     renderPalette(items);
     if (paletteTimer) { clearTimeout(paletteTimer); paletteTimer = null; }
     if (q.length < 2) { return; }
@@ -9173,7 +9415,7 @@
         if (!found.length) { return; }
         var extra = found.filter(function (c) { return c.kind !== 'group' || (c.recipients || []).length; }).map(function (c) {
           var entry = c.kind === 'group' ? groupEntries(c) : (c.name ? c.name + ' <' + c.address + '>' : c.address);
-          return { label: 'Write to ' + (c.kind === 'group' ? c.name : entry), kind: 'contact', run: function () { composeTo(entry + ', '); } };
+          return { label: tf('Write to {0}', c.kind === 'group' ? c.name : entry), en: 'Write to ' + (c.kind === 'group' ? c.name : entry), kind: t('contact'), run: function () { composeTo(entry + ', '); } };
         });
         renderPalette(items.concat(extra));
       });
@@ -9181,7 +9423,7 @@
   };
   var openPalette = function () {
     modalHide('keys-overlay');
-    modalShow('palette');
+    modalShow('palette', el('palette-input'));
     el('palette-input').value = '';
     filterPalette();
     el('palette-input').focus();
@@ -9357,7 +9599,10 @@
     if (!box) { say('mail-status', text, true); return null; }
     clear(box);
     var one = node('div', undefined, 'toast');
-    one.setAttribute('role', 'status');
+    // Said once, the words alone: the toast was a live region, so its
+    // buttons were read with it ("Discarded. Dismiss") and a countdown that
+    // rewrites its text was read again every second.
+    announce(text);
     one.appendChild(node('span', text));
     one.appendChild(node('span', undefined, 'sp'));
     if (undo) {
@@ -9600,16 +9845,25 @@
     var keys = (m.flags.keywords || []).map(function (k) { return k.toLowerCase(); });
     return keys.indexOf('$star3') >= 0 ? 3 : keys.indexOf('$star2') >= 0 ? 2 : 1;
   };
+  // What a press gives: the row's menu and the palette offer it as an action.
   var starTitle = function (stage) { return stage === 0 ? t('Star') : stage === 1 ? t('Second star') : stage === 2 ? t('Third star') : t('Unstar'); };
+  // What the message has: the star button's name, pressed from the first
+  // star on - "Star, pressed" is a message with one star.
+  var starName = function (stage) { return stage === 2 ? t('Second star') : stage === 3 ? t('Third star') : t('Star'); };
   var paintStar = function (button, stage) {
     button.classList.toggle('on', stage > 0);
     button.classList.toggle('s2', stage === 2);
     button.classList.toggle('s3', stage === 3);
-    button.setAttribute('title', starTitle(stage));
-    // The name read out is the star the press will give, on a row as over
-    // the open message. aria-label wins over title, so a row left at "Star"
-    // announced the wrong thing for every star but the first.
-    button.setAttribute('aria-label', starTitle(stage));
+    // The button is a toggle that says what the message HAS - "Star,
+    // pressed", "Second star, pressed" - on a row as over the open message.
+    // It used to be named by the star the press would give, so NVDA read a
+    // message with one star as "Second star, button": no state, and a word
+    // that sounds like the state it does not have (NVDA pass, row 43).
+    // The name is the title alone (the icon is hidden): an aria-label beside
+    // an equal title changed twice at each press, and NVDA said it twice.
+    button.setAttribute('title', starName(stage));
+    button.removeAttribute('aria-label');
+    button.setAttribute('aria-pressed', stage > 0 ? 'true' : 'false');
   };
   // The change that puts a message at a stage: 0 none, 1 the flag, 2 and 3
   // the flag and that stage's keyword.
@@ -9628,7 +9882,7 @@
     take(m);
     listRows.forEach(function (r) {
       (r.ms || [r.m]).forEach(take);
-      if (r.star && r.m && r.m.id === m.id) { paintStar(r.star, starStage(r.m)); }
+      if (r.star && r.m && r.m.id === m.id) { paintStar(r.star, starStage(r.m)); labelRow(r); }
     });
     if (button) { paintStar(button, starStage(m)); }
     if (current && current.id === m.id) { take(current); renderActions(); }
@@ -9685,8 +9939,7 @@
     var stage = starStage(m);
     var star = node('button', undefined, 'star' + (stage > 0 ? ' on' : '') + (stage === 2 ? ' s2' : '') + (stage === 3 ? ' s3' : ''));
     star.type = 'button';
-    star.setAttribute('title', starTitle(stage));
-    star.setAttribute('aria-label', starTitle(stage));
+    paintStar(star, stage);
     star.appendChild(icon('star'));
     star.addEventListener('click', function (event) { event.stopPropagation(); cycleStar(m, star); });
     return star;
@@ -9712,10 +9965,20 @@
     el('mail-section').classList.remove('has-message');
   };
   var closeMessage = function (quiet) {
+    // The keyboard goes back to the list, onto the row it left: closed from
+    // inside the message, the focus fell to the page itself and a screen
+    // reader was left at its top.
+    // Moved before the message is hidden, not after: hidden with the focus
+    // in it, the focus fell to the page first, and NVDA said "unknown" and
+    // the document's title on the way back to the list.
+    var active = document.activeElement;
+    var fromReader = !active || active === document.body || within(active, el('message-view'));
+    if (current) { cursorBack = current.id; }
+    el('mail-section').classList.remove('has-message');
+    if (fromReader && !el('message-list').hidden && !el('mail-section').hidden) { el('message-list').focus(); }
     current = null;
     el('message-view').hidden = true;
     el('pane-empty').hidden = false;
-    el('mail-section').classList.remove('has-message');
     listRows.forEach(function (r) { r.row.classList.remove('open'); });
     if (parseHash().parts[0] !== 'm') { return; }
     if (!quiet && cameFromList && history.length > 1) { history.back(); return; }
@@ -10100,9 +10363,12 @@
   })();
   el('nav-toggle').addEventListener('click', function () { el('account').classList.toggle('nav-open'); });
   el('nav-scrim').addEventListener('click', function () { el('account').classList.remove('nav-open'); });
-  el('side').addEventListener('click', function (event) {
+  // Heard from the document, not from the column itself: a listener on the
+  // column made NVDA call the whole complementary landmark "clickable".
+  document.addEventListener('click', function (event) {
     var n = event.target;
-    while (n && n !== el('side')) { if (n.tagName === 'BUTTON') { el('account').classList.remove('nav-open'); return; } n = n.parentNode; }
+    var pressed = false;
+    while (n && n !== document) { if (n.tagName === 'BUTTON') { pressed = true; } if (n === el('side')) { if (pressed) { el('account').classList.remove('nav-open'); } return; } n = n.parentNode; }
   });
 
   // ---- The search box's options ---------------------------------------------
@@ -10196,6 +10462,15 @@
     if (el('account').hidden) { return; }
     if (event.key === '/') { event.preventDefault(); el('mail-search').focus(); return; }
     if (event.key === 'c') { event.preventDefault(); go('/compose'); return; }
+    // z presses the Undo of the toast on the screen, Gmail's key: the toast
+    // is the last thing on the page, a long way from the keyboard, and a
+    // screen reader is told what it says but not taken to it.
+    if (event.key === 'z') {
+      var undoing = null;
+      (function walk(n) { for (var i = 0; i < n.children.length && !undoing; i++) { var c = n.children[i]; if (c.tagName === 'BUTTON' && c.className !== 'x') { undoing = c; } else { walk(c); } } })(el('toasts'));
+      if (undoing) { event.preventDefault(); undoing.click(); }
+      return;
+    }
     if (el('mail-section').hidden) { return; }
     // A digit runs the quick step given that key.
     if (/^[1-9]$/.test(event.key)) { var step = quickStepByKey(event.key); if (step) { event.preventDefault(); runQuickStep(step); } return; }
@@ -10221,7 +10496,7 @@
       else if (!open && under && markable(under.folderId)) { event.preventDefault(); markImportant(under.ms || [under.m], wanted); }
       return;
     }
-    if (event.key === 'o' && cursor >= 0 && listRows[cursor] && !el('message-list').hidden) { event.preventDefault(); go('/m/' + listRows[cursor].id); return; }
+    if (event.key === 'o' && cursor >= 0 && listRows[cursor] && !el('message-list').hidden) { event.preventDefault(); readerFocusNext = true; go('/m/' + listRows[cursor].id); return; }
     // With a reading pane, moving the cursor reads the message it lands on.
     if ((event.key === 'j' || event.key === 'k' || event.key === 'ArrowDown' || event.key === 'ArrowUp') && paneMode() !== 'off' && open && cursor >= 0 && listRows[cursor] && listRows[cursor].id !== current.id) {
       replaceWith('/m/' + listRows[cursor].id);
@@ -10264,7 +10539,17 @@
     el('compose-section').hidden = false;
     el('compose-section').classList.remove('min');
   };
-  var hideCompose = function () { el('compose-section').hidden = true; };
+  // Put away with the focus in it, the window took the focus with it and
+  // NVDA was left on the document: the keyboard goes back to the list, or
+  // to the view's heading where there is no list (NVDA pass, row 43).
+  var hideCompose = function () {
+    var section = el('compose-section');
+    if (!section.hidden && within(document.activeElement, section)) {
+      var list = el('message-list');
+      if (!el('mail-section').hidden && !list.hidden && shownNow(list)) { list.focus(); } else { el('view-title').focus(); }
+    }
+    section.hidden = true;
+  };
   // Closing keeps what was written: a draft is saved when there is anything
   // to save, and the address bar goes back to the list when it named the window.
   var closeCompose = function () {
@@ -10333,6 +10618,10 @@
       head.setAttribute('role', 'button');
       head.setAttribute('tabindex', '0');
       head.setAttribute('aria-expanded', 'false');
+      // Named whole, so browse mode reads it as one line: its avatar, name,
+      // preview and date were four, each "button, collapsed" (NVDA pass).
+      var headName = function (open) { return nameOf(x.from) + ', ' + whenText(x) + (open || !x.snippet ? '' : ', ' + x.snippet); };
+      head.setAttribute('aria-label', headName(false));
       head.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); head.click(); } });
       card.appendChild(head);
       var body = node('div', undefined, 'body'); body.hidden = true; body.setAttribute('dir', 'auto'); card.appendChild(body);
@@ -10342,6 +10631,7 @@
         var open = card.classList.contains('collapsed');
         card.classList.toggle('collapsed', !open);
         head.setAttribute('aria-expanded', open ? 'true' : 'false');
+        head.setAttribute('aria-label', headName(open));
         body.hidden = !open; atts.hidden = !open;
         from.childNodes[1].hidden = open;
         if (!open || loaded) { return; }
@@ -10415,17 +10705,42 @@
       b.setAttribute('aria-selected', tab === activeTab ? 'true' : 'false');
       if (tab === activeTab) { b.classList.add('on'); }
       b.appendChild(icon(TAB_ICONS[tab]));
-      b.setAttribute('title', tabName(tab));
       b.appendChild(node('span', tabName(tab), 'lbl'));
       if (unseen[tab]) { var n = node('span', String(unseen[tab]), 'n'); n.setAttribute('title', tf('{0} unread', unseen[tab])); b.appendChild(n); }
       // Its name is the tab's, and how much in it is unread: the count alone
       // was the name of a narrow list's tab ("1"), whose label is not shown.
-      b.setAttribute('aria-label', unseen[tab] ? tabName(tab) + ', ' + tf('{0} unread', unseen[tab]) : tabName(tab));
-      b.addEventListener('click', function () { activeTab = tab; if (lastPage) { renderMessages(lastPage); } });
+      // The tooltip says the same, so that it is not read out a second time
+      // as the tab's description ("Primary, 9 unread, tab, Primary").
+      var named = unseen[tab] ? tabName(tab) + ', ' + tf('{0} unread', unseen[tab]) : tabName(tab);
+      b.setAttribute('aria-label', named);
+      b.setAttribute('title', named);
+      // One Tab stop for the row of tabs, the arrows between them - a tab
+      // list's own keys.
+      b.setAttribute('tabindex', tab === activeTab ? '0' : '-1');
+      b.addEventListener('click', function () { var had = document.activeElement === b; activeTab = tab; if (lastPage) { renderMessages(lastPage); } if (had) { focusTab(); } });
       bar.appendChild(b);
     });
     bar.hidden = false;
   };
+  var focusTab = function () {
+    var kids = el('inbox-tabs').children;
+    for (var i = 0; i < kids.length; i++) { if (kids[i].getAttribute('data-tab') === activeTab) { kids[i].focus(); } }
+  };
+  el('inbox-tabs').addEventListener('keydown', function (event) {
+    var keys = { ArrowLeft: -1, ArrowRight: 1, Home: 'first', End: 'last' };
+    if (!Object.prototype.hasOwnProperty.call(keys, event.key) || !lastPage) { return; }
+    var tabs = tabList();
+    var at = tabs.indexOf(activeTab);
+    var step = keys[event.key];
+    // Right to left, the arrows follow the page: the next tab is to the left.
+    if (typeof step === 'number' && document.documentElement.getAttribute('dir') === 'rtl') { step = -step; }
+    var next = step === 'first' ? 0 : step === 'last' ? tabs.length - 1 : (at + step + tabs.length) % tabs.length;
+    event.preventDefault();
+    event.stopPropagation();
+    activeTab = tabs[next];
+    renderMessages(lastPage);
+    focusTab();
+  });
   // The row's menu offers the other tabs for the sender; the choice is kept
   // in the preferences, so it holds on every device and for every message
   // from that sender, and Undo takes it back.
@@ -10434,11 +10749,14 @@
     clear(box);
     if (lastPage && tabsActive(lastPage) && m) {
       var mine = tabOf(m);
-      box.appendChild(node('div', undefined, 'sep'));
+      var sep = node('div', undefined, 'sep');
+      sep.setAttribute('role', 'separator');
+      box.appendChild(sep);
       tabList().forEach(function (tab) {
         if (tab === mine) { return; }
         var b = document.createElement('button');
         b.type = 'button';
+        b.setAttribute('role', 'menuitem');
         b.setAttribute('data-act', 'tab');
         b.setAttribute('data-tab', tab);
         b.textContent = tf('Show under {0}', tabName(tab));
@@ -10739,9 +11057,18 @@
     if (lastPage) { lastPage.messages.forEach(take); }
     listRows.forEach(function (r) {
       (r.ms || [r.m]).forEach(take);
-      if (r.imp && (r.ids || [r.id]).indexOf(id) >= 0) { paintImportance(r.imp, r.ms || [r.m]); }
+      if (r.imp && (r.ids || [r.id]).indexOf(id) >= 0) { paintImportance(r.imp, r.ms || [r.m]); labelRow(r); }
     });
     if (current) { take(current); }
+  };
+  // What the script drew before the reader's language arrived is drawn again
+  // in it: the walk of the markup reaches the page's own texts, not the names
+  // the script gave a listing's rows or the folders' counts, and NVDA read a
+  // German page's rows as "unread, important, ..." (NVDA pass, row 43).
+  var relocalise = function () {
+    if (el('account').hidden) { return; }
+    if (lastPage && listRows.length && !el('mail-section').hidden) { rerenderKeeping(cursor >= 0 && listRows[cursor] ? listRows[cursor].id : 0); }
+    loadFolders();
   };
   var rerenderKeeping = function (id) {
     if (!lastPage) { return; }
@@ -11578,6 +11905,7 @@
       b.setAttribute('title', shown ? t('The account shown') : t('Switch to this account'));
       var ico = node('span', undefined, 'ico');
       var av = node('span', initialsOf(rec.address), 'avatar');
+      av.setAttribute('aria-hidden', 'true');
       if (av.style) { av.style.background = avatarColour(rec.address); }
       ico.appendChild(av);
       b.appendChild(ico);
@@ -12437,7 +12765,60 @@
       menu.style.top = Math.max(4, Math.min(y, h - 320)) + 'px';
     }
   };
-  var closeContextMenu = function () { el('context-menu').hidden = true; contextRow = null; };
+  // The row's menu from the keyboard as well as the pointer: Shift+F10 or the
+  // menu key on the list opens it for the row under the cursor, the focus
+  // goes to its first item, the arrows move between the items, and Escape or
+  // Tab closes it and gives the focus back to the list. It was the pointer's
+  // alone, and with the list a listbox the row's own buttons are no stops of
+  // a screen reader's: this is how the keyboard marks a message read or
+  // unread, pins, mutes and blocks (NVDA pass, Roadmap2 row 43).
+  var contextBack = null;
+  var contextItems = function () {
+    var out = [];
+    (function walk(n) {
+      for (var i = 0; i < n.children.length; i++) {
+        var c = n.children[i];
+        if (c.hidden) { continue; }
+        if (c.tagName === 'BUTTON') { out.push(c); } else { walk(c); }
+      }
+    })(el('context-menu'));
+    return out;
+  };
+  var closeContextMenu = function () {
+    var had = within(document.activeElement, el('context-menu'));
+    el('context-menu').hidden = true;
+    contextRow = null;
+    var back = contextBack;
+    contextBack = null;
+    if (had && back && back.focus) { back.focus(); }
+  };
+  el('message-list').addEventListener('contextmenu', function (event) {
+    if (event.defaultPrevented || event.target !== el('message-list') || cursor < 0 || !listRows[cursor]) { return; }
+    event.preventDefault();
+    var box = listRows[cursor].row.getBoundingClientRect ? listRows[cursor].row.getBoundingClientRect() : { left: 0, bottom: 0 };
+    openContextMenu(listRows[cursor], (box.left || 0) + 40, box.bottom || 0);
+    contextBack = el('message-list');
+    var items = contextItems();
+    if (items.length) { items[0].focus(); }
+  });
+  el('context-menu').addEventListener('keydown', function (event) {
+    var items = contextItems();
+    var at = items.indexOf(document.activeElement);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      event.stopPropagation();
+      var next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (at + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+      if (items[next]) { items[next].focus(); }
+    } else if (event.key === 'Escape' || event.key === 'Tab') {
+      if (event.key === 'Escape') { event.preventDefault(); }
+      event.stopPropagation();
+      closeContextMenu();
+    } else if (!event.ctrlKey && !event.metaKey && !event.altKey && String(event.key || '').length === 1) {
+      // A letter in the menu is not the list's: e must not archive, nor #
+      // delete, the row behind it.
+      event.stopPropagation();
+    }
+  });
   el('context-menu').addEventListener('click', function (event) {
     var act = event.target && event.target.getAttribute ? event.target.getAttribute('data-act') : '';
     var entry = contextRow;
@@ -12808,9 +13189,14 @@
   };
   var renderCalendar = function () {
     if (!calState.loaded) { return; }
-    el('cal-title').textContent = calTitle();
+    // Said when it changes, in the page's voice, so that Previous, Next and a
+    // view say where they went - they changed the month in silence. Only when
+    // it changes: the second drawing, once the events arrive, is the same
+    // title. (A live region on the heading itself was read out twice.)
+    var shownTitle = calTitle();
+    if (el('cal-title').textContent !== shownTitle) { el('cal-title').textContent = shownTitle; announce(shownTitle); }
     var tabs = el('cal-views').children;
-    for (var i = 0; i < tabs.length; i++) { tabs[i].classList.toggle('on', tabs[i].getAttribute('data-cal-view') === calState.view); }
+    for (var i = 0; i < tabs.length; i++) { var chosen = tabs[i].getAttribute('data-cal-view') === calState.view; tabs[i].classList.toggle('on', chosen); tabs[i].setAttribute('aria-pressed', chosen ? 'true' : 'false'); }
     var grid = el('cal-grid');
     clear(grid);
     if (calState.view === 'month') { renderMonth(grid); }
@@ -13085,7 +13471,7 @@
     say('event-status', '', true);
     updateEventForm();
     renderAvailability();
-    modalShow('event-overlay');
+    modalShow('event-overlay', el('event-summary'));
     el('event-summary').focus();
   };
   // An invitation in the calendar answered from the editor: by the owner on
@@ -13425,6 +13811,9 @@
       el('task-add-summary').value = '';
       el('task-add-due').value = '';
       say('task-status', '', true);
+      // The new task is drawn in the list below; a screen reader, still in
+      // the field, is told it was added. NVDA heard nothing (NVDA pass).
+      announce(t('Added.'));
       loadTasks();
     });
   });
@@ -13441,7 +13830,7 @@
     el('task-save').hidden = !task.writable;
     el('task-delete').hidden = !task.writable;
     say('task-edit-status', '', true);
-    modalShow('task-overlay');
+    modalShow('task-overlay', el('task-summary'));
     el('task-summary').focus();
   };
   var closeTask = function () { modalHide('task-overlay'); taskState.editing = null; };

@@ -908,7 +908,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 
 <div class="gate" id="signin" role="main">
 <form class="login" id="signin-form">
-<div class="logo" id="signin-logo">hM</div>
+<div class="logo" id="signin-logo" aria-hidden="true">hM</div>
 <h1 id="signin-title">Sign in</h1>
 <div id="signin-announcement" class="announce" hidden></div>
 <p>Your mailbox, in this browser. The password is exchanged once for a session cookie and is never kept by this page.</p>
@@ -936,10 +936,10 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <a class="skip" id="skip" href="#content">Skip to content</a>
 <header class="top">
 <button class="iconbtn" id="nav-toggle" type="button" title="Menu" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button>
-<div class="brand"><div class="logo">hM</div><div><b>hMailServer</b><small>My account</small></div></div>
+<div class="brand"><div class="logo" aria-hidden="true">hM</div><div><b>hMailServer</b><small>My account</small></div></div>
 <form id="mail-search-form" class="search" role="search">
 <button class="iconbtn sm" id="search-go" type="submit" title="Search" aria-label="Search"><svg class="i"><use href="#i-search"/></svg></button>
-<input id="mail-search" type="search" maxlength="200" placeholder="Search mail" aria-label="Search mail" autocomplete="off" title="Words, &quot;quoted phrases&quot;, from:, to:, cc:, bcc:, subject:, has:attachment, has:link, filename:, larger:10M, smaller:, before:2026-01-31, after:, older_than:7d, newer_than:, in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned, label:name, category:, in_reply_to:, -word, a OR b">
+<input id="mail-search" type="search" maxlength="200" placeholder="Search mail" aria-label="Search mail" aria-describedby="mail-search-hint" autocomplete="off" title="Words, “quoted phrases”, from:, to:, cc:, bcc:, subject:, has:attachment, has:link, filename:, larger:10M, smaller:, before:2026-01-31, after:, older_than:7d, newer_than:, in:folder, is:unread, is:read, is:flagged, is:unflagged, is:answered, is:muted, is:pinned, label:name, category:, in_reply_to:, -word, a OR b">
 <div id="search-history" class="complete history" hidden>
 <div class="head"><span>Recent searches</span><button id="search-history-clear" type="button">Clear the list</button></div>
 <div id="search-history-list" role="list"></div>
@@ -948,6 +948,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="head"><span id="search-suggest-head">Search by sender</span></div>
 <div id="search-suggest-list" role="list"></div>
 </div>
+<span id="mail-search-hint" class="sr">Words, and from:, is:unread or has:attachment; Search options, beside the box, builds a search for you.</span>
 <label class="inline"><input id="mail-search-everywhere" type="checkbox"> All folders</label>
 <button class="btn ghost sm" type="submit">Search</button>
 <button id="mail-search-clear" class="iconbtn sm" type="button" title="Clear the search" aria-label="Clear the search" hidden><svg class="i"><use href="#i-close"/></svg></button>
@@ -981,7 +982,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <button class="iconbtn" id="theme-btn" type="button" title="Light or dark" aria-label="Light or dark"><svg class="i"><use href="#i-theme"/></svg></button>
 <button class="iconbtn" id="settings-btn" type="button" title="Settings" aria-label="Settings"><svg class="i"><use href="#i-gear"/></svg></button>
 <div>
-<button class="iconbtn" id="account-btn" type="button" title="Account" aria-label="Account" aria-haspopup="true" aria-expanded="false"><span class="avatar" id="account-avatar">?</span></button>
+<button class="iconbtn" id="account-btn" type="button" title="Account" aria-label="Account" aria-expanded="false"><span class="avatar" id="account-avatar">?</span></button>
 <div class="menu" id="account-menu" hidden>
 <div class="who"><div class="pill" id="who"></div><div class="pill muted" style="margin-top:4px"><span class="dot" id="probe-dot"></span><span id="probe-state">Watching for new mail</span></div></div>
 <button class="item" id="menu-settings" type="button"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
@@ -1019,19 +1020,19 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </aside>
 
 <div class="main">
-<h1 id="view-title" class="sr" tabindex="-1">Mail</h1>
 <div id="announcement" class="announce" hidden></div>
 <div id="support-note" class="announce warn" hidden><span id="support-note-text"></span> <button id="support-note-dismiss" class="btn ghost sm" type="button">Dismiss</button></div>
 <div id="offline-note" class="note bar" hidden>No connection. Showing what was saved; anything sent waits until the connection is back.</div>
 <div class="content" id="content" role="main" tabindex="-1">
+<h1 id="view-title" class="sr" tabindex="-1">Mail</h1>
 
 <section id="mail-section" class="view" hidden>
 <div class="list-pane">
 <div class="toolbar" id="list-tools">
-<div id="select-all-wrap"><label class="cbhit"><input id="select-all" type="checkbox" aria-label="Select all"></label><button class="iconbtn sm" id="select-menu-btn" type="button" title="Select" aria-label="Select" aria-haspopup="true"><svg class="i sm"><use href="#i-down"/></svg></button>
+<div id="select-all-wrap"><label class="cbhit"><input id="select-all" type="checkbox" aria-label="Select all"></label><button class="iconbtn sm" id="select-menu-btn" type="button" title="Select" aria-label="Select" aria-expanded="false"><svg class="i sm"><use href="#i-down"/></svg></button>
 <div id="select-menu" hidden><button type="button" data-pick="all">All</button><button type="button" data-pick="none">None</button><button type="button" data-pick="read">Read</button><button type="button" data-pick="unread">Unread</button><button type="button" data-pick="starred">Starred</button><button type="button" data-pick="unstarred">Unstarred</button></div></div>
 <button class="iconbtn sm" id="list-refresh" type="button" title="Refresh" aria-label="Refresh"><svg class="i"><use href="#i-refresh"/></svg></button>
-<button class="iconbtn sm" id="list-more-btn" type="button" title="More" aria-label="More" aria-haspopup="true"><svg class="i"><use href="#i-more"/></svg></button>
+<button class="iconbtn sm" id="list-more-btn" type="button" title="More" aria-label="More" aria-expanded="false"><svg class="i"><use href="#i-more"/></svg></button>
 <div class="more-menu" id="list-more" hidden>
 <button id="view-threads" type="button">Threads</button>
 <button id="list-mark-all-read" type="button">Mark all as read</button>
@@ -1063,8 +1064,8 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <nav class="tabs inbox-tabs" id="inbox-tabs" role="tablist" aria-label="Inbox tabs" hidden></nav>
 <div id="select-note" hidden><span id="select-note-text"></span> <button id="select-folder" class="linkbtn" type="button"></button></div>
 <p class="note" id="list-hint" hidden>Arrow keys or j and k move, Enter opens, x ticks the box, e archives, ! files as junk, # deletes. ? lists every shortcut; Ctrl+K opens the palette.</p>
-<div id="message-list" role="list" aria-label="Messages" tabindex="0"></div>
-<div id="list-say" class="sr" aria-live="polite"></div>
+<div id="message-list" role="listbox" aria-label="Messages" tabindex="0"></div>
+<div id="list-foot"></div>
 <div id="mail-status" class="status" aria-live="polite"></div>
 </div>
 <div class="read-pane">
@@ -1083,7 +1084,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <select id="message-move" aria-label="Move to"></select><button class="textbtn" id="message-move-go" type="button">Move</button>
 <div class="sp"></div>
 <button class="iconbtn sm" id="message-popout" type="button" title="Open in a new window" aria-label="Open in a new window"><svg class="i"><use href="#i-popout"/></svg></button>
-<button class="iconbtn sm" id="message-more-btn" type="button" title="More" aria-label="More" aria-haspopup="true"><svg class="i"><use href="#i-more"/></svg></button>
+<button class="iconbtn sm" id="message-more-btn" type="button" title="More" aria-label="More" aria-expanded="false"><svg class="i"><use href="#i-more"/></svg></button>
 <div class="more-menu" id="message-more" hidden>
 <button id="message-edit" type="button" hidden>Edit draft</button>
 <button id="message-print" type="button">Print</button>
@@ -1103,7 +1104,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </div>
 <div class="msg-body" id="message-body">
-<h2 id="message-subject"></h2>
+<h2 id="message-subject" tabindex="-1"></h2>
 <div id="message-badges"></div>
 <div id="message-labels" class="chips"></div>
 <div id="message-warnings" class="warnbox" hidden></div>
@@ -1111,7 +1112,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="conversation"></div>
 <div class="msg-card" id="message-card">
 <div class="msg-head">
-<span class="avatar lg" id="message-avatar">?</span>
+<span class="avatar lg" id="message-avatar" aria-hidden="true">?</span>
 <div class="from"><div><b id="message-from-name"></b><span class="addr" id="message-from-address"></span></div>
 <div class="to"><span id="message-to-line"></span> <button id="message-details-toggle" type="button" aria-expanded="false">Details <svg class="i sm"><use href="#i-down"/></svg></button></div></div>
 <div class="date" id="message-date"></div>
@@ -1148,7 +1149,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 
 
 <section id="quarantine-section" class="view page" hidden>
-<div class="page-head"><h1>Held mail</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Held mail</h1></div>
 <div class="card">
 <p id="quarantine-note" class="note"></p>
 <div id="quarantine-list"></div>
@@ -1157,7 +1158,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 
 <section id="contacts-section" class="view page" hidden>
-<div class="page-head"><h1>Contacts</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Contacts</h1></div>
 <div class="card" id="contact-books">
 <h2>Address books</h2>
 <p class="hint">Your contacts are kept in address books. Share one with a colleague, or with your whole domain, and they see it in their webmail and on their phone.</p>
@@ -1204,7 +1205,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 
 <section id="directory-section" class="view page" hidden>
-<div class="page-head"><h1>Directory</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Directory</h1></div>
 <div class="card">
 <p class="hint" id="directory-hint">Everyone at your organisation. The To, Cc and Bcc fields complete from this as well as from your own contacts.</p>
 <div class="row"><input id="directory-search" type="search" maxlength="120" placeholder="Search the directory" aria-label="Search the directory"><span class="sp"></span><span id="directory-count" class="note"></span></div>
@@ -1240,7 +1241,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 
 <section id="tasks-section" class="view page" hidden>
-<div class="page-head"><h1>Tasks</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Tasks</h1></div>
 <div class="card">
 <form id="task-add-form" class="row">
 <input id="task-add-summary" type="text" maxlength="1000" placeholder="Add a task" aria-label="Add a task" required>
@@ -1256,7 +1257,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 
 <section id="recover-section" class="view page" hidden>
-<div class="page-head"><h1>Recover deleted items</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Recover deleted items</h1></div>
 <div class="card">
 <p class="note" id="recover-note"></p>
 <table class="list" id="recover-table" hidden><thead><tr><th>Subject</th><th>From</th><th>Folder</th><th>Deleted</th><th></th></tr></thead><tbody id="recover-rows"></tbody></table>
@@ -1266,7 +1267,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 
 <section id="confidential-section" class="view page" hidden>
-<div class="page-head"><h1>Messages that expire</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Messages that expire</h1></div>
 <div class="card">
 <p class="note" id="confidential-note"></p>
 <table class="list" id="confidential-table" hidden><thead><tr><th>Subject</th><th>To</th><th>Expires</th><th>Opened</th><th></th></tr></thead><tbody id="confidential-rows"></tbody></table>
@@ -1275,7 +1276,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </section>
 <section id="protected-section" class="view page" hidden>
-<div class="page-head"><h1>Password-protected messages</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Password-protected messages</h1></div>
 <div class="card">
 <p class="note" id="protected-note"></p>
 <table class="list" id="protected-table" hidden><thead><tr><th>To</th><th>Sent</th><th>Expires</th><th>Opened</th><th></th></tr></thead><tbody id="protected-rows"></tbody></table>
@@ -1284,7 +1285,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </section>
 <section id="scheduled-section" class="view page" hidden>
-<div class="page-head"><h1>Scheduled</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Scheduled</h1></div>
 <div class="card">
 <p class="note">Drafts waiting to be sent, and messages snoozed until later. Cancelling a send keeps the draft; cancelling a snooze brings the message back now.</p>
 <table class="list" id="scheduled-table"><thead><tr><th>What</th><th>Subject</th><th>When</th><th></th></tr></thead><tbody id="scheduled-rows"></tbody></table>
@@ -1294,7 +1295,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </section>
 
 <div id="settings-head" class="page" hidden>
-<div class="page-head"><h1>Settings</h1></div>
+<div class="page-head"><h1 aria-hidden="true">Settings</h1></div>
 <nav class="tabs" id="view-nav" aria-label="Settings pages">
 <button type="button" data-route="/settings">General</button>
 <button type="button" data-route="/away">Away and forwarding</button>
@@ -1371,7 +1372,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <label class="inline"><input id="signature-enabled" type="checkbox"> Add a signature to what I send</label>
 <label for="signature-text">Signature</label><textarea id="signature-text" maxlength="20000"></textarea>
 <label for="signature-html">Formatted signature</label>
-<div id="signature-tools" class="row"><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><label class="btn quiet sm" for="signature-image">Add image</label><input id="signature-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden></div>
+<div id="signature-tools" class="row"><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold" aria-label="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic" aria-label="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline" aria-label="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><label class="btn quiet sm" for="signature-image">Add image</label><input id="signature-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden></div>
 <div id="signature-html" class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Formatted signature"></div>
 <p class="note">A formatted signature goes on formatted messages; the plain one on plain messages.</p>
 <p class="note">The formatted signature holds 64 KB, images included: room for a logo, not a photograph. A larger image is made smaller to fit when it can be.</p>
@@ -1898,7 +1899,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
      the script and are not this page's texts, so the localiser leaves
      them (data-nowalk); the head, the search and the foot are. -->
 <aside class="helppane" id="help-pane" hidden aria-label="Help">
-<div class="head"><h2 id="help-title">Help</h2><button class="iconbtn sm" id="help-close" type="button" title="Close the help" aria-label="Close the help"><svg class="i"><use href="#i-close"/></svg></button></div>
+<div class="head"><h2 id="help-title" tabindex="-1">Help</h2><button class="iconbtn sm" id="help-close" type="button" title="Close the help" aria-label="Close the help"><svg class="i"><use href="#i-close"/></svg></button></div>
 <div class="find"><input id="help-search" type="search" placeholder="Search this document" aria-label="Search this document" autocomplete="off"></div>
 <nav class="heads" id="help-heads" aria-label="Headings" data-nowalk></nav>
 <div class="body" id="help-body" tabindex="-1" data-nowalk></div>
@@ -1922,7 +1923,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="field" id="compose-cc-row" hidden><label for="compose-cc">Cc</label><div class="complete-wrap"><input id="compose-cc" type="text" autocomplete="off"></div></div>
 <div class="field" id="compose-bcc-row" hidden><label for="compose-bcc">Bcc</label><div class="complete-wrap"><input id="compose-bcc" type="text" autocomplete="off"></div></div>
 <div class="field"><label for="compose-subject">Subject</label><input id="compose-subject" type="text" maxlength="500" autocomplete="off" dir="auto"></div>
-<div id="rich-row" class="row"><button id="rich-toggle" class="btn quiet sm" type="button">Formatting</button><div id="rich-tools" class="row" hidden><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="insertUnorderedList" title="List">List</button><button class="btn quiet sm" type="button" data-cmd="formatBlock" data-arg="blockquote" title="Quote">Quote</button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><button class="btn quiet sm" type="button" data-cmd="removeFormat" title="Remove formatting">Remove formatting</button><button class="btn quiet sm" type="button" id="image-open" title="Insert an image from a file">Image</button><button class="btn quiet sm" type="button" id="table-open" title="Insert a table, or change the one the cursor is in" aria-expanded="false">Table</button></div><button id="emoji-open" class="btn quiet sm" type="button" title="Insert an emoji" aria-expanded="false">Emoji</button></div>
+<div id="rich-row" class="row"><button id="rich-toggle" class="btn quiet sm" type="button">Formatting</button><div id="rich-tools" class="row" hidden><button class="btn quiet sm" type="button" data-cmd="bold" title="Bold" aria-label="Bold"><b>B</b></button><button class="btn quiet sm" type="button" data-cmd="italic" title="Italic" aria-label="Italic"><i>I</i></button><button class="btn quiet sm" type="button" data-cmd="underline" title="Underline" aria-label="Underline"><u>U</u></button><button class="btn quiet sm" type="button" data-cmd="insertUnorderedList" title="List">List</button><button class="btn quiet sm" type="button" data-cmd="formatBlock" data-arg="blockquote" title="Quote">Quote</button><button class="btn quiet sm" type="button" data-cmd="createLink" title="Link">Link</button><button class="btn quiet sm" type="button" data-cmd="removeFormat" title="Remove formatting">Remove formatting</button><button class="btn quiet sm" type="button" id="image-open" title="Insert an image from a file">Image</button><button class="btn quiet sm" type="button" id="table-open" title="Insert a table, or change the one the cursor is in" aria-expanded="false">Table</button></div><button id="emoji-open" class="btn quiet sm" type="button" title="Insert an emoji" aria-expanded="false">Emoji</button></div>
 <div id="emoji-panel" hidden><label for="emoji-search" class="sr">Search emoji</label><input id="emoji-search" type="text" placeholder="Search emoji" autocomplete="off" spellcheck="false"><div id="emoji-grid" role="group" aria-label="Emoji"></div></div>
 <div id="table-panel" hidden><div id="table-insert" class="row"><label for="table-rows" class="inline">Rows</label><input id="table-rows" type="number" min="1" max="50" value="3" aria-label="Rows"><label for="table-columns" class="inline">Columns</label><input id="table-columns" type="number" min="1" max="20" value="3" aria-label="Columns"><label class="inline"><input id="table-header" type="checkbox" checked> Header row</label><button id="table-insert-go" class="btn sm" type="button">Insert table</button></div><div id="table-edit" class="row" hidden><button class="btn ghost sm" type="button" data-op="row-above">Row above</button><button class="btn ghost sm" type="button" data-op="row-below">Row below</button><button class="btn ghost sm" type="button" data-op="column-left">Column left</button><button class="btn ghost sm" type="button" data-op="column-right">Column right</button><button class="btn ghost sm" type="button" data-op="delete-row">Delete row</button><button class="btn ghost sm" type="button" data-op="delete-column">Delete column</button><button class="btn ghost sm" type="button" data-op="delete-table">Delete table</button></div></div>
 <label for="compose-image" class="sr">Choose an image</label><input id="compose-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="sr" tabindex="-1">
@@ -1957,24 +1958,25 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 </div>
 <div class="more-menu" id="context-menu" hidden role="menu">
-<button type="button" data-act="open">Open</button>
-<button type="button" data-act="archive">Archive</button>
-<button type="button" data-act="junk">Junk</button>
-<button type="button" data-act="delete">Delete</button>
-<button type="button" data-act="recall" hidden>Recall</button>
-<div class="sep"></div>
-<button type="button" data-act="read">Mark as read</button>
-<button type="button" data-act="star">Star</button>
-<button type="button" data-act="important">Mark as important</button>
-<button type="button" data-act="pin">Pin</button>
-<button type="button" data-act="mute">Mute</button>
-<button type="button" data-act="cleanup">Clean up conversation</button>
-<div class="sep"></div>
-<button type="button" data-act="block">Block this sender</button>
-<button type="button" data-act="sweep">Delete all from this sender</button>
+<button type="button" role="menuitem" data-act="open">Open</button>
+<button type="button" role="menuitem" data-act="archive">Archive</button>
+<button type="button" role="menuitem" data-act="junk">Junk</button>
+<button type="button" role="menuitem" data-act="delete">Delete</button>
+<button type="button" role="menuitem" data-act="recall" hidden>Recall</button>
+<div class="sep" role="separator"></div>
+<button type="button" role="menuitem" data-act="read">Mark as read</button>
+<button type="button" role="menuitem" data-act="star">Star</button>
+<button type="button" role="menuitem" data-act="important">Mark as important</button>
+<button type="button" role="menuitem" data-act="pin">Pin</button>
+<button type="button" role="menuitem" data-act="mute">Mute</button>
+<button type="button" role="menuitem" data-act="cleanup">Clean up conversation</button>
+<div class="sep" role="separator"></div>
+<button type="button" role="menuitem" data-act="block">Block this sender</button>
+<button type="button" role="menuitem" data-act="sweep">Delete all from this sender</button>
 <div id="context-tabs" hidden></div>
 </div>
-<div id="toasts" aria-live="polite"></div>
+<div id="toasts"></div>
+<div id="say" class="sr" aria-live="polite"></div>
 
 <div id="event-overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="event-title-h">
 <div class="sheet">
@@ -2023,7 +2025,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 </div>
 <div id="keys-overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="keys-title">
 <div class="sheet">
-<h2 id="keys-title">Keyboard shortcuts</h2>
+<h2 id="keys-title" tabindex="-1">Keyboard shortcuts</h2>
 <table class="keys"><tbody>
 <tr><td><kbd>j</kbd> or <kbd>&darr;</kbd></td><td>Next message</td></tr>
 <tr><td><kbd>k</kbd> or <kbd>&uarr;</kbd></td><td>Previous message</td></tr>
@@ -2031,6 +2033,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <tr><td><kbd>u</kbd></td><td>Back to the list</td></tr>
 <tr><td><kbd>Esc</kbd></td><td>Close this list or the palette</td></tr>
 <tr><td><kbd>x</kbd></td><td>Tick or untick the message under the cursor</td></tr>
+<tr><td><kbd>Shift</kbd> + <kbd>F10</kbd></td><td>The menu of the message under the cursor: read or unread, pin, mute, block and more</td></tr>
 <tr><td>Shift-click, Ctrl-click</td><td>Tick a range of rows, or one row without opening it</td></tr>
 <tr><td><kbd>s</kbd></td><td>Star the message; again for a second star, a third, then no star</td></tr>
 <tr><td><kbd>+</kbd> or <kbd>=</kbd>, <kbd>-</kbd></td><td>Mark the message as important, or as not important</td></tr>
@@ -2044,10 +2047,12 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <tr><td><kbd>/</kbd></td><td>Search</td></tr>
 <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>The palette: an action, a page, a folder or a contact</td></tr>
 <tr><td><kbd>?</kbd></td><td>This list</td></tr>
+<tr><td><kbd>z</kbd></td><td>Undo what was just done</td></tr>
 <tr><td><kbd>F1</kbd></td><td>Help for this page, beside it</td></tr>
 <tr><td><kbd>&darr;</kbd> <kbd>&uarr;</kbd> <kbd>Enter</kbd> <kbd>Tab</kbd></td><td>In To, Cc and Bcc: choose a completion</td></tr>
 <tr><td><kbd>&darr;</kbd> <kbd>&uarr;</kbd> <kbd>Esc</kbd></td><td>In the empty search box: move through the recent searches, or close them</td></tr>
 </tbody></table>
+<p class="note">With a screen reader, these keys work in the message list, which turns focus mode on by itself; elsewhere, turn focus mode on first.</p>
 <p class="row"><button id="keys-close" class="btn ghost sm" type="button">Close</button></p>
 </div>
 </div>

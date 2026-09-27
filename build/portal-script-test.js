@@ -948,6 +948,14 @@ function answerDirectory(method, path, body) {
    }
    return json(405, { error: 'method not allowed' });
 }
+// The storage page's figures: two folders and the largest message, enough
+// for its two tables to have rows (the NVDA pass looked at how they open).
+function answerStorage(method, path) {
+   if (path !== '/api/v1/me/storage' || method !== 'GET') { return null; }
+   return json(200, { used_bytes: 5242880, limit_mb: 100,
+      folders: [{ id: 1, path: 'INBOX', messages: 3, bytes: 4194304 }, { id: 2, path: 'Sent', messages: 1, bytes: 1048576 }],
+      largest: [{ id: 102, folder_id: 1, folder: 'INBOX', subject: 'Second', from: 'Bob <bob@example.com>', size: 2097152 }] });
+}
 function answerRecoverable(method, path) {
    if (!path.startsWith('/api/v1/me/recoverable')) { return null; }
    if (path === '/api/v1/me/recoverable' && method === 'GET') { return json(200, { days: recoverable.days, items: recoverable.items.slice() }); }
@@ -1440,6 +1448,7 @@ function answer(method, path, body) {
    { const senders = answerSenderAddresses(method, path, body); if (senders) { return senders; } }
    { const masks = answerMaskedAddresses(method, path, body); if (masks) { return masks; } }
    { const kept = answerRecoverable(method, path); if (kept) { return kept; } }
+   { const storage = answerStorage(method, path); if (storage) { return storage; } }
    { const recover = answerRecovery(method, path, body); if (recover) { return recover; } }
    { const keys = answerPasskeys(method, path, body); if (keys) { return keys; } }
    { const listed = answerDirectory(method, path, body); if (listed) { return listed; } }
@@ -3804,17 +3813,21 @@ async function main() {
    check('and the message is still at its third star, with nothing asked of the server by opening the menu',
       starStageOf(paneStar) === 3 && starKeywordsOf(102).join() === '$Star3' && requests.length === beforeMenu, flagsOf(102) + ' ' + paneStar.className);
 
-   // What a screen reader reads out on a row: the star the press will give.
-   // aria-label wins over title, so a row left at "Star" for ever named the
-   // wrong press for every star but the first.
+   // What a screen reader reads out on a row and over the open message: the
+   // star the message HAS, as a toggle that is pressed while it has one. It
+   // was named by the star the press would give, and NVDA read a message
+   // with one star as "Second star, button" (NVDA pass, Roadmap2 row 43).
    flaggedById[102] = false;
    keywordsById[102] = ['Home'];
    await openFresh(102);
-   const starNames = () => { const row = rowBySubject('Second'); const s = row ? starOf(row) : null; return (s ? s.getAttribute('aria-label') : 'no row star') + ' / ' + paneStar.getAttribute('aria-label'); };
+   // The name is the title, the one attribute that changes: an aria-label
+   // beside it changed too, and NVDA said each press twice.
+   const starName = (s) => (s.getAttribute('aria-label') === null ? s.getAttribute('title') : 'aria-label ' + s.getAttribute('aria-label')) + ':' + s.getAttribute('aria-pressed');
+   const starNames = () => { const row = rowBySubject('Second'); const s = row ? starOf(row) : null; return (s ? starName(s) : 'no row star') + ' / ' + starName(paneStar); };
    const namedSteps = [starNames()];
    for (let press = 0; press < 4; press += 1) { await pressS(102); namedSteps.push(starNames()); }
-   check('a row\'s star is read out as the star the press will give, as the open message\'s star is',
-      JSON.stringify(namedSteps) === JSON.stringify(['Star / Star', 'Second star / Second star', 'Third star / Third star', 'Unstar / Unstar', 'Star / Star']),
+   check('a row\'s star is read out as the star the message has, pressed while it has one, as the open message\'s star is',
+      JSON.stringify(namedSteps) === JSON.stringify(['Star:false / Star:false', 'Star:true / Star:true', 'Second star:true / Second star:true', 'Third star:true / Third star:true', 'Star:false / Star:false']),
       JSON.stringify(namedSteps));
 
    // A press whose work throws - an answer the page cannot use, a repaint
@@ -6448,7 +6461,7 @@ async function main() {
       await flush();
       await flush();
       check('a draft with formatting reopens in the formatted editor, the images this webmail made parts of it back as data: URLs, and another client\'s image left as the file it is',
-         editor.hidden === false && box.hidden === true && document.getElementById('rich-toggle').textContent === 'Plain text' && editor.textContent.indexOf('Not yet') >= 0 &&
+         editor.hidden === false && box.hidden === true && document.getElementById('rich-toggle').textContent === words('Plain text') && editor.textContent.indexOf('Not yet') >= 0 &&
          imagesIn().length === 2 && imagesIn().every((i) => i.getAttribute('src') === 'data:image/png;base64,QUJD') && editor.focused > 0 &&
          document.getElementById('compose-files-note').textContent.indexOf('photo.jpg') >= 0,
          'editor hidden=' + editor.hidden + ' images=' + imagesIn().map((i) => i.getAttribute('src').slice(0, 30)).join(',') + ' text=' + JSON.stringify(editor.textContent));
@@ -6504,7 +6517,7 @@ async function main() {
       await flush();
       await flush();
       check('a message that is not marked a draft reopens as its text, whatever HTML it carries',
-         editor.hidden === true && box.hidden === false && editor.textContent.indexOf('Hello') < 0 && document.getElementById('rich-toggle').textContent === 'Formatting',
+         editor.hidden === true && box.hidden === false && editor.textContent.indexOf('Hello') < 0 && document.getElementById('rich-toggle').textContent === words('Formatting'),
          'editor hidden=' + editor.hidden + ' text=' + JSON.stringify(editor.textContent));
       document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
       await flush();
@@ -7468,6 +7481,10 @@ async function main() {
    // holds, its end one press away, select-all worked through by the server
    // with Undo by id, and a search of every folder that goes on from where it
    // stopped (docs/Performance.md).
+   // ---- What a screen reader is given: the list a listbox, the focus where
+   // the reader is, one voice for what happens without it (the NVDA pass).
+   await screenReaderChecks();
+
    await largeFolderChecks();
 
    // ---- Shared address books: the books beside the contacts, the Sharing
@@ -8062,6 +8079,173 @@ async function main() {
 // service worker is loaded into a world of its own and handed a push event -
 // which is the only way to find out what a reader would actually see.
 let germanCatalogue = null;
+// ---- What a screen reader is given (Roadmap2 row 43, the NVDA pass) -------
+// The pass itself listened to NVDA 2026.2 in a real browser; this holds the
+// page to what that pass settled, as the markup and the focus a browser hands
+// a screen reader. The page is in German by now, so every word is compared
+// through its catalogue - which is also the check that none of it is English.
+async function screenReaderChecks() {
+   const said = (english) => (germanCatalogue && germanCatalogue[english]) || english;
+   const filled = (english, ...values) => values.reduce((s, v, i) => s.split('{' + i + '}').join(String(v)), said(english));
+   const settle = async () => { for (let i = 0; i < 6; i++) { await flush(); } };
+   const walkAll = (root, pred) => { const out = []; (function walk(n) { for (let i = 0; i < n.childNodes.length; i++) { const c = n.childNodes[i]; if (c.nodeType === 1) { if (pred(c)) { out.push(c); } walk(c); } } })(root); return out; };
+   const list = document.getElementById('message-list');
+   const rows = () => walkAll(list, (n) => n.getAttribute('role') === 'option');
+   const cursorAt = () => rows().findIndex((r) => String(r.className).indexOf('msg-cursor') >= 0);
+   const voice = document.getElementById('say');
+   const key = (k, target) => { const e = makeEvent('keydown', { key: k, target: target || list }); document.dispatchEvent(e); return e; };
+   location.hash = '#/f/1';
+   await settle();
+
+   // The list: one listbox, its rows options named whole, the cursor its
+   // active option. It was a list: NVDA read every row, controls and all,
+   // when the Tab key reached it.
+   check('S1: the message list is a listbox of options, each with an id the listbox can point at',
+      list.getAttribute('role') === 'listbox' && rows().length > 0 && rows().every((r) => /^msg-row-\d+$/.test(r.id)),
+      rows().map((r) => r.id).join(' '));
+   check('S1: the listbox points at the row under the cursor, the one row it calls selected',
+      cursorAt() >= 0 && list.getAttribute('aria-activedescendant') === rows()[cursorAt()].id &&
+      rows().filter((r) => r.getAttribute('aria-selected') === 'true').length === 1 && rows()[cursorAt()].getAttribute('aria-selected') === 'true',
+      String(list.getAttribute('aria-activedescendant')) + ' / cursor ' + cursorAt());
+   const unseen = rows().find((r) => String(r.className).indexOf('unseen') >= 0);
+   const whoOf = (r) => walkAll(r, (n) => n.className === 'who')[0].textContent;
+   check('S1: a row is named whole, its state first: an unread one begins with "unread", then the sender',
+      !!unseen && unseen.getAttribute('aria-label').indexOf(said('unread') + ', ' + whoOf(unseen)) === 0,
+      unseen ? unseen.getAttribute('aria-label') : 'no unread row');
+   const at = cursorAt();
+   key('j');
+   check('S1: the cursor moving moves the active option with it',
+      cursorAt() === at + 1 && list.getAttribute('aria-activedescendant') === rows()[at + 1].id, 'cursor ' + cursorAt());
+   key('x');
+   check('S1: x ticks the row, and its name says so first',
+      rows()[cursorAt()].getAttribute('aria-label').indexOf(said('ticked') + ', ') === 0, rows()[cursorAt()].getAttribute('aria-label'));
+   key('x');
+   check('S1: and x again takes the word away', rows()[cursorAt()].getAttribute('aria-label').indexOf(said('ticked')) < 0, rows()[cursorAt()].getAttribute('aria-label'));
+   // A key pressed on a box is still the page's: NVDA's focus mode put the
+   // keyboard on a row's box, and j did nothing there.
+   key('k', document.getElementById('select-all'));
+   check('S1: a key pressed on a tick box is the page\'s key, not typing', cursorAt() === at, 'cursor ' + cursorAt());
+   check('S1: the search note lives under the list, not in it', walkAll(list, (n) => n.className === 'listfoot').length === 0);
+
+   // Opening from the list takes the focus to the message's subject; Escape
+   // gives it back to the list, on the row that was opened.
+   const openedName = rows()[cursorAt()].getAttribute('aria-label');
+   list.focus();
+   key('Enter');
+   await settle();
+   check('S2: Enter on the list opens the message and takes the focus to its subject',
+      document.getElementById('message-view').hidden === false && document.activeElement === document.getElementById('message-subject'),
+      'view hidden=' + document.getElementById('message-view').hidden + ' focus=' + (document.activeElement && document.activeElement.id));
+   key('Escape', document.getElementById('message-subject'));
+   await settle();
+   check('S2: Escape closes it and gives the focus back to the list',
+      document.getElementById('message-view').hidden === true && document.activeElement === list, 'focus=' + (document.activeElement && document.activeElement.id));
+   const back = rows()[cursorAt()];
+   check('S2: on the row that was opened', !!back && back.getAttribute('aria-label').replace(said('unread') + ', ', '') === openedName.replace(said('unread') + ', ', ''),
+      (back ? back.getAttribute('aria-label') : 'no row') + ' | ' + openedName);
+
+   // The row's menu from the keyboard.
+   list.focus();
+   const menuEvent = makeEvent('contextmenu', { target: list });
+   list.dispatchEvent(menuEvent);
+   const menu = document.getElementById('context-menu');
+   const items = () => walkAll(menu, (n) => n.tagName === 'BUTTON' && !n.hidden && n.getAttribute('role') === 'menuitem');
+   check('S3: Shift+F10 on the list opens the row\'s menu, its items menu items, the focus on the first',
+      menu.hidden === false && menuEvent.defaultPrevented === true && items().length > 3 && document.activeElement === items()[0],
+      'hidden=' + menu.hidden + ' items=' + items().length + ' focus=' + (document.activeElement && document.activeElement.textContent));
+   menu.dispatchEvent(makeEvent('keydown', { key: 'ArrowDown', target: document.activeElement }));
+   check('S3: the arrows move between the items', document.activeElement === items()[1], document.activeElement && document.activeElement.textContent);
+   menu.dispatchEvent(makeEvent('keydown', { key: 'End', target: document.activeElement }));
+   check('S3: End goes to the last', document.activeElement === items()[items().length - 1], document.activeElement && document.activeElement.textContent);
+   const cursorBeforeLetter = cursorAt();
+   menu.dispatchEvent(makeEvent('keydown', { key: 'j', target: document.activeElement }));
+   check('S3: a letter in the menu is not the list\'s', cursorAt() === cursorBeforeLetter, 'cursor ' + cursorAt());
+   menu.dispatchEvent(makeEvent('keydown', { key: 'Escape', target: document.activeElement }));
+   check('S3: Escape closes it and gives the focus back to the list', menu.hidden === true && document.activeElement === list,
+      'hidden=' + menu.hidden + ' focus=' + (document.activeElement && document.activeElement.id));
+
+   // The page's voice: a toast is said once, its words alone.
+   const beforeArchive = requests.length;
+   key('e');
+   await settle();
+   const toastText = walkAll(document.getElementById('toasts'), (n) => n.tagName === 'SPAN')[0];
+   check('S4: a toast is said in the page\'s voice, its words and not its buttons',
+      !!toastText && voice.textContent === toastText.textContent && voice.textContent.indexOf(said('Undo')) < 0 && voice.textContent.indexOf(said('Dismiss')) < 0,
+      JSON.stringify(voice.textContent) + ' | ' + (toastText ? toastText.textContent : 'no toast'));
+   check('S4: and the toast is no live region of its own', document.getElementById('toasts').getAttribute('aria-live') === null &&
+      walkAll(document.getElementById('toasts'), (n) => n.getAttribute('role') === 'status' || n.getAttribute('aria-live') !== null).length === 0);
+   const beforeUndo = requests.length;
+   key('z', document.body);
+   await settle();
+   check('S4: z presses the toast\'s Undo', since(beforeArchive).some((r) => r.method === 'POST' && /\/move$/.test(r.path)) &&
+      since(beforeUndo).some((r) => r.method === 'POST' && /\/move$/.test(r.path)),
+      since(beforeUndo).map((r) => r.method + ' ' + r.path).join(' '));
+   const dismiss = walkAll(document.getElementById('toasts'), (n) => n.tagName === 'BUTTON' && n.getAttribute('aria-label') === said('Dismiss'));
+   dismiss.forEach((b) => b.dispatchEvent(makeEvent('click')));
+   await settle();
+
+   // A search says what it found; the focus stays in the box.
+   const box = document.getElementById('mail-search');
+   check('S5: the search box is described by a sentence, not by its tooltip\'s forty operators',
+      box.getAttribute('aria-describedby') === 'mail-search-hint' && document.getElementById('mail-search-hint').textContent === said('Words, and from:, is:unread or has:attachment; Search options, beside the box, builds a search for you.'),
+      String(box.getAttribute('aria-describedby')));
+   box.value = 'budget';
+   document.getElementById('mail-search-form').dispatchEvent(makeEvent('submit'));
+   await settle();
+   const found = /([0-9]+)/.exec(voice.textContent);
+   check('S5: a search run from the box says how many it found', (!!found && voice.textContent === filled('{0} results', found[1])) || voice.textContent === said('Nothing matched.'),
+      JSON.stringify(voice.textContent));
+   location.hash = '#/f/1';
+   await settle();
+
+   // The folders: the count in words, the folder the reader is in said.
+   const nav = document.getElementById('folder-nav');
+   const inbox = nav.children[0];
+   check('S6: a folder\'s count is said in words after its name, the digits hidden from a screen reader',
+      inbox.children[2].getAttribute('aria-hidden') === 'true' && (inbox.children[2].textContent === '' || inbox.children[3].textContent === ', ' + filled('{0} unread', inbox.children[2].textContent)),
+      JSON.stringify(inbox.children[3] ? inbox.children[3].textContent : 'none'));
+   check('S6: the folder the reader is in is the current page', inbox.getAttribute('aria-current') === 'page' &&
+      Array.from(nav.children).filter((b) => b.getAttribute && b.getAttribute('aria-current') === 'page').length === 1);
+   check('S6: the tab\'s title is in the reader\'s language', document.title.indexOf(said('hMailServer - my account')) >= 0, document.title);
+
+   // The To field is a combobox that owns its completion list.
+   const to = document.getElementById('compose-to');
+   const owned = document.getElementById(String(to.getAttribute('aria-controls')));
+   check('S7: the To field is a combobox, closed, owning its list of suggestions',
+      to.getAttribute('role') === 'combobox' && to.getAttribute('aria-expanded') === 'false' && !!owned && owned.getAttribute('role') === 'listbox',
+      to.getAttribute('role') + ' ' + to.getAttribute('aria-controls'));
+
+   // Dialogues open at their top; F1's pane takes the focus at its heading.
+   key('?', document.body);
+   await settle();
+   check('S8: the shortcut list opens at its heading, not at Close at its foot',
+      document.getElementById('keys-overlay').hidden === false && document.activeElement === document.getElementById('keys-title'),
+      'focus=' + (document.activeElement && document.activeElement.id));
+   key('Escape', document.getElementById('keys-title'));
+   await settle();
+   check('S8: and Escape closes it', document.getElementById('keys-overlay').hidden === true);
+   key('F1', document.body);
+   await settle();
+   check('S8: F1 opens the help beside the page with the focus on its heading',
+      document.getElementById('help-pane').hidden === false && document.activeElement === document.getElementById('help-title'),
+      'focus=' + (document.activeElement && document.activeElement.id));
+   document.getElementById('help-close').dispatchEvent(makeEvent('click'));
+   await settle();
+
+   // The storage page's rows: a button in the first cell, not a row that is
+   // a Tab stop and says only "row".
+   location.hash = '#/storage';
+   await settle();
+   const largest = walkAll(document.getElementById('storage-largest-rows'), (n) => n.tagName === 'TR');
+   const folders = walkAll(document.getElementById('storage-folder-rows'), (n) => n.tagName === 'TR');
+   const opener = (tr) => tr.childNodes[0] && tr.childNodes[0].childNodes[0];
+   check('S9: a storage row opens from a button in its first cell, named by what it opens, and the row is no Tab stop',
+      folders.length > 0 && folders.concat(largest).every((tr) => tr.getAttribute('tabindex') === null && opener(tr) && opener(tr).tagName === 'BUTTON' && opener(tr).textContent.length > 0),
+      folders.length + ' folder rows, ' + largest.length + ' message rows');
+   location.hash = '#/f/1';
+   await settle();
+}
+
 async function largeFolderChecks() {
    // The page is in German by now: every text is compared through its catalogue.
    const said = (english) => (germanCatalogue && germanCatalogue[english]) || english;
@@ -8153,7 +8337,8 @@ async function largeFolderChecks() {
    await settle();
    check('L4: a search of every folder asks for one page', called(beforeSearch, 'GET', '/api/v1/me/search?q=budget&limit=200'),
       since(beforeSearch).map((r) => r.path).join(' '));
-   const goOn = walkAll(document.getElementById('message-list'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Search older messages'));
+   // Under the list, not in it: the list is a listbox, which holds options alone.
+   const goOn = walkAll(document.getElementById('list-foot'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Search older messages'));
    check('L4: and, where it stopped short, offers to go on', goOn.length === 1);
    const beforeMore = requests.length;
    if (goOn.length) { goOn[0].dispatchEvent(makeEvent('click')); }
@@ -8162,7 +8347,7 @@ async function largeFolderChecks() {
       location.hash === '#/search?q=budget&before=150' && called(beforeMore, 'GET', '/api/v1/me/search?q=budget&limit=200&before_id=150'),
       location.hash + ' ' + since(beforeMore).map((r) => r.path).join(' '));
    check('L4: and a search that finished offers nothing more',
-      walkAll(document.getElementById('message-list'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Search older messages')).length === 0);
+      walkAll(document.getElementById('list-foot'), (n) => n.tagName === 'BUTTON' && n.textContent === said('Search older messages')).length === 0);
 
    largeFolder = false;
    searchPaged = false;
