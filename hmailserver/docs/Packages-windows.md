@@ -174,32 +174,24 @@ A library is rebuilt only when its tree in the cache is incomplete:
 
 The cached DLLs are then checked to be ARM64.
 
-OpenSSL is the exception. At 6399e08a5, `build-openssl.ps1` downloads OpenSSL's
-release archive from `github.com/openssl/openssl/releases`, the only place OpenSSL
-publishes it (`openssl.org/source` redirects there), and this project's CI
-downloads nothing from GitHub. The job reads every string in the script's code
-(not its comments) with PowerShell's parser. While one names `github.com` or
-`githubusercontent.com` and the ARM64 OpenSSL is not in the cache, the job stops
-with exit 7 and says so. It does not download it.
-
-Debian's archive carries the same bytes. On 26 September 2026,
-`https://deb.debian.org/debian/pool/main/o/openssl/openssl_4.0.2.orig.tar.gz`
-was downloaded and its SHA-256 was `736b4675...43a8`, exactly the digest
-`build-openssl.ps1` pins for 4.0.2. The GitLab sweep (commit 48c5d623e on the
-branch `gl-merged`, not on master yet) makes `build-openssl.ps1` download from
-there. The job's check was run against both versions of the script: the one at
-6399e08a5 is refused (its line 123), and the sweep's is accepted. So once the
-sweep is on the commit, the job builds the ARM64 OpenSSL itself. Until then, the
-owner can build it once by hand on bench150 into the cache, from an elevated
-prompt with the ARM64 tools installed:
+OpenSSL publishes its release archives only on GitHub (`openssl.org/source`
+redirects there), and this project's CI downloads nothing from GitHub.
+`libraries/build-openssl.ps1` takes the archive from Debian's archive instead,
+`https://deb.debian.org/debian/pool/main/o/openssl/`, or snapshot.debian.org once
+a version has left the pool: the same bytes, held to the SHA-256 the script pins
+(for 4.0.2, `736b4675...43a8`, measured against Debian's copy on 26 September
+2026). The job still reads every string in the script's code (not its comments)
+with PowerShell's parser, and stops with exit 7 if one names `github.com` or
+`githubusercontent.com` while the ARM64 OpenSSL is not in the cache; with the
+script as it is, none does, so the job builds the ARM64 OpenSSL itself. It can
+also be built once by hand on bench150 into the cache, from an elevated prompt
+with the ARM64 tools installed:
 
     mkdir C:\bench\hMailLibs-arm64
     set hMailServerLibs=C:\bench\hMailLibs-arm64
     powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64
 
-With the script at 6399e08a5, that downloads from GitHub once, outside CI. With
-the sweep's script, it downloads from Debian. Either way the archive is held to
-the pinned SHA-256.
+That downloads from Debian too, and holds the archive to the pinned SHA-256.
 
 Boost comes from archives.boost.io and PostgreSQL from ftp.postgresql.org. libpq
 also needs Strawberry Perl, Meson, Ninja, `win_flex` and `win_bison` on the
@@ -245,16 +237,14 @@ Two findings from building this check, both against real files:
   ARM64EC processes. An ARM64 process never imports it, and
   `third-party-binaries.json` gathers it. The ARM64 job passes
   `-Allow vcruntime140_1.dll`, which names it in the output instead of failing.
-- **`Interop.hMailServer.dll` is made with `TlbImp /machine:X64`**
-  (`build/generate-com-wrapper.ps1`). The COM wrapper the ARM64 installer
-  carries is therefore an x64 assembly, and so is every copy the win-arm64
-  tools publish next to themselves. An ARM64 .NET process does not load an
-  assembly marked x64, so the ARM64 Control Panel and database tools would fail
-  on their first COM call. **The ARM64 job is expected to stop here, with exit
-  6, on its first run**, once the toolchain and OpenSSL are in place. The fix is
-  outside this job: `generate-com-wrapper.ps1` has to make the ARM64 build's
-  wrapper `/machine:Agnostic` (AnyCPU), or ARM64 if TlbImp takes it, without
-  changing the x64 one. That is a Windows on ARM row change.
+- **`Interop.hMailServer.dll` for ARM64 is AnyCPU.** An ARM64 .NET process does
+  not load an assembly marked x64, and the x64 wrapper is made with `TlbImp
+  /machine:X64`. TlbImp has no ARM64 machine type, so `build/generate-com-wrapper.ps1`
+  makes the ARM64 build's wrapper separately, in `Interop\ARM64`, with
+  `/machine:Agnostic`, and leaves the x64 one as it was (`build/build-tools.ps1`
+  takes the ARM64 one for the win-arm64 tools). `check-pe-machine.ps1` refuses
+  an x64-marked assembly in the ARM64 installer, so a wrapper made the old way
+  fails the job with exit 6.
 
 Signing
 -------
@@ -308,8 +298,7 @@ What the owner must do
 4. Inno Setup 6 installed for the machine. `windows-installer` needs it already.
    Then, once `windows-packages-x64` has passed, remove its
    `allow_failure: exit_codes: [2]`.
-5. After the first ARM64 run, commit the `lockfiles/` from its artifact, and
-   resolve the `Interop.hMailServer.dll` finding above.
+5. After the first ARM64 run, commit the `lockfiles/` from its artifact.
 6. When one ARM64 run has passed, remove `allow_failure: true` from
    `windows-packages-arm64`.
 
