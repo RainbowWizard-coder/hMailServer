@@ -165,6 +165,43 @@ revert_vm() {
    vm_running
 }
 
+# The address the VM's own VMware Tools report for the .vmx, or nothing.
+guest_address() {
+   "$vmrun" -T ws getGuestIPAddress "$vmx" 2> /dev/null | tr -d '\r' | grep -Eo '^([0-9]{1,3}[.]){3}[0-9]{1,3}$' | head -n 1
+}
+
+# The VM's address once it has held for 45 seconds, followed when it is not $host.
+# After a revert the VM resumes still holding the address it had when the snapshot
+# was taken, and asks VMware's DHCP server (on this host, for the NAT network) for a
+# lease again. On 27 September 2026 that server twice found the address answering
+# while the VM asked, marked its lease abandoned and gave the VM another address, 15
+# to 35 seconds after the revert (vmnetdhcp.leases: 192.168.11.175 abandoned at
+# 08:39:40 and 08:56:19, the VM on .185 and .187): SSH had already answered on the
+# old address, the first copy ended in "Connection reset by peer", and the run then
+# waited ten minutes on an address nobody held. The address the tools report is the
+# .vmx's, whose MAC identify_vm checked; check_address checks it against ARP before
+# anything is copied. Tools that report nothing leave $host as it was.
+settle_address() {
+   local deadline=$((SECONDS + 300)) previous="" current="" since=$SECONDS
+   while [ $SECONDS -lt $deadline ]; do
+      current=$(guest_address)
+      if [ -z "$current" ] || [ "$current" != "$previous" ]; then
+         previous="$current"
+         since=$SECONDS
+      elif [ $((SECONDS - since)) -ge 45 ]; then
+         break
+      fi
+      sleep 5
+   done
+   if [ -z "$current" ]; then
+      say "the VM's tools report no address; using $host"
+   elif [ "$current" != "$host" ]; then
+      say "the VM is at $current, not $host: its DHCP lease moved after the revert"
+      host="$current"
+      remote="$user@$host"
+   fi
+}
+
 wait_for_ssh() {
    local deadline=$((SECONDS + 600))
    while [ $SECONDS -lt $deadline ]; do
@@ -179,9 +216,11 @@ wait_for_ssh() {
 # A command that only creates or copies, tried up to three times. Just after a revert
 # the VM's first SSH answer can come before its network has settled: on 26 September
 # 2026 the first scp of an installer, soon after "ready", ended in "Connection
-# reset by peer", and the run stopped with nothing tested. Creating the folders and
-# copying a file over again are safe to repeat; the smoke script itself is never
-# retried.
+# reset by peer", and the run stopped with nothing tested - the lease moving under it
+# (settle_address). Creating the folders and copying a file over again are safe to
+# repeat; the smoke script itself is never retried. The copies are the functions
+# below, which read $remote when they run, so that an attempt after the address
+# moved reaches the new one.
 retry_copy() {
    local attempt
    for attempt in 1 2 3; do
@@ -189,10 +228,25 @@ retry_copy() {
       if [ "$attempt" -lt 3 ]; then
          say "   attempt $attempt failed; waiting for SSH and trying again"
          sleep 10
+         settle_address
          wait_for_ssh || return 1
+         check_address || return 1
       fi
    done
    return 1
+}
+
+make_folders() {
+   ssh "${ssh_opts[@]}" "$remote" 'powershell -NoProfile -Command "New-Item -ItemType Directory -Force C:/smoke/first, C:/smoke/second, C:/smoke/logs | Out-Null"'
+}
+
+# A local file to a folder on the VM.
+copy_to_vm() {
+   scp "${ssh_opts[@]}" -q "$1" "$remote:$2"
+}
+
+copy_logs_back() {
+   scp "${ssh_opts[@]}" -q -r "$remote:C:/smoke/logs" "$out/"
 }
 
 # The address must be the VM's: ARP answers with the MAC of the .vmx.
@@ -233,22 +287,23 @@ trap final_revert EXIT
 trap 'exit 130' INT TERM
 
 revert_vm || { say "the revert failed"; exit 3; }
+say "== waiting for the VM's address to settle"
+settle_address
 say "== waiting for SSH on $host"
 wait_for_ssh || { say "no SSH answer from $host within ten minutes"; exit 3; }
 check_address || exit 3
 
 say "== copying the installers and the script"
 first_name=$(basename "$first_local")
-retry_copy ssh "${ssh_opts[@]}" "$remote" 'powershell -NoProfile -Command "New-Item -ItemType Directory -Force C:/smoke/first, C:/smoke/second, C:/smoke/logs | Out-Null"' ||
-   { say "C:\smoke could not be made on $host"; exit 3; }
-retry_copy scp "${ssh_opts[@]}" -q "$first_local" "$remote:C:/smoke/first/" || { say "the first installer could not be copied"; exit 3; }
+retry_copy make_folders || { say "C:\smoke could not be made on $host"; exit 3; }
+retry_copy copy_to_vm "$first_local" C:/smoke/first/ || { say "the first installer could not be copied"; exit 3; }
 arguments="-Installer \"C:/smoke/first/$first_name\""
 if [ -n "$second_local" ]; then
    second_name=$(basename "$second_local")
-   retry_copy scp "${ssh_opts[@]}" -q "$second_local" "$remote:C:/smoke/second/" || { say "the second installer could not be copied"; exit 3; }
+   retry_copy copy_to_vm "$second_local" C:/smoke/second/ || { say "the second installer could not be copied"; exit 3; }
    arguments="$arguments -UpgradeInstaller \"C:/smoke/second/$second_name\""
 fi
-retry_copy scp "${ssh_opts[@]}" -q "$smoke_ps1" "$remote:C:/smoke/installer-smoke.ps1" || { say "installer-smoke.ps1 could not be copied"; exit 3; }
+retry_copy copy_to_vm "$smoke_ps1" C:/smoke/installer-smoke.ps1 || { say "installer-smoke.ps1 could not be copied"; exit 3; }
 [ "$allow_unsigned" = 1 ] && arguments="$arguments -AllowUnsigned"
 
 say "== running installer-smoke.ps1 on $host"
@@ -258,7 +313,7 @@ ssh "${ssh_opts[@]}" "$remote" \
 result=${PIPESTATUS[0]}
 
 say "== collecting the logs"
-retry_copy scp "${ssh_opts[@]}" -q -r "$remote:C:/smoke/logs" "$out/" || say "the logs could not be copied back"
+retry_copy copy_logs_back || say "the logs could not be copied back"
 
 passed=$(grep -c '^PASS ' "$console")
 failed=$(grep -c '^FAIL ' "$console")

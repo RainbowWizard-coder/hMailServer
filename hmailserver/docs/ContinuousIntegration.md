@@ -989,9 +989,17 @@ The script does the following:
 1. It checks that the `.vmx` carries the smoke VM's MAC address and that it has
    the snapshot. This comes before any revert, so a wrong `--vmx` cannot revert
    another machine.
-2. It reverts the VM to the snapshot, starts it and waits for SSH.
+2. It reverts the VM to the snapshot and starts it, waits until the address the
+   VM's own VMware Tools report has held for 45 seconds, and waits for SSH. The
+   VM resumes still holding the address it had when the snapshot was taken and
+   asks VMware's DHCP server, on the VMware host, for a lease again; twice on 27
+   September 2026 that server found the address answering, marked its lease
+   abandoned and gave the VM another address 15 to 35 seconds after the revert,
+   so the address the tools settle on is followed, and said, when it is not
+   `--host`. A copy that fails is tried again the same way.
 3. It checks that the address answers ARP with the same MAC. This comes before
-   anything is copied, so a wrong `--host` cannot install on bench150 or linix.
+   anything is copied, so a wrong `--host`, or an address the VM has let go,
+   cannot install on bench150 or linix.
 4. It copies the installers and `build/ci/installer-smoke.ps1` to `C:\smoke`,
    runs the script there under Windows PowerShell 5.1, and copies back
    `C:\smoke\logs`. That folder holds `smoke.log`, Inno's `install.log`,
