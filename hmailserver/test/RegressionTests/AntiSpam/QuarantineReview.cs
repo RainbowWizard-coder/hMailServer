@@ -319,7 +319,7 @@ namespace RegressionTests.AntiSpam
          dynamic quarantine = _application.Settings.AntiSpam.Quarantine;
          quarantine.Refresh();
          dynamic item = quarantine.ItemByDBID[(int) MiniJson.Number(first, "id")];
-         Assert.AreEqual("client-one.review-helo.test", (string) item.Helo);
+         Assert.AreEqual("client-one.review-helo.test", (string) item.HeloName);
          Assert.AreEqual("review-helo.test", (string) item.HeloDomain);
          Assert.AreEqual("review-sender.test", (string) item.SenderDomain);
       }

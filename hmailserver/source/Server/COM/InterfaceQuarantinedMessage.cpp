@@ -164,7 +164,7 @@ STDMETHODIMP InterfaceQuarantinedMessage::Delete()
    }
 }
 
-STDMETHODIMP InterfaceQuarantinedMessage::get_Helo(BSTR* pVal)
+STDMETHODIMP InterfaceQuarantinedMessage::get_HeloName(BSTR* pVal)
 {
    try
    {

@@ -341,9 +341,11 @@ beside it, because they change who is let in for everyone - the same permission
 the two lists' own routes ask for.
 
 Over COM, `Settings.AntiSpam.Quarantine.Bulk(request)` takes and answers the same
-JSON, `DeleteExpired()` is the sweep, and each `QuarantinedMessage` has `Helo`,
+JSON, `DeleteExpired()` is the sweep, and each `QuarantinedMessage` has `HeloName`,
 `SenderDomain`, `HeloDomain`, `ReadHeaders()` and `ReadPreview()`. Server
-administrators.
+administrators. The HELO name is `HeloName` and not `Helo`: a type library keeps
+one spelling of a name whatever its case, and `Client.HELO` has it, so a member
+spelled `Helo` would have renamed `Client.HELO` in every early-bound program.
 
 The quarantine digest
 ---------------------

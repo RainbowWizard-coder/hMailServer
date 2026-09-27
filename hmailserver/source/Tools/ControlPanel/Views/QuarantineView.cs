@@ -189,7 +189,7 @@ namespace hMailServer.ControlPanel.Views
                         Score = (int)item.Score,
                         Subject = (string)item.Subject ?? "",
                         Reason = (string)item.Reason ?? "",
-                        Helo = Optional_(() => (string)item.Helo),
+                        Helo = Optional_(() => (string)item.HeloName),
                         SenderDomain = Optional_(() => (string)item.SenderDomain),
                         HeloDomain = Optional_(() => (string)item.HeloDomain)
                      });

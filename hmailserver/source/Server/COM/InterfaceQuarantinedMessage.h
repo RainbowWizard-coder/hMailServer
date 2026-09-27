@@ -67,7 +67,7 @@ public:
    // something subtle.
    STDMETHOD(ReleaseMessage)();
    STDMETHOD(Delete)();
-   STDMETHOD(get_Helo)(BSTR* pVal);
+   STDMETHOD(get_HeloName)(BSTR* pVal);
    STDMETHOD(get_SenderDomain)(BSTR* pVal);
    STDMETHOD(get_HeloDomain)(BSTR* pVal);
    STDMETHOD(ReadHeaders)(BSTR* pVal);

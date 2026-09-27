@@ -413,6 +413,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-environment-names.py` | Every `HM_SETTING_` and `HM_PROPERTY_` name in the container files and documents is a real setting | |
 | `check-forge-export.py` | The weekly `forge-export` job runs for the `export` schedule alone, on linix, with its artifact for Developers only and no token in any CI file, and `build/ci/forge-export.py` passes its self-test ([Mirroring.md](hmailserver/docs/Mirroring.md)) | Proves its own negative controls on every run |
 | `check-help-map.py` | Every page of the three surfaces has help, and every help entry names a real document and heading | `--self-test` |
+| `check-idl-case.py` | `hMailServer.idl` spells every name one way whatever its case, but for the seven that shipped two ways, each with its reason: a type library keeps one spelling, so a new `Helo` renames `Client.HELO` for every early-bound client | `--self-test` |
 | `check-ini-coverage.py` | Every `[Settings]` key the server reads has a Control Panel editor or a recorded reason for having none, no new `[Settings]` key appears (see [a new setting](#a-new-setting-goes-in-the-database)), and no section beyond the three it records is read around `IniFileSettings` | **Rewrites** `build/ini-settings-baseline.txt` and `IniSettingsBaseline.h` with `--write-baseline`, for a key legitimately removed |
 | `check-installer-scripts.py` | The Windows installer runs each uninstall step once, waits for the server's process before it replaces or deletes a file, marks every file that process loads `uninsrestartdelete`, and starts the service for an upgrade's database step with the argument the server reads; `hMailServer.exe /Unregister` creates nothing and removes the event source | Proves its own negative controls on every run |
 | `check-localisation.py` | The Control Panel's catalogues agree with the translation marks, and the 17 complete languages are complete | **Rewrites** `Strings.resx` and every catalogue with `--write`; `--inventory` lists what is untranslated |
@@ -475,7 +476,7 @@ something which already exists.
 | You changed | Run at least |
 |---|---|
 | Anything | `add-license-headers.py --check`, `check-project-items.py` |
-| C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-password-choice-sites.py`, `check-setting-levels.py` where they apply; the Linux build or census if the file is in the Linux core |
+| C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `check-cli.py` if a client verb changed |
 | The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-help-map.py`, `generate-settings-index.ps1`, `dotnet format` |
@@ -553,7 +554,8 @@ Then:
 
 * Implement every member you declare: a declared, unimplemented property makes the class abstract.
 * `Release`, `AddRef` and `QueryInterface` cannot be member names.
-* `check-com-dispids.py` (find the interface's highest dispatch id first), `check-com-error-info.py`, and
+* `check-com-dispids.py` (find the interface's highest dispatch id first), `check-com-error-info.py`,
+  `check-idl-case.py` (a name must not be spelled like one already in the IDL in another case), and
   `check-audit-choke-point.py` for a COM write.
 * The COM wrapper regenerates itself; build the server first, then the tools, so it is made from the new type
   library.
