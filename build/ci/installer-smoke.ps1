@@ -283,6 +283,15 @@ function Get-IniValue([string] $Path, [string] $Section, [string] $Key) {
    return ''
 }
 
+# A key's value in a section Read-IniSection has already read.
+function Get-SectionValue([string] $SectionText, [string] $Key) {
+   foreach ($pair in ($SectionText -split ';')) {
+      $pairKey, $pairValue = $pair -split '=', 2
+      if ($pairKey -eq $Key) { return $pairValue }
+   }
+   return ''
+}
+
 function Get-ServerErrorLines([string] $App) {
    $logs = Join-Path $App 'Logs'
    if (-not (Test-Path -LiteralPath $logs)) { return @() }
@@ -942,8 +951,20 @@ function Test-SmokeDataKept([string] $Phase) {
    [void] (Test-Step "${Phase}: hMailServer.INI keeps its database and security sections" {
          $ini = Join-Path $State.App 'Bin\hMailServer.INI'
          if ((Read-IniSection $ini 'Database') -ne $State.IniDatabase) { throw '[Database] changed' }
-         if ((Read-IniSection $ini 'Security') -ne $State.IniSecurity) { throw '[Security] changed' }
-         '[Database] and [Security] as they were'
+         # AdministratorPassword may be written again, as PBKDF2 ($h1$): the server
+         # re-hashes an older MD5 or SHA-256 value at the next sign-in
+         # (IniFileSettings::UpgradeAdministratorPasswordHash, docs/SecretsAtRest.md), and
+         # an installer from 6.3.4 writes the password it is given as PBKDF2. Anything
+         # else in [Security] must be as it was. That the new hash still verifies the
+         # password is the COM sign-in this phase has already made.
+         $others = { param($section) (($section -split ';') | Where-Object { $_ -notlike 'AdministratorPassword=*' }) -join ';' }
+         $security = Read-IniSection $ini 'Security'
+         if ((& $others $security) -ne (& $others $State.IniSecurity)) { throw '[Security] changed beyond AdministratorPassword' }
+         $before = Get-SectionValue $State.IniSecurity 'AdministratorPassword'
+         $after = Get-SectionValue $security 'AdministratorPassword'
+         if ($after -ne $before -and -not $after.StartsWith('$h1$')) { throw 'AdministratorPassword changed to something that is not a PBKDF2 hash' }
+         if ($after -ne $before) { '[Database] as it was; [Security] as it was but for AdministratorPassword, written again as PBKDF2' }
+         else { '[Database] and [Security] as they were' }
       })
 }
 
