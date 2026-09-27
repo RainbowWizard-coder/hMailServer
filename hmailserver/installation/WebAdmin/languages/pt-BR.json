@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Nada está retido. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "A lista deste domínio está vazia, então decidem a lista de cada conta e depois a do servidor.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Ainda não há nada para ver neste servidor? Isto cria {0} com três caixas, uma lista de distribuição, uma regra e um punhado de mensagens entregues, para que cada tela tenha algo enquanto você aprende.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Nada era antigo o bastante para ser removido. A janela é QuarantineRetentionDays no hMailServer.ini, e 0 significa nunca.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Nada era antigo o bastante para ser removido. A janela é a configuração QuarantineRetentionDays, na página Configurações antispam do Control Panel ou com PUT /api/v1/settings/ini/QuarantineRetentionDays, e 0 significa nunca.",
   "Notifications stopped on {0} device(s) of {1}": "Notificações paradas em {0} dispositivo(s) de {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Agora uma caixa de correio. Uma conta é um endereço em que alguém entra e no qual recebe e-mails.",
   "OK": "OK",

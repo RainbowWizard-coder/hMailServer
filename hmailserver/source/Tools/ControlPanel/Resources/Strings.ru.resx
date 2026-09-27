@@ -6603,8 +6603,8 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
     <value>Ничего достаточно старого для удаления не нашлось. Окно задаётся параметром MessageTraceRetentionDays, а 0 означает «никогда».</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never." xml:space="preserve">
-    <value>Ничего достаточно старого для удаления не нашлось. Окно задаётся параметром QuarantineRetentionDays в hMailServer.ini, а 0 означает «никогда».</value>
+  <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
+    <value>Ничего достаточно старого для удаления не нашлось. Окно задаётся на странице «Параметры антиспама» («Удалять сообщения из карантина через»), а 0 означает «никогда».</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Ничего не прочитано.</value>

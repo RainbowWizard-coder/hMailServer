@@ -6603,8 +6603,8 @@ Nada do que já está lá é removido.</value>
   <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
     <value>Nada era antigo o bastante para ser removido. A janela é MessageTraceRetentionDays, e 0 significa nunca.</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never." xml:space="preserve">
-    <value>Nada era antigo o bastante para ser removido. A janela é QuarantineRetentionDays no hMailServer.ini, e 0 significa nunca.</value>
+  <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
+    <value>Nada era antigo o bastante para ser removido. A janela é definida na página Configurações antispam (Excluir mensagens em quarentena após), e 0 significa nunca.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Nada foi lido.</value>

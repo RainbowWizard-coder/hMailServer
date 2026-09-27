@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "保留中のものはありません。✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "このドメインの一覧は空なので、各アカウント自身の一覧、次にサーバーの一覧が決めます。",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "このサーバーにはまだ見るものがありませんか。これは {0} を、3 つのメールボックス、配布リスト、ルール、いくつかの配信済みメッセージとともに作成し、学習中もどの画面にも何かが表示されるようにします。",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "削除できるほど古いものはありませんでした。ウィンドウは hMailServer.ini の QuarantineRetentionDays で、0 は「削除しない」を意味します。",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "削除できるほど古いものはありませんでした。ウィンドウは QuarantineRetentionDays 設定で、コントロールパネルのスパム対策の設定ページ、または PUT /api/v1/settings/ini/QuarantineRetentionDays で変更できます。0 は「削除しない」を意味します。",
   "Notifications stopped on {0} device(s) of {1}": "{1} の {0} 台のデバイスで通知を停止しました",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "次はメールボックスです。アカウントとは、誰かがサインインし、メールを受け取るアドレスのことです。",
   "OK": "OK",

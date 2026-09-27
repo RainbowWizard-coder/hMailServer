@@ -863,7 +863,7 @@ namespace hMailServer.ControlPanel.Views
             Reload();
 
             if (removed == 0)
-               Status_(StatusLevel.Information, L("Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never."));
+               Status_(StatusLevel.Information, L("Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never."));
             else
                Status_(StatusLevel.Good, F("{0} message(s) past the retention window were removed.", removed));
          }

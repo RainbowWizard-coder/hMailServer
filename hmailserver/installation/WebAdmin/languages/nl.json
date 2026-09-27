@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Niets wordt vastgehouden. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "De lijst van dit domein is leeg, dus beslissen de eigen lijst van elk account en daarna die van de server.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Nog niets te zien op deze server? Dit maakt {0} met drie postbussen, een distributielijst, een regel en een handvol bezorgde berichten, zodat elke weergave iets bevat terwijl u leert.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Niets was oud genoeg om te verwijderen. De periode is QuarantineRetentionDays in hMailServer.ini, en 0 betekent nooit.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Niets was oud genoeg om te verwijderen. De periode is de instelling QuarantineRetentionDays, op de pagina Antispaminstellingen van het Control Panel of met PUT /api/v1/settings/ini/QuarantineRetentionDays, en 0 betekent nooit.",
   "Notifications stopped on {0} device(s) of {1}": "Meldingen gestopt op {0} apparaat/apparaten van {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Nu een mailbox. Een account is een adres waarop iemand zich aanmeldt en e-mail ontvangt.",
   "OK": "OK",

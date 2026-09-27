@@ -5237,7 +5237,7 @@ async function qExpire(){
   try{
     const a=await api("/api/v1/quarantine/expire",{method:"POST",body:"{}"});
     const removed=Number(a.removed)||0;
-    Q.said=removed?tf("{0} message(s) past the retention window were removed.",removed):t("Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.");
+    Q.said=removed?tf("{0} message(s) past the retention window were removed.",removed):t("Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.");
     await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
 }

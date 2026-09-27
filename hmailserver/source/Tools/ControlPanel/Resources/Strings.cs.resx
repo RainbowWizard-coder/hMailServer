@@ -6603,8 +6603,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
     <value>Nic nebylo dost staré na odstranění. Okno určuje MessageTraceRetentionDays a 0 znamená nikdy.</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never." xml:space="preserve">
-    <value>Nic nebylo dost staré na odstranění. Okno určuje QuarantineRetentionDays v hMailServer.ini a 0 znamená nikdy.</value>
+  <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
+    <value>Nic nebylo dost staré na odstranění. Okno se nastavuje na stránce Nastavení antispamu (Mazat zprávy v karanténě po) a 0 znamená nikdy.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Nic se nepřečetlo.</value>

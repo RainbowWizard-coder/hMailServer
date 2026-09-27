@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Mitään ei ole pidätetty. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Tämän verkkotunnuksen luettelossa ei ole mitään, joten ratkaisevat kunkin tilin oma luettelo ja sitten palvelimen.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Eikö tällä palvelimella ole vielä mitään katsottavaa? Tämä luo toimialueen {0}, jossa on kolme postilaatikkoa, jakelulista, sääntö ja kourallinen toimitettuja viestejä, jotta jokaisessa näkymässä on jotain opettelun ajan.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Mikään ei ollut tarpeeksi vanhaa poistettavaksi. Ikkuna on QuarantineRetentionDays hMailServer.ini-tiedostossa, ja 0 tarkoittaa ei koskaan.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Mikään ei ollut tarpeeksi vanhaa poistettavaksi. Ikkuna on asetus QuarantineRetentionDays, Control Panelin roskapostisuojauksen asetussivulla tai PUT /api/v1/settings/ini/QuarantineRetentionDays -kutsulla, ja 0 tarkoittaa ei koskaan.",
   "Notifications stopped on {0} device(s) of {1}": "Ilmoitukset lopetettu {0} laitteella tilillä {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Nyt postilaatikko. Tili on osoite, johon joku kirjautuu sisään ja johon hän saa postia.",
   "OK": "OK",

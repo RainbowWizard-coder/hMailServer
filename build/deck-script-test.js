@@ -7840,6 +7840,12 @@ async function main() {
       await flush();
       check('Remove expired runs the sweep and says what it removed', called(before, 'POST', '/api/v1/quarantine/expire').length === 1 &&
          content().textContent.indexOf('Nothing was old enough') >= 0, paths(before));
+      // The window is a setting the server keeps in its database: a hand edit
+      // of hMailServer.ini is put back, so the sentence names where it is set.
+      check('and names where the window is set, not a file the server puts back when edited',
+         $('#qSaid').textContent.indexOf('QuarantineRetentionDays') >= 0 && $('#qSaid').textContent.indexOf('hMailServer.ini') < 0 &&
+         $('#qSaid').textContent.indexOf('Anti-spam settings page') >= 0 && $('#qSaid').textContent.indexOf('PUT /api/v1/settings/ini/QuarantineRetentionDays') >= 0,
+         $('#qSaid').textContent);
 
       click(act('qdigest'));
       await flush();

@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Τίποτα δεν κρατείται. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Η λίστα αυτού του τομέα είναι κενή, οπότε αποφασίζει η λίστα κάθε λογαριασμού και μετά του διακομιστή.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Δεν υπάρχει ακόμη τίποτα να δείτε σε αυτόν τον διακομιστή; Αυτό δημιουργεί το {0} με τρία γραμματοκιβώτια, μια λίστα διανομής, έναν κανόνα και λίγα παραδοθέντα μηνύματα, ώστε κάθε προβολή να έχει κάτι μέσα όσο μαθαίνετε.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Τίποτα δεν ήταν αρκετά παλιό για αφαίρεση. Το παράθυρο είναι το QuarantineRetentionDays στο hMailServer.ini, και το 0 σημαίνει ποτέ.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Τίποτα δεν ήταν αρκετά παλιό για αφαίρεση. Το παράθυρο είναι η ρύθμιση QuarantineRetentionDays, στη σελίδα ρυθμίσεων προστασίας από ανεπιθύμητα του Control Panel ή μέσω PUT /api/v1/settings/ini/QuarantineRetentionDays, και το 0 σημαίνει ποτέ.",
   "Notifications stopped on {0} device(s) of {1}": "Οι ειδοποιήσεις διακόπηκαν σε {0} συσκευή(ές) του {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Τώρα ένα γραμματοκιβώτιο. Ο λογαριασμός είναι μια διεύθυνση στην οποία κάποιος συνδέεται και στην οποία λαμβάνει αλληλογραφία.",
   "OK": "Εντάξει",

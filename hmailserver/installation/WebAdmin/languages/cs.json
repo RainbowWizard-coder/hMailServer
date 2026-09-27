@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Nic není zadrženo. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Seznam této domény je prázdný, takže rozhoduje vlastní seznam každého účtu a potom seznam serveru.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Na tomto serveru zatím není co si prohlédnout? Toto vytvoří {0} se třemi schránkami, distribučním seznamem, pravidlem a několika doručenými zprávami, aby při učení bylo v každém zobrazení něco k vidění.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Nic nebylo dost staré na odstranění. Okno určuje QuarantineRetentionDays v hMailServer.ini a 0 znamená nikdy.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Nic nebylo dost staré na odstranění. Okno určuje nastavení QuarantineRetentionDays, na stránce Nastavení antispamu v Control Panelu nebo přes PUT /api/v1/settings/ini/QuarantineRetentionDays, a 0 znamená nikdy.",
   "Notifications stopped on {0} device(s) of {1}": "Oznámení zastavena na {0} zařízeních účtu {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Teď schránka. Účet je adresa, ke které se někdo přihlašuje a na niž dostává poštu.",
   "OK": "OK",

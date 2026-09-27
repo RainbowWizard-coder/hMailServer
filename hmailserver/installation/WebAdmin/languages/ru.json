@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Ничего не задержано. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Список этого домена пуст, поэтому решают собственный список каждой учётной записи, а затем список сервера.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Пока нечего посмотреть на этом сервере? Это создаёт {0} с тремя почтовыми ящиками, списком рассылки, одним правилом и несколькими доставленными сообщениями, чтобы во время обучения на каждом экране что-то было.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Ничего достаточно старого для удаления не нашлось. Окно задаётся параметром QuarantineRetentionDays в hMailServer.ini, а 0 означает «никогда».",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Ничего достаточно старого для удаления не нашлось. Окно задаётся параметром QuarantineRetentionDays — на странице «Параметры антиспама» в Control Panel или через PUT /api/v1/settings/ini/QuarantineRetentionDays, а 0 означает «никогда».",
   "Notifications stopped on {0} device(s) of {1}": "Уведомления остановлены на {0} устройстве(ах) {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Теперь ящик. Учётная запись — это адрес, под которым кто-то выполняет вход и на который получает почту.",
   "OK": "OK",

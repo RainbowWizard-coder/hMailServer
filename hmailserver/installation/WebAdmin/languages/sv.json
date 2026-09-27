@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Inget hålls kvar. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Den här domänens lista är tom, så varje kontos egen lista och därefter serverns avgör.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Inget att titta på i den här servern ännu? Detta skapar {0} med tre brevlådor, en distributionslista, en regel och en handfull levererade meddelanden, så att varje vy innehåller något medan du lär dig.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Inget var gammalt nog att ta bort. Fönstret är QuarantineRetentionDays i hMailServer.ini, och 0 betyder aldrig.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Inget var gammalt nog att ta bort. Fönstret är inställningen QuarantineRetentionDays, på sidan Skräppostinställningar i Kontrollpanel eller med PUT /api/v1/settings/ini/QuarantineRetentionDays, och 0 betyder aldrig.",
   "Notifications stopped on {0} device(s) of {1}": "Aviseringar stoppade på {0} enhet(er) för {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Nu en brevlåda. Ett konto är en adress som någon loggar in på och tar emot post på.",
   "OK": "OK",

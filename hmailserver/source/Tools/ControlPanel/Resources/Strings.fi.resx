@@ -6603,8 +6603,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
     <value>Mikään ei ollut tarpeeksi vanhaa poistettavaksi. Ikkuna on MessageTraceRetentionDays, ja 0 tarkoittaa ei koskaan.</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never." xml:space="preserve">
-    <value>Mikään ei ollut tarpeeksi vanhaa poistettavaksi. Ikkuna on QuarantineRetentionDays hMailServer.ini-tiedostossa, ja 0 tarkoittaa ei koskaan.</value>
+  <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
+    <value>Mikään ei ollut tarpeeksi vanhaa poistettavaksi. Ikkuna asetetaan sivulla Roskapostisuojauksen asetukset (Poista karanteenissa olevat viestit), ja 0 tarkoittaa ei koskaan.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Mitään ei luettu.</value>

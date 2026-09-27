@@ -6603,8 +6603,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
     <value>Inget var gammalt nog att ta bort. Fönstret är MessageTraceRetentionDays, och 0 betyder aldrig.</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never." xml:space="preserve">
-    <value>Inget var gammalt nog att ta bort. Fönstret är QuarantineRetentionDays i hMailServer.ini, och 0 betyder aldrig.</value>
+  <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
+    <value>Inget var gammalt nog att ta bort. Fönstret ställs in på sidan Skräppostinställningar (Ta bort meddelanden i karantän efter), och 0 betyder aldrig.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Inget lästes.</value>

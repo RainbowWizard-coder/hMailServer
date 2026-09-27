@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "没有被扣留的邮件。✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "本域名的名单为空，因此由各账户自己的名单、再由服务器的名单决定。",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "此服务器上还没有可看的内容？这会创建 {0}，带三个邮箱、一个通讯组列表、一条规则和若干已投递的邮件，让您学习时每个视图里都有内容。",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "没有足够旧到可以移除的内容。窗口为 hMailServer.ini 中的 QuarantineRetentionDays，0 表示从不。",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "没有足够旧到可以移除的内容。窗口为 QuarantineRetentionDays 设置，可在控制面板的反垃圾邮件设置页面或通过 PUT /api/v1/settings/ini/QuarantineRetentionDays 更改，0 表示从不。",
   "Notifications stopped on {0} device(s) of {1}": "已在 {1} 的 {0} 台设备上停止通知",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "接下来是邮箱。帐户就是某个人用来登录并接收邮件的地址。",
   "OK": "正常",

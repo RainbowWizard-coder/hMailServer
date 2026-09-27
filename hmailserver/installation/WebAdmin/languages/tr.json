@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Bekletilen bir şey yok. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Bu alan adının listesi boş; bu yüzden önce her hesabın kendi listesi, sonra sunucununki karar verir.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Bu sunucuda henüz bakacak bir şey yok mu? Bu, {0} etki alanını üç posta kutusu, bir dağıtım listesi, bir kural ve birkaç teslim edilmiş iletiyle oluşturur; böylece öğrenirken her görünümde bir şeyler olur.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Kaldırılacak kadar eski bir şey yoktu. Pencere hMailServer.ini içindeki QuarantineRetentionDays'dir ve 0 hiçbir zaman demektir.",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Kaldırılacak kadar eski bir şey yoktu. Pencere, Denetim Masası'nın Spam önleme ayarları sayfasında ya da PUT /api/v1/settings/ini/QuarantineRetentionDays ile değiştirilen QuarantineRetentionDays ayarıdır ve 0 hiçbir zaman demektir.",
   "Notifications stopped on {0} device(s) of {1}": "{1} hesabının {0} cihazında bildirimler durduruldu",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Şimdi bir posta kutusu. Hesap, birinin oturum açtığı ve posta aldığı adrestir.",
   "OK": "Tamam",

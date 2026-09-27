@@ -925,7 +925,7 @@
   "Nothing is held. ✦": "Нічого не затримано. ✦",
   "Nothing is on this domain's list, so each account's own list and then the server's decide.": "Список цього домену порожній, тож вирішують власний список кожного облікового запису, а потім список сервера.",
   "Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every view has something in it while you learn.": "Поки що нема на що подивитися на цьому сервері? Це створює {0} з трьома скриньками, списком розсилки, одним правилом і кількома доставленими повідомленнями, щоб під час навчання на кожному екрані щось було.",
-  "Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never.": "Нічого достатньо старого для вилучення не було. Вікно задає QuarantineRetentionDays у hMailServer.ini, а 0 означає «ніколи».",
+  "Nothing was old enough to remove. The window is the QuarantineRetentionDays setting, on the Control Panel's Anti-spam settings page or at PUT /api/v1/settings/ini/QuarantineRetentionDays, and 0 means never.": "Нічого достатньо старого для вилучення не було. Вікно задає параметр QuarantineRetentionDays — на сторінці «Параметри захисту від спаму» в Control Panel або через PUT /api/v1/settings/ini/QuarantineRetentionDays, а 0 означає «ніколи».",
   "Notifications stopped on {0} device(s) of {1}": "Сповіщення зупинено на {0} пристрої(ях) {1}",
   "Now a mailbox. An account is an address somebody signs in to and receives mail at.": "Тепер скринька. Обліковий запис — це адреса, до якої хтось входить і на яку отримує пошту.",
   "OK": "OK",

@@ -6603,8 +6603,8 @@
   <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
     <value>Нічого достатньо старого для вилучення не було. Вікно задає MessageTraceRetentionDays, а 0 означає «ніколи».</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is QuarantineRetentionDays in hMailServer.ini, and 0 means never." xml:space="preserve">
-    <value>Нічого достатньо старого для вилучення не було. Вікно задає QuarantineRetentionDays у hMailServer.ini, а 0 означає «ніколи».</value>
+  <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
+    <value>Нічого достатньо старого для вилучення не було. Вікно задається на сторінці «Параметри захисту від спаму» («Видаляти повідомлення з карантину після»), а 0 означає «ніколи».</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Нічого не прочитано.</value>
