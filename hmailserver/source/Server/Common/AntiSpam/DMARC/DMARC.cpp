@@ -205,6 +205,28 @@ namespace HM
       // server's ini file instead of about their message.
       methodUsed = DiscoveryPublicSuffixList;
 
+      return OrganizationalDomainFromList_(lowerDomain, labels);
+   }
+
+   String
+   DMARC::GetOrganizationalDomainByPublicSuffixList(const String &domain)
+   {
+      // Prepared exactly as GetOrganizationalDomain prepares its input, so that
+      // a name has one list answer whichever of the two asked.
+      String lowerDomain = domain;
+      lowerDomain.MakeLower();
+      lowerDomain.TrimRight(_T("."));
+
+      std::vector<String> labels = StringParser::SplitString(lowerDomain, ".");
+      if (labels.size() <= 1)
+         return lowerDomain;
+
+      return OrganizationalDomainFromList_(lowerDomain, labels);
+   }
+
+   String
+   DMARC::OrganizationalDomainFromList_(const String &lowerDomain, const std::vector<String> &labels)
+   {
       // The public suffix comes from the real Public Suffix List, compiled in
       // (see PublicSuffixList.h and build\generate-public-suffix-list.ps1).
       //

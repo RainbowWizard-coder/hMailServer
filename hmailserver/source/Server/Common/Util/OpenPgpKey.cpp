@@ -1654,6 +1654,35 @@ namespace HM
          Require(!OpenPgpRing::DirectoryUnreachable(_T("tarpit.example.net")), "A name that merely contains the organization is held.");
          OpenPgpRing::ForgetUnreachable();
          Require(!OpenPgpRing::DirectoryUnreachable(_T("b2.tarpit.example")), "Forgetting did not clear the hold.");
+
+         // The organization is the Public Suffix List's, never the DNS tree
+         // walk's, which answers a name with no DMARC record - tarpit.example -
+         // as its own organization; and under a two-label suffix it is three.
+         OpenPgpRing::NoteDirectoryUnreachable(_T("a1.tarpit.co.uk"));
+         Require(OpenPgpRing::DirectoryUnreachable(_T("b2.tarpit.co.uk")), "Another subdomain under a two-label suffix is not held.");
+         Require(OpenPgpRing::DirectoryUnreachable(_T("tarpit.co.uk.")), "The organization under a two-label suffix is not held.");
+         Require(!OpenPgpRing::DirectoryUnreachable(_T("tarpit2.co.uk")), "Another organization under the same suffix is held.");
+         Require(!OpenPgpRing::DirectoryUnreachable(_T("co.uk")), "The public suffix itself is held.");
+         OpenPgpRing::ForgetUnreachable();
+      }
+
+      // ---- an address that is not at a domain name has no key directory, and
+      // is not asked for one: the address validator admits each of these, the
+      // direct leg would connect to the address itself, and a caller has a new
+      // one for every lookup, with no organization for the hold above to key.
+      {
+         Require(OpenPgpRing::MayHaveWebKeyDirectory(_T("example.org")), "A domain name may have a directory, and was not asked.");
+         Require(OpenPgpRing::MayHaveWebKeyDirectory(_T("a1.tarpit.co.uk")), "A name under a two-label suffix may have a directory, and was not asked.");
+         Require(OpenPgpRing::MayHaveWebKeyDirectory(_T("xn--bcher-kva.xn--p1ai")), "A name under an internationalized top-level domain may have a directory, and was not asked.");
+         Require(OpenPgpRing::MayHaveWebKeyDirectory(_T("Example.ORG.")), "A name in capitals with the root's dot may have a directory, and was not asked.");
+         Require(OpenPgpRing::MayHaveWebKeyDirectory(_T("1password.com")), "A name that begins with a digit, under a top-level domain, may have a directory, and was not asked.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("[198.51.100.7]")), "An address literal was asked for a directory.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("198.51.100.7")), "An IPv4 address written as a name was asked for a directory.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("0xc6.0x33.0x64.0x7")), "An IPv4 address in the hexadecimal form a resolver reads was asked for a directory.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("198.51.100.7.")), "An IPv4 address with the root's dot was asked for a directory.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("localhost")), "A name of one label was asked for a directory.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("qzrandom.")), "A name of one label with the root's dot was asked for a directory.");
+         Require(!OpenPgpRing::MayHaveWebKeyDirectory(_T("")), "Nothing at all was asked for a directory.");
       }
    }
 }

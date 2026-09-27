@@ -608,9 +608,9 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   lookup, a test push - held one for up to its deadline, so one account keeping four of them in flight against a
   host that never answers, a made-up subdomain for each logo, left nothing to answer anybody else. An account now
   has one such request in flight at a time and the server two in all; the rest are answered `429` at once. A
-  logo host or a key directory that gave no answer for three seconds or more is held against its whole
-  organizational domain for an hour, so the next made-up subdomain is answered at once without asking it
-  ([BrandLogos.md](hmailserver/docs/BrandLogos.md)).
+  logo lookup or a key directory that took three seconds or more, in the DNS or at the host and whatever it came
+  to, is held against its whole organizational domain by the Public Suffix List for an hour, so the next made-up
+  subdomain is answered at once without asking it ([BrandLogos.md](hmailserver/docs/BrandLogos.md)).
 - **A new installation is secure before anyone configures it.** A database this installation created - never an
   upgraded or attached one - is given a self-signed certificate for the machine (RSA 2048, 825 days), STARTTLS
   offered on 25, 587, 110 and 143, and TLS required for authentication on the Internet IP range, so that a password

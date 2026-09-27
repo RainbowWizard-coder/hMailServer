@@ -71,13 +71,23 @@ namespace HM
       static bool IsTinyPs(const AnsiString &svg, AnsiString &reason);
       static bool PolicyEnforces(const String &p, const String &sp, int pct, bool atOrganizationalDomain);
 
-      // A logo host that did not answer within its deadline is held against the
-      // whole organizational domain (DMARC::GetOrganizationalDomain, the Public
-      // Suffix List) for an hour, not only the name asked: whoever owns
-      // attacker.example has a new subdomain for every request, each publishing
-      // a logo at a host that never answers, and each would otherwise hold a
-      // REST worker for the fetch's ten seconds. Known answers FetchFailed for
-      // every name under a held domain without asking anybody.
+      // A lookup that took three seconds or more - the DNS, the logo's host, or
+      // the two together, whatever it came to - is held against the whole
+      // organizational domain for an hour, not only the name asked: whoever
+      // owns attacker.example has a new subdomain for every request, and runs
+      // both the DNS each one is looked up in and the host its logo is fetched
+      // from; each would otherwise hold a REST worker for the DNS queries'
+      // DNSQueryTimeout apiece and the fetch's ten seconds. Silence alone is
+      // not the test, because an answer after a wait - a 404, a logo - costs the
+      // worker the same and is as easy to give. Known answers FetchFailed for
+      // every name under a held domain without asking anybody, except a name
+      // whose answer is already kept.
+      //
+      // The organizational domain is the Public Suffix List's alone
+      // (DMARC::GetOrganizationalDomainByPublicSuffixList), with no DNS query.
+      // The RFC 9989 tree walk DMARC::GetOrganizationalDomain does by default
+      // answers a name with no DMARC record as its own organization, so a
+      // tarpit that publishes none would have every subdomain held apart.
       static void NoteUnreachable(const String &domain);
       static bool OrganizationUnreachable(const String &domain);
 

@@ -11,6 +11,7 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <chrono>
 #include <ctime>
 #include <map>
 #include <regex>
@@ -40,8 +41,10 @@ namespace HM
       boost::mutex cacheLock;
       std::map<String, Answer> cache;
 
-      // Organizational domains whose logo host did not answer, and when
-      // (BrandLogo::NoteUnreachable). Under cacheLock, bounded as the cache is.
+      // Organizational domains a lookup under which took SlowSeconds or more,
+      // and when (BrandLogo::NoteUnreachable). Under cacheLock, bounded as the
+      // cache is.
+      // Keyed by the Public Suffix List alone (HoldKey), never by the DNS.
       const time_t UnreachableSeconds = 60 * 60;
       const time_t SlowSeconds = 3;
       std::map<String, time_t> unreachable;
@@ -79,6 +82,20 @@ namespace HM
       {
          if (!condition)
             throw std::logic_error(message);
+      }
+
+      // The name a hold is kept under: the registrable domain by the Public
+      // Suffix List, with no DNS query. Not DMARC::GetOrganizationalDomain,
+      // which under DmarcTreeWalkEnabled (on by default) walks the DNS and
+      // answers a name that publishes no DMARC record as its own organization:
+      // a tarpit domain need only publish none for every subdomain of it to be
+      // held apart, and the hold would never cover the next one.
+      String HoldKey(const String &domain)
+      {
+         const String normalised = BrandLogo::NormaliseDomain(domain);
+         if (normalised.IsEmpty())
+            return String();
+         return DMARC::GetOrganizationalDomainByPublicSuffixList(normalised);
       }
    }
 
@@ -291,7 +308,7 @@ namespace HM
    void
    BrandLogo::NoteUnreachable(const String &domain)
    {
-      const String organizational = DMARC::GetOrganizationalDomain(NormaliseDomain(domain));
+      const String organizational = HoldKey(domain);
       if (organizational.IsEmpty())
          return;
 
@@ -304,7 +321,7 @@ namespace HM
    bool
    BrandLogo::OrganizationUnreachable(const String &domain)
    {
-      const String organizational = DMARC::GetOrganizationalDomain(NormaliseDomain(domain));
+      const String organizational = HoldKey(domain);
       if (organizational.IsEmpty())
          return false;
 
@@ -348,7 +365,7 @@ namespace HM
 
       if (OrganizationUnreachable(domain))
       {
-         reason = "The logo host of this domain's organization did not answer within the last hour, so it is not asked again yet.";
+         reason = "Looking up a logo under this domain's organization took three seconds or more within the last hour, so it is not asked again yet.";
          outcome = FetchFailed;
          return true;
       }
@@ -365,6 +382,11 @@ namespace HM
 
       const String domain = NormaliseDomain(requested);
       const time_t now = std::time(nullptr);
+
+      // Everything from here is on the clock the hold is kept by (the end of
+      // this function), not only the fetch: the DNS comes first, and it is the
+      // owner of the name who answers it.
+      const std::chrono::steady_clock::time_point asking = std::chrono::steady_clock::now();
 
       Answer answer;
       answer.at = now;
@@ -420,13 +442,7 @@ namespace HM
             String error;
             std::vector<AnsiString> headers;
             headers.push_back("Accept: image/svg+xml");
-            const time_t asked = std::time(nullptr);
             const bool ok = HttpsClient::RequestPublic("GET", location, headers, "", "", response, error, 10, MaximumLogoBytes);
-            // No answer, after a wait: held against the organization, so that its
-            // next subdomain is not another ten seconds (NoteUnreachable). A quick
-            // refusal costs nothing and is not held.
-            if (!ok && std::time(nullptr) - asked >= SlowSeconds)
-               NoteUnreachable(domain);
             if (!ok || response.status_code != 200)
             {
                answer.outcome = FetchFailed;
@@ -450,6 +466,19 @@ namespace HM
             }
          }
       }
+
+      // A lookup that held this worker SlowSeconds or more is held against the
+      // organization (NoteUnreachable), whatever it came to. Holding only a
+      // logo host that never answered left the wait to whoever chose it: the
+      // owner of a name runs its DNS too, and a server that answers each query
+      // for a fresh subdomain after a wait - up to DNSQueryTimeout apiece, for
+      // the record, the tree walk and the policy - or a logo host that answers
+      // 404, or a logo, after nine seconds, costs a worker as much as silence
+      // does. The name asked keeps its own answer, kept below; the hold is on
+      // every other name under the organization, for an hour. A quick answer of
+      // any kind costs nothing and is not held.
+      if (std::chrono::steady_clock::now() - asking >= std::chrono::seconds(SlowSeconds))
+         NoteUnreachable(domain);
 
       {
          boost::lock_guard<boost::mutex> guard(cacheLock);
@@ -511,6 +540,12 @@ namespace HM
       // OUT-2: a logo host that never answered is held against the organization,
       // so a fresh subdomain of it is not another ten seconds on a REST worker.
       // The old cache was keyed by the full name alone and had no such hold.
+      //
+      // The organization is the Public Suffix List's, never the DNS tree walk's:
+      // tarpit.example publishes no DMARC record, and the walk (on by default)
+      // answers such a name as its own organization, so keyed by it b2 was not
+      // held for a1 - which is how this tester failed in the 6.3.4 gate, under
+      // the regression suite's zone, where every lookup succeeds with nothing.
       B::ClearCache();
       Expect(!B::OrganizationUnreachable(_T("a1.tarpit.example")), "Nothing is held before anything failed.");
       B::NoteUnreachable(_T("a1.tarpit.example"));
@@ -520,5 +555,16 @@ namespace HM
       Expect(!B::OrganizationUnreachable(_T("tarpit.example.net")), "A name that merely contains it is not held.");
       B::ClearCache();
       Expect(!B::OrganizationUnreachable(_T("b2.tarpit.example")), "Clearing the cache clears the hold.");
+
+      // Under a public suffix of two labels the organization is three: the hold
+      // covers tarpit.co.uk and every name under it, and neither its neighbour
+      // under co.uk nor the suffix itself.
+      B::NoteUnreachable(_T("a1.tarpit.co.uk"));
+      Expect(B::OrganizationUnreachable(_T("b2.tarpit.co.uk")), "Another subdomain under a two-label suffix is held.");
+      Expect(B::OrganizationUnreachable(_T("x.y.Tarpit.Co.Uk")), "A deeper name under a two-label suffix is held, whatever its case.");
+      Expect(B::OrganizationUnreachable(_T("tarpit.co.uk")), "The organization under a two-label suffix is held.");
+      Expect(!B::OrganizationUnreachable(_T("tarpit2.co.uk")), "Another organization under the same suffix is not held.");
+      Expect(!B::OrganizationUnreachable(_T("co.uk")), "The public suffix itself is not held.");
+      B::ClearCache();
    }
 }

@@ -21,6 +21,7 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <chrono>
 #include <map>
 
 #include <ctime>
@@ -604,12 +605,19 @@ namespace HM
    namespace
    {
       // Organizational domains whose key directory did not answer, and when.
+      // Keyed by the Public Suffix List alone (OrganizationOf), never by the DNS.
       const time_t UnreachableSeconds = 60 * 60;
       const time_t SlowSeconds = 3;
       const size_t UnreachableKept = 2000;
       boost::mutex unreachableLock;
       std::map<String, time_t> unreachableDirectories;
 
+      // The registrable domain by the Public Suffix List, with no DNS query. Not
+      // DMARC::GetOrganizationalDomain, which under DmarcTreeWalkEnabled (on by
+      // default) walks the DNS and answers a name that publishes no DMARC record
+      // as its own organization: a tarpit domain need only publish none for
+      // every subdomain of it to be held apart, and the hold would never cover
+      // the next one.
       String OrganizationOf(const String &domain)
       {
          String lowered = domain;
@@ -619,7 +627,7 @@ namespace HM
             lowered = lowered.Mid(0, lowered.GetLength() - 1);
          if (lowered.IsEmpty())
             return String();
-         return DMARC::GetOrganizationalDomain(lowered);
+         return DMARC::GetOrganizationalDomainByPublicSuffixList(lowered);
       }
    }
 
@@ -655,6 +663,25 @@ namespace HM
       unreachableDirectories.clear();
    }
 
+   bool
+   OpenPgpRing::MayHaveWebKeyDirectory(const String &domain)
+   {
+      String name = domain;
+      name.Trim();
+      while (name.EndsWith(_T(".")))
+         name = name.Mid(0, name.GetLength() - 1);
+
+      if (name.IsEmpty() || name.StartsWith(_T("[")))
+         return false;
+
+      const int lastDot = name.ReverseFind('.');
+      if (lastDot <= 0 || lastDot == name.GetLength() - 1)
+         return false;
+
+      const wchar_t first = name.GetAt(lastDot + 1);
+      return (first >= 'a' && first <= 'z') || (first >= 'A' && first <= 'Z');
+   }
+
    OpenPgpRing::Found
    OpenPgpRing::Lookup(const String &address)
    {
@@ -676,16 +703,35 @@ namespace HM
          return found;
       }
 
-      if (Configuration::Instance()->GetOpenPGPLookupWkd() && DirectoryUnreachable(domain))
+      if (Configuration::Instance()->GetOpenPGPLookupWkd() && !MayHaveWebKeyDirectory(domain))
+      {
+         // An address literal, a name of one label, or an IPv4 address written
+         // as a name (MayHaveWebKeyDirectory): no directory can be there, and
+         // asking would connect to whatever address the caller chose. The
+         // keyserver, if it is on, is still asked.
+         found.error = _T("that address is not at a domain name, so there is no key directory to ask");
+      }
+      else if (Configuration::Instance()->GetOpenPGPLookupWkd() && DirectoryUnreachable(domain))
       {
          // Held (NoteDirectoryUnreachable): the directory is not asked, and the
          // keyserver, if it is on, still is.
-         found.error = _T("the key directory of that domain's organization did not answer within the last hour");
+         found.error = _T("asking the key directory of that domain's organization took three seconds or more within the last hour, so it is not asked again yet");
       }
       else if (Configuration::Instance()->GetOpenPGPLookupWkd())
       {
-         const time_t directoryAsked = time(nullptr);
-         bool anyAnswer = false;
+         // A directory that held this worker SlowSeconds or more is held against
+         // the organization, whatever it answered - silence, a 404, or a key.
+         // Holding only silence left the wait to whoever chose it: a directory
+         // that answers 404 after nine seconds, for a new local part at the
+         // same domain every time, costs a worker as much as one that never
+         // answers, and needs no subdomain at all. A quick answer of any kind -
+         // a name with no such host, a port closed, a 404 - is not held.
+         const std::chrono::steady_clock::time_point directoryAsked = std::chrono::steady_clock::now();
+         auto holdIfSlow = [&]()
+         {
+            if (std::chrono::steady_clock::now() - directoryAsked >= std::chrono::seconds(SlowSeconds))
+               NoteDirectoryUnreachable(domain);
+         };
          const AnsiString urls[2] =
          {
             OpenPgpKeyStore::DirectoryUrl(address, true),
@@ -700,10 +746,8 @@ namespace HM
 
             if (remaining() <= 0)
             {
-               // The directory's first leg took the whole deadline without an
-               // answer: the tarpit NoteDirectoryUnreachable is for.
-               if (!anyAnswer && time(nullptr) - directoryAsked >= SlowSeconds)
-                  NoteDirectoryUnreachable(domain);
+               // The directory's first leg took the whole deadline.
+               holdIfSlow();
                found.error = _T("the lookup ran out of time");
                return found;
             }
@@ -711,7 +755,6 @@ namespace HM
             int status = 0;
             String error;
             const bool fetched = Fetch(urls[i], true, remaining(), body, status, error);
-            anyAnswer = anyAnswer || fetched || status > 0;
             if (!fetched)
             {
                found.status = status;
@@ -739,14 +782,13 @@ namespace HM
             found.source = names[i];
             found.url = Wide(urls[i]);
             found.status = status;
+            // Answered with the key, which the person gets; a slow answer is
+            // held all the same, or serving a key slowly would be the way round.
+            holdIfSlow();
             return found;
          }
 
-         // Neither leg answered at all, and that took a while: held against the
-         // organization. A quick refusal - a name with no such host, a port
-         // closed - costs nothing and is not held.
-         if (!anyAnswer && time(nullptr) - directoryAsked >= SlowSeconds)
-            NoteDirectoryUnreachable(domain);
+         holdIfSlow();
       }
 
       if (Configuration::Instance()->GetOpenPGPLookupKeyserver())

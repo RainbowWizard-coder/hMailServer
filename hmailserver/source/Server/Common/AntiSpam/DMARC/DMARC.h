@@ -101,6 +101,24 @@ namespace HM
       // discovery_method reports. methodUsed is always written.
       static String GetOrganizationalDomain(const String &domain, DiscoveryMethod &methodUsed);
 
+      // The organizational domain by the Public Suffix List alone (RFC 7489
+      // 3.2): the public suffix and the one label registered under it - what
+      // the list calls the registrable domain - or the name unchanged when it
+      // is a suffix itself or has one label. No DNS query, whatever
+      // DmarcTreeWalkEnabled says; the same arithmetic the two methods above
+      // fall back to when the tree walk is off or fails.
+      //
+      // This is for grouping names by who registered them, where the answer
+      // must not be the domain's own to choose. The RFC 9989 tree walk answers
+      // a name that publishes no DMARC record as its own organizational domain,
+      // so under the walk every subdomain of such a domain is an organization
+      // of its own, and anything held against "the organization" - BrandLogo's
+      // unreachable logo hosts, OpenPgpRing's unreachable key directories -
+      // holds nothing a fresh subdomain cannot step around. DMARC's own
+      // decisions (alignment, policy discovery, where a report may go) use
+      // GetOrganizationalDomain, which follows the setting.
+      static String GetOrganizationalDomainByPublicSuffixList(const String &domain);
+
    private:
 
       enum AlignmentMode
@@ -112,6 +130,11 @@ namespace HM
       bool RetrievePolicy_(const String &domain, String &policyRecord, bool &dnsError);
       bool ParseTagValue_(const String &record, const String &tag, String &value);
       bool DomainsAligned_(const String &authenticatedDomain, const String &fromDomain, AlignmentMode mode);
+
+      // The Public Suffix List arithmetic both public forms end in. lowerDomain
+      // is lowercased with its trailing dots removed and labels is it split on
+      // '.', with two labels at least.
+      static String OrganizationalDomainFromList_(const String &lowerDomain, const std::vector<String> &labels);
 
       // Whether RFC 9989 np= applies: the From domain is a subdomain of the policy
       // domain AND does not exist in the DNS. Answers false on a resolver failure,

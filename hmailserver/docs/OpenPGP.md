@@ -486,15 +486,28 @@ mailbox here could aim this server at whatever only this server can reach. The
 keyserver is a URL an administrator set, so it is allowed to be an `http`
 address on this machine and nothing else in the clear.
 
-A domain whose key directory gave no answer at all - neither the advanced nor
-the direct address answered - after three seconds or more is held against its
-whole organizational domain (the Public Suffix List's answer) for an hour: a
-lookup of any address under it does not ask the directory, says so, and goes on
-to the keyserver if that is on. Whoever owns a domain has a new subdomain for
-every lookup, each with a directory host that never answers, and each would
-otherwise hold a REST worker for the whole `lookup_timeout`. A directory that
-answers, even 404, or a host that refuses at once, is not held
-(`OpenPgpRing::NoteDirectoryUnreachable`).
+An address that is not at a domain name has no directory, and none is asked:
+an address literal (`someone@[192.0.2.1]`), a name of one label, and a name
+whose last label begins with a digit - an IPv4 address written as a name, in any
+of the forms a resolver reads as one (`198.51.100.7`, `0xc6.0x33.0x64.0x7`),
+since no top-level domain begins with one. The address validator admits all
+of them, the direct leg would connect to the address itself, and a caller has a
+new one for every lookup with no organization to hold it by. The lookup says so
+and goes on to the keyserver if that is on (`OpenPgpRing::MayHaveWebKeyDirectory`).
+
+A domain whose key directory took three seconds or more to ask - both addresses
+together, whatever they answered: nothing, a 404, or even the key - is held
+against its whole organizational domain (the Public Suffix List's answer) for an
+hour: a lookup of any address under it does not ask the directory, says so, and
+goes on to the keyserver if that is on. Whoever owns a domain has a new
+subdomain, or a new local part, for every lookup, and runs the directory each
+one is asked at; each would otherwise hold a REST worker for up to the whole
+`lookup_timeout`. Silence alone is not the test, because a 404 or a key sent
+after a wait costs the worker the same and is as easy to send. A directory that
+answers at once, whatever it answers, or a host that refuses at once, is not
+held. The cost falls on a directory that is slow for everybody: once it has
+taken three seconds, the next address at its domain is not looked up there for
+an hour (`OpenPgpRing::NoteDirectoryUnreachable`).
 
 **Nothing is stored by the lookup.** It answers the key and where it came from,
 the page shows the fingerprint, and the person decides. A key nobody looked at is

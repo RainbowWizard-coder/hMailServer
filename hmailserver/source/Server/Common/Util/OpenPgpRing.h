@@ -177,15 +177,34 @@ namespace HM
       // failure is an empty key_base64 with a sentence in error.
       static Found Lookup(const String &address);
 
-      // A domain whose key directory gave no answer at all, after a wait, is held
-      // for an hour against its whole organizational domain (the Public Suffix
-      // List), and Lookup does not ask the directory of any name under it: whoever
-      // owns attacker.example has a new subdomain for every lookup, each
-      // publishing a directory host that never answers, and each would otherwise
-      // hold a REST worker for the whole of OpenPGPLookupTimeout.
+      // A domain whose key directory took three seconds or more to ask - both
+      // legs together, whatever they answered, a key included - is held for an
+      // hour against its whole organizational domain (the Public Suffix List,
+      // DMARC::GetOrganizationalDomainByPublicSuffixList - not the DNS tree
+      // walk, which answers a name with no DMARC record as its own
+      // organization), and Lookup does not ask the directory of any name under
+      // it: whoever owns attacker.example has a new subdomain, or a new local
+      // part, for every lookup, and runs the directory each one is asked at;
+      // each would otherwise hold a REST worker for up to OpenPGPLookupTimeout.
+      // Silence alone is not the test, because a 404 or a key sent after a wait
+      // costs the worker the same and is as easy to send.
       static void NoteDirectoryUnreachable(const String &domain);
       static bool DirectoryUnreachable(const String &domain);
       static void ForgetUnreachable();
+
+      // Whether the domain part of an address is a name a Web Key Directory
+      // can be at, which Lookup asks before it asks the directory. A directory
+      // is at openpgpkey.<domain> or <domain> (draft-koch-openpgp-webkey-service
+      // 3.1), so it needs a domain name with a top-level domain, and a
+      // top-level domain begins with a letter (RFC 3696 2: never all-numeric).
+      // Not one: an address literal - user@[192.0.2.1] - a name of one label,
+      // and a name whose last label begins with a digit, which is what an IPv4
+      // address written without brackets is, in any of the forms a resolver
+      // reads as one (198.51.100.7, 0xc6.0x33.0x64.0x7). Each of those is
+      // free and comes in any number, and the direct leg would connect to the
+      // address itself: a caller with a new one for every lookup would have a
+      // new wait for every lookup, with no organization for the hold to key.
+      static bool MayHaveWebKeyDirectory(const String &domain);
 
       static bool IsFingerprint(const AnsiString &text);
 
