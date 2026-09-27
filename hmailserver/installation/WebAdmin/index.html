@@ -5115,6 +5115,11 @@ function qListClose(answer){
 }
 async function qListPlan(){
   const l=Q.list;if(!l)return;
+  // Each choice asks again, and the answers can come back in either order:
+  // the server answers each connection on its own worker. Only the answer
+  // to the latest question is drawn; an older one is for a choice that is
+  // no longer the dialog's.
+  const seq=l.seq=(l.seq||0)+1;
   const plan=$("#qPlan"),yes=$("#qListYes"),box=$("#qSuffix");
   l.usable=false;l.suffixOk=false;
   box.hidden=true;box.setAttribute("aria-checked","false");
@@ -5124,7 +5129,7 @@ async function qListPlan(){
   if(l.choice==="domain")body.domain_from=l.domainFrom;
   try{
     const a=await api("/api/v1/quarantine/bulk",{method:"POST",body:JSON.stringify(body)});
-    if(Q.list!==l)return;
+    if(Q.list!==l||l.seq!==seq)return;
     const outcome={add:t("will be added"),change:l.action==="block"?t("is on the list the other way, and will be changed to block"):t("is on the list the other way, and will be changed to allow"),unchanged:t("is already on the list")};
     const entries=asList(a.entries,"entries"),refused=asList(a.results,"results").filter(r=>!r.ok);
     const lines=[];
@@ -5140,6 +5145,7 @@ async function qListPlan(){
     l.usable=entries.length>0;
   }catch(e){
     if(e.message==="auth"){qListClose(null);signedOut(t("The session ended. Sign in again."));return;}
+    if(Q.list!==l||l.seq!==seq)return;
     plan.textContent=e.message;
   }
   qListUpdate();

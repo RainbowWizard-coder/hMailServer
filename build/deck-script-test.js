@@ -3879,12 +3879,19 @@ function answer(method, path, headers, raw) {
    return json(404, { error: 'No such route: ' + method + ' ' + path });
 }
 
+/* A reply held back until a check lets it go, for answers that arrive in
+   another order than their questions: the server answers each keep-alive
+   connection on a worker of its own, so a later request can be answered
+   first. holdWhen(method, path, body) names what to hold; each held reply
+   is a function in heldReplies that delivers it. */
+let holdWhen = null;
+const heldReplies = [];
 function fetchStub(path, options) {
    const method = (options && options.method) || 'GET';
    const headers = (options && options.headers) || {};
    requests.push({ method, path, headers, body: options && options.body, credentials: options && options.credentials });
    const reply = answer(method, path, headers, options && options.body);
-   return Promise.resolve({
+   const response = {
       status: reply.status,
       ok: reply.status >= 200 && reply.status < 300,
       headers: { get: (name) => (name in reply.headers ? reply.headers[name] : null) },
@@ -3894,7 +3901,11 @@ function fetchStub(path, options) {
       json: () => new Promise((resolve, reject) => {
          try { resolve(JSON.parse(reply.body)); } catch (why) { reject(why); }
       })
-   });
+   };
+   if (holdWhen && holdWhen(method, path, options && options.body)) {
+      return new Promise((resolve) => { heldReplies.push(() => resolve(response)); });
+   }
+   return Promise.resolve(response);
 }
 
 /* ------------------------------------------------------------ the assertions */
@@ -7689,15 +7700,27 @@ async function main() {
       // Blacklist by the HELO name's domain, which is a public suffix here.
       await regroup('helo');
       before = requests.length;
+      // The address's dry run is answered late, after the domain's: the
+      // server answers each connection on a worker of its own.
+      holdWhen = (method, path, body) => path === '/api/v1/quarantine/bulk' && /"list":"address"/.test(body || '') && /"dry_run":true/.test(body || '');
       click(act('qact', { do: 'block', scope: 'group', key: 'localhost' }));
       await flush();
+      holdWhen = null;
       check('blacklisting asks the same question, and Cancel has the keyboard because it deletes',
          $('#qList') !== null && document.activeElement === act('qlistno') && $('#qListTitle').textContent.indexOf('Blacklist') >= 0, String(document.activeElement && document.activeElement.attributes['data-act']));
+      check('while the server has not answered, the plan says so and the button waits', heldReplies.length === 1 && $('#qPlan').textContent === '…' && $('#qListYes').disabled === true,
+         heldReplies.length + ' held, plan ' + JSON.stringify($('#qPlan').textContent));
       click(act('qlistpick', { list: 'domain' }));
       await flush();
       check('grouped by HELO name, the domain is the HELO\'s: a public suffix is named, and the button waits for the box',
          qBulk(before).some((b) => b.list === 'domain' && b.domain_from === 'helo' && b.dry_run === true) &&
          $('#qPlan').textContent.indexOf('public suffix') >= 0 && $('#qSuffix').hidden === false && $('#qListYes').disabled === true,
+         $('#qPlan').textContent);
+      heldReplies.splice(0).forEach((deliver) => deliver());
+      await flush();
+      check('the address\'s answer arriving after the domain\'s is dropped: the plan, the warning and the box stay the domain\'s',
+         act('qlistpick', { list: 'domain' }).attributes['aria-checked'] === 'true' && $('#qPlan').textContent.indexOf('public suffix') >= 0 &&
+         $('#qPlan').textContent.indexOf('.localhost') >= 0 && $('#qPlan').textContent.indexOf('@') < 0 && $('#qSuffix').hidden === false && $('#qListYes').disabled === true,
          $('#qPlan').textContent);
       click(act('qlistsuffix'));
       await flush();
