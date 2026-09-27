@@ -509,7 +509,9 @@ let catalogue={}, language="en";
 const K=s=>s;
 function catalogueHas(key){return Object.prototype.hasOwnProperty.call(catalogue,key)&&typeof catalogue[key]==="string"&&catalogue[key]!=="";}
 function t(key){return catalogueHas(key)?catalogue[key]:key;}
-function tf(key,...args){let s=t(key);args.forEach((a,i)=>{s=s.split("{"+i+"}").join(String(a));});return s;}
+// Every placeholder in one pass: a value put in (a sender, a subject) is
+// never read again for placeholders.
+function tf(key,...args){return t(key).replace(/\{(\d+)\}/g,(m,i)=>Number(i)<args.length?String(args[Number(i)]):m);}
 const LOCALISED_ATTRIBUTES=["placeholder","aria-label","title","alt"];
 /* The static markup, translated in place and back again: a text node or an
    attribute that is a key keeps its English on the node. The content area is

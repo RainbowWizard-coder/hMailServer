@@ -5491,6 +5491,18 @@ async function main() {
    await flush();
    check('removing an entry asks, naming it, and deletes it by id', confirmations[confirmations.length - 1].indexOf('spam.example') >= 0 &&
       called(before, 'DELETE', '/api/v1/domains/renamed.example/sender-list/' + senderId).length === 1 && document.getElementById('domainSenders').textContent.indexOf('spam.example') < 0);
+   // An address's local part may carry braces (RFC 5322 atext): the question
+   // quotes the value as it is, and the next value is not put into it.
+   setValue('newDomainSender', 'a{1}b@spam.example');
+   setChecked('newDomainSenderBlocked', false);
+   document.getElementById('newDomainSender').dispatchEvent(makeEvent('keydown', { key: 'Enter' }));
+   await flush();
+   before = requests.length;
+   click(act('dsenderdel', { value: 'a{1}b@spam.example' }));
+   await flush();
+   check('a value that carries a placeholder\'s braces is named as it is in the question',
+      confirmations[confirmations.length - 1] === 'Remove a{1}b@spam.example from the list of renamed.example?' && called(before, 'DELETE', /\/sender-list\/\d+$/).length === 1,
+      confirmations[confirmations.length - 1]);
    // ---- the domain's spam traps
    check('the domain editor reads the domain\'s spam traps and what has addressed them',
       document.getElementById('domainTraps') !== null &&

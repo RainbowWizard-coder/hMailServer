@@ -21,7 +21,10 @@
   var languageActive = 'en';
   var catalogueHas = function (key) { return Object.prototype.hasOwnProperty.call(catalogue, key) && typeof catalogue[key] === 'string' && catalogue[key] !== ''; };
   var t = function (key) { return catalogueHas(key) ? catalogue[key] : key; };
-  var tf = function (key) { var s = t(key); for (var i = 1; i < arguments.length; i++) { s = s.split('{' + (i - 1) + '}').join(String(arguments[i])); } return s; };
+  // Every placeholder in one pass: a value put in is never read again for
+  // placeholders, so a link text or a sender that carries "{1}" is quoted
+  // as it is rather than having the next value put into it.
+  var tf = function (key) { var args = arguments; return t(key).replace(/\{(\d+)\}/g, function (m, i) { var at = Number(i) + 1; return at < args.length ? String(args[at]) : m; }); };
   // Marks a text a table holds for a later t(); the identity. The checker
   // reads this page's keys out of t(), tf() and K().
   var K = function (key) { return key; };

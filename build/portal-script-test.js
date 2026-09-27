@@ -517,6 +517,9 @@ const impersonated = (id, subject, from, impersonation) => ({
 const BORROWED_NAME = impersonated(604, 'Urgent', '"Ada Lovelace" <ada@evil.example>', 'name "Ada Lovelace" matches Ada Lovelace (ada@example.com); from ada@evil.example');
 const LOOKALIKE_DOMAIN = impersonated(605, 'Invoice', 'accounts@examp1e.com', 'domain examp1e.com looks like example.com; from accounts@examp1e.com');
 const NOT_IMPERSONATED = impersonated(606, 'Lunch', 'colleague@example.com', '');
+// A domain may carry braces (RFC 5322 atext): the sentence quotes it as it is,
+// and does not read the value it put in for the next placeholder.
+const BRACED_DOMAIN = impersonated(607, 'Statement', 'accounts@examp{1}e.com', 'domain examp{1}e.com looks like example.com; from accounts@examp{1}e.com');
 
 // The Sent folder: one message the inbox's 'Second' answers, one nothing
 // answered, sent long enough ago to be nudged, and one sent yesterday.
@@ -1779,6 +1782,7 @@ function answer(method, path, body) {
    if (path === '/api/v1/me/messages/604' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(BORROWED_NAME)))); }
    if (path === '/api/v1/me/messages/605' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(LOOKALIKE_DOMAIN)))); }
    if (path === '/api/v1/me/messages/606' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(NOT_IMPERSONATED)))); }
+   if (path === '/api/v1/me/messages/607' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(BRACED_DOMAIN)))); }
    if (path === '/api/v1/me/messages/603/source' && method === 'GET') {
       return { status: 200, headers: { 'Content-Type': 'message/rfc822' }, body: SEALED_ON_DELIVERY.headers + '\r\n--za\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n\r\n--za\r\nContent-Type: application/octet-stream\r\n\r\nsealed\r\n--za--\r\n' };
    }
@@ -9521,6 +9525,14 @@ async function zeroAccessChecks() {
          !document.getElementById('message-warnings').hidden &&
          warningTexts().indexOf(fill("This message's domain {0} looks like {1}.", 'examp1e.com', 'example.com')) >= 0,
          JSON.stringify(warningTexts()));
+
+      location.hash = '#/m/607';
+      await flush();
+      await flush();
+      const bracedSentence = words("This message's domain {0} looks like {1}.").replace(/\{([01])\}/g, (m, i) => ['examp{1}e.com', 'example.com'][Number(i)]);
+      check('Impersonation: a domain that carries a placeholder\'s braces is quoted as it is, the next value not put into it',
+         !document.getElementById('message-warnings').hidden && warningTexts().indexOf(bracedSentence) >= 0,
+         JSON.stringify(warningTexts()) + ' | ' + bracedSentence);
 
       location.hash = '#/m/606';
       await flush();
