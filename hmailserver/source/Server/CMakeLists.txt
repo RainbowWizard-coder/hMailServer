@@ -588,6 +588,19 @@ set(CPACK_PACKAGING_INSTALL_PREFIX /usr)
 # into the staging tree, and the layout is the one the rules say.
 set(CPACK_SET_DESTDIR ON)
 set(CPACK_STRIP_FILES ON)
+# Reproducible packages (hmailserver/docs/ReproducibleBuilds.md). Every
+# directory the packages hold is 0755, whatever the umask of the machine that
+# builds them: without this, the staging directories CPack creates take the
+# umask, and a build under umask 0002 made a .deb and an .rpm whose directories
+# were 0775 - the same files, another package (found by build/ci/linux-repro.sh
+# on 26 September 2026). The files' own modes come from the install rules above.
+set(CPACK_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+   OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+# The .deb stamps SOURCE_DATE_EPOCH (linux-build.sh sets it) on its own; rpmbuild
+# stamps the clock and the build container's host name into the header, and the
+# time each file was staged into the payload, unless it is told otherwise.
+set(CPACK_RPM_SPEC_MORE_DEFINE
+   "%define use_source_date_epoch_as_buildtime 1\n%define clamp_mtime_to_source_date_epoch 1\n%define _buildhost reproducible")
 
 # The architecture each packager names differently for the same machine.
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
@@ -629,6 +642,15 @@ set(CPACK_RPM_USER_FILELIST
 
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
    "${SERVER_DIR}/platform/packaging/debian/postinst;${SERVER_DIR}/platform/packaging/debian/prerm;${SERVER_DIR}/platform/packaging/debian/postrm;${CMAKE_CURRENT_BINARY_DIR}/packaging/conffiles")
+# The control member gives the three maintainer scripts 0755 and conffiles 0644,
+# as Debian policy asks, whatever their modes on disk. Without this CPack copies
+# each file's own mode: conffiles took the umask it was written under, and the
+# scripts the mode the checkout gave them (git records them as executable, so
+# 0775 in a clone made under umask 0002, 0755 under 0022, and 0777 in a GitLab
+# docker executor's checkout, made under umask 0000), so the .deb depended on
+# who cloned the tree (hmailserver/docs/ReproducibleBuilds.md). CPack asks only
+# whether the variable is set: set to OFF, it is on all the same.
+set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION ON)
 
 set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")

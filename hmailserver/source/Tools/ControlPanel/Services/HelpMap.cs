@@ -176,6 +176,7 @@ namespace hMailServer.ControlPanel.Services
          "RegressionEnvironment.md",
          "RegulatoryScope.md",
          "RelocatingAnInstallation.md",
+         "ReproducibleBuilds.md",
          "ResponseCompression.md",
          "RestrictedDelivery.md",
          "RoomsAndEquipment.md",

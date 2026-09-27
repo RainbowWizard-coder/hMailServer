@@ -327,7 +327,7 @@ releases (`hmailserver/docs/UpdateFeed.md`).
 | C4 | `Server/Common/TCPIP/TCPConnection.cpp` verify mode and callbacks; `SslContextInitializer.cpp` |
 | C5 | Parameterised-SQL rule in `CONTRIBUTING.md`; persistence layer; SMTP terminator tests |
 | C6 | Account scoping in the BO layer; administrative boundary in `SECURITY.md` |
-| C7 | Up to 6.3.3, the GitHub workflows `sign-release.yml`, `verify-binary-provenance.yml` and `sbom.yml` (git history, `v6.3.3`); from 6.3.5, the release jobs of `.gitlab-ci.yml` (`build/ci/release-chain.py`, `release-sign.sh`, `release-verify.sh`); `SigstoreVerifier.cpp` |
+| C7 | Up to 6.3.3, the GitHub workflows `sign-release.yml`, `verify-binary-provenance.yml` and `sbom.yml` (git history, `v6.3.3`); from 6.3.5, the release jobs of `.gitlab-ci.yml` (`build/ci/release-chain.py`, `release-sign.sh`, `release-verify.sh`); `SigstoreVerifier.cpp`. That a published binary corresponds to the published source: the reproducible builds, RELEASE.md step 8 and the `linux-repro` job (`build/ci/linux-repro.sh`; [ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)) |
 
 Release validation is not a smoke test: the full regression suite runs against
 the exact binary being shipped, with live SpamAssassin and ClamAV (real EICAR
@@ -359,16 +359,34 @@ credible.
   so the figure is not repeated for each release. The .NET Control Panel's
   coverage was collected by CI on GitHub (`ci.yml`) until 18 September 2026 and
   is not collected on GitLab yet.
-- **Reproducibility has been shown on one toolchain only.** Since 22 August
-  2026 two clean Release builds of the same tree produce a byte-identical
-  `hMailServer.exe` (`/Brepro`, `/d1trimfile`, `/pdbaltpath`,
-  `OPENSSL_NO_FILENAMES`; RELEASE.md step 8 repeats the check for every
-  release and the notes carry the hash). What has not happened is an
-  independent rebuild on a second machine with an independently built OpenSSL,
-  Boost and libpq, so a third party's ability to confirm a released binary
-  still rests on matching this toolchain exactly. Artifact signatures establish
-  *who published* a binary; the hash lets anyone with the toolchain check that
-  it corresponds to the source.
+- **Reproducibility has been shown on the project's own machines only.**
+  ([hmailserver/docs/ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)
+  has the procedure and the evidence.) Since 22 August 2026 two clean Release
+  builds of the same tree produce a byte-identical `hMailServer.exe`
+  (`/Brepro`, `/d1trimfile`, `/pdbaltpath`, `OPENSSL_NO_FILENAMES`; RELEASE.md
+  step 8 repeats the check for every release and the notes carry the hash); on
+  26 September 2026 two builds of `40c7d3e0c`, the commit v6.3.4 was first
+  tagged at that day, were both `c42e31bb...`. The same day a build of that commit from
+  a second checkout at another path was *not* identical: `/d1trimfile`
+  trimmed only the project file's directory, and sixteen source paths and 31
+  Boost header paths stayed absolute. With the checkout's root and the
+  libraries' root trimmed, two checkouts at two paths build the same
+  executable (`53f9801f...`), and step 8 now builds once more in another
+  checkout. 6.3.4, built before the change, reproduces only from its own
+  paths. On Linux the `linux-repro` job builds `linux-build`'s commit a
+  second time from another path with other file modes, in another build
+  directory, umask and time zone, and requires the binary, the `.deb` and
+  the `.rpm` to be byte for byte identical before a release (the packages
+  became so the same day, when it found their directories' modes following
+  the umask, the `.deb`'s maintainer scripts the checkout's modes and the
+  `.rpm` stamping the clock);
+  the image's Ubuntu packages are the archive's of the day it was built, so it
+  pins the build, not the toolchain's history. What has not happened is an
+  independent rebuild by someone outside the project, with an independently
+  built OpenSSL, Boost and libpq, so a third party's ability to confirm a
+  released binary still rests on matching this toolchain exactly. Artifact
+  signatures establish *who published* a binary; the hash lets anyone with
+  the toolchain check that it corresponds to the source.
 - **Control Flow Guard is on, and its cost is small but real.** Since 6.2.23
   Alpha 2 the server is compiled and linked with `/guard:cf` (Release and
   Debug), so an indirect call through a corrupted function pointer or vtable -

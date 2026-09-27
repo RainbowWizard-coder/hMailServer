@@ -196,7 +196,10 @@ esac
   echo "track where a build would take it in, and from the folders the installer takes whole it removes every file git"
   echo "does not track before building. The server and the tools in it are that checkout's incremental build of the"
   echo "commit; its OpenSSL and libpq DLLs come from that runner's library tree and its C++ runtime from that runner's"
-  echo "Visual Studio, both outside the pipeline; and nothing here proves the build reproducible."
+  echo "Visual Studio, both outside the pipeline; and nothing here proves that build reproducible. The Linux one is"
+  echo "checked: \`linux-repro\`, which the release waits for, built the server, the \`.deb\` and the \`.rpm\` a second"
+  echo "time from the same commit in the same image, from a copy of the tree at another path, and both packages were"
+  echo "byte for byte the files above (\`hmailserver/docs/ReproducibleBuilds.md\`)."
 } > "$out/verification.md"
 
 echo ""

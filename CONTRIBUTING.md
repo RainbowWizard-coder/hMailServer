@@ -359,7 +359,8 @@ writer against GnuPG, and the `.deb` and the `.rpm`), *linux-suite* (the whole L
 PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` under
 AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
 *linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
-the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, and five
+the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, *linux-repro* (the server and
+the packages built a second time from another path and compared byte for byte), and five
 security-scanning jobs, which do not stop a push's pipeline: *static-analysis* (cppcheck and clang-tidy),
 *semgrep*, *dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*. Three of them,
 with GitLab's *semgrep-sast*, hold a release instead: the release job reads their reports and refuses while a
@@ -488,7 +489,8 @@ something which already exists.
   continuation lines do not fall on multiples of three.
 * C++: warning level 3 with warnings as errors (`/WX`) in Debug and Release x64. Release adds the
   reproducibility flags `/Brepro`, `/d1trimfile` and `/pdbaltpath`, and two clean Release builds of the same
-  tree must produce the same `hMailServer.exe` (RELEASE.md step 8). The Linux build is C++20.
+  tree, and one from a second checkout at another path, must produce the same `hMailServer.exe` (RELEASE.md
+  step 8; [ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)). The Linux build is C++20.
 * C#: every shipped project is `net10.0-windows` with nullable reference types off. `dotnet format` is the
   formatter for the two targets named above.
 * **Use parameterised SQL exclusively — never build SQL strings manually.** Backend DDL differences go through

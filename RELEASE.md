@@ -122,6 +122,14 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    signing jobs after it, and a second signing never makes the same bytes (a new
    timestamp, a new certificate). Nothing has been signed or sent when it
    refuses.
+
+   Before starting it, compare the line `hMailServer.exe <SHA-256>` that
+   `windows-installer` printed with the hash step 8 measured and the notes
+   give. The installer carries that executable, built in bench150's checkout;
+   a different hash means bench150's compiler, Windows SDK or libraries are
+   not the ones step 8 used, and the notes would name an executable the
+   release does not ship. Bring bench150 to that toolchain and retry
+   `windows-installer` first ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
 4. **`release-authenticode`, `release-sbom`, `release-sign` and `release-verify`
    follow by themselves.** `release-sbom` makes the signed installer's own SBOM;
    the `.deb`'s and the `.rpm`'s come from `linux-build`, and every compiled file
@@ -321,14 +329,29 @@ uploaded and linked like every other file of the release. SECURITY.md,
 
    Then prove the build is still reproducible: build Release a second time
    from clean (`build\build.ps1 -Configuration Release -Clean`) and compare
-   the SHA-256 of `hMailServer.exe` with the first. They must be identical -
-   /Brepro, /d1trimfile, /pdbaltpath and OPENSSL_NO_FILENAMES in the project
-   make the executable a pure function of the source and the toolchain, and
-   a mismatch means something has started embedding a timestamp or a path
-   again. Put the hash in the release notes' verification section so anyone
+   the SHA-256 of `hMailServer.exe` with the first; then build the same
+   tree once more from clean in a second checkout at another path and
+   compare that too. The version stamp is not committed yet, so make the
+   checkout from `git stash create`, which records the working tree as a
+   commit and changes nothing in it
+   (`$tree = git stash create; if (-not $tree) { $tree = 'HEAD' }`, then
+   `git worktree add --detach ..\hm-repro $tree`), and run
+   `build\get-installer-binaries.ps1 -SystemOnly` in it, as in any new
+   clone. All three must be identical - /Brepro,
+   /d1trimfile (the checkout's root and the libraries' root), /pdbaltpath
+   and OPENSSL_NO_FILENAMES in the project make the executable a function of
+   the source, the toolchain and the libraries, and a mismatch means
+   something has started embedding a timestamp or a path again. Two builds
+   in one directory cannot show a path: until 26 September 2026 they were
+   identical while a checkout elsewhere built another executable
+   ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)). Put
+   the hash in the release notes' verification section so anyone
    with the same toolchain (v145, Windows SDK 10.0.26100) and library layout
-   can check the published binary came from the published source. Both
-   builds restart the service, so do this before step 9, never after.
+   can check the published binary came from the published source. The two
+   builds in the release tree rewrite the `hMailServer.exe` step 9 tests
+   (`build.ps1` turns the project's build events off, so neither stops or
+   starts the service), so do this before step 9, never after; the build in
+   the second checkout writes nothing the release uses.
 
    The Linux packages keep the same promise by a different mechanism, and
    what is proven is narrower, so it is stated narrowly. `CMakeLists.txt`
@@ -348,8 +371,18 @@ uploaded and linked like every other file of the release. SECURITY.md,
    above can claim. Measured on 8 September 2026: commit 8926f5c3f built twice
    on the hosted runners - the two attempts of run 34282935758, forty-four
    minutes apart, on two runner allocations - and every job's binary hashed the
-   same both times (x86-64 clang, x86-64 GCC, AArch64 clang). The package containers are
-   not compared; the binaries inside them are what the hashes above cover.
+   same both times (x86-64 clang, x86-64 GCC, AArch64 clang). Since 26
+   September 2026 the packages are reproducible too - `CMakeLists.txt` fixes
+   their directories' and the `.deb`'s maintainer scripts' modes and
+   `rpmbuild`'s clock and host name, and `linux-build.sh` its umask - and the
+   `linux-repro` job
+   checks all three for every tag before `release` can run
+   (`build/ci/linux-repro.sh`): it builds the commit a second time with
+   `linux-build.sh`, from a copy of the tree at another path with other file
+   modes, in another build directory, started under another umask and in
+   another time zone, and requires the binary, the `.deb` and
+   the `.rpm` to be byte for byte `linux-build`'s
+   ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
 
 8b. **Full regression suite on the assertion build, first.** Build with
    `build\build.ps1 -Configuration Release -Asserts` - the same source, with

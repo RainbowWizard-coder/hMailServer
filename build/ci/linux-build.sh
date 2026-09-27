@@ -28,6 +28,15 @@
 #   HM_OUT_DIR      where the artifacts go (linux-build)
 set -uo pipefail
 
+# The packages record modes the umask chooses. CPack's .deb writer copies the mode
+# of each file it wrote - debian-binary, control.tar.gz, data.tar.gz - into that
+# member's ar header, so under umask 0002 the three were rw-rw-r-- and the .deb
+# differed from one made under 0022 although every member was the same bytes
+# (build/ci/linux-repro.sh found it on 26 September 2026, and a one-file CPack
+# project in the CI image showed it). The packages are made under 0022, whoever
+# runs this; docs/ReproducibleBuilds.md.
+umask 0022
+
 build_dir="${HM_BUILD_DIR:-/tmp/hm-build}"
 jobs="${HM_BUILD_JOBS:-6}"
 out="${HM_OUT_DIR:-linux-build}"

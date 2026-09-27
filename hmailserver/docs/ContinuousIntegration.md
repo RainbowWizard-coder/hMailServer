@@ -40,6 +40,7 @@ What runs where
 | `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the Deck (`build/ci/linux-package-install.sh`) |
 | `linux-image` | test | linix | a protected ref | The container image built from the `.deb` with kaniko and inspected, not pushed (`build/ci/linux-image.sh`) |
 | `linux-sbom` | test | linix | a protected ref | The SPDX and CycloneDX SBOMs of the tree, kept 90 days (`build/ci/linux-sbom.sh`) |
+| `linux-repro` | test | linix | a protected ref, after `linux-build` | `linux-build`'s binary, `.deb` and `.rpm` made a second time from a copy of the tree at another path with other file modes, in another build directory, started under another umask and in another time zone, and compared: all three must be byte for byte identical (`build/ci/linux-repro.sh`; [ReproducibleBuilds.md](ReproducibleBuilds.md)) |
 | `db-matrix` | test | linix | a protected ref, started by hand | The `linux-build` server against MySQL 8.4, MariaDB 11.4 or PostgreSQL 17 in the test lab (`HM_LAB_DB`), the database-sensitive fixtures or the whole suite (`HM_SUITE_FILTER`); `build/lab/db-suite.sh`, [TestLab.md](TestLab.md) |
 | `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
@@ -70,12 +71,12 @@ What runs where
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
 and `linux-sbom` start as soon as the pipeline does. They do not wait for the
 checks, because the two machines are otherwise idle and the Windows gate is the
-longest job. `linux-suite`, the two upgrade gates, the two package jobs and
-`linux-image` wait for `linux-build`, whose artifact holds the binary and the
-packages, and `release` waits for every job that can fail a tag's pipeline - the
-checks, both suites, the upgrade gates, the package jobs, `linux-cross`,
-`linux-sanitize`, `linux-image`, `windows-dotnet` - and `windows-installer`
-([The release](#the-release)). linix runs one
+longest job. `linux-suite`, the two upgrade gates, the two package jobs,
+`linux-image` and `linux-repro` wait for `linux-build`, whose artifact holds the
+binary and the packages, and `release` waits for every job that can fail a tag's
+pipeline - the checks, both suites, the upgrade gates, the package jobs,
+`linux-cross`, `linux-sanitize`, `linux-image`, `linux-repro`, `windows-dotnet` -
+and `windows-installer` ([The release](#the-release)). linix runs one
 job at a time, so its jobs queue behind each other in the order GitLab hands them
 out; bench150's two jobs take the bench's gate lock in turn
 ([The .NET job](#the-net-job)).
@@ -432,8 +433,8 @@ The image
 ---------
 
 The Linux jobs that build or run the server - `linux-build`, `linux-suite`,
-`linux-cross`, `linux-sanitize`, the two upgrade gates, `linux-sbom` and
-`linux-fuzz` - run in one image, described by `build/ci/linux.Dockerfile`. The
+`linux-cross`, `linux-sanitize`, the two upgrade gates, `linux-sbom`,
+`linux-repro` and `linux-fuzz` - run in one image, described by `build/ci/linux.Dockerfile`. The
 package jobs run in the distributions' own images instead, because the point
 is a clean system, and `linux-image` in kaniko's. The image holds:
 
@@ -648,6 +649,7 @@ that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 | `sbom.yml` | `linux-sbom`: made and kept; a `v*` tag's release carries them, signed | linix | a protected ref |
 | `fuzz-nightly.yml` | `linux-fuzz`, on Linux rather than Windows | linix | the fuzz schedule |
 | (none) | `linux-sanitize`: `snmp-tests` under AddressSanitizer, once the SNMP row adds `HM_SANITIZE` | linix | a protected ref |
+| (none) | `linux-repro`: the binary, the `.deb` and the `.rpm` built a second time and required to be `linux-build`'s, byte for byte | linix | a protected ref |
 | `codeql.yml` | not ported: see below | | |
 | `dependency-review.yml` | not ported: see below | | |
 | `scorecard.yml` | not ported: see below | | |
@@ -694,7 +696,7 @@ pinned by digest where the CI file names it.
 | `chart-and-compose` | `alpine:3.24` | Helm 3.19 and Docker Compose 5.1, Alpine's community packages |
 | `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
-| `linux-build`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
+| `linux-build`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
 | `linux-db-upgrade-*` services | `postgres:16`, `mariadb:11` (Docker Hub) | the database servers |
 | `linux-package-deb` | `ubuntu:26.04` | the package's dependencies, PostgreSQL's client, curl and iproute2 from Ubuntu's archive |
 | `linux-package-rpm` | `registry.fedoraproject.org/fedora:44` (Fedora) | `rpm`, in the image |
@@ -729,8 +731,8 @@ The packages and the image
 just made, after checking the version stamps, and keeps them in its artifact
 (`linux-build/packages/`, with their SHA-256 sums). A packaging failure does
 not fail `linux-build` - the suite needs the binary, not the packages - but the
-package jobs and `linux-image` fail on the missing files and point at
-`linux-build/package.log`.
+package jobs, `linux-image` and `linux-repro` fail on the missing files and point
+at `linux-build/package.log`.
 
 `linux-package-deb` installs the `.deb` in a clean Ubuntu 26.04 container with
 `apt`, asserts every file a working installation needs, configures the packaged
@@ -1630,6 +1632,7 @@ measured times after the first pipelines.
 | `linux-package-deb`, `-rpm` | 17 s and 2 s by hand | 20 and 10 min | |
 | `linux-image` | 18 s by hand | 30 min | kaniko over Ubuntu 24.04 and the `.deb` |
 | `linux-sbom` | 6 s by hand | 15 min | |
+| `linux-repro` | 11 to 16 min by hand | 1 h | One more run of `linux-build.sh` - the build, the testers and the packages - plus a copy of the tree and the comparison, which take seconds: the second build took 760, 795, 959, 673, 686 and 696 s with six jobs in six runs on linix on 26 September 2026 |
 | `windows-gate` | 2.5 to 3 h | 4 h | On 25 September 2026 the two halves took 62 minutes (1,339 tests, on bench150) and 70 minutes (2,126 tests, on the laptop), each with its build. One bench runs both, one after the other, with one build. Add any wait for the lock |
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
@@ -1751,6 +1754,11 @@ What each job leaves behind
   image's configuration and hashes (`linux-image/`, seven days). kaniko's
   layers are in its own container.
 - **`linux-sbom`**'s two documents are its artifact, kept 90 days.
+- **`linux-repro`** copies the tree to `/tmp/hm-repro-source` and builds in
+  `/tmp/hm-repro-second-build`, both in its container, and removes both before
+  it compares. Its artifact, `linux-repro/` (the report, the second build's
+  logs, and its binary and packages only when they differ from
+  `linux-build`'s), is kept 30 days.
 - **`linux-suite`** lays its tree out inside the checkout (`.hmtest-tree`),
   because `after_script` may run in a new container from the same image, which
   sees only the checkout. `after_script` copies the server's error logs (and every log,

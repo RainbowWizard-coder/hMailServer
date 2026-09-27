@@ -34,6 +34,8 @@
 #   linux-package-deb, linux-package-rpm, linux-image, linux-sbom
 #                 linix: what the old GitHub workflows ran beside the build (the
 #                 block "ported from GitHub Actions" below);
+#   linux-repro   linix: linux-build's server and packages made a second time, from
+#                 another path, and compared byte for byte (build/ci/linux-repro.sh);
 #   windows-gate  bench150: the whole Windows suite in the bench's own checkout,
 #                 which its hMailServer service runs from (build/ci/windows-gate.ps1);
 #   windows-dotnet  bench150: the Control Panel and the tools built, tested and held
@@ -915,6 +917,27 @@ linux-sbom:
     paths:
       - sbom/
 
+# Is the Linux build reproducible? linux-build's server, .deb and .rpm - what a v* tag's
+# release ships - made a second time from the same commit, in the same image, by the same
+# script, from a copy of the tree at another path, in another build directory, started
+# under another umask and in another time zone, and compared (build/ci/linux-repro.sh).
+# The binary, the .deb and the .rpm must be byte for byte identical, or the job fails and
+# its report says where they differ. A release waits for it. docs/ReproducibleBuilds.md.
+linux-repro:
+  extends: .linix
+  stage: test
+  needs:
+    - job: linux-build
+      artifacts: true
+  timeout: 1 hour
+  script:
+    - bash build/ci/linux-repro.sh
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - linux-repro/
+
 # ci.yml's control-panel and tools jobs and style.yml's dotnet-format job: the .NET
 # half built with warnings as errors, published, tested and held to dotnet format
 # (build/ci/windows-dotnet.ps1), in the runner's own checkout of the commit - not the
@@ -1356,6 +1379,8 @@ release:
     - job: linux-package-rpm
       artifacts: false
     - job: linux-image
+      artifacts: false
+    - job: linux-repro
       artifacts: false
     - job: windows-gate
       artifacts: false

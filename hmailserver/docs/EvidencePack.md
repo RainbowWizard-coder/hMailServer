@@ -259,12 +259,17 @@ checks one is in [SECURITY.md](../../SECURITY.md), *Software bills of materials*
 Two clean Release builds of the same tree produce a byte-identical
 `hMailServer.exe`: `/Brepro`, `/d1trimfile`, `/pdbaltpath` and
 `OPENSSL_NO_FILENAMES` are in `hMailServer.vcxproj`, and RELEASE.md step 8
-repeats the check for every release and puts the hash in the release notes.
-The Linux build passes `-ffile-prefix-map` and exports `SOURCE_DATE_EPOCH` from
-the tagged commit, so two builds on the same runner image produce the same
-binary; the image itself is not pinned. What has not been done is an
-independent rebuild on a second machine with independently built libraries
-([ASSURANCE-CASE.md](../../ASSURANCE-CASE.md), *Residual risk*).
+repeats the check for every release, once more from a checkout at another
+path, and puts the hash in the release notes. The Linux build passes
+`-ffile-prefix-map` and exports `SOURCE_DATE_EPOCH` from the tagged commit,
+and the `linux-repro` job builds the commit of every protected pipeline that
+changes more than documentation - a release tag's among them - a second time,
+from another path, and requires the binary, the `.deb` and the `.rpm` to be
+byte for byte the ones the release ships; the image's packages are not
+pinned, and the job records their versions. What has not been done is an independent
+rebuild by someone outside the project, with independently built libraries
+([ReproducibleBuilds.md](ReproducibleBuilds.md) has the procedure and what was
+measured; [ASSURANCE-CASE.md](../../ASSURANCE-CASE.md), *Residual risk*).
 
 ### Third-party binaries
 

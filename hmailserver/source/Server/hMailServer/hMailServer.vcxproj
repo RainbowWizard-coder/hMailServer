@@ -60,6 +60,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+    <!-- The two directories /d1trimfile strips from the front of every path the
+         compiler writes (the Release ClCompile options below): the checkout's
+         root, four levels above this file, and the libraries' root. Full paths
+         ending in one backslash (NormalizeDirectory), because the compiler
+         compares text: a prefix spelled with ".." trims nothing. Quoted, with
+         that trailing backslash doubled, so that a checkout under a directory
+         with a space in its name still makes one option. -->
+    <HmRepositoryRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', '..', '..'))</HmRepositoryRoot>
+    <HmTrimPaths>"/d1trimfile:$(HmRepositoryRoot)\"</HmTrimPaths>
+    <HmTrimPaths Condition="'$(hMailServerLibs)' != ''">$(HmTrimPaths) "/d1trimfile:$([MSBuild]::NormalizeDirectory('$(hMailServerLibs)'))\"</HmTrimPaths>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -131,21 +141,27 @@ EXIT 0
   </ItemDefinitionGroup>
       <!-- Reproducible Release builds. /Brepro on both compiler and linker
          replaces the timestamps MSVC otherwise stamps into objects and the
-         PE header with hashes of the content; /d1trimfile strips the
-         checkout directory out of __FILE__ and the debug records, so two
+         PE header with hashes of the content; /d1trimfile ($(HmTrimPaths),
+         above) strips the checkout's root and the libraries' root from the
+         front of __FILE__, std::source_location and the debug records, so two
          clones in different places produce the same bytes; /pdbaltpath
          writes only the PDB file name into the executable rather than the
-         absolute path it was linked from. Together they make
-         hMailServer.exe a pure function of the source and the toolchain,
-         which is what lets anyone check that a released binary came from
-         the released source. Verified by building twice from clean and
-         comparing SHA-256 of the executable. OPENSSL_NO_FILENAMES, defined for
-         every configuration below, is the last piece: OpenSSL's OPENSSL_free
-         and OPENSSL_malloc expand to CRYPTO_free(p, OPENSSL_FILE, OPENSSL_LINE),
-         and OPENSSL_FILE is __FILE__ unless that macro is set - which is how the
-         two translation units that call them were the only ones carrying an
-         absolute checkout path into the shipped binary. /d1trimfile reaches
-         the debug records, not a __FILE__ string literal. -->
+         absolute path it was linked from. Together they make hMailServer.exe
+         a function of the source, the toolchain and the libraries, which is
+         what lets anyone check that a released binary came from the released
+         source (hmailserver/docs/ReproducibleBuilds.md). Verified by building
+         twice from clean and comparing the executables' SHA-256, and on 26
+         September 2026 from two checkouts at different paths.
+         Until then the option named $(SolutionDir), the directory of this
+         file, and an executable built before carries the absolute path of
+         every source file outside it that uses __FILE__ in a Release build
+         (HM_TEST_FAILED, in Common, Imap and Smtp) and of the Boost.Asio
+         headers, whose error paths record std::source_location: a clone at
+         another path, or a Boost elsewhere than C:\Dev\hMailLibs, built
+         another hMailServer.exe. OPENSSL_NO_FILENAMES, defined for every
+         configuration below, keeps OpenSSL's allocation macros from passing
+         __FILE__ at all (OPENSSL_free and OPENSSL_malloc expand to
+         CRYPTO_free(p, OPENSSL_FILE, OPENSSL_LINE)). -->
 <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PreBuildEvent>
       <Command>NET STOP hMailServer
@@ -181,7 +197,7 @@ EXIT 0
          nothing. Does not disturb /Brepro: the guard tables are a function of
          the code, not of the build time. -->
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <AdditionalOptions>/Zm200 /Brepro /d1trimfile:$(SolutionDir) %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm200 /Brepro $(HmTrimPaths) %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>OPENSSL_NO_FILENAMES;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -240,7 +256,7 @@ EXIT 0
          nothing. Does not disturb /Brepro: the guard tables are a function of
          the code, not of the build time. -->
       <ControlFlowGuard>Guard</ControlFlowGuard>
-      <AdditionalOptions>/Zm200 /Brepro /d1trimfile:$(SolutionDir) %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm200 /Brepro $(HmTrimPaths) %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>OPENSSL_NO_FILENAMES;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
