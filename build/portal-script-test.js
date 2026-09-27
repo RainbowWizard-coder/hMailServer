@@ -2960,6 +2960,49 @@ async function main() {
    check('a hand-made entry is refused in its own sentence, which names the address and does not claim it bounced', called(beforeManual, 'POST', '/api/v1/me/messages') &&
       manualStatus.indexOf('Not sent to left@remote.test') === 0 && manualStatus.indexOf('your administrator has put this address') > 0 &&
       manualStatus.indexOf('bounced') < 0, manualStatus);
+
+   // ---- Send at once: the form never closes, and its status, a live region
+   // of its own, says the reason; the page's voice does not say it again.
+   document.getElementById('pref-undo').value = '0';
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   const voiceBox = document.getElementById('say');
+   const bounceRefusal = () => ({ error: 'gone@remote.test: gone@remote.test is on the suppression list of example.com: mail to it bounced permanently (5.1.1) on 2026-09-14. An administrator can remove it.',
+      code: 'recipient_suppressed', address: 'gone@remote.test', source: 'bounce' });
+   sendRefusal = bounceRefusal();
+   voiceBox.textContent = '';
+   const beforeAtOnce = requests.length;
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   const atOnceStatus = document.getElementById('compose-status').textContent;
+   check('sent at once and refused, the reason is in the form\'s status, which stayed on the screen, and said only there',
+      prefsStore.undo_seconds === '0' && called(beforeAtOnce, 'POST', '/api/v1/me/messages') && compose.hidden === false &&
+      atOnceStatus.indexOf('Not sent to gone@remote.test') === 0 && voiceBox.textContent === '',
+      'undo=' + prefsStore.undo_seconds + ' hidden=' + compose.hidden + ' status=' + JSON.stringify(atOnceStatus) + ' voice=' + JSON.stringify(voiceBox.textContent));
+   sendRefusal = bounceRefusal();
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   await flush();
+   check('the same refusal again: Send empties the status, and the reason comes back to it, and only to it',
+      document.getElementById('compose-status').textContent === atOnceStatus && voiceBox.textContent === '' && compose.hidden === false,
+      JSON.stringify(voiceBox.textContent));
+   // With the delay, the form is put away while it runs; the reason then
+   // reopens it, and a region just shown is not heard, so the voice says it.
+   const beforeDelayed = requests.length;
+   sendRefusal = bounceRefusal();
+   document.getElementById('pref-undo').value = '5';
+   document.getElementById('prefs-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   document.getElementById('compose-form').dispatchEvent(makeEvent('submit'));
+   await flush();
+   fireTimers();
+   await flush();
+   await flush();
+   check('and with the delay, where the form was put away, the page\'s voice says it',
+      called(beforeDelayed, 'POST', '/api/v1/me/messages') && compose.hidden === false && voiceBox.textContent.trim() === atOnceStatus,
+      JSON.stringify(voiceBox.textContent));
+   check('and the delay is back as it was', prefsStore.undo_seconds === '5', String(prefsStore.undo_seconds));
    document.getElementById('compose-discard').dispatchEvent(makeEvent('click'));
    await flush();
    dismissAllToasts();

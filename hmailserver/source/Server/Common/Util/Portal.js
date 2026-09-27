@@ -4134,14 +4134,18 @@
   // as shown - NVDA heard "Sending in 1 s" and then nothing, and nothing on
   // the screen said the message had not gone either (NVDA pass, row 43).
   // A message the outbox kept is not a failure: it goes when it can.
+  // Said once: the form's status is a live region of its own, emptied at
+  // Send, and with the form on the screen all along (Send at once) it is
+  // heard there; the page's voice as well had the same words queued twice.
   var sendFailed = function (queued, text, kept) {
-    if (!kept && el('compose-section').hidden && composeKey === queued.key) {
+    var wasHidden = el('compose-section').hidden;
+    if (!kept && wasHidden && composeKey === queued.key) {
       openCompose(queued.mode || composeMode, queued.id || composeId);
       el('compose-send').disabled = false;
       el('compose-to').focus();
     }
     say('compose-status', text, false);
-    announce(text);
+    if (wasHidden) { announce(text); }
   };
   var submitMessage = function (queued) {
     // A message to a password goes its own way: encrypted here, filed on
