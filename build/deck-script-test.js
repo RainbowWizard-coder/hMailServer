@@ -295,6 +295,9 @@ class Element {
    }
    querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
    focus() { this.focused += 1; document.activeElement = this; }
+   // In the document, as a browser's isConnected says: a node removed with
+   // its container is not, and has no focus to be given.
+   get isConnected() { let n = this; while (n.parentNode) { n = n.parentNode; } return n === document; }
    /* There is no layout in this DOM, so an element has the rectangle a test
       gives it (el.rect = {left, top, width, height}) and otherwise none at all.
       That is enough for the tour, which asks only where the thing it points at
@@ -7693,7 +7696,9 @@ async function main() {
 
       // The headers and the preview: read from the server, shown as text.
       before = requests.length;
-      click(act('qread', { what: 'headers', id: 42 }));
+      // A browser puts the keyboard on the button it clicks; this DOM does not.
+      const pressed = (button) => { button.focus(); click(button); return button; };
+      const headersIcon = pressed(act('qread', { what: 'headers', id: 42 }));
       await flush();
       check('the headers icon reads that message\'s headers and shows them in a panel, as text',
          called(before, 'GET', '/api/v1/quarantine/42/headers').length === 1 && $('#qReadText') !== null &&
@@ -7701,9 +7706,10 @@ async function main() {
          paths(before) + ' ' + ($('#qReadText') ? $('#qReadText').textContent : ''));
       click(act('qreadclose'));
       await flush();
-      check('and Close takes the panel away', $('#qRead') === null);
+      check('and Close takes the panel away, and gives the keyboard back to the icon that opened it', $('#qRead') === null && document.activeElement === headersIcon,
+         String(document.activeElement && (document.activeElement.id || JSON.stringify(document.activeElement.attributes))));
       before = requests.length;
-      click(act('qread', { what: 'preview', id: 42 }));
+      const previewIcon = pressed(act('qread', { what: 'preview', id: 42 }));
       await flush();
       check('the preview icon reads the message\'s text, shows it as text, and says it was cut',
          called(before, 'GET', '/api/v1/quarantine/42/preview').length === 1 && $('#qReadText').textContent.indexOf('<script>') >= 0 &&
@@ -7717,7 +7723,16 @@ async function main() {
          helpKey.defaultPrevented === true && $('#qRead') !== null && $('#helpPane').hidden === paneBefore, 'prevented=' + helpKey.defaultPrevented);
       press('Escape', $('#qReadText'));
       await flush();
-      check('and Escape takes it away', $('#qRead') === null);
+      check('and Escape takes it away, the keyboard back on the icon', $('#qRead') === null && document.activeElement === previewIcon);
+
+      // The list dialog, cancelled, gives the keyboard back too.
+      const allowIcon = pressed(act('qact', { do: 'allow', scope: 'group', key: 'supply.example' }));
+      await flush();
+      check('the list dialog takes the keyboard', $('#qList') !== null && document.activeElement !== allowIcon);
+      press('Escape', document.activeElement);
+      await flush();
+      check('and Escape cancels it, the keyboard back on the icon that opened it', $('#qList') === null && document.activeElement === allowIcon,
+         String(document.activeElement && JSON.stringify(document.activeElement.attributes)));
 
       // Whitelist a group: which list, asked of the server before anything is written.
       before = requests.length;
@@ -7796,6 +7811,12 @@ async function main() {
       press('Escape', document.activeElement);
       await flush();
       check('Escape is No: the dialog goes and nothing is sent', $('#qAsk') === null && qBulk(before).length === 0, paths(before));
+      const deleteIcon = pressed(act('qact', { do: 'delete', scope: 'row', id: 41 }));
+      await flush();
+      click(act('qaskno'));
+      await flush();
+      check('No gives the keyboard back to the icon that asked', $('#qAsk') === null && document.activeElement === deleteIcon && qBulk(before).length === 0,
+         String(document.activeElement && JSON.stringify(document.activeElement.attributes)));
       click(act('qact', { do: 'delete', scope: 'row', id: 41 }));
       await flush();
       click(act('qaskyes'));

@@ -5056,7 +5056,7 @@ function qAsk(title,text,yes){
     qAnswer(false);
     Q.ask=resolve;
     const host=document.createElement("div");
-    host.id="qAsk";host.className="overlay";
+    host.id="qAsk";host.className="overlay";host.qBack=document.activeElement;
     host.innerHTML='<div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="qAskTitle" aria-describedby="qAskText">'+
       '<h2 id="qAskTitle">'+escHtml(title)+'</h2><p id="qAskText" class="note" style="white-space:pre-line">'+escHtml(text)+'</p>'+
       '<div class="row"><button class="btn ghost" data-act="qaskno">'+t("No")+'</button><button class="btn danger" data-act="qaskyes">'+escHtml(yes)+'</button></div></div>';
@@ -5067,10 +5067,15 @@ function qAsk(title,text,yes){
 }
 function qAnswer(yes){
   const host=document.getElementById("qAsk");
-  if(host&&host.parentNode)host.parentNode.removeChild(host);
+  if(host&&host.parentNode){host.parentNode.removeChild(host);qBack(host);}
   const r=Q.ask;Q.ask=null;
   if(r)r(!!yes);
 }
+/* A dialog closed gives the keyboard back to what had it when it opened - the
+   icon that opened it - as the shortcut list does; the dialog took the focus
+   with it, and a browser puts it on the page's body. After Yes the view is
+   drawn again and the icon is gone, and there is nothing to give it back to. */
+function qBack(host){const b=host&&host.qBack;if(b&&b.isConnected&&b.focus)b.focus();}
 function qTrap(e,host,escape){
   // The page's own keys - Enter opening the row under the cursor, / and ? -
   // act on what the dialog covers, so none of them is let past it.
@@ -5103,7 +5108,7 @@ function qListDialog(ids,action){
     const helo=Q.group==="helo";
     Q.list={ids:ids,action:action,resolve:resolve,choice:"address",suffixOk:false,usable:false,domainFrom:helo?"helo":"sender"};
     const host=document.createElement("div");
-    host.id="qList";host.className="overlay";
+    host.id="qList";host.className="overlay";host.qBack=document.activeElement;
     const pick=(v,label,note)=>'<button class="qpick" role="radio" data-act="qlistpick" data-list="'+v+'" aria-checked="'+(v==="address"?"true":"false")+'">'+escHtml(label)+'</button><p class="note" style="margin:2px 0 10px 26px">'+escHtml(note)+'</p>';
     host.innerHTML='<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qListTitle">'+
       '<h2 id="qListTitle">'+escHtml(block?t("Blacklist and delete"):t("Whitelist and release"))+'</h2>'+
@@ -5126,7 +5131,7 @@ function qListDialog(ids,action){
 }
 function qListClose(answer){
   const host=document.getElementById("qList");
-  if(host&&host.parentNode)host.parentNode.removeChild(host);
+  if(host&&host.parentNode){host.parentNode.removeChild(host);qBack(host);}
   const l=Q.list;Q.list=null;
   if(l&&l.resolve)l.resolve(answer);
 }
@@ -5258,7 +5263,7 @@ async function qRead(id,what){
     const a=await api("/api/v1/quarantine/"+encodeURIComponent(id)+"/"+(what==="headers"?"headers":"preview"));
     const text=String((what==="headers"?a.headers:a.text)||"");
     const host=document.createElement("div");
-    host.id="qRead";host.className="overlay";
+    host.id="qRead";host.className="overlay";host.qBack=document.activeElement;
     host.innerHTML='<div class="sheet wide qpanel" role="dialog" aria-modal="true" aria-labelledby="qReadTitle">'+
       '<div class="row"><h2 id="qReadTitle" style="flex:1;margin:0"></h2><button class="btn ghost sm" data-act="qreadclose">'+t("Close")+'</button></div>'+
       '<p class="note" id="qReadNote" hidden></p><pre id="qReadText" tabindex="0"></pre></div>';
@@ -5272,7 +5277,7 @@ async function qRead(id,what){
     $("#qReadText").focus();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_quarantine",e.message);}
 }
-function qReadClose(){const host=document.getElementById("qRead");if(host&&host.parentNode)host.parentNode.removeChild(host);}
+function qReadClose(){const host=document.getElementById("qRead");if(host&&host.parentNode){host.parentNode.removeChild(host);qBack(host);}}
 
 /* ---------- Held for review ----------
    What the compromised-account detection kept out of the delivery queue: an
