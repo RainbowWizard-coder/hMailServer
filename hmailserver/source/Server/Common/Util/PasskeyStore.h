@@ -120,8 +120,8 @@ namespace HM
       static AnsiString UserHandle(__int64 accountId, bool administrator);
       static bool OwnerOfHandle(const std::string &handle, __int64 &accountId, bool &administrator);
 
-      static const int MostPerOwner = 10;
-      static const int ChallengeSeconds = 300;
+      static constexpr int MostPerOwner = 10;
+      static constexpr int ChallengeSeconds = 300;
 
       // The rows one owner has, newest first.
       static bool List(__int64 accountId, bool administrator, std::vector<Passkey> &passkeys);

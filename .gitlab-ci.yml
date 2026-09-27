@@ -64,6 +64,8 @@
 #
 #   linux-fuzz        "fuzz", nightly: linix, the MIME harnesses under libFuzzer
 #                     (build/ci/linux-fuzz.sh);
+#   linux-coverage    "coverage", weekly: linix, the native server's line, region and
+#                     branch coverage under the Linux suite (build/ci/linux-coverage.sh);
 #   renovate          "renovate", daily: linix, Renovate's dependency updates;
 #   secret_detection  "security", run once by hand: GitLab's secret detection over
 #                     the whole history (.gitlab/ci/gitlab-security.yml).
@@ -142,7 +144,7 @@ variables:
   PYTHONDONTWRITEBYTECODE: "1"
 
 # Every scheduled pipeline runs one job, chosen by the schedule's description
-# ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "renovate" renovate,
+# ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "coverage" linux-coverage, "renovate" renovate,
 # "export" forge-export (.gitlab/ci/forge-export.yml), "security" secret_detection,
 # and any other - the update feed's - pages (with package-repos). So every
 # job on the shared runners takes these rules, and .own-runners below begins with
@@ -349,10 +351,10 @@ pages:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
-    # Not the four schedules that each run another job alone: the fuzz schedule's,
-    # Renovate's, the forge export's and the history's secret scan. package-repos
+    # Not the five schedules that each run another job alone: the fuzz schedule's,
+    # the coverage schedule's, Renovate's, the forge export's and the history's secret scan. package-repos
     # takes these rules (!reference [pages, rules]), so it refuses them too.
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "export" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "export" || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
@@ -387,7 +389,7 @@ pages:
 # changed, so they run everything.
 .own-runners:
   rules:
-    # A scheduled pipeline (linux-fuzz's, renovate's, the feed's) and the feed's
+    # A scheduled pipeline (linux-fuzz's, linux-coverage's, renovate's, the feed's) and the feed's
     # downstream one (source "pipeline", from update-feed) run no job here.
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
@@ -429,7 +431,10 @@ linux-suite:
   extends: .linix
   stage: test
   needs: [linux-build]
-  timeout: 3 hours
+  # The runners' maximum. The suite took 2 h 7 min in the first pipeline, on 26
+  # September 2026, and the 29 fixtures linked that day add about 20 minutes: under
+  # three hours, but with too little to spare for a suite that grows every batch.
+  timeout: 4 hours
   # A later push does not cut the suite off half-way (default:, above).
   interruptible: false
   services:
@@ -445,7 +450,7 @@ linux-suite:
     HM_PG_HOST: postgres
     # The script is stopped ten minutes before the job's timeout, so that after_script
     # still runs: GitLab runs no after_script for a job that reached its own timeout.
-    RUNNER_SCRIPT_TIMEOUT: 2h50m
+    RUNNER_SCRIPT_TIMEOUT: 3h50m
     RUNNER_AFTER_SCRIPT_TIMEOUT: 5m
   script:
     - bash build/ci/linux-suite.sh
@@ -1031,6 +1036,53 @@ linux-fuzz:
     access: developer
     paths:
       - fuzz-results/
+
+# The native server's coverage (build/ci/linux-coverage.sh): the server and its tester
+# programs built with clang's source-based coverage, the testers run, then the whole of
+# LinuxRegressionTests against that server on the same PostgreSQL linux-suite uses, and
+# llvm-cov's line, region and branch figures. It runs in the pipeline of the schedule
+# whose description is "coverage" - weekly; docs/ContinuousIntegration.md tells the
+# owner how to create it - and nowhere else. The figure is a floor for the server as a
+# whole: the Linux suite links fewer fixtures than the Windows one runs, and the Linux
+# build has no COM layer (the Windows line figure is build/coverage-windows.ps1's). A
+# failed test does not fail this job - linux-suite is the pass or fail truth, on the
+# uninstrumented build - but a suite that did not run to its end (no TRX), no
+# counters, or no report, does. GitLab reads the line figure from the log (coverage:,
+# below) for the pipeline's coverage.
+linux-coverage:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 4 hours
+  interruptible: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" && $CI_COMMIT_REF_PROTECTED == "true"
+  services:
+    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+      alias: postgres
+      pull_policy: if-not-present
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: hmtest
+  variables:
+    HM_PG_HOST: postgres
+    HM_COV_DIR: $CI_PROJECT_DIR/linux-coverage
+    RUNNER_SCRIPT_TIMEOUT: 3h50m
+  script:
+    - bash build/ci/linux-coverage.sh
+  coverage: '/lines: +[\d,]+ of [\d,]+ \((\d+\.\d+)%\)/'
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - linux-coverage/summary.txt
+      - linux-coverage/report.txt
+      - linux-coverage/report-with-vendored.txt
+      - linux-coverage/coverage.json
+      - linux-coverage/lcov.info
+      - linux-coverage/*.log
+      - linux-coverage/suite/
 
 # ---------------------------------------------------------------- security scanning
 #

@@ -97,7 +97,7 @@ namespace HM
       };
 
       // The list's ceiling, in characters of the stored text.
-      static const int MaxListLength = 2000;
+      static constexpr int MaxListLength = 2000;
 
       // Whether the account is restricted at all: exempt is never, restricted
       // is always, and following the domain is restricted when the domain has

@@ -92,6 +92,8 @@
     <Compile Include="..\RegressionTests\Shared\TestPorts.cs" Link="Shared\TestPorts.cs" />
     <Compile Include="..\RegressionTests\Shared\TestTracer.cs" Link="Shared\TestTracer.cs" />
     <Compile Include="..\RegressionTests\Shared\TlsHandshakeProbe.cs" Link="Shared\TlsHandshakeProbe.cs" />
+    <Compile Include="..\RegressionTests\Shared\BounceTestSupport.cs" Link="Shared\BounceTestSupport.cs" />
+    <Compile Include="..\RegressionTests\Shared\OpenPgpTestSupport.cs" Link="Shared\OpenPgpTestSupport.cs" />
   </ItemGroup>
 
   <!-- The fixtures. -->
@@ -108,6 +110,7 @@
     <Compile Include="..\RegressionTests\API\RestApiApiKeys.cs" Link="API\RestApiApiKeys.cs" />
     <Compile Include="..\RegressionTests\API\RestApiArchive.cs" Link="API\RestApiArchive.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAuthorization.cs" Link="API\RestApiAuthorization.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiRouteSweep.cs" Link="API\RestApiRouteSweep.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDomains.cs" Link="API\RestApiDomains.cs" />
     <Compile Include="..\RegressionTests\API\RestApiMailboxMove.cs" Link="API\RestApiMailboxMove.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDkimRotation.cs" Link="API\RestApiDkimRotation.cs" />
@@ -364,6 +367,38 @@
     <Compile Include="..\RegressionTests\API\RestApiAccountMessages.cs" Link="API\RestApiAccountMessages.cs" />
     <Compile Include="..\RegressionTests\API\RestApiWebPush.cs" Link="API\RestApiWebPush.cs" />
     <Compile Include="..\RegressionTests\Security\AppPasswords.cs" Link="Security\AppPasswords.cs" />
+    <!-- Linked on 26 September 2026 for the coverage programme: each compiled
+         against the shims as they are and ran clean against the Linux server on
+         linix, in a filtered run of the suite (build/ci/linux-coverage.sh, HM_COV_FILTER). -->
+    <Compile Include="..\RegressionTests\API\RestApiAccountImport.cs" Link="API\RestApiAccountImport.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiBrandLogos.cs" Link="API\RestApiBrandLogos.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiCompression.cs" Link="API\RestApiCompression.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiCompromisedAccount.cs" Link="API\RestApiCompromisedAccount.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiConfidential.cs" Link="API\RestApiConfidential.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiGroups.cs" Link="API\RestApiGroups.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiImportSignIn.cs" Link="API\RestApiImportSignIn.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiMaskedAddresses.cs" Link="API\RestApiMaskedAddresses.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiMessageRecall.cs" Link="API\RestApiMessageRecall.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiOidcSignIn.cs" Link="API\RestApiOidcSignIn.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiOpenPgpKeys.cs" Link="API\RestApiOpenPgpKeys.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiPersonExport.cs" Link="API\RestApiPersonExport.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiProtectedMessages.cs" Link="API\RestApiProtectedMessages.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiReaderFetchAccounts.cs" Link="API\RestApiReaderFetchAccounts.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiRecoverDeleted.cs" Link="API\RestApiRecoverDeleted.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiSenderAddresses.cs" Link="API\RestApiSenderAddresses.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiSharedAddressBooks.cs" Link="API\RestApiSharedAddressBooks.cs" />
+    <Compile Include="..\RegressionTests\API\WebmailFooters.cs" Link="API\WebmailFooters.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\DKIM\ArcSealing.cs" Link="AntiSpam\DKIM\ArcSealing.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\DKIM\Signing.cs" Link="AntiSpam\DKIM\Signing.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\DmarcTreeWalkResolution.cs" Link="AntiSpam\DmarcTreeWalkResolution.cs" />
+    <Compile Include="..\RegressionTests\ExternalAccounts\ImapMirror.cs" Link="ExternalAccounts\ImapMirror.cs" />
+    <Compile Include="..\RegressionTests\Infrastructure\MessageStoreLayout.cs" Link="Infrastructure\MessageStoreLayout.cs" />
+    <Compile Include="..\RegressionTests\Infrastructure\SnmpAgent.cs" Link="Infrastructure\SnmpAgent.cs" />
+    <Compile Include="..\RegressionTests\Rules\SealedMessageRules.cs" Link="Rules\SealedMessageRules.cs" />
+    <Compile Include="..\RegressionTests\SMTP\Journaling.cs" Link="SMTP\Journaling.cs" />
+    <Compile Include="..\RegressionTests\SMTP\OutboundBindFamily.cs" Link="SMTP\OutboundBindFamily.cs" />
+    <Compile Include="..\RegressionTests\SMTP\PerDomainRelay.cs" Link="SMTP\PerDomainRelay.cs" />
+    <Compile Include="..\RegressionTests\Sieve\SieveSealedBody.cs" Link="Sieve\SieveSealedBody.cs" />
   </ItemGroup>
 
   <!-- The embedded messages, under the manifest names the Windows assembly gives

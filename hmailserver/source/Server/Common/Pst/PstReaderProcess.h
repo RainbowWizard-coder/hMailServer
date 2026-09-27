@@ -171,7 +171,7 @@ namespace HM
       static void Rethrow(const PstReplyStatus &status);
 
       static const int MaximumReaders = 4;
-      static const int MaximumFailuresInARow = 10;
+      static constexpr int MaximumFailuresInARow = 10;
       static const unsigned int HelloMilliseconds = 60000;
       static const unsigned int RequestMilliseconds = 600000;
 

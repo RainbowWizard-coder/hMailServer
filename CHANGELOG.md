@@ -65,7 +65,29 @@ for a stray `#` number or `@` name.
 
 ## Unreleased - in the tree after 6.3.4, not yet released
 
-Nothing yet.
+### Build and tests
+
+- **Coverage on Linux, with branches.** `build/ci/linux-coverage.sh` builds the server and its tester programs with
+  clang's source-based coverage (`-DHM_COVERAGE=ON`, a new CMake option), runs the testers and the whole Linux
+  regression suite against that server, and writes llvm-cov's line, region and branch figures. On 26 September 2026
+  on linix they were 49.01%, 47.23% and 38.87% of the Linux build (43.35%, 41.38% and 33.82% before the fixtures
+  below were linked, which were measured in a run of their own and the counters merged) - a floor, since the Linux
+  suite runs what its REST shims can drive and llvm-cov counts every line of a function. The `linux-coverage` job
+  runs it weekly once the owner creates the schedule described `coverage`
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), *The coverage schedule*); it has not run
+  on GitLab yet. The Windows measurement of 15 September is in the tree as `build/coverage-windows.ps1`, not yet run
+  from it; it stores the suite's resolver over COM before the console server starts, as the suite asks since the
+  settings moved into the database. Seventeen class constants the server passes to `Format` by reference are
+  defined now (`static constexpr`): six of them kept the instrumented build from linking, and the other eleven had
+  the same defect and linked only because the optimiser folded them.
+- **Twenty-nine more fixtures run on Linux**, among them DKIM signing, ARC sealing, the OpenPGP keys, message
+  recall, shared address books, the IMAP mirror, journaling, per-domain relay and the webmail's footers: each
+  already compiled against the REST shims and ran clean on linix, and none was linked. `API/RestApiRouteSweep` is
+  new, on Windows and Linux: every administrative operation the server's OpenAPI document describes is refused, with
+  403, to an account without a role, and every read is answered to an auditor without a server error. The Linux
+  shims give `Domains.ItemByName[...]` and `DistributionLists.ItemByAddress[...]` as indexers, and `Paths.Combine`
+  reads a relative path written the Windows way as one on Linux. The `linux-suite` job, which the fixtures lengthen
+  by about 20 minutes, has the runners' four hours now rather than three.
 
 ---
 

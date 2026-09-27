@@ -45,6 +45,7 @@ What runs where
 | `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
 | `linux-fuzz` | test | linix | the schedule described `fuzz`, and nothing else | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`); its findings are its artifact, for Developers and above |
+| `linux-coverage` | test | linix | the schedule described `coverage`, and nothing else | The server and its tester programs built with clang's source-based coverage, the testers and the whole Linux suite run against it, and llvm-cov's line, region and branch figures (`build/ci/linux-coverage.sh`, [The coverage schedule](#the-coverage-schedule)) |
 | `static-analysis` | test | linix | a protected ref | cppcheck and clang-tidy over the server's C++, held to a baseline ([Security scanning](#security-scanning)) |
 | `semgrep` | test | linix | a protected ref | Semgrep's open rules over the C#, Python, JavaScript and shell sources, held to a baseline |
 | `ci-image-packages` | test | linix | a protected ref | Copies the CI image's package database out, for `dependency-scan` |
@@ -105,6 +106,7 @@ Which pipeline runs what
 | a `v*` tag | the tag's | all of them but `linux-fuzz`, `semgrep-sast`, `secret_detection` and `sign-off` (the commit's `master` pipeline ran the first three, and its batch the last), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
 | any other tag | none | |
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
+| the schedule described `coverage`, on `master` | the schedule's | `linux-coverage` alone ([The coverage schedule](#the-coverage-schedule)) |
 | the schedule described `renovate`, on `master` | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
 | the schedule described `security`, on `master`, run once by hand | the schedule's | `secret_detection` alone, over the whole history ([Security scanning](#security-scanning)) |
 | the schedule described `export`, on `master` | the schedule's | `forge-export` alone ([Mirroring.md](Mirroring.md)) |
@@ -112,8 +114,8 @@ Which pipeline runs what
 | the pipeline `update-feed` starts (on `master`, source `pipeline`) | a downstream pipeline | `pages` and `package-repos` alone |
 
 A schedule is told apart by its description, which GitLab gives the pipeline
-as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `renovate`,
-`export` and `security` are the four words that start a job of their own,
+as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `coverage`,
+`renovate`, `export` and `security` are the five words that start a job of their own,
 which `pages` and `package-repos` refuse, and a schedule
 carries no variable. The project refuses pipeline variables (*Minimum role to
 use pipeline variables* is *No one allowed*), and GitLab counts a schedule's
@@ -806,6 +808,43 @@ pipeline started that way is not a schedule's. It occupies linix for a little
 over an hour, and a protected ref's pipeline that arrives meanwhile waits for
 it. To start the corpus again from the seeds, clear the runner caches
 (*Pipelines*, *Clear runner caches*).
+
+The coverage schedule
+---------------------
+
+`linux-coverage` measures how much of the native server the tests reach, the
+figure the OpenSSF criteria `test_statement_coverage80`, `test_statement_coverage90`
+and `test_branch_coverage80` ask for. `build/ci/linux-coverage.sh` configures the
+server with `-DHM_COVERAGE=ON` (clang's `-fprofile-instr-generate
+-fcoverage-mapping`, counters written continuously so that a server stopped by
+SIGKILL still leaves them), runs the `*-tests` programs, then
+`build/ci/linux-suite.sh` - the whole of LinuxRegressionTests on the same
+PostgreSQL 16 service - against the instrumented server, and merges the
+counters with `llvm-profdata`. Its artifact, kept 30 days, is `summary.txt`
+(lines, regions, branches and functions), `report.txt` (one line per file),
+`coverage.json`, `lcov.info` and the suite's results; GitLab reads the line
+figure from the log (`coverage:`). The vendored QuickJS and zlib are left out of
+the figure and counted in `report-with-vendored.txt`.
+
+The figure is a floor for the server as a whole: the Linux suite links the
+fixtures the REST shims can drive, fewer than the Windows suite runs, and the
+Linux build compiles the portable core and not the COM layer. The Windows line
+figure is `build/coverage-windows.ps1`'s (OpenCppCoverage, run by hand on a bench,
+elevated; it has no branch mode). A failed test does not fail the job -
+`linux-suite` is the pass or fail truth, on the uninstrumented build - but a
+suite that did not run to its end does (no TRX: the server did not start, or
+the restore failed), and so do no counters and no report: the counters of a
+suite that never ran are only the set-up's, and a figure from them would carry
+the whole suite's name. `summary.txt` gives each run's tests - run, passed,
+failed, skipped - beside its scope. By hand on linix, the script's header gives the two
+`docker run` lines, with a PostgreSQL container on a network of its own.
+
+**Creating the schedule is a one-time step for the owner**, as for the fuzz
+schedule: description exactly `coverage`, interval pattern `40 3 * * 0`
+(custom, UTC - Sunday 03:40, after the night's fuzzing), target branch `master`,
+no variables, activated. The job takes linix for about three hours: the
+instrumented build, then the whole suite, which with the fixtures linked on 26
+September 2026 comes to some two and a half hours (*What they cost*).
 
 What the first runs by hand found
 ---------------------------------
@@ -1697,7 +1736,7 @@ measured times after the first pipelines.
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
 | `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on a shared runner: the .NET SDK image is about 1.3 GB |
 | `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |
-| `linux-suite` | 1.5 to 2.5 h | 3 h | The whole suite took 75 to 90 minutes on GitHub's hosted runner on 16 September 2026, and it has grown since. Add about 5 minutes for the layout and the restore |
+| `linux-suite` | 2 to 2.5 h | 4 h | The whole suite took 75 to 90 minutes on GitHub's hosted runner on 16 September 2026, and it has grown since: the job took 2 h 7 min in the first GitLab pipeline, on 26 September 2026, before the 29 fixtures linked that day for the coverage programme, which took 20 minutes more in a run of their own on linix, against the instrumented server. The timeout was three hours until then; it is the runners' maximum now, so that a suite that grows every batch is not cut off |
 | `linux-cross` | 8 min by hand | 1 h | 750 translation units compiled for AArch64 with six jobs |
 | `linux-sanitize` | seconds by hand, while it skips | 1 h 30 min | Once `HM_SANITIZE` exists, an estimated 15 to 25 minutes: the core under AddressSanitizer, RelWithDebInfo |
 | `linux-db-upgrade-pgsql`, `-mysql` | 16 s and 31 s on the first pipeline, which stopped at 6101 | 20 min | 75 upgrade steps from 6029, and a new database made to compare |
@@ -1708,6 +1747,7 @@ measured times after the first pipelines.
 | `windows-gate` | 2.5 to 3 h | 4 h | On 25 September 2026 the two halves took 62 minutes (1,339 tests, on bench150) and 70 minutes (2,126 tests, on the laptop), each with its build. One bench runs both, one after the other, with one build. Add any wait for the lock |
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
+| `linux-coverage` | about 3 h, estimated | 4 h | By hand on linix on 26 September 2026, in the job's image: the whole suite against the instrumented server took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own; the testers took under a minute and the report seconds. The instrumented build was not timed on its own; `linux-build`'s took 20 minutes in the first pipeline |
 | `static-analysis` | 35 to 50 min | 90 min | Its script, run by hand on linix on 25 September 2026 in the job's image with four CPUs where the job has six, beside other work: 51 min 28 s, of which cppcheck took 2 min 22 s and clang-tidy 49 min for 741 files |
 | `semgrep` | 3 to 5 min | 30 min | The same, with one CPU: 2 min 36 s to 2 min 50 s, the install and the rules' download included |
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
@@ -1721,7 +1761,7 @@ measured times after the first pipelines.
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
 runner's maximum. linix runs one job at a time, so its jobs add up: about 12
-minutes of build, 1.5 to 2.5 hours of suite and about 10 minutes of the rest, so
+minutes of build, 2 to 2.5 hours of suite and about 10 minutes of the rest, so
 three hours or a little more, and the security scans add about an hour to
 that ([What they cost](#what-they-cost)). bench150's two jobs add up the same way. So a
 pipeline for a protected ref takes about three hours from start to finish, and

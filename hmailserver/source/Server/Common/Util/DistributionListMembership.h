@@ -95,7 +95,7 @@ namespace HM
       };
 
       // The longest text the column holds.
-      static const int MaxLength = 200;
+      static constexpr int MaxLength = 200;
 
       // Reads the text. False with reason when it is none of the five forms;
       // the reason is the sentence the administrator sees.

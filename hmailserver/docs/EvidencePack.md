@@ -461,6 +461,11 @@ internal assertion (RELEASE.md, steps 8b and 9), and every defect fix needs a
 test that fails without it (step 3). The native server's line coverage over
 the Windows suite was measured at 73.48% *(unreleased)*
 ([CHANGELOG.md](../../CHANGELOG.md), *Build and tests*).
+On Linux, with branches, the suite and the tester programs reach 49.01% of the
+Linux build's lines and 38.87% of its branches *(unreleased)*
+(`build/ci/linux-coverage.sh`, the suite in two runs merged) - a floor, for the reasons
+[ContinuousIntegration.md](ContinuousIntegration.md) gives (*The coverage
+schedule*).
 
 **Static analysis.** The C++ server compiles with warnings as errors;
 `build/analyze.ps1` runs MSVC's `/analyze` by hand; SQL is parameterised as a

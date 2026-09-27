@@ -110,6 +110,21 @@ if [ ! -x "$BINARY" ] && [ ! -f "$BINARY" ]; then
   exit 2
 fi
 
+# HM_LINUX_SUITE_FILTER, when set, is a dotnet test filter: part of the suite, for
+# build/ci/linux-coverage.sh measuring a part ("all", or unset, is the whole). A
+# variable of its own and not build/lab/db-suite.sh's HM_SUITE_FILTER, whose unset
+# value is "db": a project or group variable of that name, meant for the db-matrix
+# job, would have made this a silent part of the suite. The linux-suite job is the
+# pass or fail truth, so it refuses a filter whatever the project defines.
+filter=()
+if [ -n "${HM_LINUX_SUITE_FILTER:-}" ] && [ "$HM_LINUX_SUITE_FILTER" != "all" ]; then
+  if [ "${CI_JOB_NAME:-}" = "linux-suite" ]; then
+    echo "REFUSED: HM_LINUX_SUITE_FILTER is set ($HM_LINUX_SUITE_FILTER), and the linux-suite job runs the whole suite."
+    exit 2
+  fi
+  filter=(--filter "$HM_LINUX_SUITE_FILTER")
+fi
+
 rm -rf "$T" "$OUT"
 mkdir -p "$T/program" "$T/Data" "$T/Logs" "$T/Temp" "$T/Events" "$T/Database" "$OUT"
 
@@ -231,10 +246,14 @@ if ! dotnet restore hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.c
   exit 2
 fi
 
-echo "== the whole of LinuxRegressionTests, started $(date -u +%FT%TZ)"
+if [ ${#filter[@]} -gt 0 ]; then
+  echo "== LinuxRegressionTests, only the tests the filter selects, started $(date -u +%FT%TZ): $HM_LINUX_SUITE_FILTER"
+else
+  echo "== the whole of LinuxRegressionTests, started $(date -u +%FT%TZ)"
+fi
 started=$(date +%s)
 dotnet test hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj -c Release --no-restore \
-  --logger "trx;LogFileName=linux-suite.trx" --logger "console;verbosity=normal" \
+  "${filter[@]}" --logger "trx;LogFileName=linux-suite.trx" --logger "console;verbosity=normal" \
   --results-directory "$OUT" 2>&1 | tee "$OUT/console.log"
 code=${PIPESTATUS[0]}
 echo "dotnet test exit $code after $(( ($(date +%s) - started) / 60 )) min"

@@ -98,7 +98,7 @@ namespace HM
       };
 
       // The two lists' ceiling, in characters of the stored text.
-      static const int MaxListLength = 2000;
+      static constexpr int MaxListLength = 2000;
 
       // How much of a display name the reason carries before an ellipsis, so
       // that the header line stays within what RFC 5322 allows.

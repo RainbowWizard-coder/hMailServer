@@ -124,6 +124,24 @@ if(HM_SANITIZE)
    add_link_options(-fsanitize=address,undefined)
 endif()
 
+# A build under clang's source-based coverage, to measure what the regression
+# suite reaches: line, region and branch counts in one pass. Off, and never for a
+# package - every unit is instrumented and the server is slower for it. The
+# counters are written where LLVM_PROFILE_FILE says, continuously ("%c") so that a
+# server stopped by SIGKILL still leaves them. build/ci/linux-coverage.sh builds
+# this directory, runs the whole Linux suite against it and writes the report:
+#
+#   cmake -S hmailserver/source/Server -B build/linux-coverage -DHM_COVERAGE=ON \
+#         -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+option(HM_COVERAGE "Build with clang's source-based coverage, to measure the suite" OFF)
+if(HM_COVERAGE)
+   if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      message(FATAL_ERROR "HM_COVERAGE needs clang: -fprofile-instr-generate is clang's")
+   endif()
+   add_compile_options(-fprofile-instr-generate -fcoverage-mapping -mllvm -runtime-counter-relocation)
+   add_link_options(-fprofile-instr-generate)
+endif()
+
 # ---------------------------------------------------------------- the sources
 
 set(SERVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})

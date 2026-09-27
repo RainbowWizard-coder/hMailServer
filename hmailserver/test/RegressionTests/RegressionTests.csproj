@@ -339,6 +339,7 @@
     <Compile Include="API\ComWritesOntoCopies.cs" />
     <Compile Include="API\MessageHeaderObjects.cs" />
     <Compile Include="API\RestApiAuthorization.cs" />
+    <Compile Include="API\RestApiRouteSweep.cs" />
     <Compile Include="API\Roles.cs" />
     <Compile Include="Domains\DomainDeleteCascade.cs" />
     <Compile Include="Domains\DomainLimitEnableFlags.cs" />

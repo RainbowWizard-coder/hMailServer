@@ -177,3 +177,8 @@ credentials.json
 !/hmailserver/test/SSL examples/**
 !/hmailserver/installation/Extras/dh2048.pem
 !/build/fixtures/**
+
+# What the coverage scripts write: build/coverage-windows.ps1 (OpenCppCoverage)
+# and build/ci/linux-coverage.sh (clang source-based coverage).
+/coverage-windows/
+/linux-coverage/

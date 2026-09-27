@@ -95,12 +95,12 @@ namespace HM
       // for Argon2id, two passes over 19 MiB: a row is an offline test of a
       // guess at the account password, and the cost of each guess is what the
       // row names.
-      static const int MinimumPasses = 2;
-      static const int MaximumPasses = 10;
-      static const int MinimumMemoryKiB = 19 * 1024;
-      static const int MaximumMemoryKiB = 1024 * 1024;
-      static const int MinimumLanes = 1;
-      static const int MaximumLanes = 16;
+      static constexpr int MinimumPasses = 2;
+      static constexpr int MaximumPasses = 10;
+      static constexpr int MinimumMemoryKiB = 19 * 1024;
+      static constexpr int MaximumMemoryKiB = 1024 * 1024;
+      static constexpr int MinimumLanes = 1;
+      static constexpr int MaximumLanes = 16;
 
       // Octets of the salt, base64 in the row.
       static const int SaltBytes = 16;

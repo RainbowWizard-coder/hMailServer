@@ -231,13 +231,16 @@ On Linux
 `RegressionTests.csproj` is `net481` with a `COMReference` to the service and runs
 nowhere but a Windows bench. `hmailserver/test/LinuxRegressionTests` is the part
 of the suite that can test the Linux server: a `net10.0` project that compiles
-270 of the suite's files **in place** from `RegressionTests`, 235 of them
-fixtures holding some 1,500 tests, together with the socket simulators, and
+339 of the suite's files **in place** from `RegressionTests`, 299 of them
+fixtures holding some 2,150 tests, together with the socket simulators, and
 stands a REST-backed fixture layer under them (`LinuxRegressionTests/Shims`).
 The fixtures are not copied and not edited; a test that passes here is the same
 test that passes on Windows. It began at 52 files - the ones that drive the
 server through SMTP, IMAP, POP3 and MIME and nothing else - and grew as the
 shim layer learned to answer more of what COM answers.
+`build/ci/linux-coverage.sh` runs it against a server built for coverage
+([ContinuousIntegration.md](ContinuousIntegration.md), *The coverage
+schedule*).
 
 What the fixture layer does instead of COM: the test domain `example.test` is
 deleted and recreated before every test through `POST /api/v1/domains` (or, on a

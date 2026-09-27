@@ -24,7 +24,7 @@ namespace HM
 
       // The longest value SETMETADATA accepts, matching the column. The refusal
       // carries the RFC's MAXSIZE response code so a client knows the limit.
-      static const int MaxValueLength = 2048;
+      static constexpr int MaxValueLength = 2048;
 
       static bool Get(__int64 accountId, __int64 folderId, const String &entryName, String &value, bool &found);
 

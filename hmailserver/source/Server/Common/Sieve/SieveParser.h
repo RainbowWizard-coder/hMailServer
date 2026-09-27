@@ -254,7 +254,7 @@ namespace HM
       // Real scripts nest a handful deep; generated ones from a rule builder rarely
       // pass ten. Fifty is beyond any legitimate script and thousands below the
       // stack, which is the useful place for a limit like this to sit.
-      static const int MaxNestingDepth = 50;
+      static constexpr int MaxNestingDepth = 50;
 
       // Increments a depth counter for the lifetime of one parse level and puts it
       // back however the level is left, including the error returns.

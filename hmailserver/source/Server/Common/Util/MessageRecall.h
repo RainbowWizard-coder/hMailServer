@@ -80,7 +80,7 @@ namespace HM
    public:
       // A Message-ID longer than this is not recorded (the column is
       // nvarchar(255)), and a message carrying one is not recallable.
-      static const int MessageIdMaximum = 255;
+      static constexpr int MessageIdMaximum = 255;
 
       // Rows recorded per sender per rolling day, at most.
       static const int RowsPerSenderPerDay = 200;

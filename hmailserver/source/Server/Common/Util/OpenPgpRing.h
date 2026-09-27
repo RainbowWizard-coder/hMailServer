@@ -73,8 +73,8 @@ namespace HM
       // What one account may hold. A person has one key, or two while they
       // rotate; twenty is room for every mistake. The correspondents' side is
       // fed by Autocrypt on every message opened, so it is the one that grows.
-      static const int OwnPerAccount = 20;
-      static const int CorrespondentsPerAccount = 500;
+      static constexpr int OwnPerAccount = 20;
+      static constexpr int CorrespondentsPerAccount = 500;
 
       // Base64 characters of the public key, and characters of the armoured
       // secret key. A key with a few hundred certifications on it is tens of

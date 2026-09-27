@@ -69,10 +69,10 @@ refuses it. This checker holds them to each other. It fails when:
     variables reach the downstream pipeline as pipeline variables, which GitLab
     refuses by default in a project made since 17.7;
   * a scheduled pipeline is not chosen by its schedule's description: linux-fuzz,
-    renovate, forge-export (.gitlab/ci/forge-export.yml) and secret_detection
+    linux-coverage, renovate, forge-export (.gitlab/ci/forge-export.yml) and secret_detection
     (.gitlab/ci/gitlab-security.yml, the whole history) each run for the schedule
-    described "fuzz", "renovate", "export" or "security", and pages refuses those
-    four, and package-repos (.gitlab/ci/package-repos.yml) takes pages' rules and no
+    described "fuzz", "coverage", "renovate", "export" or "security", and pages
+    refuses those five, and package-repos (.gitlab/ci/package-repos.yml) takes pages' rules and no
     others; or a rule of those files still names
     HM_PIPELINE or RUN_RENOVATE, the variables that chose them before, which the
     project would refuse on a schedule - one way in;
@@ -169,6 +169,7 @@ PUBLISH_GATE = '  rules:\n    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\
 EXEMPT = {
     "pages": ("$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH", "the feed pipeline's one job"),
     "linux-fuzz": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" &&', "only the fuzz schedule"),
+    "linux-coverage": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" &&', "only the coverage schedule"),
     "renovate": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" &&', "only Renovate's schedule"),
     "sign-off": ('$CI_COMMIT_BRANCH =~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"', "only a merge request or a batch* branch"),
     "installer-smoke": ("($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)", "only a v* tag or a batch* branch"),
@@ -179,8 +180,11 @@ TAG_ONLY = '$CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"'
 REFUSAL = '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"'
 # The schedules that each run one job of their own, by their description, and the
 # file the job is in. pages, which runs for every other schedule on master, refuses these.
-ONE_JOB_SCHEDULES = {"fuzz": ("linux-fuzz", "ci"), "renovate": ("renovate", "ci"), "export": ("forge-export", "export"),
+ONE_JOB_SCHEDULES = {"fuzz": ("linux-fuzz", "ci"), "coverage": ("linux-coverage", "ci"), "renovate": ("renovate", "ci"), "export": ("forge-export", "export"),
                      "security": ("secret_detection", "security")}
+# The jobs of .gitlab-ci.yml that only their schedule runs: no push starts them, so
+# the rule that a push changing documentation alone starts nothing does not apply.
+SCHEDULE_ONLY_JOBS = [job for job, where in ONE_JOB_SCHEDULES.values() if where == "ci"]
 # package-repos, in a file of its own, deploys the feed's site with pages; its rules
 # are pages' and nothing else, so it refuses what pages refuses.
 REPOS_RULES = "  rules:\n    - !reference [pages, rules]\n"
@@ -893,7 +897,7 @@ def check(texts, chain, feed):
             if not any(f.startswith("hmailserver/docs/") and f.endswith(".md") for f in texts["tree"]):
                 problems.append("the tree has no hmailserver/docs/*.md to check the paths against")
     for name in sorted(jobs):
-        if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in ("linux-fuzz", "renovate"):
+        if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in SCHEDULE_ONLY_JOBS:
             continue
         if not re.search(r"^  tags: \[(linix|bench150)\]", inherited(name, jobs), re.MULTILINE):
             continue
@@ -1069,6 +1073,10 @@ def self_test(chain, feed):
            '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" && $RUN_RENOVATE == "1" && $CI_COMMIT_REF_PROTECTED', "still reads $RUN_RENOVATE")
     broken("an old route back in a refusal", "security", '    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"',
            '    - if: $HM_PIPELINE || $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"', "still reads $HM_PIPELINE")
+    broken("pages in the coverage schedule's pipeline", "ci", ' || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage"', "",
+           "pages would run in the pipeline of the schedule described \"coverage\"")
+    broken("the coverage job without its schedule", "ci", '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" &&',
+           '$CI_PIPELINE_SCHEDULE_DESCRIPTION == "covered" &&', "linux-coverage does not run for the schedule described \"coverage\"")
     broken("pages in the fuzz schedule's pipeline", "ci", '($CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" || ', "(",
            "pages would run in the pipeline of the schedule described \"fuzz\"")
     broken("pages in the history scan's pipeline", "ci", ' || $CI_PIPELINE_SCHEDULE_DESCRIPTION == "security")', ")",

@@ -26,10 +26,18 @@ namespace RegressionTests.Shared
 
          var result = new StringBuilder();
 
-         foreach (string part in parts)
+         foreach (string given in parts)
          {
-            if (part == null)
+            if (given == null)
                throw new ArgumentNullException(nameof(parts), "A path part was null.");
+
+            // The fixtures spell relative paths the Windows way ("..\\..\\SSL
+            // examples"). Where the separator is "/" - the Linux suite, which
+            // links the same fixtures - a backslash is an ordinary character of a
+            // file name, and "..\\..\\x" one name that does not exist; so there it
+            // is read as the separator it was written as. On Windows the part is
+            // unchanged.
+            string part = Path.DirectorySeparatorChar == '/' ? given.Replace('\\', '/') : given;
 
             if (part.Length == 0)
                continue;

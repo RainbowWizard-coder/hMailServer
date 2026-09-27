@@ -347,18 +347,31 @@ credible.
 - **Memory safety is mitigated, not guaranteed.** This is a large C++
   codebase with a pre-authentication attack surface. The controls in §6 raise
   the cost of exploitation; they do not make it impossible.
-- **Coverage is measured once, by hand, and below the bar.** The native
-  server's line coverage was measured on 15 September 2026: 73.48% (67,790 of
+- **Coverage is below the bar.** The native server's line coverage over the
+  whole Windows regression suite was 73.48% on 15 September 2026 (67,790 of
   92,260 lines under `hmailserver/source/Server`), by OpenCppCoverage 0.9.9
-  over the whole Windows regression suite, run against the 6.3.3 shipping
-  binary as a console server ([CHANGELOG.md](CHANGELOG.md), *6.3.4*,
-  *Build and tests*; `test_statement_coverage80` in
-  [Roadmap.md](Roadmap.md)). That is line coverage only - the tool has no
-  branch mode, so branch coverage is not quantified - and below the 80% the
-  OpenSSF silver level asks. The script that ran it is not in the repository,
-  so the figure is not repeated for each release. The .NET Control Panel's
-  coverage was collected by CI on GitHub (`ci.yml`) until 18 September 2026 and
-  is not collected on GitLab yet.
+  against the 6.3.3 shipping binary run as a console server
+  ([CHANGELOG.md](CHANGELOG.md), *6.3.4*, *Build and tests*;
+  `test_statement_coverage80` in [Roadmap.md](Roadmap.md)) - lines only, the
+  tool having no branch mode. Branches are counted on Linux: on 26 September
+  2026 the Linux build under clang's source-based coverage, driven by the
+  Linux regression suite and the tester programs, reached 49.01% of its lines,
+  47.23% of its regions and 38.87% of its branches
+  (`build/ci/linux-coverage.sh`; the suite in two runs whose counters were
+  merged - the whole of it before 29 fixtures were linked into it that day,
+  and those fixtures on their own). That is a floor rather than the Windows
+  figure's equal: the Linux suite runs only the fixtures its REST shims can
+  drive, the Linux build has no COM layer, and llvm-cov counts every line of a
+  function where OpenCppCoverage counts the lines an optimised build keeps.
+  Every figure is below the 80% the OpenSSF silver level asks of statements,
+  and the branch figure far below the 80% gold asks of branches. Both scripts
+  are in the repository - `build/coverage-windows.ps1`, and
+  `build/ci/linux-coverage.sh`, which the `linux-coverage` job runs on a
+  weekly schedule the owner has yet to create - but neither is a release step,
+  the job has not run on GitLab and the Windows script has not run from the
+  tree, so the figures are not yet repeated for each release. The .NET Control
+  Panel's coverage was collected by CI on GitHub (`ci.yml`) until 18 September
+  2026 and is not collected on GitLab yet.
 - **Reproducibility has been shown on the project's own machines only.**
   ([hmailserver/docs/ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)
   has the procedure and the evidence.) Since 22 August 2026 two clean Release

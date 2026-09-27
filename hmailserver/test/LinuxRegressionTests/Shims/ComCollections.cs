@@ -78,6 +78,13 @@ namespace hMailServer
          return From(All()[index]);
       }
 
+      /// <summary>
+      ///    The COM parameterised property, which a fixture writes as
+      ///    Domains.ItemByName["example.test"]; reached through an object with an
+      ///    indexer, as Accounts.ItemByAddress is.
+      /// </summary>
+      public DomainsByName ItemByName => new DomainsByName(this);
+
       public Domain get_ItemByName(string name)
       {
          return All().Where(element => string.Equals(ServerApi.StringOf(element, "name"), name, StringComparison.OrdinalIgnoreCase)).Select(element => From(element)).FirstOrDefault()
@@ -115,6 +122,18 @@ namespace hMailServer
          foreach (var name in All().Select(element => ServerApi.StringOf(element, "name")))
             ServerApi.Delete("/api/v1/domains/" + name).Expect(200, "DELETE /api/v1/domains/" + name);
       }
+   }
+
+   public class DomainsByName
+   {
+      private readonly Domains _domains;
+
+      internal DomainsByName(Domains domains)
+      {
+         _domains = domains;
+      }
+
+      public Domain this[string name] => _domains.get_ItemByName(name);
    }
 
    // ---- Accounts in a domain ----
@@ -301,6 +320,11 @@ namespace hMailServer
          return new DistributionList { Address = ServerApi.StringOf(All()[index], "address"), Active = true };
       }
 
+      /// <summary>
+      ///    The COM parameterised property, DistributionLists.ItemByAddress["x@y"].
+      /// </summary>
+      public DistributionListsByAddress ItemByAddress => new DistributionListsByAddress(this);
+
       public DistributionList get_ItemByAddress(string address)
       {
          return All().Where(element => string.Equals(ServerApi.StringOf(element, "address"), address, StringComparison.OrdinalIgnoreCase)).Select(element => new DistributionList { Address = address, Active = true }).FirstOrDefault()
@@ -326,6 +350,18 @@ namespace hMailServer
       public void Refresh()
       {
       }
+   }
+
+   public class DistributionListsByAddress
+   {
+      private readonly DistributionLists _lists;
+
+      internal DistributionListsByAddress(DistributionLists lists)
+      {
+         _lists = lists;
+      }
+
+      public DistributionList this[string address] => _lists.get_ItemByAddress(address);
    }
 
    /// <summary>
