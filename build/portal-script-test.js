@@ -9528,6 +9528,12 @@ async function zeroAccessChecks() {
          document.getElementById('za-confirm').hidden === false && heightOf('.overlay') === 70 && heightOf('#pgp-unlock') > heightOf('.overlay') &&
          heightOf('#pgp-unlock') >= heightOf('#za-confirm') && pageOrder && document.activeElement === document.getElementById('pgp-unlock-passphrase'),
          'overlay ' + heightOf('.overlay') + ', pgp-unlock ' + heightOf('#pgp-unlock') + ', page order ' + pageOrder);
+      // The dialogue under it comes next in the page: not inert, Tab walked
+      // from the sheet's Cancel into it, under the sheet's backdrop, and a
+      // screen reader read both.
+      check('Zero access: while the passphrase sheet is open the dialogue under it is inert, as the page is, and the sheet is not',
+         document.getElementById('za-confirm').inert === true && document.getElementById('pgp-unlock').inert !== true && document.getElementById('account').inert === true,
+         'za-confirm inert=' + document.getElementById('za-confirm').inert + ', pgp-unlock inert=' + document.getElementById('pgp-unlock').inert);
       // Cancelled, it gives the keyboard back to the dialogue under it.
       const insideConfirm = () => { for (let n = document.activeElement; n; n = n.parentNode) { if (n === document.getElementById('za-confirm')) { return true; } } return false; };
       document.getElementById('pgp-unlock-cancel').dispatchEvent(makeEvent('click'));
@@ -9535,6 +9541,9 @@ async function zeroAccessChecks() {
       check('Zero access: the passphrase sheet cancelled, the keyboard is back in the dialogue under it, which stays open with nothing sent',
          document.getElementById('pgp-unlock').hidden === true && document.getElementById('za-confirm').hidden === false && insideConfirm() && putsOfSwitch(beforeSwitch).length === 0,
          'focus=' + (document.activeElement && document.activeElement.id));
+      check('Zero access: and that dialogue is no longer inert, the page under it still is',
+         document.getElementById('za-confirm').inert === false && document.getElementById('account').inert === true,
+         'za-confirm inert=' + document.getElementById('za-confirm').inert + ', account inert=' + document.getElementById('account').inert);
       document.getElementById('za-confirm-form').dispatchEvent(makeEvent('submit'));
       await flush();
       await flush();
@@ -9563,6 +9572,9 @@ async function zeroAccessChecks() {
       document.getElementById('za-recovery-typed').value === '' && document.getElementById('za-recovery-key').textContent === '' &&
       document.getElementById('za-state-on').hidden === false && document.getElementById('za-state-off').hidden === true && zaText().length > 0,
       zaText());
+   check('Zero access: with both dialogues closed nothing is left inert',
+      document.getElementById('account').inert !== true && document.getElementById('za-confirm').inert !== true && document.getElementById('pgp-unlock').inert !== true,
+      'account ' + document.getElementById('account').inert + ', za-confirm ' + document.getElementById('za-confirm').inert + ', pgp-unlock ' + document.getElementById('pgp-unlock').inert);
 
    // ---- the reader opens a message sealed on delivery, with the key in hand
    pgpMessageResult = { layers: ['encrypted'], encrypted: { ok: true, keyId: own.slice(-16) }, signed: null, inline: false, integrityProtected: true,

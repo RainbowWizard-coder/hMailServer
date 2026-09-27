@@ -302,8 +302,10 @@
   var MODAL_CANCEL = { 'keys-overlay': 'keys-close', 'event-overlay': 'event-cancel', 'task-overlay': 'task-cancel', 'pgp-unlock': 'pgp-unlock-cancel', 'za-confirm': 'za-confirm-cancel', 'za-unlock': 'za-unlock-cancel', 'smime-unlock': 'smime-unlock-cancel' };
   var modalBack = null;
   // A dialogue opened over another - the passphrase sheet the zero-access
-  // dialogue asks for - gives the keyboard back to where it was in the one
-  // under it, which stays open.
+  // dialogue asks for - makes the one under it inert while it is open, as it
+  // does the page, so that Tab and a screen reader stay in the one on top,
+  // and gives the keyboard back to where it was in the one under it, which
+  // stays open.
   var modalOver = {};
   var modalOpen = function () {
     for (var i = 0; i < MODALS.length; i++) { if (!el(MODALS[i]).hidden) { return MODALS[i]; } }
@@ -324,15 +326,18 @@
     if (!modalOpen()) { modalBack = document.activeElement || null; }
     else if (el(id).hidden) { modalOver[id] = document.activeElement || null; }
     el(id).hidden = false;
+    el(id).inert = false;
     if (first && first.focus) { first.focus(); }
     modalInert(true);
+    for (var i = 0; i < MODALS.length; i++) { if (MODALS[i] !== id && !el(MODALS[i]).hidden) { el(MODALS[i]).inert = true; } }
   };
   var modalHide = function (id) {
     if (el(id).hidden) { return; }
     el(id).hidden = true;
     var over = modalOver[id];
     delete modalOver[id];
-    if (modalOpen()) { if (over && over.focus && shownNow(over)) { over.focus(); } return; }
+    var under = modalOpen();
+    if (under) { el(under).inert = false; if (over && over.focus && shownNow(over)) { over.focus(); } return; }
     modalInert(false);
     modalOver = {};
     var back = modalBack;
