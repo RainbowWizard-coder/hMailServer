@@ -1413,21 +1413,25 @@ exceptions:
 
   # The two entries from here to the note on the AppImage runtime below are semgrep-sast
   # findings in the webmail's script (hmailserver/source/Server/Common/Util/Portal.js) that
-  # the pinned analyzer's own run does not report. Run on linix over batch41's tree at
-  # 1c68d5191 on 27 September 2026, as .gitlab/ci/gitlab-security.yml runs it, the analyzer
-  # timed out on three rules in Portal.js (800 KB), and after three timeouts Semgrep skips a
-  # file: the report held nothing from it, as no report of the analyzer's made on linix has
-  # (the 6.3.4 release scans included). Run again in the same image, with the analyzer's own
-  # rule files and ten minutes a rule, over the files a rule had timed out on, the rules
-  # flagged two lines of Portal.js High - nodejs_scan's node_ssrf, the rule accepted above
-  # for PortalProtected.js, on a fetch() of the page's own - and eight findings Medium, seven
-  # in Portal.js and one in PortalOpenPgp.js (regex_dos and timing-attack rules), which hold
-  # nothing; the other files, three Control Panel views and DBUpdater's
-  # SchemaVerification.cs, gave nothing new. A runner that finished those rules would report
-  # the two and hold the release; these entries are for that. Each was read on 27 September
-  # 2026 by one AI agent under the owner's delegation, not line by line by the owner, so
-  # their reviewed-by names the owner, who delegated the reading, not a reader. They expire
-  # after six months, on 27 March 2027.
+  # the pinned analyzer's run did not report as the job ran it at batch41's 1c68d5191. Run
+  # on linix on 27 September 2026 as .gitlab/ci/gitlab-security.yml ran it then, the
+  # analyzer timed out on three rules in Portal.js (800 KB), and after three timeouts
+  # Semgrep skips a file: the report held nothing from it, as no report of the analyzer's
+  # made on linix had (the 6.3.4 release scans included). Run again in the same image, with
+  # the analyzer's own rule files and ten minutes a rule, over the files a rule had timed
+  # out on, the rules flagged two lines of Portal.js High - nodejs_scan's node_ssrf, the
+  # rule accepted above for PortalProtected.js, on a fetch() of the page's own - and eight
+  # findings Medium, seven in Portal.js and one in PortalOpenPgp.js (regex_dos and
+  # timing-attack rules), which hold nothing; the other files, three Control Panel views
+  # and DBUpdater's SchemaVerification.cs, gave nothing new. The job now gives a rule two
+  # minutes (SAST_SCANNER_ALLOWED_CLI_OPTS there), and reports the two: on linix pinned to
+  # two CPUs, as a shared runner has, no rule gave up on any file, and on all sixteen two
+  # rules gave up on Portal.js and the others read it. With these entries the gate held
+  # nothing (311 and 308 findings, 194 accepted), without them these two. Each was read on
+  # 27 September 2026 by one AI agent and read again by a second trying to refute the
+  # first, under the owner's delegation, not line by line by the owner, so their
+  # reviewed-by names the owner, who delegated the reading, not a reader. They expire after
+  # six months, on 27 March 2027.
 
   # hmailserver/source/Server/Common/Util/Portal.js
   - scan: semgrep-sast

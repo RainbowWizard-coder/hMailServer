@@ -92,8 +92,25 @@ semgrep-sast:
   timeout: 30 minutes
   variables:
     # What build/ci/semgrepignore leaves out of the semgrep job: the tests and their
-    # fixtures, the vendored third-party sources and the scans' own output.
-    SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, build/deck-script-test.js, build/portal-script-test.js, libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, security"
+    # fixtures, the vendored third-party sources and the scans' own output. And the
+    # three tables of string literals the generators write for the binary (build/
+    # generate-portal-page.py, generate-help-pages.py and generate-portal-languages.py),
+    # which hold no code: the webmail's scripts they carry are read as files of their
+    # own, and the rest is Markdown and translations.
+    SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, build/deck-script-test.js, build/portal-script-test.js, libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, security, hmailserver/source/Server/Common/Util/PortalPageData.cpp, hmailserver/source/Server/Common/Util/HelpPagesData.cpp, hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp"
+    # No file too large to read, and two minutes for a rule on a file. Semgrep leaves
+    # out every file over 1,000,000 bytes, saying so only as a count in its log, and
+    # the checkout's CRLF puts the REST server's RestApiServer.cpp over it (1,009,471
+    # bytes in batch41): from batch41 on, no report of this job had read it. 0 turns
+    # the limit off. And with the analyzer's own limit a rule gave up on the webmail's
+    # Portal.js (800 KB) three times, after which Semgrep skips the whole file: no
+    # report had read that either (.gitlab/security-exceptions.yml, the two entries for
+    # it). Measured on linix on 27 September 2026 over batch41, pinned to two CPUs as a
+    # shared runner has: the job took 84 s and read neither; with these two options it
+    # took 332 s, no rule gave up, and it read both. The analyzer passes on only
+    # --max-memory, --max-target-bytes and --timeout, and skips any other with a
+    # warning.
+    SAST_SCANNER_ALLOWED_CLI_OPTS: "--max-target-bytes=0 --timeout=120"
   rules:
     - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1'
       when: never
