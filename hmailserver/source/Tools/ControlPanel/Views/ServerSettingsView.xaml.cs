@@ -1550,6 +1550,10 @@ namespace hMailServer.ControlPanel.Views
       private int failedReads_;
       private Action afterBuildUi_;
 
+      // The rows BuildUi built an editor for this time. A row whose value could not
+      // be read has none, and a save neither writes nor counts it (Save_Click).
+      private readonly HashSet<ComSetting> built_ = new(ReferenceEqualityComparer.Instance);
+
       /// <summary>
       /// What the pill beside the page title says: whether what is on screen has
       /// reached the server. <see cref="ServerSettingsPageStatus"/> - which is WPF-free
@@ -4969,6 +4973,7 @@ namespace hMailServer.ControlPanel.Views
          SettingsTabs.Items.Clear();
          diag_ = null;
          failedReads_ = 0;
+         built_.Clear();
          building_ = true;
 
          AssignAccessibleNames();
@@ -5046,6 +5051,7 @@ namespace hMailServer.ControlPanel.Views
 
                   setting.Changed = MarkUnsaved_;
                   lastRow = setting.CreateRow(value);
+                  built_.Add(setting);
                   fields.Children.Add(lastRow);
                }
 
@@ -5877,6 +5883,13 @@ namespace hMailServer.ControlPanel.Views
          {
             try
             {
+               // A row this build of the page showed no editor for - its value could
+               // not be read - is neither written nor counted. Its editor is missing,
+               // and a number row wrote 0 from it, or is left from an earlier build of
+               // the page and holds what the server held then.
+               if (!built_.Contains(setting))
+                  continue;
+
                // INI-backed rows are not in the COM settings tree. A row whose value
                // is what it was filled with is not written (IIniSetting.SaveToIni), and
                // is still what the server holds, so it is counted as saved.

@@ -99,7 +99,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// of its block - or of its declaration, for one with no body; null when the
       /// body has no such member.
       /// </summary>
-      private static string MemberText(string body, string signature)
+      internal static string MemberText(string body, string signature)
       {
          int at = body.IndexOf(signature, StringComparison.Ordinal);
          if (at < 0)
@@ -137,7 +137,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          return match.Success ? match.Groups[1].Value : null;
       }
 
-      private static string ReadServerSettingsView()
+      internal static string ReadServerSettingsView()
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
 
