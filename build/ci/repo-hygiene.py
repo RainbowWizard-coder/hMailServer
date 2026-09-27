@@ -908,8 +908,10 @@ def check_token_permissions(files):
         return None
 
     def rules_of(name, depth=0):
-        """The rules a job runs by: its own, else the first parent's that has any
-        (extends replaces a list whole), each a dict; None when there are none."""
+        """The rules a job runs by: its own, else those of the LAST parent in its
+        extends that has any - GitLab merges an extends list in order, a later entry
+        over an earlier one, and a list such as rules is replaced whole - each a
+        dict; None when there are none."""
         found = job_key(jobs.get(name, ""), "rules")
         if found is not None:
             inline, block = found
@@ -927,7 +929,7 @@ def check_token_permissions(files):
                 rules.append(rule_of(item))
             return rules
         if depth < 5:
-            for p in parents(name):
+            for p in reversed(parents(name)):
                 found = rules_of(p, depth + 1)
                 if found is not None:
                     return found
@@ -1256,6 +1258,22 @@ probe:
 probe:
   <<: *probe-job
   extends: .linix
+  script: [echo]
+""", True),
+    ("rules from the last of two parents, which asks the same", """
+.probe-rules:
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+probe:
+  extends: [.linix, .probe-rules]
+  script: [echo]
+""", False),
+    ("rules from the last of two parents, over the guarded first", """
+.probe-rules:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+probe:
+  extends: [.linix, .probe-rules]
   script: [echo]
 """, True),
     ("extends as a block list", """
