@@ -16,6 +16,9 @@
 // language got the new page with yesterday's catalogue, and every text the
 // upgrade added stayed English for a day - a screen reader read them out in
 // the page's voice (the NVDA pass of Roadmap2 row 43 met exactly that).
+// Headers change nothing for a copy a browser already holds as fresh, so the
+// page also asks with cache: 'no-cache' (Portal.js, loadLanguage): a catalogue
+// 6.3.4 sent for a day is asked for again at the first load after the upgrade.
 
 #include "StdAfx.h"
 #include "RestApiServer.h"

@@ -78,7 +78,9 @@
   var loadLanguage = function (code) {
     if (!code || code === languageActive) { return Promise.resolve(true); }
     if (code === 'en') { applyCatalogue('en', {}); return Promise.resolve(true); }
-    return fetch('/portal-lang/' + encodeURIComponent(code) + '.json', { credentials: 'same-origin' }).then(function (response) {
+    // Asked of the server every time (no-cache): 6.3.4 sent a catalogue as
+    // fresh for a day, and a browser kept serving that copy after the upgrade.
+    return fetch('/portal-lang/' + encodeURIComponent(code) + '.json', { credentials: 'same-origin', cache: 'no-cache' }).then(function (response) {
       return response.ok ? response.json() : null;
     }).then(function (data) { if (data) { applyCatalogue(code, data); return true; } return false; }, function () { return false; });
   };

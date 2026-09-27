@@ -1981,7 +1981,7 @@ let networkDownAfter = '';
 function fetchStub(path, options) {
    const method = (options && options.method) || 'GET';
    const headers = (options && options.headers) || {};
-   requests.push({ method, path, headers, body: options && options.body, keepalive: !!(options && options.keepalive) });
+   requests.push({ method, path, headers, body: options && options.body, keepalive: !!(options && options.keepalive), cache: (options && options.cache) || 'default' });
    if (networkDown) { return Promise.reject(new TypeError('Failed to fetch')); }
    currentAuth = String(headers.Authorization || '');
    currentSecondFactor = { otp: String(headers['X-hMailServer-OTP'] || ''), code: String(headers['X-hMailServer-Recovery-Code'] || '') };
@@ -4079,6 +4079,12 @@ async function main() {
    await flush();
    check('the catalogue is fetched from the route the server answers', since(beforeArabic).filter((r) => r.path === '/portal-lang/ar.json').length === 1,
       JSON.stringify(since(beforeArabic).map((r) => r.path)));
+   // 6.3.4 answered a catalogue as fresh for a day; asked in the default mode,
+   // a browser that had one from before the upgrade kept it that long, and the
+   // texts the upgrade added stayed English. no-cache asks the server each time.
+   const arabicAsks = since(beforeArabic).filter((r) => r.path === '/portal-lang/ar.json');
+   check('the catalogue is asked of the server past a copy the browser kept (cache: no-cache)', arabicAsks.length === 1 && arabicAsks[0].cache === 'no-cache',
+      JSON.stringify(arabicAsks.map((r) => r.cache)));
    check('choosing Arabic writes the direction on the document', document.documentElement.getAttribute('dir') === 'rtl',
       String(document.documentElement.getAttribute('dir')));
    check('and the language with it', document.documentElement.getAttribute('lang') === 'ar',
