@@ -829,6 +829,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | AntiVirus | `TestClamWinScanner` | ServerSettingsView | `POST /api/v1/alerts/test`<br>`POST /api/v1/webhooks/test` |
 | Route | `SetRelayerAuthPassword` | RouteDialog | `POST /api/v1/accounts/{address}/password` |
 | Application | `AssignRole` | RolesView | - |
+| Application | `Reinitialize` | TcpIpPortsView | `POST /api/v1/server/reinitialize` |
 | Domains | `Add` | DomainsView | - |
 | Domains | `DeleteByDBID` | DomainsView | - |
 | Routes | `Add` | RoutesView | - |

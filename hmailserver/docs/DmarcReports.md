@@ -223,7 +223,8 @@ Retention
 
 `DomainReportRetentionDays` (365 by default, which is what the paid services
 keep; 0 keeps for ever; at most 3650) is how long a report is kept, by the day
-it was read. The six-hourly retention task - `Utilities.RunMessageRetention` on
+it was read; it is on the Control Panel's Delivery of e-mail page, the Feedback
+tab, which reaches it over the REST API. The six-hourly retention task - `Utilities.RunMessageRetention` on
 demand - removes older ones, a report's records with it by the cascade, in
 passes of 5,000 of each kind until a pass finds nothing or a hundred have run;
 the route, `hmctl dmarc expire` and the cmdlet say when rows remain, and the

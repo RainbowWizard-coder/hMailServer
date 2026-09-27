@@ -24,6 +24,10 @@ namespace hMailServer.ControlPanel.Views
          public string Smtp { get; set; }
          public string Imap { get; set; }
          public string Pop3 { get; set; }
+
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString() => Name + ", " + LowerIP + " - " + UpperIP;
       }
 
       public IPRangesView()

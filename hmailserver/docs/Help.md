@@ -32,9 +32,10 @@ documents and 1.1 MB of text, which is 1.2 MB of generated C++ and about
 1.1 MB in the binary; `--check` fails when the unit is behind the documents,
 and GitLab CI's checkers job runs it on every push and merge request.
 
-The Control Panel talks to the server over COM only and must work with no
-REST listener, so it carries its own copy: the same files, embedded as
-resources straight from this directory by its project file
+The Control Panel talks to the server over COM - what has no COM surface, the
+Discovery page and the settings no COM property carries, it reaches over the REST
+API while that listener is on - and must work with no REST listener, so it
+carries its own copy: the same files, embedded as resources straight from this directory by its project file
 (`ControlPanel.csproj`, `EmbeddedResource Include="..\..\..\docs\*.md"`, the
 same two files excluded, each named `Help.<Name>.md`). Nothing is copied
 into the Control Panel's tree, so its copy cannot be behind the documents.

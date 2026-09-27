@@ -181,6 +181,9 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>True once the port was saved, so the page can offer to apply it.</summary>
+      public bool Saved { get; private set; }
+
       private void Save()
       {
          notice_.Hide();
@@ -217,6 +220,7 @@ namespace hMailServer.ControlPanel.Views
             p.ClientCertificateCAFile = clientCertCaFile_.Text.Trim();
             p.Save();
             ServerSession.Release(p);
+            Saved = true;
             Close();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))

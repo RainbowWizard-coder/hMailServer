@@ -18,7 +18,7 @@ nothing; and the minute's task is two selects that find nothing, the queue's due
 rows and the retention sweep's count, as the outbound webhooks' is.
 
 There is no COM member and no Control Panel page: the routes are made over the
-REST API and on the Control Deck, as the single sign-on settings are.
+REST API and on the Control Deck.
 
 ---
 
@@ -413,8 +413,7 @@ None of them is raised on a server with no route.
 
 ## What this does not do
 
-* **No COM and no Control Panel.** The REST API and the Deck, as for single
-  sign-on.
+* **No COM and no Control Panel.** The REST API and the Deck.
 * **No setting of its own.** The attempts and the retention are the outbound
   webhooks' (`WebhookMaxAttempts`, `WebhookRetentionDays`), and a route is on or
   off by itself. `WebhooksEnabled` silences the outbound webhooks and not these.

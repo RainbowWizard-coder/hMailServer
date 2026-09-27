@@ -188,8 +188,8 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>"done spam-protection", sedan tystnad</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>"mx" auktoriserar det {0}:s MX-poster pekar på; "a:{1}" auktoriserar adressen till det värdnamn den här servern annonserar i HELO/EHLO (Leverans av e-post &gt; Värdnamn). "~all" underkänner mjukt allt annat - avsiktligt mjukare än "-all" tills du är säker på att listan är komplett.</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>"mx" auktoriserar det {0}:s MX-poster pekar på; "a:{1}" auktoriserar adressen till det värdnamn den här servern annonserar i HELO/EHLO (Protokoll &gt; SMTP &gt; Värdnamn). "~all" underkänner mjukt allt annat - avsiktligt mjukare än "-all" tills du är säker på att listan är komplett.</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>"{0}" sparades inte: {1}</value>
@@ -238,6 +238,9 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="(none)" xml:space="preserve">
     <value>(ingen)</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>(sätt värdnamnet först: Protokoll &gt; SMTP &gt; Värdnamn)</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>(loggfilen kunde inte skrivas)</value>
@@ -295,9 +298,6 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 är standardvärdet vid leverans och stänger av hela mekanismen.</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0 är standardvärdet vid leverans och bevarar dagens beteende exakt. 1 levererar aldrig oskannad post.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 är standardvärdet vid leverans. 2 är en rimlig start: ett felskrivet lösenord kostar en person två sekunder en gång, och en klient som sprutar lösenord två, fyra, sex... sekunder per gissning.</value>
@@ -602,8 +602,8 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Ett domännamn här kräver att SERVERNS egen dator är ansluten till den domänen, eftersom Windows validerar det med LogonUser. Från en dator som inte är ansluten misslyckas varje försök som om lösenordet vore fel - även när domännamnet helt enkelt är felstavat - så en brevlåda konfigurerad så här på en oansluten server kan aldrig logga in och säger aldrig varför. Om servern inte är domänansluten, använd LDAP-katalogautentisering på sidan Katalogautentisering i stället: den binder till katalogen över nätverket och kräver ingen domänanslutning.</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>Det finns en domän med namnet {0} på den här servern som provet inte skapade, så ingenting här skapar eller tar bort den. Ta bort den domänen själv om den inte önskas.</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>En domän med namnet {0} finns redan på den här servern, och den är inte provdomänen som den här sidan skapar, så inget prov kan skapas här och den här sidan tar inte bort den. Om du inte vill ha den domänen, ta bort den på sidan Domäner.</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>En domän eller en kontoadress krävs.</value>
@@ -667,6 +667,9 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Ett meddelande med {0} poäng eller mer markeras som skräppost och levereras; {1} eller mer avvisas (550 före kroppen, 554 efter den).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Ett meddelande med {0} poäng eller mer avvisas (550 före kroppen, 554 efter den). Inget blir bara märkt: tröskeln för märkning, {1}, är inte lägre.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>Ett meddelande med {0} poäng eller mer avvisas (550 före kroppen, 554 efter den). Inget markeras.</value>
@@ -763,6 +766,9 @@ Spara det här svaga lösenordet ändå?</value>
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>En skanning som ger fel, går ut på tid eller inte når sin motor är inte en ren dom - ingen tittade. Beteendet vid leverans är att leverera meddelandet ändå, vilket den här servern alltid har gjort; att hålla kvar det i stället är det strängare valet och det man bör göra medvetet.</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>En skanner som inte kan köras avvisar inte meddelandet. Felet skrivs till loggen och skanningen fortsätter till nästa skanner; när ingen av dem kan svara hålls meddelandet kvar och skannas igen, och returneras till sin avsändare när kvarhållandena tar slut (Om ett meddelande inte kan skannas, på sidan Antivirusinställningar). Det är därför den här sidan rapporterar om varje skanner kan köras snarare än om den är påslagen.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>En skanner som inte kan köras avvisar inte meddelandet. Felet skrivs till loggen och skanningen fortsätter till nästa skanner; när ingen av dem kan svara behandlas meddelandet exakt som om det hade undersökts och befunnits rent. Det är därför den här sidan rapporterar om varje skanner kan köras snarare än om den är påslagen.</value>
@@ -3442,6 +3448,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Leverera varje meddelande till de konton som dess rubriker nämner (en brevlåda som flera personer delar)</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>Leverera det (standard)</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>Leverera det med ett huvud som säger det</value>
   </data>
@@ -3471,6 +3480,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>Leverans</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Att leverera det är standardvalet som servern levereras med och det den här servern alltid har gjort. Att hålla kvar det levererar aldrig oskannad post: det skannas igen med intervallet nedan och returneras till avsändaren efter antalet kvarhållanden nedan.</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Leverans: meddelandet accepteras men lämnar aldrig</value>
@@ -4101,6 +4113,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Varje port som IP-intervallet {0} får använda startar TLS innan den tar emot ett lösenord.</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>Varje server som den här levererar till får veta dess värdnamn och jämför det med DNS: namnets adress och PTR-posten för adressen som e-posten kom från. Ett namn som inte stämmer räknas emot e-posten.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Varje skräppostkontroll i den ordning servern kör dem, vad var och en lägger till poängen, och vad den poängen sedan gör med meddelandet.</value>
   </data>
@@ -4650,6 +4665,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Håll kvar bilagor tills sandlådan har fällt sin dom</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>Håll kvar det och skanna det igen, returnera det sedan till avsändaren</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Håll meddelanden för granskning i stället för att avvisa dem</value>
   </data>
@@ -4899,8 +4917,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Idle timeouts" xml:space="preserve">
     <value>Tidsgränser vid inaktivitet</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>Om ett meddelande inte kan skannas: 0 = leverera det, 1 = håll kvar det och returnera det så småningom</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>Om ett meddelande inte kan skannas</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>Om varje meddelande fastnar, inte bara ett</value>
@@ -4910,6 +4928,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Om katalogen inte kan svara</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>Om {0} redan tar emot e-post någon annanstans - hos en leverantör av värdbaserade brevlådor, på en annan server - flyttar publiceringen av den här posten den e-posten hit. Ändra den bara när den här servern är redo att ta emot den.</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ignoreras av servern - den sparade digesten är inte ett användbart SHA-256-värde, så den här sektionen autentiserar ingenting. Återkalla den och skapa en ersättning.</value>
@@ -5504,11 +5525,20 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — kräv TLS från servrar som levererar till </value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>Poäng vid MX-kontroll</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX-uppslagning</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>MX-värde - prioriteten, sedan namnet på servern som tar emot e-posten:</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — vilken server som tar emot e-post för </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>_Hanterad av listhanteraren</value>
@@ -6159,6 +6189,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Ingen LDAP-autentisering görs. Katalogkopplade konton fortsätter valideras genom Windows-inloggning, och servern rapporterar detta (fel 5922) en gång i minuten så att det inte kan misslyckas tyst.</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>Ingen MX-post hittades för {0} genom den här datorns resolver. </value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Inga MX-poster hittades från den här datorn, så servern skulle falla tillbaka på sitt eget värdnamn.</value>
   </data>
@@ -6296,6 +6329,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Ingen grupp hittades med namnet '{0}'.</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>Inget värdnamn är satt, så den här servern annonserar sitt Windows-datornamn, som ingen DNS på internet känner till.</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Inget värdnamn eller någon adress är satt.</value>
@@ -6471,8 +6507,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Not checked" xml:space="preserve">
     <value>Inte kontrollerad</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Kontrolleras ärligt talat inte härifrån: att verifiera PTR-posten kräver serverns PUBLIKA IP-adress, som den här panelen inte kan avgöra (bakom NAT vet datorn den inte heller), och den här sidans kontroll läser bara TXT-poster. Testa från utsidan i stället: nslookup &lt;din publika IP&gt; visar PTR-posten; den ska namnge värden ovan.</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Kontrolleras ärligt talat inte härifrån: att verifiera PTR-posten kräver serverns PUBLIKA IP-adress, som den här panelen inte kan avgöra (bakom NAT vet datorn den inte heller), och den här sidans kontroll läser bara TXT- och MX-poster. Testa från utsidan i stället: nslookup &lt;your public IP&gt; visar PTR-posten; den ska namnge värden ovan.</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Inte kontrollerat ännu (Sök efter uppdateringar, eller slå på den dagliga kontrollen under Uppdateringar på sidan API &amp; övervakning)</value>
@@ -6795,6 +6831,9 @@ Inget som redan finns där tas bort.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Ange på sidan Säkerhetskopiering mappen som säkerhetskopian skrivs till, på en annan disk än den meddelandelagret ligger på.</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>Sätt Värdnamn på fliken SMTP på sidan Protokoll till den här serverns fullständiga DNS-namn, till exempel mail.example.com. Be sedan den som äger serverns publika adress om en PTR-post som namnger det; sidan DNS-poster visar vad du ska be om.</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>På sidan Servergränser &amp; expertinställningar, kortet Windows-tjänstekonto: Byt till NT SERVICE\hMailServer ger tjänsten dess mappar - och frågar först om varje mapp eller nyckelfil som konfigurationen nämner utanför dem - och flyttar den; starta sedan om tjänsten. Att köra installationsprogrammet igen erbjuder samma val. En extern databas med Windows-autentisering behöver också en inloggning för kontot.</value>
   </data>
@@ -6909,9 +6948,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Öppna Blockerade bilagor, som äger listan över filnamnsmönster</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>Öppna Leverans av e-post, som äger Värdnamn</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>Öppna Domäner, där ett kontos Katalog-flik kopplar det till katalogen</value>
   </data>
@@ -6938,6 +6974,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Öppna Loggningsinställningar</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>Öppna Protokoll, vars flik SMTP har Värdnamn</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>Öppna SSL-certifikat, som äger sökvägarna till certifikat- och nyckelfiler</value>
@@ -7076,6 +7115,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>Annat fel</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>Andra e-postservrar slår upp domänens MX-post för att ta reda på vart dess e-post ska levereras; utan en sådan kommer e-post till dess adresser inte fram hit. Servern som posten namnger behöver en adresspost (A, och AAAA för IPv6) som pekar på den här serverns publika IP-adress - den som din router eller brandvägg vidarebefordrar port 25 till.</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>Frånvaro</value>
@@ -7565,6 +7607,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>Publicerad, skiljer sig från förslaget</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>Publicerad, namnger en annan server</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Publicerad, strängare än utgångspunkten</value>
   </data>
@@ -7845,6 +7890,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Utgångsintervall för poster, minuter</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>Posttyp: MX.  Värd/Namn</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Posttyp: TXT.  Värd/Namn</value>
   </data>
@@ -7949,6 +7997,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Ominitierad - de sparade inställningarna gäller.</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>Ominitierad - servern lyssnar nu på portarna så som den här sidan listar dem.</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Ominitierad – inställningarna som väntade på en ominitiering gäller nu; {0} väntar fortfarande på en omstart av tjänsten.</value>
@@ -8110,10 +8161,10 @@ Brevlådan och dess meddelanden flyttas till den nya adressen. Post skickad till
 
 Varje eget intervall - inklusive eventuella automatiska spärrar - tas bort och ersätts med 'Min dator' (127.0.0.1) och 'Internet' (allt annat). Det ändrar omedelbart vem som får ansluta och reläa.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Ersätt ALLA konfigurerade portar med standardvärdena?
 
-SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och egna bindningar tas bort. Ändringen träder i kraft när servern startas om.</value>
+SMTP 25 och 587, POP3 110, IMAP 143 - utan anslutningssäkerhet. TLS-portar och egna bindningar tas bort. Ändringen träder i kraft när servern ominitieras.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Byt ut certifikatet här; utgångsdatumet för vart och ett listas.</value>
@@ -8726,6 +8777,9 @@ Fortsätt?</value>
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Sparat. Kompilatorn rapporterade: {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>Sparat. Servern fortsätter att lyssna som tidigare tills dess tjänster ominitieras - stoppas och startas igen på plats, vilket kopplar från anslutna klienter en kort stund. Ominitiera servern nu?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Sparat. Servern plockar upp valet inom två sekunder; en ändring av schemat kräver en omstart av tjänsten.</value>
@@ -10068,8 +10122,8 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO-värden</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Värdnamnet på Leverans av e-post är TOMT, så servern faller tillbaka på sitt Windows-datornamn{0}. Ett bart datornamn är inte ett publikt DNS-namn: mottagare som jämför HELO med DNS straffar det, och ingen PTR-post kan stämma med det. Sätt ett riktigt värdnamn först.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Värdnamnet på sidan Protokoll är TOMT, så servern faller tillbaka på sitt Windows-datornamn{0}. Ett bart datornamn är inte ett publikt DNS-namn: mottagare som jämför HELO med DNS straffar det, och ingen PTR-post kan stämma med det. Sätt ett riktigt värdnamn först.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>IP-intervallet {0} tar bara emot ett lösenord över TLS.</value>
@@ -10459,6 +10513,18 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>hMailServer 6.x-serien är ett sådant arbete. Den ursprungliga e-postservern med öppen källkod har byggts om på en aktuell verktygskedja (Visual Studio 2026 / MSVC v145 och .NET 10), rustats med modern kryptografi (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) och de transportsäkerhetsstandarder som förväntas av en e-postserver i dag (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT och ACME / Let's Encrypt). Den har härdats mot protokoll- och överbelastningsdefekter, fått Sieve-/ManageSieve-filtrering, hälso- och OpenTelemetry-observerbarhet, brett stöd för MySQL / MariaDB / MS SQL / PostgreSQL, och den här moderna Kontrollpanelen i Fluent-design i stället för den gamla administratören.</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>Värdnamnet - namnet den här servern uppger för andra servrar</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>Värdnamnet kunde inte läsas från servern.</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>Värdnamnet {0} slutar på ett namn som ingen publik DNS svarar för, så en mottagare på internet kan inte slå upp det.</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>Värdnamnet {0} är inte ett fullständigt DNS-namn, som mail.example.com, så ingen DNS-post kan stämma med det.</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Id:t ({0}, genererat nyss) är ditt att välja - vilket värde som helst är korrekt. Dess enda uppgift är att ändras när policyn ändras, så att cacher hämtar om.</value>
   </data>
@@ -10675,8 +10741,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The port to ask on" xml:space="preserve">
     <value>Porten som frågan går på</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Portarna varje protokoll lyssnar på, deras bindningsadress och anslutningssäkerhet. Tjänsten måste startas om efter ändringar. Kolumnen Lyssnar läses från den här datorns öppna portar, inte från konfigurationen, så den visar vad som faktiskt händer snarare än vad som begärdes.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Portarna varje protokoll lyssnar på, deras bindningsadress och anslutningssäkerhet. En ändring träder i kraft när servern ominitieras, vilket den här sidan erbjuder efter varje ändring. Kolumnen Lyssnar läses från den här datorns öppna portar, inte från konfigurationen, så den visar vad som faktiskt händer snarare än vad som begärdes.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Den privata nyckeln hör inte till det här certifikatet: deras publika nycklar skiljer sig. Paret läses inte in (serverfel 5113) och varje TLS-port som använder det här certifikatet kommer att misslyckas att starta. Peka den här posten på nyckelfilen som genererades med det här certifikatet.</value>
@@ -10730,6 +10796,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>Posten sprids.</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>Posten namnger den här servern med dess värdnamn, och värdnamnet är ännu inte ett namn som internet kan slå upp, så det finns inget värde att publicera än. Sätt det på fliken SMTP på sidan Protokoll och kom sedan tillbaka.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>De poster den här servern behöver publicerade i varje domäns DNS-zon: typ, värd och värde, klara att kopiera in i din DNS-leverantörs konsol, med en kontroll av om var och en verkligen är i drift. Kontrollerna använder den här datorns Windows-resolver - samma som DKIM-rotationskontrollen använder.</value>
@@ -10871,8 +10940,8 @@ Det är serverns egen resolver som svarar - samma som SMTP-leveransen använder,
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>Servern som frågas (tom frågar domänens MX-värdar)</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Serverns Värdnamn (Leverans av e-post) är TOMT, så den annonserar sitt Windows-datornamn i HELO/EHLO - inte ett publikt DNS-namn - och ingen "a:"-mekanism kan ärligt erbjudas. Förslaget auktoriserar bara domänens MX-värdar. Sätt värdnamnet först; flera poster på den här sidan behöver det.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>Serverns Värdnamn (Protokoll &gt; SMTP) är TOMT, så den annonserar sitt Windows-datornamn i HELO/EHLO - inte ett publikt DNS-namn - och ingen "a:"-mekanism kan ärligt erbjudas. Förslaget auktoriserar bara domänens MX-värdar. Sätt värdnamnet först; flera poster på den här sidan behöver det.</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Serverns svar kunde inte läsas.</value>
@@ -11096,8 +11165,8 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>Den här gruppen har inga konton, så varje behörighet som getts till den gäller för närvarande ingen.</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>Detta är Inställningar &gt; Leverans av e-post &gt; Värdnamn, namnet servern annonserar i HELO/EHLO vid varje utgående leverans (Utilities::ComputerName). Be IP-adressens ägare att låta PTR-posten för din publika IP slå upp till exakt det här namnet, och publicera en A-post för det här namnet som pekar tillbaka på samma IP - mottagare kontrollerar båda riktningarna.</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>Detta är Protokoll &gt; SMTP &gt; Värdnamn, namnet servern annonserar i HELO/EHLO vid varje utgående leverans (Utilities::ComputerName). Be IP-adressens ägare att låta PTR-posten för din publika IP slå upp till exakt det här namnet, och publicera en A-post för det här namnet som pekar tillbaka på samma IP - mottagare kontrollerar båda riktningarna.</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Detta är [Settings] UseLanguage i hMailServer.INI. Servern lämnar bara tillbaka det över COM API:et - den översätter inget själv, och den här Kontrollpanelen har en egen språkinställning (Byt språk i administratörsmenyn längst upp till höger) - så det påverkar bara administrationsverktyg från tredje part. Formuleringar för studsar och fel finns på sidan Servermeddelanden.</value>
@@ -11134,6 +11203,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Detta körs medan den sändande servern väntar på sitt svar på DATA, så talet är ett löfte om värsta fallet snarare än en vink. Det begränsar anslutningen såväl som svaret: en motor vars dator har försvunnit skulle annars kosta operativsystemets egen TCP-tidsgräns på varje meddelande.</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>Den här servern annonserar sig som {0}. Om PTR-posten för dess publika adress namnger det, och om namnets egen adresspost pekar tillbaka, går inte att avgöra härifrån: sidan DNS-poster talar om vad du ska be om.</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>Den här servern kunde inte läsa sin domäntabell och kan därför inte säga om provet finns här. Ingenting erbjuds förrän den kan.</value>
@@ -13533,6 +13605,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, går ut {2}</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0} (ett värde som den här Kontrollpanelen inte känner till)</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (upphörd)</value>
   </data>
@@ -13703,6 +13778,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} är påslagen men kan inte köras. {1} Varje skanning den ombeds göra misslyckas, och en misslyckad skanning är inte ett misslyckat meddelande: felet loggas och meddelandet levereras som om det hade undersökts och befunnits rent.</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0} är påslagen men kan inte köras. {1} Varje skanning den ombeds göra misslyckas, och så länge ingen annan skanner svarar hålls varje meddelande kvar och skannas igen, och returneras till sin avsändare när kvarhållandena tar slut.</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} är provdomänen och räknas inte med här; ta bort den när du är klar med den.</value>
@@ -13892,6 +13970,12 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>{0} % av uppslagningarna besvarade från minnet, med {1} KB</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>{0}:s MX-poster namnger {1}, den här serverns värdnamn: {2}.</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>{0}:s e-post går till {1}, inte till den här serverns värdnamn. Det är rätt när en filtreringstjänst eller en annan server tar emot e-posten först och skickar den vidare; ändra annars posten.</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, ett virtuellt tjänstekonto utan lösenord</value>

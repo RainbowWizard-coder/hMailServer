@@ -186,7 +186,8 @@ Set-HmDomain -Name example.com -Property @{ session_lifetime_seconds = 28800; se
 
 In the Control Deck the four server-wide values are on the Settings page under
 the server group, and the four per-domain ones are the fifth group of a
-domain's dialog.
+domain's dialog. In the desktop Control Panel the four server-wide values are on
+Connections & protocols > Webmail, the Browser sessions tab, over COM.
 
 What is stored, and what a backup carries
 -----------------------------------------

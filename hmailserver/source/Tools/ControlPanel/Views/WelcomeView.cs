@@ -298,7 +298,7 @@ namespace hMailServer.ControlPanel.Views
          else if (sampleState_ == "foreign")
          {
             sample_.Level = StatusLevel.Warning;
-            sample_.Text = F("A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted.", domain);
+            sample_.Text = F("A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page.", domain);
             sampleAction_.Visibility = Visibility.Collapsed;
          }
          else if (sampleState_ == "unknown")

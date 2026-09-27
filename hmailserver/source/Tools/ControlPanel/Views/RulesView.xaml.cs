@@ -20,12 +20,18 @@ namespace hMailServer.ControlPanel.Views
          public int Position { get; set; }
          public string Name { get; set; }
          public string Enabled { get; set; }
+
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString() => Name + ", " + Enabled;
       }
 
       public class DetailRow
       {
          public int Id { get; set; }
          public string Description { get; set; }
+
+         public override string ToString() => Description;
       }
 
       private int selectedRuleId_;

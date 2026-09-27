@@ -14,10 +14,7 @@
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="1.3*" />
         </Grid.RowDefinitions>
 
         <!-- HeaderPanel is collapsed when the view is embedded in the account
@@ -25,21 +22,36 @@
         <scaffold:PageHeader x:Name="HeaderPanel" Title="{loc:L 'Global rules'}"
                              Subtitle="{loc:L 'Server-wide message rules, evaluated top to bottom.'}" />
 
-        <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search rules'}"
+        <!-- The rest fills the window down to a floor, below which the page
+             scrolls: in a 700-pixel window the list of rules kept only its icon
+             and the criteria and actions were cut off at the bottom. -->
+        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <Grid MinHeight="620" Height="{Binding ViewportHeight, ElementName=PageScroll}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="170" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1.3*" />
+        </Grid.RowDefinitions>
+
+        <scaffold:Toolbar x:Name="SearchBar" Grid.Row="0" SearchPlaceholder="{loc:L 'Search rules'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
-                <StackPanel Orientation="Horizontal">
-                    <ComboBox x:Name="ScopeBox" MinWidth="200" Margin="0,0,8,0" SelectionChanged="Scope_Changed"
+                <!-- Wraps, rather than cutting "Enable / disable" and Delete rule
+                     off the right edge in a narrow window. -->
+                <WrapPanel HorizontalAlignment="Right">
+                    <ComboBox x:Name="ScopeBox" MinWidth="200" Margin="0,0,8,4" SelectionChanged="Scope_Changed"
                               AutomationProperties.Name="{loc:L 'Rules of'}" />
-                    <ui:Button x:Name="MoveUpButton" Content="{loc:L 'Move _up'}" Click="MoveUp_Click" Margin="0,0,8,0" />
-                    <ui:Button x:Name="MoveDownButton" Content="{loc:L 'Move _down'}" Click="MoveDown_Click" Margin="0,0,8,0" />
-                    <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble / disable'}" Click="Toggle_Click" Margin="0,0,8,0" />
-                    <ui:Button x:Name="DeleteRuleButton" Content="{loc:L 'De_lete rule'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" />
-                </StackPanel>
+                    <ui:Button x:Name="MoveUpButton" Content="{loc:L 'Move _up'}" Click="MoveUp_Click" Margin="0,0,8,4" />
+                    <ui:Button x:Name="MoveDownButton" Content="{loc:L 'Move _down'}" Click="MoveDown_Click" Margin="0,0,8,4" />
+                    <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble / disable'}" Click="Toggle_Click" Margin="0,0,8,4" />
+                    <ui:Button x:Name="DeleteRuleButton" Content="{loc:L 'De_lete rule'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,0,0,4" />
+                </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <scaffold:Card Grid.Row="2" Padding="8">
+        <scaffold:Card Grid.Row="1" Padding="8">
             <Grid>
                 <DataGrid x:Name="RuleGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
@@ -47,7 +59,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="50"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" />
+                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Enabled'}" Binding="{Binding Enabled}" Width="100" />
                     </DataGrid.Columns>
                 </DataGrid>
@@ -57,7 +69,7 @@
         </scaffold:Card>
 
         <!-- The add form, under the grid so the grid keeps the height. -->
-        <scaffold:Card Grid.Row="3" Margin="0,12,0,12" Padding="20,12,20,0">
+        <scaffold:Card Grid.Row="2" Margin="0,12,0,12" Padding="20,12,20,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MaxWidth="360" />
@@ -71,7 +83,7 @@
             </Grid>
         </scaffold:Card>
 
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -131,5 +143,7 @@
                 </scaffold:Card.Footer>
             </scaffold:Card>
         </Grid>
+        </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

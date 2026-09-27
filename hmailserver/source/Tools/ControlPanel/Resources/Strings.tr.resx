@@ -188,8 +188,8 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>"done spam-protection", ardından sessizlik</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>"mx", {0} için MX kayıtlarının işaret ettiği her şeyi yetkilendirir; "a:{1}", bu sunucunun HELO/EHLO'da duyurduğu ana bilgisayar adının adresini yetkilendirir (E-posta teslimi &gt; Ana bilgisayar adı). "~all" diğer her şeyi yumuşak biçimde başarısız kılar - listenin eksiksiz olduğundan emin olana kadar "-all" yerine bilinçli olarak seçilen daha yumuşak seçenek budur.</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>"mx", {0} için MX kayıtlarının işaret ettiği her şeyi yetkilendirir; "a:{1}", bu sunucunun HELO/EHLO'da duyurduğu ana bilgisayar adının adresini yetkilendirir (Protokoller &gt; SMTP &gt; Ana bilgisayar adı). "~all" diğer her şeyi yumuşak biçimde başarısız kılar - listenin eksiksiz olduğundan emin olana kadar "-all" yerine bilinçli olarak seçilen daha yumuşak seçenek budur.</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>"{0}" kaydedilmedi: {1}</value>
@@ -238,6 +238,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="(none)" xml:space="preserve">
     <value>(yok)</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>(önce ana bilgisayar adını ayarlayın: Protokoller &gt; SMTP &gt; Ana bilgisayar adı)</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>(günlük dosyası yazılamadı)</value>
@@ -295,9 +298,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0, ürünle gelen varsayılandır ve mekanizmanın tamamını devre dışı bırakır.</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0, ürünle gelen varsayılandır ve bugünkü davranışı birebir korur. 1 ise taranmamış postayı asla teslim etmez.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0, ürünle gelen varsayılandır. 2 makul bir başlangıçtır: yanlış yazılan bir parola kişiye bir kez iki saniyeye mal olur, parola püskürtme yapan bir istemciye ise her deneme için iki, dört, altı... saniyeye.</value>
@@ -602,8 +602,8 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Buraya bir etki alanı adı yazılması, SUNUCUNUN kendi bilgisayarının o etki alanına katılmış olmasını gerektirir; çünkü Windows bunu LogonUser ile doğrular. Katılmamış bir bilgisayarda her deneme, parola yanlışmış gibi başarısız olur - etki alanı adı yalnızca yanlış yazıldığında bile - dolayısıyla katılmamış bir sunucuda bu biçimde yapılandırılan bir posta kutusu hiçbir zaman oturum açamaz ve nedenini de hiçbir zaman söylemez. Sunucu bir etki alanına katılmamışsa, bunun yerine Dizin kimlik doğrulaması sayfasındaki LDAP dizin kimlik doğrulamasını kullanın: bu yöntem dizine ağ üzerinden bind ile bağlanır ve etki alanına katılım gerektirmez.</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>Bu sunucuda {0} adlı bir etki alanı var ve onu örnek oluşturmadı, bu yüzden burada hiçbir şey onu oluşturmuyor ya da kaldırmıyor. İstenmiyorsa o etki alanını kendiniz silin.</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>{0} adlı bir etki alanı bu sunucuda zaten var ve bu sayfanın oluşturduğu örnek etki alanı değil; bu yüzden burada örnek oluşturulamaz ve bu sayfa o etki alanını kaldırmaz. O etki alanını istemiyorsanız Etki alanları sayfasında silin.</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>Bir alan adı veya hesap adresi gerekir.</value>
@@ -667,6 +667,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>{0} veya daha yüksek puan alan bir ileti spam olarak işaretlenir ve teslim edilir; {1} veya daha yükseği reddedilir (gövdeden önce 550, sonra 554).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>{0} veya daha yüksek puan alan bir ileti reddedilir (gövdeden önce 550, sonra 554). Hiçbiri yalnızca işaretlenmez: işaretleme eşiği, {1}, bundan düşük değildir.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>{0} veya daha yüksek puan alan bir ileti reddedilir (gövdeden önce 550, sonra 554). Hiçbir şey işaretlenmez.</value>
@@ -763,6 +766,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>Hata veren, zaman aşımına uğrayan veya motoruna ulaşamayan bir tarama temiz bir hüküm değildir - kimse bakmamıştır. Ürünle gelen davranış, iletiyi yine de teslim etmektir; bu sunucu her zaman böyle yapmıştır. Bunun yerine iletiyi bekletmek daha katı olan ve bilinçli olarak verilmesi gereken karardır.</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>Çalışamayan bir tarayıcı iletiyi reddetmez. Hata günlüğe yazılır ve tarama bir sonraki tarayıcıyla sürer; hiçbiri yanıt veremediğinde ileti bekletilir ve yeniden taranır, bekletme hakkı tükendiğinde de gönderene geri döndürülür (Virüsten koruma ayarları sayfasındaki "Bir ileti taranamazsa"). Bu sayfanın her tarayıcının açık olup olmadığını değil, çalışıp çalışamadığını bildirmesinin nedeni budur.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Çalışamayan bir tarayıcı iletiyi reddetmez. Hata günlüğe yazılır ve tarama bir sonraki tarayıcıyla sürer; hiçbiri yanıt veremediğinde ileti, tam olarak incelenmiş ve temiz bulunmuş gibi işlenir. Bu sayfanın her tarayıcının açık olup olmadığını değil, çalışıp çalışamadığını bildirmesinin nedeni budur.</value>
@@ -3442,6 +3448,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Her iletiyi başlıklarında adı geçen hesaplara teslim et (birkaç kişinin paylaştığı bir posta kutusu)</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>Teslim et (varsayılan)</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>Bunu belirten bir üst bilgiyle teslim et</value>
   </data>
@@ -3471,6 +3480,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>Teslim ediliyor</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Teslim etmek, ürünle gelen varsayılandır ve bu sunucunun her zaman yaptığı budur. Bekletmek taranmamış postayı asla teslim etmez: ileti aşağıdaki aralıkla yeniden taranır ve aşağıdaki bekletme sayısından sonra gönderene geri döndürülür.</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Teslim ediliyor: ileti kabul ediliyor ama hiç çıkmıyor</value>
@@ -4101,6 +4113,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>{0} IP aralığının kullanabileceği her bağlantı noktası, parola kabul etmeden önce TLS'yi başlatır.</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>Bu sunucunun teslim ettiği her sunucuya onun ana bilgisayar adı bildirilir ve o sunucu bu adı DNS ile karşılaştırır: adın adresiyle ve postanın geldiği adresin PTR kaydıyla. Uyuşmayan bir ad postanın aleyhine sayılır.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Sunucunun çalıştırdığı sırayla her spam denetimi, her birinin puana ne eklediği ve o puanın sonra iletiye ne yaptığı.</value>
   </data>
@@ -4650,6 +4665,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Ekleri korumalı alanın kararına kadar beklet</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>Beklet ve yeniden tara, sonra gönderene geri döndür</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>İletileri reddetmek yerine incelenmek üzere beklet</value>
   </data>
@@ -4899,8 +4917,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Idle timeouts" xml:space="preserve">
     <value>Boşta kalma zaman aşımları</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>Bir ileti taranamazsa: 0 = teslim et, 1 = beklet ve sonunda geri döndür</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>Bir ileti taranamazsa</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>Yalnızca biri değil, her ileti takılıyorsa</value>
@@ -4910,6 +4928,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Dizin yanıt veremezse</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>{0} postayı zaten başka bir yerde alıyorsa - barındırılan bir posta kutusu sağlayıcısında, başka bir sunucuda - bu kaydı yayımlamak o postayı buraya taşır. Kaydı yalnızca bu sunucu o postayı almaya hazır olduğunda değiştirin.</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Sunucu tarafından yoksayılıyor - saklanan özet kullanılabilir bir SHA-256 değeri değil; bu yüzden bu bölüm hiçbir şeyi doğrulamıyor. İptal edip yerine yenisini oluşturun.</value>
@@ -5504,11 +5525,20 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — şuraya teslim eden sunuculardan TLS iste:</value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>MX denetimi puanı</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX sorgusu</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>MX değeri - öncelik, ardından postayı alan sunucunun adı:</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — şu etki alanının postasını hangi sunucunun aldığı: </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>Liste yöneti_cisi tarafından yönetilir</value>
@@ -6159,6 +6189,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Hiçbir LDAP kimlik doğrulaması denenmiyor. Dizine bağlı hesaplar Windows oturum açması üzerinden doğrulanmaya devam ediyor ve sunucu sessizce başarısız olamasın diye bunu dakikada bir bildiriyor (hata 5922).</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>{0} için bu makinenin çözümleyicisi aracılığıyla MX kaydı bulunamadı. </value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Bu makineden hiçbir MX kaydı bulunamadı; bu yüzden sunucu kendi ana bilgisayar adına geri dönerdi.</value>
   </data>
@@ -6296,6 +6329,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>'{0}' adlı grup bulunamadı.</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>Ana bilgisayar adı ayarlanmamış; bu yüzden bu sunucu, İnternet'teki hiçbir DNS'in bilmediği Windows bilgisayar adını duyuruyor.</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Ana bilgisayar adı ya da adres ayarlanmamış.</value>
@@ -6471,8 +6507,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not checked" xml:space="preserve">
     <value>Denetlenmedi</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Buradan denetlenmedi, açıkçası: PTR'yi doğrulamak sunucunun GENEL IP adresini gerektirir ve bu panel onu belirleyemez (NAT arkasında makine de bilmez); bu sayfanın denetleyicisi ise yalnızca TXT kayıtlarını okur. Bunun yerine dışarıdan sınayın: nslookup &lt;your public IP&gt; PTR'yi gösterir; yukarıdaki ana bilgisayarı adlandırması gerekir.</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Buradan denetlenmedi, açıkçası: PTR'yi doğrulamak sunucunun GENEL IP adresini gerektirir ve bu panel onu belirleyemez (NAT arkasında makine de bilmez); bu sayfanın denetleyicisi ise yalnızca TXT ve MX kayıtlarını okur. Bunun yerine dışarıdan sınayın: nslookup &lt;your public IP&gt; PTR'yi gösterir; yukarıdaki ana bilgisayarı adlandırması gerekir.</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Henüz denetlenmedi (Güncelleştirmeleri denetleyin veya API ve izleme sayfasındaki Güncelleştirmeler altından günlük denetimi açın)</value>
@@ -6795,6 +6831,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Yedekleme sayfasında yedeğin yazılacağı klasörü, ileti deposunun bulunduğu diskten farklı bir diskte ayarlayın.</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>Protokoller sayfasının SMTP sekmesinde Ana bilgisayar adı alanını bu sunucunun tam DNS adına, örneğin mail.example.com olarak ayarlayın. Ardından sunucunun genel adresinin sahibinden bu adı gösteren bir PTR kaydı isteyin; ne isteneceğini DNS kayıtları sayfası gösterir.</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>Sunucu sınırları ve uzman ayarları sayfasında, Windows hizmet hesabı kartı: NT SERVICE\hMailServer'a geçir hizmete klasörlerini verir - yapılandırmanın bunların dışında adlandırdığı her klasörü veya anahtar dosyasını önce sorarak - ve onu taşır; ardından hizmeti yeniden başlatın. Yükleyiciyi yeniden çalıştırmak aynı seçimi sunar. Windows kimlik doğrulamalı harici bir veritabanı da bu hesap için bir oturum açma kaydı ister.</value>
   </data>
@@ -6909,9 +6948,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Dosya adı desenleri listesinin sahibi olan Engellenen ekler sayfasını aç</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>Ana bilgisayar adının sahibi olan E-posta teslimi sayfasını aç</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>Bir hesabın Dizin sekmesinin onu dizine bağladığı Etki alanları sayfasını aç</value>
   </data>
@@ -6938,6 +6974,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Günlükleme ayarlarını aç</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>SMTP sekmesinde Ana bilgisayar adının bulunduğu Protokoller sayfasını aç</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>Sertifika ve anahtar dosyası yollarının sahibi olan SSL sertifikaları sayfasını aç</value>
@@ -7076,6 +7115,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>Diğer hata</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>Diğer posta sunucuları, etki alanının postasını nereye teslim edeceklerini bulmak için MX kaydına bakar; kayıt yoksa adreslerine gelen posta buraya ulaşmaz. Kaydın adlandırdığı sunucunun, bu sunucunun genel IP adresine işaret eden bir adres kaydına (A ve IPv6 için AAAA) ihtiyacı vardır - yönlendiricinizin veya güvenlik duvarınızın 25 numaralı portu ilettiği adres.</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>Ofis dışında</value>
@@ -7565,6 +7607,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>Yayımlanmış, öneriden farklı</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>Yayımlanmış, başka bir sunucuyu adlandırıyor</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Yayımlanmış, başlangıç noktasından daha katı</value>
   </data>
@@ -7845,6 +7890,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Kayıt süre sonu aralığı, dakika</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>Kayıt türü: MX.  Ana bilgisayar/Ad</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Kayıt türü: TXT.  Ana bilgisayar/Ad</value>
   </data>
@@ -7949,6 +7997,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Yeniden başlatıldı (Reinitialize) - kaydedilen ayarlar geçerli.</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>Yeniden başlatıldı (Reinitialize) - sunucu artık portları bu sayfanın listelediği gibi dinliyor.</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Yeniden başlatıldı (Reinitialize) - bunu bekleyen ayarlar geçerli; {0} tanesi hâlâ hizmetin yeniden başlatılmasını bekliyor.</value>
@@ -8110,10 +8161,10 @@ Posta kutusu ve iletileri yeni adrese taşınır. Eski adrese gönderilen posta,
 
 Otomatik yasaklama girdileri dâhil her özel aralık kaldırılır ve yerine 'Bilgisayarım' (127.0.0.1) ile 'İnternet' (diğer her şey) konur. Bu, kimin bağlanıp aktarma yapabileceğini hemen değiştirir.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Yapılandırılmış TÜM portlar varsayılanlarla değiştirilsin mi?
 
-SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portları ve özel bağlamalar kaldırılır. Değişiklik sunucu yeniden başlatıldığında geçerli olur.</value>
+SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portları ve özel bağlamalar kaldırılır. Değişiklik sunucu yeniden başlatıldığında (Reinitialize) geçerli olur.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Sertifikayı burada değiştirin; her birinin süre sonu tarihi listelenir.</value>
@@ -8726,6 +8777,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Kaydedildi. Derleyici şunu bildirdi: {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>Kaydedildi. Sunucu, hizmetleri yeniden başlatılana (Reinitialize) kadar eskisi gibi dinlemeyi sürdürür; bu işlem hizmetleri yerinde durdurup yeniden başlatır ve bağlı istemcilerin bağlantısını kısa bir süre keser. Sunucu şimdi yeniden başlatılsın (Reinitialize) mı?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Kaydedildi. Sunucu seçimi iki saniye içinde alır; zamanlamadaki bir değişiklik hizmetin yeniden başlatılmasını gerektirir.</value>
@@ -10068,8 +10122,8 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO ana bilgisayarı</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>E-posta teslimi'ndeki Ana bilgisayar adı BOŞ, bu yüzden sunucu Windows bilgisayar adına geri düşüyor{0}. Çıplak bir bilgisayar adı genel bir DNS adı değildir: HELO'yu DNS ile karşılaştıran alıcılar bunu cezalandırır ve hiçbir PTR onunla uyuşamaz. Önce gerçek bir ana bilgisayar adı ayarlayın.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Protokoller sayfasındaki Ana bilgisayar adı BOŞ, bu yüzden sunucu Windows bilgisayar adına geri düşüyor{0}. Çıplak bir bilgisayar adı genel bir DNS adı değildir: HELO'yu DNS ile karşılaştıran alıcılar bunu cezalandırır ve hiçbir PTR onunla uyuşamaz. Önce gerçek bir ana bilgisayar adı ayarlayın.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>{0} IP aralığı parolayı yalnızca TLS üzerinden kabul eder.</value>
@@ -10459,6 +10513,18 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>hMailServer 6.x serisi böyle bir çabadır. Özgün açık kaynaklı posta sunucusu güncel bir araç zincirinde (Visual Studio 2026 / MSVC v145 ve .NET 10) yeniden inşa edildi, modern kriptografiyle (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) ve bugün bir posta sunucusundan beklenen taşıma güvenliği standartlarıyla (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT ve ACME / Let's Encrypt) yeniden donatıldı. Protokol ve hizmet reddi kusurlarına karşı sağlamlaştırıldı; Sieve / ManageSieve filtreleme, sağlık uç noktaları ve OpenTelemetry gözlemlenebilirliği, geniş MySQL / MariaDB / MS SQL / PostgreSQL desteği ve eski yönetici aracının yerine bu modern Fluent tasarımlı Denetim Masası eklendi.</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>Ana bilgisayar adı - bu sunucunun diğer sunuculara verdiği ad</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>Ana bilgisayar adı sunucudan okunamadı.</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>{0} ana bilgisayar adı, hiçbir genel DNS'in yanıt vermediği bir adla bitiyor; bu yüzden İnternet'teki bir alıcı onu arayamaz.</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>{0} ana bilgisayar adı, mail.example.com gibi tam bir DNS adı değil; bu yüzden hiçbir DNS kaydı onunla uyuşamaz.</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Kimlik ({0}, az önce üretildi) sizin seçiminiz - her değer doğrudur. Tek görevi, ilke her değiştiğinde değişmektir; böylece önbellekler yeniden getirir.</value>
   </data>
@@ -10675,8 +10741,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The port to ask on" xml:space="preserve">
     <value>Sorulacak bağlantı noktası</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Her protokolün dinlediği portlar, bağlama adresleri ve bağlantı güvenliği. Değişikliklerden sonra hizmetin yeniden başlatılması gerekir. Dinliyor sütunu yapılandırmadan değil, bu makinenin açık portlarından okunur; bu yüzden istenen değil, gerçekte olan görünür.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Her protokolün dinlediği portlar, bağlama adresleri ve bağlantı güvenliği. Bir değişiklik, sunucu yeniden başlatıldığında (Reinitialize) geçerli olur; bu sayfa bunu her değişiklikten sonra önerir. Dinliyor sütunu yapılandırmadan değil, bu makinenin açık portlarından okunur; bu yüzden istenen değil, gerçekte olan görünür.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Özel anahtar bu sertifikaya ait değil: ortak anahtarları farklı. Çift yüklenmez (sunucu hatası 5113) ve bu sertifikayı kullanan her TLS portu başlatılamaz. Bu girdiyi, bu sertifikayla birlikte üretilen anahtar dosyasına yönlendirin.</value>
@@ -10730,6 +10796,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>Kayıt yayılıyor.</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>Kayıt bu sunucuyu ana bilgisayar adıyla adlandırır ve ana bilgisayar adı henüz İnternet'te aranabilen bir ad değil; bu yüzden henüz yayımlanacak bir değer yok. Adı Protokoller sayfasının SMTP sekmesinde ayarlayın, sonra geri dönün.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Bu sunucunun her etki alanının DNS bölgesinde yayımlanmasına ihtiyaç duyduğu kayıtlar: tür, ana bilgisayar ve değer, DNS sağlayıcınızın konsoluna kopyalamaya hazır ve her birinin gerçekten yayında olup olmadığını gösteren bir denetimle. Denetimler bu makinenin Windows çözümleyicisini kullanır - DKIM döndürme denetiminin kullandığıyla aynı.</value>
@@ -10871,8 +10940,8 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>Sorulacak sunucu (boşsa alan adının MX makineleri sorulur)</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Sunucunun Ana bilgisayar adı (E-posta teslimi) BOŞ; bu yüzden HELO/EHLO'da Windows bilgisayar adını duyuruyor - genel bir DNS adı değil - ve hiçbir "a:" mekanizması dürüstçe sunulamaz. Öneri yalnızca etki alanının MX ana bilgisayarlarını yetkilendirir. Önce ana bilgisayar adını ayarlayın; bu sayfadaki birkaç kayıt ona ihtiyaç duyar.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>Sunucunun Ana bilgisayar adı (Protokoller &gt; SMTP) BOŞ; bu yüzden HELO/EHLO'da Windows bilgisayar adını duyuruyor - genel bir DNS adı değil - ve hiçbir "a:" mekanizması dürüstçe sunulamaz. Öneri yalnızca etki alanının MX ana bilgisayarlarını yetkilendirir. Önce ana bilgisayar adını ayarlayın; bu sayfadaki birkaç kayıt ona ihtiyaç duyar.</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Sunucunun yanıtı okunamadı.</value>
@@ -11096,8 +11165,8 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>Bu grupta hiç hesap yok; bu yüzden ona verilen herhangi bir izin şu anda kimse için geçerli değil.</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>Bu, Ayarlar &gt; E-posta teslimi &gt; Ana bilgisayar adı; sunucunun her giden teslimde HELO/EHLO'da duyurduğu ad (Utilities::ComputerName). IP'nin sahibinden genel IP'nizin PTR kaydını tam olarak bu ada çözümletmesini isteyin ve bu ad için aynı IP'ye geri işaret eden bir A kaydı yayımlayın - alıcılar her iki yönü de denetler.</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>Bu, Protokoller &gt; SMTP &gt; Ana bilgisayar adı; sunucunun her giden teslimde HELO/EHLO'da duyurduğu ad (Utilities::ComputerName). IP'nin sahibinden genel IP'nizin PTR kaydını tam olarak bu ada çözümletmesini isteyin ve bu ad için aynı IP'ye geri işaret eden bir A kaydı yayımlayın - alıcılar her iki yönü de denetler.</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Bu, hMailServer.INI içindeki [Settings] UseLanguage. Sunucu onu yalnızca COM API üzerinden geri verir - kendisi hiçbir şeyi çevirmez ve bu Denetim Masası'nın kendi dil ayarı vardır (sağ üstteki yönetici menüsünde Dili değiştir) - bu yüzden yalnızca üçüncü taraf yönetim araçlarını etkiler. Geri dönme ve hata ifadeleri Sunucu iletileri sayfasındadır.</value>
@@ -11134,6 +11203,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Bu, gönderen sunucu DATA yanıtını beklerken çalışır; bu yüzden sayı bir ipucu değil, en kötü durum hakkında bir sözdür. Yanıtın yanı sıra bağlantıyı da sınırlar: makinesi ortadan kaybolmuş bir motor aksi hâlde her iletide işletim sisteminin kendi TCP zaman aşımına mal olurdu.</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>Bu sunucu kendini {0} olarak tanıtıyor. Genel adresinin PTR kaydının bu adı gösterip göstermediği ve adın kendi adres kaydının geri işaret edip etmediği buradan anlaşılamaz: ne isteneceğini DNS kayıtları sayfası söyler.</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>Bu sunucu etki alanı tablosunu okuyamadı, bu yüzden örneğin burada olup olmadığını söyleyemiyor. Okuyabilene kadar hiçbir şey sunulmaz.</value>
@@ -13533,6 +13605,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, süre sonu {2}</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0} (bu Denetim Masası'nın bilmediği bir değer)</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (süresi doldu)</value>
   </data>
@@ -13703,6 +13778,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} açık ama çalışamıyor. {1} İstenen her tarama başarısız oluyor ve başarısız bir tarama başarısız bir ileti değildir: hata günlüğe yazılır ve ileti incelenip temiz bulunmuş gibi teslim edilir.</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0} açık ama çalışamıyor. {1} İstenen her tarama başarısız oluyor ve başka hiçbir tarayıcı yanıt vermediği sürece her ileti bekletilir ve yeniden taranır, bekletme hakkı tükendiğinde de gönderene geri döndürülür.</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} örnek etki alanıdır ve burada sayılmaz; işiniz bittiğinde kaldırın.</value>
@@ -13892,6 +13970,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>aramaların %{0} kadarı bellekten yanıtlandı, {1} KB kullanılıyor</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>{0} etki alanının MX kayıtları, bu sunucunun ana bilgisayar adı olan {1} adını gösteriyor: {2}.</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>{0} etki alanının postası bu sunucunun ana bilgisayar adına değil, şuraya gidiyor: {1}. Postayı önce bir filtreleme hizmeti veya başka bir sunucu alıp iletiyorsa bu doğrudur; aksi halde kaydı değiştirin.</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, parolası olmayan sanal bir hizmet hesabı</value>

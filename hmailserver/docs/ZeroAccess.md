@@ -281,7 +281,8 @@ Switches and surfaces
 ---------------------
 
 * `ZeroAccessAllowed` in `hm_settings` (`zero_access_allowed` under
-  `/api/v1/settings/openpgp`, the Deck's OpenPGP settings page): OFF. An
+  `/api/v1/settings/openpgp`, the Deck's OpenPGP settings page, the Control
+  Panel's Webmail page on its Encryption tab, over the REST API): OFF. An
   administrator allows the opt-in with their eyes open, once; allowing it switches
   nobody on. Turning it off again stops new opt-ins and changes nothing for a
   mailbox already switched.

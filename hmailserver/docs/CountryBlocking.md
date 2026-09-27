@@ -269,6 +269,13 @@ Set-HmSetting -Property @{ geoip_database_file = '/var/lib/GeoIP/GeoLite2-Countr
 Set-HmDomain -Name example.com -Property @{ active = $true; country_policy = 'allow:GB,IE' }
 ```
 
+### The desktop Control Panel
+
+**Sign-in & access > Auto-ban**, the **Countries** tab, holds the database file,
+the staleness limit, the four listener policies and the exempt ranges. A domain's
+dialog has a **Country blocking** tab for that domain's sign-in policy. Both are
+written over COM, below.
+
 ### COM (the desktop Control Panel's interface)
 
 ```vbscript

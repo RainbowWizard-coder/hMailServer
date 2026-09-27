@@ -420,8 +420,10 @@ the **entity ID** `<base URL>/saml` and the **ACS URL** (Assertion Consumer
 Service) `<base URL>/portal/saml/acs` - and its metadata is at
 `<base URL>/saml/metadata`, for an identity provider that imports one. The
 settings are REST's and the Deck's (its Server group draws them from the API's
-own description), as OpenID Connect's are; there is no COM property and no
-Control Panel page for either.
+own description), as OpenID Connect's are; there is no COM property for either.
+The Control Panel has both, with the passkey settings, on Connections & protocols >
+Webmail, the Sign-in tab, which reads and writes them over the REST API, so the
+REST API has to be on.
 
 **Microsoft Entra ID.** Enterprise applications, *New application*, *Create your
 own application*, "Integrate any other application you don't find in the

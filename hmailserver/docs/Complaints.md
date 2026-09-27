@@ -93,8 +93,9 @@ Turning it on
 -------------
 
 The four values are properties of the COM `Settings` object, keys of
-`/api/v1/settings/complaints`, a group on the Control Deck's Settings page, and
-`hmctl settings get complaints`. They live in `hm_settings`, not in
+`/api/v1/settings/complaints`, a group on the Control Deck's Settings page,
+`hmctl settings get complaints`, and the Control Panel's Mail flow & delivery >
+Delivery of e-mail page, the Feedback tab. They live in `hm_settings`, not in
 `hMailServer.ini`, and each is read at the moment it matters, so a change applies
 to the next report without a restart.
 

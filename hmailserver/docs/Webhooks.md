@@ -32,7 +32,7 @@ separate switches agree:
 
 | Switch | Where | Default |
 |---|---|---|
-| `webhook_subjects` | the domain (`PUT /api/v1/domains/{domain}`, `Domain.WebhookSubjects` over COM) | **off** on every domain |
+| `webhook_subjects` | the domain (`PUT /api/v1/domains/{domain}`, `Domain.WebhookSubjects` over COM, the Control Panel's domain dialog on its Webhooks tab) | **off** on every domain |
 | `include_subject` | the subscription | **off** |
 
 Even with both on, a subject travels on `message.received` and
@@ -375,8 +375,10 @@ Four rows in `hm_settings` — none of them in `hMailServer.ini`.
 | `WebhookRetentionDays` | `webhook_retention_days` | 7 | Days of delivered and dead-lettered rows to keep - and of an inbound webhook's delivered and returned ones; its kept messages are never swept. 0 keeps everything. 0 to 3650 |
 
 On COM they are `Settings.WebhooksEnabled`, `.WebhookMaxAttempts`,
-`.WebhookMaxPerMinute` and `.WebhookRetentionDays`. A value outside a range is
-**refused** with the same sentence over REST and over COM, not clamped.
+`.WebhookMaxPerMinute` and `.WebhookRetentionDays`, and the Control Panel edits
+them through those properties on Monitoring & troubleshooting > Logging, the
+Alerts & webhooks tab. A value outside a range is **refused** with the same
+sentence over REST and over COM, not clamped.
 
 ---
 
@@ -419,6 +421,11 @@ every domain it is not confined to.
 words, the last twenty-five deliveries with the reason a pending one has not
 arrived, an editor built from the route's own schema, and two buttons — raise a
 test event, run a pass now. In all twenty languages.
+
+**The desktop Control Panel** has the four settings on its Logging page, the
+Alerts & webhooks tab, and a domain's two switches, `webhooks_enabled` and
+`webhook_subjects`, on the domain dialog's Webhooks tab. The subscriptions and
+their deliveries are not in it.
 
 **`hmctl`**:
 

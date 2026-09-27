@@ -126,6 +126,26 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// This is the one that costs an administrator the most: they turn on the
       /// checks, watch the score in the log, and no message is ever marked.
       /// </summary>
+      /// <summary>
+      /// The server tests the delete threshold before the mark, so thresholds that
+      /// are equal - or a delete below the mark - refuse whatever would have been
+      /// marked, and the verdict must not say a message is marked and delivered.
+      /// </summary>
+      [Theory]
+      [InlineData(10000, 10000)]
+      [InlineData(5, 9)]
+      public void ADeleteThresholdNotAboveTheMark_RefusesAndMarksNothing(int delete, int mark)
+      {
+         SpamPipelineConfig config = Defaults();
+         config.DeleteThreshold = delete;
+         config.MarkThreshold = mark;
+
+         string verdict = SpamPipeline.Verdict(config);
+         Assert.DoesNotContain("marked as spam and delivered", verdict, StringComparison.OrdinalIgnoreCase);
+         Assert.Contains("None is only marked", verdict, StringComparison.OrdinalIgnoreCase);
+         Assert.StartsWith("A message scoring " + delete + " or more is refused", verdict);
+      }
+
       [Fact]
       public void AZeroMarkThreshold_IsCalledOutAsMarkingNothing()
       {

@@ -319,8 +319,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          // The action is only worth space when there is (or may be) something to
-         // do. "Not needed" earns a quiet card; the instructions would be noise.
-         if (item.State != SetupItemState.NotNeeded)
+         // do. "Not needed" earns a quiet card; the instructions would be noise -
+         // and on a done item they read as something still to do ("Add the domain
+         // on the Domains page" under "Done - Active domains: 1 of 1").
+         if (item.State != SetupItemState.NotNeeded && item.State != SetupItemState.Done)
          {
             var action = new TextBlock { Margin = new Thickness(0, 12, 0, 0) };
             action.SetResourceReference(StyleProperty, "TextCaption");

@@ -124,6 +124,28 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(HasNote(config, StatusLevel.Critical, "delivered as though it had been examined and found clean"));
       }
 
+      // AVFailAction 1 holds what no scanner could examine: the page must not say
+      // such a message is delivered as though clean, which is the default's story.
+      [Fact]
+      public void WithUnscannedMailHeld_ABrokenScannerIsNotSaidToDeliverAsClean()
+      {
+         VirusPipelineConfig config = Defaults();
+         config.ClamAvEnabled = true;
+         config.ClamAvHost = "";
+         config.HoldUnscanned = true;
+
+         Assert.False(HasNote(config, StatusLevel.Critical, "found clean"));
+         Assert.True(HasNote(config, StatusLevel.Critical, "held and scanned again"));
+         Assert.Contains("held and scanned again", VirusPipeline.WhenNoScannerAnswers(config));
+         Assert.DoesNotContain("found clean", VirusPipeline.WhenNoScannerAnswers(config));
+      }
+
+      [Fact]
+      public void ByDefault_WhatNoScannerExaminedIsDeliveredAsThoughClean()
+      {
+         Assert.Contains("examined and found clean", VirusPipeline.WhenNoScannerAnswers(Defaults()));
+      }
+
       [Fact]
       public void APortOfZeroCountsAsUnableToRun()
       {

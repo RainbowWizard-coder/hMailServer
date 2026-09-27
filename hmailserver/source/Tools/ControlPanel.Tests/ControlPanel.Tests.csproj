@@ -52,6 +52,12 @@
          the INI pages' above: read and written over COM, so it is clean, unsaved,
          saving, saved or partly saved, with no service restart in it. -->
     <Compile Include="..\ControlPanel\Services\ServerSettingsPageStatus.cs" />
+    <!-- What a settings list offers when the server holds a value that is none of
+         its choices: the value itself, so that a save of the page writes back what
+         it read rather than the first choice. -->
+    <Compile Include="..\ControlPanel\Services\ChoiceOptions.cs" />
+    <!-- The setup checklist's judgement of the host name the server announces. -->
+    <Compile Include="..\ControlPanel\Services\HostNameVerdict.cs" />
     <Compile Include="..\ControlPanel\Services\Typography.cs" />
     <Compile Include="..\ControlPanel\Services\SpamPipeline.cs" />
     <!-- Same arrangement, for the same reason: the account comparison and the

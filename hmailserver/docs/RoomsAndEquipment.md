@@ -27,8 +27,9 @@ Where it is set:
   on REST and the Deck only: it did not follow cleanly as COM properties, and a
   policy object of its own would be a new COM interface that every installation
   must register again, so it was not built.
-* The desktop Control Panel does not show it; a room made on the Deck or over
-  REST is an ordinary account to it.
+* **The desktop Control Panel** - the account dialog's **Identity** tab has
+  *Kind of account* (a person, a room, a piece of equipment), over
+  `Account.Kind`. It has no booking policy: that is set in the Control Deck.
 
 ### It cannot be signed into
 
@@ -408,7 +409,8 @@ Kept to what a small organisation uses. Left out, deliberately:
 * **Answering a request the room left, on its behalf, from the notice**: the
   delegates book it themselves; there is no "accept on behalf" of a request
   that is not in the room's calendar.
-* **COM properties for the policy** (above), and the desktop Control Panel.
+* **COM properties for the policy** (above), and so the policy in the desktop
+  Control Panel, which sets only the kind.
 
 ## What proves it
 

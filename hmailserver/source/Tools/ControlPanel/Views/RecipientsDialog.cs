@@ -72,8 +72,9 @@ namespace hMailServer.ControlPanel.Views
          bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-         // The box has no caption anywhere on the dialog - it is a bare box beside
-         // three buttons - so its accessible name says what it is for.
+         // The box is captioned, as every other box on these dialogs is: it was a
+         // bare box beside three buttons, which said what it was for to a screen
+         // reader and to nobody else. The buttons sit on its baseline.
          AutomationProperties.SetName(addBox_, L("E-mail address to add to the list"));
 
          // Enter adds. Handled, so the keystroke cannot also reach a default button
@@ -86,26 +87,43 @@ namespace hMailServer.ControlPanel.Views
             AddRecipient();
             e.Handled = true;
          };
+
+         // The caption above the whole row, so that it reads on one line rather
+         // than folded into the width of the box.
+         bottom.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         bottom.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         TextBlock caption = DialogFields.Caption(L("E-mail address to add to the list"));
+         Grid.SetColumnSpan(caption, 4);
+         bottom.Children.Add(caption);
+         Grid.SetRow(addBox_, 1);
          bottom.Children.Add(addBox_);
 
-         var addButton = new Wpf.Ui.Controls.Button { Content = L("_Add"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         var addButton = new Wpf.Ui.Controls.Button { Content = L("_Add"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0), VerticalAlignment = VerticalAlignment.Bottom };
          addButton.Click += (s, e) => AddRecipient();
          Grid.SetColumn(addButton, 1);
+         Grid.SetRow(addButton, 1);
          bottom.Children.Add(addButton);
 
-         var adButton = new Wpf.Ui.Controls.Button { Content = L("Add from A_D…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         var adButton = new Wpf.Ui.Controls.Button { Content = L("Add from A_D…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0), VerticalAlignment = VerticalAlignment.Bottom };
          adButton.Click += (s, e) => ImportFromActiveDirectory();
          Grid.SetColumn(adButton, 2);
+         Grid.SetRow(adButton, 1);
          bottom.Children.Add(adButton);
 
+         // The list pages' one Delete style (ButtonStyles.DangerText): red words
+         // while there is a member to remove, the disabled grey while none is
+         // chosen - not the filled red of a confirmation, live over an empty list.
          var removeButton = new Wpf.Ui.Controls.Button
          {
             Content = L("_Remove selected"),
             Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Danger
+            VerticalAlignment = VerticalAlignment.Bottom
          };
+         ButtonStyles.DangerText(removeButton);
+         SelectionGate.Bind(listBox_, removeButton);
          removeButton.Click += (s, e) => RemoveSelected();
          Grid.SetColumn(removeButton, 3);
+         Grid.SetRow(removeButton, 1);
          bottom.Children.Add(removeButton);
 
          body.Children.Add(bottom);

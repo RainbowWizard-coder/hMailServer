@@ -136,6 +136,46 @@ namespace hMailServer.ControlPanel
       }
 
       /// <summary>
+      /// Connects the tour card's Next, Finish, Back and Skip the tour to the
+      /// session. The card raises the three events and owns nothing else; until
+      /// they were subscribed its buttons did nothing at all, and the only way on
+      /// from a step was to do the thing it described or press Escape inside the
+      /// card - a first walk that stood still on "Next". Called once, from the
+      /// constructor.
+      /// </summary>
+      private void WireTourCard_()
+      {
+         TourLayer.Next += () =>
+         {
+            if (!TourRunning)
+               return;
+
+            if (tour_.Next())
+               ShowTourStep_();
+            else
+               FinishTour_();
+         };
+
+         TourLayer.Back += () =>
+         {
+            if (!TourRunning)
+               return;
+
+            if (tour_.Back())
+               ShowTourStep_();
+            else
+               FinishTour_();
+         };
+
+         // Leaving is recorded, so the walk offers to resume where it was left.
+         TourLayer.Skip += () =>
+         {
+            if (TourRunning)
+               EndTour(record: true);
+         };
+      }
+
+      /// <summary>
       /// The shell's handler for a page header's help button. Starts the tour
       /// that visits the page showing, at its first stop on that page, so the
       /// button teaches THIS page rather than restarting a walk somewhere else.
@@ -286,7 +326,7 @@ namespace hMailServer.ControlPanel
          }
 
          TourLayer.ShowStep(target, L(tour_.Tour.Name), tour_.Position, L(step.Sentence),
-            tour_.CanGoBack, tour_.Index == tour_.Tour.Steps.Count - 1);
+            tour_.HasEarlierStep, tour_.Index == tour_.Tour.Steps.Count - 1);
       }
 
       /// <summary>The tour ran out of steps, or could not show one it needed. Say which, and record it.</summary>

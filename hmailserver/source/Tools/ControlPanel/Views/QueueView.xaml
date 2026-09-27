@@ -59,8 +59,8 @@
                         <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="90"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
                         <DataGridTextColumn Header="{loc:L 'Created'}" Binding="{Binding Created}" Width="150" />
-                        <DataGridTextColumn Header="{loc:L 'From'}" Binding="{Binding From}" Width="*" />
-                        <DataGridTextColumn Header="{loc:L 'Recipients'}" Binding="{Binding Recipients}" Width="*" />
+                        <DataGridTextColumn Header="{loc:L 'From'}" Binding="{Binding From}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Recipients'}" Binding="{Binding Recipients}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Next try'}" Binding="{Binding NextTry}" Width="150" />
                         <DataGridTextColumn Header="{loc:L 'Tries'}" Binding="{Binding Tries}" Width="70"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />

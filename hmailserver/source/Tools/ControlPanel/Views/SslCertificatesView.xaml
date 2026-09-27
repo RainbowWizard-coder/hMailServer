@@ -49,9 +49,9 @@
                           SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged"
                           AutomationProperties.Name="{loc:L 'SSL certificates'}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="170" />
-                        <DataGridTextColumn Header="{loc:L 'Certificate file'}" Binding="{Binding CertificateFile}" Width="*" />
-                        <DataGridTextColumn Header="{loc:L 'Private key file'}" Binding="{Binding PrivateKeyFile}" Width="*" />
+                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="170" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Certificate file'}" Binding="{Binding CertificateFile}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Private key file'}" Binding="{Binding PrivateKeyFile}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTemplateColumn Header="{loc:L 'Certificate'}" Width="210" SortMemberPath="CertificateState">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -110,11 +110,15 @@
                         <ColumnDefinition Width="*" MinWidth="160" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <scaffold:FieldRow Label="{loc:L 'Name'}" Margin="0,0,8,0">
+                    <!-- Each field sits on the row's bottom edge: the passphrase's
+                         caption wraps to two lines in a narrow window, and with the
+                         fields at the top its box and the Add button sat lower and
+                         higher than the other boxes. -->
+                    <scaffold:FieldRow Label="{loc:L 'Name'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                         <ui:TextBox x:Name="NewCertName"
                                     AutomationProperties.Name="{loc:L 'Name for the new certificate'}" />
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Certificate file (PEM)'}" Margin="0,0,8,0">
+                    <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Certificate file (PEM)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -126,7 +130,7 @@
                                        AutomationProperties.Name="{loc:L 'Browse for the certificate file'}" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Private key file (PEM)'}" Margin="0,0,8,0">
+                    <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Private key file (PEM)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -138,12 +142,12 @@
                                        AutomationProperties.Name="{loc:L 'Browse for the private key file'}" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Key passphrase (only for an encrypted key)'}" Margin="0,0,8,0">
+                    <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Key passphrase (only for an encrypted key)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                         <local:PasswordField x:Name="NewKeyPassphrase"
                                              AutomationProperties.Name="{loc:L 'Private key passphrase for the certificate being added'}" />
                     </scaffold:FieldRow>
                     <ui:Button Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                               VerticalAlignment="Bottom" Margin="0,0,0,12"
+                               VerticalAlignment="Bottom" Margin="0"
                                AutomationProperties.Name="{loc:L 'Add the certificate'}" />
                 </Grid>
                 <!-- Filled in by code when the picked key file turns out to be

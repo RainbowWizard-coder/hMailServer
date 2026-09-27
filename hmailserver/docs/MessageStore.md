@@ -70,7 +70,7 @@ Turning it on, and off
 
 | Where | What |
 |---|---|
-| The Control Panel | *Settings > Maintenance > Performance*, the **Message store** tab: the switch, the smallest part held once, and what the store holds and saves as the server last measured it |
+| The Control Panel | *Maintenance > Performance*, the **Message store** tab: the switch, the smallest part held once, and what the store holds and saves as the server last measured it |
 | The Control Deck | The two settings on the server settings page, and a **Message store** section on the dashboard: the messages, what their files take, what the parts held once take, and the saving |
 | REST | `message_store_compression` and `message_store_dedup_min_kb` in `/api/v1/settings`; `GET /api/v1/store` for the measurement (permission *view configuration*), `POST /api/v1/store/measure` to take one now (permission *manage server*) |
 | COM | `Settings.MessageStoreCompression`, `Settings.MessageStoreDedupMinKB`, and `Settings.MessageStoreStatus` (the same JSON as `GET /api/v1/store`) |

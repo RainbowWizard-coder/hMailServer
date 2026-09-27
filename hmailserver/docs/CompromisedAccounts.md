@@ -181,8 +181,9 @@ an account holding the permission do both.
 The settings
 ------------
 
-All on `PUT /api/v1/settings`, the Deck's Settings page, `hmctl settings set` and
-`hmctl config`; every range is refused in the setting's own sentence rather than
+All on `PUT /api/v1/settings`, the Deck's Settings page, `hmctl settings set`,
+`hmctl config` and the Control Panel's Auto-ban page, on its Compromised accounts
+tab (over the REST API); every range is refused in the setting's own sentence rather than
 clamped.
 
 | Setting | Default | What it is |
@@ -226,6 +227,8 @@ What it does not do
 - **The client address is the connection's peer.** Behind a proxy that does not
   speak PROXY protocol or XCLIENT every client is the proxy, the network is
   always seen, and the address signal never scores - the other three still do.
-- **There is no Control Panel page.** The desktop Control Panel drives the
-  server over COM, and the review state, the held list and the settings are
-  REST: the Deck, `hmctl settings` and the OpenAPI document are where they are.
+- **The Control Panel has the settings and not the review.** The nine settings
+  are on Sign-in & access > Auto-ban, the Compromised accounts tab, which reads
+  and writes them over the REST API, so the REST API has to be on. The review
+  state and the held list have no Control Panel page and no COM surface: they are
+  REST, and the Deck and the OpenAPI document are where they are.

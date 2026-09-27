@@ -150,6 +150,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(pages.IndexOf("domains") < pages.IndexOf("ports"));
       }
 
+      /// <summary>
+      /// The card raises Next, Back and Skip and does nothing else with them, so
+      /// the shell has to listen, or the three buttons of every step are dead -
+      /// which is how the Control Panel's walk shipped: nothing subscribed to
+      /// them, and "Next" stood still. A window cannot be made in a test, so the
+      /// source is read, as the automation ids above are.
+      /// </summary>
+      [Fact]
+      public void TheShellListensToEveryButtonOfTheCard()
+      {
+         string shell = File.ReadAllText(Path.Combine(Root, "MainWindow.Tour.cs"));
+         foreach (string raised in new[] { "Next", "Back", "Skip" })
+            Assert.Matches("TourLayer\\." + raised + "\\s*\\+=", shell);
+
+         string window = File.ReadAllText(Path.Combine(Root, "MainWindow.xaml.cs"));
+         Assert.Contains("WireTourCard_();", window);
+      }
+
       private static string FindControlPanel()
       {
          for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null; at = at.Parent)

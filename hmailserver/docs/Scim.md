@@ -519,10 +519,11 @@ line per change: `REST API: SCIM key:<id> made account ...`, `... renamed ...`,
 * **A list's address changes only inside its domain**, and a list's membership
   query, its moderation and its list-manager fields are the Control Panel's and
   the Deck's.
-* **Nothing but SCIM and COM shows `externalId`**: not the Control Panel, not the
+* **Nothing but SCIM, COM and the Control Panel shows `externalId`**: not the
   Deck, not the REST account routes (`GET /api/v1/accounts/{address}` carries no
   `external_id`), not `hmctl` or the PowerShell module. COM's `Account.ExternalId`
-  reads and writes it, and a backup carries it.
+  reads and writes it - the Control Panel's account dialog edits it through that
+  property, on its Identity tab - and a backup carries it.
 * **A group's rename keeps nothing at the old address** (*Groups*), where an
   account's keeps an alias.
 

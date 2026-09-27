@@ -188,8 +188,8 @@
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>「done spam-protection」の後、無応答</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>「mx」は {0} の MX レコードが指すホストをすべて許可します。「a:{1}」は、このサーバーが HELO/EHLO で名乗るホスト名のアドレスを許可します (メール配信 &gt; ホスト名)。「~all」はそれ以外をソフトフェイルにします。リストが完全だと確信できるまでは、意図的に「-all」より緩くしてあります。</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>「mx」は {0} の MX レコードが指すホストをすべて許可します。「a:{1}」は、このサーバーが HELO/EHLO で名乗るホスト名のアドレスを許可します (プロトコル &gt; SMTP &gt; ホスト名)。「~all」はそれ以外をソフトフェイルにします。リストが完全だと確信できるまでは、意図的に「-all」より緩くしてあります。</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>「{0}」は保存されませんでした: {1}</value>
@@ -238,6 +238,9 @@
   </data>
   <data name="(none)" xml:space="preserve">
     <value>(なし)</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>(先にホスト名を設定してください: プロトコル &gt; SMTP &gt; ホスト名)</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>(ログ ファイルに書き込めませんでした)</value>
@@ -295,9 +298,6 @@
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 は出荷時の既定値で、この仕組み全体を無効にします。</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0 は出荷時の既定値で、現在の動作をそのまま維持します。1 にすると、スキャンされていないメールが配信されることは決してありません。</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 は出荷時の既定値です。2 は妥当な出発点です。パスワードを打ち間違えた人が失うのは一度きりの 2 秒ですが、パスワード スプレー攻撃を行うクライアントは 1 回の推測ごとに 2 秒、4 秒、6 秒…と失います。</value>
@@ -602,8 +602,8 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに「ディレクトリ認証」ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>このサーバーには {0} という名前のドメインがありますが、サンプルが作成したものではないため、ここでは作成も削除も行いません。不要であればご自身で削除してください。</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>{0} という名前のドメインがすでにこのサーバーにありますが、このページが作るサンプルドメインではありません。そのため、ここではサンプルを作成できず、このページがそのドメインを削除することもありません。そのドメインが不要な場合は、ドメイン ページで削除してください。</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>ドメインまたはアカウントのアドレスが必要です。</value>
@@ -667,6 +667,9 @@
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>スコアが {0} 以上のメッセージはスパムとしてマークされたうえで配信され、{1} 以上のメッセージは拒否されます (本文の受信前は 550、受信後は 554)。</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>スコアが {0} 以上のメッセージは拒否されます (本文の受信前は 550、受信後は 554)。マークだけされるメッセージはありません: マークしきい値 {1} がそれより低くないためです。</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>スコアが {0} 以上のメッセージは拒否されます (本文の受信前は 550、受信後は 554)。マークされるものはありません。</value>
@@ -763,6 +766,9 @@
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>エラーになったスキャン、タイムアウトしたスキャン、エンジンに到達できなかったスキャンは、「問題なし」という判定ではありません。誰も中身を見ていないからです。出荷時の動作は、それでもメッセージを配信するというもので、このサーバーが従来から行ってきた動作です。代わりに保留するのはより厳しい選択であり、意図して選ぶべきものです。</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>実行できないスキャナーがメッセージを拒否することはありません。エラーはログに記録され、スキャンは次のスキャナーへ進みます。どのスキャナーも応答できない場合、そのメッセージは保留されて再度スキャンされ、保留の回数を使い切ると送信者に返されます (ウイルス対策の設定ページの「メッセージをスキャンできない場合」)。このページが、各スキャナーが有効かどうかではなく実行できるかどうかを報告しているのは、そのためです。</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>実行できないスキャナーがメッセージを拒否することはありません。エラーはログに記録され、スキャンは次のスキャナーへ進みます。どのスキャナーも応答できない場合、そのメッセージは、検査されてクリーンと判定されたのとまったく同じように扱われます。このページが、各スキャナーが有効かどうかではなく実行できるかどうかを報告しているのは、そのためです。</value>
@@ -3442,6 +3448,9 @@
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>各メッセージを、そのヘッダーに記載されたアカウントに配信する (複数の人で共有するメールボックス)</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>配信する (既定)</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>その旨のヘッダーを付けて配信する</value>
   </data>
@@ -3471,6 +3480,9 @@
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>配信中</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>配信するのが出荷時の既定であり、このサーバーが従来から行ってきた動作です。保留にすると、スキャンされていないメールが配信されることはありません。メッセージは下の間隔で再度スキャンされ、下に指定した回数だけ保留された後に送信者に返されます。</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>配信中: メッセージは受け入れられたが、決して出ていかない</value>
@@ -4101,6 +4113,9 @@
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>IP 範囲 {0} が使用できるすべてのポートは、パスワードを受け付ける前に TLS を開始します。</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>このサーバーの配信先となるすべてのサーバーには、このサーバーのホスト名が伝えられ、配信先はそれを DNS と比較します。比較するのは、その名前のアドレスと、メールの送信元アドレスの PTR レコードです。一致しない名前は、そのメールにとって不利に働きます。</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのスパム チェック、それぞれがスコアに加える値、そしてそのスコアがメッセージに何をもたらすか。</value>
   </data>
@@ -4650,6 +4665,9 @@
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>サンドボックスの判定まで添付ファイルを保留する</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>保留して再度スキャンし、その後送信者に返す</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>メッセージを拒否する代わりに確認のために保留する</value>
   </data>
@@ -4899,8 +4917,8 @@
   <data name="Idle timeouts" xml:space="preserve">
     <value>アイドル タイムアウト</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>メッセージをスキャンできない場合: 0 = 配信する、1 = 保留し、最終的に返送する</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>メッセージをスキャンできない場合</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>1 通だけでなく、すべてのメッセージが停滞する場合</value>
@@ -4910,6 +4928,9 @@
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>ディレクトリが応答できない場合</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>{0} がすでに別の場所 (ホスティングされたメールボックス プロバイダーや別のサーバー) でメールを受け取っている場合、このレコードを公開するとそのメールはこちらに移ります。変更するのは、このサーバーがそのメールを受け取る準備ができてからにしてください。</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>サーバーに無視されます。保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
@@ -5504,11 +5525,20 @@
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — 次への配信サーバーに TLS を要求:</value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>MX チェック スコア</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX クエリ</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>MX 値 - 優先度、続いてメールを受け取るサーバーの名前:</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — 次のドメインのメールを受け取るサーバー: </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>リストマネージャーによる管理(_N)</value>
@@ -6159,6 +6189,9 @@
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>LDAP 認証は試みられません。ディレクトリ連携アカウントは引き続き Windows ログオンで検証され、サーバーは黙って失敗しないよう、これを 1 分に 1 回報告します (エラー 5922)。</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>このコンピューターのリゾルバーでは、{0} の MX レコードが見つかりませんでした。</value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>このコンピューターから MX レコードが見つからなかったため、サーバーは自身のホスト名にフォールバックします。</value>
   </data>
@@ -6296,6 +6329,9 @@
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>'{0}' という名前のグループは見つかりません。</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>ホスト名が設定されていないため、このサーバーは Windows コンピューター名を名乗っています。この名前は、インターネット上のどの DNS も知りません。</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>ホスト名もアドレスも設定されていません。</value>
@@ -6471,8 +6507,8 @@
   <data name="Not checked" xml:space="preserve">
     <value>未確認</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>正直に言って、ここからは確認していません: PTR の検証にはサーバーの「公開」IP アドレスが必要ですが、このパネルはそれを特定できず (NAT の背後ではコンピューター自身も知りません)、このページのチェッカーは TXT レコードしか読み取りません。代わりに外部からテストしてください: nslookup &lt;あなたの公開 IP&gt; で PTR が表示され、上のホスト名を指しているはずです。</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>正直に言って、ここからは確認していません: PTR の検証にはサーバーの「公開」IP アドレスが必要ですが、このパネルはそれを特定できず (NAT の背後ではコンピューター自身も知りません)、このページのチェッカーは TXT レコードと MX レコードしか読み取りません。代わりに外部からテストしてください: nslookup &lt;your public IP&gt; で PTR が表示され、上のホスト名を指しているはずです。</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>未確認です (更新プログラムを確認するか、API と監視ページの更新プログラムで毎日の確認をオンにしてください)</value>
@@ -6795,6 +6831,9 @@
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>バックアップ ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>プロトコル ページの SMTP タブで、ホスト名にこのサーバーの完全な DNS 名 (mail.example.com など) を設定します。次に、サーバーの公開アドレスの所有者に、その名前を指す PTR レコードを依頼します。何を依頼すればよいかは DNS レコード ページに表示されます。</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>「サーバーの制限と上級者向け設定」ページの「Windows サービス アカウント」カードで、「NT SERVICE\hMailServer に切り替え」がサービスにフォルダーを許可し (その外側で構成が指定しているフォルダーやキー ファイルについては先に確認します)、サービスを切り替えます。その後、サービスを再起動してください。インストーラーを再実行しても同じ選択肢が表示されます。Windows 認証を使う外部データベースには、このアカウントのログインも必要です。</value>
   </data>
@@ -6909,9 +6948,6 @@
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>「ブロックされた添付ファイル」を開く — ファイル名パターンの一覧はそこにあります</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>「メール配信」を開く — ホスト名はそこにあります</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>「ドメイン」を開く — アカウントの「ディレクトリ」タブが、そのアカウントをディレクトリに結び付けます</value>
   </data>
@@ -6938,6 +6974,9 @@
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>「ログ」の設定を開く</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>「プロトコル」を開く — ホスト名は SMTP タブにあります</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>「SSL 証明書」を開く — 証明書と鍵ファイルのパスはそこにあります</value>
@@ -7076,6 +7115,9 @@
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>その他のエラー</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>他のメール サーバーは、ドメインのメールをどこに配信するかを知るために、そのドメインの MX レコードを参照します。MX レコードがないと、そのドメインのアドレス宛てのメールはここに届きません。レコードが指すサーバーには、このサーバーの公開 IP アドレス (ルーターやファイアウォールがポート 25 を転送している先) を指すアドレス レコード (A、および IPv6 用の AAAA) が必要です。</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>不在通知</value>
@@ -7565,6 +7607,9 @@
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>公開済みですが、提案とは異なります</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>公開済みで、別のサーバーを指しています</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>公開済みで、出発点より厳しい設定です</value>
   </data>
@@ -7845,6 +7890,9 @@
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>レコードの有効期限の間隔 (分)</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>レコードの種類: MX。  ホスト/名前</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>レコードの種類: TXT。  ホスト/名前</value>
   </data>
@@ -7949,6 +7997,9 @@
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>再初期化しました。保存した設定が有効です。</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>再初期化しました。サーバーは現在、このページに表示されているとおりのポートで待ち受けています。</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>再初期化しました - 再初期化を待っていた設定は有効になりました。{0} 件はまだサービスの再起動を待っています。</value>
@@ -8110,10 +8161,10 @@
 
 自動ブロックのエントリを含め、カスタムの範囲はすべて削除され、'My computer' (127.0.0.1) と 'Internet' (それ以外すべて) に置き換えられます。これは、誰が接続してリレーできるかを直ちに変更します。</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>設定済みのすべてのポートを既定値に置き換えますか?
 
-SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはありません。TLS ポートとカスタムのバインドは削除されます。この変更はサーバーを再起動したときに有効になります。</value>
+SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはありません。TLS ポートとカスタムのバインドは削除されます。この変更はサーバーを再初期化したときに有効になります。</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>証明書はここで置き換えます。それぞれの有効期限が一覧に表示されます。</value>
@@ -8726,6 +8777,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>保存しました。コンパイラの報告: {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>保存しました。サーバーは、サービスが再初期化されるまで、これまでどおりに待ち受けを続けます。再初期化ではサービスがその場で停止して再開するため、接続中のクライアントは一時的に切断されます。今すぐサーバーを再初期化しますか?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>保存しました。サーバーは 2 秒以内に選択を取り込みます。スケジュールの変更にはサービスの再起動が必要です。</value>
@@ -10068,8 +10122,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO ホスト</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>メール配信のホスト名が空のため、サーバーは Windows コンピューター名{0}にフォールバックします。素のコンピューター名は公開 DNS 名ではありません。HELO を DNS と比較する受信側はこれを減点し、どの PTR とも一致しません。まず実際のホスト名を設定してください。</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>プロトコル ページのホスト名が空のため、サーバーは Windows コンピューター名{0}にフォールバックします。素のコンピューター名は公開 DNS 名ではありません。HELO を DNS と比較する受信側はこれを減点し、どの PTR とも一致しません。まず実際のホスト名を設定してください。</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>IP 範囲 {0} は TLS 経由でのみパスワードを受け付けます。</value>
@@ -10459,6 +10513,18 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>hMailServer 6.x 系列はそうした取り組みの 1 つです。元のオープンソース メール サーバーは、現行のツールチェーン (Visual Studio 2026 / MSVC v145 と .NET 10) 上で再構築され、最新の暗号技術 (PBKDF2 / Argon2id、SCRAM-SHA-256、OAuth2) と、今日のメール サーバーに期待されるトランスポート セキュリティ標準 (DANE + DNSSEC、MTA-STS、ARC、Ed25519 DKIM、TLS-RPT、ACME / Let's Encrypt) で再武装されました。プロトコルおよびサービス拒否の欠陥に対して強化され、Sieve / ManageSieve フィルタリング、ヘルスと OpenTelemetry による可観測性、幅広い MySQL / MariaDB / MS SQL / PostgreSQL サポート、そして従来の管理ツールに代わるこの Fluent デザインのモダンなコントロールパネルを備えています。</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>ホスト名 - このサーバーが他のサーバーに名乗る名前</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>サーバーからホスト名を読み取れませんでした。</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>ホスト名 {0} は、どの公開 DNS も応答しない名前で終わっているため、インターネット上の受信側はこれを参照できません。</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>ホスト名 {0} は mail.example.com のような完全な DNS 名ではないため、どの DNS レコードとも一致しません。</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>この id ({0}、たった今生成) は自由に選べます。どんな値でも正しいものです。唯一の役割は、ポリシーが変わるたびに変化してキャッシュに再取得させることです。</value>
   </data>
@@ -10675,8 +10741,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The port to ask on" xml:space="preserve">
     <value>問い合わせに使うポート</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更後はサービスの再起動が必要です。「待ち受け中」列は設定ではなくこのコンピューターの開いているポートから読み取られるため、要求された内容ではなく実際に起きていることを示します。</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>各プロトコルが待ち受けるポート、そのバインド アドレス、接続セキュリティ。変更はサーバーを再初期化したときに有効になり、このページは変更のたびに再初期化を提案します。「待ち受け中」列は設定ではなくこのコンピューターの開いているポートから読み取られるため、要求された内容ではなく実際に起きていることを示します。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>秘密鍵はこの証明書のものではありません。公開鍵が異なります。このペアは読み込まれず (サーバー エラー 5113)、この証明書を使うすべての TLS ポートが起動に失敗します。このエントリを、この証明書と共に生成された鍵ファイルに向けてください。</value>
@@ -10730,6 +10796,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>レコードは伝播中です。</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>このレコードはこのサーバーをホスト名で指しますが、そのホスト名はまだインターネットで参照できる名前ではないため、公開する値はまだありません。プロトコル ページの SMTP タブで設定してから、ここに戻ってください。</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>このサーバーが各ドメインの DNS ゾーンに公開する必要があるレコード: 種類、ホスト、値。DNS プロバイダーのコンソールにそのままコピーできる形で、それぞれが本当に公開されているかのチェック付きです。チェックはこのコンピューターの Windows リゾルバーを使います。DKIM ローテーションのチェックが使うものと同じです。</value>
@@ -10871,8 +10940,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>問い合わせ先のサーバー（空欄ならドメインの MX ホスト）</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>サーバーのホスト名 (メール配信) が空のため、HELO/EHLO で Windows コンピューター名 (公開 DNS 名ではありません) を名乗っており、"a:" メカニズムを正直に提示することができません。提案はドメインの MX ホストのみを許可します。まずホスト名を設定してください。このページのいくつかのレコードがそれを必要とします。</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>サーバーのホスト名 (プロトコル &gt; SMTP) が空のため、HELO/EHLO で Windows コンピューター名 (公開 DNS 名ではありません) を名乗っており、"a:" メカニズムを正直に提示することができません。提案はドメインの MX ホストのみを許可します。まずホスト名を設定してください。このページのいくつかのレコードがそれを必要とします。</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>サーバーの応答を読み取れませんでした。</value>
@@ -11096,8 +11165,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>このグループにはアカウントが含まれていないため、このグループに付与された権限は現在誰にも適用されません。</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>これは「設定」&gt;「メール配信」&gt;「ホスト名」で、サーバーがすべての送信配信で HELO/EHLO に名乗る名前です (Utilities::ComputerName)。IP の所有者に、公開 IP の PTR がこの名前に正確に解決されるように依頼し、この名前の A レコードを同じ IP に向けて公開してください。受信側は両方向を確認します。</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>これは「プロトコル」&gt;「SMTP」&gt;「ホスト名」で、サーバーがすべての送信配信で HELO/EHLO に名乗る名前です (Utilities::ComputerName)。IP の所有者に、公開 IP の PTR がこの名前に正確に解決されるように依頼し、この名前の A レコードを同じ IP に向けて公開してください。受信側は両方向を確認します。</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>これは hMailServer.INI の [Settings] UseLanguage です。サーバーはこれを COM API 経由で返すだけで、自身では何も翻訳しません。このコントロールパネルには独自の言語設定 (右上の管理者メニューの「言語を変更」) があるため、これはサードパーティの管理ツールにのみ影響します。バウンスとエラーの文言はサーバー メッセージ ページにあります。</value>
@@ -11134,6 +11203,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>これは送信側サーバーが DATA への応答を待っている間に実行されるため、この数値はヒントではなく最悪の場合についての約束です。応答だけでなく接続も制限します。そうでなければ、マシンが消えてしまったエンジンに対して、メッセージごとに OS 自身の TCP タイムアウトを払うことになります。</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>このサーバーは {0} と名乗っています。公開アドレスの PTR レコードがこの名前を指しているかどうか、またこの名前自身のアドレス レコードがそのアドレスを指し返しているかどうかは、ここからは判断できません。何を依頼すればよいかは DNS レコード ページに表示されます。</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>このサーバーはドメインテーブルを読めなかったため、サンプルがあるかどうかを答えられません。読めるようになるまで何も提示されません。</value>
@@ -13533,6 +13605,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}、有効期限 {2}</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0} (このコントロールパネルが認識しない値)</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (期限切れ)</value>
   </data>
@@ -13703,6 +13778,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} は有効になっていますが実行できません。{1} 要求されたスキャンはすべて失敗します。そして、スキャンの失敗はメッセージの失敗ではありません。エラーはログに記録され、メッセージは検査されて問題なしと判定されたかのように配信されます。</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0} は有効になっていますが実行できません。{1} 要求されたスキャンはすべて失敗し、他のスキャナーが応答しない間は、各メッセージが保留されて再度スキャンされ、保留の回数を使い切ると送信者に返されます。</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} はサンプルドメインであり、ここでは数えていません。使い終えたら削除してください。</value>
@@ -13892,6 +13970,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>参照の {0}% がメモリから応答されており、{1} KB を使用しています</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>{0} の MX レコードは、このサーバーのホスト名である {1} を指しています: {2}。</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>{0} のメールは、このサーバーのホスト名ではなく {1} に届きます。フィルタリング サービスや別のサーバーが先にメールを受け取って転送する場合はこれで正しいですが、そうでない場合はレコードを変更してください。</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}。パスワードを持たない仮想サービス アカウントです</value>

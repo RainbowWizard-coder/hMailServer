@@ -84,6 +84,25 @@ DKIM item verifies the record against the key file, and so is its
 says what the service runs as, and raises a service account password an earlier
 version left in `hMailServer.INI`.
 
+The Control Panel adds one item of its own to the first hour, after the account:
+**the host name**, `Settings.HostName`, the name the server announces in
+HELO/EHLO and every receiver compares with DNS. It is done when the name is a
+full DNS name under a public suffix, such as `mail.example.com`, and needs action
+when it is empty (the server then announces its Windows computer name), a single
+label, an address, or a name under a suffix no public DNS answers for - `.local`,
+`.lan`, `.internal`, `.corp`, `.home.arpa`, `.test`, `.example`, `.invalid` and
+the like. Whether the PTR record of the server's public address names it cannot
+be told from the Control Panel, and the item says so. Its button opens the
+*Protocols* page, whose *SMTP* tab has the host name.
+
+The Control Panel's *DNS records* page begins with the record that brings a
+domain's mail here at all: an **MX** record at the domain, `10 <host name>`,
+offered once the host name is a name the Internet can look up, with the reminder
+that the host name needs an address record pointing at the server's public
+address. *Check* reads the domain's MX records through the Windows resolver and
+says whether one names the host name, or which server they name instead - which
+is right when a filtering service takes the mail first.
+
 **On the Control Deck's dashboard**, the `service_account` item's findings that
 need action are shown as information, with a way to the checklist, while the
 server runs as LocalSystem or root.

@@ -84,7 +84,7 @@ namespace hMailServer.ControlPanel.Views
             Content = L("_Add"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(0, 0, 0, 12)
+            Margin = new Thickness(0)
          };
          add.Click += (s, e) => Add();
          Grid.SetColumn(add, 3);
@@ -243,7 +243,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Orientation = Orientation.Horizontal,
             VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(0, 0, 0, 12)
+            Margin = new Thickness(0)
          };
          var run = new Wpf.Ui.Controls.Button { Content = L("_Query"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
          run.Click += async (s, e) => await RunQuery();

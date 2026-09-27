@@ -56,6 +56,32 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.False(session.Running);
       }
 
+      /// <summary>
+      /// Drawing the Back button must not ask whether an earlier step can be
+      /// shown: in the Control Panel that question opens the earlier step's
+      /// page, which put the previous page under the step on screen and set the
+      /// two pages opening each other without end.
+      /// </summary>
+      [Fact]
+      public void WhetherThereIsAnEarlierStepIsAskedWithoutLookingForItsControl()
+      {
+         Tour tour = Walk(Step("one"), Step("two"), Step("three"));
+         var asked = new List<string>();
+         var session = new TourSession(tour, 0, step => { asked.Add(step.Target); return true; }, null);
+
+         Assert.True(session.Begin());
+         Assert.False(session.HasEarlierStep);
+         Assert.True(session.Next());
+
+         asked.Clear();
+         Assert.True(session.HasEarlierStep);
+         Assert.Empty(asked);
+
+         Assert.True(session.Next());
+         Assert.False(session.Next());
+         Assert.False(session.HasEarlierStep);
+      }
+
       [Fact]
       public void AStepWhoseControlIsNotOnTheScreenIsSkippedRatherThanWaitedOn()
       {

@@ -99,6 +99,17 @@ namespace hMailServer.ControlPanel.Services
       public bool CanGoBack => Running && PreviousShowable(Index) >= 0;
 
       /// <summary>
+      /// True when there is any step before this one, asked without asking
+      /// whether it can be shown. That question has a side effect in the Control
+      /// Panel - finding a step's control opens the page it is on - so a surface
+      /// that asked it to draw its Back button opened the previous step's page
+      /// under the step it was showing, and the two pages then opened each other
+      /// in turn for as long as the step was up. Back itself still walks to the
+      /// nearest step that can be shown, and stands still when there is none.
+      /// </summary>
+      public bool HasEarlierStep => Running && Index > 0;
+
+      /// <summary>
       /// Where the reader is, for the callout: "Step 3 of 7".
       ///
       /// Counted over the whole tour rather than over the steps this

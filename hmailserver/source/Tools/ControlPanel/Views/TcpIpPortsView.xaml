@@ -23,7 +23,7 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader Title="{loc:L 'TCP/IP ports'}"
-                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine\'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}" />
+                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine\'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}" />
 
         <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search ports'}"
                           SearchTextChanged="Search_TextChanged">
@@ -69,7 +69,10 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="{loc:L 'Certificate'}" Binding="{Binding Certificate}" Width="*" />
+                        <!-- A floor, so that in a narrow window the certificate a listener
+                             presents is still there to read rather than squeezed to
+                             nothing; the grid scrolls sideways instead. -->
+                        <DataGridTextColumn Header="{loc:L 'Certificate'}" Binding="{Binding Certificate}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
                     </DataGrid.Columns>
                 </DataGrid>
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="PlugConnected24" Visibility="Collapsed"
@@ -113,7 +116,7 @@
                 </scaffold:FieldRow>
                 <ui:Button Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
                            AutomationProperties.AutomationId="ports-add"
-                           VerticalAlignment="Bottom" Margin="0,0,0,12" />
+                           VerticalAlignment="Bottom" Margin="0" />
             </Grid>
         </scaffold:Card>
     </Grid>

@@ -19,7 +19,8 @@ have a delivery bind address, and an upgrade that turned this on beneath it woul
 begin sending that address to four third parties every day without anybody
 choosing it. On an upgraded server, turn it on when you want it —
 `reputation_watch_enabled` on the Deck's Settings page, in `PUT /api/v1/settings`,
-in `hmctl settings set`, or `Settings.ReputationWatchEnabled` over COM.
+in `hmctl settings set`, `Settings.ReputationWatchEnabled` over COM, or on the
+Control Panel's Delivery of e-mail page, the Reputation tab.
 
 Where the addresses come from
 -----------------------------
@@ -198,7 +199,10 @@ The settings
 
 All three are ordinary settings in `hm_settings`: on the Control Deck's
 **Settings** page, in `PUT /api/v1/settings`, in `hmctl settings set`, in
-`hmctl config`'s document, and on COM's `Settings` object.
+`hmctl config`'s document, on COM's `Settings` object, and on the Control
+Panel's Mail flow & delivery > Delivery of e-mail page, the **Reputation** tab,
+which writes them over COM. The report and *Check now* are not in the Control
+Panel.
 
 | Setting | Default | What it is |
 |---|---|---|

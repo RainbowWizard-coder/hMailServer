@@ -188,8 +188,8 @@
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>«done spam-protection», затем тишина</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>«mx» разрешает всё, на что указывают MX-записи домена {0}; «a:{1}» разрешает адрес того имени узла, которое сервер сообщает в HELO/EHLO (Доставка почты &gt; Имя узла). «~all» даёт мягкий отказ всему остальному — намеренно мягче, чем «-all», пока вы не убедитесь, что список полон.</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>«mx» разрешает всё, на что указывают MX-записи домена {0}; «a:{1}» разрешает адрес того имени узла, которое сервер сообщает в HELO/EHLO (Протоколы &gt; SMTP &gt; Имя узла). «~all» даёт мягкий отказ всему остальному — намеренно мягче, чем «-all», пока вы не убедитесь, что список полон.</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» не сохранено: {1}</value>
@@ -238,6 +238,9 @@
   </data>
   <data name="(none)" xml:space="preserve">
     <value>(нет)</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>(сначала задайте имя узла: Протоколы &gt; SMTP &gt; Имя узла)</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>(файл журнала записать не удалось)</value>
@@ -295,9 +298,6 @@
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 — значение по умолчанию в поставке; оно отключает механизм целиком.</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0 — значение по умолчанию в поставке; оно в точности сохраняет нынешнее поведение. 1 никогда не доставляет непроверенную почту.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 — значение по умолчанию в поставке. 2 — разумное начало: опечатка в пароле стоит человеку двух секунд один раз, а клиенту, перебирающему пароли, — двух, четырёх, шести... секунд на попытку.</value>
@@ -602,8 +602,8 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Имя домена здесь требует, чтобы сам компьютер СЕРВЕРА был присоединён к этому домену, поскольку Windows проверяет его через LogonUser. С компьютера, не присоединённого к домену, любая попытка завершается так, будто пароль неверен, — в том числе когда имя домена просто написано с ошибкой, — поэтому настроенный таким образом почтовый ящик на неприсоединённом сервере никогда не сможет войти и никогда не скажет почему. Если сервер не присоединён к домену, используйте вместо этого аутентификацию через каталог LDAP на странице «Аутентификация через каталог»: она выполняет привязку к каталогу по сети и присоединения к домену не требует.</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>На этом сервере есть домен с именем {0}, и образец его не создавал, поэтому здесь его ничто не создаёт и не удаляет. Удалите этот домен сами, если он не нужен.</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>Домен с именем {0} уже есть на этом сервере, и это не образцовый домен, который создаёт эта страница, поэтому образец здесь создать нельзя, а эта страница этот домен не удалит. Если этот домен вам не нужен, удалите его на странице «Домены».</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>Требуется домен или адрес учётной записи.</value>
@@ -667,6 +667,9 @@
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше помечается как спам и доставляется; с оценкой {1} и выше — отклоняется (550 до тела письма, 554 после него).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него). Ни одно не только помечается: порог пометки, {1}, не ниже.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>Сообщение с оценкой {0} и выше отклоняется (550 до тела письма, 554 после него). Ничего не помечается.</value>
@@ -763,6 +766,9 @@
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>Проверка, завершившаяся ошибкой, тайм-аутом или не сумевшая связаться со своим движком, — это не вердикт «чисто»: никто ничего не смотрел. Поведение в поставке — всё равно доставить сообщение, именно так этот сервер поступал всегда; задержать его — более строгий выбор, и делать его следует осознанно.</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>Сканер, который не может работать, сообщение не отклоняет. Ошибка записывается в журнал, и проверка переходит к следующему сканеру; когда ответить не может ни один из них, сообщение задерживается и проверяется снова, а когда задержки исчерпаны, возвращается отправителю («Если сообщение не удаётся проверить» на странице «Параметры антивируса»). Именно поэтому эта страница сообщает, может ли каждый сканер работать, а не включён ли он.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Сканер, который не может работать, сообщение не отклоняет. Ошибка записывается в журнал, и проверка переходит к следующему сканеру; когда ответить не может ни один из них, сообщение обрабатывается ровно так, как если бы его проверили и признали чистым. Именно поэтому эта страница сообщает, может ли каждый сканер работать, а не включён ли он.</value>
@@ -3442,6 +3448,9 @@ Control Panel может читать файлы сообщений только
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Доставлять каждое сообщение учётным записям, названным в его заголовках (ящик, общий для нескольких человек)</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>Доставить его (по умолчанию)</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>Доставить его с заголовком, который об этом говорит</value>
   </data>
@@ -3471,6 +3480,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>Доставляется</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Доставка — это поведение по умолчанию в поставке и то, что этот сервер делал всегда. При задержке непроверенная почта никогда не доставляется: сообщение проверяется снова с указанным ниже интервалом и возвращается отправителю после указанного ниже числа задержек.</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: сообщение принимается, но так и не уходит</value>
@@ -4101,6 +4113,9 @@ Control Panel может читать файлы сообщений только
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Каждый порт, который может использовать диапазон IP {0}, запускает TLS прежде, чем принять пароль.</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>Каждому серверу, которому этот сервер доставляет почту, сообщается имя узла этого сервера, и тот сверяет его с DNS: с адресом этого имени и с записью PTR адреса, с которого пришла почта. Имя, которое не совпадает, засчитывается не в пользу почты.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Все проверки на спам в том порядке, в каком их выполняет сервер, что каждая из них добавляет к оценке и что затем эта оценка делает с сообщением.</value>
   </data>
@@ -4650,6 +4665,9 @@ Control Panel может читать файлы сообщений только
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Задерживать вложения до вердикта песочницы</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>Задержать его и проверить снова, затем вернуть отправителю</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Задерживать сообщения на проверку вместо отказа от них</value>
   </data>
@@ -4899,8 +4917,8 @@ Control Panel может читать файлы сообщений только
   <data name="Idle timeouts" xml:space="preserve">
     <value>Тайм-ауты простоя</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>Если сообщение не удаётся проверить: 0 — доставить его, 1 — задержать и в итоге вернуть отправителю</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>Если сообщение не удаётся проверить</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>Если застревает каждое сообщение, а не одно</value>
@@ -4910,6 +4928,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Если каталог не может ответить</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>Если {0} уже получает почту где-то ещё — у поставщика размещённых почтовых ящиков, на другом сервере, — публикация этой записи перенесёт эту почту сюда. Меняйте запись, только когда этот сервер готов принимать эту почту.</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Игнорируется сервером — сохранённая контрольная сумма не является пригодным значением SHA-256, поэтому этот раздел никого не аутентифицирует. Отзовите его и создайте замену.</value>
@@ -5504,11 +5525,20 @@ Control Panel может читать файлы сообщений только
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — требовать TLS от серверов, доставляющих в </value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>Оценка проверки MX</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Запрос MX</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>Значение MX — приоритет, затем имя сервера, который принимает почту:</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — какой сервер принимает почту для </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>_Управляется менеджером списка</value>
@@ -6159,6 +6189,9 @@ Control Panel может читать файлы сообщений только
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Аутентификация по LDAP не выполняется. Учётные записи, связанные с каталогом, продолжают проверяться через вход Windows, и сервер сообщает об этом (ошибка 5922) раз в минуту, чтобы это не могло сбоить незаметно.</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>Резолвер этого компьютера не нашёл запись MX для {0}. </value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>С этого компьютера MX-записи не найдены, поэтому сервер использовал бы вместо них собственное имя узла.</value>
   </data>
@@ -6296,6 +6329,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Группа с именем «{0}» не найдена.</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>Имя узла не задано, поэтому этот сервер сообщает имя своего компьютера Windows, которое не знает ни один DNS в интернете.</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Имя узла или адрес не заданы.</value>
@@ -6471,8 +6507,8 @@ Control Panel может читать файлы сообщений только
   <data name="Not checked" xml:space="preserve">
     <value>Не проверено</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Отсюда, честно говоря, не проверяется: чтобы проверить PTR, нужен ПУБЛИЧНЫЙ IP-адрес сервера, который эта панель определить не может (за NAT его не знает и сам компьютер), а средство проверки на этой странице читает только записи TXT. Проверьте снаружи: nslookup &lt;your public IP&gt; показывает PTR; он должен называть узел, указанный выше.</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Отсюда, честно говоря, не проверяется: чтобы проверить PTR, нужен ПУБЛИЧНЫЙ IP-адрес сервера, который эта панель определить не может (за NAT его не знает и сам компьютер), а средство проверки на этой странице читает только записи TXT и MX. Проверьте снаружи: nslookup &lt;your public IP&gt; показывает PTR; он должен называть узел, указанный выше.</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ещё не проверялось (нажмите «Проверить обновления» или включите ежедневную проверку в разделе «Обновления» на странице «API и мониторинг»)</value>
@@ -6795,6 +6831,9 @@ Control Panel может читать файлы сообщений только
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>На странице Резервное копирование задайте папку, в которую записывается резервная копия, на другом диске, чем тот, где лежит хранилище сообщений.</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>На вкладке SMTP страницы «Протоколы» задайте в поле «Имя узла» полное DNS-имя этого сервера, например mail.example.com. Затем попросите владельца публичного адреса сервера создать запись PTR с этим именем; страница «Записи DNS» показывает, о чём просить.</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>На странице «Ограничения сервера и экспертные параметры», карточка «Учётная запись службы Windows»: «Перейти на NT SERVICE\hMailServer» предоставляет службе её папки — сначала спрашивая о каждой папке или файле ключа, которые конфигурация называет вне их, — и переводит её; затем перезапустите службу. Повторный запуск установщика предлагает тот же выбор. Внешней базе данных с проверкой подлинности Windows также нужно имя входа для этой учётной записи.</value>
   </data>
@@ -6909,9 +6948,6 @@ Control Panel может читать файлы сообщений только
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Открыть «Заблокированные вложения», где находится список образцов имён файлов</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>Открыть «Доставка почты», где находится имя узла</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>Открыть «Домены», где вкладка «Каталог» учётной записи связывает её с каталогом</value>
   </data>
@@ -6938,6 +6974,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Открыть «Параметры журналирования»</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>Открыть «Протоколы», где на вкладке SMTP находится поле «Имя узла»</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>Открыть «Сертификаты SSL», где находятся пути к файлам сертификата и ключа</value>
@@ -7076,6 +7115,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>Другой сбой</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>Другие почтовые серверы ищут MX-запись домена, чтобы узнать, куда доставлять его почту; без неё почта на его адреса сюда не приходит. Серверу, указанному в записи, нужна адресная запись (A, а для IPv6 — AAAA), указывающая на публичный IP-адрес этого сервера, — тот, на который ваш маршрутизатор или брандмауэр перенаправляет порт 25.</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>Нет на месте</value>
@@ -7565,6 +7607,9 @@ Control Panel может читать файлы сообщений только
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>Опубликовано, отличается от предложенного</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>Опубликовано, указывает на другой сервер</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Опубликовано, строже начального варианта</value>
   </data>
@@ -7845,6 +7890,9 @@ Control Panel может читать файлы сообщений только
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Интервал истечения срока записей, минуты</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>Тип записи: MX.  Узел/имя</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Тип записи: TXT.  Узел/имя</value>
   </data>
@@ -7949,6 +7997,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Повторная инициализация выполнена — сохранённые параметры действуют.</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>Повторная инициализация выполнена — сервер теперь прослушивает порты так, как они перечислены на этой странице.</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Повторная инициализация выполнена — настройки, ожидавшие её, действуют; {0} всё ещё ждут перезапуска службы.</value>
@@ -8110,10 +8161,10 @@ Control Panel может читать файлы сообщений только
 
 Каждый пользовательский диапазон — включая любые записи автоблокировки — будет удалён и заменён на «My computer» (127.0.0.1) и «Internet» (все остальные). Это немедленно меняет то, кому разрешено подключаться и ретранслировать.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Заменить ВСЕ настроенные порты на значения по умолчанию?
 
-SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключения. Порты TLS и пользовательские привязки будут удалены. Изменение вступит в силу при перезапуске сервера.</value>
+SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключения. Порты TLS и пользовательские привязки будут удалены. Изменение вступит в силу при повторной инициализации сервера.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Замените сертификат здесь; для каждого из них указана дата окончания срока действия.</value>
@@ -8726,6 +8777,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Сохранено. Компилятор сообщил: {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>Сохранено. Сервер продолжает прослушивать порты по-прежнему, пока его службы не будут повторно инициализированы — остановлены и запущены заново на месте, из-за чего подключённые клиенты на мгновение отключатся. Выполнить повторную инициализацию сервера сейчас?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Сохранено. Выбор сервер подхватит в течение двух секунд; изменение расписания требует перезапуска службы.</value>
@@ -10068,8 +10122,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>Хост HELO/EHLO</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Поле «Имя узла» в разделе «Доставка почты» ПУСТО, поэтому сервер использует вместо него имя своего компьютера Windows{0}. Голое имя компьютера не является публичным именем DNS: получатели, сверяющие HELO с DNS, начислят за него штраф, и никакая запись PTR с ним согласоваться не может. Сначала задайте настоящее имя узла.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Поле «Имя узла» на странице «Протоколы» ПУСТО, поэтому сервер использует вместо него имя своего компьютера Windows{0}. Голое имя компьютера не является публичным именем DNS: получатели, сверяющие HELO с DNS, начислят за него штраф, и никакая запись PTR с ним согласоваться не может. Сначала задайте настоящее имя узла.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>Диапазон IP {0} принимает пароль только через TLS.</value>
@@ -10459,6 +10513,18 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>Линейка hMailServer 6.x - одно из таких начинаний. Оригинальный почтовый сервер с открытым исходным кодом пересобран на современном инструментарии (Visual Studio 2026 / MSVC v145 и .NET 10), перевооружён современной криптографией (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) и стандартами транспортной безопасности, ожидаемыми от почтового сервера сегодня (DANE + DNSSEC, MTA-STS, ARC, DKIM на Ed25519, TLS-RPT и ACME / Let's Encrypt). Он укреплён против дефектов протоколов и отказа в обслуживании, получил фильтрацию Sieve / ManageSieve, наблюдаемость через health-эндпоинты и OpenTelemetry, широкую поддержку MySQL / MariaDB / MS SQL / PostgreSQL и этот современный Control Panel в дизайне Fluent вместо устаревшего администратора.</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>Имя узла — имя, которое этот сервер сообщает другим серверам</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>Не удалось прочитать имя узла с сервера.</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>Имя узла {0} оканчивается именем, на которое не отвечает ни один публичный DNS, поэтому получатель в интернете не может его найти.</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>Имя узла {0} не является полным DNS-именем, таким как mail.example.com, поэтому никакая запись DNS не может с ним согласоваться.</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Идентификатор ({0}, только что сгенерирован) выбираете вы - любое значение корректно. Его единственная задача - меняться при каждом изменении политики, чтобы кеши перезапрашивали её.</value>
   </data>
@@ -10675,8 +10741,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The port to ask on" xml:space="preserve">
     <value>Порт, на котором спрашивать</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Порты, которые слушает каждый протокол, их адрес привязки и безопасность соединения. После изменений службу нужно перезапустить. Столбец «Слушает» читается из открытых портов этой машины, а не из конфигурации, поэтому показывает, что происходит на самом деле, а не что было запрошено.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Порты, которые слушает каждый протокол, их адрес привязки и безопасность соединения. Изменение вступает в силу при повторной инициализации сервера, которую эта страница предлагает после каждого изменения. Столбец «Прослушивает» читается из открытых портов этой машины, а не из конфигурации, поэтому показывает, что происходит на самом деле, а не что было запрошено.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Закрытый ключ не принадлежит этому сертификату: их открытые ключи различаются. Пара не загрузится (ошибка сервера 5113), и ни один порт TLS, использующий этот сертификат, не запустится. Укажите в этой записи файл ключа, который был сгенерирован вместе с этим сертификатом.</value>
@@ -10730,6 +10796,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>Запись распространяется.</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>Запись называет этот сервер по его имени узла, а имя узла пока не является именем, которое можно найти в интернете, поэтому публиковать пока нечего. Задайте его на вкладке SMTP страницы «Протоколы», затем вернитесь сюда.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Записи, которые этому серверу нужно опубликовать в зоне DNS каждого домена: тип, хост и значение, готовые к копированию в консоль вашего DNS-провайдера, с проверкой, действительно ли каждая опубликована. Проверки используют резолвер Windows этой машины - тот же, что и проверка ротации DKIM.</value>
@@ -10871,8 +10940,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>Сервер, у которого спрашивать (пусто — у MX-узлов домена)</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Имя хоста сервера («Доставка почты») ПУСТОЕ, поэтому в HELO/EHLO он объявляет имя своего компьютера Windows - не публичное имя DNS, - и ни один механизм «a:» честно предложить нельзя. Предложение разрешает только MX-хосты домена. Сначала задайте имя хоста; оно нужно нескольким записям на этой странице.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>Имя узла сервера (Протоколы &gt; SMTP) ПУСТОЕ, поэтому в HELO/EHLO он объявляет имя своего компьютера Windows - не публичное имя DNS, - и ни один механизм «a:» честно предложить нельзя. Предложение разрешает только MX-узлы домена. Сначала задайте имя узла; оно нужно нескольким записям на этой странице.</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Не удалось прочитать ответ сервера.</value>
@@ -11096,8 +11165,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>В этой группе нет учётных записей, поэтому любое предоставленное ей разрешение сейчас не относится ни к кому.</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>Это «Параметры» &gt; «Доставка почты» &gt; «Имя хоста» - имя, которое сервер объявляет в HELO/EHLO при каждой исходящей доставке (Utilities::ComputerName). Попросите владельца IP сделать так, чтобы PTR вашего публичного IP разрешался ровно в это имя, и опубликуйте запись A для этого имени, указывающую обратно на тот же IP - получатели проверяют оба направления.</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>Это «Протоколы» &gt; SMTP &gt; «Имя узла» - имя, которое сервер объявляет в HELO/EHLO при каждой исходящей доставке (Utilities::ComputerName). Попросите владельца IP сделать так, чтобы PTR вашего публичного IP разрешался ровно в это имя, и опубликуйте запись A для этого имени, указывающую обратно на тот же IP - получатели проверяют оба направления.</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Это [Settings] UseLanguage в hMailServer.INI. Сервер лишь отдаёт его обратно через COM API - сам он ничего не переводит, а у этого Control Panel есть собственный параметр языка (Сменить язык в меню администратора в правом верхнем углу), - поэтому он влияет только на сторонние инструменты администрирования. Формулировки возвратов и ошибок - на странице «Сообщения сервера».</value>
@@ -11134,6 +11203,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Это выполняется, пока отправляющий сервер ждёт ответа на DATA, поэтому число - обещание о худшем случае, а не подсказка. Оно ограничивает и соединение, и ответ: движок, чья машина исчезла, иначе стоил бы собственного тайм-аута TCP операционной системы на каждом сообщении.</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>Этот сервер представляется как {0}. Называет ли его запись PTR его публичного адреса и указывает ли обратно собственная адресная запись этого имени, отсюда определить нельзя: страница «Записи DNS» подсказывает, о чём просить.</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>Этот сервер не смог прочитать таблицу доменов, поэтому не может сказать, есть ли здесь образец. Пока не сможет, ничего не предлагается.</value>
@@ -13533,6 +13605,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, истекает {2}</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0} (значение, неизвестное этому Control Panel)</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (срок истёк)</value>
   </data>
@@ -13703,6 +13778,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0}: включено, но работать не может. {1} Каждая запрошенная у него проверка завершается ошибкой, а неудавшаяся проверка — это не неудавшееся сообщение: ошибка записывается в журнал, а сообщение доставляется так, как будто его осмотрели и признали чистым.</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0}: включено, но работать не может. {1} Каждая запрошенная у него проверка завершается ошибкой, и пока не отвечает ни один другой сканер, каждое сообщение задерживается и проверяется снова, а когда задержки исчерпаны, возвращается отправителю.</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} - это образцовый домен, и здесь он не учитывается; удалите его, когда закончите с ним.</value>
@@ -13892,6 +13970,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>{0} % обращений обслужено из памяти, использовано {1} КБ</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>MX-записи домена {0} называют {1}, имя узла этого сервера: {2}.</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>Почта домена {0} идёт на {1}, а не на имя узла этого сервера. Это правильно, если почту сначала принимает служба фильтрации или другой сервер и передаёт её дальше; в противном случае измените запись.</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, виртуальная учётная запись службы без пароля</value>

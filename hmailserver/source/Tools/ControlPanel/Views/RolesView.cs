@@ -103,7 +103,11 @@ namespace hMailServer.ControlPanel.Views
          assignmentGrid_.Columns.Add(TextColumn_(L("Role"), nameof(AssignmentRow.Role), 150));
          assignmentGrid_.Columns.Add(TextColumn_(L("Domains"), nameof(AssignmentRow.Domains), 260));
 
-         var form = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
+         // Each box has its caption above it, as the Domains page's forms do: a
+         // placeholder was the only name these had, and it is gone the moment
+         // something is typed - and the role list had none at all. The buttons sit
+         // on the boxes' baseline, and the row wraps in a narrow window.
+         var form = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
          // The hint goes in PlaceholderText and the Text stays a literal: a
          // value filled from the catalogue is what turned the sign-in user-name
          // box into a Chinese word in issue 156.
@@ -112,21 +116,28 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(address_, L("Account address"));
          System.Windows.Automation.AutomationProperties.SetName(roleChoice_, L("Role"));
          System.Windows.Automation.AutomationProperties.SetName(domains_, L("Domains, comma separated"));
-         form.Children.Add(address_);
-         form.Children.Add(roleChoice_);
-         form.Children.Add(domains_);
+         address_.Margin = roleChoice_.Margin = domains_.Margin = new Thickness(0);
+         form.Children.Add(FormField_(L("Account"), address_));
+         form.Children.Add(FormField_(L("Role"), roleChoice_));
+         form.Children.Add(FormField_(L("Domains"), domains_));
 
          var give = new Wpf.Ui.Controls.Button
          {
             Content = L("_Give the role"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            Margin = new Thickness(0, 0, 8, 0)
+            Margin = new Thickness(0, 0, 8, 12),
+            VerticalAlignment = VerticalAlignment.Bottom
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(give, "roles-assign");
          give.Click += (s, e) => Assign_();
          form.Children.Add(give);
 
-         var take = new Wpf.Ui.Controls.Button { Content = L("_Take the role away") };
+         var take = new Wpf.Ui.Controls.Button
+         {
+            Content = L("_Take the role away"),
+            Margin = new Thickness(0, 0, 0, 12),
+            VerticalAlignment = VerticalAlignment.Bottom
+         };
          System.Windows.Automation.AutomationProperties.SetAutomationId(take, "roles-unassign");
          take.Click += (s, e) => Unassign_();
          form.Children.Add(take);
@@ -144,6 +155,10 @@ namespace hMailServer.ControlPanel.Views
 
          Content = root;
       }
+
+      /// <summary>One box of the form with its caption above it.</summary>
+      private static Scaffold.FieldRow FormField_(string caption, FrameworkElement editor)
+         => new() { Label = caption, Content = editor, Margin = new Thickness(0, 0, 8, 12) };
 
       // Trimmed: a role's purpose and permissions are sentences in fixed
       // columns, and ended mid-word; the cell's tool tip holds the whole.

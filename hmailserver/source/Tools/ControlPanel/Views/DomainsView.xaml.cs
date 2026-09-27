@@ -48,9 +48,9 @@ namespace hMailServer.ControlPanel.Views
 
       private string SelectedDomainName() => (DomainList.SelectedItem as DomainRow)?.Name;
 
-      private void ReloadDomains()
+      private void ReloadDomains(string select = null)
       {
-         string previousSelection = SelectedDomainName();
+         string previousSelection = select ?? SelectedDomainName();
 
          var rows = new List<DomainRow>();
          dynamic domains = ServerSession.Current.Application.Domains;
@@ -77,7 +77,7 @@ namespace hMailServer.ControlPanel.Views
          // domain when it still exists, so a reload does not yank the accounts
          // pane over to whatever happens to be first.
          if (previousSelection != null)
-            DomainList.SelectedItem = rows.Find(r => r.Name == previousSelection);
+            DomainList.SelectedItem = rows.Find(r => string.Equals(r.Name, previousSelection, StringComparison.OrdinalIgnoreCase));
 
          if (rows.Count > 0 && DomainList.SelectedIndex < 0)
             DomainList.SelectedIndex = 0;
@@ -499,8 +499,14 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(domains);
          }
 
+         // The new domain is the one selected afterwards, so the accounts card
+         // beside the list is its card: left on the domain that was selected
+         // before, the next step of a first setup - adding an account - was
+         // offered as user@ that other domain.
          NewDomainBox.Text = "";
-         ReloadDomains();
+         ReloadDomains(select: name);
+         if (DomainList.SelectedItem != null)
+            DomainList.ScrollIntoView(DomainList.SelectedItem);
       }
 
       private void GenerateAccountPassword_Click(object sender, RoutedEventArgs e)

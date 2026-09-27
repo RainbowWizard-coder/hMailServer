@@ -354,6 +354,15 @@ namespace hMailServer.ControlPanel.Services
          bool marks = config.MarkThreshold > 0;
          bool refuses = config.DeleteThreshold > 0;
 
+         // The server tests the delete threshold first (SMTPConnection), so with
+         // it at or below the mark threshold every message that reaches the mark
+         // is refused and none is only marked - "10000 or more is marked and
+         // delivered; 10000 or more is refused" said both of one message.
+         if (marks && refuses && config.DeleteThreshold <= config.MarkThreshold)
+         {
+            return F("A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that.", config.DeleteThreshold, config.MarkThreshold);
+         }
+
          if (marks && refuses)
          {
             return F("A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it).", config.MarkThreshold, config.DeleteThreshold);

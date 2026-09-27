@@ -139,6 +139,14 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>External POP3 fetch accounts that have their own anti-virus switch turned off.</summary>
       public int FetchAccountsWithScanningOff { get; set; }
 
+      /// <summary>
+      /// AVFailAction ([Settings] in hMailServer.INI) is 1: a message no scanner could
+      /// examine is held in the queue and scanned again, and returned to its sender
+      /// when the holds run out (SMTPDeliverer), instead of delivered as though it
+      /// had been found clean. 0, the shipped default, delivers it.
+      /// </summary>
+      public bool HoldUnscanned { get; set; }
+
       /// <summary>How many external POP3 fetch accounts exist at all.</summary>
       public int FetchAccountsTotal { get; set; }
 
@@ -303,6 +311,16 @@ namespace hMailServer.ControlPanel.Services
       /// Everything about this configuration that an administrator would want told
       /// to them rather than left to be discovered from a log.
       /// </summary>
+      /// <summary>
+      /// What becomes of a message when no scanner can answer - delivered as though
+      /// clean, the shipped default, or held and returned (AVFailAction 1) - and why
+      /// the page reports whether a scanner can run.
+      /// </summary>
+      public static string WhenNoScannerAnswers(VirusPipelineConfig config)
+         => config != null && config.HoldUnscanned
+            ? L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on.")
+            : L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on.");
+
       public static IReadOnlyList<VirusPipelineNote> Notes(VirusPipelineConfig config)
       {
          var notes = new List<VirusPipelineNote>();
@@ -317,8 +335,9 @@ namespace hMailServer.ControlPanel.Services
 
          foreach (VirusScannerEntry scanner in scanners.Where(s => s.Enabled && !s.Usable))
          {
-            notes.Add(new VirusPipelineNote(StatusLevel.Critical,
-               F("{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean.", scanner.Name, scanner.Problem)));
+            notes.Add(new VirusPipelineNote(StatusLevel.Critical, config.HoldUnscanned
+               ? F("{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out.", scanner.Name, scanner.Problem)
+               : F("{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean.", scanner.Name, scanner.Problem)));
          }
 
          if (usable == 0 && !config.AttachmentBlockingEnabled)

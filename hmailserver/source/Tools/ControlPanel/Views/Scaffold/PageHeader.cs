@@ -127,6 +127,39 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          ApplyTourVisibility_();
       }
 
+      /// <summary>
+      /// The actions sit beside the title while that leaves the title and subtitle
+      /// room to be read, and under the subtitle, from the left, when it does not.
+      /// Beside it at any width, a page with a wide set of actions - the
+      /// Quarantine page's grouping list and three buttons - squeezed its title to
+      /// "Quaran..." and its subtitle to a column of three words a line in a
+      /// 1000-pixel window, and pushed the list it describes below the fold.
+      /// </summary>
+      protected override Size MeasureOverride(Size constraint)
+      {
+         if (Part<FrameworkElement>("PART_ActionBar") is { } bar && !double.IsInfinity(constraint.Width))
+         {
+            bar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            double actions = bar.DesiredSize.Width;
+            bool under = actions > 0 && constraint.Width - actions < System.Math.Max(MinimumTitleWidth, constraint.Width * 0.45);
+
+            int row = under ? 1 : 0;
+            if (System.Windows.Controls.Grid.GetRow(bar) != row)
+            {
+               System.Windows.Controls.Grid.SetRow(bar, row);
+               System.Windows.Controls.Grid.SetColumn(bar, under ? 0 : 1);
+               System.Windows.Controls.Grid.SetColumnSpan(bar, under ? 2 : 1);
+               bar.HorizontalAlignment = under ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+               bar.Margin = under ? new Thickness(0, 12, 0, 0) : new Thickness(16, 6, 0, 0);
+            }
+         }
+
+         return base.MeasureOverride(constraint);
+      }
+
+      /// <summary>The narrowest the title and subtitle are left beside the actions.</summary>
+      private const double MinimumTitleWidth = 360;
+
       private static void OnTourIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
          => ((PageHeader)d).ApplyTourVisibility_();
 

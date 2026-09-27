@@ -188,8 +188,8 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>« done spam-protection », puis silence</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>« mx » autorise tout ce vers quoi pointent les enregistrements MX de {0} ; « a:{1} » autorise l'adresse du nom d'hôte que ce serveur annonce en HELO/EHLO (Livraison du courrier &gt; Nom d'hôte). « ~all » fait échouer en douceur tout le reste - délibérément plus doux que « -all » tant que vous n'êtes pas sûr que la liste est complète.</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>« mx » autorise tout ce vers quoi pointent les enregistrements MX de {0} ; « a:{1} » autorise l'adresse du nom d'hôte que ce serveur annonce en HELO/EHLO (Protocoles &gt; SMTP &gt; Nom d'hôte). « ~all » fait échouer en douceur tout le reste - délibérément plus doux que « -all » tant que vous n'êtes pas sûr que la liste est complète.</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>« {0} » n'a pas été enregistré : {1}</value>
@@ -238,6 +238,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="(none)" xml:space="preserve">
     <value>(aucun)</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>(définissez d'abord le nom d'hôte : Protocoles &gt; SMTP &gt; Nom d'hôte)</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>(le fichier journal n'a pas pu être écrit)</value>
@@ -295,9 +298,6 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 est la valeur livrée par défaut et désactive tout le mécanisme.</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0 est la valeur livrée par défaut et préserve exactement le comportement actuel. 1 ne livre jamais de courrier non analysé.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 est la valeur livrée par défaut. 2 est un bon début : un mot de passe mal tapé coûte deux secondes une fois à une personne, et deux, quatre, six... secondes par essai à un client de password spraying.</value>
@@ -602,8 +602,8 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Un nom de domaine ici exige que l'ordinateur du SERVEUR lui-même soit joint à ce domaine, parce que Windows le valide avec LogonUser. Depuis un ordinateur non joint, chaque tentative échoue comme si le mot de passe était faux - y compris quand le nom de domaine est simplement mal orthographié - si bien qu'une boîte configurée ainsi sur un serveur non joint ne peut jamais se connecter et ne dit jamais pourquoi. Si le serveur n'est pas joint au domaine, utilisez plutôt l'authentification d'annuaire LDAP sur la page Authentification d'annuaire : elle se lie à l'annuaire par le réseau et ne nécessite aucune jonction au domaine.</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>Un domaine nommé {0} existe sur ce serveur et l'exemple ne l'a pas créé, donc rien ici ne le crée ni ne le supprime. Supprimez ce domaine vous-même s'il n'est pas voulu.</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>Un domaine nommé {0} existe déjà sur ce serveur, et ce n'est pas le domaine d'exemple que crée cette page : aucun exemple ne peut donc être créé ici et cette page ne le supprimera pas. Si vous ne voulez pas de ce domaine, supprimez-le sur la page Domaines.</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>Un domaine ou une adresse de compte est requis.</value>
@@ -667,6 +667,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Un message avec un score de {0} ou plus est marqué comme spam et livré ; {1} ou plus est refusé (550 avant le corps, 554 après).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Un message avec un score de {0} ou plus est refusé (550 avant le corps, 554 après). Aucun n'est seulement marqué : le seuil de marquage, {1}, n'est pas inférieur.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>Un message avec un score de {0} ou plus est refusé (550 avant le corps, 554 après). Rien n'est marqué.</value>
@@ -763,6 +766,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>Une analyse qui échoue, expire ou ne peut pas atteindre son moteur n'est pas un verdict propre - personne n'a regardé. Le comportement livré est de livrer le message quand même, ce que ce serveur a toujours fait ; le retenir à la place est le choix le plus strict et celui qu'on fait délibérément.</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>Un analyseur qui ne peut pas s'exécuter ne refuse pas le message. L'erreur est écrite dans le journal et l'analyse passe à l'analyseur suivant ; quand aucun d'eux ne peut répondre, le message est retenu et analysé de nouveau, puis renvoyé à son expéditeur quand les retenues sont épuisées (Si un message ne peut pas être analysé, sur la page Réglages antivirus). C'est pourquoi cette page indique si chaque analyseur peut s'exécuter plutôt que s'il est activé.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Un analyseur qui ne peut pas s'exécuter ne refuse pas le message. L'erreur est écrite dans le journal et l'analyse passe à l'analyseur suivant ; quand aucun d'eux ne peut répondre, le message est traité exactement comme s'il avait été examiné et trouvé sain. C'est pourquoi cette page indique si chaque analyseur peut s'exécuter plutôt que s'il est activé.</value>
@@ -3442,6 +3448,9 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Livrer chaque message aux comptes que ses en-têtes nomment (une boîte partagée par plusieurs personnes)</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>Le livrer (par défaut)</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>Le distribuer avec un en-tête qui le dit</value>
   </data>
@@ -3471,6 +3480,9 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>En cours de livraison</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Le livrer est le réglage par défaut d'origine et ce que ce serveur a toujours fait. Le retenir ne livre jamais de courrier non analysé : il est analysé de nouveau à l'intervalle ci-dessous, et renvoyé à l'expéditeur après le nombre de retenues ci-dessous.</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>En livraison : le message est accepté mais ne part jamais</value>
@@ -4101,6 +4113,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Chaque port que la plage IP {0} peut utiliser démarre TLS avant d'accepter un mot de passe.</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>Chaque serveur auquel celui-ci livre reçoit son nom d'hôte et le compare au DNS : l'adresse du nom, et l'enregistrement PTR de l'adresse d'où vient le courrier. Un nom qui ne concorde pas joue contre le courrier.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Chaque vérification anti-spam dans l'ordre où le serveur les exécute, ce que chacune ajoute au score, et ce que ce score fait ensuite au message.</value>
   </data>
@@ -4650,6 +4665,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Retenir les pièces jointes jusqu'au verdict du bac à sable</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>Le retenir et l'analyser de nouveau, puis le renvoyer à l'expéditeur</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Retenir les messages pour examen au lieu de les refuser</value>
   </data>
@@ -4899,8 +4917,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Idle timeouts" xml:space="preserve">
     <value>Délais d'inactivité</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>Si un message ne peut pas être analysé : 0 = le livrer, 1 = le retenir et finalement le renvoyer</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>Si un message ne peut pas être analysé</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>Si chaque message bloque, pas seulement un</value>
@@ -4910,6 +4928,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Si l'annuaire ne peut pas répondre</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>Si {0} reçoit déjà du courrier ailleurs - chez un fournisseur de boîtes aux lettres hébergées, sur un autre serveur -, publier cet enregistrement fait venir ce courrier ici. Ne le modifiez que lorsque ce serveur est prêt à le recevoir.</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ignoré par le serveur - le digest stocké n'est pas une valeur SHA-256 utilisable, donc cette section n'authentifie rien. Révoquez-la et créez un remplacement.</value>
@@ -5504,11 +5525,20 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — exiger TLS des serveurs qui livrent à </value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>Score de la vérification MX</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Requête MX</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>Valeur MX - la priorité, puis le nom du serveur qui reçoit le courrier :</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — quel serveur reçoit le courrier pour </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>_Gérée par le gestionnaire de liste</value>
@@ -6159,6 +6189,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Aucune authentification LDAP n'est tentée. Les comptes liés à l'annuaire continuent d'être validés par la connexion Windows, et le serveur le signale (erreur 5922) une fois par minute pour que cela ne puisse pas échouer silencieusement.</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>Aucun enregistrement MX n'a été trouvé pour {0} via le résolveur de cette machine. </value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Aucun enregistrement MX n'a été trouvé depuis cette machine : le serveur se rabattrait donc sur son propre nom d'hôte.</value>
   </data>
@@ -6296,6 +6329,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Aucun groupe nommé « {0} » n'a été trouvé.</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>Aucun nom d'hôte n'est défini : ce serveur annonce donc son nom d'ordinateur Windows, qu'aucun DNS sur Internet ne connaît.</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Aucun nom d'hôte ni adresse n'est défini.</value>
@@ -6471,8 +6507,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Not checked" xml:space="preserve">
     <value>Non vérifié</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Pas vérifié d'ici, en toute franchise : vérifier le PTR nécessite l'adresse IP PUBLIQUE du serveur, que ce panneau ne peut pas déterminer (derrière un NAT, la machine ne la connaît pas non plus), et le vérificateur de cette page ne lit que les enregistrements TXT. Testez plutôt depuis l'extérieur : nslookup &lt;your public IP&gt; affiche le PTR ; il devrait nommer l'hôte ci-dessus.</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Pas vérifié d'ici, en toute franchise : vérifier le PTR nécessite l'adresse IP PUBLIQUE du serveur, que ce panneau ne peut pas déterminer (derrière un NAT, la machine ne la connaît pas non plus), et le vérificateur de cette page ne lit que les enregistrements TXT et MX. Testez plutôt depuis l'extérieur : nslookup &lt;your public IP&gt; affiche le PTR ; il devrait nommer l'hôte ci-dessus.</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Pas encore vérifié (Rechercher des mises à jour, ou activez la vérification quotidienne sous Mises à jour sur la page API et supervision)</value>
@@ -6795,6 +6831,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>Sur la page Sauvegarde, définissez le dossier où la sauvegarde est écrite, sur un disque autre que celui du magasin de messages.</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>Sur l'onglet SMTP de la page Protocoles, réglez Nom d'hôte sur le nom DNS complet de ce serveur, par exemple mail.example.com. Demandez ensuite au propriétaire de l'adresse publique du serveur un enregistrement PTR qui le nomme ; la page Enregistrements DNS indique quoi demander.</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>Sur la page Limites du serveur et réglages experts, carte Compte de service Windows : Passer à NT SERVICE\hMailServer accorde au service ses dossiers - en demandant d'abord pour chaque dossier ou fichier de clé que la configuration nomme en dehors d'eux - et le déplace ; redémarrez ensuite le service. Relancer le programme d'installation propose le même choix. Une base de données externe avec authentification Windows a aussi besoin d'une connexion pour ce compte.</value>
   </data>
@@ -6909,9 +6948,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Ouvrir Pièces jointes bloquées, où se trouve la liste des motifs de noms de fichiers</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>Ouvrir Livraison des e-mails, où se trouve le nom d'hôte</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>Ouvrir Domaines, où l'onglet Annuaire d'un compte le relie à l'annuaire</value>
   </data>
@@ -6938,6 +6974,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Ouvrir Réglages de journalisation</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>Ouvrir Protocoles, dont l'onglet SMTP contient le nom d'hôte</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>Ouvrir Certificats SSL, où se trouvent les chemins des fichiers de certificat et de clé</value>
@@ -7076,6 +7115,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>Autre échec</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>Les autres serveurs de messagerie recherchent l'enregistrement MX du domaine pour savoir où livrer son courrier ; sans lui, le courrier adressé à ses adresses n'arrive pas ici. Le serveur que nomme l'enregistrement a besoin d'un enregistrement d'adresse (A, et AAAA pour IPv6) pointant vers l'adresse IP publique de ce serveur - celle vers laquelle votre routeur ou votre pare-feu redirige le port 25.</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>Absence du bureau</value>
@@ -7565,6 +7607,9 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>Publié, diffère de la suggestion</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>Publié, nomme un autre serveur</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Publié, plus strict que le point de départ</value>
   </data>
@@ -7845,6 +7890,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Intervalle d'expiration des enregistrements, minutes</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>Type d'enregistrement : MX.  Hôte/Nom</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Type d'enregistrement : TXT.  Hôte/Nom</value>
   </data>
@@ -7949,6 +7997,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Réinitialisé - les réglages enregistrés sont en vigueur.</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>Réinitialisé - le serveur écoute maintenant sur les ports tels que cette page les liste.</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Réinitialisé - les paramètres qui attendaient une réinitialisation sont en vigueur ; {0} attendent encore un redémarrage du service.</value>
@@ -8110,10 +8161,10 @@ La boîte et ses messages passent à la nouvelle adresse. Le courrier envoyé à
 
 Chaque plage personnalisée - y compris les entrées de bannissement automatique - sera supprimée et remplacée par « My computer » (127.0.0.1) et « Internet » (tout le reste). Cela change immédiatement qui peut se connecter et relayer.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Remplacer TOUS les ports configurés par ceux par défaut ?
 
-SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion. Les ports TLS et les liaisons personnalisées seront supprimés. Le changement prend effet au redémarrage du serveur.</value>
+SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion. Les ports TLS et les liaisons personnalisées seront supprimés. Le changement prend effet à la réinitialisation du serveur.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Remplacez le certificat ici ; la date d'expiration de chacun est listée.</value>
@@ -8726,6 +8777,9 @@ Continuer ?</value>
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Enregistré. Le compilateur a signalé : {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>Enregistré. Le serveur continue d'écouter comme avant jusqu'à ce que ses services soient réinitialisés - arrêtés et redémarrés sur place, ce qui déconnecte un instant les clients connectés. Réinitialiser le serveur maintenant ?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Enregistré. Le serveur prend la sélection en compte en moins de deux secondes ; un changement de la planification nécessite un redémarrage du service.</value>
@@ -10068,8 +10122,8 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>L'hôte HELO/EHLO</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Le nom d'hôte sur Livraison du courrier est VIDE, le serveur se replie donc sur son nom d'ordinateur Windows{0}. Un simple nom d'ordinateur n'est pas un nom DNS public : les destinataires qui comparent HELO au DNS le pénaliseront, et aucun PTR ne peut concorder avec lui. Définissez d'abord un vrai nom d'hôte.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Le nom d'hôte sur la page Protocoles est VIDE, le serveur se replie donc sur son nom d'ordinateur Windows{0}. Un simple nom d'ordinateur n'est pas un nom DNS public : les destinataires qui comparent HELO au DNS le pénaliseront, et aucun PTR ne peut concorder avec lui. Définissez d'abord un vrai nom d'hôte.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>La plage IP {0} n'accepte un mot de passe que via TLS.</value>
@@ -10459,6 +10513,18 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>La lignée hMailServer 6.x est l'un de ces efforts. Le serveur de messagerie open source d'origine a été reconstruit sur une chaîne d'outils actuelle (Visual Studio 2026 / MSVC v145 et .NET 10), réarmé avec de la cryptographie moderne (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) et les standards de sécurité de transport attendus aujourd'hui d'un serveur de messagerie (DANE + DNSSEC, MTA-STS, ARC, DKIM Ed25519, TLS-RPT et ACME / Let's Encrypt). Il a été durci contre les défauts de protocole et de déni de service, doté du filtrage Sieve / ManageSieve, d'une observabilité de santé et OpenTelemetry, d'une prise en charge étendue de MySQL / MariaDB / MS SQL / PostgreSQL, et de ce Control Panel moderne en design Fluent à la place de l'administrateur historique.</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>Le nom d'hôte - le nom que ce serveur donne aux autres serveurs</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>Le nom d'hôte n'a pas pu être lu depuis le serveur.</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>Le nom d'hôte {0} se termine par un nom pour lequel aucun DNS public ne répond : un destinataire sur Internet ne peut donc pas le rechercher.</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>Le nom d'hôte {0} n'est pas un nom DNS complet, comme mail.example.com : aucun enregistrement DNS ne peut donc concorder avec lui.</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>L'id ({0}, généré à l'instant) est à vous de choisir - n'importe quelle valeur est correcte. Son seul rôle est de changer chaque fois que la politique change, pour que les caches la récupèrent à nouveau.</value>
   </data>
@@ -10675,8 +10741,8 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The port to ask on" xml:space="preserve">
     <value>Le port sur lequel interroger</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Les ports sur lesquels chaque protocole écoute, leur adresse de liaison et la sécurité de connexion. Le service doit être redémarré après des modifications. La colonne Écoute est lue depuis les ports ouverts de cette machine, pas depuis la configuration : elle montre donc ce qui se passe réellement plutôt que ce qui a été demandé.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Les ports sur lesquels chaque protocole écoute, leur adresse de liaison et la sécurité de connexion. Un changement prend effet à la réinitialisation du serveur, que cette page propose après chaque changement. La colonne Écoute est lue depuis les ports ouverts de cette machine, pas depuis la configuration : elle montre donc ce qui se passe réellement plutôt que ce qui a été demandé.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>La clé privée n'appartient pas à ce certificat : leurs clés publiques diffèrent. La paire ne se chargera pas (erreur serveur 5113) et chaque port TLS utilisant ce certificat ne démarrera pas. Faites pointer cette entrée vers le fichier de clé qui a été généré avec ce certificat.</value>
@@ -10730,6 +10796,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>L'enregistrement se propage.</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>L'enregistrement nomme ce serveur par son nom d'hôte, et ce nom d'hôte n'est pas encore un nom qu'Internet peut rechercher : il n'y a donc pas encore de valeur à publier. Définissez-le sur l'onglet SMTP de la page Protocoles, puis revenez.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Les enregistrements que ce serveur a besoin de voir publiés dans la zone DNS de chaque domaine : type, hôte et valeur, prêts à être copiés dans la console de votre fournisseur DNS, avec une vérification indiquant si chacun est réellement en ligne. Les vérifications utilisent le résolveur Windows de cette machine - le même que celui qu'utilise la vérification de rotation DKIM.</value>
@@ -10871,8 +10940,8 @@ C'est le propre résolveur du serveur qui répond - le même que celui qu'utilis
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>Le serveur à interroger (vide interroge les hôtes MX du domaine)</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Le Nom d'hôte du serveur (Livraison des e-mails) est VIDE : il annonce donc son nom d'ordinateur Windows en HELO/EHLO - pas un nom DNS public - et aucun mécanisme « a: » ne peut être proposé honnêtement. La suggestion n'autorise que les hôtes MX du domaine. Définissez d'abord le nom d'hôte ; plusieurs enregistrements de cette page en ont besoin.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>Le Nom d'hôte du serveur (Protocoles &gt; SMTP) est VIDE : il annonce donc son nom d'ordinateur Windows en HELO/EHLO - pas un nom DNS public - et aucun mécanisme « a: » ne peut être proposé honnêtement. La suggestion n'autorise que les hôtes MX du domaine. Définissez d'abord le nom d'hôte ; plusieurs enregistrements de cette page en ont besoin.</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>La réponse du serveur n'a pas pu être lue.</value>
@@ -11096,8 +11165,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>Ce groupe ne contient aucun compte : toute permission qui lui est accordée ne s'applique donc actuellement à personne.</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>Il s'agit de Réglages &gt; Livraison des e-mails &gt; Nom d'hôte, le nom que le serveur annonce en HELO/EHLO à chaque livraison sortante (Utilities::ComputerName). Demandez au propriétaire de l'IP que le PTR de votre IP publique se résolve exactement en ce nom, et publiez un enregistrement A pour ce nom pointant vers la même IP - les destinataires vérifient les deux sens.</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>Il s'agit de Protocoles &gt; SMTP &gt; Nom d'hôte, le nom que le serveur annonce en HELO/EHLO à chaque livraison sortante (Utilities::ComputerName). Demandez au propriétaire de l'IP que le PTR de votre IP publique se résolve exactement en ce nom, et publiez un enregistrement A pour ce nom pointant vers la même IP - les destinataires vérifient les deux sens.</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Il s'agit de [Settings] UseLanguage dans hMailServer.INI. Le serveur ne fait que le restituer via l'API COM - il ne traduit rien lui-même, et ce Control Panel a son propre réglage de langue (Changer de langue, dans le menu de l'administrateur en haut à droite) - cela n'affecte donc que les outils d'administration tiers. La formulation des rebonds et des erreurs est sur la page Messages du serveur.</value>
@@ -11134,6 +11203,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Ceci s'exécute pendant que le serveur expéditeur attend sa réponse à DATA : le nombre est donc une promesse sur le pire cas plutôt qu'une indication. Il borne la connexion autant que la réponse : sans cela, un moteur dont la machine a disparu coûterait le délai TCP propre au système d'exploitation sur chaque message.</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>Ce serveur s'annonce comme {0}. Impossible de savoir d'ici si l'enregistrement PTR de son adresse publique le nomme, et si l'enregistrement d'adresse propre à ce nom pointe en retour : la page Enregistrements DNS indique quoi demander.</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>Ce serveur n'a pas pu lire sa table des domaines : il ne peut donc pas dire si l'exemple est là. Rien n'est proposé tant qu'il ne le peut pas.</value>
@@ -13533,6 +13605,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, expire {2}</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0} (une valeur que ce Control Panel ne connaît pas)</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (expirée)</value>
   </data>
@@ -13703,6 +13778,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} est activé mais ne peut pas s'exécuter. {1} Chaque analyse qu'on lui demande échoue, et une analyse échouée n'est pas un message échoué : l'erreur est consignée et le message est livré comme s'il avait été examiné et jugé sain.</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0} est activé mais ne peut pas s'exécuter. {1} Chaque analyse qu'on lui demande échoue, et tant qu'aucun autre analyseur ne répond, chaque message est retenu et analysé de nouveau, puis renvoyé à son expéditeur quand les retenues sont épuisées.</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} est le domaine d'exemple et n'est pas compté ici ; supprimez-le quand vous en aurez fini avec lui.</value>
@@ -13892,6 +13970,12 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>{0} % des recherches répondues depuis la mémoire, avec {1} Ko utilisés</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>Les enregistrements MX de {0} nomment {1}, le nom d'hôte de ce serveur : {2}.</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>Le courrier de {0} va à {1}, pas au nom d'hôte de ce serveur. C'est correct quand un service de filtrage ou un autre serveur reçoit le courrier en premier et le transmet ; sinon, modifiez l'enregistrement.</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, un compte de service virtuel sans mot de passe</value>

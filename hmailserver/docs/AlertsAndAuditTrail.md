@@ -302,8 +302,8 @@ tampering.
 with `total` for the whole filtered set.
 
 The Deck has an **Audit trail** page that reads it, with the filter, paging and
-a *Verify the chain* button. The Control Panel has the same page (Utilities >
-Audit trail), over `Utilities.GetAuditTrail`, `Utilities.VerifyAuditTrail` and
+a *Verify the chain* button. The Control Panel has the same page (Monitoring &
+troubleshooting > Audit trail), over `Utilities.GetAuditTrail`, `Utilities.VerifyAuditTrail` and
 `Utilities.RevertAuditedChange`, which answer what the three routes answer.
 
 ### Putting a change back
@@ -519,7 +519,10 @@ All nine are in `hm_settings` — the store the COM `Settings` object and the
 Control Panel's classic pages use — and none of them is an `hMailServer.ini`
 key. They are readable and writable at `GET`/`PUT /api/v1/settings`, and the
 Deck's Settings page draws them from the server's own OpenAPI document, so they
-appear there without the page being changed.
+appear there without the page being changed. No COM property carries them. The
+Control Panel has them on Monitoring & troubleshooting > Logging - the two audit
+settings on the Audit trail tab, the seven alert settings on the Alerts & webhooks
+tab - and reads and writes them over the REST API, so the REST API has to be on.
 
 | Setting | Default | What it does |
 |---|---|---|
@@ -539,8 +542,8 @@ What this does not do
 ---------------------
 
 * **There is no Control Panel page for the alert rules.** The nine settings
-  appear on the Deck's Settings page and are writable over COM through
-  `Settings`, so the desktop program can reach them; the rules themselves are
+  appear on the Deck's Settings page and on the Control Panel's Logging page,
+  which reaches them over the REST API (above); the rules themselves are
   reached over REST, the Deck, or `hmctl`. A Control Panel page is the next
   piece of work on this row.
 * **A COM row records no address**, for the reason given above.

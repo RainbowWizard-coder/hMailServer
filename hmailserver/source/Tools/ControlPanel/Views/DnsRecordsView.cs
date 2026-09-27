@@ -366,6 +366,7 @@ namespace hMailServer.ControlPanel.Views
          }
          else
          {
+            body_.Children.Add(MxCard(domain));
             body_.Children.Add(SpfCard(domain));
             body_.Children.Add(DkimCard(domain));
             body_.Children.Add(DmarcCard(domain));
@@ -375,6 +376,72 @@ namespace hMailServer.ControlPanel.Views
 
          // Server-wide, not per-domain: one IP, one PTR, one HELO name.
          body_.Children.Add(PtrCard());
+      }
+
+      // ---- MX --------------------------------------------------------------------
+
+      /// <summary>
+      /// The record that makes the domain's mail come here at all: an MX naming
+      /// this server's host name. The page had every record but this one, which a
+      /// new installation needs before any of the others matter. The value is
+      /// offered only when the host name is a name the Internet can look up
+      /// (HostNameVerdict); the check reads the domain's MX records through this
+      /// machine's resolver, as the MTA-STS preview does.
+      /// </summary>
+      private Card MxCard(DomainInfo domain)
+      {
+         Card card = Section(L("MX — which server takes the mail for ") + domain.Name, out StackPanel content);
+
+         content.Children.Add(Paragraph(L("Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to."),
+            Typography.Caption));
+
+         bool usable = serverHostNameKnown_ && HostNameVerdict.Judge(serverHostName_) == HostNameVerdict.Kind.PublicName;
+         string value = usable ? "10 " + serverHostName_ : L("(set the host name first: Protocols > SMTP > Host name)");
+
+         if (!usable)
+            content.Children.Add(Paragraph(L("The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back."), Typography.Caption));
+
+         RecordBlock block = BuildRecordBlock(content, "dns-records-mx", L("MX"),
+            host: domain.Name,
+            hostNote: L("the domain itself (many DNS consoles write the zone apex as \"@\")"),
+            value: value,
+            copyWarning: F("If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it.", domain.Name),
+            valueCopyable: usable,
+            mx: true);
+
+         block.Check.Click += async (s, e) => await CheckMx(block, domain.Name);
+
+         return card;
+      }
+
+      private async Task CheckMx(RecordBlock block, string domainName)
+      {
+         string host = (serverHostName_ ?? "").Trim().TrimEnd('.').ToLowerInvariant();
+
+         await RunCheck(block, domainName, () =>
+         {
+            List<string> exchanges = QueryMxRecords(domainName);
+            return (Action)(() =>
+            {
+               if (exchanges.Count == 0)
+               {
+                  block.SetResult(StatusLevel.Warning, L("Not published"),
+                     F("No MX record was found for {0} through this machine's resolver. ", domainName) + PropagationAdvice);
+               }
+               else if (host.Length > 0 && exchanges.Contains(host))
+               {
+                  block.SetResult(StatusLevel.Good, L("Published and correct"),
+                     F("{0}'s MX records name {1}, this server's host name: {2}.", domainName, host, string.Join(", ", exchanges)));
+               }
+               else
+               {
+                  // Never "wrong": a filtering service or another server in front
+                  // of this one is named in the MX by design.
+                  block.SetResult(StatusLevel.Information, L("Published, names another server"),
+                     F("{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record.", domainName, string.Join(", ", exchanges)));
+               }
+            });
+         });
       }
 
       // ---- SPF -------------------------------------------------------------------
@@ -407,9 +474,9 @@ namespace hMailServer.ControlPanel.Views
          if (!serverHostNameKnown_)
             provenance = L("The server's host name could not be read, so the suggestion authorises only the domain's MX hosts (\"mx\").");
          else if (serverHostName_.Length > 0)
-            provenance = F("\"mx\" authorises whatever {0}'s MX records point at; \"a:{1}\" authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail > Host name). \"~all\" soft-fails everything else - deliberately softer than \"-all\" until you are sure the list is complete.", domain.Name, serverHostName_);
+            provenance = F("\"mx\" authorises whatever {0}'s MX records point at; \"a:{1}\" authorises the address of the host name this server announces in HELO/EHLO (Protocols > SMTP > Host name). \"~all\" soft-fails everything else - deliberately softer than \"-all\" until you are sure the list is complete.", domain.Name, serverHostName_);
          else
-            provenance = L("The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no \"a:\" mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it.");
+            provenance = L("The server's Host name (Protocols > SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no \"a:\" mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it.");
 
          content.Children.Add(Paragraph(provenance, Typography.Caption));
 
@@ -1349,12 +1416,12 @@ namespace hMailServer.ControlPanel.Views
          else if (serverHostName_.Length > 0)
          {
             heloName = serverHostName_;
-            heloNote = L("This is Settings > Delivery of e-mail > Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions.");
+            heloNote = L("This is Protocols > SMTP > Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions.");
          }
          else
          {
             heloName = IsLocalServer() ? Environment.MachineName : L("(the server's Windows computer name)");
-            heloNote = F("The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.",
+            heloNote = F("The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.",
                IsLocalServer() ? L(" - shown above as this machine's name") : L(", which cannot be read from this machine"));
          }
 
@@ -1381,11 +1448,11 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Paragraph(heloNote, Typography.Caption));
 
-         content.Children.Add(Paragraph(L("Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup <your public IP> shows the PTR; it should name the host above."),
+         content.Children.Add(Paragraph(L("Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup <your public IP> shows the PTR; it should name the host above."),
             Typography.Caption));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal };
-         links.Children.Add(PageLink("delivery", L("Host name setting…"), L("Open Delivery of e-mail, which owns the Host name")));
+         links.Children.Add(PageLink("protocols", L("Host name setting…"), L("Open Protocols, whose SMTP tab has the Host name")));
          links.Children.Add(PageLink("antispam", L("PTR / HELO checks…"), L("Open Anti-spam settings, which owns the inbound PTR and HELO checks")));
          content.Children.Add(links);
 
@@ -1416,11 +1483,11 @@ namespace hMailServer.ControlPanel.Views
       /// stated in a footnote is a danger stated nowhere.
       /// </summary>
       private RecordBlock BuildRecordBlock(StackPanel parent, string idPrefix, string recordName,
-         string host, string hostNote, string value, string copyWarning, bool valueCopyable = true)
+         string host, string hostNote, string value, string copyWarning, bool valueCopyable = true, bool mx = false)
       {
          var block = new RecordBlock();
 
-         parent.Children.Add(Label(L("Record type: TXT.  Host/Name") + (hostNote != null ? " — " + hostNote : "") + ":"));
+         parent.Children.Add(Label((mx ? L("Record type: MX.  Host/Name") : L("Record type: TXT.  Host/Name")) + (hostNote != null ? " — " + hostNote : "") + ":"));
 
          block.HostBox = ReadOnlyBox(0);
          block.HostBox.Text = host;
@@ -1429,7 +1496,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(block.HostBox, idPrefix + "-host");
          parent.Children.Add(block.HostBox);
 
-         parent.Children.Add(Label(L("TXT value:")));
+         parent.Children.Add(Label(mx ? L("MX value - the priority, then the name of the server that takes the mail:") : L("TXT value:")));
 
          block.ValueBox = ReadOnlyBox(44);
          block.ValueBox.Text = value;

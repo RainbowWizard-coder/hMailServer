@@ -32,7 +32,9 @@ says so, the confirmation cannot be sent, and `POST /api/v1/password-reset` answ
 
 Two more settings: `recovery_reset_link_minutes` (30 by default, 5 to 1440) is how
 long a password-reset link lives, and `recovery_verify_link_hours` (24, 1 to 168) how
-long the link that confirms an address lives.
+long the link that confirms an address lives. The Control Panel has all three on
+Connections & protocols > Webmail, the Sign-in tab, which reads and writes them over the
+REST API, so the REST API has to be on.
 
 The recovery address
 --------------------

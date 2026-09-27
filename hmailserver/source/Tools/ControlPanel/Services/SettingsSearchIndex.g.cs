@@ -125,7 +125,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("Host", "AntiVirus.ClamAVHost", "antivirus"),
          new SettingEntry("Hours a verdict is remembered (0 = never)", "SandboxCacheHours", "antivirus"),
          new SettingEntry("How many times to hold before returning it to the sender", "AVFailMaxHolds", "antivirus"),
-         new SettingEntry("If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it", "AVFailAction", "antivirus"),
+         new SettingEntry("If a message cannot be scanned", "AVFailAction", "antivirus"),
          new SettingEntry("Largest attachment submitted (KB)", "SandboxMaxSizeKB", "antivirus"),
          new SettingEntry("Max message size to virus-scan (KB, 0 = unlimited)", "AntiVirus.MaximumMessageSize", "antivirus"),
          new SettingEntry("Maximum timeout (seconds)", "ClamMaxTimeout", "antivirus"),

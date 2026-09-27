@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using hMailServer.ControlPanel.Services;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 using static hMailServer.ControlPanel.Services.Loc;
@@ -22,6 +23,11 @@ namespace hMailServer.ControlPanel.Views
          public int Port { get; set; }
          public string Security { get; set; }
          public string Certificate { get; set; }
+
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString()
+            => string.Join(", ", new[] { Protocol + " " + Address + ":" + Port, Security, ListeningWord, Certificate }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
          /// <summary>"Listening", "Not listening", "Server off" or "Unknown".</summary>
          public string ListeningWord { get; set; }
@@ -252,7 +258,48 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         new TcpIpPortDialog(Window.GetWindow(this), row.Id).ShowDialog();
+         var dialog = new TcpIpPortDialog(Window.GetWindow(this), row.Id);
+         dialog.ShowDialog();
+         Reload();
+         if (dialog.Saved)
+            OfferReinitialize_();
+      }
+
+      /// <summary>
+      /// A saved port is not what the server listens on until its services are
+      /// started again (Application.Reinitialize stops and starts them in place,
+      /// reading the ports afresh). Nothing said so but the page's subtitle, so a
+      /// first setup that gave the submission port TLS went on serving it in the
+      /// clear with every sign of being done. Offered, not done: it disconnects
+      /// whoever is connected.
+      /// </summary>
+      private void OfferReinitialize_()
+      {
+         if (MessageBox.Show(
+                L("Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?"),
+                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+         Mouse.OverrideCursor = Cursors.Wait;
+         string failure = null;
+         try
+         {
+            ServerSession.Current.Application.Reinitialize();
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            failure = ServerSession.DescribeComError(ex);
+         }
+         finally
+         {
+            Mouse.OverrideCursor = null;
+         }
+
+         if (failure == null)
+            Services.Toast.Success(L("Reinitialized - the server now listens on the ports as this page lists them."));
+         else
+            Services.Toast.Failure(F("Could not reinitialize: {0}", failure), L("Control Panel"));
+
          Reload();
       }
 
@@ -294,6 +341,7 @@ namespace hMailServer.ControlPanel.Views
 
          NewPort.Text = "";
          Reload();
+         OfferReinitialize_();
       }
 
       /// <summary>
@@ -307,14 +355,16 @@ namespace hMailServer.ControlPanel.Views
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
          if (MessageBox.Show(
-                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted."),
+                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized."),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 
          dynamic ports = ServerSession.Current.Application.Settings.TCPIPPorts;
+         bool restored = false;
          try
          {
             ports.SetDefault();
+            restored = true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -326,6 +376,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          Reload();
+         if (restored)
+            OfferReinitialize_();
       }
 
       private void Delete_Click(object sender, RoutedEventArgs e)
@@ -337,6 +389,7 @@ namespace hMailServer.ControlPanel.Views
              MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 
+         bool deleted = false;
          dynamic ports = ServerSession.Current.Application.Settings.TCPIPPorts;
          try
          {
@@ -350,6 +403,7 @@ namespace hMailServer.ControlPanel.Views
                {
                   port.Delete();
                   ServerSession.Release(port);
+                  deleted = true;
                   break;
                }
                ServerSession.Release(port);
@@ -358,6 +412,7 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             MessageBox.Show(F("Could not delete the port: {0}", ex.Message), L("Control Panel"));
+            deleted = false;
          }
          finally
          {
@@ -365,6 +420,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          Reload();
+         if (deleted)
+            OfferReinitialize_();
       }
    }
 }

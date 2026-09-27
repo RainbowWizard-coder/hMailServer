@@ -85,6 +85,11 @@ namespace hMailServer.ControlPanel.Views
          public Dictionary<string, object> Values { get; } = new();
          public string Display(string prop) =>
             Values.TryGetValue(prop, out object v) ? FormatCell(v) : "";
+
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString()
+            => string.Join(", ", Values.Values.Select(FormatCell).Where(s => !string.IsNullOrWhiteSpace(s)).Take(3));
       }
 
       private readonly CollectionSpec spec_;
@@ -227,9 +232,25 @@ namespace hMailServer.ControlPanel.Views
             if (f.Kind == FieldKind.Number)
                GridStyles.Number(col);
 
+            // A value of several lines - a server message, a signature - is one
+            // line in its cell, its line breaks read as spaces: printed as it is,
+            // one message filled the grid's height with lines each cut at the
+            // column's edge. Edit shows it whole.
+            if (f.Kind == FieldKind.Multiline)
+               col.Binding = new System.Windows.Data.Binding($"Values[{prop}]") { Converter = OneLineConverter.Instance };
+
             // A value wider than its column ends in an ellipsis and is whole in
             // the cell's tool tip, as the header is.
             GridStyles.Trimmed(col);
+
+            // ... and the tool tip of a value of several lines keeps its line breaks.
+            if (f.Kind == FieldKind.Multiline)
+            {
+               var whole = new Style(typeof(TextBlock), col.ElementStyle);
+               whole.Setters.Add(new Setter(FrameworkElement.ToolTipProperty,
+                  new System.Windows.Data.Binding($"Values[{prop}]") { Converter = CellConverter.Instance }));
+               col.ElementStyle = whole;
+            }
 
             grid_.Columns.Add(col);
          }
@@ -445,6 +466,17 @@ namespace hMailServer.ControlPanel.Views
          if (v == null) return "";
          if (v is bool b) return b ? L("Yes") : L("No");
          return Convert.ToString(v, CultureInfo.CurrentCulture);
+      }
+
+      /// <summary>A cell of several lines as one: every run of line breaks and spaces is one space.</summary>
+      private sealed class OneLineConverter : System.Windows.Data.IValueConverter
+      {
+         public static readonly OneLineConverter Instance = new();
+
+         public object Convert(object value, Type t, object p, CultureInfo c)
+            => string.Join(" ", FormatCell(value).Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
+
+         public object ConvertBack(object value, Type t, object p, CultureInfo c) => value;
       }
 
       private sealed class CellConverter : System.Windows.Data.IValueConverter

@@ -10,7 +10,7 @@ A logo is a claim that the mail came from that brand. So this server shows one o
 |---|---|---|
 | `AuthenticationResultsEnabled=1` | `[Settings]`, applies when it is saved | The server records its DMARC verdict in its own `Authentication-Results` header. The logo is shown only for mail that header says passed. Without the header there is no verdict to read, and no logo. |
 | Anti-spam → DMARC on | Control Panel, REST `antispam` group | Without the DMARC check there is no verdict at all. |
-| `BrandLogosEnabled` | `hm_settings`, REST `brand_logos_enabled`, on by default | The switch for the feature itself. Off, the listing names no brand and the logo route refuses. |
+| `BrandLogosEnabled` | `hm_settings`, REST `brand_logos_enabled`, the Control Panel's Webmail page (the What people may do tab, over REST), on by default | The switch for the feature itself. Off, the listing names no brand and the logo route refuses. |
 
 ## What is checked
 

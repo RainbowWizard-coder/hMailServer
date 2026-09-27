@@ -323,7 +323,7 @@ be worse than the list being best-effort during an outage.
 Looking at the list, and changing it
 ------------------------------------
 
-* **Control Panel** → *Monitoring* → **Suppression list**: pick a domain; the
+* **Control Panel** → *Monitoring & troubleshooting* → **Suppression list**: pick a domain; the
   entries - address, why, status, where the entry came from, since when, when it
   expires, with the remote's own words on each row's tip - and the counts behind
   them. *Add* puts an address on by hand with a note and an expiry in days; *Remove*

@@ -350,12 +350,19 @@
                      presenter it was cut mid-word with nothing to say so -
                      "Require TLS o", "Simultaneous co", "Requires ar" on the
                      remote domains and greylisting bypass lists. The header's
-                     content stays the string, so its accessible name is whole. -->
-                <Setter Property="ContentTemplate">
+                     content stays the string, so its accessible name is whole.
+                     A selector, not a template: a header that is a control -
+                     the Quarantine page's check box and four buttons - is shown
+                     as itself, where the words' template printed its type name. -->
+                <Setter Property="ContentTemplateSelector">
                     <Setter.Value>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}" />
-                        </DataTemplate>
+                        <svc:HeaderTemplateSelector>
+                            <svc:HeaderTemplateSelector.TextTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}" />
+                                </DataTemplate>
+                            </svc:HeaderTemplateSelector.TextTemplate>
+                        </svc:HeaderTemplateSelector>
                     </Setter.Value>
                 </Setter>
             </Style>

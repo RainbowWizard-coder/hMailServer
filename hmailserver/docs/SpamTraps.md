@@ -145,6 +145,7 @@ something that happens quietly.
 |---|---|
 | Control Deck | Domain editor → **Spam traps**, which also shows what has addressed this domain's traps |
 | Control Deck | **Spam traps** view: the record across every domain, and the button that clears it |
+| Control Panel | Spam & virus filtering > **Anti-spam settings**, the **Spam traps** tab: the four settings, over COM. The traps themselves are declared in the Deck, over REST or COM |
 | REST | `GET`/`POST /api/v1/domains/{domain}/spam-traps`, `DELETE /api/v1/spam-traps/{address}` |
 | REST | `GET /api/v1/domains/{domain}/spam-traps/hits`, `GET`/`DELETE /api/v1/spam-traps/hits` |
 | COM | `Domain.SpamTraps`, `Domain.AddSpamTrap`, `Domain.RemoveSpamTrap`; `Utilities.GetSpamTrapHits`, `Utilities.ClearSpamTrapHits` |

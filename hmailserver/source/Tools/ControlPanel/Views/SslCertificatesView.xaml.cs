@@ -72,6 +72,10 @@ namespace hMailServer.ControlPanel.Views
          public string CertificateState { get; set; }
          public string PrivateKeyState { get; set; }
 
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString() => Name + ", " + CertificateState + ", " + PrivateKeyState;
+
          // Internal on purpose: ListSearch reflects over public properties, and
          // a finding's ToString would only add noise to the search.
          internal int Id;

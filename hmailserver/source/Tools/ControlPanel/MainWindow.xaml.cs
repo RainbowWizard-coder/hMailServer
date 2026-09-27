@@ -96,6 +96,7 @@ namespace hMailServer.ControlPanel
          RestoreWindowBounds();
          LoadPaletteUsage();
          LoadTourProgress_();
+         WireTourCard_();
          RegisterPages();
          BuildNavTree();
          BuildNavRail_();

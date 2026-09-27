@@ -25,7 +25,8 @@ beside it and do nothing while it is off.
 For the links in the list's mail - the confirmation page, each member's own page
 with its one-click unsubscribe, the owner's approval page, the subscribe form,
 the archive - the server has to know where they are reached from outside:
-`list_base_url` on `PUT /api/v1/settings` (the Control Deck's Settings page),
+`list_base_url` on `PUT /api/v1/settings` (the Control Deck's Settings page, or
+the Control Panel's Delivery of e-mail page on its Mailing lists tab),
 such as `https://lists.example.com`, stored in `hm_settings` as `ListBaseUrl`.
 **Every one of those pages is served by the REST listener**, which is off until
 `RestApiPort` is set: switch it on, and make it reachable at that address over
@@ -374,7 +375,11 @@ Where it is set
   box that keeps its lines), and the member table with each member's delivery,
   state and bounces, *Approve* and *Reset bounces*. The four settings on the
   Settings page.
-* **Control Panel** - the list dialog's manager group.
+* **Control Panel** - the list dialog's manager group; in the dialog the list's
+  **Members** button opens, how the selected member is sent the list's mail
+  (`DistributionListRecipient.Delivery`); and the four settings on Mail flow &
+  delivery > Delivery of e-mail, the **Mailing lists** tab, which reads and
+  writes them over the REST API, so the REST API has to be on.
 * **REST** - `managed`, `subscribe_policy`, `archive`, `archive_days`, `digest`,
   `digest_hour`, `reply_to`, `subject_prefix`, `footer`, `verp` and `owner` on
   the list routes; a list's `members` there are its confirmed members only - a

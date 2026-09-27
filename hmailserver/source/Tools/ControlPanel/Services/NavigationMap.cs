@@ -506,7 +506,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("delivery", N("Delivery of e-mail"),
                   N("Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail."),
-                  aliases: "SMTP relayer|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Host name|Max message size|Deliver local to local",
+                  aliases: "SMTP relayer|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local",
                   seeAlso: "routes|queue|ipranges"),
 
                Page("routes", N("Routes"),
@@ -555,7 +555,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("protocols", N("Protocols"),
                   N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP."),
-                  aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Authentication required|Welcome banner",
+                  aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Max message size|Host name|HELO name|EHLO|Authentication required|Welcome banner",
                   seeAlso: "ports|delivery|authentication"),
 
                Page("webservices", N("Web services & autoconfiguration"),

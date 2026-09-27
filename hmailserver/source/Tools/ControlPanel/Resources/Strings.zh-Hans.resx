@@ -188,8 +188,8 @@
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>“done spam-protection”，然后便没有下文</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>"mx" 授权 {0} 的 MX 记录所指向的一切主机；"a:{1}" 授权本服务器在 HELO/EHLO 中所声明的主机名（“邮件投递 &gt; 主机名”）对应的地址。"~all" 对其余一切做软失败处理 - 在您确认这份列表完整之前，这比 "-all" 有意宽松一些。</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>"mx" 授权 {0} 的 MX 记录所指向的一切主机；"a:{1}" 授权本服务器在 HELO/EHLO 中所声明的主机名（“协议 &gt; SMTP &gt; 主机名”）对应的地址。"~all" 对其余一切做软失败处理 - 在您确认这份列表完整之前，这比 "-all" 有意宽松一些。</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>“{0}”未保存：{1}</value>
@@ -238,6 +238,9 @@
   </data>
   <data name="(none)" xml:space="preserve">
     <value>（无）</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>（请先设置主机名：协议 &gt; SMTP &gt; 主机名）</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>（无法写入日志文件）</value>
@@ -295,9 +298,6 @@
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 是出厂默认值，会禁用整个机制。</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0 是出厂默认值，完全保持当前的行为。1 则绝不投递未经扫描的邮件。</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 是出厂默认值。2 是一个合理的起点：密码输错一次只会让人多等两秒，而对密码喷洒的客户端来说，每猜一次要等两秒、四秒、六秒……。</value>
@@ -602,8 +602,8 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>在此处填写域名，要求服务器本机加入该域，因为 Windows 是用 LogonUser 来验证的。在未加入域的计算机上，每一次尝试都会像密码错误一样失败 - 包括仅仅是域名拼写有误的情况 - 因此在未加入域的服务器上这样配置的邮箱永远无法登录，也永远不会说明原因。如果服务器未加入域，请改用“目录身份验证”页上的 LDAP 目录身份验证：它通过网络绑定到目录，不需要加入域。</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>此服务器上存在名为 {0} 的域，而它不是样例创建的，因此这里既不会创建它，也不会删除它。如果不需要，请自行删除该域。</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>此服务器上已有一个名为 {0} 的域，但它不是本页创建的样例域，因此无法在此创建样例，本页也不会移除它。如果您不需要该域，请在“域”页面上删除它。</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>需要一个域或一个账户地址。</value>
@@ -667,6 +667,9 @@
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被标记为垃圾邮件并投递；达到 {1} 或以上的会被拒收（正文之前为 550，之后为 554）。</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>分数达到 {0} 或以上的邮件会被拒收（正文之前为 550，之后为 554）。没有邮件只被标记：标记阈值 {1} 并不低于它。</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>分数达到 {0} 或以上的邮件会被拒收（正文之前为 550，之后为 554）。不会标记任何邮件。</value>
@@ -763,6 +766,9 @@
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>出错、超时或者连不上引擎的扫描不是一个明确的结论 - 等于没有人看过。出厂行为是照常投递该邮件，这也是本服务器一贯的做法；改为暂挂它是更严格的选择，需要有意为之。</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>无法运行的扫描器并不会拒收邮件。错误会写入日志，扫描继续交给下一个扫描器；当所有扫描器都无法作答时，该邮件会被暂挂并再次扫描，暂挂次数用完后退回给发件人（“反病毒设置”页面上的“如果邮件无法扫描”）。这正是本页报告每个扫描器是否能够运行、而不是报告它是否被打开的原因。</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>无法运行的扫描器并不会拒收邮件。错误会写入日志，扫描继续交给下一个扫描器；当所有扫描器都无法作答时，该邮件会被完全当作已经检查过且未发现问题来处理。这正是本页报告每个扫描器是否能够运行、而不是报告它是否被打开的原因。</value>
@@ -3442,6 +3448,9 @@
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>将每封邮件投递到其标头中列出的账户（多人共用的邮箱）</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>投递（默认）</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>投递并附上说明这一点的邮件头</value>
   </data>
@@ -3471,6 +3480,9 @@
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>投递中</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>投递是出厂默认设置，也是本服务器一贯的做法。暂挂则绝不会投递未扫描的邮件：邮件会按下方的间隔再次扫描，并在达到下方的暂挂次数后退回给发件人。</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>投递中：邮件已被接受，但始终没有发出</value>
@@ -4101,6 +4113,9 @@
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>IP 范围 {0} 可以使用的每个端口都会在接受密码之前启动 TLS。</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>本服务器投递到的每台服务器都会得知本服务器的主机名，并将其与 DNS 比对：该名称的地址，以及邮件来源地址的 PTR 记录。不相符的名称会对该邮件不利。</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>每项垃圾邮件检查按服务器运行它们的顺序列出，每项给分数加多少，以及该分数随后会对邮件产生什么影响。</value>
   </data>
@@ -4650,6 +4665,9 @@
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>保留附件直到沙箱给出判定</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>暂挂并再次扫描，然后退回给发件人</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>暂挂邮件等待审核，而不是拒绝</value>
   </data>
@@ -4899,8 +4917,8 @@
   <data name="Idle timeouts" xml:space="preserve">
     <value>空闲超时</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>如果邮件无法扫描：0 = 投递它，1 = 暂挂并最终退回</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>如果邮件无法扫描</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>如果每封邮件都停滞，而不只是一封</value>
@@ -4910,6 +4928,9 @@
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>如果目录无法应答</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>如果 {0} 已经在其他地方接收邮件（托管邮箱提供商或另一台服务器），发布这条记录会把这些邮件转到这里。只有在本服务器准备好接收时才更改它。</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>被服务器忽略 - 存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
@@ -5504,11 +5525,20 @@
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — 要求向此域投递的服务器使用 TLS：</value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>MX 检查分数</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>MX 查询</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>MX 值 - 优先级，然后是接收邮件的服务器名称:</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — 哪台服务器接收以下域的邮件： </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>由列表管理器管理(_N)</value>
@@ -6159,6 +6189,9 @@
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>不会尝试任何 LDAP 身份验证。关联目录的账户继续通过 Windows 登录验证，服务器每分钟报告一次这种情况（错误 5922），这样它就不会悄无声息地失败。</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>通过本机的解析器未找到 {0} 的 MX 记录。 </value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>从本机未找到任何 MX 记录，因此服务器将回退到它自己的主机名。</value>
   </data>
@@ -6296,6 +6329,9 @@
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>找不到名为 '{0}' 的组。</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>未设置主机名，因此本服务器通告的是其 Windows 计算机名，互联网上没有任何 DNS 知道这个名称。</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>未设置主机名或地址。</value>
@@ -6471,8 +6507,8 @@
   <data name="Not checked" xml:space="preserve">
     <value>未检查</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>坦率地说，此处未做检查：验证 PTR 需要服务器的公网 IP 地址，而此面板无法确定它（在 NAT 之后机器自己也不知道），而且本页的检查器只读取 TXT 记录。请改为从外部测试：nslookup &lt;your public IP&gt; 会显示 PTR；它应当指向上面的主机名。</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>坦率地说，此处未做检查：验证 PTR 需要服务器的公网 IP 地址，而此面板无法确定它（在 NAT 之后机器自己也不知道），而且本页的检查器只读取 TXT 和 MX 记录。请改为从外部测试：nslookup &lt;your public IP&gt; 会显示 PTR；它应当指向上面的主机名。</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>尚未检查（请检查更新，或在“API 与监控”页面的“更新”下开启每日检查）</value>
@@ -6795,6 +6831,9 @@
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>在备份页面设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>在“协议”页面的 SMTP 选项卡上，把主机名设置为本服务器的完整 DNS 名称，例如 mail.example.com。然后请服务器公共地址的所有者添加一条指向该名称的 PTR 记录；DNS 记录页面会显示需要请求什么。</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>在“服务器限制和专家设置”页面的“Windows 服务账户”卡片上：“切换到 NT SERVICE\hMailServer”会授予服务其文件夹（先询问配置在其外指定的每个文件夹或密钥文件）并切换服务；然后重新启动服务。再次运行安装程序也会提供相同的选择。使用 Windows 身份验证的外部数据库还需要为该账户建立登录名。</value>
   </data>
@@ -6909,9 +6948,6 @@
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>打开“已拦截的附件”，它拥有文件名模式列表</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>打开“电子邮件投递”，它拥有主机名</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>打开“域”，账户的“目录”选项卡在那里把它关联到目录</value>
   </data>
@@ -6938,6 +6974,9 @@
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>打开“日志记录”设置</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>打开“协议”，其 SMTP 选项卡上有主机名</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>打开“SSL 证书”，它拥有证书和密钥文件路径</value>
@@ -7076,6 +7115,9 @@
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>其他失败</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>其他邮件服务器会查询域的 MX 记录，以确定把该域的邮件投递到哪里；没有它，发往该域地址的邮件就不会到达这里。记录所指的服务器需要一条地址记录（A，IPv6 还需 AAAA），指向本服务器的公共 IP 地址 - 即您的路由器或防火墙将端口 25 转发到的地址。</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>外出</value>
@@ -7565,6 +7607,9 @@
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>已发布，与建议不同</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>已发布，指向另一台服务器</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>已发布，比起点更严格</value>
   </data>
@@ -7845,6 +7890,9 @@
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>记录过期间隔，分钟</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>记录类型：MX。  主机/名称</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>记录类型：TXT。  主机/名称</value>
   </data>
@@ -7949,6 +7997,9 @@
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>已重新初始化 - 保存的设置已生效。</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>已重新初始化 - 服务器现在按本页所列的端口监听。</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>已重新初始化 - 等待重新初始化的设置已生效；仍有 {0} 项等待重启服务。</value>
@@ -8110,10 +8161,10 @@
 
 每一个自定义范围 - 包括所有自动封禁条目 - 都会被移除，并替换为 'My computer'（127.0.0.1）和 'Internet'（其余全部）。这会立即改变谁可以连接和中继。</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>是否将所有已配置的端口替换为默认值？
 
-SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自定义绑定将被移除。更改在重启服务器后生效。</value>
+SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自定义绑定将被移除。更改在重新初始化服务器后生效。</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>在此更换证书；每一张证书的到期日期都已列出。</value>
@@ -8726,6 +8777,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>已保存。编译器报告: {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>已保存。在服务重新初始化之前，服务器会照旧监听 - 重新初始化即就地停止并重新启动，会让已连接的客户端短暂断开。现在重新初始化服务器吗？</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>已保存。服务器会在两秒内读取所选内容；计划的更改需要重启服务。</value>
@@ -10068,8 +10122,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO 主机</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>“电子邮件投递”中的主机名为空，因此服务器回退到其 Windows 计算机名{0}。裸计算机名不是公共 DNS 名称: 把 HELO 与 DNS 比对的收件方会为此扣分，也没有任何 PTR 能与之相符。请先设置一个真实的主机名。</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>“协议”页面上的主机名为空，因此服务器回退到其 Windows 计算机名{0}。裸计算机名不是公共 DNS 名称：把 HELO 与 DNS 比对的收件方会为此扣分，也没有任何 PTR 能与之相符。请先设置一个真实的主机名。</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>IP 范围 {0} 仅通过 TLS 接受密码。</value>
@@ -10459,6 +10513,18 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>hMailServer 6.x 系列就是这样一项努力。这个原始的开源邮件服务器已在当前工具链 (Visual Studio 2026 / MSVC v145 和 .NET 10) 上重建，重新配备了现代密码学 (PBKDF2 / Argon2id、SCRAM-SHA-256、OAuth2) 以及当今邮件服务器所应具备的传输安全标准 (DANE + DNSSEC、MTA-STS、ARC、Ed25519 DKIM、TLS-RPT 和 ACME / Let's Encrypt)。它针对协议和拒绝服务缺陷进行了加固，加入了 Sieve / ManageSieve 过滤、健康检查和 OpenTelemetry 可观测性、对 MySQL / MariaDB / MS SQL / PostgreSQL 的广泛支持，以及这个取代旧版管理器的 Fluent 设计的现代控制面板。</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>主机名 - 本服务器向其他服务器提供的名称</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>无法从服务器读取主机名。</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>主机名 {0} 以一个没有任何公共 DNS 会应答的名称结尾，因此互联网上的接收方无法查询它。</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>主机名 {0} 不是完整的 DNS 名称（例如 mail.example.com），因此没有任何 DNS 记录能与之相符。</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>此 id ({0}，刚刚生成) 由您自行选择 - 任何值都是正确的。它唯一的作用是在策略变化时随之变化，好让缓存重新获取。</value>
   </data>
@@ -10675,8 +10741,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The port to ask on" xml:space="preserve">
     <value>询问使用的端口</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>各协议监听的端口、其绑定地址和连接安全性。更改后必须重启服务。“正在监听”列读取自本机已打开的端口，而不是配置，因此它显示的是实际发生的情况，而不是所要求的情况。</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>各协议监听的端口、其绑定地址和连接安全性。更改在重新初始化服务器后生效，本页会在每次更改后提供重新初始化。“正在监听”列读取自本机已打开的端口，而不是配置，因此它显示的是实际发生的情况，而不是所要求的情况。</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>私钥不属于此证书: 它们的公钥不同。这一对不会加载 (服务器错误 5113)，使用此证书的每个 TLS 端口都将无法启动。请将此条目指向与此证书一起生成的密钥文件。</value>
@@ -10730,6 +10796,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>记录正在传播。</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>该记录以主机名指代本服务器，而该主机名还不是互联网能够查询的名称，因此暂时没有可发布的值。请在“协议”页面的 SMTP 选项卡上设置它，然后再回来。</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>本服务器需要在每个域的 DNS 区域中发布的记录: 类型、主机和值，可直接复制到您 DNS 提供商的控制台中，并检查每一条是否真的已生效。检查使用本机的 Windows 解析器 - 与 DKIM 轮换检查使用的是同一个。</value>
@@ -10871,8 +10940,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>要询问的服务器（留空则询问该域的 MX 主机）</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>服务器的主机名 (电子邮件投递) 为空，因此它在 HELO/EHLO 中通告的是其 Windows 计算机名 - 不是公共 DNS 名称 - 也就无法诚实地提供任何 "a:" 机制。建议只授权该域的 MX 主机。请先设置主机名；本页的多条记录都需要它。</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>服务器的主机名 (协议 &gt; SMTP) 为空，因此它在 HELO/EHLO 中通告的是其 Windows 计算机名 - 不是公共 DNS 名称 - 也就无法诚实地提供任何 "a:" 机制。建议只授权该域的 MX 主机。请先设置主机名；本页的多条记录都需要它。</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>无法读取服务器的回应。</value>
@@ -11096,8 +11165,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>此组中没有账户，因此授予它的任何权限目前对任何人都不适用。</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>这是“设置”&gt;“电子邮件投递”&gt;“主机名”，即服务器在每次出站投递的 HELO/EHLO 中通告的名称 (Utilities::ComputerName)。请让 IP 的所有者把您公网 IP 的 PTR 精确解析到此名称，并为此名称发布一条指回同一 IP 的 A 记录 - 接收方会检查两个方向。</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>这是“协议”&gt;“SMTP”&gt;“主机名”，即服务器在每次出站投递的 HELO/EHLO 中通告的名称 (Utilities::ComputerName)。请让 IP 的所有者把您公网 IP 的 PTR 精确解析到此名称，并为此名称发布一条指回同一 IP 的 A 记录 - 接收方会检查两个方向。</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>这是 hMailServer.INI 中的 [Settings] UseLanguage。服务器只是通过 COM API 把它返回 - 它自己不翻译任何内容，而此控制面板有自己的语言设置 (右上角管理员菜单中的“更改语言”) - 因此它只影响第三方管理工具。退信和错误的措辞在“服务器消息”页。</value>
@@ -11134,6 +11203,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>这在发送方服务器等待其 DATA 应答时运行，因此这个数字是对最坏情况的承诺，而不是提示。它既限制连接也限制应答: 否则一台机器已经消失的引擎会在每封邮件上耗掉操作系统自身的 TCP 超时。</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>本服务器自称 {0}。其公共地址的 PTR 记录是否指向该名称，以及该名称自身的地址记录是否指回，无法从这里判断：DNS 记录页面会说明需要请求什么。</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>本服务器无法读取域表，因此无法说明样例是否存在。在能读取之前不提供任何操作。</value>
@@ -13533,6 +13605,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}，{2} 到期</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0}（此控制面板不认识的值）</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0}（已过期）</value>
   </data>
@@ -13703,6 +13778,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} 已开启，但无法运行。{1} 它被要求执行的每一次扫描都会失败，而失败的扫描并不等于失败的邮件：错误会被记录下来，邮件则会像已经检查过并判定干净一样被投递。</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0} 已开启，但无法运行。{1} 它被要求执行的每一次扫描都会失败，而在没有其他扫描器作答期间，每封邮件都会被暂挂并再次扫描，暂挂次数用完后退回给发件人。</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} 是样例域，此处不计入；用完后请将其移除。</value>
@@ -13892,6 +13970,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>{0}% 的查找由内存作答，占用 {1} KB</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>{0} 的 MX 记录指向 {1}，即本服务器的主机名：{2}。</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>{0} 的邮件投往 {1}，而不是本服务器的主机名。如果有过滤服务或另一台服务器先接收邮件再转交，这是正确的；否则请更改该记录。</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}，一个没有密码的虚拟服务账户</value>

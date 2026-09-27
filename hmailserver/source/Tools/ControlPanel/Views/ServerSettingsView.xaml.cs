@@ -795,6 +795,64 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>
+      /// One of a few numbered choices stored in hMailServer.ini: the words of
+      /// each choice in a list, where a number box asked the reader to remember
+      /// what 0 and 1 meant. A value the list does not know - written by hand, or
+      /// by a newer server - is offered as itself and kept, never replaced by the
+      /// first choice on a save.
+      /// </summary>
+      private class IniChoice : ComSetting, IIniSetting
+      {
+         public int Default;
+         public (int Value, string Label)[] Options;
+         public IniFeatureStore IniStore;
+         private ComboBox combo_;
+         private int? loaded_;
+
+         public override bool WantsInitialValue => false;
+
+         protected override FrameworkElement BuildEditor(object value)
+         {
+            int current = Default;
+            if (IniStore != null && IniStore.IsAvailable && !int.TryParse(IniStore.Read(Path, Default.ToString()), out current))
+               current = Default;
+
+            loaded_ = current;
+            combo_ = ComboEditor();
+            foreach ((int v, string l) in ChoiceOptions.WithUnknown(Options, current))
+            {
+               var item = new ComboBoxItem { Content = l, Tag = v };
+               combo_.Items.Add(item);
+               if (v == current)
+                  combo_.SelectedItem = item;
+            }
+            Describe(combo_, Path);
+            Watch(combo_);
+            return combo_;
+         }
+
+         public override object ReadEditor()
+            => combo_?.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : loaded_ ?? Default;
+
+         public bool SaveToIni()
+         {
+            if (WithheldEntry != null)
+               return SaveWithheld(IniStore, Path);
+
+            if (IniStore == null || !IniStore.IsAvailable || combo_ == null)
+               return false;
+
+            int value = (int)ReadEditor();
+            if (loaded_ == value)
+               return false;
+
+            IniStore.Write(Path, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            loaded_ = value;
+            return true;
+         }
+      }
+
       private class ComCombo : ComSetting
       {
          public (int Value, string Label)[] Options;
@@ -807,20 +865,29 @@ namespace hMailServer.ControlPanel.Views
          public int SelectedValue
             => combo_?.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : 0;
 
+         /// <summary>
+         /// How the value the server holds is named when it is none of Options: null
+         /// names it by its number (ChoiceOptions.WithUnknown). A row reached over
+         /// the REST API, which answers a word, names it by the word.
+         /// </summary>
+         protected virtual string UnknownText => null;
+
          protected override FrameworkElement BuildEditor(object value)
          {
             combo_ = ComboEditor();
             int sel;
-            try { sel = Convert.ToInt32(value); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { sel = 0; }
-            foreach ((int v, string l) in Options)
+            try { sel = Convert.ToInt32(value); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { sel = Options.Length > 0 ? Options[0].Value : 0; }
+
+            // A value that is none of the choices is offered as itself, so that the
+            // page - which saves every row - writes back what it read rather than
+            // the first choice (Services/ChoiceOptions).
+            foreach ((int v, string l) in ChoiceOptions.WithUnknown(Options, sel, UnknownText))
             {
                var item = new ComboBoxItem { Content = l, Tag = v };
                combo_.Items.Add(item);
                if (v == sel)
                   combo_.SelectedItem = item;
             }
-            if (combo_.SelectedItem == null && combo_.Items.Count > 0)
-               combo_.SelectedIndex = 0;
             Describe(combo_, Path);
             Watch(combo_);
             return combo_;
@@ -1350,13 +1417,26 @@ namespace hMailServer.ControlPanel.Views
          public string[] Words;
          private string loaded_;
 
+         // The word the server answered when it is none of Words: offered as itself
+         // (ComCombo.UnknownText), under a number no option has, and never sent.
+         private string unknown_;
+         private const int UnknownValue = int.MinValue;
+
          string IRestSetting.Group => Group;
          string IRestSetting.Key => Key;
+
+         protected override string UnknownText => unknown_;
 
          public object ToEditor(object answered)
          {
             int at = Array.IndexOf(Words, answered as string);
-            return at >= 0 ? Options[at].Value : Options[0].Value;
+            if (at >= 0)
+               return Options[at].Value;
+
+            // Shown as the first choice, a word this Control Panel does not know
+            // was sent back as that choice by the next save of the page.
+            unknown_ = Convert.ToString(answered, System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            return UnknownValue;
          }
 
          public void Loaded(object answered) => loaded_ = answered as string;
@@ -1451,6 +1531,13 @@ namespace hMailServer.ControlPanel.Views
       private static readonly (int, string)[] AntivirusAction =
       {
          (0, L("Delete entire e-mail")), (1, L("Delete infected attachments only"))
+      };
+
+      // AVFailAction ([Settings] in hMailServer.INI): what a message no scanner could
+      // scan becomes - AntiVirusConfiguration's 0 (deliver) and 1 (hold, retry, return).
+      private static readonly (int, string)[] AvFailAction =
+      {
+         (0, L("Deliver it (default)")), (1, L("Hold it and scan it again, then return it to the sender"))
       };
 
       // Settings.SandboxTimeoutAction: what a hold the sandbox did not answer for ends in.
@@ -2525,12 +2612,13 @@ namespace hMailServer.ControlPanel.Views
          // an ini file the people who care about it will never open.
          var failure = Card(L("When a scanner cannot run"),
             L("A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately."));
-         failure.Settings.Add(new IniNumber
+         failure.Settings.Add(new IniChoice
          {
             Path = "AVFailAction",
-            Label = L("If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it"),
+            Label = L("If a message cannot be scanned"),
             Default = 0,
-            Blurb = L("0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail."),
+            Options = AvFailAction,
+            Blurb = L("Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below."),
             IniStore = iniStore_
          });
          failure.Settings.Add(new IniNumber
@@ -5688,8 +5776,13 @@ namespace hMailServer.ControlPanel.Views
       /// rows are counted. The server checks every key of a PUT before it applies any
       /// of them, so a refusal leaves the whole group as it was, and it is said with
       /// the server's own sentence.
+      ///
+      /// waiting counts the rows written here whose change the running server does
+      /// not take until a restart or a reinitialize - the SNMP agent's, which it reads
+      /// as it starts (AppliesMark) - so that the save does not say "applied
+      /// immediately" of a port the agent will go on answering on until then.
       /// </summary>
-      private void SaveRest_(List<IRestSetting> rows, ref int saved, ref int failed, ref string firstFailure)
+      private void SaveRest_(List<IRestSetting> rows, ref int saved, ref int failed, ref string firstFailure, ref int waiting)
       {
          if (rows.Count == 0)
             return;
@@ -5723,7 +5816,11 @@ namespace hMailServer.ControlPanel.Views
             if (reply != null && reply.Ok)
             {
                foreach (IRestSetting row in changed)
+               {
                   row.Accepted();
+                  if (row is ComSetting { AppliesMark: SettingApplies.Restart or SettingApplies.Reinitialize })
+                     waiting++;
+               }
                saved += group.Count();
                continue;
             }
@@ -5821,7 +5918,8 @@ namespace hMailServer.ControlPanel.Views
             }
          }
 
-         SaveRest_(restRows, ref saved, ref failed, ref firstFailure);
+         int restWaiting = 0;
+         SaveRest_(restRows, ref saved, ref failed, ref firstFailure, ref restWaiting);
 
          // A save publishes (docs/SettingsApply.md): a key marked now is in effect
          // already, and the ones that are not are what the server lists as pending.
@@ -5834,7 +5932,7 @@ namespace hMailServer.ControlPanel.Views
          // One read of the pending list for the whole save; the window's bar reuses
          // it. Null - the server cannot say, an older one whose keys all apply at its
          // next start - is not "none", and the sentence then says what it said then.
-         int? waiting = databaseRowsChanged;
+         int? waiting = databaseRowsChanged + restWaiting;
          if (iniKeys.Count > 0)
          {
             IReadOnlyList<string> pendingList = IniFeatureStore.PendingNames();
@@ -5845,7 +5943,7 @@ namespace hMailServer.ControlPanel.Views
             else
             {
                var pending = new HashSet<string>(pendingList, StringComparer.OrdinalIgnoreCase);
-               waiting = databaseRowsChanged + iniKeys.Count(pending.Contains);
+               waiting = databaseRowsChanged + restWaiting + iniKeys.Count(pending.Contains);
             }
          }
 

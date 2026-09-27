@@ -115,10 +115,13 @@ enrolment is refused with 503 and a sentence saying so, its CRL is not served,
 and the error log says why once per root - and **must be rotated** on the new
 machine.
 
-The **Control Panel shows nothing of it**. It reads the server over COM alone
-(a domain's DKIM rotation, for one, is `Domain.DKIMRotationStatus`), and the
-authority has no COM surface, so there is nothing its domain dialog could read.
-It is managed in the Deck and over REST.
+The **Control Panel shows nothing of the authority itself**. Its domain dialog
+reads a domain over COM (a domain's DKIM rotation, for one, is
+`Domain.DKIMRotationStatus`), and the authority has no COM surface, so there is
+nothing that dialog could read. It is managed in the Deck and over REST. The one
+server-wide setting, `smime_authority_base_url` (below), is on the Control
+Panel's Connections & protocols > Webmail page, the Encryption tab, which reaches
+it over the REST API, so the REST API has to be on.
 
 Enrolment, step by step
 -----------------------
@@ -238,7 +241,8 @@ name as written, with anything but a letter, a digit, a dot or a hyphen as
 `%XX`.
 
 **`smime_authority_base_url`** (`PUT /api/v1/settings`, the Deck's Settings
-page, `SmimeAuthorityBaseUrl` in `hm_settings`) is where the clients reach that
+page, the Control Panel's Webmail page on its Encryption tab,
+`SmimeAuthorityBaseUrl` in `hm_settings`) is where the clients reach that
 listener, such as `http://pki.example.com`. It is refused unless it is
 absolute - `http://` (or `https://` behind a proxy), a host of letters, digits,
 dots and hyphens (a name that is not ASCII in its punycode form) with a port if
@@ -505,7 +509,9 @@ What it is not
   domain; not a domain alias's form of the address, not another domain's alias.
 - **Issued on enrolment, not pushed.** A person gets a certificate by asking
   for one in the webmail; nothing is issued to every account at once.
-- **No Control Panel and no COM.** The Deck and REST are the surfaces.
+- **No COM, and of the Control Panel only the base URL.** The Deck and REST are
+  the surfaces; the Control Panel's Webmail page sets `smime_authority_base_url`
+  on its Encryption tab, over the REST API.
 - **No automatic renewal.** A certificate lasts a year; the person enrols again
   before it runs out, and the webmail lists when each ends.
 - **The CRL is made per server process and cached in memory**; two servers on

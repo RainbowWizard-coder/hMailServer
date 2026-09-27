@@ -625,7 +625,7 @@ Settings and surfaces
 
 | Where | What |
 |---|---|
-| `mailbox_key_idle_minutes` in `/api/v1/settings` | How long an unheld key stays open after its owner's last use: `MailboxKeyIdleMinutes` in `hm_settings`, 15. On REST and the Deck's server settings only - there is no COM property and no Control Panel page for it |
+| `mailbox_key_idle_minutes` in `/api/v1/settings` | How long an unheld key stays open after its owner's last use: `MailboxKeyIdleMinutes` in `hm_settings`, 15. On REST, the Deck's server settings and the Control Panel's Maintenance > Performance page, Message store tab, which reaches it over the REST API - there is no COM property for it |
 | `GET` / `PUT` / `DELETE /api/v1/accounts/{address}/mailbox-encryption` | The account's state (`enabled`, `keyed`, `open`, `damaged` - its row holds no key, and only the forfeit removes it - `pending`, `fingerprint`, `created`, `changed`, `zero_access`, `domain_recovery`, `recovery_current` - whether the domain's passphrase opens the key's recovery copy); the switch; the forfeit (`?confirm=forfeit`). *view accounts* reads, *manage accounts* writes - and every write is refused (403) for an account whose authority the credential does not hold, as a password reset is: a domain administrator does not switch a server administrator's mailbox |
 | `POST /api/v1/accounts/{address}/mailbox-encryption/recover` | The recovery: the domain's passphrase and the new password. *manage accounts*, and the same refusal |
 | `GET` / `PUT` / `DELETE /api/v1/domains/{domain}/mailbox-recovery` | The domain's recovery key: its state (`exists`, `fingerprint`, `hint`, `created`, `accounts`, `replacement_unfinished`); made or replaced; removed. *view accounts* reads, *manage accounts* writes |
@@ -664,11 +664,13 @@ What is thinner than the row
   the webmail's Security page does not show it yet, and has no *device key* that would let
   a passkey sign-in open the mailbox - a keyed mailbox signs in to the webmail with its
   password.
-* **No Control Panel page and no COM** for the switch, the recovery, or
-  `MailboxKeyIdleMinutes`: the Deck and the REST API are where they are, and the Control
-  Panel's settings search does not find the setting. COM refuses to set a password while
-  the key is closed, and a second factor on a keyed account, with the sentence, and says
-  nothing else about it.
+* **No Control Panel page and no COM** for the switch or the recovery: the Deck and the
+  REST API are where they are. `MailboxKeyIdleMinutes` has no COM property either; the
+  Control Panel has it on Maintenance > Performance, the Message store tab (the
+  *Mailboxes encrypted at rest* card), which reaches it over the REST API, so the REST
+  API has to be on, and its settings search finds it there. COM refuses to set a
+  password while the key is closed, and a second factor on a keyed account, with the
+  sentence, and says nothing else about it.
 * **An account's key is never rotated.** Rotating it would mean re-encrypting every file;
   the recovery key can be replaced, and re-seals every account's key.
 * **Search reads every message** of an encrypted mailbox, while its key is open.

@@ -188,8 +188,8 @@
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>«done spam-protection», далі тиша</value>
   </data>
-  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Delivery of e-mail &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
-    <value>«mx» авторизує все, на що вказують MX-записи домену {0}; «a:{1}» авторизує адресу того імені вузла, яке цей сервер повідомляє в HELO/EHLO (Доставка пошти &gt; Ім’я вузла). «~all» дає м’яку відмову для всього іншого — навмисно м’якше за «-all», доки ви не впевнені, що список повний.</value>
+  <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
+    <value>«mx» авторизує все, на що вказують MX-записи домену {0}; «a:{1}» авторизує адресу того імені вузла, яке цей сервер повідомляє в HELO/EHLO (Протоколи &gt; SMTP &gt; Ім'я вузла). «~all» дає м’яку відмову для всього іншого — навмисно м’якше за «-all», доки ви не впевнені, що список повний.</value>
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» не збережено: {1}</value>
@@ -238,6 +238,9 @@
   </data>
   <data name="(none)" xml:space="preserve">
     <value>(немає)</value>
+  </data>
+  <data name="(set the host name first: Protocols &gt; SMTP &gt; Host name)" xml:space="preserve">
+    <value>(спершу задайте ім'я вузла: Протоколи &gt; SMTP &gt; Ім'я вузла)</value>
   </data>
   <data name="(the log file could not be written)" xml:space="preserve">
     <value>(не вдалося записати файл журналу)</value>
@@ -295,9 +298,6 @@
   </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 — типове значення з постачання; воно вимикає весь механізм.</value>
-  </data>
-  <data name="0 is the shipped default and preserves today's behaviour exactly. 1 never delivers unscanned mail." xml:space="preserve">
-    <value>0 — типове значення з постачання, воно точно зберігає теперішню поведінку. 1 ніколи не доставляє неперевірену пошту.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 — типове значення з постачання. 2 — розумний початок: помилково введений пароль коштує людині двох секунд один раз, а клієнтові, який перебирає паролі, — двох, чотирьох, шести… секунд на кожну спробу.</value>
@@ -602,8 +602,8 @@
   <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
     <value>Ім’я домену тут вимагає, щоб сам комп’ютер СЕРВЕРА було приєднано до цього домену, бо Windows перевіряє його через LogonUser. З комп’ютера, не приєднаного до домену, кожна спроба завершується так, ніби пароль неправильний, — зокрема й тоді, коли ім’я домену просто написано з помилкою, — тож поштова скринька, налаштована таким чином на неприєднаному сервері, ніколи не зможе увійти й ніколи не скаже чому. Якщо сервер не приєднано до домену, скористайтеся натомість автентифікацією через каталог LDAP на сторінці «Автентифікація через каталог»: вона виконує прив’язку до каталогу мережею й не потребує приєднання до домену.</value>
   </data>
-  <data name="A domain named {0} is on this server and the sample did not make it, so nothing here creates it or removes it. Delete that domain yourself if it is not wanted." xml:space="preserve">
-    <value>На цьому сервері є домен з іменем {0}, і зразок його не створював, тож тут ніщо його не створює і не вилучає. Вилучіть цей домен самостійно, якщо він не потрібен.</value>
+  <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
+    <value>Домен з іменем {0} уже є на цьому сервері, і це не зразковий домен, який створює ця сторінка, тому зразок тут створити не можна, а ця сторінка цей домен не вилучить. Якщо цей домен вам не потрібен, видаліть його на сторінці «Домени».</value>
   </data>
   <data name="A domain or an account address is required." xml:space="preserve">
     <value>Потрібен домен або адреса облікового запису.</value>
@@ -667,6 +667,9 @@
   </data>
   <data name="A message scoring {0} or more is marked as spam and delivered; {1} or more is refused (550 before the body, 554 after it)." xml:space="preserve">
     <value>Повідомлення з оцінкою {0} або вищою позначається як спам і доставляється; з оцінкою {1} або вищою — відхиляється (550 до тіла повідомлення, 554 після нього).</value>
+  </data>
+  <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). None is only marked: the mark threshold, {1}, is not below that." xml:space="preserve">
+    <value>Повідомлення з оцінкою {0} або вищою відхиляється (550 до тіла повідомлення, 554 після нього). Жодне не лише позначається: поріг позначення, {1}, не нижчий.</value>
   </data>
   <data name="A message scoring {0} or more is refused (550 before the body, 554 after it). Nothing is marked." xml:space="preserve">
     <value>Повідомлення з оцінкою {0} або вищою відхиляється (550 до тіла повідомлення, 554 після нього). Нічого не позначається.</value>
@@ -763,6 +766,9 @@
   </data>
   <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
     <value>Сканування, яке завершилося помилкою, перевищило час очікування або не змогло дістатися свого рушія, не є чистим висновком — ніхто нічого не перевірив. Поведінка з постачання — усе одно доставити повідомлення, і саме так цей сервер робив завжди; утримати його натомість — суворіший вибір, який слід робити свідомо.</value>
+  </data>
+  <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
+    <value>Сканер, який не може запуститися, не відхиляє повідомлення. Помилка записується до журналу, а перевірка переходить до наступного сканера; коли жоден із них не може відповісти, повідомлення утримується й сканується знову, а коли утримання вичерпано, повертається відправникові («Якщо повідомлення не вдається просканувати» на сторінці «Параметри захисту від вірусів»). Саме тому ця сторінка показує, чи може кожен сканер запуститися, а не чи його ввімкнено.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Сканер, який не може запуститися, не відхиляє повідомлення. Помилка записується до журналу, а перевірка переходить до наступного сканера; коли жоден із них не може відповісти, повідомлення обробляється точно так, ніби його перевірили й визнали чистим. Саме тому ця сторінка показує, чи може кожен сканер запуститися, а не чи його ввімкнено.</value>
@@ -3442,6 +3448,9 @@
   <data name="Deliver each message to the accounts its headers name (a mailbox shared by several people)" xml:space="preserve">
     <value>Доставляти кожне повідомлення обліковим записам, названим у його заголовках (скринька, спільна для кількох людей)</value>
   </data>
+  <data name="Deliver it (default)" xml:space="preserve">
+    <value>Доставити його (типово)</value>
+  </data>
   <data name="Deliver it with a header saying so" xml:space="preserve">
     <value>Доставити його із заголовком, який про це каже</value>
   </data>
@@ -3471,6 +3480,9 @@
   </data>
   <data name="Delivering" xml:space="preserve">
     <value>Доставляється</value>
+  </data>
+  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Доставка — це типова поведінка з постачання і те, що цей сервер робив завжди. Утримання ніколи не доставляє неперевірену пошту: повідомлення сканується знову з указаним нижче інтервалом і повертається відправникові після вказаної нижче кількості утримань.</value>
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: повідомлення прийнято, але воно ніколи не виходить</value>
@@ -4101,6 +4113,9 @@
   <data name="Every port the IP range {0} may use starts TLS before it takes a password." xml:space="preserve">
     <value>Кожен порт, який може використовувати діапазон IP {0}, запускає TLS, перш ніж прийняти пароль.</value>
   </data>
+  <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
+    <value>Кожному серверу, якому цей сервер доставляє пошту, повідомляється ім'я вузла цього сервера, і той порівнює його з DNS: з адресою цього імені та з PTR-записом адреси, з якої надійшла пошта. Ім'я, що не збігається, зараховується не на користь пошти.</value>
+  </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Кожна перевірка на спам у порядку, в якому сервер їх виконує, що кожна додає до оцінки і що ця оцінка потім робить із повідомленням.</value>
   </data>
@@ -4650,6 +4665,9 @@
   <data name="Hold attachments for the sandbox's verdict" xml:space="preserve">
     <value>Затримувати вкладення до вердикту пісочниці</value>
   </data>
+  <data name="Hold it and scan it again, then return it to the sender" xml:space="preserve">
+    <value>Утримати його й просканувати знову, потім повернути відправникові</value>
+  </data>
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Утримувати повідомлення для перегляду замість відхилення</value>
   </data>
@@ -4899,8 +4917,8 @@
   <data name="Idle timeouts" xml:space="preserve">
     <value>Часи очікування простою</value>
   </data>
-  <data name="If a message cannot be scanned: 0 = deliver it, 1 = hold it and eventually return it" xml:space="preserve">
-    <value>Якщо повідомлення не вдається просканувати: 0 = доставити, 1 = утримати і зрештою повернути</value>
+  <data name="If a message cannot be scanned" xml:space="preserve">
+    <value>Якщо повідомлення не вдається просканувати</value>
   </data>
   <data name="If every message stalls, not just one" xml:space="preserve">
     <value>Якщо зависає кожне повідомлення, а не одне</value>
@@ -4910,6 +4928,9 @@
   </data>
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Якщо каталог не може відповісти</value>
+  </data>
+  <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
+    <value>Якщо {0} уже отримує пошту деінде — у постачальника розміщених поштових скриньок, на іншому сервері, — публікація цього запису перенесе цю пошту сюди. Змінюйте запис, лише коли цей сервер готовий приймати цю пошту.</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ігнорується сервером - збережений дайджест не є придатним значенням SHA-256, тому цей розділ нічого не автентифікує. Відкличте його і створіть заміну.</value>
@@ -5504,11 +5525,20 @@
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
     <value>MTA-STS — вимагати TLS від серверів, які доставляють до </value>
   </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
   <data name="MX check score" xml:space="preserve">
     <value>Оцінка перевірки MX</value>
   </data>
   <data name="MX query" xml:space="preserve">
     <value>Запит MX</value>
+  </data>
+  <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
+    <value>Значення MX — пріоритет, потім ім'я сервера, який приймає пошту:</value>
+  </data>
+  <data name="MX — which server takes the mail for " xml:space="preserve">
+    <value>MX — який сервер приймає пошту для </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>К_ерується менеджером списку</value>
@@ -6159,6 +6189,9 @@
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Автентифікація через LDAP не виконується. Пов’язані з каталогом облікові записи й далі перевіряються через вхід Windows, і сервер повідомляє про це (помилка 5922) раз на хвилину, щоб це не могло завершитися невдачею мовчки.</value>
   </data>
+  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
+    <value>Резолвер цього комп’ютера не знайшов MX-запису для {0}. </value>
+  </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>З цього комп’ютера MX-записів не знайдено, тому сервер повернувся б до власного імені вузла.</value>
   </data>
@@ -6296,6 +6329,9 @@
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Групу з назвою '{0}' не знайдено.</value>
+  </data>
+  <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
+    <value>Ім'я вузла не задано, тому цей сервер оголошує ім'я свого комп'ютера Windows, якого не знає жоден DNS в інтернеті.</value>
   </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Ім’я вузла або адресу не задано.</value>
@@ -6471,8 +6507,8 @@
   <data name="Not checked" xml:space="preserve">
     <value>Не перевірено</value>
   </data>
-  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
-    <value>Звідси не перевіряється, чесно кажучи: для перевірки PTR потрібна ПУБЛІЧНА IP-адреса сервера, яку ця панель не може визначити (за NAT комп’ютер і сам її не знає), а перевірник цієї сторінки читає лише TXT-записи. Перевірте натомість ззовні: nslookup &lt;your public IP&gt; показує PTR; він має називати вузол, наведений вище.</value>
+  <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
+    <value>Звідси не перевіряється, чесно кажучи: для перевірки PTR потрібна ПУБЛІЧНА IP-адреса сервера, яку ця панель не може визначити (за NAT комп’ютер і сам її не знає), а перевірник цієї сторінки читає лише TXT- і MX-записи. Перевірте натомість ззовні: nslookup &lt;your public IP&gt; показує PTR; він має називати вузол, наведений вище.</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ще не перевірялося (натисніть «Перевірити оновлення» або ввімкніть щоденну перевірку в розділі «Оновлення» на сторінці «API та моніторинг»)</value>
@@ -6795,6 +6831,9 @@
   <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
     <value>На сторінці Резервне копіювання задайте теку, до якої записується резервна копія, на іншому диску, ніж той, де лежить сховище повідомлень.</value>
   </data>
+  <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
+    <value>На вкладці SMTP сторінки «Протоколи» задайте в полі «Ім'я вузла» повне DNS-ім'я цього сервера, наприклад mail.example.com. Потім попросіть власника публічної адреси сервера створити PTR-запис із цим ім'ям; сторінка «DNS-записи» показує, про що просити.</value>
+  </data>
   <data name="On the Server limits &amp; expert settings page, card Windows service account: Move to NT SERVICE\hMailServer grants the service its folders - asking first about any folder or key file the configuration names outside them - and moves it; then restart the service. Running the installer again offers the same choice. An external database with Windows authentication needs a login for the account as well." xml:space="preserve">
     <value>На сторінці «Обмеження сервера та експертні параметри», картка «Обліковий запис служби Windows»: «Перейти на NT SERVICE\hMailServer» надає службі її папки — спершу запитуючи про кожну папку чи файл ключа, які конфігурація називає поза ними, — і переводить її; потім перезапустіть службу. Повторний запуск інсталятора пропонує той самий вибір. Зовнішній базі даних з автентифікацією Windows також потрібне ім'я входу для цього облікового запису.</value>
   </data>
@@ -6909,9 +6948,6 @@
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Відкрити «Заблоковані вкладення», де задається список шаблонів імен файлів</value>
   </data>
-  <data name="Open Delivery of e-mail, which owns the Host name" xml:space="preserve">
-    <value>Відкрити «Доставка пошти», де задається ім’я вузла</value>
-  </data>
   <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
     <value>Відкрити «Домени», де вкладка «Каталог» облікового запису пов’язує його з каталогом</value>
   </data>
@@ -6938,6 +6974,9 @@
   </data>
   <data name="Open Logging settings" xml:space="preserve">
     <value>Відкрити параметри журналювання</value>
+  </data>
+  <data name="Open Protocols, whose SMTP tab has the Host name" xml:space="preserve">
+    <value>Відкрити «Протоколи», де на вкладці SMTP є поле «Ім'я вузла»</value>
   </data>
   <data name="Open SSL certificates, which owns the certificate and key file paths" xml:space="preserve">
     <value>Відкрити «Сертифікати SSL», де задаються шляхи до файлів сертифіката та ключа</value>
@@ -7076,6 +7115,9 @@
   </data>
   <data name="Other failure" xml:space="preserve">
     <value>Інший збій</value>
+  </data>
+  <data name="Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to." xml:space="preserve">
+    <value>Інші поштові сервери шукають MX-запис домену, щоб дізнатися, куди доставляти його пошту; без нього пошта на його адреси сюди не надходить. Серверу, названому в записі, потрібен адресний запис (A, а для IPv6 — AAAA), що вказує на публічну IP-адресу цього сервера, — ту, на яку ваш маршрутизатор або брандмауер перенаправляє порт 25.</value>
   </data>
   <data name="Out of office" xml:space="preserve">
     <value>Не на місці</value>
@@ -7565,6 +7607,9 @@
   <data name="Published, differs from the suggestion" xml:space="preserve">
     <value>Опубліковано, відрізняється від пропонованого</value>
   </data>
+  <data name="Published, names another server" xml:space="preserve">
+    <value>Опубліковано, називає інший сервер</value>
+  </data>
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Опубліковано, суворіше за початкову точку</value>
   </data>
@@ -7845,6 +7890,9 @@
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Інтервал закінчення терміну дії записів, хвилин</value>
   </data>
+  <data name="Record type: MX.  Host/Name" xml:space="preserve">
+    <value>Тип запису: MX.  Вузол/Ім’я</value>
+  </data>
   <data name="Record type: TXT.  Host/Name" xml:space="preserve">
     <value>Тип запису: TXT.  Вузол/Ім’я</value>
   </data>
@@ -7949,6 +7997,9 @@
   </data>
   <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
     <value>Повторну ініціалізацію виконано — збережені параметри діють.</value>
+  </data>
+  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+    <value>Повторну ініціалізацію виконано — сервер тепер слухає порти так, як їх перелічено на цій сторінці.</value>
   </data>
   <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Повторну ініціалізацію виконано — налаштування, що на неї чекали, діють; {0} ще чекають на перезапуск служби.</value>
@@ -8110,10 +8161,10 @@
 
 Кожен власний діапазон — включно з будь-якими записами автоблокування — буде вилучено й замінено на «Мій комп’ютер» (127.0.0.1) та «Інтернет» (усе інше). Це негайно змінює, хто може підключатися та ретранслювати.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is restarted." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Замінити ВСІ налаштовані порти типовими?
 
-SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключення. Порти TLS і власні прив’язки буде вилучено. Зміна набуває чинності після перезапуску сервера.</value>
+SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключення. Порти TLS і власні прив’язки буде вилучено. Зміна набуває чинності після повторної ініціалізації сервера.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Замініть сертифікат тут; для кожного зазначено дату закінчення терміну дії.</value>
@@ -8726,6 +8777,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Збережено. Компілятор повідомив: {0}</value>
+  </data>
+  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+    <value>Збережено. Сервер і далі слухає порти, як раніше, доки його служби не буде повторно ініціалізовано — зупинено й знову запущено на місці, через що підключені клієнти на мить від'єднаються. Виконати повторну ініціалізацію сервера зараз?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
     <value>Збережено. Сервер підхопить вибір протягом двох секунд; зміна розкладу потребує перезапуску служби.</value>
@@ -10068,8 +10122,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>Хост HELO/EHLO</value>
   </data>
-  <data name="The Host name on Delivery of e-mail is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Ім'я вузла на сторінці «Доставка пошти» ПОРОЖНЄ, тому сервер відкочується до імені свого комп'ютера Windows{0}. Голе ім'я комп'ютера - не публічне ім'я DNS: отримувачі, які порівнюють HELO з DNS, штрафуватимуть його, і жоден PTR не може з ним збігтися. Спершу задайте справжнє ім'я вузла.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Ім'я вузла на сторінці «Протоколи» ПОРОЖНЄ, тому сервер відкочується до імені свого комп'ютера Windows{0}. Голе ім'я комп'ютера - не публічне ім'я DNS: отримувачі, які порівнюють HELO з DNS, штрафуватимуть його, і жоден PTR не може з ним збігтися. Спершу задайте справжнє ім'я вузла.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>Діапазон IP {0} приймає пароль лише через TLS.</value>
@@ -10459,6 +10513,18 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>Лінійка hMailServer 6.x - одне з таких починань. Оригінальний поштовий сервер з відкритим кодом перебудовано на сучасному інструментарії (Visual Studio 2026 / MSVC v145 та .NET 10), переозброєно сучасною криптографією (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) і стандартами транспортної безпеки, яких сьогодні очікують від поштового сервера (DANE + DNSSEC, MTA-STS, ARC, DKIM на Ed25519, TLS-RPT та ACME / Let's Encrypt). Його зміцнено проти дефектів протоколів і відмови в обслуговуванні, надано фільтрацію Sieve / ManageSieve, спостережуваність через health-ендпоінти та OpenTelemetry, широку підтримку MySQL / MariaDB / MS SQL / PostgreSQL і цю сучасну Панель керування в дизайні Fluent замість застарілого адміністратора.</value>
   </data>
+  <data name="The host name - the name this server gives other servers" xml:space="preserve">
+    <value>Ім'я вузла — ім'я, яке цей сервер повідомляє іншим серверам</value>
+  </data>
+  <data name="The host name could not be read from the server." xml:space="preserve">
+    <value>Не вдалося прочитати ім'я вузла із сервера.</value>
+  </data>
+  <data name="The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up." xml:space="preserve">
+    <value>Ім'я вузла {0} закінчується іменем, на яке не відповідає жоден публічний DNS, тому отримувач в інтернеті не може його знайти.</value>
+  </data>
+  <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
+    <value>Ім'я вузла {0} не є повним DNS-ім'ям, як-от mail.example.com, тому жоден DNS-запис не може з ним збігтися.</value>
+  </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Ідентифікатор ({0}, щойно згенерований) обираєте ви - будь-яке значення правильне. Його єдине завдання - змінюватися щоразу, коли змінюється політика, щоб кеші перезапитували її.</value>
   </data>
@@ -10675,8 +10741,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The port to ask on" xml:space="preserve">
     <value>Порт, на якому питати</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. The service must be restarted after changes. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
-    <value>Порти, які слухає кожен протокол, їхня адреса прив'язки та безпека з'єднання. Після змін службу потрібно перезапустити. Стовпець «Слухає» читається з відкритих портів цього комп'ютера, а не з конфігурації, тому показує, що відбувається насправді, а не що було запитано.</value>
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+    <value>Порти, які слухає кожен протокол, їхня адреса прив'язки та безпека з'єднання. Зміна набуває чинності після повторної ініціалізації сервера, яку ця сторінка пропонує після кожної зміни. Стовпець «Слухає» читається з відкритих портів цього комп'ютера, а не з конфігурації, тому показує, що відбувається насправді, а не що було запитано.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
     <value>Закритий ключ не належить цьому сертифікату: їхні відкриті ключі різняться. Пара не завантажиться (помилка сервера 5113), і жоден порт TLS, що використовує цей сертифікат, не запуститься. Вкажіть у цьому записі файл ключа, який було згенеровано разом із цим сертифікатом.</value>
@@ -10730,6 +10796,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The record is propagating." xml:space="preserve">
     <value>Запис поширюється.</value>
+  </data>
+  <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
+    <value>Запис називає цей сервер за його ім'ям вузла, а ім'я вузла ще не є іменем, яке можна знайти в інтернеті, тому публікувати поки нічого. Задайте його на вкладці SMTP сторінки «Протоколи», потім поверніться сюди.</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Записи, які цьому серверу потрібно опублікувати в зоні DNS кожного домену: тип, вузол і значення, готові до копіювання в консоль вашого DNS-провайдера, з перевіркою, чи справді кожен опубліковано. Перевірки використовують розв'язувач Windows цього комп'ютера - той самий, що й перевірка ротації DKIM.</value>
@@ -10871,8 +10940,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server to ask (empty asks the domain's MX hosts)" xml:space="preserve">
     <value>Сервер, у якого питати (порожнє — у MX-вузлів домену)</value>
   </data>
-  <data name="The server's Host name (Delivery of e-mail) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
-    <value>Ім'я вузла сервера («Доставка пошти») ПОРОЖНЄ, тому в HELO/EHLO він оголошує ім'я свого комп'ютера Windows - не публічне ім'я DNS, - і жоден механізм «a:» чесно запропонувати не можна. Пропозиція дозволяє лише MX-вузли домену. Спершу задайте ім'я вузла; воно потрібне кільком записам на цій сторінці.</value>
+  <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
+    <value>Ім'я вузла сервера (Протоколи &gt; SMTP) ПОРОЖНЄ, тому в HELO/EHLO він оголошує ім'я свого комп'ютера Windows - не публічне ім'я DNS, - і жоден механізм «a:» чесно запропонувати не можна. Пропозиція дозволяє лише MX-вузли домену. Спершу задайте ім'я вузла; воно потрібне кільком записам на цій сторінці.</value>
   </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Не вдалося прочитати відповідь сервера.</value>
@@ -11096,8 +11165,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>У цій групі немає облікових записів, тому будь-який наданий їй дозвіл наразі не стосується нікого.</value>
   </data>
-  <data name="This is Settings &gt; Delivery of e-mail &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>Це «Параметри» &gt; «Доставка пошти» &gt; «Ім'я вузла» - ім'я, яке сервер оголошує в HELO/EHLO під час кожної вихідної доставки (Utilities::ComputerName). Попросіть власника IP зробити так, щоб PTR вашого публічного IP розв'язувався саме в це ім'я, і опублікуйте запис A для цього імені, що вказує назад на той самий IP - отримувачі перевіряють обидва напрямки.</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>Це «Протоколи» &gt; SMTP &gt; «Ім'я вузла» - ім'я, яке сервер оголошує в HELO/EHLO під час кожної вихідної доставки (Utilities::ComputerName). Попросіть власника IP зробити так, щоб PTR вашого публічного IP розв'язувався саме в це ім'я, і опублікуйте запис A для цього імені, що вказує назад на той самий IP - отримувачі перевіряють обидва напрямки.</value>
   </data>
   <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
     <value>Це [Settings] UseLanguage у hMailServer.INI. Сервер лише віддає його назад через COM API - сам він нічого не перекладає, а ця Панель керування має власний параметр мови (Змінити мову в меню адміністратора праворуч угорі), - тому він впливає лише на сторонні інструменти адміністрування. Формулювання повернень і помилок - на сторінці «Повідомлення сервера».</value>
@@ -11134,6 +11203,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This runs while the sending server waits for its answer to DATA, so the number is a promise about the worst case rather than a hint. It bounds the connection as well as the reply: an engine whose machine has gone away would otherwise cost the operating system's own TCP timeout on every message." xml:space="preserve">
     <value>Це виконується, поки сервер-відправник чекає на відповідь на DATA, тому число - обіцянка про найгірший випадок, а не підказка. Воно обмежує і з'єднання, і відповідь: рушій, чий комп'ютер зник, інакше коштував би власного часу очікування TCP операційної системи на кожному повідомленні.</value>
+  </data>
+  <data name="This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for." xml:space="preserve">
+    <value>Цей сервер представляється як {0}. Чи називає його PTR-запис його публічної адреси і чи вказує назад власний адресний запис цього імені, звідси визначити неможливо: сторінка «DNS-записи» підказує, про що просити.</value>
   </data>
   <data name="This server could not read its domain table, so it cannot say whether the sample domain is here. Nothing is offered until it can." xml:space="preserve">
     <value>Цей сервер не зміг прочитати таблицю доменів, тому не може сказати, чи є тут зразок. Доки не зможе, нічого не пропонується.</value>
@@ -13533,6 +13605,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0}  -  {1}, expires {2}" xml:space="preserve">
     <value>{0}  -  {1}, термін дії спливає {2}</value>
   </data>
+  <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
+    <value>{0} (значення, невідоме цій Панелі керування)</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (термін сплив)</value>
   </data>
@@ -13703,6 +13778,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} увімкнено, але не може працювати. {1} Кожне сканування, яке від нього просять, зазнає невдачі, а невдале сканування — це не невдале повідомлення: помилка записується в журнал, а повідомлення доставляється так, ніби його перевірили й визнали чистим.</value>
+  </data>
+  <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and while no other scanner answers, each message is held and scanned again, and returned to its sender when the holds run out." xml:space="preserve">
+    <value>{0} увімкнено, але не може працювати. {1} Кожне сканування, яке від нього просять, зазнає невдачі, і доки не відповідає жоден інший сканер, кожне повідомлення утримується й сканується знову, а коли утримання вичерпано, повертається відправникові.</value>
   </data>
   <data name="{0} is the sample domain and is not counted here; remove it when you are done with it." xml:space="preserve">
     <value>{0} — це зразковий домен, і тут він не враховується; вилучіть його, коли закінчите з ним.</value>
@@ -13892,6 +13970,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
     <value>{0}% пошуків відповіли з пам’яті, використано {1} КБ</value>
+  </data>
+  <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
+    <value>MX-записи домену {0} називають {1}, ім'я вузла цього сервера: {2}.</value>
+  </data>
+  <data name="{0}'s mail goes to {1}, not to this server's host name. That is right when a filtering service or another server takes the mail first and passes it on; otherwise change the record." xml:space="preserve">
+    <value>Пошта домену {0} іде на {1}, а не на ім'я вузла цього сервера. Це правильно, коли пошту спершу приймає служба фільтрації або інший сервер і передає її далі; інакше змініть запис.</value>
   </data>
   <data name="{0}, a virtual service account with no password" xml:space="preserve">
     <value>{0}, віртуальний обліковий запис служби без пароля</value>

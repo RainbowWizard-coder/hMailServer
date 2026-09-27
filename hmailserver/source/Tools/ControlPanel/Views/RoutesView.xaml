@@ -38,8 +38,8 @@
                           SelectionMode="Single" MouseDoubleClick="Edit_Click"
                           AutomationProperties.Name="{loc:L 'Routes'}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="{loc:L 'Domain'}" Binding="{Binding DomainName}" Width="*" />
-                        <DataGridTextColumn Header="{loc:L 'Target host'}" Binding="{Binding TargetHost}" Width="*" />
+                        <DataGridTextColumn Header="{loc:L 'Domain'}" Binding="{Binding DomainName}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Target host'}" Binding="{Binding TargetHost}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
                         <DataGridTextColumn Header="{loc:L 'Port'}" Binding="{Binding TargetPort}" Width="80"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
                         <DataGridTextColumn Header="{loc:L 'Retries'}" Binding="{Binding Retries}" Width="80"
@@ -75,7 +75,7 @@
                     <ui:TextBox x:Name="NewPort" Text="25" />
                 </scaffold:FieldRow>
                 <ui:Button Grid.Column="3" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                           VerticalAlignment="Bottom" Margin="0,0,0,12" />
+                           VerticalAlignment="Bottom" Margin="0" />
             </Grid>
         </scaffold:Card>
     </Grid>

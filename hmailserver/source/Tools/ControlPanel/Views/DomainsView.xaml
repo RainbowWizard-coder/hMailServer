@@ -21,7 +21,12 @@
         <scaffold:PageHeader Title="{loc:L 'Domains &amp; accounts'}"
                              Subtitle="{loc:L 'Manage the domains hosted by this server and their mailboxes.'}" />
 
-        <Grid Grid.Row="1">
+        <!-- The cards fill the window, down to a floor below which the page
+             scrolls: in a 700-pixel window the accounts card was too short for
+             its list and its form, and the form's lower half was cut off. -->
+        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <Grid MinHeight="640" Height="{Binding ViewportHeight, ElementName=PageScroll}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" MinWidth="280" />
                 <ColumnDefinition Width="3*" />
@@ -56,6 +61,10 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
+                                    <!-- The names take the theme's text colour themselves: left to
+                                         the list item's, they were drawn near-black on the dark
+                                         theme's card, and a domain that was not selected could
+                                         not be read. -->
                                     <!-- An inactive domain is dimmed AND says so in words: opacity
                                          alone does not survive High Contrast, a projector, or a
                                          screen reader, and the word alone is easy to scan past. -->
@@ -70,7 +79,8 @@
                                             </Style>
                                         </StackPanel.Style>
                                         <ui:SymbolIcon Symbol="Globe24" Foreground="{DynamicResource AppBrandBrush}" />
-                                        <TextBlock Text="{Binding Name}" Margin="10,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Name}" Margin="10,0,0,0" FontSize="14" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <TextBlock Text="{loc:L 'inactive'}" FontSize="12" FontStyle="Italic" Margin="8,0,0,0"
                                                    VerticalAlignment="Center"
                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}">
@@ -108,7 +118,7 @@
                         </scaffold:FieldRow>
                         <ui:Button Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
                                    AutomationProperties.AutomationId="domains-add"
-                                   VerticalAlignment="Bottom" Margin="0,0,0,12" />
+                                   VerticalAlignment="Bottom" Margin="0" />
                     </Grid>
                 </Grid>
             </scaffold:Card>
@@ -147,7 +157,8 @@
                                             </Style>
                                         </StackPanel.Style>
                                         <ui:SymbolIcon Symbol="Person24" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Text="{Binding Address}" Margin="10,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Address}" Margin="10,0,0,0" FontSize="14" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <TextBlock Text="{loc:L 'inactive'}" FontSize="12" FontStyle="Italic" Margin="8,0,0,0"
                                                    VerticalAlignment="Center"
                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}">
@@ -175,25 +186,33 @@
                     <scaffold:EmptyState x:Name="AccountStatus" Grid.Row="1" Icon="Person24" Visibility="Collapsed"
                                          Padding="12" AutomationProperties.LiveSetting="Polite" />
 
+                    <!-- The address has the card's width, on a line of its own:
+                         beside the password and both buttons it was squeezed to
+                         "user@ex" in a 1000-pixel window, and an address is what a
+                         new administrator most needs to see whole. The password
+                         keeps its Generate button beside it. -->
                     <Grid Grid.Row="2" Margin="0,12,0,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="*" MinWidth="120" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <scaffold:FieldRow Label="{loc:L 'Address'}" Margin="0,0,8,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <scaffold:FieldRow Grid.ColumnSpan="3" Label="{loc:L 'Address'}">
                             <ui:TextBox x:Name="NewAccountBox" PlaceholderText="user@domain" />
                         </scaffold:FieldRow>
-                        <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Password'}" Margin="0,0,8,0">
+                        <scaffold:FieldRow Grid.Row="1" Label="{loc:L 'Password'}" Margin="0,0,8,0">
                             <local:PasswordField x:Name="NewAccountPassword" />
                         </scaffold:FieldRow>
-                        <ui:Button Grid.Column="2" Content="{loc:L '_Generate'}" Margin="0,0,8,12" VerticalAlignment="Bottom"
+                        <ui:Button Grid.Row="1" Grid.Column="1" Content="{loc:L '_Generate'}" Margin="0,0,8,0" VerticalAlignment="Bottom"
                                    Click="GenerateAccountPassword_Click"
                                    ToolTip="{loc:L 'Generate a strong password (copied to clipboard)'}" />
-                        <ui:Button Grid.Column="3" Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
+                        <ui:Button Grid.Row="1" Grid.Column="2" Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
                                    AutomationProperties.AutomationId="domains-accounts"
-                                   VerticalAlignment="Bottom" Margin="0,0,0,12" />
+                                   VerticalAlignment="Bottom" Margin="0" />
                     </Grid>
                 </Grid>
             </scaffold:Card>
@@ -220,7 +239,8 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Display}" FontSize="12" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Display}" FontSize="12" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Delete24}" Padding="6,2"
                                                    ToolTip="{loc:L 'Delete alias'}" AutomationProperties.Name="{loc:L 'Delete alias'}"
                                                    Tag="{Binding Name}" Click="DeleteAlias_Click" />
@@ -253,7 +273,7 @@
                                 <ui:TextBox x:Name="NewAliasValue" PlaceholderText="target@anywhere" FontSize="12" />
                             </scaffold:FieldRow>
                             <ui:Button Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
-                                       VerticalAlignment="Bottom" Margin="0,0,0,12"
+                                       VerticalAlignment="Bottom" Margin="0"
                                        AutomationProperties.Name="{loc:L 'Add alias'}" />
                         </Grid>
                     </Grid>
@@ -276,7 +296,8 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <ui:Button Grid.Column="1" Content="{loc:L 'Properties'}" FontSize="10" Padding="6,2" Margin="0,0,4,0"
                                                    Tag="{Binding}" Click="EditDistList_Click" />
                                         <ui:Button Grid.Column="2" Content="{loc:L 'Members'}" FontSize="10" Padding="6,2" Margin="0,0,4,0"
@@ -299,12 +320,13 @@
                                 <ui:TextBox x:Name="NewDistAddress" PlaceholderText="list@domain" FontSize="12" />
                             </scaffold:FieldRow>
                             <ui:Button Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
-                                       VerticalAlignment="Bottom" Margin="0,0,0,12"
+                                       VerticalAlignment="Bottom" Margin="0"
                                        AutomationProperties.Name="{loc:L 'Add distribution list'}" />
                         </Grid>
                     </Grid>
                 </scaffold:Card>
             </Grid>
         </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

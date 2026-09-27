@@ -24,6 +24,10 @@ namespace hMailServer.ControlPanel.Views
          public string NextTry { get; set; }
          public string Tries { get; set; }
          public string File { get; set; }
+
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString() => Id + ", " + From + ", " + Recipients;
       }
 
       public QueueView()

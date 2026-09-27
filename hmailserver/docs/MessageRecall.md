@@ -194,9 +194,11 @@ nobody recorded), by message id (a copy within a mailbox costs one select)
 and by creation time (the minute sweep).
 
 `RecallDays`: `hm_settings`, 14, 1 to 365; `recall_days` over REST. There is
-no COM property and no Control Panel page: the feature is the person's own,
-and the one number an administrator sets is on the settings route with the
-other webmail settings.
+no COM property: the feature is the person's own, and the one number an
+administrator sets is on the settings route with the other webmail settings.
+The Control Panel has it on Connections & protocols > Webmail, the What people
+may do tab, which reads and writes it over the REST API, so the REST API has to
+be on.
 
 Tests
 -----

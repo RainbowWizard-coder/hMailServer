@@ -21,6 +21,10 @@ namespace hMailServer.ControlPanel.Views
          public int TargetPort { get; set; }
          public int Retries { get; set; }
          public string Auth { get; set; }
+
+         // What a screen reader says for the row: its cells, not the name of
+         // this class, which is what a grid row is announced as otherwise.
+         public override string ToString() => DomainName + ", " + TargetHost + ":" + TargetPort;
       }
 
       public RoutesView()

@@ -183,7 +183,7 @@ for mail behind a relay on the envelope domain.
 | REST | `GET`/`POST /api/v1/domain-policy-list`, `PUT`/`DELETE /api/v1/domain-policy-list/{id}`. Server-wide: refused for a credential confined to named domains, and the writes need `manage_settings`. |
 | COM | `Settings.AntiSpam.DomainPolicyList` (a JSON document with `items`), `AddDomainPolicyListEntry(Pattern, MatchOn, Action, Note)` answering the id, `RemoveDomainPolicyListEntry(ID)` answering whether there was one. Server administrators. |
 | Control Deck | *Lists*, the section *Domain white and black list*, built from the OpenAPI document like the lists above it. |
-| Control Panel | *Settings > Anti-spam > Domain white and black list*. |
+| Control Panel | *Spam & virus filtering > Domain white and black list*. |
 | The quarantine | **Whitelist** and **Blacklist** on the Control Panel's Quarantine page and the Deck's Quarantine view, with *the domain* chosen, write the held message's organization - the registrable domain by the Public Suffix List - as `.example.com`: the envelope sender's, matched on `envelope`, or when the page is grouped by HELO domain the HELO name's, matched on `helo`; then release or delete. A row already there for the pattern and the key is changed to the new action. A pattern that is itself a public suffix is written only when the request confirms it. See [SenderListsAndDigests.md](SenderListsAndDigests.md#reviewing-the-quarantine). |
 | Backup | The list travels with the anti-spam settings in the archive, as the other anti-spam lists do. |
 

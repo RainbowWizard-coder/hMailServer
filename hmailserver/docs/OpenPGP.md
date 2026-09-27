@@ -99,15 +99,18 @@ served:
 1. **The server.** `OpenPGPWebKeyDirectoryEnabled` in `hm_settings`. Control
    Deck → Settings → OpenPGP key directory; `hmctl settings set openpgp --set
    web_key_directory_enabled=true`; `Settings.OpenPGPWebKeyDirectoryEnabled` over
-   COM; `PUT /api/v1/settings/openpgp`.
+   COM; `PUT /api/v1/settings/openpgp`; the Control Panel's Webmail page, the
+   Encryption tab.
 2. **The domain.** `openpgp_publish` on the domain — Control Deck → Domains →
    Edit → Web Key Directory, `Domain.OpenPGPPublishKeys` over COM, a key of
-   `PUT /api/v1/domains/{domain}`.
+   `PUT /api/v1/domains/{domain}`, the Control Panel's domain dialog, the
+   OpenPGP tab.
 3. **The account.** `openpgp_publish` on the account. This one is the person's
    own: `PUT /api/v1/me/openpgp/publish` is a self-service route, because holding
    a key so that a mail client can find it is not the same decision as telling
    the whole internet about it. An administrator can set it too
-   (`Account.OpenPGPPublish`, a key of `PUT /api/v1/accounts/{address}`).
+   (`Account.OpenPGPPublish`, a key of `PUT /api/v1/accounts/{address}`, the
+   Control Panel's account dialog on its Identity tab).
 
 A fourth, `openpgp_publish_new_accounts` on the domain, decides what an account
 **created from now on** starts with. It never touches an account that already
@@ -323,7 +326,7 @@ Where each surface is
 | **COM** | `Settings.OpenPGP*` (4), `Domain.OpenPGPPublishKeys` and `.OpenPGPPublishNewAccounts`, `Account.OpenPGPPublish` and `.OpenPGPKeys`, `Utilities.ImportOpenPGPKey` and `.RemoveOpenPGPKey`. |
 | **hmctl** | `openpgp list`, `show`, `store`, `remove` and `publish`, and `settings get openpgp` / `settings set openpgp`. |
 | **PowerShell** | `Get-HmOpenPgpKey`, `Set-HmOpenPgpKey`, `Remove-HmOpenPgpKey`, `Set-HmOpenPgpPublish`. |
-| **Desktop Control Panel** | Nothing yet. The Deck and the two command-line clients cover it; see [DeckParity.md](DeckParity.md). |
+| **Desktop Control Panel** | Over COM: the four settings above on Connections & protocols > Webmail, the **Encryption** tab's OpenPGP card; the domain dialog's **OpenPGP** tab for `Domain.OpenPGPPublishKeys` and `.OpenPGPPublishNewAccounts`; the account dialog's **Identity** tab for `Account.OpenPGPPublish`. Not the keys themselves: listing, storing and removing one is the Deck's and the two command-line clients'; see [DeckParity.md](DeckParity.md). |
 
 What is stored, and what a backup carries
 -----------------------------------------
@@ -862,7 +865,9 @@ four writes (`PUT` and `DELETE` of `/api/v1/me/smime/own` and
 `/api/v1/me/smime/recipients`) are refused to both in the same way. `POST
 /api/v1/me/messages` gains `autocrypt`, the header value the page built.
 
-The page's own settings, all under `/api/v1/settings/openpgp`:
+The page's own settings, all under `/api/v1/settings/openpgp`, and on the Control
+Panel's Webmail page, the Encryption tab, which reads and writes them over the REST
+API, so the REST API has to be on:
 
 | Setting | Default | What it decides |
 |---|---|---|

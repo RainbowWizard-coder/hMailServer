@@ -53,4 +53,21 @@ namespace hMailServer.ControlPanel.Services
             column.HeaderStyle = header;
       }
    }
+
+   /// <summary>
+   /// The template of a grid header's words - trimmed, with the whole of them in
+   /// a tool tip - for a header that is words, and none for a header that is a
+   /// control. The Quarantine page's first two headers are a check box and four
+   /// buttons; given the words' template for every header, each was printed as
+   /// the name of its type - "System.Windows.Controls.CheckBox" - and could not
+   /// be pressed.
+   /// </summary>
+   public sealed class HeaderTemplateSelector : DataTemplateSelector
+   {
+      /// <summary>The template for a header that is words.</summary>
+      public DataTemplate TextTemplate { get; set; }
+
+      public override DataTemplate SelectTemplate(object item, DependencyObject container)
+         => item is UIElement ? null : TextTemplate;
+   }
 }

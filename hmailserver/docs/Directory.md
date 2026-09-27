@@ -43,7 +43,9 @@ that bounces.
 ## The two switches
 
 Both are rows of `hm_settings`, not keys of `hMailServer.ini`, and both are on
-by default.
+by default. The Control Panel has both on Connections & protocols > Webmail, the
+What people may do tab, which reads and writes them over the REST API, so the
+REST API has to be on.
 
 `DirectoryEnabled` - whether the directory is answered at all. On, as Outlook's
 and Google's are. **Turn it off on a server whose one domain holds people who

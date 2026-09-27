@@ -32,6 +32,12 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
+                        <!-- The second row holds the actions when there is no room
+                             beside the title for them (PageHeader.MeasureOverride). -->
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <StackPanel>
                             <!-- A WrapPanel, not a horizontal StackPanel: in a narrow
                                  window the status beside the title moves under it
@@ -46,7 +52,7 @@
                             <TextBlock x:Name="PART_Subtitle" Text="{TemplateBinding Subtitle}"
                                        Style="{StaticResource TextSecondary}" Margin="0,4,0,0" />
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,6,0,0"
+                        <StackPanel x:Name="PART_ActionBar" Grid.Column="1" Orientation="Horizontal" Margin="16,6,0,0"
                                     VerticalAlignment="Top" HorizontalAlignment="Right">
                             <!-- The page's tour, where it has one. Before the
                                  page's own actions because it is not one of
@@ -446,5 +452,19 @@
     <Style x:Key="GridNumberText" TargetType="TextBlock">
         <Setter Property="TextAlignment" Value="Right" />
         <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <!-- Grids: a text column whose value can be wider than the column - a file
+         path, an address, a host - ends in an ellipsis and is whole in its tool
+         tip, as GridStyles.Trimmed does for the grids built in code. Left to the
+         default, a certificate's path was cut mid-letter with nothing to say so. -->
+    <Style x:Key="GridTrimmedText" TargetType="TextBlock">
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}" />
+        <Style.Triggers>
+            <Trigger Property="Text" Value="">
+                <Setter Property="ToolTip" Value="{x:Null}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>

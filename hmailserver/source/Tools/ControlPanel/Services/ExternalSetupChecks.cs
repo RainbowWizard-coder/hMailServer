@@ -493,9 +493,79 @@ namespace hMailServer.ControlPanel.Services
 
          // The first hour comes first: a server with no domain has no use for a
          // DANE record.
-         items.InsertRange(0, FirstHourItems());
+         List<SetupItem> firstHour = FirstHourItems();
+
+         // The host name belongs with the first hour, after the domain and the
+         // account: it is what every server this one delivers to is told, and the
+         // SPF and PTR records that follow are written for it.
+         firstHour.Insert(firstHour.FindLastIndex(item => item.Page == "domains") + 1, HostNameItem());
+         items.InsertRange(0, firstHour);
 
          return items;
+      }
+
+      /// <summary>
+      /// The host name this server announces in HELO/EHLO (Settings.HostName), which
+      /// the server's own first-hour list does not judge: empty, the server announces
+      /// its Windows computer name, which no receiver can look up; set, it should be
+      /// the full DNS name its public address's PTR record names
+      /// (Services/HostNameVerdict).
+      /// </summary>
+      private SetupItem HostNameItem()
+      {
+         var item = new SetupItem
+         {
+            Title = L("The host name - the name this server gives other servers"),
+            Purpose = L("Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail."),
+            Action = L("On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for."),
+            Page = "protocols"
+         };
+
+         int failuresBefore = failedReads_;
+         string hostName = Read(() =>
+         {
+            dynamic settings = null;
+            try
+            {
+               settings = ServerSession.Current.Application.Settings;
+               return (string)settings.HostName ?? "";
+            }
+            finally
+            {
+               ServerSession.Release((object)settings);
+            }
+         });
+
+         if (failedReads_ != failuresBefore)
+         {
+            item.Add(SetupItemState.CannotTell, L("The host name could not be read from the server."));
+         }
+         else
+         {
+            string name = (hostName ?? "").Trim();
+            switch (HostNameVerdict.Judge(name))
+            {
+               case HostNameVerdict.Kind.Empty:
+                  item.Add(SetupItemState.ActionNeeded,
+                     L("No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows."));
+                  break;
+               case HostNameVerdict.Kind.NotADnsName:
+                  item.Add(SetupItemState.ActionNeeded,
+                     F("The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it.", name));
+                  break;
+               case HostNameVerdict.Kind.PrivateName:
+                  item.Add(SetupItemState.ActionNeeded,
+                     F("The host name {0} ends in a name no public DNS answers for, so a receiver on the Internet cannot look it up.", name));
+                  break;
+               default:
+                  item.Add(SetupItemState.Done,
+                     F("This server announces itself as {0}. Whether the PTR record of its public address names it, and the name's own address record points back, cannot be told from here: the DNS records page says what to ask for.", name));
+                  break;
+            }
+         }
+
+         item.AggregateFromFindings();
+         return item;
       }
 
       // ---- the first hour, judged by the server ----------------------------------

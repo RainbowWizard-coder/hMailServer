@@ -146,6 +146,11 @@ namespace hMailServer.ControlPanel.Views
                ? VirusAction.StripAttachments
                : VirusAction.DeleteMessage;
 
+            // AVFailAction is a [Settings] key, not a COM property: read where every
+            // INI row of the Anti-virus page reads it (IniFeatureStore - the file on
+            // this machine, or the server's copy over COM).
+            config.HoldUnscanned = Read(() => new IniFeatureStore().Read("AVFailAction", "0").Trim() == "1");
+
             config.NotifySender = Read(() => (bool)antiVirus.NotifySender);
             config.NotifyRecipient = Read(() => (bool)antiVirus.NotifyReceiver);
 
@@ -347,8 +352,7 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Paragraph(VirusPipeline.Verdict(config), Typography.Body));
 
-         content.Children.Add(Paragraph(L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on."),
-            Typography.Caption));
+         content.Children.Add(Paragraph(VirusPipeline.WhenNoScannerAnswers(config), Typography.Caption));
 
          return card;
       }

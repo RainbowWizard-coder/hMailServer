@@ -71,6 +71,9 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox note_ = new() { MinWidth = 140, Margin = new Thickness(0, 0, 8, 0) };
 
       private readonly InlineNotice notice_ = new() { Visibility = Visibility.Collapsed };
+
+      // The actions on the rule chosen in the list, shown while there is a list.
+      private readonly StackPanel chosen_ = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
       private readonly EmptyState empty_ = new()
       {
          Icon = Wpf.Ui.Controls.SymbolRegular.DocumentCopy24,
@@ -108,9 +111,25 @@ namespace hMailServer.ControlPanel.Views
          rules_.Columns.Add(TextColumn_(L("On"), nameof(RuleRow.Enabled), 60));
          rules_.Columns.Add(TextColumn_(L("Note"), nameof(RuleRow.Note), 180));
 
+         // What acts on the rule chosen in the list sits with the list, and can be
+         // pressed only while one is chosen; beside the form below it read as part
+         // of adding a rule.
+         var toggle = new Wpf.Ui.Controls.Button { Content = L("S_witch the rule over"), Margin = new Thickness(0, 0, 8, 0) };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(toggle, "journal-toggle");
+         toggle.Click += (s, e) => Toggle_();
+
+         var remove = new Wpf.Ui.Controls.Button { Content = L("Re_move the rule") };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(remove, "journal-remove");
+         remove.Click += (s, e) => Remove_();
+
+         chosen_.Children.Add(toggle);
+         chosen_.Children.Add(remove);
+         SelectionGate.Bind(rules_, toggle, remove);
+
          var listed = new StackPanel();
          listed.Children.Add(rules_);
          listed.Children.Add(empty_);
+         listed.Children.Add(chosen_);
          cards.Children.Add(new Card { Content = listed });
 
          scope_.Items.Add(L("Domain"));
@@ -139,33 +158,29 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(address_, L("Where it goes"));
          System.Windows.Automation.AutomationProperties.SetName(note_, L("Note"));
 
-         var form = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
-         form.Children.Add(scope_);
-         form.Children.Add(target_);
-         form.Children.Add(direction_);
-         form.Children.Add(mode_);
-         form.Children.Add(address_);
-         form.Children.Add(note_);
+         // Each box has its caption above it - the grid's own column names - as
+         // the Domains page's forms do: a placeholder was the only name the boxes
+         // had, gone once something is typed, and the three lists had none.
+         var form = new WrapPanel();
+         foreach (Control box in new Control[] { scope_, target_, direction_, mode_, address_, note_ })
+            box.Margin = new Thickness(0);
+         form.Children.Add(FormField_(L("Domain or account"), scope_));
+         form.Children.Add(FormField_(L("Whose mail"), target_));
+         form.Children.Add(FormField_(L("Which way"), direction_));
+         form.Children.Add(FormField_(L("What is sent"), mode_));
+         form.Children.Add(FormField_(L("Where it goes"), address_));
+         form.Children.Add(FormField_(L("Note"), note_));
 
          var add = new Wpf.Ui.Controls.Button
          {
             Content = L("_Add the rule"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            Margin = new Thickness(0, 0, 8, 0)
+            Margin = new Thickness(0, 0, 8, 12),
+            VerticalAlignment = VerticalAlignment.Bottom
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(add, "journal-add");
          add.Click += (s, e) => Add_();
          form.Children.Add(add);
-
-         var toggle = new Wpf.Ui.Controls.Button { Content = L("S_witch the rule over"), Margin = new Thickness(0, 0, 8, 0) };
-         System.Windows.Automation.AutomationProperties.SetAutomationId(toggle, "journal-toggle");
-         toggle.Click += (s, e) => Toggle_();
-         form.Children.Add(toggle);
-
-         var remove = new Wpf.Ui.Controls.Button { Content = L("Re_move the rule") };
-         System.Windows.Automation.AutomationProperties.SetAutomationId(remove, "journal-remove");
-         remove.Click += (s, e) => Remove_();
-         form.Children.Add(remove);
 
          var editing = new StackPanel();
          editing.Children.Add(form);
@@ -178,6 +193,10 @@ namespace hMailServer.ControlPanel.Views
 
          Content = root;
       }
+
+      /// <summary>One box of the form with its caption above it.</summary>
+      private static Scaffold.FieldRow FormField_(string caption, FrameworkElement editor)
+         => new() { Label = caption, Content = editor, Margin = new Thickness(0, 0, 8, 12) };
 
       private static DataGridTextColumn TextColumn_(string header, string property, double width)
          => new DataGridTextColumn
@@ -261,6 +280,7 @@ namespace hMailServer.ControlPanel.Views
 
          rules_.ItemsSource = rows;
          rules_.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+         chosen_.Visibility = rules_.Visibility;
          empty_.Text = L("No journaling rules. Nothing is copied anywhere, and the check costs one comparison for each message the server accepts.");
          empty_.Visibility = rows.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
       }

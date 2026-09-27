@@ -106,7 +106,9 @@ The settings
 
 Rows of `hm_settings`, never `hMailServer.ini`; `/api/v1/settings` over REST, and the
 Control Deck's *Settings > Server* form, which is built from the same table. There is
-no COM member and no Control Panel page for them, as for single sign-on.
+no COM member for them, as for single sign-on. The Control Panel has them on
+Maintenance > Performance, the Message store tab (the *Object storage (S3 or Azure)*
+card), which reads and writes them over the REST API, so the REST API has to be on.
 
 | Property | REST key | Default | What |
 |---|---|---|---|
