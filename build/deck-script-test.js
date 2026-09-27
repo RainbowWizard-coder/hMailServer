@@ -7634,6 +7634,47 @@ async function main() {
       await flush();
       check('and unfolds', qRows().length === 5, qText());
 
+      // The search box hides rows, not checks: the header's box takes in every
+      // message, and an action over messages the search hides asks first.
+      const search = async (text) => { $('#deckSearch').value = text; $('#deckSearch').dispatchEvent(makeEvent('input', { target: $('#deckSearch') })); await flush(); };
+      await regroup('none');
+      await search('invoice');
+      check('the search leaves the two invoices of the five', qRows().filter((r) => !r.hidden).length === 2, qRows().filter((r) => !r.hidden).map((r) => r.textContent.slice(0, 40)).join(' | '));
+      click(act('qcheck', { all: 1 }));
+      await flush();
+      before = requests.length;
+      click(act('qact', { do: 'release', scope: 'checked' }));
+      await flush();
+      check('releasing the checked messages while the search hides three of them asks first, saying so, and No has the keyboard',
+         $('#qAsk') !== null && qBulk(before).length === 0 && $('#qAskText').textContent.indexOf('The search hides 3 of the messages this acts on (5 in all).') >= 0 &&
+         document.activeElement === act('qaskno'), $('#qAsk') ? $('#qAskText').textContent : 'no dialog; sent ' + JSON.stringify(qBulk(before)));
+      if ($('#qAsk') !== null) { click(act('qaskno')); }
+      await flush();
+      check('and No releases nothing', $('#qAsk') === null && qBulk(before).length === 0, JSON.stringify(qBulk(before)));
+      click(act('qact', { do: 'delete', scope: 'checked' }));
+      await flush();
+      check('deleting them says it in the one question a delete asks',
+         $('#qAsk') !== null && $('#qAskText').textContent.indexOf('The search hides 3') === 0 && $('#qAskText').textContent.indexOf('for good') >= 0,
+         $('#qAsk') ? $('#qAskText').textContent : 'no dialog');
+      press('Escape', document.activeElement);
+      await flush();
+      await regroup('sender');
+      click(act('qfold', { key: 'spammer.example' }));
+      await flush();
+      click(act('qact', { do: 'release', scope: 'checked' }));
+      await flush();
+      check('a folded group\'s messages are hidden with its row: four of the five here', $('#qAsk') !== null && $('#qAskText').textContent.indexOf('The search hides 4 ') === 0 && qBulk(before).length === 0,
+         $('#qAsk') ? $('#qAskText').textContent : 'no dialog');
+      press('Escape', document.activeElement);
+      await flush();
+      click(act('qfold', { key: 'spammer.example' }));
+      await flush();
+      click(act('qcheck', { all: 1 }));
+      await flush();
+      await search('');
+      check('with the search emptied every row is back, and nothing is checked or sent', qRows().length === 5 && qRows().every((r) => !r.hidden) &&
+         content().querySelectorAll('button[data-act="qcheck"][aria-checked="true"]').length === 0 && qBulk(before).length === 0, qText());
+
       before = requests.length;
       click(act('qact', { do: 'release', scope: 'checked' }));
       await flush();

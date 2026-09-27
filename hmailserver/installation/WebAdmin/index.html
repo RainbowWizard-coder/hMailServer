@@ -5035,6 +5035,20 @@ function qIds(d){
   if(d.scope==="group"){const g=qGroups().filter(x=>x.key===d.key)[0];return g?g.members.map(m=>Number(m.id)):[];}
   return qOrdered().filter(m=>Q.checked.has(String(m.id))).map(m=>Number(m.id));
 }
+/* How many of these messages the search box hides. It hides rows, not checks:
+   a message checked before the search narrowed the list, or taken in by the
+   header's or a group's box while it did, is still checked. A folded group's
+   messages have no row, and are hidden when the group's own row is. */
+function qUnseen(ids){
+  const hidden=new Set();
+  document.querySelectorAll("#content tbody tr").forEach(r=>{
+    if(!r.hidden)return;
+    const b=r.querySelector('button[data-act="qcheck"]');if(!b)return;
+    if(b.dataset.id!==undefined)hidden.add(String(b.dataset.id));
+    else if(b.dataset.key!==undefined&&Q.folded.has(b.dataset.key))qGroups().filter(g=>g.key===b.dataset.key).forEach(g=>g.members.forEach(m=>hidden.add(String(m.id))));
+  });
+  return ids.filter(id=>hidden.has(String(id))).length;
+}
 /* The page's own question, because the browser's confirm() answers OK to Enter:
    No has the keyboard when the dialog opens, Escape is No, and Tab stays in it. */
 function qAsk(title,text,yes){
@@ -5180,9 +5194,16 @@ async function qAct(d){
   if(!ids.length){setErr("err_quarantine",t("Check the messages first: the header's icons act on every checked message."));return;}
   const action=d.do;
   const body={ids:ids,action:action};
+  // Nothing the search hides is released, listed or deleted unasked: a
+  // release cannot be taken back either.
+  const unseen=qUnseen(ids);
+  const hiddenNote=unseen?tf("The search hides {0} of the messages this acts on ({1} in all).",unseen,ids.length):"";
   if(action==="delete"){
     const text=ids.length===1?t("Delete this held message for good?"):tf("Delete these {0} held messages for good?",ids.length);
-    if(!await qAsk(t("Delete quarantined message"),text+"\n\n"+t("The sender was told it was accepted, so nothing will retry and there is no other copy."),t("Delete")))return;
+    if(!await qAsk(t("Delete quarantined message"),(hiddenNote?hiddenNote+"\n\n":"")+text+"\n\n"+t("The sender was told it was accepted, so nothing will retry and there is no other copy."),t("Delete")))return;
+  }else if(hiddenNote){
+    const yes=action==="release"?t("Release"):action==="allow"?t("Whitelist and release"):t("Blacklist and delete");
+    if(!await qAsk(t("Hidden by the search"),hiddenNote+"\n\n"+t("Clear the search to see them first, or go on and act on all of them."),yes))return;
   }
   if(action==="allow"||action==="block"){
     const choice=await qListDialog(ids,action);
