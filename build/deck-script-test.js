@@ -6495,6 +6495,13 @@ async function main() {
       content().textContent.indexOf('/var/log/hmailserver/hmailserver_backup.log') >= 0);
    check('the status card shows the log\'s tail and no failure', $('#backupLog').textContent.indexOf('Backup completed.') >= 0 && content().textContent.indexOf('No failure recorded') >= 0);
    check('and says where the schedule is', content().textContent.indexOf('ScheduledBackupTime') >= 0);
+   // The schedule's keys are settings the server keeps in its database: a
+   // hand edit of hMailServer.ini is put back, so the note names where they
+   // are set - the Control Panel's card and the REST route - not the file.
+   check('and names where the schedule is set, not a file the server puts back when edited',
+      content().textContent.indexOf('ScheduledBackupMaxAgeDays') >= 0 && content().textContent.indexOf('Scheduled backups in the Control Panel') >= 0 &&
+      content().textContent.indexOf('PUT /api/v1/settings/ini/') >= 0 && content().textContent.indexOf('hMailServer.ini') < 0,
+      content().textContent.slice(Math.max(0, content().textContent.indexOf('ScheduledBackupTime') - 40), content().textContent.indexOf('ScheduledBackupTime') + 260));
    setValue('set_backup_destination', '/mnt/backup');
    setChecked('set_backup_compress', true);
    before = requests.length;

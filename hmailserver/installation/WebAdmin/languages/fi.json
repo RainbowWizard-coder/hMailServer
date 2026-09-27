@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "Kierrätystä ei voitu lukea.",
   "The rule is off. Nothing it covers is copied until it is on again.": "Sääntö on pois päältä. Mitään sen kattamaa ei kopioida ennen kuin se on taas päällä.",
   "The rule is on.": "Sääntö on päällä.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "Aikataulu on tiedostossa hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), joka kuuluu työpöydän Control Panelille; palautus on alempana.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "Aikataulu on asetukset ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount ja ScheduledBackupMaxAgeDays, Control Panelin kohdassa Ajoitetut varmuuskopiot tai PUT /api/v1/settings/ini/ -kutsulla ja asetuksen nimellä; palautus on alempana.",
   "The score at which a message is deleted; -1 is the server's own value.": "Pistemäärä, jolla viesti poistetaan; -1 on palvelimen oma arvo.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "Pistemäärä, jolla viesti merkitään roskapostiksi; -1 on palvelimen oma arvo.",
   "The script parses.": "Skripti jäsentyy.",

@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "Rotaci nelze přečíst.",
   "The rule is off. Nothing it covers is copied until it is on again.": "Pravidlo je vypnuté. Nic, co pokrývá, se nekopíruje, dokud nebude znovu zapnuto.",
   "The rule is on.": "Pravidlo je zapnuté.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "Plán je v hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), který patří desktopovému Control Panelu; obnovení je níže.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "Plán tvoří nastavení ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount a ScheduledBackupMaxAgeDays, v části Plánované zálohy v Control Panelu nebo přes PUT /api/v1/settings/ini/ s názvem nastavení; obnovení je níže.",
   "The score at which a message is deleted; -1 is the server's own value.": "Skóre, při kterém se zpráva smaže; -1 je vlastní hodnota serveru.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "Skóre, při kterém se zpráva označí jako spam; -1 je vlastní hodnota serveru.",
   "The script parses.": "Skript je syntakticky správný.",

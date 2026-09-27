@@ -7031,8 +7031,9 @@ async function deleteCollectionItem(collId,id,label){
 
    The restore below is the other half, and on Linux it is the only one there
    is: this page and the REST route are how a server with no Control Panel gets
-   its mail back. The schedule is still four keys of hMailServer.ini, and the
-   note says so. */
+   its mail back. The schedule is four settings the server keeps in its
+   database, as every [Settings] key: a hand edit of hMailServer.ini is put
+   back, so the note names where they are set. */
 async function renderBackup(){
   await loadSpec();
   const props=properties("/api/v1/settings/backup","put");
@@ -7063,7 +7064,7 @@ async function renderBackup(){
           <div class="err" id="err_backupstart"></div>
         </div>
         <p class="note" style="margin-top:12px">${t("An encrypted archive is encrypted as it is written, file names included, and the passphrase is kept nowhere but in this server's own settings - never in the archive and never beside it. A restore asks for it. If it is lost, nothing in an archive written with it can be recovered, by anybody.")}</p>
-        <p class="note" style="margin-top:12px">${escHtml(operation("/api/v1/backup","post").summary||"")}. ${escHtml(operation("/api/v1/backup","post").description||"")} ${t("The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.")}</p>
+        <p class="note" style="margin-top:12px">${escHtml(operation("/api/v1/backup","post").summary||"")}. ${escHtml(operation("/api/v1/backup","post").description||"")} ${t("The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.")}</p>
       </div></div>
     <div class="sect"><h2>${t("Restore")} <code class="muted">POST /api/v1/backup/restore</code></h2>
       <div class="card flat">

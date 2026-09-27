@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "Döndürme okunamadı.",
   "The rule is off. Nothing it covers is copied until it is on again.": "Kural kapalı. Yeniden açılana kadar kapsadığı hiçbir şey kopyalanmaz.",
   "The rule is on.": "Kural açık.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "Zamanlama hMailServer.ini dosyasındadır (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays) ve masaüstü Control Panel uygulamasına aittir; geri yükleme aşağıdadır.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "Zamanlama ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount ve ScheduledBackupMaxAgeDays ayarlarıdır; Control Panel'deki Zamanlanmış yedeklemeler bölümünden ya da ayar adıyla PUT /api/v1/settings/ini/ üzerinden değiştirilir; geri yükleme aşağıdadır.",
   "The score at which a message is deleted; -1 is the server's own value.": "Bir iletinin silindiği puan; -1 sunucunun kendi değeri demektir.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "Bir iletinin istenmeyen olarak işaretlendiği puan; -1 sunucunun kendi değeri demektir.",
   "The script parses.": "Betiğin söz dizimi doğru.",

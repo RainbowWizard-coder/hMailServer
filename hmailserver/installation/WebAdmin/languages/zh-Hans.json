@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "无法读取轮换状态。",
   "The rule is off. Nothing it covers is copied until it is on again.": "规则已关闭。在重新开启之前，它所涵盖的邮件都不会被复制。",
   "The rule is on.": "规则已开启。",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "计划任务在 hMailServer.ini 中（ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount、ScheduledBackupMaxAgeDays），属于桌面版 Control Panel；还原在下方。",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "计划任务由 ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount、ScheduledBackupMaxAgeDays 这些设置决定，可在 Control Panel 的“计划备份”中或通过 PUT /api/v1/settings/ini/ 加设置名更改；还原在下方。",
   "The score at which a message is deleted; -1 is the server's own value.": "删除邮件的分值；-1 表示使用服务器自身的值。",
   "The score at which a message is marked as spam; -1 is the server's own value.": "把邮件标记为垃圾邮件的分值；-1 表示使用服务器自身的值。",
   "The script parses.": "脚本语法正确。",

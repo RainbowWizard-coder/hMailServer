@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "Rotationen kunne ikke læses.",
   "The rule is off. Nothing it covers is copied until it is on again.": "Reglen er slået fra. Intet, den dækker, kopieres, før den er slået til igen.",
   "The rule is on.": "Reglen er slået til.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "Planen står i hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), som hører til skrivebordets Control Panel; en gendannelse er nedenfor.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "Planen er indstillingerne ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount og ScheduledBackupMaxAgeDays, under Planlagte sikkerhedskopier i Control Panel eller med PUT /api/v1/settings/ini/ efterfulgt af navnet; en gendannelse er nedenfor.",
   "The score at which a message is deleted; -1 is the server's own value.": "Den score, hvor en besked slettes; -1 er serverens egen værdi.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "Den score, hvor en besked markeres som spam; -1 er serverens egen værdi.",
   "The script parses.": "Scriptet kan fortolkes.",

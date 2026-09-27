@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "No se ha podido leer la rotación.",
   "The rule is off. Nothing it covers is copied until it is on again.": "La regla está desactivada. Nada de lo que cubre se copia hasta que vuelva a activarse.",
   "The rule is on.": "La regla está activada.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "La programación está en hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), que es del Control Panel de escritorio; la restauración está abajo.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "La programación son los ajustes ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount y ScheduledBackupMaxAgeDays, en Copias de seguridad programadas del Control Panel o con PUT /api/v1/settings/ini/ seguido del nombre; la restauración está abajo.",
   "The score at which a message is deleted; -1 is the server's own value.": "La puntuación a partir de la cual se elimina un mensaje; -1 es el valor propio del servidor.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "La puntuación a partir de la cual se marca un mensaje como spam; -1 es el valor propio del servidor.",
   "The script parses.": "El script se analiza correctamente.",

@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "ローテーションを読み取れませんでした。",
   "The rule is off. Nothing it covers is copied until it is on again.": "ルールはオフです。再びオンにするまで、対象のメールはコピーされません。",
   "The rule is on.": "ルールはオンです。",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "スケジュールは hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays) にあり、デスクトップの Control Panel のものです。復元は下にあります。",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "スケジュールは ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount、ScheduledBackupMaxAgeDays の各設定で、Control Panel の [スケジュールされたバックアップ] か、PUT /api/v1/settings/ini/ に設定名を付けて変更します。復元は下にあります。",
   "The score at which a message is deleted; -1 is the server's own value.": "メッセージを削除するスコアです。-1 はサーバー自身の値を使います。",
   "The score at which a message is marked as spam; -1 is the server's own value.": "メッセージをスパムと判定するスコアです。-1 はサーバー自身の値を使います。",
   "The script parses.": "スクリプトの構文は正しいです。",

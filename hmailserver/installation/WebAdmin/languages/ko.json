@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "교체 상태를 읽을 수 없습니다.",
   "The rule is off. Nothing it covers is copied until it is on again.": "규칙이 꺼져 있습니다. 다시 켤 때까지 규칙이 다루는 메일은 복사되지 않습니다.",
   "The rule is on.": "규칙이 켜져 있습니다.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "일정은 hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays) 에 있으며 데스크톱 Control Panel의 몫입니다. 복원은 아래에 있습니다.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "일정은 ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays 설정이며, Control Panel의 예약된 백업에서 또는 PUT /api/v1/settings/ini/ 뒤에 설정 이름을 붙여 바꿀 수 있습니다. 복원은 아래에 있습니다.",
   "The score at which a message is deleted; -1 is the server's own value.": "메시지를 삭제하는 점수입니다. -1은 서버 자체의 값을 씁니다.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "메시지를 스팸으로 표시하는 점수입니다. -1은 서버 자체의 값을 씁니다.",
   "The script parses.": "스크립트의 구문이 올바릅니다.",

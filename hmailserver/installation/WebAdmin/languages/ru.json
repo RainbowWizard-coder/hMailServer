@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "Не удалось прочитать ротацию.",
   "The rule is off. Nothing it covers is copied until it is on again.": "Правило выключено. Ничто из того, что оно охватывает, не копируется, пока оно не будет включено снова.",
   "The rule is on.": "Правило включено.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "Расписание находится в hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays) и принадлежит настольному Control Panel; восстановление - ниже.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "Расписание задают параметры ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount и ScheduledBackupMaxAgeDays — в разделе «Резервное копирование по расписанию» в Control Panel или через PUT /api/v1/settings/ini/ с именем параметра; восстановление - ниже.",
   "The score at which a message is deleted; -1 is the server's own value.": "Оценка, при которой сообщение удаляется; -1 — собственное значение сервера.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "Оценка, при которой сообщение помечается как спам; -1 — собственное значение сервера.",
   "The script parses.": "Скрипт синтаксически верен.",

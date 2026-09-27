@@ -1499,7 +1499,7 @@
   "The rotation could not be read.": "Δεν ήταν δυνατή η ανάγνωση της εναλλαγής.",
   "The rule is off. Nothing it covers is copied until it is on again.": "Ο κανόνας είναι ανενεργός. Τίποτα από όσα καλύπτει δεν αντιγράφεται μέχρι να ενεργοποιηθεί ξανά.",
   "The rule is on.": "Ο κανόνας είναι ενεργός.",
-  "The schedule is in hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), which is the desktop Control Panel's; a restore is below.": "Το χρονοδιάγραμμα βρίσκεται στο hMailServer.ini (ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount, ScheduledBackupMaxAgeDays), που ανήκει στο Control Panel του υπολογιστή. Η επαναφορά είναι παρακάτω.",
+  "The schedule is the settings ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays, under Scheduled backups in the Control Panel or at PUT /api/v1/settings/ini/ followed by the name; a restore is below.": "Το χρονοδιάγραμμα είναι οι ρυθμίσεις ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount και ScheduledBackupMaxAgeDays, στις Προγραμματισμένες αντιγραφές ασφαλείας του Control Panel ή μέσω PUT /api/v1/settings/ini/ ακολουθούμενο από το όνομα. Η επαναφορά είναι παρακάτω.",
   "The score at which a message is deleted; -1 is the server's own value.": "Η βαθμολογία στην οποία ένα μήνυμα διαγράφεται· -1 σημαίνει την ίδια την τιμή του διακομιστή.",
   "The score at which a message is marked as spam; -1 is the server's own value.": "Η βαθμολογία στην οποία ένα μήνυμα σημαίνεται ως ανεπιθύμητο· -1 σημαίνει την ίδια την τιμή του διακομιστή.",
   "The script parses.": "Το σενάριο αναλύεται σωστά.",
