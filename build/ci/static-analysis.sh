@@ -179,6 +179,28 @@ tidy_one() {
 }
 export -f tidy_one
 xargs -a "$out/files.txt" -P "$jobs" -I{} bash -c 'tidy_one "$@"' _ {} "${config[@]}"
+# clang-tidy's own answer is 0, or 1 for an error it reports. Above 1 is how it
+# ended, not what it found: 134 an abort, 137 a kill (the OOM killer's), 139 a
+# segmentation fault. Such a file leaves no finding and no error in the report, so
+# its baseline findings read as fixed and the job passes - measured on linix on 27
+# September 2026, ten files at a time: clang-tidy aborted on two, one of them
+# Unicode.cpp, whose nine findings were then "no longer found", and the job exited 0.
+# Each such file is run again, alone; one that still does not finish is a hole in
+# the scan.
+for status in "$build_dir"/tidy/*.status; do
+  read -r tidy_code tidy_file < "$status"
+  if [ "$tidy_code" -gt 1 ]; then
+    echo "clang-tidy ended with $tidy_code on $tidy_file; running it again, alone"
+    tidy_one "$tidy_file" "${config[@]}"
+  fi
+done
+unfinished=$(awk '$1 > 1' "$build_dir"/tidy/*.status)
+if [ -n "$unfinished" ]; then
+  echo "clang-tidy did not finish on these files, twice (exit status, file):"
+  echo "$unfinished"
+  echo "CLANG-TIDY FAILED"
+  exit 2
+fi
 cat "$build_dir"/tidy/*.txt > "$out/clang-tidy.txt"
 failed_files=$(awk '$1 != 0' "$build_dir"/tidy/*.status | wc -l)
 statuses=("$build_dir"/tidy/*.status)
