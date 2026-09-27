@@ -1411,6 +1411,40 @@ exceptions:
     reviewed: 2026-09-26
     expires: 2027-09-25
 
+  # The two entries from here to the note on the AppImage runtime below are semgrep-sast
+  # findings in the webmail's script (hmailserver/source/Server/Common/Util/Portal.js) that
+  # the pinned analyzer's own run does not report. Run on linix over batch41's tree at
+  # 1c68d5191 on 27 September 2026, as .gitlab/ci/gitlab-security.yml runs it, the analyzer
+  # timed out on three rules in Portal.js (800 KB), and after three timeouts Semgrep skips a
+  # file: the report held nothing from it, as no report of the analyzer's made on linix has
+  # (the 6.3.4 release scans included). Run again in the same image, with the analyzer's own
+  # rule files and ten minutes a rule, over the files a rule had timed out on, the rules
+  # flagged two lines of Portal.js High - nodejs_scan's node_ssrf, the rule accepted above
+  # for PortalProtected.js, on a fetch() of the page's own - and eight findings Medium, seven
+  # in Portal.js and one in PortalOpenPgp.js (regex_dos and timing-attack rules), which hold
+  # nothing; the other files, three Control Panel views and DBUpdater's
+  # SchemaVerification.cs, gave nothing new. A runner that finished those rules would report
+  # the two and hold the release; these entries are for that. Each was read on 27 September
+  # 2026 by one AI agent under the owner's delegation, not line by line by the owner, so
+  # their reviewed-by names the owner, who delegated the reading, not a reader. They expire
+  # after six months, on 27 March 2027.
+
+  # hmailserver/source/Server/Common/Util/Portal.js
+  - scan: semgrep-sast
+    finding: 658613d47b6461f2d0c4
+    what: 'fetch(url, options) in apiFetch, the webmail''s fetch for the requests that are not JSON (browser script)'
+    reason: 'Browser code, not server code: the server serves Portal.js as a static file, so apiFetch runs in the reader''s browser and the server fetches nothing. Every caller passes a same-origin path the page builds: /api/v1/me/... with the ids of the server''s own JSON (an attachment, a message''s source or HTML, a folder''s messages, an upload''s content), /api/v1/session, the href the page itself gave one of its download links (guardDownload), or a photo path - /api/v1/me/contacts/<id>/photo, /api/v1/me/directory/me/photo, or the photo_url RestApiDirectory.cpp writes as /api/v1/me/directory/<id>/photo (imageFrom). The page''s Content-Security-Policy, connect-src ''self'' (RestApiPortal.cpp), makes the browser refuse a fetch to any other origin, so the second account''s bearer token that bearerFor adds cannot be sent elsewhere.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+  - scan: semgrep-sast
+    finding: 8266988d38080412e52e
+    what: 'fetch of /api/v1/help/<name> in helpShow, the webmail''s help pane (browser script)'
+    reason: 'Browser code, not server code: helpShow runs in the reader''s browser and the server fetches nothing. The URL is the same-origin path /api/v1/help/ followed by encodeURIComponent(name), where name is a page the server''s own GET /api/v1/help lists, one the page''s help map names, or the data-doc of a link in one of those pages, the repository''s own documentation (RestApiHelp.cpp). It is a GET with the same-origin credential rule, and the page''s Content-Security-Policy, connect-src ''self'' (RestApiPortal.cpp), makes the browser refuse any other origin.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-27
+    expires: 2027-03-27
+
   # The ten entries from here to the note on the 6.3.4 release scan below are semgrep-sast
   # findings in the AppImage runtime, new in 6.3.5
   # (hmailserver/source/Server/platform/packaging/appimage/runtime.c). The pinned analyzer
