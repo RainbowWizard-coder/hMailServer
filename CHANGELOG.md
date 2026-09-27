@@ -63,46 +63,319 @@ for a stray `#` number or `@` name.
 
 ---
 
-## Unreleased - in the tree after 6.3.4, not yet released
+## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-DD
+
+Everything that landed on `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
+`v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104
+to 6105 in one step**, which adds a column to the quarantine's table, `hm_quarantine.quarantinehelo`. What changes
+on upgrade without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has
+five more of them than it had at 6.3.4.
+
+<!-- INTEGRATOR: the next paragraph says what the release pipeline is BUILT to do; none of it had run when it was
+written (batch41 at 508984eb6: no release job has run on GitLab, and 6.3.4 was made by hand). After v6.3.5's
+pipeline has run, confirm each claim - windows-installer built the installer; release-authenticode signed it with a
+timestamp; release-sign signed every file as https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5
+with issuer https://gitlab.com; release-verify passed every bundle (note the project id it found in the
+certificate); release-publish and update-feed ran - and that a 6.3.4 server's live update did install 6.3.5, on
+Windows and on Linux. Then rewrite the paragraph on master as what happened, and the release's notes to match.
+GitLab does not render this comment, but release-publish copies the section into the release's notes as it is:
+take the comment out before tagging if it should not be there. -->
+
+This is the first release built to be made by the project's GitLab CI from its tag ([RELEASE.md](RELEASE.md), *The
+release on GitLab* and *On GitLab, from 6.3.5*). The tag's pipeline builds the Windows installer on the project's
+Windows runner after the whole Windows suite has passed there; once the owner has started the `release` job, it
+Authenticode-signs the installer through Azure Artifact Signing with an RFC 3161 timestamp, signs every file of the
+release with Sigstore as that pipeline -
+`https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, issuer `https://gitlab.com` -
+into a `<file>.cosign.bundle` beside it, and checks every bundle with the server's own `--verify-update` before
+anything is published. That identity is the one a 6.3.4 server trusts (`SigstoreVerifier.cpp`, unchanged since
+6.3.4, and the verifier that check runs), so the live update of a 6.3.4 server is built to install this release, on
+Windows and on Linux. A server from 6.2.28 to 6.3.3 trusts only the GitHub workflow that signed the releases up to
+6.3.3, and as it stands its live update refuses this one: install 6.3.4 or this release by hand, and keep
+`UpdateAutoDownload` off until then, or on Windows give it the GitLab signer as
+[UpdateFeed.md](hmailserver/docs/UpdateFeed.md) describes. What the release carries, and what the new package jobs
+leave in CI only, is under Operations.
+
+### What changes on upgrade without a switch
+
+1. **The Control Panel's sidebar is in the order a new administrator needs.** Welcome and Dashboard come first,
+   then a new group, **Set up this server**: the **Setup checklist**, which was *External setup* under Monitoring &
+   troubleshooting, then Setting profiles and DNS records. Two groups are renamed - *TLS & certificates* is
+   **Certificates & encryption** and *Access & abuse protection* is **Sign-in & access** - and Connections &
+   protocols gains a **Webmail** page (Administration, below). The palette (Ctrl+K) still finds the checklist as
+   External setup. A page's `nav-<key>` UI Automation id is unchanged; the `navgroup-` and `navrail-` ids of the
+   new and the renamed groups follow their new headings, so a UI test that finds a group by its old id must be
+   changed.
+2. **The quarantine shows the HELO name, and groups.** The Control Panel's Quarantine page and the Control Deck's
+   Quarantine view gain a HELO column and group the held messages by the sender's domain unless told otherwise.
+   Messages held before the upgrade have no HELO name recorded and are grouped with those that have no HELO
+   domain. The Deck now asks before a delete with a Yes or No of its own whose default is No, as the Control Panel
+   already did; it used the browser's `confirm()`, whose default is OK. It offers whitelist and blacklist only to a
+   credential holding `manage_settings`, and a held message's headers and preview only to one holding
+   `view_mailbox`, as the server requires (below).
+3. **The webmail's keyboard.** The message list is one Tab stop, where each row put its box, star and marker in
+   the Tab order, and the list's keys reach what a row holds. Enter on a button in the mail view presses the
+   button; it used to open the message under the list's cursor. A letter typed into the formatted signature is
+   text, where `c` opened a new message. Escape closes every modal dialogue as its Cancel does and gives the focus
+   back to where it was, the page under a dialogue cannot be reached until it closes, and menus close on Escape.
+   The event and task editors close when the page changes. The compose window's *Plain* is **Remove formatting**,
+   its tooltip's words. On a phone a row's importance marker is shown and not pressed; the message's More menu
+   marks it.
+4. **An invitation sent the way Outlook sends one is shown as an invitation.** `GET /api/v1/me/messages/{id}`
+   answers `"invitation": true` for a `text/calendar` part whose `Content-Type` carries parameters and which has no
+   `.ics` name, where it answered `false`, and the webmail shows the invitation's card with Accept, Maybe and
+   Decline (the fix is under IMAP, POP3 and the webmail).
+5. **What a script sees.** `GET /api/v1/quarantine` gives each message three more fields - `helo`,
+   `sender_domain` and `helo_domain` - and four routes are new. Over COM, `Quarantine` gains `Bulk` (dispid 9)
+   and `QuarantinedMessage` gains `HeloName`, `SenderDomain`, `HeloDomain`, `ReadHeaders` and `ReadPreview`
+   (dispids 11 to 15), added to the existing interfaces; no existing member or dispid changes. A program built
+   against 6.3.5's type library that calls one of them needs a 6.3.5 server.
+
+### Anti-spam, anti-virus and mail flow rules
+
+- **Reviewing the quarantine** (schema 6105; [GitLab issue #1](https://gitlab.com/Progressiverobot/hmailserver/-/issues/1)):
+  - **The HELO name** the client gave is stored with each held message. A message held during the SMTP
+    conversation records the session's own; one held later, at delivery - by a rule, a block list, an account's
+    own threshold, the sandbox or impersonation protection - takes it from the `Received` header this server wrote
+    when it accepted the message, and only when that header names this server, so a `Received` line the sender
+    wrote is never read. Empty for a client that gave none, for a message that did not arrive over SMTP and for
+    every message held before the upgrade.
+  - **Grouping**: by the sender's domain, by the HELO name's domain or not at all, each group folding, the group
+    with the newest message first, and every column sorting the messages inside the groups. The domain is the
+    organization's - the registrable domain by the Public Suffix List - which the server works out, so that every
+    page groups a message the same way.
+  - **Many at once**: a box on every message, every group and the header, and four actions on a message, a group
+    or the checked messages - release; delete; whitelist, then release; blacklist, then delete. Whitelist and
+    blacklist write the lists that already exist and no third one: the sender's address on the server's allow
+    and block list (the default), or the organization's domain as `.example.com` on the domain white and black
+    list, matched on the envelope sender, or on the HELO name when the page is grouped by HELO domain. Several
+    messages from one sender or domain make one entry, and an entry already there is changed rather than
+    doubled. The dialogue first shows what the server would write (a dry run); a domain that is itself a public
+    suffix (`co.uk`, a HELO of `localhost`) is written only after a box is ticked, and without it the server
+    refuses with 409 and changes nothing. The entries are written before any message is acted on, so a message
+    whose entry could not be written - the null sender, no HELO recorded, a full list - is left in the
+    quarantine with the reason.
+  - **The headers and a plain-text preview** of a held message, read without releasing it: the headers up to
+    65,536 characters, and the preview up to 16,384, the text part or the HTML part with its markup, style sheets
+    and scripts taken out. Nothing is rendered as HTML.
+  - **The Control Deck** is level with the Control Panel: the same groups, columns, boxes, icons and dialogues, one
+    request for the checked messages, a delete dialogue of its own with No as the default, and Remove expired.
+    Against a server from before this release, the Control Panel releases and deletes one message at a time, and
+    its whitelist and blacklist say the server needs upgrading.
+  - **REST**: `POST /api/v1/quarantine/bulk` (1 to 1,000 ids and one action, with `dry_run` and
+    `confirm_public_suffix`), `POST /api/v1/quarantine/expire`, and `GET /api/v1/quarantine/{id}/headers` and
+    `/preview`. The list, the headers and the preview need `view_quarantine`, and the headers and the preview
+    `view_mailbox` beside it, since they are the mail itself; `bulk` and `expire` need `manage_quarantine`, and a
+    `bulk` that allows or blocks needs `manage_settings` beside it, since it changes who is let in for everyone.
+    Every one of them is refused to a credential confined to named domains, as the quarantine's other routes are.
+    **COM**: `Quarantine.Bulk` takes and answers the same JSON, and each `QuarantinedMessage` has `HeloName`,
+    `SenderDomain`, `HeloDomain`, `ReadHeaders()` and `ReadPreview()`; `Bulk`, `ReadHeaders()` and
+    `ReadPreview()` are the server administrator's, as the rest of the quarantine is over COM
+    ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md#reviewing-the-quarantine)).
+- **A HELO that is an address has no domain.** A client that says `HELO 192.0.2.7`, bracketed or not, and a sender
+  `someone@192.0.2.7`, have no organization's domain: `helo_domain` and `sender_domain` over REST, and `HeloDomain`
+  and `SenderDomain` over COM, are empty, the message is grouped with those that have none, and whitelisting or
+  blacklisting it by domain leaves it where it is and says why ("The HELO name is an address, which the domain list
+  does not name."). Handed to the Public Suffix List, whose implicit rule takes the last label for a top-level
+  domain, `192.0.2.7` would have been the domain `2.7`, and blacklisting it would have refused at `MAIL FROM` every
+  client whose HELO is an address ending in `.2.7`.
+- Fixed: a rule with a **Readable text** or **Sensitive content found** condition, which 6.3.4 added, read a
+  message's HTML part in time that could rise with the square of its size. The part's entities were unwrapped by
+  a replacement that moved the rest of the text once per occurrence, so 400,000 `&amp;` - two million characters -
+  held the delivery for about a minute, and on a server with such a rule anybody could send one. Each entity is
+  now unwrapped in one pass into a new string, with the same result (`ContentPolicy::StripHtml`). The quarantine's
+  preview ends in the same function, and takes the style sheets, scripts and head out of an HTML part in one pass
+  too, so a held message's preview costs time in proportion to its size.
+
+### IMAP, POP3 and the webmail
+
+- **The webmail, audited on a phone and a desktop, light and dark, by keyboard and through the accessibility
+  tree**, with a seeded mailbox, and what it found fixed. On a phone: the search box has room to type and its
+  options are a sheet the width of the screen; the tour skips a step whose target a phone does not draw and keeps
+  its card on the screen; help covers the page instead of squeezing it; the settings tabs are one line that
+  scrolls; and everything a finger presses is at least 44 pixels each way. By keyboard: the changes above, a focus
+  ring on about twenty kinds of control that had lost it, and the earlier messages of a conversation and the
+  Storage page's rows opened by keyboard as well as by mouse. For a screen reader: an unread row says Unread, a
+  narrow list's tabs are named with their unread count and are a tab list, the row under the list's cursor is
+  said, and the hidden page headings are translated. Contrast is raised where it fell short: the initials on the
+  avatar colours, white on the dark theme's pale accent and danger colours (dark text now), the placeholders, and
+  the light theme's warning colour (5.5:1, from 4.3:1); and the page declares its colour scheme, so that the
+  browser draws its own parts of a control for the dark theme. Also: a long attachment name is cut with an
+  ellipsis, and the week and agenda views name their month. The pass by a screen reader (NVDA) is still to do.
+- Fixed: an invitation whose calendar part carries parameters in its `Content-Type` and no `.ics` name - the shape
+  Outlook sends - was never marked as an invitation, so the webmail showed no card for it. The part's media type is
+  now read without its parameters, as the server's iMIP code already read it. 6.3.4 had it too.
 
 ### Administration
 
 - **Every database setting can be set from the Control Panel.** 137 of the 314 settings the server keeps in its
   database had no editor in the Control Panel: the webmail's sign-in (passkeys, OpenID Connect, SAML, account
   recovery), its sessions and limits, OpenPGP, Web Push, the alerts, the SNMP agent, the audit trail, outbound
-  webhooks, the spam traps, the complaint feedback loops, the reputation watch, country blocking, compromised-account
-  detection, the object store, the managed lists and the migrations. They are now on the pages an administrator
-  looks for them on, and a new **Webmail** page holds the ones that are the webmail's. Those a COM property carries
-  are edited over COM; the rest, which the server reaches over its REST API alone, are read and saved over that API,
-  and a page says so, and why, when the REST API is off or out of reach. The domain dialog gains Country blocking,
-  OpenPGP and Webhooks tabs, the account dialog an Identity tab (a person, a room or a piece of equipment, and the
-  external ID SCIM matches on), an external account the options for a mailbox several people share, and a managed
-  list's member how they receive the list's mail. `build/check-db-settings-coverage.py` now fails any database
-  setting with no editor and no recorded reason for having none.
+  webhooks, the spam traps, the complaint feedback loops, the reputation watch, country blocking,
+  compromised-account detection, the object store, the managed lists and the migrations. They are now on the pages
+  an administrator looks for them on - new tabs on Delivery of e-mail, Anti-spam, Auto-ban, Logging, Performance
+  and Advanced - and a new **Webmail** page, under Connections & protocols, holds the webmail's own: Sign-in,
+  Browser sessions, What people may do, Encryption, Notifications and Import. The 34 a COM property carries are
+  edited over COM. The other 103, which the server reaches over its REST API alone, are read and saved over that
+  API, which is off as shipped (`RestApiPort` 0): with it on, the Control Panel signs in to it once with the
+  credentials it signed in with, asks for the administrator's one-time code once when there is a second factor,
+  and sends only the keys that changed; with it off or out of reach, each such tab says so, and why. The domain
+  dialog gains Country blocking, OpenPGP and Webhooks tabs, the account dialog an Identity tab (a person, a room
+  or a piece of equipment, and the external ID SCIM matches on), an external account the options for a mailbox
+  several people share, and a managed list's member how they receive the list's mail.
+  `build/check-db-settings-coverage.py` now fails any database setting with no editor and no recorded reason for
+  having none; nine have such a reason.
+- **The Control Panel, audited page by page** in both themes at two window sizes, with each colour measured. The
+  server status at the top right is a filled box with no outline - Connected is green on a soft green fill,
+  6.0:1 in the light theme and 5.9:1 in the dark - and every status and notice is at 5.5:1 or better; High
+  Contrast keeps a one-pixel outline. The light theme's field hints and captions are at 5.3:1, where they were
+  3.3:1. Toasts are on the theme's neutral surface, with their level in the title and a glyph, and a failure - a
+  page that could not load, a reinitialise that failed, a page partly saved - has a style of its own and stays up
+  for eight seconds. A header or a cell too narrow for its text ends in an ellipsis and shows the whole of it as a
+  tooltip. A list's Delete is one style, red words while it can be pressed and grey while it cannot; Incoming
+  relays' and IP ranges' Properties and Delete need a selection, as every other list's do. The Domains page's
+  alias and list boxes have captions. The **Setup checklist** numbers its items in the order a new installation
+  meets them and marks the first one that needs action as the next step, and each item's button names the page it
+  opens; the dashboard's attention card numbers and marks its items the same way
+  ([SetupChecklist.md](hmailserver/docs/SetupChecklist.md),
+  [ControlPanelDesign.md](hmailserver/docs/ControlPanelDesign.md)).
+- **The Control Deck's census** ([DeckParity.md](hmailserver/docs/DeckParity.md)) counts 498 of the 508
+  properties the Control Panel writes as writable over REST and reachable from a Deck view; the ten it lists as
+  missing are an account's directory fields and its external ID, and the server's country policy. The census had
+  missed 16 COM members whose help string holds a `]`.
+
+### Operations
+
+- **Packages for Debian, Ubuntu, Fedora, RHEL and openSUSE, the AppImages and both Windows installers, built on
+  GitLab CI** on the project's own runners, never for a merge request, and with no tool from GitHub:
+  - **Debian and Ubuntu**: Debian 12 and 13 and Ubuntu 24.04 for amd64 and arm64, and Ubuntu 26.04 for arm64, as
+    `hmailserver_<v>-1~<distro>_<arch>.deb` - Ubuntu 26.04's as `hmailserver_<v>_arm64.deb`; the amd64 package for
+    Ubuntu 26.04 is the release's own, below ([Packages-deb.md](hmailserver/docs/Packages-deb.md)).
+  - **RPM**: Fedora 44 and 43, RHEL 10 and 9, and openSUSE Leap 16.0 and Tumbleweed, for x86_64 and aarch64, as
+    `hmailserver-<v>-1.<disttag>.<arch>.rpm`, with Boost linked in and every other `Requires` resolved from the
+    release's own repositories; the executables are PIE with full RELRO, the stack protector, stack-clash
+    protection and `_FORTIFY_SOURCE=2` ([Packages-rpm.md](hmailserver/docs/Packages-rpm.md)).
+  - Each `.deb` and `.rpm` is built in its distribution release's own container with that release's compiler and
+    libraries (the arm64 and aarch64 ones cross-compiled), then installed in a clean container of the same release
+    and architecture, run and removed. They are built for every `v*` tag and `batch*` branch, and on `master` when
+    started by hand.
+  - **AppImages** for x86_64 and aarch64, built on Ubuntu 24.04, so for a host with glibc 2.39 or later and
+    OpenSSL 3, with a runtime of the project's own (`platform/packaging/appimage/runtime.c`) in place of the
+    AppImage project's, which is published only on GitHub, and without linuxdeploy; each is run again on
+    Fedora 44. They are built for a `v*` tag, and elsewhere when started by hand
+    ([Packages-appimage.md](hmailserver/docs/Packages-appimage.md)).
+  - **Windows**: the x64 and the ARM64 installer, unsigned, in every pipeline of `master`, a `batch*` branch or a
+    `v*` tag, after the Windows suite. The ARM64 job may fail without failing the pipeline, and stops, naming the
+    command that adds them, while the Windows runner lacks Visual Studio's ARM64 tools
+    ([Packages-windows.md](hmailserver/docs/Packages-windows.md)).
+
+  <!-- INTEGRATOR: at 508984eb6 none of the package jobs above had run in a GitLab pipeline (every batch41
+  pipeline was skipped with ci.skip); the Linux ones were run by hand on linix, and the Windows ones only
+  parse-checked. Say what the batch's and the tag's pipelines show if it matters to a reader. Packages-windows.md
+  still says the ARM64 job will stop at an x64-marked Interop.hMailServer.dll and that build-openssl.ps1 fetches
+  from GitHub; at batch41 generate-com-wrapper.ps1 -Platform ARM64 makes an Agnostic wrapper and build-openssl.ps1
+  takes Debian's archive. -->
+
+- **What the release carries.** The release collects the x64 installer built by its own `windows-installer` job,
+  the amd64 `.deb` and the x86-64 `.rpm` that `linux-build` makes (clang, in the CI's Ubuntu 26.04 image), the
+  `hmailserver-linux-<v>-SHA256SUMS.txt` of those two, the server's SPDX and CycloneDX SBOMs and each compiled
+  file's own `<file>.cdx.json`, every file with its Sigstore bundle (`build/ci/release-chain.py`). The packages
+  above - every other `.deb` and `.rpm`, the AArch64 ones, the AppImages and the ARM64 installer - are CI job
+  artifacts only, kept for 7 to 30 days: they are not signed, not in the release and not offered by the update
+  feed. A server installed from one of the other x86-64 `.deb` or `.rpm` packages is offered the release's by its
+  live update, whose dependencies its distribution may not meet; apt or dnf then refuses it, and the server stays
+  as it was. One installed from an AArch64 package, an AppImage or the ARM64 installer is told that the release
+  carries nothing for it to download.
 
 ### Build and tests
 
+- **Reproducible builds on both platforms** ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
+  `hMailServer.exe` builds to the same bytes from a checkout at any path: the Release configuration now trims the
+  checkout's root and the libraries' root from every path the compiler writes (`/d1trimfile`), where it trimmed
+  only the project's own directory, so that sixteen of the server's source files and 31 Boost headers left their
+  absolute paths in the executable. 6.3.4 and the releases before it reproduce, if at all, only from a checkout and
+  libraries at the paths they were built at. On Linux a new `linux-repro` job builds the server, the `.deb` and the `.rpm` a second time - from a copy of
+  the tree at another path, without `.git` and with other file modes, in another build directory, under another
+  umask and time zone - and fails unless all three are byte for byte `linux-build`'s; the release waits for it.
+  For that, the packages now have the same modes whoever makes them - their directories 0755, the `.deb`'s
+  maintainer scripts 0755 and its `conffiles` 0644 - and the `.rpm` records the commit's time as its build time
+  and `reproducible` as its build host. Not claimed: the installer, the Updater and Minidump helpers, the .NET
+  programs and the signatures. The release's runbook builds the executable once more from a second checkout
+  (RELEASE.md, step 8).
 - **Coverage on Linux, with branches.** `build/ci/linux-coverage.sh` builds the server and its tester programs with
   clang's source-based coverage (`-DHM_COVERAGE=ON`, a new CMake option), runs the testers and the whole Linux
-  regression suite against that server, and writes llvm-cov's line, region and branch figures. On 26 September 2026
-  on linix they were 49.01%, 47.23% and 38.87% of the Linux build (43.35%, 41.38% and 33.82% before the fixtures
-  below were linked, which were measured in a run of their own and the counters merged) - a floor, since the Linux
-  suite runs what its REST shims can drive and llvm-cov counts every line of a function. The `linux-coverage` job
-  runs it weekly once the owner creates the schedule described `coverage`
-  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), *The coverage schedule*); it has not run
-  on GitLab yet. The Windows measurement of 15 September is in the tree as `build/coverage-windows.ps1`, not yet run
-  from it; it stores the suite's resolver over COM before the console server starts, as the suite asks since the
-  settings moved into the database. Seventeen class constants the server passes to `Format` by reference are
-  defined now (`static constexpr`): six of them kept the instrumented build from linking, and the other eleven had
-  the same defect and linked only because the optimiser folded them.
+  regression suite against that server, and writes llvm-cov's line, region and branch figures; a run of the suite
+  that did not reach its end is void. On 26 September 2026 on linix they were 49.01%, 47.23% and 38.87% of the
+  Linux build (43.35%, 41.38% and 33.82% before the fixtures below were linked, which were measured in a run of
+  their own and the counters merged) - a floor, since the Linux suite runs what its REST shims can drive and
+  llvm-cov counts every line of a function. The `linux-coverage` job runs it weekly once the owner creates the
+  schedule described `coverage` ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), *The
+  coverage schedule*); it has not run on GitLab yet. The Windows measurement of 15 September is in the tree as
+  `build/coverage-windows.ps1`, not yet run from it; it stores the suite's resolver over COM before the console
+  server starts, as the suite asks since the settings moved into the database. Seventeen class constants the
+  server passes to `Format` by reference are defined now (`static constexpr`): six of them kept the instrumented
+  build from linking, and the other eleven had the same defect and linked only because the optimiser folded them.
+  <!-- INTEGRATOR: "it has not run on GitLab yet" and "not yet run from it" were so at 508984eb6; change them if the
+  coverage schedule or the Windows script has run before the tag. -->
 - **Twenty-nine more fixtures run on Linux**, among them DKIM signing, ARC sealing, the OpenPGP keys, message
   recall, shared address books, the IMAP mirror, journaling, per-domain relay and the webmail's footers: each
   already compiled against the REST shims and ran clean on linix, and none was linked. `API/RestApiRouteSweep` is
-  new, on Windows and Linux: every administrative operation the server's OpenAPI document describes is refused, with
-  403, to an account without a role, and every read is answered to an auditor without a server error. The Linux
-  shims give `Domains.ItemByName[...]` and `DistributionLists.ItemByAddress[...]` as indexers, and `Paths.Combine`
-  reads a relative path written the Windows way as one on Linux. The `linux-suite` job, which the fixtures lengthen
-  by about 20 minutes, has the runners' four hours now rather than three.
+  new, in both suites: every administrative operation under `/api/v1/` that the server's OpenAPI document
+  describes is refused, with 403, to an account without a role, and every read is answered to an auditor without
+  a server error. The Linux shims give `Domains.ItemByName[...]` and `DistributionLists.ItemByAddress[...]` as
+  indexers, and `Paths.Combine` reads a relative path written the Windows way as one on Linux. The `linux-suite`
+  job, which the fixtures lengthen by about 20 minutes, has the runners' four hours now rather than three, and its
+  test filter is a variable of its own, `HM_LINUX_SUITE_FILTER`, which the job refuses, so a variable meant for
+  another job cannot make the gate run part of the suite.
+- **The maintainers' tools**:
+  - `build/scan-secrets.py`, which the git hooks and the landing script run: the directory its scanner's container
+    writes to is inside a private (0700) directory, locally and over ssh. 6.3.4 made the whole directory 0777, so
+    that on a POSIX machine another account could, while a scan ran, read the lines being committed, plant a link
+    the writes followed, or put an empty report in place of the scanner's (a Semgrep finding accepted for 6.3.4 as
+    a real defect of low severity). And a scan that did not run to its end no longer passes: gitleaks 8.30.1
+    writes an empty report and exits 0 when the `git log` it reads fails, so a `--range` naming a commit the
+    repository does not have scanned nothing and said nothing was found. Such a range is now refused before any
+    scanner is asked, and an empty report is clean only when gitleaks also exited 0 and logged no error.
+  - `build/ci/repo-hygiene.py`'s Token-Permissions reads CI rules as GitLab does - every alternative of a
+    condition, a rules list at any indentation, tags and `extends` in every form, templates and includes, and a
+    job's rules from the last of its `extends` parents, which GitLab merges last over first - and refuses what it
+    cannot read; its `--self-test` holds it to 33 cases. Its note on each PostgreSQL password written in
+    `.gitlab-ci.yml` names the job whose service container it is.
+  - New checkers: `build/check-idl-case.py` fails a COM name that `hMailServer.idl` spells two ways - a type
+    library keeps one spelling of a name whatever its case, so a new member spelled like an existing one would
+    rename it for every early-bound client - with the seven that shipped that way listed and why;
+    `build/check-db-settings-coverage.py` (under Administration). `build/check-deck-parity.py` reads a member
+    whose help string holds a `]`, and `build/ci/security-findings.py --reasons` writes the reason each finding
+    is known rather than fixed into the baseline.
+  - The installer smoke test takes an upgrade that writes `[Security] AdministratorPassword` again as a PBKDF2
+    hash, which is the documented upgrade of an older hash, and still requires every other `[Security]` key as it
+    was.
+- **The CI**: `secret_detection` failed `master`'s first pipeline after 6.3.4 on the 24 vetted test keys and
+  fixtures, because a pipeline started by a push scans the checkout as files and names a finding by its path, not
+  its commit; `.gitleaksignore` now names each of them that way too. The `static-analysis` baseline is written
+  again from a run over the tree, 1,163 findings, each of the 249 new to it with the reason it is known rather
+  than fixed, and the 393 no scan reports any more gone. The package builds no longer read `$HM_PIPELINE`, which
+  in a pipeline where the variable was defined would have refused every build and left GitLab making no pipeline
+  for `master`, a batch or a tag; `build/check-release-chain.py` now reads the four package files and fails such a
+  rule.
+  <!-- INTEGRATOR: the baseline was written from a run over the tree of the pipeline-fix fold (386942e75), before
+  the quarantine review's C++ was folded. The static-analysis job over batch41's tip has not run; security-gate.py
+  refuses a release while it reports a finding no baseline holds and no exception accepts. -->
+- **The documents, corrected**: 6.3.4's own notes - it was published on 27 September, not 26; the security
+  exceptions file accepted 455 findings at the release, not 169; and `ScriptAllowedObjects` first exists in
+  6.2.25, so before it an event script could create any COM object. `ServiceAccountName` and
+  `ServiceAccountPassword` are no longer used, though still loaded
+  ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md)); the installer smoke test is in the tree and does not
+  yet make the secure-defaults checks ([SecureDefaults.md](hmailserver/docs/SecureDefaults.md)); the update feed's
+  site has served over HTTPS since 26 September 2026 ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)); an
+  inbound webhook's URL writes an international domain name in its `xn--` form
+  ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)), and before 6.3.4's fix the check let a URL outside
+  printable ASCII through on Linux and Windows alike, where 6.3.4's notes said Linux refused it; and
+  CONTRIBUTING.md's schema-upgrade gate and ContinuousIntegration.md's list of what is still done by hand say what
+  the jobs do. Three of these were found by the check of the wiki's copies
+  ([GitLab issue #25](https://gitlab.com/Progressiverobot/hmailserver/-/issues/25)).
+
+Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5).
 
 ---
 
@@ -315,8 +588,8 @@ SECURITY.md, "Verifying a release", has the two commands that check a download a
   schedule; when the attempts run out a route keeps the message to be downloaded or retried, or returns it to its
   sender. A route may deliver to the mailbox as well. Link-local and cloud metadata addresses are refused to
   everybody, an API key may name only a public address, and plain `http` is taken only to this machine. A URL is
-  printable ASCII, and anything outside it is refused on both platforms - fixed before release, when Linux refused
-  such a URL as holding a control character and Windows put it into the request line as it was. Routes are
+  printable ASCII, and anything outside it is refused on both platforms - fixed before release, when Linux and
+  Windows alike put such a URL into the request line as it was. Routes are
   made over REST (`/api/v1/inbound-webhooks`) and on the Control Deck, under a new permission,
   `manage_inbound_webhooks`, that only `serveradmin` holds; there is no COM member and no Control Panel page.
   Nothing is on until a route is made ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)).
