@@ -1419,8 +1419,9 @@ exceptions:
   # they were not read line by line by the owner, so their reviewed-by names the owner, who
   # delegated the reading, not a reader. All but one were judged not a defect. The one
   # judged a real defect, build/scan-secrets.py's world-writable work directory (semgrep,
-  # 88902ff8399da6639dd9), is of low severity, harmless to the release as its reason says,
-  # and accepted until the next batch fixes it. They expire after six months, on 26 March
+  # 88902ff8399da6639dd9), was of low severity and harmless to the release, and batch41
+  # fixed it on 27 September 2026: the line the rule flags is unchanged, so its entry now
+  # says why the line is safe where it stands. They expire after six months, on 26 March
   # 2027: the 6.3.5 baselines are to replace them.
 
   # hmailserver/source/Server/Common/AntiSpam/SpamTrapMonitor.cpp
@@ -3424,15 +3425,15 @@ exceptions:
   # build/scan-secrets.py
   - scan: semgrep
     finding: 88902ff8399da6639dd9
-    what: run_docker() makes its mkdtemp work directory world-writable (0o777) and only then writes the ignore file and the staged-lines stream into it
-    reason: 'A real defect, harmless to 6.3.4 and to be fixed in the next batch. run_docker() makes its mkdtemp work directory 0777 (line 228) before it writes the ignore file and the staged-lines stream into it, and remote_script() does the same on the ssh host after writing them (line 260), so on a POSIX host another local account could, while the scan runs, read the stream (the lines being committed), plant a symlink that the open() at 230/232 follows, or swap report.json for [] so the scan says nothing was found. Harmless here because build/scan-secrets.py is a maintainer''s tool (the pre-commit and pre-push hooks and build/land-via-mr.py; CI runs only its --self-test, which starts no scanner): no installer or Linux package ships it and the server never runs it; the exposure needs a hostile second local account on the POSIX machine that runs the scan; on Windows os.chmod only clears the read-only flag and %TEMP% is per-user; and a report swapped to [] hides nothing from the pipeline''s own secret_detection job, which fails on any finding. The fix: a private 0700 mkdtemp parent with only a 0777 work subdirectory inside it, in both run_docker() and remote_script().'
+    what: work_directory() makes the directory the container mounts as /work 0777, inside a 0700 mkdtemp directory of its own
+    reason: 'The image''s user, whoever it is, writes gitleaks'' report into /work, so /work is 0777; work_directory() makes it with os.mkdir inside tempfile.mkdtemp''s directory, which mkdtemp creates 0700 and owned by the invoking user, so no other local account can traverse to it to read the ignore file or the staged-lines stream, plant a symlink where run_docker() opens them, or put a report of its own in place of gitleaks''. Docker mounts /work by its path, which the daemon resolves itself, and run_docker() removes the private directory in its finally. remote_script() does the same on the ssh host: /work under mktemp -d, removed by the EXIT trap, and only /work is chmod 0777. The self-test holds both: the modes 0700 and 0777 on a POSIX host and the order of the steps in the ssh script. This was a real defect for 6.3.4, when the mkdtemp directory itself was 0777; batch41 fixed it (a Docker scan on linix and one over ssh from the laptop both ran to their reports), and the flagged line kept its text and so its fingerprint.'
     reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
+    reviewed: 2026-09-27
     expires: 2027-03-26
   - scan: semgrep
     finding: ae69f7d5b9ddd25fb168
     what: 'run_ssh() starts ssh with the host from HM_SECRET_SCAN_SSH and the key from HM_SECRET_SCAN_SSH_KEY, and pipes the remote script to ''sh -s'''
-    reason: 'In run_ssh(), subprocess.run gets an argv list with no local shell. The host (line 270) and key path (line 277) come only from the invoking user''s own environment, which neither git (the hooks) nor the repository sets, and whoever sets them can already set PATH for that user, so no boundary is crossed. In the script piped to ''sh -s'', remote_script() single-quotes every docker argument with '' escaped as ''"''"'' (line 252), container_script quotes every gitleaks argument the same way (line 209) and strips quotes from the tip in the echo text (line 214), and the ignore text and staged stream arrive as base64 inside heredocs with quoted delimiters, which base64 output cannot contain.'
+    reason: 'In run_ssh(), subprocess.run gets an argv list with no local shell. The host (line 288) and key path (line 295) come only from the invoking user''s own environment, which neither git (the hooks) nor the repository sets, and whoever sets them can already set PATH for that user, so no boundary is crossed. In the script piped to ''sh -s'', remote_script() single-quotes every docker argument with '' escaped as ''"''"'' (line 266), container_script quotes every gitleaks argument the same way (line 209) and strips quotes from the tip in the echo text (line 214), and the ignore text and staged stream arrive as base64 inside heredocs with quoted delimiters, which base64 output cannot contain.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26

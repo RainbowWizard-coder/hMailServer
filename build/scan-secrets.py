@@ -222,10 +222,24 @@ def docker_command(image, git_dir, work, script):
             "--entrypoint", "sh", image, "-c", script]
 
 
-def run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream):
-    work = tempfile.mkdtemp(prefix="scan-secrets-")
-    # The image's user writes the report here, whoever it is.
+def work_directory():
+    """The directory the container mounts as /work, and the private one it is made in.
+
+    The image's user writes the report in /work, whoever it is, so /work is open to every
+    account (0777); it sits in a directory of mkdtemp's own (0700, this user's), so no other
+    account on the machine can reach it to read the lines being scanned, plant a link where
+    the ignore file or the stream is written, or put a report of its own in place of
+    gitleaks'. Docker mounts /work by its path, which the daemon resolves itself.
+    """
+    private = tempfile.mkdtemp(prefix="scan-secrets-")
+    work = os.path.join(private, "work")
+    os.mkdir(work)
     os.chmod(work, 0o777)
+    return private, work
+
+
+def run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream):
+    private, work = work_directory()
     try:
         with open(os.path.join(work, "ignore"), "w", encoding="utf-8", newline="\n") as f:
             f.write(ignore_text)
@@ -240,7 +254,7 @@ def run_docker(image, git_dir, mode, log_opts, tip, ignore_text, stream):
                 report = f.read()
         return done.returncode, report, done.stderr.decode("utf-8", "replace")
     finally:
-        shutil.rmtree(work, ignore_errors=True)
+        shutil.rmtree(private, ignore_errors=True)
 
 
 MARKER = "----- scan-secrets report -----"
@@ -251,10 +265,14 @@ def remote_script(image, git_dir, mode, log_opts, tip, ignore_text, stream):
     script = container_script(mode, log_opts, tip, image, "/work")
     inner = " ".join("'" + a.replace("'", "'\"'\"'") + "'" for a in docker_command(image, git_dir, "$work", script))
     inner = inner.replace("'$work:/work'", "\"$work:/work\"")
+    # As work_directory() does here: /work is open to every account, inside a directory of
+    # mktemp's own (0700) that no other account on that machine can reach.
     return "\n".join([
         "set -u",
-        "work=$(mktemp -d)",
-        "trap 'rm -rf \"$work\"' EXIT",
+        "private=$(mktemp -d) || exit 2",
+        "trap 'rm -rf \"$private\"' EXIT",
+        "work=\"$private/work\"",
+        "mkdir \"$work\" || exit 2",
         "base64 -d > \"$work/ignore\" <<'IGNORE_EOF'", blob(ignore_text), "IGNORE_EOF",
         "base64 -d > \"$work/stream\" <<'STREAM_EOF'", blob(stream or ""), "STREAM_EOF",
         "chmod 0777 \"$work\"",
@@ -462,8 +480,23 @@ def self_test():
            and "cat-file -e '%s^{commit}'" % b in script, "the container runs gitleaks with GitLab's rules, the ignore file, redacted: %s" % script)
     script = container_script("stdin", "", "", "img", "/work")
     expect(script.endswith("< /work/stream") and "--log-opts" not in script, "a staged scan reads the stream: %s" % script)
-    expect("'--network' 'none'" in remote_script("img", "/g/.git", "git", "%s..%s" % (a, b), b, "x", ""),
-           "the scanner's container has no network")
+    remote = remote_script("img", "/g/.git", "git", "%s..%s" % (a, b), b, "x", "")
+    expect("'--network' 'none'" in remote, "the scanner's container has no network")
+    order = [remote.find(step) for step in ("private=$(mktemp -d) || exit 2", "trap 'rm -rf \"$private\"' EXIT",
+                                             "work=\"$private/work\"", "mkdir \"$work\" || exit 2", "chmod 0777 \"$work\"")]
+    expect(-1 not in order and order == sorted(order) and "chmod 0777 \"$private\"" not in remote,
+           "on the ssh host only /work is open to all, inside mktemp's private directory, which the trap removes: %s" % remote)
+
+    private, work = work_directory()
+    try:
+        expect(os.path.dirname(work) == private and os.path.isdir(work), "the work directory is inside the private one")
+        if os.name == "posix":
+            expect(os.stat(private).st_mode & 0o777 == 0o700 and os.stat(work).st_mode & 0o777 == 0o777,
+                   "the private directory is 0700 and only the work directory in it 0777: %o %o"
+                   % (os.stat(private).st_mode & 0o777, os.stat(work).st_mode & 0o777))
+    finally:
+        shutil.rmtree(private, ignore_errors=True)
+    expect(not os.path.exists(private), "the private directory is removed")
 
     held = dict(os.environ)
     held_which = shutil.which
