@@ -14,7 +14,9 @@
 # FIRST is installed; SECOND, when given, is installed over it as the upgrade, then
 # everything is uninstalled. A release: the previous release's installer, then the new
 # one. A batch: the latest release's, then the installer built from the batch, with
-# --allow-unsigned, since nobody has signed that one.
+# --allow-unsigned, since nobody has signed that one. Either runs it a second time with
+# the new installer alone: a new installation, which is what the secure defaults of
+# docs/SecureDefaults.md are checked on (an upgrade is checked for keeping what it had).
 #
 #   bash build/ci/installer-smoke-run.sh \
 #      /c/Users/chris/Downloads/hmailserver/6.3.2/hMailServer-6.3.2-x64.exe \

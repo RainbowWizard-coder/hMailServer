@@ -142,9 +142,12 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
 5. **The installer smoke test**, on the signed installer: download
    `release-signed/` from `release-sign`'s artifacts to the VMware host and run
    `bash build/ci/installer-smoke-run.sh <the previous release's installer>
-   release-signed/hMailServer-X.Y.Z-x64.exe`
+   release-signed/hMailServer-X.Y.Z-x64.exe`, then
+   `bash build/ci/installer-smoke-run.sh release-signed/hMailServer-X.Y.Z-x64.exe`
+   on its own, a new installation, which is where the secure defaults are
+   checked (`hmailserver/docs/SecureDefaults.md`)
    (`hmailserver/docs/ContinuousIntegration.md`, "The installer smoke test").
-   It must pass before the next step.
+   Both must pass before the next step.
 6. **Start `release-publish`.** It uploads the nine files and their bundles to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
    compiled file whose SBOM is missing or describes other bytes, and a name

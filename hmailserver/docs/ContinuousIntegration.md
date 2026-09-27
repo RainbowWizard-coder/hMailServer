@@ -1072,7 +1072,31 @@ checks:
     message's file is byte for byte the same;
   - POP3 and IMAP log the account on with its password and find the message;
   - the SMTP banner is the greeting that was set before the upgrade;
-  - `[Database]` and `[Security]` in `hMailServer.INI` are unchanged.
+  - `[Database]` in `hMailServer.INI` is unchanged, and so is `[Security]`, but
+    for `AdministratorPassword`, which may be written again as a PBKDF2 hash
+    ([SecretsAtRest.md](SecretsAtRest.md)).
+- **The secure defaults** ([SecureDefaults.md](SecureDefaults.md), "What an
+  installation on a clean machine is to check"), each check named as that
+  section names the property:
+  - after a new installation by an installer from 6.3.4 on: the certificate
+    record, its two files, the key's ACL, the certificate itself (RSA 2048, 825
+    days, the host and where it came from), the four listeners with optional
+    STARTTLS and that certificate, the two ranges, no mark left, the verb's exit
+    0 in Inno's log, its rows on the audit trail and the setup checklist; then,
+    with the account made, STARTTLS completing from 127.0.0.1 on all four, from
+    the machine's own LAN address a password refused before STARTTLS and taken
+    after it on 587, IMAP and POP3, mail taken on 25 without TLS and after
+    STARTTLS, and the sign-ins over 127.0.0.1 as before;
+  - after an upgrade to 6.3.4 or later: the verb not run by the installer, the
+    ports, the ranges and the certificate records exactly as the older release
+    left them, no mark, the checklist's `sign_in_no_tls` for *Internet* with no
+    fix when the older release had no such defaults, and the verb run by hand
+    refusing the upgraded server (exit 5) and changing nothing;
+  - after the uninstall of a new installation: `Data\Certificates` kept.
+
+  A new installation is a run with the new installer alone, so a release or a
+  batch runs the test twice, each from the clean snapshot: the previous release
+  then the new installer, and the new installer on its own.
 - **After the uninstall:**
   - the service and its key are gone, and no process is left running;
   - every file left under the installation directory is one that the installer
@@ -1096,11 +1120,18 @@ checks:
   `uninsneveruninstall`, apart from the two tools' folders under `Addons`;
 - `Database`, `Data` and `Logs`, because the database tools and the server
   wrote their contents, not the installer, and `[Dirs]` removes a folder only
-  when it is empty.
+  when it is empty. `Data` holds `Certificates` on a new installation from
+  6.3.4 on ([SecureDefaults.md](SecureDefaults.md));
+- `Bin\hMailServerApiKeys.ini`, the REST API's key store beside
+  `hMailServer.INI`, for the same reason: the server writes it, and
+  `/GrantServiceAccess` makes it empty when a new installation's service moves
+  to `NT SERVICE\hMailServer` ([ServiceAccount.md](ServiceAccount.md)). An
+  installation whose service stays LocalSystem has none, which is why no run
+  before the new installation of 6.3.4 on 27 September 2026 met it.
 
 The database file, the message (unchanged) and every event and addon script
-must still be there. Any other file left under the installation directory fails
-the check.
+must still be there, and after a new installation the certificate and its key.
+Any other file left under the installation directory fails the check.
 
 **What it found on 25 September 2026.** Two runs of 6.3.2 then 6.3.3 with the
 finished script gave the same result both times: 60 checks passed and 5
@@ -1200,6 +1231,16 @@ are 6.3.3's own items 3, 4 and 5: the "upgrade" runs `[UninstallRun]` twice,
 and the test registers the event source. Item 2 did not appear in these runs;
 it is a race, and it is fixed in the tree anyway.
 
+**The secure defaults' checks, 27 September 2026.** The checks of
+[SecureDefaults.md](SecureDefaults.md) were added and run against the released
+6.3.4 installer as signed: 6.3.4 on its own gave 59 passed and 0 failed, and
+6.3.3 then 6.3.4 gave 73 passed and 0 failed. They found no defect in the
+product. The first new installation failed one older check, not one of them:
+the uninstall left `Bin\hMailServerApiKeys.ini`, which the list of what the
+uninstall keeps now has (above). Two other runs that day stopped before
+installing anything, because the VM's DHCP lease moved after the revert
+(step 2 of the script, above); the script now follows it.
+
 `build/check-installer-scripts.py` holds each fix in the text of the scripts and
 the server, and CI runs it on every push. The installer's own comments had the
 .NET runtime's order backwards, and they are corrected too: Inno runs a `[Run]`
@@ -1240,9 +1281,10 @@ needs. `release-publish` waits for
 the second button so that the installer smoke test can run on the signed
 installer first ([The installer smoke test](#the-installer-smoke-test)):
 download `release-signed/` from `release-sign`'s artifacts, run the test with
-the previous release and the new installer, and start `release-publish` when it
-passes. Both are `allow_failure: false`, so the pipeline waits at each and the
-jobs after them do not start.
+the previous release and the new installer, and again with the new installer
+alone, and start `release-publish` when both pass. Both are
+`allow_failure: false`, so the pipeline waits at each and the jobs after them
+do not start.
 
 **Why no secret.** Sigstore takes the job's ID token for the audience
 `sigstore`; Entra ID takes another, for `api://AzureADTokenExchange`, through a

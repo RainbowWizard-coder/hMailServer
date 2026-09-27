@@ -66,7 +66,12 @@ packages), recorded as the certificate **Self-signed (made at installation)**.
   as anything but LocalSystem (a virtual account such as `NT SERVICE\hMailServer`,
   or `ServiceAccountName`), that account, read from the service controller; on
   Linux mode 0600 owned by the service's user - as the DKIM rotation's keys are.
-  A key that account could not be given is removed, and nothing is changed.
+  A key that account could not be given is removed, and nothing is changed. The
+  Windows installer runs the verb while the service is still LocalSystem's, so
+  the key it writes names SYSTEM, the Administrators and the administrator who
+  installed; the move to `NT SERVICE\hMailServer` that follows grants that
+  account Read on the key, as it grants the key of every certificate the
+  database names (`/GrantServiceAccess`, [ServiceAccount.md](ServiceAccount.md)).
 
 **Mail clients warn about it.** It encrypts - nobody on the network reads the
 password - but nothing vouches for it, so a client asks its user to accept it the
@@ -143,7 +148,8 @@ its ranges, and the setup checklist tells its administrator what is left (below)
 ## Where it runs
 
 **The Windows installer**, after the database step of a new installation and
-before the profile the last page chose and the service's start - with the
+before the profile the last page chose, the stored-secrets key, the move to
+`NT SERVICE\hMailServer` and the service's start - with the
 service stopped, since the verb refuses to change a running server (exit 4). On
 the built-in database's branch, DBSetupQuick has just created the database, so
 anything but 0 is said in a message box (suppressed by `/SUPPRESSMSGBOXES`). On
@@ -306,39 +312,91 @@ service.
 ## What an installation on a clean machine is to check
 
 The regression fixtures drive the verb without the installer. The proof that the
-installer and the packages do it is an installation on a clean machine, and these
-checks are **not yet written**: the installer smoke test, `build/ci/installer-smoke.ps1`,
-is in the tree and does not make them yet; it is where they are to go.
+installer does it is an installation on a clean machine: the installer smoke
+test, `build/ci/installer-smoke.ps1`, which `build/ci/installer-smoke-run.sh` runs
+on a throwaway Windows Server VM, reverted to a clean snapshot before the run and
+after it ([ContinuousIntegration.md](ContinuousIntegration.md), "The installer
+smoke test"). It makes the checks below, each named in its output as this list
+names the property. A new installation and an upgrade are two runs, each from the
+clean snapshot: the new installer on its own, and the previous release's
+installer followed by the new one.
 
-* **After a new installation with the built-in database**: the certificate record
-  *Self-signed (made at installation)* over COM, its two files under
-  `Data\Certificates`, and the key's ACL granting nothing to `BUILTIN\Users`; each
-  of 25, 587, 110 and 143 with optional STARTTLS and that certificate; *Internet*
-  requiring TLS for authentication and *My computer* not; no
-  `NewInstallDefaultsPending` row left; from 127.0.0.1, STARTTLS offered and
-  completing on all four (EHLO, IMAP `CAPABILITY`, POP3 `CAPA` with `STLS`) with
-  a peer certificate whose subject says *self-signed at installation*; from the
-  machine's own LAN address, no `AUTH` in EHLO on 587, `AUTH LOGIN` answered 530,
-  IMAP `LOGIN` answered `BAD`, POP3 `USER` answered `-ERR`, and each taking the
-  account's password after STARTTLS; the existing sign-ins over 127.0.0.1 passing
-  without TLS as before.
-* **After an upgrade** from a release that had no such defaults: every port's
-  security and both ranges exactly as they were, no certificate record made, and
-  the checklist over COM (`Utilities.GetSetupChecklist(false)`) answering
-  `sign_in_tls` as action needed with `sign_in_no_tls` for *Internet*, and no fix.
+* **After a new installation with the built-in database** (an installer from
+  6.3.4 on): the certificate record *Self-signed (made at installation)* over COM,
+  and no other; its two files under `Data\Certificates`, and the key's ACL
+  granting nothing to `BUILTIN\Users` - protected, and naming no one but SYSTEM,
+  the Administrators, the administrator who installed and the account the
+  service logs on as, which must be able to read it; the certificate RSA 2048,
+  for 825 days, naming the host as its common name and its subjectAltName, with
+  the organisation *hMailServer, self-signed at installation*; each of 25, 587,
+  110 and 143 with optional STARTTLS and that certificate, and no fifth port;
+  *Internet* requiring TLS for authentication and *My computer* not; no
+  `NewInstallDefaultsPending` row left (read from the database itself); the
+  verb's `exited 0` in Inno's log; each change on the audit trail under
+  `hmailserver --apply-new-install-defaults` - the certificate, the four ports
+  and the *Internet* range; and the checklist over COM answering `sign_in_tls`
+  done (`sign_in_tls_required` for *Internet*) and `submission_self_signed` for
+  587. Then, with an account made: from 127.0.0.1, STARTTLS offered and completing
+  on all four (EHLO, IMAP `CAPABILITY`, POP3 `CAPA` with `STLS`) with a peer
+  certificate whose subject says *self-signed at installation* and which is the
+  file on disk; from the machine's own LAN address, no `AUTH` in EHLO on 587,
+  `AUTH LOGIN` answered 530, IMAP `LOGIN` answered `BAD` (its `CAPABILITY` saying
+  `LOGINDISABLED`), POP3 `USER` answered `-ERR` (its `CAPA` leaving `USER` out),
+  and each taking the account's password after STARTTLS; from that address,
+  mail on port 25 taken without TLS and after STARTTLS, with no `AUTH` offered
+  before it; and the existing sign-ins over 127.0.0.1 passing without TLS as
+  before - SMTP `AUTH` on 587, POP3 and IMAP.
+* **After an upgrade** from a release that had no such defaults: the installer
+  not even running the verb (no line for it in Inno's log); every port's security
+  and both ranges exactly as they were - every property the COM objects have,
+  read before the upgrade and after it; no certificate record made, and no key
+  under `Data\Certificates`; no `NewInstallDefaultsPending` row; the checklist
+  over COM (`Utilities.GetSetupChecklist(false)`) answering `sign_in_tls` as
+  action needed with `sign_in_no_tls` for *Internet*, and no fix; and the verb,
+  run by hand with the service stopped, refusing the upgraded server with exit 5
+  because its database has no mark, and changing nothing. An upgrade from a
+  release that had the defaults is held to the same, but for the checklist.
 * **After a new installation attached to an existing external database** (DBSetup,
   *Select a new hMailServer default database*): nothing changed, and exit 5 in
-  Inno's log.
+  Inno's log. **This one is not in the smoke test**: DBSetup is a wizard with no
+  silent mode - `Tools/DBSetup/Program.cs` shows it whatever the command line
+  says - so a silent installation cannot choose an external database, and the VM
+  has no database server to attach. What stands for it is the rule it rests on,
+  which the upgrade run proves: a database no create step marked is refused
+  (exit 5) and left exactly as it was. That the installer then only logs the
+  exit 5 on that branch is `ApplyNewInstallDefaults(false)`, read in the code, not
+  run.
 * **After the uninstall**: `Data\Certificates` kept with the rest of the data
   directory.
+
+**The run that proves them**, on 27 September 2026, against the released 6.3.4
+installer as signed (`hMailServer-6.3.4-x64.exe`, SHA-256
+`843cb07b753f8d3d764b3120029e47ea407aa6874468cb3351a06777e3f2310f`), on the
+smoke VM:
+
+| Run | Result |
+|---|---|
+| 6.3.4 on its own: a new installation, then the uninstall | 59 passed, 0 failed; 21 of the checks are new |
+| 6.3.3, then 6.3.4 over it, then the uninstall | 73 passed, 0 failed; 8 of the checks are new |
+
+Every check passed, the new ones and the old, and they found no defect in the
+product. The first run of the new installation failed one old check, not one
+of these: the uninstall left `Bin\hMailServerApiKeys.ini`, the REST API's key
+store, which `/GrantServiceAccess` makes empty when a new installation's service
+moves to `NT SERVICE\hMailServer`. The server writes that file, not the
+installer, and it sits beside `hMailServer.INI`, which the uninstall keeps, so
+the check's list of what the uninstall keeps was short of it; every earlier run
+had kept LocalSystem and never made it.
 
 The Linux packaging job of the GitHub workflow `linux-build.yml` (in the git
 history at `6399e08a5`) has these checks for the `.deb` - the file and the mark
 removed, the record, the four listeners, the two ranges, the key's owner and
 mode, STARTTLS on all four, and `AUTH` refused before STARTTLS from the runner's
 own address and offered after it - but it ran only on GitHub Actions, and GitLab
-CI's `linux-package-deb` job does not carry them yet, so nothing runs them
-today.
+CI's `linux-package-deb` job and the package install tests (`deb-*-install`,
+`rpm-*-install` and the AppImage's) do not carry them yet, so nothing runs them
+today. The Windows smoke test cannot: it installs the Windows installer, and no
+package.
 
 ## Where the code is
 

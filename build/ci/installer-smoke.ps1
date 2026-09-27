@@ -34,9 +34,39 @@
                 value and every COM registration gone, and exactly what the
                 installer keeps kept (section_files_common.iss, section_ini.iss,
                 section_dirs.iss): hMailServer.INI, the database, the message store,
-                the logs, the event scripts and the addon scripts. Registry keys the
+                the logs, the event scripts and the addon scripts, and the REST API's
+                key store beside the INI, which the server writes. Registry keys the
                 run left anywhere else are listed, and any that names hMailServer
                 fails.
+
+   And what docs/SecureDefaults.md says an installation on a clean machine is to
+   check, named as that document names each property:
+
+     a new installation, when the first installer is 6.3.4 or later: the certificate
+                record "Self-signed (made at installation)" over COM, its two files
+                under Data\Certificates, the key's ACL granting nothing to
+                BUILTIN\Users, the certificate RSA 2048 for 825 days naming the host
+                and where it came from, each of 25, 587, 110 and 143 with optional
+                STARTTLS and that certificate, Internet requiring TLS for
+                authentication and My computer not, no NewInstallDefaultsPending row
+                left, the verb's exit 0 in Inno's log, its rows on the audit trail,
+                and the setup checklist; then, with the account made, STARTTLS
+                offered and completing from 127.0.0.1 on all four with that
+                certificate, from this machine's own LAN address a password refused
+                before STARTTLS and taken after it on SMTP 587, IMAP and POP3, mail
+                taken on 25 without TLS, and the sign-ins over 127.0.0.1 taking a
+                password without TLS as before;
+     an upgrade to 6.3.4 or later: the verb not run by the installer, every port's
+                security and both ranges exactly as they were, no certificate record
+                made, no mark, the checklist's sign_in_no_tls for Internet with no
+                fix when the older release had no such defaults, and the verb run by
+                hand leaving the upgraded server as it is (exit 5);
+     the uninstall of a new installation: Data\Certificates kept with the rest of
+                the data directory.
+
+   A new installation and an upgrade from a release without the defaults are two
+   runs, each on the clean machine: the new installer alone, and the previous
+   release's installer followed by the new one.
 
    Every check prints one line, PASS, FAIL, SKIP or INFO, then a dash and what it
    found. The exit code is 0 when nothing failed, 1 when a check failed and 2 when the
@@ -98,6 +128,28 @@ $SmokeDomain = 'smoke.test'
 $SmokeAccount = 'user@smoke.test'
 $SmokeSender = 'sender@example.org'
 
+# docs/SecureDefaults.md: the first release whose installer secures a new
+# installation, and the names the code gives what it makes
+# (Common/Application/NewInstallDefaults.cpp): the certificate record, the
+# organisation in the certificate's subject, the two files under the data
+# directory's Certificates folder, the hm_settings row the create step marks a new
+# database with, and the name the verb writes on the audit trail under.
+$SecureDefaultsVersion = [version] '6.3.4'
+$InstallationCertificateName = 'Self-signed (made at installation)'
+$InstallationCertificateOrganization = 'hMailServer, self-signed at installation'
+$InstallationCertificateFile = 'self-signed-certificate.pem'
+$InstallationKeyFile = 'self-signed-key.pem'
+$PendingMarkName = 'NewInstallDefaultsPending'
+$VerbActor = 'hmailserver --apply-new-install-defaults'
+# The four listeners a new database has (CreateTables*.sql), by eSessionType and
+# number - 1 SMTP, 3 POP3, 5 IMAP - and eConnectionSecurity's STARTTLS (optional).
+$ShippedListeners = @(
+   @{ Protocol = 1; Number = 25; Name = 'SMTP' },
+   @{ Protocol = 1; Number = 587; Name = 'SMTP' },
+   @{ Protocol = 3; Number = 110; Name = 'POP3' },
+   @{ Protocol = 5; Number = 143; Name = 'IMAP' })
+$StartTlsOptional = 2
+
 # Letters and digits only: the account password travels in POP3's PASS and in an IMAP
 # quoted string, and the administrator password on Inno's command line when the first
 # installer predates 6.3.4 (Set-AdminPasswordFor), and none of them needs escaping for
@@ -139,6 +191,10 @@ $State = @{
    SchemaNow = 0
    ErrorLinesSeen = New-Object 'System.Collections.Generic.HashSet[string]'
    PasswordInEnvironment = $false
+   CertificateId = 0
+   CertificateThumbprint = ''
+   CertificateFiles = @()
+   ListenersBefore = $null
 }
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
@@ -344,17 +400,88 @@ function Connect-Server {
 
 # ------------------------------------------------------------------ the protocols
 
-function Open-Conversation([int] $Port) {
+function Open-Conversation([int] $Port, [string] $Address = '127.0.0.1') {
    $client = New-Object System.Net.Sockets.TcpClient
    $client.ReceiveTimeout = 30000
    $client.SendTimeout = 30000
-   $client.Connect('127.0.0.1', $Port)
-   $stream = $client.GetStream()
-   $reader = New-Object System.IO.StreamReader($stream, [System.Text.Encoding]::ASCII)
-   $writer = New-Object System.IO.StreamWriter($stream, [System.Text.Encoding]::ASCII)
+   $client.Connect($Address, $Port)
+   $conversation = [pscustomobject] @{ Client = $client; Reader = $null; Writer = $null; Certificate = $null; Tls = '' }
+   Set-ConversationStream $conversation $client.GetStream()
+   return $conversation
+}
+
+function Set-ConversationStream($Conversation, [System.IO.Stream] $Stream) {
+   $Conversation.Reader = New-Object System.IO.StreamReader($Stream, [System.Text.Encoding]::ASCII)
+   $writer = New-Object System.IO.StreamWriter($Stream, [System.Text.Encoding]::ASCII)
    $writer.NewLine = "`r`n"
    $writer.AutoFlush = $true
-   return [pscustomobject] @{ Client = $client; Reader = $reader; Writer = $writer }
+   $Conversation.Writer = $writer
+}
+
+# TLS started on a conversation whose server has just agreed to it (STARTTLS, STLS).
+# Any certificate is taken - the self-signed one a new installation makes is the one
+# being checked - and kept, with the protocol, for the caller. Nothing is read ahead
+# of the server's agreement, so the plain reader holds nothing the TLS one needs.
+function Start-ConversationTls($Conversation) {
+   $accept = [System.Net.Security.RemoteCertificateValidationCallback] { param($sender, $certificate, $chain, $errors) return $true }
+   $ssl = New-Object System.Net.Security.SslStream($Conversation.Client.GetStream(), $false, $accept)
+   $protocols = [System.Security.Authentication.SslProtocols]::Tls12 -bor [System.Security.Authentication.SslProtocols]::Tls13
+   $ssl.AuthenticateAsClient('localhost', $null, $protocols, $false)
+   $Conversation.Certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($ssl.RemoteCertificate)
+   $Conversation.Tls = [string] $ssl.SslProtocol
+   Set-ConversationStream $Conversation $ssl
+}
+
+# An SMTP command, or none for the greeting, and every line of the reply.
+function Invoke-SmtpLines($Conversation, [string] $Command) {
+   if ($Command) { $Conversation.Writer.WriteLine($Command) }
+   $lines = @()
+   do { $line = Read-Reply $Conversation; $lines += $line } while ($line -match '^\d{3}-')
+   return , $lines
+}
+
+# The EHLO keyword lines of a reply: "250-AUTH LOGIN PLAIN" gives "AUTH LOGIN PLAIN".
+function Get-EhloKeywords([string[]] $Reply) {
+   return @($Reply | Select-Object -Skip 1 | ForEach-Object { $_.Substring(4) })
+}
+
+# AUTH LOGIN with the account's name and password; the reply must be 235. What an
+# error says of the two answers is their names, never their base64.
+function Invoke-SmtpAuthLogin($Conversation) {
+   $encode = { param($text) [Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($text)) }
+   [void] (Invoke-SmtpCommand $Conversation 'AUTH LOGIN' '334')
+   [void] (Invoke-SmtpCommand $Conversation (& $encode $SmokeAccount) '334' 'the user name')
+   return (Invoke-SmtpCommand $Conversation (& $encode $AccountPassword) '235' 'the password')
+}
+
+# An IMAP command's tagged answer, whatever it is, and the untagged lines before it.
+function Invoke-ImapExchange($Conversation, [string] $Tag, [string] $Command) {
+   $Conversation.Writer.WriteLine("$Tag $Command")
+   $untagged = @()
+   while ($true) {
+      $line = Read-Reply $Conversation
+      if ($line.StartsWith("$Tag ")) { return [pscustomobject] @{ Tagged = $line; Untagged = $untagged } }
+      $untagged += $line
+   }
+}
+
+# POP3 CAPA: the capability lines between +OK and the lone dot.
+function Get-Pop3Capabilities($Conversation) {
+   $Conversation.Writer.WriteLine('CAPA')
+   $first = Read-Reply $Conversation
+   if (-not $first.StartsWith('+OK')) { throw "POP3 CAPA was answered '$first'" }
+   $lines = @()
+   while (($line = Read-Reply $Conversation) -ne '.') { $lines += $line }
+   return , $lines
+}
+
+# A POP3 command whose reply must start with $Expected ('+OK' or '-ERR'); $Shown is
+# what an error may say of the command.
+function Invoke-Pop3Command($Conversation, [string] $Command, [string] $Expected, [string] $Shown = $Command) {
+   $Conversation.Writer.WriteLine($Command)
+   $reply = Read-Reply $Conversation
+   if (-not $reply.StartsWith($Expected)) { throw "POP3 '$Shown' was answered '$reply'" }
+   return $reply
 }
 
 function Read-Reply($Conversation) {
@@ -548,6 +675,19 @@ function Get-ClaimedVersion([string] $Path) {
    return $version.Trim()
 }
 
+# The release a version names - 6.3.4 of "6.3.4" or "6.3.4-B43" - or $null.
+function Get-ReleaseVersion([string] $Version) {
+   if ($Version -match '^(\d+)\.(\d+)\.(\d+)') { return [version] "$($Matches[1]).$($Matches[2]).$($Matches[3])" }
+   return $null
+}
+
+# Whether an installer of this version secures a new installation
+# (docs/SecureDefaults.md), and so leaves an upgrade exactly as it was.
+function Test-HasSecureDefaults([string] $Version) {
+   $release = Get-ReleaseVersion $Version
+   return ($null -ne $release) -and ($release -ge $SecureDefaultsVersion)
+}
+
 function Test-InstallerFile([string] $Label, [string] $Path) {
    Write-Info "$Label installer" ("$(Split-Path -Leaf $Path), {0:N0} bytes, SHA-256 {1}" -f (Get-Item -LiteralPath $Path).Length, (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash)
    $claimed = Get-ClaimedVersion $Path
@@ -599,10 +739,8 @@ function Invoke-Setup([string] $Path, [string[]] $Arguments, [string] $LogPath) 
 # and digits and goes with /adminpassword=. The upgrade takes it the same way, being
 # the later installer.
 function Set-AdminPasswordFor([string] $FirstVersion) {
-   $takesAny = $false
-   if ($FirstVersion -match '^(\d+)\.(\d+)\.(\d+)') {
-      $takesAny = ([version] "$($Matches[1]).$($Matches[2]).$($Matches[3])") -ge [version] '6.3.4'
-   }
+   $release = Get-ReleaseVersion $FirstVersion
+   $takesAny = ($null -ne $release) -and ($release -ge [version] '6.3.4')
    if ($takesAny) {
       $script:AdminPassword = $script:AdminPassword + $AdminPasswordHardPart
       $State.PasswordInEnvironment = $true
@@ -968,6 +1106,676 @@ function Test-SmokeDataKept([string] $Phase) {
       })
 }
 
+# ------------------------------------------------------------------ the secure defaults (docs/SecureDefaults.md)
+
+# The data directory hMailServer.INI names (section_ini.iss writes {app}\Data), under
+# which the verb writes the certificate (NewInstallDefaults::CertificateDirectory).
+function Get-DataDirectory {
+   $folder = Get-IniValue (Join-Path $State.App 'Bin\hMailServer.INI') 'Directories' 'DataFolder'
+   if (-not $folder) { $folder = Join-Path $State.App 'Data' }
+   return $folder.TrimEnd('\')
+}
+
+# What a query selects from the built-in database, as a DataTable, read the way the
+# server reads it (SQLCEConnection.cpp): through SQL Server Compact's OLE DB provider,
+# from the .sdf in the Database folder, with the password hMailServer.INI keeps -
+# under this machine's DPAPI (PasswordEncryption 6, IniFileSettings::SetPassword) or,
+# as an older release wrote it, Blowfish (1), which the COM object decrypts. The
+# password is used here and nowhere else, and an error that carried it says (hidden)
+# instead. The connection is shared, as the running service's is: nothing is
+# stopped for a read.
+function Invoke-DatabaseQuery([string] $Sql) {
+   $ini = Join-Path $State.App 'Bin\hMailServer.INI'
+   $type = Get-IniValue $ini 'Database' 'Type'
+   if ($type -ne 'MSSQLCE') { throw "hMailServer.INI says database type '$type'; only the built-in database is read here" }
+   $file = @(Get-ChildItem -LiteralPath (Join-Path $State.App 'Database') -Filter '*.sdf' -File -ErrorAction SilentlyContinue) | Select-Object -First 1
+   if ($null -eq $file) { throw 'there is no .sdf in the Database folder' }
+
+   $stored = Get-IniValue $ini 'Database' 'Password'
+   $scheme = Get-IniValue $ini 'Database' 'PasswordEncryption'
+   $password = ''
+   if ($stored -and $scheme -eq '6') {
+      Add-Type -AssemblyName System.Security
+      $bytes = [System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($stored), $null, [System.Security.Cryptography.DataProtectionScope]::LocalMachine)
+      $password = [System.Text.Encoding]::UTF8.GetString($bytes)
+   }
+   elseif ($stored -and $scheme -eq '1') {
+      $application = Connect-Server
+      try { $password = [string] $application.Utilities.BlowfishDecrypt($stored) } finally { Remove-ComReference $application }
+   }
+   elseif ($stored) { $password = $stored }
+
+   $builder = New-Object System.Data.OleDb.OleDbConnectionStringBuilder
+   $builder['Provider'] = 'Microsoft.SQLSERVER.CE.OLEDB.4.0'
+   $builder['Data Source'] = $file.FullName
+   $builder['SSCE:Database Password'] = $password
+   $connection = New-Object System.Data.OleDb.OleDbConnection($builder.ConnectionString)
+   try {
+      $connection.Open()
+      $command = $connection.CreateCommand()
+      $command.CommandText = $Sql
+      $table = New-Object System.Data.DataTable
+      $reader = $command.ExecuteReader()
+      try { $table.Load($reader) } finally { $reader.Close() }
+      return , $table
+   }
+   catch {
+      $message = $_.Exception.Message
+      if ($password) { $message = $message.Replace($password, '(hidden)') }
+      throw "the database could not be read: $message"
+   }
+   finally {
+      $connection.Dispose()
+      $builder.Clear()
+      $password = $null
+   }
+}
+
+# The ports, the IP ranges and the certificate records over COM, each as one line of
+# every property the COM object has for it, sorted: what an upgrade must leave as it
+# was. The ports and ranges are keyed by what they are, not by their ids.
+$PortProperties = @('Protocol', 'PortNumber', 'Address', 'ConnectionSecurity', 'SSLCertificateID', 'UseSSL', 'ClientCertificatePolicy', 'ClientCertificateCAFile')
+$RangeProperties = @('Name', 'LowerIP', 'UpperIP', 'Priority', 'Expires', 'RequireSSLTLSForAuth',
+   'AllowSMTPConnections', 'AllowPOP3Connections', 'AllowIMAPConnections',
+   'RequireSMTPAuthLocalToLocal', 'RequireSMTPAuthLocalToExternal', 'RequireSMTPAuthExternalToLocal', 'RequireSMTPAuthExternalToExternal',
+   'AllowDeliveryFromLocalToLocal', 'AllowDeliveryFromLocalToRemote', 'AllowDeliveryFromRemoteToLocal', 'AllowDeliveryFromRemoteToRemote',
+   'EnableSpamProtection', 'EnableAntiVirus', 'IsForwardingRelay')
+
+function Get-ListenerState {
+   $application = Connect-Server
+   try {
+      $settings = $application.Settings
+      $ports = @()
+      $collection = $settings.TCPIPPorts
+      for ($i = 0; $i -lt $collection.Count; $i++) {
+         $item = $collection.Item($i)
+         $ports += (($PortProperties | ForEach-Object { "$_=$($item.$_)" }) -join ' | ')
+      }
+      $ranges = @()
+      $collection = $settings.SecurityRanges
+      for ($i = 0; $i -lt $collection.Count; $i++) {
+         $item = $collection.Item($i)
+         $ranges += (($RangeProperties | ForEach-Object { "$_=$($item.$_)" }) -join ' | ')
+      }
+      $certificates = @()
+      $collection = $settings.SSLCertificates
+      for ($i = 0; $i -lt $collection.Count; $i++) {
+         $item = $collection.Item($i)
+         $certificates += "ID=$($item.ID) | Name=$($item.Name) | CertificateFile=$($item.CertificateFile) | PrivateKeyFile=$($item.PrivateKeyFile)"
+      }
+   }
+   finally { Remove-ComReference $application }
+   return [pscustomobject] @{
+      Ports        = @($ports | Sort-Object)
+      Ranges       = @($ranges | Sort-Object)
+      Certificates = @($certificates | Sort-Object)
+   }
+}
+
+# One property of a line Get-ListenerState made: "Name=My computer | ..." gives
+# "My computer" for Name.
+function Get-LineValue([string] $Line, [string] $Name) {
+   foreach ($part in ($Line -split ' \| ')) {
+      if ($part.StartsWith("$Name=")) { return $part.Substring($Name.Length + 1) }
+   }
+   return ''
+}
+
+# The lines of one list the other has not, each marked with the side it is on.
+# Compare-Object is not used: it refuses an empty list, and a release before 6.3.4
+# has no certificate record at all.
+function Compare-Lines([string[]] $Before, [string[]] $After) {
+   $old = @($Before | Where-Object { $_ })
+   $new = @($After | Where-Object { $_ })
+   $gone = @($old | Where-Object { $new -notcontains $_ } | ForEach-Object { "before: $_" })
+   $added = @($new | Where-Object { $old -notcontains $_ } | ForEach-Object { "after:  $_" })
+   return @($gone + $added)
+}
+
+# The setup checklist over COM (Utilities.GetSetupChecklist(false): no DNS lookups),
+# and one of its items by key.
+function Get-SetupChecklist {
+   $application = Connect-Server
+   try { $json = [string] $application.Utilities.GetSetupChecklist($false) } finally { Remove-ComReference $application }
+   return ($json | ConvertFrom-Json)
+}
+
+function Get-ChecklistItem($Checklist, [string] $Key) {
+   $item = @($Checklist.items | Where-Object { $_.key -eq $Key }) | Select-Object -First 1
+   if ($null -eq $item) { throw "the checklist has no item $Key" }
+   return $item
+}
+
+function Format-Finding($Finding) {
+   $text = "$($Finding.code) ($($Finding.state)) [$(@($Finding.args) -join ', ')]"
+   if ($null -ne $Finding.PSObject.Properties['fix']) { $text += ' with a fix' }
+   return $text
+}
+
+# A PEM certificate file, the first certificate in it.
+function Read-PemCertificate([string] $Path) {
+   $text = [System.IO.File]::ReadAllText($Path)
+   if ($text -notmatch '-----BEGIN CERTIFICATE-----([A-Za-z0-9+/=\s]+?)-----END CERTIFICATE-----') { throw "$Path holds no PEM certificate" }
+   $bytes = [Convert]::FromBase64String(($Matches[1] -replace '\s', ''))
+   return [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($bytes)
+}
+
+# The name the certificate is made for, as NewInstallDefaults.cpp's
+# CertificateHostName chooses it: the host name setting, else the machine's fully
+# qualified DNS name; lower case, and only what a DNS name holds.
+function Get-ExpectedCertificateHost {
+   $application = Connect-Server
+   try { $name = ([string] $application.Settings.HostName).Trim() } finally { Remove-ComReference $application }
+   if (-not $name) {
+      $properties = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties()
+      $name = $properties.HostName
+      if ($properties.DomainName) { $name += '.' + $properties.DomainName }
+   }
+   $name = ($name.ToLowerInvariant() -replace '[^a-z0-9.-]', '').Trim('.', '-')
+   if (-not $name -or $name.Length -gt 253) { $name = 'localhost' }
+   return $name
+}
+
+# This machine's own IPv4 address on its network: a connection from it to itself
+# comes from that address, which the Internet range covers and My computer
+# (127.0.0.1) does not - the view a mail client on another machine has.
+function Get-LanAddress {
+   $address = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+         Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.AddressState -eq 'Preferred' } |
+         Sort-Object InterfaceIndex) | Select-Object -First 1
+   if ($null -eq $address) { throw 'this machine has no IPv4 address but the loopback' }
+   return $address.IPAddress
+}
+
+# The lines Inno's log holds for the verb: ApplyNewInstallDefaults logs its exit code.
+function Get-VerbLogLines([string] $InnoLog) {
+   if (-not (Test-Path -LiteralPath $InnoLog)) { throw "$InnoLog is not there" }
+   return @(Select-String -LiteralPath $InnoLog -SimpleMatch 'hMailServer.exe --apply-new-install-defaults' | ForEach-Object { $_.Line.Trim() })
+}
+
+# After a new installation: what the installer made (docs/SecureDefaults.md, "What an
+# installation on a clean machine is to check").
+function Test-NewInstallDefaults([string] $Phase, [string] $InnoLog) {
+   $directory = Join-Path (Get-DataDirectory) 'Certificates'
+   $certificateFile = Join-Path $directory $InstallationCertificateFile
+   $keyFile = Join-Path $directory $InstallationKeyFile
+
+   [void] (Test-Step "${Phase}: Inno's log has the verb's result, --apply-new-install-defaults exited 0" {
+         $lines = @(Get-VerbLogLines $InnoLog)
+         $exited = @($lines | Where-Object { $_ -match 'exited (-?\d+)\.$' })
+         if ($exited.Count -ne 1) { throw "Inno's log has $($exited.Count) exit lines for it: $($lines -join ' | ')" }
+         if ($exited[0] -notmatch 'exited 0\.$') { throw "Inno's log says: $($exited[0])" }
+         "'$($exited[0] -replace '^.*(hMailServer\.exe --apply)', '$1')'"
+      })
+
+   [void] (Test-Step "${Phase}: the certificate record '$InstallationCertificateName' over COM, and no other" {
+         $application = Connect-Server
+         try {
+            $collection = $application.Settings.SSLCertificates
+            $records = @()
+            for ($i = 0; $i -lt $collection.Count; $i++) {
+               $item = $collection.Item($i)
+               $records += [pscustomobject] @{ ID = [int] $item.ID; Name = [string] $item.Name; CertificateFile = [string] $item.CertificateFile; PrivateKeyFile = [string] $item.PrivateKeyFile }
+            }
+         }
+         finally { Remove-ComReference $application }
+         if ($records.Count -ne 1) { throw "there are $($records.Count) certificate records: $(($records | ForEach-Object { "'$($_.Name)'" }) -join ', ')" }
+         $record = $records[0]
+         if ($record.Name -ne $InstallationCertificateName) { throw "the record is '$($record.Name)'" }
+         if ($record.CertificateFile -ne $certificateFile) { throw "its certificate file is '$($record.CertificateFile)', not $certificateFile" }
+         if ($record.PrivateKeyFile -ne $keyFile) { throw "its key file is '$($record.PrivateKeyFile)', not $keyFile" }
+         $State.CertificateId = $record.ID
+         "ID $($record.ID): $($record.CertificateFile), $($record.PrivateKeyFile)"
+      })
+
+   [void] (Test-Step "${Phase}: its two files under Data\Certificates" {
+         foreach ($file in $certificateFile, $keyFile) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "$file is not there" }
+         }
+         $State.CertificateFiles = @($certificateFile, $keyFile)
+         # The key's first line only: what kind of key it is, never the key.
+         $first = (Get-Content -LiteralPath $keyFile -TotalCount 1).Trim()
+         if ($first -ne '-----BEGIN PRIVATE KEY-----') { throw "the key file begins '$($first.Substring(0, [Math]::Min(40, $first.Length)))', not a PKCS#8 private key" }
+         $certificate = Read-PemCertificate $certificateFile
+         $State.CertificateThumbprint = $certificate.Thumbprint
+         "$directory\$InstallationCertificateFile (SHA-1 $($certificate.Thumbprint)) and $InstallationKeyFile (a PKCS#8 private key)"
+      })
+
+   # ProtectedFile's DACL: protected, SYSTEM, the Administrators group and the account
+   # that wrote it - the administrator who ran the installer, who runs this too - and
+   # the service's own account when it is not LocalSystem: the verb runs while the
+   # service is still LocalSystem's, and the move to NT SERVICE\hMailServer after the
+   # database step grants that account Read on the key (/GrantServiceAccess, which
+   # grants every certificate's key the database names).
+   [void] (Test-Step "${Phase}: the key's ACL granting nothing to BUILTIN\Users" {
+         $acl = Get-Acl -LiteralPath $keyFile
+         if (-not $acl.AreAccessRulesProtected) { throw 'its ACL inherits from the folder' }
+         $service = Get-HmService
+         $serviceSid = ''
+         if ($null -ne $service -and $service.StartName -and $service.StartName -notmatch '^(LocalSystem|\.\\LocalSystem|NT AUTHORITY\\SYSTEM)$') {
+            $serviceSid = (New-Object System.Security.Principal.NTAccount($service.StartName)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+         }
+         $installer = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+         $allowed = @('S-1-5-18', 'S-1-5-32-544', $installer)
+         if ($serviceSid) { $allowed += $serviceSid }
+         $entries = @()
+         $strangers = @()
+         $usersGranted = $false
+         $serviceReads = $false
+         foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+            $sid = $rule.IdentityReference.Value
+            $name = $sid
+            try { $name = $rule.IdentityReference.Translate([System.Security.Principal.NTAccount]).Value } catch { }
+            $entries += "$name $($rule.AccessControlType) $($rule.FileSystemRights)"
+            if ([string] $rule.AccessControlType -ne 'Allow') { continue }
+            if ($sid -eq 'S-1-5-32-545') { $usersGranted = $true }
+            if ($allowed -notcontains $sid) { $strangers += "$name ($sid)" }
+            # Read: FILE_READ_DATA, or GENERIC_READ or GENERIC_ALL as an entry may
+            # keep them unmapped.
+            $mask = [int] $rule.FileSystemRights
+            if ($serviceSid -and $sid -eq $serviceSid -and (($mask -band 1) -ne 0 -or ($mask -band 0x10000000) -ne 0 -or $mask -lt 0)) { $serviceReads = $true }
+         }
+         if ($usersGranted) { throw "BUILTIN\Users is granted: $($entries -join '; ')" }
+         if ($strangers.Count -gt 0) { throw "granted to $($strangers -join ', '), beyond SYSTEM, the Administrators, the installing account and the service's: $($entries -join '; ')" }
+         if ($serviceSid -and -not $serviceReads) { throw "the service logs on as $($service.StartName), which may not read it: $($entries -join '; ')" }
+         "protected, the service logs on as $($service.StartName): $($entries -join '; ')"
+      })
+
+   [void] (Test-Step "${Phase}: the certificate RSA 2048, for 825 days" {
+         $certificate = Read-PemCertificate $certificateFile
+         $rsa = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPublicKey($certificate)
+         if ($null -eq $rsa) { throw "its key is $($certificate.PublicKey.Oid.FriendlyName), not RSA" }
+         if ($rsa.KeySize -ne 2048) { throw "its key is RSA $($rsa.KeySize)" }
+         # NotBefore is five minutes before it was made, NotAfter 825 days after
+         # (NewInstallDefaults::Apply_). The clock of a machine just reverted to a
+         # snapshot may still be catching up, so when it was made is shown, not held
+         # to this run's.
+         $made = $certificate.NotBefore.ToUniversalTime().AddMinutes(5)
+         $days = ($certificate.NotAfter.ToUniversalTime() - $made).TotalDays
+         if ([Math]::Abs($days - 825) -gt (2.0 / 1440)) { throw "it runs $([Math]::Round($days, 4)) days, from $($made.ToString('u')) to $($certificate.NotAfter.ToUniversalTime().ToString('u'))" }
+         "RSA $($rsa.KeySize), $($certificate.SignatureAlgorithm.FriendlyName), made $($made.ToString('u')), valid to $($certificate.NotAfter.ToUniversalTime().ToString('u')): 825 days"
+      })
+
+   [void] (Test-Step "${Phase}: the certificate's subject naming the host, as its common name and its subjectAltName, and the organisation '$InstallationCertificateOrganization'" {
+         $certificate = Read-PemCertificate $certificateFile
+         $expected = Get-ExpectedCertificateHost
+         $parts = @{}
+         foreach ($line in ($certificate.SubjectName.Format($true) -split "`r?`n")) {
+            if ($line -match '^\s*([A-Za-z]+)=(.*)$') { $parts[$Matches[1]] = $Matches[2].Trim().Trim('"') }
+         }
+         $commonName = if ($parts.ContainsKey('CN')) { $parts['CN'] } else { '' }
+         $organization = if ($parts.ContainsKey('O')) { $parts['O'] } else { '' }
+         $wantedCommonName = if ($expected.Length -le 64) { $expected } else { 'hMailServer' }
+         if ($commonName -ne $wantedCommonName) { throw "its common name is '$commonName', and the host is '$expected'" }
+         if ($organization -ne $InstallationCertificateOrganization) { throw "its organisation is '$organization'" }
+         $alternative = @($certificate.Extensions | Where-Object { $_.Oid.Value -eq '2.5.29.17' }) | Select-Object -First 1
+         if ($null -eq $alternative) { throw 'it has no subjectAltName' }
+         $names = $alternative.Format($false)
+         if (@($names -split ',\s*' | Where-Object { $_ -eq "DNS Name=$expected" }).Count -ne 1) { throw "its subjectAltName is '$names', and the host is '$expected'" }
+         if ($certificate.Issuer -ne $certificate.Subject) { throw "its issuer is '$($certificate.Issuer)'" }
+         "subject '$($certificate.Subject)', subjectAltName '$names'"
+      })
+
+   [void] (Test-Step "${Phase}: each of 25, 587, 110 and 143 with optional STARTTLS and that certificate" {
+         $application = Connect-Server
+         try {
+            $collection = $application.Settings.TCPIPPorts
+            $ports = @()
+            for ($i = 0; $i -lt $collection.Count; $i++) {
+               $item = $collection.Item($i)
+               $ports += [pscustomobject] @{ Protocol = [int] $item.Protocol; Number = [int] $item.PortNumber; Security = [int] $item.ConnectionSecurity; Certificate = [int] $item.SSLCertificateID; Address = [string] $item.Address }
+            }
+            $certificates = $application.Settings.SSLCertificates
+            $certificateId = 0
+            for ($i = 0; $i -lt $certificates.Count; $i++) {
+               if ([string] $certificates.Item($i).Name -eq $InstallationCertificateName) { $certificateId = [int] $certificates.Item($i).ID }
+            }
+         }
+         finally { Remove-ComReference $application }
+         if ($certificateId -eq 0) { throw "there is no certificate record '$InstallationCertificateName' for the ports to name" }
+         if ($ports.Count -ne $ShippedListeners.Count) { throw "there are $($ports.Count) ports: $(($ports | ForEach-Object { $_.Number }) -join ', ')" }
+         $found = @()
+         foreach ($shipped in $ShippedListeners) {
+            $port = @($ports | Where-Object { $_.Protocol -eq $shipped.Protocol -and $_.Number -eq $shipped.Number }) | Select-Object -First 1
+            if ($null -eq $port) { throw "there is no $($shipped.Name) port $($shipped.Number)" }
+            if ($port.Security -ne $StartTlsOptional) { throw "port $($port.Number)'s connection security is $($port.Security), not $StartTlsOptional (STARTTLS, optional)" }
+            if ($port.Certificate -ne $certificateId) { throw "port $($port.Number) names certificate $($port.Certificate), not $certificateId" }
+            $found += "$($port.Number) $($shipped.Name)"
+         }
+         "$($found -join ', '): STARTTLS (optional) with certificate $certificateId"
+      })
+
+   [void] (Test-Step "${Phase}: Internet requiring TLS for authentication and My computer not" {
+         $application = Connect-Server
+         try {
+            $collection = $application.Settings.SecurityRanges
+            $ranges = @()
+            for ($i = 0; $i -lt $collection.Count; $i++) {
+               $item = $collection.Item($i)
+               $ranges += [pscustomobject] @{ Name = [string] $item.Name; Lower = [string] $item.LowerIP; Upper = [string] $item.UpperIP; Requires = [bool] $item.RequireSSLTLSForAuth }
+            }
+         }
+         finally { Remove-ComReference $application }
+         if ($ranges.Count -ne 2) { throw "there are $($ranges.Count) IP ranges: $(($ranges | ForEach-Object { $_.Name }) -join ', ')" }
+         $internet = @($ranges | Where-Object { $_.Name -eq 'Internet' }) | Select-Object -First 1
+         $local = @($ranges | Where-Object { $_.Name -eq 'My computer' }) | Select-Object -First 1
+         if ($null -eq $internet -or $null -eq $local) { throw "the ranges are $(($ranges | ForEach-Object { "'$($_.Name)'" }) -join ', ')" }
+         if (-not $internet.Requires) { throw "Internet ($($internet.Lower) to $($internet.Upper)) takes a password without TLS" }
+         if ($local.Requires) { throw "My computer ($($local.Lower)) requires TLS for authentication" }
+         "Internet ($($internet.Lower) to $($internet.Upper)) RequireSSLTLSForAuth True; My computer ($($local.Lower) to $($local.Upper)) False"
+      })
+
+   [void] (Test-Step "${Phase}: no $PendingMarkName row left" {
+         $table = Invoke-DatabaseQuery "select count(*) as marks from hm_settings where settingname = '$PendingMarkName'"
+         $marks = [int] $table.Rows[0]['marks']
+         if ($marks -ne 0) { throw "hm_settings holds $marks $PendingMarkName rows" }
+         'hm_settings holds none'
+      })
+
+   [void] (Test-Step "${Phase}: each change on the audit trail under '$VerbActor', as the certificate, port and IP range rows it wrote" {
+         $table = Invoke-DatabaseQuery "select auditobjecttype, auditobjectname, auditaction from hm_audit where auditactor = '$VerbActor'"
+         $rows = @($table.Rows | ForEach-Object { "$($_['auditobjecttype']) '$($_['auditobjectname'])' $($_['auditaction'])" })
+         $count = { param($type) @($table.Rows | Where-Object { $_['auditobjecttype'] -eq $type }).Count }
+         if ((& $count 'ssl certificate') -ne 1 -or (& $count 'tcp/ip port') -ne 4 -or (& $count 'ip range') -ne 1) {
+            throw "$($rows.Count) rows: $($rows -join '; ')"
+         }
+         "$($rows.Count) rows: $($rows -join '; ')"
+      })
+
+   [void] (Test-Step "${Phase}: the checklist over COM answering sign_in_tls done (sign_in_tls_required for Internet), and submission_self_signed for 587" {
+         $checklist = Get-SetupChecklist
+         $signIn = Get-ChecklistItem $checklist 'sign_in_tls'
+         $submission = Get-ChecklistItem $checklist 'submission'
+         $said = "sign_in_tls $($signIn.state): $((@($signIn.findings) | ForEach-Object { Format-Finding $_ }) -join '; '); submission $($submission.state): $((@($submission.findings) | ForEach-Object { Format-Finding $_ }) -join '; ')"
+         $required = @($signIn.findings | Where-Object { $_.code -eq 'sign_in_tls_required' -and @($_.args)[0] -eq 'Internet' })
+         if ($signIn.state -ne 'done' -or $required.Count -ne 1) { throw $said }
+         $selfSigned = @($submission.findings | Where-Object { $_.code -eq 'submission_self_signed' -and @($_.args)[0] -eq '587' -and $_.state -eq 'action_needed' })
+         if ($selfSigned.Count -ne 1) { throw $said }
+         $said
+      })
+}
+
+# After a new installation, with the account made: STARTTLS from 127.0.0.1 on each
+# listener, a password refused before it from this machine's LAN address and taken
+# after it, and the sign-ins over 127.0.0.1 as they always were.
+function Test-SignInOverTls([string] $Phase) {
+   $lan = ''
+   try { $lan = Get-LanAddress; Write-Info "${Phase}: this machine's LAN address" "$lan, which the Internet range covers and My computer does not" }
+   catch { Write-Result 'FAIL' "${Phase}: this machine has a LAN address to connect from" $_.Exception.Message }
+
+   # The certificate the listener shows: the one on disk, and a subject that says
+   # where it came from.
+   $checkPeer = {
+      param($Conversation)
+      $peer = $Conversation.Certificate
+      if ($null -eq $peer) { throw 'TLS came up with no peer certificate' }
+      if ($peer.Subject -notmatch [regex]::Escape($InstallationCertificateOrganization)) { throw "the peer certificate's subject is '$($peer.Subject)'" }
+      if ($State.CertificateThumbprint -and $peer.Thumbprint -ne $State.CertificateThumbprint) { throw "the peer certificate is $($peer.Thumbprint), not $InstallationCertificateFile's $($State.CertificateThumbprint)" }
+      "$($Conversation.Tls), peer '$($peer.Subject)'"
+   }
+
+   foreach ($port in @(25, 587)) {
+      [void] (Test-Step "${Phase}: from 127.0.0.1, STARTTLS offered and completing on $port (EHLO), with a peer certificate whose subject says self-signed at installation" {
+            $conversation = Open-Conversation $port
+            try {
+               [void] (Invoke-SmtpCommand $conversation '' '220' 'banner')
+               $ehlo = Invoke-SmtpLines $conversation 'EHLO smoke.client'
+               if ($ehlo[-1] -notmatch '^250 ') { throw "EHLO was answered '$($ehlo[-1])'" }
+               if ((Get-EhloKeywords $ehlo) -notcontains 'STARTTLS') { throw "EHLO offers $((Get-EhloKeywords $ehlo) -join ', ')" }
+               [void] (Invoke-SmtpCommand $conversation 'STARTTLS' '220')
+               Start-ConversationTls $conversation
+               $peer = & $checkPeer $conversation
+               [void] (Invoke-SmtpCommand $conversation 'EHLO smoke.client' '250' 'EHLO after STARTTLS')
+               [void] (Invoke-SmtpCommand $conversation 'QUIT' '221')
+            }
+            finally { $conversation.Client.Close() }
+            "STARTTLS in EHLO; $peer; EHLO again answered 250"
+         })
+   }
+
+   [void] (Test-Step "${Phase}: from 127.0.0.1, STARTTLS offered and completing on 143 (IMAP CAPABILITY), with a peer certificate whose subject says self-signed at installation" {
+         $conversation = Open-Conversation 143
+         try {
+            $banner = Read-Reply $conversation
+            if (-not $banner.StartsWith('* OK')) { throw "IMAP banner '$banner'" }
+            $capability = Invoke-ImapExchange $conversation 'c1' 'CAPABILITY'
+            $line = @($capability.Untagged | Where-Object { $_ -like '* CAPABILITY *' }) | Select-Object -First 1
+            if ($capability.Tagged -notmatch '^c1 OK' -or $line -notmatch '\bSTARTTLS\b') { throw "CAPABILITY was answered '$line' '$($capability.Tagged)'" }
+            $start = Invoke-ImapExchange $conversation 'c2' 'STARTTLS'
+            if ($start.Tagged -notmatch '^c2 OK') { throw "STARTTLS was answered '$($start.Tagged)'" }
+            Start-ConversationTls $conversation
+            $peer = & $checkPeer $conversation
+            $again = Invoke-ImapExchange $conversation 'c3' 'CAPABILITY'
+            if ($again.Tagged -notmatch '^c3 OK') { throw "CAPABILITY after STARTTLS was answered '$($again.Tagged)'" }
+            [void] (Invoke-ImapExchange $conversation 'c4' 'LOGOUT')
+         }
+         finally { $conversation.Client.Close() }
+         "STARTTLS in CAPABILITY; $peer; CAPABILITY again answered OK"
+      })
+
+   [void] (Test-Step "${Phase}: from 127.0.0.1, STARTTLS offered and completing on 110 (POP3 CAPA with STLS), with a peer certificate whose subject says self-signed at installation" {
+         $conversation = Open-Conversation 110
+         try {
+            $banner = Read-Reply $conversation
+            if (-not $banner.StartsWith('+OK')) { throw "POP3 banner '$banner'" }
+            $capabilities = Get-Pop3Capabilities $conversation
+            if ($capabilities -notcontains 'STLS') { throw "CAPA offers $($capabilities -join ', ')" }
+            [void] (Invoke-Pop3Command $conversation 'STLS' '+OK')
+            Start-ConversationTls $conversation
+            $peer = & $checkPeer $conversation
+            [void] (Get-Pop3Capabilities $conversation)
+            [void] (Invoke-Pop3Command $conversation 'QUIT' '+OK')
+         }
+         finally { $conversation.Client.Close() }
+         "STLS in CAPA; $peer; CAPA again answered +OK"
+      })
+
+   if ($lan) {
+      [void] (Test-Step "${Phase}: from the machine's own LAN address, $lan, no AUTH in EHLO on 587, AUTH LOGIN answered 530, and the account's password taken after STARTTLS" {
+            $conversation = Open-Conversation 587 $lan
+            try {
+               [void] (Invoke-SmtpCommand $conversation '' '220' 'banner')
+               $ehlo = Invoke-SmtpLines $conversation 'EHLO smoke.client'
+               $keywords = Get-EhloKeywords $ehlo
+               if (@($keywords | Where-Object { $_ -match '^AUTH\b' }).Count -gt 0) { throw "EHLO offers AUTH before STARTTLS: $($keywords -join ', ')" }
+               if ($keywords -notcontains 'STARTTLS') { throw "EHLO offers no STARTTLS: $($keywords -join ', ')" }
+               $refused = Invoke-SmtpLines $conversation 'AUTH LOGIN'
+               if ($refused[-1] -notmatch '^530 ') { throw "AUTH LOGIN before STARTTLS was answered '$($refused[-1])'" }
+               [void] (Invoke-SmtpCommand $conversation 'STARTTLS' '220')
+               Start-ConversationTls $conversation
+               $after = Get-EhloKeywords (Invoke-SmtpLines $conversation 'EHLO smoke.client')
+               if (@($after | Where-Object { $_ -match '^AUTH\b' }).Count -eq 0) { throw "EHLO after STARTTLS offers no AUTH: $($after -join ', ')" }
+               $accepted = Invoke-SmtpAuthLogin $conversation
+               [void] (Invoke-SmtpCommand $conversation 'QUIT' '221')
+            }
+            finally { $conversation.Client.Close() }
+            "EHLO: $($keywords -join ', '); AUTH LOGIN answered '$($refused[-1])'; after STARTTLS ($($conversation.Tls)) '$accepted'"
+         })
+
+      [void] (Test-Step "${Phase}: from $lan, IMAP LOGIN answered BAD, and the account's password taken after STARTTLS" {
+            $conversation = Open-Conversation 143 $lan
+            try {
+               $banner = Read-Reply $conversation
+               if (-not $banner.StartsWith('* OK')) { throw "IMAP banner '$banner'" }
+               $capability = Invoke-ImapExchange $conversation 'l1' 'CAPABILITY'
+               $line = [string] (@($capability.Untagged | Where-Object { $_ -like '* CAPABILITY *' }) | Select-Object -First 1)
+               if ($line -notmatch '\bSTARTTLS\b' -or $line -notmatch '\bLOGINDISABLED\b') { throw "CAPABILITY before STARTTLS was answered '$line'" }
+               $refused = Invoke-ImapExchange $conversation 'l2' "LOGIN `"$SmokeAccount`" `"$AccountPassword`""
+               if ($refused.Tagged -notmatch '^l2 BAD ') { throw "LOGIN before STARTTLS was answered '$($refused.Tagged)'" }
+               $start = Invoke-ImapExchange $conversation 'l3' 'STARTTLS'
+               if ($start.Tagged -notmatch '^l3 OK') { throw "STARTTLS was answered '$($start.Tagged)'" }
+               Start-ConversationTls $conversation
+               $accepted = Invoke-ImapExchange $conversation 'l4' "LOGIN `"$SmokeAccount`" `"$AccountPassword`""
+               if ($accepted.Tagged -notmatch '^l4 OK') { throw "LOGIN after STARTTLS was answered '$($accepted.Tagged)'" }
+               [void] (Invoke-ImapExchange $conversation 'l5' 'LOGOUT')
+            }
+            finally { $conversation.Client.Close() }
+            "CAPABILITY with LOGINDISABLED; LOGIN answered '$($refused.Tagged)'; after STARTTLS ($($conversation.Tls)) '$($accepted.Tagged)'"
+         })
+
+      [void] (Test-Step "${Phase}: from $lan, POP3 USER answered -ERR, and the account's password taken after STLS" {
+            $conversation = Open-Conversation 110 $lan
+            try {
+               $banner = Read-Reply $conversation
+               if (-not $banner.StartsWith('+OK')) { throw "POP3 banner '$banner'" }
+               $capabilities = Get-Pop3Capabilities $conversation
+               if ($capabilities -notcontains 'STLS' -or $capabilities -contains 'USER') { throw "CAPA before STLS offers $($capabilities -join ', ')" }
+               $refused = Invoke-Pop3Command $conversation "USER $SmokeAccount" '-ERR'
+               [void] (Invoke-Pop3Command $conversation 'STLS' '+OK')
+               Start-ConversationTls $conversation
+               [void] (Invoke-Pop3Command $conversation "USER $SmokeAccount" '+OK')
+               $accepted = Invoke-Pop3Command $conversation "PASS $AccountPassword" '+OK' 'PASS'
+               [void] (Invoke-Pop3Command $conversation 'QUIT' '+OK')
+            }
+            finally { $conversation.Client.Close() }
+            "CAPA without USER; USER answered '$refused'; after STLS ($($conversation.Tls)) PASS answered '$accepted'"
+         })
+
+      [void] (Test-Step "${Phase}: from $lan, mail on port 25 taken with or without TLS, as before" {
+            $conversation = Open-Conversation 25 $lan
+            try {
+               [void] (Invoke-SmtpCommand $conversation '' '220' 'banner')
+               $keywords = Get-EhloKeywords (Invoke-SmtpLines $conversation 'EHLO smoke.client')
+               if (@($keywords | Where-Object { $_ -match '^AUTH\b' }).Count -gt 0) { throw "EHLO offers AUTH before STARTTLS: $($keywords -join ', ')" }
+               # Taken as far as the recipient and reset, so that nothing is
+               # delivered beside the one message the uninstall checks.
+               [void] (Invoke-SmtpCommand $conversation "MAIL FROM:<$SmokeSender>" '250')
+               $plain = Invoke-SmtpCommand $conversation "RCPT TO:<$SmokeAccount>" '250'
+               [void] (Invoke-SmtpCommand $conversation 'RSET' '250')
+               [void] (Invoke-SmtpCommand $conversation 'STARTTLS' '220')
+               Start-ConversationTls $conversation
+               [void] (Invoke-SmtpCommand $conversation 'EHLO smoke.client' '250' 'EHLO after STARTTLS')
+               [void] (Invoke-SmtpCommand $conversation "MAIL FROM:<$SmokeSender>" '250')
+               $secured = Invoke-SmtpCommand $conversation "RCPT TO:<$SmokeAccount>" '250'
+               [void] (Invoke-SmtpCommand $conversation 'RSET' '250')
+               [void] (Invoke-SmtpCommand $conversation 'QUIT' '221')
+            }
+            finally { $conversation.Client.Close() }
+            "no AUTH in EHLO; RCPT TO:<$SmokeAccount> answered '$plain' without TLS and '$secured' after STARTTLS ($($conversation.Tls))"
+         })
+   }
+
+   [void] (Test-Step "${Phase}: the existing sign-ins over 127.0.0.1 passing without TLS as before" {
+         $conversation = Open-Conversation 587
+         try {
+            [void] (Invoke-SmtpCommand $conversation '' '220' 'banner')
+            $keywords = Get-EhloKeywords (Invoke-SmtpLines $conversation 'EHLO smoke.client')
+            if (@($keywords | Where-Object { $_ -match '^AUTH\b' }).Count -eq 0) { throw "EHLO on 587 offers no AUTH: $($keywords -join ', ')" }
+            $smtp = Invoke-SmtpAuthLogin $conversation
+            [void] (Invoke-SmtpCommand $conversation 'QUIT' '221')
+         }
+         finally { $conversation.Client.Close() }
+         $stat = Get-Pop3Stat
+         $exists = Get-ImapExists
+         if ($exists -lt 0) { throw 'IMAP SELECT INBOX gave no EXISTS' }
+         "SMTP AUTH LOGIN on 587 '$smtp'; POP3 USER/PASS, STAT '$stat'; IMAP LOGIN, SELECT INBOX $exists EXISTS"
+      })
+}
+
+# hMailServer.exe --apply-new-install-defaults run by hand, as docs/SecureDefaults.md
+# tells an administrator to run it: the service stopped and its process gone - the
+# verb refuses a running server (exit 4) - and started again afterwards, whatever
+# the verb did. Its exit code and the lines it wrote.
+function Invoke-NewInstallDefaultsVerb {
+   $exe = Join-Path $State.App 'Bin\hMailServer.exe'
+   $out = Join-Path $LogDirectory 'apply-new-install-defaults.stdout.txt'
+   $err = Join-Path $LogDirectory 'apply-new-install-defaults.stderr.txt'
+   [GC]::Collect()
+   [GC]::WaitForPendingFinalizers()
+   Stop-Service -Name $ServiceName -ErrorAction Stop -WarningAction SilentlyContinue
+   try {
+      if (-not (Wait-Until 60 { @(Get-Process -Name $ServiceName -ErrorAction SilentlyContinue).Count -eq 0 })) { throw 'hMailServer.exe was still running 60 s after the service stopped' }
+      $process = Start-Process -FilePath $exe -ArgumentList '--apply-new-install-defaults' -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+      $null = $process.Handle
+      if (-not $process.WaitForExit(5 * 60 * 1000)) {
+         try { $process.Kill() } catch { }
+         throw 'it did not finish within five minutes'
+      }
+      $lines = @(@(Get-Content -LiteralPath $out -ErrorAction SilentlyContinue) + @(Get-Content -LiteralPath $err -ErrorAction SilentlyContinue) | Where-Object { $_ -and $_.Trim() })
+      return [pscustomobject] @{ ExitCode = $process.ExitCode; Lines = $lines }
+   }
+   finally {
+      Start-Service -Name $ServiceName -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+      [void] (Wait-Until 90 { $null -ne (Get-NetTCPConnection -LocalPort 25 -State Listen -ErrorAction SilentlyContinue) })
+   }
+}
+
+# After an upgrade: the listeners, the ranges and the certificates exactly as the
+# older release left them, and nothing that a new installation is given
+# (docs/SecureDefaults.md, "An upgrade is never changed").
+function Test-UpgradeKeepsListeners([string] $Phase, [string] $InnoLog, [bool] $FromWithout) {
+   [void] (Test-Step "${Phase}: the installer not even running the verb for an upgrade (Inno's log)" {
+         $lines = @(Get-VerbLogLines $InnoLog)
+         if ($lines.Count -gt 0) { throw "Inno's log says: $($lines -join ' | ')" }
+         "no line for it: IsNewDatabase is false where the settings file already names a database"
+      })
+
+   [void] (Test-Step "${Phase}: every port's security exactly as it was" {
+         if ($null -eq $State.ListenersBefore) { throw 'the ports were not read before the upgrade' }
+         $ports = (Get-ListenerState).Ports
+         $difference = @(Compare-Lines $State.ListenersBefore.Ports $ports)
+         if ($difference.Count -gt 0) { Write-Detail $difference; throw "$($difference.Count) lines differ (above)" }
+         "$($ports.Count) ports, every property as it was: $(($ports | ForEach-Object { "$(Get-LineValue $_ 'PortNumber') ConnectionSecurity $(Get-LineValue $_ 'ConnectionSecurity') certificate $(Get-LineValue $_ 'SSLCertificateID')" }) -join '; ')"
+      })
+
+   [void] (Test-Step "${Phase}: both ranges exactly as they were" {
+         if ($null -eq $State.ListenersBefore) { throw 'the ranges were not read before the upgrade' }
+         $ranges = (Get-ListenerState).Ranges
+         $difference = @(Compare-Lines $State.ListenersBefore.Ranges $ranges)
+         if ($difference.Count -gt 0) { Write-Detail $difference; throw "$($difference.Count) lines differ (above)" }
+         "$($ranges.Count) ranges, every property as it was: $(($ranges | ForEach-Object { "$(Get-LineValue $_ 'Name') RequireSSLTLSForAuth $(Get-LineValue $_ 'RequireSSLTLSForAuth')" }) -join '; ')"
+      })
+
+   [void] (Test-Step "${Phase}: no certificate record made" {
+         if ($null -eq $State.ListenersBefore) { throw 'the certificates were not read before the upgrade' }
+         $certificates = (Get-ListenerState).Certificates
+         $difference = @(Compare-Lines $State.ListenersBefore.Certificates $certificates)
+         if ($difference.Count -gt 0) { Write-Detail $difference; throw "$($difference.Count) lines differ (above)" }
+         $key = Join-Path (Join-Path (Get-DataDirectory) 'Certificates') $InstallationKeyFile
+         if ($FromWithout -and (Test-Path -LiteralPath $key)) { throw "$key is there" }
+         "$($certificates.Count) certificate records, as before$(if ($FromWithout) { "; no $key" })"
+      })
+
+   [void] (Test-Step "${Phase}: no $PendingMarkName row, since its database has no mark" {
+         $table = Invoke-DatabaseQuery "select count(*) as marks from hm_settings where settingname = '$PendingMarkName'"
+         $marks = [int] $table.Rows[0]['marks']
+         if ($marks -ne 0) { throw "hm_settings holds $marks $PendingMarkName rows" }
+         'hm_settings holds none: an upgrade writes no mark'
+      })
+
+   if ($FromWithout) {
+      [void] (Test-Step "${Phase}: the checklist over COM answering sign_in_tls as action needed with sign_in_no_tls for Internet, and no fix" {
+            $signIn = Get-ChecklistItem (Get-SetupChecklist) 'sign_in_tls'
+            $said = "sign_in_tls $($signIn.state): $((@($signIn.findings) | ForEach-Object { Format-Finding $_ }) -join '; ')"
+            $internet = @($signIn.findings | Where-Object { @($_.args)[0] -eq 'Internet' })
+            if ($signIn.state -ne 'action_needed' -or $internet.Count -ne 1) { throw $said }
+            $finding = $internet[0]
+            if ($finding.code -ne 'sign_in_no_tls' -or $finding.state -ne 'action_needed') { throw $said }
+            if ($null -ne $finding.PSObject.Properties['fix']) { throw "the finding carries a fix: $said" }
+            $said
+         })
+   }
+}
+
+# After an upgrade: the verb run by hand refuses the upgraded server, whose database
+# carries no mark, and changes nothing (docs/SecureDefaults.md: "An upgraded server
+# cannot be given these defaults by the verb").
+function Test-VerbLeavesUpgradeAlone([string] $Phase) {
+   [void] (Test-Step "${Phase}: an upgraded server cannot be given these defaults by the verb run by hand (exit 5, nothing changed)" {
+         $before = Get-ListenerState
+         $result = Invoke-NewInstallDefaultsVerb
+         $said = ($result.Lines -join ' ') -replace '\s+', ' '
+         if ($result.ExitCode -ne 5) { throw "exit code $($result.ExitCode): $said" }
+         if ($said -notmatch "has no $PendingMarkName mark") { throw "exit 5 for another reason: $said" }
+         $running = Wait-Until 90 { $s = Get-HmService; $null -ne $s -and $s.State -eq 'Running' }
+         if (-not $running) { throw 'the service did not start again after the verb' }
+         $after = Get-ListenerState
+         $difference = @(Compare-Lines $before.Ports $after.Ports) + @(Compare-Lines $before.Ranges $after.Ranges) + @(Compare-Lines $before.Certificates $after.Certificates)
+         if ($difference.Count -gt 0) { Write-Detail $difference; throw "$($difference.Count) lines changed (above)" }
+         "exit 5: '$($said.Substring(0, [Math]::Min(220, $said.Length)))'; the ports, the ranges and the certificates as they were; the service running again"
+      })
+}
+
 # ------------------------------------------------------------------ the uninstall
 
 # The server registers the Application log's event source the first time it writes an
@@ -1047,8 +1855,13 @@ function Test-Uninstalled {
    # so hMailServer.INI stays; the Events and Addons scripts are uninsneveruninstall;
    # the database, the message store and the logs were written by the server and the
    # database tools, not by the installer, and [Dirs] removes a folder only when it is
-   # empty. Everything else is a program file, and must be gone.
-   $keptPattern = '^(Bin\\hMailServer\.ini|Database\\.+|Data\\.+|Logs\\.+|Events\\.+|Addons\\(?!(DataDirectorySynchronizer|ImportTool)\\).+)$'
+   # empty. So is Bin\hMailServerApiKeys.ini, the REST API's key store beside
+   # hMailServer.INI (RestApiServer::GetApiKeyStoreFile): the server writes it, and
+   # /GrantServiceAccess makes it empty when a new installation's service moves to
+   # NT SERVICE\hMailServer (docs/ServiceAccount.md), so an installation whose service
+   # stays LocalSystem - every run until the new installation of 6.3.4 on 27
+   # September 2026 - has none. Everything else is a program file, and must be gone.
+   $keptPattern = '^(Bin\\hMailServer\.ini|Bin\\hMailServerApiKeys\.ini|Database\\.+|Data\\.+|Logs\\.+|Events\\.+|Addons\\(?!(DataDirectorySynchronizer|ImportTool)\\).+)$'
    $left = @()
    if (Test-Path -LiteralPath $app) {
       $left = @(Get-ChildItem -LiteralPath $app -Recurse -File -Force | ForEach-Object { $_.FullName.Substring($app.Length + 1) })
@@ -1091,6 +1904,17 @@ function Test-Uninstalled {
          if ($files.Count -eq 0) { throw 'there is no .sdf left in Database' }
          ($files | ForEach-Object { "Database\$($_.Name)" }) -join ', '
       })
+
+   # docs/SecureDefaults.md: the certificate a new installation made is data, kept
+   # as the rest of the data directory is, and the database kept beside it still
+   # names it.
+   if ($State.CertificateFiles.Count -gt 0) {
+      [void] (Test-Step 'uninstall: Data\Certificates kept with the rest of the data directory' {
+            $gone = @($State.CertificateFiles | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) })
+            if ($gone.Count -gt 0) { throw "gone: $($gone -join ', ')" }
+            "$(($State.CertificateFiles | ForEach-Object { $_.Substring($app.Length + 1) }) -join ', ')"
+         })
+   }
 
    if ($State.Seeded) {
       [void] (Test-Step 'uninstall: the message store is kept, the message unchanged' {
@@ -1211,6 +2035,8 @@ $firstVersion = Test-InstallerFile 'first' $Installer
 $secondVersion = ''
 if ($UpgradeInstaller) { $secondVersion = Test-InstallerFile 'upgrade' $UpgradeInstaller }
 Write-Info 'the administrator password' (Set-AdminPasswordFor $firstVersion)
+$firstSecures = Test-HasSecureDefaults $firstVersion
+$secondSecures = [bool] $UpgradeInstaller -and (Test-HasSecureDefaults $secondVersion)
 
 # ---- install
 Write-Section "Install $firstVersion"
@@ -1223,6 +2049,15 @@ $State.Installed = ($null -ne (Get-UninstallEntry)) -or (Test-Path -LiteralPath 
 
 if ($State.Installed) {
    Test-Installed 'install' $firstVersion
+
+   # docs/SecureDefaults.md, "What an installation on a clean machine is to check".
+   if ($firstSecures) {
+      Write-Section "The secure defaults of a new installation (docs/SecureDefaults.md)"
+      Test-NewInstallDefaults 'install' $installLog
+   }
+   else {
+      Write-Info 'install: the secure defaults of a new installation' "none: $firstVersion is older than $SecureDefaultsVersion, whose installer first gives them"
+   }
 
    Write-Section 'A domain, an account and a message'
    [void] (Test-Step 'seed: a domain, an account and a delivered message' { New-SmokeData })
@@ -1239,8 +2074,20 @@ if ($State.Installed) {
          })
    }
 
+   # With the account made: a password only over TLS, but from this computer.
+   if ($firstSecures -and $State.Seeded) {
+      Write-Section 'A password only over TLS, but from this computer (docs/SecureDefaults.md)'
+      Test-SignInOverTls 'install'
+   }
+
    # ---- upgrade
    if ($UpgradeInstaller) {
+      # What the upgrade must leave exactly as it was (docs/SecureDefaults.md).
+      [void] (Test-Step 'seed: the ports, the IP ranges and the certificate records, read before the upgrade' {
+            $State.ListenersBefore = Get-ListenerState
+            "$($State.ListenersBefore.Ports.Count) ports ($(($State.ListenersBefore.Ports | ForEach-Object { "$(Get-LineValue $_ 'PortNumber') ConnectionSecurity $(Get-LineValue $_ 'ConnectionSecurity')" }) -join ', ')), $($State.ListenersBefore.Ranges.Count) ranges ($(($State.ListenersBefore.Ranges | ForEach-Object { "$(Get-LineValue $_ 'Name') RequireSSLTLSForAuth $(Get-LineValue $_ 'RequireSSLTLSForAuth')" }) -join ', ')), $($State.ListenersBefore.Certificates.Count) certificate records"
+         })
+
       Write-Section "Upgrade $firstVersion to $secondVersion"
       $upgradeLog = Join-Path $LogDirectory 'upgrade.log'
       $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
@@ -1268,6 +2115,13 @@ if ($State.Installed) {
          })
 
       if ($State.Seeded) { Test-SmokeDataKept 'upgrade' }
+
+      # docs/SecureDefaults.md: an upgrade is never changed.
+      if ($secondSecures) {
+         Write-Section "The upgrade keeps what $firstVersion had (docs/SecureDefaults.md)"
+         Test-UpgradeKeepsListeners 'upgrade' $upgradeLog (-not $firstSecures)
+         Test-VerbLeavesUpgradeAlone 'upgrade'
+      }
    }
 }
 else {
