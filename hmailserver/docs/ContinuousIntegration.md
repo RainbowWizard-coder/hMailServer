@@ -1351,9 +1351,10 @@ compiled files' own SBOM (`<file>.cdx.json`, CycloneDX 1.6; SECURITY.md,
 "Software bills of materials"), and the SPDX and CycloneDX SBOMs of the tree.
 No AArch64 packages, no AppImages, no SLSA provenance and no
 `.sigstore.json` copies, which the GitHub releases had. The pipeline builds the
-`.deb` or `.rpm` of each supported distribution release, x86-64 and AArch64, the
-AppImages and the ARM64 installer (`.gitlab/ci/packages-*.yml`), but as CI job
-artifacts only: they are not signed and not in the release. The SLSA provenance
+other `.deb` and `.rpm` packages, one for each supported distribution release on
+x86-64 and AArch64, the AppImages and, once bench150 has what its ARM64 job
+needs, the ARM64 installer (`.gitlab/ci/packages-*.yml`), but only as CI job
+artifacts: they are not signed and not in the release. The SLSA provenance
 generator is GitHub's. The verification section `release-verify` writes into a
 release's notes says so. The server and the tools in the installer are the
 bench checkout's incremental build of the tag's commit, not a clean one, and its
@@ -2501,12 +2502,17 @@ What is still done by hand
   `check-db-scripts.ps1`, which needs Windows PowerShell 5.1 and SQL Server
   Compact.
 - The Linux build under GCC and on AArch64 hardware
-  (`bash build/linux-tu-census.sh --cc g++` is the GCC census), the AArch64
-  packages and the AppImage.
+  (`bash build/linux-tu-census.sh --cc g++` is the GCC census). The AArch64
+  packages and AppImage are built by the package jobs of
+  `.gitlab/ci/packages-*.yml` and run there under qemu-user on linix; running
+  them on AArch64 hardware is still by hand.
 - The Windows ARM64 build: the ARM64 libraries, `build.ps1 -Platform ARM64`,
-  `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`. No job builds it:
-  bench150 is x64 and has no ARM64 compilers, and no runner is an ARM64 Windows
-  machine to test it on ([WindowsOnArm.md](WindowsOnArm.md) has the commands).
+  `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`, until bench150
+  has what `windows-packages-arm64` needs, Visual Studio's ARM64 tools and ATL
+  for ARM64 first: until then that job stops, allowed to fail, and names what
+  is missing ([PackagesWindows.md](PackagesWindows.md), "What the owner must
+  do"). No runner is an ARM64 Windows machine to test it on
+  ([WindowsOnArm.md](WindowsOnArm.md) has the commands).
 - The release's two buttons, `release` and `release-publish`
   ([The release](#the-release)), and pushing the image and the package
   managers' manifests, which are still the Roadmap2 row "The release chain off
