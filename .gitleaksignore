@@ -110,3 +110,11 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 /builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:358
 /builds/Progressiverobot/hmailserver/hmailserver/test/SSL examples/example.key.org:RSA private key:1
 /builds/Progressiverobot/hmailserver/hmailserver/test/SSL examples/example.key:PKCS8 private key:1
+
+# batch41, 27 September 2026: the Control Panel test RestSettingsTests.
+# TrustsCertificate_ThatIsTheOneTheListenerServes_OnlyThat put a PEM private-key
+# placeholder - "AAAA" between the two markers - before a certificate chain, to show
+# the leaf is found after a key. It is no key. The test writes the markers in two
+# pieces since the next commit, so the tree holds no match; this line is for the
+# commit that added it, which the history scan and the landing's range scan read.
+018bb567b8a06dd701fd00dc8c1b788ad34f584f:hmailserver/source/Tools/ControlPanel.Tests/Services/RestSettingsTests.cs:PKCS8 private key:273

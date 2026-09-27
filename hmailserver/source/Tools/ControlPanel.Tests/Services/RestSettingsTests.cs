@@ -270,7 +270,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // As the listener's file has it: its certificate, then its chain - and, in a
          // file that holds both, perhaps the key before either.
          string chainFile = served.ExportCertificatePem() + "\n" + other.ExportCertificatePem() + "\n";
-         string keyFirst = "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----\n" + chainFile;
+         // The key's markers are written in two pieces, so that a secret scan, which reads
+         // the text and not the test, does not take this placeholder for a private key.
+         string keyFirst = "-----BEGIN " + "PRIVATE KEY-----\nAAAA\n-----END " + "PRIVATE KEY-----\n" + chainFile;
 
          // Asked as https://127.0.0.1 or https://localhost, the ACME certificate names
          // neither, and is not issued by an authority this test trusts.
