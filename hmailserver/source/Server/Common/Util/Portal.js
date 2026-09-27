@@ -1215,7 +1215,7 @@
         if (searchToSay && state.query) {
           searchToSay = false;
           var found = (result.data.messages || []).length;
-          announce(found ? tf('{0} results', found) : t('Nothing matched.'));
+          announce(found === 1 ? t('1 result') : found ? tf('{0} results', found) : t('Nothing matched.'));
         }
         lastListing = { key: listingKey(), page: result.data };
         askReplies(result.data);
@@ -10010,7 +10010,7 @@
     var oldest = el('page-oldest');
     var n = page.messages.length;
     if (page.query) {
-      count.textContent = n ? tf('{0} results', n) : '';
+      count.textContent = n === 1 ? t('1 result') : n ? tf('{0} results', n) : '';
       older.hidden = true; newer.hidden = true; oldest.hidden = true;
       return;
     }

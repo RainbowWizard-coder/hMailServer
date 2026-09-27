@@ -1639,6 +1639,9 @@ function answer(method, path, body) {
       return bulkAnswer([100, 99], true, 0);
    }
    if (path.startsWith('/api/v1/me/folders/1/messages')) {
+      // A search in the folder that finds one message, as the server answers
+      // a search: the query named, the one hit listed.
+      if (path.indexOf('q=' + encodeURIComponent('one hit')) >= 0) { return json(200, { total: 1, query: 'one hit', messages: [withState(LISTING.messages[0])] }); }
       if (path.indexOf('before_uid=') >= 0) { return json(200, { total: arrived ? 6 : 5, messages: OLDER.map(withState) }); }
       const extra = importantExtra();
       if (!arrived) { return json(200, { total: LISTING.total + extra.length, messages: extra.concat(LISTING.messages).map(withState) }); }
@@ -8255,6 +8258,12 @@ async function screenReaderChecks() {
    const found = /([0-9]+)/.exec(voice.textContent);
    check('S5: a search run from the box says how many it found', (!!found && voice.textContent === filled('{0} results', found[1])) || voice.textContent === said('Nothing matched.'),
       JSON.stringify(voice.textContent));
+   box.value = 'one hit';
+   document.getElementById('mail-search-form').dispatchEvent(makeEvent('submit'));
+   await settle();
+   check('S5: one message found is one result, said and shown in the singular',
+      voice.textContent === said('1 result') && document.getElementById('list-count').textContent === said('1 result') && said('1 result') !== '1 result',
+      JSON.stringify(voice.textContent) + ' / ' + JSON.stringify(document.getElementById('list-count').textContent));
    location.hash = '#/f/1';
    await settle();
 
