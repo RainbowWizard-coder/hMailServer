@@ -36,7 +36,7 @@ What runs where
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 16 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
 | `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
-| `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A 6029 database with orphaned rows upgrades to this schema, on PostgreSQL 16 and MariaDB 11 (`build/ci/linux-db-upgrade.sh`) |
+| `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A database made by 6029's own create script, with orphaned rows, upgrades to this schema and to the schema of a new database, on PostgreSQL 16 and MariaDB 11 (`build/ci/linux-db-upgrade.sh`) |
 | `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the Deck (`build/ci/linux-package-install.sh`) |
 | `linux-image` | test | linix | a protected ref | The container image built from the `.deb` with kaniko and inspected, not pushed (`build/ci/linux-image.sh`) |
 | `linux-sbom` | test | linix | a protected ref | The SPDX and CycloneDX SBOMs of the tree, kept 90 days (`build/ci/linux-sbom.sh`) |
@@ -833,6 +833,73 @@ things, each fixed in the same change:
   the foreign key no longer needs - and renames the new one.
 - The first Linux fuzz replay: see [Fuzzing.md](Fuzzing.md), "The nightly job".
 
+What the first pipeline found
+-----------------------------
+
+The first pipeline, 2884863496, ran on `master` (40c7d3e0c) on 26 September
+2026. Eleven jobs failed, each on a fault of the job, its script or a test.
+Mending them turned up three small faults of the server's own, fixed as
+well: two that reading the static analysis's findings led to, and one the
+upgrade gate's new comparison found. What each was, and what fixes it:
+
+- `update-helper`: GitLab's shared runners check out with umask 0000, and
+  `systemd-analyze verify` refused the world-writable units. The job gives
+  the checkout's three units the mode the package installs them with, 0644.
+- `harnesses`: the portal harness took the first resize handle of the week
+  view, which in UTC is another event's, and two more of its checks assumed
+  the zone the run is in. They pass under sixteen zones now.
+- `linux-suite`, 3 of 1,962: the CI image had no 7-Zip, which the server
+  runs for every backup (two tests), and a test asked for SMTP on port 25,
+  where the Linux suite's server listens on 2525. Over batch40 the Linux test
+  project did not build at all: fixtures folded into it named a helper class
+  that lived in a fixture the project does not link, the GeoIP fixture, and
+  shim members it did not have. The helper has a file of its own, both are
+  linked, and the shims carry the members - on their REST routes, or skipped
+  with the reason where there is none.
+- `windows-gate`, 1 of 3,698: `ThreadCommand` took the Nth message sent to
+  be sequence number N, and two messages delivered on two threads were
+  stored the other way round. `Deliver` now waits for each message.
+- `windows-dotnet`: the settings-index test took the section in
+  `ProfileApi.ReadString("Directories", ...)` for a setting.
+- `linux-db-upgrade-pgsql` and `-mysql`: the gate's rewind to 6029 dropped
+  the first of the two columns the 6101 step adds in one `ALTER TABLE`, not
+  the second, and the upgrade stopped there. The gate now starts from the
+  create script of 6029 itself, so there is no rewind to go stale, and
+  compares the upgraded database with a new one. That comparison found the
+  two columns the 6055 step gives a default and the create scripts did not
+  (they do now), and on MySQL the text columns the utf8mb4 conversion of
+  6102 leaves one size wider (MEDIUMTEXT for TEXT), which it accepts.
+- `repo-hygiene`: six images named by a tag that can move, now pinned by
+  digest, and Token-Permissions: the `renovate` job on linix outside
+  `.own-runners`, and MariaDB's root password written in the file. The check
+  now judges each job by the rules it runs by ([The repository checks](#the-repository-checks-and-the-scorecard-checks-left-out)),
+  and the MariaDB service has no root password.
+- `semgrep`: ten findings beyond the baseline, in shell scripts, and seven
+  more over batch40, three of them in `build/generate-package-repos.py`. They
+  are fixed, or suppressed where they are with the reason: a list split into
+  words on purpose, the GnuPG home's owner-only mode, and XML the build has
+  just written itself.
+- `static-analysis`: 232 findings beyond the baseline (250 over batch40), in
+  code that landed after the baseline was written: the PST import, object
+  storage, SNMP, the secure defaults. Each was read, and two led to
+  defects: `ServiceAccount::ProcessAccountName` called `getpwuid`, whose
+  buffer is the whole process's, from several threads (it calls `getpwuid_r`
+  now), and the inbound webhooks' URL check refused a control character but
+  let a character outside ASCII into the request line, on Windows and Linux
+  alike (it refuses it now). The finding there, a `wchar_t` read as a signed
+  value, was not the fault itself - no character is negative - but reading
+  the check showed the gap. The rest are false positives, or
+  harmless where they are, of the kinds the baseline already held. The
+  baseline is written again: 1,163 findings, the 249 new to it each with
+  its reason on its line, and none of the 393 no scan reports any more,
+  372 of them the `throw;` that `HM_TEST_FAILED` was until it threw an
+  exception of its own on 25 September.
+- `static-analysis` and `dependency-scan` could not upload their reports:
+  GitLab takes one file per report type ("only one file can be sent as
+  raw"). Each job now writes one report of all its tools' findings.
+  `dependency-scan` had passed: none of its findings is high or critical
+  with a fixed version.
+
 The installer smoke test
 ------------------------
 
@@ -1611,7 +1678,12 @@ What the runs proposed:
 How long each job takes
 -----------------------
 
-**No job has run on either runner yet.** A time marked *by hand* is the job's
+**Written before any job had run.** The first pipeline (2884863496, 26
+September 2026, several of its jobs failing part way) took 2 h 29 min for
+`windows-gate`, 2 h 7 min for `linux-suite`, 38 min for `static-analysis`,
+20 min for `linux-build`, 16 min for `linux-sanitize`, 13 min for
+`linux-cross`, 3 min for `windows-dotnet` and under three minutes for every
+other job. A time marked *by hand* is the job's
 script run on linix on 25 September 2026 in the job's own image, with six CPUs
 and the job's service beside it, as the runner would run it; it leaves out the
 runner's checkout, the image pulls and the artifact transfers. Every other time
@@ -1628,7 +1700,7 @@ measured times after the first pipelines.
 | `linux-suite` | 1.5 to 2.5 h | 3 h | The whole suite took 75 to 90 minutes on GitHub's hosted runner on 16 September 2026, and it has grown since. Add about 5 minutes for the layout and the restore |
 | `linux-cross` | 8 min by hand | 1 h | 750 translation units compiled for AArch64 with six jobs |
 | `linux-sanitize` | seconds by hand, while it skips | 1 h 30 min | Once `HM_SANITIZE` exists, an estimated 15 to 25 minutes: the core under AddressSanitizer, RelWithDebInfo |
-| `linux-db-upgrade-pgsql`, `-mysql` | 6 s and 21 s by hand | 20 min | 69 upgrade steps from 6029 |
+| `linux-db-upgrade-pgsql`, `-mysql` | 16 s and 31 s on the first pipeline, which stopped at 6101 | 20 min | 75 upgrade steps from 6029, and a new database made to compare |
 | `linux-package-deb`, `-rpm` | 17 s and 2 s by hand | 20 and 10 min | |
 | `linux-image` | 18 s by hand | 30 min | kaniko over Ubuntu 24.04 and the `.deb` |
 | `linux-sbom` | 6 s by hand | 15 min | |
@@ -2014,10 +2086,10 @@ twelve lines, naming the commits as they are after the rebase.
 
 | Job | Image | Tools, and where they come from | Reports | Measured on linix |
 |---|---|---|---|---|
-| `static-analysis` | the CI image | cppcheck 2.19.0 and clang-tidy 21.1.8, from Ubuntu 26.04's archive, installed as the job starts. clang-tidy is the image's own clang 21 | `gl-sast-cppcheck.json`, `gl-sast-clang-tidy.json`, `junit.xml` | 51 min 28 s on 4 CPUs |
+| `static-analysis` | the CI image | cppcheck 2.19.0 and clang-tidy 21.1.8, from Ubuntu 26.04's archive, installed as the job starts. clang-tidy is the image's own clang 21 | `gl-sast-report.json` (both tools; each tool's own beside it), `junit.xml` | 51 min 28 s on 4 CPUs |
 | `semgrep` | `python:3.13-slim-trixie`, pinned by digest (Docker Hub) | Semgrep 1.178.0 and 65 packages it needs, from PyPI, with every file's SHA-256 pinned (`build/ci/requirements.txt`, `pip --require-hashes`). The rules come from Semgrep's registry at semgrep.dev (`p/csharp`, `p/python`, `p/javascript`, `r/bash`), fetched with no account and no token | `gl-sast-semgrep.json`, `junit.xml` | under 3 min on 1 CPU |
 | `ci-image-packages` | the CI image | none | the image's `etc/os-release`, `etc/lsb-release`, dpkg status and the .NET SDK's `deps.json` files, 1.4 MB | seconds |
-| `dependency-scan` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub) | Trivy 0.74.0; its vulnerability database from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; OSV's API at `api.osv.dev`; Python from Alpine's repository | `gl-dependency-scanning-trivy.json`, `gl-dependency-scanning-osv.json`, `junit.xml` | 15 to 17 s, the database download included |
+| `dependency-scan` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub) | Trivy 0.74.0; its vulnerability database from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; OSV's API at `api.osv.dev`; Python from Alpine's repository | `gl-dependency-scanning.json` (both scanners; each scanner's own beside it), `junit.xml` | 15 to 17 s, the database download included |
 | `repo-hygiene` | `python:3.13-slim-trixie`, pinned by digest | git and ssh-keygen, from Debian; GitLab's API, read anonymously | `junit.xml`, `repo-hygiene.json` | 14 to 37 s, the apt install included |
 
 Trivy downloads its database from `ghcr.io` unless it is told otherwise. Its
@@ -2040,7 +2112,11 @@ The project is on GitLab's free tier: its namespace's plan read `free` on 25
 September 2026.
 
 - **The SAST and dependency-scanning reports** are uploaded with the job as
-  reports, and are also in its ordinary artifacts (`security/`). On the free
+  reports, and are also in its ordinary artifacts (`security/`). A job uploads
+  one file per report type: GitLab refuses a second ("only one file can be sent
+  as raw"), which failed `static-analysis` and `dependency-scan` on the first
+  pipeline, so each writes one report of all its tools' findings as well as
+  one per tool. On the free
   tier they can be downloaded from the job's page and from the pipeline's
   download menu, and that is all. The pipeline's *Security* tab, the
   merge-request security widget, the vulnerability report and the dependency
@@ -2083,9 +2159,14 @@ To triage a new finding:
 2. If it is a defect, fix it in the change that brought it.
 3. If it is a false positive, suppress it where it is, with the reason in a
    comment beside it: `// cppcheck-suppress <id>`, `// NOLINT(<check>)` or
-   `# nosemgrep`.
+   `# nosemgrep`. A kind that recurs across the tree - a `snprintf` whose
+   return is not read, a product of constants - may go into the baseline
+   instead, with its reason, as in step 4.
 4. If it is real but not to be fixed now, regenerate the baseline in a commit
-   that says why.
+   that says why, and give the regeneration `--reasons`: a JSON file of
+   `{"<fingerprint>": "<why>"}` and `{"rule:<rule>": "<why>"}` for the
+   findings new to the baseline. Each one's line then ends with its reason,
+   and a reason stays with its finding when the file is written again.
 
 To regenerate a baseline, run the job's script by hand on linix with
 `--write-baseline`, from a checkout of the commit:
@@ -2095,7 +2176,10 @@ To regenerate a baseline, run the job's script by hand on linix with
 
 Or take a job's artifacts, which hold the tools' raw output, and run
 `build/ci/security-findings.py --write-baseline` over them. Its help gives the
-command, and nothing is scanned again. A line may be deleted from a baseline by
+command, and nothing is scanned again. This is the way to give `--reasons`,
+which the job scripts do not pass on; it then says how many findings were new
+to the baseline and how many of those came without a reason, so that one
+nobody triaged shows. A line may be deleted from a baseline by
 hand when its finding is fixed. The job reports how many of the baseline's
 findings it no longer sees.
 
@@ -2196,11 +2280,51 @@ the answer is not public, and it never counts as a pass. On 25 September 2026:
   linix or bench150 extends `.own-runners`; no CI script reads `CI_JOB_TOKEN` or
   any `*TOKEN*` or `*SECRET*` variable; `CI_DEBUG_TRACE` is set nowhere. The
   only credential written in the file is the throwaway password of the Linux
-  suite's own PostgreSQL service. The project's job-token allowlist and who may
+  suite's own PostgreSQL service (on 25 September; see below for the first
+  pipeline). The project's job-token allowlist and who may
   override pipeline variables are not public. A maintainer's `glab api
   projects/86730559` read `ci_job_token_scope_enabled: false` (the allowlist,
   "Limit access to this project", is off) and
   `ci_pipeline_variables_minimum_override_role: no_one_allowed`.
+
+On the first pipeline, 26 September 2026, two checks failed. Pinned-Dependencies
+failed on six images named by a tag, the shared runners' Python and Node
+images; each is pinned now to the digest Docker Hub served for its tag that
+day, with the tag kept in the reference for Renovate. Token-Permissions failed
+on the `renovate` job, on linix without `.own-runners`, and on
+`MARIADB_ROOT_PASSWORD`, written in `.gitlab-ci.yml` for the upgrade gate's
+service. The MariaDB service now starts with `MARIADB_ALLOW_EMPTY_ROOT_PASSWORD`,
+a switch rather than a credential, reachable from its own job alone. And the
+check itself asked the wrong question: whether a job extends `.own-runners`, which
+a job with rules of its own (the `renovate` schedule, the release chain's jobs
+on a protected `v*` tag) does not need and a job overriding its rules would
+pass. It now reads the rules each job runs by, its own or the first it extends,
+with `!reference` followed, in `.gitlab-ci.yml` and the files it includes: a job
+on linix or bench150, a job with `id_tokens` or `secrets`, and every job that
+runs a CI script handling a credential must ask for a protected ref in every
+rule that creates it, and shut a merge request out. A value on a `*PASSWORD*`,
+`*TOKEN*` or `*SECRET*` key fails unless it is PostgreSQL's throwaway password,
+one of MariaDB's two switches, or a variable reference.
+
+"Asks for a protected ref" means a clause every pipeline the rule admits must
+meet: `$CI_COMMIT_REF_PROTECTED == "true"` joined by `&&` to the rest of each
+alternative, not inside an `||` or a comment (a condition written over several
+lines is read whole). The check reads the CI files without a YAML library, so
+what it cannot read it refuses rather than passes: a rules list given inline
+or by an alias, a merge key (`<<:`), an `extends` by an alias, an `!reference`
+the files do not resolve, and an include that is not a local file or one of
+GitLab's templates. Tags and `extends` may be block lists. A job is on the
+project's runners when it asks for a tag that is a variable, or for any tag
+they are registered with (`linix`, `linux` and `docker` for linix; `bench150`,
+`bench` and `windows` for bench150). `id_tokens`, `secrets` and a credential
+in a template count for every job that extends it or takes a part of it by
+`!reference`. `python3 build/ci/repo-hygiene.py --self-test`, which the
+`checkers` job runs, holds the check to CI files made to pass it and to 23
+made to break it; the check as first rewritten (a4636e983) passed 22 of those
+23, and failed two of the eight that should pass. Both runners are registered
+for protected refs only (`access_level` `ref_protected`, read by a maintainer
+with `glab api runners/<id>` on 26 September 2026), so none of that was open
+on this project: the check is the CI files' own guarantee.
 
 Left out of Scorecard's checks, each for a reason:
 
@@ -2279,7 +2403,8 @@ What is still done by hand
   `check-db-scripts.ps1`, which needs Windows PowerShell 5.1 and SQL Server
   Compact.
 - The Linux build under GCC and on AArch64 hardware
-  (`bash build/linux-tu-census.sh --cc g++` is the GCC census), and the AppImage.
+  (`bash build/linux-tu-census.sh --cc g++` is the GCC census), the AArch64
+  packages and the AppImage.
 - The Windows ARM64 build: the ARM64 libraries, `build.ps1 -Platform ARM64`,
   `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`. No job builds it:
   bench150 is x64 and has no ARM64 compilers, and no runner is an ARM64 Windows
@@ -2292,22 +2417,6 @@ What is still done by hand
   `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
   release runs it before it is published (see [The installer smoke
   test](#the-installer-smoke-test)).
-- The builds and both suites for any branch that is not protected. A
-  contributor runs them before opening a merge request, and the maintainer runs
-  them before a change lands, as [CONTRIBUTING.md](../../CONTRIBUTING.md)
-  describes.
-- `check-package-manifests.py`, the PowerShell checks (`check-schema-versions.ps1`,
-  `check-db-scripts.ps1`, `check-roadmap.ps1`, `generate-settings-index.ps1`),
-  editorconfig-checker and `dotnet format`.
-- The Linux build under GCC, the AArch64 build and the cross-compile census.
-  GitHub's `linux-build.yml` ran them, and linix is one x86-64 machine.
-  `build/linux-tu-census.sh` runs the census by hand.
-- The schema-upgrade gate (`build/db-upgrade-gate.sh`), the Control Panel's
-  tests and the tools' tests.
-- The AppImage, the AArch64 packages and the
-  package managers' manifests: the Roadmap2 row "The release chain off a single
-  forge". Signing and publishing the rest are the release jobs
-  ([The release](#the-release)).
 - Building the Linux job image when its Dockerfile changes (see [The
   image](#the-image)), and creating the fuzz schedule once (see [The fuzz
   schedule](#the-fuzz-schedule)).

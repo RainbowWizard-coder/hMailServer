@@ -242,6 +242,9 @@ checkers:
       # The secret scan the hooks and the landing run, without a scanner: what it
       # reads, what it asks the scanner, and that it refuses when there is none.
       check python3 build/scan-secrets.py --self-test
+      # Token-Permissions against CI files made to pass it and made to break it: a
+      # protected-ref clause inside an OR, rules it could misread, a template's token.
+      check python3 build/ci/repo-hygiene.py --self-test
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check

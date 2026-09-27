@@ -50,6 +50,14 @@ and git with ssh-keygen for the tag signatures (without them that half is UNKNOW
 Usage, from the root of a checkout:
 
   python3 build/ci/repo-hygiene.py [--out DIR]
+  python3 build/ci/repo-hygiene.py --self-test
+
+--self-test runs Token-Permissions, offline, over CI files made to pass it and
+over CI files made to break it - a condition whose protected-ref clause sits
+inside an OR, parentheses or a comment, rules the check could misread (a list at
+another indentation, inline, by an alias, behind a merge key), tags and extends
+written as block lists, id_tokens and the job token reached through a template,
+an include it cannot open - and fails if any is judged wrongly.
 
 The project and the API come from GitLab CI's own variables (CI_API_V4_URL,
 CI_PROJECT_ID, CI_PROJECT_URL) and default to gitlab.com's copy of this project.
@@ -496,77 +504,362 @@ def is_pe(path):
 
 
 # ---------------------------------------------------------------- Token-Permissions
+#
+# The CI files are read without a YAML library (the job's image has none), so the
+# reading is held to what the check can be sure of, and a job written in a way it
+# cannot read is refused rather than passed: a rule list given inline or by an
+# alias, a merge key (<<:), tags or extends given by an alias, a !reference the
+# files do not resolve, and an include it cannot open.
+
+PROTECTED = '$CI_COMMIT_REF_PROTECTED == "true"'
+NOT_A_MERGE_REQUEST = '$CI_PIPELINE_SOURCE != "merge_request_event"'
+A_MERGE_REQUEST = '$CI_PIPELINE_SOURCE == "merge_request_event"'
+A_SCHEDULE = '$CI_PIPELINE_SOURCE == "schedule"'
+A_TAG = re.compile(r'\$CI_COMMIT_TAG =~ /.*/[a-z]*')
+
+
+def top_key(line):
+    """The key a line at the top level of a CI file opens, or None for a blank,
+    commented, indented or document-marker line. A key with an anchor or a value
+    on its line ("job: &x", "\"a job\":") is still the key."""
+    if not line.strip() or line[0] in " \t#" or line.startswith(("---", "...")):
+        return None
+    m = re.match(r"""^(?:"([^"]*)"|'([^']*)'|([^\s:#'"][^:#]*?))[ \t]*:(?=\s|$)""", line)
+    if not m:
+        return line.strip()
+    return next(g for g in m.groups() if g is not None).strip()
+
 
 def ci_jobs(text):
-    """{top-level key: its block's text} for the CI file, without a YAML library."""
+    """{top-level key: its block's text} for the CI file, without a YAML library.
+    The block's first line is the key's own line, so that a value written on it
+    (an anchor, an alias) is seen."""
     blocks, name, body = {}, None, []
     for line in text.splitlines():
-        m = re.match(r"^([A-Za-z0-9_.\-]+):\s*(#.*)?$", line)
-        if m:
-            if name:
+        key = top_key(line)
+        if key is not None:
+            if name is not None:
                 blocks[name] = "\n".join(body)
-            name, body = m.group(1), []
+            name, body = key, [line]
         elif name is not None:
             body.append(line)
-    if name:
+    if name is not None:
         blocks[name] = "\n".join(body)
     return blocks
 
 
 def ci_files():
-    """.gitlab-ci.yml and the local files it includes, as [(path, text)]."""
-    found, queue = [], [".gitlab-ci.yml"]
+    """.gitlab-ci.yml and the local files it includes, as [(path, text)], and the
+    includes this check cannot read (anything but a local file or one of GitLab's
+    own templates), as [(path, what)]."""
+    found, unread, queue = [], [], [(None, ".gitlab-ci.yml")]
     while queue:
-        path = queue.pop(0)
-        if path in [f for f, _ in found] or not os.path.exists(os.path.join(ROOT, path)):
+        includer, path = queue.pop(0)
+        if path in [f for f, _ in found]:
+            continue
+        if "*" in path or not os.path.isfile(os.path.join(ROOT, path)):
+            if includer is not None:
+                unread.append((includer, "local: %s (no such file)" % path))
             continue
         text = read(path)
         found.append((path, text))
-        queue += [m.strip("'\"/") for m in re.findall(r"^\s*-\s*local:\s*(\S+)", text, re.M)]
-    return found
+        body = ci_jobs(text).get("include")
+        if body is None:
+            continue
+        lines = body.splitlines()
+        inline = re.split(r"(?:^|\s)#", lines[0].split(":", 1)[1], maxsplit=1)[0].strip()
+        entries = [inline] if inline else []
+        level = None
+        for line in lines[1:]:
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            if level is None:
+                level = indent_of(line)
+            if indent_of(line) > level:
+                continue
+            m = re.match(r"^\s*-\s*(.*?)\s*$", line)
+            entries.append(m.group(1) if m else line.strip())
+        for entry in entries:
+            entry = re.split(r"(?:^|\s)#", entry, maxsplit=1)[0].strip()
+            local = re.match(r"^local:\s*(\S+)$", entry)
+            if local:
+                queue.append((path, local.group(1).strip("'\"").lstrip("/")))
+            elif re.match(r"^template:\s*\S+$", entry):
+                continue
+            elif re.match(r"""^['"]?[^\s:'"\[{]+\.ya?ml['"]?$""", entry):
+                queue.append((path, entry.strip("'\"").lstrip("/")))
+            else:
+                unread.append((path, entry))
+    return found, unread
 
 
-def split_or(condition):
-    """A rule's condition cut at its top-level ||, outside parentheses."""
-    parts, depth, current = [], 0, ""
-    i = 0
-    while i < len(condition):
-        c = condition[i]
+def mask_literals(expr):
+    """expr with what is inside its quoted strings and its regular expressions
+    blanked, so that a parenthesis or an operator in there is not taken for one."""
+    out, i = list(expr), 0
+    while i < len(expr):
+        c = expr[i]
+        if c in "\"'":
+            j = i + 1
+            while j < len(expr) and expr[j] != c:
+                j += 2 if expr[j] == "\\" else 1
+            for k in range(i + 1, min(j, len(expr))):
+                out[k] = "_"
+            i = j + 1
+            continue
+        if expr.startswith(("=~", "!~"), i):
+            j = i + 2
+            while j < len(expr) and expr[j] == " ":
+                j += 1
+            if j < len(expr) and expr[j] == "/":
+                k = j + 1
+                while k < len(expr) and expr[k] != "/":
+                    k += 2 if expr[k] == "\\" else 1
+                for m in range(j + 1, min(k, len(expr))):
+                    out[m] = "_"
+                i = k + 1
+                continue
+            i = j
+            continue
+        i += 1
+    return "".join(out)
+
+
+def split_top(expr, op):
+    """expr cut at each op (|| or &&) outside parentheses and literals."""
+    masked = mask_literals(expr)
+    parts, depth, start, i = [], 0, 0, 0
+    while i < len(expr):
+        c = masked[i]
         depth += c == "("
         depth -= c == ")"
-        if depth == 0 and condition.startswith("||", i):
-            parts.append(current.strip())
-            current, i = "", i + 2
+        if depth == 0 and masked.startswith(op, i):
+            parts.append(expr[start:i].strip())
+            i += len(op)
+            start = i
             continue
-        current += c
         i += 1
-    parts.append(current.strip())
+    parts.append(expr[start:].strip())
     return parts
+
+
+def unwrap(expr):
+    """expr without the parentheses, if any, that enclose the whole of it."""
+    expr = expr.strip()
+    while expr.startswith("(") and expr.endswith(")"):
+        masked, depth = mask_literals(expr), 0
+        for i, c in enumerate(masked):
+            depth += c == "("
+            depth -= c == ")"
+            if depth == 0 and i < len(expr) - 1:
+                return expr
+        expr = expr[1:-1].strip()
+    return expr
+
+
+def normal(clause):
+    """A clause with its spacing made one way: "$A==\"x\"" is "$A == \"x\""."""
+    masked = mask_literals(clause)
+    out, i = "", 0
+    for m in re.finditer(r"\s*(==|!=|=~|!~)\s*", masked):
+        out += clause[i:m.start()] + " " + m.group(1) + " "
+        i = m.end()
+    return " ".join((out + clause[i:]).split())
+
+
+def alternatives(condition):
+    """A rule's condition as the alternatives it is the OR of, each unwrapped."""
+    out = []
+    for a in split_top(unwrap(condition), "||"):
+        inner = unwrap(a)
+        out += alternatives(inner) if inner != a else [a]
+    return out
+
+
+def conjuncts(alternative):
+    """The clauses an alternative is the AND of, each normalised. A parenthesised
+    AND is opened into its clauses; a parenthesised OR stays one clause, which
+    guarantees none of its parts."""
+    out = []
+    for part in split_top(alternative, "&&"):
+        inner = unwrap(part)
+        if inner != part and len(split_top(inner, "||")) == 1:
+            out += conjuncts(inner)
+        else:
+            out.append(normal(part))
+    return out
 
 
 def admits(rules):
     """Why these rules can create a job for code nobody has reviewed - a merge
     request's, or an unprotected ref's - or None when they cannot. A rule that
-    creates the job must ask for a protected ref in each of its alternatives, and
-    shut out a merge request: by saying so, by asking for a schedule or a tag
-    (neither is a merge request's pipeline), or by an earlier rule that sends a
-    merge request's pipeline to never."""
+    creates the job must ask for a protected ref in each of its alternatives, as
+    a clause every pipeline it admits must meet (not inside an OR), and shut out
+    a merge request: by saying so, by asking for a schedule or a tag (neither is a
+    merge request's pipeline), or by an earlier rule that sends every merge
+    request's pipeline to never."""
     if rules is None:
         return "no rules: every pipeline, a merge request's included"
     mr_closed = False
-    for condition, when in rules:
-        alternatives = split_or(condition)
-        if when == "never":
-            if any(re.fullmatch(r'\$CI_PIPELINE_SOURCE\s*==\s*"merge_request_event"', a) for a in alternatives):
-                mr_closed = True
+    for rule in rules:
+        if rule.get("unreadable"):
+            return "rules this check cannot read: %s" % rule["unreadable"]
+        condition = rule["if"]
+        if rule["when"] == "never":
+            if not rule["narrowed"]:
+                if not condition:
+                    return None
+                if any(normal(a) == A_MERGE_REQUEST for a in alternatives(condition)):
+                    mr_closed = True
             continue
-        for a in alternatives:
-            if '$CI_COMMIT_REF_PROTECTED == "true"' not in a:
+        for a in alternatives(condition) if condition else [""]:
+            clauses = conjuncts(a) if a else []
+            if PROTECTED not in clauses:
                 return "a rule that does not ask for a protected ref: %s" % (condition or "(no condition)")
-            if not (mr_closed or '$CI_PIPELINE_SOURCE != "merge_request_event"' in a
-                    or '$CI_PIPELINE_SOURCE == "schedule"' in a or re.search(r"\$CI_COMMIT_TAG\s*=~", a)):
+            if not (mr_closed or NOT_A_MERGE_REQUEST in clauses or A_SCHEDULE in clauses
+                    or any(A_TAG.fullmatch(c) for c in clauses)):
                 return "a rule a merge request's pipeline can meet: %s" % condition
     return None
+
+
+def indent_of(line):
+    return len(line) - len(line.lstrip(" "))
+
+
+def job_key(body, key):
+    """(the value on a job-level key's own line, the lines of its block) or None
+    when the job has no such key. The job's keys are at the indentation of its
+    first key; a block ends at the next line that is not deeper and is not an item
+    of a sequence written at the key's own indentation."""
+    lines = body.splitlines()[1:]
+    keys = [indent_of(l) for l in lines if l.strip() and not l.lstrip().startswith("#")]
+    if not keys:
+        return None
+    level = keys[0]
+    for i, line in enumerate(lines):
+        m = re.match(r"^ {%d}%s:(?=\s|$)(.*)$" % (level, re.escape(key)), line)
+        if not m:
+            continue
+        inline = m.group(1).strip()
+        if not inline.startswith(("'", '"')):
+            inline = re.split(r"(?:^|\s)#", inline, maxsplit=1)[0].strip()
+        block = []
+        for following in lines[i + 1:]:
+            if following.strip() and not following.lstrip().startswith("#"):
+                if indent_of(following) < level or (indent_of(following) == level and not following.lstrip().startswith("- ")):
+                    break
+            block.append(following)
+        return inline, block
+    return None
+
+
+def sequence(block):
+    """The items of a block sequence, each as its lines with the dash made a space,
+    or None when the block is not one sequence the check can read."""
+    items, level = [], None
+    for line in block:
+        if not line.strip() or line.lstrip().startswith("#"):
+            if items:
+                items[-1].append(line)
+            continue
+        if level is None:
+            if not line.lstrip().startswith("-"):
+                return None
+            level = indent_of(line)
+        if indent_of(line) == level and re.match(r"^ *-(\s|$)", line):
+            items.append([line.replace("-", " ", 1)])
+        elif indent_of(line) > level and items:
+            items[-1].append(line)
+        else:
+            return None
+    return items
+
+
+def values(body, key):
+    """The scalar values of a job-level key - one on its line, a [flow] list or a
+    block sequence - or None when the key is written in a way the check cannot
+    read (an alias, a mapping); [] when the job has no such key."""
+    found = job_key(body, key)
+    if found is None:
+        return []
+    inline, block = found
+    if inline:
+        if inline.startswith(("*", "&", "{", "!")):
+            return None
+        if inline.startswith("["):
+            if not inline.endswith("]"):
+                return None
+            return [v.strip().strip("'\"") for v in inline[1:-1].split(",") if v.strip()]
+        return [inline.strip("'\"")]
+    items = sequence(block)
+    if items is None:
+        return None
+    out = []
+    for item in items:
+        text = "\n".join(item).strip()
+        text = re.split(r"(?:^|\s)#", text, maxsplit=1)[0].strip()
+        if not text or text.startswith(("*", "&", "{", "!", "[")) or "\n" in text:
+            return None
+        out.append(text.strip("'\""))
+    return out
+
+
+def scalar(first, continuation):
+    """The text of a YAML scalar that starts after "key:" on one line and may go
+    on over deeper lines: plain (a comment ends it), quoted, or a block scalar."""
+    text = first.strip()
+    rest = [l.strip() for l in continuation]
+    if re.fullmatch(r"[|>][+-]?", text):
+        return " ".join(l for l in rest if l)
+    if text.startswith("'"):
+        m = re.match(r"'((?:[^']|'')*)'", " ".join([text] + rest))
+        return m.group(1).replace("''", "'") if m else None
+    if text.startswith('"'):
+        m = re.match(r'"((?:[^"\\]|\\.)*)"', " ".join([text] + rest))
+        return re.sub(r"\\(.)", r"\1", m.group(1)) if m else None
+    words = []
+    for piece in [text] + rest:
+        code = re.split(r"(?:^|\s)#", piece, maxsplit=1)
+        if code[0].strip():
+            words.append(code[0].strip())
+        if len(code) > 1:
+            break
+    return " ".join(words)
+
+
+def rule_of(item):
+    """One item of a rules list as {"if", "when", "narrowed", "unreadable"}."""
+    keys = [l for l in item if l.strip() and not l.lstrip().startswith("#")]
+    rule = {"if": "", "when": "on_success", "narrowed": False, "unreadable": None}
+    if not keys:
+        rule["unreadable"] = "an empty rule"
+        return rule
+    level = indent_of(keys[0])
+    for i, line in enumerate(keys):
+        if indent_of(line) != level:
+            continue
+        m = re.match(r"^\s*([A-Za-z_<]+):(?=\s|$)(.*)$", line)
+        if not m:
+            rule["unreadable"] = "a rule written as %s" % line.strip()
+            continue
+        key, value = m.group(1), m.group(2)
+        deeper = []
+        for following in keys[i + 1:]:
+            if indent_of(following) <= level:
+                break
+            deeper.append(following)
+        if key == "if":
+            text = scalar(value, deeper)
+            if text is None:
+                rule["unreadable"] = "if: %s" % value.strip()
+            rule["if"] = text or ""
+        elif key == "when":
+            rule["when"] = value.split("#", 1)[0].strip().strip("'\"")
+        elif key in ("changes", "exists"):
+            rule["narrowed"] = True
+        elif key == "<<" or value.strip().startswith("*"):
+            rule["unreadable"] = "%s:%s" % (key, value)
+    return rule
 
 
 def check_token_permissions(files):
@@ -575,7 +868,9 @@ def check_token_permissions(files):
     if not os.path.exists(os.path.join(ROOT, path)):
         r.fail("no .gitlab-ci.yml")
         return r
-    sources = ci_files()
+    sources, unread = ci_files()
+    for where, what in unread:
+        r.fail("%s includes %s, which this check cannot read: its jobs would go unjudged" % (where, what))
     text = "\n".join(t for _, t in sources)
     jobs = {}
     for _, t in sources:
@@ -584,8 +879,8 @@ def check_token_permissions(files):
     real = [n for n in jobs if n not in reserved and not n.startswith(".")]
 
     def parents(name):
-        m = re.search(r"^\s+extends:\s*\[?([^\]\n]+)\]?", jobs.get(name, ""), re.M)
-        return [p.strip().strip("'\"") for p in m.group(1).split(",")] if m else []
+        found = values(jobs.get(name, ""), "extends")
+        return found or []
 
     def extends(name, depth=0):
         chain = list(parents(name))
@@ -594,20 +889,42 @@ def check_token_permissions(files):
                 chain += extends(p, depth + 1)
         return chain
 
+    def unreadable(name):
+        """What of a job (or what it extends) this check cannot follow, or None."""
+        for n in [name] + extends(name):
+            body = jobs.get(n)
+            if body is None:
+                return "it extends %s, which none of the CI files defines" % n
+            head = body.splitlines()[0] if body else ""
+            if ":" not in head:
+                return "%s is not a key the check can read" % n
+            first = head.split(":", 1)[1].strip()
+            if first and not first.startswith(("#", "&")):
+                return "%s is given as %s" % (n, first)
+            if job_key(body, "<<") is not None:
+                return "%s merges a YAML anchor (<<:)" % n
+            if values(body, "extends") is None:
+                return "%s's extends is not a list of names" % n
+        return None
+
     def rules_of(name, depth=0):
-        """[(condition, when)] of the rules a job runs by: its own, else the first
-        parent's that has any (extends replaces a list whole); None when none."""
-        m = re.search(r"^  rules:[ \t]*\n(.*?)(?=^  [^\s#]|\Z)", jobs.get(name, "") + "\n", re.M | re.S)
-        if m:
+        """The rules a job runs by: its own, else the first parent's that has any
+        (extends replaces a list whole), each a dict; None when there are none."""
+        found = job_key(jobs.get(name, ""), "rules")
+        if found is not None:
+            inline, block = found
+            items = None if inline else sequence(block)
+            if not items:
+                return [{"unreadable": "rules: %s" % (inline or "(not a list)")}]
             rules = []
-            for item in re.split(r"^    - ", m.group(1), flags=re.M)[1:]:
-                ref = re.match(r"!reference\s*\[\s*([^,\]\s]+)\s*,\s*rules\s*\]", item)
+            for item in items:
+                ref = re.match(r"^\s*!reference\s*\[\s*([^,\]\s]+)\s*,\s*rules\s*\]\s*$",
+                               re.split(r"\s#", "\n".join(item).strip(), maxsplit=1)[0])
                 if ref:
-                    rules += (rules_of(ref.group(1), depth + 1) if depth < 5 else None) or []
+                    resolved = rules_of(ref.group(1), depth + 1) if depth < 5 and ref.group(1) in jobs else None
+                    rules += resolved if resolved is not None else [{"unreadable": "!reference [%s, rules]" % ref.group(1)}]
                     continue
-                condition = re.match(r"if:\s*(.*)", item)
-                when = re.search(r"^\s*when:\s*(\S+)", item, re.M)
-                rules.append((condition.group(1).strip() if condition else "", when.group(1) if when else "on_success"))
+                rules.append(rule_of(item))
             return rules
         if depth < 5:
             for p in parents(name):
@@ -616,25 +933,44 @@ def check_token_permissions(files):
                     return found
         return None
 
-    own = re.compile(r"\b(linix|bench150|bench)\b")
+    def judged(name):
+        """Why a job can be started for unreviewed code, or None."""
+        return ("its YAML: %s" % unreadable(name)) if unreadable(name) else admits(rules_of(name))
+
+    # A tag of one of the project's runners, or a variable, which could be one. The
+    # runners are registered with more tags than their names (glab api runners/<id>,
+    # 26 September 2026): linix with linux, docker and linix, bench150 with windows,
+    # bench and bench150. A job asking for any of them can land on one.
+    own = re.compile(r"\b(linix|linux|docker|bench150|bench|windows)\b|\$", re.I)
     guard = jobs.get(".own-runners", "")
-    guard_ok = admits(rules_of(".own-runners")) is None and '$CI_COMMIT_REF_PROTECTED == "true"' in guard
+    guard_ok = judged(".own-runners") is None and PROTECTED in guard
     if guard_ok:
         r.ok(".own-runners creates a job only for a protected ref, and never for a merge request")
     else:
         r.fail(".own-runners no longer demands a protected ref that is not a merge request's")
-    on_own, exposed, through_guard = [], [], 0
+    on_own, exposed, through_guard, unclear = [], [], 0, []
     for name in real:
-        chain = [name] + extends(name)
-        tags = " ".join(re.findall(r"^\s+tags:\s*(.*)$", "\n".join(jobs.get(n, "") for n in chain), re.M))
-        if not own.search(tags):
+        # A job whose extends, key line or merge keys the check cannot follow may take
+        # its tags and rules from anywhere: it is refused whatever its tags look like.
+        problem = unreadable(name)
+        if problem:
+            unclear.append("%s (%s)" % (name, problem))
+            continue
+        tags = []
+        for n in [name] + extends(name):
+            found = values(jobs.get(n, ""), "tags")
+            # Tags the check cannot read may be the project's own runners.
+            tags += ["linix"] if found is None else found
+        if not any(own.search(t) for t in tags):
             continue
         on_own.append(name)
-        why = admits(rules_of(name))
+        why = judged(name)
         if why:
             exposed.append("%s (%s)" % (name, why))
         elif rules_of(name) == rules_of(".own-runners"):
             through_guard += 1
+    if unclear:
+        r.fail("job(s) written in a way this check cannot read, and so cannot clear: %s" % "; ".join(unclear))
     if exposed:
         r.fail("job(s) on the project's own runners that a merge request or an unprotected ref can start: %s"
                % "; ".join(exposed))
@@ -642,6 +978,18 @@ def check_token_permissions(files):
         r.ok("all %d jobs on linix or bench150 run only for a protected ref and never for a merge request:"
              " %d by .own-runners, %d by rules of their own that ask the same" % (
                  len(on_own), through_guard, len(on_own) - through_guard))
+
+    def runners_of(name):
+        """The jobs that run what a block holds: the job itself, every job that
+        extends it or takes a part of it by !reference, and every job for the
+        global blocks (variables, default)."""
+        if name in reserved:
+            return list(real)
+        out = [name] if name in real else []
+        for n in real:
+            if n != name and (name in extends(n) or re.search(r"!reference\s*\[\s*%s\s*," % re.escape(name), jobs[n])):
+                out.append(n)
+        return out
 
     # A script that handles a credential is judged by the jobs that run it: each must
     # be one no merge request and no unprotected ref can start.
@@ -655,9 +1003,9 @@ def check_token_permissions(files):
         found = []
         current = None
         for i, line in enumerate(read(s).splitlines()):
-            top = re.match(r"^([A-Za-z0-9_.\-]+):\s*(#.*)?$", line)
-            if top:
-                current = top.group(1)
+            key = top_key(line)
+            if key is not None:
+                current = key
             if re.match(r"^\s*#", line):
                 continue
             for m in credential.finditer(line):
@@ -665,15 +1013,16 @@ def check_token_permissions(files):
         if not found:
             continue
         if s.endswith((".yml", ".yaml")):
-            runners = sorted({job for _, _, job in found})
+            holders = {job for _, _, job in found}
         else:
             name = s.split("/")[-1]
-            runners = [n for n in real if re.search(r"build[/\\]ci[/\\]" + re.escape(name) + r"\b", jobs[n])]
+            holders = {n for n in jobs if re.search(r"build[/\\]ci[/\\]" + re.escape(name) + r"\b", jobs[n])}
+        runners = sorted({n for h in holders if h is not None for n in runners_of(h)})
         where = ", ".join("line %d: %s" % (line, var) for line, var, _ in found[:4])
         if not runners:
             unsafe.append("%s (%s), which no job runs" % (s, where))
             continue
-        bad = [n for n in runners if n.startswith(".") or admits(rules_of(n))]
+        bad = [n for n in runners if judged(n)]
         if bad:
             unsafe.append("%s (%s), run by %s" % (s, where, ", ".join(bad)))
         else:
@@ -687,8 +1036,9 @@ def check_token_permissions(files):
         r.note("handles a credential, in jobs a protected ref alone can start: %s" % h)
 
     for name in real:
-        if re.search(r"^\s+(id_tokens|secrets):", jobs[name], re.M):
-            if admits(rules_of(name)):
+        # id_tokens and secrets are inherited through extends like any other key.
+        if any(job_key(jobs.get(n, ""), k) is not None for n in [name] + extends(name) for k in ("id_tokens", "secrets")):
+            if judged(name):
                 r.fail("job %s asks for id_tokens or secrets and a merge request or an unprotected ref can start it" % name)
             else:
                 r.note("job %s asks for id_tokens or secrets, on a protected ref only" % name)
@@ -696,15 +1046,25 @@ def check_token_permissions(files):
         r.fail("CI_DEBUG_TRACE is set: every variable, masked or not, would be printed to a public job log")
     else:
         r.ok("CI_DEBUG_TRACE is set nowhere (the job logs are public)")
-    # A value on the key's own line: an id_tokens entry's key holds a mapping (aud), not a value.
-    literal = re.findall(r"^[ \t]+([A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET)[A-Z0-9_]*):[ \t]*([^\s#]+)", text, re.M)
-    for key, value in literal:
+    # A value on the key's own line: an id_tokens entry's key holds a mapping (aud), not a
+    # value. Each with the job whose block it is in.
+    literal = []
+    for _, t in sources:
+        current = None
+        for line in t.splitlines():
+            key = top_key(line)
+            if key is not None:
+                current = key
+            m = re.match(r"^[ \t]+([A-Z0-9_]*(?:PASSWORD|TOKEN|SECRET)[A-Z0-9_]*):[ \t]*([^\s#]+)", line)
+            if m:
+                literal.append((m.group(1), m.group(2), current))
+    for key, value, job in literal:
         bare = value.strip("'\"")
         if key.startswith("SECRET_DETECTION_"):
             continue
         if key == "POSTGRES_PASSWORD" and bare == "hmtest":
-            r.note("POSTGRES_PASSWORD is written in the file: the throwaway password of the linux-suite job's"
-                   " own PostgreSQL service container, which nothing outside that job can reach")
+            r.note("POSTGRES_PASSWORD is written in the file, in %s: the throwaway password of that job's"
+                   " own PostgreSQL service container, which nothing outside the job can reach" % job)
         elif key in ("MARIADB_ALLOW_EMPTY_ROOT_PASSWORD", "MARIADB_RANDOM_ROOT_PASSWORD") and bare.lower() in ("1", "yes", "true"):
             r.note("%s is a switch of the MariaDB image, not a credential: no password is written in the file" % key)
         elif bare.startswith("$"):
@@ -739,10 +1099,296 @@ def junit(results):
                 len(results), failures, skipped, "\n".join(cases)))
 
 
+# ---------------------------------------------------------------- the self-test
+
+# A CI file with the project's guard and one job behind it, which Token-Permissions
+# passes; each case below adds to it, and says whether the check must then fail.
+SELF_TEST_BASE = """\
+stages: [test]
+
+.own-runners:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+      changes:
+        paths: &not-docs-only
+          - "**/*[!d]"
+
+.linix:
+  extends: .own-runners
+  tags: [linix]
+
+guarded-job:
+  extends: .linix
+  script:
+    - echo guarded
+"""
+
+# (name, what is added to the CI file, whether Token-Permissions must fail)
+SELF_TEST_CASES = [
+    ("a job with rules of its own that ask the same", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+  script: [echo]
+""", False),
+    ("a protected ref and an OR in parentheses beside it", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_TAG =~ /^v(\\d+)/ || $CI_COMMIT_BRANCH =~ /^batch/)
+  script: [echo]
+""", False),
+    ("the whole condition in parentheses", """
+probe:
+  extends: .linix
+  rules:
+    - if: ($CI_PIPELINE_SOURCE != "merge_request_event" && ($CI_COMMIT_REF_PROTECTED=="true"))
+  script: [echo]
+""", False),
+    ("a quoted condition and a comment after it", """
+probe:
+  extends: .linix
+  rules:
+    - if: '$CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"'  # quoted
+  script: [echo]
+""", False),
+    ("a condition over two lines", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" &&
+        $CI_COMMIT_REF_PROTECTED == "true"
+  script: [echo]
+""", False),
+    ("merge requests sent to never first, then a protected ref", """
+probe:
+  tags:
+    - docker
+    - linix
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+  script: [echo]
+""", False),
+    ("id_tokens on a protected job, by a template", """
+.signing:
+  id_tokens:
+    PROBE_ID_TOKEN:
+      aud: probe
+probe:
+  extends: [.signing, .linix]
+  script: [echo]
+""", False),
+    ("a protected ref inside an OR", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && ($CI_COMMIT_REF_PROTECTED == "true" || $CI_COMMIT_BRANCH =~ /^feature/)
+  script: [echo]
+""", True),
+    ("the merge-request clause inside an OR", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && ($CI_PIPELINE_SOURCE != "merge_request_event" || $CI_COMMIT_BRANCH)
+  script: [echo]
+""", True),
+    ("an OR hidden by parentheses round the whole", """
+probe:
+  extends: .linix
+  rules:
+    - if: ($CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE != "merge_request_event" || $CI_COMMIT_BRANCH)
+  script: [echo]
+""", True),
+    ("an OR after a regular expression with a parenthesis in it", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_BRANCH =~ /[(]/ || $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("the clauses in a comment", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_COMMIT_BRANCH # $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+  script: [echo]
+""", True),
+    ("an OR on the condition's second line", """
+probe:
+  extends: .linix
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+        || $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("a rules list at the key's own indentation", """
+probe:
+  extends: .linix
+  rules:
+  - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("a rules list indented six", """
+probe:
+  extends: .linix
+  rules:
+      - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("rules written inline, over a guarded parent", """
+probe:
+  extends: .linix
+  rules: [{if: $CI_COMMIT_BRANCH}]
+  script: [echo]
+""", True),
+    ("rules by an alias, over a guarded parent", """
+probe:
+  extends: .linix
+  rules: *probe-rules
+  script: [echo]
+""", True),
+    ("a merge key", """
+probe:
+  <<: *probe-job
+  extends: .linix
+  script: [echo]
+""", True),
+    ("extends as a block list", """
+probe:
+  extends:
+    - .linix
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("extends by an alias, the tags only in what it names", """
+probe:
+  extends: *probe-parent
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("the project's runner second in a block list of tags", """
+probe:
+  tags:
+    - docker
+    - linix
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("a tag of linix's other than its name", """
+probe:
+  tags: [docker]
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("tags from a variable", """
+probe:
+  tags: [$PROBE_RUNNER]
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  script: [echo]
+""", True),
+    ("merge requests sent to never only when a file changed", """
+probe:
+  tags: [linix]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: [README.md]
+      when: never
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+  script: [echo]
+""", True),
+    ("id_tokens by a template, on a job anyone can start", """
+.signing:
+  id_tokens:
+    PROBE_ID_TOKEN:
+      aud: probe
+probe:
+  extends: .signing
+  script: [echo]
+""", True),
+    ("the job token in a template's script, by an anchored key", """
+.probe-template: &probe
+  script:
+    - echo "$CI_JOB_TOKEN"
+probe:
+  extends: .probe-template
+""", True),
+    ("the job token in a script a template runs", """
+.probe-template:
+  script:
+    - bash build/ci/probe-credential.sh
+probe:
+  extends: .probe-template
+""", True),
+    ("an include this check cannot read", """
+include:
+  - remote: https://example.invalid/probe.yml
+""", True),
+    ("an include of a file that is not there", """
+include:
+  - local: .gitlab/ci/not-there.yml
+""", True),
+    ("an !reference the files do not resolve", """
+probe:
+  extends: .linix
+  rules:
+    - !reference [.not-there, rules]
+  script: [echo]
+""", True),
+]
+
+
+def self_test():
+    """Token-Permissions against SELF_TEST_BASE and each case: the base and the
+    cases that must pass are not FAILed, and every other case is."""
+    global ROOT
+    saved, wrong = ROOT, 0
+    try:
+        for name, addition, must_fail in [("the base itself", "", False)] + SELF_TEST_CASES:
+            scratch = tempfile.mkdtemp(prefix="repo-hygiene-self-test-")
+            try:
+                ROOT = scratch
+                os.makedirs(os.path.join(scratch, "build", "ci"))
+                with open(os.path.join(scratch, "build", "ci", "probe-credential.sh"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write('#!/bin/sh\ncurl --header "JOB-TOKEN: $CI_JOB_TOKEN" https://example.invalid/\n')
+                with open(os.path.join(scratch, ".gitlab-ci.yml"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write(SELF_TEST_BASE + addition)
+                result = check_token_permissions(["build/ci/probe-credential.sh"] if "probe-credential" in addition else [])
+            finally:
+                ROOT = saved
+                shutil.rmtree(scratch, ignore_errors=True)
+            failed = result.status == "FAIL"
+            right = failed == must_fail
+            wrong += 0 if right else 1
+            print("%-6s %s: %s, as %s" % ("ok" if right else "WRONG", name, result.status,
+                                         "it must" if right else ("it must fail" if must_fail else "it must not fail")))
+            if not right or failed:
+                for line in result.lines:
+                    if line.startswith("FAIL"):
+                        print("         " + line[9:][:300])
+    finally:
+        ROOT = saved
+    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1, wrong))
+    return 1 if wrong else 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--out", default=os.path.join("security", "repo-hygiene"))
+    parser.add_argument("--self-test", action="store_true",
+                        help="prove Token-Permissions against CI files made to break it, offline, and exit")
     args = parser.parse_args()
+    if args.self_test:
+        return self_test()
     os.chdir(ROOT)
     files = tracked_files()
     results = [

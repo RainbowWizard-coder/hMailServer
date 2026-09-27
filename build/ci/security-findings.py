@@ -45,6 +45,11 @@ outputs are in them) or from a run by hand:
       --semgrep security/semgrep/semgrep.json --remap security/semgrep/remap.json \\
       --out security/semgrep --write-baseline
 
+A baseline line ends with why its finding is known rather than fixed, when the
+triage that let it in said so: --reasons names a JSON file of {fingerprint: reason}
+and {"rule:<rule>": reason} for the findings new to the baseline, and a reason
+already in the baseline stays with its finding when the file is written again.
+
 Run it from the root of the checkout the scan read: the flagged lines are read from
 the files, and a finding whose file is not there is fingerprinted without its line.
 A baseline is for findings nobody has fixed yet, not for findings nobody has read:
@@ -348,6 +353,7 @@ def fingerprint_all(findings):
 
 
 def read_baseline(path):
+    """{fingerprint: [tool, rule, file:line, message, reason if there is one]}."""
     known = {}
     if not os.path.exists(path):
         return known
@@ -361,23 +367,45 @@ def read_baseline(path):
     return known
 
 
-def write_baseline(path, job, findings):
+def write_baseline(path, job, findings, reasons=None):
+    """The baseline, every finding of this run in it. A reason the old file gave a
+    finding stays with it; a finding new to it takes its reason from reasons, by
+    fingerprint, else by "rule:<rule>"."""
+    previous = read_baseline(path)
+    reasons = reasons or {}
+    body = []
+    with_reason = 0
+    fresh, fresh_without = 0, 0
+    for f in sorted(findings, key=lambda f: (f["path"], f["line"], f["tool"], f["rule"])):
+        fields = [f["fingerprint"], f["tool"], f["rule"], "%s:%d" % (f["path"], f["line"]),
+                  f["message"][:200].rstrip().replace("\t", " ")]
+        old = previous.get(f["fingerprint"])
+        if old is not None:
+            reason = old[4] if len(old) > 4 else ""
+        else:
+            reason = reasons.get(f["fingerprint"]) or reasons.get("rule:" + f["rule"]) or ""
+            fresh += 1
+            fresh_without += 0 if reason.strip() else 1
+        reason = " ".join(reason.split())
+        if reason:
+            fields.append(reason)
+            with_reason += 1
+        body.append("\t".join(fields))
     lines = [
         "# The findings of the %s job that were already there when this file was written, one per" % job,
         "# line: fingerprint, tool, rule, file:line (where it was then; the fingerprint does not",
-        "# use the number), message. The job fails only on a finding whose fingerprint is not here.",
+        "# use the number), message, and - where its triage said - why it is known rather than",
+        "# fixed. The job fails only on a finding whose fingerprint is not here.",
         "# Written by build/ci/security-findings.py --write-baseline; do not edit by hand, except to",
         "# delete the line of a finding that has been fixed. docs/ContinuousIntegration.md,",
         "# \"Security scanning\", says when and how to regenerate it.",
         "#",
-        "# %d findings." % len(findings),
-    ]
-    for f in sorted(findings, key=lambda f: (f["path"], f["line"], f["tool"], f["rule"])):
-        lines.append("\t".join([f["fingerprint"], f["tool"], f["rule"], "%s:%d" % (f["path"], f["line"]),
-                                f["message"][:200].rstrip()]))
+        "# %d findings, %d of them with a reason." % (len(findings), with_reason),
+    ] + body
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as out:
         out.write("\n".join(lines) + "\n")
+    return fresh, fresh_without
 
 
 # ---------------------------------------------------------------- the reports
@@ -474,6 +502,7 @@ def main():
     parser.add_argument("--started", help="when the scan started (UTC, YYYY-MM-DDTHH:MM:SS)")
     parser.add_argument("--out", required=True, help="the directory the reports go to")
     parser.add_argument("--baseline", help="the baseline file (default: the job's, under build/ci)")
+    parser.add_argument("--reasons", help="JSON {fingerprint or \"rule:<rule>\": reason}, for --write-baseline")
     parser.add_argument("--write-baseline", action="store_true",
                         help="rewrite the baseline with every finding of this run, then report against it")
     args = parser.parse_args()
@@ -520,8 +549,13 @@ def main():
     if args.write_baseline:
         # Then on as usual, against the file just written: the reports are made, and
         # nothing is new.
-        write_baseline(baseline_path, args.job, all_findings)
-        print("Wrote %d finding(s) to %s." % (len(all_findings), os.path.relpath(baseline_path, ROOT)))
+        reasons = {}
+        if args.reasons:
+            with open(args.reasons, encoding="utf-8") as f:
+                reasons = json.load(f)
+        fresh, fresh_without = write_baseline(baseline_path, args.job, all_findings, reasons)
+        print("Wrote %d finding(s) to %s; %d new to it, %d of those without a reason." % (
+            len(all_findings), os.path.relpath(baseline_path, ROOT), fresh, fresh_without))
 
     known = read_baseline(baseline_path)
     new = [f for f in all_findings if f["fingerprint"] not in known]

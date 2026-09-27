@@ -704,9 +704,11 @@ namespace HM
       // The path goes into the request line as it is written: a space, a line
       // break or another control character there would end that line and start
       // a header - or a request - of the URL's own making, and a character
-      // outside ASCII has no one spelling there. Read as an unsigned value: as
-      // a signed char, on Linux, a byte of UTF-8 was below 0x21 and refused as
-      // a control character, while on Windows the same character passed.
+      // outside ASCII has no one spelling there: the sender percent-encodes it,
+      // and writes a domain name in its xn-- form. A String's character is a
+      // wchar_t on both platforms, so no character is negative here; until
+      // 26 September 2026 this refused control characters only, and let
+      // everything from 0x80 up through, on Windows and Linux alike.
       for (int i = 0; i < url.GetLength(); i++)
       {
          const unsigned int c = (unsigned int) url[i];

@@ -36,7 +36,7 @@ POST /api/v1/inbound-webhooks
 | Field | What it is | Default |
 |---|---|---|
 | `address` | `user@example.com`, or `example.com` for every address of the domain. The domain must be one this server hosts. Stored lower case; it is the route's name in the path | required |
-| `url` | `https://` to the endpoint; plain `http://` only to this machine. Printable ASCII only: no space, line break or other control character, and nothing outside ASCII - percent-encode them. See *Where an endpoint may be* | required |
+| `url` | `https://` to the endpoint; plain `http://` only to this machine. Printable ASCII only: no space, line break or other control character, and nothing outside ASCII - percent-encode them, and write an international domain name in its `xn--` form. See *Where an endpoint may be* | required |
 | `secret` | **write-only**. Every request is signed under it; it is never returned, and it is protected at rest as an outbound webhook's secret is | required |
 | `deliver` | `false`: the route alone receives the address's mail. `true`: what the address reaches without the route - its mailbox, the alias's target, the list - receives it as well | `false` |
 | `on_failure` | `keep` or `bounce`: what a message the endpoint never accepted becomes. See *The queue* | `keep` |

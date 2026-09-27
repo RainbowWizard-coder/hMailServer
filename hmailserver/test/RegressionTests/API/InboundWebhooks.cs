@@ -795,8 +795,8 @@ namespace RegressionTests.API
          }
 
          // A character outside ASCII has no one spelling in a request line, and is
-         // refused on every platform: read as a signed char it was refused on Linux
-         // as a control character, and passed on Windows.
+         // refused. Until 26 September 2026 the check refused control characters
+         // only, and this route was saved, on Windows and Linux alike.
          (int status, string body) accented = Http("POST", RoutesPath,
             "{\"address\":\"a@" + _domainName + "\",\"url\":\"" + EndpointUrl + "/caf\u00e9\",\"secret\":\"" + Secret + "\"}");
          Assert.AreEqual(400, accented.status, accented.body);

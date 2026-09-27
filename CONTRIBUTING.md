@@ -312,10 +312,11 @@ section *On Linux*, has the recipe for the server: PostgreSQL, `--create-databas
 privileged ports, auto-ban off and `--set-admin-password` from a pipe. `build/ci/linux-suite.sh` is the same
 recipe as the CI job runs it, whole suite included, and runs by hand in the job's image.
 
-The schema-upgrade gate: `bash build/db-upgrade-gate.sh pgsql` (or `mysql`) creates a database at this build's
-schema, winds it back to 6029 with orphaned rows, and upgrades it through the real scripts on a real backend. It
-needs the Linux `hmailserver` binary and a database server; the script's header lists the environment it
-reads.
+The schema-upgrade gate: `bash build/db-upgrade-gate.sh pgsql` (or `mysql`) makes a database with the create
+script of schema 6029 itself (`build/db-upgrade-6029/`), seeds it with orphaned rows, upgrades it through the
+real scripts on a real backend, and compares what it upgraded to with a new database made by `--create-database`:
+a column, index or constraint an upgrade step makes differently from the create script fails it. It needs the
+Linux `hmailserver` binary and a database server; the script's header lists the environment it reads.
 
 ### Writing a test
 
@@ -340,8 +341,8 @@ reads.
 
 **What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, on
 GitLab's shared runners. *checkers* (a Python image with git) runs every Python checker below except
-`check-package-manifests.py`, the `--self-test` modes (the release chain's, the release's security gate's and
-the secret scan's among them), `add-license-headers.py --check`, every
+`check-package-manifests.py`, the `--self-test` modes (the release chain's, the release's security gate's, the
+secret scan's and repo-hygiene's among them), `add-license-headers.py --check`, every
 generator's `--check`, `generate-portal-languages.py` and `check-deck-parity.py` held to the files they write
 staying as committed, and `check-linux-version-stamp.sh`, and it reports every failure at the end rather than
 stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`,
@@ -350,7 +351,9 @@ editorconfig-checker. Four more run when their files change: *chart-and-compose*
 Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units under `systemd-analyze`),
 *package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
 placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on every merge request and every
-`batch*` branch (see [Sign-off](#sign-off)); *checkers* runs its self-test and `build/land-via-mr.py`'s. Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
+`batch*` branch (see [Sign-off](#sign-off)); *checkers* runs its self-test and `build/land-via-mr.py`'s, and those of
+`build/generate-update-feed.py`, `build/ci/release-chain.py` and `build/ci/repo-hygiene.py` (Token-Permissions against
+CI files made to break it). Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
 `pwsh -File build/...`, never by its shebang, because the tree checks out CRLF.
 
 **On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
