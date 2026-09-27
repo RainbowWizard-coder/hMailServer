@@ -34,7 +34,7 @@
 # package manager for the other architecture. Nothing in the result comes from
 # the x86_64 side but the compiler's code generation. The alternative, the
 # whole build inside an aarch64 container under qemu-user, runs the compiler
-# emulated and is several times slower (docs/Packages-rpm.md has the numbers).
+# emulated and is several times slower (docs/PackagesRpm.md has the numbers).
 # The package is then installed and started in a real aarch64 container of the
 # same distribution by rpm-install-test.sh.
 #
@@ -167,7 +167,7 @@ echo "$PRETTY_NAME, building for $arch, release 1.$disttag"
 # the repository (a mirror that did not answer, a name that did not resolve), and
 # failed at once otherwise: a package the release does not have is not going to
 # appear. apt in the Debian jobs on linix met such failures, most often under
-# qemu (docs/Packages-deb.md); dnf and zypper fetch through libcurl, which falls
+# qemu (docs/PackagesDeb.md); dnf and zypper fetch through libcurl, which falls
 # back from an unreachable IPv6 address by itself, and no run here has met one,
 # so this is only the retry. Its output goes to the log it is given.
 network_failure='Curl error|Cannot download|Failed to download|Download \(curl\) error|Timeout exceeded|Problem retrieving|Could not resolve|Couldn.t resolve|Couldn.t connect|Connection (refused|timed out|reset)'
@@ -501,7 +501,7 @@ version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9.]
 name="hmailserver-$version-1.$disttag.$arch.rpm"
 if [ ! -f "$build_dir/$name" ]; then
   ls "$build_dir"/*.rpm 2> /dev/null
-  echo "PACKAGING FAILED: CPack made no $name (the name docs/Packages-rpm.md promises)."
+  echo "PACKAGING FAILED: CPack made no $name (the name docs/PackagesRpm.md promises)."
   exit 4
 fi
 # The Suggests CMakeLists.txt sets (7-Zip for the backup, python3 for hmctl).
@@ -576,7 +576,7 @@ rm -rf "$payload"
 # for, hmailserver-<v>-1.aarch64.rpm, from the same build: only CPack's release
 # field differs, so CPack is re-run, not the build. Fedora 44 aarch64 alone makes
 # it, the aarch64 twin of the generic x86_64 package, which stays linux-build's
-# and is install-tested on Fedora 44 (docs/Packages-rpm.md, "The generic names").
+# and is install-tested on Fedora 44 (docs/PackagesRpm.md, "The generic names").
 if [ "$target" = fedora44 ] && [ "$arch" = aarch64 ]; then
   generic="hmailserver-$version-1.$arch.rpm"
   { cmake -DCPACK_RPM_PACKAGE_RELEASE=1 "$build_dir" >> "$out/package.log" 2>&1 && make_package "${cpack_args[@]}"; } \

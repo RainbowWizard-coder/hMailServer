@@ -4,7 +4,7 @@
 
 # The Windows installers, x64 and ARM64, built by the pipeline of every protected ref
 # - master, a batch* branch, a v* tag - on bench150, and kept as the job's artifact,
-# unsigned (hmailserver/docs/Packages-windows.md). Included by .gitlab-ci.yml, whose
+# unsigned (hmailserver/docs/PackagesWindows.md). Included by .gitlab-ci.yml, whose
 # .own-runners rules these jobs take: never for a merge request, a scheduled
 # pipeline or the feed's downstream pipeline.
 #
@@ -17,7 +17,7 @@
 #                           first, naming the Visual Studio Installer command, while
 #                           the bench lacks Visual Studio's ARM64 tools and ATL for
 #                           ARM64, and it is allow_failure until the owner has added
-#                           them and one run has passed (Packages-windows.md says why
+#                           them and one run has passed (PackagesWindows.md says why
 #                           and when to change that).
 #
 # Both build in the runner's own checkout of the commit, as windows-dotnet does, not in
@@ -120,7 +120,7 @@
 # stops at its third step in every protected pipeline. It then shows as a warning
 # instead of failing the pipeline; a failed build (3 to 7) or a lock that is not ours
 # (10) still fails it. Remove allow_failure once Inno Setup is there and one run has
-# passed (hmailserver/docs/Packages-windows.md).
+# passed (hmailserver/docs/PackagesWindows.md).
 windows-packages-x64:
   extends: .windows-packages
   allow_failure:
@@ -132,7 +132,7 @@ windows-packages-x64:
 
 # allow_failure until the bench has Visual Studio's ARM64 tools and ATL for ARM64 and
 # one run of this job has passed; then remove it, so that a broken ARM64 build fails
-# the pipeline as a broken x64 build does (hmailserver/docs/Packages-windows.md).
+# the pipeline as a broken x64 build does (hmailserver/docs/PackagesWindows.md).
 #
 # After windows-packages-x64 as well: side by side, whichever took the lock second
 # would wait for the other's whole build, and the ARM64 job's first run (its

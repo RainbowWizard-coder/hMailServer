@@ -60,7 +60,7 @@
    first ARM64 publish created, to be committed (WindowsOnArm.md).
 
    It is unsigned. The release chain's release-authenticode job signs a release's
-   installers (docs/Packages-windows.md says where the ARM64 one goes).
+   installers (docs/PackagesWindows.md says where the ARM64 one goes).
 
    It does not take the gate lock: the job does, around it.
 
@@ -261,7 +261,7 @@ if ($Platform -eq 'ARM64') {
          $gitHub = @($tokens | Where-Object { $_ -is [System.Management.Automation.Language.StringToken] -and $_.Text -match 'github\.com|githubusercontent\.com' } | ForEach-Object { "line $($_.Extent.StartLineNumber): $($_.Text)" })
          if ($gitHub.Count) {
             Stop-Packages 7 (("the ARM64 OpenSSL {0} is not in {1}, and {2} downloads its source from GitHub ({3}), which this project's CI does not do. " +
-               "Build it once on bench150 into that folder, or bring in the GitLab sweep's build-openssl.ps1, which takes the same archive from Debian's (docs/Packages-windows.md, 'The ARM64 libraries'), " +
+               "Build it once on bench150 into that folder, or bring in the GitLab sweep's build-openssl.ps1, which takes the same archive from Debian's (docs/PackagesWindows.md, 'The ARM64 libraries'), " +
                "and retry the job") -f $openssl, $LibsDir, $library.Script, ($gitHub -join '; '))
          }
       }

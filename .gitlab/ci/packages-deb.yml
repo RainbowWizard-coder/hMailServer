@@ -4,7 +4,7 @@
 
 # The Debian and Ubuntu packages, x86-64 (amd64) and AArch64 (arm64), one per
 # release and architecture, each built in its own release's container and then
-# installed in a clean one (docs/Packages-deb.md says what each makes, and what
+# installed in a clean one (docs/PackagesDeb.md says what each makes, and what
 # has run). Included by .gitlab-ci.yml.
 #
 #   deb-<distro>-<arch>          linix: build/ci/packages/deb-build.sh in the
@@ -225,7 +225,7 @@ deb-ubuntu24.04-arm64-install:
 # (clang, in the CI image, which is this same Ubuntu 26.04): the file the release
 # collects with linux-build's SHA256SUMS.txt (release-chain.py, sources()), and the
 # one linux-package-deb installs and starts. A second job making that name would
-# leave the release two files to choose from (docs/Packages-deb.md, "The names").
+# leave the release two files to choose from (docs/PackagesDeb.md, "The names").
 # The amd64 image is still the one the arm64 package is cross-compiled in.
 deb-ubuntu26.04-arm64:
   extends: [.deb-build, .deb-image-ubuntu26.04-amd64]

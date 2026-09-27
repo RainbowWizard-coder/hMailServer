@@ -360,7 +360,7 @@ This branch was made from 6399e08a5. By the time it was checked, batch40
 - **`.gitattributes`.** pk-deb adds the same `build/ci/packages/** text eol=lf`
   line, with a comment; keep one. It also makes pk-windows' `.ps1` files in that
   directory LF, which PowerShell reads the same.
-- **`HelpMap.cs`.** This branch adds `Packages-appimage.md` to `ReferenceOnly`;
+- **`HelpMap.cs`.** This branch adds `PackagesAppImage.md` to `ReferenceOnly`;
   pk-deb and pk-windows add their own pages beside it.
 - **Checkers that read `.gitlab-ci.yml` alone.** `build/ci/repo-hygiene.py`'s
   Pinned-Dependencies check and `build/check-release-chain.py` do not follow

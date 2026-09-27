@@ -98,7 +98,7 @@ include:
   # The weekly export of what a push mirror does not carry, on linix (docs/Mirroring.md).
   - local: .gitlab/ci/forge-export.yml
   # The package builds for every distribution and architecture, a file each
-  # (docs/Packages-deb.md and its siblings).
+  # (docs/PackagesDeb.md and its siblings).
   - local: .gitlab/ci/packages-deb.yml
   - local: .gitlab/ci/packages-appimage.yml
   - local: .gitlab/ci/packages-rpm.yml

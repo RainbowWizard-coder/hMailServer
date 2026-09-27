@@ -5,7 +5,7 @@
 # The RPM packages for Fedora, RHEL and openSUSE, x86_64 and aarch64, one per
 # distribution release and architecture, each built with that release's own
 # compiler and libraries so that its Requires name the sonames that release
-# ships, and then installed in a clean container of it (docs/Packages-rpm.md
+# ships, and then installed in a clean container of it (docs/PackagesRpm.md
 # says what each makes, and what has run). Included by .gitlab-ci.yml.
 #
 #   rpm-<target>-<arch>           linix: build/ci/packages/rpm-build.sh in the
@@ -182,7 +182,7 @@
 # rpm-fedora44-aarch64 also leaves hmailserver-<v>-1.aarch64.rpm, the name
 # installed servers' update checker asks for, from the same build. The generic
 # x86_64 name, hmailserver-<v>-1.x86_64.rpm, stays linux-build's, which
-# linux-package-rpm installs on Fedora 44 (docs/Packages-rpm.md, "The generic
+# linux-package-rpm installs on Fedora 44 (docs/PackagesRpm.md, "The generic
 # names").
 rpm-fedora44-x86_64:
   extends: [.rpm-build, .rpm-image-fedora44-x86_64]

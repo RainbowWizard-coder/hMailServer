@@ -147,7 +147,7 @@ tools (linuxdeploy, appimagetool) are published only on GitHub. The script gathe
 the libraries with `ldd`, sets their RUNPATH with `patchelf`, and packs the AppDir
 with `mksquashfs`; its header says which libraries it leaves to the host and why.
 The GitLab jobs in `.gitlab/ci/packages-appimage.yml` build both architectures on
-Ubuntu 24.04 (glibc 2.39) and run the result on Fedora; `docs/Packages-appimage.md`
+Ubuntu 24.04 (glibc 2.39) and run the result on Fedora; `docs/PackagesAppImage.md`
 says what has been run.
 
 ## What lands where

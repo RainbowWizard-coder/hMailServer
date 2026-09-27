@@ -30,7 +30,7 @@
 # file beside this script. Nothing is run under emulation here; the package is
 # run on arm64 by the install job (deb-install.sh), under qemu.
 #
-# The file name, by the project's naming rule (docs/Packages-deb.md):
+# The file name, by the project's naming rule (docs/PackagesDeb.md):
 #   ubuntu26.04 - the generic hmailserver_<v>_<arch>.deb, Version <v>, as the
 #                 update checker (UpdateChecker.cpp) looks for it;
 #   every other - hmailserver_<v>-1~<distro>_<arch>.deb, Version <v>-1~<distro>:

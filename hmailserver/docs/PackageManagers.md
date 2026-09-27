@@ -207,7 +207,7 @@ line fits every release the project builds for:
 
 A suite exists once a stable release carries its packages. The package jobs
 make the suffixed names from the release after 6.3.4
-([Packages-deb.md](Packages-deb.md)), so until that release only `ubuntu26.04`
+([PackagesDeb.md](PackagesDeb.md)), so until that release only `ubuntu26.04`
 exists, with 6.3.4's x86-64 `.deb`. On a release with no suite, `apt update`
 answers 404 for its `InRelease`.
 

@@ -407,7 +407,7 @@ repository (a curl or download error, a name that did not resolve), 15 seconds
 apart, and fail at once on anything else: a `Requires` the release cannot meet
 is what the test is for. The Debian jobs met such failures on linix, most often
 under qemu, where apt's fall-back from an unreachable IPv6 address often gave up
-(`docs/Packages-deb.md`), and force IPv4. dnf and zypper fetch through libcurl,
+(`docs/PackagesDeb.md`), and force IPv4. dnf and zypper fetch through libcurl,
 which tries IPv6 and IPv4 side by side, and none of the RPM runs met a failure
 to connect, so they do not force IPv4.
 

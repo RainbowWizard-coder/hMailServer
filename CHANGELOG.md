@@ -250,11 +250,11 @@ leave in CI only, is under Operations.
   GitLab CI** on the project's own runners, never for a merge request, and with no tool from GitHub:
   - **Debian and Ubuntu**: Debian 12 and 13 and Ubuntu 24.04 for amd64 and arm64, and Ubuntu 26.04 for arm64, as
     `hmailserver_<v>-1~<distro>_<arch>.deb` - Ubuntu 26.04's as `hmailserver_<v>_arm64.deb`; the amd64 package for
-    Ubuntu 26.04 is the release's own, below ([Packages-deb.md](hmailserver/docs/Packages-deb.md)).
+    Ubuntu 26.04 is the release's own, below ([PackagesDeb.md](hmailserver/docs/PackagesDeb.md)).
   - **RPM**: Fedora 44 and 43, RHEL 10 and 9, and openSUSE Leap 16.0 and Tumbleweed, for x86_64 and aarch64, as
     `hmailserver-<v>-1.<disttag>.<arch>.rpm`, with Boost linked in and every other `Requires` resolved from the
     release's own repositories; the executables are PIE with full RELRO, the stack protector, stack-clash
-    protection and `_FORTIFY_SOURCE=2` ([Packages-rpm.md](hmailserver/docs/Packages-rpm.md)).
+    protection and `_FORTIFY_SOURCE=2` ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md)).
   - Each `.deb` and `.rpm` is built in its distribution release's own container with that release's compiler and
     libraries (the arm64 and aarch64 ones cross-compiled), then installed in a clean container of the same release
     and architecture, run and removed. They are built for every `v*` tag and `batch*` branch, and on `master` when
@@ -263,15 +263,15 @@ leave in CI only, is under Operations.
     OpenSSL 3, with a runtime of the project's own (`platform/packaging/appimage/runtime.c`) in place of the
     AppImage project's, which is published only on GitHub, and without linuxdeploy; each is run again on
     Fedora 44. They are built for a `v*` tag, and elsewhere when started by hand
-    ([Packages-appimage.md](hmailserver/docs/Packages-appimage.md)).
+    ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)).
   - **Windows**: the x64 and the ARM64 installer, unsigned, in every pipeline of `master`, a `batch*` branch or a
     `v*` tag, after the Windows suite. The ARM64 job may fail without failing the pipeline, and stops, naming the
     command that adds them, while the Windows runner lacks Visual Studio's ARM64 tools
-    ([Packages-windows.md](hmailserver/docs/Packages-windows.md)).
+    ([PackagesWindows.md](hmailserver/docs/PackagesWindows.md)).
 
   <!-- INTEGRATOR: at 508984eb6 none of the package jobs above had run in a GitLab pipeline (every batch41
   pipeline was skipped with ci.skip); the Linux ones were run by hand on linix, and the Windows ones only
-  parse-checked. Say what the batch's and the tag's pipelines show if it matters to a reader. Packages-windows.md
+  parse-checked. Say what the batch's and the tag's pipelines show if it matters to a reader. PackagesWindows.md
   still says the ARM64 job will stop at an x64-marked Interop.hMailServer.dll and that build-openssl.ps1 fetches
   from GitHub; at batch41 generate-com-wrapper.ps1 -Platform ARM64 makes an Agnostic wrapper and build-openssl.ps1
   takes Debian's archive. -->

@@ -112,7 +112,7 @@ PASSPHRASE_VARIABLE = "HM_REPO_SIGNING_PASSPHRASE"
 # Where a generic-named file goes, and the first version whose generic files were
 # built there. 6.3.4's .deb was built on linix in Ubuntu 26.04, and linux-package-deb
 # installs it there with apt and its dependencies; from 6.3.5 the package jobs keep
-# the generic names for the Ubuntu 26.04 build (docs/Packages-deb.md). The generic
+# the generic names for the Ubuntu 26.04 build (docs/PackagesDeb.md). The generic
 # .debs of 6.3.0 to 6.3.3 came from GitHub's Ubuntu 24.04 runners and are left out
 # rather than offered to a release they may not install on.
 #

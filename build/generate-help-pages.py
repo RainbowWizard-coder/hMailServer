@@ -56,11 +56,21 @@ FENCE = re.compile(r"^[ \t]{0,3}(```|~~~)")
 LIST_ITEM = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+")
 
 
+# What the server takes for a page name (RestApiHelp.cpp, WellFormedPageName_):
+# letters and digits, at most 64. A document named otherwise would be compiled in
+# and never answered - GET /api/v1/help/Packages-deb was a 404 on 27 September 2026 -
+# so it is refused here, where the generator and its --check both see it.
+PAGE_NAME = re.compile(r"^[A-Za-z0-9]{1,64}$")
+
+
 def page_names():
     """The documents, as names without the extension, in sorted order."""
     names = []
     for file in sorted(os.listdir(DOCS)):
         if file.endswith(".md") and file not in EXCLUDED:
+            if not PAGE_NAME.match(file[:-3]):
+                sys.exit("hmailserver/docs/%s: a help page's name is letters and digits only, which the server's "
+                         "/api/v1/help/{page} answers; rename the document" % file)
             names.append(file[:-3])
     return names
 
