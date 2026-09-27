@@ -368,7 +368,12 @@ if ($built.Count -ne 1 -or $built[0].Name -ne $expectedName) {
    Stop-Packages 4 "ISCC made $(($built | ForEach-Object Name) -join ', '), not $expectedName (for x64 section_setup_64.iss's OutputBaseFilename is stamped apart from AppVersion, RELEASE.md step 7)"
 }
 $installer = $built[0].FullName
-$stated = (Get-Item -LiteralPath $installer).VersionInfo.FileVersion
+# The version the server holds an installer to is the fixed part of its version
+# resource, VS_FIXEDFILEINFO (UpdateDownloader.cpp), not the FileVersion string:
+# Inno Setup patches that string into its resource padded with spaces, so the
+# 6.3.4 installer's reads '6.3.4.0             ' and a comparison with it fails.
+$fixed = (Get-Item -LiteralPath $installer).VersionInfo
+$stated = '{0}.{1}.{2}.{3}' -f $fixed.FileMajorPart, $fixed.FileMinorPart, $fixed.FileBuildPart, $fixed.FilePrivatePart
 if ($stated -ne $versionInfo) { Stop-Packages 4 "the installer's version resource says $stated, not section_setup_64.iss's $versionInfo" }
 if ($Tag) {
    $numbers = ($version -replace '[^0-9.].*$', '')

@@ -259,7 +259,12 @@ $installer = $built[0].FullName
 # the tag without a suffix (a 6.3.5-rc1 installer says 6.3.5.0).
 $numbers = ($version -replace '[^0-9.].*$', '')
 $expected = "$numbers.0"
-$stated = (Get-Item -LiteralPath $installer).VersionInfo.FileVersion
+# The version the server holds an installer to is the fixed part of its version
+# resource, VS_FIXEDFILEINFO (UpdateDownloader.cpp), not the FileVersion string:
+# Inno Setup patches that string into its resource padded with spaces, so the
+# 6.3.4 installer's reads '6.3.4.0             ' and a comparison with it fails.
+$fixed = (Get-Item -LiteralPath $installer).VersionInfo
+$stated = '{0}.{1}.{2}.{3}' -f $fixed.FileMajorPart, $fixed.FileMinorPart, $fixed.FileBuildPart, $fixed.FilePrivatePart
 if ($stated -ne $expected) { Stop-Installer 4 "the installer's version resource says $stated, not $expected" }
 $signature = Get-AuthenticodeSignature -LiteralPath $installer
 Copy-Item -LiteralPath $installer -Destination (Join-Path $OutDir $installerName) -Force
