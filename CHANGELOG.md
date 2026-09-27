@@ -172,10 +172,11 @@ leave in CI only, is under Operations.
 - **A HELO that is an address has no domain.** A client that says `HELO 192.0.2.7`, bracketed or not, and a sender
   `someone@192.0.2.7`, have no organization's domain: `helo_domain` and `sender_domain` over REST, and `HeloDomain`
   and `SenderDomain` over COM, are empty, the message is grouped with those that have none, and whitelisting or
-  blacklisting it by domain leaves it where it is and says why ("The HELO name is an address, which the domain list
-  does not name."). Handed to the Public Suffix List, whose implicit rule takes the last label for a top-level
-  domain, `192.0.2.7` would have been the domain `2.7`, and blacklisting it would have refused at `MAIL FROM` every
-  client whose HELO is an address ending in `.2.7`.
+  blacklisting it by domain leaves it where it is and says why: "The HELO name is an address, which the domain list
+  does not name." for the HELO, and "The sender's address has no domain to list." for the sender. Handed to the
+  Public Suffix List, whose implicit rule takes the last label for a top-level domain, `192.0.2.7` would have been
+  the domain `2.7`, and blacklisting it would have refused at `MAIL FROM` every client whose HELO is an address
+  ending in `.2.7`.
 - Fixed: a rule with a **Readable text** or **Sensitive content found** condition, which 6.3.4 added, read a
   message's HTML part in time that could rise with the square of its size. The part's entities were unwrapped by
   a replacement that moved the rest of the text once per occurrence, so 400,000 `&amp;` - two million characters -
@@ -220,23 +221,23 @@ leave in CI only, is under Operations.
 
 ### Administration
 
-- **Every database setting can be set from the Control Panel.** 137 of the 314 settings the server keeps in its
-  database had no editor in the Control Panel: the webmail's sign-in (passkeys, OpenID Connect, SAML, account
-  recovery), its sessions and limits, OpenPGP, Web Push, the alerts, the SNMP agent, the audit trail, outbound
-  webhooks, the spam traps, the complaint feedback loops, the reputation watch, country blocking,
-  compromised-account detection, the object store, the managed lists and the migrations. They are now on the pages
-  an administrator looks for them on - new tabs on Delivery of e-mail, Anti-spam, Auto-ban, Logging, Performance
-  and Advanced - and a new **Webmail** page, under Connections & protocols, holds the webmail's own: Sign-in,
-  Browser sessions, What people may do, Encryption, Notifications and Import. The 34 a COM property carries are
-  edited over COM. The other 103, which the server reaches over its REST API alone, are read and saved over that
-  API, which is off as shipped (`RestApiPort` 0): with it on, the Control Panel signs in to it once with the
-  credentials it signed in with, asks for the administrator's one-time code once when there is a second factor,
-  and sends only the keys that changed; with it off or out of reach, each such tab says so, and why. The domain
-  dialog gains Country blocking, OpenPGP and Webhooks tabs, the account dialog an Identity tab (a person, a room
-  or a piece of equipment, and the external ID SCIM matches on), an external account the options for a mailbox
-  several people share, and a managed list's member how they receive the list's mail.
+- **Every database setting that should have an editor has one in the Control Panel.** 146 of the 314 settings the
+  server keeps in its database had no editor in the Control Panel, and 137 of them needed one: the webmail's
+  sign-in (passkeys, OpenID Connect, SAML, account recovery), its sessions and limits, OpenPGP, Web Push, the
+  alerts, the SNMP agent, the audit trail, outbound webhooks, the spam traps, the complaint feedback loops, the
+  reputation watch, country blocking, compromised-account detection, the object store, the managed lists and the
+  migrations. They are now on the pages an administrator looks for them on - new tabs on Delivery of e-mail,
+  Anti-spam, Auto-ban, Logging, Performance and Advanced - and a new **Webmail** page, under Connections &
+  protocols, holds the webmail's own: Sign-in, Browser sessions, What people may do, Encryption, Notifications and
+  Import. The 34 a COM property carries are edited over COM. The other 103, which the server reaches over its REST
+  API alone, are read and saved over that API, which is off as shipped (`RestApiPort` 0): with it on, the Control
+  Panel signs in to it once with the credentials it signed in with, asks for the administrator's one-time code once
+  when there is a second factor, and sends only the keys that changed; with it off or out of reach, each such tab
+  says so, and why. The domain dialog gains Country blocking, OpenPGP and Webhooks tabs, the account dialog an
+  Identity tab (a person, a room or a piece of equipment, and the external ID SCIM matches on), an external account
+  the options for a mailbox several people share, and a managed list's member how they receive the list's mail.
   `build/check-db-settings-coverage.py` now fails any database setting with no editor and no recorded reason for
-  having none; nine have such a reason.
+  having none; the other nine have such a reason.
 - **The Control Panel, audited page by page** in both themes at two window sizes, with each colour measured. The
   server status at the top right is a filled box with no outline - Connected is green on a soft green fill,
   6.0:1 in the light theme and 5.9:1 in the dark - and every status and notice is at 5.5:1 or better; High
@@ -381,7 +382,7 @@ leave in CI only, is under Operations.
   ([InboundWebhooks.md](hmailserver/docs/InboundWebhooks.md)), and before 6.3.4's fix the check let a URL outside
   printable ASCII through on Linux and Windows alike, where 6.3.4's notes said Linux refused it; and
   CONTRIBUTING.md's schema-upgrade gate and ContinuousIntegration.md's list of what is still done by hand say what
-  the jobs do. Three of these were found by the check of the wiki's copies
+  the jobs do. Two of these, ServiceAccount.md's and UpdateFeed.md's, were found by the check of the wiki's copies
   ([GitLab issue #25](https://gitlab.com/Progressiverobot/hmailserver/-/issues/25)).
 
 Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5).

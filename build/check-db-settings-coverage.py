@@ -8,9 +8,10 @@
 build/check-ini-coverage.py holds every [Settings] key of hMailServer.INI to an
 editor. Since 15 September 2026 a new setting goes in the DATABASE (CONTRIBUTING.md,
 "A new setting goes in the database"), and nothing held those to an editor: on
-27 September 2026 a census found 137 of the 314 settings SettingsDefaults.h names
-with no editor in the Control Panel at all - the webmail's sign-in, the alerts, the
-SNMP agent, the spam traps, the complaint feedback loops, the object store - some
+27 September 2026 a census found 146 of the 314 settings SettingsDefaults.h names
+with no editor in the Control Panel at all, and 137 of them (all but the nine in
+EXEMPT) needing one - the webmail's sign-in, the alerts, the SNMP agent, the spam
+traps, the complaint feedback loops, the object store - some
 of them with a COM property the Control Panel had simply never used, and most of
 them reachable over the REST API alone. An administrator who does not use the
 Control Deck could not find them, and concluded the features did not exist. This
