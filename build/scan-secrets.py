@@ -62,8 +62,11 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECURITY_YML = ".gitlab/ci/gitlab-security.yml"
 IGNORE = ".gitleaksignore"
-# The image line of the secret_detection job, pinned by digest.
-IMAGE = re.compile(r"^secret_detection:[ \t]*\r?\n(?:(?:[ \t]+.*|[ \t]*)\r?\n)*?  image:[ \t]*(\S+@sha256:[0-9a-f]{64})[ \t]*\r?$",
+# The image line of the secret_detection job, pinned by digest. Each line of the
+# job is matched one way only (indentation up to its first visible character, or
+# blanks), so a job without the line fails in time proportional to its length rather
+# than trying every split of every line's indentation.
+IMAGE = re.compile(r"^secret_detection:[ \t]*\r?\n(?:(?:[ \t]+\S[^\r\n]*|[ \t]*)\r?\n)*?  image:[ \t]*(\S+@sha256:[0-9a-f]{64})[ \t]*\r?$",
                    re.MULTILINE)
 ZERO = re.compile(r"^0+$")
 REDACTED_ADVICE = (

@@ -60,7 +60,13 @@ def block(text, key, indent):
 
 def check(ci, job_file, ci_extra):
     problems = []
-    if not re.search(r"^include:\n(?:[ \t]+[^\n]*\n|\s*\n)*?  - local: \.gitlab/ci/forge-export\.yml\s*$", ci, re.MULTILINE):
+    # Each line of the include block is matched one way only: indentation up to its
+    # first visible character, or a line of nothing but blanks. The pattern this
+    # replaces let the indentation be split between [ \t]+ and [^\n]*, so a search
+    # that fails - the negative control that takes the include out - tried every split
+    # of every line: 0.6 s at 22 lines, and 44 minutes of CPU without an end at the 38
+    # the include block reached on 28 September 2026.
+    if not re.search(r"^include:\n(?:[ \t]+\S[^\n]*\n|[ \t]*\n)*?  - local: \.gitlab/ci/forge-export\.yml[ \t]*$", ci, re.MULTILINE):
         problems.append("%s does not include .gitlab/ci/forge-export.yml" % CI)
     job = block(job_file, "forge-export", 0)
     if job is None:
