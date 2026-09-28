@@ -593,7 +593,7 @@ uploaded and linked like every other file of the release. SECURITY.md,
     another, even after that release is deleted. There is no re-cutting a broken
     release under the same version - it needs the next number.
 13. *History: the GitHub workflow `package-managers.yml`, in the git history
-    at `6399e08a5`; it was never ported to GitLab
+    at `faca023d4`; it was never ported to GitLab
     (`hmailserver/docs/ContinuousIntegration.md`, "From GitHub Actions to
     GitLab CI"), so the manifests are rendered and submitted by hand.*
 

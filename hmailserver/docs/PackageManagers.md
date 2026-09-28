@@ -72,7 +72,7 @@ What is in the repository
 | `hmailserver/installation/chocolatey/tools/chocolateyuninstall.ps1` | Runs the Inno uninstaller found through the `hMailServer_is1` registry key. Not a template: nothing in it changes between versions. |
 | `build/make-package-manifests.ps1` | Renders all of the above for a version, computing the hash from the actual installer. |
 | `build/check-package-manifests.py` | Validates the rendered manifests against Microsoft's published JSON schemas and cross-checks them against the Chocolatey package. |
-| `package-managers.yml` (a GitHub workflow, in the git history at `6399e08a5`) | Ran the two on every release, kept the result as an artifact, and submitted when armed. It was not ported to GitLab ([ContinuousIntegration.md](ContinuousIntegration.md), "From GitHub Actions to GitLab CI"), so the two are run by hand. |
+| `package-managers.yml` (a GitHub workflow, in the git history at `faca023d4`) | Was to run the two on every published release, keep the result as an artifact, and submit when armed; it arrived after the `v6.3.3` tag, so no release ran it. It was not ported to GitLab ([ContinuousIntegration.md](ContinuousIntegration.md), "From GitHub Actions to GitLab CI"), so the two are run by hand. |
 
 Where the values come from
 --------------------------
@@ -143,10 +143,15 @@ winget:
 
 Chocolatey:
 
-1. Make an account on <https://community.chocolatey.org> and take the API key
+1. The identifier first. `hmailserver` is upstream's unlisted package (above),
+   so a push under it is refused until the pushing account is one of that
+   package's maintainers. The owner either asks its maintainers, through the
+   package's page, to add the project's account, or chooses another identifier
+   and changes the nuspec's `id`.
+2. Make an account on <https://community.chocolatey.org> and take the API key
    from the account page.
-2. `choco push hmailserver.6.3.3.nupkg --source https://push.chocolatey.org/ --api-key <key>`
-3. A new package goes through moderation — automated checks first (the install
+3. `choco push hmailserver.6.3.3.nupkg --source https://push.chocolatey.org/ --api-key <key>`
+4. A new package goes through moderation — automated checks first (the install
    and uninstall are run on a clean machine), then a human. The install script
    downloads a 76 MB installer, so allow for the verifier taking its time.
 
@@ -154,9 +159,10 @@ Arming the automatic submission
 -------------------------------
 
 *History: this is how the GitHub workflow `package-managers.yml` (in the git
-history at `6399e08a5`) was to submit each release by itself. It has not run
-since GitHub suspended the project's account on 18 September 2026, and no GitLab
-job replaces it, so until one does, every submission is made by hand as above.*
+history at `faca023d4`) was to submit each release by itself. No release ran
+it, since it arrived after the `v6.3.3` tag; GitHub suspended the project's
+account on 18 September 2026, and no GitLab job replaces it, so until one does,
+every submission is made by hand as above.*
 
 Once the first version of each was accepted, every release could submit
 itself. The workflow read, from the repository's settings:

@@ -334,7 +334,7 @@ Not pinned, and why:
   the build machine, not fetched by a script. Only the .NET SDK is pinned, by
   `global.json`.
 * **What the GitHub workflows fetched.** They have not run since
-  18 September 2026, and are in the git history at `6399e08a5`. The two inputs they left unpinned were the SLSA generator,
+  18 September 2026, and are in the git history at `faca023d4`. The two inputs they left unpinned were the SLSA generator,
   referenced by tag because its verifier requires it (`sign-release.yml`), and
   wingetcreate's `latest` (`package-managers.yml`, which refused it unless its
   Authenticode signature was valid).

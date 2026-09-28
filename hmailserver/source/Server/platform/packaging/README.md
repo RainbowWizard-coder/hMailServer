@@ -787,11 +787,13 @@ real install's values, checks its refusals, and resolves the Compose file, on
 every change to either.
 
 Both name the image `registry.gitlab.com/progressiverobot/hmailserver`, the
-project's GitLab container registry. The image appears there from the first
-release GitLab CI makes after the owner turns its publishing on, which waits for
-the project's move to the group `hmailserver` (decided on 27 September 2026, so
+project's GitLab container registry at its present path, where no image is to
+be pushed. The image appears in the project's registry from the first release
+GitLab CI makes after the owner turns its publishing on, which waits for the
+project's move to the group `hmailserver` (decided on 27 September 2026, so
 that the first image's address, `registry.gitlab.com/hmailserver/hmailserver`,
-is the lasting one); a release built by hand has none. A
+is the lasting one), and the two files name that address from the move; a
+release built by hand has none. A
 `v*` tag's `container-image` job builds `docker/Dockerfile` from the release's
 `.deb` and pushes `:<version>`, and for a release without a suffix
 `:<major>.<minor>` and `:latest` as well; a pre-release never moves those two.

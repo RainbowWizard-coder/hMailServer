@@ -96,7 +96,7 @@ for a stray `#` number or `@` name.
   '...\VC\Redist\MSVC\*\arm64' -Filter 'Microsoft.VC*.CRT'`, which with a wildcard in the path returns the
   `arm64` folders themselves and filters their names. It reported the runtime missing on the laptop, whose Build
   Tools 18.9 has it, and on bench150 in pipeline 2887115157, where `windows-packages-arm64` stopped on that
-  report with the ARM64 tools and ATL for ARM64 present; 6.3.5's notes above say that runner lacks Visual
+  report with the ARM64 tools and ATL for ARM64 present; 6.3.5's notes below say that runner lacks Visual
   Studio's ARM64 tools, and it does not. The check now asks for `...\arm64\Microsoft.VC*.CRT` as one path. It
   also no longer tells the owner to add components the instance already has: when every component is installed
   and a file is not there, it prints the Installer's `repair` of the instance, or, for the runtime, the `modify
@@ -109,31 +109,40 @@ for a stray `#` number or `@` name.
 - **Why the container image waits, said truly.** `.gitlab/ci/container-image.yml`,
   [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) ("What the owner sets on the registry", 3),
   Roadmap2's release-chain row, the packaging README and a comment of `build/check-release-chain.py` said, and
-  6.3.4's notes above say, that the image waits because GitLab.com cannot transfer a project whose container
+  6.3.4's notes below say, that the image waits because GitLab.com cannot transfer a project whose container
   registry holds an image. GitLab's documentation does not say that: on GitLab.com a project whose registry is
   enabled is transferred only within its top-level group, one with more than 1,000 container repositories not at
-  all, and a project must hold no image only on GitLab Self-Managed. The image waits because the maintainers
-  decided on 27 September 2026 to move the project into the group `hmailserver` before the first image is
-  pushed, so that its address, `registry.gitlab.com/hmailserver/hmailserver`, is the lasting one - a container
-  repository's path is always its project's - and 6.3.4's `SigstoreVerifier` already trusts the group's path with
-  the project's id, 86730559. Nothing the pipeline does changes.
-- **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package
-  jobs for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
-  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)
-  and [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job
-  had run: every `.deb` and `.rpm` build job passed (pipelines 2886955494 and 2887115157), no install job has
-  started in any pipeline, no AppImage job has been started, and `windows-packages-x64` built the unsigned x64
-  installer in 2887115157. [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no
-  GitLab job has run, says the GitHub workflows stayed unchanged from `6399e08a5` until `6593259e0` removed them,
-  and gives the registry's cleanup policy as the API does, two patterns to keep where it listed five, the three
-  others for the owner to add before the policy is switched on; it and README.md say that the fuzz schedule and
-  Renovate's schedule and token exist since 27 September. README.md no longer says the project has no ARM machine
-  to build the AArch64 packages on (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says
-  the pipeline does not build them, and Roadmap2's Windows on ARM row names the CI job it said there was not.
+  all, and a project must hold no image only on GitLab Self-Managed. The image waits because the maintainers decided
+  on 27 September 2026 to move the project into the group `hmailserver` before the first image is pushed, so that
+  its address, `registry.gitlab.com/hmailserver/hmailserver`, is the lasting one - a container repository's path is
+  always its project's - and 6.3.4's `SigstoreVerifier` already trusts the group's path with the project's id,
+  86730559. The texts that said the image appears at `registry.gitlab.com/progressiverobot/hmailserver` - the
+  comments of the Compose file, the chart's values and the Dockerfile, the packaging README, EvidencePack.md,
+  ContinuousIntegration.md's `cosign verify` example and SECURITY.md's `cosign verify-attestation` example, and
+  `renovate.json`, which also said the registry was not switched on - now name the group's address; the Compose file
+  and the chart still pull the present path, and change with the move. Nothing the pipeline does changes.
+- **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package jobs
+  for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
+  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md) and
+  [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job had
+  run: every `.deb` build job passed in pipelines 2886955494 and 2887115157, and every `.rpm` build job in
+  2887115157; no install job has started in any pipeline, no AppImage job has been started, and
+  `windows-packages-x64` built the unsigned x64 installer in 2887115157.
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no GitLab job has run, says
+  the GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's
+  cleanup policy as the API does, two patterns to keep where it listed five, the three others for the owner to add
+  before the policy is switched on; it and README.md say that the fuzz schedule and Renovate's schedule and token
+  exist since 27 September. README.md no longer says the project has no ARM machine to build the AArch64 packages on
+  (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says the pipeline does not build them,
+  and Roadmap2's Windows on ARM row names the CI job it said there was not.
   [PackageManagers.md](hmailserver/docs/PackageManagers.md) no longer says the GitHub workflow built the manifests
-  for the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage
-  is attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's
-  hMailServer 5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers.
+  for the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage is
+  attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's
+  hMailServer 5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers; its
+  table no longer says the workflow ran on every release, and its walk for the first Chocolatey push says the push
+  waits for that. The documents that sent a reader to `6399e08a5` for the removed GitHub workflows now give
+  `faca023d4`, the same commit as `master`'s history holds it: `6399e08a5` is its copy from before its branch was
+  rebased, which `master`'s history does not hold.
 
 ---
 

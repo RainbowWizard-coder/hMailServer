@@ -389,7 +389,7 @@ the check's list of what the uninstall keeps was short of it; every earlier run
 had kept LocalSystem and never made it.
 
 The Linux packaging job of the GitHub workflow `linux-build.yml` (in the git
-history at `6399e08a5`) has these checks for the `.deb` - the file and the mark
+history at `faca023d4`) has these checks for the `.deb` - the file and the mark
 removed, the record, the four listeners, the two ranges, the key's owner and
 mode, STARTTLS on all four, and `AUTH` refused before STARTTLS from the runner's
 own address and offered after it - but it ran only on GitHub Actions, and GitLab

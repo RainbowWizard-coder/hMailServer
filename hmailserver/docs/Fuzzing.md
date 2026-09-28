@@ -385,7 +385,7 @@ the job and the reproducer landed as an artifact of the run (`fuzz-findings-<run
 id>`, kept thirty days); the section above says what to do with it.
 
 It has not run since GitHub suspended the project's account on 18 September
-2026, and it is in the git history at `6399e08a5`.
+2026, and it is in the git history at `faca023d4`.
 
 From 25 September 2026 the nightly job is GitLab CI's `linux-fuzz`, on the
 project's Linux runner: the same three harnesses, the same dictionary, the same

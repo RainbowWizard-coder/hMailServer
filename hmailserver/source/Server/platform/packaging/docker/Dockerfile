@@ -14,12 +14,14 @@
 #      -v /srv/hmailserver/certs:/certs:ro \
 #      -p 25:25 -p 587:587 -p 993:993 -p 8045:8045 \
 #      -v hm-data:/var/lib/hmailserver -v hm-logs:/var/log/hmailserver -v hm-etc:/etc/hmailserver \
-#      registry.gitlab.com/progressiverobot/hmailserver:<version>
+#      registry.gitlab.com/hmailserver/hmailserver:<version>
 #
-# That is the project's GitLab container registry. The image appears there from
-# the first release GitLab CI makes once the owner turns its publishing on (the
-# project variable HM_PUBLISH_IMAGE, set after the project's move to the group
-# hmailserver; a release built by hand has none): a v* tag's container-image job
+# That is the project's GitLab container registry, at the path the project has
+# after its move to the group hmailserver. The image appears there from the first
+# release GitLab CI makes once the owner turns its publishing on (the project
+# variable HM_PUBLISH_IMAGE, set after that move; nothing is pushed from the
+# present path, registry.gitlab.com/progressiverobot/hmailserver, and a release
+# built by hand has none): a v* tag's container-image job
 # builds this file from the release's .deb and pushes :<version>, and for a release
 # without a suffix :<major>.<minor> and :latest, signed by digest with Sigstore as
 # the release's pipeline

@@ -23,9 +23,10 @@
         machine), or the job stops saying what to install;
      4. ARM64 only: the toolchain, checked by check-arm64-toolchain.ps1 with
         vswhere before anything is built - MSVC's ARM64 tools, ATL for ARM64 and
-        the Windows SDK's ARM64 libraries in the instance that has MSBuild; a
-        missing one stops the job naming the vs_installer command of
-        hmailserver/docs/WindowsOnArm.md;
+        the Windows SDK's ARM64 libraries in the instance that has MSBuild, and
+        the ARM64 C++ runtime; a missing one stops the job naming the
+        vs_installer command that mends it (hmailserver/docs/PackagesWindows.md,
+        "The ARM64 toolchain");
      5. the installer's inputs lose what git does not track (the .NET runtimes,
         held to their pins, apart), and every tool's publish folders go;
      6. ARM64 only: the ARM64 OpenSSL, Boost and libpq, in -LibsDir, a cache on the
@@ -180,7 +181,7 @@ $isccId = "{0}, {1:yyyy-MM-dd}, sha256 {2}" -f $iscc, $isccItem.LastWriteTimeUtc
 if ($Platform -eq 'ARM64') {
    "--- the ARM64 toolchain"
    & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\packages\check-arm64-toolchain.ps1
-   if ($LASTEXITCODE -ne 0) { Stop-Packages 2 'the ARM64 toolchain is not on this machine (above: what is missing and the command that adds it)' }
+   if ($LASTEXITCODE -ne 0) { Stop-Packages 2 'the ARM64 toolchain is not on this machine (above: what is missing and the command that mends it)' }
 }
 
 # ---------------------------------------------------------------- 5. the installer's inputs, emptied
@@ -247,7 +248,7 @@ if ($Platform -eq 'ARM64') {
       if ($absent.Count -eq 0) { "  $($library.Name): in the cache"; continue }
       "  $($library.Name): not complete in the cache ($($absent[0])$(if ($absent.Count -gt 1) { " and $($absent.Count - 1) more" })) - building it"
       if ($library.Name -eq 'OpenSSL') {
-         # This project's CI downloads nothing from GitHub. At 6399e08a5
+         # This project's CI downloads nothing from GitHub. At faca023d4
          # build-openssl.ps1 takes OpenSSL's release archive from
          # github.com/openssl/openssl/releases, the only place OpenSSL publishes it;
          # the GitLab sweep takes the same bytes from Debian's archive instead

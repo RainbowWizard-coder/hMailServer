@@ -47,12 +47,14 @@ services:
     # :latest is a stable release and never an alpha. Pin the version you
     # deploy in your own copy of this file - this one carries no version,
     # because a literal here goes stale the release after it is written and
-    # the packaging check refuses one for that reason. The project's GitLab
-    # container registry has the image from the first release GitLab CI
-    # makes once the owner turns its publishing on, after the project's
-    # move to the group hmailserver (the releases built by hand have none),
-    # signed with Sigstore; until then, build one from the Dockerfile beside
-    # this file and name your own tag here.
+    # the packaging check refuses one for that reason. The name below is the
+    # project's GitLab container registry at its present path, where no image
+    # is to be pushed: the image is published from the first release GitLab CI
+    # makes once the owner turns its publishing on, after the project's move to
+    # the group hmailserver, at registry.gitlab.com/hmailserver/hmailserver,
+    # signed with Sigstore (the releases built by hand have none), and this line
+    # names that address from the move. Until then, build one from the
+    # Dockerfile beside this file and name your own tag here.
     image: registry.gitlab.com/progressiverobot/hmailserver:latest
     restart: unless-stopped
     depends_on:

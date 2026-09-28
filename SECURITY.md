@@ -401,7 +401,7 @@ anything is published.
 ### Branch and tag names in the pipelines
 
 The GitHub workflows that ran until 18 September 2026 were removed from the tree when the project moved to
-GitLab; they are in the git history (at `6399e08a5`, the last commit that had them all). In them, `sign-release.yml`
+GitLab; they are in the git history (unchanged from `faca023d4` to `d8ba4b646`, the last commit that has them). In them, `sign-release.yml`
 took the tag through an environment variable and refused a tag that was lightweight, or not signed by a key in
 the allowed signers file, before it signed anything, and `package-managers.yml` wrote the
 tag into a command only after checking that it named a three-number version. `installer-smoke.yml` wrote its

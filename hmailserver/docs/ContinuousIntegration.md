@@ -623,9 +623,12 @@ From GitHub Actions to GitLab CI
 
 Every job of the old `.github/workflows`, and where it went. The workflows were
 removed from the tree when the project moved to GitLab. They are in the git
-history, unchanged from `6399e08a5` until `6593259e0` removed them on
+history, unchanged from `faca023d4` until `6593259e0` removed them on
 26 September 2026 (its parent, `d8ba4b646`, is the last commit that has them),
 and the ones that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
+Until 28 September 2026 this page and others named `6399e08a5`, the same
+commit before its branch was rebased onto `master`; `master`'s history does
+not hold it.
 
 | GitHub workflow and job | GitLab job | Runner | When |
 |---|---|---|---|
@@ -1375,12 +1378,15 @@ server binary included, for thirty days, and the signed files are kept ninety.
 
 ### The container image
 
-The Compose file and the Helm chart pull
-`registry.gitlab.com/progressiverobot/hmailserver:latest`. The image appears in
-the project's container registry from the first release the pipeline makes
-after the owner has set the project's CI/CD variable `HM_PUBLISH_IMAGE` to `1`,
-which waits for the project's move to the group `hmailserver` (item 3 below);
-6.3.4 was built by hand and has none. Three jobs of
+The image appears in the project's container registry from the first release
+the pipeline makes after the owner has set the project's CI/CD variable
+`HM_PUBLISH_IMAGE` to `1`, which waits for the project's move to the group
+`hmailserver` (item 3 below), so its address is
+`registry.gitlab.com/hmailserver/hmailserver`; 6.3.4 was built by hand and has
+none. The Compose file and the Helm chart pull
+`registry.gitlab.com/progressiverobot/hmailserver:latest`, the project's
+present path, where no image is to be pushed: their image's name changes to the
+group's with the move. Three jobs of
 `.gitlab/ci/container-image.yml` follow `release-publish`, and none of them
 runs while that variable is anything but `1` (four, with `container-image-sbom`):
 
@@ -1407,14 +1413,15 @@ Dockerfile installs can differ between the two builds.
 
 ```
 cosign verify \
-  --certificate-identity https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5 \
+  --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
   --certificate-oidc-issuer https://gitlab.com \
-  registry.gitlab.com/progressiverobot/hmailserver:6.3.5
+  registry.gitlab.com/hmailserver/hmailserver:<version>
 ```
 
-After the move to the group, the identity and the image are
-`https://gitlab.com/hmailserver/hmailserver//...` and
-`registry.gitlab.com/hmailserver/hmailserver`. `container-image-sign` keeps
+The identity and the image are the group's because the image is pushed only
+after the project's move (item 3 below); a release signed from the present
+path, `https://gitlab.com/Progressiverobot/hmailserver//...`, 6.3.5 among them,
+has no image. `container-image-sign` keeps
 `container-image-signed/verification.txt`, with the command for that release.
 
 **What the owner sets on the registry.** Nothing in the pipeline can. As the
@@ -1455,7 +1462,7 @@ project's API answered on 28 September 2026:
    with more than 1,000 container repositories cannot be transferred, and that
    a project must hold no container image on GitLab Self-Managed. The
    *Container registry* page limits renaming a project with populated
-   container repositories on GitLab.com to projects with up to 1,000 of them.
+   container repositories to projects with up to 1,000 of them.
    This project's registry is enabled and holds no repository (the project's
    API, 28 September 2026). The move from the personal namespace
    `Progressiverobot` to the group `hmailserver` changes the top-level
@@ -1640,8 +1647,9 @@ machine's Visual Studio), the ADO type library (copied from Windows), SQL Server
 Compact (retired, with no release to follow), the Linux build's libraries (the
 distribution's packages, which move with the image's digest), the old GitHub
 workflows, which are no longer in the tree, the project's own image
-(`registry.gitlab.com/progressiverobot/hmailserver`, which the release pushes
-and nothing in the tree pulls but the Compose file and the chart, by `:latest`), and
+(`registry.gitlab.com/progressiverobot/hmailserver`, which nothing in the tree
+pulls but the Compose file and the chart, by `:latest`; the release is to push
+it as `registry.gitlab.com/hmailserver/hmailserver`, after the project's move), and
 `hmailserver-ci/linux`, which is built on linix and never pushed. The .NET runtime the installer bundles has no pin
 yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
 rule in `renovate.json` says what to add when the supply-chain row pins it.
@@ -1853,7 +1861,7 @@ measured times after the first pipelines.
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
 | `semgrep-sast` | 5 to 10 min, estimated | 30 min | It passed in 96 s in `master`'s pipeline 2886389460 (27 September 2026), and counts against the namespace's compute minutes on GitLab's shared runners. By hand on linix on 27 September 2026, over batch41 in the job's image pinned to two CPUs as a shared runner has: 332 s, with the whole of every file read (84 s before `.gitlab/ci/gitlab-security.yml` gave a rule two minutes and lifted the size limit, when it read neither `RestApiServer.cpp` nor `Portal.js`) |
-| `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `037aa6ca7`. It counts against the namespace's compute minutes on GitLab's shared runners. Its scan of the whole history took under a minute on linix |
+| `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `535e9005c`. It counts against the namespace's compute minutes on GitLab's shared runners. Its scan of the whole history took under a minute on linix |
 | `container-image` | under a minute by hand | 30 min | kaniko over Ubuntu 24.04 and the `.deb`, pushed to a local registry standing in for GitLab's, on linix on 26 September 2026; the push to `registry.gitlab.com` adds the upload of about 40 MB |
 | `container-image-sign`, `container_scanning` | not measured | 15 and 30 min | Neither has run in a pipeline. The analyzer's scan of Ubuntu 24.04 on linix, by hand, finished within two minutes of its start, its image's download included |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |

@@ -365,11 +365,12 @@ Until that row is done, **a new release is built and signed by hand**, as
 replace GitHub's signing and packaging workflows are in `.gitlab-ci.yml` for
 6.3.5 onwards and have not run ([ContinuousIntegration.md](ContinuousIntegration.md),
 *The release*); the package-manager manifests are rendered by hand, and the
-container image, named `registry.gitlab.com/progressiverobot/hmailserver`,
-appears in the project's container registry from the first release the CI makes
-after the owner turns its publishing on (the project variable `HM_PUBLISH_IMAGE`,
-which waits for the project's move to the group `hmailserver`), signed with
-Sigstore as the same pipeline; 6.3.4 has none. The rest of the row is in this tree: an installed server's update check reads the project's own feed,
+container image appears in the project's container registry, as
+`registry.gitlab.com/hmailserver/hmailserver`, from the first release the CI
+makes after the owner turns its publishing on (the project variable
+`HM_PUBLISH_IMAGE`, which waits for the project's move to the group
+`hmailserver`; nothing is pushed from the present path), signed with Sigstore
+as the same pipeline; 6.3.4 has none. The rest of the row is in this tree: an installed server's update check reads the project's own feed,
 https://updates.progressiverobot.com, published from GitLab Pages
 ([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two
 signers - the GitHub workflow identity for the releases up to 6.3.3, and this
