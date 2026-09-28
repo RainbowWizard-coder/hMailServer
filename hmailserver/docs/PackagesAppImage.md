@@ -306,11 +306,18 @@ What the owner must do
 
 1. **Decide whether the project ships its own AppImage runtime.** No distribution
    packages one, and the AppImage project publishes its own only on GitHub.
+   Decided on 28 September 2026 by the maintainers, under the owner's standing
+   instruction to decide such questions and record why, on work item 36: the
+   project's own runtime is accepted, with the licence note of item 4. The owner
+   may overrule it:
    - **To accept:** there is nothing else to do.
    - **To refuse:** the AppImages cannot be built without GitHub, and the jobs
-     should be removed. The only other route is a copy of `type2-runtime` pulled
-     from GitHub once, by hand, reviewed and hosted in the project's package
-     registry. That is a decision about GitHub, not about code.
+     should be removed, with the AppImages taken out of what a release carries
+     (`build/ci/release-chain.py`'s `gathered_builds`, and the two builds and
+     their tests out of `release-packages`' needs). The only other route is a copy
+     of `type2-runtime` pulled from GitHub once, by hand, reviewed and hosted in
+     the project's package registry. That is a decision about GitHub, not about
+     code.
 2. **Keep qemu-user registered on linix across reboots.** Done. The aarch64
    runtime, packing and test jobs need `qemu-aarch64` registered with
    binfmt_misc, and when this page was first written it was registered only by a
@@ -323,13 +330,31 @@ What the owner must do
    registration, those jobs fail at their first step with "exec format error".
    linix has not been rebooted since, so the registration at boot has not been
    seen.
-3. **Let the release collect the AppImages** (the integrator's part):
-   - `release` needs `appimage-x86_64` and `appimage-aarch64`, and waits for the
-     two test jobs;
-   - `build/ci/release-chain.py collect` takes `appimage/hMailServer-*.AppImage`
-     from them;
-   - the note in `build/ci/release-verify.sh` that no release carries AppImages
-     is removed once one does.
+3. **Let the release collect the AppImages.** Done in batch42 (6.3.6), not yet
+   run in a pipeline:
+   - the `release-packages` job (`.gitlab/ci/release-packages.yml`) needs
+     `appimage-x86_64` and `appimage-aarch64` with their artifacts and the two
+     test jobs, and `release` needs `release-packages` (a job of its own because
+     `release` may need fifty jobs at most, GitLab's `ci_needs_size_limit`);
+   - `build/ci/release-chain.py gather` holds each image to
+     `appimage/SHA256SUMS-<arch>.txt` and makes its SBOM,
+     `hMailServer-<version>-<arch>.AppImage.cdx.json`, from what
+     `appimage-build.sh` recorded in `appimage/built-against-<arch>/`: `dpkg.txt`
+     and `boost-version.hpp`, what the server was compiled against (the
+     container's own for x86_64; `appimage-cross.sh`'s for the cross-compiled
+     aarch64 server), and `bundled.txt`, each library the image carries in
+     `usr/lib` by the package, version and SHA-256 of the file it was copied from
+     (`build/asset-sbom.py --kind appimage`);
+   - `collect` takes both into the release, with a line each in the sums; each
+     is signed with its bundle and `.sigstore.json` copy and named in the
+     provenance, and the feed offers each to an installed AppImage by the name
+     its update check asks for;
+   - the sentence in `build/ci/release-verify.sh` that no release carries
+     AppImages is gone; the notes say instead where the runtime comes from and
+     its licences;
+   - on a `batch*` branch the jobs now start at once, as on a tag, so that the
+     release's rehearsal (`.gitlab/ci/release-rehearsal.yml`) has them; only
+     `master` waits for a press.
 4. **Check the licences:** `runtime-<arch>.txt`, which is shipped inside every
    AppImage as `usr/share/hmailserver/licenses/appimage-runtime.txt`, names each
    library linked into the runtime and its licence. They include

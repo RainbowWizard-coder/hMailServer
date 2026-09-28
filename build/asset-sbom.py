@@ -36,6 +36,20 @@ needs, and nothing that only another asset carries:
       header (build/ci/packages/deb-build.sh, rpm-build.sh), and --dpkg-list or
       --rpm-list reads that record in place of --query-dpkg, in the job that
       makes the document (build/ci/packages/package-sbom.sh).
+  appimage
+      the Linux server's libraries as for a package, what the build container's
+      dpkg recorded each was built against (--dpkg-list, as a package job records
+      it: build/ci/packages/appimage-build.sh for x86_64, appimage-cross.sh for the
+      cross-compiled aarch64 server), and every library the image carries in
+      usr/lib (--bundled): by the Ubuntu 24.04 package and version its file came
+      from, which build-appimage.sh copied and gave a RUNPATH, so the copy's bytes
+      are not the package's and the package file's SHA-256 is a property, not a hash.
+  source
+      the source tarball (build/ci/source-tarball.sh): the third-party code and
+      data it holds, as hmailserver/docs/SourceTarball.md declares them
+      (SOURCE_COMPONENTS), each held to the tarball - its path must be in it - and
+      QuickJS at the version its VERSION file in the tarball gives. No dependency
+      list and no build container: it is read from the tarball alone.
   image
       Syft's CycloneDX document of the pushed image (every distribution package in
       it, the hmailserver .deb among them), with the .deb's own document's
@@ -57,6 +71,10 @@ Usage:
   python3 build/asset-sbom.py make --kind rpm --asset hmailserver-6.3.6-1.aarch64.rpm \\
           --dependencies native-dependencies-x64.json --rpm-list built-against/rpm.txt \\
           --boost-header built-against/boost-version.hpp --read-package
+  python3 build/asset-sbom.py make --kind appimage --asset hMailServer-6.3.6-x86_64.AppImage \\
+          --dependencies native-dependencies-x64.json --dpkg-list built-against-x86_64/dpkg.txt --target-arch amd64 \\
+          --boost-header built-against-x86_64/boost-version.hpp --bundled built-against-x86_64/bundled.txt
+  python3 build/asset-sbom.py make --kind source --asset hmailserver-6.3.6.tar.gz
   python3 build/asset-sbom.py image --syft image.syft.cdx.json --deb-sbom hmailserver_6.3.5_amd64.deb.cdx.json \\
           --image registry.gitlab.com/progressiverobot/hmailserver@sha256:<digest> --version 6.3.5 --out FILE
   python3 build/asset-sbom.py verify FILE.cdx.json FILE      the document describes this very file
@@ -79,6 +97,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import uuid
 
@@ -101,7 +120,33 @@ KINDS = {
                       "required": {"openssl", "boost", "postgresql", "zlib", "dotnet-windowsdesktop-runtime-arm64", "msvc-runtime"}},
     "deb": {"target": "linux", "required": {"linux-glibc", "linux-openssl", "linux-boost", "linux-libpq", "quickjs"}},
     "rpm": {"target": "linux", "required": {"linux-glibc", "linux-openssl", "linux-boost", "linux-libpq", "quickjs"}},
+    "appimage": {"target": "linux", "required": {"linux-glibc", "linux-openssl", "linux-boost", "linux-libpq", "quickjs"}},
+    "source": {"target": "source", "required": set()},
 }
+
+# What the source tarball holds that is not the project's own, as
+# hmailserver/docs/SourceTarball.md ("What stays that is not the project's own")
+# declares it: (bom-ref, name, the path in the tree, licence as SPDX or None, the
+# licence's name when SPDX has no identifier for it, what it is). A path the tarball
+# does not hold is refused: the document would describe another tarball. QuickJS's
+# version is read from its VERSION file in the tarball.
+SOURCE_COMPONENTS = [
+    ("quickjs", "QuickJS", "hmailserver/source/Server/quickjs", "MIT", None,
+     "Fabrice Bellard's JavaScript engine, compiled into the Linux server"),
+    ("mime", "MIME encoder and decoder (Jeff Lee)", "hmailserver/source/Server/Common/Mime", None, "BSD-style notice",
+     "the MIME message encoder and analyser"),
+    ("cstdstring", "CStdString (Joseph M. O'Leary)", "hmailserver/source/Server/Common/Util/StdString.h", None,
+     "its own permissive notice", "the string class"),
+    ("rfc7208-tests", "RFC 7208 test suite", "hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.yml", None,
+     "BSD-style notice", "the SPF conformance tests spf-tests runs"),
+    ("public-suffix-list", "Public Suffix List", "hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h",
+     "MPL-2.0", None, "the list's rules, compiled into the server"),
+    ("atl-script-host", "ATL Active Script host (VisionTech Limited)", "hmailserver/source/Server/Common/Scripting/ScriptSite.h",
+     None, "its own permissive notice", "compiled into hMailServer.exe only"),
+    ("mail-dkim-corpus", "DKIM test messages (Mail::DKIM's corpus)", "hmailserver/test/TestData/DKIM",
+     "GPL-1.0-or-later OR Artistic-1.0-Perl", None, "test data the Windows suite and the fuzzing seeds read"),
+]
+QUICKJS_VERSION_FILE = "hmailserver/source/Server/quickjs/VERSION"
 
 # The Ubuntu development packages the build image builds each Linux component
 # against, most likely first; a name may be a dpkg-query pattern. What --query-dpkg
@@ -461,11 +506,120 @@ def recorded_built_against(components, installed, kind, arch=None, boost_header=
                 component["properties"].append(prop("built-against", "%s %s" % (label, version)))
                 break
         else:
-            if wanted:
+            if ref == "linux-boost" and not any(boost_package(entry, kind) for entry in installed):
+                # No Boost package at all where the build ran: the job built Boost from
+                # boost.org's release tarball, by its pinned SHA-256, where the
+                # distribution's is older than the build needs or ships no static
+                # archives (deb-build.sh for Debian 12, rpm-build.sh for EL and
+                # openSUSE). The header the job kept is that build's, so its version
+                # is the one in the binary, and that is what the document says.
+                component["properties"].append(prop("built-against", "Boost built from boost.org's release tarball "
+                                                    "in the package job (no Boost package where the build ran)"))
+            elif wanted:
                 raise SbomError("%s records none of %s installed, which %s is built against: the package job records "
                                 "what its build container had" % (where, ", ".join(wanted), component["name"]))
         if ref == "linux-boost":
             boost_from_header(component, boost_header)
+
+
+def boost_package(entry, kind):
+    """Whether one package of a record is a Boost package: then a record that names
+    none of BUILT_AGAINST's is a wrong record, not a Boost built from source."""
+    name = entry[0]
+    if kind == "rpm":
+        return name.startswith("boost") or any(p.startswith("boost-devel") for p in entry[3])
+    return name.startswith("libboost")
+
+
+def read_bundled(path, arch):
+    """What an AppImage carries in usr/lib, as build/ci/packages/appimage-build.sh
+    records it (bundled.txt): one line per library, "<soname> <package>:<arch>
+    <version> <sha256 of the package's file>", from the dpkg of the container that
+    packed it. [(soname, package, version, sha256)]. A library whose package dpkg
+    could not name is refused: the document would leave out what the image holds."""
+    try:
+        text = read_text(path)
+    except OSError as e:
+        raise SbomError("%s cannot be read: %s. The AppImage job records it as it packs the image" % (path, e))
+    bundled = []
+    for number, line in enumerate(text.splitlines(), 1):
+        fields = line.split()
+        if not fields:
+            continue
+        if len(fields) != 4 or not re.match(r"^[A-Za-z0-9._+\-]+\.so(\.[0-9]+)*$", fields[0]) \
+                or not re.match(r"^[a-z0-9][a-z0-9.+\-]*:[a-z0-9]+$", fields[1]) or not re.match(r"^[0-9a-f]{64}$", fields[3]):
+            raise SbomError("%s line %d is not '<soname> <package>:<arch> <version> <sha256>': %r" % (path, number, line))
+        package, _, package_arch = fields[1].partition(":")
+        if package_arch not in (arch, "all"):
+            raise SbomError("%s line %d: %s is a package of %s, not of %s, the image's" % (path, number, fields[1], package_arch, arch))
+        bundled.append((fields[0], package, fields[2], fields[3]))
+    names = [b[0] for b in bundled]
+    if len(names) != len(set(names)):
+        raise SbomError("%s names a library twice" % path)
+    return bundled
+
+
+def bundled_components(bundled, arch):
+    """A component for each library an AppImage carries: the Ubuntu 24.04 package
+    its file came from. The copy in usr/lib has a RUNPATH of build-appimage.sh's
+    and so other bytes than the package's file, whose SHA-256 is given as a
+    property; the image's own SHA-256 is the subject's."""
+    components = []
+    for soname, package, version, sha256 in bundled:
+        components.append({
+            "type": "library", "bom-ref": "bundled-" + safe_ref(soname), "name": package, "version": version,
+            "description": "%s, bundled in the AppImage's usr/lib" % soname, "scope": "required",
+            "purl": "pkg:deb/ubuntu/%s@%s?arch=%s&distro=ubuntu-24.04" % (package, version, arch),
+            "properties": [prop("kind", "bundled"), prop("bundled-as", "usr/lib/" + soname),
+                           prop("package-file-sha256", sha256), prop("linkage", "dynamic, from the image")],
+        })
+    return components
+
+
+def source_components(asset, version):
+    """The source tarball's third-party parts (SOURCE_COMPONENTS), each held to the
+    tarball, and the tarball's own version: its one top directory is
+    hmailserver-<version>/ (build/check-source-tarball.py holds the rest of it)."""
+    try:
+        archive = tarfile.open(asset, "r:gz")
+        members = archive.getmembers()
+    except (OSError, tarfile.TarError, EOFError) as e:
+        raise SbomError("%s cannot be read as a gzip tarball: %s" % (asset, e))
+    top = "hmailserver-%s/" % version
+    names = set()
+    for member in members:
+        if not (member.name + "/").startswith(top):
+            archive.close()
+            raise SbomError("%s holds %s, outside %s: it is not the source tarball of %s" % (asset, member.name, top, version))
+        names.add(member.name[len(top):])
+    quickjs = None
+    try:
+        member = archive.getmember(top + QUICKJS_VERSION_FILE)
+        quickjs = archive.extractfile(member).read().decode("utf-8", "replace").strip()
+    except (KeyError, AttributeError):
+        pass
+    finally:
+        archive.close()
+    if not quickjs or not re.match(r"^[0-9][0-9.\-]*$", quickjs):
+        raise SbomError("%s has no %s to read QuickJS's version from" % (asset, QUICKJS_VERSION_FILE))
+    components = []
+    for ref, name, path, spdx, license_name, what in SOURCE_COMPONENTS:
+        if path not in names and not any(n.startswith(path + "/") for n in names):
+            raise SbomError("%s does not hold %s, which docs/SourceTarball.md declares (%s): the document would describe "
+                            "another tarball" % (asset, path, name))
+        component = {"type": "library", "bom-ref": "source-" + ref, "name": name, "description": what, "scope": "required",
+                     "properties": [prop("kind", "vendored"), prop("vendored-at", path)]}
+        if ref == "quickjs":
+            component["version"] = quickjs
+            component["purl"] = "pkg:generic/quickjs@%s" % quickjs
+        else:
+            component["purl"] = "pkg:generic/hmailserver-vendored/%s@%s" % (ref, version)
+        if spdx:
+            component["licenses"] = [{"expression": spdx}] if " " in spdx else [{"license": {"id": spdx}}]
+        else:
+            component["licenses"] = [{"license": {"name": license_name}}]
+        components.append(component)
+    return components
 
 
 def package_facts(kind, asset, run=default_run):
@@ -508,7 +662,8 @@ def package_facts(kind, asset, run=default_run):
 
 def subject(asset_name, kind, version, sha256, sha512, size, commit, declared=None, contains=None, package_version=None):
     names = {"windows-x64": "the Windows installer for x64", "windows-arm64": "the Windows installer for ARM64",
-             "deb": "the Debian and Ubuntu package", "rpm": "the RPM package", "image": "the container image"}
+             "deb": "the Debian and Ubuntu package", "rpm": "the RPM package", "image": "the container image",
+             "appimage": "the AppImage", "source": "the source tarball"}
     if kind == "deb":
         arch = re.search(r"_([a-z0-9]+)\.deb$", asset_name)
         purl = "pkg:deb/hmailserver@%s%s" % (package_version or version, "?arch=" + arch.group(1) if arch else "")
@@ -571,13 +726,28 @@ def document(subject_component, components, sha256, kind, extra_tools=None):
 
 
 def make(kind, asset, dependencies, root=ROOT, version=None, commit=None, contains=None, query_dpkg=False,
-         read_package=False, run=default_run, boost_header=BOOST_HEADER, dpkg_list=None, rpm_list=None, target_arch=None):
+         read_package=False, run=default_run, boost_header=BOOST_HEADER, dpkg_list=None, rpm_list=None, target_arch=None,
+         bundled=None):
     if kind not in KINDS:
         raise SbomError("%s is not a kind of asset this makes (%s)" % (kind, ", ".join(sorted(KINDS))))
     if not os.path.isfile(asset) or os.path.getsize(asset) == 0:
         raise SbomError("%s is not a file, or is empty" % asset)
     if (query_dpkg or read_package or dpkg_list or rpm_list) and KINDS[kind]["target"] != "linux":
-        raise SbomError("--query-dpkg, --dpkg-list, --rpm-list and --read-package are for a .deb or an .rpm")
+        raise SbomError("--query-dpkg, --dpkg-list, --rpm-list and --read-package are for a .deb or an .rpm, and --dpkg-list for an AppImage too")
+    if kind == "appimage" and (read_package or query_dpkg or rpm_list or not dpkg_list or not bundled):
+        raise SbomError("an AppImage's document is made from its build's record alone: --dpkg-list, --target-arch and "
+                        "--bundled, which build/ci/packages/appimage-build.sh writes (it has no package metadata to read)")
+    if bundled and kind != "appimage":
+        raise SbomError("--bundled is for an AppImage")
+    if kind == "source":
+        if contains:
+            raise SbomError("a source tarball's document takes nothing but the tarball")
+        version = version or read_version(root)
+        sha256, sha512, size = digests(asset)
+        components = source_components(asset, version)
+        component = subject(os.path.basename(asset), kind, version, sha256, sha512, size,
+                            commit if commit is not None else commit_of(root))
+        return document(component, components, sha256, kind)
     if sum(1 for given in (query_dpkg, dpkg_list, rpm_list) if given) > 1:
         raise SbomError("--query-dpkg, --dpkg-list and --rpm-list are three ways to one answer, what the package was built "
                         "against: give one")
@@ -598,6 +768,8 @@ def make(kind, asset, dependencies, root=ROOT, version=None, commit=None, contai
         recorded_built_against(linux, read_dpkg_list(dpkg_list), "dpkg", target_arch, boost_header, dpkg_list)
     elif rpm_list:
         recorded_built_against(linux, read_rpm_list(rpm_list), "rpm", None, boost_header, rpm_list)
+    if bundled:
+        components += bundled_components(read_bundled(bundled, target_arch), target_arch)
     package_version, declared = package_facts(kind, asset, run) if read_package else (None, None)
     component = subject(os.path.basename(asset), kind, version, sha256, sha512, size,
                         commit if commit is not None else commit_of(root), declared, contains, package_version)
@@ -973,6 +1145,86 @@ def self_test():
                              rpm_list=write("record/nolibpq.rpm.txt", read_text(rpm_record).replace("libpq-devel aarch64 18.0-1.fc44 libpq-devel\n", ""))))
         refused("an rpm record and a dpkg record", "give one",
                 lambda: make("rpm", arm_rpm, dependencies, root=work, rpm_list=rpm_record, dpkg_list=dpkg_record, target_arch="arm64"))
+        # Boost built from boost.org's tarball in the job (EL, openSUSE, Debian 12): no
+        # Boost package where the build ran, and the header the job kept says which.
+        el_record = write("record/el9.rpm.txt", "\n".join(l for l in read_text(rpm_record).split("\n") if not l.startswith("boost-devel")))
+        el_rpm = write("out/hmailserver-6.3.6-1.el9.x86_64.rpm", b"\xed\xab\xee\xdb an el9 package")
+        red = make("rpm", el_rpm, with_zlib, root=work, rpm_list=el_record, boost_header=record_header, read_package=True, run=container)
+        boost = [c for c in red["components"] if c["name"] == "linux-boost"][0]
+        expect(boost.get("version") == "1.90.0" and any("built from boost.org's release tarball" in p["value"] for p in boost["properties"]),
+               "Boost built in the job, with no Boost package where the build ran, is said to be, at its header's version: %s" % boost)
+        refused("a record with a Boost package but not the one the build uses", "boost-devel",
+                lambda: make("rpm", el_rpm, with_zlib, root=work, boost_header=record_header,
+                             rpm_list=write("record/boost-other.rpm.txt", read_text(el_record) + "boost-system aarch64 1.83.0-1.el9 boost-system\n")))
+        debian12 = write("record/debian12.txt", "ii  libc6-dev amd64 2.36-9\nii  libstdc++-12-dev amd64 12.2.0-14\n"
+                         "ii  libssl-dev amd64 3.0.17-1\nii  libpq-dev amd64 15.14-0\nii  libldap-dev amd64 2.5.13+dfsg-5\n")
+        deb12 = make("deb", deb, dependencies, root=work, dpkg_list=debian12, target_arch="amd64", boost_header=record_header)
+        expect(any("built from boost.org" in p["value"] for c in deb12["components"] if c["name"] == "linux-boost" for p in c["properties"]),
+               "Debian 12's Boost, built in the job, is said to be")
+
+        # An AppImage: the server's libraries as the build recorded them, and what it
+        # carries in usr/lib by package.
+        image_file = write("out/hMailServer-6.3.6-x86_64.AppImage", b"\x7fELF an AppImage")
+        bundled = write("record/bundled.txt", "libpq.so.5 libpq5:amd64 16.10-0ubuntu0.24.04.1 %s\n"
+                        "liblber.so.2 libldap2:amd64 2.6.7+dfsg-1~exp1ubuntu8.2 %s\n\n" % ("1" * 64, "2" * 64))
+        appimage = make("appimage", image_file, dependencies, root=work, commit="c" * 40, dpkg_list=native_record, target_arch="amd64",
+                        boost_header=boost_header, bundled=bundled)
+        carried = dict((c["bom-ref"], c) for c in appimage["components"])
+        expect(carried.get("bundled-libpq.so.5", {}).get("purl") == "pkg:deb/ubuntu/libpq5@16.10-0ubuntu0.24.04.1?arch=amd64&distro=ubuntu-24.04"
+               and "bundled-liblber.so.2" in carried and "native-linux-openssl" in carried and "native-quickjs" in carried,
+               "the AppImage lists its bundled libraries by package, beside the server's own: %s" % sorted(carried))
+        expect(not any(h for c in appimage["components"] if c["bom-ref"].startswith("bundled-") for h in c.get("hashes", [])),
+               "a bundled copy, whose RUNPATH the packing changed, is not given the package file's hash as its own")
+        expect(appimage["metadata"]["component"]["purl"] == "pkg:generic/hmailserver@6.3.5?file_name=hMailServer-6.3.6-x86_64.AppImage"
+               and structure_problems(appimage) == [], "the AppImage's document is well formed: %s" % structure_problems(appimage))
+        refused("an AppImage without its bundled list", "--bundled",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header))
+        refused("an AppImage read as a package", "no package metadata",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, bundled=bundled, read_package=True, run=container))
+        refused("a bundled library dpkg could not name", "is not '<soname>",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, bundled=write("record/unknown.txt", "libpq.so.5 unknown unknown %s\n" % ("1" * 64))))
+        refused("a bundled library of the other architecture", "not of amd64",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, bundled=write("record/arm.txt", "libpq.so.5 libpq5:arm64 16 %s\n" % ("1" * 64))))
+        refused("a bundled list for a .deb", "--bundled is for an AppImage",
+                lambda: make("deb", deb, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header,
+                             bundled=bundled))
+
+        # The source tarball: what docs/SourceTarball.md declares, each held to the tarball.
+        def tarball(path, version, leave_out=None, stray=None):
+            with tarfile.open(path, "w:gz") as archive:
+                entries = [QUICKJS_VERSION_FILE] + [p if "." in os.path.basename(p) else p + "/x.c" for _, _, p, _, _, _ in SOURCE_COMPONENTS]
+                for relative in entries:
+                    if leave_out and relative.startswith(leave_out):
+                        continue
+                    data = b"2025-04-26\n" if relative == QUICKJS_VERSION_FILE else b"text\n"
+                    info = tarfile.TarInfo("hmailserver-%s/%s" % (version, relative))
+                    info.size = len(data)
+                    archive.addfile(info, io.BytesIO(data))
+                if stray:
+                    info = tarfile.TarInfo(stray)
+                    archive.addfile(info, io.BytesIO(b""))
+            return path
+
+        source = make("source", tarball(os.path.join(work, "out", "hmailserver-6.3.6.tar.gz"), "6.3.6"), [], root=work,
+                      version="6.3.6", commit="c" * 40)
+        by_ref = dict((c["bom-ref"], c) for c in source["components"])
+        expect(sorted(by_ref) == sorted("source-" + ref for ref, _, _, _, _, _ in SOURCE_COMPONENTS)
+               and by_ref["source-quickjs"].get("version") == "2025-04-26" and by_ref["source-public-suffix-list"]["licenses"] == [{"license": {"id": "MPL-2.0"}}],
+               "the tarball's document lists every declared third-party part, QuickJS at its VERSION: %s" % sorted(by_ref))
+        expect(structure_problems(source) == [] and source["metadata"]["component"]["hashes"][0]["content"]
+               == digests(os.path.join(work, "out", "hmailserver-6.3.6.tar.gz"))[0], "the tarball's document is well formed and names it")
+        refused("a tarball without a declared part", "does not hold hmailserver/source/Server/Common/Mime",
+                lambda: make("source", tarball(os.path.join(work, "out", "short.tar.gz"), "6.3.6", leave_out="hmailserver/source/Server/Common/Mime"),
+                             [], root=work, version="6.3.6"))
+        refused("a tarball of another version", "outside hmailserver-6.3.6/",
+                lambda: make("source", tarball(os.path.join(work, "out", "other.tar.gz"), "6.3.5"), [], root=work, version="6.3.6"))
+        refused("a tarball with a path outside its top directory", "outside hmailserver-6.3.6/",
+                lambda: make("source", tarball(os.path.join(work, "out", "stray.tar.gz"), "6.3.6", stray="elsewhere/x"), [], root=work, version="6.3.6"))
+        refused("a file that is not a tarball", "cannot be read as a gzip tarball",
+                lambda: make("source", write("out/not.tar.gz", b"not a tarball"), [], root=work, version="6.3.6"))
 
         # The image: Syft's document and the .deb's.
         syft = {"bomFormat": "CycloneDX", "specVersion": "1.6", "components": [
@@ -1013,7 +1265,8 @@ def main():
     maker = commands.add_parser("make", help="the SBOM of one installer or package")
     maker.add_argument("--kind", required=True, choices=sorted(KINDS))
     maker.add_argument("--asset", required=True)
-    maker.add_argument("--dependencies", required=True, help="build/native-dependencies.ps1's output (-Platform ARM64 for windows-arm64)")
+    maker.add_argument("--dependencies", help="build/native-dependencies.ps1's output (-Platform ARM64 for windows-arm64); "
+                       "every kind but source")
     maker.add_argument("--out")
     maker.add_argument("--root", default=ROOT, help="the tree the asset was built from (lock files, installer script, Version.h)")
     maker.add_argument("--version")
@@ -1029,6 +1282,8 @@ def main():
     maker.add_argument("--boost-header", default=BOOST_HEADER,
                        help="Boost's version.hpp as the build compiled against it (%s)" % BOOST_HEADER)
     maker.add_argument("--read-package", action="store_true", help="what the .deb or the .rpm declares it depends on")
+    maker.add_argument("--bundled", help="an AppImage's bundled.txt (build/ci/packages/appimage-build.sh): the libraries "
+                       "it carries, by package")
     imager = commands.add_parser("image", help="the SBOM of the container image")
     imager.add_argument("--syft", required=True, help="Syft's CycloneDX JSON of the image")
     imager.add_argument("--deb-sbom", required=True, help="the .deb's own SBOM, which this script made")
@@ -1047,13 +1302,20 @@ def main():
                 if not name or not re.match(r"^[0-9a-f]{64}$", digest):
                     raise SbomError("--contains takes NAME=<SHA-256 in hex>, not %r" % item)
                 contains.append((name, digest))
-            dependencies = read_json(args.dependencies)
-            if not isinstance(dependencies, list):
-                raise SbomError("%s is not a list of components" % args.dependencies)
+            if args.kind == "source":
+                if args.dependencies:
+                    raise SbomError("a source tarball's document is read from the tarball alone: no --dependencies")
+                dependencies = []
+            else:
+                if not args.dependencies:
+                    raise SbomError("--dependencies is required for a %s" % args.kind)
+                dependencies = read_json(args.dependencies)
+                if not isinstance(dependencies, list):
+                    raise SbomError("%s is not a list of components" % args.dependencies)
             bom = make(args.kind, args.asset, dependencies, root=args.root, version=args.version, commit=args.commit,
                        contains=contains, query_dpkg=args.query_dpkg, read_package=args.read_package,
                        boost_header=args.boost_header, dpkg_list=args.dpkg_list, rpm_list=args.rpm_list,
-                       target_arch=args.target_arch)
+                       target_arch=args.target_arch, bundled=args.bundled)
             out = args.out or args.asset + SUFFIX
             write_document(bom, out)
             print("%s: %d components, describing %s (SHA-256 %s)" % (out, len(bom["components"]), os.path.basename(args.asset),

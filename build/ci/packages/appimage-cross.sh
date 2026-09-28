@@ -23,6 +23,11 @@
 #   appimage/hmailserver-aarch64          the server, for appimage-build.sh
 #   appimage/build-aarch64.log            the whole ninja output
 #   appimage/compile-aarch64.txt          the compiler and the libraries built against
+#   appimage/built-against-aarch64/       dpkg.txt and boost-version.hpp: what this
+#                                         container had installed and the Boost header
+#                                         the server was compiled against, which the
+#                                         AppImage's SBOM is made from (appimage-build.sh
+#                                         adds what the image bundles)
 #
 # The environment it reads: HM_BUILD_DIR (/tmp/hm-appimage-aarch64), HM_BUILD_JOBS (6),
 # HM_OUT_DIR (appimage).
@@ -36,6 +41,7 @@ if [ ! -f hmailserver/source/Server/CMakeLists.txt ]; then
   echo "Run this from the root of a checkout (no hmailserver/source/Server/CMakeLists.txt here)."
   exit 2
 fi
+# shellcheck source=/dev/null
 . /etc/os-release
 if [ "$ID" != "ubuntu" ] || [ "$VERSION_ID" != "24.04" ] || [ "$(uname -m)" != "x86_64" ]; then
   echo "This is $PRETTY_NAME on $(uname -m). It cross-compiles in Ubuntu 24.04 on x86-64; run it in the image the job names."
@@ -109,6 +115,14 @@ fi
 file "$build_dir/hmailserver"
 file "$build_dir/hmailserver" | grep -q 'ARM aarch64' || { echo "The binary is not an aarch64 ELF."; exit 3; }
 cp "$build_dir/hmailserver" "$out/hmailserver-aarch64"
+# The record for the AppImage's SBOM (build/asset-sbom.py --dpkg-list --target-arch
+# arm64): this container's packages, the cross toolchain's and the arm64 -dev
+# packages among them, as deb-build.sh records a cross build's; and the arm64 Boost
+# header the server was compiled against.
+mkdir -p "$out/built-against-aarch64"
+# shellcheck disable=SC2016
+dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Architecture} ${Version}\n' > "$out/built-against-aarch64/dpkg.txt"
+cp /usr/include/boost/version.hpp "$out/built-against-aarch64/boost-version.hpp"
 {
   echo "hmailserver-aarch64"
   echo "sha256 $(sha256sum "$out/hmailserver-aarch64" | cut -d' ' -f1)"

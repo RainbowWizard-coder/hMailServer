@@ -206,7 +206,7 @@ for a stray `#` number or `@` name.
   Ubuntu 26.04's own container, and `hmailserver-<v>-1.aarch64.rpm`, `rpm-fedora44-aarch64`'s copy of its Fedora
   44 build - the names an installed arm64 server's update check asks for - each with its own CycloneDX SBOM
   (`<file>.cdx.json`), a line in `hmailserver-linux-<v>-SHA256SUMS.txt` and a Sigstore bundle, checked by
-  `release-verify` with the server's own verifier like every other file: thirteen files where there were nine.
+  `release-verify` with the server's own verifier like every other file: (the release's other files follow below)
   `release` waits for each package's build, its SBOM job and its install job, which installs and runs it in an
   AArch64 container of its distribution under qemu-user; no AArch64 machine has run them. A package job's
   container has neither PowerShell nor Python, so every package build now records what it was built against
@@ -237,7 +237,7 @@ for a stray `#` number or `@` name.
   `HM_INSTALL_KIND=container` and carries OCI and Artifact Hub labels
   ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
 - **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`** (not yet
-  run in a pipeline). `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
+  run in a pipeline). The release carries it, signed, with its `.sigstore.json` copy. `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
   naming the release's image, and `build/ci/helm-repo.py` writes the repository's index and Artifact Hub's metadata
   from the update feed in `package-repos`.
 - **`hmctl` as a PyPI package, `hmailserver-cli`, and the PowerShell module with a Gallery manifest** (neither
@@ -253,7 +253,7 @@ for a stray `#` number or `@` name.
   a module with no Authenticode signature, which the release does not sign yet
   ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
 - **A source tarball with nothing non-free in it, which the Linux build and suite run from** (not yet run in a
-  pipeline, and no release carries it yet). `build/ci/source-tarball.sh` writes `hmailserver-<version>.tar.gz`
+  pipeline; the release carries it from 6.3.6, below). `build/ci/source-tarball.sh` writes `hmailserver-<version>.tar.gz`
   from a commit with `git archive`: the commit's tree less every path of `build/source-exclusions.txt` - SQL Server
   Compact 3.5's headers and both copies of its licence, which are not free, and what only the Windows build and its
   installer use (the rest of `libraries/` with the Fat Cow icons, the COM API, the Windows service host and
@@ -273,6 +273,26 @@ for a stray `#` number or `@` name.
   The `source-tarball` job makes it twice and compares, and `linux-build` and `linux-suite` take it with
   `HM_SOURCE_TARBALL`; `build/native-dependencies.ps1 -LinuxOnly` gives the packages' SBOMs their components
   without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
+- **The release carries every file the pipeline makes for it** (not yet run in a pipeline). From 6.3.6 a release is
+  56 files and 143 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and
+  13, Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
+  architectures (`hmailserver_<v>-1~<release>_<arch>.deb`, `hmailserver-<v>-1.<release>.<arch>.rpm`); both
+  AppImages, with the project's own runtime (work item 36); the source tarball; the Helm chart; the sums of every
+  Linux file and the chart; an SBOM for each of the 25 compiled files and the tarball, and the tree's two; a
+  Sigstore bundle beside each, a byte-identical `<file>.sigstore.json` of each primary file's bundle, and
+  `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build provenance naming every file by its SHA-256, signed as the
+  pipeline with `cosign attest-blob` and checked with `cosign verify-blob-attestation` (SECURITY.md, "Build
+  provenance"). The new `release-packages` job gathers the per-distribution packages, the AppImages and the
+  tarball, holds each to its build's sums and makes its SBOM (`build/asset-sbom.py` gains the kinds `appimage`,
+  which lists what the image bundles, and `source`), so that `release` stays under GitLab's fifty needs. Before
+  anything is signed, and again before anything is uploaded, the release counts what GitLab and Pages take: every
+  link's path (the `~` of a `.deb`'s version, which GitLab refuses there, is written `-`), `_redirects` under 1,000
+  rules and 64 KiB with the apt and dnf rules, and the feed under the 4 MiB a server reads (with the repositories
+  as `package-repos`' `--keep` keeps them). The apt and dnf suites will serve the new packages once the repository
+  key exists; openSUSE's go through OBS. A protected `batch*` branch rehearses the chain
+  (`.gitlab/ci/release-rehearsal.yml`): collected with `windows-packages-x64`'s installer, signed as the branch,
+  which no server trusts, and checked with the server's own verifier, which must refuse every bundle at its
+  identity; nothing is published (ContinuousIntegration.md, "What a release carries", "The release rehearsal").
 
 ---
 

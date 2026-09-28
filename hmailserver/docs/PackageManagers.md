@@ -222,9 +222,10 @@ line fits every release the project builds for:
 
 A suite exists once a stable release carries its packages. The package jobs
 make the suffixed names from the release after 6.3.4
-([PackagesDeb.md](PackagesDeb.md)), so until that release only `ubuntu26.04`
-exists, with 6.3.4's x86-64 `.deb`. On a release with no suite, `apt update`
-answers 404 for its `InRelease`.
+([PackagesDeb.md](PackagesDeb.md)), and 6.3.6 is the first release that carries
+them, for both architectures (`build/ci/release-chain.py`'s `gathered_builds`);
+until it is published only `ubuntu26.04` exists, with 6.3.4's x86-64 `.deb`. On
+a release with no suite, `apt update` answers 404 for its `InRelease`.
 
 ### What a user will type: Fedora and Enterprise Linux
 
@@ -247,7 +248,8 @@ dependencies on Fedora 43 and 44 and AlmaLinux 10, and refused it on AlmaLinux
 9, whose glibc and libstdc++ are older than it asks for. It is still no
 distribution's own build, so a
 dnf repository exists once a stable release carries the per-distribution
-`.rpm` files the package jobs make. A release that carries the generic `.rpm`
+`.rpm` files the package jobs make; 6.3.6 is the first, with `fc44`, `fc43`,
+`el10` and `el9` for x86_64 and aarch64. A release that carries the generic `.rpm`
 alone, as 6.3.4 does today (the README's download line), adds nothing to them.
 openSUSE's packages (`.suse.lp160`, `.suse.tw`) are not served either: zypper
 is not dnf, and nothing here has been tried with it.
@@ -308,13 +310,22 @@ make Fedora stop too. The cost is that an outage of the site then stops every
 - **The limit is `_redirects`.** GitLab Pages reads 1,000 rules and 64 KiB,
   with one rule per package file. A rule is about 185 bytes, so the 64 KiB
   comes first, at about 350 rules. A release with every `.deb` and `.rpm` the
-  package jobs make adds sixteen (eight `.deb`s: four suites, two architectures;
-  eight `.rpm`s: `fc44`, `fc43`, `el10` and `el9`, two architectures), so about
-  twenty releases fit beside the feed's own download links, which are eleven
-  from 6.3.6 (the download page, and five files with their bundles). A release
-  as 6.3.6 is, with the generic packages alone, adds two: the amd64 and the arm64
-  `.deb`. The job fails, and deploys nothing, before a
-  rule would be lost; `--keep` is then the answer.
+  package jobs make - 6.3.6 is the first - adds sixteen (eight `.deb`s: four
+  suites, two architectures; eight `.rpm`s: `fc44`, `fc43`, `el10` and `el9`,
+  two architectures; openSUSE's go through OBS), 2,942 bytes, beside the feed's
+  own download links, which are fifteen from 6.3.6 (the download page, and seven
+  files with their bundles: the installer, the four generic packages and the two
+  AppImages). So 6.3.6 alone makes 31 rules in 5,386 bytes, and twenty-one
+  releases of its shape fit; the twenty-second does not. Counted on 28 September
+  2026 by `build/ci/release-chain.py`'s `check_budget`, which the `release` job
+  runs before anything is signed and `release-publish` before anything is
+  uploaded, over the live releases with the new one in them, so a release that
+  would take the site past the limit is refused before it is made, naming
+  `--keep`; it counts the repositories with the `--keep` this job is given,
+  read from the tree the release is made from. This job fails too, and
+  deploys nothing, before a rule would be lost; `--keep` in
+  `.gitlab/ci/package-repos.yml` is then the answer
+  (UpdateFeed.md, "How much the site holds", has the feed's own budget).
 
 ### How it is made
 

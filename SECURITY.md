@@ -163,6 +163,31 @@ verified the original.
   server from 6.3.4 on trusts both paths, the group's only with that id, whatever its update settings say
   ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
+  From 6.3.6 each file but a compiled file's SBOM also carries its bundle a second time, byte for byte, as
+  `<file>.sigstore.json`, the name Sigstore's own clients and OpenSSF Scorecard look for; either name verifies the
+  same way. A pipeline of a `batch*` branch signs a rehearsal of the release with the identity
+  `.../.gitlab-ci.yml@refs/heads/batch<...>`; those files are never published, and no server installs them.
+
+- **Build provenance** (from 6.3.6). `hmailserver-<version>.intoto.sigstore.json` on the release page is the
+  release's SLSA v1 build provenance: an in-toto statement that names every file of the release by its SHA-256 - the
+  installer, every package, the AppImages, the source tarball, the chart, the sums and every SBOM - with the commit it
+  was built from and the tag's pipeline as the builder, signed by that pipeline with Sigstore (a bundle holding a DSSE
+  envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA project's `slsa-verifier` is not
+  needed. To check that a download is one the tag's pipeline built:
+
+  ```
+  cosign verify-blob-attestation --new-bundle-format \
+    --bundle hmailserver-x.y.z.intoto.sigstore.json \
+    --type slsaprovenance1 \
+    --certificate-identity https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vx.y.z \
+    --certificate-oidc-issuer https://gitlab.com \
+    hmailserver_x.y.z_amd64.deb
+  ```
+
+  It says `Verified OK` only when the file's SHA-256 is one the statement names and the statement was signed by that
+  identity; after the move to the group, the identity is `https://gitlab.com/hmailserver/hmailserver//...`. To read
+  the statement itself: `jq -r .dsseEnvelope.payload hmailserver-x.y.z.intoto.sigstore.json | base64 -d | jq .`.
+
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
   Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In
   PowerShell, `Get-AuthenticodeSignature .\hMailServer-x.y.z-x64.exe` shows it.
@@ -200,15 +225,20 @@ CycloneDX 1.6, beside it on the release page and named after it:
 |---|---|---|
 | `hMailServer-<version>-x64.exe`, the Windows installer | `hMailServer-<version>-x64.exe.cdx.json` | OpenSSL, Boost and libpq, which the server is linked against, and the zlib compiled into it, at the versions `hMailServer.vcxproj` builds with; every third-party file the installer packs (the .NET runtime, the MSVC runtime, 7-Zip, the MariaDB client, SQL Server Compact), each file by the SHA-256 [third-party-binaries.json](hmailserver/docs/third-party-binaries.json) pins it by; and every NuGet package of the tools it installs, at the version and with the SHA-512 their `packages.lock.json` resolves |
 | `hmailserver_<version>_amd64.deb`, `hmailserver-<version>-1.x86_64.rpm`, and from 6.3.6 `hmailserver_<version>_arm64.deb` and `hmailserver-<version>-1.aarch64.rpm` | `<package>.cdx.json` | The libraries the Linux server needs from the distribution (glibc, libstdc++, OpenSSL, zlib, libpq, OpenLDAP), each with the development package and version it was built against; Boost, linked into the binary, at its exact version; the QuickJS compiled into it; and what the package itself declares it depends on |
+| from 6.3.6, each distribution release's own package: `hmailserver_<version>-1~<release>_<arch>.deb` for Debian 12 and 13 and Ubuntu 24.04, `hmailserver-<version>-1.<release>.<arch>.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed | `<package>.cdx.json` | The same as the generic packages', from what that release's build container recorded; where the job built Boost from boost.org's release tarball (Debian 12, EL, openSUSE) the SBOM says so |
+| from 6.3.6, `hMailServer-<version>-x86_64.AppImage` and `hMailServer-<version>-aarch64.AppImage` | `<image>.cdx.json` | The server's libraries as for a package, and every library the image carries in `usr/lib`, by the Ubuntu 24.04 package and version its file came from and that file's SHA-256 (the copy in the image has a RUNPATH of its own) |
+| from 6.3.6, the source tarball `hmailserver-<version>.tar.gz` | `hmailserver-<version>.tar.gz.cdx.json` | The third-party code and data it holds, as [SourceTarball.md](hmailserver/docs/SourceTarball.md) declares them, each held to the tarball, QuickJS at the version its `VERSION` file gives |
 | the container image, once one is published | an attestation on the image (predicate type `cyclonedx`) | Every distribution package in the image, as Syft reads it, and what the `.deb`'s own SBOM names inside the binary |
 | the source tree | `hmailserver.spdx.json`, `hmailserver.cyclonedx.json` | Syft's inventory of the tree, with the native libraries it cannot see added |
 
 Each document's subject (`metadata.component`) is its file, by SHA-256 and SHA-512, so it cannot be mistaken for
 another file's. `build/asset-sbom.py` makes them: the release jobs of `.gitlab-ci.yml` make the x86-64 packages' in
-`linux-build`, where the build ran; the AArch64 packages' are made by `deb-ubuntu26.04-arm64-sbom` and
+`linux-build`, where the build ran; the generic AArch64 packages' are made by `deb-ubuntu26.04-arm64-sbom` and
 `rpm-fedora44-aarch64-sbom` from what each build recorded, in its distribution's own container, that it was built
-against; the installer's in `release-sbom`, from the bytes Authenticode signed. The release jobs refuse to publish a
-release whose compiled file has no SBOM or one that describes other bytes. The apt and dnf
+against; every other package's, the AppImages' and the tarball's by `release-packages` (`.gitlab/ci/release-packages.yml`)
+the same way, the AppImages' from what `appimage-build.sh` recorded; the installer's in `release-sbom`, from the bytes
+Authenticode signed. The Helm chart, which compiles nothing and names only the release's image, has none. The release
+jobs refuse to publish a release whose compiled file has no SBOM or one that describes other bytes. The apt and dnf
 repositories serve the release's own packages, so their SBOMs are those on the release page.
 
 To check one, download the file and its `.cdx.json` from the release page, then:

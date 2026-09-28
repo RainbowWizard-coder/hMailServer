@@ -7,9 +7,21 @@
 
 A v* tag's pipeline (.gitlab-ci.yml, the release stage; docs/ContinuousIntegration.md,
 "The release") builds and tests, then waits for a maintainer to start the `release`
-job. That job runs `collect`; Authenticode signs the installer, `release-sbom` runs
-`sbom`, Sigstore signs every file, and `release-publish`, also started by hand, runs
-`publish`:
+job. The release-packages job has run `gather` before it; that job runs `collect`;
+Authenticode signs the installer, `release-sbom` runs `sbom`, Sigstore signs every
+file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
+`release-publish`, also started by hand, runs `publish`:
+
+  gather    (release-packages, .gitlab/ci/release-packages.yml) every file a release
+            carries from the package jobs besides the generic packages - each
+            distribution release's .deb and .rpm, the two AppImages - and the source
+            tarball, from the artifacts of the jobs that made them, each held to the
+            SHA-256 its job wrote (the tarball to build/check-source-tarball.py and
+            this commit), copied under its name with its job's sums, and given its
+            SBOM from what its build recorded it was built against. release needs
+            this one job for the forty-one it waits for, thirty-nine of them jobs
+            release does not need already: a job may need fifty at most (GitLab's
+            ci_needs_size_limit).
 
   collect   the tag is an annotated tag, it still points at the commit this
             pipeline built, and that commit is on master; it is signed by the one
@@ -26,50 +38,72 @@ job. That job runs `collect`; Authenticode signs the installer, `release-sbom` r
             artefacts of the jobs it needs - the Windows installer; the x86-64 .deb
             and .rpm, linux-build's; the AArch64 .deb and .rpm, from the package
             jobs deb-ubuntu26.04-arm64 and rpm-fedora44-aarch64, with their SBOM
-            jobs' SBOMs; the two SBOMs of the tree - are gathered into one
-            directory under the names a release carries, each package held to the
-            SHA-256 its build job wrote and its SBOM to the package it describes,
-            and the four packages' sums written as one file. The package
-            hmailserver/<version> must not hold any of them with other bytes
-            already, nor the installer, its SBOM or a bundle at all: those are made
-            by the jobs after this one, and a second signing never makes the same
-            bytes. Nothing leaves the pipeline.
+            jobs' SBOMs; what release-packages gathered; the Helm chart,
+            helm-chart-package's; the two SBOMs of the tree - are gathered into one
+            directory under the names a release carries, each package, AppImage and
+            the chart held to the SHA-256 its build job wrote and each SBOM to the
+            file it describes, and the sums of every Linux file and the chart
+            written as one file. The package hmailserver/<version> must not hold
+            any of them with other bytes already, nor the installer, its SBOM or a
+            bundle at all: those are made by the jobs after this one, and a second
+            signing never makes the same bytes. Last, before anything is signed,
+            what GitLab and Pages will take of the release is counted
+            (check_budget). Nothing leaves the pipeline.
 
   sbom      the installer's own SBOM (build/asset-sbom.py), made from the bytes
             Authenticode signed - every compiled file a release carries goes out
             with an SBOM of its own, <file>.cdx.json (OpenSSF Baseline
-            OSPS-QA-02.02; SECURITY.md, "Software bills of materials").
+            OSPS-QA-02.02; SECURITY.md, "Software bills of materials") - and the
+            statement of the release's SLSA v1 build provenance, which names every
+            file by its SHA-256, for release-sign to attest.
 
-  publish   every signed file and its <file>.cosign.bundle uploaded to the generic
+  check-provenance
+            (release-verify) each primary file's .sigstore.json is its bundle, and
+            the provenance names every file of the release and nothing else, built
+            by this pipeline from this commit.
+
+  publish   every signed file, its <file>.cosign.bundle, each primary file's
+            <file>.sigstore.json and the provenance uploaded to the generic
             package hmailserver/<version> of this project, read back from the
             registry and held to the SHA-256 it was signed with - nothing is
             uploaded while the package holds a file of that name with other bytes,
             and a file it holds with the same bytes, from an earlier run of the job,
-            is not uploaded again - once every compiled file's SBOM has been held
-            to that file - then the GitLab
+            is not uploaded again - once every compiled file's SBOM, every copy and
+            the provenance have been held to the files, and every link and the site
+            to what GitLab and Pages take - then the GitLab
             release created with one link per file, named after the file, which is
             what build/generate-update-feed.py and every server require. The notes
             are the version's section of CHANGELOG.md and the verification the
             release-verify job wrote. Last, the feed is rendered from the API as the
             pages job will render it, and the new release must be in it with its
-            installer and bundle for Windows servers, and for Debian and RPM
-            servers on x86-64 and on AArch64.
+            installer and bundle for Windows servers, for Debian and RPM servers on
+            x86-64 and on AArch64, and for the AppImages.
 
-Neither asks for a secret: the pipeline's own CI_JOB_TOKEN reads the registry, uploads
+A rehearsal (--rehearse; .gitlab/ci/release-rehearsal.yml) runs collect and sbom on a
+protected batch* branch: the version is Version.h's, the installer
+windows-packages-x64's, and the tag, the Authenticode settings, the scans and the
+registry are not asked about. What it collects is signed as the branch, which no
+server trusts, and published nowhere; publish and gather refuse --rehearse.
+
+None asks for a secret: the pipeline's own CI_JOB_TOKEN reads the registry, uploads
 and creates the release, and it is sent as a header and never printed. A release that exists already
 is refused - a tag is spent once - and so is any project but this one.
 
 Usage, from the repository root:
-  python3 build/ci/release-chain.py collect [--out release-assets]
-  python3 build/ci/release-chain.py sbom [--out release-sbom]
+  python3 build/ci/release-chain.py gather [--out release-packages]
+  python3 build/ci/release-chain.py collect [--rehearse] [--out release-assets]
+  python3 build/ci/release-chain.py sbom [--rehearse] [--out release-sbom]
+  python3 build/ci/release-chain.py check-provenance [--rehearse] [--assets release-signed]
   python3 build/ci/release-chain.py publish [--assets release-signed] [--verification release-verified/verification.md]
   python3 build/ci/release-chain.py --self-test      no network, no git, no token
 """
 
 import argparse
 import base64
+import datetime
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -117,6 +151,19 @@ def _load_gate():
 # The security scans' verdict (build/ci/security-gate.py), which collect asks for
 # before anything is signed.
 security_gate = _load_gate()
+
+
+def _load_repos():
+    path = os.path.join(ROOT, "build", "generate-package-repos.py")
+    spec = importlib.util.spec_from_file_location("generate_package_repos", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# The apt and dnf repositories the pages job adds to the feed's site, whose
+# _redirects rules count with the feed's (check_budget).
+repos = _load_repos()
 
 PROJECT_ID = feed.PROJECT_ID
 PACKAGE = "hmailserver"
@@ -180,23 +227,138 @@ def sbom_name(name):
     return name + asset_sbom.SUFFIX
 
 
+# Every file a release carries is signed beside it as <file>.cosign.bundle, the name a
+# server looks for. Each primary file's bundle goes out a second time, byte for byte,
+# as <file>.sigstore.json (Roadmap3 row 25): the name Sigstore's own clients and
+# OpenSSF Scorecard's Signed-Releases check look for. A server reads the first alone.
+BUNDLE = ".cosign.bundle"
+BUNDLE_COPY = ".sigstore.json"
+
+
+def provenance_name(version):
+    """The release's SLSA v1 build provenance (Roadmap3 row 26): an in-toto statement
+    naming every file of expected_assets by its SHA-256, signed as the pipeline with
+    cosign attest-blob - a Sigstore bundle holding a DSSE envelope. The bundle is the
+    file; it has no bundle of its own, and is in no sums."""
+    return "hmailserver-%s.intoto%s" % (version, BUNDLE_COPY)
+
+
+def statement_name(version):
+    """The provenance's statement as release-sbom writes it, unsigned, for release-sign
+    to attest: it is not a file of the release (the bundle carries it)."""
+    return "hmailserver-%s.intoto.json" % version
+
+
+def tarball_name(version):
+    """The source tarball, build/ci/source-tarball.sh's (docs/SourceTarball.md)."""
+    return "hmailserver-%s.tar.gz" % version
+
+
+def chart_name(version):
+    """The Helm chart, build/ci/helm-chart-package.sh's (docs/ContainerImage.md). Not
+    compiled and with nothing of its own to list, so no SBOM."""
+    return "hmailserver-chart-%s.tgz" % version
+
+
+# The package jobs whose files a release carries from 6.3.6 besides the generic ones:
+# one .deb per Debian and Ubuntu release and architecture (.gitlab/ci/packages-deb.yml)
+# and one .rpm per RPM distribution release and architecture (packages-rpm.yml), each
+# built with that release's own compiler and libraries and installed in a clean
+# container of it; and the two AppImages (packages-appimage.yml). With the source
+# tarball they are gathered by the release-packages job (.gitlab/ci/release-packages.yml,
+# gather below), which makes each one's SBOM and needs each build and its install or
+# test job: release itself may need fifty jobs at most (GitLab's ci_needs_size_limit),
+# and these are forty-one, thirty-nine of them jobs release does not need already.
+DEB_DISTROS = ("debian12", "debian13", "ubuntu24.04")
+DEB_ARCHES = ("amd64", "arm64")
+# (the package job's target, the release in the file's name: rpm-build.sh's disttag)
+RPM_TARGETS = (("fedora44", "fc44"), ("fedora43", "fc43"), ("el10", "el10"), ("el9", "el9"),
+               ("leap16", "suse.lp160"), ("tumbleweed", "suse.tw"))
+RPM_ARCHES = ("x86_64", "aarch64")
+APPIMAGE_ARCHES = ("x86_64", "aarch64")
+# The release-packages job's artifact: every gathered file with its SBOM beside it, and
+# under job-sums/ each build job's own SHA256SUMS as that job wrote it.
+GATHERED = "release-packages"
+JOB_SUMS = "job-sums"
+
+
+def gathered_builds(version):
+    """What release-packages gathers, in the order the release's sums list it: for
+    each, its name, the job that makes it, the job that installs or runs it where
+    there is one, where that job leaves it, the sums it lists it in and under which
+    name, and where the build recorded what it was built against, for its SBOM."""
+    builds = []
+    for distro in DEB_DISTROS:
+        for arch in DEB_ARCHES:
+            where = "packages-deb/%s-%s" % (distro, arch)
+            # deb-build.sh: CPack's DEB-DEFAULT name for Version <v>-1~<distro>.
+            name = "hmailserver_%s-1~%s_%s.deb" % (version, distro, arch)
+            builds.append({"name": name, "kind": "deb", "job": "deb-%s-%s" % (distro, arch),
+                           "test": "deb-%s-%s-install" % (distro, arch), "path": where + "/" + name,
+                           "sums": where + "/SHA256SUMS.txt", "listed": name, "record": where + "/built-against"})
+    for target, disttag in RPM_TARGETS:
+        for arch in RPM_ARCHES:
+            where = "packages-rpm/%s-%s" % (target, arch)
+            name = "hmailserver-%s-1.%s.%s.rpm" % (version, disttag, arch)
+            builds.append({"name": name, "kind": "rpm", "job": "rpm-%s-%s" % (target, arch),
+                           "test": "rpm-%s-%s-install" % (target, arch), "path": where + "/" + name,
+                           "sums": where + "/SHA256SUMS.txt", "listed": name, "record": where + "/built-against"})
+    for arch in APPIMAGE_ARCHES:
+        name = feed.installer_names(version)["appimage-" + arch]
+        builds.append({"name": name, "kind": "appimage", "job": "appimage-" + arch, "test": "appimage-test-" + arch,
+                       "path": "appimage/" + name, "sums": "appimage/SHA256SUMS-%s.txt" % arch, "listed": name,
+                       "record": "appimage/built-against-" + arch})
+    # The tarball's own job makes it twice and compares; there are no sums of it, and
+    # build/check-source-tarball.py --commit holds it to the pipeline's commit instead.
+    name = tarball_name(version)
+    builds.append({"name": name, "kind": "source", "job": "source-tarball", "test": None, "path": "source-tarball/" + name,
+                   "sums": None, "listed": None, "record": None})
+    return builds
+
+
 def compiled_assets(version):
-    """The compiled files a release carries: the installer, and a .deb and an .rpm
-    for x86-64 and for AArch64. Each goes out with an SBOM of its own (OpenSSF
-    Baseline OSPS-QA-02.02)."""
+    """The files a release carries that each go out with an SBOM of their own (OpenSSF
+    Baseline OSPS-QA-02.02): the installer; the generic .deb and .rpm for x86-64 and
+    for AArch64; each distribution release's .deb and .rpm; the two AppImages; and the
+    source tarball, whose SBOM lists the third-party code it holds. The ARM64 Windows
+    installer (windows-packages-arm64, hMailServer-<v>-arm64.exe) is not collected
+    until it has run on ARM64 hardware (Roadmap3 row 4, W3.1): it would come here, after
+    the x64 one, signed by its own Authenticode call, with release-sbom making its SBOM
+    (asset-sbom.py's windows-arm64), and into SERVED_PLATFORMS."""
     names = feed.installer_names(version)
-    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]]
+    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + [
+        build["name"] for build in gathered_builds(version)]
+
+
+def primary_assets(version):
+    """Every file a release carries but the compiled files' SBOMs: each has a bundle
+    and a .sigstore.json copy of it."""
+    return compiled_assets(version) + [chart_name(version), sums_name(version), "hmailserver.spdx.json",
+                                       "hmailserver.cyclonedx.json"]
 
 
 def expected_assets(version):
-    """Every file a release carries, each signed beside it. The per-distribution
-    packages, the AppImages and the ARM64 Windows installer are built by jobs whose
-    files no release collects yet (docs/ContinuousIntegration.md, "What a release
-    carries")."""
+    """Every file a release carries, each signed beside it: the primary files and each
+    compiled file's SBOM (docs/ContinuousIntegration.md, "What a release carries")."""
+    return primary_assets(version) + [sbom_name(n) for n in compiled_assets(version)]
+
+
+def release_files(version):
+    """Every file a release is: expected_assets, a bundle beside each, a .sigstore.json
+    copy of each primary file's bundle, and the provenance. What release-publish
+    uploads and links, and nothing else."""
+    expected = expected_assets(version)
+    return expected + [n + BUNDLE for n in expected] + [n + BUNDLE_COPY for n in primary_assets(version)] + [
+        provenance_name(version)]
+
+
+def sums_members(version):
+    """The files whose lines follow linux-build's own two in the release's sums, in
+    this order: the AArch64 .deb and .rpm, as from 6.3.6's first chain; then every
+    gathered file; then the chart. The Windows installer is not among them: collect
+    runs before Authenticode changes its bytes."""
     names = feed.installer_names(version)
-    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"],
-            sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"] + [
-                sbom_name(n) for n in compiled_assets(version)]
+    return [names["deb-arm64"], names["rpm-aarch64"]] + [b["name"] for b in gathered_builds(version)] + [chart_name(version)]
 
 
 def made_after_collect(version):
@@ -221,15 +383,37 @@ ARM64_DEB_DIR = os.path.join("packages-deb", "ubuntu26.04-arm64")
 AARCH64_RPM_DIR = os.path.join("packages-rpm", "fedora44-aarch64")
 
 
-def sources(version):
-    """Where collect finds each file: the artifacts of the jobs `release` needs. The
-    sums file is linux-build's, to which collect adds the AArch64 packages' lines
-    (release_sums)."""
+# Where the Helm chart's job leaves it, with its SHA-256 (.gitlab/ci/helm-chart.yml).
+CHART_DIR = "helm-chart"
+# A rehearsal's installer: windows-packages-x64's (.gitlab/ci/packages-windows.yml),
+# since windows-installer runs for a v* tag alone. On a branch it names the installer
+# hMailServer-<version>-<first 8 of the commit>-x64.exe, so that no branch build is
+# mistaken for a release, with its SHA-256 in SHA256SUMS beside it.
+REHEARSAL_INSTALLER_DIR = "packages-windows/x64"
+
+
+def rehearsal_installer(version, commit):
+    return "hMailServer-%s-%s-x64.exe" % (version, (commit or "")[:8])
+
+
+def local(relative):
+    """A path of the sources below as this platform writes one."""
+    return os.path.join(*relative.split("/"))
+
+
+def sources(version, rehearsal=None):
+    """Where collect finds each file: the artifacts of the jobs `release` needs, or in
+    a rehearsal (rehearsal = the commit) the rehearsal job's. The sums file is
+    linux-build's, to which collect adds a line for every other Linux file
+    (release_sums). The gathered files, each with its SBOM, are release-packages'."""
     names = feed.installer_names(version)
     deb_arm64 = os.path.join(ARM64_DEB_DIR, names["deb-arm64"])
     rpm_aarch64 = os.path.join(AARCH64_RPM_DIR, "generic", names["rpm-aarch64"])
-    return {
-        names["windows"]: os.path.join("release-windows", names["windows"]),
+    installer = os.path.join("release-windows", names["windows"])
+    if rehearsal is not None:
+        installer = os.path.join(local(REHEARSAL_INSTALLER_DIR), rehearsal_installer(version, rehearsal))
+    places = {
+        names["windows"]: installer,
         names["deb-amd64"]: os.path.join("linux-build", "packages", names["deb-amd64"]),
         names["rpm-x86_64"]: os.path.join("linux-build", "packages", names["rpm-x86_64"]),
         names["deb-arm64"]: deb_arm64,
@@ -241,18 +425,32 @@ def sources(version):
         sums_name(version): os.path.join("linux-build", "packages", "SHA256SUMS.txt"),
         "hmailserver.spdx.json": os.path.join("sbom", "hmailserver.spdx.json"),
         "hmailserver.cyclonedx.json": os.path.join("sbom", "hmailserver.cyclonedx.json"),
+        chart_name(version): os.path.join(CHART_DIR, chart_name(version)),
     }
+    for build in gathered_builds(version):
+        places[build["name"]] = os.path.join(GATHERED, build["name"])
+        places[sbom_name(build["name"])] = os.path.join(GATHERED, sbom_name(build["name"]))
+    return places
 
 
-def package_job_sums(version):
-    """{AArch64 package: (its build job's SHA256SUMS.txt, the name that file gives
-    it)}: deb-build.sh names the .deb as it is, and rpm-build.sh the generic copy
-    by its place under generic/."""
+def package_job_sums(version, rehearsal=None):
+    """{file: (its build job's sums, the name that file gives it)}: deb-build.sh names
+    the .deb as it is, and rpm-build.sh the generic copy by its place under generic/;
+    every gathered package and AppImage by its job's sums as release-packages copied
+    them; the chart by helm-chart-package's; and in a rehearsal the installer by
+    windows-packages-x64's, which names it with the commit."""
     names = feed.installer_names(version)
-    return {
+    sums = {
         names["deb-arm64"]: (os.path.join(ARM64_DEB_DIR, "SHA256SUMS.txt"), names["deb-arm64"]),
         names["rpm-aarch64"]: (os.path.join(AARCH64_RPM_DIR, "SHA256SUMS.txt"), "generic/" + names["rpm-aarch64"]),
+        chart_name(version): (os.path.join(CHART_DIR, "SHA256SUMS.txt"), chart_name(version)),
     }
+    for build in gathered_builds(version):
+        if build["sums"]:
+            sums[build["name"]] = (os.path.join(GATHERED, JOB_SUMS, build["job"] + ".txt"), build["listed"])
+    if rehearsal is not None:
+        sums[names["windows"]] = (os.path.join(local(REHEARSAL_INSTALLER_DIR), "SHA256SUMS"), rehearsal_installer(version, rehearsal))
+    return sums
 
 
 # The component list release-sbom makes the installer's SBOM from, which linux-sbom
@@ -283,19 +481,34 @@ def sbom_problems(directory, version, names=None):
 
 
 def is_primary(name):
-    return not name.endswith(".cosign.bundle")
+    """Not a signature: neither a bundle nor a bundle's .sigstore.json copy (nor the
+    provenance, which is a bundle too)."""
+    return not name.endswith((BUNDLE, BUNDLE_COPY))
 
 
 def permalink_name(name, version):
     """The release's permanent download name, as every release since 6.2.19 has
     had it: the version taken out of a package's name (hMailServer-x64.exe,
-    hmailserver_amd64.deb, hmailserver.x86_64.rpm); a bundle and an SBOM keep theirs."""
-    if not is_primary(name) or name.startswith("hmailserver.") and name.endswith(".json"):
-        return name
-    for marker, replacement in (("-%s-1." % version, "."), ("-%s" % version, ""), ("_%s" % version, "")):
+    hmailserver_amd64.deb, hmailserver.x86_64.rpm; a distribution release's
+    hmailserver_debian12_amd64.deb and hmailserver.fc44.x86_64.rpm, the tarball's
+    hmailserver.tar.gz, the chart's hmailserver-chart.tgz, the provenance's
+    hmailserver.intoto.sigstore.json); a bundle, its copy and a tree SBOM keep
+    theirs, but for a character GitLab refuses in a link's path (link_safe)."""
+    if (not is_primary(name) and name != provenance_name(version)) or name.startswith("hmailserver.") and name.endswith(".json"):
+        return link_safe(name)
+    for marker, replacement in (("-%s-1." % version, "."), ("_%s-1~" % version, "_"), ("-%s" % version, ""),
+                                ("_%s" % version, "")):
         if marker in name:
-            return name.replace(marker, replacement, 1)
-    return name
+            return link_safe(name.replace(marker, replacement, 1))
+    return link_safe(name)
+
+
+def link_safe(name):
+    """A name as a link's path may carry it: GitLab refuses a direct_asset_path with a
+    character outside letters, digits, _ . - and /, and a distribution release's .deb
+    has the ~ of its version (hmailserver_6.3.6-1~debian12_amd64.deb) in its name and
+    in its bundle's. A - stands for it; no name of a release before 6.3.6 has one."""
+    return name.replace("~", "-")
 
 
 def link_type(name):
@@ -312,6 +525,41 @@ def release_links(version, names):
         links.append({"name": name, "url": registry_url(version, name), "link_type": link_type(name),
                       "direct_asset_path": "/downloads/" + permalink_name(name, version)})
     return links
+
+
+# What GitLab holds a release's links to (app/models/releases/link.rb, read on 28
+# September 2026): a direct_asset_path matching FILEPATH_REGEX, of at most 128
+# characters, and each link's name, URL and path its own within the release. A link
+# that breaks one fails the whole release's creation, after every file is uploaded.
+# GitLab sets no limit on the number of links of a release (neither the model, the
+# create service nor the API has one), and a release's description may be a million
+# characters (Gitlab::Database::MAX_TEXT_SIZE_LIMIT).
+GITLAB_LINK_PATH = re.compile(r"\A/[^/](?!.*//.*)[\-.\w/]+[\da-zA-Z]+\Z", re.ASCII)
+GITLAB_LINK_PATH_MAX = 128
+GITLAB_DESCRIPTION_MAX = 1000000
+# And a generic package's file name (lib/gitlab/regex/packages.rb): letters, digits and
+# . _ - + ~ @, neither of the last two first or last.
+GITLAB_FILE_NAME = re.compile(r"\A(?!~)(?!@)[A-Za-z0-9._\-+~@]+(?<!~)(?<!@)\Z")
+
+
+def link_problems(links, description=""):
+    """What GitLab would refuse of a release with these links and notes, as sentences."""
+    problems = []
+    for key in ("name", "url", "direct_asset_path"):
+        values = [link[key] for link in links]
+        twice = sorted(set(v for v in values if values.count(v) > 1))
+        if twice:
+            problems.append("two links have the %s %s: GitLab takes each once in a release" % (key.replace("_", " "), ", ".join(twice)))
+    for link in links:
+        path = link["direct_asset_path"]
+        if len(path) > GITLAB_LINK_PATH_MAX or not GITLAB_LINK_PATH.match(path):
+            problems.append("the link %s would have the path %s, which GitLab refuses (at most %d characters of letters, "
+                            "digits, _ . - and /, ending in a letter or a digit)" % (link["name"], path, GITLAB_LINK_PATH_MAX))
+        if not GITLAB_FILE_NAME.match(link["name"]):
+            problems.append("%s is not a name the generic package registry takes for a file" % link["name"])
+    if len(description) > GITLAB_DESCRIPTION_MAX:
+        problems.append("the release's notes are %d characters; GitLab takes %d" % (len(description), GITLAB_DESCRIPTION_MAX))
+    return problems
 
 
 def sha256_of(path):
@@ -514,20 +762,51 @@ def check_job_sums(sums_path, listed_name, package_path):
     return []
 
 
-def release_sums(root, version):
+def release_sums(root, version, rehearsal=None):
     """The release's hmailserver-linux-<v>-SHA256SUMS.txt, as bytes: linux-build's
-    SHA256SUMS.txt as it is - the x86-64 .deb and .rpm - then a line for the AArch64
-    .deb and one for the AArch64 .rpm, in sha256sum's form, under the names the
-    release gives them. collect has held every one to its package first."""
-    places = sources(version)
+    SHA256SUMS.txt as it is - the x86-64 .deb and .rpm - then a line for every other
+    file sums_members names, the AArch64 .deb and .rpm first, in sha256sum's form,
+    under the names the release gives them. collect has held every one to its build
+    first."""
+    places = sources(version, rehearsal)
     with open(os.path.join(root, places[sums_name(version)]), "rb") as f:
         text = f.read()
     if text and not text.endswith(b"\n"):
         text += b"\n"
-    names = feed.installer_names(version)
-    for name in (names["deb-arm64"], names["rpm-aarch64"]):
+    for name in sums_members(version):
         text += ("%s  %s\n" % (sha256_of(os.path.join(root, places[name])), name)).encode("ascii")
     return text
+
+
+def tarball_problems(root, path, commit, run=subprocess.run):
+    """build/check-source-tarball.py's verdict on the tarball: its format, the list
+    it is held to, its licences, and that git archive recorded this commit in it
+    (docs/SourceTarball.md)."""
+    answer = run([sys.executable, os.path.join(root, "build", "check-source-tarball.py"), "--commit", commit, path],
+                 capture_output=True, text=True)
+    if answer.returncode != 0:
+        said = "; ".join(l.strip() for l in ((answer.stdout or "") + "\n" + (answer.stderr or "")).split("\n")
+                         if l.strip())[-600:]
+        return ["%s is not the source tarball of %s that build/check-source-tarball.py takes: %s" % (
+            os.path.basename(path), commit, said or "exit %d" % answer.returncode)]
+    return []
+
+
+def rehearsal_problems(env):
+    """A rehearsal is a protected batch* branch's pipeline and nothing else: never a
+    tag's, whose release job it is not, and never master's."""
+    problems = []
+    branch = env.get("CI_COMMIT_BRANCH") or ""
+    if env.get("CI_COMMIT_TAG"):
+        problems.append("this is the pipeline of the tag %s: a tag's release is collected by the release job, never "
+                        "rehearsed" % env.get("CI_COMMIT_TAG"))
+    if not re.match(r"^batch[A-Za-z0-9._\-]*$", branch) or branch == (env.get("CI_DEFAULT_BRANCH") or "master"):
+        problems.append("a release is rehearsed on a protected batch* branch alone, not on %r" % branch)
+    if env.get("CI_COMMIT_REF_PROTECTED") != "true":
+        problems.append("%s is not protected: only a protected branch's pipeline has the project's runners' files" % branch)
+    if not re.match(r"^[0-9a-f]{40}$", env.get("CI_COMMIT_SHA") or ""):
+        problems.append("CI_COMMIT_SHA is %r, not a commit" % (env.get("CI_COMMIT_SHA") or ""))
+    return problems
 
 
 def master_exceptions(root, run=subprocess.run):
@@ -542,19 +821,32 @@ def master_exceptions(root, run=subprocess.run):
     return shown.stdout, None
 
 
-def collect(root, tag, out, env, run=subprocess.run, api=None):
+def collect(root, tag, out, env, run=subprocess.run, api=None, rehearse=False):
     """Checks everything the rest of the chain relies on, then gathers the files.
-    Returns the problems; the files are copied only when there are none."""
-    problems = []
-    try:
-        version = version_of(tag)
-    except ReleaseError as e:
-        return [str(e)]
+    Returns the problems; the files are copied only when there are none.
 
-    stamped = read_version_h(root)
-    if stamped != version:
-        problems.append("Version.h says %s and the tag says %s: every file name is made from Version.h, so the release "
-                        "would carry names no server looks for (RELEASE.md, the version stamp)" % (stamped, version))
+    A rehearsal (rehearse=True; tag None) runs on a protected batch* branch: the
+    version is Version.h's, the installer windows-packages-x64's, and the tag, the
+    Authenticode settings, the security scans and the registry are not asked about,
+    since nothing will be published. Everything else is held as for a release."""
+    problems = []
+    if rehearse:
+        problems = rehearsal_problems(env)
+        if problems:
+            return problems
+        version = read_version_h(root)
+        rehearsal = env.get("CI_COMMIT_SHA")
+    else:
+        try:
+            version = version_of(tag)
+        except ReleaseError as e:
+            return [str(e)]
+        rehearsal = None
+
+        stamped = read_version_h(root)
+        if stamped != version:
+            problems.append("Version.h says %s and the tag says %s: every file name is made from Version.h, so the release "
+                            "would carry names no server looks for (RELEASE.md, the version stamp)" % (stamped, version))
 
     image = env.get("HM_COSIGN_IMAGE", "")
     if not PINNED_IMAGE.match(image):
@@ -562,26 +854,27 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
                         "its -dev tag in .gitlab-ci.yml (docs/ContinuousIntegration.md, \"The release\"), and remove any "
                         "CI/CD variable of that name, which replaces the file's value" % image)
 
-    missing = [name for name in AZURE_SETTINGS if not (env.get(name) or "").strip()]
-    if missing:
-        problems.append("the Authenticode job needs the CI/CD variables %s, which are not set for this tag's pipeline "
-                        "(RELEASE.md, \"Authenticode\"). Nothing has been signed." % ", ".join(missing))
+    if not rehearse:
+        missing = [name for name in AZURE_SETTINGS if not (env.get(name) or "").strip()]
+        if missing:
+            problems.append("the Authenticode job needs the CI/CD variables %s, which are not set for this tag's pipeline "
+                            "(RELEASE.md, \"Authenticode\"). Nothing has been signed." % ", ".join(missing))
 
-    problems.extend(check_tag(root, tag, env.get("CI_COMMIT_SHA", ""), run))
+        problems.extend(check_tag(root, tag, env.get("CI_COMMIT_SHA", ""), run))
 
-    # The security scans of this commit, read before anything is signed: static-analysis,
-    # semgrep, semgrep-sast and dependency-scan, whose artifacts the job needs. A scan that
-    # did not finish, or a finding the policy counts that is in no baseline and no
-    # exception in force, holds the release (SECURITY.md, "Before a release"). The
-    # exceptions are master's, as check_tag fetched it, like the allow-list: a finding the
-    # owner accepts on master after the tag counts when the job is retried.
-    exceptions, missing = master_exceptions(root, run)
-    if missing:
-        problems.append(missing)
-    problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\n", say=say))
+        # The security scans of this commit, read before anything is signed: static-analysis,
+        # semgrep, semgrep-sast and dependency-scan, whose artifacts the job needs. A scan that
+        # did not finish, or a finding the policy counts that is in no baseline and no
+        # exception in force, holds the release (SECURITY.md, "Before a release"). The
+        # exceptions are master's, as check_tag fetched it, like the allow-list: a finding the
+        # owner accepts on master after the tag counts when the job is retried.
+        exceptions, missing = master_exceptions(root, run)
+        if missing:
+            problems.append(missing)
+        problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\n", say=say))
 
-    places = sources(version)
-    job_sums = package_job_sums(version)
+    places = sources(version, rehearsal)
+    job_sums = package_job_sums(version, rehearsal)
     for name in collected_assets(version):
         path = os.path.join(root, places[name])
         if not os.path.isfile(path) or os.path.getsize(path) == 0:
@@ -597,17 +890,30 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
                                    os.path.join(root, places[names["rpm-x86_64"]])))
         problems.extend(sbom_problems(os.path.join(root, "linux-build", "packages"), version,
                                       [names["deb-amd64"], names["rpm-x86_64"]]))
-        # The AArch64 packages: each the bytes its package job built, by the sums that
-        # job wrote, and each with its SBOM job's SBOM beside it.
+        # Every other package, AppImage and the chart: each the bytes its job built, by
+        # the sums that job wrote, and each compiled one with its SBOM beside it.
         for name, (relative, listed) in sorted(job_sums.items()):
             problems.extend(check_job_sums(os.path.join(root, relative), listed, os.path.join(root, places[name])))
-            problems.extend(sbom_problems(os.path.dirname(os.path.join(root, places[name])), version, [name]))
+            if name in compiled_assets(version) and name != names["windows"]:
+                problems.extend(sbom_problems(os.path.dirname(os.path.join(root, places[name])), version, [name]))
+        # The tarball has no sums of its own job: it is held to this commit instead.
+        problems.extend(tarball_problems(root, os.path.join(root, places[tarball_name(version)]), env.get("CI_COMMIT_SHA", ""), run))
+        problems.extend(sbom_problems(os.path.join(root, GATHERED), version, [tarball_name(version)]))
     sums = None
     if not problems:
-        sums = release_sums(root, version)
+        sums = release_sums(root, version, rehearsal)
         digests = dict((name, sha256_of(os.path.join(root, places[name]))) for name in collected_assets(version))
         digests[sums_name(version)] = hashlib.sha256(sums).hexdigest()
-        problems.extend(check_registry_before_signing(api, version, digests))
+        sizes = dict((name, os.path.getsize(os.path.join(root, places[name]))) for name in collected_assets(version))
+        sizes[sums_name(version)] = len(sums)
+        if not rehearse:
+            problems.extend(check_registry_before_signing(api, version, digests))
+        # What GitLab and Pages take, before anything is signed: the release's links,
+        # and the site the feed and the apt and dnf repositories make with it (in a
+        # rehearsal, with this release alone).
+        if not problems:
+            problems.extend(check_budget(api if not rehearse else None, "v" + version if rehearse else tag, version,
+                                         digests, sizes, keep=repository_keep(root)))
     if problems:
         return problems
 
@@ -701,9 +1007,10 @@ def check_registry_before_signing(api, version, digests):
     """collect's look at the registry. The .deb, the .rpm, the sums and the SBOMs are
     final here, and the registry may hold them only with these bytes, as it does
     after a release-publish that stopped part-way. The installer and every bundle are
-    made by the jobs after this one (Authenticode, Sigstore), and a second signing
-    never makes the same bytes, so the registry may not hold them at all: such a
-    release is finished by retrying release-publish of the pipeline that signed them."""
+    made by the jobs after this one (Authenticode, Sigstore), and so are the bundles'
+    .sigstore.json copies and the provenance; a second signing never makes the same
+    bytes, so the registry may not hold them at all: such a release is finished by
+    retrying release-publish of the pipeline that signed them."""
     if api is None:
         return ["there is no CI_JOB_TOKEN to read the package registry with: collect runs in the release job and nowhere else"]
     try:
@@ -714,7 +1021,9 @@ def check_registry_before_signing(api, version, digests):
     later = made_after_collect(version)
     final = dict((name, digest) for name, digest in digests.items() if name not in later)
     problems, _ = registry_conflicts(held, final, version)
-    for name in later + sorted(n + ".cosign.bundle" for n in set(digests) | set(later)):
+    signed_later = later + sorted(n + BUNDLE for n in set(digests) | set(later)) + sorted(
+        n + BUNDLE_COPY for n in primary_assets(version)) + [provenance_name(version)]
+    for name in signed_later:
         if held.get(name):
             problems.append("the package %s/%s already holds %s, which an earlier run's signing made: signing again makes "
                             "other bytes, which release-publish refuses. Retry release-publish in the pipeline that signed "
@@ -723,14 +1032,349 @@ def check_registry_before_signing(api, version, digests):
     return problems
 
 
-def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out):
-    """release-sbom: the installer's own SBOM, from the bytes Authenticode signed."""
-    version = version_of(tag)
+# ---------------------------------------------------------------- what GitLab and Pages take
+
+# The largest feed document a server reads: UpdateChecker.cpp's MAX_FEED_BYTES, which
+# build/check-release-chain.py holds this to. releases.json lists every release, and a
+# release as 6.3.6 is adds some fifty kilobytes to it.
+MAX_FEED_BYTES = 4 * 1024 * 1024
+# What a file not made yet is counted as: a bundle is about 7 KB, an SBOM up to 60 KB.
+ESTIMATED_SIZE = 99999
+# The job that adds the apt and dnf repositories' rules to the site, and the one
+# command of it that makes them: its --keep, the newest stable releases it keeps
+# (none given: every one), is what check_budget counts the repositories with, so that
+# the answer the refusal names - a --keep there - is one this count takes too.
+REPOS_JOB_FILE = os.path.join(".gitlab", "ci", "package-repos.yml")
+
+
+def repository_keep(root):
+    """The --keep of build/generate-package-repos.py --site in the package-repos job
+    (0, every stable release, when it gives none or the file cannot be read, which
+    counts the most rules and so refuses rather than passes)."""
+    try:
+        with open(os.path.join(root, REPOS_JOB_FILE), encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        return 0
+    for line in text.replace("\r\n", "\n").split("\n"):
+        if "generate-package-repos.py" in line and "--site" in line and not line.lstrip().startswith("#"):
+            match = re.search(r"--keep(?:=|\s+)([0-9]+)\b", line)
+            return int(match.group(1)) if match else 0
+    return 0
+
+
+def check_budget(api, tag, version, digests, sizes, out=None, keep=0):
+    """What GitLab and Pages would refuse of this release, before anything is signed
+    or uploaded: every link GitLab must take (link_problems), and the site the pages
+    job makes with the release in it - the update feed, whose _redirects the apt and
+    dnf repositories' rules are added to (build/generate-package-repos.py, keeping
+    the newest keep stable releases, or every one for 0, as the package-repos job
+    is told: repository_keep), which Pages reads only up to 1,000 rules and 64 KiB,
+    and releases.json and releases/latest, which a server reads only up to
+    MAX_FEED_BYTES. The site is rendered from the live releases (api), or, where
+    there is no api (a rehearsal), from this release alone. A file of the release not
+    made yet counts with a placeholder digest and size. Returns the problems; says
+    the counts."""
+    out = out or say
+    names = release_files(version)
+    links = release_links(version, names)
+    problems = link_problems(links)
+    releases, files = [], {}
+    if api is not None:
+        try:
+            releases, files = feed.load(api.feed_get)
+        except (ReleaseError, feed.FeedError) as e:
+            return problems + ["the live releases could not be read to count the site with this release in it: %s" % e]
+    releases = [r for r in releases if r.get("tag_name") != tag]
+    files = dict(files)
+    record = {}
+    for number, name in enumerate(sorted(names)):
+        record[name] = {"id": 1000000000 + number, "file_name": name, "size": sizes.get(name, ESTIMATED_SIZE),
+                        "file_sha256": digests.get(name, "0" * 64)}
+    files[(PACKAGE, version)] = record
+    release = {"tag_name": tag, "name": "hMailServer %s" % version, "upcoming_release": False,
+               "released_at": "2099-12-31T23:59:59.000Z", "_links": {"self": feed.PROJECT_URL + "/-/releases/" + tag},
+               "assets": {"links": links}}
+    try:
+        tree, latest, warnings = feed.render([release] + releases, files)
+    except feed.FeedError as e:
+        return problems + ["the update feed would not take %s: %s" % (tag, e)]
+    problems.extend(w for w in warnings if w.startswith(tag + " ") or (tag + ":") in w)
+    feed_rules, errors = feed.parse_redirects(tree["_redirects"])
+    problems.extend(errors)
+    entries, _ = repos.select(json.loads(tree["releases.json"].decode("utf-8")), keep=keep)
+    text, added, count = repos.redirects_text(tree["_redirects"].decode("utf-8"), entries)
+    size = len(text.encode("utf-8"))
+    if size > repos.REDIRECTS_MAX_BYTES or count > repos.REDIRECTS_MAX_RULES:
+        problems.append("the site's _redirects would hold %d rules in %d bytes, the feed's %d and the apt and dnf "
+                        "repositories' %d (%s); Pages reads %d rules and %d bytes, and nothing of a larger file. Give "
+                        "build/generate-package-repos.py --keep in .gitlab/ci/package-repos.yml, or a smaller one, which "
+                        "this count reads from the tree it runs in (docs/PackageManagers.md, 'What the repositories hold')" % (
+                            count, size, len(feed_rules), added,
+                            "the newest %d stable releases, as its --keep says" % keep if keep else "every stable release: it has no --keep",
+                            repos.REDIRECTS_MAX_RULES, repos.REDIRECTS_MAX_BYTES))
+    for document in ("releases.json", "releases/latest"):
+        if len(tree[document]) > MAX_FEED_BYTES:
+            problems.append("the feed's %s would be %d bytes; a server reads %d (UpdateChecker.cpp, MAX_FEED_BYTES)" % (
+                document, len(tree[document]), MAX_FEED_BYTES))
+    own = [e for e in entries if e["version"] == version]
+    out("the release: %d files and %d links (%d primary files, %d SBOMs, %d bundles, %d .sigstore.json copies, "
+        "the provenance)" % (len(expected_assets(version)), len(links), len(primary_assets(version)),
+                             len(compiled_assets(version)), len(expected_assets(version)), len(primary_assets(version))))
+    out("the site with it: _redirects %d rules in %d bytes (the feed's %d, the repositories' %d, %d of them this "
+        "release's; Pages reads %d rules and %d bytes); releases.json %d bytes and releases/latest %d (a server reads "
+        "%d)" % (count, size, len(feed_rules), added, len(own), repos.REDIRECTS_MAX_RULES, repos.REDIRECTS_MAX_BYTES,
+                 len(tree["releases.json"]), len(tree["releases/latest"]), MAX_FEED_BYTES))
+    return problems
+
+
+# ---------------------------------------------------------------- gather: the release-packages job
+
+def default_sbom_maker(root, version, env=None, run=subprocess.run):
+    """Each gathered file's SBOM, beside it: a package's and an AppImage's by
+    build/ci/packages/package-sbom.sh from what its build recorded, with one component
+    list for all of them; the tarball's by build/asset-sbom.py from the tarball alone.
+    Runs in the CI image, which has PowerShell, Python, dpkg-deb and rpm."""
+    env = dict(env if env is not None else os.environ)
+    # The documents' timestamp is the commit's, as package-sbom.sh sets it for its own.
+    if env.get("CI_COMMIT_TIMESTAMP") and not env.get("SOURCE_DATE_EPOCH"):
+        try:
+            moment = datetime.datetime.fromisoformat(env["CI_COMMIT_TIMESTAMP"].replace("Z", "+00:00"))
+            env["SOURCE_DATE_EPOCH"] = str(int(moment.timestamp()))
+        except ValueError:
+            pass
+    state = {}
+
+    def dependencies():
+        if "path" not in state:
+            state["dir"] = tempfile.mkdtemp(prefix="hm-gather-")
+            state["path"] = os.path.join(state["dir"], "native-dependencies.json")
+            answer = run(["pwsh", "-NoProfile", "-File", os.path.join(root, "build", "native-dependencies.ps1"),
+                          "-OutputFile", state["path"]], cwd=root, capture_output=True, text=True)
+            if answer.returncode != 0 or not os.path.isfile(state["path"]):
+                raise ReleaseError("build/native-dependencies.ps1 could not make the component list: %s" % (
+                    (answer.stdout or "") + (answer.stderr or "")).strip()[-400:])
+        return state["path"]
+
+    def make(build, path):
+        if build["kind"] == "source":
+            command = [sys.executable, os.path.join(root, "build", "asset-sbom.py"), "make", "--kind", "source",
+                       "--asset", path, "--version", version]
+            answer = run(command, cwd=root, capture_output=True, text=True, env=env)
+        else:
+            command = ["bash", os.path.join("build", "ci", "packages", "package-sbom.sh"), path,
+                       os.path.join(root, local(build["record"]))]
+            answer = run(command, cwd=root, capture_output=True, text=True, env=dict(env, HM_NATIVE_DEPENDENCIES=dependencies()))
+        if answer.returncode != 0:
+            raise ReleaseError("the SBOM of %s could not be made: %s" % (build["name"], (
+                (answer.stdout or "") + (answer.stderr or "")).strip()[-600:]))
+
+    return make
+
+
+def gather(root, version, out, commit, make_sbom=None, run=subprocess.run):
+    """The release-packages job: every file gathered_builds names, from the artifacts
+    of the jobs that made them, each held to the sums its job wrote - the tarball to
+    build/check-source-tarball.py and this commit - copied under its name into out,
+    with that job's sums under out/job-sums/<job>.txt and its SBOM beside it, which
+    must describe it. Returns the problems; out holds the files only when there are
+    none."""
+    problems = []
+    builds = gathered_builds(version)
+    for build in builds:
+        path = os.path.join(root, local(build["path"]))
+        if not os.path.isfile(path) or os.path.getsize(path) == 0:
+            problems.append("%s is not in this job's artifacts (%s): %s failed or did not run" % (build["name"], build["path"], build["job"]))
+        if build["sums"] and not os.path.isfile(os.path.join(root, local(build["sums"]))):
+            problems.append("%s, the sums of %s, is not in this job's artifacts" % (build["sums"], build["job"]))
+        if build["record"] and not os.path.isdir(os.path.join(root, local(build["record"]))):
+            problems.append("%s, what %s was built against, is not in this job's artifacts: its SBOM is made from it"
+                            % (build["record"], build["name"]))
+    if problems:
+        return problems
+    for build in builds:
+        path = os.path.join(root, local(build["path"]))
+        if build["sums"]:
+            problems.extend(check_job_sums(os.path.join(root, local(build["sums"])), build["listed"], path))
+        else:
+            problems.extend(tarball_problems(root, path, commit, run))
+    if problems:
+        return problems
+
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    os.makedirs(os.path.join(out, JOB_SUMS))
+    for build in builds:
+        shutil.copyfile(os.path.join(root, local(build["path"])), os.path.join(out, build["name"]))
+        if build["sums"]:
+            shutil.copyfile(os.path.join(root, local(build["sums"])), os.path.join(out, JOB_SUMS, build["job"] + ".txt"))
+    maker = make_sbom or default_sbom_maker(root, version, run=run)
+    for build in builds:
+        try:
+            maker(build, os.path.join(out, build["name"]))
+        except (ReleaseError, OSError) as e:
+            problems.append(str(e))
+            continue
+        problems.extend(sbom_problems(out, version, [build["name"]]))
+    if not problems:
+        for build in builds:
+            say("  %s  %12d  %s (%s)" % (sha256_of(os.path.join(out, build["name"])), os.path.getsize(os.path.join(out, build["name"])),
+                                          build["name"], build["job"]))
+    return problems
+
+
+# ---------------------------------------------------------------- the provenance
+
+# The paths a server trusts a signature from, and the repository each names: the
+# project's now, and the group's it is to move to (release-sign.sh's case on
+# CI_PROJECT_PATH, which build/check-release-chain.py holds this to).
+SIGNING_REPOSITORIES = {"Progressiverobot/hmailserver": "https://gitlab.com/Progressiverobot/hmailserver",
+                        "hmailserver/hmailserver": "https://gitlab.com/hmailserver/hmailserver"}
+IN_TOTO_STATEMENT = "https://in-toto.io/Statement/v1"
+SLSA_PROVENANCE = "https://slsa.dev/provenance/v1"
+IN_TOTO_PAYLOAD = "application/vnd.in-toto+json"
+# What the build type names: how this project's pipeline builds a release, documented.
+BUILD_TYPE = feed.PROJECT_URL + "/-/blob/master/hmailserver/docs/ContinuousIntegration.md#the-release"
+
+
+def signing_identity(env, rehearse=False):
+    """The identity Fulcio writes for this pipeline: <repository>//.gitlab-ci.yml@
+    refs/tags/<tag>, or in a rehearsal refs/heads/<branch>, which no server trusts."""
+    repository = SIGNING_REPOSITORIES.get(env.get("CI_PROJECT_PATH") or "")
+    if not repository:
+        raise ReleaseError("the project's path is %r, not one a server trusts a signature from" % env.get("CI_PROJECT_PATH"))
+    if rehearse:
+        problems = rehearsal_problems(env)
+        if problems:
+            raise ReleaseError("; ".join(problems))
+        return "%s//.gitlab-ci.yml@refs/heads/%s" % (repository, env["CI_COMMIT_BRANCH"])
+    tag = env.get("CI_COMMIT_TAG") or ""
+    version_of(tag)
+    return "%s//.gitlab-ci.yml@refs/tags/%s" % (repository, tag)
+
+
+def provenance_statement(version, identity, digests, env):
+    """The in-toto statement with the SLSA v1 predicate over every file of
+    expected_assets (digests: {name: sha256}): what built them - this project's
+    pipeline for the ref, by its .gitlab-ci.yml - from which commit, and which
+    pipeline. Its signature (release-sign.sh, cosign attest-blob) binds it to the
+    pipeline's identity; a download is held to it with cosign verify-blob-attestation
+    (SECURITY.md, "Build provenance")."""
+    repository, ref = identity.split("//.gitlab-ci.yml@", 1)
+    commit = env.get("CI_COMMIT_SHA") or ""
+    metadata = {"invocationId": env.get("CI_PIPELINE_URL") or ""}
+    if feed.TIMESTAMP.match(env.get("CI_PIPELINE_CREATED_AT") or ""):
+        metadata["startedOn"] = env["CI_PIPELINE_CREATED_AT"]
+    return {
+        "_type": IN_TOTO_STATEMENT,
+        "subject": [{"name": name, "digest": {"sha256": digests[name]}} for name in sorted(digests)],
+        "predicateType": SLSA_PROVENANCE,
+        "predicate": {
+            "buildDefinition": {
+                "buildType": BUILD_TYPE,
+                "externalParameters": {"repository": repository, "ref": ref, "config": ".gitlab-ci.yml"},
+                "internalParameters": {"projectId": env.get("CI_PROJECT_ID") or "", "pipelineId": env.get("CI_PIPELINE_ID") or "",
+                                       "pipelineSource": env.get("CI_PIPELINE_SOURCE") or "",
+                                       "rehearsal": ref.startswith("refs/heads/")},
+                "resolvedDependencies": [{"uri": "git+%s@%s" % (repository, ref), "digest": {"gitCommit": commit}}],
+            },
+            "runDetails": {"builder": {"id": identity}, "metadata": metadata},
+        },
+    }
+
+
+def write_statement(version, identity, files, env, out):
+    """release-sbom's second file: the statement over files ({name: path}), which must
+    be every file of expected_assets, written to out/statement_name for release-sign."""
+    if sorted(files) != sorted(expected_assets(version)):
+        raise ReleaseError("the provenance would name %s, and a release is %s" % (sorted(files), sorted(expected_assets(version))))
+    digests = dict((name, sha256_of(path)) for name, path in files.items())
+    statement = provenance_statement(version, identity, digests, env)
+    path = os.path.join(out, statement_name(version))
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(statement, f, indent=1, sort_keys=True)
+        f.write("\n")
+    say("  %s: the SLSA v1 provenance of %d files, built by %s" % (statement_name(version), len(digests), identity))
+    return path
+
+
+def certificate_der(bundle):
+    material = bundle.get("verificationMaterial") or {}
+    raw = (material.get("certificate") or {}).get("rawBytes")
+    if not raw:
+        chain = (material.get("x509CertificateChain") or {}).get("certificates") or [{}]
+        raw = chain[0].get("rawBytes")
+    return base64.b64decode(raw or "")
+
+
+def provenance_problems(assets, version, identity, commit):
+    """The provenance in assets is a Sigstore bundle holding a DSSE envelope of an
+    in-toto statement with the SLSA v1 predicate; the statement names every file of
+    expected_assets in assets by its SHA-256, and nothing else; it names this
+    identity as the builder and this commit as the source; its certificate names the
+    identity, and its log entry is a dsse entry of the public log. cosign verified
+    the signature in release-sign.sh; this holds what was signed to the release."""
+    path = os.path.join(assets, provenance_name(version))
+    try:
+        with open(path, encoding="utf-8") as f:
+            bundle = json.load(f)
+        envelope = bundle["dsseEnvelope"]
+        statement = json.loads(base64.b64decode(envelope["payload"]).decode("utf-8"))
+        payload_type = envelope.get("payloadType")
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        return ["%s is not a Sigstore bundle of an in-toto statement: %s" % (provenance_name(version), e)]
+    problems = []
+    if not str(bundle.get("mediaType", "")).startswith("application/vnd.dev.sigstore.bundle"):
+        problems.append("%s is not a Sigstore bundle" % provenance_name(version))
+    if payload_type != IN_TOTO_PAYLOAD or statement.get("_type") != IN_TOTO_STATEMENT or statement.get("predicateType") != SLSA_PROVENANCE:
+        problems.append("%s is not an in-toto statement with the SLSA v1 predicate (%s, %s, %s)" % (
+            provenance_name(version), payload_type, statement.get("_type"), statement.get("predicateType")))
+    named = {}
+    for subject in statement.get("subject") or []:
+        named[subject.get("name")] = (subject.get("digest") or {}).get("sha256")
+    wanted = dict((name, sha256_of(os.path.join(assets, name))) for name in expected_assets(version)
+                  if os.path.isfile(os.path.join(assets, name)))
+    if named != wanted:
+        wrong = sorted(n for n in set(named) | set(wanted) if named.get(n) != wanted.get(n))
+        problems.append("the provenance does not name every file of the release by its SHA-256, and nothing else: %s" % ", ".join(wrong))
+    predicate = statement.get("predicate") or {}
+    builder = ((predicate.get("runDetails") or {}).get("builder") or {}).get("id")
+    if builder != identity:
+        problems.append("the provenance names the builder %s, not %s" % (builder, identity))
+    sources = (predicate.get("buildDefinition") or {}).get("resolvedDependencies") or []
+    if not any((d.get("digest") or {}).get("gitCommit") == commit for d in sources):
+        problems.append("the provenance does not name %s as the source it was built from" % commit)
+    try:
+        der = certificate_der(bundle)
+    except (ValueError, TypeError):
+        der = b""
+    if identity.encode("utf-8") not in der:
+        problems.append("the provenance's certificate does not name %s" % identity)
+    entries = (bundle.get("verificationMaterial") or {}).get("tlogEntries") or []
+    if not entries or (entries[0].get("kindVersion") or {}).get("kind") != "dsse" or not entries[0].get("integratedTime"):
+        problems.append("the provenance's log entry is not a dsse entry of the public log with its integratedTime")
+    return problems
+
+
+def copy_problems(assets, version):
+    """Each primary file's <file>.sigstore.json is its <file>.cosign.bundle, byte for byte."""
+    problems = []
+    for name in primary_assets(version):
+        bundle, copy = os.path.join(assets, name + BUNDLE), os.path.join(assets, name + BUNDLE_COPY)
+        if not os.path.isfile(copy) or not os.path.isfile(bundle) or sha256_of(copy) != sha256_of(bundle):
+            problems.append("%s is not %s byte for byte" % (name + BUNDLE_COPY, name + BUNDLE))
+    return problems
+
+
+def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out, rehearse=False):
+    """release-sbom: the installer's own SBOM, from the bytes Authenticode signed. A
+    rehearsal has no Authenticode: its installer is collect's, as it is (tag is None)."""
+    version = read_version_h(root) if rehearse else version_of(tag)
     installer = feed.installer_names(version)["windows"]
     if os.path.basename(installer_path) != installer or not os.path.isfile(installer_path):
         raise ReleaseError("%s is not the signed installer %s: release-authenticode's artifact did not arrive" % (installer_path, installer))
     unsigned = os.path.join(assets, installer)
-    if os.path.isfile(unsigned) and sha256_of(unsigned) == sha256_of(installer_path):
+    if not rehearse and os.path.isfile(unsigned) and sha256_of(unsigned) == sha256_of(installer_path):
         raise ReleaseError("%s is byte for byte the installer collect gathered: Authenticode signed nothing, and the SBOM "
                            "would describe bytes that do not ship" % installer_path)
     try:
@@ -779,7 +1423,7 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
         raise ReleaseError("the API is %s, not %s, which every release link names" % (env.get("CI_API_V4_URL"), API_BASE))
 
     expected = expected_assets(version)
-    wanted = set(expected) | set(n + ".cosign.bundle" for n in expected)
+    wanted = set(release_files(version))
     present = set(n for n in os.listdir(assets) if os.path.isfile(os.path.join(assets, n)))
     if present != wanted:
         parts = []
@@ -787,10 +1431,18 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
             parts.append("missing " + ", ".join(sorted(wanted - present)))
         if present - wanted:
             parts.append("extra " + ", ".join(sorted(present - wanted)))
-        raise ReleaseError("%s is not a release (%s): a release is exactly %s, and a bundle beside each" % (
-            assets, "; ".join(parts), ", ".join(expected)))
+        raise ReleaseError("%s is not a release (%s): a release is exactly %s, a bundle beside each, a .sigstore.json "
+                           "copy of each primary file's bundle, and the provenance %s" % (
+                               assets, "; ".join(parts), ", ".join(expected), provenance_name(version)))
 
-    unfit = sbom_problems(assets, version)
+    unfit = sbom_problems(assets, version) + copy_problems(assets, version) + provenance_problems(
+        assets, version, signing_identity(dict(env, CI_COMMIT_TAG=tag)), env.get("CI_COMMIT_SHA") or "")
+    if unfit:
+        raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
+    # What GitLab would refuse of the release is refused here, before any upload: a
+    # release whose creation fails after its files are up leaves the tag half-spent.
+    description = "# hMailServer %s\n\n%s\n\n%s\n" % (version, notes.strip(), verification.strip())
+    unfit = link_problems(release_links(version, wanted), description)
     if unfit:
         raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
 
@@ -802,6 +1454,10 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
         raise ReleaseError("asking whether %s exists answered HTTP %d: %s" % (tag, status, message_of(body)))
 
     digests = dict((name, sha256_of(os.path.join(assets, name))) for name in wanted)
+    unfit = check_budget(api, tag, version, digests, dict((name, os.path.getsize(os.path.join(assets, name))) for name in wanted),
+                         keep=repository_keep(ROOT))
+    if unfit:
+        raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
     # A name the package holds with other bytes is refused before anything is sent;
     # one it holds with these bytes, from a run of this job that stopped part-way,
     # is not sent again.
@@ -832,7 +1488,6 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
                     name, entry.get("file_sha256"), digests[name]))
     say("the registry holds all %d files with the digests that were signed, and no other" % len(wanted))
 
-    description = "# hMailServer %s\n\n%s\n\n%s\n" % (version, notes.strip(), verification.strip())
     payload = {"tag_name": tag, "name": "hMailServer %s" % version, "description": description,
                "assets": {"links": release_links(version, wanted)}}
     status, body = create_release(api, payload, version)
@@ -852,13 +1507,13 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
 
 # The kinds of server a release carries a file for (generate-update-feed.py's
 # installer_names): the feed must give each of them its file and its bundle.
-SERVED_PLATFORMS = ("windows", "deb-amd64", "rpm-x86_64", "deb-arm64", "rpm-aarch64")
+SERVED_PLATFORMS = ("windows", "deb-amd64", "rpm-x86_64", "deb-arm64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64")
 
 
 def check_feed_takes(api, tag, version):
     """The feed the pages job will render includes this release, and a Windows
-    server, and a Debian and an RPM server on x86-64 and on AArch64, each find its
-    file and bundle in it."""
+    server, a Debian and an RPM server on x86-64 and on AArch64, and an AppImage on
+    either, each find its file and bundle in it."""
     releases, files = feed.load(api.feed_get)
     tree, latest, warnings = feed.render(releases, files)
     ours = [w for w in warnings if w.startswith(tag + " ") or (tag + ":") in w]
@@ -870,8 +1525,8 @@ def check_feed_takes(api, tag, version):
         release = feed.read_release(document, platform)
         if not release or not release["installer_url"] or not release["bundle_url"] or not release["installer_digest"]:
             raise ReleaseError("a %s server would find no file with its bundle in %s" % (platform, tag))
-    say("the feed takes %s: Windows servers, and Debian and RPM servers on x86-64 and AArch64, each find their file "
-        "and its bundle; releases/latest is %s" % (tag, latest["tag_name"]))
+    say("the feed takes %s: Windows servers, Debian and RPM servers on x86-64 and AArch64, and AppImages on either, "
+        "each find their file and its bundle; releases/latest is %s" % (tag, latest["tag_name"]))
 
 
 # ---------------------------------------------------------------- the self-test
@@ -911,6 +1566,46 @@ def self_test():
         except ReleaseError:
             pass
     expect(version_of("v6.3.5-rc1") == "6.3.5-rc1", "a pre-release's tag names its version")
+    # The files 6.3.6 adds, and their permanent paths: a distribution release's name
+    # keeps its release, the ~ of a .deb's version never reaches a path, and a bundle
+    # and its copy keep their names.
+    for name, path in (("hmailserver_6.3.5-1~debian12_amd64.deb", "hmailserver_debian12_amd64.deb"),
+                       ("hmailserver_6.3.5-1~ubuntu24.04_arm64.deb.cdx.json", "hmailserver_ubuntu24.04_arm64.deb.cdx.json"),
+                       ("hmailserver_6.3.5-1~debian13_arm64.deb.cosign.bundle", "hmailserver_6.3.5-1-debian13_arm64.deb.cosign.bundle"),
+                       ("hmailserver_6.3.5-1~debian13_arm64.deb.sigstore.json", "hmailserver_6.3.5-1-debian13_arm64.deb.sigstore.json"),
+                       ("hmailserver-6.3.5-1.fc44.x86_64.rpm", "hmailserver.fc44.x86_64.rpm"),
+                       ("hmailserver-6.3.5-1.suse.lp160.aarch64.rpm", "hmailserver.suse.lp160.aarch64.rpm"),
+                       ("hMailServer-6.3.5-x86_64.AppImage", "hMailServer-x86_64.AppImage"),
+                       ("hMailServer-6.3.5-aarch64.AppImage.cdx.json", "hMailServer-aarch64.AppImage.cdx.json"),
+                       ("hmailserver-6.3.5.tar.gz", "hmailserver.tar.gz"), ("hmailserver-chart-6.3.5.tgz", "hmailserver-chart.tgz"),
+                       ("hmailserver-6.3.5.intoto.sigstore.json", "hmailserver.intoto.sigstore.json"),
+                       ("hmailserver.spdx.json.sigstore.json", "hmailserver.spdx.json.sigstore.json"),
+                       ("hMailServer-6.3.5-x64.exe.sigstore.json", "hMailServer-6.3.5-x64.exe.sigstore.json")):
+        expect(permalink_name(name, version) == path, "%s's permanent name is %s: %s" % (name, path, permalink_name(name, version)))
+    expect(link_type("hMailServer-6.3.5-x86_64.AppImage") == "package" and link_type("hmailserver-6.3.5.tar.gz") == "other"
+           and link_type("hmailserver_6.3.5_amd64.deb.sigstore.json") == "other" and link_type(provenance_name(version)) == "other",
+           "an AppImage is a package; the tarball, a bundle's copy and the provenance are other")
+    every_link = release_links(version, release_files(version))
+    expect(link_problems(every_link) == [], "every link of a release is one GitLab takes: %s" % link_problems(every_link))
+    for what, links, needle in (
+            ("a path with the ~ of a .deb's version", [{"name": "a~b.deb", "url": "u1", "direct_asset_path": "/downloads/a~b.deb"}], "which GitLab refuses"),
+            ("a path over 128 characters", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/" + "a" * 118}], "which GitLab refuses"),
+            ("a path ending in a dot", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a."}], "which GitLab refuses"),
+            ("two links of one path", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a"},
+                                       {"name": "b", "url": "u2", "direct_asset_path": "/downloads/a"}], "direct asset path"),
+            ("two links of one name", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a"},
+                                       {"name": "a", "url": "u2", "direct_asset_path": "/downloads/b"}], "the name a"),
+            ("a file name the registry refuses", [{"name": "~a", "url": "u1", "direct_asset_path": "/downloads/a"}], "registry takes")):
+        found = link_problems(links)
+        expect(any(needle in p for p in found), "%s is refused: %s" % (what, found))
+    expect(any("GitLab takes" in p for p in link_problems([], "x" * (GITLAB_DESCRIPTION_MAX + 1))), "notes over a million characters are refused")
+    held_safe = globals()["link_safe"]
+    globals()["link_safe"] = lambda name: name
+    try:
+        expect(any("hmailserver_6.3.5-1~debian12_amd64.deb" in p for p in link_problems(release_links(version, release_files(version)))),
+               "without link_safe, a distribution release's .deb would carry its ~ into a path GitLab refuses")
+    finally:
+        globals()["link_safe"] = held_safe
 
     changelog = ("# Changelog\n\n## Unreleased - in the tree after 6.3.5\n\nNothing yet.\n\n---\n\n"
                  "## [6.3.5](https://gitlab.com/x/-/releases/v6.3.5) - 2026-10-10\n\nThe notes.\n\n### A part\n\nMore.\n\n---\n\n"
@@ -970,6 +1665,15 @@ def self_test():
         rpm_job_sums = "%s  hmailserver-6.3.5-1.fc44.aarch64.rpm\n%s  generic/%s\n" % ("e" * 64, sha256_of(rpm_aarch64), names["rpm-aarch64"])
         write(package_job_sums(version)[names["deb-arm64"]][0], deb_job_sums.encode("utf-8"))
         write(package_job_sums(version)[names["rpm-aarch64"]][0], rpm_job_sums.encode("utf-8"))
+        # What release-packages gathered: each distribution release's package, the
+        # AppImages and the tarball, each with its SBOM and its build job's sums as
+        # that job wrote them; and the chart with helm-chart-package's.
+        gathered_kinds = dict((b["name"], b["kind"]) for b in gathered_builds(version))
+        for name, kind in gathered_kinds.items():
+            write(sources(version)[sbom_name(name)], sbom_of(os.path.join(root, sources(version)[name]), kind))
+        for name, (relative, listed) in package_job_sums(version).items():
+            if name not in (names["deb-arm64"], names["rpm-aarch64"]):
+                write(relative, ("%s  %s\n" % (sha256_of(os.path.join(root, sources(version)[name])), listed)).encode("utf-8"))
         # The tagged tree's own allow-list names another key than master's: a tag
         # signed with it must be refused, which it is only if master's is read.
         write(ALLOWED_SIGNERS, list_b.encode("utf-8"))
@@ -1095,7 +1799,10 @@ def self_test():
                     else:
                         m = re.match(r"^/packages/(\d+)/package_files$", path)
                         items = self.files[sorted(self.files)[int(m.group(1))]]
-                    return 200, json.dumps(items[(page - 1) * 100:page * 100]).encode("utf-8"), {"x-next-page": ""}
+                    # GitLab's pages of a hundred at most, the next named in X-Next-Page: a
+                    # release is more than a hundred files from 6.3.6.
+                    more = str(page + 1) if len(items) > page * 100 else ""
+                    return 200, json.dumps(items[(page - 1) * 100:page * 100]).encode("utf-8"), {"x-next-page": more}
                 return 400, b'{"message":"unexpected"}', {}
 
             def feed_get(self, url):
@@ -1115,16 +1822,44 @@ def self_test():
                "everything but the installer's SBOM, which release-sbom makes from the signed installer")
         expect(all(sbom_name(n) in expected_assets(version) for n in compiled_assets(version)),
                "every compiled file goes out with its SBOM")
-        expect(len(expected_assets(version)) == 13 and names["deb-arm64"] in gathered and names["rpm-aarch64"] in gathered
+        expect(names["deb-arm64"] in gathered and names["rpm-aarch64"] in gathered
                and sbom_name(names["deb-arm64"]) in gathered and sbom_name(names["rpm-aarch64"]) in gathered,
-               "the AArch64 .deb and .rpm are collected with their SBOMs, thirteen files in all: %s" % gathered)
+               "the AArch64 .deb and .rpm are collected with their SBOMs: %s" % gathered)
+        # Every file 6.3.6 carries, by name: the five of 6.3.5's chain, each distribution
+        # release's .deb and .rpm, the AppImages, the tarball and the chart; each compiled
+        # one with its SBOM, every Linux one with a line in the sums.
+        every_deb = ["hmailserver_6.3.5-1~%s_%s.deb" % (d, a) for d in ("debian12", "debian13", "ubuntu24.04") for a in ("amd64", "arm64")]
+        every_rpm = ["hmailserver-6.3.5-1.%s.%s.rpm" % (t, a) for t in ("fc44", "fc43", "el10", "el9", "suse.lp160", "suse.tw")
+                     for a in ("x86_64", "aarch64")]
+        more = every_deb + every_rpm + ["hMailServer-6.3.5-x86_64.AppImage", "hMailServer-6.3.5-aarch64.AppImage", "hmailserver-6.3.5.tar.gz"]
+        primaries = [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + more + [
+            "hmailserver-chart-6.3.5.tgz", sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
+        with_sbom = primaries[:5] + more
+        expect(len(every_deb) == 6 and len(every_rpm) == 12 and sorted(primary_assets(version)) == sorted(primaries),
+               "the primary files are the installer, the four generic packages, the 18 distribution releases' packages, the "
+               "two AppImages, the tarball, the chart, the sums and the two tree SBOMs: %s" % sorted(set(primary_assets(version)) ^ set(primaries)))
+        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 56,
+               "every compiled file and the tarball go out with <file>.cdx.json, the chart without, 56 files in all: %d" % len(expected_assets(version)))
+        expect(sorted(release_files(version)) == sorted(expected_assets(version) + [n + ".cosign.bundle" for n in expected_assets(version)]
+                                                        + [n + ".sigstore.json" for n in primaries] + ["hmailserver-6.3.5.intoto.sigstore.json"])
+               and len(release_files(version)) == 143,
+               "a release is those 56, a bundle beside each, a .sigstore.json copy of each of the 30 primary files' bundles, "
+               "and the provenance: 143 files and links: %d" % len(release_files(version)))
+        expect(sorted(gathered) == sorted(set(expected_assets(version)) - {names["windows"] + ".cdx.json"}),
+               "collect gathers every one of them but the installer's SBOM: %s" % sorted(set(expected_assets(version)) - set(gathered)))
         released_sums = b""
         if os.path.isfile(os.path.join(out, sums_name(version))):
             with open(os.path.join(out, sums_name(version)), "rb") as f:
                 released_sums = f.read()
-        expect(released_sums == (sums + "%s  %s\n%s  %s\n" % (sha256_of(deb_arm64), names["deb-arm64"], sha256_of(rpm_aarch64),
-                                                               names["rpm-aarch64"])).encode("ascii"),
-               "the release's sums are linux-build's two lines as they are, then the AArch64 .deb's and .rpm's: %r" % released_sums)
+        members = [names["deb-arm64"], names["rpm-aarch64"]] + more + ["hmailserver-chart-6.3.5.tgz"]
+        expect(released_sums == (sums + "".join("%s  %s\n" % (sha256_of(os.path.join(root, sources(version)[n])), n) for n in members)).encode("ascii"),
+               "the release's sums are linux-build's two lines as they are, then the AArch64 .deb's and .rpm's, then a "
+               "line for every other Linux file and the chart: %r" % released_sums)
+        listed = set(line.split()[1] for line in released_sums.decode("ascii").splitlines())
+        expect(listed == set(n for n in primaries if n not in (names["windows"], sums_name(version), "hmailserver.spdx.json",
+                                                               "hmailserver.cyclonedx.json")),
+               "every primary file but the installer, which Authenticode changes after collect, and the sums and tree "
+               "SBOMs has a line in the sums: %s" % sorted(listed))
         if not gathered:
             # So that publishing is still tested when collecting failed.
             os.makedirs(out, exist_ok=True)
@@ -1175,6 +1910,11 @@ def self_test():
                 api=FakeGitLab().seed("hmailserver.spdx.json.cosign.bundle", b"{}"))
         refused("an installer SBOM an earlier run left in the registry", "%s, which an earlier run's signing made" % sbom_name(names["windows"]),
                 api=FakeGitLab().seed(sbom_name(names["windows"]), b"{}"))
+        refused("a bundle's .sigstore.json copy an earlier run left in the registry",
+                "%s.sigstore.json, which an earlier run's signing made" % names["deb-arm64"],
+                api=FakeGitLab().seed(names["deb-arm64"] + ".sigstore.json", b"{}"))
+        refused("a provenance an earlier run left in the registry", "%s, which an earlier run's signing made" % provenance_name(version),
+                api=FakeGitLab().seed(provenance_name(version), b"{}"))
         held = FakeGitLab()
         for name in collected_assets(version):
             if name != names["windows"]:
@@ -1266,6 +2006,111 @@ def self_test():
         problems = collect(root, tag, os.path.join(work, "scanned"), env, run=signed_tag, api=FakeGitLab())
         expect(problems == [], "the scans put back, the release is collected again: %s" % problems)
 
+        # Each file 6.3.6 adds is held as the AArch64 pair is: missing, unlike the sums its
+        # job wrote, or with an SBOM that describes another file, the release is refused.
+        tarball_check = {"code": 0}
+
+        def with_tarball_check(arguments, **kwargs):
+            if any(str(a).endswith("check-source-tarball.py") for a in arguments):
+                return Done(tarball_check["code"], "" if tarball_check["code"] == 0 else "PROBLEM: the pax header names another commit", "")
+            return signed_tag(arguments, **kwargs)
+
+        def swap(relative, data):
+            path = os.path.join(root, relative)
+            with open(path, "rb") as f:
+                kept = f.read()
+            if data is None:
+                os.remove(path)
+            else:
+                with open(path, "wb") as f:
+                    f.write(data)
+            return lambda: write(relative, kept)
+
+        added = [b["name"] for b in gathered_builds(version)] + [chart_name(version)]
+        for name in added:
+            put_back = swap(sources(version)[name], None)
+            refused("a release without %s" % name, "%s is not in this job's artifacts" % name, run=with_tarball_check)
+            put_back()
+            if name in package_job_sums(version):
+                relative, listed = package_job_sums(version)[name]
+                put_back = swap(relative, ("%s  %s\n" % ("0" * 64, listed)).encode("utf-8"))
+                refused("%s unlike the sums its job wrote" % name, "the file is not the one its build job made", run=with_tarball_check)
+                put_back()
+            if name in compiled_assets(version):
+                other = os.path.join(root, sources(version)[names["deb-amd64"]])
+                put_back = swap(sources(version)[sbom_name(name)], sbom_of(other, "deb"))
+                refused("%s with an SBOM of another file" % name, "%s does not describe %s" % (sbom_name(name), name), run=with_tarball_check)
+                put_back()
+                put_back = swap(sources(version)[sbom_name(name)], None)
+                refused("%s without its SBOM" % name, "%s is not in this job's artifacts" % sbom_name(name), run=with_tarball_check)
+                put_back()
+        tarball_check["code"] = 1
+        refused("a tarball build/check-source-tarball.py refuses", "is not the source tarball of", run=with_tarball_check)
+        tarball_check["code"] = 0
+        problems = collect(root, tag, os.path.join(work, "all-back"), env, run=with_tarball_check, api=FakeGitLab())
+        expect(problems == [], "every file put back, the release is collected again: %s" % problems)
+
+        # The rehearsal: a protected batch* branch, Version.h's version, the installer
+        # windows-packages-x64 built under its commit-stamped name, and nothing asked of
+        # git, the tag, the scans or the registry.
+        branch_installer = rehearsal_installer(version, built)
+        expect(branch_installer == "hMailServer-6.3.5-cccccccc-x64.exe", "the branch's installer is named with its commit: %s" % branch_installer)
+        write(REHEARSAL_INSTALLER_DIR + "/" + branch_installer, b"MZ the branch's installer")
+        write(REHEARSAL_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\r\n" % (hashlib.sha256(b"MZ the branch's installer").hexdigest(), branch_installer)).encode("ascii"))
+        rehearsal_env = {"HM_COSIGN_IMAGE": env["HM_COSIGN_IMAGE"], "CI_COMMIT_SHA": built, "CI_COMMIT_BRANCH": "batch42",
+                         "CI_COMMIT_REF_PROTECTED": "true", "CI_DEFAULT_BRANCH": "master", "CI_PROJECT_PATH": "Progressiverobot/hmailserver"}
+        asked = []
+
+        def no_git(arguments, **kwargs):
+            asked.append(arguments)
+            if any(str(a).endswith("check-source-tarball.py") for a in arguments):
+                return Done(0)
+            return Done(128, "", "fatal: a rehearsal asks git nothing")
+
+        rehearsed = os.path.join(work, "rehearsal-assets")
+        problems = collect(root, None, rehearsed, rehearsal_env, run=no_git, api=None, rehearse=True)
+        expect(problems == [], "a rehearsal on a protected batch* branch is collected: %s" % problems)
+        expect((sorted(os.listdir(rehearsed)) if os.path.isdir(rehearsed) else []) == sorted(collected_assets(version)),
+               "a rehearsal collects every file a release does")
+        if os.path.isfile(os.path.join(rehearsed, names["windows"])):
+            with open(os.path.join(rehearsed, names["windows"]), "rb") as f:
+                expect(f.read() == b"MZ the branch's installer", "a rehearsal's installer is windows-packages-x64's, under the release's name")
+        expect(all(any(str(a).endswith("check-source-tarball.py") for a in call) for call in asked),
+               "a rehearsal asks git nothing: no tag, no master, no allow-list: %s" % asked)
+        for what, changes, needle in (("a tag's pipeline", {"CI_COMMIT_TAG": "v6.3.5"}, "never rehearsed"),
+                                      ("master", {"CI_COMMIT_BRANCH": "master"}, "protected batch* branch alone"),
+                                      ("another branch", {"CI_COMMIT_BRANCH": "feature-x"}, "protected batch* branch alone"),
+                                      ("an unprotected batch branch", {"CI_COMMIT_REF_PROTECTED": "false"}, "is not protected"),
+                                      ("no commit", {"CI_COMMIT_SHA": ""}, "not a commit")):
+            found = collect(root, None, os.path.join(work, "refused-rehearsal"), dict(rehearsal_env, **changes), run=no_git, api=None, rehearse=True)
+            expect(any(needle in p for p in found), "a rehearsal in %s is refused: %s" % (what, found))
+            expect(not os.path.isdir(os.path.join(work, "refused-rehearsal")), "a refused rehearsal copies nothing")
+        put_back = swap(REHEARSAL_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\n" % ("0" * 64, branch_installer)).encode("ascii"))
+        found = collect(root, None, os.path.join(work, "refused-rehearsal"), rehearsal_env, run=no_git, api=None, rehearse=True)
+        expect(any("the file is not the one its build job made" in p for p in found), "a rehearsal's installer unlike its sums is refused: %s" % found)
+        put_back()
+        expect(signing_identity(rehearsal_env, rehearse=True) == "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/heads/batch42",
+               "a rehearsal signs as its branch, an identity no server trusts")
+        expect(signing_identity({"CI_PROJECT_PATH": "hmailserver/hmailserver", "CI_COMMIT_TAG": "v6.3.5"})
+               == "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5", "a release signs as its tag, at either path")
+        for what, identity_env in (("another path", {"CI_PROJECT_PATH": "someone/hmailserver", "CI_COMMIT_TAG": "v6.3.5"}),
+                                   ("a branch taken as a release", {"CI_PROJECT_PATH": "Progressiverobot/hmailserver", "CI_COMMIT_BRANCH": "batch42"})):
+            try:
+                signing_identity(identity_env)
+                failures.append("a signing identity for %s is refused" % what)
+            except ReleaseError:
+                pass
+        for command in ("publish", "gather", None):
+            saved_argv, saved_out = sys.argv, sys.stdout
+            sys.argv = ["release-chain.py"] + ([command] if command else []) + ["--rehearse"]
+            sys.stdout = captured = io.StringIO()
+            try:
+                answer = main()
+            finally:
+                sys.argv, sys.stdout = saved_argv, saved_out
+            expect(answer == 2 and "a rehearsal collects, describes and checks; it never" in captured.getvalue(),
+                   "--rehearse with %s is refused before anything runs: %s" % (command, captured.getvalue()))
+
         # release-sbom: the installer's SBOM is made from the signed bytes, never the unsigned.
         signed_dir = os.path.join(work, "release-authenticode")
         os.makedirs(signed_dir)
@@ -1294,9 +2139,34 @@ def self_test():
             f.write(sbom_of(os.path.join(signed, names["windows"]), "windows-x64"))
         for name in expected_assets(version):
             with open(os.path.join(signed, name + ".cosign.bundle"), "w") as f:
-                f.write('{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json"}')
+                f.write('{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json", "for": "%s"}' % name)
+        # Each primary file's .sigstore.json, byte for byte its bundle, as release-sign.sh copies it.
+        for name in primary_assets(version):
+            shutil.copyfile(os.path.join(signed, name + ".cosign.bundle"), os.path.join(signed, name + ".sigstore.json"))
+        tag_identity = SIGNER_IDENTITY_PREFIX + tag
 
-        publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/"}
+        def fake_provenance(directory, identity=tag_identity, commit=built, statement_changes=None, bundle_changes=None):
+            """A bundle as cosign attest-blob --statement writes it: a DSSE envelope of the
+            statement, a certificate naming the identity, and a dsse log entry."""
+            digests = dict((n, sha256_of(os.path.join(directory, n))) for n in expected_assets(version)
+                           if os.path.isfile(os.path.join(directory, n)))
+            statement = provenance_statement(version, identity, digests, dict(publish_env, CI_COMMIT_SHA=commit))
+            if statement_changes:
+                statement_changes(statement)
+            bundle = {"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
+                      "verificationMaterial": {"certificate": {"rawBytes": base64.b64encode(
+                          b"\x30\x82 a certificate whose SAN is " + identity.encode("utf-8")).decode("ascii")},
+                          "tlogEntries": [{"kindVersion": {"kind": "dsse", "version": "0.0.1"}, "integratedTime": "1790000000"}]},
+                      "dsseEnvelope": {"payloadType": IN_TOTO_PAYLOAD, "payload": base64.b64encode(json.dumps(statement).encode("utf-8")).decode("ascii"),
+                                       "signatures": [{"sig": "MEUC"}]}}
+            if bundle_changes:
+                bundle_changes(bundle)
+            with open(os.path.join(directory, provenance_name(version)), "w", encoding="utf-8") as f:
+                json.dump(bundle, f)
+
+        publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/", "CI_PROJECT_PATH": "Progressiverobot/hmailserver",
+                       "CI_COMMIT_SHA": built, "CI_PIPELINE_URL": "https://gitlab.com/Progressiverobot/hmailserver/-/pipelines/1"}
+        fake_provenance(signed)
         verification = "## Verification\n\nSigned by %s%s." % (SIGNER_IDENTITY_PREFIX, tag)
         api = FakeGitLab()
         payload = None
@@ -1306,9 +2176,10 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 26 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "twenty-six links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 26, "every permanent download path is its own")
+            expect(len(links) == 143 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "143 links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 143 and link_problems(links) == [],
+                   "every permanent download path is its own, and one GitLab takes: %s" % link_problems(links))
             paths = dict((l["name"], l["direct_asset_path"]) for l in links)
             expect(paths.get(names["deb-arm64"]) == "/downloads/hmailserver_arm64.deb"
                    and paths.get(names["rpm-aarch64"]) == "/downloads/hmailserver.aarch64.rpm",
@@ -1317,7 +2188,7 @@ def self_test():
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 26 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 143 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
@@ -1325,17 +2196,20 @@ def self_test():
                    "the feed publishes the release as the stable one: %s" % warnings)
             if "releases/tags/v6.3.5" in tree:
                 document = json.loads(tree["releases/tags/v6.3.5"].decode("utf-8"))
-                for platform in ("deb-arm64", "rpm-aarch64"):
+                for platform in ("deb-arm64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64"):
                     offered = feed.read_release(document, platform)
                     expect(offered and offered["installer_name"] == names[platform] and offered["bundle_url"],
-                           "an AArch64 server installed from the %s finds its file and its bundle in the feed: %s" % (platform, offered))
+                           "a server installed from the %s finds its file and its bundle in the feed: %s" % (platform, offered))
                 rules = feed.parse_redirects(tree["_redirects"])[0]
                 expect(("/download/hmailserver_arm64.deb", registry_url(version, names["deb-arm64"]), 302) in rules
                        and ("/download/hmailserver.aarch64.rpm.cosign.bundle", registry_url(version, names["rpm-aarch64"] + ".cosign.bundle"), 302) in rules,
                        "the site's download names for the AArch64 packages lead to this release's files: %s" % rules)
+                expect(("/download/hMailServer-x86_64.AppImage", registry_url(version, names["appimage-x86_64"]), 302) in rules
+                       and ("/download/hMailServer-aarch64.AppImage.cosign.bundle", registry_url(version, names["appimage-aarch64"] + ".cosign.bundle"), 302) in rules
+                       and len(rules) == 15, "and the AppImages', fifteen rules in all: %s" % rules)
             # A release whose arm64 .deb has lost its bundle's link is one no arm64 Debian
             # server could install: the feed's check after publishing says so.
-            for platform in ("deb-arm64", "rpm-aarch64"):
+            for platform in ("deb-arm64", "rpm-aarch64", "appimage-aarch64"):
                 unbundled = json.loads(json.dumps(api.releases))
                 unbundled[0]["assets"]["links"] = [l for l in unbundled[0]["assets"]["links"]
                                                    if l["name"] != names[platform] + ".cosign.bundle"]
@@ -1399,7 +2273,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 21 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 138 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")
@@ -1474,6 +2348,213 @@ def self_test():
         refuses("a registry that gains another file of a release's name before the job's upload of it, older than the job's",
                 "the registry's %s has the SHA-256" % names["deb-amd64"], api_object=Racing(True))
 
+        # The provenance's statement: every file of the release by its SHA-256, the
+        # tag's pipeline as the builder, the commit as the source.
+        files = dict((n, os.path.join(signed, n)) for n in expected_assets(version))
+        statement_dir = os.path.join(work, "statement")
+        os.makedirs(statement_dir)
+        written = write_statement(version, tag_identity, files, dict(publish_env, CI_PIPELINE_CREATED_AT="2026-10-02T08:00:00Z"), statement_dir)
+        with open(written, encoding="utf-8") as f:
+            statement = json.load(f)
+        expect(statement["_type"] == IN_TOTO_STATEMENT and statement["predicateType"] == SLSA_PROVENANCE
+               and [s_["name"] for s_ in statement["subject"]] == sorted(expected_assets(version))
+               and all(s_["digest"]["sha256"] == sha256_of(files[s_["name"]]) for s_ in statement["subject"])
+               and statement["predicate"]["runDetails"]["builder"]["id"] == tag_identity
+               and statement["predicate"]["buildDefinition"]["resolvedDependencies"][0]["digest"]["gitCommit"] == built
+               and statement["predicate"]["runDetails"]["metadata"]["startedOn"] == "2026-10-02T08:00:00Z",
+               "the statement names all 56 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
+        try:
+            write_statement(version, tag_identity, dict(list(files.items())[1:]), publish_env, statement_dir)
+            failures.append("a statement that leaves a file out is refused")
+        except ReleaseError:
+            pass
+        expect(provenance_problems(signed, version, tag_identity, built) == [] and copy_problems(signed, version) == [],
+               "the signed release's provenance names every file and its copies are its bundles: %s" % (
+                   provenance_problems(signed, version, tag_identity, built) + copy_problems(signed, version)))
+
+        def left_out(statement_):
+            statement_["subject"] = statement_["subject"][1:]
+
+        def extra(statement_):
+            statement_["subject"].append({"name": "notes.txt", "digest": {"sha256": "0" * 64}})
+
+        def other_digest(statement_):
+            statement_["subject"][0]["digest"]["sha256"] = "0" * 64
+
+        def other_type(statement_):
+            statement_["predicateType"] = "https://slsa.dev/provenance/v0.2"
+
+        def other_log(bundle_):
+            bundle_["verificationMaterial"]["tlogEntries"][0]["kindVersion"]["kind"] = "hashedrekord"
+
+        for what, kwargs, needle in (("a file left out", {"statement_changes": left_out}, "does not name every file"),
+                                     ("a file that is not the release's", {"statement_changes": extra}, "notes.txt"),
+                                     ("a file under another digest", {"statement_changes": other_digest}, "does not name every file"),
+                                     ("another predicate", {"statement_changes": other_type}, "SLSA v1 predicate"),
+                                     ("another builder", {"identity": SIGNER_IDENTITY_PREFIX + "v6.3.4"}, "names the builder"),
+                                     ("another commit", {"commit": "d" * 40}, "as the source it was built from"),
+                                     ("a blob signature's log entry", {"bundle_changes": other_log}, "not a dsse entry")):
+            twisted = os.path.join(work, "provenance-" + what.replace(" ", "-").replace("'", ""))
+            shutil.copytree(signed, twisted)
+            fake_provenance(twisted, **kwargs)
+            found = provenance_problems(twisted, version, tag_identity, built)
+            expect(any(needle in p for p in found), "a provenance with %s is refused: %s" % (what, found))
+            if what == "another builder":
+                refuses("a release whose provenance another pipeline signed", "names the builder", assets_dir=twisted)
+        found = provenance_problems(signed, version, tag_identity.replace("Progressiverobot", "someone"), built)
+        expect(any("certificate does not name" in p for p in found), "a provenance whose certificate names another identity is refused: %s" % found)
+        uncopied = os.path.join(work, "uncopied")
+        shutil.copytree(signed, uncopied)
+        os.remove(os.path.join(uncopied, names["deb-arm64"] + ".sigstore.json"))
+        refuses("a release without a bundle's .sigstore.json copy", "missing %s.sigstore.json" % names["deb-arm64"], assets_dir=uncopied)
+        with open(os.path.join(uncopied, names["deb-arm64"] + ".sigstore.json"), "w") as f:
+            f.write("{}")
+        refuses("a .sigstore.json that is not its bundle byte for byte", "is not %s.cosign.bundle byte for byte" % names["deb-arm64"], assets_dir=uncopied)
+        unproven = os.path.join(work, "unproven")
+        shutil.copytree(signed, unproven)
+        os.remove(os.path.join(unproven, provenance_name(version)))
+        refuses("a release without its provenance", "missing %s" % provenance_name(version), assets_dir=unproven)
+        globals()["link_safe"] = lambda name: name
+        try:
+            refuses("a release with a link GitLab would refuse, found before any upload", "which GitLab refuses")
+        finally:
+            globals()["link_safe"] = held_safe
+
+        # What the site takes: counted for this release alone (a rehearsal), then beside
+        # as many releases of its shape as the project will have made in some years.
+        said = []
+        digests = dict((n, sha256_of(os.path.join(signed, n))) for n in release_files(version))
+        sizes = dict((n, os.path.getsize(os.path.join(signed, n))) for n in release_files(version))
+        expect(check_budget(None, tag, version, digests, sizes, out=said.append) == [], "one release is well within every limit")
+        expect(len(said) == 2 and "56 files and 143 links (30 primary files, 26 SBOMs, 56 bundles, 30 .sigstore.json copies" in said[0]
+               and "_redirects 31 rules" in said[1] and "the feed's 15, the repositories' 16, 16 of them this release's" in said[1],
+               "the counts: 143 links; _redirects the feed's fifteen rules (the download page and seven kinds of file with their "
+               "bundles) and the repositories' sixteen: %s" % said)
+        crowded = FakeGitLab()
+        for minor in range(40):
+            old = "6.2.%d" % minor
+            old_names = release_files(old)
+            for n in old_names:
+                crowded.files.setdefault((PACKAGE, old), []).append({"id": minor * 1000 + len(crowded.files.get((PACKAGE, old), [])),
+                                                                     "file_name": n, "size": 1000, "file_sha256": "a" * 64})
+            crowded.releases.append({"tag_name": "v" + old, "name": "hMailServer " + old, "upcoming_release": False,
+                                     "released_at": "2026-01-01T00:00:00.000Z", "_links": {"self": feed.PROJECT_URL + "/-/releases/v" + old},
+                                     "assets": {"links": release_links(old, old_names)}})
+        found = check_budget(crowded, tag, version, digests, sizes, out=lambda line: None)
+        expect(any("Pages reads 1000 rules and 65536 bytes" in p and "--keep" in p for p in found),
+               "forty releases of 6.3.6's shape are more rules than Pages reads, and the release is refused before it is signed: %s" % found)
+        # The answer the refusal names is one the count takes: the repositories kept to
+        # the newest ten stable releases, as package-repos.yml's --keep would keep them.
+        found = check_budget(crowded, tag, version, digests, sizes, out=lambda line: None, keep=10)
+        expect(found == [], "with --keep 10 the same forty-one releases fit, and the release is not refused: %s" % found)
+        repos_dir = os.path.join(work, "repos-keep")
+        for text, keep in (("    - python3 build/generate-package-repos.py --site public --cache .package-cache\n", 0),
+                           ("    - python3 build/generate-package-repos.py --self-test --keep 3\n"
+                            "    - python3 build/generate-package-repos.py --site public --keep 12 --cache .package-cache\n", 12),
+                           ("    - python3 build/generate-package-repos.py --site public --keep=7\n", 7),
+                           ("    # python3 build/generate-package-repos.py --site public --keep 2\n"
+                            "    - python3 build/generate-package-repos.py --site public\n", 0)):
+            shutil.rmtree(repos_dir, ignore_errors=True)
+            os.makedirs(os.path.join(repos_dir, os.path.dirname(REPOS_JOB_FILE)))
+            with open(os.path.join(repos_dir, REPOS_JOB_FILE), "w", encoding="utf-8") as f:
+                f.write("package-repos:\n  script:\n" + text)
+            expect(repository_keep(repos_dir) == keep, "the package-repos job's --keep is read as %d: %d" % (keep, repository_keep(repos_dir)))
+        expect(repository_keep(os.path.join(work, "no-such-tree")) == 0, "no package-repos job counts every stable release")
+        held_max = MAX_FEED_BYTES
+        globals()["MAX_FEED_BYTES"] = 40000
+        try:
+            found = check_budget(None, tag, version, digests, sizes, out=lambda line: None)
+            expect(any("releases.json would be" in p and "MAX_FEED_BYTES" in p for p in found),
+                   "a feed larger than a server reads is refused: %s" % found)
+        finally:
+            globals()["MAX_FEED_BYTES"] = held_max
+
+        # gather, the release-packages job: each build's file from its job's artifact,
+        # held to that job's sums, copied with the sums and given its SBOM.
+        built_root = os.path.join(work, "gather-checkout")
+
+        def build_file(relative, data):
+            path = os.path.join(built_root, local(relative))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as f:
+                f.write(data)
+
+        for build in gathered_builds(version):
+            build_file(build["path"], ("built by %s\n" % build["job"]).encode("utf-8"))
+            if build["sums"]:
+                build_file(build["sums"], ("%s  %s\n" % (hashlib.sha256(("built by %s\n" % build["job"]).encode("utf-8")).hexdigest(),
+                                                         build["listed"])).encode("utf-8"))
+            if build["record"]:
+                build_file(build["record"] + "/dpkg.txt", b"ii  libc6-dev amd64 2.39\n")
+        made = []
+
+        def good_maker(build, path):
+            made.append(build["name"])
+            with open(path + ".cdx.json", "wb") as f:
+                f.write(sbom_of(path, build["kind"]))
+
+        packages = os.path.join(work, "release-packages")
+        found = gather(built_root, version, packages, built, make_sbom=good_maker, run=lambda a, **k: Done(0))
+        expect(found == [] and sorted(made) == sorted(b["name"] for b in gathered_builds(version)),
+               "release-packages gathers every file with its SBOM: %s" % found)
+        expected_gathered = sorted([b["name"] for b in gathered_builds(version)] + [sbom_name(b["name"]) for b in gathered_builds(version)] + [JOB_SUMS])
+        expect((sorted(os.listdir(packages)) if os.path.isdir(packages) else []) == expected_gathered
+               and len(os.listdir(os.path.join(packages, JOB_SUMS))) == 20,
+               "the 21 files, their SBOMs, and the 20 build jobs' sums (the tarball has none)")
+        first = gathered_builds(version)[0]
+        for what, change, maker, needle in (
+                ("a build that did not run", lambda: os.remove(os.path.join(built_root, local(first["path"]))), good_maker, "%s failed or did not run" % first["job"]),
+                ("a file unlike its job's sums", lambda: build_file(first["sums"], ("%s  %s\n" % ("0" * 64, first["listed"])).encode("utf-8")),
+                 good_maker, "the file is not the one its build job made"),
+                ("a build without its record", lambda: shutil.rmtree(os.path.join(built_root, local(first["record"]))), good_maker, "its SBOM is made from it"),
+                ("an SBOM that could not be made", lambda: None, lambda b, p: (_ for _ in ()).throw(ReleaseError("pwsh is missing")), "pwsh is missing"),
+                ("an SBOM of another file", lambda: None,
+                 lambda b, p: open(p + ".cdx.json", "wb").write(sbom_of(os.path.join(root, sources(version)[names["deb-amd64"]]), "deb")),
+                 "does not describe")):
+            copy_root = built_root + "-" + str(abs(hash(what)))
+            shutil.copytree(built_root, copy_root)
+            held_root, built_root = built_root, copy_root
+            try:
+                change()
+                found = gather(built_root, version, os.path.join(work, "gathered-" + str(abs(hash(what)))), built, make_sbom=maker,
+                               run=lambda a, **k: Done(0))
+            finally:
+                built_root = held_root
+            expect(any(needle in p for p in found), "gather refuses %s: %s" % (what, found))
+        found = gather(built_root, version, os.path.join(work, "gathered-tarball"), built, make_sbom=good_maker,
+                       run=lambda a, **k: Done(1, "PROBLEM: the pax header names another commit"))
+        expect(any("is not the source tarball of" in p for p in found), "gather refuses a tarball check-source-tarball.py refuses: %s" % found)
+        # The job's own SBOM maker: the component list made once, a package's and an
+        # AppImage's SBOM by package-sbom.sh from its build's record, the tarball's by
+        # asset-sbom.py, each dated by the commit.
+        calls = []
+
+        def fake_run(arguments, **kwargs):
+            calls.append((list(arguments), dict(kwargs.get("env") or {})))
+            if arguments[0] == "pwsh":
+                with open(arguments[arguments.index("-OutputFile") + 1], "w") as f:
+                    f.write("[]")
+            return Done(0)
+
+        maker = default_sbom_maker(built_root, version, env={"CI_COMMIT_TIMESTAMP": "2026-09-28T04:56:27Z"}, run=fake_run)
+        for build in gathered_builds(version):
+            maker(build, os.path.join(packages, build["name"]))
+        listed = [c for c in calls if c[0][0] == "pwsh"]
+        by_script = [c for c in calls if any(str(a).endswith("package-sbom.sh") for a in c[0])]
+        by_python = [c for c in calls if "--kind" in c[0] and c[0][c[0].index("--kind") + 1] == "source"]
+        expect(len(listed) == 1 and len(by_script) == 20 and len(by_python) == 1
+               and all(c[1].get("HM_NATIVE_DEPENDENCIES") for c in by_script)
+               and all(c[1].get("SOURCE_DATE_EPOCH") == "1790571387" for c in by_script + by_python)
+               and all(c[0][-1].replace(os.sep, "/").endswith(b["record"]) for c, b in zip(by_script, gathered_builds(version))),
+               "the component list is made once; each package's and AppImage's SBOM by package-sbom.sh from its record, the "
+               "tarball's by asset-sbom.py, dated by the commit: %d, %d, %d" % (len(listed), len(by_script), len(by_python)))
+        try:
+            default_sbom_maker(built_root, version, env={}, run=lambda a, **k: Done(1, "", "no such file"))(
+                gathered_builds(version)[-1], os.path.join(packages, gathered_builds(version)[-1]["name"]))
+            failures.append("an SBOM asset-sbom.py could not make is refused")
+        except ReleaseError as e:
+            expect("could not be made" in str(e), "an SBOM that could not be made is refused, saying why: %s" % e)
+
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
@@ -1482,15 +2563,34 @@ def self_test():
 
 # ---------------------------------------------------------------- main
 
+def release_sbom(root, env, assets, installer_path, dependencies_path, out, rehearse=False):
+    """The sbom command: the installer's own SBOM (make_installer_sbom), then the
+    provenance's statement over every file the release carries - collect's, the
+    installer as Authenticode signed it, and its SBOM - for release-sign to attest.
+    In a rehearsal the installer is collect's and the identity the branch's."""
+    tag = None if rehearse else env.get("CI_COMMIT_TAG", "")
+    path = make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out, rehearse=rehearse)
+    version = read_version_h(root) if rehearse else version_of(tag)
+    installer = feed.installer_names(version)["windows"]
+    files = dict((name, os.path.join(assets, name)) for name in collected_assets(version))
+    files[installer] = installer_path
+    files[sbom_name(installer)] = path
+    return write_statement(version, signing_identity(env, rehearse), files, env, out)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("command", nargs="?", choices=["collect", "sbom", "publish"])
+    parser.add_argument("command", nargs="?", choices=["collect", "sbom", "publish", "gather", "check-provenance"])
+    parser.add_argument("--rehearse", action="store_true", help="collect, sbom and check-provenance: the release "
+                        "rehearsed on a protected batch* branch, published nowhere")
     parser.add_argument("--out", default=None, help="collect: where the files go (release-assets); sbom: where the "
-                        "installer's SBOM goes (release-sbom)")
+                        "installer's SBOM and the provenance's statement go (release-sbom); gather: where the gathered "
+                        "files go (release-packages)")
     parser.add_argument("--dependencies", default=os.path.join("release-tools", DEPENDENCY_LIST),
                         help="sbom: build/native-dependencies.ps1's list, as linux-sbom wrote it")
     parser.add_argument("--installer-dir", default="release-authenticode", help="sbom: where the signed installer is")
-    parser.add_argument("--assets", default="release-signed", help="publish: the signed files and their bundles")
+    parser.add_argument("--assets", default="release-signed", help="publish, check-provenance: the signed files and "
+                        "their bundles")
     parser.add_argument("--verification", default=os.path.join("release-verified", "verification.md"),
                         help="publish: what release-verify wrote, for the notes")
     parser.add_argument("--self-test", action="store_true", help="test this script with no network, git or token")
@@ -1499,23 +2599,61 @@ def main():
     if args.self_test:
         return self_test()
     tag = os.environ.get("CI_COMMIT_TAG", "")
+    if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):
+        print("REFUSED: a rehearsal collects, describes and checks; it never %s" % (args.command or "runs without a command"))
+        return 2
     try:
         if args.command == "sbom":
-            version = version_of(tag)
-            installer = feed.installer_names(version)["windows"]
-            make_installer_sbom(ROOT, tag, os.environ, os.path.join(ROOT, "release-assets"),
-                                os.path.join(ROOT, args.installer_dir, installer), os.path.join(ROOT, args.dependencies),
-                                os.path.join(ROOT, args.out or "release-sbom"))
+            if args.rehearse:
+                problems = rehearsal_problems(os.environ)
+                if problems:
+                    raise ReleaseError("; ".join(problems))
+                version = read_version_h(ROOT)
+                installer_path = os.path.join(ROOT, "release-assets", feed.installer_names(version)["windows"])
+            else:
+                version = version_of(tag)
+                installer_path = os.path.join(ROOT, args.installer_dir, feed.installer_names(version)["windows"])
+            release_sbom(ROOT, os.environ, os.path.join(ROOT, "release-assets"), installer_path,
+                         os.path.join(ROOT, args.dependencies), os.path.join(ROOT, args.out or "release-sbom"), args.rehearse)
             return 0
         if args.command == "collect":
-            token = os.environ.get("CI_JOB_TOKEN", "")
-            problems = collect(ROOT, tag, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=GitLab(token) if token else None)
+            if args.rehearse:
+                # No token and no registry: a rehearsal reads and publishes nothing of GitLab's.
+                problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=None, rehearse=True)
+            else:
+                token = os.environ.get("CI_JOB_TOKEN", "")
+                problems = collect(ROOT, tag, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=GitLab(token) if token else None)
             for problem in problems:
                 print("REFUSED: " + problem)
             if problems:
                 print("Nothing has been signed or published. %d problem(s)." % len(problems))
                 return 1
-            print("%s is ready to be signed: %d files in %s." % (tag, len(collected_assets(version_of(tag))), args.out or "release-assets"))
+            version = read_version_h(ROOT) if args.rehearse else version_of(tag)
+            print("%s is ready to be signed%s: %d files in %s." % (
+                "the rehearsal of %s" % version if args.rehearse else tag, " as the branch, and published nowhere" if args.rehearse else "",
+                len(collected_assets(version)), args.out or "release-assets"))
+            return 0
+        if args.command == "gather":
+            version = read_version_h(ROOT)
+            problems = gather(ROOT, version, os.path.join(ROOT, args.out or GATHERED), os.environ.get("CI_COMMIT_SHA", ""))
+            for problem in problems:
+                print("REFUSED: " + problem)
+            if problems:
+                print("%d problem(s): nothing is gathered for the release." % len(problems))
+                return 1
+            print("gathered %d files for %s, each with its SBOM, in %s." % (len(gathered_builds(version)), version, args.out or GATHERED))
+            return 0
+        if args.command == "check-provenance":
+            version = read_version_h(ROOT) if args.rehearse else version_of(tag)
+            identity = signing_identity(os.environ, args.rehearse)
+            assets = os.path.join(ROOT, args.assets)
+            problems = copy_problems(assets, version) + provenance_problems(assets, version, identity, os.environ.get("CI_COMMIT_SHA", ""))
+            for problem in problems:
+                print("PROBLEM: " + problem)
+            if problems:
+                return 1
+            print("%s names every file of %s by its SHA-256, built by %s from %s; every primary file's .sigstore.json is "
+                  "its bundle." % (provenance_name(version), version, identity, os.environ.get("CI_COMMIT_SHA", "")))
             return 0
         if args.command == "publish":
             with open(os.path.join(ROOT, CHANGELOG), encoding="utf-8") as f:

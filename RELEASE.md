@@ -105,15 +105,20 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    `semgrep`, `dependency-scan` and `semgrep-sast` have finished, whatever they
    found; it does not wait for `ci-image-packages` or `repo-hygiene`, which are
    `allow_failure`, or for the manual `db-matrix`. Of the package jobs of
-   `.gitlab/ci/packages-*.yml` it waits for the two whose files the release
-   carries - `deb-ubuntu26.04-arm64`, the generic arm64 `.deb`, and
+   `.gitlab/ci/packages-*.yml` it waits for the two whose generic files the
+   release carries - `deb-ubuntu26.04-arm64`, the generic arm64 `.deb`, and
    `rpm-fedora44-aarch64`, the generic aarch64 `.rpm` - with their SBOM jobs and
    their install jobs, which install and run each package in an AArch64
-   container under qemu-user. It does not wait for the others - the `.deb` and
-   `.rpm` of each other distribution release, the AppImages and the Windows
-   packages - which make CI artifacts no release carries: they may still be
-   running, or have failed, when it starts, and their failure does not stop it.
-   It reads the four scans'
+   container under qemu-user; for `release-packages`
+   (`.gitlab/ci/release-packages.yml`), which waits in turn for every other
+   distribution release's `.deb` and `.rpm` build and its install job, both
+   AppImages and their test jobs, and the source tarball, and gathers those
+   files with an SBOM each; and for `helm-chart-package`, the chart. (Release may
+   need fifty jobs at most, GitLab's `ci_needs_size_limit`; `release-packages`
+   waits for forty-one, thirty-nine of them jobs `release` does not need
+   itself.) It does not wait for the Windows packages, whose installers no
+   release carries: the release's installer is `windows-installer`'s. It reads
+   the four scans'
    reports first (`build/ci/security-gate.py`) and refuses while one did not
    finish, or found something `SECURITY.md`'s policy counts ("Before a
    release") that no baseline and no entry of `.gitlab/security-exceptions.yml`
@@ -125,12 +130,21 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    have, or not signed by the one key `master`'s `.gitlab/allowed_signers`
    lists (and every tag while that list holds more than one); a `Version.h` that
    does not say the tag's version, a cosign image that is not `gcr.io`'s pinned
-   by digest, a missing Azure setting, and a missing file. It also refuses when
+   by digest, a missing Azure setting, a missing file, a file unlike the sums
+   its build job wrote, a compiled file without an SBOM that describes it, and a
+   source tarball `build/check-source-tarball.py` does not take for this commit.
+   It also refuses when
    the package `hmailserver/X.Y.Z` already holds one of the release's files with
    other bytes, or the installer or a bundle at all: those two are made by the
    signing jobs after it, and a second signing never makes the same bytes (a new
-   timestamp, a new certificate). Nothing has been signed or sent when it
-   refuses.
+   timestamp, a new certificate). And it counts what GitLab and Pages will take
+   before anything is signed: every link of the release GitLab must accept (a
+   `direct_asset_path` of at most 128 characters of letters, digits, `_ . - /`),
+   and the update feed's site with the release in it - `_redirects`, with the apt
+   and dnf repositories' rules, under the 1,000 rules and 64 KiB Pages reads, and
+   `releases.json` under the 4 MiB a server reads, the repositories kept as
+   `package-repos`' `--keep` keeps them - and says the counts. Nothing
+   has been signed or sent when it refuses.
 
    Before starting it, compare the line `hMailServer.exe <SHA-256>` that
    `windows-installer` printed with the hash step 8 measured and the notes
@@ -140,13 +154,24 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    release does not ship. Bring bench150 to that toolchain and retry
    `windows-installer` first ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
 4. **`release-authenticode`, `release-sbom`, `release-sign` and `release-verify`
-   follow by themselves.** `release-sbom` makes the signed installer's own SBOM;
-   the x86-64 `.deb`'s and `.rpm`'s come from `linux-build`, the AArch64 ones'
-   from `deb-ubuntu26.04-arm64-sbom` and `rpm-fedora44-aarch64-sbom`, and every
-   compiled file goes out with its `<file>.cdx.json` (SECURITY.md, "Software
-   bills of materials"). From 6.3.6 a release is thirteen files, each with its
-   bundle: the installer, the `.deb` and `.rpm` for x86-64 and for AArch64, the
-   four packages' sums, the five compiled files' SBOMs and the tree's two. Read `release-verify`'s `verification.md`: the identity must
+   follow by themselves.** `release-sbom` makes the signed installer's own SBOM
+   and the statement of the release's SLSA v1 provenance, which names every file
+   by its SHA-256; the x86-64 `.deb`'s and `.rpm`'s SBOMs come from `linux-build`,
+   the generic AArch64 ones' from `deb-ubuntu26.04-arm64-sbom` and
+   `rpm-fedora44-aarch64-sbom`, and every other package's, both AppImages' and the
+   tarball's from `release-packages`, and every compiled file goes out with its
+   `<file>.cdx.json` (SECURITY.md, "Software bills of materials"). From 6.3.6 a
+   release is fifty-six files, each with its bundle: the installer; the generic
+   `.deb` and `.rpm` for x86-64 and for AArch64; a `.deb` for Debian 12 and 13 and
+   Ubuntu 24.04 and an `.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0
+   and Tumbleweed, each for both, eighteen; the two AppImages; the source tarball;
+   the Helm chart; the sums of every Linux file and the chart; the twenty-six
+   SBOMs of the compiled files and the tarball, and the tree's two. Each
+   primary file's bundle goes out a second time as `<file>.sigstore.json`, and
+   `hmailserver-X.Y.Z.intoto.sigstore.json` is the provenance, signed as the
+   pipeline with `cosign attest-blob`: 143 links in all. `release-sign` finds every
+   file in the provenance with cosign, and `release-verify` holds the provenance
+   and the copies to the files. Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
    or, once the project has moved to the group, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
    Note the repository id it gives: until one release signed before the move
@@ -165,15 +190,18 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    started it, and the package protection rules let only an Owner push to the
    package `hmailserver`: started by anyone else, its uploads are refused
    (`hmailserver/docs/ContinuousIntegration.md`, "What waits for the owner").
-   It uploads the thirteen files and their bundles to
+   It uploads the release's 143 files - the fifty-six, their bundles, the
+   `.sigstore.json` copies and the provenance - to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
-   compiled file whose SBOM is missing or describes other bytes, and a name
+   compiled file whose SBOM is missing or describes other bytes, a copy that is
+   not its bundle, a provenance that does not name every file, a link GitLab
+   would refuse, a site Pages or a server would not read whole, and a name
    the package holds with other bytes, and not sending again a file it holds
    with the same bytes - reads every record of each name back and holds it to
    the digest that was signed, creates the release with a
    link per file named after it, and checks that the feed the API now gives
-   offers the release to Windows servers, and to Debian and RPM servers on
-   x86-64 and AArch64. `update-feed` then
+   offers the release to Windows servers, to Debian and RPM servers on
+   x86-64 and AArch64, and to the AppImages. `update-feed` then
    runs `pages` on `master`. Check the site:
 
    ```
@@ -200,6 +228,21 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
 
 7. **The package managers** (step 13) are still by hand: the manifests job was
    not ported.
+
+**The rehearsal.** Every protected `batch*` branch's pipeline rehearses steps 3
+to 4 (`.gitlab/ci/release-rehearsal.yml`): `release-rehearsal` collects every file
+as `release` does, from the same jobs - the version is `Version.h`'s, and the x64
+installer `windows-packages-x64`'s, built under its commit-stamped name, since
+`windows-installer` runs for a `v*` tag alone - and counts what GitLab and Pages
+would take; `release-rehearsal-sign` signs every file, makes each copy and attests
+the provenance with Sigstore as the branch; `release-rehearsal-verify` holds every
+SBOM, copy and the provenance to the files, and has the server's own verifier read
+each bundle and refuse it at the identity. Servers trust `v*` tags alone, so what a
+rehearsal signs installs nowhere, and it publishes nothing: no job of it uses the
+job token GitLab gives every job, and `release-chain.py` refuses `--rehearse` with
+`publish`. What it cannot rehearse is the tag's own checks, the security gate,
+the registry and Authenticode. A rehearsal that fails is a release that would fail: mend it before
+the tag.
 
 A tag is spent once here too. Before `release-publish`, a job that failed for
 a reason outside the tree - a setting, a tool on bench150, the network - is

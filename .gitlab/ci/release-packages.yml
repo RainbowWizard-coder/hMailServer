@@ -1,0 +1,133 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What a release carries from the package jobs besides the generic packages, gathered
+# in one place: included from .gitlab-ci.yml (docs/ContinuousIntegration.md, "What a
+# release carries").
+#
+#   release-packages  linix, in the CI image (PowerShell, Python, dpkg-deb, rpm): each
+#                     Debian and Ubuntu release's .deb and each Fedora, EL and openSUSE
+#                     release's .rpm, for x86-64 and AArch64 (.gitlab/ci/packages-deb.yml,
+#                     packages-rpm.yml); the two AppImages (packages-appimage.yml); and the
+#                     source tarball (source-tarball.yml). Each is held to the SHA-256 its
+#                     build job wrote - the tarball to build/check-source-tarball.py and
+#                     this commit - and copied under its name into release-packages/, with
+#                     that job's sums under release-packages/job-sums/, and its SBOM made
+#                     beside it: a package's and an AppImage's by
+#                     build/ci/packages/package-sbom.sh from what its build recorded it
+#                     was built against, the tarball's by build/asset-sbom.py from the
+#                     tarball (build/ci/release-chain.py gather). release collects them
+#                     from here, and so does the rehearsal.
+#
+# Why a job of its own: the release job may need fifty jobs at most (GitLab's
+# ci_needs_size_limit, 50 on GitLab.com), and it needs thirty-one already (thirty-three
+# with this job and helm-chart-package); these are thirty-nine more, which would make
+# seventy. So this job needs each build with its artifacts and each install
+# or AppImage test job without, none optionally: it does not run until every one of
+# them has passed, and release, which needs it, does not either. None of them may fail
+# or wait for a press in a v* tag's pipeline (build/check-release-chain.py holds that,
+# and holds this list to build/ci/release-chain.py's gathered_builds).
+#
+# When: a v* tag's pipeline and a batch* branch's (where the release is rehearsed,
+# .gitlab/ci/release-rehearsal.yml), in exactly the pipelines .own-runners makes the
+# package jobs in - a push that changes documentation alone makes none of them, and
+# this job would need jobs the pipeline lacks - and never on master, where the package
+# builds wait for a press. Nothing here is published or holds a secret.
+release-packages:
+  extends: .linix
+  stage: test
+  needs:
+    - job: deb-debian12-amd64
+      artifacts: true
+    - job: deb-debian12-amd64-install
+      artifacts: false
+    - job: deb-debian12-arm64
+      artifacts: true
+    - job: deb-debian12-arm64-install
+      artifacts: false
+    - job: deb-debian13-amd64
+      artifacts: true
+    - job: deb-debian13-amd64-install
+      artifacts: false
+    - job: deb-debian13-arm64
+      artifacts: true
+    - job: deb-debian13-arm64-install
+      artifacts: false
+    - job: deb-ubuntu24.04-amd64
+      artifacts: true
+    - job: deb-ubuntu24.04-amd64-install
+      artifacts: false
+    - job: deb-ubuntu24.04-arm64
+      artifacts: true
+    - job: deb-ubuntu24.04-arm64-install
+      artifacts: false
+    - job: rpm-fedora44-x86_64
+      artifacts: true
+    - job: rpm-fedora44-x86_64-install
+      artifacts: false
+    - job: rpm-fedora44-aarch64
+      artifacts: true
+    - job: rpm-fedora44-aarch64-install
+      artifacts: false
+    - job: rpm-fedora43-x86_64
+      artifacts: true
+    - job: rpm-fedora43-x86_64-install
+      artifacts: false
+    - job: rpm-fedora43-aarch64
+      artifacts: true
+    - job: rpm-fedora43-aarch64-install
+      artifacts: false
+    - job: rpm-el10-x86_64
+      artifacts: true
+    - job: rpm-el10-x86_64-install
+      artifacts: false
+    - job: rpm-el10-aarch64
+      artifacts: true
+    - job: rpm-el10-aarch64-install
+      artifacts: false
+    - job: rpm-el9-x86_64
+      artifacts: true
+    - job: rpm-el9-x86_64-install
+      artifacts: false
+    - job: rpm-el9-aarch64
+      artifacts: true
+    - job: rpm-el9-aarch64-install
+      artifacts: false
+    - job: rpm-leap16-x86_64
+      artifacts: true
+    - job: rpm-leap16-x86_64-install
+      artifacts: false
+    - job: rpm-leap16-aarch64
+      artifacts: true
+    - job: rpm-leap16-aarch64-install
+      artifacts: false
+    - job: rpm-tumbleweed-x86_64
+      artifacts: true
+    - job: rpm-tumbleweed-x86_64-install
+      artifacts: false
+    - job: rpm-tumbleweed-aarch64
+      artifacts: true
+    - job: rpm-tumbleweed-aarch64-install
+      artifacts: false
+    - job: appimage-x86_64
+      artifacts: true
+    - job: appimage-test-x86_64
+      artifacts: false
+    - job: appimage-aarch64
+      artifacts: true
+    - job: appimage-test-aarch64
+      artifacts: false
+    - job: source-tarball
+      artifacts: true
+  timeout: 30 minutes
+  rules:
+    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/
+      when: never
+    - !reference [.own-runners, rules]
+  script:
+    - python3 build/ci/release-chain.py gather --out release-packages
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - release-packages/

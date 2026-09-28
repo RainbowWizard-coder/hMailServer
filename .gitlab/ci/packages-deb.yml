@@ -27,7 +27,9 @@
 # linux-build's (.gitlab-ci.yml), the one the release collects and
 # linux-package-deb installs, so no job here makes a second file of that name.
 # Every other release makes hmailserver_<v>-1~<distro>_<arch>.deb, Version
-# <v>-1~<distro>: CI artifacts that no release carries yet.
+# <v>-1~<distro>, which the release carries from 6.3.6: release-packages
+# (.gitlab/ci/release-packages.yml) needs each build and its install job and
+# gathers them with an SBOM each.
 #
 # When: every v* tag and batch* branch, at once; on any other protected branch
 # (master) by hand - a build is started with its play button, and its install

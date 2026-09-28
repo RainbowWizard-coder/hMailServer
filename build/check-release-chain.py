@@ -68,8 +68,9 @@ refuses it. This checker holds them to each other. It fails when:
     the tree's .gitlab/allowed_signers lists more than one key, which the release
     job refuses as master's (release tags are the owner's alone, GOVERNANCE.md);
   * collect, given a registry that holds files of the release's version, takes
-    one with other bytes, or the installer or a bundle, which only a signing
-    after it makes, or refuses one with the same bytes; or publish uploads before
+    one with other bytes, or the installer, a bundle, a bundle's .sigstore.json copy
+    or the provenance, which only a signing after it makes, or refuses one with the
+    same bytes; or publish uploads before
     it has refused a name the registry holds with other bytes, sends again what
     is up already, or holds only the newest record of a name to the digest;
   * the pinned-image pattern the release job holds HM_COSIGN_IMAGE to at run time
@@ -130,7 +131,37 @@ refuses it. This checker holds them to each other. It fails when:
     container-image-deb.sh and linux-image.sh must refuse, exiting non-zero, unless
     it is "1" - or is read by a rule, which is decided when the pipeline is made and
     would leave a release published before the project's move without the jobs; or
-    a committed CI file sets that variable.
+    a committed CI file sets that variable;
+  * a file the release carries from 6.3.6 is not gathered, described and tested
+    before release starts: each distribution release's .deb and .rpm, the two
+    AppImages and the source tarball (build/ci/release-chain.py's gathered_builds)
+    must each be made by a job of the package files, and the release-packages job
+    (.gitlab/ci/release-packages.yml) must need each build with its artifacts and
+    each install or AppImage test without, none optionally, run
+    build/ci/release-chain.py gather and keep release-packages/, and run for a v* tag
+    in the pipelines .own-runners makes the package jobs in; none of those jobs, nor
+    release-packages, may be allow_failure or manual in a v* tag's pipeline, nor wait
+    for a press on a batch* branch, where the release is rehearsed; release must need
+    release-packages and helm-chart-package with their artifacts, not optionally; or a
+    job needs more than GitLab's fifty (ci_needs_size_limit on GitLab.com), which
+    would stop the pipeline from being created at all;
+  * release-sign.sh stops copying each primary file's bundle to <file>.sigstore.json,
+    attesting the provenance's statement (cosign attest-blob --statement, in the
+    bundle format, to Rekor v1) or finding every file in it with cosign
+    verify-blob-attestation as the pipeline's identity, or counts another number;
+    release-verify.sh stops holding every compiled file and the tarball to its SBOM,
+    or the copies and the provenance to the files (release-chain.py
+    check-provenance); or release-chain.py's publish uploads before it has held the
+    copies, the provenance, GitLab's rules for the links and the site's budget
+    (_redirects, the feed's size) to the release, or collect copies before counting
+    that budget; or its limit on the feed's size is not UpdateChecker.cpp's;
+  * the rehearsal (.gitlab/ci/release-rehearsal.yml) can run for a tag, for master,
+    for a merge request or where the package jobs are not made; runs anything but
+    release-chain.py collect --rehearse and sbom --rehearse, release-sign.sh
+    --rehearse and release-verify.sh --rehearse; holds an ID token but Sigstore's in
+    its signing job, or names the job token, the registry or publish; or the scripts
+    sign as a branch other than in their rehearsal, or as one that is not a protected
+    batch* branch, or release-chain.py takes --rehearse with publish or gather.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -175,6 +206,13 @@ FILES = {
     "repos": os.path.join(".gitlab", "ci", "package-repos.yml"),
     "exceptions": os.path.join(".gitlab", "security-exceptions.yml"),
     "codeowners": os.path.join(".gitlab", "CODEOWNERS"),
+    # What a release carries from 6.3.6 besides the generic packages, gathered; the
+    # chart; the source tarball; and the release rehearsed on a batch* branch.
+    "release-packages": os.path.join(".gitlab", "ci", "release-packages.yml"),
+    "helm": os.path.join(".gitlab", "ci", "helm-chart.yml"),
+    "tarball-ci": os.path.join(".gitlab", "ci", "source-tarball.yml"),
+    "rehearsal": os.path.join(".gitlab", "ci", "release-rehearsal.yml"),
+    "checker": os.path.join("hmailserver", "source", "Server", "Common", "Util", "UpdateChecker.cpp"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
@@ -251,9 +289,40 @@ CARRIED_PACKAGES = {
     "rpm-aarch64": {"file": "packages-rpm", "build": "rpm-fedora44-aarch64", "sbom": "rpm-fedora44-aarch64-sbom",
                     "install": "rpm-fedora44-aarch64-install", "dir": "packages-rpm/fedora44-aarch64/generic/"},
 }
+# The job that gathers every other file a release carries from the package jobs
+# (.gitlab/ci/release-packages.yml): each distribution release's .deb and .rpm, the
+# AppImages and the source tarball, each with its SBOM; and the chart's job.
+GATHER_JOB = "release-packages"
+CHART_JOB = "helm-chart-package"
+# Its rules: made for a v* tag and a batch* branch only, and there by .own-runners'
+# rules, in exactly the pipelines the package jobs are made in.
+GATHER_REFUSAL = "- if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/\n      when: never\n    - !reference [.own-runners, rules]"
+# GitLab's ci_needs_size_limit on GitLab.com: a job that needs more makes the whole
+# pipeline fail to be created.
+NEEDS_LIMIT = 50
+# The files that hold jobs, whose needs are counted.
+JOB_FILES = ("ci", "security", "image", "export", "packages-deb", "packages-rpm", "packages-appimage", "packages-windows",
+             "repos", "release-packages", "helm", "tarball-ci", "rehearsal")
+# The release rehearsal (.gitlab/ci/release-rehearsal.yml): its jobs, what each needs,
+# the one script each runs, and the rules template every one takes, whose first rule
+# refuses a merge request, a tag, master and any branch but batch*.
+REHEARSAL_JOBS = {
+    "release-rehearsal": (["linux-build", "linux-sbom", "deb-ubuntu26.04-arm64", "deb-ubuntu26.04-arm64-sbom", "rpm-fedora44-aarch64",
+                           "rpm-fedora44-aarch64-sbom", GATHER_JOB, CHART_JOB, "windows-packages-x64"],
+                          ["python3 build/ci/release-chain.py collect --rehearse --out release-assets",
+                           "python3 build/ci/release-chain.py sbom --rehearse --out release-sbom"]),
+    "release-rehearsal-sign": (["release-rehearsal"], ["sh build/ci/release-sign.sh --rehearse"]),
+    "release-rehearsal-verify": (["release-rehearsal", "release-rehearsal-sign"], ["bash build/ci/release-verify.sh --rehearse"]),
+}
+REHEARSAL_RULES = ".release-rehearsal-rules"
+REHEARSAL_REFUSAL = ('- if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_TAG || $CI_COMMIT_BRANCH !~ /^batch/ || '
+                     '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n      when: never\n    - !reference [.own-runners, rules]')
+# What no job of the rehearsal may name: it reads nothing of the registry or the
+# releases and publishes nothing.
+NOT_IN_A_REHEARSAL = ("publish", "CI_JOB_TOKEN", "JOB-TOKEN", "release-cli", "glab", "curl", "wget", "api/v4", "PRIVATE-TOKEN")
 # The jobs whose artifacts release collects; it waits for every other gate without them.
 COLLECTED = ["linux-build", "linux-sbom", "windows-installer"] + [
-    job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom")]
+    job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom")] + [GATHER_JOB, CHART_JOB]
 # The security scans whose reports release reads (build/ci/security-gate.py's SCANS):
 # needed, not optionally, with their artifacts. semgrep-sast is GitLab's, in
 # .gitlab/ci/gitlab-security.yml; the others are the CI file's own, on linix.
@@ -270,7 +339,13 @@ RESERVED = {"stages", "workflow", "default", "variables", "include"}
 # what is signed after it; the release scripts sign from either path and no other.
 MOVE_TO = "https://gitlab.com/hmailserver/hmailserver"
 IDENTITY_TAIL = "//.gitlab-ci.yml@refs/tags/"
-SCRIPT_IDENTITY = 'identity="${repository}%s${tag}"' % IDENTITY_TAIL
+# The identity release-sign.sh and release-verify.sh expect: the repository's, for
+# the ref - refs/tags/<tag> for a release, refs/heads/<branch> in a rehearsal alone.
+SCRIPT_IDENTITY = 'identity="${repository}//.gitlab-ci.yml@${ref}"'
+TAG_REF = 'ref="refs/tags/${tag}"'
+BRANCH_REF = 'ref="refs/heads/${branch}"'
+# The container image's signing script signs for a tag and nothing else.
+TAG_SCRIPT_IDENTITY = 'identity="${repository}%s${tag}"' % IDENTITY_TAIL
 
 
 def _load(relative, name):
@@ -478,7 +553,7 @@ def need_entries(block):
     if not match:
         return entries
     for entry in re.split(r"^    - ", match.group(1), flags=re.MULTILINE):
-        head = re.match(r"(?:job:\s*)?([a-z][a-z0-9.\-]*)", entry)
+        head = re.match(r"(?:job:\s*)?([a-z][a-z0-9._\-]*)", entry)
         if head:
             entries[head.group(1)] = entry
     return entries
@@ -494,7 +569,7 @@ def needs(block):
         return [n.strip() for n in inline.group(1).split(",") if n.strip()]
     found = []
     for line in match.group(1).split("\n"):
-        item = re.match(r"^\s*-\s*(?:job:\s*)?([a-z][a-z0-9.\-]*)\s*$", line)
+        item = re.match(r"^\s*-\s*(?:job:\s*)?([a-z][a-z0-9._\-]*)\s*$", line)
         if item:
             found.append(item.group(1))
     return found
@@ -614,6 +689,8 @@ def probe_registry(chain, feed):
         ("the installer, which Authenticode makes after collect", Registry((names["windows"], "a" * 64)), True),
         ("the installer's SBOM, which release-sbom makes after collect", Registry((chain.sbom_name(names["windows"]), "a" * 64)), True),
         ("a bundle, which Sigstore makes after collect", Registry(("hmailserver.spdx.json.cosign.bundle", "c" * 64)), True),
+        ("a bundle's .sigstore.json copy, which release-sign makes", Registry(("hmailserver.spdx.json.sigstore.json", "c" * 64)), True),
+        ("the provenance, which release-sign attests", Registry((chain.provenance_name(version), "c" * 64)), True),
     ]
     problems = []
     for what, registry, refuse in cases:
@@ -668,7 +745,7 @@ def check(texts, chain, feed):
     # needs have finished, so a gate it does not need can be released past.
     carried = [job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom", "install")]
     order = {
-        "release": gates(jobs) + ["windows-installer"] + carried,
+        "release": gates(jobs) + ["windows-installer"] + carried + [GATHER_JOB, CHART_JOB],
         "release-authenticode": ["release"],
         "release-sbom": ["release", "release-authenticode"],
         "release-sign": ["release", "release-authenticode", "release-sbom"],
@@ -730,10 +807,13 @@ def check(texts, chain, feed):
     # Every compiled file with its own SBOM: made by the jobs, signed with the rest,
     # and held to its file before the release is published.
     carried = chain.expected_assets("9.9.9")
-    compiled = [n for n in carried if chain.link_type(n) == "package"]
-    if sorted(compiled) != sorted(chain.compiled_assets("9.9.9")):
-        problems.append("build/ci/release-chain.py's compiled_assets is %s, and the release carries the compiled files %s: "
-                        "each of them needs its SBOM" % (chain.compiled_assets("9.9.9"), compiled))
+    packages = [n for n in carried if chain.link_type(n) == "package"]
+    compiled = chain.compiled_assets("9.9.9")
+    # Every package goes out with its SBOM, and so does the source tarball, the one
+    # file with an SBOM that is not a package (it lists the third-party code it holds).
+    if set(packages) - set(compiled) or sorted(set(compiled) - set(packages)) != [chain.tarball_name("9.9.9")]:
+        problems.append("build/ci/release-chain.py's compiled_assets is %s, and the release carries the compiled files %s "
+                        "and the source tarball: each of them needs its SBOM" % (compiled, packages))
     for name in compiled:
         if chain.sbom_name(name) not in carried:
             problems.append("the release carries %s without its SBOM, %s (OpenSSF Baseline OSPS-QA-02.02; build/asset-sbom.py)" % (
@@ -788,7 +868,7 @@ def check(texts, chain, feed):
                         ("--rekor-url https://rekor.sigstore.dev", "the public Rekor v1 log, whose key servers compile in")):
         if needle not in flags:
             problems.append("build/ci/release-sign.sh signs without %s (%s)" % (needle, why))
-    for needle, why in (("--use-signing-config=false", "the signing configuration off, which could choose Rekor v2"),
+    for needle, why in (('sign_flags="$sign_flags --use-signing-config=false"', "the signing configuration off, which could choose Rekor v2"),
                         ('.cosign.bundle"', "<file>.cosign.bundle, the name a server looks for"),
                         ('"hashedrekord"', "the check that the entry is a hashedrekord"),
                         ('0\\.0\\.1', "the check that the entry is version 0.0.1"),
@@ -859,6 +939,26 @@ def check(texts, chain, feed):
                             "fails at any other: its case on CI_PROJECT_PATH must be exactly\n%s" % (FILES[name], [p for p, _ in paths], case_block))
         if text.count(case_block + SCRIPT_IDENTITY + "\n") != 1 or len(re.findall(r"(?<![\w-])identity=", text)) != 1:
             problems.append("%s expects another identity than <the project's repository>%s<tag>, named once, after the case" % (FILES[name], IDENTITY_TAIL))
+    # The ref the identity names: the tag's, set where the tag was held to v*, and the
+    # branch's only after --rehearse, with the branch held to a protected batch* one
+    # and no tag; and the paths release-chain.py signs its provenance for, the same.
+    guards = {"sign": ('[ -z "$tag" ] || fail', "    batch*) ;;", '[ "${CI_COMMIT_REF_PROTECTED:-}" = true ] || fail'),
+              "verify": ('[ -z "$tag" ] || fail', "    batch*) ;;")}
+    for name in ("sign", "verify"):
+        text = texts[name]
+        tag_at, branch_at = text.find(TAG_REF), text.find(BRANCH_REF)
+        rehearse_at = text.find("  --rehearse) rehearse=1 ;;")
+        if text.count(TAG_REF) != 1 or text.count(BRANCH_REF) != 1 or len(re.findall(r"(?<![\w-])ref=", text)) != 2:
+            problems.append("%s names the ref it signs as otherwise than %s once and %s once" % (FILES[name], TAG_REF, BRANCH_REF))
+        elif "    v[0-9]*) ;;" not in text[max(0, tag_at - 300):tag_at]:
+            problems.append("%s signs a release as %s without holding the tag to v*" % (FILES[name], TAG_REF))
+        elif rehearse_at < 0 or not rehearse_at < branch_at or not all(g in text[rehearse_at:branch_at] for g in guards[name]) \
+                or text.count("rehearse=1") != 1:
+            problems.append("%s signs as a branch (%s) outside --rehearse, or without holding the branch to a protected batch* "
+                            "one and the pipeline to one without a tag: %s" % (FILES[name], BRANCH_REF, " ".join(guards[name])))
+    if chain.SIGNING_REPOSITORIES != dict(paths):
+        problems.append("build/ci/release-chain.py signs its provenance for %s, not the paths the scripts sign from, %s" % (
+            chain.SIGNING_REPOSITORIES, dict(paths)))
     if not repository or repository.group(1) != feed.PROJECT_URL:
         problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY is not %s" % feed.PROJECT_URL)
     if not repository_id or repository_id.group(1) != feed.PROJECT_ID or chain.PROJECT_ID != feed.PROJECT_ID:
@@ -1027,8 +1127,8 @@ def check(texts, chain, feed):
         problems.append("container_scanning does not take container-image's dotenv report (dependencies: [container-image]): "
                         "the template's dependencies: [] leaves it no CS_IMAGE")
     image_script = texts["image-sign"]
-    if SCRIPT_IDENTITY not in image_script:
-        problems.append("build/ci/container-image-sign.sh expects another identity than %s" % SCRIPT_IDENTITY)
+    if TAG_SCRIPT_IDENTITY not in image_script:
+        problems.append("build/ci/container-image-sign.sh expects another identity than %s" % TAG_SCRIPT_IDENTITY)
     image_flags = re.search(r'^sign_flags="([^"]*)"$', image_script, re.MULTILINE)
     if not image_flags or "--rekor-url https://rekor.sigstore.dev" not in image_flags.group(1):
         problems.append("build/ci/container-image-sign.sh signs without --rekor-url https://rekor.sigstore.dev (Rekor v1)")
@@ -1042,6 +1142,218 @@ def check(texts, chain, feed):
     image_sbom = image_jobs.get("container-image-sbom", "")
     if image_sbom and ("bash build/ci/container-image-sbom.sh" not in image_sbom or "- container-image-sbom/" not in image_sbom):
         problems.append("container-image-sbom does not run build/ci/container-image-sbom.sh and keep container-image-sbom/")
+
+    # The .sigstore.json copies and the provenance: made in release-sign.sh, held to the
+    # files in release-verify.sh, and before any upload in publish.
+    sign_text, verify_text = texts["sign"], texts["verify"]
+    for needle, why in (('cp "$bundle" "$file.sigstore.json"', "each primary file's bundle copied to <file>.sigstore.json"),
+                        ('cmp -s "$bundle" "$file.sigstore.json"', "the copy held to its bundle"),
+                        ('provenance="hmailserver-${version}.intoto.sigstore.json"', "the provenance's name, as release-chain.py's"),
+                        ('statement="hmailserver-${version}.intoto.json"', "the statement's name, as release-chain.py's"),
+                        ('cosign attest-blob $attest_flags --statement "$sboms/$statement" --bundle "$out/$provenance"',
+                         "the statement attested as the pipeline"),
+                        ('cosign verify-blob-attestation $verify_flags --bundle "$out/$provenance" --type slsaprovenance1',
+                         "every file found in the provenance"),
+                        ('--certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$file" > /dev/null 2>&1 \\\n    || fail "$(basename "$file") is not in the provenance',
+                         "as the pipeline's identity"),
+                        ('[ "$attested" -eq "$expected" ]', "every file counted in the provenance"),
+                        ('grep -Eq \'"kind" *: *"dsse"\' "$out/$provenance"', "the provenance's Rekor v1 dsse entry")):
+        if needle not in sign_text:
+            problems.append("build/ci/release-sign.sh no longer has %s (%s)" % (needle.split("\n")[0], why))
+    attest = re.search(r'^attest_flags="([^"]*)"$', sign_text, re.MULTILINE)
+    if not attest or "--new-bundle-format" not in attest.group(1) or "--rekor-url https://rekor.sigstore.dev" not in attest.group(1) \
+            or "attest_flags=\"$attest_flags --use-signing-config=false\"" not in sign_text:
+        problems.append("build/ci/release-sign.sh attests the provenance without the bundle format, Rekor v1 at "
+                        "rekor.sigstore.dev and the signing configuration off")
+    if chain.provenance_name("${version}") != "hmailserver-${version}.intoto.sigstore.json" or \
+            chain.statement_name("${version}") != "hmailserver-${version}.intoto.json":
+        problems.append("build/ci/release-chain.py names the provenance %s and its statement %s, not what release-sign.sh names them" % (
+            chain.provenance_name("${version}"), chain.statement_name("${version}")))
+    for name, text in (("sign", sign_text), ("verify", verify_text)):
+        if text.count("  case \"$file\" in *.cosign.bundle|*.sigstore.json) continue ;; esac") != (2 if name == "sign" else 1):
+            problems.append("%s signs or checks a bundle or a .sigstore.json as a file of the release, or no longer passes "
+                            "over them" % FILES[name])
+    described = re.search(r'\[ "\$described" -eq (\d+) \]', verify_text)
+    if not described or int(described.group(1)) != len(chain.compiled_assets("9.9.9")):
+        problems.append("build/ci/release-verify.sh holds %s file(s) to their SBOM; a release has %d" % (
+            described.group(1) if described else "no", len(chain.compiled_assets("9.9.9"))))
+    globbed = re.search(r'^for file in ("\$signed"/\*\S+(?: "\$signed"/\*\S+)*); do$', verify_text, re.MULTILINE)
+    globbed = set(re.findall(r'"\$signed"/\*(\S+)', globbed.group(1))) if globbed else set()
+    for name in chain.compiled_assets("9.9.9"):
+        if not any(name.endswith(suffix) for suffix in globbed):
+            problems.append("build/ci/release-verify.sh does not hold %s to its SBOM: its loop takes %s" % (name, sorted(globbed)))
+    if 'python3 build/ci/release-chain.py check-provenance --assets "$signed" ${rehearse:+--rehearse}' not in verify_text:
+        problems.append("build/ci/release-verify.sh no longer holds the .sigstore.json copies and the provenance to the files "
+                        "(build/ci/release-chain.py check-provenance)")
+    refusal = "The certificate names {0}, not this repository's release workflow."
+    if refusal not in texts["verifier"] or '[ "$code" -ne 0 ] || fail' not in verify_text or \
+            '*"The certificate names $identity, not this repository\'s release workflow."*) ;;' not in verify_text:
+        problems.append("build/ci/release-verify.sh --rehearse no longer requires the server's verifier to refuse each "
+                        "rehearsal bundle at its identity, with SigstoreVerifier.cpp's words (%s)" % refusal)
+    publish_text = function_text(texts["chain"], "publish")
+    first_put = publish_text.find('api.request("PUT"')
+    for needle in ("copy_problems(assets, version)", "provenance_problems(", "link_problems(release_links(version, wanted), description)",
+                   "check_budget(api, tag, version, digests"):
+        at = publish_text.find(needle)
+        if at < 0 or first_put < 0 or at > first_put:
+            problems.append("build/ci/release-chain.py's publish uploads before it has held the release to %s" % needle)
+    collect_text = function_text(texts["chain"], "collect")
+    if collect_text.find("check_budget(") < 0 or collect_text.find("check_budget(") > collect_text.find("shutil.copyfile(") \
+            or "tarball_problems(" not in collect_text:
+        problems.append("build/ci/release-chain.py's collect no longer holds the tarball to build/check-source-tarball.py, or "
+                        "counts what GitLab and Pages take only after it has copied the files")
+    feed_max = re.search(r"const size_t MAX_FEED_BYTES = ([0-9 *]+);", texts["checker"])
+    size = 1
+    for factor in (feed_max.group(1).split("*") if feed_max else ["0"]):
+        size *= int(factor.strip() or "0")
+    if size != chain.MAX_FEED_BYTES:
+        problems.append("build/ci/release-chain.py counts the feed against %d bytes, and a server reads %d (UpdateChecker.cpp, "
+                        "MAX_FEED_BYTES)" % (chain.MAX_FEED_BYTES, size))
+
+    # Every other file the release carries from the package jobs, gathered by one job
+    # that needs each build and its test, none of which may fail on a tag.
+    job_file = {}
+    everything = dict(jobs)
+    for key in ("packages-deb", "packages-rpm", "packages-appimage", "tarball-ci", "release-packages", "helm", "packages-windows"):
+        for name, text in blocks(texts[key]).items():
+            if not name.startswith("."):
+                job_file[name] = key
+            everything.setdefault(name, text)
+    gather = blocks(texts["release-packages"]).get(GATHER_JOB)
+    if not re.search(r"^  - local: \.gitlab/ci/release-packages\.yml\s*$", ci, re.MULTILINE):
+        problems.append(".gitlab-ci.yml does not include .gitlab/ci/release-packages.yml: nothing gathers what a release carries "
+                        "from the package jobs")
+    if chain.GATHERED != GATHER_JOB:
+        problems.append("build/ci/release-chain.py collects the gathered files from %s/, not %s's artifact" % (chain.GATHERED, GATHER_JOB))
+    if not gather:
+        problems.append("%s has no %s job" % (FILES["release-packages"], GATHER_JOB))
+    else:
+        gathered_needs = need_entries(gather)
+        wanted = []
+        for build in chain.gathered_builds("9.9.9"):
+            for role, artifacts, does in (("job", "true", "makes"), ("test", "false", "installs or runs")):
+                name = build[role]
+                if not name:
+                    continue
+                wanted.append(name)
+                if name not in job_file:
+                    problems.append("no package file has the job %s, which %s %s, a file the release carries" % (name, does, build["name"]))
+                    continue
+                entry = gathered_needs.get(name)
+                if entry is None:
+                    problems.append("%s does not need %s, which %s %s: the release would carry it past its build or its test"
+                                    % (GATHER_JOB, name, does, build["name"]))
+                    continue
+                if re.search(r"optional: true", entry):
+                    problems.append("%s needs %s optionally: a pipeline without it would release %s past it" % (GATHER_JOB, name, build["name"]))
+                if not re.search(r"artifacts: %s" % artifacts, entry):
+                    problems.append("%s must need %s with artifacts: %s" % (GATHER_JOB, name, artifacts))
+            if build["test"] and build["job"] in everything and build["test"] in everything \
+                    and build["job"] not in needs(everything[build["test"]]):
+                problems.append("%s does not need %s, whose file it %s" % (build["test"], build["job"], "tests"))
+        # Every job the gathered files wait for, and every job those wait for (the
+        # AppImages' runtimes and the aarch64 compile among them): none may let the
+        # release start past it on a tag, nor wait for a press on a batch* branch,
+        # where the release is rehearsed.
+        upstream, pending = set(), [n for n in wanted if n in everything]
+        while pending:
+            name = pending.pop()
+            if name in upstream:
+                continue
+            upstream.add(name)
+            pending.extend(n for n in needs(everything[name]) if n in everything)
+        for name in sorted(upstream):
+            for escape in tag_escapes(name, everything):
+                problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s): release "
+                                "would carry what it makes past it" % (name, escape))
+            deciding = [c for c in template_order(name, everything) if re.search(r"^  rules:", everything[c], re.MULTILINE)]
+            for item in rule_items(everything[deciding[0]], everything) if deciding else []:
+                condition = re.match(r"if:\s*(.+)", item.strip())
+                if re.search(r"^\s*when:\s*manual\s*$", item, re.MULTILINE) and (
+                        not condition or "$CI_COMMIT_BRANCH !~ /^batch/" not in condition.group(1) or "||" in condition.group(1)):
+                    problems.append("%s waits for a press on a batch* branch (%s), where the release is rehearsed: the "
+                                    "rehearsal would wait for it" % (name, condition.group(1) if condition else item.strip()))
+        for name in sorted(set(gathered_needs) - set(wanted)):
+            problems.append("%s needs %s, which makes nothing build/ci/release-chain.py gathers" % (GATHER_JOB, name))
+        for escape in tag_escapes(GATHER_JOB, everything):
+            problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s)" % (GATHER_JOB, escape))
+        if GATHER_REFUSAL not in gather:
+            problems.append("%s is not made for a v* tag and a batch* branch alone, and there by .own-runners' rules, which "
+                            "make the package jobs it needs: %s" % (GATHER_JOB, GATHER_REFUSAL.replace("\n", " ")))
+        if "    - python3 build/ci/release-chain.py gather --out release-packages" not in gather or \
+                not re.search(r"^      - release-packages/\s*$", gather, re.MULTILINE) or "  extends: .linix" not in gather:
+            problems.append("%s does not run build/ci/release-chain.py gather on linix and keep release-packages/" % GATHER_JOB)
+    release_entries = need_entries(jobs["release"])
+    for name in (GATHER_JOB, CHART_JOB):
+        entry = release_entries.get(name)
+        if entry is not None and re.search(r"optional: true", entry):
+            problems.append("release needs %s optionally: a tag's pipeline without it would be released without its files" % name)
+    chart = blocks(texts["helm"]).get(CHART_JOB, "")
+    if not chart or "- sh build/ci/helm-chart-package.sh" not in chart or not re.search(r"^      - helm-chart/\s*$", chart, re.MULTILINE) \
+            or "$CI_COMMIT_TAG =~ /^v/" not in chart:
+        problems.append("%s does not package the chart into helm-chart/ for a v* tag (build/ci/helm-chart-package.sh)" % CHART_JOB)
+    for escape in tag_escapes(CHART_JOB, everything) if chart else []:
+        problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s)" % (CHART_JOB, escape))
+    chart_name = chain.chart_name("9.9.9")
+    if chain.sources("9.9.9").get(chart_name, "").replace(os.sep, "/") != "helm-chart/" + chart_name or \
+            chain.package_job_sums("9.9.9").get(chart_name, ("", ""))[0].replace(os.sep, "/") != "helm-chart/SHA256SUMS.txt":
+        problems.append("build/ci/release-chain.py does not collect %s from helm-chart/, held to helm-chart/SHA256SUMS.txt" % chart_name)
+
+    # No job needs more jobs than GitLab takes: the pipeline would not be created.
+    for key in JOB_FILES:
+        for name, text in sorted(blocks(texts[key]).items()):
+            count = len(need_entries(text)) or len(needs(text))
+            if count > NEEDS_LIMIT:
+                problems.append("%s in %s needs %d jobs; GitLab.com takes %d (ci_needs_size_limit), and would create no "
+                                "pipeline at all" % (name, FILES[key], count, NEEDS_LIMIT))
+
+    # The rehearsal: a batch* branch's alone, the four commands, one token (Sigstore's),
+    # and nothing that reads or writes the registry or the releases.
+    rehearsal = blocks(texts["rehearsal"])
+    if not re.search(r"^  - local: \.gitlab/ci/release-rehearsal\.yml\s*$", ci, re.MULTILINE):
+        problems.append(".gitlab-ci.yml does not include .gitlab/ci/release-rehearsal.yml: the release is not rehearsed")
+    if REHEARSAL_REFUSAL not in rehearsal.get(REHEARSAL_RULES, "") or \
+            len(re.findall(r"^    - ", rehearsal.get(REHEARSAL_RULES, ""), re.MULTILINE)) != 2:
+        problems.append("%s is not exactly: never for a merge request, a tag, master or any branch but batch*, then "
+                        ".own-runners' rules: %s" % (REHEARSAL_RULES, REHEARSAL_REFUSAL.replace("\n", " ")))
+    for name, text in sorted(rehearsal.items()):
+        if name.startswith("."):
+            continue
+        if name not in REHEARSAL_JOBS:
+            problems.append("%s has a job %s, which is not the rehearsal's" % (FILES["rehearsal"], name))
+            continue
+        wanted_needs, commands = REHEARSAL_JOBS[name]
+        if not re.search(r"^  rules:\s*\n    - !reference \[%s, rules\]\s*$" % re.escape(REHEARSAL_RULES), text, re.MULTILINE) or \
+                len(re.findall(r"^    - ", text.split("  rules:\n", 1)[-1].split("\n  ", 1)[0] + "\n", re.MULTILINE)) != 1:
+            problems.append("%s's rules are not %s alone" % (name, REHEARSAL_RULES))
+        have = needs(text)
+        for need in wanted_needs:
+            if need not in have:
+                problems.append("%s does not need %s (it needs %s)" % (name, need, ", ".join(have) or "nothing"))
+        script = re.search(r"^  script:\s*\n((?:    - .*\n?)+)", text + "\n", re.MULTILINE)
+        ran = [line.strip()[2:] for line in (script.group(1) if script else "").split("\n") if line.strip().startswith("- ")]
+        if [c for c in ran if not c.startswith("mkdir -p release-tools && cp ")] != commands:
+            problems.append("%s runs %s, not %s" % (name, ran, commands))
+        for word in NOT_IN_A_REHEARSAL:
+            if word in text:
+                problems.append("%s names %s: a rehearsal reads and publishes nothing of the registry or the releases" % (name, word))
+        tokens = re.search(r"^  id_tokens:\s*\n((?:    .*\n?)+)", text + "\n", re.MULTILINE)
+        if name == "release-rehearsal-sign":
+            if not tokens or not re.search(r"^    SIGSTORE_ID_TOKEN:\s*\n\s+aud: sigstore\s*$", tokens.group(1), re.MULTILINE) \
+                    or len(re.findall(r"^    [A-Z_]+:", tokens.group(1), re.MULTILINE)) != 1:
+                problems.append("release-rehearsal-sign holds no id_tokens SIGSTORE_ID_TOKEN with aud sigstore, or another token besides")
+            if not re.search(r"^    name: \$HM_COSIGN_IMAGE\s*$", text, re.MULTILINE):
+                problems.append("release-rehearsal-sign's image is not $HM_COSIGN_IMAGE")
+        elif tokens:
+            problems.append("%s holds an ID token: only the rehearsal's signing job signs, and only with Sigstore's" % name)
+    for name in REHEARSAL_JOBS:
+        if name not in rehearsal:
+            problems.append("%s has no %s job" % (FILES["rehearsal"], name))
+    main_text = function_text(texts["chain"], "main")
+    if 'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):' not in main_text or \
+            'problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=None, rehearse=True)' not in main_text:
+        problems.append("build/ci/release-chain.py takes --rehearse with a command that publishes or gathers, or gives a "
+                        "rehearsal's collect the job's token")
 
     # The feed pipeline runs pages and nothing else.
     update = jobs["update-feed"]
@@ -1254,8 +1566,8 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=13", "expected=9", "a release carries")
-    broken("verify counting another number of files", "verify", '[ "$verified" -eq 13 ]', '[ "$verified" -eq 9 ]', "release-verify.sh counts 9")
+    broken("another count of files", "sign", "expected=56", "expected=13", "a release carries")
+    broken("verify counting another number of files", "verify", '[ "$verified" -eq 56 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
     # The AArch64 packages a release carries, from the package jobs.
     broken("release not waiting for the arm64 .deb's install", "ci", "    - job: deb-ubuntu26.04-arm64-install\n      artifacts: false\n", "",
            "release does not need deb-ubuntu26.04-arm64-install")
@@ -1386,8 +1698,26 @@ def self_test(chain, feed):
            "release-verify.sh accepts the paths")
     broken("a script mapping a path to another repository", "sign", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;",
            "  hmailserver/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;", "release-sign.sh accepts the paths")
-    broken("a script expecting a branch's identity", "sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
+    broken("a script expecting a branch's identity", "sign", 'identity="${repository}//.gitlab-ci.yml@${ref}"',
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "release-sign.sh expects another identity")
+    broken("a release signed as a branch", "sign", TAG_REF, 'ref="refs/heads/${tag}"', "release-sign.sh names the ref it signs as")
+    broken("a release's ref set before the tag is held to v*", "verify", "    v[0-9]*) ;;\n    *) fail \"this is not a v* tag's pipeline (CI_COMMIT_TAG is '$tag')\" ;;\n  esac\n  version=\"${tag#v}\"\n",
+           "    *) ;;\n  esac\n  version=\"${tag#v}\"\n", "release-verify.sh signs a release as")
+    broken("a branch's identity without --rehearse", "sign", "  --rehearse) rehearse=1 ;;", "  --rehearse) ;;\n  *) rehearse=1 ;;",
+           "release-sign.sh signs as a branch")
+    broken("a rehearsal on any branch", "sign", "    batch*) ;;\n    *) fail \"a release is rehearsed", "    *) ;;\n    none) fail \"a release is rehearsed",
+           "release-sign.sh signs as a branch")
+    broken("a rehearsal on an unprotected branch", "sign", '[ "${CI_COMMIT_REF_PROTECTED:-}" = true ] || fail', 'true || fail',
+           "release-sign.sh signs as a branch")
+    broken("a rehearsal in a tag's pipeline", "verify", '[ -z "$tag" ] || fail', 'true || fail', "release-verify.sh signs as a branch")
+    held_paths = chain.SIGNING_REPOSITORIES
+    try:
+        chain.SIGNING_REPOSITORIES = dict(held_paths, **{"someone/hmailserver": "https://gitlab.com/someone/hmailserver"})
+        found, _ = check(texts, chain, feed)
+        if not any("signs its provenance for" in p for p in found):
+            failures.append("a provenance identity for a third path is caught: %s" % found)
+    finally:
+        chain.SIGNING_REPOSITORIES = held_paths
     broken("a third path, indented otherwise", "verify", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
            "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n    someone/hmailserver) repository=https://gitlab.com/someone/hmailserver;;\n",
            "release-verify.sh accepts the paths")
@@ -1458,7 +1788,7 @@ def self_test(chain, feed):
     broken("the image signed without its SBOM attested", "image-sign", 'cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image"',
            'true', "the image would go out without its SBOM")
     broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")
-    broken("the image signed as a branch", "image-sign", 'identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"',
+    broken("the image signed as a branch", "image-sign", TAG_SCRIPT_IDENTITY,
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "container-image-sign.sh expects another identity")
     # The security scans, before the release.
     broken("a release that does not wait for GitLab's SAST", "ci", "    - job: semgrep-sast\n      artifacts: true\n", "",
@@ -1493,6 +1823,119 @@ def self_test(chain, feed):
     broken("the secret scan's ignore list shared", "codeowners", "/.gitleaksignore                   @Progressiverobot",
            "/.gitleaksignore                   @Progressiverobot @zainulabidin1990", "does not give /.gitleaksignore")
     broken("signing in a child pipeline", "ci", "  script:\n    - sh build/ci/release-sign.sh", "  trigger:\n    include: child.yml\n  script:\n    - sh build/ci/release-sign.sh", "release-sign is a trigger")
+
+    # The files 6.3.6 adds: gathered with their builds' tests, none escaping on a tag.
+    broken("release not waiting for the gathered files", "ci", "    - job: release-packages\n      artifacts: true\n", "",
+           "release does not need release-packages")
+    broken("release without the gathered files", "ci", "    - job: release-packages\n      artifacts: true\n",
+           "    - job: release-packages\n      artifacts: false\n", "release does not bring release-packages's artifacts")
+    broken("release needing the chart optionally", "ci", "    - job: helm-chart-package\n      artifacts: true\n",
+           "    - job: helm-chart-package\n      artifacts: true\n      optional: true\n", "release needs helm-chart-package optionally")
+    broken("release without the chart", "ci", "    - job: helm-chart-package\n      artifacts: true\n", "", "release does not need helm-chart-package")
+    broken("the gathering file not included", "ci", "  - local: .gitlab/ci/release-packages.yml\n", "", "does not include .gitlab/ci/release-packages.yml")
+    broken("a distribution release's build not waited for", "release-packages", "    - job: rpm-el9-aarch64\n      artifacts: true\n", "",
+           "release-packages does not need rpm-el9-aarch64, which makes")
+    broken("an install job not waited for", "release-packages", "    - job: deb-debian12-arm64-install\n      artifacts: false\n", "",
+           "release-packages does not need deb-debian12-arm64-install")
+    broken("an AppImage's test not waited for", "release-packages", "    - job: appimage-test-aarch64\n      artifacts: false\n", "",
+           "release-packages does not need appimage-test-aarch64")
+    broken("the tarball not gathered", "release-packages", "    - job: source-tarball\n      artifacts: true\n", "",
+           "release-packages does not need source-tarball")
+    broken("a build gathered without its artifacts", "release-packages", "    - job: rpm-leap16-x86_64\n      artifacts: true\n",
+           "    - job: rpm-leap16-x86_64\n      artifacts: false\n", "must need rpm-leap16-x86_64 with artifacts: true")
+    broken("a build needed optionally", "release-packages", "    - job: deb-ubuntu24.04-amd64\n      artifacts: true\n",
+           "    - job: deb-ubuntu24.04-amd64\n      artifacts: true\n      optional: true\n", "needs deb-ubuntu24.04-amd64 optionally")
+    broken("a job gathered that makes nothing gathered", "release-packages", "    - job: source-tarball\n      artifacts: true\n",
+           "    - job: source-tarball\n      artifacts: true\n    - job: linux-build\n      artifacts: true\n", "needs linux-build, which makes nothing")
+    broken("the gathering job allowed to fail", "release-packages", "  timeout: 30 minutes\n", "  timeout: 30 minutes\n  allow_failure: true\n",
+           "release-packages can let release start")
+    broken("the gathering job not made for a tag", "release-packages", "    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/\n",
+           "    - if: $CI_COMMIT_BRANCH !~ /^batch/\n", "is not made for a v* tag and a batch* branch alone")
+    broken("the gathering job on the shared runners", "release-packages", "  extends: .linix\n", "  image: python:3\n",
+           "does not run build/ci/release-chain.py gather on linix")
+    broken("an AppImage left for a press on a tag", "packages-appimage",
+           '    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"\n      when: manual\n',
+           '    - if: $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"\n      when: manual\n',
+           "appimage-runtime-x86_64 can let release start in a v* tag's pipeline")
+    broken("an AppImage left for a press on a batch branch", "packages-appimage",
+           '    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"\n      when: manual\n',
+           '    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n      when: manual\n',
+           "waits for a press on a batch* branch")
+    broken("a distribution release's install test allowed to fail", "packages-rpm", ".rpm-install:\n  stage: test\n",
+           ".rpm-install:\n  stage: test\n  allow_failure: true\n", "rpm-el10-x86_64-install can let release start")
+    broken("an AppImage test run without its image", "packages-appimage", "  needs: [appimage-x86_64]\n", "  needs: []\n",
+           "appimage-test-x86_64 does not need appimage-x86_64")
+    broken("the chart not packaged for a tag", "helm", '($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)',
+           '($CI_COMMIT_BRANCH =~ /^batch/)', "does not package the chart into helm-chart/ for a v* tag")
+    broken("the chart allowed to fail", "helm", "  timeout: 10 minutes\n", "  timeout: 10 minutes\n  allow_failure: true\n",
+           "helm-chart-package can let release start")
+    many = "".join("    - job: extra-%d\n      artifacts: false\n" % i for i in range(20))
+    broken("a job needing more than GitLab takes", "ci", "    - job: semgrep-sast\n      artifacts: true\n",
+           "    - job: semgrep-sast\n      artifacts: true\n" + many, "GitLab.com takes 50")
+    # The copies and the provenance.
+    broken("the bundles not copied to .sigstore.json", "sign", '      cp "$bundle" "$file.sigstore.json"\n', "", "copied to <file>.sigstore.json")
+    broken("the provenance not attested", "sign", 'cosign attest-blob $attest_flags --statement "$sboms/$statement" --bundle "$out/$provenance"',
+           'true', "the statement attested as the pipeline")
+    broken("the files not found in the provenance", "sign", "cosign verify-blob-attestation $verify_flags", "true", "every file found in the provenance")
+    broken("the provenance to another log", "sign", 'attest_flags="--yes --new-bundle-format --rekor-url https://rekor.sigstore.dev',
+           'attest_flags="--yes --new-bundle-format --rekor-url https://log2025-1.rekor.sigstore.dev', "attests the provenance without")
+    broken("the provenance under another name", "sign", 'provenance="hmailserver-${version}.intoto.sigstore.json"',
+           'provenance="hmailserver-${version}.intoto.jsonl"', "the provenance's name")
+    broken("a copy signed as a file of the release", "sign", "  case \"$file\" in *.cosign.bundle|*.sigstore.json) continue ;; esac",
+           "  case \"$file\" in *.cosign.bundle) continue ;; esac", "or no longer passes over them")
+    broken("the AppImages not held to their SBOMs", "verify", ' "$signed"/*.AppImage', "", "does not hold hMailServer-9.9.9-x86_64.AppImage to its SBOM")
+    broken("the SBOM count left at 5", "verify", '[ "$described" -eq 26 ]', '[ "$described" -eq 5 ]', "holds 5 file(s) to their SBOM")
+    broken("the provenance not checked", "verify", "python3 build/ci/release-chain.py check-provenance", "true", "check-provenance")
+    broken("a rehearsal bundle the server accepts", "verify", '[ "$code" -ne 0 ] || fail', 'true || fail', "no longer requires the server's verifier to refuse")
+    broken("publish uploading before the provenance is held", "chain", "provenance_problems(\n        assets, version,",
+           "list(\n        assets, version,", "held the release to provenance_problems(")
+    broken("publish uploading without the budget", "chain", "    unfit = check_budget(api, tag, version, digests,", "    unfit = list(api, tag, version, digests,",
+           "held the release to check_budget")
+    broken("a feed limit that is not the server's", "checker", "const size_t MAX_FEED_BYTES = 4 * 1024 * 1024;",
+           "const size_t MAX_FEED_BYTES = 2 * 1024 * 1024;", "a server reads 2097152")
+    # The rehearsal.
+    broken("the rehearsal not included", "ci", "  - local: .gitlab/ci/release-rehearsal.yml\n", "", "does not include .gitlab/ci/release-rehearsal.yml")
+    broken("a rehearsal on master", "rehearsal", " || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH\n", "\n", "is not exactly: never for")
+    broken("a rehearsal on a tag", "rehearsal", " || $CI_COMMIT_TAG || ", " || ", "is not exactly: never for")
+    broken("a rehearsal job with rules of its own", "rehearsal", "  rules:\n    - !reference [.release-rehearsal-rules, rules]\n  id_tokens:",
+           "  rules:\n    - if: $CI_COMMIT_BRANCH\n  id_tokens:", "release-rehearsal-sign's rules are not .release-rehearsal-rules alone")
+    broken("a rehearsal that publishes", "rehearsal", "    - sh build/ci/release-sign.sh --rehearse\n",
+           "    - sh build/ci/release-sign.sh --rehearse\n    - python3 build/ci/release-chain.py publish\n", "names publish")
+    broken("a rehearsal with the job token", "rehearsal", "    COSIGN_YES: \"true\"\n", "    COSIGN_YES: \"true\"\n    TOKEN: $CI_JOB_TOKEN\n",
+           "names CI_JOB_TOKEN")
+    broken("a rehearsal signing as a release", "rehearsal", "    - sh build/ci/release-sign.sh --rehearse\n", "    - sh build/ci/release-sign.sh\n",
+           "release-rehearsal-sign runs")
+    broken("a rehearsal verifier holding a token", "rehearsal", "  timeout: 15 minutes\n",
+           "  timeout: 15 minutes\n  id_tokens:\n    SIGSTORE_ID_TOKEN:\n      aud: sigstore\n", "release-rehearsal-verify holds an ID token")
+    broken("a rehearsal signing with another token", "rehearsal", "      aud: sigstore\n", "      aud: sigstore\n    AZURE_ID_TOKEN:\n      aud: api://AzureADTokenExchange\n",
+           "or another token besides")
+    broken("a rehearsal without the branch's installer", "rehearsal", "    - job: windows-packages-x64\n      artifacts: true\n", "",
+           "release-rehearsal does not need windows-packages-x64")
+    broken("a job of the rehearsal's file that is not the rehearsal's", "rehearsal", "\nrelease-rehearsal-verify:\n",
+           "\nrelease-rehearsal-publish:\n  script: [true]\n\nrelease-rehearsal-verify:\n", "is not the rehearsal's")
+    broken("--rehearse taken with publish", "chain", 'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):',
+           'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance", "publish"):', "takes --rehearse with a command")
+    broken("a rehearsal's collect given the job's token", "chain",
+           'problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=None, rehearse=True)',
+           'problems = collect(ROOT, None, os.path.join(ROOT, args.out or "release-assets"), os.environ, api=GitLab(token), rehearse=True)',
+           "gives a rehearsal's collect the job's token")
+    held_gathered = chain.GATHERED
+    try:
+        chain.GATHERED = "packages"
+        found, _ = check(texts, chain, feed)
+        if not any("collects the gathered files from packages/" in p for p in found):
+            failures.append("gathered files collected from elsewhere are caught: %s" % found)
+    finally:
+        chain.GATHERED = held_gathered
+    held_builds = chain.gathered_builds
+    try:
+        chain.gathered_builds = lambda version: held_builds(version) + [dict(held_builds(version)[0], name="x.deb", job="deb-debian11-amd64",
+                                                                               test="deb-debian11-amd64-install")]
+        found, _ = check(texts, chain, feed)
+        if not any("no package file has the job deb-debian11-amd64" in p for p in found):
+            failures.append("a gathered file no job makes is caught: %s" % found)
+    finally:
+        chain.gathered_builds = held_builds
 
     # The release tag and the registry.
     owner_line = [l for l in texts["signers"].split("\n") if l.strip() and not l.startswith("#")]

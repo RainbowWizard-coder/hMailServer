@@ -26,6 +26,19 @@
 #   appimage/build-<arch>.log                        the whole ninja output
 #   appimage/appimage-<arch>.txt                     what was built on what, and the
 #                                                   libraries bundled and left to the host
+#   appimage/built-against-<arch>/                   what the image's software bill of
+#                                                   materials is made from, since this
+#                                                   container has neither PowerShell nor
+#                                                   Python: dpkg.txt and boost-version.hpp,
+#                                                   what the server was compiled against
+#                                                   (this container's for x86_64;
+#                                                   appimage-cross.sh's for aarch64), and
+#                                                   bundled.txt, each library the image
+#                                                   carries in usr/lib with the package and
+#                                                   version its file came from. The
+#                                                   release-packages job makes
+#                                                   <image>.cdx.json from them
+#                                                   (build/asset-sbom.py --kind appimage).
 #
 # The environment it reads:
 #   HM_BUILD_DIR    where CMake configures and ninja builds (/tmp/hm-appimage)
@@ -57,6 +70,7 @@ if [ ! -f "$runtime" ]; then
   echo "No runtime at $runtime: the appimage-runtime-$arch job makes it (build/ci/packages/appimage-runtime.sh)."
   exit 2
 fi
+# shellcheck source=/dev/null
 . /etc/os-release
 if [ "$ID" != "ubuntu" ] || [ "$VERSION_ID" != "24.04" ]; then
   echo "This is $PRETTY_NAME. The AppImage is built on Ubuntu 24.04, for the oldest glibc that can build the server; run it in the image the job names."
@@ -148,9 +162,61 @@ echo ""
 echo "== it runs"
 bash build/ci/packages/appimage-test.sh "$image"
 
+echo ""
+echo "== what it was built against, and what it carries, for its SBOM"
+# dpkg's record in the form build/ci/packages/deb-build.sh writes and
+# build/asset-sbom.py --dpkg-list reads. A server compiled here was compiled
+# against this container's packages; the aarch64 one was cross-compiled by
+# appimage-cross.sh, which recorded its own container's (the arm64 -dev packages
+# and the cross toolchain), and that record is kept, not replaced by this one.
+facts="$out/built-against-$arch"
+mkdir -p "$facts"
+if [ -z "$prebuilt" ]; then
+  # shellcheck disable=SC2016
+  dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Architecture} ${Version}\n' > "$facts/dpkg.txt"
+  cp /usr/include/boost/version.hpp "$facts/boost-version.hpp"
+fi
+[ -s "$facts/dpkg.txt" ] && [ -s "$facts/boost-version.hpp" ] \
+  || { echo "No record of what the server was compiled against in $facts (appimage-cross.sh writes the aarch64 one)."; exit 1; }
+# Each library build-appimage.sh copied into usr/lib, by the package that owns the
+# file ldd resolved it to here: "<soname> <package>:<arch> <version> <sha256>". The
+# copy in the image has a RUNPATH of its own, so the package file's SHA-256 is
+# recorded as that, not as the copy's. dpkg names a file by the path the package
+# ships it at, which since Ubuntu's /usr merge may be /usr/lib/... where ldd says
+# /lib/..., or the real file behind the soname's link.
+owner_of() {
+  local path=$1 real candidate owner
+  real=$(readlink -f "$path")
+  for candidate in "$path" "$real" "/usr$path" "/usr$real" "${path#/usr}" "${real#/usr}"; do
+    owner=$(dpkg -S "$candidate" 2> /dev/null | head -n 1 | sed -n 's/^\([^ ,]*\): .*/\1/p')
+    if [ -n "$owner" ]; then
+      case "$owner" in
+        *:*) printf '%s\n' "$owner" ;;
+        *) printf '%s:%s\n' "$owner" "$(dpkg --print-architecture)" ;;
+      esac
+      return 0
+    fi
+  done
+  return 1
+}
+bundled_names=$(sed -n 's/^Bundled://p' "$out/package-$arch.log" | head -n 1)
+resolved="$(ldd "$build_dir/hmailserver")"
+: > "$facts/bundled.txt"
+for soname in $bundled_names; do
+  [ "$soname" != none ] || continue
+  path=$(printf '%s\n' "$resolved" | awk -v s="$soname" '$1 == s && $2 == "=>" { print $3; exit }')
+  [ -n "$path" ] && [ -f "$path" ] || { echo "ldd no longer resolves $soname, which the image carries."; exit 1; }
+  owner=$(owner_of "$path") || { echo "dpkg names no package that owns $path ($soname), which the image carries."; exit 1; }
+  version=$(dpkg-query -W -f '${Version}' "$owner" 2> /dev/null)
+  [ -n "$version" ] || { echo "dpkg has no version of $owner."; exit 1; }
+  printf '%s %s %s %s\n' "$soname" "$owner" "$version" "$(sha256sum "$(readlink -f "$path")" | cut -d' ' -f1)" >> "$facts/bundled.txt"
+done
+[ -n "$bundled_names" ] || { echo "build-appimage.sh said nothing of what it bundled."; exit 1; }
+cat "$facts/bundled.txt"
+
 ( cd "$out" && sha256sum "$(basename "$image")" > "SHA256SUMS-$arch.txt" )
 {
-  echo "$(basename "$image")"
+  basename "$image"
   echo "sha256 $(cut -d' ' -f1 "$out/SHA256SUMS-$arch.txt")"
   echo "size $(stat -c %s "$image")"
   echo "commit ${CI_COMMIT_SHA:-unknown}"

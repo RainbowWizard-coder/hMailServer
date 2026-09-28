@@ -108,6 +108,13 @@ include:
   - local: .gitlab/ci/packages-windows.yml
   # The source tarball the Linux build and suite run from and a release carries (docs/SourceTarball.md).
   - local: .gitlab/ci/source-tarball.yml
+  # What a release carries from the package jobs besides the generic packages - each
+  # distribution release's .deb and .rpm, the AppImages and the source tarball -
+  # gathered with each one's SBOM, for release and its rehearsal (docs/ContinuousIntegration.md).
+  - local: .gitlab/ci/release-packages.yml
+  # The release rehearsed on a protected batch* branch: collected, signed as the branch
+  # and verified, published nowhere (docs/ContinuousIntegration.md, "The release rehearsal").
+  - local: .gitlab/ci/release-rehearsal.yml
   # The live update off, and aware of where it runs (docs/LiveUpdateKinds.md).
   - local: .gitlab/ci/live-update.yml
   # hmctl on PyPI and the PowerShell module on the Gallery: their checks, and the two
@@ -1414,28 +1421,26 @@ windows-installer:
 # file that can fail a tag's pipeline - a manual job can be started as soon as its own
 # needs have finished, so a gate left out here could be released past - every job whose
 # files the release carries, and the four security scans whose reports it reads; only
-# those eleven bring their artifacts. Of the package jobs of .gitlab/ci/packages-*.yml,
-# which a tag's pipeline runs too, release needs the two whose files it carries -
-# deb-ubuntu26.04-arm64, the generic arm64 .deb, and rpm-fedora44-aarch64, the generic
-# aarch64 .rpm - with their artifacts, their SBOM jobs with theirs (each package's
-# <file>.cdx.json), and their install jobs, which install and run each package in an
-# arm64 container under qemu and are gates. The others are not gates of a release:
-# they make CI artifacts that no release carries, and release can start while they are
-# still running or after one has failed. The scans are allow_failure, so their failure does not
-# stop the pipeline: release-chain.py collect reads their reports instead
-# (build/ci/security-gate.py) and refuses while a scan did not finish, or found
+# those thirteen bring their artifacts. Of the package jobs of .gitlab/ci/packages-*.yml
+# it needs the two whose generic files the release carries, with their SBOM and install
+# jobs, and release-packages (.gitlab/ci/release-packages.yml), which needs every other
+# package build and its install job, both AppImages and their tests, and the source
+# tarball, and gathers them with an SBOM each: a job may need fifty jobs at most on
+# GitLab.com. helm-chart-package makes the chart. The scans are allow_failure, so their
+# failure does not stop the pipeline: release-chain.py collect reads their reports
+# instead (build/ci/security-gate.py) and refuses while a scan did not finish, or found
 # something SECURITY.md's policy counts that is in no baseline and not accepted in
 # .gitlab/security-exceptions.yml. semgrep-sast is GitLab's, in
 # .gitlab/ci/gitlab-security.yml, which runs it for a v* tag for this. Not waited for:
 # ci-image-packages (dependency-scan waits for it) and repo-hygiene, which are
 # allow_failure, and the manual db-matrix and installer-smoke. The four path-bound
 # checks run for every tag (a tag counts every file as changed) and are optional needs
-# only so that a pipeline without one is still created; the scans are not optional, so
-# a tag's pipeline without one of them is not created at all.
-# build/check-release-chain.py fails when a job of this file that can fail, a scan, or a
-# job that makes, describes or installs an AArch64 package the release carries is
-# missing here, and when one of those three may fail or waits for a press in a tag's
-# pipeline, since release would then start past it.
+# only so that a pipeline without one is still created; the scans are not optional, so a
+# tag's pipeline without one of them is not created at all. build/check-release-chain.py
+# fails when a job of this file that can fail, a scan, a job that makes, describes or
+# installs an AArch64 package the release carries, release-packages or
+# helm-chart-package is missing here, and when one of them, or any job release-packages
+# waits for, may fail or waits for a press in a tag's pipeline.
 release:
   stage: release
   image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
@@ -1498,6 +1503,10 @@ release:
       artifacts: true
     - job: rpm-fedora44-aarch64-install
       artifacts: false
+    - job: release-packages
+      artifacts: true
+    - job: helm-chart-package
+      artifacts: true
     - job: static-analysis
       artifacts: true
     - job: semgrep
@@ -1506,7 +1515,7 @@ release:
       artifacts: true
     - job: semgrep-sast
       artifacts: true
-  timeout: 15 minutes
+  timeout: 30 minutes
   interruptible: false
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"

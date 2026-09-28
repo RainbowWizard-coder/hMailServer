@@ -4,17 +4,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # The release-sign job of .gitlab-ci.yml: every file of the release signed with
-# Sigstore, keylessly, as this project's pipeline for its v* tag. Run in cosign's own
-# image (gcr.io/projectsigstore/cosign, the -dev tag, whose busybox is the shell),
-# pinned by digest in HM_COSIGN_IMAGE, from the root of the checkout:
+# Sigstore, keylessly, as this project's pipeline for its v* tag, and the release's
+# SLSA build provenance attested the same way. Run in cosign's own image
+# (gcr.io/projectsigstore/cosign, the -dev tag, whose busybox is the shell), pinned by
+# digest in HM_COSIGN_IMAGE, from the root of the checkout:
 #
-#   sh build/ci/release-sign.sh
+#   sh build/ci/release-sign.sh              a v* tag's release
+#   sh build/ci/release-sign.sh --rehearse   the release-rehearsal-sign job of
+#                                            .gitlab/ci/release-rehearsal.yml: the same,
+#                                            on a protected batch* branch, as that branch
 #
 # In:   release-assets/        what the release job collected (build/ci/release-chain.py collect):
 #                              everything but the signed installer and its SBOM
 #       release-authenticode/  the Windows installer as release-authenticode signed it
-#       release-sbom/          that installer's own SBOM (build/ci/release-chain.py sbom)
-# Out:  release-signed/        every file, with <file>.cosign.bundle beside it
+#                              (not in a rehearsal, which has no Authenticode: its installer
+#                              is collect's, windows-packages-x64's bytes)
+#       release-sbom/          that installer's own SBOM, and the provenance's statement
+#                              over every file (build/ci/release-chain.py sbom)
+# Out:  release-signed/        every file, with <file>.cosign.bundle beside it; each primary
+#                              file's bundle again as <file>.sigstore.json, byte for byte;
+#                              and hmailserver-<version>.intoto.sigstore.json, the provenance
 #
 # The identity token is the job's SIGSTORE_ID_TOKEN (id_tokens, aud sigstore), which
 # cosign reads from the environment itself: it is never on a command line and never
@@ -24,7 +33,8 @@
 # now, Progressiverobot/hmailserver, or the group's it is to move to,
 # hmailserver/hmailserver (there only with the project's id, which a transfer keeps).
 # Only a top-level pipeline of a tag has it - so this runs in the tag's own pipeline
-# and never in a child one.
+# and never in a child one. A rehearsal's certificate names refs/heads/<branch>, which
+# no server trusts: what it signs installs nowhere, and it is published nowhere.
 #
 # What every server built after 6.3.3 reads, and nothing else (docs/UpdateFeed.md,
 # "What the signing job produces"): a Sigstore bundle, not cosign's older format and
@@ -35,6 +45,13 @@
 # integratedTime, so the log and the bundle format are named here, and each bundle is
 # looked at before it is kept. The release-verify job then checks every one with the
 # server's own verifier.
+#
+# The provenance (Roadmap3 row 26) is an in-toto statement with the SLSA v1 predicate,
+# which names every file of the release by its SHA-256 (release-sbom wrote it), signed
+# with cosign attest-blob --statement: a Sigstore bundle holding a DSSE envelope and a
+# Rekor v1 dsse entry. No server reads it; a person checks a download against it with
+# cosign verify-blob-attestation (SECURITY.md, "Build provenance"), and each file is
+# checked so here before the bundle is kept.
 set -eu
 
 in=release-assets
@@ -48,13 +65,39 @@ fail() {
   exit 1
 }
 
-tag="${CI_COMMIT_TAG:-}"
-case "$tag" in
-  v[0-9]*) ;;
-  *) fail "this is not a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
+rehearse=""
+case "${1:-}" in
+  "") ;;
+  --rehearse) rehearse=1 ;;
+  *) fail "the one argument this takes is --rehearse, not '$1'" ;;
 esac
-version="${tag#v}"
+
+tag="${CI_COMMIT_TAG:-}"
+branch="${CI_COMMIT_BRANCH:-}"
+if [ -z "$rehearse" ]; then
+  case "$tag" in
+    v[0-9]*) ;;
+    *) fail "this is not a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
+  esac
+  version="${tag#v}"
+  ref="refs/tags/${tag}"
+else
+  # A rehearsal is a protected batch* branch's and nothing else's: never a tag's,
+  # whose files this would sign as a branch, and never master's.
+  [ -z "$tag" ] || fail "a tag's pipeline is released, never rehearsed (CI_COMMIT_TAG is '$tag')"
+  case "$branch" in
+    batch*) ;;
+    *) fail "a release is rehearsed on a protected batch* branch alone, not on '$branch'" ;;
+  esac
+  [ "${CI_COMMIT_REF_PROTECTED:-}" = true ] || fail "$branch is not a protected branch"
+  version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' \
+    hmailserver/source/Server/Common/Application/Version.h | head -n 1 | tr -d '\r')
+  [ -n "$version" ] || fail "Version.h's HMAILSERVER_VERSION could not be read"
+  ref="refs/heads/${branch}"
+fi
 installer="hMailServer-${version}-x64.exe"
+statement="hmailserver-${version}.intoto.json"
+provenance="hmailserver-${version}.intoto.sigstore.json"
 # The two paths a server trusts a signature from, and nothing else: a pipeline of this
 # project at any other path would sign what no server installs.
 case "${CI_PROJECT_PATH:-}" in
@@ -62,34 +105,47 @@ case "${CI_PROJECT_PATH:-}" in
   hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;
   *) fail "the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from" ;;
 esac
-identity="${repository}//.gitlab-ci.yml@refs/tags/${tag}"
+identity="${repository}//.gitlab-ci.yml@${ref}"
 
 [ -n "${SIGSTORE_ID_TOKEN:-}" ] || fail "the job has no SIGSTORE_ID_TOKEN: id_tokens with aud sigstore is missing from it"
 if ! command -v cosign > /dev/null 2>&1; then
-  [ -x /ko-app/cosign ] && PATH="/ko-app:$PATH" || fail "there is no cosign in this image: HM_COSIGN_IMAGE must be cosign's own -dev image"
+  if [ -x /ko-app/cosign ]; then
+    PATH="/ko-app:$PATH"
+  else
+    fail "there is no cosign in this image: HM_COSIGN_IMAGE must be cosign's own -dev image"
+  fi
 fi
 cosign version 2>&1 | grep -E 'GitVersion|GitCommit' || true
 
 [ -d "$in" ] || fail "$in is not here: the release job's artifact did not arrive"
-[ -f "$authenticode/$installer" ] || fail "$authenticode/$installer is not here: release-authenticode did not hand back a signed installer"
 [ -f "$in/$installer" ] || fail "$in/$installer is not here"
-# The signed installer is not the unsigned one: Authenticode adds a signature, so the
-# bytes change. The same bytes would mean nothing was signed.
-if cmp -s "$in/$installer" "$authenticode/$installer"; then
-  fail "the installer release-authenticode handed back is byte for byte the unsigned one"
+if [ -z "$rehearse" ]; then
+  [ -f "$authenticode/$installer" ] || fail "$authenticode/$installer is not here: release-authenticode did not hand back a signed installer"
+  # The signed installer is not the unsigned one: Authenticode adds a signature, so the
+  # bytes change. The same bytes would mean nothing was signed.
+  if cmp -s "$in/$installer" "$authenticode/$installer"; then
+    fail "the installer release-authenticode handed back is byte for byte the unsigned one"
+  fi
+  shipped="$authenticode/$installer"
+else
+  shipped="$in/$installer"
 fi
 
 # The installer's SBOM, which must describe the signed bytes that ship: its subject's
 # SHA-256 is the signed installer's (build/asset-sbom.py writes it as "content").
 [ -f "$sboms/$installer.cdx.json" ] || fail "$sboms/$installer.cdx.json is not here: release-sbom did not hand back the installer's SBOM"
-signed_sha256=$(sha256sum "$authenticode/$installer" | cut -d' ' -f1)
+signed_sha256=$(sha256sum "$shipped" | cut -d' ' -f1)
 grep -q "\"content\": \"$signed_sha256\"" "$sboms/$installer.cdx.json" \
   || fail "$installer.cdx.json does not describe the signed installer (SHA-256 $signed_sha256)"
+# The provenance's statement, which names the signed installer too.
+[ -f "$sboms/$statement" ] || fail "$sboms/$statement is not here: release-sbom wrote no provenance statement"
+grep -q "\"sha256\": \"$signed_sha256\"" "$sboms/$statement" \
+  || fail "$statement does not name the signed installer (SHA-256 $signed_sha256)"
 
 rm -rf "$out"
 mkdir -p "$out"
 cp "$in"/* "$out"/
-cp "$authenticode/$installer" "$out/$installer"
+cp "$shipped" "$out/$installer"
 cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"
 
 # The flags every cosign from 2.4 on reads the same way; --use-signing-config exists
@@ -98,6 +154,11 @@ sign_flags="--yes --new-bundle-format --rekor-url https://rekor.sigstore.dev --f
 if cosign sign-blob --help 2>&1 | grep -q -- '--use-signing-config'; then
   sign_flags="$sign_flags --use-signing-config=false"
 fi
+attest_flags="--yes --new-bundle-format --rekor-url https://rekor.sigstore.dev --fulcio-url https://fulcio.sigstore.dev"
+if cosign attest-blob --help 2>&1 | grep -q -- '--use-signing-config'; then
+  attest_flags="$attest_flags --use-signing-config=false"
+fi
+cosign attest-blob --help 2>&1 | grep -q -- '--statement' || fail "this cosign's attest-blob takes no --statement: it cannot attest one statement over many files"
 verify_flags=""
 if cosign verify-blob --help 2>&1 | grep -q -- '--new-bundle-format'; then
   verify_flags="--new-bundle-format"
@@ -106,7 +167,7 @@ fi
 signed=0
 for file in "$out"/*; do
   [ -f "$file" ] || continue
-  case "$file" in *.cosign.bundle) continue ;; esac
+  case "$file" in *.cosign.bundle|*.sigstore.json) continue ;; esac
   name=$(basename "$file")
   echo ""
   echo "== $name  $(sha256sum "$file" | cut -d' ' -f1)"
@@ -131,15 +192,59 @@ for file in "$out"/*; do
   cosign verify-blob $verify_flags --bundle "$bundle" \
     --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$file" > /dev/null 2>&1 \
     || fail "$name does not verify as signed by $identity"
+  # Each primary file's bundle again under the name Sigstore's clients and OpenSSF
+  # Scorecard look for (Roadmap3 row 25); an SBOM of a compiled file, <file>.cdx.json,
+  # keeps its one bundle.
+  case "$name" in
+    *.cdx.json) ;;
+    *)
+      cp "$bundle" "$file.sigstore.json"
+      cmp -s "$bundle" "$file.sigstore.json" || fail "$name.sigstore.json is not its bundle byte for byte"
+      ;;
+  esac
   echo "   signed, recorded in Rekor v1, and verified as $identity"
   signed=$((signed + 1))
 done
 
 # Counted, because a loop over a glob that matched nothing passes having signed nothing:
-# the installer, the x86-64 and AArch64 .deb and .rpm, the sums, the tree's two SBOMs
-# and the five compiled files' own (build/ci/release-chain.py, expected_assets).
-expected=13
+# the installer; the generic .deb and .rpm for x86-64 and AArch64; each Debian, Ubuntu,
+# Fedora, EL and openSUSE release's .deb or .rpm for both (eighteen); the two AppImages;
+# the source tarball; the Helm chart; the sums; the tree's two SBOMs; and the
+# twenty-six SBOMs of the compiled files and the tarball (build/ci/release-chain.py,
+# expected_assets).
+expected=56
 [ "$signed" -eq "$expected" ] || fail "$signed file(s) signed; a release is $expected"
+
+# The provenance: the statement release-sbom wrote, attested as this pipeline.
 echo ""
-echo "All $signed files of $tag are signed as $identity."
+echo "== $provenance, the SLSA v1 provenance of the $signed files"
+# shellcheck disable=SC2086
+cosign attest-blob $attest_flags --statement "$sboms/$statement" --bundle "$out/$provenance" > /dev/null # nosemgrep
+[ -s "$out/$provenance" ] || fail "cosign wrote no bundle for the provenance"
+grep -Eq '"mediaType" *: *"application/vnd\.dev\.sigstore\.bundle' "$out/$provenance" || fail "$provenance is not a Sigstore bundle"
+grep -q '"dsseEnvelope"' "$out/$provenance" || fail "$provenance carries no DSSE envelope"
+grep -Eq '"payloadType" *: *"application/vnd\.in-toto\+json"' "$out/$provenance" || fail "$provenance's envelope is not an in-toto statement"
+grep -Eq '"kind" *: *"dsse"' "$out/$provenance" || fail "$provenance's log entry is not a dsse entry"
+grep -q '"integratedTime"' "$out/$provenance" || fail "$provenance's log entry has no integratedTime (Rekor v2?)"
+attested=0
+for file in "$out"/*; do
+  [ -f "$file" ] || continue
+  case "$file" in *.cosign.bundle|*.sigstore.json) continue ;; esac
+  # shellcheck disable=SC2086
+  # nosemgrep
+  cosign verify-blob-attestation $verify_flags --bundle "$out/$provenance" --type slsaprovenance1 \
+    --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$file" > /dev/null 2>&1 \
+    || fail "$(basename "$file") is not in the provenance signed by $identity"
+  attested=$((attested + 1))
+done
+[ "$attested" -eq "$expected" ] || fail "$attested file(s) found in the provenance; a release is $expected"
+echo "   attested, recorded in Rekor v1, and every file found in it as $identity"
+
+echo ""
+if [ -n "$rehearse" ]; then
+  echo "All $signed files of the rehearsal of $version on $branch are signed as $identity, which no server"
+  echo "trusts: a rehearsal's bundles install nowhere, and nothing here is published."
+else
+  echo "All $signed files of $tag are signed as $identity."
+fi
 ls -l "$out"

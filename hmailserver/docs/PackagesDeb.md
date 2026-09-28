@@ -12,9 +12,11 @@ The one exception is Ubuntu 26.04 on x86-64. Its package,
 `hmailserver_<v>_amd64.deb`, is `linux-build`'s, as before: the release
 collects it, and `linux-package-deb` installs and starts it. This file adds
 its arm64 twin and the other releases (see [The names](#the-names)). From
-6.3.6 the release carries the arm64 twin, `hmailserver_<v>_arm64.deb`, with
-its SBOM; the other releases' packages are CI artifacts that no release
-carries yet.
+6.3.6 the release carries the arm64 twin, `hmailserver_<v>_arm64.deb`, and
+every other release's package for both architectures, each with its SBOM, a
+line in the sums, a bundle and its `.sigstore.json` copy: `release-packages`
+(`.gitlab/ci/release-packages.yml`) gathers them once each build's install job
+has passed.
 
 **The build jobs have run on GitLab; the install jobs have not.** All seven
 build jobs passed in each of `batch41`'s pipelines 2886955494 and 2887115157
@@ -468,13 +470,13 @@ What is left
    `deb-ubuntu26.04-arm64-install`, and `build/ci/release-chain.py collect`
    takes the package and its SBOM. `build/check-release-chain.py` holds
    `release` to those three jobs, and `collect` to the paths they leave the
-   files at (`CARRIED_PACKAGES`). The six whose names carry a release are not
-   in yet:
-   - a tag's `release` job does not wait for their jobs. They run on every
-     `v*` tag and can fail its pipeline, but `release` can be started before
-     they finish;
-   - `build/check-release-chain.py` reads no other job of an included file as
-     a gate of a release.
+   files at (`CARRIED_PACKAGES`). The six whose names carry a release are in
+   too (batch42, W2.1): `release-packages` (`.gitlab/ci/release-packages.yml`)
+   needs each build with its artifacts and its install job, gathers each
+   package held to its build's sums and makes its SBOM, and `release` needs
+   `release-packages`. `build/check-release-chain.py` holds that job to every
+   build and install job here, and none of them may fail or wait for a press
+   in a `v*` tag's pipeline.
 3. **Watch the first pipeline that runs the install jobs.** The build jobs
    have passed in pipelines (see [In GitLab's pipelines](#in-gitlabs-pipelines));
    no install job has run to an end in one yet.

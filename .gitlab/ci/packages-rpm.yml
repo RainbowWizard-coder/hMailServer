@@ -25,7 +25,9 @@
 #
 # The release collects generic/hmailserver-<v>-1.aarch64.rpm from 6.3.6 with its
 # SBOM, and release waits for rpm-fedora44-aarch64, its install job and its SBOM
-# job. The other packages here are CI artifacts that no release carries yet.
+# job. The release carries the other packages here from 6.3.6: release-packages
+# (.gitlab/ci/release-packages.yml) needs each build and its install job and
+# gathers them with an SBOM each.
 #
 #   target      image                                      package
 #   fedora44    registry.fedoraproject.org/fedora:44       hmailserver-<v>-1.fc44.<arch>.rpm, and for

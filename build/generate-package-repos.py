@@ -258,21 +258,18 @@ def parse_rules(text):
     return rules
 
 
-def add_redirects(site, entries):
-    """Append a 302 rule per package to site/_redirects, which the feed may have
-    written already, and hold the whole file to what Pages reads."""
-    path = os.path.join(site, "_redirects")
-    existing = ""
-    if os.path.isfile(path):
-        with open(path, encoding="utf-8") as f:
-            existing = f.read()
+def redirects_text(existing, entries, site=None):
+    """(the whole _redirects text, the rules added, the rules in all): existing, the
+    feed's rules, then a 302 rule per package. build/ci/release-chain.py counts a
+    release's site with it before the release is signed (check_budget), so the two
+    count alike; with site, a rule whose path a file of the site stands at is refused."""
     taken = set(source for source, _, _ in parse_rules(existing))
     lines = []
     for entry in sorted(entries, key=site_path):
         source = site_path(entry)
         if source in taken:
             raise RepoError("_redirects already has a rule for %s" % source)
-        if os.path.exists(os.path.join(site, *source.strip("/").split("/"))):
+        if site and os.path.exists(os.path.join(site, *source.strip("/").split("/"))):
             raise RepoError("a file stands at %s, which Pages would answer before the rule" % source)
         taken.add(source)
         lines.append("%s %s 302" % (source, entry["url"]))
@@ -282,8 +279,19 @@ def add_redirects(site, entries):
     if lines:
         text += "# The apt and dnf repositories' packages, in the package registry (build/generate-package-repos.py).\n"
         text += "\n".join(lines) + "\n"
+    return text, len(lines), len(parse_rules(text))
+
+
+def add_redirects(site, entries):
+    """Append a 302 rule per package to site/_redirects, which the feed may have
+    written already, and hold the whole file to what Pages reads."""
+    path = os.path.join(site, "_redirects")
+    existing = ""
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            existing = f.read()
+    text, added, count = redirects_text(existing, entries, site)
     data = text.encode("utf-8")
-    count = len(parse_rules(text))
     if len(data) > REDIRECTS_MAX_BYTES:
         raise RepoError("_redirects would be %d bytes; Pages reads none of a file over %d. Keep fewer releases (--keep)." % (
             len(data), REDIRECTS_MAX_BYTES))
@@ -292,7 +300,7 @@ def add_redirects(site, entries):
             count, REDIRECTS_MAX_RULES))
     with open(path, "wb") as f:
         f.write(data)
-    return len(lines), count, len(data)
+    return added, count, len(data)
 
 
 # ---------------------------------------------------------------- the files
@@ -892,6 +900,33 @@ def self_test():
     expect(site_path([e for e in placed_636 if e["arch"] == "arm64"][0]) == "/" + APT_POOL + "hmailserver_6.3.6_arm64.deb",
            "the arm64 .deb is asked for in the one pool beside the amd64 one")
     expect([e["version"] for e in select(releases, keep=1)[0]] == ["6.3.5"] * 6, "--keep 1 keeps the newest version only")
+    # And as 6.3.6 goes out (build/ci/release-chain.py, gathered_builds): each Debian and
+    # Ubuntu release's .deb and each RPM release's .rpm, both architectures, beside the
+    # generic ones, the AppImages, the tarball and the chart, each primary file with its
+    # SBOM, its bundle and the bundle's .sigstore.json copy, and the provenance.
+    every = ["hmailserver_6.3.6_amd64.deb", "hmailserver_6.3.6_arm64.deb", "hmailserver-6.3.6-1.x86_64.rpm",
+             "hmailserver-6.3.6-1.aarch64.rpm", "hMailServer-6.3.6-x64.exe", "hMailServer-6.3.6-x86_64.AppImage",
+             "hMailServer-6.3.6-aarch64.AppImage", "hmailserver-6.3.6.tar.gz", "hmailserver-chart-6.3.6.tgz"]
+    every += ["hmailserver_6.3.6-1~%s_%s.deb" % (d, a) for d in ("debian12", "debian13", "ubuntu24.04") for a in ("amd64", "arm64")]
+    every += ["hmailserver-6.3.6-1.%s.%s.rpm" % (t, a) for t in ("fc44", "fc43", "el10", "el9", "suse.lp160", "suse.tw")
+              for a in ("x86_64", "aarch64")]
+    carried = []
+    for name in every:
+        carried += [name, name + ".cdx.json", name + ".cosign.bundle", name + ".sigstore.json", name + ".cdx.json.cosign.bundle"]
+    carried += ["hmailserver-6.3.6.intoto.sigstore.json"]
+    placed_all, warned_all = select([release("v6.3.6", carried)])
+    suites = sorted(set((e["kind"], e["where"], e["arch"]) for e in placed_all))
+    expect(len(placed_all) == 16 and suites == sorted(
+        [("deb", s, a) for s in ("debian12", "debian13", "ubuntu24.04", "ubuntu26.04") for a in ("amd64", "arm64")]
+        + [("rpm", d, a) for d in ("fc44", "fc43", "el10", "el9") for a in ("x86_64", "aarch64")]),
+        "every Debian, Ubuntu, Fedora and EL release's own package goes to its suite, one per architecture, and the "
+        "generic .debs to ubuntu26.04: %s" % suites)
+    expect(not any("suse" in e["name"] for e in placed_all) and not any("suse" in w for w in warned_all),
+           "openSUSE's .rpms, which zypper takes through OBS (docs/PackageManagers.md), pass silently")
+    expect(len(warned_all) == 2, "only the two generic .rpms are said: %s" % warned_all)
+    added_text, added, total = redirects_text("/download/ https://gitlab.com/x 302\n", placed_all)
+    expect(added == 16 and total == 17 and len(added_text.encode("utf-8")) < 4096,
+           "a release with every package adds sixteen rules, some 3 KB: %d rules, %d bytes" % (added, len(added_text.encode("utf-8"))))
 
     foreign = [release("v6.3.5", ["hmailserver_6.3.5_amd64.deb"])]
     foreign[0]["assets"][0]["browser_download_url"] = "https://example.com/hmailserver_6.3.5_amd64.deb"

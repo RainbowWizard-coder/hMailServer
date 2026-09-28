@@ -12,8 +12,10 @@ scripts they run are in `build/ci/packages/`.
 The generic x86-64 package, `hmailserver-<v>-1.x86_64.rpm`, stays
 `linux-build`'s, as before. This file adds its AArch64 twin and the twelve
 packages whose names carry a release (see [The names](#the-names)). From 6.3.6
-the release carries the AArch64 twin, `hmailserver-<v>-1.aarch64.rpm`, with its
-SBOM; the twelve are CI artifacts that no release carries yet.
+the release carries the AArch64 twin, `hmailserver-<v>-1.aarch64.rpm`, and the
+twelve, each with its SBOM, a line in the sums, a bundle and its `.sigstore.json`
+copy: `release-packages` (`.gitlab/ci/release-packages.yml`) gathers them once
+each build's install job has passed.
 
 **The build jobs have run on GitLab; the install jobs have not.** All twelve
 build jobs passed in `batch41`'s pipeline 2887115157 (27 September 2026), four
@@ -503,13 +505,16 @@ What is left
    `hmailserver-<v>-1.aarch64.rpm` is in (batch42, 28 September 2026):
    `release` needs `rpm-fedora44-aarch64`, `rpm-fedora44-aarch64-sbom` and
    `rpm-fedora44-aarch64-install`, and `build/ci/release-chain.py collect`
-   takes the package and its SBOM. The twelve are not in yet, and a tag's
-   `release` job does not wait for their jobs.
+   takes the package and its SBOM. The twelve are in too (batch42, W2.1):
+   `release-packages` (`.gitlab/ci/release-packages.yml`) needs each build with
+   its artifacts and its install job, gathers each package held to its build's
+   sums and makes its SBOM, and `release` needs `release-packages`.
 3. **The checks that read `.gitlab-ci.yml` alone: the integrator's change.**
-   `build/check-release-chain.py` reads the jobs of an included file only for
-   the packages a release carries (`CARRIED_PACKAGES`: the build, the SBOM job
-   and the install job of each) and for the old routes; it reads no other as a
-   gate of a release. `build/ci/repo-hygiene.py` reads none of them: its
+   `build/check-release-chain.py` reads the jobs of an included file for the
+   packages a release carries - the generic AArch64 one (`CARRIED_PACKAGES`:
+   the build, the SBOM job and the install job) and, through `release-packages`,
+   every build and install job here and every job those wait for - and for the
+   old routes. `build/ci/repo-hygiene.py` reads none of them: its
    Pinned-Dependencies check reads the images of `.gitlab-ci.yml` only, and the
    scripts of `build/*.sh` and `build/ci/*.sh` only, not `.gitlab/ci/*.yml` or
    `build/ci/packages/`. Its own functions, run over this file and these

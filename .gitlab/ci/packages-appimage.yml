@@ -17,7 +17,8 @@
 #   appimage-x86_64, appimage-aarch64
 #       linix, ubuntu:24.04: the server built (x86_64) or taken from the compile
 #       job (aarch64), packed as hMailServer-<version>-<arch>.AppImage - the name
-#       the update checker and the update feed look for - and run
+#       the update checker and the update feed look for - and run; beside it what
+#       it was built against and what it bundles, for its SBOM
 #       (build/ci/packages/appimage-build.sh)
 #   appimage-test-x86_64, appimage-test-aarch64
 #       linix, fedora:44: the AppImage run on a distribution it was not built on,
@@ -28,16 +29,25 @@
 # host must have qemu-user registered with binfmt_misc for aarch64
 # (docs/PackagesAppImage.md, "What the owner must do").
 #
-# When: on a protected v* tag, every job, as part of the release; on any other
-# protected ref (master, batch*), the runtime and compile jobs wait to be started
-# by hand and the rest follow them - an AppImage is a release artefact, and the
-# two builds add half an hour to linix's queue. Never for a merge request or an
-# unprotected ref: these run on the project's own runner, which takes protected
-# refs only. A tag's jobs, and every job that follows another, are made by
-# .own-runners' own rules (.gitlab-ci.yml), taken by !reference; the by-hand rule
-# for the other refs comes after a refusal of its own and asks for a protected ref
-# itself, so that build/ci/repo-hygiene.py's Token-Permissions, which reads one
-# rule at a time, sees that an unprotected ref gets no job.
+# The release carries both AppImages from 6.3.6, each with its SBOM
+# (build/asset-sbom.py --kind appimage, from built-against-<arch>/, which the build
+# records), a line in the sums, a bundle and its .sigstore.json copy: the
+# release-packages job (.gitlab/ci/release-packages.yml) needs appimage-<arch> and
+# appimage-test-<arch> and gathers them, and release needs it. The runtime is the
+# project's own, which the maintainers accepted on work item 36 (28 September 2026).
+#
+# When: on a protected v* tag and a batch* branch, every job at once, as part of the
+# release and of its rehearsal (.gitlab/ci/release-rehearsal.yml); on any other
+# protected ref (master) the runtime and compile jobs wait to be started by hand
+# and the rest follow them - the two builds add half an hour to linix's queue. Never
+# for a merge request or an unprotected ref: these run on the project's own runner,
+# which takes protected refs only. A tag's and a batch's jobs, and every job that
+# follows another, are made by .own-runners' own rules (.gitlab-ci.yml), taken by
+# !reference; the by-hand rule for master comes after a refusal of its own and asks
+# for a protected ref itself, so that build/ci/repo-hygiene.py's Token-Permissions,
+# which reads one rule at a time, sees that an unprotected ref gets no job. These are
+# packages-deb.yml's and packages-rpm.yml's rules, so that the package files behave
+# as one.
 #
 # Every image is pinned by the digest of its manifest for the one platform the job
 # runs, not by the multi-platform index: the runner's pull policy is if-not-present,
@@ -50,7 +60,7 @@
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_PROTECTED != "true"
       when: never
-    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"
       when: manual
       allow_failure: true
     - !reference [.own-runners, rules]

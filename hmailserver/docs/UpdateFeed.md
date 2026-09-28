@@ -411,8 +411,10 @@ file, requires that identity, and writes the notes' verification section
 with the repository id as the certificate states it; and `release-publish`
 uploads every file to `hmailserver/<version>` before it creates the release with
 a link per file named after it, then renders the feed from the API and requires
-the new release in it with a Windows, a Debian and an RPM file and their
-bundles (`build/ci/release-chain.py`).
+the new release in it with a Windows, a Debian and an RPM file for x86-64 and
+AArch64 and both AppImages, each with its bundle (`build/ci/release-chain.py`).
+Before it signs anything, and again before it uploads, it renders the site with
+the new release in it and refuses a feed a server would not read whole (below).
 
 What the site serves
 --------------------
@@ -455,13 +457,67 @@ added, for example `/download/hMailServer-x64.exe.cosign.bundle`. A name has a
 link only when that release carries its file. A name it does not carry answers
 404, never a file of another release. 6.3.4 carries the x64 installer, the amd64
 `.deb` and the x86-64 `.rpm`, and no bundle, so its other names answer 404 until
-a stable release carries them again. The release pipeline is to carry the
-AArch64 `.deb` and `.rpm` from 6.3.6, each with its bundle, so `hmailserver_arm64.deb`
-and `hmailserver.aarch64.rpm` answer from the first stable release that has them,
-and an AArch64 server installed from either package finds its file in the feed
-by the name its update check asks for (`hmailserver_<v>_arm64.deb`,
-`hmailserver-<v>-1.aarch64.rpm`). `--serve-check` fails a stable release that
+a stable release carries them again. The release pipeline carries the
+AArch64 `.deb` and `.rpm` and both AppImages from 6.3.6, each with its bundle, so
+`hmailserver_arm64.deb`, `hmailserver.aarch64.rpm`, `hMailServer-x86_64.AppImage`
+and `hMailServer-aarch64.AppImage` answer from the first stable release that has
+them, and a server installed from any of them finds its file in the feed by the
+name its update check asks for (`hmailserver_<v>_arm64.deb`,
+`hmailserver-<v>-1.aarch64.rpm`, `hMailServer-<v>-<arch>.AppImage`). The ARM64
+Windows installer's name answers 404 until a release carries it, once it has run on
+ARM64 hardware. `--serve-check` fails a stable release that
 carries any server's file without its bundle, unless it is unsigned by design.
+
+From 6.3.6 a release also carries each distribution release's own package -
+`hmailserver_<v>-1~<release>_<arch>.deb` for Debian 12 and 13 and Ubuntu 24.04,
+`hmailserver-<v>-1.<release>.<arch>.rpm` for Fedora 44 and 43, EL 10 and 9 and
+openSUSE Leap 16.0 and Tumbleweed - the source tarball, the Helm chart, a
+`.sigstore.json` copy of each primary file's bundle and the SLSA provenance. None
+of them has a `/download/` name: a server never asks for them by name, and the
+release's own permanent links on GitLab name each one, their paths
+(`direct_asset_path`) the file's name with the version taken out, as for the
+files above: `hmailserver_debian12_amd64.deb`, `hmailserver.el9.x86_64.rpm`,
+`hmailserver.tar.gz`, `hmailserver-chart.tgz` (the `~` of a `.deb`'s version, which
+GitLab refuses in a link's path, is a `-` in a bundle's). They are what the apt and
+dnf repositories serve once those are published ([PackageManagers.md](PackageManagers.md)).
+
+A server installed from one of those distribution releases' packages is, to its
+update check, a Debian or an RPM installation like any other: dpkg or rpm owns
+`hmailserver`. Its live update offers it the generic file of the next release,
+built on Ubuntu 26.04 (the `.deb`, the x86-64 `.rpm`) or Fedora 44 (the aarch64
+`.rpm`), and hands it to apt or dnf, which install it where its dependencies are
+met and refuse it where they are not. 6.3.4's generic `.deb` asks for `libc6 (>=
+2.38)`, `libldap2 (>= 2.6.2)`, `libssl3t64` and `libstdc++6 (>= 14)`: Debian 13 and
+Ubuntu 24.04 have them, so there the live update replaces the release's own build
+with the Ubuntu 26.04 one, which runs; Debian 12 has none of them, and apt refuses
+it. dnf resolved the generic x86-64 `.rpm` on Fedora 43 and 44 and AlmaLinux 10 and
+refused it on AlmaLinux 9 (PackageManagers.md). Nothing is installed when they
+refuse; the server says why. Update such a server with its own release's file of
+the next version, or through the apt and dnf repositories once they exist. Building those packages without the live
+update, so that their update check names the package manager's command instead
+(`-DHM_LIVE_UPDATE=OFF` and `HM_UPDATE_COMMAND`, [LiveUpdateKinds.md](LiveUpdateKinds.md)),
+waits for the repositories: until they exist, that command would find nothing.
+
+### How much the site holds
+
+A release as 6.3.6 is has 143 links (Roadmap3, "Release collects every file"). The
+site that carries it (`build/ci/release-chain.py`'s `check_budget`, which the
+`release` job runs before anything is signed and `release-publish` before anything
+is uploaded, both refusing past a limit, with the apt and dnf repositories kept as
+`package-repos`' `--keep` keeps them):
+
+| | 6.3.6 alone | Grows by, per release of its shape | The limit |
+|---|---|---|---|
+| `releases.json` | 48,524 bytes | 48,521 bytes | 4 MiB, the largest feed a server reads (`MAX_FEED_BYTES`, `UpdateChecker.cpp`): about eighty-five releases of this shape |
+| `releases/latest` | 47,652 bytes | nothing: it is the one release | 4 MiB |
+| `_redirects` | 31 rules in 5,386 bytes: the feed's 15 (the download page and seven files with their bundles) and the apt and dnf repositories' 16 | 16 rules, 2,942 bytes | 1,000 rules and 64 KiB, which Pages reads: twenty-one releases of this shape fit, and the twenty-second needs `--keep` ([PackageManagers.md](PackageManagers.md), "What the repositories hold") |
+
+GitLab sets no limit on the number of a release's links; each link's permanent
+path must be at most 128 characters of letters, digits and `_ . - /`, and its
+name, address and path its own within the release, or the release is not created,
+which the two jobs check first; 6.3.6's longest is 76. Measured on 28 September
+2026 with the file sizes a release has (sizes of eight digits and more), by
+`check_budget` over releases of 6.3.6's shape.
 
 GitLab's own `/-/releases/permalink/latest` is the release with the latest
 `released_at` date. GitLab has no pre-release flag, so a pre-release, or the
