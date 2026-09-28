@@ -43,13 +43,19 @@ if ! cmake -S "$source_dir" -B "$build_dir" -G Ninja > "$out/probe.log" 2>&1; th
   echo "CONFIGURE FAILED"
   exit 3
 fi
-if ! cmake -N -LH "$build_dir" 2> /dev/null | grep -q '^HM_SANITIZE:'; then
+# Each probe writes the command's whole output to a file and greps the file. Piped
+# into `grep -q`, which stops reading at its first match, the command is killed by
+# SIGPIPE once its output outgrows the pipe, and under pipefail the test then fails
+# with the line present: `ninja -t targets all` over batch41's tree did exactly that
+# in pipeline 2887524317.
+cmake -N -LH "$build_dir" > "$out/options.txt" 2> /dev/null
+if ! grep -q '^HM_SANITIZE:' "$out/options.txt"; then
   echo "No: cmake -LH lists no HM_SANITIZE. The SNMP row adds the option and snmp-tests;"
   echo "until they are in this tree there is nothing for this job to build. SKIPPED."
   rm -rf "$build_dir"
   exit 0
 fi
-cmake -N -LH "$build_dir" 2> /dev/null | grep -B1 '^HM_SANITIZE:'
+grep -B1 '^HM_SANITIZE:' "$out/options.txt"
 
 echo ""
 echo "== configure with -DHM_SANITIZE=ON, RelWithDebInfo"
@@ -61,7 +67,8 @@ if ! cmake -S "$source_dir" -B "$build_dir" -G Ninja -DHM_SANITIZE=ON -DCMAKE_BU
   exit 3
 fi
 tail -n 5 "$out/configure.log"
-if ! ninja -C "$build_dir" -t targets all 2> /dev/null | grep -q '^snmp-tests:'; then
+ninja -C "$build_dir" -t targets all > "$out/targets.txt" 2> /dev/null
+if ! grep -q '^snmp-tests:' "$out/targets.txt"; then
   echo "FAILED: the build offers HM_SANITIZE but makes no snmp-tests target, which is what this job runs."
   exit 1
 fi
