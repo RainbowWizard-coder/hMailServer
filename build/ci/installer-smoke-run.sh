@@ -35,6 +35,17 @@
 #   --allow-unsigned    an installer with no signature is a SKIP, not a FAIL
 #   --keep-vm           leave the VM as the run left it, for a look at a failure; the
 #                       next run reverts it anyway
+#   --database FILE     a new installation of FIRST on an external database, set up
+#                       with no window by DBSetup /unattended: FILE's HM_DB_* lines
+#                       (installer-smoke.ps1 -DatabaseSettings) are copied to the VM,
+#                       never put on a command line; FIRST alone, no SECOND
+#   --database-password FILE
+#                       a file holding the database password, copied to the VM as
+#                       C:\smoke\database-password.txt, which the --database file then
+#                       names: HM_DB_PASSWORD_FILE=C:\smoke\database-password.txt
+#   --database-in-environment
+#                       every HM_DB_* setting in the installer's environment rather
+#                       than as its /db switches (the installer's other route)
 #
 # The defaults are the smoke VM on the maintainer's laptop, found on 25 September
 # 2026: "Win server 2025 small", the one .vmx in VMware's inventory whose MAC is the
@@ -60,6 +71,9 @@ key="${HM_SMOKE_KEY:-$HOME/.ssh/hmail_ad}"
 out="${HM_SMOKE_OUT:-}"
 allow_unsigned=0
 keep_vm=0
+database=""
+database_password=""
+database_in_environment=0
 
 usage() {
    sed -n '/^#   bash build/,/^# Exit codes/p' "$0" | sed 's/^# \{0,1\}//'
@@ -67,6 +81,9 @@ usage() {
 
 while [ $# -gt 0 ]; do
    case "$1" in
+      --database) database="$2"; shift 2 ;;
+      --database-password) database_password="$2"; shift 2 ;;
+      --database-in-environment) database_in_environment=1; shift ;;
       --vmx) vmx="$2"; shift 2 ;;
       --snapshot) snapshot="$2"; shift 2 ;;
       --mac) mac="$2"; shift 2 ;;
@@ -99,7 +116,28 @@ second_local=""
 key_local=$(local_path "$key")
 vmx_local=$(local_path "$vmx")
 
-for file in "$first_local" ${second_local:+"$second_local"} "$key_local"; do
+database_local=""
+database_password_local=""
+if [ -n "$database" ]; then
+   if [ -n "$second" ]; then
+      echo "--database is a new installation on an external database: FIRST alone, no SECOND" >&2
+      exit 2
+   fi
+   database_local=$(local_path "$database")
+fi
+if [ -n "$database_password" ]; then
+   if [ -z "$database" ]; then
+      echo "--database-password goes with --database" >&2
+      exit 2
+   fi
+   database_password_local=$(local_path "$database_password")
+fi
+if [ "$database_in_environment" = 1 ] && [ -z "$database" ]; then
+   echo "--database-in-environment goes with --database" >&2
+   exit 2
+fi
+
+for file in "$first_local" ${second_local:+"$second_local"} "$key_local" ${database_local:+"$database_local"} ${database_password_local:+"$database_password_local"}; do
    if [ ! -f "$file" ]; then
       echo "not found: $file" >&2
       exit 2
@@ -307,6 +345,17 @@ if [ -n "$second_local" ]; then
 fi
 retry_copy copy_to_vm "$smoke_ps1" C:/smoke/installer-smoke.ps1 || { say "installer-smoke.ps1 could not be copied"; exit 3; }
 [ "$allow_unsigned" = 1 ] && arguments="$arguments -AllowUnsigned"
+# The database settings and the password travel by scp, as files; only their paths
+# on the VM are on the command line.
+if [ -n "$database_local" ]; then
+   retry_copy copy_to_vm "$database_local" C:/smoke/database.env || { say "the database settings could not be copied"; exit 3; }
+   arguments="$arguments -DatabaseSettings C:/smoke/database.env"
+   [ "$database_in_environment" = 1 ] && arguments="$arguments -DatabaseInEnvironment"
+   say "the database: $(grep -Eo '^[[:space:]]*HM_DB_TYPE=[^[:space:]]+' "$database_local" | head -n 1 | tr -d ' '), settings in C:\\smoke\\database.env"
+fi
+if [ -n "$database_password_local" ]; then
+   retry_copy copy_to_vm "$database_password_local" C:/smoke/database-password.txt || { say "the database password file could not be copied"; exit 3; }
+fi
 
 say "== running installer-smoke.ps1 on $host"
 ssh "${ssh_opts[@]}" "$remote" \

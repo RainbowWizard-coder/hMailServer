@@ -57,7 +57,9 @@
 # that build/asset-sbom.py can give every release asset an SBOM of its own that lists
 # what that asset holds and nothing else. -Platform ARM64 gives the ARM64 installer's
 # list: the linked libraries from the ARM64 include paths, and the shipped files
-# third-party-binaries.json tags arm64 in place of the x64 ones.
+# third-party-binaries.json tags arm64 in place of the x64 ones. -LibrariesRoot, on the
+# machine that built the installer, holds each linked library's version to the built
+# tree its include path names, which records its own.
 
 [CmdletBinding()]
 param(
@@ -74,7 +76,17 @@ param(
    [switch] $LinuxOnly,
    # The tree to read, when it is not the one this script is in: a release's tree,
    # checked out elsewhere, described by a newer copy of this script.
-   [string] $RepoRoot
+   [string] $RepoRoot,
+   # The libraries the Windows build linked (%hMailServerLibs%, which build/build.ps1
+   # and the installer scripts read): each linked library's version, taken from the
+   # include path as always, is then also read from the built tree that path names
+   # (openssl-4.0.2-arm64, boost_1_92_0-arm64, postgresql-18.3-arm64 for -Platform
+   # ARM64), from the file the library's own build records its version in, and a tree
+   # that is missing or says another version fails the list. The list itself is the
+   # same with it as without it: this only proves that it names what the machine
+   # that runs it built. For the build machine - bench150's windows-packages jobs,
+   # the laptop - not the linux-sbom job, which has no libraries.
+   [string] $LibrariesRoot
 )
 
 $ErrorActionPreference = 'Stop'
@@ -95,6 +107,8 @@ $manifestFile = Join-RepoPath @('hmailserver', 'docs', 'third-party-binaries.jso
 $cmakeFile = Join-RepoPath @('hmailserver', 'source', 'Server', 'CMakeLists.txt')
 
 if ($LinuxOnly -and $Platform -ne 'x64') { throw '-LinuxOnly is the Linux packages'' list, which has no -Platform.' }
+if ($LinuxOnly -and $LibrariesRoot) { throw '-LinuxOnly reads no Windows library; -LibrariesRoot is for the Windows lists.' }
+if ($LibrariesRoot -and -not (Test-Path -LiteralPath $LibrariesRoot -PathType Container)) { throw "-LibrariesRoot $LibrariesRoot is not a directory." }
 $inputs = if ($LinuxOnly) { @($cmakeFile) } else { @($projectFile, $manifestFile, $cmakeFile) }
 foreach ($required in $inputs) {
    if (-not (Test-Path -LiteralPath $required)) { throw "Cannot find $required, which the SBOM's component list is read from." }
@@ -282,6 +296,48 @@ $linuxComponents = @{
 
 $found = @()
 $missing = @()
+$treeProblems = @()
+
+# -LibrariesRoot: the version a linked library's built tree records of itself, from the
+# file its own build writes or ships - OpenSSL's VERSION.dat, Boost's boost/version.hpp
+# (BOOST_VERSION, 109200 for 1.92.0), PostgreSQL's meson.build - in the form the include
+# path's version takes. '' when the file is not there or does not say.
+function Get-TreeVersion([string] $Name, [string] $Tree) {
+   switch ($Name) {
+      'openssl' {
+         $file = Join-Path $Tree 'VERSION.dat'
+         if (-not (Test-Path -LiteralPath $file)) { return '' }
+         $text = Get-Content -LiteralPath $file -Raw
+         # Collected with +=, not as $parts = foreach (...): a return inside a loop
+         # whose output is being assigned sends the fields already read to the
+         # function's output with the '', and a VERSION.dat without PATCH was
+         # reported as recording "4 0 " rather than no version.
+         $parts = @()
+         foreach ($field in @('MAJOR', 'MINOR', 'PATCH')) {
+            $m = [regex]::Match($text, "(?m)^$field=(\d+)\s*$")
+            if (-not $m.Success) { return '' }
+            $parts += $m.Groups[1].Value
+         }
+         return ($parts -join '.')
+      }
+      'boost' {
+         $file = Join-Path (Join-Path $Tree 'boost') 'version.hpp'
+         if (-not (Test-Path -LiteralPath $file)) { return '' }
+         $m = [regex]::Match((Get-Content -LiteralPath $file -Raw), '(?m)^#define BOOST_VERSION (\d+)\s*$')
+         if (-not $m.Success) { return '' }
+         $number = [int] $m.Groups[1].Value
+         return ('{0}.{1}.{2}' -f [math]::Floor($number / 100000), ([math]::Floor($number / 100) % 1000), ($number % 100))
+      }
+      'postgresql' {
+         $file = Join-Path $Tree 'meson.build'
+         if (-not (Test-Path -LiteralPath $file)) { return '' }
+         $m = [regex]::Match((Get-Content -LiteralPath $file -Raw), "(?m)^\s*version:\s*'(\d+\.\d+)")
+         if (-not $m.Success) { return '' }
+         return $m.Groups[1].Value
+      }
+   }
+   return ''
+}
 
 function New-Component([hashtable] $fields) {
    $component = [ordered]@{
@@ -351,6 +407,17 @@ foreach ($dependency in $dependencies) {
       $version = $groups -join '.'
 
       $source = 'hMailServer.vcxproj include path'
+
+      # The tree the path names, when the build's libraries were given: it must be
+      # there and record the same version (Get-TreeVersion).
+      if ($LibrariesRoot) {
+         $tree = Join-Path $LibrariesRoot $match.Value
+         $treeVersion = if (Test-Path -LiteralPath $tree -PathType Container) { Get-TreeVersion $dependency.Name $tree } else { $null }
+         if ($null -eq $treeVersion) { $treeProblems += "$($dependency.Name): $tree, which the include path names, is not there" }
+         elseif ($treeVersion -eq '') { $treeProblems += "$($dependency.Name): $tree records no version where its build writes one" }
+         elseif ($treeVersion -ne $version) { $treeProblems += "$($dependency.Name): $tree records $treeVersion, and the include path names $version" }
+         else { Write-Verbose "$($dependency.Name) $version is what $tree records" }
+      }
    }
 
    $found += New-Component @{
@@ -381,6 +448,11 @@ if ($missing.Count -gt 0) {
            "hMailServer.vcxproj no longer match the expected pattern, or a vendored " +
            "dependency's version file is missing or no longer matches. Fix the pattern or the path in " +
            "this script - do not remove the dependency, because it is still linked.") -f ($missing -join ', '))
+}
+
+if ($treeProblems.Count -gt 0) {
+   throw ("The libraries under -LibrariesRoot are not the ones the list names: " + ($treeProblems -join '; ') +
+          ". Build them with libraries\build-*.ps1 at the versions hMailServer.vcxproj names, or point -LibrariesRoot at the folder the build used.")
 }
 
 # ------------------------------------------------------------------------- shipped

@@ -116,6 +116,15 @@ for a stray `#` number or `@` name.
   for `hMailServer.exe` on every platform, so the Linux server was compiled against zlib 1.3.2's header and
   linked against the distribution's library (1.3.1 on Ubuntu 26.04). They include `<zlib.h>` under
   `HM_PLATFORM_POSIX` now; the Windows build compiles the same text as before.
+- **An ARM64 publish of the .NET tools no longer takes the x64 COM wrapper from an earlier x64 publish.** MSBuild
+  searched each tool's own `publish` folder before the reference's hint path, so `build-tools.ps1 -Platform ARM64`
+  after an x64 publish compiled all five tools against the x64 wrapper (warning CS8012) and shipped it, in the
+  add-ons' `Addons` folders where nothing replaced it; `check-pe-machine.ps1` found five. The publish folders are
+  kept out of the projects' items (`Tools\Directory.Build.props`). CI builds in a clean checkout and never met it.
+- **`native-dependencies.ps1 -LibrariesRoot`** holds each linked library's version in an installer's component
+  list to the tree the build used, which records its own (OpenSSL's `VERSION.dat`, Boost's `version.hpp`,
+  PostgreSQL's `meson.build`); the ARM64 list was checked that way against the ARM64 libraries of 26 September.
+  The lists themselves are unchanged.
 
 ### Operations
 
@@ -171,6 +180,23 @@ for a stray `#` number or `@` name.
   6.3.6 is written down in [LiveUpdateKinds.md](hmailserver/docs/LiveUpdateKinds.md): it installed nothing,
   downloaded two packages and reported HM6890. Tested by `build/test-install-kind.sh` (CI job
   `linux-live-update`).
+- **A new Windows installation can be set up against SQL Server, PostgreSQL or MySQL with no window** (not yet
+  run against a server). Both installers take the database on the command line - `/dbtype=`, `/dbhost=`,
+  `/dbport=`, `/dbname=`, `/dbuser=`, `/dbpasswordfile=`, `/createdatabase=`, `/dbservice=` - or in the
+  container's own `HM_DB_*` variables, the password only in `HM_DB_PASSWORD` or a file, never on a command line.
+  `DBSetup.exe /unattended` then creates the database, or uses one that exists and upgrades it with DBUpdater if
+  it is older, and ends only at the schema the build requires, its lines in the setup log. Settings it cannot use
+  are refused before anything changes, among them a password file that is not UTF-8 and the characters the server
+  cannot yet pass to its database (a single quote or a backslash for PostgreSQL; for SQL Server a semicolon, or a
+  quote as a value's first character). This is how a silent installation of the ARM64 build, which has no
+  built-in database, finishes; its installer now refuses a silent new installation given no database before
+  anything is installed, rather than open DBSetup's wizard where nobody can answer it. On x64 it is an option
+  beside the built-in database, which stays the silent default unless `HM_DB_TYPE` is set in the machine's or the
+  user's environment, which makes a new installation an external one; the setup log says whether the type came
+  from `/dbtype` or the environment. The x64 installer still does not run on ARM64 under emulation
+  (`x64compatible`), by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its
+  reasons. The installer smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh
+  --database`).
 
 ### Downloads and the release
 

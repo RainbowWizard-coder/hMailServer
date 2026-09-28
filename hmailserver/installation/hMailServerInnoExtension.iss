@@ -37,6 +37,18 @@ var
   g_bGrantFailed: Boolean;
   g_bMssqlSentenceAdded: Boolean;
 
+  // The external database a new installation is set up against without DBSetup's
+  // wizard (docs/WindowsOnArm.md, "A new installation without a window"): given with
+  // /dbtype, or HM_DB_TYPE in this process's environment, and read once, in
+  // InitializeSetup, before anything changes the environment. DBSetup /unattended
+  // sets it up (RunUnattendedDBSetup). Without it everything is as it was.
+  g_bDatabaseGiven: Boolean;
+  g_szDatabaseType: String;
+  // Where it came from, for the setup log and the refusal: '/dbtype', or
+  // 'HM_DB_TYPE in the environment' - which is also what a variable left set on
+  // the machine for anything else is (docs/WindowsOnArm.md).
+  g_szDatabaseFrom: String;
+
 // The NT-service specific parts of the scrit below is taken
 // from the innosetup extension knowledgebase.
 // Author: Silvio Iaccarino silvio.iaccarino(at)de.adp.com
@@ -736,6 +748,147 @@ begin
    Result := g_bNewDatabase;
 end;
 
+// The external database, given on the command line or in the environment
+// (docs/WindowsOnArm.md, "A new installation without a window"). The names are the
+// container's (docs/EnvironmentConfiguration.md), and DBSetup /unattended reads the
+// variables (Unattended.cs); each switch is its variable's value on the command
+// line, and wins over it, as /adminpassword wins over HM_ADMIN_PASSWORD:
+//
+//   /dbtype=          HM_DB_TYPE           PostgreSQL, MySQL (or MariaDB) or MSSQL
+//   /dbhost=          HM_DB_HOST           the database server; for SQL Server
+//                                          HOST, HOST\INSTANCE or HOST,PORT
+//   /dbport=          HM_DB_PORT           PostgreSQL's and MySQL's port
+//   /dbname=          HM_DB_NAME           the database, hMailServer when not given
+//   /dbuser=          HM_DB_USER           none for SQL Server: Windows authentication
+//                     HM_DB_PASSWORD       the password: never a switch
+//   /dbpasswordfile=  HM_DB_PASSWORD_FILE  a file that holds the password
+//   /createdatabase=  HM_CREATE_DATABASE   1 creates the database (the default), 0
+//                                          uses one that exists
+//   /dbservice=       HM_DB_SERVICE        a database server's Windows service on
+//                                          this machine, for hMailServer to start after
+//
+// There is no switch for the password: a command line is read by anybody listing
+// processes while setup runs, and Inno drops every double quote from one. The
+// installer never reads the password itself; DBSetup does, from the variable or the
+// file, as it inherits this process's environment.
+function DatabaseSwitch(Name: String): String;
+begin
+   Result := Trim(ExpandConstant('{param:' + Name + '|}'));
+end;
+
+// PostgreSQL, MySQL or MSSQL for each spelling DBSetup takes, as the container's
+// entrypoint takes them; '' for anything else - the built-in database included,
+// which /useinternaldbms chooses and DBSetup does not set up.
+function NormalizedDatabaseType(szType: String): String;
+var
+   szLower: String;
+begin
+   szLower := Lowercase(Trim(szType));
+   if (szLower = 'postgresql') or (szLower = 'postgres') or (szLower = 'pgsql') then
+      Result := 'PostgreSQL'
+   else if (szLower = 'mysql') or (szLower = 'mariadb') then
+      Result := 'MySQL'
+   else if (szLower = 'mssql') then
+      Result := 'MSSQL'
+   else
+      Result := '';
+end;
+
+// Hands one switch on to DBSetup in its variable, when the switch was given. A
+// variable this process already holds is left as it is when its switch was not.
+function ForwardDatabaseSwitch(Name: String; Variable: String): Boolean;
+var
+   szValue: String;
+begin
+   Result := true;
+   szValue := DatabaseSwitch(Name);
+   if szValue <> '' then
+      Result := SetProcessEnvironmentVariable(Variable, szValue);
+end;
+
+// Empties every variable of the database step, so that no process this installation
+// starts after DBSetup - hMailServer.exe's verbs - inherits them, the password least
+// of all. g_bDatabaseGiven and g_szDatabaseType keep what was given.
+procedure ClearDatabaseVariables();
+begin
+   SetProcessEnvironmentVariable('HM_DB_TYPE', '');
+   SetProcessEnvironmentVariable('HM_DB_HOST', '');
+   SetProcessEnvironmentVariable('HM_DB_PORT', '');
+   SetProcessEnvironmentVariable('HM_DB_NAME', '');
+   SetProcessEnvironmentVariable('HM_DB_USER', '');
+   SetProcessEnvironmentVariable('HM_DB_PASSWORD', '');
+   SetProcessEnvironmentVariable('HM_DB_PASSWORD_FILE', '');
+   SetProcessEnvironmentVariable('HM_CREATE_DATABASE', '');
+   SetProcessEnvironmentVariable('HM_DB_SERVICE', '');
+end;
+
+// DBSetup /unattended for the database given: the switches handed on in their
+// variables, the administrator password in HM_ADMIN_PASSWORD as for the wizard, and
+// its lines - the database it set up, or why it did not; never a password - read
+// back into the setup log and, for a failure, into szSaid for the message. It shows
+// no window. Run through cmd.exe to capture those lines, as /GrantServiceAccess is,
+// and cmd.exe returns DBSetup's own exit code: 0 set up, at this build's schema; 1
+// the step failed; 2 the settings were refused and nothing was changed; 3 the
+// administrator password was refused. False when it could not be started at all.
+function RunUnattendedDBSetup(szCredential: String; var ResultCode: Integer; var szSaid: String): Boolean;
+var
+   szReport: String;
+   szLines: AnsiString;
+   bHandedOn: Boolean;
+begin
+   Result := false;
+   ResultCode := 0;
+   szSaid := '';
+   szReport := ExpandConstant('{tmp}\dbsetup-unattended.txt');
+
+   // A password file given as a switch wins over a password in the environment,
+   // which DBSetup would otherwise refuse as the two given at once.
+   bHandedOn := ForwardDatabaseSwitch('dbtype', 'HM_DB_TYPE') and
+                ForwardDatabaseSwitch('dbhost', 'HM_DB_HOST') and
+                ForwardDatabaseSwitch('dbport', 'HM_DB_PORT') and
+                ForwardDatabaseSwitch('dbname', 'HM_DB_NAME') and
+                ForwardDatabaseSwitch('dbuser', 'HM_DB_USER') and
+                ForwardDatabaseSwitch('createdatabase', 'HM_CREATE_DATABASE') and
+                ForwardDatabaseSwitch('dbservice', 'HM_DB_SERVICE');
+   if bHandedOn and (DatabaseSwitch('dbpasswordfile') <> '') then
+      bHandedOn := SetProcessEnvironmentVariable('HM_DB_PASSWORD', '') and
+                   ForwardDatabaseSwitch('dbpasswordfile', 'HM_DB_PASSWORD_FILE');
+   if bHandedOn then
+      bHandedOn := SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential);
+
+   try
+      if bHandedOn then
+      begin
+         Log('Setting up the ' + g_szDatabaseType + ' database given with ' + g_szDatabaseFrom + ': DBSetup.exe /unattended.');
+         Result := Exec(ExpandConstant('{cmd}'), '/s /c ""' + ExpandConstant('{app}\Bin\DBSetup.exe') + '" /unattended > "' + szReport + '" 2>&1"',
+                        '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      end;
+   finally
+      SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '');
+      ClearDatabaseVariables();
+   end;
+
+   if not bHandedOn then
+   begin
+      szSaid := 'The database settings could not be handed to DBSetup.exe.';
+      Log(szSaid);
+      Exit;
+   end;
+
+   if not Result then
+   begin
+      szSaid := 'DBSetup.exe could not be run: ' + SysErrorMessage(ResultCode);
+      Log(szSaid);
+      Exit;
+   end;
+
+   if LoadStringFromFile(szReport, szLines) then
+      szSaid := Trim(String(szLines));
+   if szSaid = '' then
+      szSaid := 'DBSetup.exe wrote nothing to ' + szReport + '.';
+   Log('DBSetup.exe /unattended returned ' + IntToStr(ResultCode) + ':' + #13#10 + szSaid);
+end;
+
 // The profile chosen: on the page, or with /profile=NAME for a silent installation
 // - which is itself the explicit choice, as the page is. 'none' when the page's
 // None, or /profile=none, chose the shipped settings, which is recorded so that
@@ -1152,6 +1305,10 @@ begin
        begin
           Result := true;
        end;
+
+       // ...nor when the command line or the environment gave it.
+       if g_bDatabaseGiven then
+          Result := true;
      end;
 
   end;
@@ -1335,6 +1492,10 @@ begin
       g_bUseInternal := true
    else
       g_bUseInternal := false;
+   // A database given with /dbtype or HM_DB_TYPE is an external one, set up by
+   // DBSetup /unattended: it is the choice the database page would have asked for.
+   if g_bDatabaseGiven then
+      g_bUseInternal := false;
 #ifdef HM_ARM64
    // No built-in database on ARM64, whatever the command line says: a new
    // installation is set up against an external database by DBSetup.
@@ -1391,6 +1552,22 @@ begin
 		Result := false;
 		Exit;
 	end;
+
+	// The external database a new installation is set up against without a window
+	// (DatabaseSwitch): read once, here, before anything this installation runs
+	// empties the variables. It is held to what DBSetup takes in PrepareToInstall,
+	// once the settings file says whether this is a new installation: an upgrade
+	// keeps its database, and is not refused for a variable it does not use.
+	g_szDatabaseType := DatabaseSwitch('dbtype');
+	g_szDatabaseFrom := '/dbtype';
+	if g_szDatabaseType = '' then
+	begin
+		g_szDatabaseType := Trim(GetEnv('HM_DB_TYPE'));
+		g_szDatabaseFrom := 'HM_DB_TYPE in the environment';
+	end;
+	g_bDatabaseGiven := (g_szDatabaseType <> '');
+	if NormalizedDatabaseType(g_szDatabaseType) <> '' then
+		g_szDatabaseType := NormalizedDatabaseType(g_szDatabaseType);
 
 	if (FindWindowByWindowName('hMailServer Control Panel') > 0) then
 	begin
@@ -1812,12 +1989,18 @@ function RunPostInstallTasks() : Boolean;
       ProgressPage : TOutputProgressWizardPage;
       szParameters: AnsiString;
       szCredential: String;
+      szDBSetupSaid: String;
       bDatabaseBackendReady: Boolean;
       bServiceRegistered: Boolean;
       bPasswordWritten: Boolean;
       bStarted: Boolean;
 begin
    Result := true;
+
+   // A database given for a new installation, to one that has a database already:
+   // an upgrade keeps the database it has, which the setup log says.
+   if g_bDatabaseGiven and (IsNewDatabase() = false) then
+      Log('A ' + g_szDatabaseType + ' database was given with ' + g_szDatabaseFrom + '; this installation has a database already (' + GetCurrentDatabaseType() + '), and keeps it.');
 
    // Created outside the try so that the finally below cannot call Hide() on a nil
    // page if the page itself could not be created.
@@ -1974,7 +2157,17 @@ begin
             // 26 September 2026 it had it on its command line with DBSetupQuick's.
             ResultCode := 0;
             bStarted := false;
-            if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then
+            szDBSetupSaid := '';
+            if g_bDatabaseGiven then
+            begin
+               // The database given with /dbtype or HM_DB_TYPE, set up with no
+               // window (RunUnattendedDBSetup), silent installation or not.
+               bStarted := RunUnattendedDBSetup(szCredential, ResultCode, szDBSetupSaid);
+               if (bStarted = False) then
+                  SuppressibleMsgBox('The hMailServer database setup could not be started. ' + szDBSetupSaid + #13#10#13#10 +
+                         'Run DBSetup.exe from the hMailServer Bin folder to set the database up.', mbError, MB_OK, IDOK);
+            end
+            else if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then
                SuppressibleMsgBox('The hMailServer database setup could not be started: the administrator password could not be handed to DBSetup.exe. Run DBSetup.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK)
             else
             begin
@@ -1989,6 +2182,14 @@ begin
 
             if (bStarted = False) then
             begin
+               Result := false;
+            end
+            else if (ResultCode <> 0) and g_bDatabaseGiven then
+            begin
+               // DBSetup's own lines say which setting it refused, or what the
+               // database server answered; they hold no password.
+               SuppressibleMsgBox('The hMailServer database was not set up (DBSetup.exe /unattended, exit code ' + IntToStr(ResultCode) + '):' + #13#10#13#10 + szDBSetupSaid + #13#10#13#10 +
+                      'The hMailServer service may not work until the database has been set up. Correct the database settings (docs/WindowsOnArm.md) and run DBSetup.exe from the hMailServer Bin folder, or run this setup again.', mbError, MB_OK, IDOK);
                Result := false;
             end
             else if (ResultCode <> 0) then
@@ -2208,15 +2409,38 @@ begin
    g_bMssqlSentenceAdded := true;
 end;
 
-#ifdef HM_ARM64
-// The ARM64 installer only (hMailServerARM64.iss). Inno calls this after the last
-// wizard page and before any file is installed, in a silent install too, and a
-// non-empty answer ends the installation with that sentence. It is here and not in
-// InitializeSetup because the settings file is found through {app}, which is not
-// known until the directory has been chosen.
+// Inno calls this after the last wizard page and before any file is installed, in a
+// silent install too, and a non-empty answer ends the installation with that
+// sentence (Setup's exit code 7). It is here and not in InitializeSetup because the
+// settings file, which says whether this is a new installation, is found through
+// {app}, which is not known until the directory has been chosen. Both installers:
+// the database given for a new installation; the ARM64 one, below, what its server
+// cannot use.
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
    Result := '';
+
+   // A new installation of the server given a database (DatabaseSwitch): its type
+   // and the password file's path held to what DBSetup takes, before anything is
+   // installed. DBSetup holds the rest to it, and refuses before it changes anything.
+   if g_bDatabaseGiven and (GetCurrentDatabaseType() = '') and IsComponentSelected('server') then
+   begin
+      if NormalizedDatabaseType(g_szDatabaseType) = '' then
+      begin
+         Result := 'The database given with ' + g_szDatabaseFrom + ' is ''' + g_szDatabaseType + '''; it must be PostgreSQL, MySQL (or MariaDB) or MSSQL (Microsoft SQL Server). ' +
+                   'The built-in database (x64 only) is used when neither /dbtype nor HM_DB_TYPE is given; /useinternaldbms does not override them. Nothing has been changed.';
+         Exit;
+      end;
+
+      if (DatabaseSwitch('dbpasswordfile') <> '') and (ExtractFileDrive(DatabaseSwitch('dbpasswordfile')) = '') then
+      begin
+         Result := '/dbpasswordfile takes the full path of the file that holds the database password, for example /dbpasswordfile=C:\Deploy\hmailserver-db.txt. Nothing has been changed.';
+         Exit;
+      end;
+   end;
+
+#ifdef HM_ARM64
+   // The ARM64 installer only (hMailServerARM64.iss).
 
    // The ARM64 server cannot open SQL Server Compact: there is no ARM64 build of it,
    // and an ARM64 process cannot load the x64 provider. Installed over a server that
@@ -2229,6 +2453,32 @@ begin
       Exit;
    end;
 
+   // A new installation of the server: with no built-in database, it is set up
+   // against the database given with /dbtype or HM_DB_TYPE, by DBSetup /unattended,
+   // or else in DBSetup's wizard - which is a window, and a silent installation has
+   // nobody to answer one: under /VERYSILENT it would wait for ever. So a silent new
+   // installation is refused here, before anything is installed, until it is told
+   // which database to use.
+   if (GetCurrentDatabaseType() = '') and IsComponentSelected('server') and WizardSilent() and (g_bDatabaseGiven = false) then
+   begin
+      Result := 'hMailServer on ARM64 has no built-in database, so a new installation is set up against Microsoft SQL Server or PostgreSQL, ' +
+                'and a silent installation has to be told which: for example /dbtype=PostgreSQL /dbhost=HOST /dbuser=USER, with the password in ' +
+                'HM_DB_PASSWORD or in the file /dbpasswordfile= names (WindowsOnArm.md in the documentation). Nothing has been changed.';
+      Exit;
+   end;
+
+   // MySQL or MariaDB given for a new installation: the server cannot load an x64
+   // client, and this installer carries no ARM64 one, so DBSetup would fail after
+   // everything was installed. Refused here unless a libmysql.dll - which has to be
+   // an ARM64 one - has been put in Bin already, as WindowsOnArm.md says.
+   if (GetCurrentDatabaseType() = '') and IsComponentSelected('server') and g_bDatabaseGiven and (g_szDatabaseType = 'MySQL') and
+      (FileExists(ExpandConstant('{app}\Bin\libmysql.dll')) = false) then
+   begin
+      Result := 'MySQL or MariaDB was given as the database, and the ARM64 build needs an ARM64 build of the MariaDB client, libmysql.dll, which this installer does not carry. ' +
+                'Put one in ' + ExpandConstant('{app}\Bin') + ' first (WindowsOnArm.md in the documentation says how to build it), or use PostgreSQL or Microsoft SQL Server. Nothing has been changed.';
+      Exit;
+   end;
+
    // MySQL and MariaDB: the ARM64 server needs an ARM64 build of the client
    // (libmysql.dll), which this installer does not carry. A libmysql.dll an x64
    // installation left in Bin is the x64 one, and does not load either.
@@ -2236,8 +2486,8 @@ begin
       SuppressibleMsgBox('This hMailServer uses MySQL or MariaDB. The ARM64 build needs an ARM64 build of the MariaDB client, libmysql.dll, in its Bin folder; ' +
              'this installer does not carry one, and an x64 libmysql.dll does not load into the ARM64 server. ' +
              'The service will not start until an ARM64 one is there (WindowsOnArm.md in the documentation says how to build it).', mbInformation, MB_OK, IDOK);
-end;
 #endif
+end;
 
 function NextButtonClick(CurPage : Integer): boolean;
 var

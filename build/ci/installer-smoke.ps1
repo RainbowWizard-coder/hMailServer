@@ -91,6 +91,24 @@
    installer with no signature at all is then a SKIP, not a FAIL. A signature that is
    present and not valid fails either way.
 
+   -DatabaseSettings FILE is a new installation on an external database, set up with
+   no window by DBSetup /unattended (docs/WindowsOnArm.md, "A new installation without
+   a window"): the only way an ARM64 installation can finish unattended, and on x64 the
+   same path. FILE holds NAME=value lines of the variables DBSetup reads - HM_DB_TYPE,
+   HM_DB_HOST, HM_DB_PORT, HM_DB_NAME, HM_DB_USER, HM_DB_PASSWORD or
+   HM_DB_PASSWORD_FILE (a path on this machine), HM_CREATE_DATABASE, HM_DB_SERVICE -
+   and '#' comments. Each is given to the installer as its switch (/dbtype=,
+   /dbhost=, ..., /dbpasswordfile=), and HM_DB_PASSWORD in the environment, never on
+   the command line; with -DatabaseInEnvironment every one goes in the environment
+   instead, the installer's other route. The built-in database's checks then check
+   the external one: [Database] naming it, its schema the build's over COM, no SQL
+   Server Compact installed, and DBSetup /unattended's exit 0 in Inno's log. The two
+   secure-defaults checks that read the database file directly are skipped. It is
+   for a new installation only, so it does not go with -UpgradeInstaller: an
+   installer before this one has no unattended database step. The database server is
+   the run's to provide, reachable from this machine; the settings are never printed,
+   the password least of all.
+
    Windows PowerShell 5.1, which is what a clean Windows Server has:
      powershell -NoProfile -ExecutionPolicy Bypass -File installer-smoke.ps1 `
         -Installer C:\smoke\first\hMailServer-6.3.2-x64.exe `
@@ -103,7 +121,9 @@ param(
    [string] $UpgradeInstaller = '',
    [string] $LogDirectory = 'C:\smoke\logs',
    [switch] $AllowUnsigned,
-   [int] $TimeoutMinutes = 10
+   [int] $TimeoutMinutes = 10,
+   [string] $DatabaseSettings = '',
+   [switch] $DatabaseInEnvironment
 )
 
 $ErrorActionPreference = 'Stop'
@@ -114,6 +134,14 @@ Set-StrictMode -Version 2.0
 $Installer = [System.IO.Path]::GetFullPath($Installer)
 if ($UpgradeInstaller) { $UpgradeInstaller = [System.IO.Path]::GetFullPath($UpgradeInstaller) }
 $LogDirectory = [System.IO.Path]::GetFullPath($LogDirectory)
+if ($DatabaseSettings) { $DatabaseSettings = [System.IO.Path]::GetFullPath($DatabaseSettings) }
+
+# -DatabaseSettings: each variable DBSetup /unattended reads, and the installer's
+# switch for it (hMailServerInnoExtension.iss). The password has none.
+$DatabaseVariables = [ordered]@{
+   HM_DB_TYPE = 'dbtype'; HM_DB_HOST = 'dbhost'; HM_DB_PORT = 'dbport'; HM_DB_NAME = 'dbname'; HM_DB_USER = 'dbuser'
+   HM_DB_PASSWORD_FILE = 'dbpasswordfile'; HM_CREATE_DATABASE = 'createdatabase'; HM_DB_SERVICE = 'dbservice'; HM_DB_PASSWORD = ''
+}
 
 $ServiceName = 'hMailServer'
 $UninstallKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1'
@@ -195,6 +223,11 @@ $State = @{
    CertificateThumbprint = ''
    CertificateFiles = @()
    ListenersBefore = $null
+   # -DatabaseSettings: what the file gives, and the [Database] Type and create script
+   # of that database (Read-DatabaseSettings). Empty for the built-in database.
+   Database = $null
+   DatabaseIniType = ''
+   DatabaseScript = ''
 }
 
 New-Item -ItemType Directory -Force -Path $LogDirectory | Out-Null
@@ -768,6 +801,65 @@ function Invoke-SetupWithAdminPassword([string] $Path, [string[]] $Arguments, [s
    return Invoke-WithAdminPassword { Invoke-Setup $Path $Arguments $LogPath }
 }
 
+# -DatabaseSettings: the file's NAME=value lines, only the names DBSetup reads, and the
+# [Database] Type the server writes for that database and the create script it runs.
+# A line is never repeated in a message: one of them is the password.
+function Read-DatabaseSettings([string] $Path) {
+   $settings = [ordered]@{}
+   $number = 0
+   foreach ($line in Get-Content -LiteralPath $Path) {
+      $number++
+      $text = $line.Trim()
+      if ($text -eq '' -or $text.StartsWith('#')) { continue }
+      $at = $text.IndexOf('=')
+      if ($at -le 0) { throw "line $number of $Path is not NAME=value" }
+      $name = $text.Substring(0, $at).Trim().ToUpperInvariant()
+      if (-not $DatabaseVariables.Contains($name)) { throw "line $number of $Path names $name, which is none of $($DatabaseVariables.Keys -join ', ')" }
+      $value = $line.Substring($line.IndexOf('=') + 1)
+      if ($name -ne 'HM_DB_PASSWORD') { $value = $value.Trim() }
+      $settings[$name] = $value
+   }
+   if (-not $settings.Contains('HM_DB_TYPE')) { throw "$Path gives no HM_DB_TYPE" }
+   switch ($settings['HM_DB_TYPE'].ToLowerInvariant()) {
+      { $_ -in @('postgresql', 'postgres', 'pgsql') } { $State.DatabaseIniType = 'PostgreSQL'; $State.DatabaseScript = 'CreateTablesPGSQL.sql' }
+      { $_ -in @('mysql', 'mariadb') } { $State.DatabaseIniType = 'MYSQL'; $State.DatabaseScript = 'CreateTablesMySQL.sql' }
+      'mssql' { $State.DatabaseIniType = 'MSSQL'; $State.DatabaseScript = 'CreateTablesMSSQL.sql' }
+      default { throw "HM_DB_TYPE in $Path is '$($settings['HM_DB_TYPE'])', none of PostgreSQL, MySQL, MariaDB or MSSQL" }
+   }
+   $State.Database = $settings
+}
+
+# The installer's switches for the database, the password's excepted: none with
+# -DatabaseInEnvironment. Quoted when a value holds a space, as Inno reads a command line.
+function Get-DatabaseSwitches {
+   $switches = @()
+   if (($null -eq $State.Database) -or $DatabaseInEnvironment) { return $switches }
+   foreach ($name in $State.Database.Keys) {
+      $switch = $DatabaseVariables[$name]
+      if (-not $switch) { continue }
+      $argument = "/$switch=$($State.Database[$name])"
+      if ($argument.Contains(' ')) { $argument = '"' + $argument + '"' }
+      $switches += $argument
+   }
+   return $switches
+}
+
+# Runs a script block with the database's variables in this process's environment -
+# every one with -DatabaseInEnvironment, else HM_DB_PASSWORD alone, which has no
+# switch - and removes them again, whatever the block did.
+function Invoke-WithDatabaseVariables([scriptblock] $Block) {
+   if ($null -eq $State.Database) { return & $Block }
+   $set = @()
+   foreach ($name in $State.Database.Keys) {
+      if ($DatabaseInEnvironment -or -not $DatabaseVariables[$name]) {
+         [Environment]::SetEnvironmentVariable($name, $State.Database[$name])
+         $set += $name
+      }
+   }
+   try { return & $Block }
+   finally { foreach ($name in $set) { Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue } }
+}
+
 function Write-LogTail([string] $LogPath) {
    if (Test-Path -LiteralPath $LogPath) {
       Write-Line "      ----- the last 80 lines of $(Split-Path -Leaf $LogPath) -----"
@@ -782,6 +874,12 @@ function Write-LogTail([string] $LogPath) {
 # installer's message is "exit code 1". The files are on disk by then, so the tool is
 # simply run again - as the GitHub workflow's "Why did the database setup fail" did.
 function Write-DatabaseDiagnosis([string] $App) {
+   # An external database: DBSetup /unattended's own lines are in Inno's log, which
+   # the failed step printed the tail of; running it again would try again to create.
+   if ($null -ne $State.Database) {
+      Write-Line "      The database step was DBSetup.exe /unattended: its lines are in Inno's log above, after 'Setting up the $($State.DatabaseIniType) database'."
+      return
+   }
    $tool = Join-Path $App 'Bin\DBSetupQuick.exe'
    if (-not (Test-Path -LiteralPath $tool)) {
       Write-Line '      DBSetupQuick.exe is not installed: the failure was earlier than the database step.'
@@ -896,6 +994,40 @@ function Test-Installed([string] $Phase, [string] $Claimed) {
          'Authenticate(Administrator) accepted'
       })
 
+   # -DatabaseSettings: the external database DBSetup /unattended set up, in place of
+   # the built-in one - named in [Database], at the build's schema over COM, and at
+   # the schema the shipped create script for it makes.
+   if ($null -ne $State.Database) {
+      [void] (Test-Step "${Phase}: the $($State.DatabaseIniType) database given is there, at the schema this build requires" {
+            if (-not (Test-Path -LiteralPath $ini)) { throw "$ini is not there" }
+            $type = Get-IniValue $ini 'Database' 'Type'
+            if ($type -ne $State.DatabaseIniType) { throw "hMailServer.INI says database type '$type', not $($State.DatabaseIniType)" }
+            $server = Get-IniValue $ini 'Database' 'Server'
+            if ($server -ne $State.Database['HM_DB_HOST']) { throw "hMailServer.INI names the server '$server', not the one given" }
+            $name = if ($State.Database.Contains('HM_DB_NAME') -and $State.Database['HM_DB_NAME']) { $State.Database['HM_DB_NAME'] } else { 'hMailServer' }
+            if ((Get-IniValue $ini 'Database' 'Database') -ne $name) { throw "hMailServer.INI names the database '$(Get-IniValue $ini 'Database' 'Database')', not $name" }
+            if (@(Get-ChildItem -LiteralPath (Join-Path $app 'Database') -Filter '*.sdf' -File -ErrorAction SilentlyContinue).Count -gt 0) { throw 'a built-in database (.sdf) was made as well' }
+            $script = Join-Path $app "DBScripts\$($State.DatabaseScript)"
+            $shipped = 0
+            if (Test-Path -LiteralPath $script) {
+               $insert = Select-String -LiteralPath $script -Pattern 'insert into hm_dbversion values \((\d+)\)' | Select-Object -First 1
+               if ($insert) { $shipped = [int] $insert.Matches[0].Groups[1].Value }
+            }
+            $application = Connect-Server
+            try {
+               $current = [int] $application.Database.CurrentVersion
+               $required = [int] $application.Database.RequiredVersion
+               $needsUpgrade = [bool] $application.Database.RequiresUpgrade
+            }
+            finally { Remove-ComReference $application }
+            if ($current -ne $required) { throw "the database is at $current and the server requires $required" }
+            if ($needsUpgrade) { throw 'the server says the database requires an upgrade' }
+            if ($shipped -and $shipped -ne $current) { throw "the database is at $current and the installed $($State.DatabaseScript) makes $shipped" }
+            $State.SchemaNow = $current
+            "type $type, database $name on the server given, schema $current = required $required = the shipped create script's $shipped"
+         })
+   }
+   else {
    [void] (Test-Step "${Phase}: the built-in database is there, at the schema this build requires" {
          if (-not (Test-Path -LiteralPath $ini)) { throw "$ini is not there" }
          $type = Get-IniValue $ini 'Database' 'Type'
@@ -922,6 +1054,7 @@ function Test-Installed([string] $Phase, [string] $Claimed) {
          $State.SchemaNow = $current
          "type MSSQLCE, $($files[0].Name) ($([int] ($files[0].Length / 1KB)) KB), schema $current = required $required = the shipped create script's $shipped"
       })
+   }
 
    # section_registry.iss: InstallLocation in the 32-bit view, which the 64-bit server reads.
    [void] (Test-Step "${Phase}: Software\hMailServer InstallLocation names the installation" {
@@ -953,6 +1086,12 @@ function Test-Installed([string] $Phase, [string] $Claimed) {
          $desktop = @(Get-ChildItem -Path (Join-Path $env:ProgramFiles 'dotnet\shared\Microsoft.WindowsDesktop.App') -Directory -Filter '10.*' -ErrorAction SilentlyContinue)
          if ($desktop.Count -eq 0) { throw 'there is no .NET 10 Desktop Runtime' }
          $compact = Join-Path $env:ProgramFiles 'Microsoft SQL Server Compact Edition\v4.0'
+         # The built-in database's engine is installed for the built-in database alone
+         # (InstallSQLCE): with an external one given, on a clean machine, none.
+         if ($null -ne $State.Database) {
+            if (Test-Path -LiteralPath $compact) { throw "SQL Server Compact 4.0 was installed ($compact), although the database is external" }
+            return ".NET Desktop Runtime $(($desktop | ForEach-Object Name) -join ', '); no SQL Server Compact, the database being external"
+         }
          if (-not (Test-Path -LiteralPath $compact)) { throw "there is no SQL Server Compact 4.0 ($compact)" }
          ".NET Desktop Runtime $(($desktop | ForEach-Object Name) -join ', '); SQL Server Compact 4.0"
       })
@@ -1465,6 +1604,14 @@ function Test-NewInstallDefaults([string] $Phase, [string] $InnoLog) {
          "Internet ($($internet.Lower) to $($internet.Upper)) RequireSSLTLSForAuth True; My computer ($($local.Lower) to $($local.Upper)) False"
       })
 
+   # These two read the database file itself (Invoke-DatabaseQuery), which only the
+   # built-in database has here: an external one is read over COM, as above, and the
+   # verb's exit 0 and what it made are checked all the same.
+   if ($null -ne $State.Database) {
+      Write-Result 'SKIP' "${Phase}: no $PendingMarkName row left" "the $($State.DatabaseIniType) database is not read directly here"
+      Write-Result 'SKIP' "${Phase}: each change on the audit trail under '$VerbActor'" "the $($State.DatabaseIniType) database is not read directly here"
+   }
+   else {
    [void] (Test-Step "${Phase}: no $PendingMarkName row left" {
          $table = Invoke-DatabaseQuery "select count(*) as marks from hm_settings where settingname = '$PendingMarkName'"
          $marks = [int] $table.Rows[0]['marks']
@@ -1481,6 +1628,7 @@ function Test-NewInstallDefaults([string] $Phase, [string] $InnoLog) {
          }
          "$($rows.Count) rows: $($rows -join '; ')"
       })
+   }
 
    [void] (Test-Step "${Phase}: the checklist over COM answering sign_in_tls done (sign_in_tls_required for Internet), and submission_self_signed for 587" {
          $checklist = Get-SetupChecklist
@@ -1899,11 +2047,18 @@ function Test-Uninstalled {
          "Bin\hMailServer.INI, [Database] type $(Get-IniValue $ini 'Database' 'Type')"
       })
 
+   # An external database is on its own server, which an uninstall does not touch;
+   # [Database] still naming it is the check above.
+   if ($null -ne $State.Database) {
+      Write-Result 'SKIP' 'uninstall: the database is kept' "the $($State.DatabaseIniType) database is on its own server, which the uninstaller does not touch"
+   }
+   else {
    [void] (Test-Step 'uninstall: the database is kept' {
          $files = @(Get-ChildItem -LiteralPath (Join-Path $app 'Database') -Filter '*.sdf' -File -ErrorAction SilentlyContinue)
          if ($files.Count -eq 0) { throw 'there is no .sdf left in Database' }
          ($files | ForEach-Object { "Database\$($_.Name)" }) -join ', '
       })
+   }
 
    # docs/SecureDefaults.md: the certificate a new installation made is data, kept
    # as the rest of the data directory is, and the database kept beside it still
@@ -2030,6 +2185,17 @@ foreach ($path in @($Installer, $UpgradeInstaller)) {
    }
 }
 
+if ($DatabaseSettings) {
+   $read = Test-Step 'the external database: -DatabaseSettings names one, for a new installation' {
+      if ($UpgradeInstaller) { throw '-DatabaseSettings is a new installation on an external database, and does not go with -UpgradeInstaller' }
+      if (-not (Test-Path -LiteralPath $DatabaseSettings)) { throw "$DatabaseSettings is not there" }
+      Read-DatabaseSettings $DatabaseSettings
+      $route = if ($DatabaseInEnvironment) { 'every setting in the environment' } else { 'the installer''s switches, the password in the environment' }
+      "$($State.DatabaseIniType), $(@($State.Database.Keys) -join ', '), by $route"
+   }
+   if (-not $read) { exit 1 }
+}
+
 Write-Section 'The installers'
 $firstVersion = Test-InstallerFile 'first' $Installer
 $secondVersion = ''
@@ -2042,10 +2208,21 @@ $secondSecures = [bool] $UpgradeInstaller -and (Test-HasSecureDefaults $secondVe
 Write-Section "Install $firstVersion"
 $installLog = Join-Path $LogDirectory 'install.log'
 $installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
-   Invoke-SetupWithAdminPassword $Installer @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") $installLog
+   $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") + @(Get-DatabaseSwitches)
+   Invoke-WithDatabaseVariables { Invoke-SetupWithAdminPassword $Installer $arguments $installLog }
 }
 if (-not $installed) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 $State.Installed = ($null -ne (Get-UninstallEntry)) -or (Test-Path -LiteralPath (Join-Path (Get-InstallDirectory) 'Bin\hMailServer.exe'))
+
+if ($State.Installed -and ($null -ne $State.Database)) {
+   [void] (Test-Step 'install: the database step was DBSetup /unattended, which returned 0 (Inno''s log)' {
+         $line = Select-String -LiteralPath $installLog -Pattern 'DBSetup\.exe /unattended returned (-?\d+)' | Select-Object -Last 1
+         if ($null -eq $line) { throw "Inno's log has no 'DBSetup.exe /unattended returned': the installer did not take the database given" }
+         if ($line.Matches[0].Groups[1].Value -ne '0') { throw "it returned $($line.Matches[0].Groups[1].Value)" }
+         $said = @(Select-String -LiteralPath $installLog -Pattern '^(\S+ \S+\s+)?(Creating the|Using the existing|The database is)' | ForEach-Object { ($_.Line -replace '^\S+ \S+\s+', '').Trim() })
+         "returned 0: $($said -join ' ')"
+      })
+}
 
 if ($State.Installed) {
    Test-Installed 'install' $firstVersion

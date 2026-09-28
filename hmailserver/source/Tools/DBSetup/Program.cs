@@ -27,6 +27,15 @@ namespace DBSetup
 
          CommandLineParser.Parse();
 
+         // /unattended: the database the HM_DB_ variables name, set up with no window
+         // at all, the result in the exit code (Unattended.cs). Decided before the
+         // server is contacted, so that settings it refuses change nothing. Without
+         // the switch the wizard runs as it always has, whatever the environment
+         // holds: a variable left in an administrator's environment for a container
+         // does not turn the Start menu's Database Setup into a silent one.
+         if (UnattendedSetup.IsRequested())
+            return UnattendedSetup.Run(Console.Out, Console.Error);
+
          hMailServer.Application application = new hMailServer.Application();
          if (!Authenticator.AuthenticateUser(application))
             return ExitAuthenticationCancelled;

@@ -33,5 +33,24 @@
       updates").
     -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <!--
+      A tool's publish and publish-arm64 folders (build-tools.ps1) are output, and
+      are kept out of the project's default items. Left in, every DLL there was a
+      None item, and ResolveAssemblyReference searches the project's own Content
+      and None files ({CandidateAssemblyFiles}) before a reference's HintPath. So
+      the wrapper a tool compiled against and shipped depended on which publish
+      had run before in the same checkout: after build-tools.ps1 for x64, the ARM64
+      publish took publish\Interop.hMailServer.dll, the x64 COM wrapper, in place of
+      the one Directory.Build.targets names (five warnings CS8012, "targets a
+      different processor"), and after an ARM64 publish the x64 one took the ARM64
+      wrapper. Found on 28 September 2026 on the laptop, x64 then ARM64 from clean
+      publish folders: check-pe-machine.ps1 -Expect ARM64 over hMailServerARM64.iss
+      found five x64 wrappers, in Bin and in the two add-ons' Addons folders, where
+      nothing copies the right one over them and .NET does not load them into an
+      ARM64 process; with this line, none. A build in a clean checkout, as
+      windows-packages.ps1's, has no publish folder to find.
+    -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);publish/**;publish-arm64/**</DefaultItemExcludes>
   </PropertyGroup>
 </Project>
