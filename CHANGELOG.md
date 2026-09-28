@@ -92,17 +92,16 @@ for a stray `#` number or `@` name.
   in both suites: without the wait the previous step's code is two steps behind (its negative control), with it
   the code is judged in its own step.
 - **The ARM64 toolchain check could not find the ARM64 C++ runtime on any machine.**
-  `build/ci/packages/check-arm64-toolchain.ps1` looked for it with `Get-ChildItem -Path
-  '...\VC\Redist\MSVC\*\arm64' -Filter 'Microsoft.VC*.CRT'`, which with a wildcard in the path returns the
-  `arm64` folders themselves and filters their names. It reported the runtime missing on the laptop, whose Build
-  Tools 18.9 has it, and on bench150 in pipeline 2887115157, where `windows-packages-arm64` stopped on that
-  report with the ARM64 tools and ATL for ARM64 present; 6.3.5's notes below say that runner lacks Visual
-  Studio's ARM64 tools, and it does not. The check now asks for `...\arm64\Microsoft.VC*.CRT` as one path. It
-  also no longer tells the owner to add components the instance already has: when every component is installed
-  and a file is not there, it prints the Installer's `repair` of the instance, or, for the runtime, the `modify
-  --add` of the component that the instance's own catalog says installs `Microsoft.VisualCpp.CRT.Redist.ARM64`
-  when the instance lacks it. `check-arm64-toolchain.ps1 -SelfTest` holds both to instance trees and catalogs made
-  to order, with the old path and the old command as its negative controls; on the laptop the check now exits 0.
+  `build/ci/packages/check-arm64-toolchain.ps1` looked for it with `Get-ChildItem -Path '...\VC\Redist\MSVC\*\arm64'
+  -Filter 'Microsoft.VC*.CRT'`, which with a wildcard in the path returns the `arm64` folders themselves and filters
+  their names. It reported the runtime missing on the laptop, whose Build Tools 18.9 has it, and on bench150 in
+  pipeline 2887115157, where `windows-packages-arm64` stopped on that report with the ARM64 tools and ATL for ARM64
+  present, as 6.3.5's notes below say. The check now asks for `...\arm64\Microsoft.VC*.CRT` as one path. It also no
+  longer tells the owner to add components the instance already has: when every component is installed and a file is
+  not there, it prints the Installer's `repair` of the instance, or, for the runtime, the `modify --add` of the
+  component that the instance's own catalog says installs `Microsoft.VisualCpp.CRT.Redist.ARM64` when the instance
+  lacks it. `check-arm64-toolchain.ps1 -SelfTest` holds both to instance trees and catalogs made to order, with the
+  old path and the old command as its negative controls; on the laptop the check now exits 0.
 - **The command-line packages are checked wherever they change.** `build/check-cli-packages.py`, in the
   `checkers` job, fails when the manifest's version or function list drifts from `Version.h` or the module, or the
   Python package gains a dependency, a version of its own, an install hook, a second copy of `hmctl` or a
