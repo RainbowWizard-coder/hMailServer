@@ -192,7 +192,13 @@ namespace hMailServer
          _account = account;
          Enabled = true;
          MinutesBetweenFetch = 30;
-         MIMERecipientHeaders = "To,CC,X-RCPT-TO,X-Envelope-To";
+         // Empty, as COM's FetchAccounts.Add() hands it out: the C++ FetchAccount
+         // starts with no recipient headers, and Save writes the column, so the
+         // table's own default ('To,CC,X-RCPT-TO,X-Envelope-To') never applies to it.
+         // The server reads any of them set as an administrator's choice
+         // (RestApiFetchAccounts.cpp, AdministratorsOwn), so a default here that
+         // COM does not give made every account the suite added an administrator's.
+         MIMERecipientHeaders = "";
       }
 
       internal static FetchAccount From(Account account, JsonElement entry)
