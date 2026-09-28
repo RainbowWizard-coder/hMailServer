@@ -164,10 +164,11 @@ IMAGE_JOBS = {
     "container_scanning": ["container-image"],
 }
 # The rule each of them begins with: none runs unless the project's own CI/CD
-# variable HM_PUBLISH_IMAGE is "1". GitLab.com cannot move a project whose registry
-# holds an image to another namespace, and the project moves into the group
-# hmailserver only after a release signed from here has shown its id, so the image
-# waits for the owner to turn it on. Nothing committed may set the variable.
+# variable HM_PUBLISH_IMAGE is "1". The owner turns it on after the project's move
+# into the group hmailserver, which the maintainers decided on 27 September 2026 to
+# make before the first image, so that the first image's address,
+# registry.gitlab.com/hmailserver/hmailserver, is the lasting one (a container
+# repository's path is always its project's). Nothing committed may set the variable.
 PUBLISH_GATE = '  rules:\n    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n'
 # Jobs that need not begin with REFUSAL, because their own rules match nothing the
 # feed's pipeline (source "pipeline", on master) is - each with the text that makes

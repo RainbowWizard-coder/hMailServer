@@ -1423,10 +1423,36 @@ project's API answered on 26 September 2026:
    the owner delete them. A pre-release's tag (`6.3.5-rc1`) and the signatures
    are outside it. Immutable tags are GitLab Ultimate.
 3. **The switch, `HM_PUBLISH_IMAGE`, stays unset until the project has
-   moved.** GitLab's documentation (*Transfer a project*) says that on
-   GitLab.com a project whose container registry holds an image cannot be
-   transferred to another namespace, and the move from the personal namespace
-   to `hmailserver` is one. The project moves only after a release signed by
+   moved.** The maintainers decided on 27 September 2026 to move the project
+   into the group `hmailserver` before the first image is pushed, so that the
+   first image's address, `registry.gitlab.com/hmailserver/hmailserver`, is
+   the one it keeps. A container repository's path always matches its
+   project's (GitLab's documentation, *Container registry*, "Move or rename
+   container registry repositories"), so an image pushed from the present path
+   would be `registry.gitlab.com/progressiverobot/hmailserver` and would change
+   its address with the move, under everyone who pulled or pinned it. The
+   signatures are no reason to wait: 6.3.4's `SigstoreVerifier` already trusts
+   the group's path, with the project's id `86730559`
+   ([UpdateFeed.md](UpdateFeed.md)).
+
+   Until 28 September 2026 this item gave another reason: that GitLab.com
+   cannot transfer a project whose container registry holds an image. GitLab's
+   documentation does not say that. *Transfer a project* (Manage projects)
+   says that for a project whose container registry is enabled, GitLab.com
+   transfers the project only within the same top-level group, that a project
+   with more than 1,000 container repositories cannot be transferred, and that
+   a project must hold no container image on GitLab Self-Managed. The
+   *Container registry* page limits renaming a project with populated
+   container repositories on GitLab.com to projects with up to 1,000 of them.
+   This project's registry is enabled and holds no repository (the project's
+   API, 28 September 2026). The move from the personal namespace
+   `Progressiverobot` to the group `hmailserver` changes the top-level
+   namespace, so by the first of those rules the registry may have to be
+   switched off for the transfer (Settings, General, "Visibility, project
+   features, permissions") and on again after it; nobody has tried the
+   transfer yet.
+
+   The project moves only after a release signed by
    this pipeline from the present path has shown the project's id
    ([UpdateFeed.md](UpdateFeed.md)), so that release is made with the switch
    unset: the three jobs do not run and the registry stays empty. After the

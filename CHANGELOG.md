@@ -92,6 +92,20 @@ for a stray `#` number or `@` name.
   in both suites: without the wait the previous step's code is two steps behind (its negative control), with it
   the code is judged in its own step.
 
+### Operations
+
+- **Why the container image waits, said truly.** `.gitlab/ci/container-image.yml`,
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) ("What the owner sets on the registry", 3),
+  Roadmap2's release-chain row, the packaging README and a comment of `build/check-release-chain.py` said, and
+  6.3.4's notes above say, that the image waits because GitLab.com cannot transfer a project whose container
+  registry holds an image. GitLab's documentation does not say that: on GitLab.com a project whose registry is
+  enabled is transferred only within its top-level group, one with more than 1,000 container repositories not at
+  all, and a project must hold no image only on GitLab Self-Managed. The image waits because the maintainers
+  decided on 27 September 2026 to move the project into the group `hmailserver` before the first image is
+  pushed, so that its address, `registry.gitlab.com/hmailserver/hmailserver`, is the lasting one - a container
+  repository's path is always its project's - and 6.3.4's `SigstoreVerifier` already trusts the group's path with
+  the project's id, 86730559. Nothing the pipeline does changes.
+
 ---
 
 ## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28

@@ -32,11 +32,20 @@
 #
 # None of the four runs unless the PROJECT's CI/CD variable HM_PUBLISH_IMAGE is "1"
 # (Settings, CI/CD, Variables; a v* tag's pipeline is for a protected ref, so it may
-# be marked Protected). GitLab.com cannot transfer a project whose container
-# registry holds an image to another namespace, and the project is to move into the
-# group hmailserver only after a release signed by this pipeline has shown the
-# project's id; so the image waits for the move, or for the owner's decision to
-# publish it first. It is a project variable because the project refuses pipeline
+# be marked Protected). It is set after the project's move into the group
+# hmailserver, which the maintainers decided on 27 September 2026 to make before the
+# first image is pushed, so that the first image's address,
+# registry.gitlab.com/hmailserver/hmailserver, is the lasting one: a container
+# repository's path is always its project's, so an image pushed from the present
+# path, registry.gitlab.com/progressiverobot/hmailserver, would change its address
+# with the move. 6.3.4's SigstoreVerifier already trusts the group's path, with the
+# project's id 86730559. What GitLab's documentation says of the move itself - on
+# GitLab.com a project whose registry is enabled is transferred only within its
+# top-level group, and one with more than 1,000 container repositories not at all;
+# refusing a project that holds images is GitLab Self-Managed's rule - is in
+# hmailserver/docs/ContinuousIntegration.md, "What the owner sets on the registry",
+# item 3. The project moves once a release signed by this pipeline from the present
+# path has shown the project's id. It is a project variable because the project refuses pipeline
 # variables (a schedule's included), so nobody can turn the jobs on for one run.
 # Nothing in this file or .gitlab-ci.yml may set it (build/check-release-chain.py
 # holds that).
