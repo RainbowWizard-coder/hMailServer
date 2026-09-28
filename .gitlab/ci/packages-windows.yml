@@ -14,11 +14,14 @@
 #                           hMailServer-<version>-<commit>-x64.exe for a branch;
 #   windows-packages-arm64  the same for Windows on ARM, -arm64.exe, with the ARM64
 #                           libraries built once into a cache on the bench. It stops
-#                           first, naming the Visual Studio Installer command, while
-#                           the bench lacks Visual Studio's ARM64 tools and ATL for
-#                           ARM64, and it is allow_failure until the owner has added
-#                           them and one run has passed (PackagesWindows.md says why
-#                           and when to change that).
+#                           first, naming what is missing and the Visual Studio
+#                           Installer command that mends it, while the bench's ARM64
+#                           toolchain is not whole, and it is allow_failure until one
+#                           run has passed (PackagesWindows.md says why and when to
+#                           change that). In batch41's pipeline 2887115157 it stopped
+#                           there on a report of the check's own fault: it could not
+#                           find the ARM64 C++ runtime on any machine until
+#                           28 September 2026.
 #
 # Both build in the runner's own checkout of the commit, as windows-dotnet does, not in
 # the bench's checkout that windows-gate tests and whose hMailServer service runs from
@@ -37,7 +40,7 @@
 # release job does not need them, but on a tag they are pending on bench150 before
 # release-authenticode is, and the bench runs one job at a time, so the signing waits
 # behind them: a few minutes in batch41's pipeline 2887115157, where the x64 job took
-# about six and the ARM64 one, stopping for its missing tools, seconds.
+# about six and the ARM64 one, stopping at its toolchain check, seconds.
 #
 # The x64 libraries are the bench's own (C:\Dev\hMailLibs, as windows-gate's); the
 # ARM64 ones live in C:\bench\hMailLibs-arm64, apart from them.
@@ -67,8 +70,9 @@
   # longer timeout: is cut down to it, and gate-lock.ps1 takes over a lock older than
   # five hours on the grounds that no job runs longer. The wait for the lock counts
   # towards it: up to 90 minutes (the split gate, or another pipeline's bench job),
-  # then the build - about an hour for x64, and for ARM64 the first time another hour
-  # for its libraries (estimates: neither has run yet).
+  # then the build - estimated at about an hour for x64, which took under six minutes
+  # in batch41's pipelines 2886955494 and 2887115157, and for ARM64 the first time
+  # another hour for its libraries (an estimate: no ARM64 build has run yet).
   timeout: 4 hours
   variables:
     HM_GATE_LOCK: 'C:\bench\gate.lock'
@@ -118,12 +122,13 @@
       - logs/
       - libraries/build-*-arm64.log
 
-# Exit 2 alone may fail: Inno Setup 6 is not installed for the machine on bench150 yet
-# (docs/ContinuousIntegration.md, "bench150"), and until the owner installs it this job
-# stops at its third step in every protected pipeline. It then shows as a warning
-# instead of failing the pipeline; a failed build (3 to 7) or a lock that is not ours
-# (10) still fails it. Remove allow_failure once Inno Setup is there and one run has
-# passed (hmailserver/docs/PackagesWindows.md).
+# Exit 2 alone may fail: the job's exit at its third step when Inno Setup 6 is missing,
+# which then shows as a warning instead of failing the pipeline; a failed build (3 to
+# 7) or a lock that is not ours (10) still fails it, as exit 4 did in batch41's
+# pipeline 2886955494. The allowance was made while bench150 had no Inno Setup for the
+# machine. It has had one since 26 September 2026 (docs/ContinuousIntegration.md,
+# "bench150"), and this job passed with it in pipeline 2887115157, so allow_failure is
+# due to go (hmailserver/docs/PackagesWindows.md, "What the owner must do", 4).
 windows-packages-x64:
   extends: .windows-packages
   allow_failure:
@@ -133,9 +138,10 @@ windows-packages-x64:
     HM_PACKAGE_FOLDER: x64
     HM_PACKAGE_LIBS: 'C:\Dev\hMailLibs'
 
-# allow_failure until the bench has Visual Studio's ARM64 tools and ATL for ARM64 and
-# one run of this job has passed; then remove it, so that a broken ARM64 build fails
-# the pipeline as a broken x64 build does (hmailserver/docs/PackagesWindows.md).
+# allow_failure until the bench's ARM64 toolchain is whole and one run of this job has
+# passed; then remove it, so that a broken ARM64 build fails the pipeline as a broken
+# x64 build does (hmailserver/docs/PackagesWindows.md). The ARM64 tools and ATL for
+# ARM64 are on bench150 (pipeline 2887115157's toolchain check).
 #
 # After windows-packages-x64 as well: side by side, whichever took the lock second
 # would wait for the other's whole build, and the ARM64 job's first run (its

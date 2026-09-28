@@ -9,20 +9,29 @@ Linux, `apt` and `dnf` install it from the project's own signed repositories
 Where this stands today
 -----------------------
 
-The manifests and the Chocolatey package are **built and validated for a
-release**, from the release's own signed installer: by the GitHub workflow
-`package-managers.yml` for the releases up to 6.3.3, and by hand since, because
-the workflow was not ported to GitLab (below). They are **not yet in the
-public repositories**: `winget install hMailServer` and `choco install
-hmailserver` do not work until the first submission has been reviewed and
-merged by the people who keep those repositories, which is a manual step for a
-package identifier nobody has seen before. This document is the walk for that
-first submission and for everything after it.
+The manifests and the Chocolatey package are **rendered and validated by hand
+for a release**, from the release's own signed installer. The GitHub workflow
+`package-managers.yml`, which was to do it for every release, arrived on
+15 September 2026 (`6fc7ae91c`), after the `v6.3.3` tag, so no release ran it,
+and it was not ported to GitLab (below). They are **not yet in the
+public repositories**: `winget install hMailServer` does not work, and `choco
+install hmailserver` does not install this project's hMailServer, until the
+first submission has been reviewed and merged by the people who keep those
+repositories, which is a manual step for a package they have not had from this
+project before. This document is the walk for that first submission and for
+everything after it.
 
-Neither identifier is taken. As of 15 September 2026 `winget search hmailserver`
-finds nothing, and the Chocolatey community feed has no `hmailserver` package —
-so the fork takes `ProgressiveRobot.hMailServer` on winget and `hmailserver` on
-Chocolatey.
+On winget, `winget search hmailserver` found nothing on 15 September 2026, so
+the fork takes `ProgressiveRobot.hMailServer`. On Chocolatey the identifier
+`hmailserver` **is taken**. <https://community.chocolatey.org/packages/hmailserver>
+is upstream's hMailServer 5.6.8.2574, approved by a moderator on 4 February
+2022, last updated on 15 January 2022, with `ferventcoder`, `gep13` and
+`chtof` as its maintainers, and **unlisted**: "This package is unlisted and
+hidden from package listings" (read on 28 September 2026). A search of the feed
+does not show an unlisted package, which is why this section said until then
+that the feed had none. The nuspec still names `hmailserver`: to publish under
+it the project must become one of that package's maintainers, or take another
+identifier, and which is the owner's decision.
 
 What a user will type
 ---------------------
@@ -484,8 +493,9 @@ What this does not do
 ---------------------
 
 * **No Arch AUR package.** The `.deb` and `.rpm` have the apt and dnf
-  repositories below; the AppImage is attached to each release; the Arch AUR is
-  a separate roadmap row.
+  repositories below; the AppImages were attached to the releases 6.3.0 to
+  6.3.3, and no release since carries them ([PackagesAppImage.md](PackagesAppImage.md));
+  the Arch AUR is a separate roadmap row.
 * **No `winget install` of a pre-release.** The workflow refused a tag that was
   not three numbers, and a pre-release is not submitted by hand either, because package managers should not hand an alpha to
   somebody typing `winget install hmailserver`.

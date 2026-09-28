@@ -13,14 +13,47 @@ The one exception is Ubuntu 26.04 on x86-64. Its package,
 collects it, and `linux-package-deb` installs and starts it. This file adds
 its arm64 twin and the other releases (see [The names](#the-names)).
 
-**No job in this file has run on GitLab yet.** The scripts were run by hand on
-linix on 26 September 2026 (see [What has run](#what-has-run)), in the jobs'
-own images and by the same digests, through `build/ci/packages/deb-local.sh`.
-That script runs each pair of jobs the way the runner would. The times below
-are those runs, while other package builds were queued for the same machine.
+**The build jobs have run on GitLab; the install jobs have not.** All seven
+build jobs passed in each of `batch41`'s pipelines 2886955494 and 2887115157
+(27 September 2026), and again in 2887524317; no install job has started in any
+pipeline yet (see [In GitLab's pipelines](#in-gitlabs-pipelines)). Before
+that, the scripts were run by hand on linix on 26 September 2026, in the jobs'
+own images and by the same digests, through `build/ci/packages/deb-local.sh`,
+which runs each pair of jobs the way the runner would. The times under
+[By hand on linix](#by-hand-on-linix) are those runs, while other package
+builds were queued for the same machine.
 
 What has run
 ------------
+
+### In GitLab's pipelines
+
+The seven build jobs of this file, on linix, for the branch `batch41`. Each
+time is the job's own, from its `BUILT:` line: apt, CMake, ninja, the testers
+and CPack.
+
+| Job | 2886955494 (`4a0e53cc8`) | 2887115157 (`70eb52b94`) |
+|---|---|---|
+| `deb-debian12-amd64` | passed, 876 s | passed, 747 s |
+| `deb-debian12-arm64` | passed, 840 s | passed, 796 s |
+| `deb-debian13-amd64` | passed, 834 s | passed, 757 s |
+| `deb-debian13-arm64` | passed, 924 s | passed, 870 s |
+| `deb-ubuntu24.04-amd64` | passed, 719 s | passed, 721 s |
+| `deb-ubuntu24.04-arm64` | passed, 826 s | passed, 830 s |
+| `deb-ubuntu26.04-arm64` | passed, 802 s | passed, 816 s |
+
+Each built 6.3.5 and wrote the file its name says,
+`hmailserver_6.3.5-1~<release>_<arch>.deb`, and `hmailserver_6.3.5_arm64.deb`
+for Ubuntu 26.04. The amd64 builds ran the four tester programs, and all four
+passed; the arm64 builds do not run them (see [The jobs](#the-jobs)). The
+seven install jobs were in both pipelines, and in neither did one start before
+the pipeline was cancelled. Pipeline 2887524317 (`63d58f8a6`, the same branch)
+was running when this was written, on 28 September 2026 at 00:40 UTC: its seven
+builds had passed again, in 746 to 931 s, and its install jobs were waiting for
+linix. Until one has run, the install test is proved only by the runs by hand
+below.
+
+### By hand on linix
 
 Every build below is of 6.3.4 build 43, made on linix by
 `bash build/ci/packages/deb-local.sh <distro> <arch>`. Each passed its install
@@ -160,8 +193,9 @@ writer's. The check then ran the following itself:
      install tests `on_success`;
    - for the tag `v6.3.3`, all fourteen `on_success`.
 
-   That is GitLab evaluating the rules, not a pipeline. None of these jobs has
-   run on GitLab.
+   That is GitLab evaluating the rules, not a pipeline. None of these jobs had
+   run on GitLab then ([In GitLab's pipelines](#in-gitlabs-pipelines) has what
+   has run since).
 
 Why each release has its own package
 ------------------------------------
@@ -407,5 +441,6 @@ What is left
    - `build/check-release-chain.py`, which fails when a job that can fail a
      tag's pipeline is missing from `release`'s `needs`, reads `.gitlab-ci.yml`
      alone. It does not see the jobs of an included file.
-3. **Watch the first pipeline** that runs these jobs: none of them has run on
-   GitLab yet (above).
+3. **Watch the first pipeline that runs the install jobs.** The build jobs
+   have passed in pipelines (see [In GitLab's pipelines](#in-gitlabs-pipelines));
+   no install job has run to an end in one yet.

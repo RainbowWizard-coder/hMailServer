@@ -13,15 +13,52 @@ The generic x86-64 package, `hmailserver-<v>-1.x86_64.rpm`, stays
 `linux-build`'s, as before. This file adds its AArch64 twin and the twelve
 packages whose names carry a release (see [The names](#the-names)).
 
-**No job in this file has run on GitLab yet.** The scripts were run by hand on
-linix on 26 September 2026 (see [What has run](#what-has-run)), in the jobs'
-own images and by the same digests, through `build/ci/packages/rpm-local.sh`.
-That script runs each pair of jobs the way the runner would. The times below
-are those runs, while other package builds and test runs were queued for the
-same machine.
+**The build jobs have run on GitLab; the install jobs have not.** All twelve
+build jobs passed in `batch41`'s pipeline 2887115157 (27 September 2026), four
+of them already in 2886955494; no install job has started in any pipeline yet
+(see [In GitLab's pipelines](#in-gitlabs-pipelines)). Before that, the scripts
+were run by hand on linix on 26 September 2026, in the jobs' own images and by
+the same digests, through `build/ci/packages/rpm-local.sh`, which runs each
+pair of jobs the way the runner would. The times under [By hand on
+linix](#by-hand-on-linix) are those runs, while other package builds and test
+runs were queued for the same machine.
 
 What has run
 ------------
+
+### In GitLab's pipelines
+
+The twelve build jobs of this file, on linix, for the branch `batch41`. Each
+time is the job's own, from its `BUILT:` line.
+
+| Job | 2886955494 (`4a0e53cc8`) | 2887115157 (`70eb52b94`) |
+|---|---|---|
+| `rpm-fedora44-x86_64` | passed, 466 s | passed, 475 s |
+| `rpm-fedora44-aarch64` | passed, 506 s | passed, 500 s |
+| `rpm-fedora43-x86_64` | cancelled with the pipeline after 373 s | passed, 522 s |
+| `rpm-fedora43-aarch64` | passed, 547 s | passed, 530 s |
+| `rpm-el10-x86_64` | cancelled before it started | passed, 571 s |
+| `rpm-el10-aarch64` | cancelled before it started | passed, 601 s |
+| `rpm-el9-x86_64` | cancelled before it started | passed, 589 s |
+| `rpm-el9-aarch64` | cancelled before it started | passed, 607 s |
+| `rpm-leap16-x86_64` | passed, 718 s | passed, 714 s |
+| `rpm-leap16-aarch64` | cancelled before it started | passed, 708 s |
+| `rpm-tumbleweed-x86_64` | cancelled before it started | passed, 626 s |
+| `rpm-tumbleweed-aarch64` | cancelled before it started | passed, 680 s |
+
+Every build that passed made 6.3.5 (`hmailserver-6.3.5-1.<dist>.<arch>.rpm`),
+ran the four tester programs - the aarch64 ones under qemu-user - with all
+four passing, and packaged a `/usr/bin/hmailserver` that is a PIE with full
+RELRO; `rpm-fedora44-aarch64` also wrote the generic
+`hmailserver-6.3.5-1.aarch64.rpm`. Among them are the six pairs that had not
+run by hand with the current scripts (below). The twelve install jobs were in both pipelines, and in
+neither did one start before the pipeline was cancelled. Pipeline 2887524317
+(`63d58f8a6`, the same branch) was running when this was written, on
+28 September 2026 at 00:40 UTC: seven of its builds had passed, and none of
+its install jobs had started. Until one has run, the install test is proved
+only by the runs by hand below.
+
+### By hand on linix
 
 Every build below is of 6.3.4 build 43, made on linix by
 `bash build/ci/packages/rpm-local.sh <target> <arch>` with six compilers
@@ -464,5 +501,6 @@ What is left
    `.gitlab-ci.yml`'s images; whether it follows this included file, and keeps
    a per-architecture digest per-architecture when it moves one, has not been
    checked. Tumbleweed's digest in particular goes stale quickly.
-6. **Watch the first pipeline** that runs these jobs: none of them has run on
-   GitLab yet (above).
+6. **Watch the first pipeline that runs the install jobs.** The build jobs
+   have passed in pipelines (see [In GitLab's pipelines](#in-gitlabs-pipelines));
+   no install job has run to an end in one yet.

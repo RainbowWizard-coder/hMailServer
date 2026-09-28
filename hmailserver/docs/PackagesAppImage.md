@@ -162,9 +162,11 @@ minutes.
   - For the x86_64 AppImage, start `appimage-runtime-x86_64`.
   - For the aarch64 AppImage, start both `appimage-runtime-aarch64` and
     `appimage-aarch64-compile`: `appimage-aarch64` needs the two.
-  - Until then GitLab is expected to show the jobs that follow as skipped, and to
-    run them once what they need has been started and has passed. No pipeline has
-    shown this yet.
+  - Until then GitLab shows the jobs that follow as skipped, and is expected to
+    run them once what they need has been started and has passed. `batch41`'s
+    pipelines 2886955494, 2887115157 and 2887524317 (27 and 28 September 2026)
+    showed the first half: the three jobs waiting and the rest skipped. None has
+    shown the second, because nobody started the three.
 
 **How the images are pinned:** each image is pinned by the digest of its
 per-platform manifest, not by the index. The runner pulls `if-not-present`, and
@@ -211,7 +213,11 @@ What was run, and with what result
 
 Everything below was run by hand on linix, on 26 September 2026, in containers
 from the same images and digests as the jobs, and not by GitLab. **No GitLab
-pipeline has run any of these jobs yet.**
+pipeline has run any of these jobs yet.** They were in `batch41`'s pipelines
+2886955494 and 2887115157 (27 September 2026), where nobody started the runtime
+and compile jobs, which were cancelled with the pipeline without having started,
+and GitLab skipped the rest; in 2887524317 the three were still waiting to be
+started when this was written, on 28 September 2026 at 00:40 UTC.
 
 ### The first runs
 
@@ -273,9 +279,9 @@ is the aarch64 row of the check's runs above.
 
 **Not run:**
 
-- **Any GitLab pipeline.** The job definitions have been parsed as YAML, and
-  `build/check-release-chain.py` and `build/check-ci-image.py` pass with the
-  include in place.
+- **Any job in a GitLab pipeline** (above). GitLab has created the jobs from
+  the definitions in three pipelines, and `build/check-release-chain.py` and
+  `build/check-ci-image.py` pass with the include in place.
 - **Either AppImage on a real arm64 machine,** including the unmodified aarch64
   file with its magic bytes. The project has no arm64 machine.
 - **A server connected to a database or run under a unit.** No step has run the

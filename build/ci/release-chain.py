@@ -185,7 +185,9 @@ def compiled_assets(version):
 
 def expected_assets(version):
     """Every file a release carries, each signed beside it. The Linux AArch64
-    packages and the AppImages are not built by the pipeline (docs/ContinuousIntegration.md)."""
+    packages, the per-distribution packages, the AppImages and the ARM64 installer
+    have jobs of their own (.gitlab/ci/packages-*.yml), and no release collects what
+    they make yet (docs/PackagesDeb.md, "What is left")."""
     names = feed.installer_names(version)
     return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], sums_name(version),
             "hmailserver.spdx.json", "hmailserver.cyclonedx.json"] + [sbom_name(n) for n in compiled_assets(version)]

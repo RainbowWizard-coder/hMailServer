@@ -11,11 +11,15 @@ day, the rest of the old GitHub workflows were ported
 ([From GitHub Actions to GitLab CI](#from-github-actions-to-gitlab-ci)), and a
 nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
 
-**No GitLab job has run yet.** When this was written, neither runner had taken a
-job. The ported Linux jobs' scripts were run by hand on linix, in the jobs' own
-images and beside the same services, and the times they took are given as
-measured by hand. Every other duration below is an estimate made from the gates
-run by hand, and says so. Replace both with the first runs' times.
+**The jobs have run since 26 September 2026.** The first pipeline, 2884863496
+on `master`, failed eleven of its jobs ([What the first pipeline found](#what-the-first-pipeline-found));
+`master`'s pipeline 2886389460 on 27 September passed 25 of its 29, failed
+`secret_detection`, `semgrep` and `static-analysis`, and left `db-matrix`
+manual. This page was written before either runner had taken a job: the ported
+Linux jobs' times below are those of their scripts run by hand on linix, in the
+jobs' own images and beside the same services, and every other duration is an
+estimate made from the gates run by hand, and says so. A pipeline's own times
+are on its jobs' pages.
 
 What runs where
 ---------------
@@ -619,8 +623,9 @@ From GitHub Actions to GitLab CI
 
 Every job of the old `.github/workflows`, and where it went. The workflows were
 removed from the tree when the project moved to GitLab. They are in the git
-history: all of them at `6399e08a5`, the last commit that had them, and the ones
-that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
+history, unchanged from `6399e08a5` until `6593259e0` removed them on
+26 September 2026 (its parent, `d8ba4b646`, is the last commit that has them),
+and the ones that built and signed releases up to 6.3.3 at the tag `v6.3.3`.
 
 | GitHub workflow and job | GitLab job | Runner | When |
 |---|---|---|---|
@@ -806,6 +811,10 @@ pipeline started that way is not a schedule's. It occupies linix for a little
 over an hour, and a protected ref's pipeline that arrives meanwhile waits for
 it. To start the corpus again from the seeds, clear the runner caches
 (*Pipelines*, *Clear runner caches*).
+
+The schedule was made on 27 September 2026: schedule 4461177, `fuzz`,
+`10 2 * * *` in UTC, on `master`, active. By 00:40 UTC on 28 September it had
+run no pipeline; its first was due at 02:10 that day.
 
 The coverage schedule
 ---------------------
@@ -1409,14 +1418,17 @@ After the move to the group, the identity and the image are
 `container-image-signed/verification.txt`, with the command for that release.
 
 **What the owner sets on the registry.** Nothing in the pipeline can. As the
-project's API answered on 26 September 2026:
+project's API answered on 28 September 2026:
 
-1. **The cleanup policy** keeps `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`, `^latest$`,
-   `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line) and
-   `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures), so it never
-   deletes a release's tags or their signatures. The policy itself is switched
-   off; switched on, it removes only other tags, older than 90 days and beyond the
-   newest ten.
+1. **The cleanup policy** is switched off. Its tags to keep
+   (`name_regex_keep`) are two patterns, `^v?[0-9]+\.[0-9]+\.[0-9]+.*$` and
+   `^latest$`; switched on, it would remove every other tag older than 90 days
+   and beyond the newest ten, every week. Before it is switched on, the owner
+   adds the three patterns it lacks, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3`
+   line) and `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures and
+   attestations), so that it never deletes a release's tags or their
+   signatures. Until 28 September 2026 this item said all five were set; the
+   API gave the two on 27 and on 28 September.
 2. **Protected container tags**: one rule, for
    `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
    so that nobody but a maintainer can push the release's tags and nobody but
@@ -1501,8 +1513,10 @@ the pipeline can check, and the one every server's trust in a release rests on.
    new tag and digest here, never an image from `ghcr.io`, and
    `build/check-release-chain.py` fails on a tag without its digest.
 2. **Inno Setup 6 and the Artifact Signing Client Tools on bench150**, as
-   administrator ([bench150](#bench150)). Done on 26 September 2026; neither
-   job has run with them yet.
+   administrator ([bench150](#bench150)). Done on 26 September 2026.
+   `windows-packages-x64` built the unsigned x64 installer with that Inno
+   Setup in pipeline 2887115157 (27 September 2026); `windows-installer` and
+   `release-authenticode`, which run only for a `v*` tag, have not run.
 3. **The Azure side of Authenticode**: a federated credential for each
    release's tag alone, made before the tag is pushed and removed after, and
    the five CI/CD variables, once (RELEASE.md, "Authenticode", has what to
@@ -1592,11 +1606,13 @@ it supports GitLab itself. `renovate.json` at the repository root is its
 configuration. The `renovate` job runs it on linix, in a scheduled pipeline and in
 nothing else.
 
-**It has not run on GitLab yet.** The job needs a token, a CI variable and a
-schedule that only the owner can create ([The owner's one-time
-steps](#the-owners-one-time-steps)). Until they exist, GitLab creates no
-`renovate` job. What it will propose is known from the dry runs of 25 September
-2026 ([Reading a dry run](#reading-a-dry-run)).
+**It has run on GitLab since 27 September 2026.** The job needs a token, a CI
+variable and a schedule that only the owner can create ([The owner's one-time
+steps](#the-owners-one-time-steps)); without them GitLab creates no `renovate`
+job. With `RENOVATE_TOKEN` set and the schedule `renovate` made on 27 September
+(4461186, `30 2 * * *` in London time, on `master`), its first pipeline,
+2886410224, passed that day. What it would propose was first read
+from the dry runs of 25 September 2026 ([Reading a dry run](#reading-a-dry-run)).
 
 ### What it covers
 
@@ -1836,8 +1852,8 @@ measured times after the first pipelines.
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
-| `semgrep-sast` | 5 to 10 min, estimated | 30 min | It has not run on GitLab, and counts against the namespace's compute minutes on GitLab's shared runners. By hand on linix on 27 September 2026, over batch41 in the job's image pinned to two CPUs as a shared runner has: 332 s, with the whole of every file read (84 s before `.gitlab/ci/gitlab-security.yml` gave a rule two minutes and lifted the size limit, when it read neither `RestApiServer.cpp` nor `Portal.js`) |
-| `secret_detection` | not measured | 30 min | It has not run on GitLab, and counts against the namespace's compute minutes on GitLab's shared runners. Its scan of the whole history took under a minute on linix |
+| `semgrep-sast` | 5 to 10 min, estimated | 30 min | It passed in 96 s in `master`'s pipeline 2886389460 (27 September 2026), and counts against the namespace's compute minutes on GitLab's shared runners. By hand on linix on 27 September 2026, over batch41 in the job's image pinned to two CPUs as a shared runner has: 332 s, with the whole of every file read (84 s before `.gitlab/ci/gitlab-security.yml` gave a rule two minutes and lifted the size limit, when it read neither `RestApiServer.cpp` nor `Portal.js`) |
+| `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `037aa6ca7`. It counts against the namespace's compute minutes on GitLab's shared runners. Its scan of the whole history took under a minute on linix |
 | `container-image` | under a minute by hand | 30 min | kaniko over Ubuntu 24.04 and the `.deb`, pushed to a local registry standing in for GitLab's, on linix on 26 September 2026; the push to `registry.gitlab.com` adds the upload of about 40 MB |
 | `container-image-sign`, `container_scanning` | not measured | 15 and 30 min | Neither has run in a pipeline. The analyzer's scan of Ubuntu 24.04 on linix, by hand, finished within two minutes of its start, its image's download included |
 | `renovate` | 2 to 5 min | 1 h | The dry runs of 25 September 2026 on linix: 5 s for the advisory database, 9 s to install the .NET SDK, 1 to 1.5 min for Renovate. The first run also pulls its image, about 450 MB |
@@ -2532,12 +2548,15 @@ What is still done by hand
   `.gitlab/ci/packages-*.yml` and run there under qemu-user on linix; running
   them on AArch64 hardware is still by hand.
 - The Windows ARM64 build: the ARM64 libraries, `build.ps1 -Platform ARM64`,
-  `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`, until bench150
-  has what `windows-packages-arm64` needs, Visual Studio's ARM64 tools and ATL
-  for ARM64 first: until then that job stops, allowed to fail, and names what
-  is missing ([PackagesWindows.md](PackagesWindows.md), "What the owner must
-  do"). No runner is an ARM64 Windows machine to test it on
-  ([WindowsOnArm.md](WindowsOnArm.md) has the commands).
+  `build-tools.ps1 -Platform ARM64` and `hMailServerARM64.iss`, until
+  `windows-packages-arm64` gets past its toolchain check on bench150: until
+  then that job stops, allowed to fail, and names what is missing. bench150
+  has Visual Studio's ARM64 tools and ATL for ARM64; in pipeline 2887115157
+  the check stopped the job on the ARM64 C++ runtime, which until 28 September
+  2026 it could not find on any machine ([PackagesWindows.md](PackagesWindows.md),
+  "The ARM64 toolchain" and "What the owner must do"). No runner is an ARM64
+  Windows machine to test it on ([WindowsOnArm.md](WindowsOnArm.md) has the
+  commands).
 - The release's two buttons, `release` and `release-publish`
   ([The release](#the-release)), and pushing the image and the package
   managers' manifests, which are still the Roadmap2 row "The release chain off

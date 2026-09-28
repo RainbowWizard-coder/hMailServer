@@ -91,6 +91,18 @@ for a stray `#` number or `@` name.
   fixture `ServerFreeTests.OneTimeCodesStep` replays the failed run against a clock of its own, without a server,
   in both suites: without the wait the previous step's code is two steps behind (its negative control), with it
   the code is judged in its own step.
+- **The ARM64 toolchain check could not find the ARM64 C++ runtime on any machine.**
+  `build/ci/packages/check-arm64-toolchain.ps1` looked for it with `Get-ChildItem -Path
+  '...\VC\Redist\MSVC\*\arm64' -Filter 'Microsoft.VC*.CRT'`, which with a wildcard in the path returns the
+  `arm64` folders themselves and filters their names. It reported the runtime missing on the laptop, whose Build
+  Tools 18.9 has it, and on bench150 in pipeline 2887115157, where `windows-packages-arm64` stopped on that
+  report with the ARM64 tools and ATL for ARM64 present; 6.3.5's notes above say that runner lacks Visual
+  Studio's ARM64 tools, and it does not. The check now asks for `...\arm64\Microsoft.VC*.CRT` as one path. It
+  also no longer tells the owner to add components the instance already has: when every component is installed
+  and a file is not there, it prints the Installer's `repair` of the instance, or, for the runtime, the `modify
+  --add` of the component that the instance's own catalog says installs `Microsoft.VisualCpp.CRT.Redist.ARM64`
+  when the instance lacks it. `check-arm64-toolchain.ps1 -SelfTest` holds both to instance trees and catalogs made
+  to order, with the old path and the old command as its negative controls; on the laptop the check now exits 0.
 
 ### Operations
 
@@ -105,6 +117,23 @@ for a stray `#` number or `@` name.
   pushed, so that its address, `registry.gitlab.com/hmailserver/hmailserver`, is the lasting one - a container
   repository's path is always its project's - and 6.3.4's `SigstoreVerifier` already trusts the group's path with
   the project's id, 86730559. Nothing the pipeline does changes.
+- **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package
+  jobs for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
+  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)
+  and [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job
+  had run: every `.deb` and `.rpm` build job passed (pipelines 2886955494 and 2887115157), no install job has
+  started in any pipeline, no AppImage job has been started, and `windows-packages-x64` built the unsigned x64
+  installer in 2887115157. [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no
+  GitLab job has run, says the GitHub workflows stayed unchanged from `6399e08a5` until `6593259e0` removed them,
+  and gives the registry's cleanup policy as the API does, two patterns to keep where it listed five, the three
+  others for the owner to add before the policy is switched on; it and README.md say that the fuzz schedule and
+  Renovate's schedule and token exist since 27 September. README.md no longer says the project has no ARM machine
+  to build the AArch64 packages on (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says
+  the pipeline does not build them, and Roadmap2's Windows on ARM row names the CI job it said there was not.
+  [PackageManagers.md](hmailserver/docs/PackageManagers.md) no longer says the GitHub workflow built the manifests
+  for the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage
+  is attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's
+  hMailServer 5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers.
 
 ---
 

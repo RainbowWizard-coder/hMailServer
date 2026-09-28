@@ -7,10 +7,14 @@ carried. The ARM64 installer is for Windows on ARM. Both are built unsigned and
 kept as the job's artifact. The jobs are in `.gitlab/ci/packages-windows.yml`,
 which `.gitlab-ci.yml` includes.
 
-**Neither job has run.** They were written and parse-checked on 26 September 2026
-on the maintainer's laptop, which was running a regression gate, and bench150 was
-not used because a gate was running there too. The last section says exactly what
-was run and with what result.
+**Both jobs have run on bench150; only the x64 one has built an installer.**
+They were written and parse-checked on 26 September 2026 on the maintainer's
+laptop ([What was run, and the result](#what-was-run-and-the-result)), and first
+ran in `batch41`'s pipelines on 27 September
+([What the pipelines ran](#what-the-pipelines-ran)): `windows-packages-x64`
+built `hMailServer-6.3.5-70eb52b9-x64.exe` in pipeline 2887115157, and
+`windows-packages-arm64` stopped at its toolchain check, on a report that was
+the check's own fault.
 
 What each job makes
 -------------------
@@ -49,11 +53,15 @@ runners' own `maximum_timeout`. A longer `timeout:` would be cut to 4 hours, and
 the script's own stop (`RUNNER_SCRIPT_TIMEOUT`, 3h50m) has to come before it so that
 `after_script` still releases the lock.
 
-`windows-packages-x64` is allowed to fail with exit 2 only. Inno Setup 6 is not
-installed for the machine on bench150 yet (ContinuousIntegration.md, bench150), so
-until the owner installs it, the job stops at its third step in every protected
-pipeline. Exit 2 shows as a warning; every other failure still fails the pipeline.
-Remove the `allow_failure` once Inno Setup is installed and one run has passed.
+`windows-packages-x64` is allowed to fail with exit 2 only, the exit of its third
+step when Inno Setup 6 is missing. Exit 2 shows as a warning; every other failure
+still fails the pipeline, as the version check's exit 4 did in pipeline
+2886955494. The allowance was made while bench150 had no Inno Setup for the
+machine. It has had one since 26 September 2026 (ContinuousIntegration.md,
+bench150), and the job passed with it in pipeline 2887115157, so the condition
+for removing the `allow_failure` - Inno Setup installed and one run passed - is
+met; removing it is a change to `.gitlab/ci/packages-windows.yml` still to make
+([What the owner must do](#what-the-owner-must-do), 4).
 
 Both jobs run `build/ci/packages/windows-packages.ps1 -Platform x64|ARM64`. In
 order, it does the following. Any failed step stops the job with an exit code
@@ -148,10 +156,33 @@ In the newest Windows SDK, it checks for `um\arm64\kernel32.lib` and
 
 MFC for ARM64 is reported but not required: no server project uses MFC.
 
-When something is missing, the check names it and prints the one command that
-adds it, the same one as WindowsOnArm.md:
+When something is missing, the check names it and prints the command that mends
+it. When a component is missing, that is the Installer's `modify` adding the
+components the instance lacks, as in WindowsOnArm.md:
 
     "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "<the instance with MSBuild>" --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.ATL.ARM64 --passive --norestart
+
+When every component is installed and a file is not there, adding the same
+components again changes nothing, and until 28 September 2026 that is what the
+check printed. Now, for the ARM64 C++ runtime, it reads the instance's own
+catalog (`%ProgramData%\Microsoft\VisualStudio\Packages\_Instances\<id>\catalog.json`)
+for the component that installs the package `Microsoft.VisualCpp.CRT.Redist.ARM64`,
+and prints the `modify --add` of that component when the instance lacks it; in
+Build Tools 18.9's catalog it is `VC.Tools.ARM64` itself. When that component is
+installed, or the catalog names none, and for any other missing file, it prints
+the Installer's `repair --installPath "<the instance>" --passive --norestart`.
+`check-arm64-toolchain.ps1 -SelfTest` holds this to catalogs and instance trees
+made to order.
+
+**Finding the runtime.** Until 28 September 2026 the check looked for it with
+`Get-ChildItem -Path '<instance>\VC\Redist\MSVC\*\arm64' -Filter 'Microsoft.VC*.CRT'`.
+With a wildcard in `-Path`, `Get-ChildItem` returns the matching `arm64` folders
+themselves and filters their names, so the check found no runtime on any machine:
+on the laptop, whose Build Tools 18.9 has
+`VC\Redist\MSVC\14.51.36231\arm64\Microsoft.VC145.CRT`, it reported the
+runtime missing, and it did the same on bench150 in pipeline 2887115157. It now
+asks for `VC\Redist\MSVC\*\arm64\Microsoft.VC*.CRT` as one path, and on the
+laptop finds that folder and exits 0.
 
 If the SDK lacks its ARM64 libraries, the check instead names the SDK feature to
 add: "Windows SDK for Desktop C++ ARM64 Apps".
@@ -286,18 +317,23 @@ the lock in a release pipeline.
 What the owner must do
 ----------------------
 
-1. On bench150, from an elevated prompt, add the ARM64 tools and ATL for ARM64
-   to the Build Tools instance. `check-arm64-toolchain.ps1` prints the exact
-   command with the instance's path.
+1. **The ARM64 toolchain on bench150.** Its Build Tools 18.10 instance has the
+   ARM64 tools and ATL for ARM64: pipeline 2887115157's check found both
+   components and every compiler and library file. It reported the ARM64 C++
+   runtime missing, which was the check's own fault (*Finding the runtime*, in
+   [The ARM64 toolchain](#the-arm64-toolchain)), so whether bench150 has it is
+   for the next run of `windows-packages-arm64` to say. If that run names
+   something, run, from an elevated prompt, the command it prints with the
+   instance's path.
 2. Land the GitLab sweep's `build-openssl.ps1` (Debian's archive), or put the
    ARM64 OpenSSL into `C:\bench\hMailLibs-arm64` by hand (see
    [The ARM64 libraries](#the-arm64-libraries)).
 3. Make sure bench150 has what `build-pgsql.ps1` needs on the runner's (the
    service's) PATH: Strawberry Perl, Meson, Ninja, `win_flex` and `win_bison`.
    It has to be the machine PATH, because the runner is LocalSystem.
-4. Inno Setup 6 installed for the machine. `windows-installer` needs it already.
-   Then, once `windows-packages-x64` has passed, remove its
-   `allow_failure: exit_codes: [2]`.
+4. Inno Setup 6 installed for the machine: done on 26 September 2026, and
+   `windows-packages-x64` passed with it in pipeline 2887115157. What is left
+   of this item is to remove that job's `allow_failure: exit_codes: [2]`.
 5. After the first ARM64 run, commit the `lockfiles/` from its artifact.
 6. When one ARM64 run has passed, remove `allow_failure: true` from
    `windows-packages-arm64`.
@@ -305,7 +341,16 @@ What the owner must do
 What the first run must confirm
 -------------------------------
 
-These are assumptions, written from the code at 6399e08a5 and not run:
+These were assumptions, written from the code at 6399e08a5 before any run.
+`batch41`'s pipelines have since shown the x64 ones ([What the pipelines
+ran](#what-the-pipelines-ran)): the runner's checkout built the x64 server and
+installer with the libraries of `C:\Dev\hMailLibs`, the files
+`get-installer-binaries.ps1` places and MSBuild found as LocalSystem, the
+whole job in under six minutes where an hour was estimated (whether the
+server's 3 min 47 s reused objects of the checkout's earlier builds was not
+looked at); and GitLab saw the script's own exit code, failing pipeline 2886955494 on the
+x64 job's exit 4 while `allow_failure: exit_codes: [2]` stood. Everything ARM64
+past the toolchain check is still as written:
 
 - The runner checkout on bench150 builds the x64 server from clean with only
   `C:\Dev\hMailLibs` and `get-installer-binaries.ps1`. That includes the ADO
@@ -378,7 +423,7 @@ On the maintainer's laptop, 26 September 2026. Nothing was built:
   `.own-runners` rules, their variables and artifacts. GitLab's own CI lint was
   not run.
 
-Not run: either job on bench150, any build, ISCC, and the libraries.
+Not run then: either job on bench150, any build, ISCC, and the libraries.
 
 The adversarial check of the same day re-ran, on the laptop again: the parser over
 the three scripts (0 errors); `check-pe-machine.ps1 -SelfTest` (every case
@@ -395,4 +440,32 @@ by side, where the x64 one could lose the lock to the ARM64 one; the x64 job fai
 every pipeline while Inno Setup is missing; and an OpenSSL check that would have
 gone on refusing after the sweep, because it only understood a quoted `$tarUrl`
 assignment. The CI file was loaded again with the include and `extends` resolved.
-GitLab's CI lint was still not run, and neither job has run on bench150.
+GitLab's CI lint was still not run, and neither job had run on bench150 then.
+
+What the pipelines ran
+----------------------
+
+`batch41`'s pipelines, on bench150, after `windows-gate` and `windows-dotnet`:
+
+- **2886955494 (`4a0e53cc8`, 27 September 2026).** `windows-packages-x64`
+  built the server, the tools and the Control Panel, and ISCC made the
+  installer (Inno Setup found at `C:\Program Files (x86)\Inno Setup 6`); then
+  the job's own check stopped it with exit 4: "the installer's version
+  resource says 6.3.5.0 [followed by spaces], not section_setup_64.iss's
+  6.3.5.0". The fault was the check's reading of the version, and
+  `70eb52b94` makes it read the version as the server does. The pipeline
+  failed on it, since exit 4 is not the allowed 2, and `windows-packages-arm64`,
+  which needs the x64 job, was skipped. 339 s.
+- **2887115157 (`70eb52b94`, 27 September 2026).** `windows-packages-x64`
+  passed in 338 s: `hMailServer-6.3.5-70eb52b9-x64.exe`, unsigned by design,
+  SHA-256 `b3a4b36f3bbba4b9d7118df3e321be525effc5f9d8618aaec56fd774e61678e1`.
+  `windows-packages-arm64` stopped after 17 s at its toolchain check, exit 2,
+  allowed to fail: Build Tools 18.10.12210.168 with MSBuild, the x64 and ARM64
+  tools and ATL for ARM64, toolset 14.51.36231 with every compiler and library
+  file, and Windows SDK 10.0.26100.0 with its ARM64 libraries - and the ARM64
+  C++ runtime reported missing, which the check could not have found anywhere
+  ([The ARM64 toolchain](#the-arm64-toolchain)).
+- **2887524317 (`63d58f8a6`).** Both jobs were waiting for `windows-gate`
+  when this was written, on 28 September 2026 at 00:40 UTC.
+
+No ARM64 library, server or installer has been built by a pipeline yet.
