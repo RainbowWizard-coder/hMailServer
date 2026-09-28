@@ -1047,6 +1047,20 @@ exceptions:
     expires: 2027-09-25
 
   # hmailserver/source/Server/Common/Util/UpdateChecker.cpp
+  - scan: static-analysis
+    finding: c9b871ff80b77887f710
+    what: 'getenv(name) in UpdateChecker.cpp EnvironmentValue_ (POSIX only), reading HM_INSTALL_KIND, SNAP, SNAP_INSTANCE_NAME and SNAP_NAME'
+    reason: 'The server calls no setenv or putenv while running, so a concurrent getenv reads a stable environment; the value is copied into a std::string at once.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-28
+    expires: 2027-09-27
+  - scan: semgrep-sast
+    finding: 9405655cf5e423c00708
+    what: 'getenv(name) in UpdateChecker.cpp EnvironmentValue_ (POSIX only), reading the marks of where the server runs'
+    reason: 'Each value is copied into a std::string and only compared - SNAP with this program''s own path from /proc/self/exe - or held to snapd''s name characters, beginning with a letter or digit, for the snap name; none is opened, written to a buffer or put on a command line. The environment is set by whoever starts the server, and a false value can only name another way of updating and stop this server fetching a release file.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-09-28
+    expires: 2027-09-27
   - scan: semgrep-sast
     finding: ea26d55cee65f1492419
     what: 'getenv("APPIMAGE") in UpdateChecker::DetectInstallKind (POSIX only) to detect an AppImage install'

@@ -80,6 +80,81 @@ namespace
    }
 }
 
+   namespace
+   {
+      // Where the project's container image is published (the Dockerfile's
+      // header, docs/LiveUpdateKinds.md); a container's check names it with the
+      // release's version as the tag.
+      const char *CONTAINER_IMAGE = "registry.gitlab.com/hmailserver/hmailserver";
+
+#if defined(HM_PLATFORM_POSIX)
+      // A variable of the environment the server was started in, empty when it
+      // is not set. The marks of where the server runs - HM_INSTALL_KIND, SNAP,
+      // SNAP_INSTANCE_NAME and SNAP_NAME - are read here and nowhere else, each
+      // copied at once and then only compared (SNAP with this program's own
+      // path, below) or held to a character set: none is opened, written to a
+      // buffer or put on a command line. Whoever starts the server sets them,
+      // and the most a false one can do is name another way of updating it and
+      // keep this server from fetching a release file.
+      std::string EnvironmentValue_(const char *name)
+      {
+         const char *value = getenv(name);
+         return value ? std::string(value) : std::string();
+      }
+
+      // Whether snapd started this program: SNAP names the snap's mounted
+      // revision, and the program's own file (/proc/self/exe, which the kernel
+      // keeps) is inside it. SNAP alone is not enough, because a process passes
+      // its environment on: a terminal that is itself a snap gives its SNAP to
+      // everything started from it, and a server started by hand from there -
+      // an AppImage, a build tree - is not that snap and is not updated by it.
+      bool RunsInSnap_()
+      {
+         std::string snap = EnvironmentValue_("SNAP");
+         while (snap.size() > 1 && snap[snap.size() - 1] == '/')
+            snap.erase(snap.size() - 1);
+         if (snap.size() < 2 || snap[0] != '/')
+            return false;
+
+         char self[4096] = { 0 };
+         const ssize_t length = readlink("/proc/self/exe", self, sizeof(self) - 1);
+         if (length <= 0)
+            return false;
+         const std::string program(self, (size_t) length);
+         return program.size() > snap.size() && program.compare(0, snap.size(), snap) == 0 && program[snap.size()] == '/';
+      }
+#endif
+
+      // The snap's name as snap refresh takes it: SNAP_INSTANCE_NAME, which is
+      // the name with the instance key of a parallel install ("hmailserver_test"),
+      // or SNAP_NAME; both are set by snapd. A snap name is lower-case letters,
+      // digits and hyphens, beginning with a letter or a digit, and the instance
+      // key follows an underscore; anything else is not snapd's word - nor put
+      // in front of an administrator as the argument of a command, where a
+      // leading hyphen would read as an option - and the snap's own name is used.
+      std::string SnapName_()
+      {
+#if defined(HM_PLATFORM_POSIX)
+         const char *variables[2] = { "SNAP_INSTANCE_NAME", "SNAP_NAME" };
+         for (const char *variable : variables)
+         {
+            const std::string name = EnvironmentValue_(variable);
+            if (name.empty())
+               continue;
+            bool plain = name.size() <= 64 && ((name[0] >= 'a' && name[0] <= 'z') || (name[0] >= '0' && name[0] <= '9'));
+            for (size_t i = 0; plain && i < name.size(); i++)
+            {
+               const char c = name[i];
+               plain = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
+            }
+            if (plain)
+               return name;
+         }
+#endif
+         return "hmailserver";
+      }
+   }
+
    UpdateChecker::InstallKind
    UpdateChecker::DetectInstallKind()
    {
@@ -87,6 +162,31 @@ namespace
       // What is installed decides, not a build-time guess: the same binary runs
       // on Debian and on Fedora, and out of an AppImage on either.
       //
+      // The container first, by the image's own mark: the image installs the
+      // .deb, so dpkg's record below is there too, and a container is updated by
+      // pulling the next image, never by installing a package into this one -
+      // whose changes go with the container, and whose server runs as its own
+      // user with no root to install anything. Any other value is not a kind
+      // this server knows, and the detection goes on as without it.
+      std::string kind = EnvironmentValue_("HM_INSTALL_KIND");
+      for (size_t i = 0; i < kind.size(); i++)
+         kind[i] = (char) tolower((unsigned char) kind[i]);
+      if (kind == "container")
+         return InstallContainer;
+
+      // Then a snap: snapd sets SNAP to the snap's mounted revision for every
+      // process of a snap, and snapd alone replaces that revision - when this
+      // program is inside it, and SNAP was not merely inherited (RunsInSnap_).
+      if (RunsInSnap_())
+         return InstallSnap;
+
+#if !HM_LIVE_UPDATE
+      // A build without the live update is a distribution's, or a store's, or
+      // somebody's own: whatever package manager recorded it - dpkg's record of
+      // a Debian build is the same file as the project's own .deb leaves - it
+      // updates it, and no release file of the project's may replace it.
+      return InstallDistribution;
+#else
       // The AppImage runtime sets APPIMAGE to the image's own path before it
       // runs AppRun, and AppRun execs the server with that environment intact.
       const char *appimage = getenv("APPIMAGE");
@@ -120,6 +220,7 @@ namespace
       }
 
       return InstallNone;
+#endif
 #else
       return InstallWindowsInstaller;
 #endif
@@ -134,9 +235,74 @@ namespace
       case InstallDeb: return "deb";
       case InstallRpm: return "rpm";
       case InstallAppImage: return "appimage";
+      case InstallSnap: return "snap";
+      case InstallContainer: return "container";
+      case InstallDistribution: return "distribution";
       case InstallNone:
       default:
          return "";
+      }
+   }
+
+   bool
+   UpdateChecker::LiveUpdateApplies(InstallKind kind)
+   {
+#if HM_LIVE_UPDATE
+      switch (kind)
+      {
+      case InstallWindowsInstaller:
+      case InstallDeb:
+      case InstallRpm:
+      case InstallAppImage:
+         return true;
+      default:
+         return false;
+      }
+#else
+      (void) kind;
+      return false;
+#endif
+   }
+
+   bool
+   UpdateChecker::UpdatedElsewhere(InstallKind kind, const String &version, String &command, String &sentence)
+   {
+      command.Empty();
+      sentence.Empty();
+
+      switch (kind)
+      {
+      case InstallSnap:
+      {
+         const String name = String(SnapName_().c_str());
+         command = _T("snap refresh ") + name;
+         sentence = Formatter::Format(_T("This server runs as the snap {0}, which snapd updates: snapd refreshes its snaps on its own several times a day, and {1} does it now. The server downloads and installs no release file itself."),
+            name, command);
+         return true;
+      }
+      case InstallContainer:
+      {
+         // The version is a tag ReadRelease_ has already held to letters,
+         // digits, dots, dashes and underscores, not starting with a dot or a
+         // dash - which is what an image tag may be.
+         const String image = String(CONTAINER_IMAGE) + _T(":") + (version.IsEmpty() ? String(_T("latest")) : version);
+         command = _T("docker pull ") + image;
+         sentence = Formatter::Format(_T("This server runs in a container, which is updated by replacing its image, not by installing anything into it: pull the new image ({0}) and recreate the container from it (docker compose pull and docker compose up -d, or the image tag in the Helm values); the data, log and configuration volumes carry over. The server downloads and installs no release file itself."),
+            command);
+         return true;
+      }
+      case InstallDistribution:
+         command = String(HM_UPDATE_COMMAND);
+         command.TrimLeft();
+         command.TrimRight();
+         if (command.IsEmpty())
+            sentence = _T("This build of hMailServer was built without the live update, so it downloads and installs no release file: update it with the package manager, or from the source, it was installed from.");
+         else
+            sentence = Formatter::Format(_T("This build of hMailServer is updated by the package manager it was installed with, not by the server itself: {0}. It was built without the live update, so it downloads and installs no release file."),
+               command);
+         return true;
+      default:
+         return false;
       }
    }
 
@@ -364,7 +530,13 @@ namespace
 
          message = Formatter::Format(_T("Update check: hMailServer {0} is available (published {1}); this server runs {2}. {3}"),
             release.version, release.published_at, running, release.url);
-         if (release.installer_url.IsEmpty())
+         // A snap, a container or a distribution's build names what updates it;
+         // its installer_name is empty (PlatformInstallerName_ has no artefact
+         // for these kinds), so nothing was taken from the release to download.
+         String command, sentence;
+         if (UpdatedElsewhere(DetectInstallKind(), release.version, command, sentence))
+            message += _T(" ") + sentence;
+         else if (release.installer_url.IsEmpty())
             message += Formatter::Format(_T(" The release carries no {0}, so there is nothing to download."), MissingArtefactDescription(release.version));
       }
       else
@@ -759,6 +931,19 @@ namespace
       body += ",\"runningVersion\":" + Quote_(RunningVersion());
       body += ",\"channel\":\"" + AnsiString(IsPreReleaseChannel() ? "prerelease" : "stable") + "\"";
       body += ",\"checkEnabled\":" + AnsiString(IniFileSettings::Instance()->GetUpdateCheckEnabled() ? "true" : "false");
+      {
+         // How this server is updated, asked now rather than kept in the
+         // snapshot: the environment it was started in decides, and a client
+         // that knows none of these four keys reads the rest as before.
+         const InstallKind kind = DetectInstallKind();
+         String command, advice;
+         UpdatedElsewhere(kind, snapshot.available_version, command, advice);
+         const char *kindName = InstallKindName(kind);
+         body += ",\"installKind\":\"" + AnsiString(*kindName ? kindName : "none") + "\"";
+         body += ",\"liveUpdate\":" + AnsiString(LiveUpdateApplies(kind) ? "true" : "false");
+         body += ",\"updateCommand\":" + Quote_(command);
+         body += ",\"updateAdvice\":" + Quote_(advice);
+      }
       body += ",\"availableVersion\":" + Quote_(snapshot.available_version);
       body += ",\"releaseName\":" + Quote_(snapshot.release_name);
       body += ",\"publishedAt\":" + Quote_(snapshot.published_at);

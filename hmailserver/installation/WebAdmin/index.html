@@ -5624,14 +5624,21 @@ async function renderUpdate(){
   const badge=state===1?"good":state===5?"bad":state===2||state===3?"info":"warn";
   const installer=v.installer||{};
   const downloaded=v.downloaded||{};
-  const rows=[[t("Running version"),v.runningVersion||""],[t("Channel"),v.channel||""],[t("Scheduled check"),v.checkEnabled?t("On"):t("Off")],
-    [t("Available version"),v.availableVersion||"—"],[t("Release"),v.releaseName||"—"],[t("Published"),v.publishedAt||"—"],
-    [t("Installer"),installer.name?installer.name+" ("+fmtBytes(installer.size)+")":"—"],[t("Verified"),downloaded.verifiedAt||"—"],[t("Signed by"),downloaded.signer||"—"],[t("Last error"),v.lastError||"—"]];
+  // A snap, a container or a distribution's build is updated by what installed
+  // it (liveUpdate false, updateCommand and updateAdvice say how): the page
+  // offers no download and no install there. A server from before 6.3.6 sends
+  // none of the three, and is offered both as it always was.
+  const live=v.liveUpdate!==false;
+  const rows=[[t("Running version"),v.runningVersion||""],[t("Channel"),v.channel||""],[t("Scheduled check"),v.checkEnabled?t("On"):t("Off")]];
+  if(v.installKind)rows.push([t("Installed as"),v.installKind]);
+  if(v.updateCommand)rows.push([t("Update with"),v.updateCommand]);
+  rows.push([t("Available version"),v.availableVersion||"—"],[t("Release"),v.releaseName||"—"],[t("Published"),v.publishedAt||"—"],
+    [t("Installer"),installer.name?installer.name+" ("+fmtBytes(installer.size)+")":"—"],[t("Verified"),downloaded.verifiedAt||"—"],[t("Signed by"),downloaded.signer||"—"],[t("Last error"),v.lastError||"—"]);
   const applied=v.apply&&typeof v.apply==="object"?Object.keys(v.apply).filter(k=>String(v.apply[k]||"")!==""):[];
   const apply=applied.map(k=>"<tr><td>"+escHtml(humanise(k))+"</td><td>"+escHtml(String(v.apply[k]))+"</td></tr>").join("");
   $("#content").innerHTML=`<div class="view"><div class="card view">
     <p class="note">${escHtml(operation("/api/v1/update","get").description||"")}</p>
-    <p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>
+    ${live?`<p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>`:v.updateAdvice?`<p class="note" id="updateAdvice">${escHtml(v.updateAdvice)}</p>`:""}
     <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${v.releaseUrl?'<a href="'+escHtml(v.releaseUrl)+'" target="_blank" rel="noopener">'+t("Release notes")+'</a>':""}</p>
     ${drain?`<h3 style="margin-top:14px">${t("Maintenance mode")}</h3>
     <p class="note" id="drainState">${drain.draining?escHtml(tf("Draining since {0}: {1} session(s) and {2} delivery(ies) in flight.",drain.since||"",String(drain.sessions||0),String(drain.deliveries||0))):t("Not draining: the listeners are open.")}</p>
@@ -5643,8 +5650,8 @@ async function renderUpdate(){
     ${apply?'<h3 style="margin-top:14px">'+t("The last install")+'</h3><div class="tablewrap"><table><tbody>'+apply+'</tbody></table></div>':""}
     <div class="row" style="margin-top:14px;gap:8px">
       ${may("manage_server")?`<button class="btn ghost" data-act="upcheck">${t("Check now")}</button>`:""}
-      ${may("manage_server")&&state===2?`<button class="btn" data-act="updownload">${t("Download and verify")}</button>`:""}
-      ${may("manage_server")&&state===3?`<button class="btn danger" data-act="upinstall">${t("Install the update")}</button>`:""}
+      ${may("manage_server")&&live&&state===2?`<button class="btn" data-act="updownload">${t("Download and verify")}</button>`:""}
+      ${may("manage_server")&&live&&state===3?`<button class="btn danger" data-act="upinstall">${t("Install the update")}</button>`:""}
     </div>
     <div class="err" id="err_update" style="margin-top:10px"></div>
     </div></div>`;

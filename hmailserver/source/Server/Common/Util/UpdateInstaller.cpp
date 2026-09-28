@@ -40,11 +40,19 @@ namespace HM
    namespace
    {
 #ifdef HM_PLATFORM_POSIX
-      const TCHAR *HELPER_NAME = _T("hmailserver-update");
       // Where the .deb and the .rpm install the helper, and where an AppImage
       // carries it relative to its own root.
       const char *PACKAGED_HELPER = "/usr/lib/hmailserver/hmailserver-update";
       const char *APPIMAGE_HELPER = "/usr/lib/hmailserver/hmailserver-update";
+#endif
+
+      // The apply step's own constants. A build without the live update
+      // (HM_LIVE_UPDATE=0, UpdateChecker.h) compiles none of the apply step
+      // below - no hand-over to a helper, no rollback image, no drain - and so
+      // none of these either.
+#if HM_LIVE_UPDATE
+#ifdef HM_PLATFORM_POSIX
+      const TCHAR *HELPER_NAME = _T("hmailserver-update");
       // How long the path unit is given to take a request before the next route
       // is tried. It reacts through inotify, within a second; fifteen is
       // generous, and a request nobody takes in that time has no taker.
@@ -69,6 +77,7 @@ namespace HM
       // README.md name the ten minutes.
       const int UPDATE_APPLY_DRAIN_MINUTES = 10;
       const int UPDATE_APPLY_WATCH_POLL_SECONDS = 5;
+#endif
 
       // AwaitOutcomeAtStart: how long past the helper's own wait for the service
       // the outcome is looked for, and how recent the helper's log must be for an
@@ -78,6 +87,7 @@ namespace HM
       const int UPDATE_HELPER_RECENT_SECONDS = 3600;
    }
 
+#if HM_LIVE_UPDATE
    void
    UpdateInstaller::WatchTheHelper_(const String &drainSince)
    {
@@ -125,6 +135,7 @@ namespace HM
          }
       }
    }
+#endif
 
    String
    UpdateInstaller::HelperSourcePath()
@@ -171,6 +182,11 @@ namespace HM
 
 #ifdef HM_PLATFORM_POSIX
       (void) releaseUrl;
+      // A snap, a container or a build without the live update: what installed
+      // it updates it, and why names how (UpdateChecker::UpdatedElsewhere).
+      String command;
+      if (UpdateChecker::UpdatedElsewhere(UpdateChecker::DetectInstallKind(), UpdateChecker::Current().available_version, command, why))
+         return false;
       return true;
 #else
       if (ServiceAccount::ProcessIsAdministrator())
@@ -285,6 +301,10 @@ namespace HM
       }
    }
 
+   // From here to Apply, the apply step itself: the rollback image, the hand-over
+   // to the helper and the checks of what is handed over. Not compiled in a build
+   // without the live update, whose Apply only says what updates it.
+#if HM_LIVE_UPDATE
    bool
    UpdateInstaller::EnsureRollbackImage_(const String &runningVersion, String &rollbackPath, String &why)
    {
@@ -690,6 +710,7 @@ namespace HM
       }
 #endif
    }
+#endif
 
    bool
    UpdateInstaller::Apply(String &error)
@@ -697,6 +718,27 @@ namespace HM
       error.Empty();
 
       UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+
+      // A snap, a container or a build without the live update is updated by
+      // what installed it, and says so before anything else: there is never a
+      // downloaded file here to speak of (UpdateDownloader refuses to fetch one),
+      // and "download one first" would send the administrator the wrong way.
+      {
+         String command;
+         if (UpdateChecker::UpdatedElsewhere(UpdateChecker::DetectInstallKind(), snapshot.available_version, command, error))
+         {
+            LOG_APPLICATION(Formatter::Format(_T("Update apply refused: {0}"), error));
+            return false;
+         }
+      }
+
+#if !HM_LIVE_UPDATE
+      // Not reached: every kind a build without the live update detects is one
+      // UpdatedElsewhere answers for. Said all the same, rather than compiled
+      // into a function that could return nothing.
+      error = _T("This build of hMailServer was built without the live update, so it installs no release file.");
+      return false;
+#else
       if (snapshot.state != UpdateChecker::StateDownloaded || snapshot.installer_path.IsEmpty() || !FileUtilities::Exists(snapshot.installer_path))
       {
          error = _T("No verified installer is waiting; download one first.");
@@ -988,6 +1030,7 @@ namespace HM
          snapshot.available_version, helper));
       boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince).detach();
       return true;
+#endif
 #endif
    }
 

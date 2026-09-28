@@ -484,6 +484,15 @@ verified against its Sigstore bundle, the apply with a rollback - was a Windows
 feature with a Windows helper. On this platform the first two parts were already
 the same code; the apply is now these three files, and this is how it goes.
 
+**Where it does not apply.** A build configured with
+`-DHM_LIVE_UPDATE=OFF`, which is how a distribution builds its own package,
+compiles no apply step and installs none of the three files. A server in a snap
+(`SNAP` set by snapd) or in the container image (`HM_INSTALL_KIND=container`)
+never downloads or installs a release file. In all three the update check still
+reports a newer release and names the command that updates the server:
+`HM_UPDATE_COMMAND`, `snap refresh hmailserver`, or pulling the new image.
+`hmailserver/docs/LiveUpdateKinds.md` has the whole of it.
+
 **Who may do what.** `hmailserver.service` runs as `hmailserver` with
 `ProtectSystem=strict`, `NoNewPrivileges=yes` and a capability bounding set of
 `CAP_NET_BIND_SERVICE` alone. It cannot run `dpkg`, cannot `systemctl stop`

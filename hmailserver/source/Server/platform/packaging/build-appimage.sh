@@ -272,9 +272,25 @@ install -m 0644 "${REPO_ROOT}/hmailserver/installation/WebAdmin/languages/"*.jso
 # files beside it are references for an administrator who runs the image as a
 # system service and wants the path-unit route the packages use instead;
 # hmailserver-update's header and packaging/README.md say when each applies.
-install -Dm 0755 "${HERE}/hmailserver-update" "${APPDIR}/usr/lib/hmailserver/hmailserver-update"
-install -Dm 0644 "${HERE}/hmailserver-update.path" "${APPDIR}/usr/share/hmailserver/systemd/hmailserver-update.path"
-install -Dm 0644 "${HERE}/hmailserver-update.service" "${APPDIR}/usr/share/hmailserver/systemd/hmailserver-update.service"
+# None of the three from a tree configured with -DHM_LIVE_UPDATE=OFF, whose
+# server has no apply step to hand anything to them - as its `cmake --install`
+# leaves them out (CMakeLists.txt, docs/LiveUpdateKinds.md). The cache holds the
+# value as it was given, so every spelling CMake takes for false is read as OFF; a
+# tree from before the option has no line, and carries the live update.
+live_update="ON"
+if grep -q '^HM_LIVE_UPDATE:BOOL=' "${BUILD_DIR}/CMakeCache.txt" 2> /dev/null; then
+   live_update="$(sed -n 's/^HM_LIVE_UPDATE:BOOL=//p' "${BUILD_DIR}/CMakeCache.txt" | head -n 1 | tr '[:upper:]' '[:lower:]' || true)"
+fi
+case "${live_update}" in
+   ""|0|off|no|false|n|ignore|notfound|*-notfound)
+      echo "The tree was built with HM_LIVE_UPDATE=${live_update:-(empty)}: no hmailserver-update in the AppImage."
+      ;;
+   *)
+      install -Dm 0755 "${HERE}/hmailserver-update" "${APPDIR}/usr/lib/hmailserver/hmailserver-update"
+      install -Dm 0644 "${HERE}/hmailserver-update.path" "${APPDIR}/usr/share/hmailserver/systemd/hmailserver-update.path"
+      install -Dm 0644 "${HERE}/hmailserver-update.service" "${APPDIR}/usr/share/hmailserver/systemd/hmailserver-update.service"
+      ;;
+esac
 
 # The configuration the AppRun below copies out on first run. It is the packaged
 # default with its absolute paths still in it; AppRun rewrites them, so this file

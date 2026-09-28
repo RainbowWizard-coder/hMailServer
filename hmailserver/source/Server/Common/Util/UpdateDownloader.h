@@ -24,7 +24,9 @@ namespace HM
       // false with error and the files gone. The failure is recorded as the
       // verdict (StateFailed), except where the state is not the download's to
       // change - a check answered while it ran, or an update is being installed -
-      // when last_error alone says why.
+      // when last_error alone says why. In a snap, a container or a build without
+      // the live update, nothing is fetched: false at once, error names what
+      // updates this installation, and last_error says so with the state kept.
       static bool DownloadAndVerify(String &error);
 
       // <DataFolder>\Updates
@@ -53,7 +55,9 @@ namespace HM
       // does not verify. expectedSize and expectedDigest are the feed's hints, checked
       // when given; expectedVersion is the release the file is fetched as, which a
       // certificate naming a release tag must name (SigstoreVerifier::VerifyFile).
-      // What DownloadAndVerify and the rollback image both do.
+      // What DownloadAndVerify and the rollback image both do. Not compiled in a
+      // build without the live update (HM_LIVE_UPDATE=0, UpdateChecker.h), which
+      // fetches no release file.
       static bool FetchVerified(const String &installerUrl, const String &bundleUrl, const String &installerPath, __int64 expectedSize,
                                 const String &expectedDigest, const String &expectedVersion, const SigstoreTrust &trust,
                                 SigstoreVerdict &verdict, String &why);

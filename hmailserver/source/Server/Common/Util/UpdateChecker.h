@@ -4,6 +4,26 @@
 
 #pragma once
 
+// Whether this build carries the live update's apply step. Every Windows build
+// does. A POSIX build does unless it was configured with -DHM_LIVE_UPDATE=OFF
+// (hmailserver/source/Server/CMakeLists.txt), which is how a distribution, a
+// store or anyone whose package manager updates the server builds it: the check
+// still says that a release exists, and names HM_UPDATE_COMMAND - the command
+// the distribution gives its users, "apt upgrade hmailserver" - in place of
+// offering a file, and nothing downloads or installs one (UpdateChecker::
+// UpdatedElsewhere). CMake defines both for every POSIX build; the defaults
+// below are for the Windows project and for the scripts that compile one core
+// file at a time with -DHM_PLATFORM_POSIX=1 alone.
+#ifndef HM_LIVE_UPDATE
+#define HM_LIVE_UPDATE 1
+#endif
+#ifndef HM_UPDATE_COMMAND
+#define HM_UPDATE_COMMAND ""
+#endif
+#if !HM_LIVE_UPDATE && !defined(HM_PLATFORM_POSIX)
+#error "HM_LIVE_UPDATE=0 is an option of the POSIX build; the Windows server always carries the live update."
+#endif
+
 namespace HM
 {
    class JsonValue;
@@ -70,23 +90,54 @@ namespace HM
 
       // How this server was installed, which decides which of a release's artefacts
       // it could install and how the apply step goes about it. On Windows always
-      // the installer. On Linux: the .deb when dpkg's record says it owns this
-      // package, the .rpm when rpm's does, the AppImage when the AppImage runtime
-      // says so (APPIMAGE in the environment, set by the runtime before AppRun
-      // starts the server), and nothing for a build tree or a tarball, which no
-      // package could replace.
+      // the installer. On Linux, in this order:
+      //   - a container when the image says so (HM_INSTALL_KIND=container, which
+      //     the Dockerfile sets): the image installs the .deb, and without the
+      //     mark the server took itself for a .deb installation and offered to
+      //     replace the package inside a container that is replaced, not updated;
+      //   - a snap when snapd started it (SNAP in the environment, which snapd
+      //     sets for every snap's processes, naming the directory this program's
+      //     own file is in - not a SNAP inherited from a snap's terminal);
+      //   - in a build without the live update (HM_LIVE_UPDATE=0), the
+      //     distribution's own package, whatever package manager recorded it;
+      //   - the AppImage when the AppImage runtime says so (APPIMAGE in the
+      //     environment, set by the runtime before AppRun starts the server), the
+      //     .deb when dpkg's record says it owns this package, the .rpm when rpm's
+      //     does, and nothing for a build tree or a tarball, which no package
+      //     could replace.
+      // The last three kinds are appended so that the first five keep their
+      // values.
       enum InstallKind
       {
          InstallWindowsInstaller = 0,
          InstallDeb,
          InstallRpm,
          InstallAppImage,
-         InstallNone
+         InstallNone,
+         InstallSnap,
+         InstallContainer,
+         InstallDistribution
       };
       static InstallKind DetectInstallKind();
       // The word the apply request carries: "deb", "rpm", "appimage"; "installer"
-      // on Windows, "" for none.
+      // on Windows, "" for none; and "snap", "container" and "distribution" for
+      // the kinds no request is ever written for.
       static const char *InstallKindName(InstallKind kind);
+
+      // Whether a release file can update this installation in place: a build
+      // with the apply step (HM_LIVE_UPDATE), and a kind the apply step knows -
+      // the installer, the .deb, the .rpm or the AppImage.
+      static bool LiveUpdateApplies(InstallKind kind);
+
+      // For an installation something other than this server updates - a snap
+      // (snapd), a container (its image), a distribution's package (its package
+      // manager) - true, with the command that updates it and the sentence the
+      // check, the download and the apply say: the command may be empty, for a
+      // build without the live update that was given no HM_UPDATE_COMMAND. The
+      // version is the release on offer, which the container's image tag names;
+      // empty, the tag is latest. False, and both empty, for every other kind,
+      // including none, whose refusals say what they always said.
+      static bool UpdatedElsewhere(InstallKind kind, const String &version, String &command, String &sentence);
 
       // The artefact this server could install, by the name the release flow gives
       // it - hMailServer-<v>-x64.exe, hmailserver_<v>_amd64.deb,
@@ -173,7 +224,11 @@ namespace HM
       // Unix seconds as ISO 8601 UTC.
       static String FormatUnixTime(__int64 seconds);
 
-      // The snapshot as the JSON document the REST route returns.
+      // The snapshot as the JSON document the REST route returns. Beside the
+      // snapshot it says how this server is updated, from DetectInstallKind at
+      // the time of asking: installKind (InstallKindName, "none" for none),
+      // liveUpdate (LiveUpdateApplies), and updateCommand and updateAdvice
+      // (UpdatedElsewhere; empty where the live update does it).
       static AnsiString ToJson(const Snapshot &snapshot);
 
    private:

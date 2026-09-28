@@ -43,7 +43,10 @@ namespace HM
    {
    public:
       // On the calling thread until the helper has been started; the update itself
-      // happens after this returns. True when the helper was started.
+      // happens after this returns. True when the helper was started. In a snap,
+      // a container or a build without the live update (HM_LIVE_UPDATE=0, which
+      // compiles none of the steps above), false at once, and error names what
+      // updates this installation.
       static bool Apply(String &error);
 
       // At startup: the outcome the helper wrote, if any, into the log and the
@@ -78,8 +81,10 @@ namespace HM
       // the copy in the Updates folder, which the service can write. No scheduled
       // task running as SYSTEM stands in for it: a service that could make SYSTEM
       // run a file it had written would have given back what the account took
-      // away. Always true on POSIX, where the packaged path unit runs the helper
-      // as root on the service's request.
+      // away. True on POSIX, where the packaged path unit runs the helper as
+      // root on the service's request - except in a snap, a container or a build
+      // without the live update, which what installed it updates, and why names
+      // how (UpdateChecker::UpdatedElsewhere).
       static bool CanApplyHere(const String &releaseUrl, String &why);
 
    private:

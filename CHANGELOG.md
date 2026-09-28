@@ -161,6 +161,17 @@ for a stray `#` number or `@` name.
   accept a TCP connection before opening it, and does not start (exit 69) when it has not. The entrypoint reads the
   ini's `[Database]` section as the server does (spaces trimmed, names in any case), and `HM_INSTALL_KIND`, which
   the image sets for the update check, is not a reason for it to open the database.
+- **A build without the live update, and a live update that knows a snap and a container** (not yet run in a
+  pipeline). CMake's new `-DHM_LIVE_UPDATE=OFF` builds the server with no apply step and installs neither
+  `hmailserver-update` nor its two units; an AppImage made from an OFF tree carries no `hmailserver-update`
+  either. Its update check still names a newer release and the distribution's own command
+  (`-DHM_UPDATE_COMMAND="apt upgrade hmailserver"`). A server in a snap (`SNAP` naming the directory it runs from)
+  or in the container image (`HM_INSTALL_KIND=container`) names `snap refresh hmailserver` or the image to pull,
+  and never downloads or installs a release file. `GET /api/v1/update` reports `installKind`, `liveUpdate`,
+  `updateCommand` and `updateAdvice`, and the Control Deck shows them. What the live update did in images before
+  6.3.6 is written down in [LiveUpdateKinds.md](hmailserver/docs/LiveUpdateKinds.md): it installed nothing,
+  downloaded two packages and reported HM6890. Tested by `build/test-install-kind.sh` (CI job
+  `linux-live-update`).
 
 ### Downloads and the release
 

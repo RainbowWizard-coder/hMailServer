@@ -32,6 +32,7 @@
 
 namespace HM
 {
+#if HM_LIVE_UPDATE
    namespace
    {
       // An installer is seventy-odd megabytes; a bundle, eleven kilobytes.
@@ -44,6 +45,7 @@ namespace HM
             FileUtilities::DeleteFile(path);
       }
    }
+#endif
 
    String
    UpdateDownloader::UpdatesDirectory()
@@ -219,6 +221,10 @@ namespace HM
 #endif
    }
 
+   // The fetch of a release file, for the download below and the apply step's
+   // rollback image. A build without the live update (HM_LIVE_UPDATE=0,
+   // UpdateChecker.h) fetches no release file, and compiles neither.
+#if HM_LIVE_UPDATE
    bool
    UpdateDownloader::FetchVerified(const String &installerUrl, const String &bundleUrl, const String &installerPath, __int64 expectedSize,
                                    const String &expectedDigest, const String &expectedVersion, const SigstoreTrust &trust,
@@ -288,6 +294,7 @@ namespace HM
       }
       return ok;
    }
+#endif
 
    bool
    UpdateDownloader::DownloadAndVerify(String &error)
@@ -295,6 +302,27 @@ namespace HM
       error.Empty();
 
       UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+
+      // A snap, a container or a build without the live update is updated by
+      // what installed it: nothing is fetched, and the reason names how it is
+      // updated. The state stays what the check said - a newer release is
+      // available - and last_error says why this server does not fetch it.
+      {
+         String command;
+         if (UpdateChecker::UpdatedElsewhere(UpdateChecker::DetectInstallKind(), snapshot.available_version, command, error))
+         {
+            UpdateChecker::RecordLastError(error);
+            LOG_APPLICATION(Formatter::Format(_T("Update download refused: {0}"), error));
+            return false;
+         }
+      }
+
+#if !HM_LIVE_UPDATE
+      // Not reached: every kind a build without the live update detects is one
+      // UpdatedElsewhere answers for.
+      error = _T("This build of hMailServer was built without the live update, so it downloads no release file.");
+      return false;
+#else
       // The helper may be about to run the waiting installer, or running it: a
       // download now would put another file where it is.
       if (snapshot.state == UpdateChecker::StateInstalling)
@@ -383,5 +411,6 @@ namespace HM
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} downloaded to {1} and verified: signed by {2}, recorded by the transparency log at {3}."),
          snapshot.available_version, installerPath, String(verdict.identity), UpdateChecker::FormatUnixTime(verdict.integrated_time)));
       return true;
+#endif
    }
 }

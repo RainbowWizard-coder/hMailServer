@@ -23,7 +23,8 @@
 #   Server/hMailServer.Updater the live-update apply helper: it runs a Windows
 #                              installer. Its counterpart here is the shell
 #                              script platform/packaging/hmailserver-update,
-#                              installed below with the two units that run it.
+#                              installed below with the two units that run it -
+#                              unless HM_LIVE_UPDATE is OFF (below).
 #   Server/hMailServer.Minidump  Windows Error Reporting.
 #
 # And it builds one thing the Windows project does not: Server/quickjs, the
@@ -140,6 +141,47 @@ if(HM_COVERAGE)
    endif()
    add_compile_options(-fprofile-instr-generate -fcoverage-mapping -mllvm -runtime-counter-relocation)
    add_link_options(-fprofile-instr-generate)
+endif()
+
+# The live update (hmailserver/docs/LiveUpdateKinds.md). ON, the default and what
+# the project's own packages and AppImage are built with, the server can
+# download a release's package, verify it and hand it to hmailserver-update,
+# which is installed below with its .path and .service units. OFF is for a
+# build that something else updates - a distribution's package, a store's, a
+# build of one's own: the apply step is not compiled, hmailserver-update and its
+# units are not installed, nothing downloads a release file, and the update check
+# still says when a newer release exists and names HM_UPDATE_COMMAND, the command
+# the distribution tells its users:
+#
+#   cmake -S hmailserver/source/Server -B build/linux -G Ninja \
+#         -DCMAKE_BUILD_TYPE=Release -DHM_LIVE_UPDATE=OFF \
+#         -DHM_UPDATE_COMMAND="apt upgrade hmailserver"
+#
+# A snap and a container are told apart at run time instead (SNAP, and the
+# image's HM_INSTALL_KIND=container), whichever way the build was configured.
+option(HM_LIVE_UPDATE "Build the live update's apply step, and install hmailserver-update and its units" ON)
+set(HM_UPDATE_COMMAND "" CACHE STRING
+   "With HM_LIVE_UPDATE OFF: the command that updates this build, which the update check names (for example: apt upgrade hmailserver)")
+# The command is shown to administrators and compiled in as a string literal, so
+# it is held to the characters a package manager's command line needs: no quote,
+# backslash, dollar, semicolon or line break that the compiler's command line,
+# the C string or a reader's shell could take for something else.
+if(NOT HM_UPDATE_COMMAND MATCHES "^[A-Za-z0-9 ._/:=+@,~-]*$")
+   message(FATAL_ERROR
+      "HM_UPDATE_COMMAND may hold letters, digits, spaces and the characters '._/:=+@,~-' only; "
+      "'${HM_UPDATE_COMMAND}' has another character.")
+endif()
+if(HM_LIVE_UPDATE AND NOT HM_UPDATE_COMMAND STREQUAL "")
+   message(WARNING
+      "HM_UPDATE_COMMAND is named by the update check only in a build with -DHM_LIVE_UPDATE=OFF; "
+      "this build has the live update, which updates it, and the command is not used.")
+endif()
+if(HM_LIVE_UPDATE)
+   message(STATUS "Live update: ON (the apply step, hmailserver-update and its units)")
+elseif(HM_UPDATE_COMMAND STREQUAL "")
+   message(STATUS "Live update: OFF; the update check names no command (HM_UPDATE_COMMAND is empty)")
+else()
+   message(STATUS "Live update: OFF; the update check names: ${HM_UPDATE_COMMAND}")
 endif()
 
 # ---------------------------------------------------------------- the sources
@@ -360,6 +402,17 @@ target_compile_definitions(hmailserver_core PUBLIC
    _UNICODE
    BOOST_BIND_GLOBAL_PLACEHOLDERS)
 
+# The live update, above: always stated, 1 or 0, so that no unit of this build
+# falls back on the default Common/Util/UpdateChecker.h gives the Windows project.
+# PUBLIC, so that every program linked against the core sees what it was built as.
+if(HM_LIVE_UPDATE)
+   target_compile_definitions(hmailserver_core PUBLIC HM_LIVE_UPDATE=1)
+else()
+   target_compile_definitions(hmailserver_core PUBLIC
+      HM_LIVE_UPDATE=0
+      "HM_UPDATE_COMMAND=\"${HM_UPDATE_COMMAND}\"")
+endif()
+
 # The precompiled-header substitute, forced into every translation unit exactly
 # as the MSVC build forces its own.
 target_compile_options(hmailserver_core PUBLIC
@@ -533,12 +586,16 @@ install(FILES ${SERVER_DIR}/platform/packaging/hmailserver.service
 # own user under a read-only /usr), and the two units that run it as root when
 # the server writes its request to /run/hmailserver. hmailserver-update's header
 # has the whole mechanism; the Windows counterpart is hMailServer.Updater.exe.
-install(PROGRAMS ${SERVER_DIR}/platform/packaging/hmailserver-update
-   DESTINATION lib/hmailserver)
-install(FILES
-   ${SERVER_DIR}/platform/packaging/hmailserver-update.path
-   ${SERVER_DIR}/platform/packaging/hmailserver-update.service
-   DESTINATION /usr/lib/systemd/system)
+# None of the three in a build with HM_LIVE_UPDATE OFF, which has no apply step
+# to hand anything to them (build/test-install-kind.sh checks an install).
+if(HM_LIVE_UPDATE)
+   install(PROGRAMS ${SERVER_DIR}/platform/packaging/hmailserver-update
+      DESTINATION lib/hmailserver)
+   install(FILES
+      ${SERVER_DIR}/platform/packaging/hmailserver-update.path
+      ${SERVER_DIR}/platform/packaging/hmailserver-update.service
+      DESTINATION /usr/lib/systemd/system)
+endif()
 # /etc, written out rather than taken from CMAKE_INSTALL_SYSCONFDIR. CPack
 # prepends the packaging prefix to every RELATIVE destination, and GNUInstallDirs
 # gives a relative "etc", so the indirection puts the configuration at

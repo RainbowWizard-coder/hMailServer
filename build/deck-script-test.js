@@ -1754,6 +1754,7 @@ const state = {
    },
    update: {
       state: 0, stateName: 'not-checked', runningVersion: '6.3.3', channel: 'stable', checkEnabled: false,
+      installKind: 'installer', liveUpdate: true, updateCommand: '', updateAdvice: '',
       availableVersion: '', releaseName: '', publishedAt: '', releaseUrl: '',
       installer: { name: '', url: '', size: 0, digest: '', bundleUrl: '' },
       downloaded: { path: '', signer: '', logTime: '', verifiedAt: '' },
@@ -8180,6 +8181,46 @@ async function main() {
          called(before, 'DELETE', '/api/v1/server/drain').length === 1 &&
          content().textContent.indexOf('Not draining: the listeners are open.') >= 0 &&
          content().querySelectorAll('button[data-act="updrain"]').length === 1, paths(before));
+
+      // ---- a server something else updates: a snap, as the server reports one
+      const updateWas = JSON.parse(JSON.stringify(state.update));
+      Object.assign(state.update, { state: 2, stateName: 'available', availableVersion: '6.3.4',
+         installKind: 'snap', liveUpdate: false, updateCommand: 'snap refresh hmailserver',
+         updateAdvice: 'This server runs as the snap hmailserver, which snapd updates: snapd refreshes its snaps on its own several times a day, and snap refresh hmailserver does it now. The server downloads and installs no release file itself.',
+         installer: { name: '', url: '', size: 0, digest: '', bundleUrl: '' },
+         downloaded: { path: '', signer: '', logTime: '', verifiedAt: '' } });
+      await goTo('update');
+      check('a snap is shown as one, with the command that updates it and the server\'s own sentence',
+         content().textContent.indexOf('Installed as') >= 0 && content().textContent.indexOf('snap refresh hmailserver') >= 0 &&
+         $('#updateAdvice') !== null && $('#updateAdvice').textContent.indexOf('snapd refreshes its snaps') >= 0,
+         content().textContent.slice(0, 600));
+      check('and a newer release there offers nothing to download or install, and no drain note',
+         content().querySelectorAll('button[data-act="updownload"]').length === 0 &&
+         content().querySelectorAll('button[data-act="upinstall"]').length === 0 &&
+         content().textContent.indexOf('The server drains first') < 0 &&
+         content().querySelectorAll('button[data-act="upcheck"]').length === 1, content().textContent.slice(0, 600));
+
+      // ---- a server from before 6.3.6 sends none of the four keys, and is offered what it always was
+      const older = JSON.parse(JSON.stringify(updateWas));
+      delete older.installKind; delete older.liveUpdate; delete older.updateCommand; delete older.updateAdvice;
+      state.update = Object.assign(older, { state: 2, stateName: 'available', availableVersion: '6.3.4' });
+      await goTo('update');
+      check('a server that sends no installKind or liveUpdate is offered the download and told of the drain, as before',
+         content().querySelectorAll('button[data-act="updownload"]').length === 1 &&
+         content().textContent.indexOf('The server drains first') >= 0 &&
+         content().textContent.indexOf('Installed as') < 0 && $('#updateAdvice') === null, content().textContent.slice(0, 600));
+
+      // ---- what the server says of how it is updated is text, never markup
+      state.update = Object.assign(JSON.parse(JSON.stringify(updateWas)), { state: 2, stateName: 'available', availableVersion: '6.3.4',
+         installKind: 'distribution<i id="kindMark">k</i>', liveUpdate: false, updateCommand: '<b id="commandMark">apt</b>',
+         updateAdvice: '<img id="adviceMark" src=x onerror=alert(1)>' });
+      await goTo('update');
+      check('the kind, the command and the sentence are shown as text, not read as HTML',
+         $('#kindMark') === null && $('#commandMark') === null && $('#adviceMark') === null &&
+         content().textContent.indexOf('<b id="commandMark">apt</b>') >= 0 &&
+         $('#updateAdvice') !== null && $('#updateAdvice').textContent === '<img id="adviceMark" src=x onerror=alert(1)>',
+         content().textContent.slice(0, 600));
+      state.update = updateWas;
 
       // ---- the DNS records
       const rotationWas = state.rotations['second.example'];

@@ -163,6 +163,7 @@ namespace hMailServer.ControlPanel.Services
          "HighAvailabilityRunbook.md",
          "ImpersonationProtection.md",
          "IpWarmup.md",
+         "LiveUpdateKinds.md",
          "MailboxMove.md",
          "MailingLists.md",
          "MessageRecall.md",
