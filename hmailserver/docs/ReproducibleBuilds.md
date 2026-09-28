@@ -201,7 +201,13 @@ the change.
   - it tells `rpmbuild` to use `SOURCE_DATE_EPOCH` as the package's build
     time, to clamp every file's time to it, and to write `reproducible` as the
     build host, where it otherwise writes the clock, the time each file was
-    staged and the build container's host name;
+    staged and the build container's host name. The clamp lowers a later time
+    and leaves an earlier one, and CMake's install keeps a copied file's time,
+    so in a pipeline `linux-build.sh` first gives every file of the tree the
+    commit's time: a runner's working copy keeps the time an earlier pipeline
+    checked a file out at, before the commit was made, and pipeline 2890604259
+    (28 September 2026) made an `.rpm` whose 610 copied files differed in time
+    from a fresh copy's;
   - `linux-build.sh` sets umask 0022 before it builds, because CPack's `.deb`
     writer copies the mode of each file it wrote into that member's `ar`
     header.

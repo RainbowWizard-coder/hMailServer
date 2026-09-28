@@ -62,6 +62,22 @@ elif command -v git > /dev/null 2>&1 && git rev-parse --git-dir > /dev/null 2>&1
 fi
 echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
 
+# Every file of the tree takes the commit's time, in a pipeline. CMake's install keeps
+# a copied file's own time, the .deb writer stamps SOURCE_DATE_EPOCH on every entry, but
+# rpmbuild only clamps a time LATER than it (clamp_mtime_to_source_date_epoch): a file
+# the checkout wrote before the commit's time went into the .rpm with that older time.
+# A runner's working copy does that - a fetch leaves the files a new commit did not
+# change as an earlier pipeline checked them out - so the .rpm depended on the runner's
+# history: linux-repro found 610 of its 623 entries' times different in pipeline
+# 2890604259 (28 September 2026), the first build from a working copy last checked out
+# before the commit was made, the second from a fresh copy. Only in a pipeline: by hand,
+# a build directory kept between builds would not see an edit made after the commit.
+if [ -n "${CI:-}" ] && [ -n "${SOURCE_DATE_EPOCH:-}" ]; then
+  find . -path ./.git -prune -o -path "./$out" -prune -o \( -type f -o -type l \) -print0 \
+    | xargs -0 -r touch -h -d "@$SOURCE_DATE_EPOCH"
+  echo "every file of the tree stamped with SOURCE_DATE_EPOCH"
+fi
+
 export CC=clang CXX=clang++
 clang --version | head -n 1
 cmake --version | head -n 1
