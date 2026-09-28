@@ -113,14 +113,24 @@ refuses it. This checker holds them to each other. It fails when:
     is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
     list of what is not a secret).
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
-    anything but a protected v* tag, push before release-publish, sign before the
-    push, sign without an ID token for Sigstore or in another image than
-    HM_COSIGN_IMAGE, or build/ci/container-image-sign.sh expects another identity
-    or log than the release's files are signed with, or no longer attests the
-    image's SBOM (container-image-sbom, build/ci/container-image-sbom.sh) to it
-    and verifies the attestation; or any of the four can run
-    without the project's own CI/CD variable HM_PUBLISH_IMAGE set to "1" (each
-    begins its rules with the refusal), or a committed CI file sets that variable.
+    anything but a protected v* tag, start before release-publish or without a
+    person (container-image-deb, the first, is manual; every other one follows it),
+    build from anything but the .deb container-image-deb took from the published
+    release and verified against its bundle with cosign - as this project's
+    pipeline for the tag, with the project's id at the group's path, and no token
+    sent over the TLS busybox's wget does not check - push anywhere but the
+    group's path, registry.gitlab.com/hmailserver/hmailserver, sign before the push, sign
+    without an ID token for Sigstore or in another image than HM_COSIGN_IMAGE, or
+    build/ci/container-image-sign.sh expects another identity or log than the
+    release's files are signed with, or no longer attests the image's SBOM
+    (container-image-sbom, build/ci/container-image-sbom.sh) to it and verifies the
+    attestation; or container-image-start does not start the pushed image with the
+    command its test script names, on a network of its own; or the switch, the
+    project's own CI/CD variable HM_PUBLISH_IMAGE, is not read as the jobs run -
+    container-image-deb.sh and linux-image.sh must refuse, exiting non-zero, unless
+    it is "1" - or is read by a rule, which is decided when the pipeline is made and
+    would leave a release published before the project's move without the jobs; or
+    a committed CI file sets that variable.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -153,6 +163,9 @@ FILES = {
     "signers": os.path.join(".gitlab", "allowed_signers"),
     "image": os.path.join(".gitlab", "ci", "container-image.yml"),
     "image-sign": os.path.join("build", "ci", "container-image-sign.sh"),
+    "image-deb": os.path.join("build", "ci", "container-image-deb.sh"),
+    "image-build": os.path.join("build", "ci", "linux-image.sh"),
+    "image-start": os.path.join("build", "ci", "container-image-start-test.sh"),
     "export": os.path.join(".gitlab", "ci", "forge-export.yml"),
     # The package builds (.gitlab-ci.yml includes them): held to the old routes too.
     "packages-deb": os.path.join(".gitlab", "ci", "packages-deb.yml"),
@@ -167,21 +180,30 @@ FILES = {
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
                 "release-publish", "update-feed"]
 # The container image's jobs, in .gitlab/ci/container-image.yml, and what each must
-# need: the image is pushed once the release is published, from the .deb release-sign
-# signed, and signed and scanned once it is pushed.
+# need: the .deb is taken from the release once it is published, the image built from
+# it and pushed, and signed, scanned and started once it is pushed.
 IMAGE_JOBS = {
-    "container-image": ["release-sign", "release-verify", "release-publish"],
-    "container-image-sbom": ["container-image", "release-sign"],
+    "container-image-deb": ["release-publish"],
+    "container-image": ["container-image-deb"],
+    "container-image-sbom": ["container-image", "container-image-deb"],
     "container-image-sign": ["container-image", "container-image-sbom"],
     "container_scanning": ["container-image"],
+    "container-image-start": ["container-image"],
 }
-# The rule each of them begins with: none runs unless the project's own CI/CD
-# variable HM_PUBLISH_IMAGE is "1". The owner turns it on after the project's move
-# into the group hmailserver, which the maintainers decided on 27 September 2026 to
-# make before the first image, so that the first image's address,
-# registry.gitlab.com/hmailserver/hmailserver, is the lasting one (a container
-# repository's path is always its project's). Nothing committed may set the variable.
-PUBLISH_GATE = '  rules:\n    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n'
+# The first of them, which a maintainer starts by hand; every other one needs it, and
+# so runs only after it.
+IMAGE_FIRST = "container-image-deb"
+# The switch: the project's own CI/CD variable HM_PUBLISH_IMAGE, read as the jobs RUN.
+# The maintainers set it after the project's move into the group hmailserver, which
+# they decided on 27 September 2026 to make before the first image, so that the first
+# image's address, registry.gitlab.com/hmailserver/hmailserver, is the lasting one (a
+# container repository's path is always its project's). The jobs are in every v* tag's
+# pipeline, so that a release published before the move has its image pushed from its
+# own pipeline afterwards; a rule reading the variable would be decided when the
+# pipeline is made, and would leave that release without them. The two scripts that
+# fetch and push refuse, exiting non-zero, unless it is "1". Nothing committed may set it.
+RUNTIME_GATE = 'if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then'
+GATED_SCRIPTS = ("image-deb", "image-build")
 # Jobs that need not begin with REFUSAL, because their own rules match nothing the
 # feed's pipeline (source "pipeline", on master) is - each with the text that makes
 # it so. None of them is a gate of a tag's pipeline, so release need not wait for
@@ -911,9 +933,10 @@ def check(texts, chain, feed):
             continue
         if TAG_ONLY not in rules_text(name, merged):
             problems.append("%s can run for something that is not a protected v* tag: its rules must be .release-rules" % name)
-        if PUBLISH_GATE not in image_jobs[name]:
-            problems.append("%s's rules do not begin with the project variable's gate (if: $HM_PUBLISH_IMAGE != \"1\", "
-                            "when: never): the image would be pushed before the project has moved" % name)
+        if any("$HM_PUBLISH_IMAGE" in item for item in rule_items(image_jobs[name], merged)):
+            problems.append("%s reads $HM_PUBLISH_IMAGE in its rules, which are decided when the pipeline is made: a release "
+                            "published before the project's move would have no image jobs to run after it. The scripts read "
+                            "the switch as the jobs run" % name)
         if re.search(r"^  trigger:", image_jobs[name], re.MULTILINE):
             problems.append("%s is a trigger: a child or downstream pipeline's ID token has no ci_config_ref_uri" % name)
         have = needs(image_jobs[name])
@@ -924,9 +947,73 @@ def check(texts, chain, feed):
         if re.search(r"^\s*HM_PUBLISH_IMAGE\s*:", texts[key], re.MULTILINE):
             problems.append("%s sets HM_PUBLISH_IMAGE: the container image's gate is the project's CI/CD variable, "
                             "which nothing committed may turn on" % FILES[key])
+    # The first job waits for a person, and the two scripts that fetch and push read the
+    # switch as they run, refusing with a non-zero exit.
+    first = image_jobs.get(IMAGE_FIRST, "")
+    if first:
+        tag_rule = [item for item in rule_items(first, merged) if TAG_ONLY in item]
+        if not tag_rule or not re.search(r"^\s*when: manual\s*$", tag_rule[0], re.MULTILINE):
+            problems.append("%s is not started by hand in a v* tag's pipeline (when: manual): the image would be pushed "
+                            "as soon as the release is published, whatever the maintainers meant" % IMAGE_FIRST)
+        # A job that needs one allowed to fail starts after it has failed: the image would be
+        # built after a refusal, or after a bundle that did not verify.
+        if (tag_rule and not re.search(r"^\s*allow_failure: false\s*$", tag_rule[0], re.MULTILINE)) or \
+                re.search(r"^  allow_failure:", first, re.MULTILINE):
+            problems.append("%s may fail without stopping the jobs that need it (its tag rule must say allow_failure: false): "
+                            "container-image would start after a refusal or a signature that did not verify" % IMAGE_FIRST)
+        if not re.search(r"^    name: \$HM_COSIGN_IMAGE\s*$", first, re.MULTILINE) or "sh build/ci/container-image-deb.sh" not in first:
+            problems.append("%s does not run build/ci/container-image-deb.sh in $HM_COSIGN_IMAGE, where cosign verifies "
+                            "what it takes from the release" % IMAGE_FIRST)
+    for key in GATED_SCRIPTS:
+        # The exit inside the gate's own if, before its fi.
+        gate = re.search(re.escape(RUNTIME_GATE) + r"\n((?:(?![ \t]*fi[ \t]*\n)[^\n]*\n){0,8}?)[ \t]*exit ([0-9]+)[ \t]*\n", texts[key])
+        if not gate or gate.group(2) == "0":
+            problems.append("%s does not refuse, exiting non-zero, unless the project's variable HM_PUBLISH_IMAGE is 1 "
+                            "(%s ... exit <n>)" % (FILES[key], RUNTIME_GATE))
+    # The push goes to the group's path alone: a switch set before the project's move
+    # would otherwise push to the first path, an address the image would lose with it.
+    build = texts["image-build"]
+    if "\n    registry.gitlab.com/hmailserver/hmailserver) ;;\n" not in build or \
+            re.search(r"^[ \t]*[^#\n]*registry\.gitlab\.com/progressiverobot/hmailserver[^\n]*\)[ \t]*;;", build, re.MULTILINE):
+        problems.append("build/ci/linux-image.sh does not push to registry.gitlab.com/hmailserver/hmailserver alone: "
+                        "it would push from the project's first path, whose image changes its address with the move")
+    fetch = texts["image-deb"]
+    for needle, why in (('cosign verify-blob $verify_flags --bundle "$out/$name.cosign.bundle"', "each file verified against its bundle"),
+                        ('--certificate-identity "$candidate" --certificate-oidc-issuer "$issuer"', "as this project's pipeline"),
+                        ('candidate="$repository//.gitlab-ci.yml@refs/tags/$tag"', "for this tag"),
+                        ("040a0c083836373330353539", "the project's id in the certificate"),
+                        ('https://gitlab.com/hmailserver/hmailserver//*) fail', "the id required at the group's path"),
+                        ('for name in "$deb" "$deb.cdx.json"; do', "the .deb and its SBOM"),
+                        ('"$api/packages/generic/hmailserver/$version/$name"', "from the release's own files")):
+        if needle not in fetch:
+            problems.append("build/ci/container-image-deb.sh no longer has %s (%s)" % (needle, why))
+    # busybox's wget checks no server certificate: nothing it sends may be a credential.
+    for number, line in enumerate(fetch.split("\n"), 1):
+        if not line.lstrip().startswith("#") and re.search(r"TOKEN|PASSWORD|--header|Authorization", line, re.IGNORECASE):
+            problems.append("build/ci/container-image-deb.sh line %d sends or names a credential, over a TLS its wget does not "
+                            "check: %s" % (number, line.strip()))
     push = image_jobs.get("container-image", "")
     if push and not (re.search(r'^    HM_IMAGE_PUSH: "1"\s*$', push, re.MULTILINE) and "build/ci/linux-image.sh" in push):
         problems.append("container-image does not run build/ci/linux-image.sh with HM_IMAGE_PUSH=1")
+    for name in ("container-image", "container-image-sbom"):
+        if name in image_jobs and not re.search(r"^    HM_IMAGE_DEB_DIR: container-image-deb\s*$", image_jobs[name], re.MULTILINE):
+            problems.append("%s does not take the .deb from container-image-deb's artifact (HM_IMAGE_DEB_DIR: container-image-deb), "
+                            "the bytes taken from the published release and verified" % name)
+    start = image_jobs.get("container-image-start", "")
+    if start:
+        command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
+        if not command:
+            problems.append("build/ci/container-image-start-test.sh names no START_COMMAND")
+        elif '      command: ["bash", "-c", "%s"]' % command.group(1) not in start:
+            problems.append("container-image-start's image service does not run build/ci/container-image-start-test.sh's "
+                            "START_COMMAND, so the job and the test by hand start the image differently")
+        if not re.search(r"^    - name: \$HM_IMAGE\s*\n      alias: mail\s*$", start, re.MULTILINE):
+            problems.append("container-image-start does not start the pushed image by its digest ($HM_IMAGE) as the service mail")
+        if not re.search(r'^    FF_NETWORK_PER_BUILD: "true"\s*$', start, re.MULTILINE):
+            problems.append("container-image-start has no network of its own (FF_NETWORK_PER_BUILD): the image cannot "
+                            "reach the database service by its alias")
+        if "bash build/ci/container-image-start-test.sh" not in start:
+            problems.append("container-image-start does not run build/ci/container-image-start-test.sh")
     image_sign = image_jobs.get("container-image-sign", "")
     if image_sign:
         if not re.search(r"^  id_tokens:\s*\n\s+SIGSTORE_ID_TOKEN:\s*\n\s+aud: sigstore\s*$", image_sign, re.MULTILINE):
@@ -1316,23 +1403,47 @@ def self_test(chain, feed):
     broken("the group's id left to the settings", "verifier", "         else if (!groupRefusal.IsEmpty())\n            why = groupRefusal;\n", "",
            "whatever the settings")
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
-    broken("the image pushed before the release is published", "image", "    - job: release-publish\n      artifacts: false\n", "",
-           "container-image does not need release-publish")
+    broken("the .deb taken before the release is published", "image", "    - job: release-publish\n      artifacts: false\n", "",
+           "container-image-deb does not need release-publish")
     broken("the image pushed for a branch", "image", "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
            "    - if: $CI_COMMIT_BRANCH\n  variables:\n    HM_IMAGE_PUSH", "container-image can run for something that is not a protected v* tag")
-    gate = '    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n'
-    broken("the image pushed without the project's switch", "image",
-           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
-           "  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH", "container-image's rules do not begin with")
-    broken("the image signed without the switch", "image",
-           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  id_tokens:",
-           "  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:", "container-image-sign's rules do not begin with")
-    broken("the scan without the switch", "image", "  rules:\n" + gate + "    - if: $CONTAINER_SCANNING_DISABLED",
-           "  rules:\n    - if: $CONTAINER_SCANNING_DISABLED", "container_scanning's rules do not begin with")
-    broken("the switch compared the other way", "image",
-           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
-           "  rules:\n" + gate.replace("!=", "==") + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
-           "container-image's rules do not begin with")
+    broken("the image built before the .deb is taken", "image", "  needs:\n    - job: container-image-deb\n      artifacts: true\n  timeout: 30 minutes",
+           "  needs: []\n  timeout: 30 minutes", "container-image does not need container-image-deb")
+    broken("the image started before it is pushed", "image",
+           "  needs:\n    - job: container-image\n      artifacts: true\n  timeout: 20 minutes", "  needs: []\n  timeout: 20 minutes",
+           "container-image-start does not need container-image")
+    broken("the image pushed without a person", "image", "      when: manual\n      allow_failure: false\n  script:\n    - sh build/ci/container-image-deb.sh",
+           "      allow_failure: false\n  script:\n    - sh build/ci/container-image-deb.sh", "container-image-deb is not started by hand")
+    broken("the image built after the .deb was refused", "image", "      when: manual\n      allow_failure: false\n  script:\n    - sh build/ci/container-image-deb.sh",
+           "      when: manual\n      allow_failure: true\n  script:\n    - sh build/ci/container-image-deb.sh", "container-image-deb may fail without stopping")
+    broken("the switch decided when the pipeline is made", "image",
+           "container-image-deb:\n  stage: release\n", 'container-image-deb:\n  stage: release\n  rules:\n    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n',
+           "container-image-deb reads $HM_PUBLISH_IMAGE in its rules")
+    broken("the switch read by a rule", "image", "  rules:\n    - if: $CONTAINER_SCANNING_DISABLED",
+           '  rules:\n    - if: $HM_PUBLISH_IMAGE != "1"\n      when: never\n    - if: $CONTAINER_SCANNING_DISABLED',
+           "container_scanning reads $HM_PUBLISH_IMAGE in its rules")
+    broken("the .deb taken without the switch", "image-deb", RUNTIME_GATE, 'if false; then', "container-image-deb.sh does not refuse")
+    broken("the image pushed without the switch", "image-build", RUNTIME_GATE, 'if false; then', "linux-image.sh does not refuse")
+    broken("the switch's refusal a success", "image-deb", "  exit 3\nfi\n\ntag=", "  exit 0\nfi\n\ntag=", "container-image-deb.sh does not refuse")
+    broken("the refusal past its own fi", "image-build", "    exit 3\n  fi\n  # A release's image", "  fi\n  # A release's image",
+           "linux-image.sh does not refuse")
+    broken("the image pushed from the project's first path", "image-build", "    registry.gitlab.com/hmailserver/hmailserver) ;;\n",
+           "    registry.gitlab.com/progressiverobot/hmailserver | registry.gitlab.com/hmailserver/hmailserver) ;;\n",
+           "does not push to registry.gitlab.com/hmailserver/hmailserver alone")
+    broken("the image built from release-sign's artifact", "image", "    HM_IMAGE_PUSH: \"1\"\n    HM_IMAGE_DEB_DIR: container-image-deb\n",
+           "    HM_IMAGE_PUSH: \"1\"\n    HM_IMAGE_DEB_DIR: release-signed\n", "container-image does not take the .deb from container-image-deb")
+    broken("the .deb taken unverified", "image-deb", '--certificate-identity "$candidate" --certificate-oidc-issuer "$issuer"',
+           '--certificate-identity-regexp ".*" --certificate-oidc-issuer-regexp ".*"', "as this project's pipeline")
+    broken("the group's path without the project's id", "image-deb", "https://gitlab.com/hmailserver/hmailserver//*) fail", "nothing) fail",
+           "the id required at the group's path")
+    broken("a token sent where TLS is not checked", "image-deb", 'wget -q -U hmailserver-container-image',
+           'wget -q --header "JOB-TOKEN: $CI_JOB_TOKEN" -U hmailserver-container-image', "sends or names a credential")
+    broken("the image started otherwise in the job", "image", "--apply-new-install-defaults && exec", "--foreground || exec",
+           "does not run build/ci/container-image-start-test.sh's START_COMMAND")
+    broken("the start test without a network of its own", "image", '    FF_NETWORK_PER_BUILD: "true"\n', "",
+           "container-image-start has no network of its own")
+    broken("the start test on another image", "image", "    - name: $HM_IMAGE\n", "    - name: registry.gitlab.com/hmailserver/hmailserver:latest\n",
+           "container-image-start does not start the pushed image by its digest")
     broken("the switch turned on in the job", "image", "  variables:\n    HM_IMAGE_PUSH: \"1\"\n",
            "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_PUSH: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the switch turned on for every job", "ci", "\nvariables:\n", "\nvariables:\n  HM_PUBLISH_IMAGE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
@@ -1342,9 +1453,8 @@ def self_test(chain, feed):
     broken("the scan without the image's name", "image", "  dependencies: [container-image]\n", "", "container_scanning does not take")
     broken("the image signed before its SBOM is made", "image", "    - job: container-image-sbom\n      artifacts: true\n", "",
            "container-image-sign does not need container-image-sbom")
-    broken("the image's SBOM made without the switch", "image",
-           "  rules:\n" + gate + "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_DEB_DIR",
-           "  rules:\n    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_DEB_DIR", "container-image-sbom's rules do not begin with")
+    broken("the image's SBOM made from release-sign's artifact", "image", "  variables:\n    HM_IMAGE_DEB_DIR: container-image-deb\n  script:\n    - bash",
+           "  variables:\n    HM_IMAGE_DEB_DIR: release-signed\n  script:\n    - bash", "container-image-sbom does not take the .deb from container-image-deb")
     broken("the image signed without its SBOM attested", "image-sign", 'cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image"',
            'true', "the image would go out without its SBOM")
     broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")

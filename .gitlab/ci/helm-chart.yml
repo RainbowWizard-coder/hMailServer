@@ -1,0 +1,39 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The Helm chart as a file of the release: included from .gitlab-ci.yml
+# (hmailserver/docs/ContainerImage.md, "The Helm chart").
+#
+#   helm-chart-package  GitLab's shared runners, in Alpine's image with Alpine's helm:
+#                       the chart packaged at the release's version, with the
+#                       release's image named in it, and read back
+#                       (build/ci/helm-chart-package.sh). It leaves
+#                       helm-chart/hmailserver-chart-<version>.tgz and its SHA-256
+#                       for the release job to collect; release-sign signs it with
+#                       every other file of the release, and release-publish uploads
+#                       it. The Pages site's Helm repository,
+#                       https://updates.progressiverobot.com/helm/, is then written
+#                       from the feed's releases.json by build/ci/helm-repo.py.
+#
+# For a protected v* tag, whose release carries the chart, and a protected batch*
+# branch, where the release is rehearsed; not for master, a merge request, a schedule
+# or the feed's pipeline. Nothing here holds a secret.
+helm-chart-package:
+  stage: build
+  # Alpine 3.24, by the digest chart-and-compose pins, and its community/helm.
+  image: alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+  needs: []
+  timeout: 10 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)
+  before_script:
+    - apk add --no-cache -q helm
+  script:
+    - sh build/ci/helm-chart-package.sh
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - helm-chart/

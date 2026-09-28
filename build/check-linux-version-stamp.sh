@@ -166,6 +166,32 @@ if [ -n "${stray}" ]; then
    echo "${stray}" | sed "s|^${REPO_ROOT}/||" | sed 's/^/    /'
 fi
 
+# ------------------------------- 5. the Helm chart is stamped when it is packaged
+
+# The chart's version and appVersion are the release's, and are written by the
+# release's helm-chart-package job (build/ci/helm-chart-package.sh: helm package
+# --version --app-version, from the tag, which must agree with Version.h), never into
+# the tree: there Chart.yaml keeps the placeholder 0.1.0 and "latest", the image tag a
+# checkout's chart installs. A number written in the tree is refused by 4 above; this
+# holds the placeholder and the packaging step to each other, so that neither is
+# changed without the other.
+CHART="${PACKAGING}/helm/hmailserver/Chart.yaml"
+PACKAGER="${REPO_ROOT}/build/ci/helm-chart-package.sh"
+if [ ! -f "${CHART}" ] || [ ! -f "${PACKAGER}" ]; then
+   fail "The Helm chart's Chart.yaml or build/ci/helm-chart-package.sh is not there."
+else
+   CHART_VERSION="$(sed -n 's/^version:[[:space:]]*//p' "${CHART}" | head -n 1 | tr -d ' \t\r"')"
+   CHART_APP_VERSION="$(sed -n 's/^appVersion:[[:space:]]*//p' "${CHART}" | head -n 1 | tr -d ' \t\r"')"
+   if [ "${CHART_VERSION}" != "0.1.0" ] || [ "${CHART_APP_VERSION}" != "latest" ]; then
+      fail "platform/packaging/helm/hmailserver/Chart.yaml says version ${CHART_VERSION} and appVersion ${CHART_APP_VERSION}; the tree keeps 0.1.0 and \"latest\", and the release's helm-chart-package job stamps both from the tag."
+   elif ! grep -q 'helm package "$work/hmailserver" --version "$version" --app-version "$version"' "${PACKAGER}" \
+        || ! grep -q '\[ "${version%%\[!0-9.\]\*}" = "$tree_version" \]' "${PACKAGER}"; then
+      fail "build/ci/helm-chart-package.sh no longer packages the chart at the tag's version, held to Version.h's, for both version and appVersion."
+   else
+      echo "Helm chart                                 stamped from the tag when packaged"
+   fi
+fi
+
 # ---------------------------------------------------------------- the verdict
 
 echo

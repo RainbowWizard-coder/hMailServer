@@ -65,10 +65,13 @@ What runs where
 | `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update` (`build/ci/release-verify.sh`) |
 | `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
 | `update-feed` | release | (a trigger) | a `v*` tag, after `release-publish` | Starts a downstream pipeline on `master`, passing no variables, which runs `pages` and `package-repos` alone |
-| `container-image` | release | linix | a `v*` tag, after `release-publish`, while the project's variable `HM_PUBLISH_IMAGE` is `1` | The release's container image built with kaniko from the `.deb` the release carries, inspected as `linux-image` inspects it, and pushed to the project's container registry (`build/ci/linux-image.sh` with `HM_IMAGE_PUSH=1`; [The container image](#the-container-image)) |
-| `container-image-sbom` | release | linix | a `v*` tag, after `container-image`, while `HM_PUBLISH_IMAGE` is `1` | The image's SBOM: Syft over the pushed image by its digest, with the `.deb`'s own SBOM added (`build/ci/container-image-sbom.sh`) |
-| `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image-sbom`, while `HM_PUBLISH_IMAGE` is `1` | The image signed by its digest with Sigstore as this pipeline, its SBOM attested to it, and both verified (`build/ci/container-image-sign.sh`) |
-| `container_scanning` | release | GitLab's shared runners | a `v*` tag, after `container-image`, while `HM_PUBLISH_IMAGE` is `1` | GitLab's own Container Scanning template over the pushed image; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
+| `helm-chart-package` | build | GitLab's shared runners | a `v*` tag or a `batch*` branch | The Helm chart packaged at the release's version as `hmailserver-chart-<version>.tgz`, a file of the release (`.gitlab/ci/helm-chart.yml`, `build/ci/helm-chart-package.sh`; [ContainerImage.md](ContainerImage.md)) |
+| `container-image-deb` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-publish`; refuses unless the project's variable `HM_PUBLISH_IMAGE` is `1` | The release's `.deb` and its SBOM taken from the published release and verified against their Sigstore bundles (`build/ci/container-image-deb.sh`; [The container image](#the-container-image)) |
+| `container-image` | release | linix | a `v*` tag, after `container-image-deb`; refuses unless `HM_PUBLISH_IMAGE` is `1` | The release's container image built with kaniko from that `.deb`, inspected as `linux-image` inspects it, and pushed to the project's container registry (`build/ci/linux-image.sh` with `HM_IMAGE_PUSH=1`) |
+| `container-image-sbom` | release | linix | a `v*` tag, after `container-image` | The image's SBOM: Syft over the pushed image by its digest, with the `.deb`'s own SBOM added (`build/ci/container-image-sbom.sh`) |
+| `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image-sbom` | The image signed by its digest with Sigstore as this pipeline, its SBOM attested to it, and both verified (`build/ci/container-image-sign.sh`) |
+| `container_scanning` | release | GitLab's shared runners | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over the pushed image; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
+| `container-image-start` | release | linix | a `v*` tag, after `container-image` | The pushed image started beside PostgreSQL and asked for SMTP and the REST API (`build/ci/container-image-start-test.sh`) |
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
@@ -1400,28 +1403,35 @@ server binary included, for thirty days, and the signed files are kept ninety.
 
 ### The container image
 
-The image appears in the project's container registry from the first release
-the pipeline makes after the owner has set the project's CI/CD variable
-`HM_PUBLISH_IMAGE` to `1`, which waits for the project's move to the group
-`hmailserver` (item 3 below), so its address is
-`registry.gitlab.com/hmailserver/hmailserver`; 6.3.4 was built by hand and has
-none. The Compose file and the Helm chart pull
-`registry.gitlab.com/progressiverobot/hmailserver:latest`, the project's
-present path, where no image is to be pushed: their image's name changes to the
-group's with the move. Three jobs of
-`.gitlab/ci/container-image.yml` follow `release-publish`, and none of them
-runs while that variable is anything but `1` (four, with `container-image-sbom`):
+The image's address is `registry.gitlab.com/hmailserver/hmailserver`, the
+project's path in the group `hmailserver`, and the Compose file and the Helm
+chart pull it from there; 6.3.4 was built by hand and has none. The jobs of
+`.gitlab/ci/container-image.yml` are in every protected `v*` tag's pipeline,
+after `release-publish`: a maintainer starts the first, `container-image-deb`,
+by hand, and the rest follow it. They push only while the project's CI/CD
+variable `HM_PUBLISH_IMAGE` is `1`, which the scripts read as the jobs run -
+not a rule, which is decided when the pipeline is made - so a release
+published before the project's move into the group (item 3 below) has its
+image pushed from its own pipeline after it ([ContainerImage.md](ContainerImage.md),
+"Publishing"):
 
 | Job | Where | What it does |
 |---|---|---|
-| `container-image` | linix, in kaniko's image (`linux-image`'s, by reference) | Builds `platform/packaging/docker/Dockerfile` from `hmailserver_<version>_amd64.deb` in `release-sign`'s artifact - the bytes the release carries, signed and verified - and pushes it to `$CI_REGISTRY_IMAGE`, one of the two paths a release is signed from and no other, with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. The tags are `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.5` pushes `6.3.5`, `6.3` and `latest`, and `v6.3.5-rc1` pushes `6.3.5-rc1` alone. It runs the same checks on what it pushed as `linux-image` does on what it built, and leaves a dotenv report naming the image by digest (`build/ci/linux-image.sh`, `HM_IMAGE_PUSH=1`) |
+| `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); started by hand, and the tag's pipeline shows as blocked until it is | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Takes `hmailserver_<version>_amd64.deb` and its SBOM from the published release - not from `release-sign`'s artifact, which may have expired by then - and verifies each against its Sigstore bundle as this project's pipeline for the tag, at either of the project's two paths, with the project's id required at the group's (`build/ci/container-image-deb.sh`) |
+| `container-image` | linix, in kaniko's image (`linux-image`'s, by reference) | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Builds `platform/packaging/docker/Dockerfile` from that `.deb` and pushes it to `$CI_REGISTRY_IMAGE`, which must be the group's path, `registry.gitlab.com/hmailserver/hmailserver` (at the project's first path it refuses, exit 3, and pushes nothing), with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. The tags are `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.5` pushes `6.3.5`, `6.3` and `latest`, and `v6.3.5-rc1` pushes `6.3.5-rc1` alone. It runs the same checks on what it pushed as `linux-image` does on what it built, and leaves a dotenv report naming the image by digest (`build/ci/linux-image.sh`, `HM_IMAGE_PUSH=1`) |
 | `container-image-sbom` | linix, in the Linux CI image | Syft reads the pushed image from the registry by its digest, with the job's own registry credentials, and `build/asset-sbom.py image` adds what the release's `.deb` SBOM names inside the binary and makes the image, by its digest, the document's subject; it refuses a `.deb` SBOM that does not describe the `.deb`, and an image in which Syft finds no `hmailserver` package (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the image by its digest with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies the signature with that identity. The tags all name the one digest, so one signature covers them. The signature is stored beside the image in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests the image's SBOM to it (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies the attestation with the same identity (`build/ci/container-image-sign.sh`) |
 | `container_scanning` | GitLab's shared runners | GitLab's Container Scanning template, which the Free tier runs, over the pushed image by digest, with the analyzer pinned by digest. It is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
+| `container-image-start` | linix, in the Linux CI image | Starts the pushed image by its digest as a service beside PostgreSQL, on a network of the job's own, through its entrypoint, and asks it for SMTP on 25 (with STARTTLS) and for the REST API over TLS with the release's version (`build/ci/container-image-start-test.sh`, which also runs by hand against any image with `--docker`) |
 
 **Why after `release-publish`.** `:latest` is what the Compose file and the chart
 pull. A release the installer smoke test stopped before `release-publish` must
-not be what `:latest` names, so the image waits for the release to exist.
+not be what `:latest` names, so the image waits for the release to exist, and is
+built from the release's published `.deb`.
+
+The Helm chart is a file of the release, made by `helm-chart-package`
+(`.gitlab/ci/helm-chart.yml`) and served from the Pages site's `helm/`, which
+`build/ci/helm-repo.py` writes from the feed ([ContainerImage.md](ContainerImage.md)).
 
 **Checked after the push, not before.** kaniko cannot push a tarball it wrote
 before, so `container-image` pushes and writes the tarball of the same image in
@@ -1497,18 +1507,21 @@ project's API answered on 28 September 2026:
    The project moves only after a release signed by
    this pipeline from the present path has shown the project's id
    ([UpdateFeed.md](UpdateFeed.md)), so that release is made with the switch
-   unset: the three jobs do not run and the registry stays empty. After the
-   move the owner adds `HM_PUBLISH_IMAGE` with the value `1` as a project
+   unset: its image jobs refuse and the registry stays empty. After the move
+   the maintainers add `HM_PUBLISH_IMAGE` with the value `1` as a project
    CI/CD variable (Settings, CI/CD, Variables; a `v*` tag's pipeline is for a
-   protected ref, so it may be marked Protected), and the next release pushes
-   the image. It is a project variable because the project refuses variables
-   given to a pipeline or a schedule, so nobody turns the jobs on for one run.
-   Nothing committed sets it: `build/check-release-chain.py` fails when a CI
-   file does, or when any of the three jobs does not begin its rules with
-   `if: $HM_PUBLISH_IMAGE != "1"`, `when: never`. The Compose file and the
-   chart name the present path, and are changed with the move;
-   `container-image` pushes to whichever of the two paths the project has,
-   and refuses any other.
+   protected ref, so it may be marked Protected), and start
+   `container-image-deb` in the pipeline of the release whose image is to be
+   pushed - one made before the move included, since the jobs are in every
+   `v*` tag's pipeline and read the switch as they run. It is a project
+   variable because the project refuses variables given to a pipeline or a
+   schedule, so nobody turns the jobs on for one run. Nothing committed sets
+   it: `build/check-release-chain.py` fails when a CI file does, when a rule
+   of an image job reads it, and when `container-image-deb.sh` or
+   `linux-image.sh` does not refuse with a non-zero exit while it is not `1`.
+   The Compose file and the chart name the group's path;
+   `container-image` pushes only at the group's path, and refuses the first
+   path and any other, so a switch set before the move pushes nothing.
 
 A stable release of an older line - a 6.2 release after 6.3.0 - would take
 `:latest` from the newer one. The project releases one line at a time, and the
@@ -1677,9 +1690,10 @@ machine's Visual Studio), the ADO type library (copied from Windows), SQL Server
 Compact (retired, with no release to follow), the Linux build's libraries (the
 distribution's packages, which move with the image's digest), the old GitHub
 workflows, which are no longer in the tree, the project's own image
-(`registry.gitlab.com/progressiverobot/hmailserver`, which nothing in the tree
-pulls but the Compose file and the chart, by `:latest`; the release is to push
-it as `registry.gitlab.com/hmailserver/hmailserver`, after the project's move), and
+(`registry.gitlab.com/hmailserver/hmailserver`, which nothing in the tree pulls
+but the Compose file and the chart, by `:latest`, and each release pushes from
+its own pipeline; and `registry.gitlab.com/progressiverobot/hmailserver`, the
+project's path before its move, where no image is pushed), and
 `hmailserver-ci/linux`, which is built on linix and never pushed. The .NET runtime the installer bundles has no pin
 yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
 rule in `renovate.json` says what to add when the supply-chain row pins it.

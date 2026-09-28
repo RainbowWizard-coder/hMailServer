@@ -143,6 +143,10 @@ for a stray `#` number or `@` name.
   waits for that. The documents that sent a reader to `6399e08a5` for the removed GitHub workflows now give
   `faca023d4`, the same commit as `master`'s history holds it: `6399e08a5` is its copy from before its branch was
   rebased, which `master`'s history does not hold.
+- **`HM_DB_WAIT_SECONDS`** (0 to 999999, default 0): the image's entrypoint waits for the `[Database]` server to
+  accept a TCP connection before opening it, and does not start (exit 69) when it has not. The entrypoint reads the
+  ini's `[Database]` section as the server does (spaces trimmed, names in any case), and `HM_INSTALL_KIND`, which
+  the image sets for the update check, is not a reason for it to open the database.
 
 ### Downloads and the release
 
@@ -172,6 +176,20 @@ for a stray `#` number or `@` name.
   `.deb` goes to the apt suite `ubuntu26.04`, as the amd64 one does; the generic `.rpm`s still go to no dnf
   repository, and the pages job no longer calls the aarch64 one built on Ubuntu (ContinuousIntegration.md,
   "What a release carries"; PackagesDeb.md; PackagesRpm.md).
+- **The container image is pushed from the release's own pipeline, by hand, and started before it is left there**
+  (not yet run in a pipeline). The image jobs are in every protected `v*` tag's pipeline. `container-image-deb`,
+  started by hand after `release-publish` once the project variable `HM_PUBLISH_IMAGE` is 1, takes the `.deb` and its
+  SBOM from the published release and verifies both with cosign as the tag's pipeline. The variable is read as the
+  jobs run, not by a rule, so a release tagged before the move into the group `hmailserver` has its image pushed
+  from its own pipeline afterwards. The image is pushed only at `registry.gitlab.com/hmailserver/hmailserver`,
+  which the Compose file and the chart now name (`linux-image.sh` refuses the old path), then signed, scanned and
+  started beside PostgreSQL by `container-image-start`, which checks SMTP and the REST API. The image sets
+  `HM_INSTALL_KIND=container` and carries OCI and Artifact Hub labels
+  ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+- **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`** (not yet
+  run in a pipeline). `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
+  naming the release's image, and `build/ci/helm-repo.py` writes the repository's index and Artifact Hub's metadata
+  from the update feed in `package-repos`.
 
 ---
 

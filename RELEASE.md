@@ -180,18 +180,23 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com
    ```
 
-   Once the owner has set the project's CI/CD variable `HM_PUBLISH_IMAGE` to
+   The container image is pushed by hand, from this same pipeline, once the
+   maintainers have set the project's CI/CD variable `HM_PUBLISH_IMAGE` to
    `1` - not before the project has moved to the group `hmailserver`
-   (`hmailserver/docs/ContinuousIntegration.md`, "The container image") -
-   the container image follows by itself as well: `container-image` builds it
-   from the release's `.deb` and pushes `:X.Y.Z`, and for a release without a
-   suffix `:X.Y` and `:latest`; `container-image-sbom` makes its SBOM;
-   `container-image-sign` signs it by digest as the same pipeline and attests
-   the SBOM to it; `container_scanning` scans it
-   (`hmailserver/docs/ContinuousIntegration.md`, "The container image"). Read
-   `container-image-signed/verification.txt` and the scan's report. A check
-   that fails after the push leaves tags naming an unsigned image, which the
-   job lists: delete them.
+   (`hmailserver/docs/ContainerImage.md`, "Publishing"). Start
+   `container-image-deb`, which the pipeline shows as waiting (it refuses,
+   exit 3, while the variable is not `1`; start it again once it is): it takes
+   the release's `.deb` and its SBOM from the published release and verifies
+   both against their Sigstore bundles. The rest follow it: `container-image`
+   builds the image from that `.deb` and pushes `:X.Y.Z`, and for a release
+   without a suffix `:X.Y` and `:latest`; `container-image-sbom` makes its
+   SBOM; `container-image-sign` signs it by digest as the same pipeline and
+   attests the SBOM to it; `container_scanning` scans it; and
+   `container-image-start` starts it beside PostgreSQL and asks it for SMTP
+   and the REST API. Read `container-image-signed/verification.txt`, the
+   scan's report and the start test's log. A check that fails after the push
+   leaves tags naming an image that did not pass, which the job lists: delete
+   them.
 
 7. **The package managers** (step 13) are still by hand: the manifests job was
    not ported.

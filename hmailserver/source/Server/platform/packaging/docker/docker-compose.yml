@@ -15,8 +15,8 @@
 #   docker compose up -d
 #   # then https://<host>:8045/ is the Control Deck, Administrator and that password
 #
-# The image is the release's own, from the project's GitLab registry once one is
-# published there (the image: line below says when); pin the version you deployed. Every
+# The image is the release's own, from the project's GitLab registry (the image:
+# line below says from when); pin the version you deployed. Every
 # variable the entrypoint reads is listed in docker-entrypoint.sh beside this
 # file. The packaged hMailServer.ini holds the database connection and the
 # administrator password, kept in the hm-etc volume and rewritten from the
@@ -48,14 +48,13 @@ services:
     # deploy in your own copy of this file - this one carries no version,
     # because a literal here goes stale the release after it is written and
     # the packaging check refuses one for that reason. The name below is the
-    # project's GitLab container registry at its present path, where no image
-    # is to be pushed: the image is published from the first release GitLab CI
-    # makes once the owner turns its publishing on, after the project's move to
-    # the group hmailserver, at registry.gitlab.com/hmailserver/hmailserver,
-    # signed with Sigstore (the releases built by hand have none), and this line
-    # names that address from the move. Until then, build one from the
-    # Dockerfile beside this file and name your own tag here.
-    image: registry.gitlab.com/progressiverobot/hmailserver:latest
+    # project's GitLab container registry in the group hmailserver, the image's
+    # lasting address, where each release GitLab CI makes pushes its image,
+    # signed with Sigstore, once the project is at that path (the releases built
+    # by hand have none; hmailserver/docs/ContainerImage.md says which have one).
+    # Until one does, build it from the Dockerfile beside this file and name
+    # your own tag here.
+    image: registry.gitlab.com/hmailserver/hmailserver:latest
     restart: unless-stopped
     depends_on:
       db:

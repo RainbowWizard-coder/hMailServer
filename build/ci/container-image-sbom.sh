@@ -15,8 +15,9 @@
 # checkout of the tag.
 #
 # In:   HM_IMAGE, from container-image's dotenv report: <registry image>@sha256:<digest>.
-#       release-signed/, release-sign's artifact: the .deb the image is built from and
-#       that .deb's own SBOM (build/asset-sbom.py), both as the release carries them.
+#       container-image-deb/, container-image-deb's artifact: the .deb the image is built
+#       from and that .deb's own SBOM (build/asset-sbom.py), both taken from the published
+#       release and held to their Sigstore bundles (build/ci/container-image-deb.sh).
 # Out:  container-image-sbom/hmailserver-image.cdx.json   the image's SBOM
 #       container-image-sbom/image.syft.cdx.json          what Syft found in the image
 #
@@ -30,7 +31,7 @@
 set -euo pipefail
 
 out=container-image-sbom
-signed="${HM_IMAGE_DEB_DIR:-release-signed}"
+signed="${HM_IMAGE_DEB_DIR:-container-image-deb}"
 
 fail() {
   echo "CONTAINER-IMAGE-SBOM FAILED: $*"
@@ -52,7 +53,7 @@ printf '%s\n' "$image" | grep -Eqx "${registry_image}@sha256:[0-9a-f]{64}" \
   || fail "the job has no CI_REGISTRY, CI_REGISTRY_USER or CI_REGISTRY_PASSWORD"
 
 deb="$signed/hmailserver_${version}_amd64.deb"
-[ -f "$deb" ] || fail "no $deb: release-sign's artifact did not arrive"
+[ -f "$deb" ] || fail "no $deb: container-image-deb's artifact did not arrive"
 [ -f "$deb.cdx.json" ] || fail "no $deb.cdx.json: the release carries no SBOM of the .deb the image is built from"
 python3 build/asset-sbom.py verify "$deb.cdx.json" "$deb" > /dev/null \
   || fail "$deb.cdx.json does not describe $deb"

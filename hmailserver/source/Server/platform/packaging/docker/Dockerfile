@@ -17,18 +17,19 @@
 #      registry.gitlab.com/hmailserver/hmailserver:<version>
 #
 # That is the project's GitLab container registry, at the path the project has
-# after its move to the group hmailserver. The image appears there from the first
-# release GitLab CI makes once the owner turns its publishing on (the project
-# variable HM_PUBLISH_IMAGE, set after that move; nothing is pushed from the
-# present path, registry.gitlab.com/progressiverobot/hmailserver, and a release
-# built by hand has none): a v* tag's container-image job
-# builds this file from the release's .deb and pushes :<version>, and for a release
-# without a suffix :<major>.<minor> and :latest, signed by digest with Sigstore as
-# the release's pipeline
-# (.gitlab/ci/container-image.yml). Until then, build it yourself (docker build,
-# with the .deb in packages/) and run your own tag. The images published before
-# GitHub suspended the project's account on 18 September 2026 were on ghcr.io,
-# which has answered 404 since.
+# in the group hmailserver, the image's lasting address. A v* tag's pipeline has
+# the image jobs of .gitlab/ci/container-image.yml, started by hand once the
+# release is published: they take the release's signed .deb from the published
+# release, check its Sigstore bundle, build this file from it and push
+# :<version>, and for a release without a suffix :<major>.<minor> and :latest,
+# signed by digest with Sigstore as the release's pipeline, then start what they
+# pushed beside PostgreSQL and ask it for SMTP and the REST API. They refuse to
+# run until the project's CI/CD variable HM_PUBLISH_IMAGE is 1, which is set once
+# the project is at that path; a release built by hand has no image
+# (hmailserver/docs/ContainerImage.md). Until a release has one, build it
+# yourself (docker build, with the .deb in packages/) and run your own tag. The
+# images published before GitHub suspended the project's account on 18 September
+# 2026 were on ghcr.io, which has answered 404 since.
 #
 # The database is not in the image and never will be: point HM_DB_* at a
 # PostgreSQL or MariaDB server. On first start the entrypoint writes the
@@ -72,6 +73,29 @@ RUN apt-get update \
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh \
  && chown -R hmailserver:hmailserver /etc/hmailserver
+
+# What kind of installation this is, for the server's update check: in a
+# container a new release is a new image to pull, never a file the server
+# downloads and installs over itself, so the check names the image and installs
+# nothing (hmailserver/docs/ContainerImage.md, "Updates"). It is not a setting,
+# and the entrypoint does not store it as one.
+ENV HM_INSTALL_KIND=container
+
+# What the image says of itself, for a registry and for Artifact Hub's listing
+# of it (hmailserver/docs/ContainerImage.md). The build adds the version, the
+# commit and the commit's time (build/ci/linux-image.sh). ref.name is the base
+# image's, Ubuntu's, until it is said again here.
+LABEL org.opencontainers.image.title="hMailServer" \
+      org.opencontainers.image.description="hMailServer, a mail server for SMTP, IMAP and POP3, on Linux: the release's own .deb, run as its own user, beside a PostgreSQL or MariaDB server of yours" \
+      org.opencontainers.image.licenses="AGPL-3.0-or-later" \
+      org.opencontainers.image.vendor="Progressive Robot Ltd" \
+      org.opencontainers.image.url="https://gitlab.com/hmailserver/hmailserver" \
+      org.opencontainers.image.source="https://gitlab.com/hmailserver/hmailserver" \
+      org.opencontainers.image.documentation="https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ContainerImage.md" \
+      org.opencontainers.image.ref.name="hmailserver" \
+      io.artifacthub.package.readme-url="https://gitlab.com/hmailserver/hmailserver/-/raw/master/hmailserver/docs/ContainerImage.md" \
+      io.artifacthub.package.license="AGPL-3.0-or-later" \
+      io.artifacthub.package.keywords="mail,mail-server,smtp,imap,pop3"
 
 VOLUME ["/var/lib/hmailserver", "/var/log/hmailserver", "/etc/hmailserver"]
 EXPOSE 25 110 143 465 587 993 995 4190 8045

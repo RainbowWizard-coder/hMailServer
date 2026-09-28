@@ -94,6 +94,8 @@ include:
   # GitLab's SAST and secret detection, on the shared runners (the file says what they add).
   - local: .gitlab/ci/gitlab-security.yml
   - local: .gitlab/ci/container-image.yml
+  # The Helm chart packaged as a file of the release (hmailserver/docs/ContainerImage.md).
+  - local: .gitlab/ci/helm-chart.yml
   # The signed apt and dnf repositories, added to the feed's site; it turns pages' own deployment off.
   - local: .gitlab/ci/package-repos.yml
   # The weekly export of what a push mirror does not carry, on linix (docs/Mirroring.md).
@@ -667,9 +669,12 @@ chart-and-compose:
     - changes:
         - hmailserver/source/Server/platform/packaging/helm/**/*
         - hmailserver/source/Server/platform/packaging/docker/docker-compose.yml
+        - build/ci/helm-repo.py
+        - build/ci/helm-chart-package.sh
+        - .gitlab/ci/helm-chart.yml
         - .gitlab-ci.yml
   before_script:
-    - apk add --no-cache -q helm docker-cli-compose
+    - apk add --no-cache -q helm docker-cli-compose python3 py3-yaml
   script:
     - helm version --short
     - docker compose version
@@ -698,6 +703,8 @@ chart-and-compose:
       printf '%s' y > secrets/admin_password
       docker compose config --quiet
       echo "The Compose file resolves."
+    # The Helm repository's writer, which package-repos runs on master: a break is seen here first.
+    - python3 build/ci/helm-repo.py --self-test
 
 # packaging.yml's update-helper job: the live update's Linux apply step,
 # hmailserver-update, run under dash against fakes for every outcome it can write

@@ -10,19 +10,19 @@
 # keys are named below.
 
 image:
-  # The project's container registry on GitLab, at the project's present
-  # path, where no image is to be pushed. The image is published from the first
-  # release GitLab CI makes once the owner turns its publishing on, after the
-  # project's move to the group hmailserver, at
-  # registry.gitlab.com/hmailserver/hmailserver, signed with Sigstore (a release
-  # built by hand has none); this line names that address from the move. Until
-  # then, build the image from docker/Dockerfile, push it to a registry of your
-  # own and name that here.
+  # The project's container registry on GitLab, in the group hmailserver: the
+  # image's lasting address, where each release GitLab CI makes pushes its image,
+  # signed with Sigstore, once the project is at that path (a release built by
+  # hand has none; hmailserver/docs/ContainerImage.md says which have one). For
+  # a release without one, build the image from docker/Dockerfile, push it to a
+  # registry of your own and name that here.
   # (The images published before GitHub suspended the project's account on
   # 18 September 2026 were on ghcr.io, which has answered 404 since.)
-  repository: registry.gitlab.com/progressiverobot/hmailserver
+  repository: registry.gitlab.com/hmailserver/hmailserver
   # The tag's own image; pin what you deployed. Empty means the chart's
-  # appVersion, which is "latest" - the current stable release, never an alpha.
+  # appVersion: the release's version in the chart a release publishes
+  # (https://updates.progressiverobot.com/helm/), and "latest" - the current
+  # stable release, never an alpha - in the chart of a checkout.
   tag: ""
   pullPolicy: IfNotPresent
 imagePullSecrets: []

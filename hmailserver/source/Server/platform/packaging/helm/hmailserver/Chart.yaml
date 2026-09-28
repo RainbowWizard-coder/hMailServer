@@ -8,21 +8,44 @@ description: >-
   on one listener - as a StatefulSet beside the PostgreSQL or MariaDB it keeps its
   data in. The database is not in the chart: point database.host at one.
 type: application
+# The chart's version and the application's are the release's, and neither is
+# written here: a version spelled out in the tree would be one more place to
+# stamp at a release and one more to forget, which is what
+# build/check-linux-version-stamp.sh refuses. The release's helm-chart-package job
+# (.gitlab/ci/helm-chart.yml, build/ci/helm-chart-package.sh) packages the chart
+# with helm package --version <v> --app-version <v> from the tag, and names the
+# release's image in artifacthub.io/images below by that version. From a checkout
+# the chart is 0.1.0 and installs "latest" - the image tag it defaults to
+# (values.yaml, image.tag), the current stable release, never an alpha.
 version: 0.1.0
-# The application this chart installs, by tag rather than by number: a version
-# spelled out here would be one more place to stamp at a release and one more
-# to forget, which is what build/check-linux-version-stamp.sh refuses. It is
-# the default image tag (values.yaml, image.tag), so the chart installs the
-# current stable release unless a version is asked for.
 appVersion: "latest"
-home: https://gitlab.com/Progressiverobot/hmailserver
+home: https://gitlab.com/hmailserver/hmailserver
 sources:
-  - https://gitlab.com/Progressiverobot/hmailserver
+  - https://gitlab.com/hmailserver/hmailserver
 keywords:
   - mail
+  - mail-server
   - smtp
   - imap
   - pop3
 maintainers:
   - name: Progressive Robot Ltd
     url: https://www.progressiverobot.com
+# What Artifact Hub reads (hmailserver/docs/ContainerImage.md, "Artifact Hub").
+# The image line names :latest here and the release's version in a packaged
+# chart; prerelease is "true" in the package of a release whose version has a
+# suffix. The chart is signed with Sigstore like every file of the release, not
+# with Helm's own PGP provenance, so no artifacthub.io/signKey is given.
+annotations:
+  artifacthub.io/license: AGPL-3.0-or-later
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/images: |
+    - name: hmailserver
+      image: registry.gitlab.com/hmailserver/hmailserver:latest
+  artifacthub.io/links: |
+    - name: Source
+      url: https://gitlab.com/hmailserver/hmailserver
+    - name: The container image and the chart
+      url: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ContainerImage.md
+    - name: Support forum
+      url: https://www.hmailserver.co.uk/category/8/general-support

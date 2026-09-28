@@ -1,0 +1,111 @@
+# hMailServer
+
+hMailServer is a mail server: SMTP, submission, IMAP, POP3 and ManageSieve, with a
+REST API, the Control Deck (its web administration) and the webmail on one HTTPS
+listener. This chart runs it on Kubernetes as a StatefulSet of one, with its
+message store, its logs and its configuration on three persistent volumes, from the
+project's own container image, `registry.gitlab.com/hmailserver/hmailserver`.
+
+The database is not in the chart and never will be: the server keeps its accounts,
+its settings and its message index in a PostgreSQL or MariaDB server you run or
+rent, and `database.host` names it.
+
+The project: <https://gitlab.com/hmailserver/hmailserver>. The container image and
+this chart, and how both are made and signed:
+[ContainerImage.md](https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/ContainerImage.md).
+
+## Install
+
+```
+helm repo add hmailserver https://updates.progressiverobot.com/helm/
+helm repo update
+
+kubectl create secret tls mail-tls --cert=mail.pem --key=mail.key
+helm install mail hmailserver/hmailserver \
+  --set database.host=postgres.example.internal \
+  --set database.password='the database password' \
+  --set administrator.password='the administrator password' \
+  --set rest.tlsSecretName=mail-tls
+```
+
+Each chart the repository serves is a release's: its version is the release's, and
+it installs that release's image unless `image.tag` names another. A pre-release's
+chart is listed only to `helm search repo --devel` and installed only with
+`--version` or `--devel`.
+
+What that makes:
+
+- a StatefulSet of one pod, running as the image's own user, with only the
+  capability to bind the mail ports below 1024;
+- a Service of type LoadBalancer with SMTP 25, submission 587 and 465, IMAP 143 and
+  993, POP3 110 and 995, ManageSieve 4190, and the REST listener, 8045;
+- a Secret with the two passwords, unless `existingSecret` names one you made;
+- three PersistentVolumeClaims, which `helm uninstall` leaves in place.
+
+Then `https://<the service's address>:8045/` is the Control Deck (Administrator and
+the administrator password) and `/portal` the webmail.
+
+## What it needs
+
+- **A database.** PostgreSQL (`database.type: PostgreSQL`, the default) or MariaDB
+  (`MySQL`), reachable from the cluster. On its first start the server creates the
+  database's schema if it is empty, and upgrades it when it is behind
+  (`database.create`, `database.upgrade`).
+- **A certificate for the REST listener.** The server requires TLS on any address
+  but loopback, so the listener stays off until `rest.tlsSecretName` names a Secret
+  of type `kubernetes.io/tls` (cert-manager's, or one you made). The mail ports'
+  certificates are set in the Control Deck.
+- **Two passwords.** `database.password` and `administrator.password`, or a Secret of
+  your own with the keys `existingSecretKeys` names. The administrator password is
+  stored as a PBKDF2 hash, never as it is.
+
+## Values
+
+Every value is in `values.yaml`, with what it does. The ones most installations set:
+
+| Value | Default | What it is |
+|---|---|---|
+| `database.type`, `database.host`, `database.port`, `database.name`, `database.user` | `PostgreSQL`, none, `5432`, `hmailserver`, `hmailserver` | where the database is |
+| `database.password`, `administrator.password` | none | the two secrets, unless `existingSecret` is set |
+| `existingSecret` | none | a Secret you made, with the two keys of `existingSecretKeys` |
+| `rest.tlsSecretName` | none | the REST listener's certificate; the listener waits for it |
+| `image.repository`, `image.tag` | the project's registry, the chart's appVersion | the image |
+| `settings`, `properties` | none | any other setting, stored in the database at every start |
+| `settingsFrom` | none | a setting whose value is a secret, from a key of a Secret you made |
+| `service.type`, `service.loadBalancerIP` | `LoadBalancer` | how the mail ports reach the world |
+| `persistence.*.size`, `persistence.storageClassName` | 50Gi, 5Gi, 100Mi | the three volumes |
+
+A setting named in `settings`, `properties` or `settingsFrom` is the environment's:
+the server stores it at every start and refuses a change to it in the Control Deck
+and over the REST API, which the next start would undo. Take it out of the values
+to manage it there again.
+
+## Checking the chart
+
+The chart is a file of the release, signed with Sigstore by the release's own
+pipeline like every other file, with its bundle beside it on the release page. With
+cosign 2.4 or later:
+
+```
+cosign verify-blob \
+  --bundle hmailserver-chart-<version>.tgz.cosign.bundle \
+  --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
+  --certificate-oidc-issuer https://gitlab.com \
+  hmailserver-chart-<version>.tgz
+helm install mail ./hmailserver-chart-<version>.tgz --set database.host=...
+```
+
+The identity is the project's path when the release was signed: a release tagged
+before the project moved into the group `hmailserver` was signed as
+`https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
+and the release page's verification section says which.
+
+The image is signed the same way, by its digest (`cosign verify`); ContainerImage.md
+says how, and how to read the software bill of materials attested to it.
+
+## Updates
+
+A new release is a new chart and a new image: `helm repo update`, then
+`helm upgrade mail hmailserver/hmailserver --reuse-values`. The server does not
+update itself inside a container; its update check says that a newer release
+exists and that the image is the way to it.

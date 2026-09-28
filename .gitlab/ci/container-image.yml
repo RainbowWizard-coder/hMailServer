@@ -2,64 +2,79 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The release's container image, published and signed: included from .gitlab-ci.yml,
-# whose release jobs this follows (docs/ContinuousIntegration.md, "The container
-# image"). For a protected v* tag's pipeline, once the release is published:
+# The release's container image, published, signed and started: included from
+# .gitlab-ci.yml, whose release jobs this follows (hmailserver/docs/ContainerImage.md;
+# docs/ContinuousIntegration.md, "The container image"). In every protected v* tag's
+# pipeline, once release-publish has published the release, a maintainer starts the
+# first job by hand, and the rest follow it:
 #
+#   container-image-deb   GitLab's shared runners, in cosign's own image
+#                         (HM_COSIGN_IMAGE), BY HAND: the release's .deb and that .deb's
+#                         SBOM taken from the published release - not from
+#                         release-sign's artifact, which may have expired by the time
+#                         the image is pushed - each verified against its Sigstore
+#                         bundle as signed by this project's pipeline for the tag
+#                         (build/ci/container-image-deb.sh);
 #   container-image       linix: the image of packaging/docker/Dockerfile built with
-#                         kaniko from the .deb release-sign signed and release-verify
-#                         checked, inspected as linux-image inspects it, and pushed to
-#                         the project's container registry as :<version>, and for a
-#                         release without a suffix as :<major>.<minor> and :latest
-#                         too - a pre-release (v6.3.5-rc1) never moves those two
+#                         kaniko from that .deb, inspected as linux-image inspects it,
+#                         and pushed to the project's container registry as :<version>,
+#                         and for a release without a suffix as :<major>.<minor> and
+#                         :latest too - a pre-release (v6.3.5-rc1) never moves those two
 #                         (build/ci/linux-image.sh with HM_IMAGE_PUSH=1);
 #   container-image-sbom  linix: the image's software bill of materials - Syft's
 #                         reading of the pushed image by its digest, with what the
 #                         .deb's own SBOM names inside the binary added
 #                         (build/ci/container-image-sbom.sh, build/asset-sbom.py);
-#   container-image-sign  GitLab's shared runners, in cosign's own image
-#                         (HM_COSIGN_IMAGE): the image signed by its digest with
-#                         Sigstore, keylessly, as the same pipeline identity the
-#                         release's files carry, its SBOM attested to it (predicate
-#                         type cyclonedx) by the same identity, and both verified
+#   container-image-sign  GitLab's shared runners, in cosign's own image: the image
+#                         signed by its digest with Sigstore, keylessly, as this
+#                         pipeline, its SBOM attested to it (predicate type cyclonedx)
+#                         by the same identity, and both verified
 #                         (build/ci/container-image-sign.sh);
 #   container_scanning    GitLab's shared runners: GitLab's own Container Scanning
 #                         template, free on every tier, over the pushed image by
 #                         digest. A finding does not fail the pipeline (the template
 #                         makes it allow_failure); its report is the job's artifact,
 #                         for members with the Developer role or above, since the
-#                         vulnerability report is GitLab Ultimate.
+#                         vulnerability report is GitLab Ultimate;
+#   container-image-start linix: the pushed image, by its digest, started as a service
+#                         beside PostgreSQL through its own entrypoint, and asked
+#                         whether port 25 answers SMTP and the REST API answers over
+#                         TLS with the release's version
+#                         (build/ci/container-image-start-test.sh).
 #
-# None of the four runs unless the PROJECT's CI/CD variable HM_PUBLISH_IMAGE is "1"
-# (Settings, CI/CD, Variables; a v* tag's pipeline is for a protected ref, so it may
-# be marked Protected). It is set after the project's move into the group
-# hmailserver, which the maintainers decided on 27 September 2026 to make before the
-# first image is pushed, so that the first image's address,
-# registry.gitlab.com/hmailserver/hmailserver, is the lasting one: a container
-# repository's path is always its project's, so an image pushed from the present
-# path, registry.gitlab.com/progressiverobot/hmailserver, would change its address
-# with the move. 6.3.4's SigstoreVerifier already trusts the group's path, with the
-# project's id 86730559. What GitLab's documentation says of the move itself - on
-# GitLab.com a project whose registry is enabled is transferred only within its
-# top-level group, and one with more than 1,000 container repositories not at all;
-# refusing a project that holds images is GitLab Self-Managed's rule - is in
-# hmailserver/docs/ContinuousIntegration.md, "What the owner sets on the registry",
-# item 3. The project moves once a release signed by this pipeline from the present
-# path has shown the project's id. It is a project variable because the project refuses pipeline
-# variables (a schedule's included), so nobody can turn the jobs on for one run.
-# Nothing in this file or .gitlab-ci.yml may set it (build/check-release-chain.py
-# holds that).
+# The switch is the PROJECT's CI/CD variable HM_PUBLISH_IMAGE, read when the jobs RUN,
+# not when the pipeline is made: container-image-deb and linux-image.sh refuse, saying
+# so and exiting non-zero, while it is anything but "1". So the jobs are there in every
+# v* tag's pipeline, and a release published before the project's move into the group
+# hmailserver has its image pushed from its own pipeline after the move, by starting
+# container-image-deb again once the variable is set - the maintainers decided on 27
+# September 2026 to push the first image only at the lasting path,
+# registry.gitlab.com/hmailserver/hmailserver, since a container repository's path is
+# always its project's. It is a project variable, Protected (a v* tag's pipeline is
+# for a protected ref), because the project refuses pipeline variables (a schedule's
+# included), so nobody can turn the jobs on for one run. Nothing in
+# this file or .gitlab-ci.yml may set it, and no rule may read it: a rule is decided
+# when the pipeline is made, and would leave a release published before the move
+# without the jobs at all (build/check-release-chain.py holds both).
 #
-# Why after release-publish, and not only after release-verify: :latest is what the
-# Compose file and the Helm chart pull, and it must not name a release that was never
-# published - the installer smoke test before release-publish can still stop one.
+# container-image-deb is manual and NOT allowed to fail: a job that needs one allowed
+# to fail runs after it has failed, so container-image would start after a refusal or
+# a signature that did not verify. The jobs after it wait for it, and run once it has
+# passed; until someone starts it, the tag's pipeline shows as blocked on it, which is
+# what it is - the release's image is still to be pushed. A refusal fails it, and
+# running it again once the variable is set lets the rest go on.
+#
+# Why after release-publish: :latest is what the Compose file and the Helm chart pull,
+# and it must not name a release that was never published - the installer smoke test
+# before release-publish can still stop one - and the .deb is taken from the release.
 #
 # Nothing here holds a secret. The push and the signature's upload use the job's own
 # registry credentials (CI_REGISTRY_USER and CI_REGISTRY_PASSWORD, which the job token
 # has for this project alone), and Sigstore takes the job's ID token. The signing is in
 # the tag's own top-level pipeline, as release-sign's is, for the same reason: Fulcio
 # names the certificate after the token's ci_config_ref_uri, which is .gitlab-ci.yml's
-# for a job of an included file too.
+# for a job of an included file too. The start test's database password is a
+# throwaway, for a service container nothing outside the job can reach.
 #
 # The Container Scanning analyzer is pinned by digest, as the other scans' images are:
 # registry.gitlab.com's security-products/container-scanning:8 as it was on
@@ -69,26 +84,44 @@
 include:
   - template: Jobs/Container-Scanning.gitlab-ci.yml
 
+container-image-deb:
+  stage: release
+  image:
+    name: $HM_COSIGN_IMAGE
+    entrypoint: [""]
+  needs:
+    - job: release-publish
+      artifacts: false
+  timeout: 15 minutes
+  interruptible: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: false
+  script:
+    - sh build/ci/container-image-deb.sh
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - container-image-deb/
+
 container-image:
   stage: release
   tags: [linix]
   image: !reference [linux-image, image]
   needs:
-    - job: release-sign
+    - job: container-image-deb
       artifacts: true
-    - job: release-verify
-      artifacts: false
-    - job: release-publish
-      artifacts: false
   timeout: 30 minutes
   interruptible: false
   rules:
-    - if: $HM_PUBLISH_IMAGE != "1"
-      when: never
     - !reference [.release-rules, rules]
   variables:
     HM_IMAGE_PUSH: "1"
-    HM_IMAGE_DEB_DIR: release-signed
+    HM_IMAGE_DEB_DIR: container-image-deb
     HM_OUT_DIR: container-image
   script:
     - sh build/ci/linux-image.sh
@@ -101,7 +134,7 @@ container-image:
       dotenv: container-image/image.env
 
 # The image's SBOM, for container-image-sign to attest: in the Linux CI image, which
-# has Syft, and with the release's .deb and that .deb's own SBOM from release-sign.
+# has Syft, and with the release's .deb and that .deb's own SBOM from container-image-deb.
 container-image-sbom:
   stage: release
   tags: [linix]
@@ -109,16 +142,14 @@ container-image-sbom:
   needs:
     - job: container-image
       artifacts: true
-    - job: release-sign
+    - job: container-image-deb
       artifacts: true
   timeout: 15 minutes
   interruptible: false
   rules:
-    - if: $HM_PUBLISH_IMAGE != "1"
-      when: never
     - !reference [.release-rules, rules]
   variables:
-    HM_IMAGE_DEB_DIR: release-signed
+    HM_IMAGE_DEB_DIR: container-image-deb
   script:
     - bash build/ci/container-image-sbom.sh
   artifacts:
@@ -140,8 +171,6 @@ container-image-sign:
   timeout: 15 minutes
   interruptible: false
   rules:
-    - if: $HM_PUBLISH_IMAGE != "1"
-      when: never
     - !reference [.release-rules, rules]
   id_tokens:
     SIGSTORE_ID_TOKEN:
@@ -168,8 +197,58 @@ container_scanning:
   dependencies: [container-image]
   timeout: 30 minutes
   rules:
-    - if: $HM_PUBLISH_IMAGE != "1"
-      when: never
     - if: $CONTAINER_SCANNING_DISABLED == 'true' || $CONTAINER_SCANNING_DISABLED == '1'
       when: never
     - !reference [.release-rules, rules]
+
+# The pushed image started as a user starts it, beside PostgreSQL, and asked for SMTP
+# and the REST API: services on one network of the job's own (FF_NETWORK_PER_BUILD), so
+# that the image reaches the database by its alias; the image by the digest
+# container-image's dotenv report names (HM_IMAGE), through its own entrypoint, with
+# the command the test script names (START_COMMAND there; build/check-release-chain.py
+# holds the two to each other), which secures the new installation and starts the
+# server. The job's variables reach both services: PostgreSQL takes POSTGRES_*, the
+# image HM_*, and HM_DB_WAIT_SECONDS holds the image's entrypoint until the database
+# answers, since both start at once. CI_DEBUG_SERVICES puts both services' output in
+# the job's log; neither prints a password. A failure here comes after the push: the
+# job says which tags to delete (hmailserver/docs/ContainerImage.md, "When a job
+# fails").
+container-image-start:
+  stage: release
+  tags: [linix]
+  image: !reference [.linix, image]
+  needs:
+    - job: container-image
+      artifacts: true
+  timeout: 20 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  variables:
+    FF_NETWORK_PER_BUILD: "true"
+    CI_DEBUG_SERVICES: "true"
+    POSTGRES_USER: hmailserver
+    POSTGRES_DB: hmailserver
+    POSTGRES_PASSWORD: hmtest
+    HM_DB_TYPE: PostgreSQL
+    HM_DB_HOST: db
+    HM_DB_NAME: hmailserver
+    HM_DB_USER: hmailserver
+    HM_DB_PASSWORD: $POSTGRES_PASSWORD
+    HM_DB_WAIT_SECONDS: "120"
+    HM_ADMIN_PASSWORD: $POSTGRES_PASSWORD
+    HM_REST_PORT: "8045"
+    HM_REST_BIND_ADDRESS: 0.0.0.0
+    HM_REST_CERTIFICATE_FILE: /var/lib/hmailserver/Certificates/self-signed-certificate.pem
+    HM_REST_PRIVATE_KEY_FILE: /var/lib/hmailserver/Certificates/self-signed-key.pem
+    HM_START_HOST: mail
+  services:
+    # The same PostgreSQL the Linux suite runs against, by digest.
+    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+      alias: db
+      pull_policy: if-not-present
+    - name: $HM_IMAGE
+      alias: mail
+      command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
+  script:
+    - bash build/ci/container-image-start-test.sh

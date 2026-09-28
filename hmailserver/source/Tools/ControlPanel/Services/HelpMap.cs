@@ -148,6 +148,7 @@ namespace hMailServer.ControlPanel.Services
          "AccountRecovery.md",
          "BrandLogos.md",
          "Complaints.md",
+         "ContainerImage.md",
          "ContinuousIntegration.md",
          "ControlPanelDesign.md",
          "DatabaseTls.md",

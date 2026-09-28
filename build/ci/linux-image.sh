@@ -12,9 +12,13 @@
 #
 # And the container-image job of .gitlab/ci/container-image.yml, with
 # HM_IMAGE_PUSH=1: the same image built from the .deb a v* tag's release carries,
-# the bytes release-sign signed and release-verify checked (HM_IMAGE_DEB_DIR), and
-# pushed to the project's container registry as :<version>, and for a release
-# without a suffix as :<major>.<minor> and :latest too. The job's own registry
+# as container-image-deb took it from the published release and held it to its
+# Sigstore bundle (HM_IMAGE_DEB_DIR), and pushed to the project's container
+# registry as :<version>, and for a release without a suffix as :<major>.<minor>
+# and :latest too - only while the project's CI/CD variable HM_PUBLISH_IMAGE is 1,
+# which is checked here as the job runs, not when the pipeline is made, and only at
+# the group's path, registry.gitlab.com/hmailserver/hmailserver
+# (hmailserver/docs/ContainerImage.md). The job's own registry
 # credentials (CI_REGISTRY_USER and CI_REGISTRY_PASSWORD, which the job token has
 # for its own project) go into kaniko's configuration and nowhere else. It leaves
 # <out>/image.env, a dotenv report naming the image by digest, for the jobs that
@@ -65,6 +69,16 @@ fail() {
 }
 
 if [ "$push" = 1 ]; then
+  # The switch, read as the job runs: the jobs exist in every v* tag's pipeline, so
+  # that a release published before the project's move can still have its image
+  # pushed from its own pipeline afterwards, and nothing is pushed until the
+  # project's variable says so.
+  if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then
+    echo "REFUSED: the project's CI/CD variable HM_PUBLISH_IMAGE is not 1, so no image is pushed."
+    echo "It is set once the project is at registry.gitlab.com/hmailserver/hmailserver"
+    echo "(hmailserver/docs/ContainerImage.md, 'Publishing'); then run the image jobs again."
+    exit 3
+  fi
   # A release's image: the .deb of the tag's version, from the verified release files
   # and nowhere else. The name is linux-build's, never a distribution-suffixed one.
   tag="${CI_COMMIT_TAG:-}"
@@ -72,10 +86,10 @@ if [ "$push" = 1 ]; then
     v[0-9]*) ;;
     *) fail "HM_IMAGE_PUSH=1 is for a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
   esac
-  deb="${HM_IMAGE_DEB_DIR:-release-signed}/hmailserver_${tag#v}_amd64.deb"
+  deb="${HM_IMAGE_DEB_DIR:-container-image-deb}/hmailserver_${tag#v}_amd64.deb"
   if [ ! -f "$deb" ]; then
-    echo "REFUSED: no $deb. release-sign's artifact holds the release's files; it did not"
-    echo "arrive, or the release carries no .deb of this version."
+    echo "REFUSED: no $deb. container-image-deb's artifact holds the release's .deb, taken from"
+    echo "the published release and held to its Sigstore bundle; it did not arrive."
     exit 2
   fi
 else
@@ -94,14 +108,24 @@ case "${CI_COMMIT_TAG:-}" in
 esac
 
 # Where the image goes. Not pushed: a local name kaniko needs for the tarball. Pushed:
-# the project's own repository, at one of the two paths a release is signed from
-# (build/ci/release-sign.sh), with the version's tag always, and the minor line's and
-# latest only for a release without a suffix - a pre-release never moves them.
+# the project's own repository at the group's path, the image's lasting address, which
+# the Compose file and the chart name, with the version's tag always, and the minor
+# line's and latest only for a release without a suffix - a pre-release never moves
+# them. Never from the project's first path, registry.gitlab.com/progressiverobot/
+# hmailserver: a container repository's path is always its project's, so an image
+# pushed there would change its address with the move, and the maintainers decided on
+# 27 September 2026 to push the first image only once the project is in the group.
+# The switch above is set only after the move; this holds a switch set too early.
 if [ "$push" = 1 ]; then
   repository="${CI_REGISTRY_IMAGE:-}"
   case "$repository" in
-    registry.gitlab.com/progressiverobot/hmailserver | registry.gitlab.com/hmailserver/hmailserver) ;;
-    *) fail "the project's registry image is '$repository', not the one the Compose file and the chart name (or the group's)" ;;
+    registry.gitlab.com/hmailserver/hmailserver) ;;
+    registry.gitlab.com/progressiverobot/hmailserver)
+      echo "REFUSED: the project is still at its first path, so its registry image is $repository;"
+      echo "an image is pushed only at registry.gitlab.com/hmailserver/hmailserver, once the project"
+      echo "has moved into the group (hmailserver/docs/ContainerImage.md, 'Publishing'). Nothing was pushed."
+      exit 3 ;;
+    *) fail "the project's registry image is '$repository', not registry.gitlab.com/hmailserver/hmailserver, which the Compose file and the chart name" ;;
   esac
   printf '%s\n' "$version" | grep -Eqx '[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}' || fail "$version is not a container image tag"
   tags="$version"
@@ -139,6 +163,16 @@ rm -rf "$context/packages" "$out"
 mkdir -p "$context/packages" "$out"
 cp "$deb" "$context/packages/"
 
+# The labels that change with the build; the Dockerfile has the rest. created is the
+# commit's time, so that two builds of one commit say the same (a build outside CI has
+# no commit time, and says when it was made). Artifact Hub reads created, and
+# prerelease for a version with a suffix.
+created="${CI_COMMIT_TIMESTAMP:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+case "$version" in
+  *[!0-9.]*) prerelease=true ;;
+  *) prerelease=false ;;
+esac
+
 "$executor" version 2> /dev/null || true
 # HM_KANIKO_FLAGS is for a test against a registry of one's own (--insecure); the jobs
 # never set it. It is split into words on purpose: busybox sh has no arrays.
@@ -149,12 +183,10 @@ cp "$deb" "$context/packages/"
   --dockerfile "$PWD/$context/Dockerfile" \
   "$@" ${HM_KANIKO_FLAGS:-} \
   --tar-path "$out/hmailserver-image.tar" \
-  --label "org.opencontainers.image.title=hMailServer" \
-  --label "org.opencontainers.image.description=hMailServer, a mail server for SMTP, IMAP and POP3, on Linux" \
-  --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
-  --label "org.opencontainers.image.vendor=Progressive Robot Ltd" \
   --label "org.opencontainers.image.version=$version" \
   --label "org.opencontainers.image.revision=${CI_COMMIT_SHA:-unknown}" \
+  --label "org.opencontainers.image.created=$created" \
+  --label "io.artifacthub.package.prerelease=$prerelease" \
   --cleanup
 rm -rf "$context/packages"
 if [ "$push" = 1 ]; then
@@ -182,6 +214,15 @@ for port in 25 110 143 465 587 993 995 4190 8045; do
   grep -q "\"$port/tcp\"" "$out/image.json" || fail "the image does not expose $port/tcp"
 done
 echo "runs as hmailserver, through the entrypoint, with the healthcheck and the nine ports"
+# The install kind the server's update check reads, and the three labels Artifact Hub
+# will not list an image without.
+grep -q '"HM_INSTALL_KIND=container"' "$out/image.json" || fail "the image does not set HM_INSTALL_KIND=container for the update check"
+for label in io.artifacthub.package.readme-url org.opencontainers.image.created org.opencontainers.image.description \
+             org.opencontainers.image.source org.opencontainers.image.licenses; do
+  grep -q "\"$label\":\"[^\"]" "$out/image.json" || fail "the image carries no $label label"
+done
+grep -q "\"org.opencontainers.image.version\":\"$version\"" "$out/image.json" || fail "the image's version label is not $version"
+echo "HM_INSTALL_KIND=container, and the labels a registry and Artifact Hub read, version $version"
 
 # The layer that holds the binary, and the capability on it: tar writes a file's
 # extended attributes as a SCHILY.xattr PAX record in front of it.

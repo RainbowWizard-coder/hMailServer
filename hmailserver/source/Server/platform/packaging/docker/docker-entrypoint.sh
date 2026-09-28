@@ -63,6 +63,18 @@
 #   HM_DB_PASSWORD_FILE, HM_ADMIN_PASSWORD_FILE
 #                                -> the same two secrets read from a file (a Docker
 #                                   or Compose secret) instead of the environment
+#   HM_DB_WAIT_SECONDS (default 0, at most 999999)
+#                                -> before anything opens the database, wait up
+#                                   to that many seconds for the database server
+#                                   of the [Database] section to accept a TCP
+#                                   connection, and do not start when it has not:
+#                                   for a database started beside this container
+#                                   with nothing to hold this one back until it is
+#                                   up (a CI job's services; Compose has
+#                                   depends_on, Kubernetes restarts the pod)
+#   HM_INSTALL_KIND              -> not read here: the image sets it to container,
+#                                   for the server's update check, which then names
+#                                   the image to pull instead of installing a file
 #   HM_CREATE_DATABASE (default 1) -> hmailserver --create-database, which is a
 #                                   no-op when the database already exists
 #   HM_UPGRADE_DATABASE (default 1) -> hmailserver --upgrade-database, which is a
@@ -135,6 +147,62 @@ write_database_section() {
    rm -f "$tmp"
 }
 
+# The database server's address, from the [Database] section as it now stands
+# (written from the environment above, or as the file had it), and a wait of up to
+# HM_DB_WAIT_SECONDS for it to take a TCP connection. A path for a server is a
+# Unix socket, which this does not wait for. The section and the key are found as
+# the server finds them (IniFile.cpp): in any case, with the spaces around a name
+# and a value left out.
+database_value() {
+   awk -v key="$1" '
+      function trim(text) { sub(/^[[:space:]]+/, "", text); sub(/[[:space:]]+$/, "", text); return text }
+      BEGIN { s = 0; key = tolower(key) }
+      { sub(/\r$/, "") }
+      /^[[:space:]]*\[/ { h = trim($0); c = index(h, "]"); s = (c > 0 && tolower(trim(substr(h, 2, c - 2))) == "database"); next }
+      s { i = index($0, "="); if (i > 0 && tolower(trim(substr($0, 1, i - 1))) == key) { print trim(substr($0, i + 1)); exit } }
+   ' "$INI"
+}
+
+wait_for_database() {
+   local seconds="${HM_DB_WAIT_SECONDS:-0}" type host port started
+   case "$seconds" in
+      ''|*[!0-9]*) echo "HM_DB_WAIT_SECONDS is a whole number of seconds, not '$seconds'" >&2; exit 64 ;;
+   esac
+   # Leading zeros off, and a bound, so that the number stays one test(1) can
+   # compare: past its range the comparison fails, and the wait would be skipped.
+   seconds="${seconds#"${seconds%%[!0]*}"}"
+   seconds="${seconds:-0}"
+   if [ "${#seconds}" -gt 6 ]; then
+      echo "HM_DB_WAIT_SECONDS is at most 999999 seconds, not '${HM_DB_WAIT_SECONDS}'" >&2
+      exit 64
+   fi
+   [ "$seconds" -gt 0 ] || return 0
+   type="$(database_value Type)"
+   host="$(database_value Server)"
+   port="$(database_value Port)"
+   case "$port" in
+      ''|0|*[!0-9]*)
+         case "$type" in
+            MySQL) port=3306 ;;
+            MSSQL) port=1433 ;;
+            *) port=5432 ;;
+         esac ;;
+   esac
+   case "$host" in
+      '') echo "HM_DB_WAIT_SECONDS is set, and $INI names no database server to wait for" >&2; exit 64 ;;
+      /*) echo "The database server is the Unix socket $host, which HM_DB_WAIT_SECONDS does not wait for"; return 0 ;;
+   esac
+   started=$SECONDS
+   until timeout 5 bash -c 'exec 3<>"/dev/tcp/$0/$1"' "$host" "$port" 2> /dev/null; do
+      if [ "$((SECONDS - started))" -ge "$seconds" ]; then
+         echo "The database server $host:$port did not accept a connection within $seconds seconds (HM_DB_WAIT_SECONDS); not starting" >&2
+         exit 69
+      fi
+      sleep 2
+   done
+   echo "The database server $host:$port accepts connections (after $((SECONDS - started)) s)"
+}
+
 file_env HM_DB_PASSWORD
 file_env HM_ADMIN_PASSWORD
 
@@ -157,6 +225,8 @@ if [ -n "${HM_ADMIN_PASSWORD:-}" ]; then
    printf '%s\n' "$HM_ADMIN_PASSWORD" | hmailserver --config "$INI" --set-admin-password
    echo "[Security] AdministratorPassword written as a hash from HM_ADMIN_PASSWORD"
 fi
+
+wait_for_database
 
 if [ "${HM_CREATE_DATABASE:-1}" != 0 ]; then
    # Exit status 0 also when the database already holds this build's schema or
@@ -198,9 +268,11 @@ applies_environment() {
    for name in $(compgen -e); do
       case "$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')" in
          HM_DB_TYPE|HM_DB_HOST|HM_DB_PORT|HM_DB_NAME|HM_DB_USER|HM_DB_PASSWORD|HM_DB_PASSWORD_FILE) ;;
-         HM_DB_TLS_MODE|HM_DB_TLS_CA) ;;
+         HM_DB_TLS_MODE|HM_DB_TLS_CA|HM_DB_WAIT_SECONDS) ;;
          HM_ADMIN_PASSWORD|HM_ADMIN_PASSWORD_FILE|HM_INI|HM_CREATE_DATABASE|HM_UPGRADE_DATABASE) ;;
          HM_PROFILE|HM_PROFILE_CONFIRM) ;;
+         # The image's own, which every start has: not a reason to open the database.
+         HM_INSTALL_KIND) ;;
          HM_*) return 0 ;;
       esac
    done
