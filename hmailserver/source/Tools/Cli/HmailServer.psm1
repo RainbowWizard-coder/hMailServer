@@ -136,6 +136,7 @@ function Invoke-HmApi {
         Invoke-HmApi -Method POST -Path /api/v1/domains -Body @{ name = 'example.com' }
     #>
     [CmdletBinding()]
+    [OutputType([object[]], [string], [pscustomobject])]
     param(
         [Parameter(Mandatory = $true)]
         [ValidateSet('GET', 'POST', 'PUT', 'DELETE', 'PATCH')]
@@ -233,7 +234,7 @@ function Invoke-HmApi {
         }
 
         $status = $null
-        try { $status = [int] $_.Exception.Response.StatusCode } catch { }
+        try { $status = [int] $_.Exception.Response.StatusCode } catch { $status = $null }
 
         $detail = $null
         try {
@@ -259,6 +260,7 @@ function Get-HmCollection {
         holding one. Internal, but exported because every Get- here uses it.
     #>
     [CmdletBinding()]
+    [OutputType([object[]])]
     param(
         [Parameter(Mandatory = $true)] [AllowNull()] $Answer,
         [Parameter(Mandatory = $true)] [string] $Key
@@ -425,6 +427,7 @@ function New-HmAccount {
     .EXAMPLE
         New-HmAccount -Domain example.com -Address ann@example.com -Password (Read-Host -AsSecureString)
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password', Justification = '-Password takes a SecureString, and a plain string too for a script that already holds one; the REST API takes the new password in the request body either way.')]
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Mandatory = $true, Position = 0)]
@@ -523,6 +526,7 @@ function Remove-HmAddressTraces {
         leaves; with -IncludeArchive the archive tree (held copies excepted),
         with -IncludeLogs the log lines rewritten.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'A published command name, which scripts call: it erases an address''s traces as one set.')]
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)]
@@ -882,6 +886,12 @@ function Remove-HmGroupMember {
 $script:SettingGroups = @('settings', 'antispam', 'antivirus', 'logging', 'backup', 'cache', 'indexing', 'scripting', 'bounces', 'complaints', 'directories')
 
 function Get-HmSettingPath {
+    <#
+    .SYNOPSIS
+        The REST path of a settings group, as Get-HmSetting and Set-HmSetting
+        use it: /api/v1/settings for 'settings' or none, /api/v1/settings/<group>
+        for the others.
+    #>
     param([string] $Group)
     if (-not $Group -or $Group -eq 'settings') { return '/api/v1/settings' }
     return "/api/v1/settings/$Group"
@@ -1218,6 +1228,7 @@ function Test-HmRuleCriterion {
         Test-HmRuleCriterion -Type contains -Value viagra -Against 'cheap viagra here'
     #>
     [CmdletBinding()]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory = $true, Position = 0)]
         [ValidateSet('equals', 'contains', 'less_than', 'greater_than', 'regex', 'not_contains', 'not_equals', 'wildcard')]
@@ -1738,6 +1749,7 @@ function Test-HmWebhook {
     .EXAMPLE
         Test-HmWebhook -Event message.bounced -Domain example.com
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = '-Event is the published parameter for the event type the route takes; inside this function $Event is that parameter, and the function is no event handler.')]
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [ValidateSet('message.received', 'message.delivered', 'message.bounced', 'message.quarantined', 'account.locked')]
@@ -1793,6 +1805,7 @@ function Revoke-HmDevice {
     .EXAMPLE
         Revoke-HmDevice -Address ann@example.com -Id 0123456789abcdef0123456789abcdef -Credential
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUsePSCredentialType', '', Justification = '-Credential is a published switch that also turns off the app password the client signed in with; it carries no credential.')]
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true)] [string] $Address,
@@ -2416,6 +2429,7 @@ function Test-HmRotationHoldsKeys {
     # files right now: its schedule on, a next key staged, or an old selector still
     # being kept - when the server refuses a change to them with 409. A server
     # without the route, or a key that may not read it, answers no.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal to the module and not exported.')]
     param([Parameter(Mandatory = $true)] [string] $Domain)
     try {
         $status = Invoke-HmApi -Method GET -Path (Get-HmDkimRotationPath -Domain $Domain)
@@ -2433,6 +2447,7 @@ function Test-HmRotationHoldsKeys {
 }
 
 function Test-HmRotationOwnedDiffers {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal to the module and not exported.')]
     param([Parameter(Mandatory = $true)] $Here, [Parameter(Mandatory = $true)] $There)
     $hereNames = @($Here.PSObject.Properties.Name)
     $thereNames = @($There.PSObject.Properties.Name)
@@ -2445,6 +2460,7 @@ function Test-HmRotationOwnedDiffers {
 }
 
 function Remove-HmRotationOwned {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Answers a copy of a row without the keys DKIM key rotation owns; it changes nothing, here or on the server. Internal to the module and not exported.')]
     param([Parameter(Mandatory = $true)] $Row, [bool] $RotationOn = $false)
     $on = $RotationOn -or ($Row.PSObject.Properties.Name -contains 'dkim_rotation_enabled' -and $Row.dkim_rotation_enabled -eq $true) -or
           ($Row -is [System.Collections.IDictionary] -and $Row.Contains('dkim_rotation_enabled') -and $Row['dkim_rotation_enabled'] -eq $true)
@@ -2460,6 +2476,13 @@ function Remove-HmRotationOwned {
 }
 
 function ConvertTo-HmConfigurationRow {
+    <#
+    .SYNOPSIS
+        A row of settings as Export-HmConfiguration writes it: its keys in
+        order, less what is not configuration - ids, what the server says about
+        a key (*_levels), and the keys the server's environment sets
+        (*_environment and the keys they name).
+    #>
     param([Parameter(Mandatory = $true)] $Row)
     # <key>_environment says the server's environment sets <key>
     # (docs/EnvironmentConfiguration.md): the value is the deployment's, stored
@@ -2564,7 +2587,11 @@ function Export-HmConfiguration {
             $ini[[string] $row.name] = $row.value
         }
     }
-    catch { }
+    catch {
+        # A server without the route, or a credential that may not read it, leaves
+        # the section empty, as it always has; -Verbose says why.
+        Write-Verbose "The ini settings were not read: $($_.Exception.Message)"
+    }
 
     $sections = [ordered] @{ settings = $settings; ini = $ini }
 
@@ -2789,18 +2816,26 @@ function Import-HmConfiguration {
 # ---------------------------------------------------------------------------
 
 $script:CompleterDomain = {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    # PowerShell passes an argument completer five arguments by position - the
+    # command's name, the parameter's, the word being completed, the command's
+    # syntax tree and the parameters bound so far. This one reads the third.
+    $wordToComplete = $args[2]
     if (-not $script:Session) { return }
     try {
         Get-HmDomain |
             Where-Object { $_.name -like "$wordToComplete*" } |
             ForEach-Object { [System.Management.Automation.CompletionResult]::new($_.name, $_.name, 'ParameterValue', $_.name) }
     }
-    catch { }
+    catch {
+        # A completer that cannot ask the server completes nothing, and never throws into the prompt.
+        return
+    }
 }
 
 $script:CompleterAddress = {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    # The five arguments by position, as above: this one reads the third and the fifth.
+    $wordToComplete = $args[2]
+    $fakeBoundParameters = $args[4]
     if (-not $script:Session) { return }
     try {
         $domains = if ($fakeBoundParameters.ContainsKey('Domain')) { @($fakeBoundParameters['Domain']) } else { (Get-HmDomain).name }
@@ -2810,7 +2845,10 @@ $script:CompleterAddress = {
                 ForEach-Object { [System.Management.Automation.CompletionResult]::new($_.address, $_.address, 'ParameterValue', $_.address) }
         }
     }
-    catch { }
+    catch {
+        # A completer that cannot ask the server completes nothing, and never throws into the prompt.
+        return
+    }
 }
 
 Register-ArgumentCompleter -CommandName Get-HmAccount, New-HmAccount, Get-HmAlias, New-HmAlias, Export-HmAccount, Get-HmDomain, Set-HmDomain, Remove-HmDomain -ParameterName Domain -ScriptBlock $script:CompleterDomain

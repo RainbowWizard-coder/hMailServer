@@ -103,6 +103,16 @@ for a stray `#` number or `@` name.
   --add` of the component that the instance's own catalog says installs `Microsoft.VisualCpp.CRT.Redist.ARM64`
   when the instance lacks it. `check-arm64-toolchain.ps1 -SelfTest` holds both to instance trees and catalogs made
   to order, with the old path and the old command as its negative controls; on the laptop the check now exits 0.
+- **The command-line packages are checked wherever they change.** `build/check-cli-packages.py`, in the
+  `checkers` job, fails when the manifest's version or function list drifts from `Version.h` or the module, or the
+  Python package gains a dependency, a version of its own, an install hook, a second copy of `hmctl` or a
+  standard-library module newer than Python 3.8, or `hmctl` runs code when it is imported; its `--self-test` breaks
+  each rule in a copy. The new `cli-packages` and `cli-powershell` jobs (`.gitlab/ci/cli-packages.yml`; merge
+  requests and branches, never a tag) build the sdist and the wheel twice and compare them, run `twine check
+  --strict`, install the wheel alone, and run `Test-ModuleManifest` and PSScriptAnalyzer - from the PowerShell
+  Gallery, held to its published SHA-512 - under pwsh. PSScriptAnalyzer's 25 findings in `HmailServer.psm1` are
+  fixed or justified on the one function, with no command, parameter or confirmation prompt changed;
+  `Export-HmConfiguration -Verbose` now says why the ini section is empty when the server does not answer for it.
 
 ### Operations
 
@@ -190,6 +200,18 @@ for a stray `#` number or `@` name.
   run in a pipeline). `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
   naming the release's image, and `build/ci/helm-repo.py` writes the repository's index and Artifact Hub's metadata
   from the update feed in `package-repos`.
+- **`hmctl` as a PyPI package, `hmailserver-cli`, and the PowerShell module with a Gallery manifest** (neither
+  published yet). `build/ci/cli-packages.py` builds `hmailserver-cli`'s sdist and wheel from
+  `hmailserver/source/Tools/Cli/python/` with the same `hmctl` file the `.deb` and the `.rpm` install, copied into it
+  byte for byte, at `Version.h`'s version, with no dependency and no code that runs when it is installed; it runs
+  on Python 3.8 and later. `HmailServer.psd1`, the module's new manifest, lists its 95 functions for Windows
+  PowerShell 5.1 and PowerShell 7 at the server's version, which the release's version stamp now includes. The
+  manual `master` jobs `pypi-publish` (a PyPI trusted publisher, with PyPI attestations) and `psgallery-publish`
+  (`PSGALLERY_API_KEY`) say "not configured" until each account is set up. They publish only a release the update
+  feed lists, rebuilt from its owner-signed tag, and never a version twice: `pypi-publish` finishes an upload that
+  stopped halfway and fails when a PyPI publisher that once worked stops matching, and `psgallery-publish` refuses
+  a module with no Authenticode signature, which the release does not sign yet
+  ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
 
 ---
 

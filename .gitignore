@@ -182,3 +182,8 @@ credentials.json
 # and build/ci/linux-coverage.sh (clang source-based coverage).
 /coverage-windows/
 /linux-coverage/
+
+# What build/ci/cli-packages.py writes where it is run (hmailserver/docs/CommandLinePackages.md):
+# the staged package, its sdist and wheel, and a publish job's release tree.
+/cli-packages/
+/cli-publish/

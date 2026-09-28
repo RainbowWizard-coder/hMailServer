@@ -1,0 +1,67 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# hmailserver-cli: hmctl on PyPI (hmailserver/docs/CommandLinePackages.md).
+#
+# This directory is not built as it stands. build/ci/cli-packages.py build copies it
+# to a staging directory and adds the three files that make the package there:
+#
+#   hmailserver_cli/hmctl.py      the file the .deb and the .rpm install as
+#                                 /usr/bin/hmctl (hmailserver/source/Tools/Cli/hmctl),
+#                                 copied byte for byte, so there is one hmctl;
+#   hmailserver_cli/__init__.py   the version, from Common/Application/Version.h,
+#                                 which is where the server, the installer and the
+#                                 Linux packages take theirs, so it cannot drift;
+#   LICENSE                       the repository's, with LF line endings.
+#
+# The sdist it makes holds all of them, so it builds with any PEP 517 front end and
+# nothing of this repository. build/check-cli-packages.py holds this file to the
+# rules below: the version derived and never written here, no dependency, and the
+# build backend alone deciding what is in the package - no setup.py, no hook, no
+# code that runs when the package is installed.
+
+[build-system]
+# flit_core: a declarative backend with no dependencies of its own and no way to run
+# the project's code at build or install time. The jobs install it pinned and hashed
+# (build/ci/cli-packages-requirements.txt) and build with --no-isolation; this range
+# is what any other front end fetches.
+requires = ["flit_core >=4.1,<5"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "hmailserver-cli"
+dynamic = ["version"]
+description = "hmctl: administer an hMailServer over its REST API from a command line"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Christopher Holloway / Progressive Robot Ltd" }]
+keywords = ["hmailserver", "mail server", "smtp", "imap", "rest", "administration", "cli"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Communications :: Email :: Mail Transport Agents",
+    "Topic :: System :: Systems Administration",
+]
+# The standard library alone, as hmctl has always been: nothing is fetched when it is
+# installed, and nothing but hmctl runs when it is used.
+dependencies = []
+
+[project.urls]
+Homepage = "https://gitlab.com/hmailserver/hmailserver"
+Documentation = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/CommandLine.md"
+Source = "https://gitlab.com/hmailserver/hmailserver"
+Issues = "https://gitlab.com/hmailserver/hmailserver/-/issues"
+Changelog = "https://gitlab.com/hmailserver/hmailserver/-/blob/master/CHANGELOG.md"
+
+[project.scripts]
+hmctl = "hmailserver_cli.hmctl:main"
+
+[tool.flit.module]
+name = "hmailserver_cli"

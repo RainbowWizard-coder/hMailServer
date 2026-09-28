@@ -1,0 +1,225 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The command-line clients as packages (hmailserver/docs/CommandLinePackages.md):
+# hmctl on PyPI as hmailserver-cli, and the HmailServer PowerShell module on the
+# PowerShell Gallery. Included from .gitlab-ci.yml. On GitLab's shared runners, none on
+# the project's own two machines:
+#
+#   cli-packages        a merge request's or a branch's pipeline, when the clients or
+#                       their packaging change: build's pinned tools installed with
+#                       their hashes; the sdist and the wheel built from the tree
+#                       (build/ci/cli-packages.py build, which stages
+#                       hmailserver/source/Tools/Cli/hmctl into the package byte for
+#                       byte and takes the version from Version.h), built twice and
+#                       compared byte for byte, held to the tree
+#                       (build/check-cli-packages.py --dist), passed by twine check
+#                       --strict, and installed into a clean environment from the wheel
+#                       alone, where hmctl and python -m hmailserver_cli must run;
+#   cli-powershell      the same pipelines: Test-ModuleManifest, the module imported
+#                       through its manifest, and PSScriptAnalyzer - from the
+#                       PowerShell Gallery, pinned and held to its SHA-512 - clean
+#                       over the manifest and the module (build/ci/cli-powershell.ps1),
+#                       under pwsh on Linux;
+#   pypi-publish        by hand, in a master pipeline: the release's hmailserver-cli to
+#                       PyPI through a trusted publisher, with a PyPI publish
+#                       attestation per file;
+#   psgallery-publish   by hand, in a master pipeline: the release's module to the
+#                       PowerShell Gallery with PSGALLERY_API_KEY.
+#
+# Neither check job runs for a tag: a v* tag's pipeline builds the same tree its batch
+# and master pipelines have passed, and the release does not wait for them
+# (.gitlab-ci.yml, release).
+#
+# The two publish jobs publish a RELEASE, not the commit their pipeline is for: the one
+# the project's CI/CD variable HM_CHANNEL_VERSION names, or else the update feed's
+# releases/latest, and the feed must list it as a published release, not a draft or a
+# pre-release. Its tag must be an annotated tag on master signed by the key
+# master's .gitlab/allowed_signers lists - the release job's own check
+# (build/ci/release-chain.py), run again here - and the package is built from that
+# tag's tree. So an account that arrives weeks after a release still publishes that
+# release, from master, with no new release made for it. A version is chosen by a
+# project variable rather than one given when the job is started, since the project
+# refuses pipeline variables. Each job is dormant until its channel is set up, and
+# then idempotent:
+#
+#   pypi-publish        exchanges the job's ID token (aud pypi) at PyPI for an upload
+#                       token; PyPI answers "invalid-publisher" until a PyPI owner
+#                       adds the trusted publisher (namespace hmailserver, project
+#                       hmailserver, file .gitlab-ci.yml, environment pypi), and the
+#                       job then says "not configured" and exits 0 - while PyPI has
+#                       no project of that name; once it has one, a publisher that
+#                       has stopped matching fails the job. A version PyPI has both
+#                       files of is never sent again; one with a single file, an
+#                       upload stopped part-way, gets the other. The files are signed as this
+#                       pipeline with Sigstore (ID token aud sigstore) as PyPI publish
+#                       attestations, and twine uploads them with --attestations:
+#                       what gives deps.dev its verified link to the project.
+#   psgallery-publish   without PSGALLERY_API_KEY (a protected, masked project
+#                       variable), says "not configured" and exits 0; a version the
+#                       Gallery lists is not sent again; a module with no Authenticode
+#                       signature is refused, since the Gallery is to have the one the
+#                       release signs (Roadmap3, "PowerShell Gallery") and keeps a
+#                       version for good.
+#
+# The PyPI publisher names .gitlab-ci.yml, not this file: PyPI checks the ID token's
+# ci_config_ref_uri, which is the top-level pipeline file's for a job of an included
+# file too, as Fulcio's certificate names it for release-sign.
+#
+# Nothing here holds a secret. The PyPI upload token is minted inside the job from its
+# ID token and handed to twine in its environment; the Gallery key reaches
+# Publish-PSResource from the job's environment and is never on a command line
+# (build/ci/cli-packages.py). The publish jobs run for a protected master only
+# (build/ci/repo-hygiene.py, Token-Permissions, holds every job with an ID token to
+# that).
+#
+# Images: the shared runners' Python image and Microsoft's .NET SDK image, whose pwsh is
+# the one package-templates and roadmap use, by the digests .gitlab-ci.yml pins
+# (Renovate moves tag and digest together).
+
+.cli-packages-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+      when: never
+    - changes:
+        - hmailserver/source/Tools/Cli/**/*
+        - hmailserver/source/Server/Common/Application/Version.h
+        - LICENSE
+        - build/check-cli-packages.py
+        - build/ci/cli-packages.py
+        - build/ci/cli-packages-requirements.txt
+        - build/ci/cli-powershell.ps1
+        - .gitlab/ci/cli-packages.yml
+
+.cli-packages-publish:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+
+cli-packages:
+  stage: check
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 15 minutes
+  rules:
+    - !reference [.cli-packages-changes, rules]
+  before_script:
+    # git for SOURCE_DATE_EPOCH, the time of the commit, which makes the build the
+    # same bytes whenever it runs.
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends git > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - python3 -m venv /tmp/cli-venv
+    - /tmp/cli-venv/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes -r build/ci/cli-packages-requirements.txt
+  script:
+    - /tmp/cli-venv/bin/python build/check-cli-packages.py --self-test
+    - /tmp/cli-venv/bin/python build/ci/cli-packages.py --self-test
+    - /tmp/cli-venv/bin/python build/ci/cli-packages.py build --out cli-packages
+    - /tmp/cli-venv/bin/python build/check-cli-packages.py --dist cli-packages/dist
+    - /tmp/cli-venv/bin/python -m twine check --strict cli-packages/dist/*
+    - |
+      # The same tree, built again: the same bytes.
+      /tmp/cli-venv/bin/python build/ci/cli-packages.py build --out /tmp/cli-packages-again > /dev/null
+      for file in cli-packages/dist/*; do
+        cmp "$file" "/tmp/cli-packages-again/dist/$(basename "$file")" || { echo "a second build of $(basename "$file") is not the same bytes"; exit 1; }
+      done
+      echo "Built twice, the same bytes."
+    - |
+      # The wheel alone, into an environment that has nothing else and may fetch
+      # nothing: hmctl and the module entry point run from it.
+      python3 -m venv /tmp/installed
+      /tmp/installed/bin/pip install --quiet --disable-pip-version-check --no-index cli-packages/dist/*.whl
+      /tmp/installed/bin/pip list --disable-pip-version-check
+      /tmp/installed/bin/hmctl --version
+      /tmp/installed/bin/hmctl --help > /dev/null
+      /tmp/installed/bin/python -m hmailserver_cli domain --help > /dev/null
+      # With no server there, a clean refusal and exit 1, not a traceback.
+      set +e
+      HMAIL_API_KEY=none /tmp/installed/bin/hmctl --url http://127.0.0.1:9 --timeout 5 status > /tmp/refused.txt 2>&1
+      code=$?
+      set -e
+      cat /tmp/refused.txt
+      if [ "$code" != "1" ] || ! grep -q "cannot reach" /tmp/refused.txt; then
+        echo "hmctl answered $code without a server, not 1 with 'cannot reach'"
+        exit 1
+      fi
+      echo "The wheel installs alone and its hmctl runs."
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - cli-packages/dist/
+
+cli-powershell:
+  stage: check
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  needs: []
+  timeout: 15 minutes
+  rules:
+    - !reference [.cli-packages-changes, rules]
+  script:
+    - pwsh -NoProfile -NonInteractive -File build/ci/cli-powershell.ps1
+
+pypi-publish:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  resource_group: pypi-publish
+  rules:
+    - !reference [.cli-packages-publish, rules]
+  environment:
+    name: pypi
+    url: https://pypi.org/project/hmailserver-cli/
+  id_tokens:
+    PYPI_ID_TOKEN:
+      aud: pypi
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  before_script:
+    # git and ssh-keygen for the release tag's signature, which the job checks against
+    # master's .gitlab/allowed_signers before it builds anything from the tag.
+    - apt-get update -qq
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends git openssh-client ca-certificates > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - python3 -m venv /tmp/cli-venv
+    - /tmp/cli-venv/bin/pip install --quiet --disable-pip-version-check --no-cache-dir --require-hashes -r build/ci/cli-packages-requirements.txt
+  script:
+    - /tmp/cli-venv/bin/python build/ci/cli-packages.py pypi-publish --out cli-publish
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - cli-publish/dist/
+
+psgallery-publish:
+  stage: release
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  resource_group: psgallery-publish
+  rules:
+    - !reference [.cli-packages-publish, rules]
+  environment:
+    name: psgallery
+    url: https://www.powershellgallery.com/packages/HmailServer
+  before_script:
+    # python3 runs the publisher; git and ssh-keygen check the release tag's
+    # signature. pwsh and its PSResourceGet are the image's.
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends python3 git openssh-client ca-certificates > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - python3 build/ci/cli-packages.py psgallery-publish --out cli-publish
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - cli-publish/module/

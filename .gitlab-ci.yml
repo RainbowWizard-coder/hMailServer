@@ -106,6 +106,9 @@ include:
   - local: .gitlab/ci/packages-appimage.yml
   - local: .gitlab/ci/packages-rpm.yml
   - local: .gitlab/ci/packages-windows.yml
+  # hmctl on PyPI and the PowerShell module on the Gallery: their checks, and the two
+  # publish jobs, dormant until each account exists (docs/CommandLinePackages.md).
+  - local: .gitlab/ci/cli-packages.yml
 
 stages:
   - check
@@ -231,7 +234,7 @@ checkers:
 
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
-      for name in authz-choke-point collection-iteration com-error-info com-shared-copies \
+      for name in authz-choke-point cli-packages collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage help-map idl-case mysql-charset password-choice-sites release-chain \
                   roadmap2 role-choke-point sbom-inputs; do
         check python3 "build/check-$name.py" --self-test
@@ -245,6 +248,8 @@ checkers:
       # The release's collect and publish steps, against a registry and a releases API in
       # memory: the links they make are the ones the feed takes.
       check python3 build/ci/release-chain.py --self-test
+      # hmctl's PyPI package and its publish step, against a PyPI and a feed in memory.
+      check python3 build/ci/cli-packages.py --self-test
       # The sign-off check and the landing script, against repositories and a GitLab API
       # they make for themselves.
       check python3 build/sign-off.py --self-test

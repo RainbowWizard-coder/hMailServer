@@ -1,0 +1,33 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The Python packages the command-line packages' jobs install
+# (.gitlab/ci/cli-packages.yml; hmailserver/docs/CommandLinePackages.md), by
+# hand-chosen version. build/ci/cli-packages-requirements.txt is made from this
+# file, with every package they pull in pinned and every file's SHA-256, and that
+# is the file the jobs install from (pip --require-hashes):
+#
+#   flit_core           the build backend hmailserver/source/Tools/Cli/python/
+#                       pyproject.toml names; the jobs build with it installed
+#                       from here (python -m build --no-isolation), so that the
+#                       backend is hashed too and not fetched by build's
+#                       isolation at whatever version PyPI serves that minute
+#   build               the PEP 517 front end
+#   twine               twine check of the sdist and the wheel, and the upload
+#   pypi-attestations   the PyPI publish attestations (Sigstore), which give
+#                       deps.dev its verified link to the project
+#
+# To move a version, change it here and regenerate the pinned file with uv, from
+# PyPI, --universal so that one file holds for the Linux jobs and a Windows desk:
+#
+#   python -m venv /tmp/uv && /tmp/uv/bin/pip install uv
+#   /tmp/uv/bin/uv pip compile --universal --generate-hashes --python-version 3.13 \
+#       --output-file build/ci/cli-packages-requirements.txt build/ci/cli-packages-requirements.in
+#
+# then put this file's three header lines back at the top of the output, and keep
+# flit_core's range in pyproject.toml's [build-system] requires holding the pin.
+flit_core==4.1.0
+build==1.6.1
+twine==7.0.0
+pypi-attestations==0.0.30

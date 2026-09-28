@@ -405,6 +405,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-authz-choke-point.py` | Every folder-access decision goes through `ACLManager` | `--self-test` |
 | `check-catalogues.py` | Control Panel translations keep the server's literal words, the page names and the numbers | |
 | `check-cli.py` | `hmctl` and the PowerShell module against a recorded server | The PowerShell half skips itself when neither `pwsh` nor `powershell` is present |
+| `check-cli-packages.py` | The two clients' packages: `HmailServer.psd1`'s version and function list against `Version.h` and the module, and `hmailserver-cli` built from `hmctl` with no dependency and no install-time code ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)) | `--self-test`; `--dist DIR` also checks a built sdist and wheel |
 | `check-collection-iteration.py` | Every loop over a shared collection iterates a locked copy (`GetSnapshot()`) | `--self-test` |
 | `check-com-dispids.py` | No two members of one COM interface share a dispatch id | |
 | `check-com-error-info.py` | Every COM class that raises errors answers `ISupportErrorInfo` | `--self-test` |
@@ -632,7 +633,8 @@ And, for any new setting:
 * A write reaches the audit trail through the actor `RestApiServer::ProcessRequest_` installs
   (`check-audit-choke-point.py`).
 * A route that sets a password asks the password policy and the breach check (`check-password-choice-sites.py`).
-* If `hmctl` or the PowerShell module gains a verb, `check-cli.py`. If the Deck reaches the property, run
+* If `hmctl` or the PowerShell module gains a verb, `check-cli.py`, and `check-cli-packages.py`: a function the
+  module exports goes into `HmailServer.psd1`'s `FunctionsToExport` too. If the Deck reaches the property, run
   `check-deck-parity.py` and commit `DeckParity.md`.
 
 ### The Control Panel and its languages

@@ -296,9 +296,15 @@ uploaded and linked like every other file of the release. SECURITY.md,
    several steps past the last stable - and it was missing from this step until
    6.2.23.
 
-7. **Version stamp**, eleven files. The Windows nine: `Version.h` (version,
+7. **Version stamp**, twelve files. The Windows nine: `Version.h` (version,
    numeric, build), `section_setup_64.iss`, and all seven `.csproj`
-   `<Version>` values. Then the two nothing on Windows looks at:
+   `<Version>` values. Then three outside the Windows build:
+   * `hmailserver/source/Tools/Cli/HmailServer.psd1` - `ModuleVersion`, the
+     PowerShell module's version on the PowerShell Gallery. A data file cannot
+     read `Version.h`, so it is written; `build/check-cli-packages.py` fails the
+     `checkers` job while it differs. The PyPI package `hmailserver-cli` is not on
+     this list: `build/ci/cli-packages.py` takes its version from `Version.h` when
+     it builds it ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
    * `hmailserver/source/Server/platform/packaging/PKGBUILD` - `pkgver`, which
      is also the tag the PKGBUILD fetches. It cannot be derived: `makepkg`
      parses the PKGBUILD as a shell script and never runs CMake.
