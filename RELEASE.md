@@ -112,11 +112,12 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    container under qemu-user; for `release-packages`
    (`.gitlab/ci/release-packages.yml`), which waits in turn for every other
    distribution release's `.deb` and `.rpm` build and its install job, both
-   AppImages and their test jobs, and the source tarball, and gathers those
-   files with an SBOM each; and for `helm-chart-package`, the chart. (Release may
-   need fifty jobs at most, GitLab's `ci_needs_size_limit`; `release-packages`
-   waits for forty-one, thirty-nine of them jobs `release` does not need
-   itself.) It does not wait for the Windows packages, whose installers no
+   AppImages and their test jobs, `appimage-runtime-sources` (the source of the
+   libraries linked into the AppImages' runtime) and the source tarball, and
+   gathers those files, each but the runtime's sources with an SBOM; and for
+   `helm-chart-package`, the chart. (Release may need fifty jobs at most,
+   GitLab's `ci_needs_size_limit`; `release-packages` waits for forty-two, forty
+   of them jobs `release` does not need itself.) It does not wait for the Windows packages, whose installers no
    release carries: the release's installer is `windows-installer`'s. It reads
    the four scans'
    reports first (`build/ci/security-gate.py`) and refuses while one did not
@@ -161,15 +162,18 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    `rpm-fedora44-aarch64-sbom`, and every other package's, both AppImages' and the
    tarball's from `release-packages`, and every compiled file goes out with its
    `<file>.cdx.json` (SECURITY.md, "Software bills of materials"). From 6.3.6 a
-   release is fifty-six files, each with its bundle: the installer; the generic
+   release is fifty-seven files, each with its bundle: the installer; the generic
    `.deb` and `.rpm` for x86-64 and for AArch64; a `.deb` for Debian 12 and 13 and
    Ubuntu 24.04 and an `.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0
-   and Tumbleweed, each for both, eighteen; the two AppImages; the source tarball;
-   the Helm chart; the sums of every Linux file and the chart; the twenty-six
-   SBOMs of the compiled files and the tarball, and the tree's two. Each
-   primary file's bundle goes out a second time as `<file>.sigstore.json`, and
-   `hmailserver-X.Y.Z.intoto.sigstore.json` is the provenance, signed as the
-   pipeline with `cosign attest-blob`: 143 links in all. `release-sign` finds every
+   and Tumbleweed, each for both, eighteen; the two AppImages; the source of the
+   libraries linked into their runtime, `hmailserver-X.Y.Z-appimage-runtime-sources.tar.gz`,
+   which the LGPL-2.1 and the GPL of two of them ask for and each AppImage names
+   (hmailserver/docs/PackagesAppImage.md, "Licences"); the source tarball; the
+   Helm chart; the sums of every Linux file, the runtime's sources and the chart;
+   the twenty-six SBOMs of the compiled files and the tarball, and the tree's two.
+   Each primary file's bundle goes out a second time as `<file>.sigstore.json`,
+   and `hmailserver-X.Y.Z.intoto.sigstore.json` is the provenance, signed as the
+   pipeline with `cosign attest-blob`: 146 links in all. `release-sign` finds every
    file in the provenance with cosign, and `release-verify` holds the provenance
    and the copies to the files. Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
@@ -190,7 +194,7 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    started it, and the package protection rules let only an Owner push to the
    package `hmailserver`: started by anyone else, its uploads are refused
    (`hmailserver/docs/ContinuousIntegration.md`, "What waits for the owner").
-   It uploads the release's 143 files - the fifty-six, their bundles, the
+   It uploads the release's 146 files - the fifty-seven, their bundles, the
    `.sigstore.json` copies and the provenance - to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
    compiled file whose SBOM is missing or describes other bytes, a copy that is

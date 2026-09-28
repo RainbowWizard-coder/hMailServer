@@ -55,6 +55,10 @@ So the project now has a runtime of its own:
   - `fuse3-static`;
   - the static zstd, lz4, xz, zlib and lzo that Alpine's squashfuse is built
     with.
+- **Its licences:** libfuse3 is under the LGPL-2.1 and lzo under the
+  GPL-2.0-or-later, and both ask for their own source to go with the binary. The
+  release carries it, as `hmailserver-<version>-appimage-runtime-sources.tar.gz`
+  ([Licences](#licences)).
 - **What it provides:**
   - the format's magic bytes, `AI\x02` at offset 8;
   - an empty `.upd_info` section;
@@ -147,21 +151,24 @@ minutes.
 
 | Job | Image | Makes |
 |---|---|---|
-| `appimage-runtime-x86_64` | `alpine:3.24` amd64 | `appimage/runtime-x86_64` and `.txt` (what it was built from, and the licences), after `build/ci/packages/appimage-runtime.sh` proves it on a small AppImage of its own |
-| `appimage-runtime-aarch64` | `alpine:3.24` arm64, under qemu-user | `appimage/runtime-aarch64` and `.txt`, proved the same way |
-| `appimage-x86_64` | `ubuntu:24.04` amd64 | Builds the server with GCC 13 and makes `hMailServer-<v>-x86_64.AppImage`, then runs it (`appimage-build.sh`, then `appimage-test.sh`) |
+| `appimage-runtime-x86_64` | `alpine:3.24` amd64 | `appimage/runtime-x86_64` and `.txt` (what it was built from and links, the licences, and where the source is), after `build/ci/packages/appimage-runtime.sh` proves it on a small AppImage of its own; and `runtime-x86_64-linked.txt`, every file the link took with its Alpine package, version, aports commit and licence ([Licences](#licences)) |
+| `appimage-runtime-aarch64` | `alpine:3.24` arm64, under qemu-user | `appimage/runtime-aarch64`, `.txt` and `-linked.txt`, proved the same way |
+| `appimage-runtime-sources` | `alpine:3.24` amd64 | `appimage-runtime-sources/hmailserver-<v>-appimage-runtime-sources.tar.gz`, the source of every library the two runtimes link as Alpine built it, made twice and compared, with `SHA256SUMS.txt`; and `licenses-<arch>/`, each library's licence files for that architecture's AppImage (`build/ci/packages/appimage-runtime-sources.sh`) |
+| `appimage-x86_64` | `ubuntu:24.04` amd64 | Builds the server with GCC 13 and makes `hMailServer-<v>-x86_64.AppImage`, with the runtime's libraries' licence files, then runs it (`appimage-build.sh`, then `appimage-test.sh`) |
 | `appimage-aarch64-compile` | `ubuntu:24.04` amd64 | `appimage/hmailserver-aarch64`, cross-compiled against Ubuntu 24.04's own arm64 libraries from ports.ubuntu.com (`appimage-cross.sh`) |
 | `appimage-aarch64` | `ubuntu:24.04` arm64, under qemu-user | `hMailServer-<v>-aarch64.AppImage` from that binary (`appimage-build.sh` with `HM_PREBUILT`), then runs it |
 | `appimage-test-x86_64`, `appimage-test-aarch64` | `fedora:44` from registry.fedoraproject.org | Nothing. Runs the AppImage on a distribution it was not built on, with nothing that the build installed (`appimage-test.sh`) |
 
 **When the jobs run:**
 
-- **For a protected `v*` tag:** every job runs.
-- **For another protected ref (master, `batch*`):** the two runtime jobs and the
-  compile job wait to be started by hand, and the rest follow them.
-  - For the x86_64 AppImage, start `appimage-runtime-x86_64`.
-  - For the aarch64 AppImage, start both `appimage-runtime-aarch64` and
-    `appimage-aarch64-compile`: `appimage-aarch64` needs the two.
+- **For a protected `v*` tag and a `batch*` branch:** every job runs at once, as
+  the release and its rehearsal need them.
+- **For `master`:** the two runtime jobs and the compile job wait to be started
+  by hand, and the rest follow them.
+  - For the x86_64 AppImage, start both runtime jobs: `appimage-x86_64` needs
+    `appimage-runtime-sources`, which needs the two.
+  - For the aarch64 AppImage, start both runtime jobs and
+    `appimage-aarch64-compile`.
   - Until then GitLab shows the jobs that follow as skipped, and is expected to
     run them once what they need has been started and has passed. `batch41`'s
     pipelines 2886955494, 2887115157 and 2887524317 (27 and 28 September 2026)
@@ -189,7 +196,10 @@ and needs the target's loader.
    - the schema scripts;
    - `dh2048.pem` and `tlds.txt`;
    - the live update's apply step;
-   - the licences;
+   - the licences, among them `appimage-runtime.txt`, which must name the
+     release file with the runtime's libraries' source, the licence files of
+     every library it lists (libfuse3's and lzo's at least), and the GPL-3.0's
+     text;
    - `AppRun`, the desktop file and the icon.
 5. Where FUSE can be had, the mounted run works too. In a container it usually
    cannot, and the script says so rather than failing.
@@ -211,8 +221,9 @@ An arm64 AppImage cannot be started under qemu-user on an x86-64 host.
 What was run, and with what result
 ----------------------------------
 
-Everything below was run by hand on linix, on 26 September 2026, in containers
-from the same images and digests as the jobs, and not by GitLab. **No GitLab
+Everything below was run by hand on linix, on 26 September 2026 (the runtime's
+sources on the laptop, on 28 September), in containers from the same images and
+digests as the jobs, and not by GitLab. **No GitLab
 pipeline has run any of these jobs yet.** They were in `batch41`'s pipelines
 2886955494 and 2887115157 (27 September 2026), where nobody started the runtime
 and compile jobs, which were cancelled with the pipeline without having started,
@@ -277,6 +288,27 @@ and had not run when this was written. The x86_64 build of the committed
 scripts is the first runs' (07:38 UTC), and the packing with GitLab's variables
 is the aarch64 row of the check's runs above.
 
+### The runtime's sources
+
+Run on the laptop on 28 September 2026, in WSL's Docker, from this branch's tree,
+in one `alpine:3.24` amd64 container at a time, of the digest
+`appimage-runtime-x86_64` and `appimage-runtime-sources` name (Alpine 3.24.2),
+each removed afterwards:
+
+| What | Result |
+|---|---|
+| `appimage-runtime.sh`, x86_64, with the link's map and its record | **Passed.** The runtime linked and passed its self-test as before: 871,016 bytes, SHA-256 `3c004d2c…` (Alpine's packages have moved since 26 September). The record names 13 files: musl's `libc.a`, `rcrt1.o`, `crti.o` and `crtn.o`; `libfuse3.a`; `libsquashfuse_ll.a`; `libzstd.a`, `liblz4.a`, `liblzma.a`, `libz.a` and `liblzo2.a`; and GCC's `crtbeginS.o` and `crtendS.o`, each with the package, version, aports commit and licence of the table above. `libsquashfuse.a`, `libgcc.a` and `libgcc_eh.a` were opened and gave the link nothing. |
+| The same script without `-Wl,-Map` and the record | **The same runtime, byte for byte:** the map changes nothing the link writes. |
+| `appimage-runtime-sources.sh pack`, twice, the second from nothing in another directory under umask 0077 | **The same bytes:** 10,737,997 bytes, SHA-256 `bbf3e265…`, for Version.h's 6.3.5. Eight libraries; the aports directories fetched from gitlab.alpinelinux.org by their commits and the eight upstream archives from `distfiles.alpinelinux.org/distfiles/v3.24/`. The aarch64 record was the x86_64 one with the architecture changed: the v3.24 aarch64 `APKINDEX` gave the same versions and commits for all nine packages that day. |
+| The tarball, read back with Python's `tarfile` on Windows | **As it should be:** 41 entries in order, each owned by 0:0, dated `SOURCE_DATE_EPOCH`, 0644 or 0755; every one of the 20 sources the eight `APKBUILD`s list present with the SHA-512 its `APKBUILD` gives, and no other file but the `APKBUILD`s; `SHA512SUMS` right for every other file; five `APKBUILD`s compared with the git blob ids `ls-tree` gave for their commits, all the same. |
+| `pack` given a record it must refuse | **Refused,** each naming why: a library it does not know (origin `lzo2`), an origin that would leave the archive's directory (`../lzo`), and a version (2.10-r4) that aports' `APKBUILD` at the recorded commit does not build. |
+| gcc's source, which `README.txt` says is on the same mirror | `gcc-15.2.0.tar.xz`, the archive aports' `main/gcc` names at the recorded commit, answers 200 at `distfiles.alpinelinux.org/distfiles/v3.24/`. |
+| `build-appimage.sh`'s `--runtime-licenses` and `appimage-test.sh`'s new checks, each block run on its own under WSL's bash, on the licences and notice of the rows above | **Passed:** the eleven licence files installed under `usr/share/hmailserver/licenses/appimage-runtime/`, and the checks passed on that tree; an empty licence directory was refused, and so was a tree without lzo's or zstd's licence files or with a notice that does not name the release file. |
+
+**Not run for the sources:** the aarch64 runtime job's own record (no qemu-user
+on the laptop), a whole AppImage build with `--runtime-licenses` and
+`appimage-test.sh` on a real image, and the jobs in a pipeline.
+
 **Not run:**
 
 - **Any job in a GitLab pipeline** (above). GitLab has created the jobs from
@@ -286,6 +318,105 @@ is the aarch64 row of the check's runs above.
   file with its magic bytes. The project has no arm64 machine.
 - **A server connected to a database or run under a unit.** No step has run the
   server from an AppImage that way.
+
+Licences
+--------
+
+The runtime is linked statically, so what the link takes from Alpine's packages
+goes out inside every AppImage, in the runtime in front of the image.
+`appimage-runtime.sh` records what the link took, from the linker's map: each
+archive a member was taken from and each object file loaded, with the Alpine
+package that owns it and that package's version, origin, aports commit and
+licence from apk's own database (`appimage/runtime-<arch>-linked.txt`, written by
+`build/ci/packages/appimage-runtime-sources.sh record`). A file no package owns,
+other than the compiler's own objects of `runtime.c`, or a library the script does
+not name, fails the job, so a library the runtime starts to link is looked at
+before an AppImage carries it. On Alpine 3.24.2, x86_64, on 28 September 2026:
+
+| What the runtime links | Alpine package | Licence | What that licence asks of a binary |
+|---|---|---|---|
+| `libfuse3.a`, libfuse 3.18.3 | `fuse3-static` 3.18.3-r0 | LGPL-2.1-only (the library; its programs, not linked, are GPL-2.0) | The library's source and what it takes to link the runtime again with a changed copy (section 6); the licence's text |
+| `liblzo2.a`, lzo 2.10 | `lzo-dev` 2.10-r5 | GPL-2.0-or-later | The complete source of the work it is in (section 3); the licence's text |
+| `libsquashfuse_ll.a`, squashfuse 0.6.1 | `squashfuse-dev` 0.6.1-r1 | BSD-2-Clause | The notice |
+| `libzstd.a`, zstd 1.5.7 | `zstd-static` 1.5.7-r2 | BSD-3-Clause OR GPL-2.0, taken under BSD-3-Clause | The notice |
+| `liblz4.a`, lz4 1.10.0 | `lz4-static` 1.10.0-r1 | BSD-2-Clause (the library; its programs, not linked, are GPL-2.0) | The notice |
+| `liblzma.a`, xz 5.8.4 | `xz-static` 5.8.4-r0 | 0BSD | Nothing |
+| `libz.a`, zlib 1.3.2 | `zlib-static` 1.3.2-r0 | Zlib | Nothing, for a binary |
+| `libc.a`, `rcrt1.o`, `crti.o`, `crtn.o`, musl 1.2.6 | `musl-dev` 1.2.6-r2 | MIT | The notice |
+| `crtbeginS.o`, `crtendS.o`, GCC 15.2.0 | `libgcc-static` 15.2.0-r5 | GPL-3.0-or-later WITH GCC-exception-3.1 | Nothing: the exception lets a program GCC compiled be conveyed on terms of its own |
+
+The aarch64 runtime's record is its own job's; any file it adds is recorded the
+same way, and one from a library the script does not name fails that job.
+
+**Which ask for their source.** By their own terms, two: libfuse3 (LGPL-2.1,
+section 6) and lzo (GPL-2.0-or-later, section 3). Because lzo is under the GPL, the
+runtime is a work based on it. It is conveyed under the GPL-3.0 that lzo's "or
+later" allows, since `runtime.c` is AGPL-3.0-or-later (section 13 of each lets the
+two be combined), and that licence's Corresponding Source is the source of the
+whole runtime: `runtime.c`, the script that links it, and every library in it but
+the System Libraries (section 1). So squashfuse, zstd, lz4, xz and zlib, whose own
+licences ask only for their notice or for nothing, go with it too, and so does
+musl, which the runtime carries onto systems whose C library is glibc. GCC's
+start-up files and `libgcc` are the compiler's System Libraries, and the GCC
+Runtime Library Exception asks nothing of a program compiled with GCC: their source
+is not in the release, and its `README.txt` says where Alpine's is.
+
+**Where each is:**
+
+- **`runtime.c` and `appimage-runtime.sh`:** in this repository and in the
+  release's source tarball, `hmailserver-<version>.tar.gz`.
+- **Every library linked into the runtime, exactly as Alpine built it:** the
+  release file `hmailserver-<version>-appimage-runtime-sources.tar.gz`, made by
+  the `appimage-runtime-sources` job (`appimage-runtime-sources.sh pack`) from both
+  runtime jobs' records. For each library at each version and commit they name:
+  - Alpine's aports directory at that commit, with its `APKBUILD` and patches,
+    fetched from Alpine's GitLab by the commit's id, so that git checks every
+    file against the commit;
+  - every upstream archive the `APKBUILD` lists, from Alpine's distfiles mirror
+    (`distfiles.alpinelinux.org/distfiles/<branch>/`, or `edge/` when the
+    branch's has none), never from the address the `APKBUILD` names, which for
+    libfuse, squashfuse, zstd, lz4 and xz is GitHub's; no redirect is followed,
+    and the job keeps GitHub out of itself (`.no-github`);
+  - each source file held to the SHA-512 the `APKBUILD` gives it, the `APKBUILD`
+    read as `abuild` reads it for each architecture that linked the library, and
+    its version held to the package installed.
+
+  With them go `README.txt`, which names each library, its version, licence and
+  commit and where each file came from, says what each licence asks, how to build
+  a library again as Alpine did, and how to link the runtime again with a changed
+  library and put it in front of a release's image; the two records, as
+  `linked-<arch>.txt`; and `SHA512SUMS`. It is packed reproducibly: sorted, every
+  entry dated `SOURCE_DATE_EPOCH` (the commit's time), owned by 0:0, modes 0644
+  and 0755, GNU tar's own format, `gzip -n -9`; the job makes it again from
+  nothing, in another directory under another umask, and compares the bytes. The
+  release carries it with a line in the sums, a bundle and a `.sigstore.json`
+  copy, named in the provenance, and without an SBOM, being source.
+- **The licence texts and notices:** every AppImage carries each library's licence
+  files, from its upstream archive, in
+  `usr/share/hmailserver/licenses/appimage-runtime/<library>/` (the job's
+  `licenses-<arch>/`, which `appimage-<arch>` takes and
+  `build-appimage.sh --runtime-licenses` installs), beside
+  `usr/share/hmailserver/licenses/appimage-runtime.txt` (`runtime-<arch>.txt`),
+  which lists what the runtime links, and names the release file, its address in
+  the package registry and on the release's page; and the GPL-3.0's own text, as
+  `usr/share/hmailserver/licenses/appimage-runtime/GPL-3.0.txt`, which the
+  runtime is conveyed under with lzo (GPLv3 section 4 asks for a copy to go with
+  the program; lzo's own `COPYING` is the GPL-2.0's). `build-appimage.sh`
+  installs it from `platform/packaging/appimage/GPL-3.0.txt`, the FSF's text
+  as Ubuntu's `base-files` and xz's upstream archive carry it (SHA-256
+  `3972dc97…`). `appimage-test.sh` requires all three.
+
+The source goes out beside the binaries, from the same place, which is what the
+GPL-3.0's section 6(d) asks, and must stay there as long as the AppImages do:
+never delete it from the package `hmailserver/<version>` while that release's
+AppImages are offered.
+
+**Still open, outside the runtime.** The shared libraries `build-appimage.sh`
+copies into the image's `usr/lib` from Ubuntu 24.04 are not the runtime's, and
+this does not cover them. Some are under the LGPL (GnuTLS, which the bundled
+`libldap` is built with, is LGPL-2.1-or-later), which asks for the library's
+source too when the library itself is conveyed; the image carries none of their
+copyright files, and the release none of their source.
 
 The names, and the update checker
 ---------------------------------
@@ -355,12 +486,18 @@ What the owner must do
    - on a `batch*` branch the jobs now start at once, as on a tag, so that the
      release's rehearsal (`.gitlab/ci/release-rehearsal.yml`) has them; only
      `master` waits for a press.
-4. **Check the licences:** `runtime-<arch>.txt`, which is shipped inside every
-   AppImage as `usr/share/hmailserver/licenses/appimage-runtime.txt`, names each
-   library linked into the runtime and its licence. They include
-   libfuse3 (LGPL-2.1) and lzo (GPL-2.0-or-later), which squashfuse is built
-   with on Alpine. The runtime's source and the script that links it are in this
-   repository, which is what the LGPL asks for a relink.
+4. **The licences.** Done in batch42 (6.3.6), not yet run in a pipeline
+   ([Licences](#licences)). The runtime links libfuse3 (LGPL-2.1) and lzo
+   (GPL-2.0-or-later), which squashfuse is built with on Alpine, and their
+   licences ask for the libraries' own source to go with the binary, not only
+   the runtime's. The runtime's own source and the script that links it are in
+   this repository and the release's source tarball; the source of every library
+   linked into it, as Alpine built it, is the release file
+   `hmailserver-<version>-appimage-runtime-sources.tar.gz`, which every AppImage
+   names in `usr/share/hmailserver/licenses/appimage-runtime.txt`, beside the
+   libraries' licence files. Nothing is left for the owner but to keep that file
+   on each release for as long as its AppImages are there. The Ubuntu libraries
+   the image bundles in `usr/lib` are still open (the end of "Licences").
 
 For the integrator
 ------------------

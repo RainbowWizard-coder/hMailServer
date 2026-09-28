@@ -500,7 +500,7 @@ waits for the repositories: until they exist, that command would find nothing.
 
 ### How much the site holds
 
-A release as 6.3.6 is has 143 links (Roadmap3, "Release collects every file"). The
+A release as 6.3.6 is has 146 links (Roadmap3, "Release collects every file"). The
 site that carries it (`build/ci/release-chain.py`'s `check_budget`, which the
 `release` job runs before anything is signed and `release-publish` before anything
 is uploaded, both refusing past a limit, with the apt and dnf repositories kept as
@@ -508,8 +508,8 @@ is uploaded, both refusing past a limit, with the apt and dnf repositories kept 
 
 | | 6.3.6 alone | Grows by, per release of its shape | The limit |
 |---|---|---|---|
-| `releases.json` | 48,524 bytes | 48,521 bytes | 4 MiB, the largest feed a server reads (`MAX_FEED_BYTES`, `UpdateChecker.cpp`): about eighty-five releases of this shape |
-| `releases/latest` | 47,652 bytes | nothing: it is the one release | 4 MiB |
+| `releases.json` | 49,610 bytes | 49,607 bytes | 4 MiB, the largest feed a server reads (`MAX_FEED_BYTES`, `UpdateChecker.cpp`): about eighty-four releases of this shape |
+| `releases/latest` | 48,720 bytes | nothing: it is the one release | 4 MiB |
 | `_redirects` | 31 rules in 5,386 bytes: the feed's 15 (the download page and seven files with their bundles) and the apt and dnf repositories' 16 | 16 rules, 2,942 bytes | 1,000 rules and 64 KiB, which Pages reads: twenty-one releases of this shape fit, and the twenty-second needs `--keep` ([PackageManagers.md](PackageManagers.md), "What the repositories hold") |
 
 GitLab sets no limit on the number of a release's links; each link's permanent

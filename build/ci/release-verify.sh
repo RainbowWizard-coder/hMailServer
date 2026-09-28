@@ -143,17 +143,25 @@ for file in "$signed"/*; do
 done
 rm -rf "$scratch"
 
-# The fifty-six files a release carries (build/ci/release-chain.py, expected_assets).
-[ "$verified" -eq 56 ] || fail "$verified file(s) verified; a release is 56"
+# The fifty-seven files a release carries (build/ci/release-chain.py, expected_assets).
+[ "$verified" -eq 57 ] || fail "$verified file(s) verified; a release is 57"
 
 # Each compiled file's own SBOM describes that very file (build/asset-sbom.py verify:
 # well formed, and its subject's SHA-256 is the file's), as a user checks it
-# (SECURITY.md, "Software bills of materials"); and the source tarball's.
+# (SECURITY.md, "Software bills of materials"); and the source tarball's. The source
+# of the AppImages' runtime's libraries has none: it is source, and its README.txt
+# names each library, version, licence and where each file came from.
 sbom_rows=""
 described=0
 for file in "$signed"/*.exe "$signed"/*.deb "$signed"/*.rpm "$signed"/*.AppImage "$signed"/*.tar.gz; do
   [ -f "$file" ] || continue
   name=$(basename "$file")
+  case "$name" in
+    *-appimage-runtime-sources.tar.gz)
+      [ ! -f "$file.cdx.json" ] || fail "$name is source and goes out without an SBOM, and $name.cdx.json is here"
+      continue
+      ;;
+  esac
   [ -f "$file.cdx.json" ] || fail "$name goes out without its SBOM, $name.cdx.json"
   python3 build/asset-sbom.py verify "$file.cdx.json" "$file" > "$out/$name.sbom.txt" \
     || { cat "$out/$name.sbom.txt"; fail "$name.cdx.json does not describe $name"; }
@@ -167,9 +175,16 @@ done
 
 # Each primary file's .sigstore.json is its bundle, and the provenance names every
 # file of the release by its SHA-256 and nothing else, built by this pipeline from
-# this commit.
-python3 build/ci/release-chain.py check-provenance --assets "$signed" ${rehearse:+--rehearse} \
-  || fail "the .sigstore.json copies or the provenance are not what the release is"
+# this commit. Two calls, not one with an unquoted ${rehearse:+--rehearse}: the
+# semgrep job counts that as a finding, and the release's gate refuses any it has
+# not seen before.
+if [ -n "$rehearse" ]; then
+  python3 build/ci/release-chain.py check-provenance --assets "$signed" --rehearse \
+    || fail "the .sigstore.json copies or the provenance are not what the rehearsal is"
+else
+  python3 build/ci/release-chain.py check-provenance --assets "$signed" \
+    || fail "the .sigstore.json copies or the provenance are not what the release is"
+fi
 
 if [ -n "$rehearse" ]; then
   {
@@ -275,15 +290,21 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
   echo "there, and installed and run in a clean container of the release; the AArch64 ones under emulation"
   echo "(qemu-user), since no AArch64 machine has run them. The two AppImages, x86_64 and AArch64, carry the project's"
   echo "own AppImage runtime, linked statically from Alpine's packages; its libfuse3 is under the LGPL-2.1 and its lzo"
-  echo "under the GPL-2.0-or-later, and the runtime's source and build script are in the source tarball"
-  echo "(\`hmailserver/docs/PackagesAppImage.md\`). The source tarball holds nothing that is not free"
+  echo "under the GPL-2.0-or-later. The runtime's source and build script are in the source tarball, and the source of"
+  echo "every library linked into it, exactly as Alpine built it - each upstream archive from Alpine's distfiles mirror,"
+  echo "and Alpine's build script and patches from aports at the commit its package records - is"
+  echo "\`hmailserver-${version}-appimage-runtime-sources.tar.gz\`, which each AppImage names in"
+  echo "\`usr/share/hmailserver/licenses/appimage-runtime.txt\` (\`hmailserver/docs/PackagesAppImage.md\`, \"Licences\")."
+  echo "The source tarball holds nothing that is not free"
   echo "(\`hmailserver/docs/SourceTarball.md\`), and the Helm chart names this release's image."
   echo ""
   echo "What a signature shows is which pipeline signed a file, not what the file was built from. Here, the x86-64"
   echo "\`.deb\` and \`.rpm\` and their SBOMs were made by this pipeline in the runner's own checkout of"
   echo "\`${CI_COMMIT_SHA:-unknown}\`, in the CI image, from the source tarball; every other Linux package and the"
   echo "AppImages in that checkout too, each in its distribution's own container, and their SBOMs from what those"
-  echo "containers recorded the build was built against; the installer's SBOM from the installer as Authenticode signed it."
+  echo "containers recorded the build was built against; the runtime's libraries' source fetched there, in an Alpine"
+  echo "container, from Alpine's distfiles mirror and aports, each file held to the SHA-512 its APKBUILD gives it, and"
+  echo "packed twice to the same bytes; the installer's SBOM from the installer as Authenticode signed it."
   echo "The Windows installer was made by this pipeline on the project's Windows runner, in that runner's long-lived"
   echo "checkout, which the job requires to be at that commit with no change to a tracked file and no file git does not"
   echo "track where a build would take it in, and from the folders the installer takes whole it removes every file git"

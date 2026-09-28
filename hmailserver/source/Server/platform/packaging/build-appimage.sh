@@ -34,7 +34,8 @@
 # to install anything. Not to run mail.
 #
 # USAGE
-#   build-appimage.sh --runtime FILE [--build-dir DIR] [--output-dir DIR] [--no-strip]
+#   build-appimage.sh --runtime FILE [--runtime-licenses DIR] [--build-dir DIR]
+#                     [--output-dir DIR] [--no-strip]
 #
 #   --runtime     the AppImage runtime to put in front of the filesystem: the
 #                 project's own, built from appimage/runtime.c beside this script
@@ -42,6 +43,17 @@
 #                 architecture. Also taken from APPIMAGE_RUNTIME. Nothing is
 #                 downloaded: the runtime the AppImage tools use is published
 #                 only on GitHub, and this script no longer uses those tools.
+#   --runtime-licenses
+#                 the licence files of the libraries linked into that runtime,
+#                 one directory per library, which the appimage-runtime-sources
+#                 job extracts from each library's upstream archive
+#                 (build/ci/packages/appimage-runtime-sources.sh, licenses-<arch>/):
+#                 copied to usr/share/hmailserver/licenses/appimage-runtime/, beside
+#                 the runtime's own notice and the GPL-3.0's text (appimage/GPL-3.0.txt,
+#                 which goes in always). The LGPL-2.1 of libfuse3 and the GPL of
+#                 lzo ask for their text to go with the binary, and the BSD and MIT
+#                 licences of the others for their notice. Also taken from
+#                 APPIMAGE_RUNTIME_LICENSES.
 #   --build-dir   a tree that has ALREADY been built, i.e. one where
 #                 "cmake --build" has produced the hmailserver executable.
 #                 Default: build/linux relative to the repository root.
@@ -89,6 +101,7 @@ SERVER_DIR="${REPO_ROOT}/hmailserver/source/Server"
 BUILD_DIR="${REPO_ROOT}/build/linux"
 OUTPUT_DIR=""
 RUNTIME="${APPIMAGE_RUNTIME:-}"
+RUNTIME_LICENSES="${APPIMAGE_RUNTIME_LICENSES:-}"
 STRIP=1
 
 while [ "$#" -gt 0 ]; do
@@ -96,6 +109,11 @@ while [ "$#" -gt 0 ]; do
       --runtime)
          [ "$#" -ge 2 ] || { echo "--runtime needs a file." >&2; exit 2; }
          RUNTIME="$2"
+         shift 2
+         ;;
+      --runtime-licenses)
+         [ "$#" -ge 2 ] || { echo "--runtime-licenses needs a directory." >&2; exit 2; }
+         RUNTIME_LICENSES="$2"
          shift 2
          ;;
       --no-strip)
@@ -113,7 +131,7 @@ while [ "$#" -gt 0 ]; do
          shift 2
          ;;
       -h|--help)
-         sed -n '5,80p' "${BASH_SOURCE[0]}"
+         sed -n '5,92p' "${BASH_SOURCE[0]}"
          exit 0
          ;;
       *)
@@ -194,6 +212,14 @@ if [ ! -f "${RUNTIME}" ]; then
    exit 1
 fi
 RUNTIME="$(cd "$(dirname "${RUNTIME}")" && pwd)/$(basename "${RUNTIME}")"
+if [ -n "${RUNTIME_LICENSES}" ] && [ -z "$(find "${RUNTIME_LICENSES}" -mindepth 2 -maxdepth 2 -type f 2> /dev/null)" ]; then
+   echo "--runtime-licenses ${RUNTIME_LICENSES} holds no licence file under a library's directory." >&2
+   exit 1
+fi
+if [ -z "${RUNTIME_LICENSES}" ]; then
+   echo "WARNING: no --runtime-licenses: this image will not carry the licence files of the libraries linked into its" >&2
+   echo "         runtime, which their licences ask for; the CI jobs pass appimage-runtime-sources/licenses-<arch>." >&2
+fi
 # "AI" and 2 at offset 8: the AppImage type 2 magic appimage-runtime.sh writes.
 if [ "$(od -An -tx1 -j8 -N3 "${RUNTIME}" | tr -d ' \n')" != "414902" ]; then
    echo "${RUNTIME} does not carry the AppImage type 2 magic at offset 8; it is not a runtime." >&2
@@ -415,6 +441,23 @@ fi
 # notices: the runtime sits outside the filesystem, so its notice goes in.
 if [ -f "${RUNTIME}.txt" ]; then
    install -Dm 0644 "${RUNTIME}.txt" "${APPDIR}/usr/share/hmailserver/licenses/appimage-runtime.txt"
+fi
+# The GPL-3.0's own text: the runtime takes lzo, which is GPL-2.0-or-later, under
+# the GPL-3.0 its "or later" allows (runtime.c is AGPL-3.0-or-later, and section 13
+# of each lets the two be combined), and that licence asks for a copy of itself to
+# go with the program (section 4, which section 6 applies to object code). The
+# FSF's text, beside runtime.c (appimage/GPL-3.0.txt; SHA-256 3972dc97..., as
+# Ubuntu's base-files and xz's upstream archive carry it).
+install -Dm 0644 "${HERE}/appimage/GPL-3.0.txt" "${APPDIR}/usr/share/hmailserver/licenses/appimage-runtime/GPL-3.0.txt"
+# And the licence files of the libraries linked into it, one directory each.
+if [ -n "${RUNTIME_LICENSES}" ]; then
+   for library in "${RUNTIME_LICENSES}"/*/; do
+      name="$(basename "${library}")"
+      for licence in "${library}"*; do
+         [ -f "${licence}" ] || continue
+         install -Dm 0644 "${licence}" "${APPDIR}/usr/share/hmailserver/licenses/appimage-runtime/${name}/$(basename "${licence}")"
+      done
+   done
 fi
 
 # ---------------------------------------------------------------- the libraries

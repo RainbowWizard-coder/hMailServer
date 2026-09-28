@@ -21,7 +21,10 @@
 #     per-user tree and its configuration;
 #   * the image carries the Control Deck and every one of its catalogues byte for
 #     byte, the schema scripts, the Diffie-Hellman group, the public-suffix list,
-#     the live update's apply step, the licences, the desktop file and the icon;
+#     the live update's apply step, the licences - among them the runtime's
+#     notice, which names the release file with its libraries' source, those
+#     libraries' own licence files and the GPL-3.0's text - the desktop file and
+#     the icon;
 #   * where FUSE can be had (a /dev/fuse this process may open and a fusermount3),
 #     the same run mounted instead of extracted. In a container there is usually no
 #     FUSE, and that is said, not failed.
@@ -137,9 +140,28 @@ for f in AppRun hmailserver.desktop hmailserver.svg .DirIcon \
          usr/share/hmailserver/hMailServer.ini.default \
          usr/share/hmailserver/licenses/QuickJS.txt \
          usr/share/hmailserver/licenses/appimage-runtime.txt \
+         usr/share/hmailserver/licenses/appimage-runtime/fuse3/LGPL2.txt \
+         usr/share/hmailserver/licenses/appimage-runtime/lzo/COPYING \
+         usr/share/hmailserver/licenses/appimage-runtime/GPL-3.0.txt \
          usr/lib/hmailserver/hmailserver-update; do
   [ -e "$root/$f" ] || { echo "The image has no $f."; exit 1; }
 done
+# The runtime's notice names the release file with its libraries' source, and every
+# library it links from the release file has its licence files in the image.
+grep -q -- "-appimage-runtime-sources\.tar\.gz" "$root/usr/share/hmailserver/licenses/appimage-runtime.txt" \
+  || { echo "appimage-runtime.txt does not name the release file with the runtime's libraries' source."; exit 1; }
+for library in fuse3 lz4 lzo musl squashfuse xz zlib zstd; do
+  if grep -q "^  $library " "$root/usr/share/hmailserver/licenses/appimage-runtime.txt" \
+      && [ -z "$(ls -A "$root/usr/share/hmailserver/licenses/appimage-runtime/$library" 2> /dev/null)" ]; then
+    echo "The runtime links $library, and the image carries none of its licence files."
+    exit 1
+  fi
+done
+# And the GPL-3.0's own text, under which the runtime takes lzo (build-appimage.sh).
+gpl3="$root/usr/share/hmailserver/licenses/appimage-runtime/GPL-3.0.txt"
+grep -qx " *GNU GENERAL PUBLIC LICENSE" "$gpl3" && grep -qx " *Version 3, 29 June 2007" "$gpl3" \
+  || { echo "appimage-runtime/GPL-3.0.txt is not the GPL-3.0's text."; exit 1; }
+echo "the runtime's notice, naming its libraries' source, their licence files and the GPL-3.0's text"
 [ -x "$root/AppRun" ] && [ -x "$root/usr/bin/hmailserver" ] && [ -x "$root/usr/lib/hmailserver/hmailserver-update" ] \
   || { echo "AppRun, the server or the update step is not executable."; exit 1; }
 if [ -f hmailserver/installation/WebAdmin/index.html ]; then

@@ -319,7 +319,14 @@ Not pinned, and why:
   by version: `apk add` and `apt-get install` take what the release's archive
   holds that day. `runtime-<arch>.txt`, kept beside each runtime, records each
   Alpine package it was linked from with its version, and the runtime's
-  SHA-256.
+  SHA-256; `runtime-<arch>-linked.txt` records each file the link took, from
+  the linker's map, with its package, version and the aports commit it was
+  built from. The `appimage-runtime-sources` job fetches the source of each of
+  those libraries at exactly that version and commit - the upstream archive
+  from Alpine's distfiles mirror and Alpine's build script and patches from
+  aports, each held to the SHA-512 the build script gives - and the release
+  carries it, so an unpinned version is still one whose source goes out with it
+  ([PackagesAppImage.md](PackagesAppImage.md), "Licences").
 * **The Public Suffix List.** `build/generate-public-suffix-list.ps1` downloads
   the current list from publicsuffix.org, as its maintainers ask. What the
   build compiles is the generated `PublicSuffixListData.h`, committed with the

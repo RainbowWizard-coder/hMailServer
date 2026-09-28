@@ -299,89 +299,73 @@ for a stray `#` number or `@` name.
   `HM_SOURCE_TARBALL`; `build/native-dependencies.ps1 -LinuxOnly` gives the packages' SBOMs their components
   without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
 - **The release carries every file the pipeline makes for it** (not yet run in a pipeline). From 6.3.6 a release is
-  56 files and 143 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and
-  13, Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
-  architectures (`hmailserver_<v>-1~<release>_<arch>.deb`, `hmailserver-<v>-1.<release>.<arch>.rpm`); both
-  AppImages, with the project's own runtime (work item 36); the source tarball; the Helm chart; the sums of every
-  Linux file and the chart; an SBOM for each of the 25 compiled files and the tarball, and the tree's two; a
-  Sigstore bundle beside each, a byte-identical `<file>.sigstore.json` of each primary file's bundle, and
-  `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build provenance naming every file by its SHA-256, signed as the
-  pipeline with `cosign attest-blob` and checked with `cosign verify-blob-attestation` (SECURITY.md, "Build
-  provenance"). The new `release-packages` job gathers the per-distribution packages, the AppImages and the
-  tarball, holds each to its build's sums and makes its SBOM (`build/asset-sbom.py` gains the kinds `appimage`,
-  which lists what the image bundles, and `source`), so that `release` stays under GitLab's fifty needs. Before
-  anything is signed, and again before anything is uploaded, the release counts what GitLab and Pages take: every
-  link's path (the `~` of a `.deb`'s version, which GitLab refuses there, is written `-`), `_redirects` under 1,000
-  rules and 64 KiB with the apt and dnf rules, and the feed under the 4 MiB a server reads (with the repositories
-  as `package-repos`' `--keep` keeps them). The apt and dnf suites will serve the new packages once the repository
-  key exists; openSUSE's go through OBS. A protected `batch*` branch rehearses the chain
+  57 files and 146 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and 13,
+  Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
+  architectures (`hmailserver_<v>-1~<release>_<arch>.deb`, `hmailserver-<v>-1.<release>.<arch>.rpm`); both AppImages,
+  with the project's own runtime (work item 36), and the source of the libraries linked into it (below); the source
+  tarball; the Helm chart; the sums of every Linux file, the runtime's sources and the chart; an SBOM for each of the
+  25 compiled files and the tarball, and the tree's two; a Sigstore bundle beside each, a byte-identical
+  `<file>.sigstore.json` of each primary file's bundle, and `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build
+  provenance naming every file by its SHA-256, signed as the pipeline with `cosign attest-blob` and checked with
+  `cosign verify-blob-attestation` (SECURITY.md, "Build provenance"). The new `release-packages` job gathers the
+  per-distribution packages, the AppImages, the runtime's sources and the tarball, holds each to its build's sums and
+  makes the SBOM of each but the runtime's sources (`build/asset-sbom.py` gains the kinds `appimage`, which lists
+  what the image bundles, and `source`), so that `release` stays under GitLab's fifty needs. Before anything is
+  signed, and again before anything is uploaded, the release counts what GitLab and Pages take: every link's path
+  (the `~` of a `.deb`'s version, which GitLab refuses there, is written `-`), `_redirects` under 1,000 rules and 64
+  KiB with the apt and dnf rules, and the feed under the 4 MiB a server reads (with the repositories as
+  `package-repos`' `--keep` keeps them). The apt and dnf suites will serve the new packages once the repository key
+  exists; openSUSE's go through OBS. A protected `batch*` branch rehearses the chain
   (`.gitlab/ci/release-rehearsal.yml`): collected with `windows-packages-x64`'s installer, signed as the branch,
-  which no server trusts, and checked with the server's own verifier, which must refuse every bundle at its
-  identity; nothing is published (ContinuousIntegration.md, "What a release carries", "The release rehearsal").
-
----
-
-## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28
-
-Everything that landed on `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
-`v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104
-to 6105 in one step**, which adds a column to the quarantine's table, `hm_quarantine.quarantinehelo`. What changes
-on upgrade without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has
-five more of them than it had at 6.3.4.
-
-
-This is the first release built to be made by the project's GitLab CI from its tag ([RELEASE.md](RELEASE.md), *The
-release on GitLab* and *On GitLab, from 6.3.5*). The tag's pipeline builds the Windows installer on the project's
-Windows runner after the whole Windows suite has passed there; once the owner has started the `release` job, it
-Authenticode-signs the installer through Azure Artifact Signing with an RFC 3161 timestamp, signs every file of the
-release with Sigstore as that pipeline -
-`https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, issuer `https://gitlab.com` -
-into a `<file>.cosign.bundle` beside it, and checks every bundle with the server's own `--verify-update` before
-anything is published. That identity is the one a 6.3.4 server trusts (`SigstoreVerifier.cpp`, unchanged since
-6.3.4, and the verifier that check runs), so the live update of a 6.3.4 server is built to install this release, on
-Windows and on Linux. A server from 6.2.28 to 6.3.3 trusts only the GitHub workflow that signed the releases up to
-6.3.3, and as it stands its live update refuses this one: install 6.3.4 or this release by hand, and keep
-`UpdateAutoDownload` off until then, or on Windows give it the GitLab signer as
-[UpdateFeed.md](hmailserver/docs/UpdateFeed.md) describes. What the release carries, and what the new package jobs
-leave in CI only, is under Operations.
-
-### What changes on upgrade without a switch
-
-1. **The Control Panel's sidebar is in the order a new administrator needs.** Welcome and Dashboard come first,
-   then a new group, **Set up this server**: the **Setup checklist**, which was *External setup* under Monitoring &
-   troubleshooting, then Setting profiles and DNS records. Two groups are renamed - *TLS & certificates* is
-   **Certificates & encryption** and *Access & abuse protection* is **Sign-in & access** - and Connections &
-   protocols gains a **Webmail** page (Administration, below). The palette (Ctrl+K) still finds the checklist as
-   External setup. A page's `nav-<key>` UI Automation id is unchanged; the `navgroup-` and `navrail-` ids of the
-   new and the renamed groups follow their new headings, so a UI test that finds a group by its old id must be
-   changed.
-2. **The quarantine shows the HELO name, and groups.** The Control Panel's Quarantine page and the Control Deck's
-   Quarantine view gain a HELO column and group the held messages by the sender's domain unless told otherwise.
-   Messages held before the upgrade have no HELO name recorded and are grouped with those that have no HELO
-   domain. The Deck now asks before a delete with a Yes or No of its own whose default is No, as the Control Panel
-   already did; it used the browser's `confirm()`, whose default is OK. It offers whitelist and blacklist only to a
-   credential holding `manage_settings`, and a held message's headers and preview only to one holding
-   `view_mailbox`, as the server requires (below).
-3. **The webmail's keyboard.** The message list is one Tab stop, where each row put its box, star and marker in
-   the Tab order, and the list's keys reach what a row holds. Enter on a button in the mail view presses the
-   button; it used to open the message under the list's cursor. A letter typed into the formatted signature is
-   text, where `c` opened a new message. Escape closes every modal dialogue as its Cancel does and gives the focus
-   back to where it was, the page under a dialogue cannot be reached until it closes, and menus close on Escape.
-   The event and task editors close when the page changes. The compose window's *Plain* is **Remove formatting**,
-   its tooltip's words. On a phone a row's importance marker is shown and not pressed; the message's More menu
-   marks it.
-4. **An invitation sent the way Outlook sends one is shown as an invitation.** `GET /api/v1/me/messages/{id}`
-   answers `"invitation": true` for a `text/calendar` part whose `Content-Type` carries parameters and which has no
-   `.ics` name, where it answered `false`, and the webmail shows the invitation's card with Accept, Maybe and
-   Decline (the fix is under IMAP, POP3 and the webmail).
-5. **What a script sees.** `GET /api/v1/quarantine` gives each message three more fields - `helo`,
-   `sender_domain` and `helo_domain` - and four routes are new. Over COM, `Quarantine` gains `Bulk` (dispid 9)
-   and `QuarantinedMessage` gains `HeloName`, `SenderDomain`, `HeloDomain`, `ReadHeaders` and `ReadPreview`
-   (dispids 11 to 15), added to the existing interfaces; no existing member or dispid changes. A program built
-   against 6.3.5's type library that calls one of them needs a 6.3.5 server.
-
-### Anti-spam, anti-virus and mail flow rules
-
+  which no server trusts, and checked with the server's own verifier, which must refuse every bundle at its identity;
+  nothing is published (ContinuousIntegration.md, "What a release carries", "The release rehearsal").  ---  ##
+  [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28  Everything that landed on
+  `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
+  `v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104
+  to 6105 in one step**, which adds a column to the quarantine's table, `hm_quarantine.quarantinehelo`. What changes
+  on upgrade without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has
+  five more of them than it had at 6.3.4.   This is the first release built to be made by the project's GitLab CI
+  from its tag ([RELEASE.md](RELEASE.md), *The release on GitLab* and *On GitLab, from 6.3.5*). The tag's pipeline
+  builds the Windows installer on the project's Windows runner after the whole Windows suite has passed there; once
+  the owner has started the `release` job, it Authenticode-signs the installer through Azure Artifact Signing with an
+  RFC 3161 timestamp, signs every file of the release with Sigstore as that pipeline -
+  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, issuer `https://gitlab.com` -
+  into a `<file>.cosign.bundle` beside it, and checks every bundle with the server's own `--verify-update` before
+  anything is published. That identity is the one a 6.3.4 server trusts (`SigstoreVerifier.cpp`, unchanged since
+  6.3.4, and the verifier that check runs), so the live update of a 6.3.4 server is built to install this release, on
+  Windows and on Linux. A server from 6.2.28 to 6.3.3 trusts only the GitHub workflow that signed the releases up to
+  6.3.3, and as it stands its live update refuses this one: install 6.3.4 or this release by hand, and keep
+  `UpdateAutoDownload` off until then, or on Windows give it the GitLab signer as
+  [UpdateFeed.md](hmailserver/docs/UpdateFeed.md) describes. What the release carries, and what the new package jobs
+  leave in CI only, is under Operations.  ### What changes on upgrade without a switch  1. **The Control Panel's
+  sidebar is in the order a new administrator needs.** Welcome and Dashboard come first, then a new group, **Set up
+  this server**: the **Setup checklist**, which was *External setup* under Monitoring & troubleshooting, then Setting
+  profiles and DNS records. Two groups are renamed - *TLS & certificates* is **Certificates & encryption** and
+  *Access & abuse protection* is **Sign-in & access** - and Connections & protocols gains a **Webmail** page
+  (Administration, below). The palette (Ctrl+K) still finds the checklist as External setup. A page's `nav-<key>` UI
+  Automation id is unchanged; the `navgroup-` and `navrail-` ids of the new and the renamed groups follow their new
+  headings, so a UI test that finds a group by its old id must be changed. 2. **The quarantine shows the HELO name,
+  and groups.** The Control Panel's Quarantine page and the Control Deck's Quarantine view gain a HELO column and
+  group the held messages by the sender's domain unless told otherwise. Messages held before the upgrade have no HELO
+  name recorded and are grouped with those that have no HELO domain. The Deck now asks before a delete with a Yes or
+  No of its own whose default is No, as the Control Panel already did; it used the browser's `confirm()`, whose
+  default is OK. It offers whitelist and blacklist only to a credential holding `manage_settings`, and a held
+  message's headers and preview only to one holding `view_mailbox`, as the server requires (below). 3. **The
+  webmail's keyboard.** The message list is one Tab stop, where each row put its box, star and marker in the Tab
+  order, and the list's keys reach what a row holds. Enter on a button in the mail view presses the button; it used
+  to open the message under the list's cursor. A letter typed into the formatted signature is text, where `c` opened
+  a new message. Escape closes every modal dialogue as its Cancel does and gives the focus back to where it was, the
+  page under a dialogue cannot be reached until it closes, and menus close on Escape. The event and task editors
+  close when the page changes. The compose window's *Plain* is **Remove formatting**, its tooltip's words. On a phone
+  a row's importance marker is shown and not pressed; the message's More menu marks it. 4. **An invitation sent the
+  way Outlook sends one is shown as an invitation.** `GET /api/v1/me/messages/{id}` answers `"invitation": true` for
+  a `text/calendar` part whose `Content-Type` carries parameters and which has no `.ics` name, where it answered
+  `false`, and the webmail shows the invitation's card with Accept, Maybe and Decline (the fix is under IMAP, POP3
+  and the webmail). 5. **What a script sees.** `GET /api/v1/quarantine` gives each message three more fields -
+  `helo`, `sender_domain` and `helo_domain` - and four routes are new. Over COM, `Quarantine` gains `Bulk` (dispid 9)
+  and `QuarantinedMessage` gains `HeloName`, `SenderDomain`, `HeloDomain`, `ReadHeaders` and `ReadPreview` (dispids
+  11 to 15), added to the existing interfaces; no existing member or dispid changes. A program built against 6.3.5's
+  type library that calls one of them needs a 6.3.5 server.  ### Anti-spam, anti-virus and mail flow rules
 - **Reviewing the quarantine** (schema 6105; [GitLab issue #1](https://gitlab.com/Progressiverobot/hmailserver/-/issues/1)):
   - **The HELO name** the client gave is stored with each held message. A message held during the SMTP
     conversation records the session's own; one held later, at delivery - by a rule, a block list, an account's
@@ -436,6 +420,22 @@ leave in CI only, is under Operations.
   now unwrapped in one pass into a new string, with the same result (`ContentPolicy::StripHtml`). The quarantine's
   preview ends in the same function, and takes the style sheets, scripts and head out of an HTML part in one pass
   too, so a held message's preview costs time in proportion to its size.
+- **The source of the AppImages' runtime's libraries goes out with them** (not yet run in a pipeline). Each
+  AppImage's runtime is linked statically on Alpine, and two of the libraries it takes in, libfuse3 (LGPL-2.1) and
+  lzo (GPL-2.0-or-later), ask for their own source to go with the binary, not only the runtime's; with lzo's GPL, so
+  does every other library linked in but the compiler's own. From 6.3.6 the release carries
+  `hmailserver-<v>-appimage-runtime-sources.tar.gz`: for libfuse3, lzo, squashfuse, zstd, lz4, xz, zlib and musl, at
+  the version and aports commit each runtime job recorded from the linker's map and apk's database, Alpine's APKBUILD
+  and patches from gitlab.alpinelinux.org, fetched by the commit's id, and the upstream archive from Alpine's
+  distfiles mirror - never the GitHub releases several APKBUILDs name - each source held to the SHA-512 its APKBUILD
+  gives, with a README.txt saying where each file came from, what each licence asks and how to link the runtime again
+  with a changed library. The new `appimage-runtime-sources` job packs it reproducibly, twice, and compares; the
+  release gathers it with a line in the sums, a bundle and a `.sigstore.json` copy, and no SBOM, being source. Each
+  image's `usr/share/hmailserver/licenses/appimage-runtime.txt` lists what its runtime links and names the file, and
+  the image carries each library's licence files in `usr/share/hmailserver/licenses/appimage-runtime/`, with the
+  GPL-3.0's text, under which the runtime takes lzo (runtime.c being AGPL-3.0-or-later). GCC's start-up files and
+  libgcc stay out, under the GCC Runtime Library Exception
+  ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences"; work item 36).
 
 ### IMAP, POP3 and the webmail
 

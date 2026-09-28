@@ -19,7 +19,10 @@
 #
 #   bash build/ci/packages/appimage-build.sh
 #
-# It reads appimage/runtime-<arch> (the runtime job's artifact) and leaves:
+# It reads appimage/runtime-<arch> (the runtime job's artifact) and
+# appimage-runtime-sources/licenses-<arch>/, the licence files of the libraries
+# linked into that runtime (the appimage-runtime-sources job's), which the image
+# carries under usr/share/hmailserver/licenses/appimage-runtime/, and leaves:
 #   appimage/hMailServer-<version>-<arch>.AppImage   the name UpdateChecker.cpp and
 #                                                   generate-update-feed.py expect
 #   appimage/SHA256SUMS-<arch>.txt
@@ -44,6 +47,9 @@
 #   HM_BUILD_DIR    where CMake configures and ninja builds (/tmp/hm-appimage)
 #   HM_BUILD_JOBS   ninja's -j (6)
 #   HM_OUT_DIR      where the artifacts go, and where the runtime is (appimage)
+#   HM_RUNTIME_LICENSES
+#                   the runtime's libraries' licence files
+#                   (appimage-runtime-sources/licenses-<arch>)
 #   HM_CC, HM_CXX   the compilers (gcc, g++: Ubuntu 24.04's GCC 13)
 #   HM_PREBUILT     a server already compiled for this architecture, which is
 #                   packaged instead of building one: the aarch64 job's, which
@@ -56,6 +62,7 @@ jobs="${HM_BUILD_JOBS:-6}"
 out="${HM_OUT_DIR:-appimage}"
 arch=$(uname -m)
 runtime="$out/runtime-$arch"
+runtime_licenses="${HM_RUNTIME_LICENSES:-appimage-runtime-sources/licenses-$arch}"
 prebuilt="${HM_PREBUILT:-}"
 
 if [ ! -f hmailserver/source/Server/CMakeLists.txt ]; then
@@ -68,6 +75,10 @@ case "$arch" in
 esac
 if [ ! -f "$runtime" ]; then
   echo "No runtime at $runtime: the appimage-runtime-$arch job makes it (build/ci/packages/appimage-runtime.sh)."
+  exit 2
+fi
+if [ ! -d "$runtime_licenses" ]; then
+  echo "No licence files of the runtime's libraries at $runtime_licenses: the appimage-runtime-sources job makes them (build/ci/packages/appimage-runtime-sources.sh)."
   exit 2
 fi
 # shellcheck source=/dev/null
@@ -150,7 +161,8 @@ fi
 echo ""
 echo "== the AppImage"
 bash hmailserver/source/Server/platform/packaging/build-appimage.sh \
-  --build-dir "$build_dir" --output-dir "$out" --runtime "$runtime" | tee "$out/package-$arch.log"
+  --build-dir "$build_dir" --output-dir "$out" --runtime "$runtime" --runtime-licenses "$runtime_licenses" \
+  | tee "$out/package-$arch.log"
 
 image=$(find "$out" -maxdepth 1 -name "hMailServer-*-$arch.AppImage" | head -n 1)
 [ -n "$image" ] || { echo "build-appimage.sh made no AppImage."; exit 1; }

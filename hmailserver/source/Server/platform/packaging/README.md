@@ -146,6 +146,12 @@ Nothing is downloaded: the runtime at the front of the image is the project's ow
 tools (linuxdeploy, appimagetool) are published only on GitHub. The script gathers
 the libraries with `ldd`, sets their RUNPATH with `patchelf`, and packs the AppDir
 with `mksquashfs`; its header says which libraries it leaves to the host and why.
+`--runtime-licenses DIR` adds the licence files of the libraries linked into the
+runtime, which `build/ci/packages/appimage-runtime-sources.sh pack` extracts (the
+CI jobs pass it): libfuse3's LGPL-2.1 and lzo's GPL ask for their text, and for
+their source, which a release carries as
+`hmailserver-<version>-appimage-runtime-sources.tar.gz`. Beside them it always puts
+the GPL-3.0's text, `appimage/GPL-3.0.txt`, under which the runtime takes lzo.
 The GitLab jobs in `.gitlab/ci/packages-appimage.yml` build both architectures on
 Ubuntu 24.04 (glibc 2.39) and run the result on Fedora; `docs/PackagesAppImage.md`
 says what has been run.

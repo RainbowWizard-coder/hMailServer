@@ -902,11 +902,13 @@ def self_test():
     expect([e["version"] for e in select(releases, keep=1)[0]] == ["6.3.5"] * 6, "--keep 1 keeps the newest version only")
     # And as 6.3.6 goes out (build/ci/release-chain.py, gathered_builds): each Debian and
     # Ubuntu release's .deb and each RPM release's .rpm, both architectures, beside the
-    # generic ones, the AppImages, the tarball and the chart, each primary file with its
-    # SBOM, its bundle and the bundle's .sigstore.json copy, and the provenance.
+    # generic ones, the AppImages, the source of their runtime's libraries, the tarball
+    # and the chart, each primary file with its SBOM, its bundle and the bundle's
+    # .sigstore.json copy, and the provenance.
     every = ["hmailserver_6.3.6_amd64.deb", "hmailserver_6.3.6_arm64.deb", "hmailserver-6.3.6-1.x86_64.rpm",
              "hmailserver-6.3.6-1.aarch64.rpm", "hMailServer-6.3.6-x64.exe", "hMailServer-6.3.6-x86_64.AppImage",
-             "hMailServer-6.3.6-aarch64.AppImage", "hmailserver-6.3.6.tar.gz", "hmailserver-chart-6.3.6.tgz"]
+             "hMailServer-6.3.6-aarch64.AppImage", "hmailserver-6.3.6-appimage-runtime-sources.tar.gz",
+             "hmailserver-6.3.6.tar.gz", "hmailserver-chart-6.3.6.tgz"]
     every += ["hmailserver_6.3.6-1~%s_%s.deb" % (d, a) for d in ("debian12", "debian13", "ubuntu24.04") for a in ("amd64", "arm64")]
     every += ["hmailserver-6.3.6-1.%s.%s.rpm" % (t, a) for t in ("fc44", "fc43", "el10", "el9", "suse.lp160", "suse.tw")
               for a in ("x86_64", "aarch64")]

@@ -170,7 +170,8 @@ verified the original.
 
 - **Build provenance** (from 6.3.6). `hmailserver-<version>.intoto.sigstore.json` on the release page is the
   release's SLSA v1 build provenance: an in-toto statement that names every file of the release by its SHA-256 - the
-  installer, every package, the AppImages, the source tarball, the chart, the sums and every SBOM - with the commit it
+  installer, every package, the AppImages, the source of the libraries linked into their runtime, the source tarball,
+  the chart, the sums and every SBOM - with the commit it
   was built from and the tag's pipeline as the builder, signed by that pipeline with Sigstore (a bundle holding a DSSE
   envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA project's `slsa-verifier` is not
   needed. To check that a download is one the tag's pipeline built:
@@ -230,6 +231,13 @@ CycloneDX 1.6, beside it on the release page and named after it:
 | from 6.3.6, the source tarball `hmailserver-<version>.tar.gz` | `hmailserver-<version>.tar.gz.cdx.json` | The third-party code and data it holds, as [SourceTarball.md](hmailserver/docs/SourceTarball.md) declares them, each held to the tarball, QuickJS at the version its `VERSION` file gives |
 | the container image, once one is published | an attestation on the image (predicate type `cyclonedx`) | Every distribution package in the image, as Syft reads it, and what the `.deb`'s own SBOM names inside the binary |
 | the source tree | `hmailserver.spdx.json`, `hmailserver.cyclonedx.json` | Syft's inventory of the tree, with the native libraries it cannot see added |
+
+From 6.3.6 a release also carries `hmailserver-<version>-appimage-runtime-sources.tar.gz`, the source of the libraries
+linked into the AppImages' runtime as Alpine built them, which the LGPL-2.1 of libfuse3 and the GPL of lzo ask to go
+with the binary. It is source, not a compiled file, and has no SBOM: its `README.txt` names each library, its version,
+licence and aports commit and where each file came from. Each source file of a library is held to the SHA-512 its
+APKBUILD, Alpine's build script, gives it, and each APKBUILD and patch to the aports commit its package records
+([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences").
 
 Each document's subject (`metadata.component`) is its file, by SHA-256 and SHA-512, so it cannot be mistaken for
 another file's. `build/asset-sbom.py` makes them: the release jobs of `.gitlab-ci.yml` make the x86-64 packages' in

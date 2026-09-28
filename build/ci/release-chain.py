@@ -14,13 +14,15 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
 
   gather    (release-packages, .gitlab/ci/release-packages.yml) every file a release
             carries from the package jobs besides the generic packages - each
-            distribution release's .deb and .rpm, the two AppImages - and the source
-            tarball, from the artifacts of the jobs that made them, each held to the
-            SHA-256 its job wrote (the tarball to build/check-source-tarball.py and
-            this commit), copied under its name with its job's sums, and given its
-            SBOM from what its build recorded it was built against. release needs
-            this one job for the forty-one it waits for, thirty-nine of them jobs
-            release does not need already: a job may need fifty at most (GitLab's
+            distribution release's .deb and .rpm, the two AppImages and the source
+            of the libraries linked into their runtime - and the source tarball,
+            from the artifacts of the jobs that made them, each held to the SHA-256
+            its job wrote (the tarball to build/check-source-tarball.py and this
+            commit), copied under its name with its job's sums, and each but the
+            runtime's sources, which is source and has none, given its SBOM from
+            what its build recorded it was built against. release needs this one
+            job for the forty-two it waits for, forty of them jobs release does not
+            need already: a job may need fifty at most (GitLab's
             ci_needs_size_limit).
 
   collect   the tag is an annotated tag, it still points at the commit this
@@ -260,15 +262,26 @@ def chart_name(version):
     return "hmailserver-chart-%s.tgz" % version
 
 
+def runtime_sources_name(version):
+    """The source of every library linked into the AppImages' runtime, exactly as
+    Alpine built it, which the LGPL-2.1 of libfuse3 and the GPL of lzo ask to go with
+    the binary (build/ci/packages/appimage-runtime-sources.sh; docs/PackagesAppImage.md,
+    "Licences"). Every AppImage's usr/share/hmailserver/licenses/appimage-runtime.txt
+    names it. Source, not compiled, so no SBOM: its README.txt names each library, its
+    version, its licence and where each file came from."""
+    return "hmailserver-%s-appimage-runtime-sources.tar.gz" % version
+
+
 # The package jobs whose files a release carries from 6.3.6 besides the generic ones:
 # one .deb per Debian and Ubuntu release and architecture (.gitlab/ci/packages-deb.yml)
 # and one .rpm per RPM distribution release and architecture (packages-rpm.yml), each
 # built with that release's own compiler and libraries and installed in a clean
-# container of it; and the two AppImages (packages-appimage.yml). With the source
-# tarball they are gathered by the release-packages job (.gitlab/ci/release-packages.yml,
-# gather below), which makes each one's SBOM and needs each build and its install or
+# container of it; the two AppImages, and the source of the libraries linked into
+# their runtime (packages-appimage.yml). With the source tarball they are gathered by
+# the release-packages job (.gitlab/ci/release-packages.yml, gather below), which makes
+# each compiled one's SBOM, and the tarball's, and needs each build and its install or
 # test job: release itself may need fifty jobs at most (GitLab's ci_needs_size_limit),
-# and these are forty-one, thirty-nine of them jobs release does not need already.
+# and these are forty-two, forty of them jobs release does not need already.
 DEB_DISTROS = ("debian12", "debian13", "ubuntu24.04")
 DEB_ARCHES = ("amd64", "arm64")
 # (the package job's target, the release in the file's name: rpm-build.sh's disttag)
@@ -286,7 +299,8 @@ def gathered_builds(version):
     """What release-packages gathers, in the order the release's sums list it: for
     each, its name, the job that makes it, the job that installs or runs it where
     there is one, where that job leaves it, the sums it lists it in and under which
-    name, and where the build recorded what it was built against, for its SBOM."""
+    name, where the build recorded what it was built against, for its SBOM, and
+    whether it has one (every file but the runtime's sources, which is source)."""
     builds = []
     for distro in DEB_DISTROS:
         for arch in DEB_ARCHES:
@@ -295,24 +309,31 @@ def gathered_builds(version):
             name = "hmailserver_%s-1~%s_%s.deb" % (version, distro, arch)
             builds.append({"name": name, "kind": "deb", "job": "deb-%s-%s" % (distro, arch),
                            "test": "deb-%s-%s-install" % (distro, arch), "path": where + "/" + name,
-                           "sums": where + "/SHA256SUMS.txt", "listed": name, "record": where + "/built-against"})
+                           "sums": where + "/SHA256SUMS.txt", "listed": name, "record": where + "/built-against", "sbom": True})
     for target, disttag in RPM_TARGETS:
         for arch in RPM_ARCHES:
             where = "packages-rpm/%s-%s" % (target, arch)
             name = "hmailserver-%s-1.%s.%s.rpm" % (version, disttag, arch)
             builds.append({"name": name, "kind": "rpm", "job": "rpm-%s-%s" % (target, arch),
                            "test": "rpm-%s-%s-install" % (target, arch), "path": where + "/" + name,
-                           "sums": where + "/SHA256SUMS.txt", "listed": name, "record": where + "/built-against"})
+                           "sums": where + "/SHA256SUMS.txt", "listed": name, "record": where + "/built-against", "sbom": True})
     for arch in APPIMAGE_ARCHES:
         name = feed.installer_names(version)["appimage-" + arch]
         builds.append({"name": name, "kind": "appimage", "job": "appimage-" + arch, "test": "appimage-test-" + arch,
                        "path": "appimage/" + name, "sums": "appimage/SHA256SUMS-%s.txt" % arch, "listed": name,
-                       "record": "appimage/built-against-" + arch})
+                       "record": "appimage/built-against-" + arch, "sbom": True})
+    # The source of the libraries linked into the AppImages' runtime: its job makes it
+    # twice from the runtime jobs' records and compares, and writes its sums; source,
+    # so no SBOM (runtime_sources_name).
+    name = runtime_sources_name(version)
+    builds.append({"name": name, "kind": "runtime-sources", "job": "appimage-runtime-sources", "test": None,
+                   "path": "appimage-runtime-sources/" + name, "sums": "appimage-runtime-sources/SHA256SUMS.txt",
+                   "listed": name, "record": None, "sbom": False})
     # The tarball's own job makes it twice and compares; there are no sums of it, and
     # build/check-source-tarball.py --commit holds it to the pipeline's commit instead.
     name = tarball_name(version)
     builds.append({"name": name, "kind": "source", "job": "source-tarball", "test": None, "path": "source-tarball/" + name,
-                   "sums": None, "listed": None, "record": None})
+                   "sums": None, "listed": None, "record": None, "sbom": True})
     return builds
 
 
@@ -327,14 +348,15 @@ def compiled_assets(version):
     (asset-sbom.py's windows-arm64), and into SERVED_PLATFORMS."""
     names = feed.installer_names(version)
     return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + [
-        build["name"] for build in gathered_builds(version)]
+        build["name"] for build in gathered_builds(version) if build["sbom"]]
 
 
 def primary_assets(version):
     """Every file a release carries but the compiled files' SBOMs: each has a bundle
-    and a .sigstore.json copy of it."""
-    return compiled_assets(version) + [chart_name(version), sums_name(version), "hmailserver.spdx.json",
-                                       "hmailserver.cyclonedx.json"]
+    and a .sigstore.json copy of it. Beside the compiled files, the source of the
+    AppImages' runtime's libraries, the chart, the sums and the tree's two SBOMs."""
+    return compiled_assets(version) + [build["name"] for build in gathered_builds(version) if not build["sbom"]] + [
+        chart_name(version), sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
 
 
 def expected_assets(version):
@@ -405,7 +427,8 @@ def sources(version, rehearsal=None):
     """Where collect finds each file: the artifacts of the jobs `release` needs, or in
     a rehearsal (rehearsal = the commit) the rehearsal job's. The sums file is
     linux-build's, to which collect adds a line for every other Linux file
-    (release_sums). The gathered files, each with its SBOM, are release-packages'."""
+    (release_sums). The gathered files, each with its SBOM where it has one, are
+    release-packages'."""
     names = feed.installer_names(version)
     deb_arm64 = os.path.join(ARM64_DEB_DIR, names["deb-arm64"])
     rpm_aarch64 = os.path.join(AARCH64_RPM_DIR, "generic", names["rpm-aarch64"])
@@ -429,16 +452,18 @@ def sources(version, rehearsal=None):
     }
     for build in gathered_builds(version):
         places[build["name"]] = os.path.join(GATHERED, build["name"])
-        places[sbom_name(build["name"])] = os.path.join(GATHERED, sbom_name(build["name"]))
+        if build["sbom"]:
+            places[sbom_name(build["name"])] = os.path.join(GATHERED, sbom_name(build["name"]))
     return places
 
 
 def package_job_sums(version, rehearsal=None):
     """{file: (its build job's sums, the name that file gives it)}: deb-build.sh names
     the .deb as it is, and rpm-build.sh the generic copy by its place under generic/;
-    every gathered package and AppImage by its job's sums as release-packages copied
-    them; the chart by helm-chart-package's; and in a rehearsal the installer by
-    windows-packages-x64's, which names it with the commit."""
+    every gathered package and AppImage, and the runtime's sources, by its job's sums
+    as release-packages copied them; the chart by helm-chart-package's; and in a
+    rehearsal the installer by windows-packages-x64's, which names it with the
+    commit."""
     names = feed.installer_names(version)
     sums = {
         names["deb-arm64"]: (os.path.join(ARM64_DEB_DIR, "SHA256SUMS.txt"), names["deb-arm64"]),
@@ -1157,6 +1182,8 @@ def default_sbom_maker(root, version, env=None, run=subprocess.run):
         return state["path"]
 
     def make(build, path):
+        if not build["sbom"]:
+            raise ReleaseError("%s is source, which goes out without an SBOM" % build["name"])
         if build["kind"] == "source":
             command = [sys.executable, os.path.join(root, "build", "asset-sbom.py"), "make", "--kind", "source",
                        "--asset", path, "--version", version]
@@ -1176,9 +1203,9 @@ def gather(root, version, out, commit, make_sbom=None, run=subprocess.run):
     """The release-packages job: every file gathered_builds names, from the artifacts
     of the jobs that made them, each held to the sums its job wrote - the tarball to
     build/check-source-tarball.py and this commit - copied under its name into out,
-    with that job's sums under out/job-sums/<job>.txt and its SBOM beside it, which
-    must describe it. Returns the problems; out holds the files only when there are
-    none."""
+    with that job's sums under out/job-sums/<job>.txt and, but for the runtime's
+    sources, its SBOM beside it, which must describe it. Returns the problems; out
+    holds the files only when there are none."""
     problems = []
     builds = gathered_builds(version)
     for build in builds:
@@ -1210,6 +1237,8 @@ def gather(root, version, out, commit, make_sbom=None, run=subprocess.run):
             shutil.copyfile(os.path.join(root, local(build["sums"])), os.path.join(out, JOB_SUMS, build["job"] + ".txt"))
     maker = make_sbom or default_sbom_maker(root, version, run=run)
     for build in builds:
+        if not build["sbom"]:
+            continue
         try:
             maker(build, os.path.join(out, build["name"]))
         except (ReleaseError, OSError) as e:
@@ -1668,7 +1697,7 @@ def self_test():
         # What release-packages gathered: each distribution release's package, the
         # AppImages and the tarball, each with its SBOM and its build job's sums as
         # that job wrote them; and the chart with helm-chart-package's.
-        gathered_kinds = dict((b["name"], b["kind"]) for b in gathered_builds(version))
+        gathered_kinds = dict((b["name"], b["kind"]) for b in gathered_builds(version) if b["sbom"])
         for name, kind in gathered_kinds.items():
             write(sources(version)[sbom_name(name)], sbom_of(os.path.join(root, sources(version)[name]), kind))
         for name, (relative, listed) in package_job_sums(version).items():
@@ -1826,32 +1855,39 @@ def self_test():
                and sbom_name(names["deb-arm64"]) in gathered and sbom_name(names["rpm-aarch64"]) in gathered,
                "the AArch64 .deb and .rpm are collected with their SBOMs: %s" % gathered)
         # Every file 6.3.6 carries, by name: the five of 6.3.5's chain, each distribution
-        # release's .deb and .rpm, the AppImages, the tarball and the chart; each compiled
-        # one with its SBOM, every Linux one with a line in the sums.
+        # release's .deb and .rpm, the AppImages, the source of their runtime's libraries,
+        # the tarball and the chart; each compiled one and the tarball with its SBOM, every
+        # Linux one with a line in the sums.
         every_deb = ["hmailserver_6.3.5-1~%s_%s.deb" % (d, a) for d in ("debian12", "debian13", "ubuntu24.04") for a in ("amd64", "arm64")]
         every_rpm = ["hmailserver-6.3.5-1.%s.%s.rpm" % (t, a) for t in ("fc44", "fc43", "el10", "el9", "suse.lp160", "suse.tw")
                      for a in ("x86_64", "aarch64")]
         more = every_deb + every_rpm + ["hMailServer-6.3.5-x86_64.AppImage", "hMailServer-6.3.5-aarch64.AppImage", "hmailserver-6.3.5.tar.gz"]
+        runtime_sources = "hmailserver-6.3.5-appimage-runtime-sources.tar.gz"
         primaries = [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + more + [
-            "hmailserver-chart-6.3.5.tgz", sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
+            runtime_sources, "hmailserver-chart-6.3.5.tgz", sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
         with_sbom = primaries[:5] + more
         expect(len(every_deb) == 6 and len(every_rpm) == 12 and sorted(primary_assets(version)) == sorted(primaries),
                "the primary files are the installer, the four generic packages, the 18 distribution releases' packages, the "
-               "two AppImages, the tarball, the chart, the sums and the two tree SBOMs: %s" % sorted(set(primary_assets(version)) ^ set(primaries)))
-        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 56,
-               "every compiled file and the tarball go out with <file>.cdx.json, the chart without, 56 files in all: %d" % len(expected_assets(version)))
+               "two AppImages, the source of their runtime's libraries, the tarball, the chart, the sums and the two tree "
+               "SBOMs: %s" % sorted(set(primary_assets(version)) ^ set(primaries)))
+        expect(runtime_sources_name(version) == runtime_sources and runtime_sources not in compiled_assets(version)
+               and sbom_name(runtime_sources) not in expected_assets(version),
+               "the runtime's sources go out as source, without an SBOM: %s" % runtime_sources_name(version))
+        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 57,
+               "every compiled file and the tarball go out with <file>.cdx.json, the runtime's sources and the chart without, "
+               "57 files in all: %d" % len(expected_assets(version)))
         expect(sorted(release_files(version)) == sorted(expected_assets(version) + [n + ".cosign.bundle" for n in expected_assets(version)]
                                                         + [n + ".sigstore.json" for n in primaries] + ["hmailserver-6.3.5.intoto.sigstore.json"])
-               and len(release_files(version)) == 143,
-               "a release is those 56, a bundle beside each, a .sigstore.json copy of each of the 30 primary files' bundles, "
-               "and the provenance: 143 files and links: %d" % len(release_files(version)))
+               and len(release_files(version)) == 146,
+               "a release is those 57, a bundle beside each, a .sigstore.json copy of each of the 31 primary files' bundles, "
+               "and the provenance: 146 files and links: %d" % len(release_files(version)))
         expect(sorted(gathered) == sorted(set(expected_assets(version)) - {names["windows"] + ".cdx.json"}),
                "collect gathers every one of them but the installer's SBOM: %s" % sorted(set(expected_assets(version)) - set(gathered)))
         released_sums = b""
         if os.path.isfile(os.path.join(out, sums_name(version))):
             with open(os.path.join(out, sums_name(version)), "rb") as f:
                 released_sums = f.read()
-        members = [names["deb-arm64"], names["rpm-aarch64"]] + more + ["hmailserver-chart-6.3.5.tgz"]
+        members = [names["deb-arm64"], names["rpm-aarch64"]] + more[:-1] + [runtime_sources, more[-1], "hmailserver-chart-6.3.5.tgz"]
         expect(released_sums == (sums + "".join("%s  %s\n" % (sha256_of(os.path.join(root, sources(version)[n])), n) for n in members)).encode("ascii"),
                "the release's sums are linux-build's two lines as they are, then the AArch64 .deb's and .rpm's, then a "
                "line for every other Linux file and the chart: %r" % released_sums)
@@ -2176,9 +2212,9 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 143 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "143 links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 143 and link_problems(links) == [],
+            expect(len(links) == 146 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "146 links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 146 and link_problems(links) == [],
                    "every permanent download path is its own, and one GitLab takes: %s" % link_problems(links))
             paths = dict((l["name"], l["direct_asset_path"]) for l in links)
             expect(paths.get(names["deb-arm64"]) == "/downloads/hmailserver_arm64.deb"
@@ -2188,7 +2224,7 @@ def self_test():
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 143 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 146 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
@@ -2273,7 +2309,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 138 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 141 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")
@@ -2362,7 +2398,7 @@ def self_test():
                and statement["predicate"]["runDetails"]["builder"]["id"] == tag_identity
                and statement["predicate"]["buildDefinition"]["resolvedDependencies"][0]["digest"]["gitCommit"] == built
                and statement["predicate"]["runDetails"]["metadata"]["startedOn"] == "2026-10-02T08:00:00Z",
-               "the statement names all 56 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
+               "the statement names all 57 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
         try:
             write_statement(version, tag_identity, dict(list(files.items())[1:]), publish_env, statement_dir)
             failures.append("a statement that leaves a file out is refused")
@@ -2426,9 +2462,9 @@ def self_test():
         digests = dict((n, sha256_of(os.path.join(signed, n))) for n in release_files(version))
         sizes = dict((n, os.path.getsize(os.path.join(signed, n))) for n in release_files(version))
         expect(check_budget(None, tag, version, digests, sizes, out=said.append) == [], "one release is well within every limit")
-        expect(len(said) == 2 and "56 files and 143 links (30 primary files, 26 SBOMs, 56 bundles, 30 .sigstore.json copies" in said[0]
+        expect(len(said) == 2 and "57 files and 146 links (31 primary files, 26 SBOMs, 57 bundles, 31 .sigstore.json copies" in said[0]
                and "_redirects 31 rules" in said[1] and "the feed's 15, the repositories' 16, 16 of them this release's" in said[1],
-               "the counts: 143 links; _redirects the feed's fifteen rules (the download page and seven kinds of file with their "
+               "the counts: 146 links; _redirects the feed's fifteen rules (the download page and seven kinds of file with their "
                "bundles) and the repositories' sixteen: %s" % said)
         crowded = FakeGitLab()
         for minor in range(40):
@@ -2495,12 +2531,38 @@ def self_test():
 
         packages = os.path.join(work, "release-packages")
         found = gather(built_root, version, packages, built, make_sbom=good_maker, run=lambda a, **k: Done(0))
-        expect(found == [] and sorted(made) == sorted(b["name"] for b in gathered_builds(version)),
-               "release-packages gathers every file with its SBOM: %s" % found)
-        expected_gathered = sorted([b["name"] for b in gathered_builds(version)] + [sbom_name(b["name"]) for b in gathered_builds(version)] + [JOB_SUMS])
+        expect(found == [] and sorted(made) == sorted(b["name"] for b in gathered_builds(version) if b["sbom"]),
+               "release-packages gathers every file, and the SBOM of each but the runtime's sources: %s" % found)
+        expected_gathered = sorted([b["name"] for b in gathered_builds(version)] + [sbom_name(b["name"]) for b in gathered_builds(version)
+                                                                                   if b["sbom"]] + [JOB_SUMS])
         expect((sorted(os.listdir(packages)) if os.path.isdir(packages) else []) == expected_gathered
-               and len(os.listdir(os.path.join(packages, JOB_SUMS))) == 20,
-               "the 21 files, their SBOMs, and the 20 build jobs' sums (the tarball has none)")
+               and len(os.listdir(os.path.join(packages, JOB_SUMS))) == 21,
+               "the 22 files, the SBOMs of 21 of them (the runtime's sources is source), and the 21 build jobs' sums (the "
+               "tarball has none): %s" % (sorted(os.listdir(packages)) if os.path.isdir(packages) else []))
+        # The runtime's sources, which every AppImage names as the source of its
+        # runtime's libraries: gathered only from its job, held to that job's sums.
+        sources_build = [b for b in gathered_builds(version) if b["name"] == runtime_sources_name(version)][0]
+        for what, change, needle in (
+                ("the runtime's sources missing", lambda: os.remove(os.path.join(built_root, local(sources_build["path"]))),
+                 "%s is not in this job's artifacts (%s): appimage-runtime-sources failed or did not run" % (
+                     runtime_sources_name(version), sources_build["path"])),
+                ("the runtime's sources without their job's sums", lambda: os.remove(os.path.join(built_root, local(sources_build["sums"]))),
+                 "%s, the sums of appimage-runtime-sources, is not in this job's artifacts" % sources_build["sums"]),
+                ("the runtime's sources missing from their job's sums", lambda: build_file(sources_build["sums"], b""),
+                 "does not name %s" % runtime_sources_name(version)),
+                ("the runtime's sources unlike their job's sums",
+                 lambda: build_file(sources_build["sums"], ("%s  %s\n" % ("0" * 64, sources_build["listed"])).encode("utf-8")),
+                 "the file is not the one its build job made")):
+            copy_root = built_root + "-" + str(abs(hash(what)))
+            shutil.copytree(built_root, copy_root)
+            held_root, built_root = built_root, copy_root
+            try:
+                change()
+                found = gather(built_root, version, os.path.join(work, "gathered-" + str(abs(hash(what)))), built, make_sbom=good_maker,
+                               run=lambda a, **k: Done(0))
+            finally:
+                built_root = held_root
+            expect(any(needle in p for p in found), "gather refuses %s: %s" % (what, found))
         first = gathered_builds(version)[0]
         for what, change, maker, needle in (
                 ("a build that did not run", lambda: os.remove(os.path.join(built_root, local(first["path"]))), good_maker, "%s failed or did not run" % first["job"]),
@@ -2538,14 +2600,16 @@ def self_test():
 
         maker = default_sbom_maker(built_root, version, env={"CI_COMMIT_TIMESTAMP": "2026-09-28T04:56:27Z"}, run=fake_run)
         for build in gathered_builds(version):
-            maker(build, os.path.join(packages, build["name"]))
+            if build["sbom"]:
+                maker(build, os.path.join(packages, build["name"]))
         listed = [c for c in calls if c[0][0] == "pwsh"]
         by_script = [c for c in calls if any(str(a).endswith("package-sbom.sh") for a in c[0])]
         by_python = [c for c in calls if "--kind" in c[0] and c[0][c[0].index("--kind") + 1] == "source"]
         expect(len(listed) == 1 and len(by_script) == 20 and len(by_python) == 1
                and all(c[1].get("HM_NATIVE_DEPENDENCIES") for c in by_script)
                and all(c[1].get("SOURCE_DATE_EPOCH") == "1790571387" for c in by_script + by_python)
-               and all(c[0][-1].replace(os.sep, "/").endswith(b["record"]) for c, b in zip(by_script, gathered_builds(version))),
+               and all(c[0][-1].replace(os.sep, "/").endswith(b["record"])
+                       for c, b in zip(by_script, [b for b in gathered_builds(version) if b["record"]])),
                "the component list is made once; each package's and AppImage's SBOM by package-sbom.sh from its record, the "
                "tarball's by asset-sbom.py, dated by the commit: %d, %d, %d" % (len(listed), len(by_script), len(by_python)))
         try:
@@ -2641,7 +2705,8 @@ def main():
             if problems:
                 print("%d problem(s): nothing is gathered for the release." % len(problems))
                 return 1
-            print("gathered %d files for %s, each with its SBOM, in %s." % (len(gathered_builds(version)), version, args.out or GATHERED))
+            print("gathered %d files for %s, each compiled one and the tarball with its SBOM, in %s." % (
+                len(gathered_builds(version)), version, args.out or GATHERED))
             return 0
         if args.command == "check-provenance":
             version = read_version_h(ROOT) if args.rehearse else version_of(tag)

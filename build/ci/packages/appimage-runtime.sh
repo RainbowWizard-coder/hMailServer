@@ -23,8 +23,14 @@
 #                    are what a relink needs, and both are in this repository)
 #   *-static         the decompressors squashfuse was built with: zstd, lz4,
 #                    xz (lzma), zlib, and lzo (from lzo-dev, which carries
-#                    the archive)
+#                    the archive; GPL-2.0-or-later)
 #   squashfs-tools   mksquashfs, for the self-test below
+#
+# The source of every library linked in, as Alpine built it, goes out with the
+# AppImages as a release file of its own, hmailserver-<version>-appimage-runtime-
+# sources.tar.gz, which the appimage-runtime-sources job makes from what this
+# records (build/ci/packages/appimage-runtime-sources.sh; docs/PackagesAppImage.md,
+# "Licences"): the LGPL-2.1 and the GPL ask for it.
 #
 # Run in alpine (the job's image, x86-64 or arm64), from the root of a checkout:
 #
@@ -34,7 +40,14 @@
 #   appimage/runtime-<arch>          the runtime, stripped, with the format's
 #                                    magic bytes "AI\002" at offset 8
 #   appimage/runtime-<arch>.txt      what it was built from: the Alpine release,
-#                                    each package and version, its SHA-256
+#                                    each package and version, what it links, its
+#                                    SHA-256, the licences, and where the source
+#                                    is (every AppImage carries it as
+#                                    usr/share/hmailserver/licenses/appimage-runtime.txt)
+#   appimage/runtime-<arch>-linked.txt
+#                                    each file the link took, with its Alpine
+#                                    package, version, origin, aports commit and
+#                                    licence (appimage-runtime-sources.sh record)
 set -eu
 
 out="${HM_OUT_DIR:-appimage}"
@@ -94,7 +107,26 @@ cc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter \
    -DHM_RUNTIME_VERSION="\"$version\"" \
    -I/usr/include/squashfuse -I/usr/include/fuse3 \
    -static -o "$work/runtime" "$source_file" \
+   -Wl,-Map,"$work/runtime.map" \
    -Wl,--gc-sections $static_libs -lpthread
+
+# What went into it, from the linker's map: each library file, with the Alpine
+# package, version, aports commit and licence apk's database gives it
+# (runtime-<arch>-linked.txt). The appimage-runtime-sources job fetches the source
+# of each from Alpine for the release, and a library this does not know - one the
+# runtime has started to link - fails the job here, before an AppImage carries it.
+# HM_RUNTIME_RECORD=0 leaves the record out: for a runtime linked again by hand
+# with a changed library, which no Alpine package owns (the LGPL's relink; the
+# release file's README.txt says how).
+if [ "${HM_RUNTIME_RECORD:-1}" != 0 ]; then
+  echo ""
+  echo "== what the runtime links"
+  sh build/ci/packages/appimage-runtime-sources.sh record "$work/runtime.map" "$out/runtime-$arch-linked.txt"
+else
+  # The record of an earlier run describes that run's link, not this one: gone, so
+  # that runtime-<arch>.txt below does not list it as what this runtime links.
+  rm -f "$out/runtime-$arch-linked.txt"
+fi
 
 strip --strip-all "$work/runtime"
 
@@ -260,6 +292,13 @@ set -e
 echo "the runtime alone refuses, saying it is not an AppImage"
 
 cp "$work/runtime" "$out/runtime-$arch"
+# The release this runtime goes out in, by Version.h, which names every file of it;
+# the release file with the libraries' source is named after it
+# (build/ci/release-chain.py, runtime_sources_name).
+release_version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)".*/\1/p' \
+  hmailserver/source/Server/Common/Application/Version.h | tr -d '\r')
+[ -n "$release_version" ] || { echo "Version.h names no HMAILSERVER_VERSION."; exit 1; }
+sources_file="hmailserver-$release_version-appimage-runtime-sources.tar.gz"
 {
   echo "runtime-$arch"
   echo "sha256 $(sha256sum "$work/runtime" | cut -d' ' -f1)"
@@ -268,7 +307,27 @@ cp "$work/runtime" "$out/runtime-$arch"
   echo "built on Alpine $(cat /etc/alpine-release) ($(uname -m)), statically, from:"
   # shellcheck disable=SC2086
   apk info -v 2> /dev/null | grep -E '^(musl|squashfuse|fuse3|zlib|zstd|xz|lz4|lzo)(-[a-z]+)?-[0-9]' | sort | sed 's/^/  /'
+  if [ -f "$out/runtime-$arch-linked.txt" ]; then
+    echo "linked into it, from the linker's map (library, Alpine package and version, aports commit, file):"
+    awk '$1 == "linked" { print "  " $5 " " $3 " " $4 " " $6 " " $2 }' "$out/runtime-$arch-linked.txt"
+  fi
   echo "licences: runtime.c AGPL-3.0-or-later; squashfuse BSD-2-Clause; libfuse3 LGPL-2.1-only;"
-  echo "  musl MIT; zlib Zlib; zstd BSD-3-Clause; xz 0BSD; lz4 BSD-2-Clause; lzo GPL-2.0-or-later"
+  echo "  musl MIT; zlib Zlib; zstd BSD-3-Clause (of BSD-3-Clause OR GPL-2.0); xz's liblzma 0BSD;"
+  echo "  lz4's liblz4 BSD-2-Clause; lzo GPL-2.0-or-later; gcc's crtbeginS.o, crtendS.o and"
+  echo "  libgcc GPL-3.0-or-later WITH GCC-exception-3.1. In an AppImage, each library's licence"
+  echo "  files are in usr/share/hmailserver/licenses/appimage-runtime/<library>/. The runtime takes"
+  echo "  lzo under the GPL-3.0 its \"or later\" allows, since runtime.c is AGPL-3.0-or-later; the"
+  echo "  GPL-3.0's text is usr/share/hmailserver/licenses/appimage-runtime/GPL-3.0.txt."
+  echo "the source:"
+  echo "  runtime.c and the script that links it, build/ci/packages/appimage-runtime.sh, are in"
+  echo "  the release's source tarball, hmailserver-$release_version.tar.gz, and in the repository."
+  echo "  Every library linked into the runtime, exactly as Alpine built it - the upstream archive"
+  echo "  from Alpine's distfiles mirror, and Alpine's APKBUILD and patches from aports at the"
+  echo "  commit above - is the release file $sources_file,"
+  echo "  published with the AppImages of release v$release_version:"
+  echo "    https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/$release_version/$sources_file"
+  echo "  and on the release's page, ${CI_PROJECT_URL:-https://gitlab.com/Progressiverobot/hmailserver}/-/releases/v$release_version,"
+  echo "  as downloads/hmailserver-appimage-runtime-sources.tar.gz. Its README.txt says what each"
+  echo "  licence asks, and how to link the runtime again with a changed library (LGPL-2.1, section 6)."
 } > "$out/runtime-$arch.txt"
 cat "$out/runtime-$arch.txt"

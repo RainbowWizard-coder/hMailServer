@@ -145,6 +145,14 @@ refuses it. This checker holds them to each other. It fails when:
     release-packages and helm-chart-package with their artifacts, not optionally; or a
     job needs more than GitLab's fifty (ci_needs_size_limit on GitLab.com), which
     would stop the pipeline from being created at all;
+  * the release carries the AppImages without the source of the libraries linked
+    into their runtime (hmailserver-<v>-appimage-runtime-sources.tar.gz, which the
+    LGPL-2.1 of libfuse3 and the GPL of lzo ask to go with them): release-chain.py
+    must gather it from the appimage-runtime-sources job's artifact, held to that
+    job's sums, as a primary file without an SBOM, and that job must make it with
+    build/ci/packages/appimage-runtime-sources.sh from both runtime jobs, whose
+    licence files each AppImage job needs; or a Linux file the release carries, the
+    chart or the runtime's sources has no line in the release's sums;
   * release-sign.sh stops copying each primary file's bundle to <file>.sigstore.json,
     attesting the provenance's statement (cosign attest-blob --statement, in the
     bundle format, to Rekor v1) or finding every file in it with cosign
@@ -294,6 +302,10 @@ CARRIED_PACKAGES = {
 # AppImages and the source tarball, each with its SBOM; and the chart's job.
 GATHER_JOB = "release-packages"
 CHART_JOB = "helm-chart-package"
+# The job that makes the source of the libraries linked into the AppImages' runtime,
+# and where it leaves it (.gitlab/ci/packages-appimage.yml).
+RUNTIME_SOURCES_JOB = "appimage-runtime-sources"
+RUNTIME_SOURCES_DIR = "appimage-runtime-sources/"
 # Its rules: made for a v* tag and a batch* branch only, and there by .own-runners'
 # rules, in exactly the pipelines the package jobs are made in.
 GATHER_REFUSAL = "- if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/\n      when: never\n    - !reference [.own-runners, rules]"
@@ -1182,9 +1194,15 @@ def check(texts, chain, feed):
     for name in chain.compiled_assets("9.9.9"):
         if not any(name.endswith(suffix) for suffix in globbed):
             problems.append("build/ci/release-verify.sh does not hold %s to its SBOM: its loop takes %s" % (name, sorted(globbed)))
-    if 'python3 build/ci/release-chain.py check-provenance --assets "$signed" ${rehearse:+--rehearse}' not in verify_text:
+    # release-verify.sh checks the copies and the provenance for a rehearsal with
+    # --rehearse and for a release without, in two calls, since one with an unquoted
+    # ${rehearse:+--rehearse} is a semgrep finding the release's gate would refuse.
+    rehearsal_call = ('if [ -n "$rehearse" ]; then\n  python3 build/ci/release-chain.py check-provenance --assets "$signed" '
+                      '--rehearse \\\n    || fail ')
+    release_call = 'else\n  python3 build/ci/release-chain.py check-provenance --assets "$signed" \\\n    || fail '
+    if rehearsal_call not in verify_text or release_call not in verify_text:
         problems.append("build/ci/release-verify.sh no longer holds the .sigstore.json copies and the provenance to the files "
-                        "(build/ci/release-chain.py check-provenance)")
+                        "(build/ci/release-chain.py check-provenance), for a rehearsal with --rehearse and for a release without")
     refusal = "The certificate names {0}, not this repository's release workflow."
     if refusal not in texts["verifier"] or '[ "$code" -ne 0 ] || fail' not in verify_text or \
             '*"The certificate names $identity, not this repository\'s release workflow."*) ;;' not in verify_text:
@@ -1298,6 +1316,52 @@ def check(texts, chain, feed):
     if chain.sources("9.9.9").get(chart_name, "").replace(os.sep, "/") != "helm-chart/" + chart_name or \
             chain.package_job_sums("9.9.9").get(chart_name, ("", ""))[0].replace(os.sep, "/") != "helm-chart/SHA256SUMS.txt":
         problems.append("build/ci/release-chain.py does not collect %s from helm-chart/, held to helm-chart/SHA256SUMS.txt" % chart_name)
+
+    # The AppImages go out with the source of the libraries linked into their runtime
+    # (build/ci/packages/appimage-runtime-sources.sh; docs/PackagesAppImage.md,
+    # "Licences"), which each AppImage names: gathered from its job, held to that job's
+    # sums, signed like every primary file, with a line in the release's sums, and no
+    # SBOM, being source.
+    primaries = chain.primary_assets("9.9.9")
+    sources_name = chain.runtime_sources_name("9.9.9")
+    appimage_jobs = blocks(texts["packages-appimage"])
+    sources_job = appimage_jobs.get(RUNTIME_SOURCES_JOB, "")
+    if any(name.endswith(".AppImage") for name in primaries):
+        found_builds = [b for b in chain.gathered_builds("9.9.9") if b["name"] == sources_name]
+        if sources_name not in primaries or not found_builds:
+            problems.append("the release carries the AppImages without %s, the source of the libraries linked into their "
+                            "runtime, which the LGPL-2.1 of libfuse3 and the GPL of lzo ask to go with them "
+                            "(build/ci/release-chain.py, gathered_builds)" % sources_name)
+        else:
+            build = found_builds[0]
+            if (build["job"], build["path"], build["sums"], build["listed"]) != (
+                    RUNTIME_SOURCES_JOB, RUNTIME_SOURCES_DIR + sources_name, RUNTIME_SOURCES_DIR + "SHA256SUMS.txt", sources_name):
+                problems.append("build/ci/release-chain.py gathers %s from %s, made by %s, held to %s: not from %s's %s, held to "
+                                "its SHA256SUMS.txt" % (sources_name, build["path"], build["job"], build["sums"],
+                                                         RUNTIME_SOURCES_JOB, RUNTIME_SOURCES_DIR))
+        if sources_name in chain.compiled_assets("9.9.9"):
+            problems.append("build/ci/release-chain.py counts %s a compiled file: it is source, and goes out without an SBOM"
+                            % sources_name)
+        if "- sh build/ci/packages/appimage-runtime-sources.sh pack " not in sources_job \
+                or not re.search(r"^      - %s\s*$" % re.escape(RUNTIME_SOURCES_DIR), sources_job, re.MULTILINE):
+            problems.append("%s has no %s job that runs build/ci/packages/appimage-runtime-sources.sh pack and keeps %s"
+                            % (FILES["packages-appimage"], RUNTIME_SOURCES_JOB, RUNTIME_SOURCES_DIR))
+        for arch in chain.APPIMAGE_ARCHES:
+            if sources_job and "appimage-runtime-" + arch not in needs(sources_job):
+                problems.append("%s does not need appimage-runtime-%s, whose record of what it linked it packs the source of"
+                                % (RUNTIME_SOURCES_JOB, arch))
+            if RUNTIME_SOURCES_JOB not in needs(appimage_jobs.get("appimage-" + arch, "")):
+                problems.append("appimage-%s does not need %s, whose licence files of the runtime's libraries the image "
+                                "carries" % (arch, RUNTIME_SOURCES_JOB))
+    # Every Linux file the release carries, the chart and the runtime's sources, with a
+    # line in the release's sums: linux-build's own two, then sums_members.
+    names_999 = feed.installer_names("9.9.9")
+    unsummed = sorted(set(primaries) - set(chain.sums_members("9.9.9")) - {
+        names_999["windows"], names_999["deb-amd64"], names_999["rpm-x86_64"], chain.sums_name("9.9.9"),
+        "hmailserver.spdx.json", "hmailserver.cyclonedx.json"})
+    if unsummed:
+        problems.append("the release carries %s with no line in the release's sums (build/ci/release-chain.py, sums_members)"
+                        % ", ".join(unsummed))
 
     # No job needs more jobs than GitLab takes: the pipeline would not be created.
     for key in JOB_FILES:
@@ -1566,8 +1630,8 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=56", "expected=13", "a release carries")
-    broken("verify counting another number of files", "verify", '[ "$verified" -eq 56 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
+    broken("another count of files", "sign", "expected=57", "expected=13", "a release carries")
+    broken("verify counting another number of files", "verify", '[ "$verified" -eq 57 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
     # The AArch64 packages a release carries, from the package jobs.
     broken("release not waiting for the arm64 .deb's install", "ci", "    - job: deb-ubuntu26.04-arm64-install\n      artifacts: false\n", "",
            "release does not need deb-ubuntu26.04-arm64-install")
@@ -1886,6 +1950,11 @@ def self_test(chain, feed):
     broken("the AppImages not held to their SBOMs", "verify", ' "$signed"/*.AppImage', "", "does not hold hMailServer-9.9.9-x86_64.AppImage to its SBOM")
     broken("the SBOM count left at 5", "verify", '[ "$described" -eq 26 ]', '[ "$described" -eq 5 ]', "holds 5 file(s) to their SBOM")
     broken("the provenance not checked", "verify", "python3 build/ci/release-chain.py check-provenance", "true", "check-provenance")
+    broken("the release's provenance not checked", "verify",
+           '  python3 build/ci/release-chain.py check-provenance --assets "$signed" \\\n    || fail "the .sigstore.json copies or the '
+           'provenance are not what the release is"', '  true', "check-provenance")
+    broken("a rehearsal's provenance checked as a release's", "verify",
+           'check-provenance --assets "$signed" --rehearse', 'check-provenance --assets "$signed"', "check-provenance")
     broken("a rehearsal bundle the server accepts", "verify", '[ "$code" -ne 0 ] || fail', 'true || fail', "no longer requires the server's verifier to refuse")
     broken("publish uploading before the provenance is held", "chain", "provenance_problems(\n        assets, version,",
            "list(\n        assets, version,", "held the release to provenance_problems(")
@@ -1936,6 +2005,60 @@ def self_test(chain, feed):
             failures.append("a gathered file no job makes is caught: %s" % found)
     finally:
         chain.gathered_builds = held_builds
+
+    # The source of the AppImages' runtime's libraries: missing from the release, missing
+    # from its sums, gathered from elsewhere or with an SBOM, or its job not wired.
+    sources_file = "hmailserver-9.9.9-appimage-runtime-sources.tar.gz"
+    for what, replacement, needle in (
+            ("the AppImages released without their runtime's sources",
+             lambda version: [b for b in held_builds(version) if b["kind"] != "runtime-sources"],
+             "the release carries the AppImages without %s" % sources_file),
+            ("the runtime's sources gathered from another job's artifact",
+             lambda version: [dict(b, path="appimage/" + b["name"]) if b["kind"] == "runtime-sources" else b for b in held_builds(version)],
+             "gathers %s from appimage/" % sources_file),
+            ("the runtime's sources held to no sums",
+             lambda version: [dict(b, sums=None) if b["kind"] == "runtime-sources" else b for b in held_builds(version)],
+             "held to None")):
+        chain.gathered_builds = replacement
+        try:
+            found, _ = check(texts, chain, feed)
+        finally:
+            chain.gathered_builds = held_builds
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+    held_members = chain.sums_members
+    chain.sums_members = lambda version: [n for n in held_members(version) if not n.endswith("-appimage-runtime-sources.tar.gz")]
+    try:
+        found, _ = check(texts, chain, feed)
+    finally:
+        chain.sums_members = held_members
+    if not any("%s with no line in the release's sums" % sources_file in p for p in found):
+        failures.append("the runtime's sources without a line in the release's sums is caught: %s" % found)
+    held_compiled_assets = chain.compiled_assets
+    chain.compiled_assets = lambda version: held_compiled_assets(version) + [chain.runtime_sources_name(version)]
+    try:
+        found, _ = check(texts, chain, feed)
+    finally:
+        chain.compiled_assets = held_compiled_assets
+    if not any("counts %s a compiled file" % sources_file in p for p in found):
+        failures.append("the runtime's sources counted a compiled file is caught: %s" % found)
+    broken("the runtime's sources not waited for", "release-packages", "    - job: appimage-runtime-sources\n      artifacts: true\n", "",
+           "release-packages does not need appimage-runtime-sources")
+    broken("the runtime's sources gathered without their artifacts", "release-packages",
+           "    - job: appimage-runtime-sources\n      artifacts: true\n", "    - job: appimage-runtime-sources\n      artifacts: false\n",
+           "must need appimage-runtime-sources with artifacts: true")
+    broken("an AppImage built without its runtime's licence files", "packages-appimage",
+           "  needs: [appimage-runtime-x86_64, appimage-runtime-sources]\n", "  needs: [appimage-runtime-x86_64]\n",
+           "appimage-x86_64 does not need appimage-runtime-sources")
+    broken("the runtime's sources packed from one runtime alone", "packages-appimage",
+           "  needs: [appimage-runtime-x86_64, appimage-runtime-aarch64]\n", "  needs: [appimage-runtime-x86_64]\n",
+           "appimage-runtime-sources does not need appimage-runtime-aarch64")
+    broken("the runtime's sources job not packing", "packages-appimage", "    - sh build/ci/packages/appimage-runtime-sources.sh pack ",
+           "    - sh build/ci/packages/appimage-runtime-sources.sh record ", "has no appimage-runtime-sources job that runs")
+    broken("the runtime's sources job made where a tag may pass it", "packages-appimage",
+           "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n",
+           "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n  allow_failure: true\n",
+           "appimage-runtime-sources can let release start in a v* tag's pipeline")
 
     # The release tag and the registry.
     owner_line = [l for l in texts["signers"].split("\n") if l.strip() and not l.startswith("#")]

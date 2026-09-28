@@ -101,6 +101,12 @@ OTHER_LINUX_SCRIPTS = (
     "build/ci/packages/rpm-build.sh",
     "build/ci/packages/appimage-build.sh",
     "build/ci/packages/appimage-cross.sh",
+    # The AppImage runtime's link and the record of what it takes in: every
+    # AppImage names this tarball as where runtime.c and these scripts are, which
+    # the LGPL-2.1 of libfuse3 (a relink) and the GPL of lzo (the corresponding
+    # source) ask for (docs/PackagesAppImage.md, "Licences").
+    "build/ci/packages/appimage-runtime.sh",
+    "build/ci/packages/appimage-runtime-sources.sh",
     "hmailserver/source/Server/platform/packaging/build-appimage.sh",
     "hmailserver/source/Server/platform/packaging/PKGBUILD",
 )

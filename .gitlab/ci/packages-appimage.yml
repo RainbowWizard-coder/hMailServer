@@ -9,8 +9,14 @@
 # (hmailserver/docs/PackagesAppImage.md says why, and what each job has been run).
 #
 #   appimage-runtime-x86_64, appimage-runtime-aarch64
-#       linix, alpine: the runtime, proved on an AppImage of its own
-#       (build/ci/packages/appimage-runtime.sh)
+#       linix, alpine: the runtime, proved on an AppImage of its own, and a record
+#       of every library file linked into it with its Alpine package, version and
+#       aports commit (build/ci/packages/appimage-runtime.sh)
+#   appimage-runtime-sources
+#       linix, alpine: the source of every library the two runtimes link, exactly
+#       as Alpine built it, as the release file
+#       hmailserver-<version>-appimage-runtime-sources.tar.gz, and each library's
+#       licence files for the AppImages (build/ci/packages/appimage-runtime-sources.sh)
 #   appimage-aarch64-compile
 #       linix, ubuntu:24.04 amd64: the aarch64 server cross-compiled against
 #       Ubuntu 24.04's arm64 libraries (build/ci/packages/appimage-cross.sh)
@@ -35,6 +41,12 @@
 # release-packages job (.gitlab/ci/release-packages.yml) needs appimage-<arch> and
 # appimage-test-<arch> and gathers them, and release needs it. The runtime is the
 # project's own, which the maintainers accepted on work item 36 (28 September 2026).
+# With them goes the source of the libraries linked into the runtime,
+# hmailserver-<version>-appimage-runtime-sources.tar.gz, with its line in the sums, a
+# bundle and its .sigstore.json copy, and no SBOM, being source: the LGPL-2.1 of
+# libfuse3 and the GPL of lzo ask for it (docs/PackagesAppImage.md, "Licences").
+# release-packages needs appimage-runtime-sources and gathers it, and each AppImage
+# job needs it for the libraries' licence files, which the image carries.
 #
 # When: on a protected v* tag and a batch* branch, every job at once, as part of the
 # release and of its rehearsal (.gitlab/ci/release-rehearsal.yml); on any other
@@ -111,12 +123,52 @@ appimage-runtime-aarch64:
     paths:
       - appimage/
 
+# ---------------------------------------------------------------- the runtime's sources
+
+# From the two runtime jobs' records of what they linked (runtime-<arch>-linked.txt):
+# each library's aports directory at the commit its package records, fetched from
+# Alpine's GitLab by the commit's id, and the upstream archives its APKBUILD lists,
+# fetched from Alpine's distfiles mirror, each held to the SHA-512 the APKBUILD gives
+# it; packed reproducibly, then made again from nothing in another directory, under
+# another umask, and compared byte for byte. .no-github keeps GitHub out of the job
+# itself: several of these APKBUILDs name a GitHub release as their source, and the
+# script never fetches what an APKBUILD names, only the mirror's copy of it. Leaves
+# appimage-runtime-sources/: the tarball, SHA256SUMS.txt naming it, and
+# licenses-<arch>/, each library's licence files for that architecture's AppImage.
+appimage-runtime-sources:
+  extends: [.appimage, .appimage-follow-rules, .no-github]
+  stage: build
+  needs: [appimage-runtime-x86_64, appimage-runtime-aarch64]
+  image:
+    # alpine:3.24, linux/amd64: appimage-runtime-x86_64's
+    name: alpine:3.24@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
+    pull_policy: if-not-present
+    docker:
+      platform: linux/amd64
+  timeout: 20 minutes
+  script:
+    - sh build/ci/packages/appimage-runtime-sources.sh pack appimage/runtime-x86_64-linked.txt appimage/runtime-aarch64-linked.txt
+    - (umask 0077 && HM_OUT_DIR=/tmp/runtime-sources-again sh build/ci/packages/appimage-runtime-sources.sh pack appimage/runtime-x86_64-linked.txt appimage/runtime-aarch64-linked.txt > /tmp/runtime-sources-again.log 2>&1) || { tail -n 40 /tmp/runtime-sources-again.log; exit 1; }
+    - |
+      first=$(sha256sum appimage-runtime-sources/hmailserver-*-appimage-runtime-sources.tar.gz | cut -d' ' -f1)
+      second=$(sha256sum /tmp/runtime-sources-again/hmailserver-*-appimage-runtime-sources.tar.gz | cut -d' ' -f1)
+      echo "first  $first"
+      echo "second $second"
+      if [ "$first" != "$second" ]; then
+        echo "The same records made two different tarballs."
+        exit 1
+      fi
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - appimage-runtime-sources/
+
 # ---------------------------------------------------------------- the AppImages
 
 appimage-x86_64:
   extends: [.appimage, .appimage-follow-rules]
   stage: build
-  needs: [appimage-runtime-x86_64]
+  needs: [appimage-runtime-x86_64, appimage-runtime-sources]
   image:
     # ubuntu:24.04, linux/amd64
     name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
@@ -158,7 +210,7 @@ appimage-aarch64-compile:
 appimage-aarch64:
   extends: [.appimage, .appimage-follow-rules]
   stage: build
-  needs: [appimage-runtime-aarch64, appimage-aarch64-compile]
+  needs: [appimage-runtime-aarch64, appimage-aarch64-compile, appimage-runtime-sources]
   image:
     # ubuntu:24.04, linux/arm64/v8, under qemu-user on linix
     name: ubuntu:24.04@sha256:11dc1ccb427f0464a2369e645454c272bb0baece7357c892ba69d313b3a332cf
