@@ -112,9 +112,13 @@ PASSPHRASE_VARIABLE = "HM_REPO_SIGNING_PASSPHRASE"
 # Where a generic-named file goes, and the first version whose generic files were
 # built there. 6.3.4's .deb was built on linix in Ubuntu 26.04, and linux-package-deb
 # installs it there with apt and its dependencies; from 6.3.5 the package jobs keep
-# the generic names for the Ubuntu 26.04 build (docs/PackagesDeb.md). The generic
-# .debs of 6.3.0 to 6.3.3 came from GitHub's Ubuntu 24.04 runners and are left out
-# rather than offered to a release they may not install on.
+# the generic names for the Ubuntu 26.04 build (docs/PackagesDeb.md). That holds for
+# both architectures: the generic arm64 .deb, which a release carries from 6.3.6, is
+# deb-ubuntu26.04-arm64's, cross-compiled in Ubuntu 26.04's own container against its
+# arm64 packages and installed by apt in an arm64 Ubuntu 26.04 container, so it goes
+# to ubuntu26.04's binary-arm64 beside the amd64 one; 6.3.4 and 6.3.5 carry none. The
+# generic .debs of 6.3.0 to 6.3.3, both architectures, came from GitHub's Ubuntu 24.04
+# runners and are left out rather than offered to a release they may not install on.
 #
 # The generic .rpm goes nowhere. linux-build makes it on Ubuntu 26.04, so its
 # automatic Requires are that build's sonames and symbol versions, and
@@ -122,9 +126,16 @@ PASSPHRASE_VARIABLE = "HM_REPO_SIGNING_PASSPHRASE"
 # (build/ci/linux-package-install.sh). dnf resolved master's build of 26 September
 # 2026 on Fedora 43 and 44 and AlmaLinux 10 and refused it on AlmaLinux 9, but it is
 # no RPM distribution's own build. Where the Fedora 44 build is copied under the
-# generic name, the .fc44 file beside it is the same build. So a dnf repository
-# holds the per-distribution builds alone, from the first release that carries them.
+# generic name - the aarch64 one a release carries from 6.3.6 - the .fc44 file is the
+# same build, and it is that one a repository takes once a release carries it. So a
+# dnf repository holds the per-distribution builds alone, from the first release that
+# carries them.
 GENERIC = {"deb": ("ubuntu26.04", "6.3.4")}
+# The first version whose generic aarch64 .rpm is rpm-fedora44-aarch64's copy of its
+# Fedora 44 build (.gitlab/ci/packages-rpm.yml arrived with 6.3.5). Before it, the
+# generic aarch64 .rpm was built on Ubuntu, as the x86_64 one still is; either way it
+# goes in no repository, and the pages job's log says which it is.
+FEDORA_GENERIC_RPM = ("aarch64", "6.3.5")
 
 DEB_NAME = re.compile(r"^hmailserver_(?P<version>[0-9][0-9.]*[0-9])(?:-[0-9]+~(?P<distro>[a-z]+[0-9][0-9.]*))?_(?P<arch>amd64|arm64)\.deb$")
 RPM_NAME = re.compile(r"^hmailserver-(?P<version>[0-9][0-9.]*[0-9])-[0-9]+(?:\.(?P<dist>[a-z]+[0-9]+))?\.(?P<arch>x86_64|aarch64)\.rpm$")
@@ -167,6 +178,9 @@ def classify(name, version):
     generic = where is None
     if generic:
         if kind not in GENERIC:
+            if arch == FEDORA_GENERIC_RPM[0] and version_key(version) >= version_key(FEDORA_GENERIC_RPM[1]):
+                return None, ("%s has the generic name, a copy of the Fedora 44 build, which goes in no %s repository: the fc44 "
+                              "repository takes the same build as its .fc44 file" % (name, kind))
             return None, "%s has the generic name, built on Ubuntu, which goes in no %s repository" % (name, kind)
         where, since = GENERIC[kind]
         if version_key(version) < version_key(since):
@@ -843,14 +857,40 @@ def self_test():
     expect(any("6.3.3_amd64.deb has the generic name" in w for w in warnings), "6.3.3's generic .deb is passed over, and said")
     expect(any("hmailserver_6.3.4_amd64.deb names the version 6.3.4, not the release's 6.3.5" in w for w in warnings),
            "a file of another version in a release is passed over, and said")
-    for name in ("hmailserver-6.3.5-1.x86_64.rpm", "hmailserver-6.3.5-1.aarch64.rpm", "hmailserver-6.3.4-1.x86_64.rpm"):
+    for name in ("hmailserver-6.3.5-1.x86_64.rpm", "hmailserver-6.3.4-1.x86_64.rpm"):
         expect(any(name + " has the generic name, built on Ubuntu, which goes in no rpm repository" in w for w in warnings),
                "the generic .rpm %s goes in no repository, and said" % name)
+    expect(any("hmailserver-6.3.5-1.aarch64.rpm has the generic name, a copy of the Fedora 44 build, which goes in no rpm "
+               "repository: the fc44 repository takes the same build as its .fc44 file" in w for w in warnings),
+           "the generic aarch64 .rpm, a copy of the Fedora 44 build from 6.3.5, goes in no repository, and is not said to be "
+           "built on Ubuntu: %s" % [w for w in warnings if "aarch64" in w])
+    expect(classify("hmailserver-6.3.3-1.aarch64.rpm", "6.3.3")[1] == "hmailserver-6.3.3-1.aarch64.rpm has the generic name, built on "
+           "Ubuntu, which goes in no rpm repository", "6.3.3's generic aarch64 .rpm, from GitHub's Ubuntu runner, is said to be built on Ubuntu")
     both = select([release("v6.3.5", ["hmailserver_6.3.5_amd64.deb", "hmailserver_6.3.5-1~ubuntu26.04_amd64.deb"])])
     expect([e["name"] for e in both[0]] == ["hmailserver_6.3.5-1~ubuntu26.04_amd64.deb"]
            and any("hmailserver_6.3.5_amd64.deb is left out: the release has the ubuntu26.04 build" in w for w in both[1]),
            "a generic file is left out where the release has the suffixed build for the same place")
     expect(not any("AppImage" in w or "exe" in w or "bundle" in w for w in warnings), "files of other kinds pass silently")
+    # A release as the pipeline makes it from 6.3.6: the generic .deb and .rpm of both
+    # architectures, each with its bundle and its SBOM, and the sums. Both .debs go to
+    # ubuntu26.04, one to each architecture; neither generic .rpm goes anywhere; the
+    # SBOMs, the bundles and the sums pass silently.
+    carried = []
+    for name in ("hmailserver_6.3.6_amd64.deb", "hmailserver_6.3.6_arm64.deb",
+                 "hmailserver-6.3.6-1.x86_64.rpm", "hmailserver-6.3.6-1.aarch64.rpm", "hMailServer-6.3.6-x64.exe"):
+        carried += [name, name + ".cdx.json", name + ".cosign.bundle", name + ".cdx.json.cosign.bundle"]
+    carried += ["hmailserver-linux-6.3.6-SHA256SUMS.txt", "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
+    placed_636, warned_636 = select([release("v6.3.6", carried)])
+    expect(sorted((e["name"], e["where"], e["arch"]) for e in placed_636) == [
+        ("hmailserver_6.3.6_amd64.deb", "ubuntu26.04", "amd64"), ("hmailserver_6.3.6_arm64.deb", "ubuntu26.04", "arm64")],
+        "the generic .deb of each architecture goes to ubuntu26.04: %s" % placed_636)
+    expect(sorted(warned_636) == sorted([
+        "hmailserver-6.3.6-1.x86_64.rpm has the generic name, built on Ubuntu, which goes in no rpm repository",
+        "hmailserver-6.3.6-1.aarch64.rpm has the generic name, a copy of the Fedora 44 build, which goes in no rpm repository: "
+        "the fc44 repository takes the same build as its .fc44 file"]),
+           "the generic .rpms go in no repository, and only they are said: %s" % warned_636)
+    expect(site_path([e for e in placed_636 if e["arch"] == "arm64"][0]) == "/" + APT_POOL + "hmailserver_6.3.6_arm64.deb",
+           "the arm64 .deb is asked for in the one pool beside the amd64 one")
     expect([e["version"] for e in select(releases, keep=1)[0]] == ["6.3.5"] * 6, "--keep 1 keeps the newest version only")
 
     foreign = [release("v6.3.5", ["hmailserver_6.3.5_amd64.deb"])]

@@ -721,15 +721,18 @@ when the packaging changes.
 
 ## What is still owed
 
-* **The AArch64 packages are not released.** The GitHub workflow's
-  `ubuntu-24.04-arm` job built and installed the `.deb` on every push until
-  GitHub suspended the project's account on 18 September 2026, and the releases
-  since carry no AArch64 package. GitLab CI now builds them again, one for
-  each supported distribution release, cross-compiled on linix and
-  installed and run in an arm64 container there under qemu-user
-  (`.gitlab/ci/packages-deb.yml`, `.gitlab/ci/packages-rpm.yml`), but only as
-  CI job artifacts: they are not signed and not in a release. Nobody has
-  installed one on ARM hardware by hand.
+* **The AArch64 packages are tested under emulation only.** The GitHub
+  workflow's `ubuntu-24.04-arm` job built and installed the `.deb` on every push
+  until GitHub suspended the project's account on 18 September 2026, and the
+  first two releases made after it carry no AArch64 package. GitLab CI builds
+  them again, one for each supported distribution release, cross-compiled on
+  linix and installed and run in an arm64 container there under qemu-user
+  (`.gitlab/ci/packages-deb.yml`, `.gitlab/ci/packages-rpm.yml`). The release
+  pipeline now collects the generic pair, `hmailserver_<version>_arm64.deb`
+  (Ubuntu 26.04's build) and `hmailserver-<version>-1.aarch64.rpm` (Fedora
+  44's), signed and each with its SBOM (`build/ci/release-chain.py`); the
+  per-distribution ones are CI job artifacts, not signed and not in a release.
+  Nobody has installed one on ARM hardware.
 * **There is no re-keying command.** The stored-secret key file is made once
   and never rotated; replacing it by hand means re-entering every stored
   password, and there is no tool that re-encrypts them under a new key.

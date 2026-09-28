@@ -11,7 +11,9 @@ scripts they run are in `build/ci/packages/`.
 
 The generic x86-64 package, `hmailserver-<v>-1.x86_64.rpm`, stays
 `linux-build`'s, as before. This file adds its AArch64 twin and the twelve
-packages whose names carry a release (see [The names](#the-names)).
+packages whose names carry a release (see [The names](#the-names)). From 6.3.6
+the release carries the AArch64 twin, `hmailserver-<v>-1.aarch64.rpm`, with its
+SBOM; the twelve are CI artifacts that no release carries yet.
 
 **The build jobs have run on GitLab; the install jobs have not.** All twelve
 build jobs passed in `batch41`'s pipeline 2887115157 (27 September 2026), four
@@ -153,13 +155,15 @@ The jobs
 --------
 
 Each release has four jobs: a build and an install test, for each
-architecture. That makes 24 jobs.
+architecture. That makes 24 jobs, and a 25th, `rpm-fedora44-aarch64-sbom`, for
+the one package a release carries.
 
 | Job | Runs on | Image | What it does |
 |---|---|---|---|
 | `rpm-<target>-x86_64` | linix | the release's x86_64 image | `build/ci/packages/rpm-build.sh`: the release's clang, lld, CMake, ninja, rpm-build and `-devel` packages from its own repositories; CMake and ninja, then `hmailserver --version` and the server's tester programs, then `build/check-linux-version-stamp.sh` and CPack's RPM generator |
 | `rpm-<target>-aarch64` | linix | the release's **x86_64** image | the same script, cross-compiling with the release's clang and lld against a sysroot of the same release's aarch64 packages (see [The AArch64 route](#the-aarch64-route-and-why)). The testers run under qemu-user |
 | `rpm-<target>-<arch>-install` | linix | the release's image **of that architecture** | `build/ci/packages/rpm-install-test.sh`, on a clean container (see [The install test](#the-install-test)). The aarch64 container runs under qemu-user |
+| `rpm-fedora44-aarch64-sbom` | linix | the CI image | `build/ci/packages/package-sbom.sh`: the generic aarch64 package's own SBOM, `hmailserver-<v>-1.aarch64.rpm.cdx.json`, as `linux-build` makes the x86_64 one's, from what the build recorded it was built against |
 
 `<target>` is `fedora44`, `fedora43`, `el10`, `el9`, `leap16` or `tumbleweed`.
 
@@ -217,8 +221,23 @@ days:
 - `SHA256SUMS.txt`;
 - `requires.txt`: the package's `Requires`, `Requires(post)` and `Suggests`;
 - `build-info.txt`: the release, the compiler, Boost, the commit and the time;
+- `built-against/`: `rpm.txt`, one line for each thing each package of the
+  build's rpm database provides (the aarch64 sysroot's in a cross build; on
+  openSUSE, whose aarch64 sysroot is unpacked rather than installed, each
+  package as it was unpacked), and `boost-version.hpp`, the Boost header the
+  build compiled against, for the package's SBOM;
 - the logs of the packages, the sysroot, Boost, the configure, the build, the
   packaging and each tester.
+
+`rpm-fedora44-aarch64-sbom` keeps `generic/hmailserver-<v>-1.aarch64.rpm.cdx.json`
+beside the generic package: its SBOM, which the release carries. It runs
+`build/ci/packages/package-sbom.sh` in the CI image, because the build's
+container has neither PowerShell nor Python: `build/native-dependencies.ps1`'s
+component list, then `build/asset-sbom.py make --rpm-list
+built-against/rpm.txt`, which names for each library the package that
+provides its `-devel` in the sysroot (Fedora's `zlib-devel` is
+`zlib-ng-compat-devel`'s). Every build records it; only the package a release
+carries gets an SBOM job.
 
 The names
 ---------
@@ -253,7 +272,12 @@ The update checker (`UpdateChecker.cpp`, `PlatformInstallerName_`) and
   only job that makes it: the same build as `hmailserver-<v>-1.fc44.aarch64.rpm`,
   with CPack run a second time for release `1`. Fedora 44 is the release the
   generic x86_64 package is tested on. `rpm-fedora44-aarch64-install` installs
-  both files.
+  both files. From 6.3.6 the release collects it with its SBOM, holding it to
+  the `SHA256SUMS.txt` the build wrote and adding its line to the release's
+  sums, and `release` waits for the build, its install job and
+  `rpm-fedora44-aarch64-sbom`. It goes in no dnf repository: the `.fc44` file
+  is the same build, and that is the one `fc44`'s repository takes once a
+  release carries it (`build/generate-package-repos.py`).
 
 **The update checker was not changed in this work.** A server installed from any
 `.rpm` looks for the generic name of its architecture, so a server installed
@@ -472,29 +496,35 @@ What is left
    (flags `POF`). The runs in [What has run](#what-has-run) used that handler.
    linix has not rebooted since, so nobody has yet seen it come back after a
    reboot.
-2. **Wiring into the release: the integrator's change.** A release can add the
-   thirteen files these jobs make: `hmailserver-<v>-1.aarch64.rpm` and the twelve
-   whose names carry a release. `hmailserver-<v>-1.x86_64.rpm` stays
-   `linux-build`'s. The release job (`build/ci/release-chain.py collect`)
-   collects six assets today; adding these to `release`'s `needs` and to the
-   collection is not this file's change. Until then a tag's `release` job does
-   not wait for these jobs.
+2. **Wiring into the release: done for the generic aarch64 package, for
+   6.3.6.** A release can add the thirteen files these jobs make:
+   `hmailserver-<v>-1.aarch64.rpm` and the twelve whose names carry a release.
+   `hmailserver-<v>-1.x86_64.rpm` stays `linux-build`'s.
+   `hmailserver-<v>-1.aarch64.rpm` is in (batch42, 28 September 2026):
+   `release` needs `rpm-fedora44-aarch64`, `rpm-fedora44-aarch64-sbom` and
+   `rpm-fedora44-aarch64-install`, and `build/ci/release-chain.py collect`
+   takes the package and its SBOM. The twelve are not in yet, and a tag's
+   `release` job does not wait for their jobs.
 3. **The checks that read `.gitlab-ci.yml` alone: the integrator's change.**
-   `build/check-release-chain.py` reads `.gitlab-ci.yml` alone, so it does not
-   see the jobs of an included file. Nor does `build/ci/repo-hygiene.py`: its
+   `build/check-release-chain.py` reads the jobs of an included file only for
+   the packages a release carries (`CARRIED_PACKAGES`: the build, the SBOM job
+   and the install job of each) and for the old routes; it reads no other as a
+   gate of a release. `build/ci/repo-hygiene.py` reads none of them: its
    Pinned-Dependencies check reads the images of `.gitlab-ci.yml` only, and the
    scripts of `build/*.sh` and `build/ci/*.sh` only, not `.gitlab/ci/*.yml` or
    `build/ci/packages/`. Its own functions, run over this file and these
    scripts, find every image pinned by digest and no piped download, so
    widening it would not fail this tree. Its Token-Permissions check reads
    `.gitlab-ci.yml` alone too; a version of it that reads the included files
-   and judges each rule that makes a job on its own, run over this file, finds
-   all 24 jobs asking for a protected ref and refusing a merge request.
+   and judges each rule that makes a job on its own, run over this file, found
+   all 24 jobs it held then asking for a protected ref and refusing a merge
+   request.
 4. **`docs/ContinuousIntegration.md`: the integrator's change.** Its table of
-   jobs does not list these 24, its `master` row says every job but the release
+   jobs does not list these 25, its `master` row says every job but the release
    jobs, `linux-fuzz` and `installer-smoke` runs there, where these builds wait
    for a press, and it says that linix builds x86-64 only, where these jobs
-   cross-compile aarch64 packages there (not yet carried by a release, item 2).
+   cross-compile aarch64 packages there (the generic one carried by a release
+   from 6.3.6, item 2).
    The Debian and Ubuntu package jobs need the same lines, so the two are best
    written into it together.
 5. **Keep the digests current.** Renovate (`renovate.json`) reads

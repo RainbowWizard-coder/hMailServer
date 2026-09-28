@@ -15,14 +15,19 @@
 #                                container of that release and architecture; the
 #                                arm64 one runs under qemu-user, through the
 #                                qemu-aarch64 binfmt handler of linix's kernel
+#   deb-ubuntu26.04-arm64-sbom   linix, in the CI image: the SBOM of the one
+#                                package here a release carries
+#                                (build/ci/packages/package-sbom.sh)
 #
 # for debian12, debian13 and ubuntu24.04, amd64 and arm64, and for ubuntu26.04
 # arm64 only. The names: ubuntu26.04 arm64 makes the generic
-# hmailserver_<v>_arm64.deb the update checker looks for. Its amd64 twin,
-# hmailserver_<v>_amd64.deb, is linux-build's (.gitlab-ci.yml), the one the
-# release collects and linux-package-deb installs, so no job here makes a second
-# file of that name. Every other release makes hmailserver_<v>-1~<distro>_<arch>.deb,
-# Version <v>-1~<distro>.
+# hmailserver_<v>_arm64.deb the update checker looks for, which the release
+# collects from 6.3.6 with its SBOM, and release waits for its build, its install
+# job and its SBOM job. Its amd64 twin, hmailserver_<v>_amd64.deb, is
+# linux-build's (.gitlab-ci.yml), the one the release collects and
+# linux-package-deb installs, so no job here makes a second file of that name.
+# Every other release makes hmailserver_<v>-1~<distro>_<arch>.deb, Version
+# <v>-1~<distro>: CI artifacts that no release carries yet.
 #
 # When: every v* tag and batch* branch, at once; on any other protected branch
 # (master) by hand - a build is started with its play button, and its install
@@ -235,3 +240,28 @@ deb-ubuntu26.04-arm64-install:
   extends: [.deb-install, .deb-image-ubuntu26.04-arm64]
   needs: [deb-ubuntu26.04-arm64]
   variables: {HM_DEB_DISTRO: ubuntu26.04, HM_DEB_ARCH: arm64}
+
+# The release carries hmailserver_<v>_arm64.deb, from 6.3.6, and every compiled
+# file it carries goes out with its own SBOM beside it (SECURITY.md, "Software
+# bills of materials"). The build's container has neither PowerShell nor Python,
+# so the build records what it was built against (built-against/) and this job
+# makes hmailserver_<v>_arm64.deb.cdx.json from that in the CI image, as
+# linux-build makes the amd64 package's (build/ci/packages/package-sbom.sh). The
+# release job needs the build, this job and the install job, and collects the
+# package, its sums and this SBOM (build/ci/release-chain.py, sources()). Its
+# rules are the install jobs': it follows its build.
+deb-ubuntu26.04-arm64-sbom:
+  extends: .linix
+  stage: test
+  needs:
+    - job: deb-ubuntu26.04-arm64
+      artifacts: true
+  timeout: 10 minutes
+  rules:
+    - !reference [.deb-install-rules, rules]
+  script:
+    - bash build/ci/packages/package-sbom.sh packages-deb/ubuntu26.04-arm64/hmailserver_*_arm64.deb packages-deb/ubuntu26.04-arm64/built-against
+  artifacts:
+    expire_in: 14 days
+    paths:
+      - packages-deb/ubuntu26.04-arm64/*.cdx.json

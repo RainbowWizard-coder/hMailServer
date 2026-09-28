@@ -44,6 +44,15 @@
 #                               the same build under the generic name the update
 #                               checker looks for (see the doc)
 #   packages-rpm/<target>-<arch>/SHA256SUMS.txt, build-info.txt, requires.txt
+#   packages-rpm/<target>-<arch>/built-against/
+#                               what the package was built against, for its SBOM:
+#                               rpm.txt, what the rpm database of the build held
+#                               (the aarch64 sysroot's in a cross build), and
+#                               boost-version.hpp, the Boost header the build
+#                               compiled against. This stock container has neither
+#                               PowerShell nor Python to make the SBOM itself;
+#                               package-sbom.sh makes it from these in the CI image,
+#                               for the packages a release carries (packages-rpm.yml)
 #   packages-rpm/<target>-<arch>/*.log
 #
 # The environment it reads:
@@ -142,6 +151,14 @@ rm -rf "$out"
 mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 started_all=$(date +%s)
+# What the package is built against, recorded for its SBOM (build/asset-sbom.py
+# --rpm-list): one line per thing each package provides, since Fedora's zlib-devel
+# is another package's. Inside [...] a tag that is not an array is written %{=TAG},
+# or rpm prints "array iterator used with different sized arrays", nothing else,
+# and exits 0 (rpm 6.0.1, 28 September 2026).
+facts="$out/built-against"
+mkdir -p "$facts"
+rpm_format='[%{=NAME} %{=ARCH} %{=VERSION}-%{=RELEASE} %{PROVIDENAME}\n]'
 
 step() {
   echo ""
@@ -275,6 +292,9 @@ if [ "$arch" = aarch64 ]; then
       while IFS= read -r -d '' rpm; do
         case "$rpm" in *.aarch64.rpm|*.noarch.rpm) ;; *) echo "FAILED: $rpm is not aarch64"; exit 3 ;; esac
         ( cd "$sysroot" && rpm2cpio "$rpm" | cpio -idm --quiet 2> /dev/null )
+        # Unpacked, not installed, so no rpm database records it: the list is
+        # taken from each package as it goes in.
+        rpm -qp --qf "$rpm_format" "$rpm" >> "$facts/rpm.txt" 2> /dev/null
         count=$((count + 1))
       done < <(find "$zroot/var/cache/zypp/packages" -name '*.rpm' -print0)
       echo "$count aarch64 packages unpacked" >> "$out/sysroot.log"
@@ -598,6 +618,26 @@ fi
   echo "seconds $(( $(date +%s) - started_all ))"
 } > "$out/build-info.txt"
 cat "$out/SHA256SUMS.txt"
+
+# What the package was built against (build/asset-sbom.py --rpm-list): the rpm
+# database of the aarch64 sysroot dnf installed, or of this container for a native
+# build; openSUSE's aarch64 sysroot was listed as it was unpacked, above. And the
+# Boost header the build compiled against: boost.org's, built here, or the
+# distribution's.
+if [ "$arch" = x86_64 ]; then
+  rpm -qa --qf "$rpm_format" > "$facts/rpm.txt"
+elif [ "$family" = dnf ]; then
+  rpm --root "$sysroot" -qa --qf "$rpm_format" > "$facts/rpm.txt"
+fi
+[ -s "$facts/rpm.txt" ] || { echo "FAILED: rpm listed nothing the package was built against, for its SBOM"; exit 4; }
+for header in "$sysroot/opt/boost/include/boost/version.hpp" "$sysroot/usr/include/boost/version.hpp"; do
+  if [ -f "$header" ]; then
+    cp "$header" "$facts/boost-version.hpp"
+    break
+  fi
+done
+[ -f "$facts/boost-version.hpp" ] || { echo "FAILED: no Boost header to record the version the build compiled against"; exit 4; }
+echo "built against: $(cut -d' ' -f1 "$facts/rpm.txt" | sort -u | wc -l) package(s) recorded in built-against/"
 rm -rf "$build_dir" "$sysroot"
 
 echo ""

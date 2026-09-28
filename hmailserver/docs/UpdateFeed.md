@@ -455,7 +455,13 @@ added, for example `/download/hMailServer-x64.exe.cosign.bundle`. A name has a
 link only when that release carries its file. A name it does not carry answers
 404, never a file of another release. 6.3.4 carries the x64 installer, the amd64
 `.deb` and the x86-64 `.rpm`, and no bundle, so its other names answer 404 until
-a stable release carries them again.
+a stable release carries them again. The release pipeline is to carry the
+AArch64 `.deb` and `.rpm` from 6.3.6, each with its bundle, so `hmailserver_arm64.deb`
+and `hmailserver.aarch64.rpm` answer from the first stable release that has them,
+and an AArch64 server installed from either package finds its file in the feed
+by the name its update check asks for (`hmailserver_<v>_arm64.deb`,
+`hmailserver-<v>-1.aarch64.rpm`). `--serve-check` fails a stable release that
+carries any server's file without its bundle, unless it is unsigned by design.
 
 GitLab's own `/-/releases/permalink/latest` is the release with the latest
 `released_at` date. GitLab has no pre-release flag, so a pre-release, or the

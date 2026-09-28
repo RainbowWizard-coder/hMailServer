@@ -58,7 +58,7 @@ What runs where
 | `semgrep-sast` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline (`.gitlab/ci/gitlab-security.yml`) |
 | `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
-| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), and collects the eight files a release carries before the installer's SBOM (`build/ci/release-chain.py collect`) |
+| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), and collects the twelve files a release carries before the installer's SBOM, eight until 6.3.5 (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The installer Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
 | `release-sbom` | release | GitLab's shared runners | a `v*` tag, after `release-authenticode` | The signed installer's own SBOM, `<installer>.cdx.json` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
 | `release-sign` | release | GitLab's shared runners | a `v*` tag, after `release-sbom` | Every file signed with Sigstore as this pipeline (`build/ci/release-sign.sh`) |
@@ -1270,12 +1270,12 @@ has the runbook.
 | Job | Where | What it does |
 |---|---|---|
 | `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
-| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer, the `.deb` and the `.rpm` each with its own SBOM (`<package>.cdx.json`, which `linux-build` made and which must describe the package, by SHA-256), their sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, and the tree's two SBOMs, checking the sums against the packages; and refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or the installer, its SBOM or a bundle at all, which only the jobs after it make (`build/ci/release-chain.py collect`) |
+| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer; the x86-64 `.deb` and `.rpm`, `linux-build`'s, and the AArch64 ones, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s (from 6.3.6), each with its own SBOM (`<package>.cdx.json`, which `linux-build` or the package's SBOM job made and which must describe the package, by SHA-256); the four packages' sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, `linux-build`'s `SHA256SUMS.txt` as it is with a line added for each AArch64 package; and the tree's two SBOMs, checking every package against the sums its build job wrote; and refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or the installer, its SBOM or a bundle at all, which only the jobs after it make (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | bench150 | Signs the installer through Azure Artifact Signing and requires a valid signature with an RFC 3161 timestamp (`build/ci/windows-authenticode.ps1`) |
 | `release-sbom` | shared runners, in Python's image | Makes the installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list (kept by `release` in `release-tools/`), the tools' lock files and the installer script; refuses an installer Authenticode left unchanged (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
-| `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires the installer's SBOM to name the signed installer's SHA-256, then signs all nine files with Sigstore and checks each bundle's format and log entry, and verifies it with cosign (`build/ci/release-sign.sh`) |
+| `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires the installer's SBOM to name the signed installer's SHA-256, then signs all thirteen files with Sigstore and checks each bundle's format and log entry, and verifies it with cosign (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, holds each compiled file's SBOM to the file (`build/asset-sbom.py verify`), and writes the notes' verification section (`build/ci/release-verify.sh`) |
-| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the eighteen files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows, Debian and RPM servers their file and bundle (`build/ci/release-chain.py publish`) |
+| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the twenty-six files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows servers, and Debian and RPM servers on x86-64 and AArch64, their file and bundle (`build/ci/release-chain.py publish`) |
 | `update-feed` | a trigger | A downstream pipeline on `master`, which runs `pages` and `package-repos` alone: every other job refuses a pipeline whose source is `pipeline`. It passes no variables, not even the file's (`inherit: variables: false`), because GitLab takes a trigger job's variables as pipeline variables, which this project refuses at GitLab's default for a project made since 17.7 |
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
@@ -1285,15 +1285,21 @@ as soon as its own needs have finished, so `release` needs every job of
 security scans whose reports it reads (`static-analysis`, `semgrep`,
 `dependency-scan` and `semgrep-sast`), which are `allow_failure`: it reads
 their reports and refuses on what they found
-([Before a release](#before-a-release-the-scans-hold-it)). It brings the
-artifacts of seven jobs, the three whose files it collects and those four. It
-does not wait for `ci-image-packages` and `repo-hygiene`, which are
-`allow_failure`, for the manual `db-matrix` and `installer-smoke`, or for the
-package jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too:
+([Before a release](#before-a-release-the-scans-hold-it)). Of the package
+jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too, it needs
+the two whose files the release carries, `deb-ubuntu26.04-arm64` and
+`rpm-fedora44-aarch64`, their SBOM jobs and their install jobs, which install
+and run each package in an AArch64 container of its distribution under
+qemu-user and so are gates. It brings the artifacts of eleven jobs: the seven
+whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`, and
+the two package builds and their SBOM jobs) and the four scans. It does not
+wait for `ci-image-packages` and `repo-hygiene`, which are `allow_failure`, for
+the manual `db-matrix` and `installer-smoke`, or for the other package jobs:
 they make CI artifacts that no release carries, so they are not gates of a
 release, and `release` can start while they are still running or after one
 has failed. `build/check-release-chain.py` fails when a job of
-`.gitlab-ci.yml` that can fail is not among its needs. `release-publish` waits for
+`.gitlab-ci.yml` that can fail is not among its needs, or one that builds,
+describes or installs an AArch64 package the release carries. `release-publish` waits for
 the second button so that the installer smoke test can run on the signed
 installer first ([The installer smoke test](#the-installer-smoke-test)):
 download `release-signed/` from `release-sign`'s artifacts, run the test with
@@ -1355,11 +1361,23 @@ signing job produces"). `build/check-release-chain.py`, in the `checkers` job,
 fails when a change to the file or the scripts breaks that, or the order of the
 jobs, or the manual starts.
 
-**What a release carries.** Nine files and a bundle beside each: the Windows
-installer, the x86-64 `.deb` and `.rpm` and their sums, each of the three
-compiled files' own SBOM (`<file>.cdx.json`, CycloneDX 1.6; SECURITY.md,
-"Software bills of materials"), and the SPDX and CycloneDX SBOMs of the tree.
-No AArch64 packages, no AppImages, no SLSA provenance and no
+**What a release carries.** From 6.3.6, thirteen files and a bundle beside
+each: the Windows installer; the generic `.deb` and `.rpm` for x86-64
+(`hmailserver_<v>_amd64.deb`, `hmailserver-<v>-1.x86_64.rpm`, `linux-build`'s)
+and for AArch64 (`hmailserver_<v>_arm64.deb`, cross-compiled by
+`deb-ubuntu26.04-arm64` in Ubuntu 26.04's own container, and
+`hmailserver-<v>-1.aarch64.rpm`, by `rpm-fedora44-aarch64` in Fedora 44's), the
+names an installed server's update check asks for; the four packages' sums;
+each of the five compiled files' own SBOM (`<file>.cdx.json`, CycloneDX 1.6;
+SECURITY.md, "Software bills of materials"); and the SPDX and CycloneDX SBOMs of
+the tree. 6.3.5 carries nine: the same without the AArch64 packages and their
+SBOMs. The AArch64 packages are tested under emulation only: their install jobs
+install and run each in an AArch64 container under qemu-user on linix, and the
+project has no AArch64 machine. A package job's container has neither
+PowerShell nor Python, so the build records what it was built against
+(`built-against/`: what dpkg or the sysroot's rpm database held, and Boost's
+header) and an SBOM job makes the package's SBOM from that in the CI image
+(`build/ci/packages/package-sbom.sh`). No AppImages, no SLSA provenance and no
 `.sigstore.json` copies, which the GitHub releases had. The pipeline builds the
 other `.deb` and `.rpm` packages, one for each supported distribution release on
 x86-64 and AArch64, the AppImages and, once bench150 has what its ARM64 job
@@ -1373,7 +1391,8 @@ Studio; the notes say that too.
 
 **The artifacts' lifetimes.** `linux-build`'s artifact is kept three days, so
 `release` has to be started within three days of the tag's pipeline, or
-`linux-build` retried first. `release` keeps what the later jobs need, the
+`linux-build` retried first. The package jobs' artifacts are kept fourteen
+days. `release` keeps what the later jobs need, the
 server binary included, for thirty days, and the signed files are kept ninety.
 
 ### The container image
@@ -1600,7 +1619,14 @@ been seen working:
   Dockerfile's base) on linix on 26 September 2026 and wrote its report;
 - that cosign stores the image's signature in GitLab's registry as
   `sha256-<digest>.sig` with the job's credentials, and that `cosign verify`
-  finds it there.
+  finds it there;
+- that the AArch64 package builds' record of what they were built against is
+  what `build/asset-sbom.py` reads: `dpkg-query -W` in Ubuntu 26.04's
+  container, with the cross toolchain's `libc6-dev-arm64-cross` and
+  `libstdc++-15-dev-arm64-cross` beside the `:arm64` -dev packages, and
+  `rpm --root` over the aarch64 sysroot dnf installed in Fedora 44's. The
+  readers are tested against records written to that form; neither job has run
+  with the recording, so the SBOM jobs have not either.
 
 Dependency updates
 ------------------

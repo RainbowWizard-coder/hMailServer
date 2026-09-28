@@ -93,7 +93,8 @@ for file in "$signed"/*; do
 done
 rm -rf "$scratch"
 
-[ "$verified" -eq 9 ] || fail "$verified file(s) verified; a release is 9"
+# The thirteen files a release carries (build/ci/release-chain.py, expected_assets).
+[ "$verified" -eq 13 ] || fail "$verified file(s) verified; a release is 13"
 
 # Each compiled file's own SBOM describes that very file (build/asset-sbom.py verify:
 # well formed, and its subject's SHA-256 is the file's), as a user checks it
@@ -184,23 +185,28 @@ esac
   echo ""
   echo "The Windows installer is also signed with Authenticode through Azure Artifact Signing, with an RFC 3161 timestamp."
   echo ""
-  echo "Unlike the releases up to 6.3.3, this one carries no AArch64 packages, no AppImages and no SLSA provenance. The"
-  echo "pipeline also builds the other \`.deb\` and \`.rpm\` packages, one for each supported distribution release on x86-64"
-  echo "and AArch64, and the AppImages, but only as CI job artifacts: they are not signed and not in the release. The SLSA"
-  echo "provenance generator is GitHub's."
+  echo "Unlike the releases up to 6.3.3, this one carries no AppImages and no SLSA provenance. The AArch64 \`.deb\` and"
+  echo "\`.rpm\` are cross-compiled on the project's x86-64 runner, the \`.deb\` in Ubuntu 26.04's own container and the"
+  echo "\`.rpm\` in Fedora 44's, and each was installed and run in an AArch64 container of that release under emulation"
+  echo "(qemu-user): no AArch64 machine has run them. The pipeline also builds the other \`.deb\` and \`.rpm\` packages,"
+  echo "one for each supported distribution release on x86-64 and AArch64, and the AppImages, but only as CI job"
+  echo "artifacts: they are not signed and not in the release. The SLSA provenance generator is GitHub's."
   echo ""
-  echo "What a signature shows is which pipeline signed a file, not what the file was built from. Here, the \`.deb\`,"
-  echo "the \`.rpm\` and the SBOMs were made by this pipeline in the runner's own checkout of \`${CI_COMMIT_SHA:-unknown}\`,"
+  echo "What a signature shows is which pipeline signed a file, not what the file was built from. Here, the x86-64"
+  echo "\`.deb\` and \`.rpm\` and their SBOMs were made by this pipeline in the runner's own checkout of"
+  echo "\`${CI_COMMIT_SHA:-unknown}\`, in the CI image; the AArch64 \`.deb\` and \`.rpm\` in that checkout too, each in its"
+  echo "distribution's own container, and their SBOMs from what those containers recorded the build was built against;"
   echo "the installer's SBOM from the installer as Authenticode signed it."
   echo "The Windows installer was made by this pipeline on the project's Windows runner, in that runner's long-lived"
   echo "checkout, which the job requires to be at that commit with no change to a tracked file and no file git does not"
   echo "track where a build would take it in, and from the folders the installer takes whole it removes every file git"
   echo "does not track before building. The server and the tools in it are that checkout's incremental build of the"
   echo "commit; its OpenSSL and libpq DLLs come from that runner's library tree and its C++ runtime from that runner's"
-  echo "Visual Studio, both outside the pipeline; and nothing here proves that build reproducible. The Linux one is"
-  echo "checked: \`linux-repro\`, which the release waits for, built the server, the \`.deb\` and the \`.rpm\` a second"
-  echo "time from the same commit in the same image, from a copy of the tree at another path, and both packages were"
-  echo "byte for byte the files above (\`hmailserver/docs/ReproducibleBuilds.md\`)."
+  echo "Visual Studio, both outside the pipeline; and nothing here proves that build reproducible. The x86-64 Linux one"
+  echo "is checked: \`linux-repro\`, which the release waits for, built the server, the \`.deb\` and the \`.rpm\` a"
+  echo "second time from the same commit in the same image, from a copy of the tree at another path, and both packages"
+  echo "were byte for byte the files above (\`hmailserver/docs/ReproducibleBuilds.md\`). The AArch64 packages were built"
+  echo "once, and no second build has been compared with them."
 } > "$out/verification.md"
 
 echo ""

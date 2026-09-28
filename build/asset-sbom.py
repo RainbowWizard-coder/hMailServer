@@ -30,6 +30,12 @@ needs, and nothing that only another asset carries:
       the distribution package and version each was built against (and Boost's
       exact version, from its header, since it is in the binary); --read-package
       adds what the package itself declares it depends on (dpkg-deb, rpm).
+      A package job of .gitlab/ci/packages-*.yml builds in a distribution's own
+      container, which has neither PowerShell for build/native-dependencies.ps1
+      nor Python, so it records what its dpkg or rpm had installed and Boost's
+      header (build/ci/packages/deb-build.sh, rpm-build.sh), and --dpkg-list or
+      --rpm-list reads that record in place of --query-dpkg, in the job that
+      makes the document (build/ci/packages/package-sbom.sh).
   image
       Syft's CycloneDX document of the pushed image (every distribution package in
       it, the hmailserver .deb among them), with the .deb's own document's
@@ -45,6 +51,12 @@ Usage:
           --dependencies native-dependencies-x64.json [--out FILE] [--contains NAME=SHA256]...
   python3 build/asset-sbom.py make --kind deb --asset hmailserver_6.3.5_amd64.deb \\
           --dependencies native-dependencies-x64.json --query-dpkg --read-package
+  python3 build/asset-sbom.py make --kind deb --asset hmailserver_6.3.6_arm64.deb \\
+          --dependencies native-dependencies-x64.json --dpkg-list built-against/dpkg.txt --target-arch arm64 \\
+          --boost-header built-against/boost-version.hpp --read-package
+  python3 build/asset-sbom.py make --kind rpm --asset hmailserver-6.3.6-1.aarch64.rpm \\
+          --dependencies native-dependencies-x64.json --rpm-list built-against/rpm.txt \\
+          --boost-header built-against/boost-version.hpp --read-package
   python3 build/asset-sbom.py image --syft image.syft.cdx.json --deb-sbom hmailserver_6.3.5_amd64.deb.cdx.json \\
           --image registry.gitlab.com/progressiverobot/hmailserver@sha256:<digest> --version 6.3.5 --out FILE
   python3 build/asset-sbom.py verify FILE.cdx.json FILE      the document describes this very file
@@ -57,6 +69,7 @@ checks these documents: SECURITY.md, "Software bills of materials".
 import argparse
 import base64
 import datetime
+import fnmatch
 import glob
 import hashlib
 import io
@@ -101,6 +114,28 @@ BUILT_AGAINST = {
     "linux-boost": ["libboost-dev", "libboost-thread-dev", "libboost*-dev"],
     "linux-libpq": ["libpq-dev"],
     "linux-openldap": ["libldap-dev", "libldap2-dev"],
+}
+# A cross build's own C and C++ libraries (deb-build.sh's arm64 route): the cross
+# compiler takes their headers, start files and libraries from the release's
+# <arch>-cross packages, which crossbuild-essential-<arch> installs, before the
+# target architecture's own -dev packages. Every other library is the target
+# architecture's -dev package. What --dpkg-list looks for first.
+CROSS_TOOLCHAIN = {
+    "linux-glibc": "libc6-dev-%s-cross",
+    "linux-libstdcxx": "libstdc++-*-dev-%s-cross",
+}
+# The development packages an RPM distribution builds each Linux component
+# against, by what they provide, most likely first: Fedora's zlib-devel is
+# provided by zlib-ng-compat-devel, and openSUSE names OpenSSL's, libpq's and
+# OpenLDAP's otherwise (rpm-build.sh's sys_pkgs). What --rpm-list looks for.
+BUILT_AGAINST_RPM = {
+    "linux-glibc": ["glibc-devel"],
+    "linux-libstdcxx": ["libstdc++-devel"],
+    "linux-openssl": ["openssl-devel", "libopenssl-devel"],
+    "linux-zlib": ["zlib-devel"],
+    "linux-boost": ["boost-devel"],
+    "linux-libpq": ["libpq-devel", "postgresql-devel"],
+    "linux-openldap": ["openldap-devel", "openldap2-devel", "openldap2_6-devel"],
 }
 BOOST_HEADER = "/usr/include/boost/version.hpp"
 
@@ -306,6 +341,21 @@ def default_run(arguments):
     return answer.returncode, answer.stdout, answer.stderr
 
 
+def boost_from_header(component, boost_header):
+    """Boost's exact version, from the version.hpp the build compiled against: it is
+    linked into the binary, so its own version is the one the file carries."""
+    try:
+        header = read_text(boost_header)
+    except OSError:
+        raise SbomError("%s cannot be read: Boost is linked into the binary, and its version is read from there" % boost_header)
+    match = re.search(r"^#define BOOST_VERSION (\d+)\s*$", header, re.MULTILINE)
+    if not match:
+        raise SbomError("%s defines no BOOST_VERSION" % boost_header)
+    number = int(match.group(1))
+    component["version"] = "%d.%d.%d" % (number // 100000, number // 100 % 1000, number % 100)
+    component["purl"] = "pkg:generic/boost@" + component["version"]
+
+
 def dpkg_built_against(components, run=default_run, boost_header=BOOST_HEADER):
     """Each Linux component's development package and version, as dpkg has them
     installed where the build ran, and Boost's own version from its header."""
@@ -329,16 +379,93 @@ def dpkg_built_against(components, run=default_run, boost_header=BOOST_HEADER):
                 raise SbomError("dpkg has none of %s installed, which %s is built against: --query-dpkg runs where the "
                                 "package was built" % (", ".join(BUILT_AGAINST[ref]), component["name"]))
         if ref == "linux-boost":
-            try:
-                header = read_text(boost_header)
-            except OSError:
-                raise SbomError("%s cannot be read: Boost is linked into the binary, and its version is read from there" % boost_header)
-            match = re.search(r"^#define BOOST_VERSION (\d+)\s*$", header, re.MULTILINE)
-            if not match:
-                raise SbomError("%s defines no BOOST_VERSION" % boost_header)
-            number = int(match.group(1))
-            component["version"] = "%d.%d.%d" % (number // 100000, number // 100 % 1000, number % 100)
-            component["purl"] = "pkg:generic/boost@" + component["version"]
+            boost_from_header(component, boost_header)
+
+
+# ---------------------------------------------------------------- what a package job recorded
+
+def read_dpkg_list(path):
+    """What the build container's dpkg had installed, as a package job records it
+    (build/ci/packages/deb-build.sh): every line of
+    dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Architecture} ${Version}\\n'.
+    [(package, architecture, version)] of what is installed ("ii")."""
+    try:
+        text = read_text(path)
+    except OSError as e:
+        raise SbomError("%s cannot be read: %s. The package job records it where it built the package" % (path, e))
+    installed = []
+    for line in text.splitlines():
+        fields = line.split()
+        if len(fields) == 4 and fields[0] == "ii":
+            installed.append((fields[1], fields[2], fields[3]))
+    if not installed:
+        raise SbomError("%s records no installed package: it is not what dpkg-query -W printed in the build container" % path)
+    return installed
+
+
+def read_rpm_list(path):
+    """What the build's rpm database held, as a package job records it
+    (build/ci/packages/rpm-build.sh): every line of
+    rpm -qa --qf '[%{=NAME} %{=ARCH} %{=VERSION}-%{=RELEASE} %{PROVIDENAME}\\n]', one per
+    thing a package provides, of the aarch64 sysroot in a cross build.
+    [(name, arch, version-release, set of what it provides)]."""
+    try:
+        text = read_text(path)
+    except OSError as e:
+        raise SbomError("%s cannot be read: %s. The package job records it where it built the package" % (path, e))
+    packages = {}
+    for line in text.splitlines():
+        fields = line.split(None, 3)
+        if len(fields) != 4:
+            continue
+        packages.setdefault((fields[0], fields[1], fields[2]), set()).add(fields[3].strip())
+    if not packages:
+        raise SbomError("%s records no installed package: it is not what rpm -qa printed where the package was built" % path)
+    return [(name, arch, version, provides) for (name, arch, version), provides in sorted(packages.items())]
+
+
+def dpkg_candidates(ref, arch):
+    """The packages --dpkg-list looks for, most likely first: the cross toolchain's
+    own, for the C and C++ libraries, then BUILT_AGAINST's packages of the target
+    architecture, each named with it (libssl-dev:arm64), so that the build
+    container's own architecture's package of the same name is never taken."""
+    wanted = ["%s:%s" % (name, arch) for name in BUILT_AGAINST.get(ref, [])]
+    if ref in CROSS_TOOLCHAIN:
+        wanted.insert(0, CROSS_TOOLCHAIN[ref] % arch)
+    return wanted
+
+
+def recorded_built_against(components, installed, kind, arch=None, boost_header=BOOST_HEADER, where="the record"):
+    """dpkg_built_against, from what a package job recorded rather than from the dpkg
+    here: each Linux component's development package and version, and Boost's
+    version from the header the job copied. installed is read_dpkg_list's (kind
+    "dpkg", with the target architecture arch) or read_rpm_list's (kind "rpm")."""
+    for component in components:
+        ref = component["bom-ref"][len("native-"):]
+        if kind == "dpkg":
+            wanted = dpkg_candidates(ref, arch)
+        else:
+            wanted = BUILT_AGAINST_RPM.get(ref, [])
+        for candidate in wanted:
+            if kind == "dpkg":
+                name, _, qualifier = candidate.partition(":")
+                found = [(package, "%s:%s" % (package, architecture) if qualifier else package, version)
+                         for package, architecture, version in installed
+                         if fnmatch.fnmatchcase(package, name) and (not qualifier or architecture == qualifier)]
+            else:
+                found = [(name, name, version) for name, _, version, provides in installed if candidate in provides]
+            if found:
+                # The highest-numbered, where a pattern matches several, as dpkg_built_against chooses.
+                found.sort(key=lambda p: [int(n) for n in re.findall(r"\d+", p[0])] or [0])
+                _, label, version = found[-1]
+                component["properties"].append(prop("built-against", "%s %s" % (label, version)))
+                break
+        else:
+            if wanted:
+                raise SbomError("%s records none of %s installed, which %s is built against: the package job records "
+                                "what its build container had" % (where, ", ".join(wanted), component["name"]))
+        if ref == "linux-boost":
+            boost_from_header(component, boost_header)
 
 
 def package_facts(kind, asset, run=default_run):
@@ -444,20 +571,33 @@ def document(subject_component, components, sha256, kind, extra_tools=None):
 
 
 def make(kind, asset, dependencies, root=ROOT, version=None, commit=None, contains=None, query_dpkg=False,
-         read_package=False, run=default_run, boost_header=BOOST_HEADER):
+         read_package=False, run=default_run, boost_header=BOOST_HEADER, dpkg_list=None, rpm_list=None, target_arch=None):
     if kind not in KINDS:
         raise SbomError("%s is not a kind of asset this makes (%s)" % (kind, ", ".join(sorted(KINDS))))
     if not os.path.isfile(asset) or os.path.getsize(asset) == 0:
         raise SbomError("%s is not a file, or is empty" % asset)
-    if (query_dpkg or read_package) and KINDS[kind]["target"] != "linux":
-        raise SbomError("--query-dpkg and --read-package are for a .deb or an .rpm")
+    if (query_dpkg or read_package or dpkg_list or rpm_list) and KINDS[kind]["target"] != "linux":
+        raise SbomError("--query-dpkg, --dpkg-list, --rpm-list and --read-package are for a .deb or an .rpm")
+    if sum(1 for given in (query_dpkg, dpkg_list, rpm_list) if given) > 1:
+        raise SbomError("--query-dpkg, --dpkg-list and --rpm-list are three ways to one answer, what the package was built "
+                        "against: give one")
+    if dpkg_list and not re.match(r"^[a-z0-9][a-z0-9\-]*$", target_arch or ""):
+        raise SbomError("--dpkg-list needs --target-arch, the package's own architecture as dpkg names it (arm64, amd64): "
+                        "the build container has its own architecture's packages beside the target's")
+    if target_arch and not dpkg_list:
+        raise SbomError("--target-arch is for --dpkg-list")
     version = version or read_version(root)
     sha256, sha512, size = digests(asset)
     components = native_components(dependencies, kind)
     if KINDS[kind]["target"] == "windows":
         components += nuget_components(root, kind)
+    linux = [c for c in components if c["bom-ref"].startswith("native-linux-")]
     if query_dpkg:
-        dpkg_built_against([c for c in components if c["bom-ref"].startswith("native-linux-")], run, boost_header)
+        dpkg_built_against(linux, run, boost_header)
+    elif dpkg_list:
+        recorded_built_against(linux, read_dpkg_list(dpkg_list), "dpkg", target_arch, boost_header, dpkg_list)
+    elif rpm_list:
+        recorded_built_against(linux, read_rpm_list(rpm_list), "rpm", None, boost_header, rpm_list)
     package_version, declared = package_facts(kind, asset, run) if read_package else (None, None)
     component = subject(os.path.basename(asset), kind, version, sha256, sha512, size,
                         commit if commit is not None else commit_of(root), declared, contains, package_version)
@@ -757,6 +897,83 @@ def self_test():
                                                                              run=container, boost_header=boost_header))
         refused("dpkg asked about an installer", "for a .deb or an .rpm", lambda: make("windows-x64", installer, dependencies, root=work, query_dpkg=True))
 
+        # A package job's record: the arm64 .deb cross-compiled in Ubuntu 26.04's own amd64
+        # container, whose dpkg holds the amd64 host's packages, the arm64 -dev packages
+        # and the cross toolchain's, and a Fedora 44 aarch64 sysroot's rpm database.
+        # dpkg-query writes "ii " and a space, and a package removed leaves "rc".
+        dpkg_record = write("record/dpkg.txt", "\n".join([
+            "ii  libc6 amd64 2.42-0ubuntu3", "ii  libc6-dev arm64 2.42-0ubuntu3",
+            "ii  libc6-dev-arm64-cross all 2.42-0ubuntu3cross1",
+            "ii  libstdc++-15-dev-arm64-cross all 15.2.0-4ubuntu1cross1", "ii  libstdc++-14-dev-arm64-cross all 14.3.0-1cross1",
+            "ii  libstdc++6 arm64 15.2.0-4ubuntu1", "ii  libssl-dev amd64 3.5.5-1ubuntu9", "ii  libssl-dev arm64 3.5.5-1ubuntu1",
+            "ii  zlib1g-dev arm64 1:1.3.dfsg+really1.3.1-1ubuntu2", "ii  libboost-thread-dev arm64 1.90.0.1ubuntu1",
+            "ii  libboost-thread1.90-dev arm64 1.90.0-3ubuntu1", "ii  libpq-dev arm64 18.0-1", "ii  libldap-dev arm64 2.6.10+dfsg-1ubuntu2",
+            "rc  libpq-dev amd64 17.5-1", ""]))
+        record_header = write("record/boost-version.hpp", "#define BOOST_VERSION 109000\n#define BOOST_LIB_VERSION \"1_90\"\n")
+        arm_deb = write("out/hmailserver_6.3.6_arm64.deb", b"!<arch>\nan arm64 package")
+        arm = make("deb", arm_deb, dependencies, root=work, commit="c" * 40, dpkg_list=dpkg_record, target_arch="arm64",
+                   boost_header=record_header, read_package=True, run=container)
+        built = dict((c["name"], [p["value"] for p in c["properties"] if p["name"] == "hmailserver:built-against"]) for c in arm["components"])
+        expect(built.get("linux-glibc") == ["libc6-dev-arm64-cross 2.42-0ubuntu3cross1"]
+               and built.get("linux-libstdcxx") == ["libstdc++-15-dev-arm64-cross 15.2.0-4ubuntu1cross1"],
+               "a cross build's C and C++ libraries are the cross toolchain's, the highest where several match: %s" % built)
+        expect(built.get("linux-openssl") == ["libssl-dev:arm64 3.5.5-1ubuntu1"] and built.get("linux-libpq") == ["libpq-dev:arm64 18.0-1"],
+               "every other library is the target architecture's -dev package, never the build container's own: %s" % built)
+        expect(built.get("linux-boost") == ["libboost-thread-dev:arm64 1.90.0.1ubuntu1"]
+               and dict((c["name"], c.get("version")) for c in arm["components"]).get("linux-boost") == "1.90.0",
+               "Boost by the package the build installed, at the version of the header the job kept: %s" % built)
+        expect(arm["metadata"]["component"]["purl"] == "pkg:deb/hmailserver@6.3.5-1~debian13?arch=arm64",
+               "the arm64 .deb's purl names its architecture: %s" % arm["metadata"]["component"]["purl"])
+        expect(structure_problems(arm) == [], "the arm64 .deb's document is well formed: %s" % structure_problems(arm))
+        # Without the cross toolchain (a native build's record), the target's own -dev package.
+        native_record = write("record/native.txt", "ii  libc6-dev amd64 2.41-12\nii  libstdc++-14-dev amd64 14.2.0-19\n"
+                              "ii  libssl-dev amd64 3.5.1-1\nii  zlib1g-dev amd64 1:1.3.dfsg-3.1\nii  libboost-dev amd64 1.83.0.2\n"
+                              "ii  libpq-dev amd64 17.5-1\nii  libldap-dev amd64 2.6.10+dfsg-1\n")
+        native = make("deb", deb, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header)
+        expect([p["value"] for c in native["components"] if c["name"] == "linux-glibc" for p in c["properties"]
+                if p["name"] == "hmailserver:built-against"] == ["libc6-dev:amd64 2.41-12"],
+               "a native build's C library is its own architecture's libc6-dev")
+        refused("a record without the target's libpq, only the build container's", "libpq-dev:arm64",
+                lambda: make("deb", arm_deb, dependencies, root=work, target_arch="arm64", boost_header=record_header,
+                             dpkg_list=write("record/nolibpq.txt", read_text(dpkg_record).replace("ii  libpq-dev arm64", "ii  libpq-dev amd64")),
+                             run=container))
+        refused("a record with nothing installed", "records no installed package",
+                lambda: make("deb", arm_deb, dependencies, root=work, target_arch="arm64", dpkg_list=write("record/empty.txt", "rc  libpq-dev amd64 17.5-1\n")))
+        refused("a record that is not there", "cannot be read",
+                lambda: make("deb", arm_deb, dependencies, root=work, target_arch="arm64", dpkg_list=os.path.join(work, "record", "none.txt")))
+        refused("a record without the target's architecture", "--target-arch",
+                lambda: make("deb", arm_deb, dependencies, root=work, dpkg_list=dpkg_record))
+        refused("an architecture without a record", "--target-arch is for --dpkg-list",
+                lambda: make("deb", arm_deb, dependencies, root=work, target_arch="arm64", query_dpkg=True, run=container))
+        refused("a record and dpkg asked as well", "give one",
+                lambda: make("deb", arm_deb, dependencies, root=work, dpkg_list=dpkg_record, target_arch="arm64", query_dpkg=True))
+        refused("a record for an installer", "for a .deb or an .rpm",
+                lambda: make("windows-x64", installer, dependencies, root=work, dpkg_list=dpkg_record, target_arch="arm64"))
+        refused("a Boost header the job did not keep", "cannot be read",
+                lambda: make("deb", arm_deb, dependencies, root=work, dpkg_list=dpkg_record, target_arch="arm64",
+                             boost_header=os.path.join(work, "record", "no-boost.hpp")))
+        # rpm -qa, one line per thing a package provides: Fedora's zlib-devel is zlib-ng-compat-devel's.
+        rpm_record = write("record/rpm.txt", "\n".join([
+            "glibc-devel aarch64 2.42-4.fc44 glibc-devel", "glibc-devel aarch64 2.42-4.fc44 glibc-devel(aarch-64)",
+            "libstdc++-devel aarch64 15.2.1-3.fc44 libstdc++-devel", "openssl-devel aarch64 3.5.1-3.fc44 openssl-devel",
+            "openssl-devel aarch64 3.5.1-3.fc44 pkgconfig(openssl)",
+            "zlib-ng-compat-devel aarch64 2.2.5-2.fc44 zlib-devel", "zlib-ng-compat-devel aarch64 2.2.5-2.fc44 zlib-ng-compat-devel",
+            "boost-devel aarch64 1.90.0-2.fc44 boost-devel", "libpq-devel aarch64 18.0-1.fc44 libpq-devel",
+            "openldap-devel aarch64 2.6.10-3.fc44 openldap-devel", "gpg-pubkey (none) 105ef944-65ca83d1 gpg-pubkey", ""]))
+        arm_rpm = write("out/hmailserver-6.3.6-1.aarch64.rpm", b"\xed\xab\xee\xdb an aarch64 package")
+        with_zlib = dependencies + [dep("linux-zlib", "system", ["linux"], "", linkage="dynamic", license="Zlib")]
+        red = make("rpm", arm_rpm, with_zlib, root=work, rpm_list=rpm_record, boost_header=record_header, read_package=True, run=container)
+        built = dict((c["name"], [p["value"] for p in c["properties"] if p["name"] == "hmailserver:built-against"]) for c in red["components"])
+        expect(built.get("linux-zlib") == ["zlib-ng-compat-devel 2.2.5-2.fc44"] and built.get("linux-openssl") == ["openssl-devel 3.5.1-3.fc44"]
+               and built.get("linux-boost") == ["boost-devel 1.90.0-2.fc44"],
+               "an .rpm's libraries by the package that provides each -devel: %s" % built)
+        expect(red["metadata"]["component"]["purl"] == "pkg:rpm/hmailserver@6.3.5-1?arch=aarch64", "the aarch64 .rpm's purl")
+        refused("an rpm record without libpq-devel", "libpq-devel, postgresql-devel",
+                lambda: make("rpm", arm_rpm, dependencies, root=work, boost_header=record_header,
+                             rpm_list=write("record/nolibpq.rpm.txt", read_text(rpm_record).replace("libpq-devel aarch64 18.0-1.fc44 libpq-devel\n", ""))))
+        refused("an rpm record and a dpkg record", "give one",
+                lambda: make("rpm", arm_rpm, dependencies, root=work, rpm_list=rpm_record, dpkg_list=dpkg_record, target_arch="arm64"))
+
         # The image: Syft's document and the .deb's.
         syft = {"bomFormat": "CycloneDX", "specVersion": "1.6", "components": [
             {"bom-ref": "pkg:deb/ubuntu/libssl3t64@3.5.3", "type": "library", "name": "libssl3t64", "version": "3.5.3"},
@@ -804,6 +1021,13 @@ def main():
     maker.add_argument("--contains", action="append", default=[], metavar="NAME=SHA256",
                        help="a file of this project's own build the asset carries, by its SHA-256")
     maker.add_argument("--query-dpkg", action="store_true", help="in the build container: what each library was built against")
+    maker.add_argument("--dpkg-list", help="what the build container's dpkg had installed, as a package job recorded it "
+                       "(built-against/dpkg.txt): what each library was built against, read in place of --query-dpkg")
+    maker.add_argument("--rpm-list", help="what the build's rpm database held, as a package job recorded it "
+                       "(built-against/rpm.txt): what each library was built against")
+    maker.add_argument("--target-arch", help="with --dpkg-list: the package's own architecture as dpkg names it")
+    maker.add_argument("--boost-header", default=BOOST_HEADER,
+                       help="Boost's version.hpp as the build compiled against it (%s)" % BOOST_HEADER)
     maker.add_argument("--read-package", action="store_true", help="what the .deb or the .rpm declares it depends on")
     imager = commands.add_parser("image", help="the SBOM of the container image")
     imager.add_argument("--syft", required=True, help="Syft's CycloneDX JSON of the image")
@@ -827,7 +1051,9 @@ def main():
             if not isinstance(dependencies, list):
                 raise SbomError("%s is not a list of components" % args.dependencies)
             bom = make(args.kind, args.asset, dependencies, root=args.root, version=args.version, commit=args.commit,
-                       contains=contains, query_dpkg=args.query_dpkg, read_package=args.read_package)
+                       contains=contains, query_dpkg=args.query_dpkg, read_package=args.read_package,
+                       boost_header=args.boost_header, dpkg_list=args.dpkg_list, rpm_list=args.rpm_list,
+                       target_arch=args.target_arch)
             out = args.out or args.asset + SUFFIX
             write_document(bom, out)
             print("%s: %d components, describing %s (SHA-256 %s)" % (out, len(bom["components"]), os.path.basename(args.asset),

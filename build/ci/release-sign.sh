@@ -10,7 +10,8 @@
 #
 #   sh build/ci/release-sign.sh
 #
-# In:   release-assets/        what the release job collected (build/ci/release-chain.py collect)
+# In:   release-assets/        what the release job collected (build/ci/release-chain.py collect):
+#                              everything but the signed installer and its SBOM
 #       release-authenticode/  the Windows installer as release-authenticode signed it
 #       release-sbom/          that installer's own SBOM (build/ci/release-chain.py sbom)
 # Out:  release-signed/        every file, with <file>.cosign.bundle beside it
@@ -134,8 +135,10 @@ for file in "$out"/*; do
   signed=$((signed + 1))
 done
 
-# Counted, because a loop over a glob that matched nothing passes having signed nothing.
-expected=9
+# Counted, because a loop over a glob that matched nothing passes having signed nothing:
+# the installer, the x86-64 and AArch64 .deb and .rpm, the sums, the tree's two SBOMs
+# and the five compiled files' own (build/ci/release-chain.py, expected_assets).
+expected=13
 [ "$signed" -eq "$expected" ] || fail "$signed file(s) signed; a release is $expected"
 echo ""
 echo "All $signed files of $tag are signed as $identity."

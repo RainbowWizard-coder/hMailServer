@@ -144,6 +144,33 @@ for a stray `#` number or `@` name.
   `faca023d4`, the same commit as `master`'s history holds it: `6399e08a5` is its copy from before its branch was
   rebased, which `master`'s history does not hold.
 
+### Downloads and the release
+
+- **The AArch64 `.deb` and `.rpm` are in the release again** (not yet run in a pipeline). The releases up to 6.3.3
+  carried them; 6.3.4 and 6.3.5 did not, so an arm64 Debian, Ubuntu or RPM server has had no newer file than
+  6.3.3. The release now collects `hmailserver_<v>_arm64.deb`, cross-compiled by `deb-ubuntu26.04-arm64` in
+  Ubuntu 26.04's own container, and `hmailserver-<v>-1.aarch64.rpm`, `rpm-fedora44-aarch64`'s copy of its Fedora
+  44 build - the names an installed arm64 server's update check asks for - each with its own CycloneDX SBOM
+  (`<file>.cdx.json`), a line in `hmailserver-linux-<v>-SHA256SUMS.txt` and a Sigstore bundle, checked by
+  `release-verify` with the server's own verifier like every other file: thirteen files where there were nine.
+  `release` waits for each package's build, its SBOM job and its install job, which installs and runs it in an
+  AArch64 container of its distribution under qemu-user; no AArch64 machine has run them. A package job's
+  container has neither PowerShell nor Python, so every package build now records what it was built against
+  (`built-against/`: what dpkg, or the aarch64 sysroot's rpm database, held, and Boost's header), and the new
+  `deb-ubuntu26.04-arm64-sbom` and `rpm-fedora44-aarch64-sbom` jobs make the SBOM from that in the CI image
+  (`build/ci/packages/package-sbom.sh`; `build/asset-sbom.py make --dpkg-list` or `--rpm-list`). In a cross
+  build the C and C++ libraries are named as the cross toolchain's, and every other library as the target
+  architecture's own `-dev` package, never the build container's. `collect` holds each AArch64 package to the
+  sums its build job wrote, and `release-publish` checks that the feed gives Debian and RPM servers on AArch64
+  their file and bundle, as it does for x86-64. The x86-64 files, their SBOMs and `linux-build`'s two lines of
+  the sums are unchanged. `build/check-release-chain.py` now holds `release` to those six package jobs and
+  `collect` to where they leave the files; the update feed's `/download/hmailserver_arm64.deb` and
+  `/download/hmailserver.aarch64.rpm` follow the first stable release that carries them, and its
+  `--serve-check` fails a stable release that carries any server's file without its bundle. The generic arm64
+  `.deb` goes to the apt suite `ubuntu26.04`, as the amd64 one does; the generic `.rpm`s still go to no dnf
+  repository, and the pages job no longer calls the aarch64 one built on Ubuntu (ContinuousIntegration.md,
+  "What a release carries"; PackagesDeb.md; PackagesRpm.md).
+
 ---
 
 ## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28

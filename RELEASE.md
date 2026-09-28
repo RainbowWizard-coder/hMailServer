@@ -104,11 +104,16 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    `.gitlab-ci.yml` that can fail the pipeline has passed and `static-analysis`,
    `semgrep`, `dependency-scan` and `semgrep-sast` have finished, whatever they
    found; it does not wait for `ci-image-packages` or `repo-hygiene`, which are
-   `allow_failure`, or for the manual `db-matrix`. Nor does it wait for the
-   package jobs of `.gitlab/ci/packages-*.yml` - the `.deb` and `.rpm` of each
-   distribution release, the AppImages and the Windows packages - which make CI
-   artifacts no release carries: they may still be running, or have failed,
-   when it starts, and their failure does not stop it. It reads the four scans'
+   `allow_failure`, or for the manual `db-matrix`. Of the package jobs of
+   `.gitlab/ci/packages-*.yml` it waits for the two whose files the release
+   carries - `deb-ubuntu26.04-arm64`, the generic arm64 `.deb`, and
+   `rpm-fedora44-aarch64`, the generic aarch64 `.rpm` - with their SBOM jobs and
+   their install jobs, which install and run each package in an AArch64
+   container under qemu-user. It does not wait for the others - the `.deb` and
+   `.rpm` of each other distribution release, the AppImages and the Windows
+   packages - which make CI artifacts no release carries: they may still be
+   running, or have failed, when it starts, and their failure does not stop it.
+   It reads the four scans'
    reports first (`build/ci/security-gate.py`) and refuses while one did not
    finish, or found something `SECURITY.md`'s policy counts ("Before a
    release") that no baseline and no entry of `.gitlab/security-exceptions.yml`
@@ -136,9 +141,12 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    `windows-installer` first ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
 4. **`release-authenticode`, `release-sbom`, `release-sign` and `release-verify`
    follow by themselves.** `release-sbom` makes the signed installer's own SBOM;
-   the `.deb`'s and the `.rpm`'s come from `linux-build`, and every compiled file
-   goes out with its `<file>.cdx.json` (SECURITY.md, "Software bills of
-   materials"). Read `release-verify`'s `verification.md`: the identity must
+   the x86-64 `.deb`'s and `.rpm`'s come from `linux-build`, the AArch64 ones'
+   from `deb-ubuntu26.04-arm64-sbom` and `rpm-fedora44-aarch64-sbom`, and every
+   compiled file goes out with its `<file>.cdx.json` (SECURITY.md, "Software
+   bills of materials"). From 6.3.6 a release is thirteen files, each with its
+   bundle: the installer, the `.deb` and `.rpm` for x86-64 and for AArch64, the
+   four packages' sums, the five compiled files' SBOMs and the tree's two. Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
    or, once the project has moved to the group, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
    Note the repository id it gives: until one release signed before the move
@@ -157,14 +165,15 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    started it, and the package protection rules let only an Owner push to the
    package `hmailserver`: started by anyone else, its uploads are refused
    (`hmailserver/docs/ContinuousIntegration.md`, "What waits for the owner").
-   It uploads the nine files and their bundles to
+   It uploads the thirteen files and their bundles to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
    compiled file whose SBOM is missing or describes other bytes, and a name
    the package holds with other bytes, and not sending again a file it holds
    with the same bytes - reads every record of each name back and holds it to
    the digest that was signed, creates the release with a
    link per file named after it, and checks that the feed the API now gives
-   offers the release to Windows, Debian and RPM servers. `update-feed` then
+   offers the release to Windows servers, and to Debian and RPM servers on
+   x86-64 and AArch64. `update-feed` then
    runs `pages` on `master`. Check the site:
 
    ```

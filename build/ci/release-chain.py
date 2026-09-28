@@ -23,11 +23,14 @@ job. That job runs `collect`; Authenticode signs the installer, `release-sbom` r
             security scans of the commit finished, and every finding they raised that
             SECURITY.md's policy counts is in a scan's baseline or accepted in
             .gitlab/security-exceptions.yml (build/ci/security-gate.py); and the
-            artefacts of the jobs it needs - the Windows installer, the .deb and the
-            .rpm with their sums and each package's own SBOM, the two SBOMs of the
-            tree - are gathered into one directory under the names a release
-            carries, each package's SBOM held to the package it describes. The
-            package hmailserver/<version> must not hold any of them with other bytes
+            artefacts of the jobs it needs - the Windows installer; the x86-64 .deb
+            and .rpm, linux-build's; the AArch64 .deb and .rpm, from the package
+            jobs deb-ubuntu26.04-arm64 and rpm-fedora44-aarch64, with their SBOM
+            jobs' SBOMs; the two SBOMs of the tree - are gathered into one
+            directory under the names a release carries, each package held to the
+            SHA-256 its build job wrote and its SBOM to the package it describes,
+            and the four packages' sums written as one file. The package
+            hmailserver/<version> must not hold any of them with other bytes
             already, nor the installer, its SBOM or a bundle at all: those are made
             by the jobs after this one, and a second signing never makes the same
             bytes. Nothing leaves the pipeline.
@@ -49,7 +52,8 @@ job. That job runs `collect`; Authenticode signs the installer, `release-sbom` r
             are the version's section of CHANGELOG.md and the verification the
             release-verify job wrote. Last, the feed is rendered from the API as the
             pages job will render it, and the new release must be in it with its
-            installer and bundle for Windows, Debian and RPM servers.
+            installer and bundle for Windows servers, and for Debian and RPM
+            servers on x86-64 and on AArch64.
 
 Neither asks for a secret: the pipeline's own CI_JOB_TOKEN reads the registry, uploads
 and creates the release, and it is sent as a header and never printed. A release that exists already
@@ -177,20 +181,22 @@ def sbom_name(name):
 
 
 def compiled_assets(version):
-    """The compiled files a release carries: the installer and the two packages. Each
-    goes out with an SBOM of its own (OpenSSF Baseline OSPS-QA-02.02)."""
+    """The compiled files a release carries: the installer, and a .deb and an .rpm
+    for x86-64 and for AArch64. Each goes out with an SBOM of its own (OpenSSF
+    Baseline OSPS-QA-02.02)."""
     names = feed.installer_names(version)
-    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"]]
+    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]]
 
 
 def expected_assets(version):
-    """Every file a release carries, each signed beside it. The Linux AArch64
-    packages, the per-distribution packages, the AppImages and the ARM64 installer
-    have jobs of their own (.gitlab/ci/packages-*.yml), and no release collects what
-    they make yet (docs/PackagesDeb.md, "What is left")."""
+    """Every file a release carries, each signed beside it. The per-distribution
+    packages, the AppImages and the ARM64 Windows installer are built by jobs whose
+    files no release collects yet (docs/ContinuousIntegration.md, "What a release
+    carries")."""
     names = feed.installer_names(version)
-    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], sums_name(version),
-            "hmailserver.spdx.json", "hmailserver.cyclonedx.json"] + [sbom_name(n) for n in compiled_assets(version)]
+    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"],
+            sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"] + [
+                sbom_name(n) for n in compiled_assets(version)]
 
 
 def made_after_collect(version):
@@ -206,18 +212,46 @@ def collected_assets(version):
     return [name for name in expected_assets(version) if name not in later]
 
 
+# Where the package jobs whose files a release carries leave them
+# (.gitlab/ci/packages-deb.yml, packages-rpm.yml): deb-ubuntu26.04-arm64 builds the
+# generic arm64 .deb in Ubuntu 26.04's own container, and rpm-fedora44-aarch64 the
+# generic aarch64 .rpm in Fedora 44's, under generic/ beside the .fc44 copy of the
+# same build. Each job's SBOM job writes <package>.cdx.json beside the package.
+ARM64_DEB_DIR = os.path.join("packages-deb", "ubuntu26.04-arm64")
+AARCH64_RPM_DIR = os.path.join("packages-rpm", "fedora44-aarch64")
+
+
 def sources(version):
-    """Where collect finds each file: the artifacts of the jobs `release` needs."""
+    """Where collect finds each file: the artifacts of the jobs `release` needs. The
+    sums file is linux-build's, to which collect adds the AArch64 packages' lines
+    (release_sums)."""
     names = feed.installer_names(version)
+    deb_arm64 = os.path.join(ARM64_DEB_DIR, names["deb-arm64"])
+    rpm_aarch64 = os.path.join(AARCH64_RPM_DIR, "generic", names["rpm-aarch64"])
     return {
         names["windows"]: os.path.join("release-windows", names["windows"]),
         names["deb-amd64"]: os.path.join("linux-build", "packages", names["deb-amd64"]),
         names["rpm-x86_64"]: os.path.join("linux-build", "packages", names["rpm-x86_64"]),
+        names["deb-arm64"]: deb_arm64,
+        names["rpm-aarch64"]: rpm_aarch64,
         sbom_name(names["deb-amd64"]): os.path.join("linux-build", "packages", sbom_name(names["deb-amd64"])),
         sbom_name(names["rpm-x86_64"]): os.path.join("linux-build", "packages", sbom_name(names["rpm-x86_64"])),
+        sbom_name(names["deb-arm64"]): sbom_name(deb_arm64),
+        sbom_name(names["rpm-aarch64"]): sbom_name(rpm_aarch64),
         sums_name(version): os.path.join("linux-build", "packages", "SHA256SUMS.txt"),
         "hmailserver.spdx.json": os.path.join("sbom", "hmailserver.spdx.json"),
         "hmailserver.cyclonedx.json": os.path.join("sbom", "hmailserver.cyclonedx.json"),
+    }
+
+
+def package_job_sums(version):
+    """{AArch64 package: (its build job's SHA256SUMS.txt, the name that file gives
+    it)}: deb-build.sh names the .deb as it is, and rpm-build.sh the generic copy
+    by its place under generic/."""
+    names = feed.installer_names(version)
+    return {
+        names["deb-arm64"]: (os.path.join(ARM64_DEB_DIR, "SHA256SUMS.txt"), names["deb-arm64"]),
+        names["rpm-aarch64"]: (os.path.join(AARCH64_RPM_DIR, "SHA256SUMS.txt"), "generic/" + names["rpm-aarch64"]),
     }
 
 
@@ -445,7 +479,7 @@ def check_tag(root, tag, commit, run=subprocess.run):
 
 
 def check_sums(sums_path, deb_path, rpm_path):
-    """linux-build's SHA256SUMS.txt names exactly the two packages, with their digests."""
+    """linux-build's SHA256SUMS.txt names exactly its two packages, the x86-64 .deb and .rpm, with their digests."""
     wanted = {os.path.basename(deb_path): sha256_of(deb_path), os.path.basename(rpm_path): sha256_of(rpm_path)}
     listed = {}
     with open(sums_path, encoding="utf-8") as f:
@@ -458,8 +492,42 @@ def check_sums(sums_path, deb_path, rpm_path):
                 return ["%s has a line that is not '<sha256>  <file>': %r" % (sums_path, line)]
             listed[match.group(2)] = match.group(1)
     if listed != wanted:
-        return ["%s is not the sums of the two packages the release carries: it lists %s" % (sums_path, sorted(listed))]
+        return ["%s is not the sums of the two x86-64 packages linux-build made: it lists %s" % (sums_path, sorted(listed))]
     return []
+
+
+def check_job_sums(sums_path, listed_name, package_path):
+    """A package job's SHA256SUMS.txt gives the package, under the name the job gave
+    it there, the SHA-256 of the file collect found: the bytes the job built."""
+    digest = sha256_of(package_path)
+    found = None
+    with open(sums_path, encoding="utf-8") as f:
+        for line in f:
+            match = re.match(r"^([0-9a-f]{64})\s+\*?(\S+)\s*$", line.strip())
+            if match and match.group(2) == listed_name:
+                found = match.group(1)
+    if found is None:
+        return ["%s does not name %s: it is not the sums of the build that made %s" % (sums_path, listed_name, os.path.basename(package_path))]
+    if found != digest:
+        return ["%s gives %s the SHA-256 %s, and %s is %s: the file is not the one its build job made" % (
+            sums_path, listed_name, found, os.path.basename(package_path), digest)]
+    return []
+
+
+def release_sums(root, version):
+    """The release's hmailserver-linux-<v>-SHA256SUMS.txt, as bytes: linux-build's
+    SHA256SUMS.txt as it is - the x86-64 .deb and .rpm - then a line for the AArch64
+    .deb and one for the AArch64 .rpm, in sha256sum's form, under the names the
+    release gives them. collect has held every one to its package first."""
+    places = sources(version)
+    with open(os.path.join(root, places[sums_name(version)]), "rb") as f:
+        text = f.read()
+    if text and not text.endswith(b"\n"):
+        text += b"\n"
+    names = feed.installer_names(version)
+    for name in (names["deb-arm64"], names["rpm-aarch64"]):
+        text += ("%s  %s\n" % (sha256_of(os.path.join(root, places[name])), name)).encode("ascii")
+    return text
 
 
 def master_exceptions(root, run=subprocess.run):
@@ -513,10 +581,15 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
     problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\n", say=say))
 
     places = sources(version)
+    job_sums = package_job_sums(version)
     for name in collected_assets(version):
         path = os.path.join(root, places[name])
         if not os.path.isfile(path) or os.path.getsize(path) == 0:
             problems.append("%s is not in this job's artifacts (%s): the job that makes it failed or did not run" % (name, places[name]))
+    for name, (relative, _) in sorted(job_sums.items()):
+        if not os.path.isfile(os.path.join(root, relative)):
+            problems.append("%s, the sums of the build that made %s, is not in this job's artifacts: the job that makes it "
+                            "failed or did not run" % (relative, name))
     if not problems:
         names = feed.installer_names(version)
         problems.extend(check_sums(os.path.join(root, places[sums_name(version)]),
@@ -524,9 +597,17 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
                                    os.path.join(root, places[names["rpm-x86_64"]])))
         problems.extend(sbom_problems(os.path.join(root, "linux-build", "packages"), version,
                                       [names["deb-amd64"], names["rpm-x86_64"]]))
+        # The AArch64 packages: each the bytes its package job built, by the sums that
+        # job wrote, and each with its SBOM job's SBOM beside it.
+        for name, (relative, listed) in sorted(job_sums.items()):
+            problems.extend(check_job_sums(os.path.join(root, relative), listed, os.path.join(root, places[name])))
+            problems.extend(sbom_problems(os.path.dirname(os.path.join(root, places[name])), version, [name]))
+    sums = None
     if not problems:
-        problems.extend(check_registry_before_signing(api, version, dict(
-            (name, sha256_of(os.path.join(root, places[name]))) for name in collected_assets(version))))
+        sums = release_sums(root, version)
+        digests = dict((name, sha256_of(os.path.join(root, places[name]))) for name in collected_assets(version))
+        digests[sums_name(version)] = hashlib.sha256(sums).hexdigest()
+        problems.extend(check_registry_before_signing(api, version, digests))
     if problems:
         return problems
 
@@ -534,7 +615,11 @@ def collect(root, tag, out, env, run=subprocess.run, api=None):
         shutil.rmtree(out)
     os.makedirs(out)
     for name in collected_assets(version):
-        shutil.copyfile(os.path.join(root, places[name]), os.path.join(out, name))
+        if name == sums_name(version):
+            with open(os.path.join(out, name), "wb") as f:
+                f.write(sums)
+        else:
+            shutil.copyfile(os.path.join(root, places[name]), os.path.join(out, name))
         say("  %s  %12d  %s" % (sha256_of(os.path.join(out, name)), os.path.getsize(os.path.join(out, name)), name))
     return []
 
@@ -765,9 +850,15 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
     return payload
 
 
+# The kinds of server a release carries a file for (generate-update-feed.py's
+# installer_names): the feed must give each of them its file and its bundle.
+SERVED_PLATFORMS = ("windows", "deb-amd64", "rpm-x86_64", "deb-arm64", "rpm-aarch64")
+
+
 def check_feed_takes(api, tag, version):
-    """The feed the pages job will render includes this release, and a Windows, a
-    Debian and an RPM server each find its file and bundle in it."""
+    """The feed the pages job will render includes this release, and a Windows
+    server, and a Debian and an RPM server on x86-64 and on AArch64, each find its
+    file and bundle in it."""
     releases, files = feed.load(api.feed_get)
     tree, latest, warnings = feed.render(releases, files)
     ours = [w for w in warnings if w.startswith(tag + " ") or (tag + ":") in w]
@@ -775,12 +866,12 @@ def check_feed_takes(api, tag, version):
     if key not in tree or ours:
         raise ReleaseError("the feed leaves %s out: %s" % (tag, "; ".join(ours) or "it is not in the render"))
     document = json.loads(tree[key].decode("utf-8"))
-    for platform in ("windows", "deb-amd64", "rpm-x86_64"):
+    for platform in SERVED_PLATFORMS:
         release = feed.read_release(document, platform)
         if not release or not release["installer_url"] or not release["bundle_url"] or not release["installer_digest"]:
             raise ReleaseError("a %s server would find no file with its bundle in %s" % (platform, tag))
-    say("the feed takes %s: Windows, Debian and RPM servers each find their file and its bundle; releases/latest is %s"
-          % (tag, latest["tag_name"]))
+    say("the feed takes %s: Windows servers, and Debian and RPM servers on x86-64 and AArch64, each find their file "
+        "and its bundle; releases/latest is %s" % (tag, latest["tag_name"]))
 
 
 # ---------------------------------------------------------------- the self-test
@@ -865,12 +956,20 @@ def self_test():
             subject = asset_sbom.subject(os.path.basename(path), kind, version, sha256, sha512, size, "c" * 40)
             return json.dumps(asset_sbom.document(subject, [], sha256, kind)).encode("utf-8")
 
-        for key, kind in (("deb-amd64", "deb"), ("rpm-x86_64", "rpm")):
+        for key, kind in (("deb-amd64", "deb"), ("rpm-x86_64", "rpm"), ("deb-arm64", "deb"), ("rpm-aarch64", "rpm")):
             write(sources(version)[sbom_name(names[key])], sbom_of(os.path.join(root, sources(version)[names[key]]), kind))
         deb = os.path.join(root, sources(version)[names["deb-amd64"]])
         rpm = os.path.join(root, sources(version)[names["rpm-x86_64"]])
         sums = "%s  %s\n%s  %s\n" % (sha256_of(deb), names["deb-amd64"], sha256_of(rpm), names["rpm-x86_64"])
         write(sources(version)[sums_name(version)], sums.encode("utf-8"))
+        # The package jobs' own sums, as deb-build.sh and rpm-build.sh write them: the
+        # .deb by its name, and the .fc44 package and its generic copy.
+        deb_arm64 = os.path.join(root, sources(version)[names["deb-arm64"]])
+        rpm_aarch64 = os.path.join(root, sources(version)[names["rpm-aarch64"]])
+        deb_job_sums = "%s  %s\n" % (sha256_of(deb_arm64), names["deb-arm64"])
+        rpm_job_sums = "%s  hmailserver-6.3.5-1.fc44.aarch64.rpm\n%s  generic/%s\n" % ("e" * 64, sha256_of(rpm_aarch64), names["rpm-aarch64"])
+        write(package_job_sums(version)[names["deb-arm64"]][0], deb_job_sums.encode("utf-8"))
+        write(package_job_sums(version)[names["rpm-aarch64"]][0], rpm_job_sums.encode("utf-8"))
         # The tagged tree's own allow-list names another key than master's: a tag
         # signed with it must be refused, which it is only if master's is read.
         write(ALLOWED_SIGNERS, list_b.encode("utf-8"))
@@ -1016,6 +1115,16 @@ def self_test():
                "everything but the installer's SBOM, which release-sbom makes from the signed installer")
         expect(all(sbom_name(n) in expected_assets(version) for n in compiled_assets(version)),
                "every compiled file goes out with its SBOM")
+        expect(len(expected_assets(version)) == 13 and names["deb-arm64"] in gathered and names["rpm-aarch64"] in gathered
+               and sbom_name(names["deb-arm64"]) in gathered and sbom_name(names["rpm-aarch64"]) in gathered,
+               "the AArch64 .deb and .rpm are collected with their SBOMs, thirteen files in all: %s" % gathered)
+        released_sums = b""
+        if os.path.isfile(os.path.join(out, sums_name(version))):
+            with open(os.path.join(out, sums_name(version)), "rb") as f:
+                released_sums = f.read()
+        expect(released_sums == (sums + "%s  %s\n%s  %s\n" % (sha256_of(deb_arm64), names["deb-arm64"], sha256_of(rpm_aarch64),
+                                                               names["rpm-aarch64"])).encode("ascii"),
+               "the release's sums are linux-build's two lines as they are, then the AArch64 .deb's and .rpm's: %r" % released_sums)
         if not gathered:
             # So that publishing is still tested when collecting failed.
             os.makedirs(out, exist_ok=True)
@@ -1069,12 +1178,13 @@ def self_test():
         held = FakeGitLab()
         for name in collected_assets(version):
             if name != names["windows"]:
-                with open(os.path.join(root, sources(version)[name]), "rb") as f:
+                # As release-publish sent them: collect's files, the sums as collect wrote them.
+                with open(os.path.join(out, name), "rb") as f:
                     held.seed(name, f.read())
         problems = collect(root, tag, os.path.join(work, "again"), env, run=signed_tag, api=held)
         expect(problems == [], "files the registry holds with the same bytes, from a publish that stopped part-way, are collected again: %s" % problems)
         write(sources(version)[sums_name(version)], ("%s  %s\n" % ("0" * 64, names["deb-amd64"])).encode("utf-8"))
-        refused("a sums file that is not the packages'", "is not the sums of the two packages")
+        refused("a sums file that is not the packages'", "is not the sums of the two x86-64 packages")
         write(sources(version)[sums_name(version)], sums.encode("utf-8"))
         deb_sbom = os.path.join(root, sources(version)[sbom_name(names["deb-amd64"])])
         with open(deb_sbom, "rb") as f:
@@ -1086,6 +1196,35 @@ def self_test():
         os.remove(deb_sbom)
         refused("a .deb without its SBOM", "%s is not in this job's artifacts" % sbom_name(names["deb-amd64"]))
         write(sources(version)[sbom_name(names["deb-amd64"])], good_sbom)
+        # The AArch64 packages: held to their build jobs' sums, and each to its SBOM job's SBOM.
+        deb_sums_path = package_job_sums(version)[names["deb-arm64"]][0]
+        rpm_sums_path = package_job_sums(version)[names["rpm-aarch64"]][0]
+        write(deb_sums_path, ("%s  %s\n" % ("0" * 64, names["deb-arm64"])).encode("utf-8"))
+        refused("an arm64 .deb that is not the bytes its build job made", "gives %s the SHA-256 %s" % (names["deb-arm64"], "0" * 64))
+        write(deb_sums_path, ("%s  hmailserver_6.3.5_amd64.deb\n" % sha256_of(deb_arm64)).encode("utf-8"))
+        refused("an arm64 .deb its build job's sums do not name", "does not name %s" % names["deb-arm64"])
+        os.remove(os.path.join(root, deb_sums_path))
+        refused("an arm64 .deb without its build job's sums", "the sums of the build that made %s" % names["deb-arm64"])
+        write(deb_sums_path, deb_job_sums.encode("utf-8"))
+        write(rpm_sums_path, ("%s  %s\n" % (sha256_of(rpm_aarch64), names["rpm-aarch64"])).encode("utf-8"))
+        refused("an aarch64 .rpm named in its build job's sums without its place under generic/", "does not name generic/%s" % names["rpm-aarch64"])
+        write(rpm_sums_path, rpm_job_sums.encode("utf-8"))
+        arm_sbom = os.path.join(root, sources(version)[sbom_name(names["deb-arm64"])])
+        with open(arm_sbom, "rb") as f:
+            good_arm_sbom = f.read()
+        write(sources(version)[sbom_name(names["deb-arm64"])], sbom_of(deb, "deb"))
+        refused("an arm64 .deb whose SBOM describes the amd64 one", "%s does not describe %s" % (sbom_name(names["deb-arm64"]), names["deb-arm64"]))
+        write(sources(version)[sbom_name(names["deb-arm64"])], good_arm_sbom)
+        os.remove(os.path.join(root, sources(version)[sbom_name(names["rpm-aarch64"])]))
+        refused("an aarch64 .rpm without its SBOM", "%s is not in this job's artifacts" % sbom_name(names["rpm-aarch64"]))
+        write(sources(version)[sbom_name(names["rpm-aarch64"])], sbom_of(rpm_aarch64, "rpm"))
+        os.remove(rpm_aarch64)
+        refused("a release without the aarch64 .rpm", "%s is not in this job's artifacts (%s)" % (names["rpm-aarch64"], sources(version)[names["rpm-aarch64"]]))
+        write(sources(version)[names["rpm-aarch64"]], ("the bytes of %s\n" % names["rpm-aarch64"]).encode("utf-8"))
+        problems = collect(root, tag, os.path.join(work, "arm-again"), env, run=signed_tag, api=FakeGitLab())
+        expect(problems == [], "the AArch64 files put back, the release is collected again: %s" % problems)
+        refused("release sums the registry holds with other bytes", "already holds %s with the SHA-256" % sums_name(version),
+                api=FakeGitLab().seed(sums_name(version), sums.encode("utf-8")))
         os.remove(os.path.join(root, sources(version)["hmailserver.spdx.json"]))
         refused("a missing SBOM", "hmailserver.spdx.json is not in this job's artifacts")
         write(sources(version)["hmailserver.spdx.json"], b"the bytes of hmailserver.spdx.json\n")
@@ -1167,19 +1306,48 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 18 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "eighteen links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 18, "every permanent download path is its own")
+            expect(len(links) == 26 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "twenty-six links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 26, "every permanent download path is its own")
+            paths = dict((l["name"], l["direct_asset_path"]) for l in links)
+            expect(paths.get(names["deb-arm64"]) == "/downloads/hmailserver_arm64.deb"
+                   and paths.get(names["rpm-aarch64"]) == "/downloads/hmailserver.aarch64.rpm",
+                   "the AArch64 packages' permanent names are the feed's download names: %s" % paths)
             expect(payload["name"] == "hMailServer 6.3.5" and "The notes." in payload["description"] and SIGNER_IDENTITY_PREFIX in payload["description"],
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 18 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 26 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
             expect("releases/tags/v6.3.5" in tree and latest["tag_name"] == "v6.3.5" and not warnings,
                    "the feed publishes the release as the stable one: %s" % warnings)
+            if "releases/tags/v6.3.5" in tree:
+                document = json.loads(tree["releases/tags/v6.3.5"].decode("utf-8"))
+                for platform in ("deb-arm64", "rpm-aarch64"):
+                    offered = feed.read_release(document, platform)
+                    expect(offered and offered["installer_name"] == names[platform] and offered["bundle_url"],
+                           "an AArch64 server installed from the %s finds its file and its bundle in the feed: %s" % (platform, offered))
+                rules = feed.parse_redirects(tree["_redirects"])[0]
+                expect(("/download/hmailserver_arm64.deb", registry_url(version, names["deb-arm64"]), 302) in rules
+                       and ("/download/hmailserver.aarch64.rpm.cosign.bundle", registry_url(version, names["rpm-aarch64"] + ".cosign.bundle"), 302) in rules,
+                       "the site's download names for the AArch64 packages lead to this release's files: %s" % rules)
+            # A release whose arm64 .deb has lost its bundle's link is one no arm64 Debian
+            # server could install: the feed's check after publishing says so.
+            for platform in ("deb-arm64", "rpm-aarch64"):
+                unbundled = json.loads(json.dumps(api.releases))
+                unbundled[0]["assets"]["links"] = [l for l in unbundled[0]["assets"]["links"]
+                                                   if l["name"] != names[platform] + ".cosign.bundle"]
+                held_releases, api.releases = api.releases, unbundled
+                try:
+                    check_feed_takes(api, tag, version)
+                    failures.append("a release whose %s has no bundle is refused by the feed's check" % platform)
+                except ReleaseError as e:
+                    expect("a %s server would find no file with its bundle" % platform in str(e),
+                           "a release whose %s has no bundle is refused, saying why: %s" % (platform, e))
+                finally:
+                    api.releases = held_releases
             expect("milestones" not in payload, "a release is created without a milestone when the project has none of its name")
             expect([p.get("milestones") for p in api.posted] == [["6.3.5"], None],
                    "the release is asked for in the milestone 6.3.5, and when GitLab refuses it, created without one: %s"
@@ -1231,7 +1399,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 13 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 21 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")

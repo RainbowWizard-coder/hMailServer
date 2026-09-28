@@ -888,6 +888,27 @@ def serve_check(directory, constants, out=print):
             out("NOTE %s, the stable channel's release, carries no Sigstore bundle by design (%s): servers are told so and install it by hand" % (stable["version"], UNSIGNED_BY_DESIGN[stable["version"]]))
         elif stable and not (stable["installer_url"] and stable["bundle_url"]):
             problems.append("%s, the stable channel's release, carries no Windows installer with its Sigstore bundle, so no Windows server could install it" % stable["version"])
+        # Every other kind of server the stable release carries a file for - the Debian
+        # and RPM packages on x86-64 and, from 6.3.6, on AArch64 - finds it with its
+        # bundle, or is offered a file it cannot verify and installs nothing.
+        if stable:
+            status, body, _ = fetch_no_redirect(local(feed_url(constants, "", False)))
+            try:
+                document = json.loads(body.decode("utf-8")) if status == 200 else None
+            except ValueError:
+                document = None
+            carried = ["windows"] if stable["installer_url"] else []
+            for platform in sorted(installer_names(stable["version"])):
+                if platform == "windows" or document is None:
+                    continue
+                offered, _ = select_release(document, False, platform)
+                if not offered or not offered["installer_url"]:
+                    continue
+                carried.append(platform)
+                if not offered["bundle_url"] and offered["version"] not in UNSIGNED_BY_DESIGN:
+                    problems.append("%s, the stable channel's release, carries %s without its Sigstore bundle, so no %s server "
+                                    "could install it" % (offered["version"], offered["installer_name"], platform))
+            out("  %s carries a file for: %s" % (stable["version"], ", ".join(carried) or "no kind of server"))
         out("UpdateFeedUrl=%s, the value docs/UpdateFeed.md gives:" % configured)
         stable_configured = read(feed_url(constants, configured, False), False)
         preview_configured = read(feed_url(constants, configured, True), True)
@@ -1048,6 +1069,25 @@ def self_test():
     ], "a 302 for each file of 6.3.4 a download name stands for, and /download/ to its page: %s" % rules)
     expect(b'href="/download/hMailServer-x64.exe"' in tree["index.html"] and b".cosign.bundle</code>" not in tree["index.html"],
            "the page lists the download links, without the bundles")
+    # From 6.3.6 a release carries the AArch64 .deb and .rpm too, each with its bundle:
+    # their download names lead to that release's files as the x86-64 ones do, and an
+    # AArch64 server installed from either package finds its file and bundle.
+    with_arm = json.loads(json.dumps(loaded))
+    arm_names = ["hmailserver_6.3.4_arm64.deb", "hmailserver_6.3.4_arm64.deb.cosign.bundle",
+                 "hmailserver-6.3.4-1.aarch64.rpm", "hmailserver-6.3.4-1.aarch64.rpm.cosign.bundle"]
+    [r for r in with_arm if r["tag_name"] == "v6.3.4"][0]["assets"]["links"] += [link("6.3.4", n) for n in arm_names]
+    arm_files = dict((key, dict(record)) for key, record in files.items())
+    for number, name in enumerate(arm_names):
+        arm_files[("hmailserver", "6.3.4")][name] = {"id": 9000 + number, "file_name": name, "size": 4000000, "file_sha256": "%064x" % (number + 1)}
+    arm_tree, arm_latest, arm_warnings = render(with_arm, arm_files)
+    arm_rules = parse_redirects(arm_tree["_redirects"])[0]
+    expect(not arm_warnings and all((DOWNLOAD + alias_name(n, "6.3.4"), registry + "6.3.4/" + n, 302) in arm_rules for n in arm_names),
+           "the AArch64 packages' download names, and their bundles', lead to the release's files: %s %s" % (arm_warnings, arm_rules))
+    for platform in ("deb-arm64", "rpm-aarch64"):
+        offered = read_release(json.loads(arm_tree["releases/latest"].decode("utf-8")), platform)
+        expect(offered and offered["installer_name"] == installer_names("6.3.4")[platform] and offered["bundle_url"]
+               and offered["installer_digest"] and offered["installer_size"] == 4000000,
+               "an AArch64 server installed from the %s finds its file, its size, its digest and its bundle: %s" % (platform, offered))
     aliases = download_aliases()
     expect(set(aliases) == set(installer_names("6.3.4")), "a download name for every kind of installation")
     expect([aliases[p] for p in ("windows", "windows-arm64", "deb-amd64", "deb-arm64", "rpm-x86_64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64")] == [
@@ -1235,6 +1275,30 @@ def self_test():
             UNSIGNED_BY_DESIGN.update(saved)
         expect(any("carries no Windows installer" in p for p in problems),
                "serve-check fails on a release with no bundle that is not unsigned by design: %s" % problems)
+
+        # The AArch64 packages, which a release carries from 6.3.6: one without its bundle
+        # is a file every AArch64 server on that package manager is offered and cannot
+        # verify, and it is a failure unless the release is unsigned by design.
+        arm = json.loads(tree["releases/latest"].decode("utf-8"))
+        arm["assets"] += [{"name": n, "size": 1000, "digest": "sha256:" + "a" * 64, "browser_download_url": registry + "6.3.4/" + n}
+                          for n in ("hmailserver_6.3.4_arm64.deb", "hmailserver_6.3.4_arm64.deb.cosign.bundle", "hmailserver-6.3.4-1.aarch64.rpm")]
+        with open(latest_path, "wb") as f:
+            f.write(feed_bytes(arm))
+        lines = []
+        problems = serve_check(directory, constants, out=lines.append)
+        expect(not any("aarch64.rpm without its Sigstore bundle" in p for p in problems)
+               and any("6.3.4 carries a file for: windows, deb-amd64, deb-arm64, rpm-aarch64, rpm-x86_64" in l for l in lines),
+               "a release unsigned by design is not failed for its AArch64 .rpm either, and the kinds it serves are named: %s %s"
+               % (problems, [l for l in lines if "carries a file for" in l]))
+        saved = dict(UNSIGNED_BY_DESIGN)
+        UNSIGNED_BY_DESIGN.clear()
+        try:
+            problems = serve_check(directory, constants, out=lambda line: None)
+        finally:
+            UNSIGNED_BY_DESIGN.update(saved)
+        expect(any("carries hmailserver-6.3.4-1.aarch64.rpm without its Sigstore bundle, so no rpm-aarch64 server could install it" in p
+                   for p in problems) and not any("hmailserver_6.3.4_arm64.deb without" in p for p in problems),
+               "serve-check fails on an AArch64 package without its bundle, and not on one with it: %s" % problems)
         with open(latest_path, "wb") as f:
             f.write(tree["releases/latest"])
         try:

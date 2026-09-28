@@ -19,6 +19,13 @@
 #                                 Requires; the aarch64 one runs under qemu-user,
 #                                 through the qemu-aarch64 binfmt handler of
 #                                 linix's kernel
+#   rpm-fedora44-aarch64-sbom     linix, in the CI image: the SBOM of the one
+#                                 package here a release carries, the generic
+#                                 aarch64 one (build/ci/packages/package-sbom.sh)
+#
+# The release collects generic/hmailserver-<v>-1.aarch64.rpm from 6.3.6 with its
+# SBOM, and release waits for rpm-fedora44-aarch64, its install job and its SBOM
+# job. The other packages here are CI artifacts that no release carries yet.
 #
 #   target      image                                      package
 #   fedora44    registry.fedoraproject.org/fedora:44       hmailserver-<v>-1.fc44.<arch>.rpm, and for
@@ -201,6 +208,31 @@ rpm-fedora44-aarch64-install:
   extends: [.rpm-install, .rpm-image-fedora44-aarch64]
   needs: [rpm-fedora44-aarch64]
   variables: {HM_RPM_TARGET: fedora44, HM_RPM_ARCH: aarch64}
+
+# The release carries generic/hmailserver-<v>-1.aarch64.rpm, from 6.3.6, with its
+# own SBOM beside it (SECURITY.md, "Software bills of materials"). The build's
+# container has neither PowerShell nor Python, so the build records what the
+# aarch64 sysroot held (built-against/) and this job makes
+# hmailserver-<v>-1.aarch64.rpm.cdx.json from that in the CI image, as linux-build
+# makes the x86_64 package's (build/ci/packages/package-sbom.sh). The release job
+# needs the build, this job and the install job, and collects the package, its
+# sums and this SBOM (build/ci/release-chain.py, sources()). Its rules are the
+# install jobs': it follows its build.
+rpm-fedora44-aarch64-sbom:
+  extends: .linix
+  stage: test
+  needs:
+    - job: rpm-fedora44-aarch64
+      artifacts: true
+  timeout: 10 minutes
+  rules:
+    - !reference [.rpm-install-rules, rules]
+  script:
+    - bash build/ci/packages/package-sbom.sh packages-rpm/fedora44-aarch64/generic/hmailserver-*-1.aarch64.rpm packages-rpm/fedora44-aarch64/built-against
+  artifacts:
+    expire_in: 14 days
+    paths:
+      - packages-rpm/fedora44-aarch64/generic/*.cdx.json
 
 # ------------------------------------------------------------------ Fedora 43
 rpm-fedora43-x86_64:

@@ -11,7 +11,10 @@ scripts they run are in `build/ci/packages/`.
 The one exception is Ubuntu 26.04 on x86-64. Its package,
 `hmailserver_<v>_amd64.deb`, is `linux-build`'s, as before: the release
 collects it, and `linux-package-deb` installs and starts it. This file adds
-its arm64 twin and the other releases (see [The names](#the-names)).
+its arm64 twin and the other releases (see [The names](#the-names)). From
+6.3.6 the release carries the arm64 twin, `hmailserver_<v>_arm64.deb`, with
+its SBOM; the other releases' packages are CI artifacts that no release
+carries yet.
 
 **The build jobs have run on GitLab; the install jobs have not.** All seven
 build jobs passed in each of `batch41`'s pipelines 2886955494 and 2887115157
@@ -217,14 +220,17 @@ The jobs
 --------
 
 Debian 12, Debian 13 and Ubuntu 24.04 have four jobs each: a build and an
-install test, for each architecture. Ubuntu 26.04 has the two arm64 jobs only
-(its amd64 package is `linux-build`'s). That makes 14 jobs.
+install test, for each architecture. Ubuntu 26.04 has the arm64 jobs only (its
+amd64 package is `linux-build`'s), and a third beside them,
+`deb-ubuntu26.04-arm64-sbom`, since the release carries that package. That
+makes 15 jobs.
 
 | Job | Runs on | Image | What it does |
 |---|---|---|---|
 | `deb-<distro>-amd64` | linix | the release's amd64 image | `build/ci/packages/deb-build.sh`: the release's `g++`, `cmake`, `ninja` and `-dev` packages from its own archive; CMake, then the server's tester programs, then CPack |
 | `deb-<distro>-arm64` | linix | the release's **amd64** image | the same script, cross-compiling. It uses the release's `crossbuild-essential-arm64`, its `:arm64` `-dev` packages (multiarch) and `build/ci/packages/aarch64-linux-gnu.cmake`. The tester programs are not run, because they are arm64 programs |
 | `deb-<distro>-<arch>-install` | linix | the release's image **of that architecture** | `build/ci/packages/deb-install.sh`, on a clean container (see [The install test](#the-install-test)). The arm64 container runs under qemu-user |
+| `deb-ubuntu26.04-arm64-sbom` | linix | the CI image | `build/ci/packages/package-sbom.sh`: the package's own SBOM, `hmailserver_<v>_arm64.deb.cdx.json`, as `linux-build` makes the amd64 one's, from what the build recorded it was built against (see [The SBOM](#the-sbom)) |
 
 `<distro>` is `debian12`, `debian13`, `ubuntu24.04` or, for arm64 only,
 `ubuntu26.04`.
@@ -262,9 +268,31 @@ files name it too.
 - `SHA256SUMS.txt`;
 - `build-info.txt`: the release, the route, the compiler, CMake, Boost, OpenSSL,
   libpq, OpenLDAP and zlib versions, the control fields, the hash and the times;
+- `built-against/`: `dpkg.txt`, every package the container had installed with
+  its architecture and version (`dpkg-query -W`), and `boost-version.hpp`, the
+  Boost header the build compiled against, for the package's SBOM;
 - the logs.
 
-Each install job adds `install-<distro>-<arch>.txt`.
+Each install job adds `install-<distro>-<arch>.txt`, and
+`deb-ubuntu26.04-arm64-sbom` keeps `hmailserver_<v>_arm64.deb.cdx.json` beside
+the package.
+
+### The SBOM
+
+Every compiled file a release carries goes out with its own CycloneDX SBOM,
+`<file>.cdx.json` (SECURITY.md, "Software bills of materials"). `linux-build`
+makes the amd64 package's in the CI image: `build/native-dependencies.ps1`'s
+component list, then `build/asset-sbom.py`, which asks the container's own dpkg
+what each library was built against. The release's containers here have neither
+PowerShell nor Python, so the build job records instead what the container had
+installed (`built-against/`), and `deb-ubuntu26.04-arm64-sbom` makes the arm64
+package's SBOM from that in the CI image (`asset-sbom.py make --dpkg-list
+built-against/dpkg.txt --target-arch arm64`). In a cross build the C and C++
+libraries are the cross toolchain's (`libc6-dev-arm64-cross`,
+`libstdc++-<n>-dev-arm64-cross`), and every other library is the `:arm64`
+`-dev` package the build installed, never the amd64 host's package of the same
+name. Every build records it; only the package a release carries gets an SBOM
+job.
 
 The names
 ---------
@@ -302,7 +330,10 @@ installed servers' update checker asks for (`UpdateChecker.cpp`,
 This file therefore has no `deb-ubuntu26.04-amd64` job. The writer's first
 version had one, a GCC build of the same name. The check removed it, so a
 release has only one file of that name to take. `hmailserver_<v>_arm64.deb`
-comes from `deb-ubuntu26.04-arm64`, the only job that makes it.
+comes from `deb-ubuntu26.04-arm64`, the only job that makes it. From 6.3.6 the
+release collects it with its SBOM, holding it to the `SHA256SUMS.txt` that job
+wrote and adding its line to the release's sums, and `release` waits for the
+build, its install job and `deb-ubuntu26.04-arm64-sbom`.
 
 **The update checker was not changed in this work.** A server installed from
 any `.deb` looks for `hmailserver_<tag>_<arch>.deb`, which is the Ubuntu 26.04
@@ -425,22 +456,25 @@ What is left
    - The check's own arm64 install test ran under that handler (see
      [What has run](#what-has-run)). Nobody has yet seen it come back after a
      reboot.
-2. **Wiring into the release: the integrator's change.** The check decided
-   what a release carries:
+2. **Wiring into the release: done for the arm64 package, for 6.3.6.** The
+   check decided what a release carries:
    - `hmailserver_<v>_amd64.deb` stays `linux-build`'s, as now (see
      [The names](#the-names));
    - the release can add the seven files from these jobs:
      `hmailserver_<v>_arm64.deb` and the six whose names carry a release.
 
-   The release job (`build/ci/release-chain.py collect`) collects six assets
-   today. Adding these to `release`'s `needs` and to the collection is not
-   this file's change. Until then:
-   - a tag's `release` job does not wait for these jobs. They run on every
+   `hmailserver_<v>_arm64.deb` is in (batch42, 28 September 2026): `release`
+   needs `deb-ubuntu26.04-arm64`, `deb-ubuntu26.04-arm64-sbom` and
+   `deb-ubuntu26.04-arm64-install`, and `build/ci/release-chain.py collect`
+   takes the package and its SBOM. `build/check-release-chain.py` holds
+   `release` to those three jobs, and `collect` to the paths they leave the
+   files at (`CARRIED_PACKAGES`). The six whose names carry a release are not
+   in yet:
+   - a tag's `release` job does not wait for their jobs. They run on every
      `v*` tag and can fail its pipeline, but `release` can be started before
      they finish;
-   - `build/check-release-chain.py`, which fails when a job that can fail a
-     tag's pipeline is missing from `release`'s `needs`, reads `.gitlab-ci.yml`
-     alone. It does not see the jobs of an included file.
+   - `build/check-release-chain.py` reads no other job of an included file as
+     a gate of a release.
 3. **Watch the first pipeline that runs the install jobs.** The build jobs
    have passed in pipelines (see [In GitLab's pipelines](#in-gitlabs-pipelines));
    no install job has run to an end in one yet.

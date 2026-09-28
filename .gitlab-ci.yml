@@ -50,8 +50,9 @@
 #                         every file the release carries collected (build/ci/release-chain.py);
 #   release-authenticode  bench150: the installer Authenticode-signed through Azure Artifact
 #                         Signing with the job's ID token (build/ci/windows-authenticode.ps1);
-#   release-sbom          the signed installer's own SBOM, <installer>.cdx.json; the .deb's and
-#                         the .rpm's are linux-build's (build/asset-sbom.py, build/ci/release-chain.py);
+#   release-sbom          the signed installer's own SBOM, <installer>.cdx.json; the x86-64 .deb's
+#                         and .rpm's are linux-build's, and the AArch64 ones' their SBOM jobs'
+#                         (.gitlab/ci/packages-*.yml; build/asset-sbom.py, build/ci/release-chain.py);
 #   release-sign          every file signed with Sigstore as this pipeline (build/ci/release-sign.sh);
 #   release-verify        linix: every bundle checked with the server's own verifier
 #                         (build/ci/release-verify.sh);
@@ -1392,10 +1393,14 @@ windows-installer:
 # file that can fail a tag's pipeline - a manual job can be started as soon as its own
 # needs have finished, so a gate left out here could be released past - every job whose
 # files the release carries, and the four security scans whose reports it reads; only
-# those seven bring their artifacts. The package jobs of .gitlab/ci/packages-*.yml,
-# which a tag's pipeline runs too, are not gates of a release: they make CI artifacts
-# that no release carries, and release can start while they are still running or after
-# one has failed. The scans are allow_failure, so their failure does not
+# those eleven bring their artifacts. Of the package jobs of .gitlab/ci/packages-*.yml,
+# which a tag's pipeline runs too, release needs the two whose files it carries -
+# deb-ubuntu26.04-arm64, the generic arm64 .deb, and rpm-fedora44-aarch64, the generic
+# aarch64 .rpm - with their artifacts, their SBOM jobs with theirs (each package's
+# <file>.cdx.json), and their install jobs, which install and run each package in an
+# arm64 container under qemu and are gates. The others are not gates of a release:
+# they make CI artifacts that no release carries, and release can start while they are
+# still running or after one has failed. The scans are allow_failure, so their failure does not
 # stop the pipeline: release-chain.py collect reads their reports instead
 # (build/ci/security-gate.py) and refuses while a scan did not finish, or found
 # something SECURITY.md's policy counts that is in no baseline and not accepted in
@@ -1406,7 +1411,8 @@ windows-installer:
 # checks run for every tag (a tag counts every file as changed) and are optional needs
 # only so that a pipeline without one is still created; the scans are not optional, so
 # a tag's pipeline without one of them is not created at all.
-# build/check-release-chain.py fails when a job of this file that can fail, or a scan, is
+# build/check-release-chain.py fails when a job of this file that can fail, a scan, or a
+# job that makes, describes or installs an AArch64 package the release carries is
 # missing here.
 release:
   stage: release
@@ -1458,6 +1464,18 @@ release:
       artifacts: true
     - job: windows-installer
       artifacts: true
+    - job: deb-ubuntu26.04-arm64
+      artifacts: true
+    - job: deb-ubuntu26.04-arm64-sbom
+      artifacts: true
+    - job: deb-ubuntu26.04-arm64-install
+      artifacts: false
+    - job: rpm-fedora44-aarch64
+      artifacts: true
+    - job: rpm-fedora44-aarch64-sbom
+      artifacts: true
+    - job: rpm-fedora44-aarch64-install
+      artifacts: false
     - job: static-analysis
       artifacts: true
     - job: semgrep

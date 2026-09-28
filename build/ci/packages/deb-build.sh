@@ -43,6 +43,13 @@
 #   SHA256SUMS.txt       its hash
 #   build-info.txt       the release, the architecture, the route, every tool's
 #                        and library's version, the control fields and the times
+#   built-against/       what the package was built against, for its SBOM:
+#                        dpkg.txt, every package this container had installed
+#                        (dpkg-query -W), and boost-version.hpp, the Boost header
+#                        the build compiled against. This stock container has
+#                        neither PowerShell nor Python to make the SBOM itself;
+#                        package-sbom.sh makes it from these in the CI image, for
+#                        the packages a release carries (packages-deb.yml)
 #   configure.log, build.log, package.log, and testers.log on a native build
 #
 # The environment it reads:
@@ -372,6 +379,19 @@ grep -q '\./usr/bin/hmailserver$' <<< "$contents" || { echo "FAILED: no /usr/bin
   echo "commit ${CI_COMMIT_SHA:-unknown}"
   echo "seconds build $build_seconds, package $(( $(date +%s) - package_started )), job $(( $(date +%s) - started ))"
 } | tee -a "$out/build-info.txt"
+
+# What the package was built against, as this container has it, for the package's
+# own SBOM (build/asset-sbom.py --dpkg-list): every package dpkg has, with its
+# architecture - a cross build has the amd64 host's packages beside the arm64
+# ones it built against - and the Boost header the build compiled against.
+facts="$out/built-against"
+mkdir -p "$facts"
+# shellcheck disable=SC2016
+dpkg-query -W -f '${db:Status-Abbrev} ${Package} ${Architecture} ${Version}\n' > "$facts/dpkg.txt" \
+  || { echo "FAILED: dpkg-query could not list what this container has installed"; exit 4; }
+[ -n "$boost_hpp" ] && cp "$boost_hpp" "$facts/boost-version.hpp" \
+  || { echo "FAILED: no Boost header to record the version the build compiled against"; exit 4; }
+echo "built against: $(grep -c '^ii' "$facts/dpkg.txt") installed package(s) recorded in $facts, and $boost_hpp"
 
 rm -rf "$build_dir"
 echo ""

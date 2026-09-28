@@ -289,10 +289,15 @@ make Fedora stop too. The cost is that an outage of the site then stops every
   is given `--keep N`.
 - **Which file goes where comes from its name.** A suffixed name says its
   release. The generic `.deb` goes where `GENERIC` in
-  `build/generate-package-repos.py` says (`ubuntu26.04`), and only from 6.3.4.
-  The generic `.deb`s of 6.3.0 to 6.3.3 were built on GitHub's Ubuntu 24.04
-  runners, so they are left out rather than offered to Ubuntu 26.04. The
-  generic `.rpm` goes nowhere (above). Were a release to carry both a generic
+  `build/generate-package-repos.py` says (`ubuntu26.04`), and only from 6.3.4,
+  for both architectures: the amd64 one is `linux-build`'s, and the arm64 one,
+  which a release carries from 6.3.6, is `deb-ubuntu26.04-arm64`'s, built
+  against Ubuntu 26.04's own arm64 packages and installed by apt in an arm64
+  Ubuntu 26.04 container. The generic `.deb`s of 6.3.0 to 6.3.3 were built on
+  GitHub's Ubuntu 24.04 runners, so they are left out rather than offered to
+  Ubuntu 26.04. The generic `.rpm` goes nowhere (above): the x86_64 one is built
+  on Ubuntu, and the aarch64 one is the same Fedora 44 build as the `.fc44` file,
+  which is the one `fc44`'s repository takes once a release carries it. Were a release to carry both a generic
   `.deb` and a suffixed one for the same suite, the repository would take the
   suffixed one.
 - **The site holds only the metadata.** Each package's path on the site answers
@@ -305,7 +310,10 @@ make Fedora stop too. The cost is that an outage of the site then stops every
   comes first, at about 350 rules. A release with every `.deb` and `.rpm` the
   package jobs make adds sixteen (eight `.deb`s: four suites, two architectures;
   eight `.rpm`s: `fc44`, `fc43`, `el10` and `el9`, two architectures), so about
-  twenty releases fit beside the feed's own download links. The job fails, and deploys nothing, before a
+  twenty releases fit beside the feed's own download links, which are eleven
+  from 6.3.6 (the download page, and five files with their bundles). A release
+  as 6.3.6 is, with the generic packages alone, adds two: the amd64 and the arm64
+  `.deb`. The job fails, and deploys nothing, before a
   rule would be lost; `--keep` is then the answer.
 
 ### How it is made

@@ -46,8 +46,17 @@ refuses it. This checker holds them to each other. It fails when:
   * release does not wait for every job of .gitlab-ci.yml that can fail a tag's
     pipeline (every job that is neither allow_failure nor manual, nor one of the few
     that never runs in one; the package jobs of the included .gitlab/ci/packages-*.yml
-    are not release gates), or brings the artifacts of any but the three whose files
-    it collects and the four scans whose reports it reads;
+    are not release gates but for those whose files a release carries), or brings the
+    artifacts of any but the jobs whose files it collects and the four scans whose
+    reports it reads;
+  * a package a release carries from a package job (CARRIED_PACKAGES: the generic
+    arm64 .deb and aarch64 .rpm) is not built, described and installed before release
+    starts: the job that builds it, the job that makes its SBOM
+    (build/ci/packages/package-sbom.sh, keeping <package>.cdx.json beside it) and the
+    job that installs it must be in their file, the two after the build must need it,
+    and release must need all three, not optionally, the first two with their
+    artifacts; and build/ci/release-chain.py must collect the file and its SBOM from
+    where that build leaves them, as a compiled file;
   * the release job's tag check (build/ci/release-chain.py collect), given a git
     that answers as the job's checkout would, accepts a tag signed by a key the
     tagged tree's own .gitlab/allowed_signers lists and master's does not, a tag
@@ -206,8 +215,20 @@ NOT_INTERRUPTIBLE = ("linux-suite", "windows-gate")
 # How a gate that lets a busy bench pass (allow_failure: exit_codes) keeps a v* tag's
 # pipeline from doing so: the bench's "busy" exits 10 only outside a tag.
 BUSY_GUARD = "$taken -eq 1 -and -not $env:CI_COMMIT_TAG"
+# The package jobs whose files a release carries (.gitlab/ci/packages-*.yml), by the
+# kind of server that installs each (generate-update-feed.py's installer_names): the
+# file the jobs are in, the job that builds the package, the one that makes its SBOM,
+# the one that installs it in a clean container of its distribution and architecture,
+# and where the build leaves the package, with its SBOM beside it.
+CARRIED_PACKAGES = {
+    "deb-arm64": {"file": "packages-deb", "build": "deb-ubuntu26.04-arm64", "sbom": "deb-ubuntu26.04-arm64-sbom",
+                  "install": "deb-ubuntu26.04-arm64-install", "dir": "packages-deb/ubuntu26.04-arm64/"},
+    "rpm-aarch64": {"file": "packages-rpm", "build": "rpm-fedora44-aarch64", "sbom": "rpm-fedora44-aarch64-sbom",
+                    "install": "rpm-fedora44-aarch64-install", "dir": "packages-rpm/fedora44-aarch64/generic/"},
+}
 # The jobs whose artifacts release collects; it waits for every other gate without them.
-COLLECTED = ["linux-build", "linux-sbom", "windows-installer"]
+COLLECTED = ["linux-build", "linux-sbom", "windows-installer"] + [
+    job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom")]
 # The security scans whose reports release reads (build/ci/security-gate.py's SCANS):
 # needed, not optionally, with their artifacts. semgrep-sast is GitLab's, in
 # .gitlab/ci/gitlab-security.yml; the others are the CI file's own, on linix.
@@ -354,7 +375,7 @@ def gates(jobs):
     """Every job of .gitlab-ci.yml that can fail a v* tag's pipeline before release: not
     a release job, not EXEMPT (none of which is a gate of a tag), not allow_failure, not
     manual. The included files' jobs are not read: the package jobs there are not
-    release gates."""
+    release gates, but for CARRIED_PACKAGES', which check() holds release to itself."""
     found = []
     for name in sorted(jobs):
         if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS or name in EXEMPT:
@@ -373,7 +394,7 @@ def need_entries(block):
     if not match:
         return entries
     for entry in re.split(r"^    - ", match.group(1), flags=re.MULTILINE):
-        head = re.match(r"(?:job:\s*)?([a-z][a-z0-9\-]*)", entry)
+        head = re.match(r"(?:job:\s*)?([a-z][a-z0-9.\-]*)", entry)
         if head:
             entries[head.group(1)] = entry
     return entries
@@ -389,7 +410,7 @@ def needs(block):
         return [n.strip() for n in inline.group(1).split(",") if n.strip()]
     found = []
     for line in match.group(1).split("\n"):
-        item = re.match(r"^\s*-\s*(?:job:\s*)?([a-z][a-z0-9\-]*)\s*$", line)
+        item = re.match(r"^\s*-\s*(?:job:\s*)?([a-z][a-z0-9.\-]*)\s*$", line)
         if item:
             found.append(item.group(1))
     return found
@@ -561,8 +582,9 @@ def check(texts, chain, feed):
     # server's verifier, then the upload, then the feed.
     # release waits for every gate: a manual job can be started as soon as its own
     # needs have finished, so a gate it does not need can be released past.
+    carried = [job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom", "install")]
     order = {
-        "release": gates(jobs) + ["windows-installer"],
+        "release": gates(jobs) + ["windows-installer"] + carried,
         "release-authenticode": ["release"],
         "release-sbom": ["release", "release-authenticode"],
         "release-sign": ["release", "release-authenticode", "release-sbom"],
@@ -583,6 +605,35 @@ def check(texts, chain, feed):
             problems.append("release does not bring %s's artifacts, which hold a file the release carries" % name)
         if name not in COLLECTED + SCANNED and not re.search(r"artifacts: false", entry):
             problems.append("release brings %s's artifacts, which it does not collect: say artifacts: false" % name)
+
+    # The packages a release carries from the package jobs: built, described and
+    # installed before release starts, and collected from where their build leaves them.
+    release_entries = need_entries(jobs["release"])
+    for platform, job in sorted(CARRIED_PACKAGES.items()):
+        found = blocks(texts[job["file"]])
+        name = feed.installer_names("9.9.9")[platform]
+        for role, does in (("build", "builds"), ("sbom", "makes the SBOM of"), ("install", "installs")):
+            if job[role] not in found:
+                problems.append("%s has no job %s, which %s %s, a file the release carries" % (FILES[job["file"]], job[role], does, name))
+            entry = release_entries.get(job[role])
+            if entry is not None and re.search(r"optional: true", entry):
+                problems.append("release needs %s optionally: a tag's pipeline without it would release %s past it" % (job[role], name))
+        for role in ("sbom", "install"):
+            if job[role] in found and job["build"] not in needs(found[job[role]]):
+                problems.append("%s does not need %s, whose package it %s" % (
+                    job[role], job["build"], "describes" if role == "sbom" else "installs"))
+        sbom_job = found.get(job["sbom"], "")
+        if "bash build/ci/packages/package-sbom.sh " + job["dir"] not in sbom_job or not re.search(
+                r"^      - %s\*\.cdx\.json\s*$" % re.escape(job["dir"]), sbom_job, re.MULTILINE):
+            problems.append("%s does not run build/ci/packages/package-sbom.sh on the package in %s and keep %s*.cdx.json, "
+                            "the SBOM release collects" % (job["sbom"], job["dir"], job["dir"]))
+        where = chain.sources("9.9.9")
+        for file_name in (name, chain.sbom_name(name)):
+            if (where.get(file_name) or "").replace(os.sep, "/") != job["dir"] + file_name:
+                problems.append("build/ci/release-chain.py collects %s from %s, not from %s%s, where %s leaves it" % (
+                    file_name, where.get(file_name), job["dir"], file_name, job["sbom"] if file_name != name else job["build"]))
+        if name not in chain.compiled_assets("9.9.9"):
+            problems.append("build/ci/release-chain.py's compiled_assets does not carry %s, which %s builds for it" % (name, job["build"]))
 
     # Every compiled file with its own SBOM: made by the jobs, signed with the rest,
     # and held to its file before the release is published.
@@ -1046,7 +1097,27 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=9", "expected=6", "a release carries")
+    broken("another count of files", "sign", "expected=13", "expected=9", "a release carries")
+    broken("verify counting another number of files", "verify", '[ "$verified" -eq 13 ]', '[ "$verified" -eq 9 ]', "release-verify.sh counts 9")
+    # The AArch64 packages a release carries, from the package jobs.
+    broken("release not waiting for the arm64 .deb's install", "ci", "    - job: deb-ubuntu26.04-arm64-install\n      artifacts: false\n", "",
+           "release does not need deb-ubuntu26.04-arm64-install")
+    broken("release not waiting for the aarch64 .rpm's build", "ci", "    - job: rpm-fedora44-aarch64\n      artifacts: true\n", "",
+           "release does not need rpm-fedora44-aarch64")
+    broken("release without the aarch64 .rpm's build artifacts", "ci", "    - job: rpm-fedora44-aarch64\n      artifacts: true\n",
+           "    - job: rpm-fedora44-aarch64\n      artifacts: false\n", "release does not bring rpm-fedora44-aarch64's artifacts")
+    broken("release fetching an install job's artifacts", "ci", "    - job: rpm-fedora44-aarch64-install\n      artifacts: false\n",
+           "    - job: rpm-fedora44-aarch64-install\n      artifacts: true\n", "release brings rpm-fedora44-aarch64-install's artifacts")
+    broken("release needing the arm64 .deb's SBOM optionally", "ci", "    - job: deb-ubuntu26.04-arm64-sbom\n      artifacts: true\n",
+           "    - job: deb-ubuntu26.04-arm64-sbom\n      artifacts: true\n      optional: true\n", "release needs deb-ubuntu26.04-arm64-sbom optionally")
+    broken("the arm64 .deb's SBOM job gone", "packages-deb", "\ndeb-ubuntu26.04-arm64-sbom:\n", "\ndeb-ubuntu26.04-arm64-sbom-old:\n",
+           "has no job deb-ubuntu26.04-arm64-sbom")
+    broken("the aarch64 .rpm's SBOM made before its build", "packages-rpm", "  needs:\n    - job: rpm-fedora44-aarch64\n      artifacts: true\n", "  needs: []\n",
+           "rpm-fedora44-aarch64-sbom does not need rpm-fedora44-aarch64")
+    broken("the arm64 .deb installed without its build", "packages-deb", "  needs: [deb-ubuntu26.04-arm64]\n", "  needs: []\n",
+           "deb-ubuntu26.04-arm64-install does not need deb-ubuntu26.04-arm64")
+    broken("the arm64 .deb's SBOM kept elsewhere", "packages-deb", "      - packages-deb/ubuntu26.04-arm64/*.cdx.json\n", "      - packages-deb/*.cdx.json\n",
+           "deb-ubuntu26.04-arm64-sbom does not run build/ci/packages/package-sbom.sh")
     broken("the installer signed before its SBOM is made", "ci", "    - job: release-sbom\n      artifacts: true\n", "",
            "release-sign does not need release-sbom")
     broken("the installer's SBOM made before Authenticode", "ci",
@@ -1273,6 +1344,14 @@ def self_test(chain, feed):
     patched("a tag check that takes git's word for the key", "check_tag", without("not by the one key"), "a key other than the one git was given")
     patched("a tag check that refuses everything", "check_tag", lambda root, tag, commit, run: ["no"], "refuses a tag master's one key signed")
     patched("the allow-list read from another branch", "TRUSTED_BRANCH", "main", "not from master")
+    held_sources = chain.sources
+    patched("the aarch64 .rpm collected from where no job leaves it", "sources",
+            lambda version: dict(held_sources(version), **{"hmailserver-%s-1.aarch64.rpm" % version:
+                                                           os.path.join("packages-rpm", "fedora44-aarch64", "hmailserver-%s-1.aarch64.rpm" % version)}),
+            "collects hmailserver-9.9.9-1.aarch64.rpm from")
+    held_compiled = chain.compiled_assets
+    patched("the arm64 .deb not counted a compiled file", "compiled_assets",
+            lambda version: [n for n in held_compiled(version) if not n.endswith("_arm64.deb")], "compiled_assets does not carry hmailserver_9.9.9_arm64.deb")
     held_expected = chain.expected_assets
     patched("a package carried without its SBOM", "expected_assets",
             lambda version: [n for n in held_expected(version) if not n.endswith(".deb.cdx.json")], "without its SBOM")
