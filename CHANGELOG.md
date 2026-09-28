@@ -113,6 +113,10 @@ for a stray `#` number or `@` name.
   Gallery, held to its published SHA-512 - under pwsh. PSScriptAnalyzer's 25 findings in `HmailServer.psm1` are
   fixed or justified on the one function, with no command, parameter or confirmation prompt changed;
   `Export-HmConfiguration -Verbose` now says why the ini section is empty when the server does not answer for it.
+- **The Linux build includes the distribution's `zlib.h`.** Six core sources included the zlib header vendored
+  for `hMailServer.exe` on every platform, so the Linux server was compiled against zlib 1.3.2's header and
+  linked against the distribution's library (1.3.1 on Ubuntu 26.04). They include `<zlib.h>` under
+  `HM_PLATFORM_POSIX` now; the Windows build compiles the same text as before.
 
 ### Operations
 
@@ -212,6 +216,27 @@ for a stray `#` number or `@` name.
   stopped halfway and fails when a PyPI publisher that once worked stops matching, and `psgallery-publish` refuses
   a module with no Authenticode signature, which the release does not sign yet
   ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
+- **A source tarball with nothing non-free in it, which the Linux build and suite run from** (not yet run in a
+  pipeline, and no release carries it yet). `build/ci/source-tarball.sh` writes `hmailserver-<version>.tar.gz`
+  from a commit with `git archive`: the commit's tree less every path of `build/source-exclusions.txt` - SQL Server
+  Compact 3.5's headers and both copies of its licence, which are not free, and what only the Windows build and its
+  installer use (the rest of `libraries/` with the Fat Cow icons, the COM API, the Windows service host and
+  helpers, the vendored zlib, the Control Panel and the database tools, the VBScript add-ons, the .NET Framework
+  developer tools and the installer's sources, keeping the Control Deck, `tlds.txt` and `dh2048.pem`, which the
+  packages install). It is reproducible - every entry carries the commit's time, uid and gid 0 and a 0644 or 0755
+  mode, line endings are `.gitattributes`' alone (no system attributes file is read, and a clone whose
+  `.git/info/attributes` sets any is refused), gzip writes no name or time - and git 2.39.5, 2.47.3, 2.50.1 and
+  2.53.0 with gzip 1.10 to 1.14 made the same bytes. QuickJS stays and is declared with the other third-party
+  notices of the code the Linux build compiles; `docs/SourceTarball.md` also lists the third-party test data kept
+  (Mail::DKIM's corpus, and captured messages with no licence stated, for the Debian package to decide on).
+  `build/check-source-tarball.py` holds the list to the tree in the `checkers` job (nothing the CMake build,
+  `linux-build.sh`, `linux-suite.sh`, the other Linux jobs' scripts - packages, fuzzing, cross, sanitizer,
+  coverage, repro - the suite's project and its directory, what the build and the suite read at run time, or a
+  POSIX `#include` reads may be left out, and every file of the Windows-only trees must be) and a tarball to the
+  list, its licences and its format; `--files-excluded` prints Debian's `Files-Excluded` field from the same list.
+  The `source-tarball` job makes it twice and compares, and `linux-build` and `linux-suite` take it with
+  `HM_SOURCE_TARBALL`; `build/native-dependencies.ps1 -LinuxOnly` gives the packages' SBOMs their components
+  without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
 
 ---
 

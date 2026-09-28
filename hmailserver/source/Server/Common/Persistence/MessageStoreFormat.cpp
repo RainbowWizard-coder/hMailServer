@@ -10,7 +10,15 @@
 #include "../Util/MailboxCrypto.h"
 #include "../Util/MailboxKeys.h"
 
+// zlib: on Windows the copy vendored under Server/zlib, which hMailServer.exe
+// compiles in; on POSIX the distribution's, whose library CMakeLists.txt links,
+// so the header and the library are one version (and the source tarball can
+// leave Server/zlib out: build/source-exclusions.txt).
+#ifdef HM_PLATFORM_POSIX
+#include <zlib.h>
+#else
 #include "../../zlib/zlib.h"
+#endif
 
 #include <openssl/sha.h>
 

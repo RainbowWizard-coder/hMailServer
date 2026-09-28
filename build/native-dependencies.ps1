@@ -65,6 +65,13 @@ param(
    [string] $OutputFile,
    # The Windows installer the linked and shipped components are those of.
    [ValidateSet('x64', 'ARM64')] [string] $Platform = 'x64',
+   # The Linux packages' components alone: QuickJS and the system libraries
+   # CMakeLists.txt finds, which is all a .deb's or an .rpm's SBOM takes from this list
+   # (build/asset-sbom.py). The Windows build's inputs - hMailServer.vcxproj, the
+   # vendored zlib.h, third-party-binaries.json - are not read, so it runs in the source
+   # tarball, which carries neither of the first two (build/source-exclusions.txt):
+   # build/ci/linux-build.sh passes it when it builds from that tarball.
+   [switch] $LinuxOnly,
    # The tree to read, when it is not the one this script is in: a release's tree,
    # checked out elsewhere, described by a newer copy of this script.
    [string] $RepoRoot
@@ -87,11 +94,13 @@ $projectFile = Join-RepoPath @('hmailserver', 'source', 'Server', 'hMailServer',
 $manifestFile = Join-RepoPath @('hmailserver', 'docs', 'third-party-binaries.json')
 $cmakeFile = Join-RepoPath @('hmailserver', 'source', 'Server', 'CMakeLists.txt')
 
-foreach ($required in @($projectFile, $manifestFile, $cmakeFile)) {
+if ($LinuxOnly -and $Platform -ne 'x64') { throw '-LinuxOnly is the Linux packages'' list, which has no -Platform.' }
+$inputs = if ($LinuxOnly) { @($cmakeFile) } else { @($projectFile, $manifestFile, $cmakeFile) }
+foreach ($required in $inputs) {
    if (-not (Test-Path -LiteralPath $required)) { throw "Cannot find $required, which the SBOM's component list is read from." }
 }
 
-$project = Get-Content -LiteralPath $projectFile -Raw
+$project = if ($LinuxOnly) { '' } else { Get-Content -LiteralPath $projectFile -Raw }
 
 # ---------------------------------------------------------------------------------
 # Linked and vendored: each entry, the regex that finds the version in an include or
@@ -300,6 +309,8 @@ function New-Component([hashtable] $fields) {
 
 # ------------------------------------------------------------------ linked, vendored
 foreach ($dependency in $dependencies) {
+   # -LinuxOnly: an entry no Linux package carries is not read at all.
+   if ($LinuxOnly -and @($dependency.Targets) -notcontains 'linux') { continue }
    if ($dependency.VersionFile) {
       $versionFile = Join-RepoPath $dependency.VersionFile
       $text = if (Test-Path -LiteralPath $versionFile) { Get-Content -LiteralPath $versionFile -Raw } else { '' }
@@ -373,7 +384,8 @@ if ($missing.Count -gt 0) {
 }
 
 # ------------------------------------------------------------------------- shipped
-$manifest = Get-Content -LiteralPath $manifestFile -Raw | ConvertFrom-Json
+# -LinuxOnly: what the Windows installer carries is no Linux package's.
+$manifest = if ($LinuxOnly) { [pscustomobject]@{ build_inputs = @(); artifacts = @() } } else { Get-Content -LiteralPath $manifestFile -Raw | ConvertFrom-Json }
 $buildInputs = @{}
 foreach ($buildInput in @($manifest.build_inputs)) { $buildInputs[('{0}/{1}' -f $buildInput.release, $buildInput.asset)] = ([string] $buildInput.sha256).ToLowerInvariant() }
 

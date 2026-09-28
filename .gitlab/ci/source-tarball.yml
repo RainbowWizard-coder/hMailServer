@@ -1,0 +1,59 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The source tarball, hmailserver-<version>.tar.gz: the commit's tree less every
+# path build/source-exclusions.txt names (build/ci/source-tarball.sh;
+# docs/SourceTarball.md). Included by .gitlab-ci.yml.
+#
+#   source-tarball   linix: the tarball made from the pipeline's commit, made a
+#                    second time elsewhere and compared byte for byte, then held to
+#                    the list by build/check-source-tarball.py, which also checks
+#                    the commit it records is this one. Its artifact, source-tarball/,
+#                    is what linux-build and linux-suite build and test from
+#                    (HM_SOURCE_TARBALL), and what the release collects.
+#
+# When: wherever linux-build runs, and nowhere else. It takes .own-runners' rules,
+# which linux-build takes through .linix, so a pipeline that has one has the other,
+# and a needs: [source-tarball] beside linux-build always finds its job. Never for
+# a merge request or an unprotected ref (.own-runners in .gitlab-ci.yml says why).
+#
+# The image is Python's, by the digest repo-hygiene and release pin on linix, with
+# git from Debian's archive (the CI image has none); gzip and tar are the image's
+# own. Nothing is fetched from GitHub.
+source-tarball:
+  extends: .own-runners
+  tags: [linix]
+  image:
+    name: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+    pull_policy: if-not-present
+  stage: build
+  needs: []
+  timeout: 15 minutes
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends git > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - git --version
+    - gzip --version
+    - HM_OUT_DIR="$CI_PROJECT_DIR/source-tarball" bash build/ci/source-tarball.sh "$CI_COMMIT_SHA"
+    # The same commit makes the same bytes: made again in another directory, under
+    # another umask, and compared.
+    - (umask 0077 && HM_OUT_DIR=/tmp/source-tarball-again bash build/ci/source-tarball.sh "$CI_COMMIT_SHA" > /dev/null)
+    - |
+      first=$(sha256sum source-tarball/hmailserver-*.tar.gz | cut -d' ' -f1)
+      second=$(sha256sum /tmp/source-tarball-again/hmailserver-*.tar.gz | cut -d' ' -f1)
+      echo "first  $first"
+      echo "second $second"
+      if [ "$first" != "$second" ]; then
+        echo "The same commit made two different tarballs."
+        exit 1
+      fi
+    - python3 build/check-source-tarball.py --commit "$CI_COMMIT_SHA" source-tarball/hmailserver-*.tar.gz
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - source-tarball/

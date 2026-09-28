@@ -200,6 +200,7 @@ namespace hMailServer.ControlPanel.Services
          "SmimeAuthority.md",
          "TestLab.md",
          "Snmp.md",
+         "SourceTarball.md",
          "ThirdPartyBinaries.md",
          "UpdateFeed.md",
          "WarmStandby.md",

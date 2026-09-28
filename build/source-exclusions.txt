@@ -1,0 +1,124 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# What the source tarball, hmailserver-<version>.tar.gz, leaves out of the tree
+# (build/ci/source-tarball.sh; hmailserver/docs/SourceTarball.md). One list, and
+# the only one: Debian's Files-Excluded, the RPM spec and the Guix snippet are all
+# made from it, and build/check-source-tarball.py holds a tarball to it.
+#
+# The format, so that each of those can read it without a parser of its own:
+#   - one path per line, relative to the top of the tree, with no leading "./"
+#     and no trailing "/"; a directory stands for everything below it;
+#   - the path is literal: no wildcard, no quoting, no escape. A space is part of
+#     the path. Debian's Files-Excluded is separated by white space, so a space is
+#     written there as "?" (build/check-source-tarball.py --files-excluded prints
+#     the field);
+#   - "#" starts a comment line, and blank lines are ignored;
+#   - the file is checked out with LF line endings on every platform
+#     (.gitattributes), because shell reads it.
+#
+# What is left out, and the rule: a path is here when the Linux build, its tester
+# programs, its packages and the Linux suite never read it (the CMake build of
+# hmailserver/source/Server/CMakeLists.txt, build/ci/linux-build.sh and
+# build/ci/linux-suite.sh), AND it is either not free or used only by the Windows
+# build and its installer. build/check-source-tarball.py holds the first half to
+# what those three files name - and the suite's project, the other Linux jobs'
+# scripts (packages, fuzzing, cross, sanitizer, coverage, repro) and what the build
+# and the suite read at run time - every time the checkers run.
+
+# ---------------------------------------------------------------- not free
+# libraries/mssqlce3.5: SQL Server Compact 3.5's headers, under Microsoft's
+# SQL Server Compact licence, which no free distribution takes; with them the
+# rest of libraries/, which is the Windows build's alone: the scripts that build
+# Boost, OpenSSL and libpq for MSVC, the licences of those Windows builds and of
+# SQL Server Compact, and libraries/fat_cow_icons (2,800 icons and the zip they
+# came in, CC BY 3.0), which only the Control Panel shows.
+libraries
+# The second copy of SQL Server Compact's licence. The other notices in that
+# directory stay, those of the code the Linux build compiles among them.
+hmailserver/docs/Licenses/License - Microsoft SQL Server Compact Edition.rtf
+
+# ---------------------------------------------------------------- the Windows server
+# The ATL administration API, the Windows service host and its solution, the
+# Windows Error Reporting helper and the live update's Windows apply helper
+# (CMakeLists.txt, "It deliberately does NOT build").
+hmailserver/source/Server/COM
+hmailserver/source/Server/hMailServer
+hmailserver/source/Server/hMailServer.Minidump
+hmailserver/source/Server/hMailServer.Updater
+# zlib, vendored for hMailServer.exe. The POSIX build links the distribution's
+# zlib and includes the distribution's zlib.h.
+hmailserver/source/Server/zlib
+
+# ---------------------------------------------------------------- the Windows tools
+# The Control Panel and the database tools, every one a net10.0-windows project.
+# hmailserver/source/Tools/Cli stays: the packages install its hmctl.
+hmailserver/source/Tools/ControlPanel
+hmailserver/source/Tools/ControlPanel.Core
+hmailserver/source/Tools/ControlPanel.Tests
+hmailserver/source/Tools/ControlPanel.sln
+hmailserver/source/Tools/DBSetup
+hmailserver/source/Tools/DBSetupQuick
+hmailserver/source/Tools/DBUpdater
+hmailserver/source/Tools/DataDirectorySynchronizer
+hmailserver/source/Tools/Directory.Build.props
+hmailserver/source/Tools/Directory.Build.targets
+hmailserver/source/Tools/ImportTool
+hmailserver/source/Tools/ImportTool.Tests
+hmailserver/source/Tools/Interop
+hmailserver/source/Tools/Shared
+hmailserver/source/Tools/hMailServer Tools.sln
+# The add-ons the Windows installer copies beside the server: VBScript event
+# handlers and utilities (the Linux server runs its event scripts in JavaScript),
+# and a MySQL collation script that comes with them.
+hmailserver/source/Addons
+# Developer tools that are .NET Framework projects, a batch file and a Visual
+# Studio 2005 debugger file. hmailserver/tools/Scripts and Anonymizer.sql stay.
+hmailserver/tools/APIDocumentationCreator
+hmailserver/tools/ConfigureInstallation
+hmailserver/tools/DatabaseUnicodeConversion
+hmailserver/tools/DevTools.sln
+hmailserver/tools/GenerateDhParameters
+hmailserver/tools/PasswordDisplayer
+hmailserver/tools/SQLScriptCreator
+hmailserver/tools/TranslationExtractor
+hmailserver/tools/TranslationImporter
+hmailserver/tools/VS2005
+
+# ---------------------------------------------------------------- the Windows installer
+# Its Inno Setup sources, pictures and licence page, its socket-check DLL, the
+# uninstall helper, the winget and Chocolatey templates, and 7-Zip's licence (the
+# installer carries 7za.exe; the Linux packages recommend the distribution's 7-Zip).
+# What stays of hmailserver/installation is what CMakeLists.txt installs:
+# WebAdmin/ (the Control Deck and its catalogues) and Extras/tlds.txt and
+# Extras/dh2048.pem, which the server cannot work without.
+hmailserver/installation/Extras/7za.exe.license.txt
+hmailserver/installation/InnoSocketCheck
+hmailserver/installation/License.rtf
+hmailserver/installation/Utilities
+hmailserver/installation/chocolatey
+hmailserver/installation/hMailServer64.iss
+hmailserver/installation/hMailServerARM64.iss
+hmailserver/installation/hMailServerInnoExtension.iss
+hmailserver/installation/section_components.iss
+hmailserver/installation/section_custom_messages.iss
+hmailserver/installation/section_dirs.iss
+hmailserver/installation/section_files_64.iss
+hmailserver/installation/section_files_arm64.iss
+hmailserver/installation/section_files_common.iss
+hmailserver/installation/section_icons.iss
+hmailserver/installation/section_ini.iss
+hmailserver/installation/section_istool.iss
+hmailserver/installation/section_languages.iss
+hmailserver/installation/section_messages.iss
+hmailserver/installation/section_registry.iss
+hmailserver/installation/section_run.iss
+hmailserver/installation/section_setup.iss
+hmailserver/installation/section_setup_64.iss
+hmailserver/installation/section_setup_arm64.iss
+hmailserver/installation/section_types.iss
+hmailserver/installation/section_uninstallrun.iss
+hmailserver/installation/setup-small.bmp
+hmailserver/installation/setup.bmp
+hmailserver/installation/winget

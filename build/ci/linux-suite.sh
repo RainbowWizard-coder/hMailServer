@@ -34,11 +34,25 @@
 #   * the suite serves its fake DNS zone (the VM sets HMTEST_NO_FAKE_DNS=1, as an
 #     ordinary user cannot bind port 53); set HMTEST_NO_FAKE_DNS=1 in the job to
 #     run without it, and the DNS fixtures skip.
+#
+# HM_SOURCE_TARBALL, as in build/ci/linux-build.sh: the suite, the database
+# scripts and the data files are taken from the source tarball it names (or the
+# one hmailserver-*.tar.gz in the directory it names), unpacked into
+# HM_SOURCE_DIR (/tmp/hm-source) and checked first, and not from the checkout. The
+# test tree, the results and the server binary are where they are without it,
+# relative to where the script was started, and collect reads nothing of the
+# tarball.
 set -uo pipefail
 
 T="${HM_TREE:-$PWD/.hmtest-tree}"
 OUT="${HM_RESULTS_DIR:-$PWD/linux-suite}"
 BINARY="${HM_SERVER_BINARY:-$PWD/linux-build/hmailserver}"
+if [ -n "${HM_SOURCE_TARBALL:-}" ]; then
+  # Where the script was started, not where the tarball is unpacked.
+  case "$T" in /*) ;; *) T="$PWD/$T" ;; esac
+  case "$OUT" in /*) ;; *) OUT="$PWD/$OUT" ;; esac
+  case "$BINARY" in /*) ;; *) BINARY="$PWD/$BINARY" ;; esac
+fi
 PGH="${HM_PG_HOST:-postgres}"
 DB="${HM_PG_DATABASE:-hmtest}"
 export PGUSER="${HM_PG_USER:-hmailserver}"
@@ -99,6 +113,13 @@ collect() {
 if [ "${1:-}" = "collect" ]; then
   collect
   exit 0
+fi
+
+if [ -n "${HM_SOURCE_TARBALL:-}" ]; then
+  source_root=$(bash "$(dirname "${BASH_SOURCE[0]}")/source-tarball.sh" unpack "$HM_SOURCE_TARBALL" "${HM_SOURCE_DIR:-/tmp/hm-source}") \
+    || exit 2
+  cd "$source_root" || exit 2
+  echo "the suite and its data from the source tarball, unpacked at $source_root"
 fi
 
 if [ ! -f hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj ]; then

@@ -26,6 +26,16 @@
 #   HM_BUILD_DIR    where CMake configures and ninja builds (/tmp/hm-build)
 #   HM_BUILD_JOBS   ninja's -j (6: the runner gives a job six CPUs)
 #   HM_OUT_DIR      where the artifacts go (linux-build)
+#   HM_SOURCE_TARBALL  build from the source tarball instead of the checkout
+#                   (build/ci/source-tarball.sh; hmailserver/docs/SourceTarball.md):
+#                   the tarball, or a directory holding exactly one - the
+#                   source-tarball job's artifact, source-tarball/. It is unpacked
+#                   into HM_SOURCE_DIR (/tmp/hm-source), checked with the checker it
+#                   carries, and everything below runs there - the build, the
+#                   testers, the OpenPGP fixtures, the version stamps, CPack and the
+#                   packages' SBOMs - so no file of the checkout is read. HM_OUT_DIR
+#                   is still where the script was started. Unset, the checkout is
+#                   built, as it always was.
 set -uo pipefail
 
 # The packages record modes the umask chooses. CPack's .deb writer copies the mode
@@ -41,6 +51,15 @@ build_dir="${HM_BUILD_DIR:-/tmp/hm-build}"
 jobs="${HM_BUILD_JOBS:-6}"
 out="${HM_OUT_DIR:-linux-build}"
 
+source_tarball="${HM_SOURCE_TARBALL:-}"
+if [ -n "$source_tarball" ]; then
+  case "$out" in /*) ;; *) out="$PWD/$out" ;; esac
+  source_root=$(bash "$(dirname "${BASH_SOURCE[0]}")/source-tarball.sh" unpack "$source_tarball" "${HM_SOURCE_DIR:-/tmp/hm-source}") \
+    || exit 2
+  cd "$source_root" || exit 2
+  echo "building from the source tarball, unpacked at $source_root"
+fi
+
 if [ ! -f hmailserver/source/Server/CMakeLists.txt ]; then
   echo "Run this from the root of a checkout (no hmailserver/source/Server/CMakeLists.txt here)."
   exit 2
@@ -52,9 +71,12 @@ mkdir -p "$out"
 # The clock every tool that would stamp one stamps instead, as the release build
 # does: the commit's own time. In the job it comes from GitLab (git is not in the
 # image); by hand, from git when there is one, and the build is simply not pinned
-# when neither is there.
+# when neither is there. A source tarball carries the commit's time on every file.
 if [ -n "${CI_COMMIT_TIMESTAMP:-}" ]; then
   SOURCE_DATE_EPOCH=$(date -d "$CI_COMMIT_TIMESTAMP" +%s)
+  export SOURCE_DATE_EPOCH
+elif [ -n "$source_tarball" ]; then
+  SOURCE_DATE_EPOCH=$(stat -c %Y hmailserver/source/Server/CMakeLists.txt)
   export SOURCE_DATE_EPOCH
 elif command -v git > /dev/null 2>&1 && git rev-parse --git-dir > /dev/null 2>&1; then
   SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
@@ -223,7 +245,13 @@ package() {
   # linked into it (build/native-dependencies.ps1), the version of each development
   # package the build used, and what the package declares it depends on. A package
   # whose SBOM cannot be made is no package: the release carries none without one.
-  pwsh -NoProfile -File build/native-dependencies.ps1 -OutputFile "$build_dir/native-dependencies.json" > /dev/null
+  # From a source tarball, the Linux packages' components alone: the tarball
+  # carries none of the Windows build's inputs the whole list is read from.
+  local linux_only=()
+  if [ -n "$source_tarball" ]; then
+    linux_only=(-LinuxOnly)
+  fi
+  pwsh -NoProfile -File build/native-dependencies.ps1 "${linux_only[@]}" -OutputFile "$build_dir/native-dependencies.json" > /dev/null
   for file in "$out"/packages/*.deb "$out"/packages/*.rpm; do
     case "$file" in *.deb) kind=deb ;; *) kind=rpm ;; esac
     python3 build/asset-sbom.py make --kind "$kind" --asset "$file" \

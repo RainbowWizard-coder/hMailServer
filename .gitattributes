@@ -48,6 +48,10 @@ build/lab/** text eol=lf
 # fails as "bad interpreter: /usr/bin/env python3^M" on the user's machine and
 # nowhere else.
 hmailserver/source/Tools/Cli/hmctl text eol=lf
+# And the source tarball's exclusion list (build/source-exclusions.txt), which the
+# distributions' packaging reads with shell, rpm and Guix on Linux: a line read
+# with its carriage return names a path that is not there, and nothing is left out.
+build/source-exclusions.txt text eol=lf
 
 ###############################################################################
 # The OpenPGP fixtures, byte for byte.

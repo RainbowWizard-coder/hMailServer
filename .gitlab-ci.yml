@@ -106,6 +106,8 @@ include:
   - local: .gitlab/ci/packages-appimage.yml
   - local: .gitlab/ci/packages-rpm.yml
   - local: .gitlab/ci/packages-windows.yml
+  # The source tarball the Linux build and suite run from and a release carries (docs/SourceTarball.md).
+  - local: .gitlab/ci/source-tarball.yml
   # hmctl on PyPI and the PowerShell module on the Gallery: their checks, and the two
   # publish jobs, dormant until each account exists (docs/CommandLinePackages.md).
   - local: .gitlab/ci/cli-packages.yml
@@ -236,7 +238,7 @@ checkers:
       # still reports it, so a check that has stopped seeing the source fails too.
       for name in authz-choke-point cli-packages collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage help-map idl-case mysql-charset password-choice-sites release-chain \
-                  roadmap2 role-choke-point sbom-inputs; do
+                  roadmap2 role-choke-point sbom-inputs source-tarball; do
         check python3 "build/check-$name.py" --self-test
       done
       # Each compiled release file's own SBOM (build/asset-sbom.py), against a tree, a
@@ -432,8 +434,11 @@ pages:
 linux-build:
   extends: .linix
   stage: build
-  needs: []
+  # Built from the source tarball alone, as a distribution builds it (docs/SourceTarball.md).
+  needs: [source-tarball]
   timeout: 1 hour
+  variables:
+    HM_SOURCE_TARBALL: source-tarball
   script:
     - bash build/ci/linux-build.sh
   artifacts:
@@ -445,7 +450,7 @@ linux-build:
 linux-suite:
   extends: .linix
   stage: test
-  needs: [linux-build]
+  needs: [linux-build, source-tarball]
   # The runners' maximum. The suite took 2 h 7 min in the first pipeline, on 26
   # September 2026, and the 29 fixtures linked that day add about 20 minutes: under
   # three hours, but with too little to spare for a suite that grows every batch.
@@ -463,6 +468,7 @@ linux-suite:
         POSTGRES_DB: hmtest
   variables:
     HM_PG_HOST: postgres
+    HM_SOURCE_TARBALL: source-tarball
     # The script is stopped ten minutes before the job's timeout, so that after_script
     # still runs: GitLab runs no after_script for a job that reached its own timeout.
     RUNNER_SCRIPT_TIMEOUT: 3h50m
