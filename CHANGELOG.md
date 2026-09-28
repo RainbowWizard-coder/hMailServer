@@ -278,8 +278,10 @@ leave in CI only, is under Operations.
     Fedora 44. They are built for a `v*` tag, and elsewhere when started by hand
     ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)).
   - **Windows**: the x64 and the ARM64 installer, unsigned, in every pipeline of `master`, a `batch*` branch or a
-    `v*` tag, after the Windows suite. The ARM64 job may fail without failing the pipeline, and stops, naming the
-    command that adds them, while the Windows runner lacks Visual Studio's ARM64 tools
+    `v*` tag, after the Windows suite. The ARM64 job may fail without failing the pipeline, and in this release it
+    does: its toolchain check looks for Visual Studio's ARM64 C++ runtime by a path that finds it in no
+    installation, so it stops on the Windows runner, which has the ARM64 tools, ATL and SDK libraries, and prints a
+    command that changes nothing. The check is corrected for the next release
     ([PackagesWindows.md](hmailserver/docs/PackagesWindows.md)).
 
 
