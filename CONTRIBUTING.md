@@ -67,7 +67,7 @@ The documents at the repository root:
 | [ARCHITECTURE.md](ARCHITECTURE.md) | The map of the code: where a change goes, and the constraints that have caused real bugs here |
 | [RELEASE.md](RELEASE.md) | The release gates, in order, and why each one exists |
 | [Roadmap2.md](Roadmap2.md) | The plan: the rows being worked through now |
-| [Roadmap3.md](Roadmap3.md) | Everything the project had on GitHub, brought back on GitLab, and what it never had there: the ARM64 installer, the apt and dnf repositories, winget, Chocolatey and every other channel people install mail servers from, row by row |
+| [Roadmap3.md](Roadmap3.md) | The plan, row by row, for bringing back on GitLab everything the project had on GitHub, and for what it never had there: the ARM64 installer, the apt and dnf repositories, winget, Chocolatey and every other channel people install mail servers from |
 | [Roadmap.md](Roadmap.md) | The record: what exists, what was deliberately not done, and why |
 | [GOVERNANCE.md](GOVERNANCE.md) | Who decides what |
 | [ASSURANCE-CASE.md](ASSURANCE-CASE.md) | What the project claims about its own security, and the evidence |
@@ -709,7 +709,7 @@ As practised on `master`:
 * **Say what you ran.** GitLab CI records the checks it runs; for the builds, the suites and the checks run by
   hand, the commit message and the merge request are the only record of what passed.
 * A commit that adds a key to a bootstrap section of `hMailServer.ini` says so, and why, in its message.
-* A commit that flips a Roadmap2 row carries the counter line with it.
+* A commit that flips a Roadmap2 or Roadmap3 row carries that file's counter line with it.
 * **Every commit is signed off**, `git commit -s`, the maintainers' included ([Sign-off](#sign-off)).
 * The history is linear: `master` has had no merge commit since 15 September 2026.
 * Commits on `master` are not signed. Release **tags** from `v6.2.23-alpha2` on are annotated and SSH-signed

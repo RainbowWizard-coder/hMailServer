@@ -3,8 +3,7 @@ A new capability, or a change to one.
 
 Before writing it, read Roadmap2.md (the plan: it may already be a row), Roadmap3.md for a package, an image or
 a place to install from (it may be a row there), and Roadmap.md (the record, which says what was deliberately
-not done, and why). A concrete problem, with the log or the message that shows it, beats a
-list of wishes.
+not done, and why). A concrete problem, with the log or the message that shows it, beats a list of wishes.
 
 A security problem does not belong here: see SECURITY.md.
 Text between these comment markers is not shown once the issue is saved.

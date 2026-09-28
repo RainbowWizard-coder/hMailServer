@@ -77,7 +77,8 @@ for a stray `#` number or `@` name.
   when given its name, and has a `--self-test`, run by the `checkers` job, whose controls include a wrong
   Roadmap3.md counter beside a right Roadmap2.md one, which the check as it was let through. README.md,
   Roadmap.md, CONTRIBUTING.md, SUPPORT.md, the documentation index and the Feature and merge request templates
-  link it.
+  link it. The `.deb` and `.rpm` help pages, which said no Roadmap2 row carried choosing a package by
+  distribution, now name the Roadmap3.md row that does.
 
 ---
 

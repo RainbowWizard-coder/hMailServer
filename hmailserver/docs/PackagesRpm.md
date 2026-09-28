@@ -225,8 +225,8 @@ Ubuntu-built package on update. `hmailserver-update` installs an `.rpm` with
 `dnf install` where there is dnf, and `rpm -Uvh` otherwise (openSUSE has no
 dnf), and both check `Requires`: where the offered package's `Requires` do not
 resolve, the update is refused and the installed server stays as it was.
-Choosing a package by distribution is not done, and no Roadmap2 row carries it
-yet.
+Choosing a package by distribution is not done; the row *Per-distribution
+`.deb` and `.rpm` packages* of [Roadmap3.md](../../Roadmap3.md) carries it.
 
 The AArch64 route, and why
 --------------------------

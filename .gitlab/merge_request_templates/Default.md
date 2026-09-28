@@ -11,7 +11,7 @@ Text between these comment markers is not shown once the merge request is saved.
 ## Type of change
 
 - [ ] Bug fix
-- [ ] New feature, or a Roadmap2 row
+- [ ] New feature, or a Roadmap2 or Roadmap3 row
 - [ ] Refactoring or internal
 - [ ] Documentation
 - [ ] Build, installer or packaging

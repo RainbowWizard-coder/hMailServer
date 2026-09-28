@@ -281,8 +281,8 @@ and in the GCC trial build):
 - **Debian 12** has glibc 2.36 and `libssl3`, so apt refuses the package there,
   and the installed server stays as it was.
 - **Debian 13 and Ubuntu 24.04** happen to meet those `Depends` for this build.
-  Nothing guarantees that for the next one. Choosing a package by distribution is not done, and no
-  Roadmap2 row carries it yet.
+  Nothing guarantees that for the next one. Choosing a package by distribution is not done; the
+  row *Per-distribution `.deb` and `.rpm` packages* of [Roadmap3.md](../../Roadmap3.md) carries it.
 
 The arm64 route, and why
 ------------------------
