@@ -67,6 +67,7 @@ The documents at the repository root:
 | [ARCHITECTURE.md](ARCHITECTURE.md) | The map of the code: where a change goes, and the constraints that have caused real bugs here |
 | [RELEASE.md](RELEASE.md) | The release gates, in order, and why each one exists |
 | [Roadmap2.md](Roadmap2.md) | The plan: the rows being worked through now |
+| [Roadmap3.md](Roadmap3.md) | Everything the project had on GitHub, brought back on GitLab, and what it never had there: the ARM64 installer, the apt and dnf repositories, winget, Chocolatey and every other channel people install mail servers from, row by row |
 | [Roadmap.md](Roadmap.md) | The record: what exists, what was deliberately not done, and why |
 | [GOVERNANCE.md](GOVERNANCE.md) | Who decides what |
 | [ASSURANCE-CASE.md](ASSURANCE-CASE.md) | What the project claims about its own security, and the evidence |
@@ -102,7 +103,8 @@ from the description-template list when you open the issue.
 * **A question**: the **Question** template, or the forum at <https://www.hmailserver.co.uk/>, where this
   fork's releases are announced. General hMailServer questions that are not about this fork are often better
   answered on the long-running [hMailServer forum](https://www.hmailserver.com/forum/).
-* **A feature**: the **Feature** template. Read [Roadmap2.md](Roadmap2.md) first: it may already be a row, and
+* **A feature**: the **Feature** template. Read [Roadmap2.md](Roadmap2.md) first, and for a package, an image
+  or a place to install from, [Roadmap3.md](Roadmap3.md): it may already be a row, and
   [Roadmap.md](Roadmap.md) records what was deliberately not done, with the reason. A concrete problem with a
   log beats a list of wishes.
 * **A vulnerability**: never an issue anyone can read. Open a
@@ -426,7 +428,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-portal-languages.py` | The webmail's catalogues against its page, and `PortalLanguagesData.cpp` equal to what the generator writes | `--keys`, `--print` |
 | `check-portal-script.py` | Runs the webmail's script against a small DOM and a stubbed API | Needs `node`; `--no-node` runs the static checks only |
 | `check-project-items.py` | No file listed twice in a project, and every listed file exists | |
-| `check-roadmap2.py` | The counter line at the top of `Roadmap2.md` equals the rows' marks | **Rewrites** the counter with `--write` |
+| `check-roadmap2.py` | The counter line at the top of `Roadmap2.md` and of `Roadmap3.md` equals that file's rows' marks | **Rewrites** each counter with `--write`; `Roadmap3.md` (or `Roadmap2.md`) as an argument checks that file alone; `--self-test` |
 | `check-release-chain.py` | The release jobs of `.gitlab-ci.yml`, their scripts and `SigstoreVerifier.cpp`'s GitLab identity agree: the ID tokens' audiences, cosign's flags, the order of the jobs, the two manual starts, and every other job refusing the feed's pipeline; the release waits for the four security scans and reads their reports before it collects anything, and `.gitlab/security-exceptions.yml` is well formed and the owner's | `--self-test` |
 | `check-role-choke-point.py` | `RoleManager` is the only decider of what a credential may do; every `RouteKind` is classified | `--self-test` |
 | `check-sbom-inputs.py` | Every input the build pins - in `third-party-binaries.json`, `native-dependencies.ps1`, `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1`, and every library `CMakeLists.txt` finds - is in the SBOM's component list, at its pinned version and with its pinned hash | `--self-test`; `--sbom FILE` (repeatable) holds a finished SPDX or CycloneDX document to it. Runs `native-dependencies.ps1` when `pwsh` or `powershell` is present, and reads its tables when neither is |
@@ -486,7 +488,7 @@ something which already exists.
 | The Windows installer | `check-installer-scripts.py`; then an installer build and the installer smoke test ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-installer-smoke-test)) |
 | `hmailserver/docs/` | `generate-help-pages.py --check`, `check-help-map.py`, `check-environment-names.py` |
 | A setting | `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-settings-rows.py`, `generate-settings-defaults.py --check`, `check-setting-levels.py`, `check-environment-names.py`, `check-test-settings-writes.py` |
-| `Roadmap2.md` or `Roadmap.md` | `check-roadmap2.py`, `check-roadmap.ps1` |
+| `Roadmap2.md`, `Roadmap3.md` or `Roadmap.md` | `check-roadmap2.py`, `check-roadmap.ps1` |
 
 ## Code style and licence headers
 
@@ -682,12 +684,13 @@ And, for any new setting:
   after 6.3.4 is written with a version number until it is released: it is "in the tree after 6.3.4, not yet
   released".
 
-### Roadmap2 rows
+### Roadmap2 and Roadmap3 rows
 
 * The legend is `Roadmap.md`'s: ✅ done and verified, 🔄 underway, ⬜ not started, ⏸️ deferred with the reason
   written down. A row is counted by the mark in its first cell.
-* The line **Where it stands** at the top of `Roadmap2.md` is counted from the rows. A change that flips a row
-  runs `python build/check-roadmap2.py --write` and commits the line with the row.
+* `Roadmap2.md` and `Roadmap3.md` each open with a line **Where it stands**, counted from that file's rows. A
+  change that flips a row in either runs `python build/check-roadmap2.py --write` and commits the line with the
+  row.
 * A finished row says so at the start of its text - `**Done 15 September 2026.**`, or `**Built ...**` with what
   is still to be proven - and then says what was built.
 * `Roadmap.md` is the record and is changed rarely; after any edit to it, run `build\check-roadmap.ps1` under

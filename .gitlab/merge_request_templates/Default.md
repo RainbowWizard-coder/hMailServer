@@ -35,7 +35,7 @@ Text between these comment markers is not shown once the merge request is saved.
 - [ ] A change under `hmailserver/docs/` is followed by `python build/generate-help-pages.py`, with `HelpPagesData.cpp` committed
 - [ ] Generated files are regenerated and committed (the `generate-*.py --check` modes pass)
 - [ ] New source files carry the licence header (`python build/add-license-headers.py --check`)
-- [ ] A Roadmap2 row flipped here carries the counter line (`python build/check-roadmap2.py --write`)
+- [ ] A Roadmap2 or Roadmap3 row flipped here carries its file's counter line (`python build/check-roadmap2.py --write`)
 
 ## Checkers run
 

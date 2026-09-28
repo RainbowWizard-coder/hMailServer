@@ -44,6 +44,6 @@ Two commitments in return:
 
 ## Before reporting
 
-- Check the [releases](https://gitlab.com/hmailserver/hmailserver/-/releases) — the newest version may already address it.
-- Check [Roadmap2.md](Roadmap2.md) for the work planned now, and [Roadmap.md](Roadmap.md) for known gaps and what was deliberately not done.
-- Search the existing [issues](https://gitlab.com/hmailserver/hmailserver/-/issues). The issues and discussions of the former GitHub project are out of reach while GitHub is; a number written as "GitHub issue N" in this repository refers to them.
+- Check the [releases](https://gitlab.com/Progressiverobot/hmailserver/-/releases) — the newest version may already address it.
+- Check [Roadmap2.md](Roadmap2.md) for the work planned now, [Roadmap3.md](Roadmap3.md) for the packages, the container image and the places to install from that are still to come, and [Roadmap.md](Roadmap.md) for known gaps and what was deliberately not done.
+- Search the existing [issues](https://gitlab.com/Progressiverobot/hmailserver/-/issues). The issues and discussions of the former GitHub project are out of reach while GitHub is; a number written as "GitHub issue N" in this repository refers to them.

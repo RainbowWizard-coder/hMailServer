@@ -65,7 +65,19 @@ for a stray `#` number or `@` name.
 
 ## Unreleased - in the tree after 6.3.5, not yet released
 
-Nothing yet.
+### Build and tests
+
+- **[Roadmap3.md](Roadmap3.md): the plan for everything the project had on GitHub.** A new file at the
+  repository root maps, row by row, what it takes to bring back on GitLab what a user could download, verify and
+  install before 18 September 2026 - the AArch64 `.deb` and `.rpm`, the AppImages, the container image, the
+  Sigstore bundles and the build provenance - and to add what the owner asked for beside them: the ARM64 Windows
+  installer, the apt and dnf repositories, winget and Chocolatey, and every other channel people install mail
+  servers from. It opens with a counter line like Roadmap2.md's, and `build/check-roadmap2.py` now holds both
+  files: it fails when either counter disagrees with its rows or either file is missing, checks one file alone
+  when given its name, and has a `--self-test`, run by the `checkers` job, whose controls include a wrong
+  Roadmap3.md counter beside a right Roadmap2.md one, which the check as it was let through. README.md,
+  Roadmap.md, CONTRIBUTING.md, SUPPORT.md, the documentation index and the Feature and merge request templates
+  link it.
 
 ---
 

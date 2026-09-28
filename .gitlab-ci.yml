@@ -230,7 +230,7 @@ checkers:
       # still reports it, so a check that has stopped seeing the source fails too.
       for name in authz-choke-point collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage help-map idl-case mysql-charset password-choice-sites release-chain \
-                  role-choke-point sbom-inputs; do
+                  roadmap2 role-choke-point sbom-inputs; do
         check python3 "build/check-$name.py" --self-test
       done
       # Each compiled release file's own SBOM (build/asset-sbom.py), against a tree, a

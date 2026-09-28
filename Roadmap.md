@@ -17,6 +17,11 @@ against Gmail and Outlook.com, calendar and tasks, the Linux package, measured
 quality - is planned in [Roadmap2.md](Roadmap2.md).** This file stays the record:
 a row moves from there to here when it is done, with the measure that says so.
 
+**Everything the project had on GitHub, brought back on GitLab - the AArch64
+packages, the AppImages, the container image, the signed release chain - and
+every other channel people install mail servers from is mapped in
+[Roadmap3.md](Roadmap3.md),** which hands its done rows here the same way.
+
 How to read this
 ----------------
 
