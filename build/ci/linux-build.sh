@@ -4,9 +4,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # The linux-build job of .gitlab-ci.yml: the server core with clang, the tester
-# programs the CMake build makes beside it, then the programs themselves. Run in
-# the image of build/ci/linux.Dockerfile, from the root of a checkout; by hand it
-# is the same:
+# programs the CMake build makes beside it, then the programs themselves. And the
+# linux-build-gcc job of .gitlab/ci/gcc.yml, the same with GCC (HM_COMPILER=gcc).
+# Run in the image of build/ci/linux.Dockerfile, from the root of a checkout; by
+# hand it is the same:
 #
 #   docker run --rm -v "$PWD":/src -w /src hmailserver-ci/linux:<tag> bash build/ci/linux-build.sh
 #
@@ -36,6 +37,11 @@
 #                   packages' SBOMs - so no file of the checkout is read. HM_OUT_DIR
 #                   is still where the script was started. Unset, the checkout is
 #                   built, as it always was.
+#   HM_COMPILER     clang (the default: what the release's packages are built with)
+#                   or gcc, the distribution's default GCC, which a distribution's
+#                   own package of the server is built with (linux-build-gcc,
+#                   .gitlab/ci/gcc.yml). A GCC build is a check of the source and
+#                   makes no packages: the packages are the clang build's alone.
 set -uo pipefail
 
 # The packages record modes the umask chooses. CPack's .deb writer copies the mode
@@ -46,6 +52,12 @@ set -uo pipefail
 # project in the CI image showed it). The packages are made under 0022, whoever
 # runs this; docs/ReproducibleBuilds.md.
 umask 0022
+
+case "${HM_COMPILER:-clang}" in
+  clang) compiler=clang cc=clang cxx=clang++ ;;
+  gcc) compiler=gcc cc=gcc cxx=g++ ;;
+  *) echo "HM_COMPILER is '${HM_COMPILER}': clang or gcc"; exit 2 ;;
+esac
 
 build_dir="${HM_BUILD_DIR:-/tmp/hm-build}"
 jobs="${HM_BUILD_JOBS:-6}"
@@ -100,8 +112,12 @@ if [ -n "${CI:-}" ] && [ -n "${SOURCE_DATE_EPOCH:-}" ]; then
   echo "every file of the tree stamped with SOURCE_DATE_EPOCH"
 fi
 
-export CC=clang CXX=clang++
-clang --version | head -n 1
+export CC="$cc" CXX="$cxx"
+if ! command -v "$CXX" > /dev/null 2>&1; then
+  echo "No $CXX in this image: HM_COMPILER=$compiler needs it (build/ci/linux.Dockerfile)."
+  exit 2
+fi
+"$CXX" --version | head -n 1
 cmake --version | head -n 1
 
 echo ""
@@ -258,9 +274,18 @@ package() {
       --dependencies "$build_dir/native-dependencies.json" --query-dpkg --read-package
   done
 }
-( package ) > "$out/package.log" 2>&1
-code=$?
-if [ "$code" -eq 0 ]; then
+if [ "$compiler" != clang ]; then
+  # The packages a release carries are the clang build's; a GCC build checks the
+  # source and makes none, so nothing can mistake one for the other.
+  echo "none: a $compiler build makes no packages (HM_COMPILER; the packages are linux-build's)"
+  code=skipped
+else
+  ( package ) > "$out/package.log" 2>&1
+  code=$?
+fi
+if [ "$code" = skipped ]; then
+  :
+elif [ "$code" -eq 0 ]; then
   grep -E '^(Package|Version|Architecture|Depends|hmailserver )|agree with Version.h|\.cdx\.json: ' "$out/package.log"
   sums=$(cd "$out/packages" && sha256sum -- *.deb *.rpm)
   echo "$sums" > "$out/packages/SHA256SUMS.txt"
@@ -278,4 +303,4 @@ if [ -n "$failed" ]; then
   echo "FAILED:$failed"
   exit 1
 fi
-echo "The server built, and every tester program passed."
+echo "The server built with $compiler, and every tester program passed."

@@ -68,6 +68,8 @@
 #   linux-coverage    "coverage", weekly: linix, the native server's line, region and
 #                     branch coverage under the Linux suite (build/ci/linux-coverage.sh);
 #   renovate          "renovate", daily: linix, Renovate's dependency updates;
+#   scorecard         "scorecard", weekly: linix, OpenSSF Scorecard, whose result pages
+#                     and package-repos then publish (.gitlab/ci/scorecard.yml);
 #   secret_detection  "security", run once by hand: GitLab's secret detection over
 #                     the whole history (.gitlab/ci/gitlab-security.yml).
 #
@@ -120,6 +122,14 @@ include:
   # hmctl on PyPI and the PowerShell module on the Gallery: their checks, and the two
   # publish jobs, dormant until each account exists (docs/CommandLinePackages.md).
   - local: .gitlab/ci/cli-packages.yml
+  # GitHub's hosts kept out of a job whose image or runner does not keep them out (docs/ContinuousIntegration.md, "Nothing from GitHub, in the job").
+  - local: .gitlab/ci/no-github.yml
+  # What a merge request must pass beyond the checks: semgrep-sast's findings in what it changes, and the dependency versions it adds (docs/ContinuousIntegration.md, "Merge request checks").
+  - local: .gitlab/ci/mr-checks.yml
+  # The server and its testers built with GCC too, on master and batch* (docs/ContinuousIntegration.md, "The GCC build").
+  - local: .gitlab/ci/gcc.yml
+  # OpenSSF Scorecard, weekly, published on the feed's site; dormant without GITLAB_AUTH_TOKEN (docs/ContinuousIntegration.md, "OpenSSF Scorecard").
+  - local: .gitlab/ci/scorecard.yml
 
 stages:
   - check
@@ -169,6 +179,8 @@ variables:
 # Every scheduled pipeline runs one job, chosen by the schedule's description
 # ($CI_PIPELINE_SCHEDULE_DESCRIPTION): "fuzz" linux-fuzz, "coverage" linux-coverage, "renovate" renovate,
 # "export" forge-export (.gitlab/ci/forge-export.yml), "security" secret_detection,
+# "scorecard" scorecard (.gitlab/ci/scorecard.yml) with pages and package-repos, which
+# publish its result,
 # and any other - the update feed's - pages (with package-repos). So every
 # job on the shared runners takes these rules, and .own-runners below begins with
 # the same refusal, which also keeps them out of the downstream pipeline a release
@@ -245,7 +257,7 @@ checkers:
 
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
-      for name in authz-choke-point cli-packages collection-iteration com-error-info com-shared-copies \
+      for name in authz-choke-point binary-manifest cli-packages collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage help-map idl-case mysql-charset password-choice-sites release-chain \
                   roadmap2 role-choke-point sbom-inputs source-tarball; do
         check python3 "build/check-$name.py" --self-test
@@ -267,6 +279,10 @@ checkers:
       check python3 build/land-via-mr.py --self-test
       # The release's security gate, against canned reports and exceptions files.
       check python3 build/ci/security-gate.py --self-test
+      # The merge request's dependency check, against OSV exports and repositories it makes for itself.
+      check python3 build/ci/mr-dependency-check.py --self-test
+      # The Scorecard result's publication on the feed site, against a site it serves on the loopback.
+      check python3 build/ci/scorecard-pages.py --self-test
       # The secret scan the hooks and the landing run, without a scanner: what it
       # reads, what it asks the scanner, and that it refuses when there is none.
       check python3 build/scan-secrets.py --self-test

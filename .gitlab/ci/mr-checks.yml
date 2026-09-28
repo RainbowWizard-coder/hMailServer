@@ -1,0 +1,95 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What a merge request must pass before it lands, beyond the checks every pipeline
+# runs: included from .gitlab-ci.yml (docs/ContinuousIntegration.md, "Merge request
+# checks").
+#
+#   semgrep-sast-gate     GitLab's semgrep-sast (.gitlab/ci/gitlab-security.yml) finds;
+#                         this holds the merge request on a Critical or High finding in
+#                         a file it changes that .gitlab/security-exceptions.yml, as the
+#                         merge request's base has it, does not accept - the release's
+#                         rule, on the change (build/ci/security-gate.py --merge-request;
+#                         OpenSSF Baseline OSPS-VM-06.02). semgrep-sast itself stays
+#                         allow_failure, as GitLab's template makes it: a scan that did
+#                         not finish leaves no report, which holds the merge request here.
+#   mr-dependency-check   when the merge request changes a dependency lock file: every
+#                         version it adds, looked up in OSV's own export of its
+#                         ecosystem's advisories, and held on a Critical or High one
+#                         the base's exceptions do not accept
+#                         (build/ci/mr-dependency-check.py; Roadmap3, "Dependency check
+#                         on merge requests").
+#
+# And, with no job here: the checkers job of .gitlab-ci.yml runs every build/check-*.py
+# in a merge request's pipeline too, build/check-binary-manifest.py among them, which
+# fails on a committed binary that hmailserver/docs/third-party-binaries.json does not
+# list at its SHA-256 (Roadmap3, "Every committed binary checked in CI").
+#
+# When they run: in a merge request's pipeline, and in no other. A protected batch*
+# branch's merge request runs none (the workflow rules of .gitlab-ci.yml give it no
+# pipeline); its own branch pipeline has the scans on linix, and the release reads
+# them. So these are what a merge request from a fork, from Renovate or from any
+# unprotected branch of the project answers to.
+#
+# Where they run: GitLab's shared runners, in Docker Hub's python:3.13-slim-trixie
+# pinned by digest, the image the checkers job runs in. They carry no tag, so neither
+# of the project's own runners takes them, and they hold no secret: they read the
+# checkout, semgrep-sast's report and, for the dependency check, OSV's export on
+# Google Cloud Storage. Each keeps GitHub out of the job itself (.no-github,
+# .gitlab/ci/no-github.yml), since a shared runner's configuration is GitLab's.
+#
+# Why the history (GIT_DEPTH 0): both compare the merge request's head with its base,
+# CI_MERGE_REQUEST_DIFF_BASE_SHA, and read the exceptions file as the base has it - the
+# sign-off job clones the same way for the same reason.
+
+.mr-check:
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  timeout: 20 minutes
+  variables:
+    GIT_DEPTH: "0"
+  before_script:
+    - !reference [.no-github, before_script]
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends git > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+
+# In the test stage, which is semgrep-sast's (the SAST template's): a job cannot need
+# one of a later stage.
+semgrep-sast-gate:
+  extends: .mr-check
+  stage: test
+  needs:
+    - job: semgrep-sast
+      artifacts: true
+  rules:
+    # semgrep-sast's own switch: without the scan there is no report to read, and no job
+    # to need.
+    - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - python3 build/ci/security-gate.py --self-test
+    - python3 build/ci/security-gate.py --merge-request "$CI_MERGE_REQUEST_DIFF_BASE_SHA"
+
+mr-dependency-check:
+  extends: .mr-check
+  stage: check
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        paths:
+          - "**/packages*.lock.json"
+          - "**/packages.config"
+          # Every name Renovate's pip_requirements manager updates, and the checker's
+          # lock_kind reads: build/ci/cli-packages-requirements.txt among them.
+          - "**/*requirements*.txt"
+          - "**/*requirements*.pip"
+          - "**/native-dependencies*.json"
+          - "lockfiles/**/*"
+          - build/ci/mr-dependency-check.py
+          - .gitlab/ci/mr-checks.yml
+  script:
+    - python3 build/ci/mr-dependency-check.py --self-test
+    - python3 build/ci/mr-dependency-check.py --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"

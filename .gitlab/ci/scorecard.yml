@@ -1,0 +1,59 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# OpenSSF Scorecard, self-run and self-published: included from .gitlab-ci.yml
+# (docs/ContinuousIntegration.md, "OpenSSF Scorecard"; Roadmap3, "OpenSSF Scorecard").
+#
+#   scorecard   linix: Scorecard 5.5.0, taken from cache.nixos.org by its Nix store
+#               path (build/ci/scorecard.sh says why there), scores the project and
+#               keeps the result as scorecard/scorecard.json. The pages and
+#               package-repos jobs of the same pipeline publish it, with a badge, at
+#               https://updates.progressiverobot.com/scorecard/ (build/ci/scorecard-pages.py);
+#               every later deployment of the site carries it forward.
+#
+# When it runs: in the pipeline of the schedule on master whose description is
+# "scorecard", weekly, and in no other - a schedule and not a variable, because the
+# project refuses pipeline variables (.gitlab-ci.yml, .not-a-fuzz-pipeline, says why).
+# pages does not refuse that schedule, on purpose: its pipeline deploys the site
+# with this week's score. The other jobs refuse every schedule.
+#
+# Dormant until the token exists: without GITLAB_AUTH_TOKEN the script says "not
+# configured" and exits 0. The token is the owner's personal access token (read_api,
+# read_user, read_repository: read_user exists for a personal token alone), stored as a
+# CI/CD variable that is protected, masked and scoped to the environment "scorecard",
+# which this job names and no other does, so that no other job of a protected
+# pipeline is given it.
+#
+# Where: linix, in Docker Hub's nixos/nix image pinned by the digest of its 2.35.2
+# index (docker pull on this laptop, 28 September 2026), which is what fetches from
+# cache.nixos.org and checks what it fetches. .no-github keeps GitHub out of the job:
+# that image has no /etc/nsswitch.conf, so its C library would ask DNS before the
+# runner's own entries (.gitlab/ci/no-github.yml says what that means).
+
+scorecard:
+  extends: .no-github
+  stage: check
+  tags: [linix]
+  image:
+    name: nixos/nix:2.35.2@sha256:7a007c766426c1877758ddc5cb87a965ac131fc78c582ce0083d922d51ae945c
+    pull_policy: if-not-present
+  needs: []
+  timeout: 30 minutes
+  # A push to master while it runs does not cut the week's score short.
+  interruptible: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "scorecard" && $CI_COMMIT_REF_PROTECTED == "true"
+  # The token's scope: a job that names no environment is not given it.
+  environment:
+    name: scorecard
+    action: access
+  script:
+    - bash build/ci/scorecard.sh --self-test
+    - bash build/ci/scorecard.sh scorecard
+  artifacts:
+    # The score is public (it is published), and so is the artifact: the result and
+    # nothing else, never Scorecard's log, which the job log holds, masked.
+    expire_in: 90 days
+    paths:
+      - scorecard/

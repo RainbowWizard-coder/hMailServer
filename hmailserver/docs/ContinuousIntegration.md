@@ -37,8 +37,9 @@ What runs where
 | `cli-packages` | check | GitLab's shared runners | a change to the command-line clients or their packaging, and never a tag | `hmailserver-cli`'s sdist and wheel built twice and compared, held to the tree, `twine check`ed and installed alone (`.gitlab/ci/cli-packages.yml`; [CommandLinePackages.md](CommandLinePackages.md)) |
 | `cli-powershell` | check | GitLab's shared runners | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`) |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
+| `linux-build-gcc` | test | linix | `master` or a `batch*` branch; never a tag | The same server and tester programs built with GCC, the distribution's default compiler, and the testers and the OpenPGP round trip run; no packages (`.gitlab/ci/gcc.yml`; [The GCC build](#the-gcc-build)) |
 | `pages` | release | GitLab's shared runners | `master`, a `v*` tag, a schedule on `master` | Renders the update feed from the project's releases into `public/`; it deploys nothing itself (`pages: false`, from `.gitlab/ci/package-repos.yml`) (see [The update feed](#the-update-feed)) |
-| `package-repos` | release | GitLab's shared runners | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
+| `package-repos` | release | GitLab's shared runners | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and the project's OpenSSF Scorecard result when there is one ([OpenSSF Scorecard](#openssf-scorecard)), and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 16 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
 | `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
@@ -57,7 +58,9 @@ What runs where
 | `ci-image-packages` | test | linix | a protected ref | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | a protected ref | Trivy over the lock files and the CI image, OSV over the vendored libraries |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
-| `semgrep-sast` | test | GitLab's shared runners | `master`, and a merge request | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline (`.gitlab/ci/gitlab-security.yml`) |
+| `semgrep-sast` | test | GitLab's shared runners | `master`, a merge request, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline (`.gitlab/ci/gitlab-security.yml`) |
+| `semgrep-sast-gate` | test | GitLab's shared runners | a merge request | `semgrep-sast`'s report read by the release's rule, for the files the merge request changes: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the merge request's base has it, does not accept fails it (`build/ci/security-gate.py --merge-request`; [Merge request checks](#merge-request-checks)) |
+| `mr-dependency-check` | check | GitLab's shared runners | a merge request that changes a dependency lock file | Every dependency version the merge request adds, looked up in OSV's own export of its ecosystem's advisories: a Critical or High advisory the base's exceptions do not accept fails it (`build/ci/mr-dependency-check.py`) |
 | `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the fifty-five files a release carries before the installer's SBOM (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
@@ -81,6 +84,7 @@ What runs where
 | `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
+| `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
 and `linux-sbom` start as soon as the pipeline does. They do not wait for the
@@ -111,18 +115,19 @@ Which pipeline runs what
 
 | Push or event | Pipeline | Jobs |
 |---|---|---|
-| `master` | the branch's | all of them but the release jobs, `linux-fuzz`, `installer-smoke` and `sign-off` |
-| a `batch*` branch | the branch's | all of them but the release jobs, `linux-fuzz`, `pages`, `package-repos`, `semgrep-sast` and `secret_detection`, with `installer-smoke` manual: this is the gate a batch passes before it lands |
+| `master` | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `installer-smoke`, `sign-off` and the merge request checks |
+| a `batch*` branch | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `pages`, `package-repos`, `semgrep-sast`, `secret_detection` and the merge request checks, with `installer-smoke` manual: this is the gate a batch passes before it lands |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
-| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, `semgrep-sast`, `secret_detection`, and `sign-off` |
+| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, `semgrep-sast` and `semgrep-sast-gate`, `mr-dependency-check` when a lock file changed, `secret_detection`, and `sign-off` ([Merge request checks](#merge-request-checks)) |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them but `linux-fuzz`, `semgrep-sast`, `secret_detection` and `sign-off` (the commit's `master` pipeline ran the first three, and its batch the last), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)) |
+| a `v*` tag | the tag's | all of them but the jobs of a schedule of their own, `secret_detection`, `sign-off`, `linux-build-gcc` and the merge request checks (the commit's `master` pipeline ran `secret_detection`, and its batch `sign-off` and `linux-build-gcc`), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)). `semgrep-sast` runs, for the release job to read |
 | any other tag | none | |
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
 | the schedule described `coverage`, on `master` | the schedule's | `linux-coverage` alone ([The coverage schedule](#the-coverage-schedule)) |
 | the schedule described `renovate`, on `master` | the schedule's | `renovate` alone ([Dependency updates](#dependency-updates)) |
 | the schedule described `security`, on `master`, run once by hand | the schedule's | `secret_detection` alone, over the whole history ([Security scanning](#security-scanning)) |
 | the schedule described `export`, on `master` | the schedule's | `forge-export` alone ([Mirroring.md](Mirroring.md)) |
+| the schedule described `scorecard`, on `master`, weekly | the schedule's | `scorecard`, then `pages` and `package-repos`, which publish its result ([OpenSSF Scorecard](#openssf-scorecard)) |
 | any other pipeline schedule on `master` (the update feed's, `update feed`) | the schedule's | `pages` and `package-repos` alone (see [The update feed](#the-update-feed)) |
 | the pipeline `update-feed` starts (on `master`, source `pipeline`) | a downstream pipeline | `pages` and `package-repos` alone |
 
@@ -130,7 +135,8 @@ A schedule is told apart by its description, which GitLab gives the pipeline
 as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `coverage`,
 `renovate`, `export` and `security` are the five words that start a job of their own,
 which `pages` and `package-repos` refuse, and a schedule
-carries no variable. The project refuses pipeline variables (*Minimum role to
+carries no variable. `scorecard` is a sixth, which they do not refuse, on purpose:
+that schedule's pipeline deploys the site with the week's score. The project refuses pipeline variables (*Minimum role to
 use pipeline variables* is *No one allowed*), and GitLab counts a schedule's
 variables as pipeline variables: it will not save a schedule that has one. The
 description is a predefined variable, which that setting does not touch, so the
@@ -207,6 +213,100 @@ The protected refs are project settings (Settings, Repository, Protected
 branches and Protected tags): `master`, `batch*` and `v*`, with push and merge
 allowed to Maintainers. `master`'s push rule is to become *No one* after the
 first landing through a merge request ([Landing on master](#landing-on-master)).
+
+Merge request checks
+--------------------
+
+A merge request from a fork, from Renovate or from any branch that is not
+protected never reaches linix or bench150 (above), so what it must pass before
+it lands runs on GitLab's shared runners, holds no secret, and says in its own
+log what held it. Beside the checks every pipeline runs, three hold a merge
+request on what it brings (`.gitlab/ci/mr-checks.yml`, and one checker):
+
+- **Every committed binary is in its manifest.** `build/check-binary-manifest.py`,
+  which `checkers` runs as it runs every `build/check-*.py`, reads every file git
+  tracks. It fails on a binary that `hmailserver/docs/third-party-binaries.json`
+  does not list - a binary by OpenSSF Scorecard's list of extensions, or by a PE,
+  ELF, OLE, Mach-O, Java class, WebAssembly, ar (a static library or a `.deb`),
+  RPM, DEX or Chrome extension header whatever the file is called;
+  on a file the manifest marks as fetched, gathered, generated, downloaded or
+  Windows' own that is committed after all; and on a committed one whose bytes are
+  not the SHA-256 its entry records ([ThirdPartyBinaries.md](ThirdPartyBinaries.md)).
+  What the GitHub workflow `verify-binary-provenance.yml` did until 18 September
+  2026. On 28 September 2026 it read 7,084 tracked files and found no binary; a PE
+  image named `.bin`, added to the index, failed it.
+- **`semgrep-sast-gate`** reads `semgrep-sast`'s report with
+  `build/ci/security-gate.py --merge-request`, the release's own rule and code
+  ([Before a release](#before-a-release-the-scans-hold-it)): a finding of severity
+  Critical or High holds the merge request unless `.gitlab/security-exceptions.yml`
+  accepts its fingerprint. Two things differ from the release's gate. The
+  exceptions are the merge request's base's, never its own copy, so a change
+  cannot accept its own finding: an exception lands first, by a merge request of
+  its own - which changes no source file and so holds nothing here - and the
+  change after it. And only the findings in the files the merge request changes
+  hold it: a change answers for what it touches, while a finding already on the
+  target branch, in a file the change never opened, holds the next release
+  instead. When the merge request changes the scan itself -
+  `.gitlab/ci/gitlab-security.yml` (the analyzer, its pin, its options),
+  `.gitlab/sast-ruleset.toml` (GitLab's custom ruleset, of which none is
+  committed), `build/ci/security-gate.py` or `build/ci/security-findings.py` -
+  every finding in the tree counts. A missing report, or one whose scan did not finish, holds it
+  as well. This is OpenSSF Baseline OSPS-VM-06.02: a change with a weakness above
+  the threshold is blocked unless it is declared not exploitable. On 28 September
+  2026 GitLab's analyzer, run in the job's own image on two CPUs with the job's
+  options over 6.3.6's batch with this change in it, found 308 findings, 193 High
+  and none Critical, none in the change's own files; asked as the gate asks for
+  this change, which touches the scan and so answers for the whole tree, every
+  High finding was accepted by the exceptions file and nothing held it. With a
+  sample Critical finding added to a report, the gate over a two-commit change
+  that leaves the scan alone held it in a file the change touches (exit 1), and
+  not in a file it does not.
+- **`mr-dependency-check`**, when the merge request changes a dependency lock
+  file - a `packages*.lock.json` (the ARM64 `packages.arm64.lock.json` beside
+  each project among them), a `packages.config`, a `*requirements*.txt` (every
+  name Renovate's `pip_requirements` manager updates,
+  `build/ci/cli-packages-requirements.txt` included), a committed
+  `native-dependencies*.json`. `build/ci/mr-dependency-check.py` lists every
+  dependency version at the head that the base has nowhere, and looks each one
+  up in OSV's own export of its ecosystem's advisories,
+  `https://osv-vulnerabilities.storage.googleapis.com/<ecosystem>/all.zip` (NuGet's
+  2.5 MB and PyPI's 35 MB on 28 September 2026), the export
+  `build/ci/osv-offline-db.py` builds Renovate's database from. An advisory
+  affects a version when its `versions` list names it or one of its ECOSYSTEM or
+  SEMVER ranges holds it, compared as NuGet and PEP 440 order versions; a
+  withdrawn one affects nothing. Its severity is the GitHub advisory database's
+  rating where OSV carries it, else the CVSS 3.x base score of its vector, else
+  the highest of its aliases', and a malicious package (OSV's `MAL-` records) is
+  Critical; one with no rating anywhere is listed and holds nothing, as at a
+  release. A vulnerability OSV carries under several ids (a GHSA and its PYSEC)
+  is said once, by the record that rates it highest. On 28 September 2026 a
+  fixture commit adding `urllib3` 1.26.4 and NuGet's `System.Text.Json` 8.0.0 was
+  held on six High advisories of the first and two of the second, one that
+  changed a document passed without reading OSV, and one that added
+  `Humanizer.Core` 2.14.1 passed with no advisory. A Critical or High advisory holds the merge request unless the base's
+  exceptions accept it for the package (an entry of scan `dependency-scan`
+  naming the advisory or one of its aliases). A native component list names C
+  and C++ libraries that no ecosystem of OSV's knows: an added one is listed as
+  not checked, and left to `dependency-scan`. Lock files or advisories it cannot
+  read are never a pass (exit 2): the job is retried. What GitHub's dependency
+  review did until 18 September 2026.
+
+The two jobs clone with the history (`GIT_DEPTH 0`), as `sign-off` does, to
+compare the head with `CI_MERGE_REQUEST_DIFF_BASE_SHA`, and each runs its
+checker's self-test before the check. Each keeps GitHub out of the job itself
+([Nothing from GitHub, in the job](#nothing-from-github-in-the-job)). The checks
+are against mistakes, not against a hostile change: a merge request can edit the
+CI files it is checked by, which is why a person reviews every one.
+
+**Shown on fixture merge requests.** A protected branch's merge request gets no
+pipeline, so no batch pipeline runs these jobs. They are shown on merge requests
+from unprotected branches cut from the batch, **targeting the batch branch**, so
+that the base is the batch and the change is the fixture's alone (one that
+targeted `master` would carry the whole batch as its change): one that adds an
+unlisted binary fails `checkers`; one that adds a dependency version with a High
+advisory fails `mr-dependency-check`; one whose change carries a Critical or High
+`semgrep-sast` finding fails `semgrep-sast-gate`; and one that changes a
+document at the root alone passes, with no `mr-dependency-check` at all.
 
 Landing on master
 -----------------
@@ -447,14 +547,18 @@ the old runner on GitLab first, so that its token stops working.
 The image
 ---------
 
-The Linux jobs that build or run the server - `linux-build`, `linux-suite`,
-`linux-cross`, `linux-sanitize`, the two upgrade gates, `linux-sbom`,
-`linux-repro` and `linux-fuzz` - run in one image, described by `build/ci/linux.Dockerfile`. The
-package jobs run in the distributions' own images instead, because the point
-is a clean system, and `linux-image` in kaniko's. The image holds:
+The Linux jobs that build or run the server - `linux-build`, `linux-build-gcc`,
+`linux-suite`, `linux-cross`, `linux-sanitize`, the two upgrade gates,
+`linux-sbom`, `linux-repro` and `linux-fuzz` - run in one image, described by
+`build/ci/linux.Dockerfile`. The package jobs run in the distributions' own
+images instead, because the point is a clean system, and `linux-image` in
+kaniko's. The image holds:
 
 - Ubuntu 26.04 at a pinned digest;
-- the toolchain and the `-dev` packages of the Linux build;
+- the toolchain and the `-dev` packages of the Linux build: clang, which builds
+  what the project ships, and the distribution's default GCC, g++ 15, which
+  `build-essential` depends on and which `linux-build-gcc` builds with; clang
+  compiles against that GCC's libstdc++;
 - clang's sanitizer and libFuzzer runtimes (`libclang-rt-dev`) and
   `llvm-symbolizer` (`llvm`), for `linux-sanitize` and `linux-fuzz`;
 - the AArch64 cross GCC (`g++-aarch64-linux-gnu`), for `linux-cross`;
@@ -505,6 +609,47 @@ the tag rule above makes sure no job runs on an image the Dockerfile no longer
 describes. (`linux-image` builds the product's image without a socket, with
 kaniko, but kaniko writes a tarball or pushes to a registry: it cannot put an
 image into linix's own image store, which is where the jobs look for theirs.)
+
+The GCC build
+-------------
+
+`linux-build-gcc` (`.gitlab/ci/gcc.yml`) is `linux-build` with `HM_COMPILER=gcc`:
+the same script, `build/ci/linux-build.sh`, builds the server and every
+`*-tests` program with the distribution's default GCC instead of clang, runs the
+testers and the OpenPGP writer's round trip through GnuPG, and makes no
+packages - the x86-64 `.deb` and `.rpm` a release carries are `linux-build`'s,
+built with clang. A distribution builds its own package of the server with its
+own default compiler, which is GCC on Debian, Ubuntu, Fedora, openSUSE and
+Alpine. The `deb-<distro>-amd64` jobs (`.gitlab/ci/packages-deb.yml`) already
+build natively with Debian 12's, Debian 13's and Ubuntu 24.04's GCC (12, 14 and
+13) and run the testers, and `deb-ubuntu26.04-arm64` cross-compiles the
+release's AArch64 `.deb` with GCC; none of them builds natively with the newest,
+Ubuntu 26.04's GCC 15, or runs the OpenPGP round trip. `linux-build-gcc` does,
+so a change that only clang, or only an older GCC, accepts is found before a
+distribution's maintainer finds it.
+
+It runs for a push to `master` or a `batch*` branch that changes more than
+documentation (`.own-runners`' rules), never for a `v*` tag - the batch's pipeline
+built the same commit, and `release` does not need it - and never for a merge
+request or a schedule. The compiler was already in the image: `build-essential`,
+which the Dockerfile installs, depends on `g++`, Ubuntu 26.04's GCC 15
+(`apt-cache depends build-essential`), so the job needs no image of its own and
+the image's tag did not change. The GCC census by hand,
+`bash build/linux-tu-census.sh --cc g++`, still compiles every core file alone.
+
+Measured in WSL on 28 September 2026, Ubuntu 26.04 with GCC 15.2.0, `ninja -j4`
+on a laptop shared with another build, over the tree of 6.3.6's batch at
+`4bdbf09ca`: the 799 build steps took 25.5 minutes with no error, and all four
+tester programs passed (`object-store-signature-tests`, `script-binding-tests`,
+`snmp-tests`, `spf-tests`), as did `--version` and `--help`. GCC printed 5,550
+warning lines, 5,537 of them `-Wdeprecated-declarations` from one header,
+`Common/Util/StdString.h` (`std::binary_function`, `std::unary_function` and
+`std::bind2nd`, repeated in every file that includes it); the thirteen others - `-Wenum-compare` in
+`VariantDateTime.cpp` (two enums with the same values), `-Wformat-truncation` in
+`DomainReports.cpp`, `ObjectStoreSignature.cpp` and `SamlSignIn.cpp`,
+`-Wnonnull` in `CrashSimulation.cpp` (whose null write is the point) and the
+rest - are for the job's log to show, not to fail it: the job fails on an error
+or a tester, as `linux-build` does.
 
 The Windows gate
 ----------------
@@ -652,7 +797,7 @@ not hold it.
 | `roadmap.yml` | `roadmap` | shared | `Roadmap.md` changed |
 | `linux-build.yml` stamps | `checkers` runs `check-linux-version-stamp.sh` (row 139), and `linux-build` runs it again before it packages: a drifted stamp makes no package | shared, linix | every pipeline; a protected ref |
 | `linux-build.yml` build, x86-64 clang | `linux-build` (with the packages) | linix | a protected ref |
-| `linux-build.yml` build, x86-64 GCC | not ported: see below | | |
+| `linux-build.yml` build, x86-64 GCC | `linux-build-gcc` (`.gitlab/ci/gcc.yml`; [The GCC build](#the-gcc-build)), since 6.3.6 | linix | `master`, a `batch*` branch |
 | `linux-build.yml` build, AArch64 | not ported: see below | | |
 | `linux-build.yml` build, the AppImage | the `appimage-*` jobs of `.gitlab/ci/packages-appimage.yml`, x86_64 and aarch64, with a runtime of the project's own and no linuxdeploy ([PackagesAppImage.md](PackagesAppImage.md)); CI job artifacts, not in a release | linix | a `v*` tag; by hand on `master` or a `batch*` branch |
 | `linux-build.yml` cross | `linux-cross` | linix | a protected ref |
@@ -670,11 +815,11 @@ not hold it.
 | (none) | `linux-sanitize`: `snmp-tests` under AddressSanitizer, once the SNMP row adds `HM_SANITIZE` | linix | a protected ref |
 | (none) | `linux-repro`: the binary, the `.deb` and the `.rpm` built a second time and required to be `linux-build`'s, byte for byte | linix | a protected ref |
 | `codeql.yml` | not ported: see below | | |
-| `dependency-review.yml` | not ported: see below | | |
-| `scorecard.yml` | not ported: see below | | |
+| `dependency-review.yml` | `mr-dependency-check`, against OSV's own export rather than GitHub's advisory service, since 6.3.6 ([Merge request checks](#merge-request-checks)) | shared | a merge request that changes a lock file |
+| `scorecard.yml` | `repo-hygiene`'s six checks on every protected pipeline, and Scorecard itself from cache.nixos.org in `scorecard`, weekly, published on the project's own site since 6.3.6 ([OpenSSF Scorecard](#openssf-scorecard)) | linix | a protected ref; the `scorecard` schedule |
 | `upstream-watch.yml` | not ported: see below | | |
 | `sign-release.yml` | `release-authenticode`, `release-sign` and `release-verify`: Authenticode with a federated credential in place of a client secret, and Sigstore; not the SLSA provenance (see below) | bench150, shared, linix | a `v*` tag |
-| `verify-binary-provenance.yml` | not ported: the release-chain row (137) | | |
+| `verify-binary-provenance.yml` | `checkers` runs `build/check-binary-manifest.py`, its tree half, since 6.3.6 ([Merge request checks](#merge-request-checks)); its Windows job, the fetched files' Authenticode signatures, is not ported | shared | every pipeline |
 | `installer-smoke.yml` | `build/ci/installer-smoke-run.sh` from the VMware host, and a placeholder `installer-smoke` job ([The installer smoke test](#the-installer-smoke-test)) | the VMware host, not a runner | by hand, before a release is published |
 
 **Not ported, and why:**
@@ -682,13 +827,14 @@ not hold it.
 - `codeql.yml`. The CodeQL CLI and its query packs are GitHub's, downloaded
   from GitHub, and its results went to GitHub's code scanning. There is no
   other source for either.
-- `dependency-review.yml` and `scorecard.yml`. Both are GitHub services: the
-  first reads GitHub's advisory database for a pull request's dependency
-  changes, the second scores the repository through GitHub's API and publishes
-  to the OpenSSF API from a verified GitHub workflow.
+- `dependency-review.yml` and `scorecard.yml`, as they were. Both are GitHub
+  services: the first reads GitHub's advisory database for a pull request's
+  dependency changes, the second scores the repository through GitHub's API and
+  publishes to the OpenSSF API from a verified GitHub workflow. What each did
+  is done another way since 6.3.6 (the table above).
 - `upstream-watch.yml`. It reads upstream hMailServer's repository, which is on
   GitHub, and files an issue there.
-- `verify-binary-provenance.yml`, `package-managers.yml` manifests, and the SLSA provenance and the `.sigstore.json` copies of the
+- `verify-binary-provenance.yml`'s Windows job, `package-managers.yml` manifests, and the SLSA provenance and the `.sigstore.json` copies of the
   bundles that `sign-release.yml` made. The SLSA generator is a GitHub reusable
   workflow with no GitLab form, and the copies were for OpenSSF Scorecard, which
   reads GitHub. They stay with the Roadmap2 row "The release chain off a single
@@ -696,10 +842,14 @@ not hold it.
   [The release](#the-release).
 - `ci.yml`'s coverage upload. It went to GitHub's code-quality page. The tests
   still run; the coverage is not collected.
-- The GCC build and the native AArch64 build of `linux-build.yml`'s matrix. linix
-  is one x86-64 machine, and a second whole build per pipeline would add
-  twelve minutes to its queue; `linux-cross` compiles every file for AArch64,
-  and `bash build/linux-tu-census.sh --cc g++` is the GCC census by hand.
+- The native AArch64 build of `linux-build.yml`'s matrix. linix is one x86-64
+  machine; `linux-cross` compiles every file for AArch64. The GCC build of the
+  same matrix was left out at the port for the time a second whole build adds to
+  linix's queue (about twelve minutes). The Debian and Ubuntu package jobs now
+  build with those releases' GCC ([The GCC build](#the-gcc-build)), linix
+  has taken two jobs at once since 28 September 2026, and from 6.3.6
+  `linux-build-gcc` builds with the CI image's GCC 15, on `master` and `batch*`
+  pipelines only.
 
 Where the tools come from
 -------------------------
@@ -713,12 +863,48 @@ pinned by digest where the CI file names it.
 | `chart-and-compose` | `alpine:3.24` | Helm 3.19 and Docker Compose 5.1, Alpine's community packages |
 | `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
-| `linux-build`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
+| `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
+| `semgrep-sast-gate`, `mr-dependency-check` | `python:3.13-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`); the checkers are the standard library's Python |
+| `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:16`, `mariadb:11` (Docker Hub) | the database servers |
 | `linux-package-deb` | `ubuntu:26.04` | the package's dependencies, PostgreSQL's client, curl and iproute2 from Ubuntu's archive |
 | `linux-package-rpm` | `registry.fedoraproject.org/fedora:44` (Fedora) | `rpm`, in the image |
 | `linux-image` | `gcr.io/kaniko-project/executor:v1.24.0-debug` (Google) | kaniko, and its busybox; the image it builds installs the `.deb` from Ubuntu's archive |
 | `windows-dotnet` | bench150's own | the .NET SDK, Visual Studio's Build Tools and the .NET Framework SDK, from Microsoft; NuGet packages from nuget.org, held to the lock files |
+
+### Nothing from GitHub, in the job
+
+The runners are to enforce the rule as well as follow it: linix's runner
+entries are to map `github.com`, `api.github.com`, `codeload.github.com`,
+`objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to
+0.0.0.0 in every job's `/etc/hosts` (`extra_hosts`), and bench150's hosts file
+to do the same, so that a tool that quietly reaches for GitHub fails by name.
+Two things that would not cover were found on 28 September 2026:
+
+- **An image with no `/etc/nsswitch.conf`**, such as Docker Hub's `nixos/nix`.
+  glibc's default for a missing file is `dns [!UNAVAIL=return] files`: curl,
+  git and nix itself in such an image ask DNS first and read the hosts file only
+  when DNS is down. (Go's own resolver, as in Scorecard, reads the file first
+  either way.)
+- **IPv6.** A hosts file that maps a name to 0.0.0.0 alone answers an IPv6
+  lookup with nothing, and the C library then asks DNS, whose AAAA answer for
+  `objects.githubusercontent.com` or `raw.githubusercontent.com` is GitHub's.
+  With a canary name at 0.0.0.0 alone, `curl -6` went to the name's real IPv6
+  address; with `::` beside it, to `::`. The runner's entries want `::` too.
+
+And a job on GitLab's shared runners has no entries at all. So a job can take
+the rule into itself: `.gitlab/ci/no-github.yml` defines `.no-github`, whose
+`before_script` adds the six hosts at 0.0.0.0 and at `::` to the job's own
+`/etc/hosts`, writes `hosts: files dns` where there is no `/etc/nsswitch.conf`,
+and fails the job, saying why, where the file asks anything before the hosts
+file or the job cannot write either (an image that does not run as root). A job
+with no `before_script` of its own takes it with `extends: .no-github`; a job
+with one begins it with `- !reference [.no-github, before_script]`, since a
+job's own `before_script` replaces whatever `extends` brings. It is plain POSIX
+`sh` with built-ins only, and was run on 28 September 2026 in `nixos/nix`,
+`python:3.13-slim-trixie` and `alpine:3.24` (each passed), in Debian with
+`hosts: dns files` and as a user who cannot write `/etc/hosts` (each refused).
+`scorecard`, `semgrep-sast-gate` and `mr-dependency-check` take it.
 
 The .NET job
 ------------
@@ -2163,7 +2349,9 @@ tag's release pushes, after the push, in the same way
 turns it off.
 
 `semgrep-sast` is `allow_failure`, as its template makes it, and holds nothing
-to a baseline. **`secret_detection` fails on a finding.** The template cannot:
+to a baseline; what holds a change or a release on its findings is the job that
+reads its report after it, `semgrep-sast-gate` in a merge request and `release`
+for a tag. **`secret_detection` fails on a finding.** The template cannot:
 its analyzer exits 0 whatever it finds (it did so on linix with thirty
 findings), and the template marks the job `allow_failure: true`, which would
 show a failure as a warning anyway. So the job runs the analyzer, then reads
@@ -2289,10 +2477,12 @@ list is in the exceptions file's header), and a fixed line the analyzer still
 flags holds the release until it is read again. Over that report, the gate held
 on those seven alone; no semgrep-sast scan has been run over the fixed tree yet.
 
-This is a gate on releases, not on changes: the scans still run for protected
-refs only, after the push, and `master` is pushed with `ci.skip`. A finding a
-change brings stops the next release until it is fixed or accepted, not the
-change.
+For the scans on linix this is a gate on releases, not on changes: they run for
+protected refs only, after the push, and `master` is pushed with `ci.skip`. A
+finding a change brings stops the next release until it is fixed or accepted.
+`semgrep-sast` is the exception since 6.3.6: in a merge request's pipeline
+`semgrep-sast-gate` holds the change itself on a Critical or High finding in a
+file it changes ([Merge request checks](#merge-request-checks)).
 
 The same gate runs by hand where a release is made by hand: the scans' scripts
 on linix against the release's commit, then
@@ -2348,9 +2538,9 @@ twelve lines, naming the commits as they are after the rebase.
 |---|---|---|---|
 | `codeql.yml`, C++ | CodeQL `security-extended` over the MSVC build of the server, on every push and pull request (40 to 54 minutes) | `static-analysis`: cppcheck, and clang-tidy with the Clang static analyser, over every translation unit the Linux build compiles | The Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends, the registry) and the Windows arm of every `#ifdef`, which only an MSVC build compiles; CodeQL's interprocedural taint tracking. `build\analyze.ps1` (MSVC `/analyze`) still covers the Windows build by hand |
 | `codeql.yml`, C# | CodeQL `security-and-quality` over the Control Panel and the setup and migration tools | `semgrep`: Semgrep's open C#, Python, JavaScript and bash rules. It also reads the Python tools, the shell scripts, the webmail's scripts and the Control Deck's page, which CodeQL did not | CodeQL's type-aware queries and its quality queries |
-| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version | The gate at merge-request time: a merge request from a fork never reaches linix. GitHub's malware advisories |
+| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version. And since 6.3.6, at merge-request time, on the shared runners, `mr-dependency-check`: every version a merge request adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
-| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree | The checks only GitHub can answer, and the published score (below) |
+| `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The OpenSSF API's copy of the score, which takes results from GitHub's action alone, and the checks Scorecard cannot answer on GitLab |
 | Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, on the shared runners for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
 
 ### The jobs, and where each tool comes from
@@ -2625,8 +2815,204 @@ Left out of Scorecard's checks, each for a reason:
 - **Dependency-Update-Tool.** It could be answered, and it would fail, as the
   table above says.
 
-The published score and its README badge are GitHub-only. The OpenSSF API
-accepts a result only from a GitHub Actions run.
+The OpenSSF API's published score, and the badge it serves, are GitHub-only: the
+API accepts a result only from a GitHub Actions run. Since 6.3.6 the project runs
+Scorecard itself and publishes the result on its own site ([OpenSSF
+Scorecard](#openssf-scorecard)); `repo-hygiene` stays, on every protected
+pipeline, and answers Token-Permissions, which Scorecard does not on GitLab.
+
+### OpenSSF Scorecard
+
+`scorecard` (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`) runs OpenSSF
+Scorecard over the project once a week, on linix, in the pipeline of the
+schedule on `master` described `scorecard`, and in no other. The same pipeline's
+`pages` and `package-repos` then publish its result on the update feed's site:
+
+- https://updates.progressiverobot.com/scorecard/scorecard.json, Scorecard's
+  result as it wrote it (`--format=json --show-details`): each check, its score,
+  its reason and what it found;
+- https://updates.progressiverobot.com/scorecard/badge.svg, a badge with the
+  aggregate score, made from that file by `build/ci/scorecard-pages.py`.
+
+Every later deployment of the site - a push to `master`, a release, the feed's
+schedule - reads the result the site serves, checks that it is Scorecard's, and
+publishes it again with a badge made afresh, so a deployment never drops it; a
+result it cannot fetch or read is a warning in `package-repos`' log and no
+`scorecard/`, never a failed deployment. The README's badge is that SVG, linked to the JSON.
+
+**Where Scorecard comes from.** Its releases, its `ghcr.io` image and Homebrew's
+bottles are on GitHub; its `gcr.io/openssf/scorecard` image answered "This API
+method requires billing to be enabled" on 25 and again on 28 September 2026;
+Debian and Ubuntu do not package it. Nixpkgs builds it, and `cache.nixos.org`
+serves the build signed with the `cache.nixos.org-1` key that Docker Hub's
+`nixos/nix` image trusts. The job runs in that image (2.35.2, pinned by digest)
+and realises one store path,
+`/nix/store/d3zxf860sbva21lgynwsadsdp4bsh9xv-scorecard-5.5.0`: Nix fetches it and
+its closure (glibc, tzdata, mailcap, iana-etc) from `cache.nixos.org` alone and
+checks each path's signature and hash. The store path is input-addressed - it
+names the recipe, and the bytes are whatever the key signs - so the script pins
+the NAR hash as well, as `cache.nixos.org`'s narinfo gave it on 28 September 2026
+(`sha256:0brx32y7m1z68clfasdp3rypih6l5r0liy2bh21jmds4q6fvkipj`), and runs nothing
+when `nix-store --query --hash` names another: the two together pin the build as
+a digest pins an image. Its `version` says v5.5.0, commit
+`c395761df6afe1a69e476bc60a013a94bcbc153f`. On 28 September 2026, in that image
+on the maintainer's laptop with GitHub's hosts at 0.0.0.0, the closure realised in 4 seconds,
+and an anonymous run over two public checks of `gitlab.com/Progressiverobot/hmailserver`
+answered (10 of 10 for License and Security-Policy). A new version is a new
+store path and NAR hash, the path read from `hydra.nixos.org`'s job
+`nixpkgs/unstable/scorecard.x86_64-linux` and the hash from its
+`https://cache.nixos.org/<hash>.narinfo`,
+never a `nixpkgs#` flake reference, whose registry names GitHub. The job keeps
+GitHub out of itself as well ([Nothing from GitHub, in the job](#nothing-from-github-in-the-job)):
+the image has no `/etc/nsswitch.conf`.
+
+**What it checks on GitLab** (its README, v5.5.0): Binary-Artifacts,
+Branch-Protection (some settings only with a maintainer's token) and CI-Tests
+are supported; Code-Review, Contributors, Fuzzing, License, Maintained,
+Pinned-Dependencies, Packaging, Security-Policy, Signed-Releases and
+Vulnerabilities are "validating"; Dangerous-Workflow, Dependency-Update-Tool,
+SAST and Token-Permissions are not answered. CII-Best-Practices looks the badge
+up by the repository's address, so entry 14949's `repo_url` must follow the
+project's move into the group.
+
+**The token, and the one step that is the owner's.** Scorecard reads a GitLab
+project through the API with `GITLAB_AUTH_TOKEN`, which must carry `read_api`,
+`read_user` and `read_repository`. `read_user` exists for a personal access
+token only, so a project or group token cannot serve, and the token is the
+owner's:
+
+1. **The owner** makes a personal access token (*Preferences*, *Access tokens*)
+   with exactly `read_api`, `read_user` and `read_repository`, expiring in a year.
+2. It is stored as the project's CI/CD variable `GITLAB_AUTH_TOKEN`: protected,
+   masked and hidden, with the environment scope `scorecard`. The job names that
+   environment (`action: access`, which records no deployment) and no other job
+   does, so no other job of a protected pipeline is given the token. The script
+   never writes it: Scorecard reads it from the environment, its own messages go
+   to the job log, where GitLab masks it, and the artifact holds the result
+   alone.
+3. A pipeline schedule on `master` described exactly `scorecard`, weekly, with no
+   variables (the project refuses a schedule's), made by a maintainer.
+
+Until the variable exists the job says "not configured", exits 0 and publishes
+nothing, and the site has no `scorecard/`. The token expires in a year: a
+refused token makes Scorecard write no result, and the job fails, saying so,
+rather than publish an empty one.
+
+**Why it is self-published.** `api.scorecard.dev` accepts a result only through
+`POST /projects/{platform}/{org}/{repo}` from GitHub's Scorecard action, with an
+OIDC token GitHub issues; its weekly scan reads GitHub projects only, and adding
+one to its list is a pull request on GitHub. So neither the OpenSSF API nor
+deps.dev, which shows the API's scores, can carry this project's. The site's
+copy is the project's own, run by its own CI from a pinned build, and says so.
+
+### SonarQube Cloud
+
+SonarQube Cloud (sonarcloud.io) analyses the project from outside the pipeline.
+The organization `hmailserver` is bound to the GitLab group `hmailserver`, in
+SonarQube Cloud's EU region, on its OSS plan - free for public projects under
+an OSI licence, with branch and merge request analysis and custom quality
+gates; the plan can be chosen only when an organization is made. The project is
+imported once it has moved into the group, and from the import on SonarQube
+Cloud's **automatic analysis** runs, from the webhook the import makes: on every
+push to the default branch and on every merge request, on SonarQube Cloud's own
+machines. It leaves a summary comment on the merge request; GitLab gets no
+inline comments from it.
+
+Automatic analysis rather than a CI job, for four reasons:
+
+- **no secret in a merge request's pipeline.** A CI-based scan of a merge
+  request would hold `SONAR_TOKEN` in a pipeline that runs code nobody has
+  reviewed, which `repo-hygiene`'s Token-Permissions check refuses;
+- **no runner time.** linix already carries the longer share of a protected
+  pipeline;
+- **every file.** It reads the Windows-only sources - the COM API, the service,
+  the ADO and SQL Server Compact backends, the registry - which cppcheck and
+  clang-tidy never see (they read what the Linux build's compile database
+  lists), and which nothing had analysed since CodeQL stopped on 18 September
+  2026; and the C# of the Control Panel and the tools, without the Windows
+  build;
+- **nothing to fetch.** It fetches nothing in any job, from GitHub or anywhere.
+
+The price: SonarQube Cloud says automatic analysis may miss some issues that an
+analysis from a compilation database finds, and its precision on the
+Windows-only files, analysed with no MSVC headers, is not documented. A project
+uses one mode or the other: a CI-based analysis needs automatic analysis turned
+off first (*Administration*, *Analysis Method*), a token, and the scanner run in
+the CI image with `static-analysis.sh`'s compile database, for protected refs
+only.
+
+**The scope** is `.sonarcloud.properties` at the root: the whole tree as
+sources, less the third-party code under `libraries/`, the vendored QuickJS and
+zlib, the generated tables (`HelpPagesData.cpp`, `PortalPageData.cpp`,
+`PortalLanguagesData.cpp`, `PortalSmimeData.cpp`, `PortalOpenPgpData.cpp`,
+`ProfilesData.*`, `SettingsDefaults.h`, `PublicSuffixListData.h`,
+`SettingsSearchIndex.g.cs`) and the WinForms designer's files; the regression
+suites, the tools' test projects, the fuzz harness and the two page harnesses as
+tests; C++14 as the standard its C++ rules report against, which is what MSVC
+compiles the shared sources as; Python 3.13. `sonar.sources` and `sonar.tests`
+take plain paths, no wildcards; the exclusions take patterns. Automatic analysis
+reads the file from the default branch only, and a value in the file replaces
+the same one set in the project's settings. So until 6.3.6 is on `master`, the
+exclusions are set in the project's settings as well (*Administration*,
+*General Settings*, *Analysis Scope*, or `api/settings/set`), with the test
+trees among them, since `sonar.tests` cannot be set there: until the file lands,
+the tests are left out rather than read as tests.
+
+**What it holds, and what it cannot.** On GitLab's free tier a merge request
+cannot be made to wait for SonarQube Cloud's quality gate (external status
+checks are GitLab Ultimate), so its verdict is the summary on the merge request
+and the badge in the README; `semgrep-sast-gate` is the SAST that holds a
+merge request. Its findings are triaged in SonarQube Cloud itself: a Blocker or
+Critical bug or vulnerability is fixed, or marked there as a false positive or
+accepted, with the reason.
+
+### What GitLab gives on the free tier, and what Ultimate would
+
+The project is on GitLab's free tier (its namespace's plan read `free` on 25
+September 2026). What each feature this page touches needs, by
+docs.gitlab.com on 28 September 2026:
+
+| Feature | Tier | Here |
+|---|---|---|
+| SAST (`semgrep-sast`), its report stored with the job | Free | Yes; `semgrep-sast-gate` reads it |
+| Pipeline secret detection | Free | Yes, and it fails a pipeline |
+| JUnit reports, the pipeline's *Tests* tab | Free | Yes, every scan and suite writes one |
+| Code Quality: a job's `codequality` report in the merge request widget | Free (the pipeline's Code Quality tab is Premium; the diff view and the project summary Ultimate) | No: see below |
+| Coverage in a merge request's diff (Cobertura) | Free | No: the coverage job is weekly, not per merge request |
+| Project badges | Free | Yes |
+| Merge request approvals, optional | Free: they "don't prevent merging" | Yes; the landing script requires them |
+| Required approval rules, code owners' approval | Premium, Ultimate | No |
+| External status checks (a merge request waiting on SonarQube Cloud) | Ultimate | No |
+| The Security tab, the merge request security widget, the vulnerability report | Ultimate | No; the same reports would appear there unchanged |
+| Dependency scanning, the dependency list, `reports:cyclonedx` | Ultimate | No: `dependency-scan` and `mr-dependency-check` instead |
+| Licence scanning of CycloneDX files | Ultimate | No |
+| Secret push protection | Ultimate | No: the hooks, the landing's scan and `secret_detection` instead |
+| Container scanning's results in the vulnerability report | Ultimate (the job runs on Free) | The job, in a release's pipeline |
+
+**GitLab for Open Source** grants Ultimate and 50,000 compute minutes a year to
+a qualifying namespace: every project in it under an OSI-approved licence,
+public, and an organisation that does not "seek to make a profit by selling
+services, by charging for enhancements or add-ons, or by other means". Whether
+Progressive Robot Ltd meets that last clause is the owner's to say; if it does,
+the application is for the group `hmailserver`, after the move. With Ultimate,
+and no change to a job, the rows above marked Ultimate come on: the Security
+tab and the vulnerability report for the reports already uploaded, required
+approvals, external status checks for SonarQube Cloud's quality gate, and push
+protection.
+
+**Why GitLab's Code Quality widget is not used.** On the free tier the widget
+shows the findings of a `codequality` report written by a job of the merge
+request's own pipeline, against the target branch's. The scans that report on
+code quality here, `static-analysis` and `semgrep`, run on linix for protected
+refs only and never in a merge request's pipeline, so they cannot feed it; the
+one scan that does run there, `semgrep-sast`, is already read and enforced by
+`semgrep-sast-gate`, and a second rendering of the same findings would hold
+nothing. GitLab's own Code Quality template (CodeClimate's engines, run under
+Docker-in-Docker) was deprecated in GitLab 17.3 and is removed in 19.0, and
+SonarQube Cloud does not write GitLab's format; it comments on the merge request
+itself. A job that turned `security-findings.py`'s findings into a
+`codequality` report in merge request pipelines is possible, if the widget is
+ever wanted.
 
 ### What else was left out, and why
 
@@ -2636,10 +3022,11 @@ accepts a result only from a GitHub Actions run.
 - **OSV-Scanner.** It is published on GitHub and `ghcr.io` only. Neither Debian
   nor Ubuntu packages it (apt knows no `osv-scanner` in trixie or 26.04). The
   OSV step calls OSV's API directly instead.
-- **Scorecard's own command-line tool.** It reads GitLab too, but its one
-  channel that is not GitHub, `gcr.io/openssf/scorecard`, answered "This API
-  method requires billing to be enabled" on 25 September 2026. Its other
-  channels are GitHub's release assets and `ghcr.io`.
+- **Scorecard's own channels.** Its one channel that is not GitHub,
+  `gcr.io/openssf/scorecard`, answered "This API method requires billing to be
+  enabled" on 25 and 28 September 2026, and the others are GitHub's release
+  assets and `ghcr.io`. Since 6.3.6 the tool comes from `cache.nixos.org`
+  instead ([OpenSSF Scorecard](#openssf-scorecard)).
 - **pip-audit and npm audit.** Neither has anything to read. The Python tools
   use the standard library and declare no dependency (the three that import
   more are named above), the one Python lock file in the tree is the scanners'
@@ -2661,6 +3048,14 @@ linix may now be the longer of the two. If it is, the first lever is
 runs again on `master` when the batch lands, so a new finding is still seen
 there. Making that change is one `rules:` line.
 
+Since 6.3.6 `linux-build-gcc` adds a second whole build to linix's share of a
+`master` or `batch*` pipeline, never of a tag's: 25.5 minutes in WSL at four
+jobs, and not yet measured on linix, whose job has six CPUs. `scorecard` takes
+a few minutes of linix once a week, in a pipeline of its own. The merge request
+checks run on GitLab's shared runners, as the other merge request jobs do, and
+count against the namespace's compute minutes the same way; the dependency check
+runs only when a lock file changed.
+
 What is still done by hand
 --------------------------
 
@@ -2673,8 +3068,9 @@ What is still done by hand
   PowerShell checks CI does not run: `check-schema-versions.ps1`, and
   `check-db-scripts.ps1`, which needs Windows PowerShell 5.1 and SQL Server
   Compact.
-- The Linux build under GCC and on AArch64 hardware
-  (`bash build/linux-tu-census.sh --cc g++` is the GCC census). The AArch64
+- The Linux build on AArch64 hardware; the GCC build is `linux-build-gcc` since
+  6.3.6 ([The GCC build](#the-gcc-build)), and
+  `bash build/linux-tu-census.sh --cc g++` is still the GCC census by hand. The AArch64
   packages and AppImage are built by the package jobs of
   `.gitlab/ci/packages-*.yml` and run there under qemu-user on linix; running
   them on AArch64 hardware is still by hand.
@@ -2698,6 +3094,7 @@ What is still done by hand
   test](#the-installer-smoke-test)).
 - Building the Linux job image when its Dockerfile changes (see [The
   image](#the-image)), and creating the fuzz schedule once (see [The fuzz
-  schedule](#the-fuzz-schedule)).
+  schedule](#the-fuzz-schedule)) and the Scorecard schedule and its token (see
+  [OpenSSF Scorecard](#openssf-scorecard)).
 - Bringing a runner back when its machine has been rebuilt (see
   [Re-creating a runner](#re-creating-a-runner)).

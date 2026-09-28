@@ -33,6 +33,9 @@ package-repos:
   needs:
     - job: pages
       artifacts: true
+    - job: scorecard
+      artifacts: true
+      optional: true
   rules:
     - !reference [pages, rules]
   timeout: 30 minutes
@@ -51,6 +54,9 @@ package-repos:
     - python3 build/ci/helm-repo.py --self-test
     - python3 build/ci/helm-repo.py --site public --cache .package-cache/helm
     - python3 build/ci/helm-repo.py --check public
+    # The project's OpenSSF Scorecard result and badge, from this pipeline's scorecard job or carried from the live site.
+    - python3 build/ci/scorecard-pages.py --self-test
+    - python3 build/ci/scorecard-pages.py --site public --artifact scorecard
     # The feed as a server reads it, now that _redirects has the packages' rules too.
     - python3 build/generate-update-feed.py --serve-check public
   pages: true

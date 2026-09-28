@@ -41,11 +41,18 @@ list of flat entries of "key: value" lines. Anything else is refused with its li
 
 Usage, from the root of the checkout the scans read:
   python3 build/ci/security-gate.py [--artifacts DIR] [--exceptions FILE] [--today YYYY-MM-DD]
+  python3 build/ci/security-gate.py --merge-request BASE [--artifacts DIR] [--exceptions FILE]
   python3 build/ci/security-gate.py --self-test
 --artifacts is the directory holding the scans' artifacts as the jobs write them
 (security/static-analysis/, security/semgrep/, security/dependency-scan/ and
 gl-sast-report.json); the checkout's root by default. Exits 0 when the release may go
 on, 1 when it may not, 2 on a usage error.
+
+--merge-request is a merge request's gate instead (the semgrep-sast-gate job,
+.gitlab/ci/mr-checks.yml): semgrep-sast's report alone, the exceptions as the commit
+BASE (CI_MERGE_REQUEST_DIFF_BASE_SHA) has them, and the findings in the files the
+merge request changes from BASE (see merge_request_evaluate below). Exits 0 when the
+merge request may land, 1 when it may not, 2 when its inputs cannot be read.
 """
 
 import argparse
@@ -55,6 +62,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import uuid
@@ -305,9 +313,11 @@ def source_scan(root, artifacts, scan, accepted):
     return problems + blocking, taken, total
 
 
-def gitlab_sast_scan(root, artifacts, accepted):
+def gitlab_sast_scan(root, artifacts, accepted, scope=None, outside=None):
     """semgrep-sast, GitLab's report: every Critical or High finding, fingerprinted as
-    security-findings.py fingerprints its own (the rule, the file, the line's text)."""
+    security-findings.py fingerprints its own (the rule, the file, the line's text).
+    scope, a set of paths, holds only the findings in those files (a merge request's
+    changed files); the others are listed in outside, when given, and hold nothing."""
     relative = GITLAB_SAST_REPORT
     report, error = _read_json(os.path.join(artifacts, relative))
     if error:
@@ -338,8 +348,13 @@ def gitlab_sast_scan(root, artifacts, accepted):
         if f["fingerprint"] in excepted:
             taken.append((excepted[f["fingerprint"]], f["report"]))
             continue
-        blocking.append("semgrep-sast: %s %s at %s:%d [%s] - fingerprint %s" % (
-            f["severity"], f["message"][:160], f["path"], f["line"], f["rule"], f["fingerprint"]))
+        described = "semgrep-sast: %s %s at %s:%d [%s] - fingerprint %s" % (
+            f["severity"], f["message"][:160], f["path"], f["line"], f["rule"], f["fingerprint"])
+        if scope is not None and f["path"] not in scope:
+            if outside is not None:
+                outside.append(described)
+            continue
+        blocking.append(described)
     return blocking, taken, len(found)
 
 
@@ -390,6 +405,24 @@ def dependency_scan(root, artifacts, accepted):
     return problems + blocking, taken, total
 
 
+def _in_force(entries, today, say):
+    """({scan: [the exceptions in force today]}, problems): an exception reviewed after
+    today is a problem; one past its expiry is said and left out, so the finding it
+    named holds again."""
+    in_force, lapsed, problems = {}, [], []
+    for e in entries:
+        if _date(e["reviewed"]) > today:
+            problems.append("%s: the exception for %s %s says it was reviewed on %s, which is after today, %s" % (
+                EXCEPTIONS, e["scan"], e["finding"], e["reviewed"], today.isoformat()))
+        elif _date(e["expires"]) < today:
+            lapsed.append(e)
+        else:
+            in_force.setdefault(e["scan"], []).append(e)
+    for e in lapsed:
+        say("expired on %s, so no longer accepted: %s %s (%s)" % (e["expires"], e["scan"], e["finding"], e["what"]))
+    return in_force, problems
+
+
 def evaluate(root, artifacts, today=None, exceptions_text=None, say=print):
     """The problems that hold the release. Nothing when every scan finished and every
     finding the policy counts is in a baseline or accepted by an exception in force."""
@@ -403,17 +436,7 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print):
     entries, problems = check_exceptions(exceptions_text)
     if problems:
         return problems
-    in_force, lapsed = {}, []
-    for e in entries:
-        if _date(e["reviewed"]) > today:
-            problems.append("%s: the exception for %s %s says it was reviewed on %s, which is after today, %s" % (
-                EXCEPTIONS, e["scan"], e["finding"], e["reviewed"], today.isoformat()))
-        elif _date(e["expires"]) < today:
-            lapsed.append(e)
-        else:
-            in_force.setdefault(e["scan"], []).append(e)
-    for e in lapsed:
-        say("expired on %s, so no longer accepted: %s %s (%s)" % (e["expires"], e["scan"], e["finding"], e["what"]))
+    in_force, problems = _in_force(entries, today, say)
 
     results = {}
     for scan in SCANS:
@@ -432,6 +455,87 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print):
             say("                 accepted until %s (%s): %s - %s" % (entry["expires"], entry["reviewed-by"], entry["finding"], entry["what"]))
         problems.extend(found)
     return problems
+
+
+# ---------------------------------------------------------------- a merge request's gate
+#
+# In a merge request's pipeline semgrep-sast is the one scan that runs (the others
+# are on linix, for a protected ref only), and the semgrep-sast-gate job of
+# .gitlab/ci/mr-checks.yml asks this about its report before the merge request can
+# land (OpenSSF Baseline OSPS-VM-06.02: a change with a weakness above the threshold
+# is blocked unless it is declared not exploitable). The same rule as the release's,
+# Critical and High findings that .gitlab/security-exceptions.yml does not accept,
+# with two differences:
+#
+#   the exceptions are the merge request's base's, the target branch's copy where the
+#   merge request left it, never the merge request's own: a change cannot accept its
+#   own finding. An exception lands first, by a merge request of its own - which, with
+#   only the exceptions file changed, holds nothing here - and the change after it;
+#
+#   only the findings in the files the merge request changes hold it, so a change is
+#   answerable for what it touches, not for a finding already on the target branch in
+#   a file it never opened: that one holds the next release instead, whose gate reads
+#   the whole tree. Unless the merge request changes the scan itself (SAST_CONFIG:
+#   the analyzer, its pin or its options, GitLab's custom ruleset file, or how a
+#   finding is fingerprinted), when every finding in the tree is its business.
+
+# A change to one of these can change what the scan finds anywhere in the tree.
+# .gitlab/sast-ruleset.toml is the file GitLab's analyzers read a custom ruleset
+# from (rules disabled, overridden or added): none is committed, and the one that
+# is added changes the scan as much as an edit of its job does.
+SAST_CONFIG = (".gitlab/ci/gitlab-security.yml", ".gitlab/sast-ruleset.toml", "build/ci/security-gate.py",
+               "build/ci/security-findings.py")
+
+
+def merge_request_evaluate(root, artifacts, exceptions_text, changed, today=None, say=print):
+    """The problems that hold a merge request: semgrep-sast's Critical and High findings
+    in the changed files (or anywhere, when the scan's own configuration changed) that
+    exceptions_text does not accept."""
+    today = today or datetime.datetime.now(datetime.timezone.utc).date()
+    entries, problems = check_exceptions(exceptions_text)
+    if problems:
+        return ["the base's %s cannot be read, so nothing is accepted: %s" % (EXCEPTIONS, p) for p in problems]
+    in_force, problems = _in_force(entries, today, say)
+    whole = sorted(set(changed) & set(SAST_CONFIG))
+    scope = None if whole else set(changed)
+    outside = []
+    found, taken, total = gitlab_sast_scan(root, artifacts, in_force.get("semgrep-sast", []), scope, outside)
+    if whole:
+        say("this merge request changes %s, which can change what the scan finds anywhere: every finding in the tree "
+            "counts" % ", ".join(whole))
+    else:
+        say("%d file(s) changed; a finding counts in those alone" % len(scope))
+    say("semgrep-sast %5d finding(s) in the report; %d accepted by an exception; %d Critical or High outside the "
+        "changed files (the release's gate holds those); %d holding this merge request" % (
+            total, len(taken), len(outside), len(found)))
+    for line in outside[:20]:
+        say("  not this merge request's: " + line)
+    return problems + found
+
+
+def _git(root, *arguments):
+    return subprocess.run(["git", "-C", root] + list(arguments), capture_output=True)
+
+
+def merge_request_inputs(root, base):
+    """(changed paths, the base's exceptions text, None) or (None, None, the problem): what
+    the merge request changes from base to HEAD, and the exceptions file as base has it."""
+    if not re.match(r"^[0-9a-f]{7,64}$", base or ""):
+        return None, None, ("no base commit (%r): run it with the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA, "
+                            "in a clone that has it (GIT_DEPTH 0)" % base)
+    if _git(root, "cat-file", "-e", base + "^{commit}").returncode != 0:
+        return None, None, "the base commit %s is not in this clone: the job needs the history (GIT_DEPTH 0)" % base
+    diff = _git(root, "diff", "--name-only", "-z", "--diff-filter=d", base, "HEAD")
+    if diff.returncode != 0:
+        return None, None, "git diff %s HEAD failed: %s" % (base, diff.stderr.decode("utf-8", "replace").strip()[:300])
+    changed = [p.decode("utf-8", "surrogateescape") for p in diff.stdout.split(b"\0") if p]
+    shown = _git(root, "show", "%s:%s" % (base, EXCEPTIONS))
+    if shown.returncode != 0:
+        # A base from before the file existed accepts nothing.
+        if _git(root, "cat-file", "-e", "%s:%s" % (base, EXCEPTIONS)).returncode != 0:
+            return changed, "exceptions: []\n", None
+        return None, None, "git show %s:%s failed: %s" % (base, EXCEPTIONS, shown.stderr.decode("utf-8", "replace").strip()[:300])
+    return changed, shown.stdout.decode("utf-8"), None
 
 
 def sample_reports():
@@ -624,6 +728,100 @@ def self_test():
         with open(os.path.join(ROOT, EXCEPTIONS), encoding="utf-8") as f:
             _, own = check_exceptions(f.read())
         expect(own == [], "the tree's own %s is well formed: %s" % (EXCEPTIONS, own))
+
+        # A merge request's gate: semgrep-sast alone, in the files it changes.
+        def gate(reports, changed, exceptions=empty):
+            lay(reports)
+            held = findings_module.ROOT
+            findings_module.ROOT = root
+            findings_module._lines_cache.clear()
+            try:
+                return merge_request_evaluate(root, artifacts, exceptions, changed, today, say=quiet)
+            finally:
+                findings_module.ROOT = held
+                findings_module._lines_cache.clear()
+
+        critical = {GITLAB_SAST_REPORT: gitlab("Critical")}
+        found = gate(critical, ["src/a.cpp"])
+        expect(any(p.startswith("semgrep-sast: Critical") for p in found),
+               "a merge request that changes a file with a Critical finding is held: %s" % found)
+        found = gate({GITLAB_SAST_REPORT: gitlab("High")}, ["src/a.cpp", "README.md"])
+        expect(any(p.startswith("semgrep-sast: High") for p in found), "a High finding in a changed file holds it: %s" % found)
+        expect(gate(critical, ["src/other.cpp"]) == [],
+               "a Critical finding in a file the merge request does not change is the release's, not the merge request's")
+        found = gate(critical, ["src/other.cpp", ".gitlab/ci/gitlab-security.yml"])
+        expect(any(p.startswith("semgrep-sast: Critical") for p in found),
+               "a merge request that changes the scan itself answers for every finding: %s" % found)
+        found = gate(critical, ["src/other.cpp", ".gitlab/sast-ruleset.toml"])
+        expect(any(p.startswith("semgrep-sast: Critical") for p in found),
+               "so does one that adds or changes GitLab's custom ruleset: %s" % found)
+        expect(gate({GITLAB_SAST_REPORT: gitlab("Medium")}, ["src/a.cpp"]) == [], "a Medium finding holds nothing")
+        if sast_fp:
+            expect(gate(critical, ["src/a.cpp"], exception("semgrep-sast", sast_fp)) == [],
+                   "a Critical finding the base's exceptions accept by its fingerprint passes")
+            found = gate(critical, ["src/a.cpp"], exception("semgrep-sast", sast_fp, expires="2026-09-30"))
+            expect(any(p.startswith("semgrep-sast: Critical") for p in found), "an expired exception accepts nothing: %s" % found)
+        found = gate({}, ["src/a.cpp"])
+        expect(any("semgrep-sast: there is no" in p for p in found), "no report holds the merge request: %s" % found)
+        found = gate({GITLAB_SAST_REPORT: gitlab("Critical", status="failure")}, ["src/a.cpp"])
+        expect(any("not success" in p for p in found), "a scan that did not finish holds it: %s" % found)
+        found = gate(critical, ["src/a.cpp"], "foo: bar\n")
+        expect(any("cannot be read" in p for p in found), "an exceptions file the gate cannot read accepts nothing: %s" % found)
+
+        # And from git, as the job runs it: the base's exceptions, never the head's.
+        repo = os.path.join(work, "merge-request")
+        os.makedirs(os.path.join(repo, "src"))
+        os.makedirs(os.path.join(repo, ".gitlab"))
+        quiet_git = ["-c", "core.autocrlf=false", "-c", "user.name=self-test", "-c", "user.email=self-test@example.invalid",
+                     "-c", "commit.gpgsign=false"]
+
+        def commit(files, message):
+            for relative, text in files.items():
+                with open(os.path.join(repo, *relative.split("/")), "w", encoding="utf-8", newline="\n") as f:
+                    f.write(text)
+            subprocess.run(["git", "-C", repo] + quiet_git + ["add", "-A"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", repo] + quiet_git + ["commit", "-q", "--no-verify", "-m", message], check=True,
+                           capture_output=True)
+            return subprocess.run(["git", "-C", repo, "rev-parse", "HEAD"], check=True, capture_output=True,
+                                  text=True).stdout.strip()
+
+        source = "int main() {\n  char b[4]; strcpy(b, argv[1]);\n  return atoi(x);\n}\n"
+        subprocess.run(["git", "init", "-q", repo], check=True, capture_output=True)
+        accepting = exception("semgrep-sast", sast_fp or "0" * 20)
+
+        def verdict(base):
+            lay(critical)
+            held = findings_module.ROOT
+            findings_module.ROOT = repo
+            findings_module._lines_cache.clear()
+            findings_module._top_level = None
+            try:
+                return merge_request_main(repo, artifacts, base, None, today, say=quiet)
+            finally:
+                findings_module.ROOT = held
+                findings_module._lines_cache.clear()
+                findings_module._top_level = None
+
+        base = commit({"src/a.cpp": "int main() { return 0; }\n", "src/other.cpp": "int f();\n", EXCEPTIONS: empty}, "base")
+        commit({"src/a.cpp": source, EXCEPTIONS: accepting}, "a change that accepts its own finding")
+        expect(verdict(base) == 1, "a merge request whose own copy of the exceptions accepts its finding is still held")
+        subprocess.run(["git", "-C", repo, "reset", "-q", "--hard", base], check=True, capture_output=True)
+        accepted_base = commit({EXCEPTIONS: accepting}, "the exception, landed first")
+        commit({"src/a.cpp": source}, "the change after it")
+        if sast_fp:
+            expect(verdict(accepted_base) == 0, "the finding the base's exceptions accept lets the merge request land")
+        subprocess.run(["git", "-C", repo, "reset", "-q", "--hard", base], check=True, capture_output=True)
+        with open(os.path.join(repo, "src", "a.cpp"), "w", encoding="utf-8", newline="\n") as f:
+            f.write(source)
+        subprocess.run(["git", "-C", repo] + quiet_git + ["add", "-A"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", repo] + quiet_git + ["commit", "-q", "--no-verify", "-m", "the flagged line, first"],
+                       check=True, capture_output=True)
+        after_flagged = subprocess.run(["git", "-C", repo, "rev-parse", "HEAD"], check=True, capture_output=True,
+                                       text=True).stdout.strip()
+        commit({"src/other.cpp": "int f();\nint g();\n"}, "a change elsewhere")
+        expect(verdict(after_flagged) == 0, "a merge request that does not touch the flagged file is not held by it")
+        expect(verdict("0" * 40) == 2, "a base the clone does not have cannot be checked, and says so")
+        expect(verdict("") == 2, "no base cannot be checked, and says so")
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
@@ -633,11 +831,36 @@ def self_test():
     return 1 if failures else 0
 
 
+def merge_request_main(root, artifacts, base, exceptions_text=None, today=None, say=print):
+    """The merge request's gate, from a checkout of its head: 0 it may land, 1 it may
+    not, 2 its inputs cannot be read."""
+    changed, base_text, problem = merge_request_inputs(root, base)
+    if problem:
+        say("CANNOT CHECK: " + problem)
+        return 2
+    problems = merge_request_evaluate(root, artifacts, exceptions_text if exceptions_text is not None else base_text,
+                                      changed, today, say)
+    for p in problems:
+        say("HELD: " + p)
+    if problems:
+        say("This merge request waits on the %d line(s) HELD above: a finding of severity Critical or High in what it "
+            "changes is fixed, or accepted in %s by a merge request of its own, landed first, with a reason, a reviewer "
+            "and an expiry; a report that is missing or did not finish is a semgrep-sast job to run again "
+            "(SECURITY.md, 'Before a release'; docs/ContinuousIntegration.md, 'Merge request checks')." % (
+                len(problems), EXCEPTIONS))
+        return 1
+    say("No Critical or High finding of semgrep-sast in what this merge request changes that the base's %s does not "
+        "accept." % EXCEPTIONS)
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--artifacts", default=None, help="where the scans' artifacts are (default: the checkout's root)")
     parser.add_argument("--exceptions", default=None, help="the exceptions file (default: %s)" % EXCEPTIONS)
     parser.add_argument("--today", default=None, help="the date to judge expiry by (YYYY-MM-DD; default: today, UTC)")
+    parser.add_argument("--merge-request", metavar="BASE", default=None,
+                        help="a merge request's gate: semgrep-sast alone, the exceptions as BASE has them, the files changed from BASE")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -652,6 +875,8 @@ def main():
     if args.exceptions:
         with open(args.exceptions, encoding="utf-8") as f:
             text = f.read()
+    if args.merge_request is not None:
+        return merge_request_main(ROOT, os.path.abspath(args.artifacts or ROOT), args.merge_request, text, today)
     problems = evaluate(ROOT, os.path.abspath(args.artifacts or ROOT), today, text)
     for problem in problems:
         print("HELD: " + problem)

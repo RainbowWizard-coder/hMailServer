@@ -33,10 +33,15 @@
 # with the Developer role or above can download (artifacts:access in the templates);
 # the merge request widget, the pipeline's Security tab and the vulnerability report
 # are GitLab Ultimate. semgrep-sast is allow_failure, as the template makes it: a
-# finding does not fail a pipeline. It holds a release instead: for a v* tag the
+# finding does not fail the job. It holds a release instead: for a v* tag the
 # release job needs semgrep-sast's report and refuses while it has a finding of
 # severity Critical or High that .gitlab/security-exceptions.yml does not accept, or
-# is missing (build/ci/security-gate.py; SECURITY.md, "Before a release"). secret_detection is not: a secret found fails the
+# is missing (build/ci/security-gate.py; SECURITY.md, "Before a release"). And it
+# holds a merge request: in a merge request's pipeline the semgrep-sast-gate job
+# (.gitlab/ci/mr-checks.yml) reads the same report by the same rule, for the files the
+# merge request changes and with the exceptions as its base has them, and fails the
+# pipeline, which a merge request needs to land (OpenSSF Baseline OSPS-VM-06.02).
+# secret_detection is not allow_failure: a secret found fails the
 # job and the pipeline. The template's job cannot do that by itself - the analyzer
 # exits 0 whatever it finds, and the template adds allow_failure: true, which would
 # hide the failure anyway - so the job below runs the analyzer and then reads its

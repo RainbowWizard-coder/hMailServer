@@ -1,0 +1,77 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The no-GitHub rule, enforced inside a job: included from .gitlab-ci.yml.
+#
+# The project downloads nothing from GitHub (docs/ContinuousIntegration.md, "Nothing
+# from GitHub"). The runners are to enforce it for every job: linix's runner entries
+# map github.com and its five hosts below to 0.0.0.0 (extra_hosts), and bench150's
+# hosts file does the same, so a tool that quietly reaches for GitHub fails by name.
+# That covers what runs on the project's own runners, and only in an image whose C
+# library reads /etc/hosts before it asks DNS. It does not cover a job on GitLab's
+# shared runners, whose configuration is GitLab's; nor an image with no
+# /etc/nsswitch.conf, such as Docker Hub's nixos/nix: glibc's default for a missing
+# file is "dns [!UNAVAIL=return] files", so curl, git and nix itself in such an
+# image ask DNS first and never read the runner's entries (the image was read on 28
+# September 2026; Go's own resolver, as in Scorecard, reads the file first either way).
+#
+# Nor does an entry at 0.0.0.0 alone keep out IPv6: a hosts file that names an IPv4
+# address only answers an IPv6 lookup with nothing, and the C library then asks DNS,
+# whose AAAA answer for objects.githubusercontent.com or raw.githubusercontent.com is
+# GitHub's (measured on 28 September 2026 with curl in the nixos/nix image against a
+# canary name: 0.0.0.0 alone, curl -6 went to the name's real IPv6 address; with ::
+# beside it, to ::).
+#
+# .no-github is for those jobs. Its before_script adds the six hosts to the job's own
+# /etc/hosts at 0.0.0.0 and at ::, and makes sure the hosts file is read first: it writes
+# "hosts: files dns" to /etc/nsswitch.conf where there is none, and fails the job,
+# saying why, where one exists that asks anything else first, or where the job cannot
+# write either file (an image that does not run as root). A job that must not reach
+# GitHub and cannot be made not to does not run.
+#
+# How a job takes it:
+#   a job with no before_script of its own:   extends: .no-github  (or add it to the
+#                                              job's extends list)
+#   a job with one:                            its first line
+#                                              - !reference [.no-github, before_script]
+# since a job's own before_script replaces what extends would bring, whole.
+#
+# Plain POSIX sh with the shell's own built-ins and nothing else, so that it runs in
+# busybox (Alpine, cosign's and kaniko's debug images), dash (Debian, Ubuntu), bash
+# and the nixos/nix image, which has no sed and no awk.
+
+.no-github:
+  before_script:
+    - |
+      hm_no_github() {
+        for host in github.com api.github.com codeload.github.com objects.githubusercontent.com raw.githubusercontent.com ghcr.io; do
+          printf '0.0.0.0 %s\n:: %s\n' "$host" "$host" >> /etc/hosts || return 1
+        done
+        if [ ! -e /etc/nsswitch.conf ]; then
+          printf 'hosts: files dns\n' > /etc/nsswitch.conf || return 1
+          echo "no-github: /etc/nsswitch.conf written: hosts: files dns"
+          return 0
+        fi
+        found=""
+        while IFS= read -r line || [ -n "$line" ]; do
+          case "$line" in
+            hosts:*) found="$line" ;;
+          esac
+        done < /etc/nsswitch.conf
+        set -- ${found#hosts:}
+        case "$found" in
+          "") printf 'hosts: files dns\n' >> /etc/nsswitch.conf || return 1 ;;
+          *) if [ "${1:-}" != files ]; then
+               echo "no-github: /etc/nsswitch.conf says '$found': the hosts file is not read first, so its entries cannot block GitHub here"
+               return 2
+             fi ;;
+        esac
+        return 0
+      }
+      if hm_no_github; then
+        echo "no-github: github.com, api.github.com, codeload.github.com, objects.githubusercontent.com, raw.githubusercontent.com and ghcr.io are 0.0.0.0 and :: in this job"
+      else
+        echo "no-github: this job cannot keep GitHub out (it must run as root, with /etc/hosts read first); it does not run"
+        exit 1
+      fi

@@ -1,0 +1,62 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The Linux server built with GCC as well as with clang: included from .gitlab-ci.yml
+# (docs/ContinuousIntegration.md, "The GCC build"; Roadmap3, "GCC build").
+#
+#   linux-build-gcc   linix: build/ci/linux-build.sh with HM_COMPILER=gcc - the server
+#                     and every tester program the CMake build makes, built with the
+#                     distribution's default GCC (Ubuntu 26.04's g++ 15), then the
+#                     testers run, and the OpenPGP writer's round trip through GnuPG,
+#                     exactly as linux-build does with clang. No packages: the x86-64
+#                     .deb and .rpm a release carries are linux-build's, and nothing
+#                     here makes a second file of their names.
+#
+# Why: linux-build, whose server and x86-64 packages a release carries, builds with
+# clang, and a distribution builds its own package of the server with its own
+# default compiler, which is GCC on Debian, Ubuntu, Fedora, openSUSE and Alpine.
+# The deb-<distro>-amd64 jobs of .gitlab/ci/packages-deb.yml already build natively
+# with Debian 12's, Debian 13's and Ubuntu 24.04's GCC (12, 14 and 13) and run the
+# testers, and deb-ubuntu26.04-arm64 cross-compiles the release's AArch64 .deb with
+# GCC; none of them builds natively with the newest, Ubuntu 26.04's GCC 15, or runs
+# the OpenPGP round trip. This does, so a change that only clang, or only an older
+# GCC, accepts is found here, before a distribution's maintainer finds it.
+#
+# The compiler is the CI image's own: build/ci/linux.Dockerfile installs
+# build-essential, whose g++ is the distribution's default (on Ubuntu 26.04 g++ 15,
+# read with apt-cache depends build-essential), beside clang, which uses that same
+# GCC installation's libstdc++. So this needs no image of its own, and no other tag
+# than .linix's.
+#
+# When it runs: for a push to master or a batch* branch that changes more than
+# documentation (.own-runners' rules), and never for a v* tag - a check of the
+# source, not a gate of the release, which the same commit's batch pipeline has
+# already passed; release does not need it (the plan's rule for the jobs that only
+# check). Never in a merge request's pipeline or a schedule's.
+
+linux-build-gcc:
+  extends: .linix
+  stage: test
+  needs: []
+  timeout: 1 hour
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BRANCH !~ /^batch/
+      when: never
+    - !reference [.own-runners, rules]
+  variables:
+    HM_COMPILER: gcc
+    HM_BUILD_DIR: /tmp/hm-build-gcc
+    HM_OUT_DIR: linux-build-gcc
+  script:
+    - bash build/ci/linux-build.sh
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths:
+      - linux-build-gcc/
+    # The logs and what --version said: the binary is the clang build's business.
+    exclude:
+      - linux-build-gcc/hmailserver

@@ -125,6 +125,31 @@ for a stray `#` number or `@` name.
   list to the tree the build used, which records its own (OpenSSL's `VERSION.dat`, Boost's `version.hpp`,
   PostgreSQL's `meson.build`); the ARM64 list was checked that way against the ARM64 libraries of 26 September.
   The lists themselves are unchanged.
+- **A merge request answers for what it brings.** On GitLab's shared runners, with no secret:
+  `build/check-binary-manifest.py`, run by `checkers` in every pipeline, fails on a committed binary that
+  `hmailserver/docs/third-party-binaries.json` does not list at its SHA-256 (what `verify-binary-provenance.yml` did
+  until 18 September); `semgrep-sast-gate` holds a merge request on a Critical or High `semgrep-sast` finding in a
+  file it changes that `.gitlab/security-exceptions.yml`, as the merge request's base has it, does not accept
+  (`build/ci/security-gate.py --merge-request`, the release's own rule; OpenSSF Baseline OSPS-VM-06.02); and
+  `mr-dependency-check` holds one that adds a dependency version with a Critical or High advisory in OSV's own
+  export of NuGet's or PyPI's advisories (`build/ci/mr-dependency-check.py`), what GitHub's dependency review did
+  (`.gitlab/ci/mr-checks.yml`; ContinuousIntegration.md, "Merge request checks").
+- **The server is built and tested with the newest GCC as well as clang.** `linux-build-gcc` (`.gitlab/ci/gcc.yml`;
+  linix; `master` and `batch*`, never a tag) builds the server and its tester programs with the CI image's own GCC,
+  Ubuntu 26.04's GCC 15, and runs them and the OpenPGP round trip; `build/ci/linux-build.sh` takes
+  `HM_COMPILER=gcc`, and a GCC build makes no packages. The Debian and Ubuntu package jobs already built with GCC
+  12, 13 and 14; none built natively with GCC 15. The CI image already carried it through `build-essential`, and is
+  unchanged.
+- **OpenSSF Scorecard, self-run.** `scorecard` (`.gitlab/ci/scorecard.yml`, the schedule described `scorecard`) runs
+  Scorecard 5.5.0 taken from cache.nixos.org by its Nix store path, with every path of its closure pinned by NAR
+  hash, not from GitHub, and `build/ci/scorecard-pages.py` publishes its result and a badge at
+  https://updates.progressiverobot.com/scorecard/; a result it cannot fetch or read never stops the site's
+  deployment. Until the owner's `GITLAB_AUTH_TOKEN` exists it says "not configured" and passes.
+- **SonarQube Cloud's scope, and GitHub kept out of a job.** `.sonarcloud.properties` scopes SonarQube Cloud's
+  automatic analysis to the project's own code and tests. `.gitlab/ci/no-github.yml`'s `.no-github` puts GitHub's
+  six hosts at 0.0.0.0 and `::` inside a job, has the hosts file read first where an image has no
+  `/etc/nsswitch.conf`, and refuses a job it cannot protect. ContinuousIntegration.md says what GitLab's free tier
+  and Ultimate give and why the Code Quality widget is not used.
 
 ### Operations
 
