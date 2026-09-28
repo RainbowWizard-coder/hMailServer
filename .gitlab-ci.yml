@@ -933,8 +933,9 @@ linux-sbom:
     paths:
       - sbom/
 
-# Is the Linux build reproducible? linux-build's server, .deb and .rpm - what a v* tag's
-# release ships - made a second time from the same commit, in the same image, by the same
+# Is the Linux build reproducible? linux-build's server, .deb and .rpm - the x86-64 files
+# a v* tag's release ships (its AArch64 .deb and .rpm, the package jobs', are built once
+# and not compared) - made a second time from the same commit, in the same image, by the same
 # script, from a copy of the tree at another path, in another build directory, started
 # under another umask and in another time zone, and compared (build/ci/linux-repro.sh).
 # The binary, the .deb and the .rpm must be byte for byte identical, or the job fails and
@@ -1413,7 +1414,8 @@ windows-installer:
 # a tag's pipeline without one of them is not created at all.
 # build/check-release-chain.py fails when a job of this file that can fail, a scan, or a
 # job that makes, describes or installs an AArch64 package the release carries is
-# missing here.
+# missing here, and when one of those three may fail or waits for a press in a tag's
+# pipeline, since release would then start past it.
 release:
   stage: release
   image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0

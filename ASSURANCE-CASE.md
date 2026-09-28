@@ -388,11 +388,12 @@ credible.
   checkout. 6.3.4, built before the change, reproduces only from its own
   paths. On Linux the `linux-repro` job builds `linux-build`'s commit a
   second time from another path with other file modes, in another build
-  directory, umask and time zone, and requires the binary, the `.deb` and
-  the `.rpm` to be byte for byte identical before a release (the packages
-  became so the same day, when it found their directories' modes following
-  the umask, the `.deb`'s maintainer scripts the checkout's modes and the
-  `.rpm` stamping the clock);
+  directory, umask and time zone, and requires the binary and the x86-64
+  `.deb` and `.rpm` to be byte for byte identical before a release (the
+  packages became so the same day, when it found their directories' modes
+  following the umask, the `.deb`'s maintainer scripts the checkout's modes
+  and the `.rpm` stamping the clock); the AArch64 `.deb` and `.rpm` a release
+  carries from 6.3.6 are built once, by the package jobs, and not compared;
   the image's Ubuntu packages are the archive's of the day it was built, so it
   pins the build, not the toolchain's history. What has not happened is an
   independent rebuild by someone outside the project, with an independently

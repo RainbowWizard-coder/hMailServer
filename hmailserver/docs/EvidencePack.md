@@ -264,9 +264,11 @@ path, and puts the hash in the release notes. The Linux build passes
 `-ffile-prefix-map` and exports `SOURCE_DATE_EPOCH` from the tagged commit,
 and the `linux-repro` job builds the commit of every protected pipeline that
 changes more than documentation - a release tag's among them - a second time,
-from another path, and requires the binary, the `.deb` and the `.rpm` to be
-byte for byte the ones the release ships; the image's packages are not
-pinned, and the job records their versions. What has not been done is an independent
+from another path, and requires the binary and the x86-64 `.deb` and `.rpm`
+to be byte for byte the ones the release ships; the image's packages are not
+pinned, and the job records their versions. The AArch64 `.deb` and `.rpm` a
+release carries from 6.3.6 are built once, by the package jobs, and not
+compared. What has not been done is an independent
 rebuild by someone outside the project, with independently built libraries
 ([ReproducibleBuilds.md](ReproducibleBuilds.md) has the procedure and what was
 measured; [ASSURANCE-CASE.md](../../ASSURANCE-CASE.md), *Residual risk*).

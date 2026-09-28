@@ -403,7 +403,9 @@ uploaded and linked like every other file of the release. SECURITY.md,
    modes, in another build directory, started under another umask and in
    another time zone, and requires the binary, the `.deb` and
    the `.rpm` to be byte for byte `linux-build`'s
-   ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
+   ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)). The
+   AArch64 `.deb` and `.rpm` a release carries from 6.3.6 are the package
+   jobs', built once and not compared.
 
 8b. **Full regression suite on the assertion build, first.** Build with
    `build\build.ps1 -Configuration Release -Asserts` - the same source, with

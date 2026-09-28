@@ -1299,7 +1299,10 @@ they make CI artifacts that no release carries, so they are not gates of a
 release, and `release` can start while they are still running or after one
 has failed. `build/check-release-chain.py` fails when a job of
 `.gitlab-ci.yml` that can fail is not among its needs, or one that builds,
-describes or installs an AArch64 package the release carries. `release-publish` waits for
+describes or installs an AArch64 package the release carries, and when one of
+those three may fail or waits for a press in a tag's pipeline
+(`allow_failure: true` or `when: manual`), since `release` would start after
+it failed. `release-publish` waits for
 the second button so that the installer smoke test can run on the signed
 installer first ([The installer smoke test](#the-installer-smoke-test)):
 download `release-signed/` from `release-sign`'s artifacts, run the test with

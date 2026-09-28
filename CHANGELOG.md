@@ -163,7 +163,9 @@ for a stray `#` number or `@` name.
   architecture's own `-dev` package, never the build container's. `collect` holds each AArch64 package to the
   sums its build job wrote, and `release-publish` checks that the feed gives Debian and RPM servers on AArch64
   their file and bundle, as it does for x86-64. The x86-64 files, their SBOMs and `linux-build`'s two lines of
-  the sums are unchanged. `build/check-release-chain.py` now holds `release` to those six package jobs and
+  the sums are unchanged; `linux-repro` still compares the x86-64 packages alone, and the AArch64 ones are
+  built once and not compared (ReproducibleBuilds.md). `build/check-release-chain.py` now holds `release` to
+  those six package jobs, none of which may be allowed to fail or wait for a press in a tag's pipeline, and
   `collect` to where they leave the files; the update feed's `/download/hmailserver_arm64.deb` and
   `/download/hmailserver.aarch64.rpm` follow the first stable release that carries them, and its
   `--serve-check` fails a stable release that carries any server's file without its bundle. The generic arm64

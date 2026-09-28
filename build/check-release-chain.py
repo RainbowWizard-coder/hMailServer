@@ -55,8 +55,11 @@ refuses it. This checker holds them to each other. It fails when:
     (build/ci/packages/package-sbom.sh, keeping <package>.cdx.json beside it) and the
     job that installs it must be in their file, the two after the build must need it,
     and release must need all three, not optionally, the first two with their
-    artifacts; and build/ci/release-chain.py must collect the file and its SBOM from
-    where that build leaves them, as a compiled file;
+    artifacts; none of the three may be allow_failure or manual in a v* tag's
+    pipeline, in the job, a template it extends or a rule a tag can take (a needed
+    job that may fail lets release start after it failed); and
+    build/ci/release-chain.py must collect the file and its SBOM from where that
+    build leaves them, as a compiled file;
   * the release job's tag check (build/ci/release-chain.py collect), given a git
     that answers as the job's checkout would, accepts a tag signed by a key the
     tagged tree's own .gitlab/allowed_signers lists and master's does not, a tag
@@ -387,6 +390,65 @@ def gates(jobs):
     return found
 
 
+def template_order(name, jobs, seen=None):
+    """A job and every template it extends, in either spelling of extends, in the order
+    GitLab lets them decide a key: the job, then the last template named and what that
+    one extends, then the one before it."""
+    seen = set() if seen is None else seen
+    if name in seen or name not in jobs:
+        return []
+    seen.add(name)
+    order = [name]
+    extends = re.search(r"^  extends:\s*(.+?)\s*$", jobs[name], re.MULTILINE)
+    if extends:
+        for parent in reversed([n.strip() for n in extends.group(1).strip("[]").split(",") if n.strip()]):
+            order += template_order(parent, jobs, seen)
+    return order
+
+
+def rule_items(text, jobs, seen=None):
+    """The rules of a block, each item's text, with every !reference [X, rules] replaced
+    by X's own items."""
+    seen = set() if seen is None else seen
+    match = re.search(r"^  rules:\s*\n(.*?)(?=^  [A-Za-z_]|\Z)", text, re.MULTILINE | re.DOTALL)
+    items = []
+    if not match:
+        return items
+    for item in re.split(r"^    - ", match.group(1), flags=re.MULTILINE)[1:]:
+        reference = re.match(r"!reference \[([^,\]]+), rules\]", item.strip())
+        if reference:
+            if reference.group(1) not in seen:
+                seen.add(reference.group(1))
+                items += rule_items(jobs.get(reference.group(1), ""), jobs, seen)
+        else:
+            items.append(item)
+    return items
+
+
+def tag_escapes(name, jobs):
+    """How a job, in a v* tag's pipeline, could let a job that needs it start without its
+    having passed: allow_failure: true or when: manual in the job or a template it
+    extends, or in a rule of the rules it takes that a v* tag can match. A rule whose
+    if: asks for $CI_COMMIT_TAG !~ /^v/, with && alone, is one no tag matches. jobs
+    holds every block the job, its templates and their references can name."""
+    found = []
+    order = template_order(name, jobs)
+    for current in order:
+        for line in jobs[current].split("\n"):
+            if re.match(r"^  (allow_failure:\s*true|when:\s*manual)\s*$", line):
+                found.append("%s says %s" % (current, line.strip()))
+    deciding = [current for current in order if re.search(r"^  rules:", jobs[current], re.MULTILINE)]
+    for item in (rule_items(jobs[deciding[0]], jobs) if deciding else []):
+        if not re.search(r"^\s*(allow_failure:\s*true|when:\s*manual)\s*$", item, re.MULTILINE):
+            continue
+        condition = re.match(r"if:\s*(.+)", item.strip())
+        condition = condition.group(1) if condition else ""
+        if "$CI_COMMIT_TAG !~ /^v/" not in condition or "||" in condition:
+            found.append("a rule a v* tag can match, %r, makes it %s" % (
+                condition or item.strip().split("\n")[0], "manual" if "manual" in item else "allowed to fail"))
+    return found
+
+
 def need_entries(block):
     """A job's needs, each name with the text of its entry."""
     match = re.search(r"^  needs:\s*\n(.*?)(?=^  [a-z_]+:|\Z)", block, re.MULTILINE | re.DOTALL)
@@ -622,6 +684,14 @@ def check(texts, chain, feed):
             if job[role] in found and job["build"] not in needs(found[job[role]]):
                 problems.append("%s does not need %s, whose package it %s" % (
                     job[role], job["build"], "describes" if role == "sbom" else "installs"))
+        # A job release needs that may fail, or waits for a press, is no gate: GitLab
+        # starts release after it failed, or before it ran.
+        named = dict(jobs, **found)
+        for role in ("build", "sbom", "install"):
+            if job[role] in found:
+                for escape in tag_escapes(job[role], named):
+                    problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s): "
+                                    "release would carry %s past it" % (job[role], escape, name))
         sbom_job = found.get(job["sbom"], "")
         if "bash build/ci/packages/package-sbom.sh " + job["dir"] not in sbom_job or not re.search(
                 r"^      - %s\*\.cdx\.json\s*$" % re.escape(job["dir"]), sbom_job, re.MULTILINE):
@@ -1116,6 +1186,16 @@ def self_test(chain, feed):
            "rpm-fedora44-aarch64-sbom does not need rpm-fedora44-aarch64")
     broken("the arm64 .deb installed without its build", "packages-deb", "  needs: [deb-ubuntu26.04-arm64]\n", "  needs: []\n",
            "deb-ubuntu26.04-arm64-install does not need deb-ubuntu26.04-arm64")
+    broken("the arm64 .deb's install test allowed to fail", "packages-deb", ".deb-install:\n  stage: test\n",
+           ".deb-install:\n  stage: test\n  allow_failure: true\n",
+           "deb-ubuntu26.04-arm64-install can let release start in a v* tag's pipeline without its having passed (.deb-install says allow_failure: true)")
+    broken("the aarch64 .rpm's build left for a press on a tag", "packages-rpm",
+           "    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == \"true\"\n      when: manual\n",
+           "    - if: $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == \"true\"\n      when: manual\n",
+           "rpm-fedora44-aarch64 can let release start in a v* tag's pipeline without its having passed (a rule a v* tag can match")
+    broken("the arm64 .deb's SBOM job allowed to fail", "packages-deb", "deb-ubuntu26.04-arm64-sbom:\n  extends: .linix\n",
+           "deb-ubuntu26.04-arm64-sbom:\n  extends: .linix\n  allow_failure: true\n",
+           "deb-ubuntu26.04-arm64-sbom can let release start")
     broken("the arm64 .deb's SBOM kept elsewhere", "packages-deb", "      - packages-deb/ubuntu26.04-arm64/*.cdx.json\n", "      - packages-deb/*.cdx.json\n",
            "deb-ubuntu26.04-arm64-sbom does not run build/ci/packages/package-sbom.sh")
     broken("the installer signed before its SBOM is made", "ci", "    - job: release-sbom\n      artifacts: true\n", "",

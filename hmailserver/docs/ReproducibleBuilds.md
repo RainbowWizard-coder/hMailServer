@@ -21,7 +21,8 @@ What is covered, and what is not:
 |---|---|---|
 | `hMailServer.exe`, Windows x64 Release | Yes, with the same MSVC toolset, Windows SDK and libraries; from any checkout path since 26 September 2026 - the releases after 6.3.4 - and before that, 6.3.4 included, only from the path it was built in (see [What was measured on Windows](#what-was-measured-on-windows)) | Clean builds for every release (RELEASE.md step 8), one of them in a second checkout at another path |
 | `hmailserver`, the Linux binary | Yes, in the same CI image | The `linux-repro` job, wherever `linux-build` runs; a release waits for it |
-| The `.deb` and the `.rpm`, byte for byte as a whole | Yes, in the same CI image, since 26 September 2026 | `linux-repro` |
+| The x86-64 `.deb` and `.rpm`, `linux-build`'s, byte for byte as a whole | Yes, in the same CI image, since 26 September 2026 | `linux-repro` |
+| The AArch64 `.deb` and `.rpm` a release carries from 6.3.6, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s | Not checked: each is built once, cross-compiled in its distribution's own container against that release's packages of the day, and no second build has been compared with it | - |
 | The packages' own SBOMs (`<package>.cdx.json`) | Not compared: `build/asset-sbom.py` makes the same document from the same package and the same image (its self-test holds it to that), but `linux-repro` compares the packages, not the documents | - |
 | The Windows installer (`hMailServer-*.exe`, Inno Setup) | Not claimed | - |
 | `hMailServer.Updater.exe` and `hMailServer.Minidump.exe`, the two helper programs the installer puts beside `hMailServer.exe` | Not claimed: their projects pass none of the options below, not even `/Brepro`, so each carries the time it was linked | - |
@@ -222,8 +223,8 @@ the change.
 `linux-repro` (`build/ci/linux-repro.sh`) runs on linix wherever `linux-build`
 does - a pipeline of a protected ref (`master`, a `batch*` branch, a `v*` tag)
 whose change is more than documentation - after it, and a tag's `release` job
-waits for it. It takes `linux-build`'s artifact - the binary, the `.deb` and
-the `.rpm` a release ships - and makes them a second time from the same commit,
+waits for it. It takes `linux-build`'s artifact - the binary, and the x86-64
+`.deb` and `.rpm` a release ships - and makes them a second time from the same commit,
 in the same image, with the same script, `linux-build.sh`, but with everything
 that must not matter changed:
 
@@ -376,5 +377,11 @@ says what to match.
   its `ar` headers follow the builder's umask, its maintainer scripts' modes
   the checkout's, and the `.rpm`'s header holds the time it was built. Only
   the binary was compared for those.
+- **The AArch64 packages.** From 6.3.6 a release also carries
+  `hmailserver_<v>_arm64.deb` and `hmailserver-<v>-1.aarch64.rpm`, which the
+  package jobs cross-compile in Ubuntu 26.04's and Fedora 44's own containers
+  (`.gitlab/ci/packages-deb.yml`, `packages-rpm.yml`). `linux-repro` builds
+  neither, and no second build of either has been compared with the one a
+  release carries; `release-verify`'s notes in the release say so.
 - **The installer, the .NET components and the signatures**, as the table at
   the top says.

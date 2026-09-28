@@ -293,8 +293,11 @@ if [ "$arch" = aarch64 ]; then
         case "$rpm" in *.aarch64.rpm|*.noarch.rpm) ;; *) echo "FAILED: $rpm is not aarch64"; exit 3 ;; esac
         ( cd "$sysroot" && rpm2cpio "$rpm" | cpio -idm --quiet 2> /dev/null )
         # Unpacked, not installed, so no rpm database records it: the list is
-        # taken from each package as it goes in.
-        rpm -qp --qf "$rpm_format" "$rpm" >> "$facts/rpm.txt" 2> /dev/null
+        # taken from each package as it goes in. zypper verified it when it
+        # downloaded it, against the repository's metadata signed by a key imported
+        # above; this container's own rpm database need not hold that key, and an
+        # rpm that enforces signatures on reading would otherwise list nothing.
+        rpm -qp --nosignature --qf "$rpm_format" "$rpm" >> "$facts/rpm.txt" 2> /dev/null
         count=$((count + 1))
       done < <(find "$zroot/var/cache/zypp/packages" -name '*.rpm' -print0)
       echo "$count aarch64 packages unpacked" >> "$out/sysroot.log"

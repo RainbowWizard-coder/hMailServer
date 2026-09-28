@@ -179,8 +179,8 @@ def classify(name, version):
     if generic:
         if kind not in GENERIC:
             if arch == FEDORA_GENERIC_RPM[0] and version_key(version) >= version_key(FEDORA_GENERIC_RPM[1]):
-                return None, ("%s has the generic name, a copy of the Fedora 44 build, which goes in no %s repository: the fc44 "
-                              "repository takes the same build as its .fc44 file" % (name, kind))
+                return None, ("%s has the generic name, a copy of the Fedora 44 build, which goes in no %s repository: the .fc44 "
+                              "file of the same build is the one fc44's repository takes, once a release carries it" % (name, kind))
             return None, "%s has the generic name, built on Ubuntu, which goes in no %s repository" % (name, kind)
         where, since = GENERIC[kind]
         if version_key(version) < version_key(since):
@@ -861,7 +861,7 @@ def self_test():
         expect(any(name + " has the generic name, built on Ubuntu, which goes in no rpm repository" in w for w in warnings),
                "the generic .rpm %s goes in no repository, and said" % name)
     expect(any("hmailserver-6.3.5-1.aarch64.rpm has the generic name, a copy of the Fedora 44 build, which goes in no rpm "
-               "repository: the fc44 repository takes the same build as its .fc44 file" in w for w in warnings),
+               "repository: the .fc44 file of the same build is the one fc44's repository takes, once a release carries it" in w for w in warnings),
            "the generic aarch64 .rpm, a copy of the Fedora 44 build from 6.3.5, goes in no repository, and is not said to be "
            "built on Ubuntu: %s" % [w for w in warnings if "aarch64" in w])
     expect(classify("hmailserver-6.3.3-1.aarch64.rpm", "6.3.3")[1] == "hmailserver-6.3.3-1.aarch64.rpm has the generic name, built on "
@@ -887,7 +887,7 @@ def self_test():
     expect(sorted(warned_636) == sorted([
         "hmailserver-6.3.6-1.x86_64.rpm has the generic name, built on Ubuntu, which goes in no rpm repository",
         "hmailserver-6.3.6-1.aarch64.rpm has the generic name, a copy of the Fedora 44 build, which goes in no rpm repository: "
-        "the fc44 repository takes the same build as its .fc44 file"]),
+        "the .fc44 file of the same build is the one fc44's repository takes, once a release carries it"]),
            "the generic .rpms go in no repository, and only they are said: %s" % warned_636)
     expect(site_path([e for e in placed_636 if e["arch"] == "arm64"][0]) == "/" + APT_POOL + "hmailserver_6.3.6_arm64.deb",
            "the arm64 .deb is asked for in the one pool beside the amd64 one")
