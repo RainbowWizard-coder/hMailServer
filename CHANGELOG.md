@@ -130,8 +130,8 @@ for a stray `#` number or `@` name.
   `windows-packages-x64` built the unsigned x64 installer in 2887115157.
   [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no GitLab job has run, says
   the GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's
-  cleanup policy as the API does, two patterns to keep where it listed five, the three others for the owner to add
-  before the policy is switched on; it and README.md say that the fuzz schedule and Renovate's schedule and token
+  cleanup policy as the API does: it kept two of the five patterns the document listed, and the maintainers added the
+  other three through the API on 28 September 2026, before the policy is ever switched on; it and README.md say that the fuzz schedule and Renovate's schedule and token
   exist since 27 September. README.md no longer says the project has no ARM machine to build the AArch64 packages on
   (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says the pipeline does not build them,
   and Roadmap2's Windows on ARM row names the CI job it said there was not.

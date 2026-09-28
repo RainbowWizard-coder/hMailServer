@@ -1450,14 +1450,15 @@ has no image. `container-image-sign` keeps
 project's API answered on 28 September 2026:
 
 1. **The cleanup policy** is switched off. Its tags to keep
-   (`name_regex_keep`) are two patterns, `^v?[0-9]+\.[0-9]+\.[0-9]+.*$` and
-   `^latest$`; switched on, it would remove every other tag older than 90 days
-   and beyond the newest ten, every week. Before it is switched on, the owner
-   adds the three patterns it lacks, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3`
-   line) and `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures and
-   attestations), so that it never deletes a release's tags or their
-   signatures. Until 28 September 2026 this item said all five were set; the
-   API gave the two on 27 and on 28 September.
+   (`name_regex_keep`) are five patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
+   `^latest$`, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line) and
+   `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures and
+   attestations), so that, switched on, it never deletes a release's tags or
+   their signatures; it would remove every other tag older than 90 days and
+   beyond the newest ten, every week. The API gave only the first two on 27
+   and on 28 September 2026, though this item said all five were set; the
+   maintainers added the other three through the API on 28 September, before
+   the first image.
 2. **Protected container tags**: one rule, for
    `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
    so that nobody but a maintainer can push the release's tags and nobody but
