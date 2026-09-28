@@ -24,12 +24,56 @@ namespace RegressionTests.Shared
    ///    gone it waits for the clock to reach the next step. The Linux suite's
    ///    ServerApi uses it too, so that the codes a fixture takes and the ones the
    ///    fixture layer takes on its behalf never collide.
+   ///
+   ///    A test that judges codes against the server's step - the previous step's
+   ///    code is taken, the next step's is, one five steps out is not - computes
+   ///    them with At (or a CurrentCode of its own) and asks WaitForRoomInTheStep
+   ///    first, so that the step the test computes in is the step the server judges
+   ///    in.
    /// </summary>
    public static class OneTimeCodes
    {
       private const int PeriodSeconds = 30;
 
+      /// <summary>
+      ///    The seconds of a step WaitForRoomInTheStep leaves a test: every code a
+      ///    test of the server's window computes, and every sign-in that judges it,
+      ///    within one step.
+      /// </summary>
+      public const int RoomNeededSeconds = 10;
+
       private static readonly Dictionary<string, long> LastStepHandedOut = new Dictionary<string, long>();
+
+      /// <summary>
+      ///    Returns at once when at least RoomNeededSeconds of the current thirty-second
+      ///    step remain, and otherwise sleeps until the next step has begun. Asked by a
+      ///    test that computes codes relative to the current step and expects the
+      ///    server to judge them in that same step: pipeline 2887524317 (27 September
+      ///    2026) failed TwoFactorAuthentication.ACodeComputedElsewhereIsAccepted when
+      ///    the test began half a second before a step ended, computed the previous
+      ///    step's code in step s and had it judged in step s+1, two steps behind the
+      ///    server and outside its window.
+      /// </summary>
+      public static void WaitForRoomInTheStep()
+      {
+         WaitForRoomInTheStep(() => DateTimeOffset.UtcNow, Thread.Sleep);
+      }
+
+      /// <summary>WaitForRoomInTheStep with its clock and its sleep given: the wait it slept, or zero.</summary>
+      internal static TimeSpan WaitForRoomInTheStep(Func<DateTimeOffset> clock, Action<TimeSpan> sleep)
+      {
+         const long periodMilliseconds = PeriodSeconds * 1000L;
+
+         long millisecondsLeft = periodMilliseconds - clock().ToUnixTimeMilliseconds() % periodMilliseconds;
+         if (millisecondsLeft >= RoomNeededSeconds * 1000L)
+            return TimeSpan.Zero;
+
+         // A quarter of a second past the boundary, so that the step the test reads
+         // afterwards is the next one and not the last millisecond of this one.
+         TimeSpan wait = TimeSpan.FromMilliseconds(millisecondsLeft + 250);
+         sleep(wait);
+         return wait;
+      }
 
       /// <summary>A code of the secret that nobody has been handed yet, in step order.</summary>
       public static string Fresh(string base32Secret)

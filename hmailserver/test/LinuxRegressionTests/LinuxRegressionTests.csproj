@@ -75,6 +75,7 @@
     <Compile Include="..\RegressionTests\Shared\RestListener.cs" Link="Shared\RestListener.cs" />
     <Compile Include="..\RegressionTests\Shared\RestRequest.cs" Link="Shared\RestRequest.cs" />
     <Compile Include="..\RegressionTests\Shared\OneTimeCodes.cs" Link="Shared\OneTimeCodes.cs" />
+    <Compile Include="..\RegressionTests\Shared\OneTimeCodesStep.cs" Link="Shared\OneTimeCodesStep.cs" />
     <Compile Include="..\RegressionTests\Shared\POP3ClientSimulator.cs" Link="Shared\POP3ClientSimulator.cs" />
     <Compile Include="..\RegressionTests\Shared\Paths.cs" Link="Shared\Paths.cs" />
     <Compile Include="..\RegressionTests\Shared\MiniJson.cs" Link="Shared\MiniJson.cs" />

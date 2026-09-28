@@ -147,6 +147,11 @@ namespace RegressionTests.Security
 
          ClassicAssert.IsTrue(_account.TOTPEnabled);
 
+         // The step the codes below are computed in must be the step the server
+         // judges them in: begun half a second before a step ended (pipeline
+         // 2887524317), the previous step's code was two steps behind the server.
+         OneTimeCodes.WaitForRoomInTheStep();
+
          // The adjacent steps are accepted, because a client clock a second out would
          // otherwise fail at the boundary of every window. Earliest first: a code is
          // taken once, and taking one puts every earlier step behind the account
@@ -172,6 +177,10 @@ namespace RegressionTests.Security
       public void ACodeIsTakenOnceOverCom()
       {
          string secret = Enrol();
+
+         // In one step, or the step before the one taken is the one taken, refused
+         // as the same code rather than as an earlier step.
+         OneTimeCodes.WaitForRoomInTheStep();
 
          string code = CurrentCode(secret);
          ClassicAssert.IsTrue(AuthenticatesOverCom(_account.Address, Password, code), "The code's first use is taken.");

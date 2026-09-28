@@ -79,6 +79,18 @@ for a stray `#` number or `@` name.
   Roadmap.md, CONTRIBUTING.md, SUPPORT.md, the documentation index and the Feature and merge request templates
   link it. The `.deb` and `.rpm` help pages, which said no Roadmap2 row carried choosing a package by
   distribution, now name the Roadmap3.md row that does.
+- **A clock flake in the two-factor tests, not a server fault.** The Windows gate of pipeline 2887524317 failed
+  `TwoFactorAuthentication.ACodeComputedElsewhereIsAccepted` with "The previous step must be accepted": the test
+  began at 23:37:29.5 UTC, half a second before a thirty-second step ended, computed the previous step's code in
+  step s and had it judged in step s+1, two steps behind the server and outside its window of one step either side.
+  `OneTimeCodes.WaitForRoomInTheStep` now returns at once when ten seconds or more of the step remain and otherwise
+  sleeps into the next step, and the two tests that judge codes against the server's step
+  (`ACodeComputedElsewhereIsAccepted` and `ACodeIsTakenOnceOverCom`) call it after enrolling. The suite's other
+  codes come from `OneTimeCodes.Fresh`, which never hands out a step behind the clock, or are refused whatever the
+  step (a wrong code, one five steps out, a wrong password or a spent budget), so they needed nothing. The new
+  fixture `ServerFreeTests.OneTimeCodesStep` replays the failed run against a clock of its own, without a server,
+  in both suites: without the wait the previous step's code is two steps behind (its negative control), with it
+  the code is judged in its own step.
 
 ---
 
