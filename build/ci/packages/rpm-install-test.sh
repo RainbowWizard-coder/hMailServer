@@ -12,6 +12,9 @@
 #
 #   hmailserver --version answers, from the installed binary;
 #   every file a working installation needs is where the package put it;
+#   the licences are there as the tree has them - the AGPL-3.0 text, QuickJS's
+#   and /usr/share/licenses/hmailserver/copyright - installed under the image's
+#   tsflags=nodocs, and each one rpm -qL names (check-licenses.sh);
 #   %post made the service account and the directories, and left the
 #   configuration root-owned and readable by the service only;
 #   the Control Deck is the repository's, byte for byte;
@@ -113,6 +116,10 @@ for f in $REQUIRED_FILES; do
   if [ -f "$f" ]; then echo "  present  $f"; else echo "  MISSING  $f"; missing=$((missing + 1)); fi
 done
 [ "$missing" -eq 0 ] || { echo "FAILED: $missing file(s) missing"; exit 1; }
+
+echo ""
+echo "== the licences it goes out under, as installed"
+bash build/ci/packages/check-licenses.sh --installed rpm || { echo "FAILED: the installed licence files (above)"; exit 1; }
 
 echo ""
 echo "== what %post did"

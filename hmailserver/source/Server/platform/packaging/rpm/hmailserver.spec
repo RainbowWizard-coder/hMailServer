@@ -42,7 +42,8 @@ Release:        1%{?dist}
 Summary:        Mail server for SMTP, IMAP and POP3
 # The server is the project's (AGPL-3.0-or-later); compiled into it are QuickJS
 # (MIT), the MIME coder (BSD-1-Clause), CStdString (its own permissive notice)
-# and the Public Suffix List's rules, which tlds.txt also carries (MPL-2.0).
+# and the Public Suffix List's rules (MPL-2.0); tlds.txt, SURBL's 2006 list of
+# two-level country-code domains, states no licence.
 # Three more are compiled in whose licences the tag cannot name yet, which Fedora's
 # review has to settle (hmailserver/docs/SourcePackages.md): XMLite (Cho Kyung Min;
 # its own notice grants use, modification and redistribution), and Blowfish
@@ -241,6 +242,7 @@ fi
 %{_datadir}/hmailserver/WebAdmin
 %dir %{_datadir}/hmailserver/licenses
 %license %{_datadir}/hmailserver/licenses/QuickJS.txt
+%license %{_datadir}/hmailserver/licenses/AGPL-3.0.txt
 %dir %attr(0750,root,hmailserver) %{_sysconfdir}/hmailserver
 %config(noreplace) %attr(0640,root,hmailserver) %{_sysconfdir}/hmailserver/hMailServer.ini
 %config(noreplace) %{_sysconfdir}/logrotate.d/hmailserver

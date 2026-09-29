@@ -377,6 +377,9 @@ esac
 # the test it was passing (found on the first trial run on linix).
 contents=$(dpkg-deb -c "$deb")
 grep -q '\./usr/bin/hmailserver$' <<< "$contents" || { echo "FAILED: no /usr/bin/hmailserver in the package"; exit 4; }
+# And the licences it goes out under, the tree's: the AGPL-3.0 text, QuickJS's and
+# /usr/share/doc/hmailserver/copyright.
+bash build/ci/packages/check-licenses.sh "$deb" || { echo "FAILED: the package's licence files (above)"; exit 4; }
 ( cd "$out" && sha256sum -- "$made" > SHA256SUMS.txt )
 {
   echo "package $made"

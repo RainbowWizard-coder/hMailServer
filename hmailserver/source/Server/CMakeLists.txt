@@ -579,6 +579,24 @@ install(FILES ${SERVER_DIR}/quickjs/LICENSE
    DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses
    RENAME QuickJS.txt)
 
+# And hMailServer's own licence beside it, the AGPL-3.0-or-later: its section 4
+# asks for a copy of the licence to go with every copy of the program, and
+# section 6 conveys the object code on the terms of sections 4 and 5. The
+# repository's LICENSE is the FSF's text, which .gitattributes checks out with
+# CRLF line ends on every platform (and the source tarball holds as a checkout
+# does); what is installed is the FSF's file byte for byte, without them, as the
+# AppImage carries it (SHA-256 0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0).
+# Every install gets it, a distribution's own build of the source packages and
+# the PKGBUILD's included. The copyright file each package format keeps in its
+# own place is the packages' alone: CPACK_INSTALL_SCRIPTS, below.
+set(HM_AGPL_LICENSE ${SERVER_DIR}/../../../LICENSE)
+file(READ ${HM_AGPL_LICENSE} HM_AGPL_TEXT)
+string(REPLACE "\r" "" HM_AGPL_TEXT "${HM_AGPL_TEXT}")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/packaging/AGPL-3.0.txt "${HM_AGPL_TEXT}")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${HM_AGPL_LICENSE})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/packaging/AGPL-3.0.txt
+   DESTINATION ${CMAKE_INSTALL_DATADIR}/hmailserver/licenses)
+
 # The Control Deck - the administration page the REST listener serves at GET /.
 #
 # RestApiServer::HandleWebAdminPage_ builds the path as
@@ -636,8 +654,11 @@ install(FILES ${SERVER_DIR}/platform/packaging/hmailserver.logrotate
    DESTINATION /etc/logrotate.d)
 
 # Two data files the server reads from its own directory and cannot work without.
-# tlds.txt is the public-suffix list every DMARC organisational-domain decision
-# needs (TLD::Initialize reports 4335 without it); dh2048.pem is the Diffie-Hellman
+# tlds.txt is SURBL's 2006 list of two-level country-code domains (co.uk, com.ac;
+# not the Public Suffix List, which DMARC has compiled in), with which the SURBL
+# lookups and the MX-record spam test cut a host name to its domain
+# (TLD::GetDomainNameFromHost; TLD::Initialize reports 4335 without it, and every
+# name is then cut to two labels); dh2048.pem is the Diffie-Hellman
 # group, and SslContextInitializer reports a critical 5603 for EVERY TLS context
 # when it is missing - which is to say the server would install and then refuse
 # every encrypted connection. They go beside the binary, which is where the code
@@ -690,6 +711,16 @@ set(CPACK_PACKAGING_INSTALL_PREFIX /usr)
 # With DESTDIR set, every install rule runs exactly as `make install` would
 # into the staging tree, and the layout is the one the rules say.
 set(CPACK_SET_DESTDIR ON)
+# The copyright file, where each format's distributions look for it: the .deb's
+# /usr/share/doc/hmailserver/copyright (Debian Policy 12.5) and the .rpm's
+# /usr/share/licenses/hmailserver/copyright, marked %license below. CPack runs the
+# script into each package's staging tree, and `cmake --install` never runs it, so
+# the source packages, which install with CMake and place their copyright files
+# with debhelper and %license, are left to do that (the script says more). The file
+# is the Debian source package's; build/ci/packages/check-licenses.sh holds both
+# packages to it.
+set(CPACK_INSTALL_SCRIPTS ${SERVER_DIR}/platform/packaging/cpack-licenses.cmake)
+set(CPACK_HMAILSERVER_COPYRIGHT_FILE ${SERVER_DIR}/platform/packaging/debian-src/debian/copyright)
 set(CPACK_STRIP_FILES ON)
 # Reproducible packages (hmailserver/docs/ReproducibleBuilds.md). Every
 # directory the packages hold is 0755, whatever the umask of the machine that
@@ -755,16 +786,34 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 # whether the variable is set: set to OFF, it is on all the same.
 set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION ON)
 
+# The licence files, marked %license as Fedora's guidelines ask, so that rpm -qL
+# lists them: the copyright file cpack-licenses.cmake puts in, and the two texts
+# beside the data.
+list(APPEND CPACK_RPM_USER_FILELIST
+   "%license /usr/share/licenses/hmailserver/copyright"
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/AGPL-3.0.txt"
+   "%license ${CMAKE_INSTALL_FULL_DATADIR}/hmailserver/licenses/QuickJS.txt")
+
 set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
-set(CPACK_RPM_PACKAGE_LICENSE "AGPL-3.0-or-later")
+# The licences the tag can name of what the package carries: the server's own, and
+# of the code compiled into it QuickJS (MIT), the MIME coder (BSD-1-Clause),
+# CStdString (a permissive notice of its own), the Public Suffix List's rules
+# (MPL-2.0) and Boost (BSL-1.0), linked statically. The source package's spec names
+# the same less Boost, whose shared libraries it links. Neither can name a notice
+# no identifier names yet or a file that states no licence, such as tlds.txt
+# (SURBL's list of 2006): the copyright file declares those
+# (hmailserver/docs/SourcePackages.md).
+set(CPACK_RPM_PACKAGE_LICENSE
+   "AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND BSL-1.0")
 set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${SERVER_DIR}/platform/packaging/rpm/post)
 set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE ${SERVER_DIR}/platform/packaging/rpm/preun)
 # Without a %postun, rpm -e leaves systemd holding a unit file that is gone.
 set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE ${SERVER_DIR}/platform/packaging/rpm/postun)
-# /usr/lib/systemd/system and /etc/logrotate.d belong to other packages.
+# /usr/lib/systemd/system, /etc/logrotate.d and /usr/share/licenses belong to
+# other packages.
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
-   /usr/lib/systemd /usr/lib/systemd/system /etc/logrotate.d)
+   /usr/lib/systemd /usr/lib/systemd/system /etc/logrotate.d /usr/share/licenses)
 
 set(CPACK_GENERATOR "DEB;RPM")
 include(CPack)

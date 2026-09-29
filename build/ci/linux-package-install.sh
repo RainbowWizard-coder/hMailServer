@@ -15,13 +15,14 @@
 #   bash build/ci/linux-package-install.sh rpm   in Fedora
 #
 # The .deb: apt installs it with its dependencies from Ubuntu's archive; every
-# file a working installation needs is where the package says; the packaged
-# configuration is edited the way packaging/README.md tells an administrator to;
-# the server checks it, creates the schema and stores its settings as the
-# service user; then it is started the way its unit starts it - as hmailserver,
-# in /var/lib/hmailserver, with the one capability the unit grants and no new
-# privileges - and asked whether the REST API answers and whether GET / is the
-# Control Deck. Last, it is removed.
+# file a working installation needs is where the package says, and its licences
+# with it (build/ci/packages/check-licenses.sh, which the .rpm half runs too);
+# the packaged configuration is edited the way packaging/README.md tells an
+# administrator to; the server checks it, creates the schema and stores its
+# settings as the service user; then it is started the way its unit starts it -
+# as hmailserver, in /var/lib/hmailserver, with the one capability the unit
+# grants and no new privileges - and asked whether the REST API answers and
+# whether GET / is the Control Deck. Last, it is removed.
 #
 # What a container cannot prove, and the hosted runner did: the start under
 # systemd itself, with the unit's whole sandbox (ProtectSystem=strict, the
@@ -53,8 +54,10 @@ fi
 # Every file the server opens, and why each one is here (the list the old
 # workflow asserted on both package formats):
 #   hmailserver                the service
-#   tlds.txt                   the public-suffix list; without it every DMARC
-#                              organisational-domain decision reports 4335
+#   tlds.txt                   SURBL's list of two-level country-code domains,
+#                              which the SURBL lookups and the MX-record test
+#                              cut a host name with; without it TLD::Initialize
+#                              reports 4335
 #   dh2048.pem                 the Diffie-Hellman group; without it every TLS
 #                              context reports a critical 5603
 #   CreateTables*.sql          the schema --create-database runs
@@ -107,6 +110,8 @@ if [ "$kind" = rpm ]; then
   rpm -Uvh --nodeps "$rpm"
   echo "== every file a working installation needs"
   files_are_there
+  echo "== the licences it goes out under, as installed"
+  bash build/ci/packages/check-licenses.sh --installed rpm
   echo "== the scriptlet made the identity and the directories"
   getent passwd hmailserver
   ls -ld /var/lib/hmailserver /var/log/hmailserver /etc/hmailserver
@@ -180,6 +185,9 @@ for catalogue in hmailserver/installation/WebAdmin/languages/*.json; do
     || fail "the installed catalogue $(basename "$catalogue") is not the repository's"
 done
 echo "the Deck and its $(ls hmailserver/installation/WebAdmin/languages/*.json | wc -l) catalogues are the repository's, byte for byte"
+
+step "the licences it goes out under, as installed"
+bash build/ci/packages/check-licenses.sh --installed deb || fail "the installed licence files (above)"
 
 step "what postinst did with no systemd running"
 getent passwd hmailserver || fail "postinst made no hmailserver user"

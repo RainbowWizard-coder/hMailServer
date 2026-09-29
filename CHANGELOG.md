@@ -280,6 +280,22 @@ for a stray `#` number or `@` name.
   server installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its
   autopkgtest; a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had
   corrupted, not a GCC 16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
+- **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file** (not yet run in a pipeline). Until
+  now the release's `.deb` and `.rpm`, and every per-release package built with them, carried QuickJS's licence and
+  nothing of the project's own: no AGPL-3.0 text, which the AGPL's sections 4 and 6 ask to go with every copy, and no
+  copyright file, which Debian Policy 12.5 asks of every package; only the Arch package installed `LICENSE`. From
+  6.3.6 every Linux install puts hMailServer's AGPL-3.0 text, the FSF's file byte for byte, at
+  `/usr/share/hmailserver/licenses/AGPL-3.0.txt` beside `QuickJS.txt`, as the AppImages carry it; the `.deb` carries
+  `/usr/share/doc/hmailserver/copyright` and the `.rpm` `/usr/share/licenses/hmailserver/copyright` - the Debian
+  source package's machine-readable copyright file, with the AGPL in full, the terms of what is compiled into the
+  server, and what is known of the files that state no licence - among them `tlds.txt`, SURBL's 2006 list of
+  two-level country-code domains, which the project had credited to the Public Suffix List - and the `.rpm` marks all
+  three `%license`, so that `rpm -qL` lists them. Its `License` now names the licences an identifier can name,
+  `AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND BSL-1.0`, where
+  it named the AGPL alone. `build/ci/packages/check-licenses.sh` holds the three files to the tree by SHA-256, mode
+  and owner: `linux-build`, `deb-build.sh` and `rpm-build.sh` refuse a package without them, and every install test
+  checks them as installed ([PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
+  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences").
 
 ### Administration
 

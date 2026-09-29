@@ -272,9 +272,10 @@ install -m 0755 "${BINARY}" "${APPDIR}/usr/bin/hmailserver"
 #               reports a CRITICAL 5603 and every TLS context refuses the
 #               connection - an AppImage without this file is a mail server
 #               that cannot do TLS at all.
-#   tlds.txt    the public-suffix list. Without it TLD::Initialize reports 4335
-#               and every DMARC organisational-domain decision is taken without
-#               one.
+#   tlds.txt    SURBL's list of two-level country-code domains (not the Public
+#               Suffix List, which DMARC has compiled in). Without it
+#               TLD::Initialize reports 4335, and the SURBL lookups and the
+#               MX-record test cut every host name to its last two labels.
 install -m 0644 "${REPO_ROOT}/hmailserver/installation/Extras/dh2048.pem" \
    "${APPDIR}/usr/bin/dh2048.pem"
 install -m 0644 "${REPO_ROOT}/hmailserver/installation/Extras/tlds.txt" \

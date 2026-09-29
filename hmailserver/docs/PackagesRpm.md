@@ -435,6 +435,60 @@ the command line, so `CMakeLists.txt` is unchanged:
   programs do not get `CMAKE_POSITION_INDEPENDENT_CODE`, and the first run with
   `-pie` alone failed CMake's compiler ABI check and then its search for zlib.
 
+The licences
+------------
+
+From 6.3.6 every `.rpm` here, and `linux-build`'s, carries the licences it goes
+out under, each marked `%license`, so that `rpm -qL hmailserver` lists them.
+Before it, of the Linux packages only the Arch package carried hMailServer's own
+licence.
+
+- `/usr/share/licenses/hmailserver/copyright`: the Debian source package's
+  copyright file (`platform/packaging/debian-src/debian/copyright`), which is
+  plain text: who holds the copyright of what the server is built from and
+  under which licence, with the AGPL-3.0-or-later in full and the terms of what
+  is compiled into the binary - QuickJS (MIT), the MIME coder (BSD-1-Clause),
+  CStdString (a permissive notice of its own), the Public Suffix List's rules
+  (MPL-2.0) and the rest it names. It also declares, with what is known of
+  them, the files whose licence is not settled because they state none, among
+  them `/usr/bin/tlds.txt`: SURBL's 2006 list of two-level country-code
+  domains, which is not the Public Suffix List.
+- `/usr/share/hmailserver/licenses/AGPL-3.0.txt`, hMailServer's own licence, the
+  FSF's file byte for byte (the repository's `LICENSE` without its carriage
+  returns), and `QuickJS.txt` beside it, as the `.deb` and the AppImage carry
+  them.
+
+The package's `License` names every licence of what it holds that an identifier
+can name: `AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND
+LicenseRef-Fedora-UltraPermissive AND BSL-1.0`, the last for Boost, which the
+server links statically; until 6.3.6 it named the AGPL alone. It is the source
+package's spec's, plus Boost, and like the spec's it cannot name a notice
+neither SPDX nor Fedora names yet, or a file that states no licence, such as
+`tlds.txt`: the copyright file declares those. Boost's licence asks for its
+notice only with its source, and OpenSSL, libpq, OpenLDAP and zlib are the
+distribution's shared libraries, whose packages carry their own licence files:
+no other licence text is owed.
+
+The install rules put the two texts in, for every install; CPack alone puts the
+copyright file in (`platform/packaging/cpack-licenses.cmake`), so the source
+package's spec, which installs with CMake, marks its own. The package owns
+`/usr/share/licenses/hmailserver` and not `/usr/share/licenses`, which is the
+`filesystem` package's. `build/ci/packages/check-licenses.sh` holds the three
+files to the tree, by SHA-256, mode, owner and flag: `rpm-build.sh` and
+`linux-build` fail a package without them, and the install test checks them as
+installed.
+
+**Not yet run in a pipeline.** Run on the laptop on 29 September 2026:
+`linux-build`'s route (Ubuntu 26.04, clang, CPack) made the `.rpm` with the three
+files marked; in `fedora:44`, `rpm-install-test.sh` (dnf resolving every
+`Requires`) and `linux-package-install.sh rpm` passed with it, and the latter
+failed at this step with the package made before the change. Fedora 44's rpmlint
+2.8.0 reports the same 8 errors and 79 warnings before and after, none about a
+licence, and accepts the new `License`. A miniature of the tree with the same
+install rules and CPack settings made and installed the `.rpm` with UBI 9's
+(rpm 4.16), Leap 16's and Fedora 44's own CMake, rpm and package manager. No
+per-release build (`rpm-build.sh`) was run.
+
 The install test
 ----------------
 
@@ -456,11 +510,15 @@ package's architecture:
    files, the database scripts, the Control Deck (checked byte for byte against
    the repository's), the three systemd units, the update helper, the auto-ban
    hook, the configuration and the logrotate rule.
-4. `%post` made the `hmailserver` account and its directories, and left
+4. The licences are installed as the tree has them, under the image's
+   `tsflags=nodocs` where it sets one, and `rpm -qL` names each: the copyright
+   file, `AGPL-3.0.txt` and `QuickJS.txt` (`check-licenses.sh --installed rpm`;
+   [The licences](#the-licences)).
+5. `%post` made the `hmailserver` account and its directories, and left
    `/etc/hmailserver/hMailServer.ini` as `root:hmailserver 640` and a `%config`
    file.
-5. `rpm -e` takes the package off again.
-6. For Fedora 44 aarch64, the generic `hmailserver-<v>-1.aarch64.rpm` is then
+6. `rpm -e` takes the package off again.
+7. For Fedora 44 aarch64, the generic `hmailserver-<v>-1.aarch64.rpm` is then
    installed the same way, answers `--version` with release `1`, and is removed.
 
 **What the test does not do.** It does not start the server against a database,

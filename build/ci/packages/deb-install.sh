@@ -17,6 +17,9 @@
 #   * every file an installation needs is where the package says, the three
 #     systemd units among them, and postinst made the service's user and
 #     enabled its units the way deb-systemd-helper does without systemd running;
+#   * the licences are there as the tree has them: the AGPL-3.0 text, QuickJS's,
+#     and /usr/share/doc/hmailserver/copyright, which the image's dpkg keeps
+#     where it drops the rest of /usr/share/doc (check-licenses.sh);
 #   * apt removes it again.
 #
 # What it does NOT do: start the server against a database and ask the REST API.
@@ -144,6 +147,9 @@ done
 echo "all $count present, the three systemd units among them"
 cmp /usr/share/hmailserver/WebAdmin/index.html hmailserver/installation/WebAdmin/index.html \
   || fail "the installed Control Deck is not the repository's"
+
+step "the licences it goes out under, as installed"
+bash build/ci/packages/check-licenses.sh --installed deb || fail "the installed licence files (above)"
 
 step "what postinst did with no systemd running"
 getent passwd hmailserver || fail "postinst made no hmailserver user"

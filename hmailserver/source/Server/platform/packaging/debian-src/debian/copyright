@@ -101,8 +101,8 @@ Copyright: the holders each text names
 License: notices
 
 Files: hmailserver/source/Server/quickjs/*
-Copyright: 2017-2021 Fabrice Bellard
-           2017-2021 Charlie Gordon
+Copyright: 2016-2025 Fabrice Bellard
+           2017-2025 Charlie Gordon
 License: Expat
 Comment:
  QuickJS, release 2025-04-26, vendored unmodified (quickjs/VERSION) and linked
@@ -178,13 +178,33 @@ Copyright: 2006-2008 Stuart D Gathman <stuart@bmsi.com>
 License: BSD-3-clause
 
 Files: hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h
-       hmailserver/installation/Extras/tlds.txt
 Copyright: Mozilla Foundation and the Public Suffix List's contributors
 License: MPL-2.0
 Comment:
- Both are made from the Public Suffix List (https://publicsuffix.org/): the
- header compiles its rules into the server, and tlds.txt is the list the
- server reads beside its binary.
+ Made from the Public Suffix List (https://publicsuffix.org/) by
+ build/generate-public-suffix-list.ps1, and compiled into /usr/bin/hmailserver,
+ where DMARC finds a domain's organisational domain with it.
+
+Files: hmailserver/installation/Extras/tlds.txt
+Copyright: 2004-2006 SURBL
+License: none-stated
+Comment:
+ Not the Public Suffix List, which it predates: SURBL's table of two-level
+ country-code domains (com.ac, co.uk, ...), which its implementation guidelines
+ of 2006 offered, "partially-complete", to software that looks domains up in
+ its lists, so that a name under one of them is looked up at three levels.
+ Less its carriage returns, the file is byte for byte the list SURBL served at
+ http://spamcheck.freeapp.net/two-level-tlds on 27 April 2006 (last modified 14
+ April 2006; 992 lines, SHA-256
+ 1aeda16b1421a7b95396fca2e059e73abcdafaf590cdb21354a9cce614d191de, as the
+ Internet Archive holds it). SpamAssassin 3.1.8's RegistrarBoundaries.pm, whose
+ list holds every one of its domains, says of its own: "data from
+ http://spamcheck.freeapp.net/two-level-tlds , in turn from
+ http://www.bestregistrar.com/help/ccTLD.htm". SURBL published the list with no
+ copyright notice and no licence. The server reads it beside its binary
+ (/usr/bin/tlds.txt) to cut a host name to the domain it looks up in a SURBL
+ list and in the MX-record spam test (TLD::GetDomainNameFromHost); DMARC does
+ not read it.
 
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
@@ -958,11 +978,11 @@ License: XMLite
  If you fix or update XMLite then give it to me for all to have. Thanks.
 
 License: none-stated
- These files name their authors and state no licence, and the project has no
- record of one. They are declared here as they are, so that the question is
- seen: a Debian archive needs a licence for every file it distributes, and each
- of them is compiled into the server, so leaving them out is not open to this
- package the way it is for the unlicensed test data.
+ These files state no licence, and the project has no record of one. They are
+ declared here as they are, so that the question is seen: a Debian archive
+ needs a licence for every file it distributes, and each of them is compiled
+ into the server or read by it, so leaving them out is not open to this package
+ the way it is for the unlicensed test data.
 
 License: MPL-2.0
  This Source Code Form is subject to the terms of the Mozilla Public License,

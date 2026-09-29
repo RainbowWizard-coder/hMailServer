@@ -568,6 +568,10 @@ check_suggests() {
     || { echo "PACKAGING FAILED: $(basename "$1") suggests '$got', and CMakeLists.txt '$wanted_suggests'"; exit 4; }
 }
 check_suggests "$build_dir/$name"
+# And the licences it goes out under, the tree's, each marked %license: the AGPL-3.0
+# text, QuickJS's and /usr/share/licenses/hmailserver/copyright.
+bash build/ci/packages/check-licenses.sh "$build_dir/$name" \
+  || { echo "PACKAGING FAILED: the package's licence files (above)"; exit 4; }
 cp "$build_dir/$name" "$out/"
 rpm -qp --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n' "$out/$name"
 {
@@ -614,6 +618,8 @@ if [ "$target" = fedora44 ] && [ "$arch" = aarch64 ]; then
     || { tail -n 20 "$out/package.log"; echo "PACKAGING FAILED: the generic-name copy"; exit 4; }
   [ -f "$build_dir/$generic" ] || { echo "PACKAGING FAILED: CPack made no $generic"; exit 4; }
   check_suggests "$build_dir/$generic"
+  bash build/ci/packages/check-licenses.sh "$build_dir/$generic" \
+    || { echo "PACKAGING FAILED: the generic copy's licence files (above)"; exit 4; }
   mkdir -p "$out/generic"
   cp "$build_dir/$generic" "$out/generic/"
   echo "and generic/$generic"

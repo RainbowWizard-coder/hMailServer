@@ -33,6 +33,7 @@ from `hMailServer.sln` and installed by the Inno Setup scripts under
 | `hmailserver-update` | The live update's apply step: the Linux counterpart of `hMailServer.Updater.exe`, installed as `/usr/lib/hmailserver/hmailserver-update` and carried inside the AppImage. A POSIX sh script that reads the server's request, checks every line of it, verifies the package again as root, stops the unit, installs (or swaps the AppImage), starts the unit, rolls back when it does not come back, and writes the same one-line outcome the Windows helper writes. `apply`, `check`, `--dry-run`; the header is the specification. |
 | `hmailserver-update.path` | Watches `/run/hmailserver/apply-request` as root and starts the service below when the server writes it. Enabled and started by `postinst` / `%post`. |
 | `hmailserver-update.service` | A `oneshot` that runs `hmailserver-update apply` as root, outside the server's cgroup, so that stopping the server does not kill the helper. |
+| `cpack-licenses.cmake` | Puts the copyright file into the `.deb` as `/usr/share/doc/hmailserver/copyright` and into the `.rpm` as `/usr/share/licenses/hmailserver/copyright`, where each format's distributions look for it. CPack runs it for each package (`CPACK_INSTALL_SCRIPTS`); a plain `cmake --install` does not, so the source packages place their own. The file is the Debian source package's `debian-src/debian/copyright`. |
 
 The `$1` argument means completely different things to dpkg and to rpm - a verb
 in one and a count in the other - and each script says so at the top, because
@@ -172,10 +173,12 @@ From the CMakeLists install rules, with the prefix above:
 
 ```
 /usr/bin/hmailserver                        the server; one file
-/usr/bin/tlds.txt                           the public-suffix list, read from the
-                                            binary's own directory; without it every
-                                            DMARC organisational-domain decision
-                                            reports 4335
+/usr/bin/tlds.txt                           SURBL's 2006 list of two-level country-code
+                                            domains (not the Public Suffix List), read
+                                            from the binary's own directory; the SURBL
+                                            lookups and the MX-record test cut a host
+                                            name to its domain with it, and without it
+                                            TLD::Initialize reports 4335
 /usr/bin/dh2048.pem                         the Diffie-Hellman group, also read from
                                             the binary's own directory; without it
                                             every TLS context reports a critical 5603
@@ -187,6 +190,9 @@ From the CMakeLists install rules, with the prefix above:
 /usr/share/hmailserver/licenses/QuickJS.txt the licence of QuickJS, the JavaScript
                                             engine compiled into the binary for the
                                             event scripts (MIT asks for its notice)
+/usr/share/hmailserver/licenses/AGPL-3.0.txt hMailServer's own licence, the FSF's
+                                            file: the repository's LICENSE without
+                                            its carriage returns
 /usr/lib/systemd/system/hmailserver.service the unit
 /usr/lib/systemd/system/hmailserver-update.path     the live update's trigger
 /usr/lib/systemd/system/hmailserver-update.service  and the root service it starts
@@ -202,6 +208,13 @@ from the running executable's own directory (`Utilities::GetBinDirectory`), whil
 `DBScripts` and `WebAdmin` are read from `ProgramFolder` in the configuration -
 which this package sets to `/usr/share/hmailserver`. Move either and the
 corresponding pair has to move with it.
+
+CPack adds one file the install rules do not: the copyright file, where each
+format keeps it - `/usr/share/doc/hmailserver/copyright` in the `.deb` (Debian
+Policy 12.5), `/usr/share/licenses/hmailserver/copyright` in the `.rpm`, where it,
+`AGPL-3.0.txt` and `QuickJS.txt` are marked `%license` (`cpack-licenses.cmake`).
+`build/ci/packages/check-licenses.sh` holds all three to the tree, in the package
+file and as installed.
 
 Created by the maintainer scripts, not by the package payload, and therefore not
 removed with it:

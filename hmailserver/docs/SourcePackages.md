@@ -103,7 +103,7 @@ project's own files (AGPL-3.0-or-later, Martin Knafve's and the maintainers'), i
 declares every third-party notice in the repacked tarball: QuickJS (MIT, as
 `Expat`), the MIME coder (BSD-1-Clause), `CStdString` (its own notice), the RFC
 7208 test suite (BSD-3-Clause), the Public Suffix List's data compiled into the
-server and `tlds.txt` (MPL-2.0), the ATL script host, which only the Windows server
+server (MPL-2.0), `tlds.txt` (SURBL's 2006 list; no licence stated), the ATL script host, which only the Windows server
 compiles (its own notice), the DKIM corpus (Perl's terms), the licence texts
 under `hmailserver/docs/Licenses`, which are notices of components not in the
 source, and three files under `Common/Util` compiled into the server whose
@@ -506,7 +506,9 @@ Questions for a Debian or Fedora maintainer
   project writes itself, are. The spec's `License:` tag leaves them out and says
   so beside it.
 - **The Public Suffix List.** The server compiles the list's rules in
-  (`PublicSuffixListData.h`) and reads `tlds.txt` beside its binary. Debian ships
+  (`PublicSuffixListData.h`); `tlds.txt` beside its binary is not the list but
+  SURBL's 2006 table of two-level country-code domains, with no licence stated,
+  which the SURBL lookups and the MX-record test read. Debian ships
   the list as `publicsuffix` and Fedora as `publicsuffix-list`; using the
   distribution's copy needs a change to how the server loads it.
 - **Data files in `/usr/bin`.** `tlds.txt` and `dh2048.pem` are installed beside

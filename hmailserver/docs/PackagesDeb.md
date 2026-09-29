@@ -314,6 +314,7 @@ and fails if either differs. It also fails when:
 
 - the `Architecture` field is not the target's;
 - `Depends` is empty or names Boost;
+- the licence files are missing or not the tree's ([The licences](#the-licences));
 - the binary is not an executable for the target;
 - the container is not the release the file would be named after.
 
@@ -409,6 +410,48 @@ Debian 12's own Boost is 1.74, and the server needs 1.83 or later. So
 24.04 and Debian 13). Everything else comes from Debian 12's archive: GCC 12,
 CMake 3.25 and OpenSSL 3.0.
 
+The licences
+------------
+
+From 6.3.6 every `.deb` here, and `linux-build`'s, carries the licences it goes
+out under, where Debian looks for them. Before it, of the Linux packages only
+the Arch package carried hMailServer's own licence.
+
+- `/usr/share/doc/hmailserver/copyright`, the copyright file Debian Policy 12.5
+  asks every package for. It is the Debian source package's own,
+  `platform/packaging/debian-src/debian/copyright`, in Debian's machine-readable
+  format: who holds the copyright of what the server is built from and under
+  which licence, with the AGPL-3.0-or-later in full and the terms of what is
+  compiled into the binary - QuickJS (MIT), the MIME coder (BSD-1-Clause),
+  CStdString (a permissive notice of its own), the Public Suffix List's rules
+  (MPL-2.0) and the rest it names. It also declares, with what is known of them,
+  the files whose licence is not settled because they state none, among them
+  `/usr/bin/tlds.txt`: SURBL's 2006 list of two-level country-code domains,
+  which is not the Public Suffix List. Ubuntu's container images keep it where
+  their `dpkg` leaves out the rest of `/usr/share/doc`.
+- `/usr/share/hmailserver/licenses/AGPL-3.0.txt`, hMailServer's own licence, the
+  FSF's file byte for byte (the repository's `LICENSE` without its carriage
+  returns), beside `QuickJS.txt`, as the AppImage carries them.
+
+The install rules put the two texts in, for every install; CPack alone puts the
+copyright file in (`platform/packaging/cpack-licenses.cmake`), so the source
+package, which installs with CMake, places its own with debhelper. No other
+licence text is owed: Boost, which the server links statically, asks for its
+notice only with its source, and OpenSSL, libpq, OpenLDAP and zlib are the
+distribution's shared libraries, whose packages carry their own copyright files.
+`build/ci/packages/check-licenses.sh` holds the three files to the tree, by
+SHA-256, mode and owner: `deb-build.sh` and `linux-build` fail a package
+without them, and the install test checks them as installed.
+
+**Not yet run in a pipeline.** Run on the laptop on 29 September 2026:
+`linux-build`'s route (Ubuntu 26.04, clang, CPack) made the `.deb` with the
+three files; in `ubuntu:26.04`, `deb-install.sh` and `linux-package-install.sh
+deb` (the server started against PostgreSQL) passed with it, and failed at this
+step with the package made before the change. Lintian's Debian profile no longer
+reports `no-copyright-file` and reports nothing new. A miniature of the tree with
+the same install rules and CPack settings made and installed the `.deb` with
+Debian 12's, Ubuntu 24.04's and Ubuntu 26.04's own CMake and dpkg.
+
 The install test
 ----------------
 
@@ -428,9 +471,12 @@ architecture:
    files, the database scripts, the Control Deck (checked byte for byte against
    the repository's), the three systemd units, the update helper, the auto-ban
    hook, the configuration and the logrotate rule.
-5. `postinst` made the `hmailserver` user and enabled `hmailserver.service` and
+5. The licences are installed as the tree has them, and `dpkg -L` names each:
+   the copyright file, `AGPL-3.0.txt` and `QuickJS.txt` (`check-licenses.sh
+   --installed deb`; [The licences](#the-licences)).
+6. `postinst` made the `hmailserver` user and enabled `hmailserver.service` and
    `hmailserver-update.path` through `deb-systemd-helper`.
-6. `apt-get remove` takes the package off again.
+7. `apt-get remove` takes the package off again.
 
 **What the test does not do.** It does not start the server against a database,
 and it has no systemd to start the unit.
