@@ -39,6 +39,10 @@
 #   HM_START_WAIT       how long to wait for the image to answer, in seconds (300)
 #   HM_START_POSTGRES_IMAGE   --docker only: the PostgreSQL image (the one the jobs
 #                       run, by digest)
+#   HM_START_PLATFORM   --docker only: the platform to start the image as
+#                       (linux/arm64 for the arm64 image on an x86-64 machine, whose
+#                       kernel runs it through qemu-user); the job's is its service's
+#                       docker platform (container-image-start-arm64)
 #
 # Exit status: 0 when both answered as they must, 1 when not, 2 when it could not
 # be run. Nothing it prints holds a password.
@@ -61,7 +65,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --docker) [ "$#" -ge 2 ] || { echo "--docker takes an image"; exit 2; }; mode=docker; image="$2"; shift 2 ;;
     --keep) keep=1; shift ;;
-    -h|--help) sed -n '5,44p' "$0"; exit 0 ;;
+    -h|--help) sed -n '5,48p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1"; exit 2 ;;
   esac
 done
@@ -138,9 +142,12 @@ if [ "$mode" = docker ]; then
   docker network create "$names" > /dev/null || { echo "docker network create failed"; exit 2; }
   docker run -d --name "$names-db" --network "$names" --network-alias db --env-file "$work/db.env" "$POSTGRES_IMAGE" > /dev/null \
     || { echo "PostgreSQL did not start"; exit 2; }
+  platform=()
+  [ -n "${HM_START_PLATFORM:-}" ] && platform=(--platform "$HM_START_PLATFORM")
   docker run -d --name "$names-mail" --network "$names" --network-alias mail --env-file "$work/mail.env" \
-    -p 127.0.0.1::25 -p 127.0.0.1::8045 "$image" bash -c "$START_COMMAND" > /dev/null \
+    "${platform[@]}" -p 127.0.0.1::25 -p 127.0.0.1::8045 "$image" bash -c "$START_COMMAND" > /dev/null \
     || { echo "$image did not start"; exit 2; }
+  echo "the image runs as $(docker exec "$names-mail" uname -m) ($(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$image"))"
   host=127.0.0.1
   smtp_port=$(docker port "$names-mail" 25/tcp | head -n 1 | sed 's/.*://')
   rest_port=$(docker port "$names-mail" 8045/tcp | head -n 1 | sed 's/.*://')

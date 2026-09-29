@@ -100,12 +100,26 @@ for a stray `#` number or `@` name.
   (not yet run in a pipeline). The image jobs are in every protected `v*` tag's pipeline. `container-image-deb`,
   started by hand after `release-publish` once the project variable `HM_PUBLISH_IMAGE` is 1, takes the `.deb` and its
   SBOM from the published release and verifies both with cosign as the tag's pipeline. The variable is read as the
-  jobs run, not by a rule, so a release tagged before the move into the group `hmailserver` has its image pushed
-  from its own pipeline afterwards. The image is pushed only at `registry.gitlab.com/hmailserver/hmailserver`,
-  which the Compose file and the chart now name (`linux-image.sh` refuses the old path), then signed, scanned and
-  started beside PostgreSQL by `container-image-start`, which checks SMTP and the REST API. The image sets
-  `HM_INSTALL_KIND=container` and carries OCI and Artifact Hub labels
-  ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+  jobs run, not by a rule, so a release tagged before it is set has its image pushed from its own pipeline
+  afterwards; 6.3.5's own pipeline has no image jobs, so the first image is 6.3.6's. The image is pushed only at
+  `registry.gitlab.com/hmailserver/hmailserver`, which the Compose file and the chart now name (`linux-image.sh`
+  and `container-image-push.sh` refuse the old path), then signed, scanned and started beside PostgreSQL by
+  `container-image-start`, which checks SMTP and the REST API. The image sets `HM_INSTALL_KIND=container` and
+  carries OCI and Artifact Hub labels ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+
+- **The container image for linux/arm64 as well as linux/amd64, one index over both**. Each platform's image is built
+  from the release's `.deb` of its own architecture: the Dockerfile takes the `.deb` of `TARGETARCH` and runs
+  `hmailserver --version` at the end of its build, so an image whose server cannot run on its platform is never made.
+  Each platform has its own kaniko job on linix, the arm64 one under qemu-user: `linux-image-arm64` beside
+  `linux-image` in a branch's pipeline, and `container-image-amd64` and `container-image-arm64` in a tag's.
+  `container-image` joins the two under one Docker manifest list with regctl, the tool the channels already take from
+  Docker Hub, and pushes nothing until both images and the index have passed their checks; no tag names anything but
+  the index. `:latest` and `:<major>.<minor>` only move forward: a release whose image jobs run after a newer
+  release's still pushes `:<version>`, and leaves either tag where it is when the image it names says it is a newer
+  version, or its version cannot be read, which the job's log says. The index and each platform's image are signed,
+  each image has its own SBOM attested to it, and each is scanned and started beside PostgreSQL, the arm64 one under
+  emulation. By hand on linix, an arm64 image of 6.3.5, from batch41's arm64 `.deb` (the 6.3.5 release carries none),
+  built in about three minutes and passed the start test ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
 
 - **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`** (not yet
   run in a pipeline). The release carries it, signed, with its `.sigstore.json` copy. `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,

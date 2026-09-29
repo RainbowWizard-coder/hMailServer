@@ -44,13 +44,29 @@
 # TLS on it unless it is bound to loopback - which inside a container is the
 # container's own loopback - so a reachable API means a certificate and key
 # mounted in, or host networking. See docker-entrypoint.sh for every variable.
-# Ubuntu 24.04 is the base because the package's dependencies are the sonames of
-# the runner that built it (see the roadmap's Linux section); a different base
-# would refuse the .deb.
+# Ubuntu 24.04 is the base because it has what the package depends on: its
+# dependencies are the sonames and versions of the Ubuntu it was built on (see
+# the roadmap's Linux section), and a base without them would refuse the .deb.
+#
+# The image is built for linux/amd64 and linux/arm64, each from the .deb of its
+# own architecture: hmailserver_<version>_amd64.deb and hmailserver_<version>_arm64.deb,
+# the two a release carries. TARGETARCH is the architecture the build is for,
+# which BuildKit (docker build --platform) sets by itself; kaniko does not set it
+# from --custom-platform, so build/ci/linux-image.sh passes it as a build argument
+# beside that flag. The COPY below takes the .deb of that architecture from
+# packages/, so an arm64 build never installs the amd64 package, and a build
+# without TARGETARCH finds no .deb and stops. The base is pinned by the digest of
+# Ubuntu's multi-platform index, whose linux/amd64 and linux/arm64 entries are the
+# manifests the Debian package jobs name (.gitlab/ci/packages-deb.yml); the
+# builder takes the entry for the platform it builds. The pipeline builds arm64
+# on an x86-64 machine, whose kernel runs arm64 programs through qemu-user
+# (binfmt_misc), so the RUN below runs under emulation there
+# (hmailserver/docs/ContainerImage.md).
 
 FROM ubuntu:24.04@sha256:008173c23f95b170204355c12626cb5a965d779a7e1283b09e9cffbb1bf33ca3
 
-ARG HM_DEB=packages/hmailserver_*_amd64.deb
+ARG TARGETARCH
+ARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb
 
 # The package's post-install script creates the hmailserver user and the data,
 # log and configuration directories, and is written to run where there is no
@@ -68,7 +84,12 @@ RUN apt-get update \
  # Ports 25, 110, 143, 465, 587, 993 and 995 are below 1024 and the process does
  # not run as root: the one capability it needs, on the binary rather than on
  # the container.
- && setcap cap_net_bind_service=+ep /usr/bin/hmailserver
+ && setcap cap_net_bind_service=+ep /usr/bin/hmailserver \
+ # The server runs on the image's own platform, with the image's libraries: a
+ # .deb of another architecture, or a library it needs and the base lacks, stops
+ # the build here rather than the first start. It prints its version and does
+ # nothing else.
+ && hmailserver --version
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh \

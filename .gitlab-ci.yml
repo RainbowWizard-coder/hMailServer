@@ -34,6 +34,8 @@
 #   linux-package-deb, linux-package-rpm, linux-image, linux-sbom
 #                 linix: what the old GitHub workflows ran beside the build (the
 #                 block "ported from GitHub Actions" below);
+#   linux-image-arm64     linix: the container image for linux/arm64, beside
+#                 linux-image's linux/amd64 one (.gitlab/ci/container-image.yml);
 #   linux-repro   linix: linux-build's server and packages made a second time, from
 #                 another path, and compared byte for byte (build/ci/linux-repro.sh);
 #   windows-gate  bench150: the whole Windows suite in the bench's own checkout,
@@ -968,11 +970,12 @@ linux-package-rpm:
   script:
     - bash build/ci/linux-package-install.sh rpm
 
-# linux-build.yml's image job, the build half: the container image built from the .deb
-# with kaniko - no Docker daemon, no socket, no privilege - and inspected, not pushed
-# (build/ci/linux-image.sh). Publishing it is the release-chain row's. kaniko is
-# Google's image on gcr.io, pinned by digest; its debug variant carries the busybox
-# shell a job needs.
+# linux-build.yml's image job, the build half: the container image for linux/amd64
+# built from the .deb with kaniko - no Docker daemon, no socket, no privilege - and
+# inspected, not pushed (build/ci/linux-image.sh). linux-image-arm64
+# (.gitlab/ci/container-image.yml) builds the linux/arm64 one; a v* tag's image jobs
+# there push both under one index. kaniko is Google's image on gcr.io, pinned by
+# digest; its debug variant carries the busybox shell a job needs.
 linux-image:
   extends: .own-runners
   stage: test
@@ -1477,7 +1480,9 @@ windows-installer:
 # libraries linked into the AppImages' runtime (appimage-runtime-sources), the source of
 # the libraries they carry in usr/lib (appimage-bundled-sources) and the source
 # tarball, and gathers them, each but the two sources files with an SBOM: a job may need
-# fifty jobs at most on GitLab.com. helm-chart-package makes the chart. The scans are
+# fifty jobs at most on GitLab.com. helm-chart-package makes the chart, and
+# linux-image-arm64 (.gitlab/ci/container-image.yml) builds the linux/arm64 image
+# beside linux-image's linux/amd64 one. The scans are
 # allow_failure, so their failure does not stop the pipeline: release-chain.py collect
 # reads their reports instead (build/ci/security-gate.py) and refuses while a scan did
 # not finish, or found something SECURITY.md's policy counts that is in no baseline and
@@ -1489,9 +1494,10 @@ windows-installer:
 # only so that a pipeline without one is still created; the scans are not optional, so a
 # tag's pipeline without one of them is not created at all. build/check-release-chain.py
 # fails when a job of this file that can fail, a scan, a job that makes, describes or
-# installs an AArch64 package the release carries, release-packages or
-# helm-chart-package is missing here, and when one of them, or any job release-packages
-# waits for, may fail or waits for a press in a tag's pipeline.
+# installs an AArch64 package the release carries, release-packages,
+# helm-chart-package or linux-image-arm64 is missing here, and when one of them, or
+# any job release-packages waits for, may fail or waits for a press in a tag's
+# pipeline.
 release:
   stage: release
   image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
@@ -1529,6 +1535,8 @@ release:
     - job: linux-package-rpm
       artifacts: false
     - job: linux-image
+      artifacts: false
+    - job: linux-image-arm64
       artifacts: false
     - job: linux-repro
       artifacts: false

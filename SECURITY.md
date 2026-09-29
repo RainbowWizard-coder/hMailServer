@@ -354,7 +354,7 @@ CycloneDX 1.6, beside it on the release page and named after it:
 | from 6.3.6, each distribution release's own package: `hmailserver_<version>-1~<release>_<arch>.deb` for Debian 12 and 13 and Ubuntu 24.04, `hmailserver-<version>-1.<release>.<arch>.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed | `<package>.cdx.json` | The same as the generic packages', from what that release's build container recorded; where the job built Boost from boost.org's release tarball (Debian 12, EL, openSUSE) the SBOM says so |
 | from 6.3.6, `hMailServer-<version>-x86_64.AppImage` and `hMailServer-<version>-aarch64.AppImage` | `<image>.cdx.json` | The server's libraries as for a package; every library the image carries in `usr/lib`, by the Ubuntu 24.04 package and version its file came from, that file's SHA-256 (the copy in the image has a RUNPATH of its own) and the source package and version it was built from; and every Alpine package whose files the runtime in front of the image links statically, at its version, with its aports commit, its licence and each file linked |
 | from 6.3.6, the source tarball `hmailserver-<version>.tar.gz` | `hmailserver-<version>.tar.gz.cdx.json` | The third-party code and data it holds, as [SourceTarball.md](hmailserver/docs/SourceTarball.md) declares them, each held to the tarball, QuickJS at the version its `VERSION` file gives |
-| the container image, once one is published | an attestation on the image (predicate type `cyclonedx`) | Every distribution package in the image, as Syft reads it, and what the `.deb`'s own SBOM names inside the binary |
+| the container image, once one is published | an attestation on each platform's image, linux/amd64 and linux/arm64 (predicate type `cyclonedx`) | Every distribution package in that platform's image, as Syft reads it, and what that architecture's `.deb`'s own SBOM names inside the binary; the image by its digest and its platform |
 | the source tree | `hmailserver.spdx.json`, `hmailserver.cyclonedx.json` | Syft's inventory of the tree, with the native libraries it cannot see added |
 
 From 6.3.6 a release also carries `hmailserver-<version>-appimage-runtime-sources.tar.gz`, the source of the libraries
@@ -408,14 +408,15 @@ To check one, download the file and its `.cdx.json` from the release page, then:
    tool that reads CycloneDX, such as a vulnerability scanner or Dependency-Track.
 
 For the container image, once one is published ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
-"The container image"), the SBOM is an attestation stored beside the image in the registry, signed by the same
-pipeline identity as its signature:
+"The container image"), each platform's SBOM is an attestation stored beside that platform's image in the registry,
+signed by the same pipeline identity as its signature. A tag names the index over both platforms' images;
+`docker manifest inspect` of it lists each image's digest:
 
 ```
 cosign verify-attestation --type cyclonedx \
   --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
   --certificate-oidc-issuer https://gitlab.com \
-  registry.gitlab.com/hmailserver/hmailserver@sha256:<digest> | jq -r .payload | base64 -d | jq .predicate
+  registry.gitlab.com/hmailserver/hmailserver@sha256:<the platform's digest> | jq -r .payload | base64 -d | jq .predicate
 ```
 
 What an SBOM cannot say: the Linux libraries other than Boost are the distribution's, found at run time, so their

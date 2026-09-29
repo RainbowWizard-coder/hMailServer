@@ -2,87 +2,147 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The release's container image, published, signed and started: included from
-# .gitlab-ci.yml, whose release jobs this follows (hmailserver/docs/ContainerImage.md;
-# docs/ContinuousIntegration.md, "The container image"). In every protected v* tag's
-# pipeline, once release-publish has published the release, a maintainer starts the
-# first job by hand, and the rest follow it:
+# The container image, for linux/amd64 and linux/arm64 under one multi-platform
+# index: included from .gitlab-ci.yml, whose release jobs this follows
+# (hmailserver/docs/ContainerImage.md; docs/ContinuousIntegration.md, "The container
+# image").
+#
+# In a protected branch's pipeline (master, batch*), beside .gitlab-ci.yml's
+# linux-image, which builds the linux/amd64 image from linux-build's .deb:
+#
+#   linux-image-arm64     linix: the linux/arm64 image built with kaniko from
+#                         deb-ubuntu26.04-arm64's .deb, under qemu-user, checked as
+#                         linux-image checks its own, and not pushed
+#                         (build/ci/linux-image.sh with HM_IMAGE_ARCH=arm64).
+#
+# In every protected v* tag's pipeline, once release-publish has published the
+# release, a maintainer starts the first job by hand, and the rest follow it:
 #
 #   container-image-deb   GitLab's shared runners, in cosign's own image
-#                         (HM_COSIGN_IMAGE), BY HAND: the release's .deb and that .deb's
-#                         SBOM taken from the published release - not from
-#                         release-sign's artifact, which may have expired by the time
-#                         the image is pushed - each verified against its Sigstore
-#                         bundle as signed by this project's pipeline for the tag
+#                         (HM_COSIGN_IMAGE), BY HAND: the release's .deb of each
+#                         architecture, amd64 and arm64, and each .deb's SBOM taken
+#                         from the published release - not from release-sign's
+#                         artifact, which may have expired by the time the image is
+#                         pushed - each verified against its Sigstore bundle as signed
+#                         by this project's pipeline for the tag
 #                         (build/ci/container-image-deb.sh);
-#   container-image       linix: the image of packaging/docker/Dockerfile built with
-#                         kaniko from that .deb, inspected as linux-image inspects it,
-#                         and pushed to the project's container registry as :<version>,
-#                         and for a release without a suffix as :<major>.<minor> and
-#                         :latest too - a pre-release (v6.3.5-rc1) never moves those two
-#                         (build/ci/linux-image.sh with HM_IMAGE_PUSH=1);
-#   container-image-sbom  linix: the image's software bill of materials - Syft's
-#                         reading of the pushed image by its digest, with what the
-#                         .deb's own SBOM names inside the binary added
-#                         (build/ci/container-image-sbom.sh, build/asset-sbom.py);
-#   container-image-sign  GitLab's shared runners, in cosign's own image: the image
-#                         signed by its digest with Sigstore, keylessly, as this
-#                         pipeline, its SBOM attested to it (predicate type cyclonedx)
-#                         by the same identity, and both verified
-#                         (build/ci/container-image-sign.sh);
-#   container_scanning    GitLab's shared runners: GitLab's own Container Scanning
-#                         template, free on every tier, over the pushed image by
-#                         digest. A finding does not fail the pipeline (the template
-#                         makes it allow_failure); its report is the job's artifact,
-#                         for members with the Developer role or above, since the
-#                         vulnerability report is GitLab Ultimate;
-#   container-image-start linix: the pushed image, by its digest, started as a service
-#                         beside PostgreSQL through its own entrypoint, and asked
-#                         whether port 25 answers SMTP and the REST API answers over
-#                         TLS with the release's version
+#   container-image-amd64, container-image-arm64
+#                         linix: each platform's image of packaging/docker/Dockerfile
+#                         built with kaniko from its own architecture's .deb - the
+#                         arm64 one under qemu-user - checked as linux-image checks its
+#                         own, and kept, not pushed (build/ci/linux-image.sh with
+#                         HM_IMAGE_RELEASE=1);
+#   container-image       GitLab's shared runners, in regctl's image: both images,
+#                         each held to what its job checked, joined under one index
+#                         (a Docker manifest list) and pushed to the project's
+#                         container registry - each image by its digest, the index as
+#                         :<version>, and for a release without a suffix as
+#                         :<major>.<minor> and :latest too; a pre-release (v6.3.6-rc1)
+#                         never moves those two (build/ci/container-image-push.sh);
+#   container-image-sbom  linix: each platform's image's software bill of materials -
+#                         Syft's reading of the pushed image by its digest, with what
+#                         that architecture's .deb's own SBOM names inside the binary
+#                         added (build/ci/container-image-sbom.sh, build/asset-sbom.py);
+#   container-image-sign  GitLab's shared runners, in cosign's own image: the index
+#                         and each platform's image signed by digest with Sigstore,
+#                         keylessly, as this pipeline, each image's SBOM attested to
+#                         it (predicate type cyclonedx) by the same identity, and all
+#                         of it verified (build/ci/container-image-sign.sh);
+#   container_scanning, container_scanning_arm64
+#                         GitLab's shared runners: GitLab's own Container Scanning
+#                         template, free on every tier, over each platform's pushed
+#                         image by its digest. A finding does not fail the pipeline
+#                         (the template makes it allow_failure); its report is the
+#                         job's artifact, for members with the Developer role or
+#                         above, since the vulnerability report is GitLab Ultimate;
+#   container-image-start, container-image-start-arm64
+#                         linix: each platform's pushed image, by its digest, started
+#                         as a service beside PostgreSQL through its own entrypoint -
+#                         the arm64 one under qemu-user, as the service's
+#                         docker:platform - and asked whether port 25 answers SMTP and
+#                         the REST API answers over TLS with the release's version
 #                         (build/ci/container-image-start-test.sh).
 #
+# kaniko builds one platform a run and cannot join two images under one index, so
+# each platform has its own build job, and regctl - Docker Hub's regclient/regctl,
+# the tool the channels' registry mirror already takes (.gitlab/ci/channels.yml,
+# HM_REGCTL_IMAGE), here its -alpine variant of the same release, whose busybox is the
+# shell a job needs - pushes both and the index. Nothing is pushed until both images
+# are built and checked, and no tag names anything but the index.
+#
 # The switch is the PROJECT's CI/CD variable HM_PUBLISH_IMAGE, read when the jobs RUN,
-# not when the pipeline is made: container-image-deb and linux-image.sh refuse, saying
-# so and exiting non-zero, while it is anything but "1". So the jobs are there in every
-# v* tag's pipeline, and a release published before the project's move into the group
-# hmailserver on 29 September 2026 (6.3.5) has its image pushed from its own pipeline
-# after the move, by starting container-image-deb again once the variable is set - the
-# maintainers decided on 27 September 2026 to push the first image only at the lasting
-# path, registry.gitlab.com/hmailserver/hmailserver, since a container repository's
-# path is always its project's. It is a project variable, Protected (a v* tag's
-# pipeline is for a protected ref), because the project refuses pipeline variables (a schedule's
-# included), so nobody can turn the jobs on for one run. Nothing in
-# this file or .gitlab-ci.yml may set it, and no rule may read it: a rule is decided
-# when the pipeline is made, and would leave a release published before the move
-# without the jobs at all (build/check-release-chain.py holds both).
+# not when the pipeline is made: container-image-deb, linux-image.sh (for a release)
+# and container-image-push.sh refuse, saying so and exiting non-zero, while it is
+# anything but "1". So the jobs are there in every v* tag's pipeline from this file's,
+# whatever the variable was when the tag was pushed, and a release tagged before the
+# variable is set has its image pushed from its own pipeline afterwards, by starting
+# container-image-deb again once it is set. (A tag's pipeline runs the tag's own CI
+# files: 6.3.5's made its image jobs only if the variable was set when its pipeline was
+# made, and it was not, so 6.3.5 has none.) The maintainers decided on 27 September 2026
+# to push the first image only at the lasting path,
+# registry.gitlab.com/hmailserver/hmailserver, since a container repository's path is
+# always its project's. It is a project variable, Protected (a v* tag's pipeline is for
+# a protected ref), because the project refuses pipeline variables (a schedule's
+# included), so nobody can turn the jobs on for one run. Nothing in this file or
+# .gitlab-ci.yml may set it, and no rule may read it: a rule is decided when the
+# pipeline is made, and would leave a release tagged before it was set without the
+# jobs at all (build/check-release-chain.py holds both).
 #
 # container-image-deb is manual and NOT allowed to fail: a job that needs one allowed
-# to fail runs after it has failed, so container-image would start after a refusal or
-# a signature that did not verify. The jobs after it wait for it, and run once it has
+# to fail runs after it has failed, so the image would be built after a refusal or a
+# signature that did not verify. The jobs after it wait for it, and run once it has
 # passed; until someone starts it, the tag's pipeline shows as blocked on it, which is
 # what it is - the release's image is still to be pushed. A refusal fails it, and
 # running it again once the variable is set lets the rest go on.
 #
 # Why after release-publish: :latest is what the Compose file and the Helm chart pull,
 # and it must not name a release that was never published - the installer smoke test
-# before release-publish can still stop one - and the .deb is taken from the release.
+# before release-publish can still stop one - and the .deb files are taken from the
+# release.
 #
-# Nothing here holds a secret. The push and the signature's upload use the job's own
+# Nothing here holds a secret. The push and the signatures' upload use the job's own
 # registry credentials (CI_REGISTRY_USER and CI_REGISTRY_PASSWORD, which the job token
 # has for this project alone), and Sigstore takes the job's ID token. The signing is in
 # the tag's own top-level pipeline, as release-sign's is, for the same reason: Fulcio
 # names the certificate after the token's ci_config_ref_uri, which is .gitlab-ci.yml's
-# for a job of an included file too. The start test's database password is a
-# throwaway, for a service container nothing outside the job can reach.
+# for a job of an included file too. The start tests' database password is a
+# throwaway, for service containers nothing outside the job can reach.
 #
 # The Container Scanning analyzer is pinned by digest, as the other scans' images are:
 # registry.gitlab.com's security-products/container-scanning:8 as it was on
 # 26 September 2026. kaniko's image is linux-image's, by reference, so that one digest
-# serves both jobs.
+# serves every build job.
 
 include:
   - template: Jobs/Container-Scanning.gitlab-ci.yml
+
+# The linux/arm64 image in a branch's pipeline, as linux-image builds the linux/amd64
+# one: from the generic arm64 .deb deb-ubuntu26.04-arm64 made, which is manual on
+# master - there this job waits until that build has been played and has passed - and
+# at once on a batch* branch. The Dockerfile's RUN runs under qemu-user, through
+# linix's qemu-aarch64 binfmt handler (F flag), in kaniko's own unprivileged
+# container, and ends with `hmailserver --version`, so the arm64 server has started
+# on its own platform, with the image's libraries, before the image exists. Starting
+# the image itself needs a daemon or a registry, which a branch's pipeline has neither
+# of: container-image-start-arm64 starts the release's.
+linux-image-arm64:
+  extends: .own-runners
+  stage: test
+  tags: [linix]
+  image: !reference [linux-image, image]
+  needs:
+    - job: deb-ubuntu26.04-arm64
+      artifacts: true
+  timeout: 30 minutes
+  variables:
+    HM_IMAGE_ARCH: arm64
+  script:
+    - sh build/ci/linux-image.sh
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - linux-image-arm64/
 
 container-image-deb:
   stage: release
@@ -108,7 +168,10 @@ container-image-deb:
     paths:
       - container-image-deb/
 
-container-image:
+# Each platform's image, built from the release's .deb of its own architecture and
+# checked, and kept - the tarball, which container-image pushes - for seven days: the
+# push follows at once.
+container-image-amd64:
   stage: release
   tags: [linix]
   image: !reference [linux-image, image]
@@ -120,11 +183,62 @@ container-image:
   rules:
     - !reference [.release-rules, rules]
   variables:
-    HM_IMAGE_PUSH: "1"
+    HM_IMAGE_RELEASE: "1"
+    HM_IMAGE_ARCH: amd64
     HM_IMAGE_DEB_DIR: container-image-deb
-    HM_OUT_DIR: container-image
   script:
     - sh build/ci/linux-image.sh
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - container-image-amd64/
+
+container-image-arm64:
+  stage: release
+  tags: [linix]
+  image: !reference [linux-image, image]
+  needs:
+    - job: container-image-deb
+      artifacts: true
+  timeout: 30 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  variables:
+    HM_IMAGE_RELEASE: "1"
+    HM_IMAGE_ARCH: arm64
+    HM_IMAGE_DEB_DIR: container-image-deb
+  script:
+    - sh build/ci/linux-image.sh
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - container-image-arm64/
+
+# Both platforms' images pushed, under one index with the release's tags. regctl
+# 0.11.6, the -alpine variant of the release HM_REGCTL_IMAGE pins
+# (.gitlab/ci/channels.yml), by the digest of its multi-platform index as Docker Hub
+# served it on 29 September 2026. The image runs as its own user, appuser, so this job
+# cannot take .no-github, which writes /etc/hosts: regctl reaches CI_REGISTRY and
+# nothing else.
+container-image:
+  stage: release
+  image:
+    name: docker.io/regclient/regctl:v0.11.6-alpine@sha256:5fe7c6a6206e1d9d71af719674c9db03e74a4ae221a32089b691f5b55533d6ea
+    entrypoint: [""]
+  needs:
+    - job: container-image-amd64
+      artifacts: true
+    - job: container-image-arm64
+      artifacts: true
+  timeout: 30 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+  script:
+    - sh build/ci/container-image-push.sh
   artifacts:
     when: always
     expire_in: 90 days
@@ -133,8 +247,9 @@ container-image:
     reports:
       dotenv: container-image/image.env
 
-# The image's SBOM, for container-image-sign to attest: in the Linux CI image, which
-# has Syft, and with the release's .deb and that .deb's own SBOM from container-image-deb.
+# Each platform's image's SBOM, for container-image-sign to attest: in the Linux CI
+# image, which has Syft, and with the release's .deb files and their own SBOMs from
+# container-image-deb.
 container-image-sbom:
   stage: release
   tags: [linix]
@@ -185,8 +300,8 @@ container-image-sign:
     paths:
       - container-image-signed/
 
-# The template's job, held to the release's rules and handed the image by digest:
-# CS_IMAGE comes from container-image's dotenv report, which the template's
+# The template's job, held to the release's rules and handed the linux/amd64 image by
+# digest: CS_IMAGE comes from container-image's dotenv report, which the template's
 # `dependencies: []` would keep from it, so dependencies names that job.
 container_scanning:
   image: registry.gitlab.com/security-products/container-scanning:8@sha256:b90ca287f2ec7d26cd4747f258c6fc00436928b126cfb8f2c7841de435b84854
@@ -201,18 +316,38 @@ container_scanning:
       when: never
     - !reference [.release-rules, rules]
 
+# The same scan over the linux/arm64 image, by its digest: the analyzer reads the
+# image's files and runs nothing in it, so the platform is no matter to it (on linix,
+# 29 September 2026, it scanned an arm64 image of this Dockerfile by digest and found
+# the arm64 hmailserver package). CS_IMAGE is set in the job's shell, because a dotenv
+# report's variables take precedence over a job's own, and container-image's names
+# the linux/amd64 image.
+container_scanning_arm64:
+  extends: container_scanning
+  needs:
+    - job: container-image
+      artifacts: true
+  dependencies: [container-image]
+  rules:
+    - if: $CONTAINER_SCANNING_DISABLED == 'true' || $CONTAINER_SCANNING_DISABLED == '1'
+      when: never
+    - !reference [.release-rules, rules]
+  before_script:
+    - export CS_IMAGE="$HM_IMAGE_ARM64"
+    - echo "scanning the linux/arm64 image, $CS_IMAGE"
+
 # The pushed image started as a user starts it, beside PostgreSQL, and asked for SMTP
 # and the REST API: services on one network of the job's own (FF_NETWORK_PER_BUILD), so
-# that the image reaches the database by its alias; the image by the digest
-# container-image's dotenv report names (HM_IMAGE), through its own entrypoint, with
-# the command the test script names (START_COMMAND there; build/check-release-chain.py
-# holds the two to each other), which secures the new installation and starts the
-# server. The job's variables reach both services: PostgreSQL takes POSTGRES_*, the
-# image HM_*, and HM_DB_WAIT_SECONDS holds the image's entrypoint until the database
-# answers, since both start at once. CI_DEBUG_SERVICES puts both services' output in
-# the job's log; neither prints a password. A failure here comes after the push: the
-# job says which tags to delete (hmailserver/docs/ContainerImage.md, "When a job
-# fails").
+# that the image reaches the database by its alias; the image by the index's digest
+# container-image's dotenv report names (HM_IMAGE), which the runner resolves to the
+# linux/amd64 image, linix's own platform, through its own entrypoint, with the command
+# the test script names (START_COMMAND there; build/check-release-chain.py holds the
+# two to each other), which secures the new installation and starts the server. The
+# job's variables reach both services: PostgreSQL takes POSTGRES_*, the image HM_*,
+# and HM_DB_WAIT_SECONDS holds the image's entrypoint until the database answers, since
+# both start at once. CI_DEBUG_SERVICES puts both services' output in the job's log;
+# neither prints a password. A failure here comes after the push: the job says which
+# tags to delete (hmailserver/docs/ContainerImage.md, "When a job fails").
 container-image-start:
   stage: release
   tags: [linix]
@@ -252,3 +387,30 @@ container-image-start:
       command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]
   script:
     - bash build/ci/container-image-start-test.sh
+
+# The same start, of the linux/arm64 image by its own digest (HM_IMAGE_ARM64), as a
+# service of the platform linux/arm64: linix runs it through qemu-user, as it runs the
+# arm64 package jobs' containers. Named by the platform image's digest rather than the
+# index's, so that the runner's image store, which already holds the index's linux/amd64
+# image from container-image-start, can never hand this job that one. On linix, 29
+# September 2026, the arm64 image of this Dockerfile, started so by hand, answered both
+# questions 19 seconds after it started; the wait allows for a busier machine.
+container-image-start-arm64:
+  extends: container-image-start
+  needs:
+    - job: container-image
+      artifacts: true
+  timeout: 30 minutes
+  rules:
+    - !reference [.release-rules, rules]
+  variables:
+    HM_START_WAIT: "600"
+  services:
+    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+      alias: db
+      pull_policy: if-not-present
+    - name: $HM_IMAGE_ARM64
+      alias: mail
+      docker:
+        platform: linux/arm64
+      command: ["bash", "-c", "hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new-install-defaults && exec hmailserver --config /etc/hmailserver/hMailServer.ini --foreground"]

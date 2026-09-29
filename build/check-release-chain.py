@@ -141,15 +141,32 @@ refuses it. This checker holds them to each other. It fails when:
     group's path, registry.gitlab.com/hmailserver/hmailserver, sign before the push, sign
     without an ID token for Sigstore or in another image than HM_COSIGN_IMAGE, or
     build/ci/container-image-sign.sh expects another identity or log than the
-    release's files are signed with, or no longer attests the image's SBOM
-    (container-image-sbom, build/ci/container-image-sbom.sh) to it and verifies the
-    attestation; or container-image-start does not start the pushed image with the
-    command its test script names, on a network of its own; or the switch, the
-    project's own CI/CD variable HM_PUBLISH_IMAGE, is not read as the jobs run -
-    container-image-deb.sh and linux-image.sh must refuse, exiting non-zero, unless
-    it is "1" - or is read by a rule, which is decided when the pipeline is made and
-    would leave a release published before the project's move without the jobs; or
-    a committed CI file sets that variable;
+    release's files are signed with, or no longer attests each platform's SBOM
+    (container-image-sbom, build/ci/container-image-sbom.sh) to that platform's image
+    and verifies the attestation; or container-image-start does not start the pushed
+    image with the command its test script names, on a network of its own; or the
+    switch, the project's own CI/CD variable HM_PUBLISH_IMAGE, is not read as the jobs
+    run - container-image-deb.sh, linux-image.sh and container-image-push.sh must
+    refuse, exiting non-zero, unless it is "1" - or is read by a rule, which is
+    decided when the pipeline is made and would leave a release tagged before it was
+    set without the jobs; or a committed CI file sets that variable;
+  * a platform of the image (IMAGE_PLATFORMS, linux/amd64 and linux/arm64) is left
+    out anywhere: the Dockerfile must take the .deb of TARGETARCH and run the server
+    in the build, linux-image.sh build for the platform asked for, a branch's
+    pipeline build each platform (linux-image, linux-image-arm64 from
+    deb-ubuntu26.04-arm64's .deb, both needed by release), a tag's pipeline take each
+    architecture's .deb and SBOM from the release, build each platform's image in a
+    job of its own, push both under one index with regctl pinned by digest (the -alpine
+    variant of the release HM_REGCTL_IMAGE pins), make, sign and attest each
+    platform's SBOM, sign the index, scan each platform's image and start each, the
+    arm64 one as a service of that platform;
+  * container-image-push.sh can move :latest or :<major>.<minor> backwards: it must
+    list the repository's tags, make a tag that does not exist, read the version label
+    of the image an existing one names, move it for this version or an older one and
+    leave it for a newer one or one it cannot read, put no tag on the index but through
+    move(), and its version_order, run here under sh, must compare number by number
+    (6.3.10 is newer than 6.3.9);
+  * a file this checker reads is not in the tree (reported, and never a traceback);
   * a file the release carries from 6.3.6 is not gathered, described and tested
     before release starts: each distribution release's .deb and .rpm, the two
     AppImages and the source tarball (build/ci/release-chain.py's gathered_builds)
@@ -252,6 +269,9 @@ FILES = {
     "image-sign": os.path.join("build", "ci", "container-image-sign.sh"),
     "image-deb": os.path.join("build", "ci", "container-image-deb.sh"),
     "image-build": os.path.join("build", "ci", "linux-image.sh"),
+    "image-push": os.path.join("build", "ci", "container-image-push.sh"),
+    "image-sbom": os.path.join("build", "ci", "container-image-sbom.sh"),
+    "dockerfile": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "docker", "Dockerfile"),
     "image-start": os.path.join("build", "ci", "container-image-start-test.sh"),
     "export": os.path.join(".gitlab", "ci", "forge-export.yml"),
     # The package builds (.gitlab-ci.yml includes them): held to the old routes too.
@@ -282,16 +302,28 @@ FILES = {
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
                 "release-publish"]
 # The container image's jobs, in .gitlab/ci/container-image.yml, and what each must
-# need: the .deb is taken from the release once it is published, the image built from
-# it and pushed, and signed, scanned and started once it is pushed.
+# need: the .deb files are taken from the release once it is published, each
+# platform's image built from its own and checked, both pushed under one index, and
+# signed, scanned and started once they are pushed.
 IMAGE_JOBS = {
     "container-image-deb": ["release-publish"],
-    "container-image": ["container-image-deb"],
+    "container-image-amd64": ["container-image-deb"],
+    "container-image-arm64": ["container-image-deb"],
+    "container-image": ["container-image-amd64", "container-image-arm64"],
     "container-image-sbom": ["container-image", "container-image-deb"],
     "container-image-sign": ["container-image", "container-image-sbom"],
     "container_scanning": ["container-image"],
+    "container_scanning_arm64": ["container-image"],
     "container-image-start": ["container-image"],
+    "container-image-start-arm64": ["container-image"],
 }
+# The platforms the image is built for, as dpkg and the OCI name their architectures:
+# one image of each under one index, each from the release's .deb of its architecture.
+IMAGE_PLATFORMS = ("amd64", "arm64")
+# The image container-image pushes with: regctl's -alpine variant, from Docker Hub,
+# pinned by digest, at the release the channels' HM_REGCTL_IMAGE pins.
+REGCTL_ALPINE = re.compile(r"^docker\.io/regclient/regctl:(v[0-9][A-Za-z0-9._\-]*)-alpine@sha256:[0-9a-f]{64}$")
+CHANNELS_REGCTL = re.compile(r'^    HM_REGCTL_IMAGE: "docker\.io/regclient/regctl:(v[0-9][A-Za-z0-9._\-]*)@sha256:[0-9a-f]{64}"\s*$', re.MULTILINE)
 # The first of them, which a maintainer starts by hand; every other one needs it, and
 # so runs only after it.
 IMAGE_FIRST = "container-image-deb"
@@ -306,7 +338,7 @@ IMAGE_FIRST = "container-image-deb"
 # pipeline is made, and would leave that release without them. The two scripts that
 # fetch and push refuse, exiting non-zero, unless it is "1". Nothing committed may set it.
 RUNTIME_GATE = 'if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then'
-GATED_SCRIPTS = ("image-deb", "image-build")
+GATED_SCRIPTS = ("image-deb", "image-build", "image-push")
 # Jobs that need not begin with REFUSAL, because their own rules match nothing a
 # downstream pipeline (source "pipeline", on master) is, or run in one on purpose -
 # each with the text that makes it so. None of them is a gate of a tag's pipeline,
@@ -1324,11 +1356,13 @@ def check(texts, chain, feed):
                             "(%s ... exit <n>)" % (FILES[key], RUNTIME_GATE))
     # The push goes to the group's path alone: a switch set before the project's move
     # would otherwise push to the first path, an address the image would lose with it.
-    build = texts["image-build"]
-    if "\n    registry.gitlab.com/hmailserver/hmailserver) ;;\n" not in build or \
-            re.search(r"^[ \t]*[^#\n]*registry\.gitlab\.com/progressiverobot/hmailserver[^\n]*\)[ \t]*;;", build, re.MULTILINE):
-        problems.append("build/ci/linux-image.sh does not push to registry.gitlab.com/hmailserver/hmailserver alone: "
-                        "it would push from the project's first path, whose image changes its address with the move")
+    # linux-image.sh builds a release's image for nowhere else, and container-image-push.sh
+    # pushes nowhere else.
+    for key in ("image-build", "image-push"):
+        if not re.search(r"^[ \t]+registry\.gitlab\.com/hmailserver/hmailserver\) ;;$", texts[key], re.MULTILINE) or \
+                re.search(r"^[ \t]*[^#\n]*registry\.gitlab\.com/progressiverobot/hmailserver[^\n]*\)[ \t]*;;", texts[key], re.MULTILINE):
+            problems.append("%s does not push to registry.gitlab.com/hmailserver/hmailserver alone: "
+                            "it would push from the project's first path, whose image changes its address with the move" % FILES[key])
     fetch = texts["image-deb"]
     for needle, why in (('cosign verify-blob $verify_flags --bundle "$out/$name.cosign.bundle"', "each file verified against its bundle"),
                         ("  || fail \"this cosign has no verify-blob --new-bundle-format", "the bundle read strictly, as the "
@@ -1341,6 +1375,8 @@ def check(texts, chain, feed):
                         ('"id=$project_id") id_said="$project_id" ;;', "the project's id in the certificate"),
                         ('https://gitlab.com/hmailserver/hmailserver//*) fail', "the id required at the group's path"),
                         ('for name in "$deb" "$deb.cdx.json"; do', "the .deb and its SBOM"),
+                        ('for arch in %s; do' % " ".join(IMAGE_PLATFORMS), "each platform's .deb"),
+                        ('deb="hmailserver_${version}_${arch}.deb"', "the .deb of each architecture"),
                         ('"$api/packages/generic/hmailserver/$version/$name"', "from the release's own files")):
         if needle not in fetch:
             problems.append("build/ci/container-image-deb.sh no longer has %s (%s)" % (needle, why))
@@ -1349,10 +1385,11 @@ def check(texts, chain, feed):
         if not line.lstrip().startswith("#") and re.search(r"TOKEN|PASSWORD|--header|Authorization", line, re.IGNORECASE):
             problems.append("build/ci/container-image-deb.sh line %d sends or names a credential, over a TLS its wget does not "
                             "check: %s" % (number, line.strip()))
-    push = image_jobs.get("container-image", "")
-    if push and not (re.search(r'^    HM_IMAGE_PUSH: "1"\s*$', push, re.MULTILINE) and "build/ci/linux-image.sh" in push):
-        problems.append("container-image does not run build/ci/linux-image.sh with HM_IMAGE_PUSH=1")
-    for name in ("container-image", "container-image-sbom"):
+    problems += image_platform_problems(texts, jobs, image_jobs)
+    found, said = image_tag_problems(texts)
+    problems += found
+    notes += said
+    for name in ["container-image-" + arch for arch in IMAGE_PLATFORMS] + ["container-image-sbom"]:
         if name in image_jobs and not re.search(r"^    HM_IMAGE_DEB_DIR: container-image-deb\s*$", image_jobs[name], re.MULTILINE):
             problems.append("%s does not take the .deb from container-image-deb's artifact (HM_IMAGE_DEB_DIR: container-image-deb), "
                             "the bytes taken from the published release and verified" % name)
@@ -1384,6 +1421,12 @@ def check(texts, chain, feed):
         problems.append("container_scanning does not take container-image's dotenv report (dependencies: [container-image]): "
                         "the template's dependencies: [] leaves it no CS_IMAGE")
     image_script = texts["image-sign"]
+    for needle, why in (('platforms="%s"' % " ".join(IMAGE_PLATFORMS), "every platform's image signed"),
+                        ('\nsign index "$index"\n', "the index, which every tag names, signed"),
+                        ('  sign "$arch" "$image"\n', "each platform's image signed by its own digest"),
+                        ('  sbom="container-image-sbom/hmailserver-image-$arch.cdx.json"\n  sign "$arch"', "each platform's own SBOM attested to it")):
+        if needle not in image_script:
+            problems.append("build/ci/container-image-sign.sh no longer has %s (%s)" % (needle.strip(), why))
     if TAG_SCRIPT_IDENTITY not in image_script:
         problems.append("build/ci/container-image-sign.sh expects another identity than %s" % TAG_SCRIPT_IDENTITY)
     group_case = "  %s) repository=%s ;;\n" % (GROUP_PATH.split("/", 3)[3], GROUP_PATH)
@@ -1396,7 +1439,7 @@ def check(texts, chain, feed):
         problems.append("build/ci/container-image-sign.sh no longer turns the signing configuration off")
     for needle, why in (('cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image"', "the SBOM attested to the image"),
                         ('cosign verify-attestation $verify_flags --type cyclonedx --certificate-identity "$identity"', "the attestation verified as the release's identity"),
-                        ("sbom=container-image-sbom/hmailserver-image.cdx.json", "the SBOM container-image-sbom made")):
+                        ('sbom="container-image-sbom/hmailserver-image-$arch.cdx.json"', "the SBOM container-image-sbom made")):
         if needle not in image_script:
             problems.append("build/ci/container-image-sign.sh no longer has %s (%s): the image would go out without its SBOM" % (needle, why))
     image_sbom = image_jobs.get("container-image-sbom", "")
@@ -1985,8 +2028,225 @@ def byte_search_problems(texts):
     return problems
 
 
+def image_platform_problems(texts, jobs, image_jobs):
+    """Every place a platform of the container image (IMAGE_PLATFORMS) could be left
+    out: the Dockerfile, the build script, the branch's jobs, the tag's build, push,
+    SBOM, scanning and start jobs, and the scripts they run. jobs are .gitlab-ci.yml's."""
+    problems = []
+    platforms = " ".join(IMAGE_PLATFORMS)
+    dockerfile = texts["dockerfile"]
+    for needle, why in (("\nARG TARGETARCH\n", "the architecture the build is for"),
+                        ("\nARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb\n", "the .deb of that architecture"),
+                        ("\nCOPY ${HM_DEB} /tmp/hmailserver.deb\n", "that .deb copied in"),
+                        ("\n && hmailserver --version\n", "the server run on the image's platform in the build")):
+        if needle not in dockerfile:
+            problems.append("%s no longer has %r (%s): an image could be built from the .deb of another architecture"
+                            % (FILES["dockerfile"], needle.strip(), why))
+    if re.search(r"^[^#\n]*hmailserver_\*?_?(amd64|arm64)\.deb", dockerfile, re.MULTILINE):
+        problems.append("%s names one architecture's .deb: each platform's image takes its own" % FILES["dockerfile"])
+    build = texts["image-build"]
+    for needle, why in (('--custom-platform "linux/$arch"', "kaniko builds the platform asked for"),
+                        ('--build-arg "TARGETARCH=$arch"', "the Dockerfile takes that architecture's .deb"),
+                        ("\n  amd64|arm64) ;;\n", "the two platforms, and no other"),
+                        ('grep -q "\\"architecture\\":\\"$arch\\"" "$out/image.json"', "the image is for that architecture"),
+                        ('"hMailServer $expected build "', "the server answered in the build")):
+        if needle not in build:
+            problems.append("%s no longer has %s (%s)" % (FILES["image-build"], needle.strip(), why))
+
+    # A branch's pipeline builds both platforms, and release waits for both.
+    arm = image_jobs.get("linux-image-arm64", "")
+    if not arm:
+        problems.append("%s has no linux-image-arm64 job: a branch's pipeline would not build the linux/arm64 image" % FILES["image"])
+    else:
+        if not re.search(r"^    HM_IMAGE_ARCH: arm64\s*$", arm, re.MULTILINE) or "- sh build/ci/linux-image.sh" not in arm \
+                or "- linux-image-arm64/" not in arm:
+            problems.append("linux-image-arm64 does not build the linux/arm64 image with build/ci/linux-image.sh "
+                            "(HM_IMAGE_ARCH: arm64) and keep linux-image-arm64/")
+        if "artifacts: true" not in need_entries(arm).get("deb-ubuntu26.04-arm64", ""):
+            problems.append("linux-image-arm64 does not need deb-ubuntu26.04-arm64 with its artifacts, whose .deb the release carries")
+        if not re.search(r"^  extends: \.own-runners\s*$", arm, re.MULTILINE) or re.search(r"^  (allow_failure|when):", arm, re.MULTILINE):
+            problems.append("linux-image-arm64 does not take .own-runners' rules alone, as linux-image does")
+    release_needs = need_entries(jobs.get("release", ""))
+    for name in ("linux-image", "linux-image-arm64"):
+        if name not in release_needs:
+            problems.append("release does not need %s: a release could be made whose image does not build for every platform" % name)
+
+    # A tag's pipeline: each platform's image in a job of its own.
+    for arch in IMAGE_PLATFORMS:
+        name = "container-image-" + arch
+        block = image_jobs.get(name, "")
+        if not block:
+            continue
+        if not (re.search(r'^    HM_IMAGE_RELEASE: "1"\s*$', block, re.MULTILINE)
+                and re.search(r"^    HM_IMAGE_ARCH: %s\s*$" % arch, block, re.MULTILINE)
+                and "- sh build/ci/linux-image.sh" in block and ("- container-image-%s/" % arch) in block):
+            problems.append("%s does not build the release's linux/%s image with build/ci/linux-image.sh (HM_IMAGE_RELEASE \"1\", "
+                            "HM_IMAGE_ARCH: %s) and keep container-image-%s/ for container-image" % (name, arch, arch, arch))
+        if "artifacts: true" not in need_entries(block).get("container-image-deb", ""):
+            problems.append("%s does not take container-image-deb's artifact, the release's .deb files" % name)
+    for name in image_jobs:
+        if re.match(r"^container-image-(?!deb$|sbom$|sign$|start)", name) and name[len("container-image-"):] not in IMAGE_PLATFORMS:
+            problems.append("%s builds an image of a platform the image is not built for (%s)" % (name, platforms))
+
+    # The push: both platforms' images, in regctl's image pinned by digest, under one index.
+    push = image_jobs.get("container-image", "")
+    if push:
+        if "- sh build/ci/container-image-push.sh" not in push:
+            problems.append("container-image does not run build/ci/container-image-push.sh")
+        image = re.search(r"^    name: (\S+)\s*$", push, re.MULTILINE)
+        pinned = REGCTL_ALPINE.match(image.group(1)) if image else None
+        channels = CHANNELS_REGCTL.search(texts["ci-includes"].get(".gitlab/ci/channels.yml", ""))
+        if not pinned:
+            problems.append("container-image does not run in docker.io/regclient/regctl:<version>-alpine pinned by digest (%s)"
+                            % (image.group(1) if image else "no image"))
+        elif not channels or channels.group(1) != pinned.group(1):
+            problems.append("container-image's regctl is %s, not the release HM_REGCTL_IMAGE pins in .gitlab/ci/channels.yml (%s)"
+                            % (pinned.group(1), channels.group(1) if channels else "none"))
+        for arch in IMAGE_PLATFORMS:
+            if "artifacts: true" not in need_entries(push).get("container-image-" + arch, ""):
+                problems.append("container-image does not take container-image-%s's artifact, the linux/%s image" % (arch, arch))
+        if "dotenv: container-image/image.env" not in push:
+            problems.append("container-image does not hand its dotenv report, the images by digest, to the jobs after it")
+    script = texts["image-push"]
+    for needle, why in (('platforms="%s"' % platforms, "both platforms' images"),
+                        ('( cd "$dir" && sha256sum -c SHA256SUMS.txt )', "each tarball the one its job checked"),
+                        ("--media-type application/vnd.docker.distribution.manifest.list.v2+json", "one index"),
+                        ('--ref "$layout:amd64" --ref "$layout:arm64"', "naming both platforms' images"),
+                        ('regctl image digest --platform "linux/$arch" "$layout:$version"', "each platform's entry checked"),
+                        ('regctl image digest --platform "linux/$arch" "$repository@$index"', "and read back from the registry"),
+                        ('echo "HM_IMAGE_AMD64=$repository@$digest_amd64"', "the linux/amd64 image named for the jobs after"),
+                        ('echo "HM_IMAGE_ARM64=$repository@$digest_arm64"', "the linux/arm64 image named for the jobs after")):
+        if needle not in script:
+            problems.append("%s no longer has %s (%s)" % (FILES["image-push"], needle, why))
+    checked = script.find("regctl index create")
+    login = script.find("regctl registry login")
+    if checked < 0 or login < 0 or login < checked:
+        problems.append("%s logs in to the registry before both platforms' images and the index are made and checked" % FILES["image-push"])
+
+    # Each platform's SBOM, scan and start.
+    sbom = texts["image-sbom"]
+    for needle, why in (("platforms=(%s)" % platforms, "every platform's SBOM"),
+                        ('variable="HM_IMAGE_${arch^^}"', "each platform's image by its own digest"),
+                        ('--image "$image" --arch "$arch"', "each document naming its platform"),
+                        ('deb="$signed/hmailserver_${version}_${arch}.deb"', "from that architecture's .deb's own SBOM")):
+        if needle not in sbom:
+            problems.append("%s no longer has %s (%s)" % (FILES["image-sbom"], needle, why))
+    scan = image_jobs.get("container_scanning_arm64", "")
+    if scan and not (re.search(r"^  extends: container_scanning\s*$", scan, re.MULTILINE)
+                     and re.search(r"^  dependencies: \[container-image\]\s*$", scan, re.MULTILINE)
+                     and '    - export CS_IMAGE="$HM_IMAGE_ARM64"' in scan):
+        problems.append("container_scanning_arm64 does not scan the linux/arm64 image: it must extend container_scanning, take "
+                        "container-image's dotenv report and set CS_IMAGE to HM_IMAGE_ARM64 in its shell, since the report's "
+                        "CS_IMAGE, the linux/amd64 image, outranks a job's own variables")
+    start = image_jobs.get("container-image-start-arm64", "")
+    command = re.search(r"^START_COMMAND='([^'\n]+)'$", texts["image-start"], re.MULTILINE)
+    if start and not (re.search(r"^  extends: container-image-start\s*$", start, re.MULTILINE)
+                      and re.search(r"^    - name: \$HM_IMAGE_ARM64\s*\n      alias: mail\s*\n      docker:\s*\n"
+                                    r"        platform: linux/arm64\s*$", start, re.MULTILINE)
+                      and command and '      command: ["bash", "-c", "%s"]' % command.group(1) in start):
+        problems.append("container-image-start-arm64 does not start the linux/arm64 image (HM_IMAGE_ARM64) as the service mail "
+                        "of the platform linux/arm64, with the test script's START_COMMAND, as container-image-start's twin")
+    return problems
+
+
+# container-image-push.sh's version_order, run under sh against these cases: A, B, and
+# what A is against B. Numbers, not text: 6.3.10 is newer than 6.3.9.
+VERSION_ORDER_CASES = (("6.3.10", "6.3.9", "newer"), ("6.3.9", "6.3.10", "older"), ("6.3.6", "6.3.6", "same"),
+                       ("6.4.0", "6.3.99", "newer"), ("7.0.0", "6.10.10", "newer"), ("10.0.0", "9.0.0", "newer"),
+                       ("6.3.5", "6.3.6", "older"), ("0.0.1", "0.0.0", "newer"))
+# What each version_order text answered, so that the self-test's copies of the tree,
+# which change other files, run sh once for it.
+_version_order_answers = {}
+
+
+def version_order_answers(function):
+    """The answers of the shell function `function` (version_order) to each of
+    VERSION_ORDER_CASES, from one run of sh; None where there is no sh."""
+    if function in _version_order_answers:
+        return _version_order_answers[function]
+    shell = shutil.which("sh")
+    if not shell:
+        return None
+    script = function + "\n" + "".join("version_order %s %s\n" % (a, b) for a, b, _ in VERSION_ORDER_CASES)
+    try:
+        run = subprocess.run([shell, "-c", script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
+        answers = run.stdout.decode("utf-8", "replace").split()
+    except (OSError, subprocess.SubprocessError) as error:
+        answers = ["(sh: %s)" % error]
+    _version_order_answers[function] = answers
+    return answers
+
+
+def image_tag_problems(texts):
+    """(problems, notes): container-image-push.sh moves :latest and :<major>.<minor> only
+    forward. It lists the tags that exist, makes a tag that does not, reads the version
+    label of what an existing one names, moves it for this version or an older one,
+    leaves it for a newer one and for one it cannot read, and puts no tag on the index
+    but through move(); its version_order compares number by number, run here under sh."""
+    problems, notes = [], []
+    script = texts["image-push"]
+    name = FILES["image-push"]
+    plain = r"(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})"
+    for needle, why in (("plain='%s'" % plain, "a version of plain numbers, compared as numbers"),
+                        ('if printf \'%s\\n\' "$version" | grep -Eqx "$plain"; then\n  moving="${version%.*} latest"',
+                         "only a version without a suffix moves them"),
+                        ('regctl tag ls "$repository"', "the tags that exist, read from the registry"),
+                        ("      keep \"$t\" \"the repository's tags could not be listed",
+                         "each left where it is when the tags cannot be listed"),
+                        ('    if ! grep -qxF "$t" "$work/tags"; then\n      move "$t" "it did not exist yet"',
+                         "a tag made where there is none"),
+                        ('current=$(regctl image config "$repository:$t" --platform linux/amd64 \\\n'
+                         '      --format \'{{ index .Config.Labels "org.opencontainers.image.version" }}\'',
+                         "the version the tag names now, read from its image's label"),
+                        ('    if ! printf \'%s\\n\' "$current" | grep -Eqx "$plain"; then',
+                         "a label that is not a plain version counted as unreadable"),
+                        ('      keep "$t" "the image it names has no version this job can read',
+                         "a tag whose version cannot be read left where it is"),
+                        ('    case "$(version_order "$version" "$current")" in', "the two versions compared"),
+                        ('      newer) move "$t"', "moved on for a newer version"),
+                        ('      same) move "$t"', "moved again when this release is run again"),
+                        ('      older) keep "$t"', "never moved back to an older version")):
+        if needle not in script:
+            problems.append("%s no longer has %s (%s): :latest or :<major>.<minor> could be moved backwards"
+                            % (name, needle.splitlines()[0].strip(), why))
+    # Every copy onto a tag of the repository: the version's own, and move()'s.
+    copies = re.findall(r'regctl image copy "([^"]*)" "\$repository:([^"]*)"', script)
+    mover = re.search(r"^move\(\) \{\n(.*?)^\}", script, re.MULTILINE | re.DOTALL)
+    if sorted(copies) != sorted([("$layout:$version", "$version"), ("$repository@$index", "$1")]) or not mover \
+            or 'regctl image copy "$repository@$index" "$repository:$1"' not in mover.group(1):
+        problems.append("%s puts a tag on the index outside move(), which alone is called once the version the tag "
+                        "names is compared: %s" % (name, ", ".join("%s -> :%s" % c for c in copies) or "no copy"))
+    function = re.search(r"^version_order\(\) \{\n.*?^\}\n", script, re.MULTILINE | re.DOTALL)
+    if not function:
+        problems.append("%s has no version_order function: versions are not compared number by number" % name)
+        return problems, notes
+    answers = version_order_answers(function.group(0))
+    if answers is None:
+        if os.environ.get("CI") or os.environ.get("GITLAB_CI"):
+            problems.append("there is no sh to run %s's version_order with" % name)
+        else:
+            notes.append("no sh here: %s's version_order was not run against its cases (CI runs it)" % name)
+        return problems, notes
+    wrong = ["%s against %s is %s, not %s" % (a, b, got, want) for (a, b, want), got
+             in zip(VERSION_ORDER_CASES, answers + ["nothing"] * len(VERSION_ORDER_CASES)) if got != want]
+    if wrong or len(answers) != len(VERSION_ORDER_CASES):
+        problems.append("%s's version_order does not compare versions number by number: %s"
+                        % (name, "; ".join(wrong) or "it answered %s" % " ".join(answers)))
+    return problems, notes
+
+
 def load_texts():
-    texts = dict((key, read(relative)) for key, relative in FILES.items())
+    """Each file of FILES by its key, and the tree's other texts. A file the tree lacks
+    is read as empty and named in texts["missing"], which run_checks reports."""
+    texts = {}
+    missing = []
+    for key, relative in FILES.items():
+        try:
+            texts[key] = read(relative)
+        except (OSError, UnicodeDecodeError):
+            texts[key] = ""
+            missing.append(relative.replace(os.sep, "/"))
+    texts["missing"] = missing
     texts["tree"] = tree_files()
     texts["permalinks"] = permalink_texts()
     texts["ci-includes"] = dict((name, read(name)) for name in texts["tree"]
@@ -2261,10 +2521,12 @@ def self_test(chain, feed):
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
     broken("the .deb taken before the release is published", "image", "    - job: release-publish\n      artifacts: false\n", "",
            "container-image-deb does not need release-publish")
-    broken("the image pushed for a branch", "image", "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_PUSH",
-           "    - if: $CI_COMMIT_BRANCH\n  variables:\n    HM_IMAGE_PUSH", "container-image can run for something that is not a protected v* tag")
+    broken("the image built for a branch", "image", "    - !reference [.release-rules, rules]\n  variables:\n    HM_IMAGE_RELEASE",
+           "    - if: $CI_COMMIT_BRANCH\n  variables:\n    HM_IMAGE_RELEASE", "container-image-amd64 can run for something that is not a protected v* tag")
+    broken("the image pushed for a branch", "image", "    - !reference [.release-rules, rules]\n  script:\n    - sh build/ci/container-image-push.sh",
+           "    - if: $CI_COMMIT_BRANCH\n  script:\n    - sh build/ci/container-image-push.sh", "container-image can run for something that is not a protected v* tag")
     broken("the image built before the .deb is taken", "image", "  needs:\n    - job: container-image-deb\n      artifacts: true\n  timeout: 30 minutes",
-           "  needs: []\n  timeout: 30 minutes", "container-image does not need container-image-deb")
+           "  needs: []\n  timeout: 30 minutes", "container-image-amd64 does not need container-image-deb")
     broken("the image started before it is pushed", "image",
            "  needs:\n    - job: container-image\n      artifacts: true\n  timeout: 20 minutes", "  needs: []\n  timeout: 20 minutes",
            "container-image-start does not need container-image")
@@ -2286,8 +2548,8 @@ def self_test(chain, feed):
     broken("the image pushed from the project's first path", "image-build", "    registry.gitlab.com/hmailserver/hmailserver) ;;\n",
            "    registry.gitlab.com/progressiverobot/hmailserver | registry.gitlab.com/hmailserver/hmailserver) ;;\n",
            "does not push to registry.gitlab.com/hmailserver/hmailserver alone")
-    broken("the image built from release-sign's artifact", "image", "    HM_IMAGE_PUSH: \"1\"\n    HM_IMAGE_DEB_DIR: container-image-deb\n",
-           "    HM_IMAGE_PUSH: \"1\"\n    HM_IMAGE_DEB_DIR: release-signed\n", "container-image does not take the .deb from container-image-deb")
+    broken("the image built from release-sign's artifact", "image", "    HM_IMAGE_ARCH: amd64\n    HM_IMAGE_DEB_DIR: container-image-deb\n",
+           "    HM_IMAGE_ARCH: amd64\n    HM_IMAGE_DEB_DIR: release-signed\n", "container-image-amd64 does not take the .deb from container-image-deb")
     broken("the .deb taken unverified", "image-deb", '--certificate-identity "$candidate" --certificate-oidc-issuer "$issuer"',
            '--certificate-identity-regexp ".*" --certificate-oidc-issuer-regexp ".*"', "as this project's pipeline")
     broken("the group's path without the project's id", "image-deb", "https://gitlab.com/hmailserver/hmailserver//*) fail", "nothing) fail",
@@ -2300,8 +2562,8 @@ def self_test(chain, feed):
            "container-image-start has no network of its own")
     broken("the start test on another image", "image", "    - name: $HM_IMAGE\n", "    - name: registry.gitlab.com/hmailserver/hmailserver:latest\n",
            "container-image-start does not start the pushed image by its digest")
-    broken("the switch turned on in the job", "image", "  variables:\n    HM_IMAGE_PUSH: \"1\"\n",
-           "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_PUSH: \"1\"\n", "sets HM_PUBLISH_IMAGE")
+    broken("the switch turned on in the job", "image", "  variables:\n    HM_IMAGE_RELEASE: \"1\"\n",
+           "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_RELEASE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the switch turned on for every job", "ci", "\nvariables:\n", "\nvariables:\n  HM_PUBLISH_IMAGE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the image signed for another audience", "image", "      aud: sigstore", "      aud: fulcio", "container-image-sign has no id_tokens")
     broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n    - job: container-image-sbom\n      artifacts: true\n  timeout: 15 minutes",
@@ -2316,6 +2578,80 @@ def self_test(chain, feed):
     broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")
     broken("the image signed as a branch", "image-sign", TAG_SCRIPT_IDENTITY,
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "container-image-sign.sh expects another identity")
+    # Each platform of the image, left out somewhere (IMAGE_PLATFORMS).
+    broken("the Dockerfile's .deb fixed to amd64", "dockerfile", "ARG HM_DEB=packages/hmailserver_*_${TARGETARCH}.deb",
+           "ARG HM_DEB=packages/hmailserver_*_amd64.deb", "names one architecture's .deb")
+    broken("the Dockerfile's build that no longer runs the server", "dockerfile", "\n && hmailserver --version\n", "\n && true\n",
+           "the server run on the image's platform in the build")
+    broken("kaniko building for its own platform alone", "image-build", '  --custom-platform "linux/$arch" \\\n', "",
+           "kaniko builds the platform asked for")
+    broken("the build taking any architecture", "image-build", "\n  amd64|arm64) ;;\n", "\n  *) ;;\n", "the two platforms, and no other")
+    broken("the branch's arm64 image gone", "image", "\nlinux-image-arm64:\n", "\nlinux-image-arm64-old:\n", "has no linux-image-arm64 job")
+    broken("the branch's arm64 image from another .deb", "image", "    - job: deb-ubuntu26.04-arm64\n      artifacts: true\n",
+           "    - job: deb-ubuntu24.04-arm64\n      artifacts: true\n", "linux-image-arm64 does not need deb-ubuntu26.04-arm64")
+    broken("the branch's arm64 image built as amd64", "image", "  variables:\n    HM_IMAGE_ARCH: arm64\n  script:",
+           "  variables:\n    HM_IMAGE_ARCH: amd64\n  script:", "linux-image-arm64 does not build the linux/arm64 image")
+    broken("the branch's arm64 image allowed to fail", "image", "linux-image-arm64:\n  extends: .own-runners\n",
+           "linux-image-arm64:\n  extends: .own-runners\n  allow_failure: true\n", "linux-image-arm64 does not take .own-runners' rules alone")
+    broken("release not waiting for the arm64 image", "ci", "    - job: linux-image-arm64\n      artifacts: false\n", "",
+           "release does not need linux-image-arm64")
+    broken("the tag's arm64 image gone", "image", "\ncontainer-image-arm64:\n", "\ncontainer-image-arm64-old:\n", "has no container-image-arm64 job")
+    broken("the tag's arm64 image built as amd64", "image", "    HM_IMAGE_ARCH: arm64\n    HM_IMAGE_DEB_DIR",
+           "    HM_IMAGE_ARCH: amd64\n    HM_IMAGE_DEB_DIR", "container-image-arm64 does not build the release's linux/arm64 image")
+    broken("a third platform's image", "image", "\ncontainer-image-arm64:\n", "\ncontainer-image-riscv64:\n  stage: release\n\ncontainer-image-arm64:\n",
+           "container-image-riscv64 builds an image of a platform")
+    broken("the push without the arm64 image", "image", "    - job: container-image-arm64\n      artifacts: true\n", "",
+           "container-image does not need container-image-arm64")
+    broken("the push leaving arm64 out", "image-push", 'platforms="amd64 arm64"', 'platforms="amd64"', "both platforms' images")
+    broken("the index made of one platform", "image-push", '--ref "$layout:amd64" --ref "$layout:arm64"', '--ref "$layout:amd64"',
+           "naming both platforms' images")
+    broken("the push before the index is checked", "image-push", "\nregctl index create ", "\nregctl registry login x; regctl index create ",
+           "logs in to the registry before")
+    broken("the push without the switch", "image-push", RUNTIME_GATE, 'if false; then', "container-image-push.sh does not refuse")
+    broken("the push to the project's first path", "image-push", "\n  registry.gitlab.com/hmailserver/hmailserver) ;;\n",
+           "\n  registry.gitlab.com/progressiverobot/hmailserver) ;;\n", "container-image-push.sh does not push to registry.gitlab.com/hmailserver/hmailserver alone")
+    broken("the push in regctl by tag alone", "image", "regctl:v0.11.6-alpine@sha256:", "regctl:v0.11.6-alpine@sha25:", "pinned by digest")
+    broken("the push in another regctl than the channels'", "image", "regctl:v0.11.6-alpine@", "regctl:v0.11.5-alpine@",
+           "not the release HM_REGCTL_IMAGE pins")
+    broken("the push in ghcr.io's regctl", "image", "docker.io/regclient/regctl:v0.11.6-alpine@", "ghcr.io/regclient/regctl:v0.11.6-alpine@",
+           "does not run in docker.io/regclient/regctl")
+    broken("the .deb taken for amd64 alone", "image-deb", "for arch in amd64 arm64; do", "for arch in amd64; do", "each platform's .deb")
+    broken("the SBOM of amd64 alone", "image-sbom", "platforms=(amd64 arm64)", "platforms=(amd64)", "every platform's SBOM")
+    broken("an SBOM that does not name its platform", "image-sbom", '--image "$image" --arch "$arch"', '--image "$image"',
+           "each document naming its platform")
+    broken("the signature of amd64 alone", "image-sign", 'platforms="amd64 arm64"', 'platforms="amd64"', "every platform's image signed")
+    broken("the index left unsigned", "image-sign", '\nsign index "$index"\n', "\ntrue\n", "the index, which every tag names, signed")
+    broken("the arm64 scan gone", "image", "\ncontainer_scanning_arm64:\n", "\ncontainer_scanning_old:\n", "has no container_scanning_arm64 job")
+    broken("the arm64 scan over the amd64 image", "image", '    - export CS_IMAGE="$HM_IMAGE_ARM64"\n', "", "container_scanning_arm64 does not scan")
+    broken("the arm64 start gone", "image", "\ncontainer-image-start-arm64:\n", "\ncontainer-image-start-old:\n",
+           "has no container-image-start-arm64 job")
+    broken("the arm64 start as the host's platform", "image", "      docker:\n        platform: linux/arm64\n", "",
+           "container-image-start-arm64 does not start the linux/arm64 image")
+    broken("the arm64 start on the index", "image", "    - name: $HM_IMAGE_ARM64\n", "    - name: $HM_IMAGE\n",
+           "container-image-start-arm64 does not start the linux/arm64 image")
+    # :latest and :<major>.<minor> only forward.
+    broken(":latest moved back to an older version", "image-push", '      older) keep "$t"', '      older) move "$t"',
+           "never moved back to an older version")
+    broken("versions compared the wrong way", "image-push", 'if [ "${x:-0}" -gt "${y:-0}" ]; then',
+           'if [ "${x:-0}" -lt "${y:-0}" ]; then', "does not compare versions number by number")
+    broken("a tag moved without reading what it names", "image-push", 'regctl image config "$repository:$t"',
+           'regctl image digest "$repository:$t"', "the version the tag names now")
+    broken("a tag whose version cannot be read moved anyway", "image-push",
+           '      keep "$t" "the image it names has no version this job can read',
+           '      move "$t" "the image it names has no version this job can read', "whose version cannot be read left")
+    broken("a tag put on the index outside move()", "image-push", '\nwritten="$version"\n',
+           '\nregctl image copy "$repository@$index" "$repository:latest"\nwritten="$version"\n', "outside move()")
+    # A file the checker reads, missing from the tree: a problem, not a traceback.
+    held = FILES["image-push"]
+    try:
+        FILES["image-push"] = os.path.join("build", "ci", "no-such-push-script.sh")
+        found, _ = run_checks(load_texts(), chain, feed)
+        if not any("build/ci/no-such-push-script.sh is not in the tree" in p for p in found):
+            failures.append("a file missing from the tree is reported: %s" % found)
+    except Exception as error:
+        failures.append("a file missing from the tree is reported, not raised: %s: %s" % (type(error).__name__, error))
+    finally:
+        FILES["image-push"] = held
     # The security scans, before the release.
     broken("a release that does not wait for GitLab's SAST", "ci", "    - job: semgrep-sast\n      artifacts: true\n", "",
            "release does not need semgrep-sast")
@@ -2829,12 +3165,28 @@ def self_test(chain, feed):
     return 1 if failures else 0
 
 
+def run_checks(texts, chain, feed):
+    """check()'s (problems, notes), with each file of FILES the tree lacks named first: a
+    problem, never a traceback. Where a missing file leaves check() unable to go on, what
+    it raised is a problem too; with every file there, whatever it raises is a fault of
+    this checker, and is raised."""
+    problems = ["%s is not in the tree: this checker reads it, so the rules that hold it cannot be checked" % name
+                for name in texts.get("missing", [])]
+    try:
+        found, notes = check(texts, chain, feed)
+    except Exception as error:
+        if not problems:
+            raise
+        return problems + ["the rest was not checked without it: %s: %s" % (type(error).__name__, error)], []
+    return problems + found, notes
+
+
 def main():
     feed = _load(os.path.join("build", "generate-update-feed.py"), "generate_update_feed")
     chain = _load(os.path.join("build", "ci", "release-chain.py"), "release_chain")
     if "--self-test" in sys.argv[1:]:
         return self_test(chain, feed)
-    problems, notes = check(load_texts(), chain, feed)
+    problems, notes = run_checks(load_texts(), chain, feed)
     found, said = certificate_problems(certificate_module())
     problems += found + byte_search_problems(scanned_texts())
     notes += said

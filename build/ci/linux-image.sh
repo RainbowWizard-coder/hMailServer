@@ -3,157 +3,154 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The linux-image job of .gitlab-ci.yml: the container image of
-# hmailserver/source/Server/platform/packaging/docker/Dockerfile, built from the
-# .deb the linux-build job made, and not published. It is the build half of the
-# old GitHub workflow linux-build.yml's image job.
+# The container image of hmailserver/source/Server/platform/packaging/docker/Dockerfile,
+# for one platform, built with kaniko and checked, and never pushed from here:
 #
 #   sh build/ci/linux-image.sh
+#       linux-image (.gitlab-ci.yml): linux/amd64, from the .deb linux-build made
+#       (linux-build/packages/hmailserver_*_amd64.deb)
+#   HM_IMAGE_ARCH=arm64 sh build/ci/linux-image.sh
+#       linux-image-arm64 (.gitlab/ci/container-image.yml): linux/arm64, from the .deb
+#       deb-ubuntu26.04-arm64 made (packages-deb/ubuntu26.04-arm64/hmailserver_*_arm64.deb)
+#   HM_IMAGE_RELEASE=1 HM_IMAGE_ARCH=<amd64|arm64> sh build/ci/linux-image.sh
+#       container-image-amd64 and container-image-arm64 (.gitlab/ci/container-image.yml):
+#       a v* tag's image for that platform, from the .deb of the tag's version and that
+#       architecture as container-image-deb took it from the published release and held
+#       it to its Sigstore bundle (HM_IMAGE_DEB_DIR). Only while the project's CI/CD
+#       variable HM_PUBLISH_IMAGE is 1, which is checked here as the job runs, not when
+#       the pipeline is made, and only in a pipeline of the group's path, whose registry
+#       is registry.gitlab.com/hmailserver/hmailserver (hmailserver/docs/ContainerImage.md).
+#       The image's tarball is kept for container-image, which pushes both platforms'
+#       images by digest and the one multi-platform index that names them, with the
+#       release's tags (build/ci/container-image-push.sh).
 #
-# And the container-image job of .gitlab/ci/container-image.yml, with
-# HM_IMAGE_PUSH=1: the same image built from the .deb a v* tag's release carries,
-# as container-image-deb took it from the published release and held it to its
-# Sigstore bundle (HM_IMAGE_DEB_DIR), and pushed to the project's container
-# registry as :<version>, and for a release without a suffix as :<major>.<minor>
-# and :latest too - only while the project's CI/CD variable HM_PUBLISH_IMAGE is 1,
-# which is checked here as the job runs, not when the pipeline is made, and only at
-# the group's path, registry.gitlab.com/hmailserver/hmailserver
-# (hmailserver/docs/ContainerImage.md). The job's own registry
-# credentials (CI_REGISTRY_USER and CI_REGISTRY_PASSWORD, which the job token has
-# for its own project) go into kaniko's configuration and nowhere else. It leaves
-# <out>/image.env, a dotenv report naming the image by digest, for the jobs that
-# sign and scan it.
+# HM_IMAGE_DEB_DIR names another folder to take the .deb from; HM_OUT_DIR another
+# folder to leave the results in (linux-image, linux-image-arm64 and
+# container-image-<arch> by default).
 #
 # Built with kaniko, in kaniko's own image (gcr.io/kaniko-project/executor, the
 # debug variant, whose busybox runs this script): a job on linix has no Docker
 # daemon and no socket, and the runner is not privileged, which is what kaniko
 # is for - it builds the image's filesystem inside its own container and writes
-# the result to a tarball, and pushes it only when told to. POSIX sh for the same
+# the result to a tarball, and pushes nothing (--no-push). POSIX sh for the same
 # reason: there is no bash in that image.
 #
-# kaniko cannot push a tarball it wrote before, so in push mode one run both pushes
-# the image and writes the tarball of the very image it pushed, and the checks below
-# read that. A check that fails then fails the job after the push: nothing signs or
-# scans the image, and the job says which tags to delete. The same checks passed on
-# the same Dockerfile and .deb in linux-image earlier in the tag's pipeline.
+# The platform is kaniko's --custom-platform, and TARGETARCH the Dockerfile's build
+# argument that picks the .deb of that architecture. The base image is pinned by the
+# digest of Ubuntu's multi-platform index, and kaniko takes that platform's entry. An
+# arm64 image is built on linix, an x86-64 machine: kaniko runs the Dockerfile's RUN
+# in the arm64 filesystem, and linix's kernel hands each arm64 program to qemu-user
+# through its binfmt_misc handler, qemu-aarch64, registered with the F flag, which
+# opens the emulator when it is registered, so that it runs in any container without
+# being in it and without the container being privileged. The RUN ends with
+# `hmailserver --version`, so the server has run on the image's platform, with the
+# image's libraries, before the image exists; its answer is kept (version.txt).
 #
-# What it checks in the tarball, because nothing can run it here (that needs a
-# daemon): the image runs as hmailserver, starts through the entrypoint, exposes
-# the mail ports and the REST port, carries the healthcheck, and /usr/bin/hmailserver
-# keeps the one capability the Dockerfile gives it with setcap - a builder that
-# dropped the file's extended attributes would ship a server that cannot bind
-# port 25 as the user it runs as. Running the image - the first start against a
-# database, the restart, the REST answers - stays with the release chain, which
-# will have a daemon to run it in.
+# What it checks in the tarball, because nothing can run the image here (that needs
+# a daemon): the image is for linux/<arch>, runs as hmailserver, starts through the
+# entrypoint, exposes the mail ports and the REST port, carries the healthcheck,
+# HM_INSTALL_KIND and the labels a registry and Artifact Hub read, and
+# /usr/bin/hmailserver keeps the one capability the Dockerfile gives it with setcap
+# - a builder that dropped the file's extended attributes would ship a server that
+# cannot bind port 25 as the user it runs as.
 #
-# Leaves linux-image/image.json (the image's configuration) and
-# linux-image/SHA256SUMS.txt (HM_OUT_DIR names another folder), and in push mode
-# digest.txt and image.env beside them; the tarball itself is removed at the end
-# unless HM_KEEP_IMAGE=1.
+# A release's tarball is what container-image pushes: it holds the tarball to the
+# SHA-256 this job recorded, and the manifest it pushes to the configuration this
+# job checked (image.json), so what is pushed is what was checked here, and nothing
+# is pushed before every check of both platforms has passed.
+#
+# Leaves <out>/image.json (the image's configuration), <out>/version.txt (what
+# `hmailserver --version` answered in the build) and <out>/SHA256SUMS.txt (the
+# tarball's and image.json's). The tarball is removed at the end, but for a
+# release's build, which keeps it for container-image, and with HM_KEEP_IMAGE=1
+# (`docker load -i <out>/hmailserver-image.tar`).
 set -eu
 
-out="${HM_OUT_DIR:-linux-image}"
+arch="${HM_IMAGE_ARCH:-amd64}"
+release="${HM_IMAGE_RELEASE:-0}"
 context=hmailserver/source/Server/platform/packaging/docker
 executor="${HM_KANIKO:-/kaniko/executor}"
-push="${HM_IMAGE_PUSH:-0}"
-pushed=""
+
+case "$arch" in
+  amd64|arm64) ;;
+  *)
+    echo "REFUSED: HM_IMAGE_ARCH is '$arch'. The image is built for amd64 and arm64, the two"
+    echo "architectures a release carries a .deb for."
+    exit 2
+    ;;
+esac
+if [ "$release" = 1 ]; then
+  out="${HM_OUT_DIR:-container-image-$arch}"
+elif [ "$arch" = amd64 ]; then
+  out="${HM_OUT_DIR:-linux-image}"
+else
+  out="${HM_OUT_DIR:-linux-image-$arch}"
+fi
 
 fail() {
-  echo "FAILED: $*"
-  if [ -n "$pushed" ]; then
-    echo "The image was pushed before this check failed, and nothing will sign or scan it. These"
-    echo "tags now name it; delete them from the container registry (Deploy > Container registry):"
-    echo "$pushed" | tr ' ' '\n' | sed '/^$/d; s/^/  /'
-  fi
+  echo "FAILED (linux/$arch): $*"
   exit 1
 }
 
-if [ "$push" = 1 ]; then
-  # The switch, read as the job runs: the jobs exist in every v* tag's pipeline, so
-  # that a release published before the project's move into the group (6.3.5) can
-  # still have its image pushed from its own pipeline afterwards, and nothing is
-  # pushed until the project's variable says so.
+if [ "$release" = 1 ]; then
+  # The switch, read as the job runs: the jobs exist in every v* tag's pipeline, and
+  # nothing is built for the registry until the project's variable says so.
   if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then
     echo "REFUSED: the project's CI/CD variable HM_PUBLISH_IMAGE is not 1, so no image is pushed."
     echo "It is set by the maintainers for the image at registry.gitlab.com/hmailserver/hmailserver"
     echo "(hmailserver/docs/ContainerImage.md, 'Publishing'); then run the image jobs again."
     exit 3
   fi
-  # A release's image: the .deb of the tag's version, from the verified release files
-  # and nowhere else. The name is linux-build's, never a distribution-suffixed one.
+  # A release's image: the .deb of the tag's version and this architecture, from the
+  # verified release files and nowhere else. The names are the two a release carries
+  # (linux-build's amd64 one and deb-ubuntu26.04-arm64's), never a
+  # distribution-suffixed one.
   tag="${CI_COMMIT_TAG:-}"
   case "$tag" in
     v[0-9]*) ;;
-    *) fail "HM_IMAGE_PUSH=1 is for a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
+    *) fail "HM_IMAGE_RELEASE=1 is for a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
   esac
-  deb="${HM_IMAGE_DEB_DIR:-container-image-deb}/hmailserver_${tag#v}_amd64.deb"
+  deb="${HM_IMAGE_DEB_DIR:-container-image-deb}/hmailserver_${tag#v}_${arch}.deb"
   if [ ! -f "$deb" ]; then
-    echo "REFUSED: no $deb. container-image-deb's artifact holds the release's .deb, taken from"
-    echo "the published release and held to its Sigstore bundle; it did not arrive."
+    echo "REFUSED: no $deb. container-image-deb's artifact holds the release's .deb for each"
+    echo "architecture, taken from the published release and held to its Sigstore bundle; it did not arrive."
     exit 2
   fi
-else
-  deb=$(ls linux-build/packages/hmailserver_*_amd64.deb 2> /dev/null | head -n 1 || true)
-  if [ -z "$deb" ]; then
-    echo "REFUSED: no linux-build/packages/hmailserver_*_amd64.deb. The packaging step of the"
-    echo "linux-build job made none; its artifact linux-build/package.log says why."
-    exit 2
-  fi
-fi
-version=$(basename "$deb" | sed 's/^hmailserver_\(.*\)_amd64\.deb$/\1/')
-echo "package: $deb (version $version)"
-# On a release tag the package must be the tag's version, as the old job checked.
-case "${CI_COMMIT_TAG:-}" in
-  v*) [ "${CI_COMMIT_TAG#v}" = "$version" ] || fail "the .deb is $version, and the tag is $CI_COMMIT_TAG" ;;
-esac
-
-# Where the image goes. Not pushed: a local name kaniko needs for the tarball. Pushed:
-# the project's own repository at the group's path, the image's lasting address, which
-# the Compose file and the chart name, with the version's tag always, and the minor
-# line's and latest only for a release without a suffix - a pre-release never moves
-# them. Never anywhere else: a container repository's path is always its project's,
-# and the maintainers decided on 27 September 2026 to push the first image only once
-# the project was in the group, so that its address would not change with the move.
-# The project moved on 29 September 2026; a pipeline whose registry is the first
-# path, registry.gitlab.com/progressiverobot/hmailserver, is another project's now.
-if [ "$push" = 1 ]; then
+  # Where the image goes: the project's own repository at the group's path, the
+  # image's lasting address, which the Compose file and the chart name, and never
+  # anywhere else. container-image pushes (build/ci/container-image-push.sh), and
+  # holds the path again; nothing is built for another. A container repository's path
+  # is always its project's, and the maintainers decided on 27 September 2026 to push
+  # the first image only once the project was in the group, so that its address would
+  # not change with the move. The project moved on 29 September 2026; a pipeline whose
+  # registry is the first path, registry.gitlab.com/progressiverobot/hmailserver, is
+  # another project's now.
   repository="${CI_REGISTRY_IMAGE:-}"
   case "$repository" in
     registry.gitlab.com/hmailserver/hmailserver) ;;
     *) fail "the project's registry image is '$repository', not registry.gitlab.com/hmailserver/hmailserver, which the Compose file and the chart name" ;;
   esac
-  printf '%s\n' "$version" | grep -Eqx '[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}' || fail "$version is not a container image tag"
-  tags="$version"
-  if printf '%s\n' "$version" | grep -Eqx '[0-9]+\.[0-9]+\.[0-9]+'; then
-    tags="$version ${version%.*} latest"
-  fi
-  [ -n "${CI_REGISTRY:-}" ] && [ -n "${CI_REGISTRY_USER:-}" ] && [ -n "${CI_REGISTRY_PASSWORD:-}" ] \
-    || fail "the job has no CI_REGISTRY, CI_REGISTRY_USER or CI_REGISTRY_PASSWORD: the project's container registry is off"
-  # kaniko reads its credentials from DOCKER_CONFIG (/kaniko/.docker/ in its image).
-  # The password goes into that file and is never echoed; the file is removed once
-  # kaniko has pushed, and on any exit before that. It has a name of its own,
-  # registry_config: the checks below reuse "config" for the image's configuration,
-  # and the trap reads the variable when it runs, not when it is set.
-  registry_config="${DOCKER_CONFIG:-/kaniko/.docker}"
-  mkdir -p "$registry_config"
-  auth=$(printf '%s:%s' "$CI_REGISTRY_USER" "$CI_REGISTRY_PASSWORD" | base64 | tr -d '\n')
-  ( umask 077 && printf '{"auths":{"%s":{"auth":"%s"}}}\n' "$CI_REGISTRY" "$auth" > "$registry_config/config.json" )
-  auth=""
-  trap 'rm -f "$registry_config/config.json"' EXIT
-  destinations=""
-  for t in $tags; do
-    destinations="$destinations --destination $repository:$t"
-  done
-  echo "pushing to: $(echo "$destinations" | sed 's/ --destination / /g')"
-  # $destinations is "--destination <image>:<tag>" per tag, each tag held to
-  # [A-Za-z0-9_.-] above, split on purpose: kaniko's busybox sh has no arrays.
-  # shellcheck disable=SC2086
-  set -- $destinations --digest-file "$out/digest.txt" --push-retry 3 # nosemgrep
 else
-  set -- --no-push --destination "hmailserver:$version"
+  case "$arch" in
+    amd64) made_by=linux-build; debdir="${HM_IMAGE_DEB_DIR:-linux-build/packages}" ;;
+    *) made_by="deb-ubuntu26.04-arm64"; debdir="${HM_IMAGE_DEB_DIR:-packages-deb/ubuntu26.04-arm64}" ;;
+  esac
+  deb=$(ls "$debdir"/hmailserver_*_"$arch".deb 2> /dev/null | head -n 1 || true)
+  if [ -z "$deb" ]; then
+    echo "REFUSED: no $debdir/hmailserver_*_$arch.deb. The job $made_by made none; its artifact says why."
+    exit 2
+  fi
 fi
+version=$(basename "$deb" | sed "s/^hmailserver_\(.*\)_${arch}\.deb\$/\1/")
+echo "platform: linux/$arch"
+echo "package:  $deb (version $version)"
+# On a release tag the package must be the tag's version, as the old job checked.
+case "${CI_COMMIT_TAG:-}" in
+  v*) [ "${CI_COMMIT_TAG#v}" = "$version" ] || fail "the .deb is $version, and the tag is $CI_COMMIT_TAG" ;;
+esac
 
-# Only that one file goes into the context: the .rpm is not for the image.
+# Only the one .deb goes into the context: the .rpm is not for the image, and the
+# other architecture's .deb is not for this one.
 rm -rf "$context/packages" "$out"
 mkdir -p "$context/packages" "$out"
 cp "$deb" "$context/packages/"
@@ -169,39 +166,54 @@ case "$version" in
 esac
 
 "$executor" version 2> /dev/null || true
-# HM_KANIKO_FLAGS is for a test against a registry of one's own (--insecure); the jobs
-# never set it. It is split into words on purpose: busybox sh has no arrays.
-# shellcheck disable=SC2086
-# nosemgrep
-"$executor" \
-  --context "dir://$PWD/$context" \
-  --dockerfile "$PWD/$context/Dockerfile" \
-  "$@" ${HM_KANIKO_FLAGS:-} \
-  --tar-path "$out/hmailserver-image.tar" \
-  --label "org.opencontainers.image.version=$version" \
-  --label "org.opencontainers.image.revision=${CI_COMMIT_SHA:-unknown}" \
-  --label "org.opencontainers.image.created=$created" \
-  --label "io.artifacthub.package.prerelease=$prerelease" \
-  --cleanup
+# The build's output goes to the job's log and to a file, for the version check below,
+# and kaniko's exit status to a file of its own, since a pipeline's status is its last
+# command's. HM_KANIKO_FLAGS is for a test of one's own; the jobs never set it. It is
+# split into words on purpose: busybox sh has no arrays.
+{
+  status=0
+  # shellcheck disable=SC2086
+  # nosemgrep
+  "$executor" \
+    --context "dir://$PWD/$context" \
+    --dockerfile "$PWD/$context/Dockerfile" \
+    --custom-platform "linux/$arch" \
+    --build-arg "TARGETARCH=$arch" \
+    --no-push --destination "hmailserver:$version-$arch" ${HM_KANIKO_FLAGS:-} \
+    --tar-path "$out/hmailserver-image.tar" \
+    --label "org.opencontainers.image.version=$version" \
+    --label "org.opencontainers.image.revision=${CI_COMMIT_SHA:-unknown}" \
+    --label "org.opencontainers.image.created=$created" \
+    --label "io.artifacthub.package.prerelease=$prerelease" \
+    --cleanup 2>&1 || status=$?
+  echo "$status" > "$out/kaniko.status"
+} | tee "$out/kaniko.log"
+status=$(cat "$out/kaniko.status" 2> /dev/null || echo 1)
+rm -f "$out/kaniko.status"
 rm -rf "$context/packages"
-if [ "$push" = 1 ]; then
-  rm -f "$registry_config/config.json"
-  for t in $tags; do
-    pushed="$pushed $repository:$t"
-  done
-fi
+[ "$status" = 0 ] || fail "kaniko did not build the image (exit status $status)"
 
 echo ""
 echo "== what was built"
 ls -la "$out"
+# The server answered on the image's platform, in the build: its version line.
+expected="${version%%[!0-9.]*}"
+grep -F "hMailServer $expected build " "$out/kaniko.log" | head -n 1 > "$out/version.txt" || true
+[ -s "$out/version.txt" ] || fail "the build did not print 'hMailServer $expected build <n>': hmailserver --version did not answer in the image"
+echo "hmailserver --version in the linux/$arch build: $(cat "$out/version.txt")"
+rm -f "$out/kaniko.log"
+
 work="$out/unpacked"
 mkdir -p "$work"
 tar -xf "$out/hmailserver-image.tar" -C "$work"
 config=$(sed -n 's/.*"Config":"\([^"]*\)".*/\1/p' "$work/manifest.json")
 [ -n "$config" ] && [ -f "$work/$config" ] || fail "the tarball has no image configuration named in manifest.json"
 cp "$work/$config" "$out/image.json"
-tr ',' '\n' < "$out/image.json" | grep -E '"(User|Entrypoint|WorkingDir|Healthcheck|Test)"|/tcp' | head -n 20
+tr ',' '\n' < "$out/image.json" | grep -E '"(architecture|os|variant|User|Entrypoint|WorkingDir|Healthcheck|Test)"|/tcp' | head -n 24
 
+grep -q "\"architecture\":\"$arch\"" "$out/image.json" || fail "the image is not for architecture $arch"
+grep -q '"os":"linux"' "$out/image.json" || fail "the image is not for os linux"
+echo "for linux/$arch"
 grep -q '"User":"hmailserver"' "$out/image.json" || fail "the image does not run as hmailserver"
 grep -q 'docker-entrypoint.sh' "$out/image.json" || fail "the image does not start through docker-entrypoint.sh"
 grep -q '"Healthcheck"' "$out/image.json" || fail "the image carries no healthcheck"
@@ -221,8 +233,9 @@ echo "HM_INSTALL_KIND=container, and the labels a registry and Artifact Hub read
 
 # The layer that holds the binary, and the capability on it: tar writes a file's
 # extended attributes as a SCHILY.xattr PAX record in front of it.
+layers=$(sed -n 's/.*"Layers":\[\([^]]*\)\].*/\1/p' "$work/manifest.json" | tr -d '"' | tr ',' ' ')
 found=""
-for layer in $(sed -n 's/.*"Layers":\[\([^]]*\)\].*/\1/p' "$work/manifest.json" | tr -d '"' | tr ',' ' '); do
+for layer in $layers; do
   if zcat "$work/$layer" 2> /dev/null | tar -tf - 2> /dev/null | grep -qx 'usr/bin/hmailserver'; then
     found="$layer"
   fi
@@ -236,23 +249,11 @@ fi
 
 ( cd "$out" && sha256sum hmailserver-image.tar image.json > SHA256SUMS.txt && cat SHA256SUMS.txt )
 rm -rf "$work"
+if [ "$release" = 1 ]; then
+  echo "IMAGE BUILT: the release's linux/$arch image, $version, configuration $config; container-image pushes it with the other platform's."
+  exit 0
+fi
 if [ "${HM_KEEP_IMAGE:-0}" != 1 ]; then
   rm -f "$out/hmailserver-image.tar"
 fi
-if [ "$push" != 1 ]; then
-  echo "IMAGE BUILT: hmailserver:$version, not pushed."
-  exit 0
-fi
-
-# What the jobs after this one read: the image by its digest, which every tag above
-# names. A dotenv report (artifacts:reports:dotenv), one KEY=value a line; CS_IMAGE is
-# the name GitLab's container scanning reads the image to scan from.
-digest=$(cat "$out/digest.txt" 2> /dev/null || true)
-printf '%s\n' "$digest" | grep -Eqx 'sha256:[0-9a-f]{64}' || fail "kaniko wrote no digest of what it pushed ('$digest')"
-{
-  echo "HM_IMAGE=$repository@$digest"
-  echo "HM_IMAGE_TAGS=$(printf '%s' "$tags" | tr ' ' ',')"
-  echo "CS_IMAGE=$repository@$digest"
-} > "$out/image.env"
-cat "$out/image.env"
-echo "IMAGE PUSHED: $repository@$digest, as$pushed."
+echo "IMAGE BUILT: hmailserver:$version-$arch (linux/$arch), configuration $config, not pushed."

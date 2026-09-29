@@ -55,11 +55,14 @@ needs, and nothing that only another asset carries:
       QuickJS at the version its VERSION file in the tarball gives. No dependency
       list and no build container: it is read from the tarball alone.
   image
-      Syft's CycloneDX document of the pushed image (every distribution package in
-      it, the hmailserver .deb among them), with the .deb's own document's
-      components added - what Syft cannot see inside the binary - and the image,
-      by its digest, as the subject. The container image's jobs attest it to the
-      image with cosign (.gitlab/ci/container-image.yml).
+      Syft's CycloneDX document of one platform's pushed image (every distribution
+      package in it, the hmailserver .deb among them), with the .deb's own
+      document's components added - what Syft cannot see inside the binary - and
+      the image, by its digest and its platform (--arch, linux/amd64 or
+      linux/arm64), as the subject. The .deb's document must be the one of that
+      architecture's .deb. The container image's jobs make one for each platform
+      and attest it to that platform's image with cosign
+      (.gitlab/ci/container-image.yml).
 
 The document is the same for the same inputs: its serial number is made from the
 file's SHA-256, and its timestamp is SOURCE_DATE_EPOCH's when that is set.
@@ -80,8 +83,8 @@ Usage:
           --boost-header built-against-x86_64/boost-version.hpp --bundled built-against-x86_64/bundled.txt \\
           --runtime-linked built-against-x86_64/runtime-linked.txt
   python3 build/asset-sbom.py make --kind source --asset hmailserver-6.3.6.tar.gz
-  python3 build/asset-sbom.py image --syft image.syft.cdx.json --deb-sbom hmailserver_6.3.5_amd64.deb.cdx.json \\
-          --image registry.gitlab.com/hmailserver/hmailserver@sha256:<digest> --version 6.3.5 --out FILE
+  python3 build/asset-sbom.py image --syft image.syft.cdx.json --deb-sbom hmailserver_6.3.6_arm64.deb.cdx.json \\
+          --image registry.gitlab.com/hmailserver/hmailserver@sha256:<digest> --arch arm64 --version 6.3.6 --out FILE
   python3 build/asset-sbom.py verify FILE.cdx.json FILE      the document describes this very file
   python3 build/asset-sbom.py --self-test                    no network, no dpkg, no rpm
 
@@ -863,11 +866,18 @@ def make(kind, asset, dependencies, root=ROOT, version=None, commit=None, contai
     return document(component, components, sha256, kind)
 
 
-def image_document(syft, deb_sbom, image, version):
-    """The pushed image's document: Syft's components, the .deb's own added."""
+# The platforms the container image is built for, as dpkg and the OCI name them.
+IMAGE_ARCHES = ("amd64", "arm64")
+
+
+def image_document(syft, deb_sbom, image, version, arch):
+    """One platform's pushed image's document: Syft's components, the .deb's own
+    added, and the image by its digest and its platform as the subject."""
     match = re.match(r"^([a-z0-9.\-]+(?::[0-9]+)?/[a-z0-9._/\-]+)@sha256:([0-9a-f]{64})$", image or "")
     if not match:
         raise SbomError("the image is %r, not <repository>@sha256:<digest>: an image is described by its digest" % image)
+    if arch not in IMAGE_ARCHES:
+        raise SbomError("the image's architecture is %r: the image is built for %s" % (arch, " and ".join(IMAGE_ARCHES)))
     if syft.get("bomFormat") != "CycloneDX":
         raise SbomError("Syft's document is not CycloneDX")
     if deb_sbom.get("bomFormat") != "CycloneDX" or (deb_sbom.get("metadata") or {}).get("component", {}).get("properties") is None:
@@ -875,6 +885,10 @@ def image_document(syft, deb_sbom, image, version):
     kind_of = dict((p["name"], p["value"]) for p in deb_sbom["metadata"]["component"]["properties"])
     if kind_of.get("hmailserver:asset-kind") != "deb":
         raise SbomError("the .deb's document describes a %s, not a .deb" % kind_of.get("hmailserver:asset-kind"))
+    # Each platform's image is built from the .deb of its own architecture.
+    if not (kind_of.get("hmailserver:asset-file") or "").endswith("_%s.deb" % arch):
+        raise SbomError("the .deb's document describes %s, not the %s .deb the linux/%s image is built from"
+                        % (kind_of.get("hmailserver:asset-file"), arch, arch))
     components = []
     seen = set()
     for component in syft.get("components") or []:
@@ -893,12 +907,13 @@ def image_document(syft, deb_sbom, image, version):
     repository, digest = match.group(1), match.group(2)
     subject_component = {
         "type": "container", "bom-ref": "asset", "supplier": SUPPLIER, "name": repository, "version": version,
-        "description": "The hMailServer %s container image, built from %s" % (version, kind_of.get("hmailserver:asset-file")),
+        "description": "The hMailServer %s container image for linux/%s, built from %s" % (version, arch, kind_of.get("hmailserver:asset-file")),
         "hashes": [{"alg": "SHA-256", "content": digest}],
         "licenses": [{"license": {"id": "AGPL-3.0-or-later"}}],
-        "purl": "pkg:oci/hmailserver@sha256%%3A%s?repository_url=%s" % (digest, repository),
+        "purl": "pkg:oci/hmailserver@sha256%%3A%s?arch=%s&repository_url=%s" % (digest, arch, repository),
         "externalReferences": [{"type": "vcs", "url": PROJECT_URL}],
-        "properties": [prop("asset-file", image), prop("asset-kind", "image"), prop("built-from", kind_of.get("hmailserver:asset-file"))],
+        "properties": [prop("asset-file", image), prop("asset-kind", "image"), prop("platform", "linux/" + arch),
+                       prop("built-from", kind_of.get("hmailserver:asset-file"))],
     }
     syft_tools = ((syft.get("metadata") or {}).get("tools") or {})
     extra = syft_tools.get("components") if isinstance(syft_tools, dict) else None
@@ -1364,14 +1379,27 @@ def self_test():
             {"bom-ref": "pkg:deb/hmailserver@6.3.5", "type": "library", "name": "hmailserver", "version": "6.3.5"}],
             "metadata": {"tools": {"components": [{"type": "application", "author": "anchore", "name": "syft", "version": "1.33.0"}]}}}
         digest = "e" * 64
-        image = image_document(syft, linux, "registry.gitlab.com/hmailserver/hmailserver@sha256:" + digest, "6.3.5")
+        image = image_document(syft, linux, "registry.gitlab.com/hmailserver/hmailserver@sha256:" + digest, "6.3.5", "amd64")
         names = [c["name"] for c in image["components"]]
         expect("libssl3t64" in names and "quickjs" in names and "linux-boost" in names, "the image lists Syft's packages and the .deb's own: %s" % names)
         expect(image["metadata"]["component"]["hashes"] == [{"alg": "SHA-256", "content": digest}] and
                image["metadata"]["component"]["type"] == "container", "the subject is the image, by its digest")
+        expect(image["metadata"]["component"]["purl"] == "pkg:oci/hmailserver@sha256%3A" + digest
+               + "?arch=amd64&repository_url=registry.gitlab.com/hmailserver/hmailserver"
+               and {"name": "hmailserver:platform", "value": "linux/amd64"} in image["metadata"]["component"]["properties"],
+               "the subject names its platform: %s" % image["metadata"]["component"]["purl"])
         expect(structure_problems(image) == [], "the image's document is well formed: %s" % structure_problems(image))
-        refused("an image named by a tag", "by its digest", lambda: image_document(syft, linux, "registry.gitlab.com/x/y:6.3.5", "6.3.5"))
-        refused("an installer's document as the .deb's", "not a .deb", lambda: image_document(syft, bom, "r.example/x@sha256:" + digest, "6.3.5"))
+        arm_image = image_document(syft, arm, "registry.gitlab.com/hmailserver/hmailserver@sha256:" + "f" * 64, "6.3.6", "arm64")
+        expect("?arch=arm64&" in arm_image["metadata"]["component"]["purl"] and "linux/arm64" in arm_image["metadata"]["component"]["description"]
+               and structure_problems(arm_image) == [], "the arm64 image's document names linux/arm64: %s" % arm_image["metadata"]["component"])
+        refused("an image named by a tag", "by its digest", lambda: image_document(syft, linux, "registry.gitlab.com/x/y:6.3.5", "6.3.5", "amd64"))
+        refused("an installer's document as the .deb's", "not a .deb", lambda: image_document(syft, bom, "r.example/x@sha256:" + digest, "6.3.5", "amd64"))
+        refused("the amd64 .deb's document for the arm64 image", "not the arm64 .deb",
+                lambda: image_document(syft, linux, "r.example/x@sha256:" + digest, "6.3.5", "arm64"))
+        refused("the arm64 .deb's document for the amd64 image", "not the amd64 .deb",
+                lambda: image_document(syft, arm, "r.example/x@sha256:" + digest, "6.3.6", "amd64"))
+        refused("an image of a platform not built", "built for amd64 and arm64",
+                lambda: image_document(syft, linux, "r.example/x@sha256:" + digest, "6.3.5", "riscv64"))
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
@@ -1418,10 +1446,11 @@ def main():
                        "it carries, by package and source package")
     maker.add_argument("--runtime-linked", help="an AppImage's runtime-linked.txt (build/ci/packages/appimage-build.sh keeps "
                        "the runtime job's record): what its runtime links statically, by Alpine package")
-    imager = commands.add_parser("image", help="the SBOM of the container image")
+    imager = commands.add_parser("image", help="the SBOM of one platform's container image")
     imager.add_argument("--syft", required=True, help="Syft's CycloneDX JSON of the image")
-    imager.add_argument("--deb-sbom", required=True, help="the .deb's own SBOM, which this script made")
-    imager.add_argument("--image", required=True, help="<repository>@sha256:<digest>")
+    imager.add_argument("--deb-sbom", required=True, help="the SBOM of that architecture's .deb, which this script made")
+    imager.add_argument("--image", required=True, help="<repository>@sha256:<the platform's manifest digest>")
+    imager.add_argument("--arch", required=True, choices=IMAGE_ARCHES, help="the image's architecture: linux/<arch>")
     imager.add_argument("--version", required=True)
     imager.add_argument("--out", required=True)
     checker = commands.add_parser("verify", help="the SBOM describes this very file")
@@ -1456,7 +1485,7 @@ def main():
                                                                       bom["metadata"]["component"]["hashes"][0]["content"]))
             return 0
         if args.command == "image":
-            bom = image_document(read_json(args.syft), read_json(args.deb_sbom), args.image, args.version)
+            bom = image_document(read_json(args.syft), read_json(args.deb_sbom), args.image, args.version, args.arch)
             write_document(bom, args.out)
             print("%s: %d components, describing %s" % (args.out, len(bom["components"]), args.image))
             return 0

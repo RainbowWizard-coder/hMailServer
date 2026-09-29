@@ -7,7 +7,7 @@ like every other file of the release:
 
 | | Where |
 |---|---|
-| The image | `registry.gitlab.com/hmailserver/hmailserver:<version>`, and for a release without a suffix `:<major>.<minor>` and `:latest` too |
+| The image | `registry.gitlab.com/hmailserver/hmailserver:<version>`, and for a release without a suffix `:<major>.<minor>` and `:latest` too, which only move forward: one index for linux/amd64 and linux/arm64 |
 | The chart | `https://updates.progressiverobot.com/helm/`, the chart `hmailserver`, at the release's version; and the release's file `hmailserver-chart-<version>.tgz` |
 | The Compose file | `hmailserver/source/Server/platform/packaging/docker/docker-compose.yml` |
 | How to run them | `hmailserver/source/Server/platform/packaging/README.md`, "Install and get running"; every variable the image reads is in [EnvironmentConfiguration.md](EnvironmentConfiguration.md) |
@@ -19,17 +19,36 @@ image only once the project was at that path, where it has been since 29 Septemb
 address is always its project's: an image pushed from the project's first path,
 `registry.gitlab.com/progressiverobot/hmailserver`, would have changed its address
 under everyone who pulled it. So no image is pushed from that path, and a release
-built by hand, 6.3.4 among them, has none. The images published before GitHub
+built by hand, 6.3.4 among them, has none; nor has 6.3.5, whose pipeline has no
+image jobs (Publishing, below), so the first image is 6.3.6's. The images published before GitHub
 suspended the project's account on 18 September 2026 were on `ghcr.io`, which has
 answered 404 since.
 
 ## The image
 
 The Dockerfile is `hmailserver/source/Server/platform/packaging/docker/Dockerfile`.
-The image is the release's `.deb` for x86-64 installed on Ubuntu 24.04, pinned by
-digest, running as the package's own user, `hmailserver`, with the one capability
-the mail ports below 1024 need set on the binary rather than given to the container.
-It has linux/amd64 only; an arm64 image is still to come (Roadmap3.md, section 1b).
+The image is the release's `.deb` installed on Ubuntu 24.04, pinned by digest,
+running as the package's own user, `hmailserver`, with the one capability the mail
+ports below 1024 need set on the binary rather than given to the container.
+
+It is built for two platforms, **linux/amd64** and **linux/arm64**, each from the
+release's `.deb` of its own architecture - `hmailserver_<version>_amd64.deb` and
+`hmailserver_<version>_arm64.deb`, the two a release carries - and the tags name
+one multi-platform index, a Docker manifest list, over the two images. `docker
+pull`, Compose, Kubernetes and Podman take the tag and fetch the image of their
+own platform; `docker manifest inspect registry.gitlab.com/hmailserver/hmailserver:<version>`
+lists both, each with its digest. The Dockerfile takes the `.deb` of the
+architecture it is built for (`TARGETARCH`, from `packages/`; `docker build
+--platform` sets it by itself, kaniko does not set it from `--custom-platform`, so
+`build/ci/linux-image.sh` passes it with `--build-arg`), and its base is pinned by
+the digest of Ubuntu's multi-platform index, of which the builder takes that
+platform's entry. The build ends by running `hmailserver --version`, so an image
+whose server cannot run on its own platform, with its own libraries, is never
+made.
+
+The pipeline builds the arm64 image on linix, an x86-64 machine, where the
+kernel hands each arm64 program to qemu-user; it and its start test have run
+there, under emulation, and on no arm64 machine yet.
 
 | | |
 |---|---|
@@ -49,6 +68,11 @@ on it anywhere but loopback, so a reachable API means a certificate mounted in
 container is not given by itself, since only the packaged systemd unit's first
 start applies a new installation's defaults ([SecureDefaults.md](SecureDefaults.md)).
 
+To build it yourself for your own machine's platform, put that architecture's
+`.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,
+Docker's builder since Docker 23, sets `TARGETARCH`; with the older builder, add
+`--build-arg TARGETARCH=amd64` or `arm64`).
+
 The image's labels, which a registry and Artifact Hub show: the OCI ones
 (`org.opencontainers.image.title`, `description`, `licenses`, `vendor`, `url`,
 `source`, `documentation`, and from the build `version`, `revision` and `created`,
@@ -58,8 +82,13 @@ document; `license`, `keywords`, and `prerelease` for a version with a suffix).
 
 ### Checking an image
 
-The image is signed by its digest, and its software bill of materials (CycloneDX)
-is attested to it, both as the release's pipeline. With cosign 2.4 or later:
+The index the tags name is signed by its digest, and so is each platform's image;
+each platform's software bill of materials (CycloneDX) is attested to that
+platform's image; all of it as the release's pipeline. A tag names the index, so
+`cosign verify` of the tag checks the index's signature. The platforms' images
+are found by their digests, which `docker manifest inspect` of the tag lists
+(`regctl image digest --platform linux/arm64 <image>:<version>` prints one). With
+cosign 2.4 or later:
 
 ```
 cosign verify \
@@ -67,11 +96,24 @@ cosign verify \
   --certificate-oidc-issuer https://gitlab.com \
   registry.gitlab.com/hmailserver/hmailserver:<version>
 
+docker manifest inspect registry.gitlab.com/hmailserver/hmailserver:<version>
+
+cosign verify \
+  --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
+  --certificate-oidc-issuer https://gitlab.com \
+  registry.gitlab.com/hmailserver/hmailserver@sha256:<the platform's digest>
+
 cosign verify-attestation --type cyclonedx \
   --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
   --certificate-oidc-issuer https://gitlab.com \
-  registry.gitlab.com/hmailserver/hmailserver:<version> | jq -r .payload | base64 -d | jq .predicate
+  registry.gitlab.com/hmailserver/hmailserver@sha256:<the platform's digest> | jq -r .payload | base64 -d | jq .predicate
 ```
+
+Each SBOM names its image by its digest and its platform: the subject's purl
+carries `arch=amd64` or `arm64`, and its `hmailserver:platform` property says
+`linux/amd64` or `linux/arm64`. `container-image-sign`'s artifact,
+`container-image-signed/verification.txt`, has these commands with the release's
+digests filled in.
 
 The identity is the project's path when the image was signed: an image is pushed and
 signed only from the group's path, so it is the group's. The `.deb` the image was
@@ -141,7 +183,7 @@ owner's account, `progressiverobot89`, and the organization `hmailserver` exist.
   with the release's version), its links, and whether it is a pre-release. The
   Official label is requested through a GitHub issue, and is not.
 - **The image.** A repository of kind Container images, with the image's address,
-  lists it from its labels. Its Verified publisher label needs the same metadata
+  lists it from its labels, which both platforms' images carry alike. Its Verified publisher label needs the same metadata
   file pushed to the image's repository under the tag `artifacthub.io`; the tool
   for that is `regctl`, from its image on Docker Hub (`regclient/regctl`), since
   ORAS comes from GitHub. That push is not written yet.
@@ -167,12 +209,30 @@ installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
 
 | Job | Where | What it does |
 |---|---|---|
-| `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); **started by hand** | Takes `hmailserver_<version>_amd64.deb` and its SBOM from the published release, with their Sigstore bundles, and verifies each with `cosign verify-blob` as signed by this project's pipeline for the tag, at either of the project's two paths, with the project's id `86730559` required in the certificate's extensions at the group's path, read from the v0.3 bundle cosign verified by `build/ci/sigstore-certificate.sh` (`build/ci/container-image-deb.sh`) |
-| `container-image` | linix, in kaniko's image | Builds the Dockerfile from that `.deb`, checks the image's user, entrypoint, healthcheck, ports, file capability, `HM_INSTALL_KIND` and labels, and pushes `:<version>` (and `:<major>.<minor>` and `:latest` for a release without a suffix) (`build/ci/linux-image.sh`, `HM_IMAGE_PUSH=1`) |
-| `container-image-sbom` | linix, in the Linux CI image | Syft's reading of the pushed image by its digest, with what the `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
-| `container-image-sign` | GitLab's shared runners, in cosign's image | Signs the image by its digest, attests its SBOM, and verifies both (`build/ci/container-image-sign.sh`) |
-| `container_scanning` | GitLab's shared runners | GitLab's Container Scanning over the pushed image by its digest; a finding is a warning, and its report is the job's artifact |
-| `container-image-start` | linix, in the Linux CI image | Starts the pushed image by its digest as a service beside PostgreSQL, and asks it for SMTP on 25 and for the REST API over TLS (The start test, below) |
+| `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); **started by hand** | Takes `hmailserver_<version>_amd64.deb`, `hmailserver_<version>_arm64.deb` and their SBOMs from the published release, with their Sigstore bundles, and verifies each with `cosign verify-blob` as signed by this project's pipeline for the tag, at either of the project's two paths, with the project's id `86730559` required in the certificate's extensions at the group's path, read from the v0.3 bundle cosign verified by `build/ci/sigstore-certificate.sh` (`build/ci/container-image-deb.sh`). A release without either `.deb`, or its SBOM, stops it: the image is built for both platforms or not at all |
+| `container-image-amd64`, `container-image-arm64` | linix, in kaniko's image | Each builds the Dockerfile for its platform from its own architecture's `.deb` - the arm64 one under qemu-user - checks the image's platform, user, entrypoint, healthcheck, ports, file capability, `HM_INSTALL_KIND` and labels and that the server answered `--version` in the build, and keeps the image's tarball for `container-image`; neither pushes (`build/ci/linux-image.sh`, `HM_IMAGE_RELEASE=1`) |
+| `container-image` | GitLab's shared runners, in regctl's image | Holds each tarball to what its job checked, joins the two images under one index, checks that the index names exactly linux/amd64 and linux/arm64, and only then pushes: each image by its digest, the index as `:<version>` (and `:<major>.<minor>` and `:latest` for a release without a suffix, each only forward: see below). It reads every tag it wrote back (`build/ci/container-image-push.sh`) |
+| `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft's reading of that platform's pushed image by its digest, with what that architecture's `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
+| `container-image-sign` | GitLab's shared runners, in cosign's image | Signs the index and each platform's image by its digest, attests each platform's SBOM to its image, and verifies all of it (`build/ci/container-image-sign.sh`) |
+| `container_scanning`, `container_scanning_arm64` | GitLab's shared runners | GitLab's Container Scanning over each platform's pushed image by its digest; a finding is a warning, and its report is the job's artifact |
+| `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Starts each platform's pushed image by its digest as a service beside PostgreSQL - the arm64 one as a service of that platform, under qemu-user - and asks it for SMTP on 25 and for the REST API over TLS (The start test, below) |
+
+In a branch's pipeline, `linux-image` builds the linux/amd64 image from
+`linux-build`'s `.deb` and `linux-image-arm64` the linux/arm64 image from
+`deb-ubuntu26.04-arm64`'s, each checked as above and pushed nowhere.
+
+**Why two build jobs and regctl.** kaniko, which builds without a Docker daemon or
+privilege, builds one platform a run and cannot join two images under one index.
+So each platform has its own kaniko job, and `container-image` joins and pushes
+them with regctl, from Docker Hub's `regclient/regctl`, pinned by digest: the same
+release the channels' registry mirror takes (`HM_REGCTL_IMAGE`,
+`.gitlab/ci/channels.yml`), in its `-alpine` variant, which has the shell a job
+needs, and the tool this document already named for Artifact Hub's metadata.
+regctl imports each tarball into an OCI image layout of the job's own and makes
+the index there, so the index is checked before anything is sent. crane's `index
+append` joins images already in a registry, so each image would be sent before
+the index could be checked; `manifest-tool`'s releases are GitHub's, which this
+project takes nothing from.
 
 **Why the .deb comes from the release.** The image jobs may run weeks after the
 tag - after the project's move - and by then `release-sign`'s artifact, which held
@@ -186,11 +246,14 @@ changed on the way fails its signature and stops the job.
 ### Publishing
 
 The switch is the project's CI/CD variable `HM_PUBLISH_IMAGE`, **read when the jobs
-run**, not when the pipeline is made: `container-image-deb` and `linux-image.sh`
-refuse, saying so, with exit status 3, while it is anything but `1`. So the jobs
-are in every `v*` tag's pipeline whatever the variable was at the tag, and a release
-published before the project's move has its image pushed from its own pipeline
-after it:
+run**, not when the pipeline is made: `container-image-deb`, `linux-image.sh` (for a
+release) and `container-image-push.sh` refuse, saying so, with exit status 3, while
+it is anything but `1`. So the jobs are in every `v*` tag's pipeline whatever the
+variable was at the tag, and a release tagged before the variable is set has its
+image pushed from its own pipeline after it. A tag's pipeline runs the tag's own CI
+files: 6.3.5's made its image jobs only if the variable was set when its pipeline
+was made, it was not, and 6.3.5's pipeline (2892097590) has none. So 6.3.5 has no
+image, and the first is 6.3.6's, for both platforms:
 
 1. The project is at `gitlab.com/hmailserver/hmailserver`, since 29 September
    2026 (Roadmap3.md, section 8, the move into the group), and the registry's
@@ -207,7 +270,8 @@ so nobody can turn the jobs on for one run.
 Nothing committed sets it, and no rule reads it: `build/check-release-chain.py`
 fails a CI file that does either, and holds the two scripts to their refusal.
 `container-image` pushes only at the group's path, and at any other it fails and
-pushes nothing: the project's first path, `registry.gitlab.com/progressiverobot/hmailserver`,
+pushes nothing; `container-image-amd64` and `container-image-arm64` build nothing for
+another: the project's first path, `registry.gitlab.com/progressiverobot/hmailserver`,
 is another project's since the move.
 `container-image-sbom` and `container-image-start` run in linix's CI image of the
 tag's commit (`hmailserver-ci/linux:<release>-<hash>`), which is built there and
@@ -219,15 +283,40 @@ tag's pipeline shows as blocked on it - the release's image is still to be pushe
 and a refusal fails it; running it again once the variable is set lets the jobs
 after it go on.
 
+**`:latest` and `:<major>.<minor>` only move forward.** The image jobs of a release
+can run after a newer release's - started late, since they wait for a press, or an
+old pipeline's `container-image` run again - and they still push `:<version>`, but
+never take the other two back. Before it moves either, `container-image` reads what
+the tag names now: it lists the repository's tags, and reads the version label
+(`org.opencontainers.image.version`) of that image's linux/amd64 image. It makes the
+tag when there is none, moves it when that image is this version (a re-run of the
+release) or an older one, compared number by number (6.3.10 is newer than 6.3.9),
+and leaves it where it is when that image is a newer version or its version cannot
+be read (no label, one that is not `<major>.<minor>.<patch>`, or the tags cannot be
+listed). A tag left where it is makes a `NOT MOVED` line in the job's log and is
+named in `container-image/tags.txt` with the reason; the job still passes, so that
+the release's own image is signed, scanned and started. If it should have moved - the
+image it names is one put there by hand, without the label - a maintainer copies the
+index to it by hand (`regctl image copy <image>@<the index's digest> <image>:latest`).
+So 6.3.12 pushed after 6.4.0 moves `:6.3` and leaves `:latest` on 6.4.0.
+
 ### When a job fails
 
-`container-image` pushes before it checks, because kaniko writes the tarball it
-checks in the same run as the push; `container-image-start` runs after the push.
-If either fails, the tags it pushed name an image that did not pass: the job's log
-names them, and they are deleted by hand (Deploy, Container registry), with the
-signature and attestation tags (`sha256-<digest>.sig` and `.att`) if
-`container-image-sign` ran. Then the fix is released as a new version; a tag is
-spent once.
+Nothing is pushed until both platforms' images are built and checked and the index
+naming them is made and checked, and no tag is written until both images and the
+index are in the registry. A build job that fails leaves the registry as it was:
+fix it and run the jobs again. If `container-image` stops between the push and the
+tags, the images it pushed by digest are reached by no tag, and nothing a user pulls
+has changed; running `container-image` again pushes the same digests and writes
+the tags.
+
+`container-image` reads its tags back after it pushes them, and
+`container-image-start` and `container-image-start-arm64` run after the push. If
+one fails, the tags name an image that did not pass: the job's log names them, and
+they are deleted by hand (Deploy, Container registry), with the signature and
+attestation tags (`sha256-<digest>.sig` and `.att`, of the index and of each
+platform's image) if `container-image-sign` ran. Then the fix is released as a new
+version; a tag is spent once.
 
 ### The start test
 
@@ -248,6 +337,16 @@ In the job, the runner starts PostgreSQL and the image as the job's services on 
 network of the job's own (`FF_NETWORK_PER_BUILD`), and `CI_DEBUG_SERVICES` puts
 both services' output in the job's log.
 
+`container-image-start-arm64` does the same with the linux/arm64 image, named by
+its own digest (the dotenv report's `HM_IMAGE_ARM64`), as a service of the platform
+linux/arm64 (`services:docker:platform`), which linix runs under qemu-user, and
+waits up to ten minutes for it to answer. Under emulation the kernel does not apply
+the binary's file capability to the emulator it runs; the container binds port 25
+all the same, because Docker lets a container's own processes bind any port
+(`net.ipv4.ip_unprivileged_port_start=0` in its network namespace). The capability
+itself is checked in both images' layers by the build jobs, and is used as it is on
+an arm64 machine.
+
 **By hand**, on any machine with a Docker daemon - linix, or a laptop's WSL - the
 script starts the same two containers itself and removes them afterwards:
 
@@ -257,7 +356,12 @@ HM_START_VERSION=<version> bash build/ci/container-image-start-test.sh --docker 
 
 # the image linux-image built without pushing, from its tarball (HM_KEEP_IMAGE=1)
 docker load -i linux-image/hmailserver-image.tar
-HM_START_VERSION=<version> bash build/ci/container-image-start-test.sh --docker hmailserver:<version>
+HM_START_VERSION=<version> bash build/ci/container-image-start-test.sh --docker hmailserver:<version>-amd64
+
+# the arm64 one, on an x86-64 machine with qemu-user's binfmt handler for aarch64
+docker load -i linux-image-arm64/hmailserver-image.tar
+HM_START_PLATFORM=linux/arm64 HM_START_VERSION=<version> \
+  bash build/ci/container-image-start-test.sh --docker hmailserver:<version>-arm64
 ```
 
 `--keep` leaves both containers running and says how to remove them. On 28
@@ -272,6 +376,70 @@ three containers on one Docker network standing in for the runner - PostgreSQL a
 each given all of the job's variables, as GitLab gives a job's variables to its
 services: it passed, and asked for another version it failed naming the pushed
 tags to delete.
+
+### What was run by hand
+
+On linix on 29 September 2026, beside batch42's pipeline, from 6.3.5's published
+amd64 `.deb` (held to the release's `hmailserver-linux-6.3.5-SHA256SUMS.txt`) and the
+arm64 `.deb` of batch41's pipeline 2887524317 (`deb-ubuntu26.04-arm64`, job
+16766310075, version 6.3.5, SHA-256 `41967a00...`), with this tree's Dockerfile and
+scripts, in the jobs' own images, unprivileged, as the jobs run them:
+
+- **Both platforms built.** `linux-image.sh` built the linux/arm64 image in 162 to
+  217 s, its `RUN` under qemu-user through linix's qemu-aarch64 handler (flags POF),
+  and the linux/amd64 one in 44 to 50 s, in branch mode and in release mode
+  (`HM_IMAGE_RELEASE=1`, as `container-image-amd64` and `-arm64`). Each answered
+  `hMailServer 6.3.5 build 44` in its build, and each passed every check: the arm64
+  image's configuration says `arm64`, variant `v8`, and its binary kept
+  `cap_net_bind_service`. Each tarball is about 85 MB.
+- **The arm64 image started under emulation.** Loaded into Docker and run as
+  linux/arm64, it said `aarch64` and `hMailServer 6.3.5 build 44`, ran as
+  `hmailserver`, and `getcap` showed the capability; the start test beside
+  PostgreSQL passed in 19 s (SMTP with STARTTLS, the REST API over TLS as
+  `6.3.5-B44`, 401 without credentials, nothing over plain HTTP). The amd64 image's
+  passed in 9 s. In the arm64 container the server's process was `qemu-aarch64` with
+  no effective capability, where the amd64 one's had `cap_net_bind_service`, and it
+  bound port 25 all the same: Docker set `net.ipv4.ip_unprivileged_port_start` to 0
+  in both containers (1024 on linix itself).
+- **The push, against a stand-in.** `container-image-push.sh`, in the job's regctl
+  image, pushed both release builds to a registry answering as
+  `registry.gitlab.com` over TLS (distribution's `registry:3`, a throwaway
+  certificate, on a docker network of its own): a Docker manifest list naming
+  linux/amd64 and linux/arm64 (variant `v8`) as `6.3.5`, `6.3` and `latest`, and no
+  other tag. Ten refusals stopped it before anything was sent: the switch unset or
+  0, the project's first path, a branch's pipeline, another tag's version, no arm64
+  image, the amd64 image in the arm64 job's place, a tarball changed after its check,
+  an `image.json` that was not the tarball's configuration, and no registry
+  password. `linux-image.sh`'s release mode refused, before kaniko ran, the switch
+  unset or 0, the first path, a branch's pipeline, a missing `.deb` and a platform
+  not built.
+- **The SBOMs.** `container-image-sbom.sh`, in the Linux CI image, read both images
+  from the stand-in by digest and made one document each (4,398 components; the
+  subject's purl with `arch=amd64` or `arch=arm64`), from 6.3.5's published amd64
+  `.deb` SBOM and, for arm64, an SBOM `build/ci/packages/package-sbom.sh` made from a
+  record written by hand from that job's `build-info.txt` (batch41 had no arm64 SBOM
+  job yet). Syft found the `hmailserver` package of each architecture.
+- **Signing, with a throwaway key.** cosign 2.6.5, in `HM_COSIGN_IMAGE`, with a key
+  and no transparency log in place of Fulcio and Rekor, signed the index and both
+  images by digest and attested each platform's SBOM to its image; each verified,
+  and `cosign verify` of the tag `6.3.5` found the index's signature. The registry
+  then held `.sig` tags for all three digests and `.att` tags for the two images.
+- **Scanning.** GitLab's container-scanning analyzer, version 8 (gcs 8.6.35, Trivy
+  0.72.0), scanned each platform's image by digest in 6 s: 18 findings each, and its
+  SBOM listed the `hmailserver` package of that architecture.
+- **The tags only forward.** Against the same kind of stand-in, as a user that neither
+  owns the checkout nor is root, `container-image-push.sh` pushed small images of
+  both platforms, each labelled with its version and built with kaniko as the jobs
+  build them, in this order:
+  - 6.3.5 into an empty repository made `:6.3` and `:latest`;
+  - 6.3.6 moved both;
+  - 6.3.5 again, rebuilt, pushed `:6.3.5` and moved neither;
+  - 6.3.6 again, rebuilt, moved both to its new index;
+  - after 6.3.10, 6.3.9 moved neither;
+  - with `:latest` put by hand on an image without the label, 6.3.11 moved `:6.3` and
+    left `:latest`, saying so;
+  - 6.4.0 made `:6.4` and moved `:latest`, and 6.3.12 after it moved `:6.3` alone;
+  - 6.3.13-rc1 wrote its own tag only.
 
 ### Packaging and serving the chart
 
@@ -307,10 +475,15 @@ pulled byte for byte and rendered with the release's image.
 ## What is not shown yet
 
 - No image has been pushed, signed, scanned or started by the pipeline: the first
-  is the first release whose image jobs run with `HM_PUBLISH_IMAGE` set. The start
-  test's GitLab half - the runner starting the services on a network of the job's
-  own, the image named by the dotenv report's `HM_IMAGE`, the job's variables
-  reaching the services - is first run there; its checks, and a stand-in for that
-  half, were run by hand, as above.
+  is the first release whose image jobs run with `HM_PUBLISH_IMAGE` set, 6.3.6. The
+  start test's GitLab half - the runner starting the services on a network of the
+  job's own, the images named by the dotenv report's `HM_IMAGE` and
+  `HM_IMAGE_ARM64`, the arm64 one as a service of the platform linux/arm64, the
+  job's variables reaching the services - is first run there; its checks, and a
+  stand-in for that half, were run by hand, as above.
+- `linux-image-arm64` has not run in a pipeline: the first is batch42's.
+- GitLab's registry has not yet taken a Docker manifest list from this project, nor
+  keyless signatures of three digests from one job; both were shown against a
+  stand-in registry, and with a key, as above.
+- No arm64 machine has run the image: only linix's qemu-user.
 - No chart has been published or listed on Artifact Hub.
-- The image is linux/amd64 only.
