@@ -157,6 +157,120 @@ namespace RegressionTests.API
          StringAssert.Contains("No audit row", refused.Message);
       }
 
+      [Test]
+      [Description("A switch changed over REST is put back into the flag the server reads: COM and REST read the value it had, a message delivered afterwards shows it, and the put-back is recorded as the switch's own change. Until 29 September 2026 the put-back wrote \"true\" into the setting's text column, which nothing reads, answered that the switch was back, and left it off.")]
+      public void ASwitchIsPutBackIntoTheFlagTheServerReads()
+      {
+         const string property = "adddeliveredtoheader";
+         bool original = _settings.AddDeliveredToHeader;
+
+         try
+         {
+            // On, then switched off over REST: the row says "true -> false".
+            _settings.AddDeliveredToHeader = true;
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings", "{\"add_delivered_to_header\":false}").status);
+            ClassicAssert.IsFalse(_settings.AddDeliveredToHeader);
+
+            long row = NewestRowFor(property, "true -> false");
+
+            (int status, string body) reverted = Http("POST", AuditPath + "/" + row + "/revert", "{}");
+            ClassicAssert.AreEqual(200, reverted.status, reverted.body);
+            using (JsonDocument document = JsonDocument.Parse(reverted.body))
+               ClassicAssert.AreEqual("true", document.RootElement.GetProperty("value").GetString());
+
+            ClassicAssert.IsTrue(_settings.AddDeliveredToHeader, "COM reads the switch as it was before the change: on.");
+            ClassicAssert.IsTrue(SettingFlag("add_delivered_to_header"), "REST reads the switch as it was before the change: on.");
+
+            // The put-back is the switch's own change, from off to on.
+            string newest = FirstEntry(Http("GET", AuditPath + "?object_type=setting&limit=5").body);
+            StringAssert.Contains("\"object\":\"" + property + "\"", newest);
+            StringAssert.Contains("false -> true", newest);
+
+            // And the server does what the switch says: local delivery adds the field.
+            Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audit-revert-switch@example.test", "test");
+            SmtpClientSimulator.StaticSend("sender@example.test", account.Address, "Put back", "The switch is on again.");
+            string message = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            StringAssert.Contains("Delivered-To: " + account.Address, message);
+         }
+         finally
+         {
+            _settings.AddDeliveredToHeader = original;
+         }
+      }
+
+      [Test]
+      [Description("A number is put back as a number, over COM; a text whose values hold \" -> \" is put back whole, split where the new side is the setting's value now; and a row that cannot be split so is refused with nothing changed. Until 29 September 2026 the first arrow was taken, so \"before -> after\" changed to \"plain\" was put back as \"before\".")]
+      public void ANumberAndATextHoldingAnArrowArePutBackWhole()
+      {
+         int originalPort = _settings.SMTPRelayerPort;
+         string originalWelcome = _settings.WelcomeIMAP;
+
+         try
+         {
+            // A number, changed over REST and put back over COM.
+            _settings.SMTPRelayerPort = 2525;
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings", "{\"smtp_relayer_port\":2626}").status);
+            ClassicAssert.AreEqual(2626, _settings.SMTPRelayerPort);
+
+            long portRow = NewestRowFor("smtprelayerport", "2525 -> 2626");
+            ClassicAssert.AreEqual("2525", _application.Utilities.RevertAuditedChange((int) portRow));
+            ClassicAssert.AreEqual(2525, _settings.SMTPRelayerPort);
+            StringAssert.Contains("\"smtp_relayer_port\":2525,", Http("GET", "/api/v1/settings").body);
+
+            // A text holding the arrow: the row reads "before -> after -> plain".
+            const string arrowed = "before -> after";
+            _settings.WelcomeIMAP = arrowed;
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings", "{\"welcome_imap\":\"plain\"}").status);
+            ClassicAssert.AreEqual("plain", _settings.WelcomeIMAP);
+
+            long textRow = NewestRowFor("welcomeimap", arrowed + " -> plain");
+
+            (int status, string body) reverted = Http("POST", AuditPath + "/" + textRow + "/revert", "{}");
+            ClassicAssert.AreEqual(200, reverted.status, reverted.body);
+            using (JsonDocument document = JsonDocument.Parse(reverted.body))
+               ClassicAssert.AreEqual(arrowed, document.RootElement.GetProperty("value").GetString());
+            ClassicAssert.AreEqual(arrowed, _settings.WelcomeIMAP, "The whole value it had is back.");
+
+            // The same row again: the setting now holds neither of its possible new
+            // sides, so the row does not say where the old value ends.
+            (int status, string body) refused = Http("POST", AuditPath + "/" + textRow + "/revert", "{}");
+            ClassicAssert.AreEqual(409, refused.status, refused.body);
+            StringAssert.Contains("does not say where", refused.body);
+            ClassicAssert.AreEqual(arrowed, _settings.WelcomeIMAP, "Nothing was changed by the refusal.");
+         }
+         finally
+         {
+            _settings.SMTPRelayerPort = originalPort;
+            _settings.WelcomeIMAP = originalWelcome;
+         }
+      }
+
+      [Test]
+      [Description("A row whose values hold \" -> \" is not divided by the value the setting has now once the setting has changed again: \"first\" changed to \"b -> c\" and then to \"c\" leaves the row \"first -> b -> c\", whose second arrow leaves \"c\" as the new side, and the row is refused rather than \"first -> b\" written back - a value the setting never had.")]
+      public void AnArrowedRowIsRefusedOnceTheSettingHasChangedSince()
+      {
+         string originalWelcome = _settings.WelcomeIMAP;
+
+         try
+         {
+            _settings.WelcomeIMAP = "first";
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings", "{\"welcome_imap\":\"b -> c\"}").status);
+            long firstRow = NewestRowFor("welcomeimap", "first -> b -> c");
+
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings", "{\"welcome_imap\":\"c\"}").status);
+            ClassicAssert.AreEqual("c", _settings.WelcomeIMAP);
+
+            (int status, string body) refused = Http("POST", AuditPath + "/" + firstRow + "/revert", "{}");
+            ClassicAssert.AreEqual(409, refused.status, refused.body);
+            StringAssert.Contains("changed since", refused.body);
+            ClassicAssert.AreEqual("c", _settings.WelcomeIMAP, "Nothing was written by the refusal.");
+         }
+         finally
+         {
+            _settings.WelcomeIMAP = originalWelcome;
+         }
+      }
+
       // ----------------------------------------------------------------- helpers
 
       private static string Setting(string key)
@@ -165,6 +279,32 @@ namespace RegressionTests.API
          ClassicAssert.AreEqual(200, answer.status, answer.body);
          using (JsonDocument document = JsonDocument.Parse(answer.body))
             return document.RootElement.GetProperty(key).GetString();
+      }
+
+      private static bool SettingFlag(string key)
+      {
+         (int status, string body) answer = Http("GET", "/api/v1/settings");
+         ClassicAssert.AreEqual(200, answer.status, answer.body);
+         using (JsonDocument document = JsonDocument.Parse(answer.body))
+            return document.RootElement.GetProperty(key).GetBoolean();
+      }
+
+      // The newest row for the setting whose detail holds the text.
+      private static long NewestRowFor(string setting, string detailText)
+      {
+         (int status, string body) trail = Http("GET", AuditPath + "?object_type=setting&limit=20");
+         ClassicAssert.AreEqual(200, trail.status, trail.body);
+         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         {
+            foreach (JsonElement entry in document.RootElement.GetProperty("entries").EnumerateArray())
+            {
+               if (entry.GetProperty("object").GetString() == setting &&
+                   (entry.GetProperty("detail").GetString() ?? "").Contains(detailText))
+                  return entry.GetProperty("id").GetInt64();
+            }
+         }
+         Assert.Fail("No row records " + setting + " as " + detailText + ": " + trail.body);
+         return 0;
       }
 
       private static (long id, string setting) NewestSettingRowWith(string value)

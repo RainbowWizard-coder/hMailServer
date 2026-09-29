@@ -19,12 +19,10 @@
 
 namespace HM
 {
-   std::map<int, String> Language::mapEnglishContent;
-
-   Language::Language(const String &sName, bool isDownloded) :
-      is_loaded_(false),
+   Language::Language(const String &sName, bool isDownloded, std::shared_ptr<const EnglishStrings> english) :
       name_(sName),
-      is_downloaded_(isDownloded)
+      is_downloaded_(isDownloded),
+      english_(english)
    {
    }
 
@@ -35,73 +33,84 @@ namespace HM
    String
    Language::GetString(const String &sEnglishString)
    {
-      if (!is_loaded_)
-         Load();
+      // The translation is never changed once it is published, so it is read
+      // with no lock held.
+      std::shared_ptr<const Strings> strings = Strings_();
 
-      std::map<String, String>::const_iterator iterString = strings_.find(sEnglishString);
-      if (iterString == strings_.end())
+      auto iterString = strings->find(sEnglishString);
+      if (iterString == strings->end() || iterString->second.IsEmpty())
          return sEnglishString;
-      else
-      {
-         String translatedString = (*iterString).second;
 
-         if (translatedString.IsEmpty())
-            return sEnglishString;
-
-         return translatedString;
-      }
+      return iterString->second;
    }
 
-   void 
+   std::shared_ptr<const Language::Strings>
+   Language::Strings_()
+   {
+      {
+         boost::lock_guard<boost::mutex> guard(strings_mutex_);
+         if (strings_)
+            return strings_;
+      }
+
+      // Not read yet. Read with no lock held; two threads that get here at once
+      // each read the file, and the first to finish publishes what it read, which
+      // every later call is given.
+      std::shared_ptr<const Strings> read = Read_();
+
+      boost::lock_guard<boost::mutex> guard(strings_mutex_);
+      if (!strings_)
+         strings_ = read;
+
+      return strings_;
+   }
+
+   std::shared_ptr<const Language::EnglishStrings>
    Language::LoadEnglish()
    {
+      std::shared_ptr<EnglishStrings> english = std::make_shared<EnglishStrings>();
+
       String sEnglishLanguageFile = IniFileSettings::Instance()->GetLanguageDirectory() + FileUtilities::PathSeparator + "english.ini";
       String sEnglishContents = FileUtilities::ReadCompleteTextFile(sEnglishLanguageFile);
-      
-      
+
       std::vector<String> vecEnglishStrings = StringParser::SplitString(sEnglishContents, "\r\n");
 
-      auto iterEnglishString = vecEnglishStrings.begin();
-      auto iterEnglishStringEnd = vecEnglishStrings.end();
-      for (; iterEnglishString != iterEnglishStringEnd; iterEnglishString++)
+      for (const String &sString : vecEnglishStrings)
       {
-         String sString = (*iterEnglishString);
-
          if (sString.Left(7) != _T("String_"))
             continue;
 
          std::pair<int, String> pair = GetString_(sString);
 
-         mapEnglishContent[pair.first] = pair.second;
+         (*english)[pair.first] = pair.second;
       }
 
+      return english;
    }
 
-   void 
-   Language::Load()
+   std::shared_ptr<const Language::Strings>
+   Language::Read_() const
    {
+      std::shared_ptr<Strings> strings = std::make_shared<Strings>();
+
       String sTranslatedLanguageFile = IniFileSettings::Instance()->GetLanguageDirectory() + FileUtilities::PathSeparator + name_ + ".ini";
       String sTranslatedContents = FileUtilities::ReadCompleteTextFile(sTranslatedLanguageFile);
-      
+
+      if (!english_)
+         return strings;
 
       std::vector<String> vecTranslatedStrings = StringParser::SplitString(sTranslatedContents, "\r\n");
 
-      auto iterTranslatedString = vecTranslatedStrings.begin();
-      auto iterTranslatedStringEnd = vecTranslatedStrings.end();
-      for (; iterTranslatedString != iterTranslatedStringEnd; iterTranslatedString++)
+      for (const String &sString : vecTranslatedStrings)
       {
-         String sString = (*iterTranslatedString);
          std::pair<int, String> translatedPair = GetString_(sString);
 
-         auto englishPair = mapEnglishContent.find(translatedPair.first);
-         if (englishPair != mapEnglishContent.end())
-         {
-            strings_[(*englishPair).second] = translatedPair.second;
-         }
-        
+         auto englishPair = english_->find(translatedPair.first);
+         if (englishPair != english_->end())
+            (*strings)[englishPair->second] = translatedPair.second;
       }
 
-      is_loaded_ = true;
+      return strings;
    }
 
    std::pair<int, String> 

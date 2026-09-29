@@ -213,6 +213,13 @@ namespace HM
       // One row by its id; false when there is none.
       bool Read(__int64 id, Entry &entry);
 
+      // Whether the trail records a change of the setting `name` after the row
+      // `id`: `changed` says so. False when the trail could not be read.
+      // AuditRevert asks it before it divides a row whose values hold " -> ",
+      // which it may only do by the value the setting has now while that is
+      // still the value the row gave it.
+      bool ChangedSince(const String &name, __int64 id, bool &changed);
+
       // A row as the REST API and the COM report both write it: id, time, actor,
       // actor_type, interface, address, object_type, object, action, detail,
       // hash and previous_hash.
@@ -232,6 +239,12 @@ namespace HM
       // carrying password, secret, token, hash, salt, private key and the rest,
       // except the few settings named in NotSecretNames that only look like one.
       static bool IsSecretName(const String &name);
+
+      // A setting's value as RecordSettingChange writes each side of its row: on
+      // one line, a line break or a tab made a space, and cut at 120 characters
+      // with "..." after them. AuditRevert reads a row's sides against the
+      // setting's value now in this form.
+      static String RecordedValue(const String &value);
 
       // The thread's actor. Installed by AuditScope, which is the only thing
       // that should call Set/Clear.

@@ -15,9 +15,10 @@
 
 namespace HM
 {
-   Languages::Languages(void)
+   Languages::Languages(void) :
+      languages_(std::make_shared<LanguageMap>())
    {
-      
+
    }
 
    Languages::~Languages(void)
@@ -27,18 +28,17 @@ namespace HM
    void 
    Languages::Load()
    {
-      Language::LoadEnglish();
+      // Built whole with no lock held - English and the directory are read here -
+      // and published below. See Languages.h.
+      std::shared_ptr<const Language::EnglishStrings> english = Language::LoadEnglish();
 
-      std::vector<FileInfo> languageFiles = 
+      std::shared_ptr<LanguageMap> languages = std::make_shared<LanguageMap>();
+
+      std::vector<FileInfo> languageFiles =
          FileUtilities::GetFilesInDirectory(IniFileSettings::Instance()->GetLanguageDirectory(), "^.*[.]ini$");
 
-      auto iter = languageFiles.begin();
-      auto iterEnd = languageFiles.end();
-
-
-      for (; iter != iterEnd; iter++)
+      for (FileInfo &fileInfo : languageFiles)
       {
-         FileInfo fileInfo = (*iter);
          String sFileName = fileInfo.GetName();
 
          int dotPos = sFileName.Find(_T("."));
@@ -52,9 +52,22 @@ namespace HM
          if (!IsValidLangauge_(sFormattedLanguage))
             continue;
 
-         std::shared_ptr<Language> pLanguage = std::shared_ptr<Language>(new Language(sFormattedLanguage, true));
-         languages_[sFormattedLanguage] = pLanguage;
+         (*languages)[sFormattedLanguage] = std::make_shared<Language>(sFormattedLanguage, true, english);
       }
+
+      // The set this replaces is released when `previous` goes, after the lock.
+      std::shared_ptr<const LanguageMap> previous = languages;
+      {
+         boost::lock_guard<boost::mutex> guard(languages_mutex_);
+         languages_.swap(previous);
+      }
+   }
+
+   std::shared_ptr<const Languages::LanguageMap>
+   Languages::Published_()
+   {
+      boost::lock_guard<boost::mutex> guard(languages_mutex_);
+      return languages_;
    }
 
    bool 
@@ -76,33 +89,38 @@ namespace HM
 
    }
 
-   std::shared_ptr<Language> 
+   size_t
+   Languages::GetCount()
+   {
+      return Published_()->size();
+   }
+
+   std::shared_ptr<Language>
    Languages::GetLanguage(const String &sLanguage)
    {
       String sFormattedLanguage = sLanguage;
       sFormattedLanguage.ToLower();
 
-      auto iterLanguage = languages_.find(sFormattedLanguage);
-      if (iterLanguage != languages_.end())
+      std::shared_ptr<const LanguageMap> languages = Published_();
+
+      auto iterLanguage = languages->find(sFormattedLanguage);
+      if (iterLanguage != languages->end())
          return (*iterLanguage).second;
-     
+
       std::shared_ptr<Language> pEmpty;
       return pEmpty;
    }
 
-   std::shared_ptr<Language> 
+   std::shared_ptr<Language>
    Languages::GetLanguage(int index)
    {
-      auto iter = languages_.begin();
-      auto iterEnd = languages_.end();
-      
+      std::shared_ptr<const LanguageMap> languages = Published_();
+
       int current = 0;
-      for (; iter != iterEnd; iter++)
+      for (const auto &language : *languages)
       {
          if (current == index)
-         {
-            return (*iter).second;
-         }
+            return language.second;
 
          current++;
       }

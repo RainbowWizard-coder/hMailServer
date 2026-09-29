@@ -663,6 +663,12 @@ namespace HM
       Write_(objectType, objectName, action, detail);
    }
 
+   String
+   AuditTrail::RecordedValue(const String &value)
+   {
+      return Truncate(OneLine(value), MaxValueLength);
+   }
+
    void
    AuditTrail::RecordSettingChange(const String &name, const String &oldValue, const String &newValue, const String &action, bool withheld)
    {
@@ -677,8 +683,7 @@ namespace HM
       }
       else
       {
-         detail = name + _T(": ") + Truncate(OneLine(oldValue), MaxValueLength) +
-                  _T(" -> ") + Truncate(OneLine(newValue), MaxValueLength);
+         detail = name + _T(": ") + RecordedValue(oldValue) + _T(" -> ") + RecordedValue(newValue);
       }
 
       Write_(_T("setting"), name, action, Truncate(detail, MaxDetailLength));
@@ -963,6 +968,31 @@ namespace HM
          return false;
 
       ReadRow_(recordset, entry);
+      return true;
+   }
+
+   bool
+   AuditTrail::ChangedSince(const String &name, __int64 id, bool &changed)
+   {
+      changed = false;
+
+      // Folded to one case on both sides, as Query folds its filters: PostgreSQL
+      // compares case-sensitively and the other three backends do not.
+      String lowerName = name;
+      lowerName.MakeLower();
+
+      SQLCommand command("select count(*) as auditcount from hm_audit where lower(auditobjecttype) = @OBJECTTYPE and lower(auditobjectname) = @OBJECTNAME and auditid > @ID");
+      command.AddParameter("@OBJECTTYPE", String(_T("setting")));
+      command.AddParameter("@OBJECTNAME", lowerName);
+      command.AddParameter("@ID", id);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset)
+         return false;
+
+      if (!recordset->IsEOF())
+         changed = recordset->GetLongValue("auditcount") > 0;
+
       return true;
    }
 

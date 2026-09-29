@@ -13,13 +13,16 @@ namespace HM
    class AuditRevert
    {
    public:
-      // Writes the value the row records as the old one, through the same
-      // setter the change came through, so the put-back is itself recorded as
-      // a change by whoever asked for it. `restored` is the value written, or
-      // "(default)" for a [Settings] key returned to its default. False with
-      // `error` when the row is not a setting's change, when the trail does
-      // not carry the value (a secret, a value longer than the trail keeps),
-      // when the setting no longer exists, or when the write failed.
+      // Writes the value the row records as the old one, through the setter
+      // that writes the column the server reads the setting from - SetString,
+      // SetLong, or SetBool for a switch - so the put-back is itself recorded as
+      // a change by whoever asked for it. `restored` is the value written ("true"
+      // or "false" for a switch), or "(default)" for a [Settings] key returned to
+      // its default. False with `error` when the row is not a setting's change,
+      // when the trail does not carry the value (a secret, a value longer than
+      // the trail keeps, values holding " -> " where the row does not say which
+      // arrow divides them), when a number's row holds no number, when the
+      // setting no longer exists, or when the write failed.
       static bool PutBack(const AuditTrail::Entry &entry, String &restored, String &error);
    };
 }

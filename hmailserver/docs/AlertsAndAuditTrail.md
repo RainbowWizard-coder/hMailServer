@@ -311,20 +311,32 @@ troubleshooting > Audit trail), over `Utilities.GetAuditTrail`, `Utilities.Verif
     POST /api/v1/audit/{id}/revert
 
 A setting's row says what the setting had and what it was given (`name: old ->
-new`), so the old value can be written back - through the same setter the
-change came through, which means the put-back is itself a row in the trail,
-made by whoever asked for it and never a quiet edit of history. The answer
-names the setting and the value; a `[Settings]` key whose old side is
+new`), so the old value can be written back - into the column of `hm_settings`
+the server reads the setting from, through the setter that writes it: a switch
+(`true -> false`) through `SetBool`, a number through `SetLong`, a text through
+`SetString`, the column being the one `SettingsDefaults.h` names for the
+property (for the few it names no one column for, the one the values show). The put-back is itself a row in the trail, made by whoever asked for
+it and never a quiet edit of history. The answer names the setting and the
+value (`true` or `false` for a switch); a `[Settings]` key whose old side is
 `(default)` is returned to its default. It needs `manage_settings` and is
-refused to every API key, like the rest of the trail.
+refused to every API key, like the rest of the trail. Until 29 September 2026
+a switch was written back as the text `true` or `false`, which the server does
+not read, and the answer said it was put back when it was not; and a value
+holding ` -> ` was cut at its first arrow.
 
 The trail is honest about what it does not hold, and so is the put-back: a row
 that is not a setting's change (an account created, a rule deleted) is refused
 with 409, because there is no old value to write; a secret's row is refused,
 because the trail records `(changed)` and never the values; a value the trail
 cut at 120 characters is refused, because what the trail holds is not the
-value; and a setting this version of the server no longer has is refused. Each
-refusal says which. The Deck's page has *Put back* on every row that qualifies,
+value; a row whose values hold ` -> ` themselves is put back only while it is
+the setting's latest change in the trail and exactly one of the places it can
+be divided leaves as the new side the value the setting has now, and is refused
+otherwise, because the row does not say where the old value ends (a
+`[Settings]` key's such row is always refused); a number's
+row that holds no number is refused; and a setting this version of the server
+no longer has is refused. Each refusal says which. A line break or a tab in a
+value is recorded as a space, and a value put back from the trail has the space. The Deck's page has *Put back* on every row that qualifies,
 and the Control Panel's page a *Put back* button for the selected row.
 
 **Refused to every API key.** An API key of any scope is refused, and refused

@@ -273,6 +273,15 @@ for a stray `#` number or `@` name.
   makes a copy fail after a second's freeze (a chart's Copy then showed no confirmation, and the new API key's and
   app password's Copy an error), and text copied just before the Control Panel is closed still pastes after it has
   gone.
+- **Fixed: a switch put back from the audit trail stayed as it was.** Putting a setting back from its audit row
+  (`POST /api/v1/audit/{id}/revert`, `Utilities.RevertAuditedChange`, *Put back* in the Deck and the Control Panel)
+  wrote a switch's old value, `true` or `false`, into the text column of `hm_settings`, which the server does not
+  read, and answered that it was put back. A setting now goes back into the column the server reads it from - a
+  switch as a switch, recorded as `false -> true` - and a text whose values hold ` -> ` is put back whole, where it
+  was cut at its first arrow, while its row is the setting's latest change in the trail, or refused when the row does
+  not say where the old value ends. A switch put back by 6.3.4 or 6.3.5 keeps a `true` or `false` in its unread text
+  column, which does nothing; one put back twice by those versions left a row `true -> false` or `false -> true`
+  describing that text column, and putting that row back now sets the switch.
 
 ### Operations
 
@@ -377,6 +386,11 @@ for a stray `#` number or `@` name.
   reinitialise, after the new settings were read, is stored but not in force until the next reinitialise or start.
 - **Active-active nodes: the design, not built** ([ActiveActive.md](hmailserver/docs/ActiveActive.md)). Until it is,
   one service per database.
+- **Fixed: languages read while they were being reloaded.** A reinitialise rebuilt, in place, the translations COM's
+  `Languages` and `Language` objects read - a script's or another COM client's; the Control Panel has translations of
+  its own - and a language's first `String` call read its file into a table other calls were reading at the same
+  time, which could crash the service on Windows (on Linux nothing reads them). Both are now built whole and handed
+  over under a lock, as the settings are since the reinitialise fix.
 
 ### Build and tests
 
