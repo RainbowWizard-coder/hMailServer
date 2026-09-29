@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include "LegacyBlowfish.h"
+
 namespace HM
 {
-   class BlowFishEncryptor;
-   
    class Crypt : public Singleton<Crypt>
    {
    public:
@@ -119,7 +119,9 @@ namespace HM
       // as it was before 6.3.4.
       bool ValidateBytes_(const AnsiString &password, const AnsiString &originalHash, EncryptionType iType, bool *oldPepper = nullptr) const;
 
-      BlowFishEncryptor *blow_fish_;
+      // The legacy Blowfish scheme (ETBlowFish), keyed once; its operations are
+      // const, so every thread shares it.
+      const LegacyBlowfish legacy_blowfish_;
 
    };
 }

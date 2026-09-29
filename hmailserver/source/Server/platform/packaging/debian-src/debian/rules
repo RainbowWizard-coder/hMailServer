@@ -43,10 +43,11 @@ override_dh_auto_configure:
 # got past the testers alone in a Fedora build on 29 September 2026; SourcePackages.md).
 # Then the tester programs the build makes beside the server: the RFC 7208 suite and
 # the SPF testers, the event scripts' JavaScript binding, the SNMP agent's
-# decoder and cryptography, and the object store's request signatures. None
+# decoder and cryptography, the object store's request signatures, the
+# singletons and the legacy Blowfish scheme. None
 # opens a socket, reads a configuration or needs a database, so they run here,
 # with the network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))

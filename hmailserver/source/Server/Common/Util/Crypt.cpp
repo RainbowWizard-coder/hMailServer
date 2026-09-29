@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "Crypt.h"
-#include "BlowFish.h"
+#include "LegacyBlowfish.h"
 #include "DataProtector.h"
 #include "Unicode.h"
 #include "Hashing/HashCreator.h"
@@ -90,12 +90,10 @@ namespace HM
 
    Crypt::Crypt()
    {
-      blow_fish_ = new BlowFishEncryptor();
-   }  
+   }
 
    Crypt::~Crypt()
    {
-      delete blow_fish_;
    }
 
    String
@@ -110,7 +108,7 @@ namespace HM
             if (sInput.IsEmpty())
                return "";
 
-            return blow_fish_->EncryptToString(sInput);
+            return legacy_blowfish_.EncryptToString(sInput);
          }
       case ETMD5:
          {
@@ -388,7 +386,7 @@ namespace HM
                if (sInput.IsEmpty())
                   return "";
 
-               return blow_fish_->DecryptFromString(sInput);
+               return legacy_blowfish_.DecryptFromString(sInput);
             }
             break;
          case ETDPAPI:

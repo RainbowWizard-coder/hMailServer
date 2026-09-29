@@ -79,7 +79,7 @@
 #include "Utilities.h"
 #include "Parsing/AddresslistParser.h"
 #include "../../IMAP/IMAPSimpleCommandParser.h"
-#include "BlowFish.h"
+#include "LegacyBlowfish.h"
 
 #ifdef HM_PLATFORM_POSIX
 namespace
@@ -2121,10 +2121,12 @@ namespace HM
 
 
 
-      OutputDebugString(_T("hMailServer: Testing BlowFishEncryptorTester\n"));
-      BlowFishEncryptorTester *pTest3 = new BlowFishEncryptorTester();
-      pTest3->Test();
-      delete pTest3;
+      // The legacy Blowfish scheme of stored secrets: the cipher against Eric
+      // Young's published vectors, and the scheme against values 6.3.4 wrote and
+      // read. legacy_blowfish_tests_main.cpp runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing LegacyBlowfish\n"));
+      LegacyBlowfishTester legacyBlowfishTester;
+      legacyBlowfishTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing IMAPSimpleCommandParserTester\n"));
       IMAPSimpleCommandParserTester *pTest = new IMAPSimpleCommandParserTester();

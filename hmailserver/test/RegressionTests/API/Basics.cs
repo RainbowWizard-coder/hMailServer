@@ -47,6 +47,33 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The legacy Blowfish scheme - a database password written with PasswordEncryption=1, a secret stored " +
+                   "while ProtectStoredSecretsWithDPAPI is 0 - writes and reads exactly what earlier versions did. " +
+                   "Every value below is what hMailServer 6.3.4 answered over COM on 29 September 2026.")]
+      public void BlowfishWritesAndReadsWhatEarlierVersionsDid()
+      {
+         var utilities = SingletonProvider<TestSetup>.Instance.GetApp().Utilities;
+
+         var written = new[]
+         {
+            new[] { "Test", "08d04d2ef52d64ce" },
+            new[] { "12345678", "fe6a3dbe3ced1dc7" },
+            new[] { "123456789", "fe6a3dbe3ced1dc765a1afd168e3162d" },
+            new[] { "Legacy-Blowfish-Secret!_2026", "50e838404aed5e6a86dba591593e2ff1a780b90bd036ed2822e8580bea8aa095" },
+         };
+
+         foreach (var pair in written)
+         {
+            Assert.AreEqual(pair[1], utilities.BlowfishEncrypt(pair[0]), pair[0]);
+            Assert.AreEqual(pair[0], utilities.BlowfishDecrypt(pair[1]), pair[1]);
+         }
+
+         // Read as 6.3.4 read them: in upper case, and run on past the last block.
+         Assert.AreEqual("Test", utilities.BlowfishDecrypt("08D04D2EF52D64CE"));
+         Assert.AreEqual("Test", utilities.BlowfishDecrypt("08d04d2ef52d64ce0"));
+      }
+
+      [Test]
       [Description("Issue 210, Duplicate UIDS when COM Messages.Add is used")]
       public void TestAddMessage()
       {

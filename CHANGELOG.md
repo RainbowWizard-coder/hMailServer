@@ -270,16 +270,16 @@ for a stray `#` number or `@` name.
   project's own packages keep it static). The account comes from `sysusers.d`, the unit is installed and not started,
   `hmctl` is a package of its own that depends on `python3`, and the server's `--version` and the tester programs run
   in the build, and neither links with LTO. The Debian package has a DEP-5 copyright over every third-party notice,
-  three of which a distribution's review still has to settle: XMLite, Blowfish and VariantDateTime, inherited from
-  the original hMailServer and compiled into the server, whose files carry only their author's own notice (XMLite) or
-  none; a watch file on GitLab's releases API; and an autopkgtest that starts the server against a throwaway
-  PostgreSQL and asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2025.04.26`.
-  New CI jobs (`.gitlab/ci/source-packages.yml`, `batch*` and `master` only) build both for Debian 13, Ubuntu 24.04
-  and 26.04, Fedora 44, EL 10, Leap 16 and Tumbleweed with the network refused, fail on a lintian or rpmlint error,
-  and install and start the result in a clean container. On the laptop the spec built on Fedora 44 and EL 10 and each
-  server installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its
-  autopkgtest; a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had
-  corrupted, not a GCC 16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
+  two of which a distribution's review still has to settle: XMLite and VariantDateTime, inherited from the original
+  hMailServer and compiled into the server, whose files carry only their author's own notice (XMLite) or none; a
+  watch file on GitLab's releases API; and an autopkgtest that starts the server against a throwaway PostgreSQL and
+  asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2025.04.26`. New CI jobs
+  (`.gitlab/ci/source-packages.yml`, `batch*` and `master` only) build both for Debian 13, Ubuntu 24.04 and 26.04,
+  Fedora 44, EL 10, Leap 16 and Tumbleweed with the network refused, fail on a lintian or rpmlint error, and install
+  and start the result in a clean container. On the laptop the spec built on Fedora 44 and EL 10 and each server
+  installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its autopkgtest;
+  a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had corrupted, not a GCC
+  16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
 - **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file** (not yet run in a pipeline). Until
   now the release's `.deb` and `.rpm`, and every per-release package built with them, carried QuickJS's licence and
   nothing of the project's own: no AGPL-3.0 text, which the AGPL's sections 4 and 6 ask to go with every copy, and no
@@ -447,6 +447,14 @@ for a stray `#` number or `@` name.
   backup manager was available - made the object it would have answered with before looking, and kept it, never
   released, when the answer was no. Each now looks first. `Recipients.Item` and `DiagnosticResults.Item` also refuse
   a negative index, which read outside their list.
+- **The legacy Blowfish scheme of stored secrets is the project's own code.** `Common/Util/LegacyBlowfish.cpp`,
+  written from Bruce Schneier's published description of the cipher, replaces `BlowFish.cpp`/`.h`/`.h2` (Schneier's
+  reference code made a C++ class by Jim Conger, whose files stated no licence, which neither Debian nor Fedora
+  ships). Every value the scheme holds - an `hMailServer.ini` database password with `PasswordEncryption=1`, a secret
+  stored while `ProtectStoredSecretsWithDPAPI` is 0, the passwords and tokens a backup or a person's export carries,
+  and COM `Utilities.BlowfishEncrypt` and `BlowfishDecrypt` - is written and read byte for byte as 6.3.4 did: about
+  31 million comparisons with the old code and 60,000 answers from a 6.3.4 service found no difference. HM7277's
+  source is now `LegacyBlowfish::EncryptToString`.
 
 ### Build and tests
 
@@ -599,6 +607,12 @@ for a stray `#` number or `@` name.
   `debian/copyright`'s `Files-Excluded` to the exclusion list plus test data the Debian build does not read, and the
   new build scripts to the list; `build/add-license-headers.py` treats only maintainer-script hooks and `rules` in a
   `debian` or `rpm` directory as scripts, since a changelog or copyright file cannot begin with a comment.
+- **`legacy-blowfish-tests` and `check-blowfish-constants.py`.** LegacyBlowfishTester - ClassTester on Windows, the
+  new `legacy-blowfish-tests` on Linux, which `linux-build.sh` and the source packages' builds run with the other
+  `*-tests` - holds the cipher to Eric Young's 58 published vectors and the scheme to 18 values 6.3.4 wrote and 11 it
+  read; `build/check-blowfish-constants.py` recomputes pi's first 8,336 hexadecimal digits and compares them with the
+  cipher's 1,042 table words, with a `--self-test` in the `checkers` job; `API/Basics.cs` holds the COM API to the
+  same values. The source packages' builds also run `singleton-tests`.
 
 ---
 

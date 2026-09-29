@@ -37,6 +37,7 @@
 #include "../Util/GUIDCreator.h"
 #include "../Util/HttpsClient.h"
 #include "../Util/JsonDocument.h"
+#include "../Util/LegacyBlowfish.h"
 #include "../Util/MessageTrace.h"
 #include "../Util/MessageUtilities.h"
 #include "../Util/TraceHeaderWriter.h"
@@ -92,9 +93,8 @@ namespace HM
 
       // The longest secret the legacy Blowfish scheme stores, which is what a
       // protected setting is written with while ProtectStoredSecretsWithDPAPI
-      // is 0 (BlowFishEncryptor::MaxPlainLength; BlowFish.h is not included
-      // here, since it defines DWORD, WORD and BYTE as macros).
-      const int LegacySecretMaxLength = 248;
+      // is 0.
+      const int LegacySecretMaxLength = LegacyBlowfish::MaxPlainLength;
 
       // The largest message file MessageData parses (MessageData.cpp).
       const unsigned __int64 MaxParsedBytes = 1024 * 1024 * 80;

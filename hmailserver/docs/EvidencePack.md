@@ -514,7 +514,8 @@ The server's cryptography is OpenSSL's - 4.0.2 in the Windows build, the
 distribution's (3.0 or later) on Linux - with four exceptions: DPAPI protects
 stored secrets on Windows, Windows' own certificate chain verification checks
 outbound TLS peers there (`CertificateVerifier.cpp`), the legacy Blowfish
-scheme below is the project's own code (`BlowFish.cpp`), and the webmail's
+scheme below is the project's own code (`LegacyBlowfish.cpp`, written in
+2026 from the cipher's published description), and the webmail's
 S/MIME and OpenPGP run in the browser on the Web Crypto API.
 
 ### TLS

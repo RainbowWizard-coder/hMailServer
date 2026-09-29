@@ -106,12 +106,11 @@ declares every third-party notice in the repacked tarball: QuickJS (MIT, as
 server (MPL-2.0), `tlds.txt` (SURBL's 2006 list; no licence stated), the ATL script host, which only the Windows server
 compiles (its own notice), the DKIM corpus (Perl's terms), the licence texts
 under `hmailserver/docs/Licenses`, which are notices of components not in the
-source, and three files under `Common/Util` compiled into the server whose
+source, and two files under `Common/Util` compiled into the server whose
 authors' names survive in them and which no other record of the project lists:
-XMLite (Cho Kyung Min, from The Code Project, under its own notice), Blowfish
-(Bruce Schneier's, made a C++ class by Jim Conger) and `VariantDateTime` (Mark A.
-Richman, from CodeGuru). The last two state no licence and are declared as
-`none-stated`, which a Debian archive does not accept
+XMLite (Cho Kyung Min, from The Code Project, under its own notice) and
+`VariantDateTime` (Mark A. Richman, from CodeGuru). The last states no licence
+and is declared as `none-stated`, which a Debian archive does not accept
 ([the questions below](#questions-for-a-debian-or-fedora-maintainer)). The AGPL's
 text is written out in full: Debian's `/usr/share/common-licenses` does not carry
 it.
@@ -489,21 +488,20 @@ Questions for a Debian or Fedora maintainer
 - **The unlicensed test data.** Leaving five files out is this package's answer;
   asking their authors for a licence, or replacing them with messages the project
   writes, would let the repack go.
-- **Three files compiled into the server whose licences are not settled**, all
-  inherited from the original hMailServer under `hmailserver/source/Server/Common/Util`
+- **Two files compiled into the server whose licences are not settled**, both inherited from the original hMailServer under `hmailserver/source/Server/Common/Util`
   and declared in `debian/copyright`. `XMLite.cpp` and `XMLite.h` (Cho Kyung Min,
   2002-2004, from The Code Project) carry their author's own notice, which grants
   use, modification and redistribution and asks for a thank-you email; a
-  distribution's legal review names it. `BlowFish.cpp`, `.h` and `.h2` (Bruce
-  Schneier's code of 1994, made a C++ class by Jim Conger in 1996) and
-  `VariantDateTime.cpp` and `.h` (Mark A. Richman, 1999, from CodeGuru) state no
+  distribution's legal review names it. `VariantDateTime.cpp` and `.h` (Mark A. Richman, 1999, from CodeGuru) state no
   licence at all, and `VariantDateTime`'s helpers keep MFC's names
   (`AFX_OLE_DATETIME_ERROR`, `OleDateFromTm` and `TmFromOleDate` after MFC's
   `_AfxOleDateFromTm` and `_AfxTmFromOleDate`), so it appears to be adapted from
   MFC's `COleDateTime`, whose source is Microsoft's. Neither Debian nor Fedora
-  distributes a file with no licence, and the server needs all three, so a
-  `Files-Excluded` line is no answer: the authors' licences, or replacements the
-  project writes itself, are. The spec's `License:` tag leaves them out and says
+  distributes a file with no licence, and the server needs both, so a `Files-Excluded` line is no answer: the authors'
+  licences, or replacements the project writes itself, are - as the Blowfish code
+  (Bruce Schneier's of 1994, made a C++ class by Jim Conger in 1996, which stated no
+  licence) was replaced in 6.3.6 by the project's own `LegacyBlowfish.cpp`, written
+  from the cipher's published description. The spec's `License:` tag leaves them out and says
   so beside it.
 - **The Public Suffix List.** The server compiles the list's rules in
   (`PublicSuffixListData.h`); `tlds.txt` beside its binary is not the list but

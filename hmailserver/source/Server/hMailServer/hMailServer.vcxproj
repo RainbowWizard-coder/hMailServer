@@ -676,7 +676,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\AutoBanFirewall.cpp" />
     <ClCompile Include="..\Common\Util\Assert.cpp" />
     <ClCompile Include="..\Common\Util\AWStats.cpp" />
-    <ClCompile Include="..\Common\Util\BlowFish.cpp" />
+    <ClCompile Include="..\Common\Util\LegacyBlowfish.cpp" />
     <ClCompile Include="..\Common\Util\ByteBuffer.cpp" />
     <ClCompile Include="..\Common\Util\Charset.cpp" />
     <ClCompile Include="..\Common\Util\ClassTester.cpp" />
@@ -1676,7 +1676,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AutoBanFirewall.h" />
     <ClInclude Include="..\Common\Util\Assert.h" />
     <ClInclude Include="..\Common\Util\AWStats.h" />
-    <ClInclude Include="..\Common\Util\BlowFish.h" />
+    <ClInclude Include="..\Common\Util\LegacyBlowfish.h" />
     <ClInclude Include="..\Common\Util\ByteBuffer.h" />
     <ClInclude Include="..\Common\Util\Charset.h" />
     <ClInclude Include="..\Common\Util\ClassTester.h" />

@@ -552,6 +552,18 @@ add_executable(object-store-signature-tests ${SERVER_DIR}/platform/object_store_
 target_link_libraries(object-store-signature-tests PRIVATE hmailserver_core)
 set_target_properties(object-store-signature-tests PROPERTIES OUTPUT_NAME object-store-signature-tests)
 
+# ---------------------------------------------------------------- the legacy Blowfish scheme
+#
+# LegacyBlowfishTester (Common/Util/LegacyBlowfish.h) as a program of its own, for
+# the reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. Blowfish against Eric Young's published
+# test vectors, and the scheme of stored secrets against values 6.3.4 wrote and
+# read - here, where the cipher's 32-bit words meet LP64. No network, no
+# configuration, no database. Not installed; a bench tool.
+add_executable(legacy-blowfish-tests ${SERVER_DIR}/platform/legacy_blowfish_tests_main.cpp)
+target_link_libraries(legacy-blowfish-tests PRIVATE hmailserver_core)
+set_target_properties(legacy-blowfish-tests PROPERTIES OUTPUT_NAME legacy-blowfish-tests)
+
 # ---------------------------------------------------------------- the singletons' first call
 #
 # Singleton<T>::Instance (Common/Util/Singleton.h) with eight threads asking for

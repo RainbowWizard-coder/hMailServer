@@ -44,11 +44,10 @@ Summary:        Mail server for SMTP, IMAP and POP3
 # (MIT), the MIME coder (BSD-1-Clause), CStdString (its own permissive notice)
 # and the Public Suffix List's rules (MPL-2.0); tlds.txt, SURBL's 2006 list of
 # two-level country-code domains, states no licence.
-# Three more are compiled in whose licences the tag cannot name yet, which Fedora's
+# Two more are compiled in whose licences the tag cannot name yet, which Fedora's
 # review has to settle (hmailserver/docs/SourcePackages.md): XMLite (Cho Kyung Min;
-# its own notice grants use, modification and redistribution), and Blowfish
-# (Schneier, Conger) and VariantDateTime (Mark A. Richman, after MFC's
-# COleDateTime), whose files state no licence.
+# its own notice grants use, modification and redistribution), and VariantDateTime
+# (Mark A. Richman, after MFC's COleDateTime), whose files state no licence.
 License:        AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive
 URL:            https://gitlab.com/Progressiverobot/hmailserver
 Source0:        https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/%{version}/hmailserver-%{version}.tar.gz
@@ -175,12 +174,13 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # through, on 29 September 2026, a server that died before main (a linked file the
 # build machine's file system had corrupted; SourcePackages.md).
 # Then the tester programs the build makes beside the server: the RFC 7208 suite and
-# the SPF testers, the JavaScript binding, the SNMP agent and the object store's
-# request signatures. No socket, no configuration, no database; seconds.
+# the SPF testers, the JavaScript binding, the SNMP agent, the object store's
+# request signatures, the singletons and the legacy Blowfish scheme. No socket, no
+# configuration, no database; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests; do
   echo "== $tester"
   ./$tester
 done

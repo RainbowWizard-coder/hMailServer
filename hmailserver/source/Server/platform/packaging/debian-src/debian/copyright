@@ -143,19 +143,6 @@ Comment:
  and redistribution, and asks - without making it a condition - for a thank-you
  email and for fixes to be sent back.
 
-Files: hmailserver/source/Server/Common/Util/BlowFish.cpp
-       hmailserver/source/Server/Common/Util/BlowFish.h
-       hmailserver/source/Server/Common/Util/BlowFish.h2
-Copyright: 1994 Bruce Schneier
-           1996 Jim Conger
-License: none-stated
-Comment:
- Bruce Schneier's Blowfish (revised code of 3/20/94), made a C++ class by Jim
- Conger in 5/96, as the files say, compiled into /usr/bin/hmailserver for the
- legacy fixed-key scheme of stored secrets. The files name their authors and
- state no licence (hmailserver/docs/SourcePackages.md, "Questions for a Debian
- or Fedora maintainer").
-
 Files: hmailserver/source/Server/Common/Util/VariantDateTime.cpp
        hmailserver/source/Server/Common/Util/VariantDateTime.h
 Copyright: 1999 Mark A. Richman
