@@ -93,6 +93,7 @@ for a stray `#` number or `@` name.
   `.deb` goes to the apt suite `ubuntu26.04`, as the amd64 one does; the generic `.rpm`s still go to no dnf
   repository, and the pages job no longer calls the aarch64 one built on Ubuntu (ContinuousIntegration.md,
   "What a release carries"; PackagesDeb.md; PackagesRpm.md).
+
 - **The container image is pushed from the release's own pipeline, by hand, and started before it is left there**
   (not yet run in a pipeline). The image jobs are in every protected `v*` tag's pipeline. `container-image-deb`,
   started by hand after `release-publish` once the project variable `HM_PUBLISH_IMAGE` is 1, takes the `.deb` and its
@@ -103,10 +104,12 @@ for a stray `#` number or `@` name.
   started beside PostgreSQL by `container-image-start`, which checks SMTP and the REST API. The image sets
   `HM_INSTALL_KIND=container` and carries OCI and Artifact Hub labels
   ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+
 - **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`** (not yet
   run in a pipeline). The release carries it, signed, with its `.sigstore.json` copy. `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
   naming the release's image, and `build/ci/helm-repo.py` writes the repository's index and Artifact Hub's metadata
   from the update feed in `package-repos`.
+
 - **`hmctl` as a PyPI package, `hmailserver-cli`, and the PowerShell module with a Gallery manifest** (neither
   published yet). `build/ci/cli-packages.py` builds `hmailserver-cli`'s sdist and wheel from
   `hmailserver/source/Tools/Cli/python/` with the same `hmctl` file the `.deb` and the `.rpm` install, copied into it
@@ -119,6 +122,7 @@ for a stray `#` number or `@` name.
   stopped halfway and fails when a PyPI publisher that once worked stops matching, and `psgallery-publish` refuses
   a module with no Authenticode signature, which the release does not sign yet
   ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
+
 - **A source tarball with nothing non-free in it, which the Linux build and suite run from** (not yet run in a
   pipeline; the release carries it from 6.3.6, below). `build/ci/source-tarball.sh` writes `hmailserver-<version>.tar.gz`
   from a commit with `git archive`: the commit's tree less every path of `build/source-exclusions.txt` - SQL Server
@@ -140,6 +144,7 @@ for a stray `#` number or `@` name.
   The `source-tarball` job makes it twice and compares, and `linux-build` and `linux-suite` take it with
   `HM_SOURCE_TARBALL`; `build/native-dependencies.ps1 -LinuxOnly` gives the packages' SBOMs their components
   without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
+
 - **The release carries every file the pipeline makes for it** (not yet run in a pipeline). From 6.3.6 a release is
   57 files and 146 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and 13,
   Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
@@ -160,54 +165,385 @@ for a stray `#` number or `@` name.
   exists; openSUSE's go through OBS. A protected `batch*` branch rehearses the chain
   (`.gitlab/ci/release-rehearsal.yml`): collected with `windows-packages-x64`'s installer, signed as the branch,
   which no server trusts, and checked with the server's own verifier, which must refuse every bundle at its identity;
-  nothing is published (ContinuousIntegration.md, "What a release carries", "The release rehearsal").  ---  ##
-  [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28  Everything that landed on
-  `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
-  `v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104
-  to 6105 in one step**, which adds a column to the quarantine's table, `hm_quarantine.quarantinehelo`. What changes
-  on upgrade without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has
-  five more of them than it had at 6.3.4.   This is the first release built to be made by the project's GitLab CI
-  from its tag ([RELEASE.md](RELEASE.md), *The release on GitLab* and *On GitLab, from 6.3.5*). The tag's pipeline
-  builds the Windows installer on the project's Windows runner after the whole Windows suite has passed there; once
-  the owner has started the `release` job, it Authenticode-signs the installer through Azure Artifact Signing with an
-  RFC 3161 timestamp, signs every file of the release with Sigstore as that pipeline -
-  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, issuer `https://gitlab.com` -
-  into a `<file>.cosign.bundle` beside it, and checks every bundle with the server's own `--verify-update` before
-  anything is published. That identity is the one a 6.3.4 server trusts (`SigstoreVerifier.cpp`, unchanged since
-  6.3.4, and the verifier that check runs), so the live update of a 6.3.4 server is built to install this release, on
-  Windows and on Linux. A server from 6.2.28 to 6.3.3 trusts only the GitHub workflow that signed the releases up to
-  6.3.3, and as it stands its live update refuses this one: install 6.3.4 or this release by hand, and keep
-  `UpdateAutoDownload` off until then, or on Windows give it the GitLab signer as
-  [UpdateFeed.md](hmailserver/docs/UpdateFeed.md) describes. What the release carries, and what the new package jobs
-  leave in CI only, is under Operations.  ### What changes on upgrade without a switch  1. **The Control Panel's
-  sidebar is in the order a new administrator needs.** Welcome and Dashboard come first, then a new group, **Set up
-  this server**: the **Setup checklist**, which was *External setup* under Monitoring & troubleshooting, then Setting
-  profiles and DNS records. Two groups are renamed - *TLS & certificates* is **Certificates & encryption** and
-  *Access & abuse protection* is **Sign-in & access** - and Connections & protocols gains a **Webmail** page
-  (Administration, below). The palette (Ctrl+K) still finds the checklist as External setup. A page's `nav-<key>` UI
-  Automation id is unchanged; the `navgroup-` and `navrail-` ids of the new and the renamed groups follow their new
-  headings, so a UI test that finds a group by its old id must be changed. 2. **The quarantine shows the HELO name,
-  and groups.** The Control Panel's Quarantine page and the Control Deck's Quarantine view gain a HELO column and
-  group the held messages by the sender's domain unless told otherwise. Messages held before the upgrade have no HELO
-  name recorded and are grouped with those that have no HELO domain. The Deck now asks before a delete with a Yes or
-  No of its own whose default is No, as the Control Panel already did; it used the browser's `confirm()`, whose
-  default is OK. It offers whitelist and blacklist only to a credential holding `manage_settings`, and a held
-  message's headers and preview only to one holding `view_mailbox`, as the server requires (below). 3. **The
-  webmail's keyboard.** The message list is one Tab stop, where each row put its box, star and marker in the Tab
-  order, and the list's keys reach what a row holds. Enter on a button in the mail view presses the button; it used
-  to open the message under the list's cursor. A letter typed into the formatted signature is text, where `c` opened
-  a new message. Escape closes every modal dialogue as its Cancel does and gives the focus back to where it was, the
-  page under a dialogue cannot be reached until it closes, and menus close on Escape. The event and task editors
-  close when the page changes. The compose window's *Plain* is **Remove formatting**, its tooltip's words. On a phone
-  a row's importance marker is shown and not pressed; the message's More menu marks it. 4. **An invitation sent the
-  way Outlook sends one is shown as an invitation.** `GET /api/v1/me/messages/{id}` answers `"invitation": true` for
-  a `text/calendar` part whose `Content-Type` carries parameters and which has no `.ics` name, where it answered
-  `false`, and the webmail shows the invitation's card with Accept, Maybe and Decline (the fix is under IMAP, POP3
-  and the webmail). 5. **What a script sees.** `GET /api/v1/quarantine` gives each message three more fields -
-  `helo`, `sender_domain` and `helo_domain` - and four routes are new. Over COM, `Quarantine` gains `Bulk` (dispid 9)
-  and `QuarantinedMessage` gains `HeloName`, `SenderDomain`, `HeloDomain`, `ReadHeaders` and `ReadPreview` (dispids
-  11 to 15), added to the existing interfaces; no existing member or dispid changes. A program built against 6.3.5's
-  type library that calls one of them needs a 6.3.5 server.  ### Anti-spam, anti-virus and mail flow rules
+  nothing is published (ContinuousIntegration.md, "What a release carries", "The release rehearsal").
+
+- **The source of the AppImages' runtime's libraries goes out with them** (not yet run in a pipeline). Each
+  AppImage's runtime is linked statically on Alpine, and two of the libraries it takes in, libfuse3 (LGPL-2.1) and
+  lzo (GPL-2.0-or-later), ask for their own source to go with the binary, not only the runtime's; with lzo's GPL, so
+  does every other library linked in but the compiler's own. From 6.3.6 the release carries
+  `hmailserver-<v>-appimage-runtime-sources.tar.gz`: for libfuse3, lzo, squashfuse, zstd, lz4, xz, zlib and musl, at
+  the version and aports commit each runtime job recorded from the linker's map and apk's database, Alpine's APKBUILD
+  and patches from gitlab.alpinelinux.org, fetched by the commit's id, and the upstream archive from Alpine's
+  distfiles mirror - never the GitHub releases several APKBUILDs name - each source held to the SHA-512 its APKBUILD
+  gives, with a README.txt saying where each file came from, what each licence asks and how to link the runtime again
+  with a changed library. The new `appimage-runtime-sources` job packs it reproducibly, twice, and compares; the
+  release gathers it with a line in the sums, a bundle and a `.sigstore.json` copy, and no SBOM, being source. Each
+  image's `usr/share/hmailserver/licenses/appimage-runtime.txt` lists what its runtime links and names the file, and
+  the image carries each library's licence files in `usr/share/hmailserver/licenses/appimage-runtime/`, with the
+  GPL-3.0's text, under which the runtime takes lzo (runtime.c being AGPL-3.0-or-later). GCC's start-up files and
+  libgcc stay out, under the GCC Runtime Library Exception
+  ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences"; work item 36).
+
+- **The release channels, each published by hand from `master`, dormant until its account exists** (none live yet).
+  `.gitlab/ci/channels.yml` adds `registry-mirror` (the image by digest, with its cosign signature and SBOM
+  attestation, to Docker Hub, Quay.io and optionally Amazon ECR Public, with `regctl`), `aur-publish` (the AUR's
+  `hmailserver`), `ppa-upload` (the Debian source package to `ppa:hmailserver/hmailserver` for Ubuntu 24.04 and
+  26.04), `copr-build` (Fedora Copr through its webhook; `.copr/Makefile` makes the source RPM in Copr's builder),
+  `obs-publish` (the openSUSE Build Service, from `platform/packaging/obs/_service`), `chocolatey-release` with
+  `chocolatey-publish` (packed on bench150), `snap-upload` (edge and candidate) and `channels-verify`, the dry run.
+  Each publishes the release `HM_CHANNEL_VERSION` names or the update feed's latest (Copr and OBS the latest alone),
+  verifies every release file it takes against its Sigstore bundle as the tag's pipeline - the project's id, read
+  from the certificate's extensions, required at the group's path - before it logs in or sends anything, and never
+  moves a channel back to an older release. The snap, not a release file, is held to the verified tarball or the tag;
+  OBS fetches the tarball itself once the job has checked the permanent link serves the verified bytes. cosign and
+  regctl come out of their images pinned by digest; nothing from GitHub, and no credential on a command line
+  ([Channels.md](hmailserver/docs/Channels.md)).
+
+- **The Arch package builds from the release's source tarball**, not a git tag, as a distribution's build
+  (`-DHM_LIVE_UPDATE=OFF`, naming `makepkg -si` from the AUR as its update) and without LTO (Arch's default full-LTO
+  link of the server passed 6 GB and was killed); `aur-publish` writes the verified tarball's SHA-256 in.
+
+- **The Chocolatey package's id comes from `make-package-manifests.ps1 -ChocolateyId`**: `hmailserver`, or
+  `hmailserver-progressiverobot` if upstream's maintainers do not add the project. Its addresses are the group's.
+
+- **The release checks read the signing certificate's fields from its extensions, never by searching its bytes, and
+  only from the certificate cosign verified.** release-verify.sh and container-image-deb.sh took the project id
+  (Fulcio's 1.3.6.1.4.1.57264.1.15) from wherever its bytes first appeared, and a certificate's public key is bytes
+  its holder chooses; registry-mirror read the id from whichever signature certificate held the identity's bytes, and
+  check-provenance matched the identity the same way. One reader, build/ci/sigstore-certificate.py, now walks the
+  certificate's DER to its extensions, with a shell twin for cosign's image held to it case by case. The shell reader
+  reads a v0.3 bundle only - cosign verifies just the first certificate of a v0.1 or v0.2 chain, and accepts field
+  names spelled in ways a count of `rawBytes` misses - container-image-deb.sh refuses a cosign without
+  `--new-bundle-format`, and registry-mirror refuses a signature manifest Go's JSON reader would read otherwise (a
+  key in another case or with a long s, a key twice, an index at the `.sig` tag); the Python reader refuses a
+  duplicated key. build/check-release-chain.py holds every script to the readers and refuses the Sigstore OID written
+  as bytes, decimal numbers or base64 anywhere else. The container image's mirror has cosign verify its signature and
+  SBOM attestation from one copy of their manifests, each fetched by its digest, reads the project's id from those
+  same manifests - the attestation's certificate now held to it as the signature's is - and puts exactly those
+  manifests at each registry, replacing whatever signature was there; the release's SLSA provenance is held to the
+  project's id too, as its files are; and neither certificate reader relies any longer on cosign refusing a malformed
+  bundle to know which certificate it read. The server's own verifier reads the extension through OpenSSL and was
+  never affected.
+
+### Administration
+
+- **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue: drag
+  over text, double-click a word, Ctrl+C, or right-click for Copy / Select all; with nothing selected, Copy takes the
+  whole text, and a selection dragged out into another program carries plain text only. Text inside buttons, lists,
+  tabs, menus, grids and editors is left to its control, and keyboard navigation and screen-reader output are
+  unchanged. Every plain list - domains, accounts, aliases and distribution lists, public folders, incoming relays,
+  an account's IMAP folders, folder permissions, group members, recipients, a route's addresses and the Active
+  Directory picker - copies its selected rows with Ctrl+C or its right-click Copy, one row per line in the list's
+  order, and offers Select all where several rows can be chosen; the Ctrl+K search's results copy from their
+  right-click Copy (its search box keeps the keyboard); data grids copy their rows as before. Live logs selects
+  several lines (click, Shift+click, Ctrl+A) and copies them exactly, in the log's order; it follows new lines only
+  while the end is in view and no longer splits a line the server is still writing into two rows. On REST API keys, a
+  key's label, id, state and scope can be copied. Every Copy button now writes the clipboard the same way: a program
+  that reads the clipboard the moment it changes (Windows' clipboard history, a remote-desktop client) no longer
+  makes a copy fail after a second's freeze (a chart's Copy then showed no confirmation, and the new API key's and
+  app password's Copy an error), and text copied just before the Control Panel is closed still pastes after it has
+  gone.
+
+### Operations
+
+- **Why the container image waits, said truly.** `.gitlab/ci/container-image.yml`,
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) ("What the owner sets on the registry", 3),
+  Roadmap2's release-chain row, the packaging README and a comment of `build/check-release-chain.py` said, and
+  6.3.4's notes below say, that the image waits because GitLab.com cannot transfer a project whose container
+  registry holds an image. GitLab's documentation does not say that: on GitLab.com a project whose registry is
+  enabled is transferred only within its top-level group, one with more than 1,000 container repositories not at
+  all, and a project must hold no image only on GitLab Self-Managed. The image waits because the maintainers decided
+  on 27 September 2026 to move the project into the group `hmailserver` before the first image is pushed, so that
+  its address, `registry.gitlab.com/hmailserver/hmailserver`, is the lasting one - a container repository's path is
+  always its project's - and 6.3.4's `SigstoreVerifier` already trusts the group's path with the project's id,
+  86730559. The texts that said the image appears at `registry.gitlab.com/progressiverobot/hmailserver` - the
+  comments of the Compose file, the chart's values and the Dockerfile, the packaging README, EvidencePack.md,
+  ContinuousIntegration.md's `cosign verify` example and SECURITY.md's `cosign verify-attestation` example, and
+  `renovate.json`, which also said the registry was not switched on - now name the group's address; the Compose file
+  and the chart still pull the present path, and change with the move. Nothing the pipeline does changes.
+
+- **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package jobs
+  for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
+  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md) and
+  [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job had
+  run: every `.deb` build job passed in pipelines 2886955494 and 2887115157, and every `.rpm` build job in
+  2887115157; no install job has started in any pipeline, no AppImage job has been started, and
+  `windows-packages-x64` built the unsigned x64 installer in 2887115157.
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no GitLab job has run, says
+  the GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's
+  cleanup policy as the API does: it kept two of the five patterns the document listed, and the maintainers added the
+  other three through the API on 28 September 2026, before the policy is ever switched on; it and README.md say that the fuzz schedule and Renovate's schedule and token
+  exist since 27 September. README.md no longer says the project has no ARM machine to build the AArch64 packages on
+  (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says the pipeline does not build them,
+  and Roadmap2's Windows on ARM row names the CI job it said there was not.
+  [PackageManagers.md](hmailserver/docs/PackageManagers.md) no longer says the GitHub workflow built the manifests
+  for the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage is
+  attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's
+  hMailServer 5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers; its
+  table no longer says the workflow ran on every release, and its walk for the first Chocolatey push says the push
+  waits for that. The documents that sent a reader to `6399e08a5` for the removed GitHub workflows now give
+  `faca023d4`, the same commit as `master`'s history holds it: `6399e08a5` is its copy from before its branch was
+  rebased, which `master`'s history does not hold.
+
+- **`HM_DB_WAIT_SECONDS`** (0 to 999999, default 0): the image's entrypoint waits for the `[Database]` server to
+  accept a TCP connection before opening it, and does not start (exit 69) when it has not. The entrypoint reads the
+  ini's `[Database]` section as the server does (spaces trimmed, names in any case), and `HM_INSTALL_KIND`, which
+  the image sets for the update check, is not a reason for it to open the database.
+
+- **A build without the live update, and a live update that knows a snap and a container** (not yet run in a
+  pipeline). CMake's new `-DHM_LIVE_UPDATE=OFF` builds the server with no apply step and installs neither
+  `hmailserver-update` nor its two units; an AppImage made from an OFF tree carries no `hmailserver-update`
+  either. Its update check still names a newer release and the distribution's own command
+  (`-DHM_UPDATE_COMMAND="apt upgrade hmailserver"`). A server in a snap (`SNAP` naming the directory it runs from)
+  or in the container image (`HM_INSTALL_KIND=container`) names `snap refresh hmailserver` or the image to pull,
+  and never downloads or installs a release file. `GET /api/v1/update` reports `installKind`, `liveUpdate`,
+  `updateCommand` and `updateAdvice`, and the Control Deck shows them. What the live update did in images before
+  6.3.6 is written down in [LiveUpdateKinds.md](hmailserver/docs/LiveUpdateKinds.md): it installed nothing,
+  downloaded two packages and reported HM6890. Tested by `build/test-install-kind.sh` (CI job
+  `linux-live-update`).
+
+- **A new Windows installation can be set up against SQL Server, PostgreSQL or MySQL with no window** (not yet
+  run against a server). Both installers take the database on the command line - `/dbtype=`, `/dbhost=`,
+  `/dbport=`, `/dbname=`, `/dbuser=`, `/dbpasswordfile=`, `/createdatabase=`, `/dbservice=` - or in the
+  container's own `HM_DB_*` variables, the password only in `HM_DB_PASSWORD` or a file, never on a command line.
+  `DBSetup.exe /unattended` then creates the database, or uses one that exists and upgrades it with DBUpdater if
+  it is older, and ends only at the schema the build requires, its lines in the setup log. Settings it cannot use
+  are refused before anything changes, among them a password file that is not UTF-8 and the characters the server
+  cannot yet pass to its database (a single quote or a backslash for PostgreSQL; for SQL Server a semicolon, or a
+  quote as a value's first character). This is how a silent installation of the ARM64 build, which has no
+  built-in database, finishes; its installer now refuses a silent new installation given no database before
+  anything is installed, rather than open DBSetup's wizard where nobody can answer it. On x64 it is an option
+  beside the built-in database, which stays the silent default unless `HM_DB_TYPE` is set in the machine's or the
+  user's environment, which makes a new installation an external one; the setup log says whether the type came
+  from `/dbtype` or the environment. The x64 installer still does not run on ARM64 under emulation
+  (`x64compatible`), by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its
+  reasons. The installer smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh
+  --database`).
+
+- **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script and runs
+  it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST or an
+  environment - loads it, compiled and searched, before the switch takes effect, and reports then a script that does
+  not compile, whatever runs beside the switch - a reload, a reinitialise, a switch-off, another switch-on: a reload
+  that read the switch as off is made again once it is on, and of two loads that overlap, the script of the one
+  started last stays in force, unless it does not compile, which is reported. A rule's Run function action against a
+  script loaded while scripting was off, which never compiled, is refused (HM5018) instead of being handed to the
+  engine. An empty script runs no engine.
+
+- **Crash records that place the fault.** The crash oracle's record adds, after the fields it always had, what an
+  access violation read, wrote or executed and where, the faulting address's image base and offset, and up to twelve
+  frames of the faulting thread; the REST API writes to the application log which method and path it answered 500
+  after an exception.
+
+- **Fixed: settings read while they were being reloaded.** hMailServer.ini's database and directory values, the
+  administrator's second factor, and each value of the settings store and its map are read and written under locks,
+  each value whole; a reinitialise or a COM Settings.Directories call could hand another thread an empty or freed
+  value. A reinitialise now builds the settings store, the SMTP, POP3, IMAP and cache configurations, the server
+  messages, blocked attachments, SSL certificates, DNS blacklists and SURBL servers, the local addresses and the
+  top-level domains whole before another thread can see them, and hands each over under a lock: a COM call made
+  during one - the Control Panel's or a script's - could copy a pointer while it was being replaced, or find the
+  settings not yet read and take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level,
+  device and format are read and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first
+  read. Several values read one after another are still not read as one set, and a setting changed during a
+  reinitialise, after the new settings were read, is stored but not in force until the next reinitialise or start.
+
+### Build and tests
+
+- **[Roadmap3.md](Roadmap3.md): the plan for everything the project had on GitHub.** A new file at the
+  repository root maps, row by row, what it takes to bring back on GitLab what a user could download, verify and
+  install before 18 September 2026 - the AArch64 `.deb` and `.rpm`, the AppImages, the container image, the
+  Sigstore bundles and the build provenance - and to add what the owner asked for beside them: the ARM64 Windows
+  installer, the apt and dnf repositories, winget and Chocolatey, and every other channel people install mail
+  servers from. It opens with a counter line like Roadmap2.md's, and `build/check-roadmap2.py` now holds both
+  files: it fails when either counter disagrees with its rows or either file is missing, checks one file alone
+  when given its name, and has a `--self-test`, run by the `checkers` job, whose controls include a wrong
+  Roadmap3.md counter beside a right Roadmap2.md one, which the check as it was let through. README.md,
+  Roadmap.md, CONTRIBUTING.md, SUPPORT.md, the documentation index and the Feature and merge request templates
+  link it. The `.deb` and `.rpm` help pages, which said no Roadmap2 row carried choosing a package by
+  distribution, now name the Roadmap3.md row that does.
+
+- **A clock flake in the two-factor tests, not a server fault.** The Windows gate of pipeline 2887524317 failed
+  `TwoFactorAuthentication.ACodeComputedElsewhereIsAccepted` with "The previous step must be accepted": the test
+  began at 23:37:29.5 UTC, half a second before a thirty-second step ended, computed the previous step's code in
+  step s and had it judged in step s+1, two steps behind the server and outside its window of one step either side.
+  `OneTimeCodes.WaitForRoomInTheStep` now returns at once when ten seconds or more of the step remain and otherwise
+  sleeps into the next step, and the two tests that judge codes against the server's step
+  (`ACodeComputedElsewhereIsAccepted` and `ACodeIsTakenOnceOverCom`) call it after enrolling. The suite's other
+  codes come from `OneTimeCodes.Fresh`, which never hands out a step behind the clock, or are refused whatever the
+  step (a wrong code, one five steps out, a wrong password or a spent budget), so they needed nothing. The new
+  fixture `ServerFreeTests.OneTimeCodesStep` replays the failed run against a clock of its own, without a server,
+  in both suites: without the wait the previous step's code is two steps behind (its negative control), with it
+  the code is judged in its own step.
+
+- **The ARM64 toolchain check could not find the ARM64 C++ runtime on any machine.**
+  `build/ci/packages/check-arm64-toolchain.ps1` looked for it with `Get-ChildItem -Path '...\VC\Redist\MSVC\*\arm64'
+  -Filter 'Microsoft.VC*.CRT'`, which with a wildcard in the path returns the `arm64` folders themselves and filters
+  their names. It reported the runtime missing on the laptop, whose Build Tools 18.9 has it, and on bench150 in
+  pipeline 2887115157, where `windows-packages-arm64` stopped on that report with the ARM64 tools and ATL for ARM64
+  present, as 6.3.5's notes below say. The check now asks for `...\arm64\Microsoft.VC*.CRT` as one path. It also no
+  longer tells the owner to add components the instance already has: when every component is installed and a file is
+  not there, it prints the Installer's `repair` of the instance, or, for the runtime, the `modify --add` of the
+  component that the instance's own catalog says installs `Microsoft.VisualCpp.CRT.Redist.ARM64` when the instance
+  lacks it. `check-arm64-toolchain.ps1 -SelfTest` holds both to instance trees and catalogs made to order, with the
+  old path and the old command as its negative controls; on the laptop the check now exits 0.
+
+- **The command-line packages are checked wherever they change.** `build/check-cli-packages.py`, in the
+  `checkers` job, fails when the manifest's version or function list drifts from `Version.h` or the module, or the
+  Python package gains a dependency, a version of its own, an install hook, a second copy of `hmctl` or a
+  standard-library module newer than Python 3.8, or `hmctl` runs code when it is imported; its `--self-test` breaks
+  each rule in a copy. The new `cli-packages` and `cli-powershell` jobs (`.gitlab/ci/cli-packages.yml`; merge
+  requests and branches, never a tag) build the sdist and the wheel twice and compare them, run `twine check
+  --strict`, install the wheel alone, and run `Test-ModuleManifest` and PSScriptAnalyzer - from the PowerShell
+  Gallery, held to its published SHA-512 - under pwsh. PSScriptAnalyzer's 25 findings in `HmailServer.psm1` are
+  fixed or justified on the one function, with no command, parameter or confirmation prompt changed;
+  `Export-HmConfiguration -Verbose` now says why the ini section is empty when the server does not answer for it.
+
+- **The Linux build includes the distribution's `zlib.h`.** Six core sources included the zlib header vendored
+  for `hMailServer.exe` on every platform, so the Linux server was compiled against zlib 1.3.2's header and
+  linked against the distribution's library (1.3.1 on Ubuntu 26.04). They include `<zlib.h>` under
+  `HM_PLATFORM_POSIX` now; the Windows build compiles the same text as before.
+
+- **An ARM64 publish of the .NET tools no longer takes the x64 COM wrapper from an earlier x64 publish.** MSBuild
+  searched each tool's own `publish` folder before the reference's hint path, so `build-tools.ps1 -Platform ARM64`
+  after an x64 publish compiled all five tools against the x64 wrapper (warning CS8012) and shipped it, in the
+  add-ons' `Addons` folders where nothing replaced it; `check-pe-machine.ps1` found five. The publish folders are
+  kept out of the projects' items (`Tools\Directory.Build.props`). CI builds in a clean checkout and never met it.
+
+- **`native-dependencies.ps1 -LibrariesRoot`** holds each linked library's version in an installer's component
+  list to the tree the build used, which records its own (OpenSSL's `VERSION.dat`, Boost's `version.hpp`,
+  PostgreSQL's `meson.build`); the ARM64 list was checked that way against the ARM64 libraries of 26 September.
+  The lists themselves are unchanged.
+
+- **A merge request answers for what it brings.** On GitLab's shared runners, with no secret:
+  `build/check-binary-manifest.py`, run by `checkers` in every pipeline, fails on a committed binary that
+  `hmailserver/docs/third-party-binaries.json` does not list at its SHA-256 (what `verify-binary-provenance.yml` did
+  until 18 September); `semgrep-sast-gate` holds a merge request on a Critical or High `semgrep-sast` finding in a
+  file it changes that `.gitlab/security-exceptions.yml`, as the merge request's base has it, does not accept
+  (`build/ci/security-gate.py --merge-request`, the release's own rule; OpenSSF Baseline OSPS-VM-06.02); and
+  `mr-dependency-check` holds one that adds a dependency version with a Critical or High advisory in OSV's own
+  export of NuGet's or PyPI's advisories (`build/ci/mr-dependency-check.py`), what GitHub's dependency review did
+  (`.gitlab/ci/mr-checks.yml`; ContinuousIntegration.md, "Merge request checks").
+
+- **The server is built and tested with the newest GCC as well as clang.** `linux-build-gcc` (`.gitlab/ci/gcc.yml`;
+  linix; `master` and `batch*`, never a tag) builds the server and its tester programs with the CI image's own GCC,
+  Ubuntu 26.04's GCC 15, and runs them and the OpenPGP round trip; `build/ci/linux-build.sh` takes
+  `HM_COMPILER=gcc`, and a GCC build makes no packages. The Debian and Ubuntu package jobs already built with GCC
+  12, 13 and 14; none built natively with GCC 15. The CI image already carried it through `build-essential`, and is
+  unchanged.
+
+- **OpenSSF Scorecard, self-run.** `scorecard` (`.gitlab/ci/scorecard.yml`, the schedule described `scorecard`) runs
+  Scorecard 5.5.0 taken from cache.nixos.org by its Nix store path, with every path of its closure pinned by NAR
+  hash, not from GitHub, and `build/ci/scorecard-pages.py` publishes its result and a badge at
+  https://updates.progressiverobot.com/scorecard/; a result it cannot fetch or read never stops the site's
+  deployment. Until the owner's `GITLAB_AUTH_TOKEN` exists it says "not configured" and passes.
+
+- **SonarQube Cloud's scope, and GitHub kept out of a job.** `.sonarcloud.properties` scopes SonarQube Cloud's
+  automatic analysis to the project's own code and tests. `.gitlab/ci/no-github.yml`'s `.no-github` puts GitHub's
+  six hosts at 0.0.0.0 and `::` inside a job, has the hosts file read first where an image has no
+  `/etc/nsswitch.conf`, and refuses a job it cannot protect. ContinuousIntegration.md says what GitLab's free tier
+  and Ultimate give and why the Code Quality widget is not used.
+
+- **The channels are checked where they change.** `channels-check` runs every channel script's self-test and proves
+  the verification with the pinned cosign itself against `build/ci/channels/fake-sigstore.py`, a Sigstore of the
+  jobs' own (a Fulcio-shaped authority with an embedded SCT, a Rekor-shaped log, a trusted root).
+  `build/check-channels.py`, in `checkers`, holds the jobs to protected master, by hand, allowed to fail, no ID
+  tokens and `.no-github` first, and the PKGBUILD, the AUR's pinned host keys, OBS's `_service` and the Copr Makefile
+  to shape.
+
+- **The Windows gate is not failed by an earlier run's crash record, and keeps what places a fault.**
+  build/ci/windows-gate.ps1 moves aside and prints the crash-oracle.log the binary before it left, and on a failure
+  saves the service's module list with every recorded address placed in it (server-modules.txt) and the Application
+  log's crash events (crash-events.txt). On 28 September a gate failed its first test on the record a killed earlier
+  gate had left, with every other test passed.
+
+- **Boost for the package builds comes from the job's cache, archives.boost.io or SourceForge.**
+  build/ci/packages/fetch-boost.sh makes six attempts at each source and holds every copy to the pinned SHA-256; the
+  EL, openSUSE and Debian 12 build jobs cache the tarball under its SHA-256. On 28 September three package jobs of
+  6.3.5's pipeline failed because some of archives.boost.io's addresses did not answer the runner.
+
+- **The CI's Python is 3.14, and Renovate no longer proposes a locked requirements file it cannot lock.** Every job
+  image pinned by digest is at Renovate's digest of 28 September 2026, and every Python job runs in
+  python:3.14-slim-trixie; the locked requirement files are remade for 3.14 with the same versions and hashes.
+  Renovate's Python merge request of that day had moved twelve versions inside build/ci/requirements.txt without
+  resolving or hashing them - click kept its old hashes, and Semgrep 1.178.0 accepts none of the new versions - so
+  the semgrep job, and with it the release's security gate, would have failed. Its pip manager now reads the .in
+  files only, and its merge request says how to remake the locked files. Microsoft.NET.Test.Sdk is 18.10.1.
+
+- **The semgrep job counts a file Semgrep could not parse, or parsed leaving more than ten of its lines unread, as a
+  hole in the scan**, as it did a rule that timed out: Semgrep reports both only as a warning, and the job had taken
+  `build/ci/semgrep.sh` (not parsed at all), `container-image-sign.sh` (97 of 138 lines unread, every command that
+  signs and attests the image) and `scorecard.sh` (117 of 243) as scanned; the three are now written so Semgrep's
+  bash parser reads every line.
+
+- **The regression tests that read a mailbox by the order its messages arrived in no longer depend on which delivery
+  thread wins.** Each message is in the mailbox before the next is sent (FullTextSearch, which failed 6.3.5's gate
+  once with "1 3" for "1 2"; RestApiRecoverDeleted, Discovery, ObjectStorage, and RestApiSelfService's subscriptions
+  and keywords tests), and the quota warning, which is queued before the message that crosses the threshold is
+  stored, is found by being the one message not sent rather than as the last one. About 290 other tests that deliver
+  several messages were read and left as they are: they count, compare sets, find by content, or already wait.
+
+---
+
+## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28
+
+Everything that landed on `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
+`v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104
+to 6105 in one step**, which adds a column to the quarantine's table, `hm_quarantine.quarantinehelo`. What changes
+on upgrade without a switch comes first. The operator documents named below are in `hmailserver/docs`, which has
+five more of them than it had at 6.3.4.
+
+
+This is the first release built to be made by the project's GitLab CI from its tag ([RELEASE.md](RELEASE.md), *The
+release on GitLab* and *On GitLab, from 6.3.5*). The tag's pipeline builds the Windows installer on the project's
+Windows runner after the whole Windows suite has passed there; once the owner has started the `release` job, it
+Authenticode-signs the installer through Azure Artifact Signing with an RFC 3161 timestamp, signs every file of the
+release with Sigstore as that pipeline -
+`https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, issuer `https://gitlab.com` -
+into a `<file>.cosign.bundle` beside it, and checks every bundle with the server's own `--verify-update` before
+anything is published. That identity is the one a 6.3.4 server trusts (`SigstoreVerifier.cpp`, unchanged since
+6.3.4, and the verifier that check runs), so the live update of a 6.3.4 server is built to install this release, on
+Windows and on Linux. A server from 6.2.28 to 6.3.3 trusts only the GitHub workflow that signed the releases up to
+6.3.3, and as it stands its live update refuses this one: install 6.3.4 or this release by hand, and keep
+`UpdateAutoDownload` off until then, or on Windows give it the GitLab signer as
+[UpdateFeed.md](hmailserver/docs/UpdateFeed.md) describes. What the release carries, and what the new package jobs
+leave in CI only, is under Operations.
+
+### What changes on upgrade without a switch
+
+1. **The Control Panel's sidebar is in the order a new administrator needs.** Welcome and Dashboard come first,
+   then a new group, **Set up this server**: the **Setup checklist**, which was *External setup* under Monitoring &
+   troubleshooting, then Setting profiles and DNS records. Two groups are renamed - *TLS & certificates* is
+   **Certificates & encryption** and *Access & abuse protection* is **Sign-in & access** - and Connections &
+   protocols gains a **Webmail** page (Administration, below). The palette (Ctrl+K) still finds the checklist as
+   External setup. A page's `nav-<key>` UI Automation id is unchanged; the `navgroup-` and `navrail-` ids of the
+   new and the renamed groups follow their new headings, so a UI test that finds a group by its old id must be
+   changed.
+2. **The quarantine shows the HELO name, and groups.** The Control Panel's Quarantine page and the Control Deck's
+   Quarantine view gain a HELO column and group the held messages by the sender's domain unless told otherwise.
+   Messages held before the upgrade have no HELO name recorded and are grouped with those that have no HELO
+   domain. The Deck now asks before a delete with a Yes or No of its own whose default is No, as the Control Panel
+   already did; it used the browser's `confirm()`, whose default is OK. It offers whitelist and blacklist only to a
+   credential holding `manage_settings`, and a held message's headers and preview only to one holding
+   `view_mailbox`, as the server requires (below).
+3. **The webmail's keyboard.** The message list is one Tab stop, where each row put its box, star and marker in
+   the Tab order, and the list's keys reach what a row holds. Enter on a button in the mail view presses the
+   button; it used to open the message under the list's cursor. A letter typed into the formatted signature is
+   text, where `c` opened a new message. Escape closes every modal dialogue as its Cancel does and gives the focus
+   back to where it was, the page under a dialogue cannot be reached until it closes, and menus close on Escape.
+   The event and task editors close when the page changes. The compose window's *Plain* is **Remove formatting**,
+   its tooltip's words. On a phone a row's importance marker is shown and not pressed; the message's More menu
+   marks it.
+4. **An invitation sent the way Outlook sends one is shown as an invitation.** `GET /api/v1/me/messages/{id}`
+   answers `"invitation": true` for a `text/calendar` part whose `Content-Type` carries parameters and which has no
+   `.ics` name, where it answered `false`, and the webmail shows the invitation's card with Accept, Maybe and
+   Decline (the fix is under IMAP, POP3 and the webmail).
+5. **What a script sees.** `GET /api/v1/quarantine` gives each message three more fields - `helo`,
+   `sender_domain` and `helo_domain` - and four routes are new. Over COM, `Quarantine` gains `Bulk` (dispid 9)
+   and `QuarantinedMessage` gains `HeloName`, `SenderDomain`, `HeloDomain`, `ReadHeaders` and `ReadPreview`
+   (dispids 11 to 15), added to the existing interfaces; no existing member or dispid changes. A program built
+   against 6.3.5's type library that calls one of them needs a 6.3.5 server.
+
+### Anti-spam, anti-virus and mail flow rules
+
 - **Reviewing the quarantine** (schema 6105; [GitLab issue #1](https://gitlab.com/Progressiverobot/hmailserver/-/issues/1)):
   - **The HELO name** the client gave is stored with each held message. A message held during the SMTP
     conversation records the session's own; one held later, at delivery - by a rule, a block list, an account's
@@ -262,59 +598,6 @@ for a stray `#` number or `@` name.
   now unwrapped in one pass into a new string, with the same result (`ContentPolicy::StripHtml`). The quarantine's
   preview ends in the same function, and takes the style sheets, scripts and head out of an HTML part in one pass
   too, so a held message's preview costs time in proportion to its size.
-- **The source of the AppImages' runtime's libraries goes out with them** (not yet run in a pipeline). Each
-  AppImage's runtime is linked statically on Alpine, and two of the libraries it takes in, libfuse3 (LGPL-2.1) and
-  lzo (GPL-2.0-or-later), ask for their own source to go with the binary, not only the runtime's; with lzo's GPL, so
-  does every other library linked in but the compiler's own. From 6.3.6 the release carries
-  `hmailserver-<v>-appimage-runtime-sources.tar.gz`: for libfuse3, lzo, squashfuse, zstd, lz4, xz, zlib and musl, at
-  the version and aports commit each runtime job recorded from the linker's map and apk's database, Alpine's APKBUILD
-  and patches from gitlab.alpinelinux.org, fetched by the commit's id, and the upstream archive from Alpine's
-  distfiles mirror - never the GitHub releases several APKBUILDs name - each source held to the SHA-512 its APKBUILD
-  gives, with a README.txt saying where each file came from, what each licence asks and how to link the runtime again
-  with a changed library. The new `appimage-runtime-sources` job packs it reproducibly, twice, and compares; the
-  release gathers it with a line in the sums, a bundle and a `.sigstore.json` copy, and no SBOM, being source. Each
-  image's `usr/share/hmailserver/licenses/appimage-runtime.txt` lists what its runtime links and names the file, and
-  the image carries each library's licence files in `usr/share/hmailserver/licenses/appimage-runtime/`, with the
-  GPL-3.0's text, under which the runtime takes lzo (runtime.c being AGPL-3.0-or-later). GCC's start-up files and
-  libgcc stay out, under the GCC Runtime Library Exception
-  ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences"; work item 36).
-- **The release channels, each published by hand from `master`, dormant until its account exists** (none live yet).
-  `.gitlab/ci/channels.yml` adds `registry-mirror` (the image by digest, with its cosign signature and SBOM
-  attestation, to Docker Hub, Quay.io and optionally Amazon ECR Public, with `regctl`), `aur-publish` (the AUR's
-  `hmailserver`), `ppa-upload` (the Debian source package to `ppa:hmailserver/hmailserver` for Ubuntu 24.04 and
-  26.04), `copr-build` (Fedora Copr through its webhook; `.copr/Makefile` makes the source RPM in Copr's builder),
-  `obs-publish` (the openSUSE Build Service, from `platform/packaging/obs/_service`), `chocolatey-release` with
-  `chocolatey-publish` (packed on bench150), `snap-upload` (edge and candidate) and `channels-verify`, the dry run.
-  Each publishes the release `HM_CHANNEL_VERSION` names or the update feed's latest (Copr and OBS the latest alone),
-  verifies every release file it takes against its Sigstore bundle as the tag's pipeline - the project's id, read
-  from the certificate's extensions, required at the group's path - before it logs in or sends anything, and never
-  moves a channel back to an older release. The snap, not a release file, is held to the verified tarball or the tag;
-  OBS fetches the tarball itself once the job has checked the permanent link serves the verified bytes. cosign and
-  regctl come out of their images pinned by digest; nothing from GitHub, and no credential on a command line
-  ([Channels.md](hmailserver/docs/Channels.md)).
-- **The Arch package builds from the release's source tarball**, not a git tag, as a distribution's build
-  (`-DHM_LIVE_UPDATE=OFF`, naming `makepkg -si` from the AUR as its update) and without LTO (Arch's default full-LTO
-  link of the server passed 6 GB and was killed); `aur-publish` writes the verified tarball's SHA-256 in.
-- **The Chocolatey package's id comes from `make-package-manifests.ps1 -ChocolateyId`**: `hmailserver`, or
-  `hmailserver-progressiverobot` if upstream's maintainers do not add the project. Its addresses are the group's.
-- **The release checks read the signing certificate's fields from its extensions, never by searching its bytes, and
-  only from the certificate cosign verified.** release-verify.sh and container-image-deb.sh took the project id
-  (Fulcio's 1.3.6.1.4.1.57264.1.15) from wherever its bytes first appeared, and a certificate's public key is bytes
-  its holder chooses; registry-mirror read the id from whichever signature certificate held the identity's bytes, and
-  check-provenance matched the identity the same way. One reader, build/ci/sigstore-certificate.py, now walks the
-  certificate's DER to its extensions, with a shell twin for cosign's image held to it case by case. The shell reader
-  reads a v0.3 bundle only - cosign verifies just the first certificate of a v0.1 or v0.2 chain, and accepts field
-  names spelled in ways a count of `rawBytes` misses - container-image-deb.sh refuses a cosign without
-  `--new-bundle-format`, and registry-mirror refuses a signature manifest Go's JSON reader would read otherwise (a
-  key in another case or with a long s, a key twice, an index at the `.sig` tag); the Python reader refuses a
-  duplicated key. build/check-release-chain.py holds every script to the readers and refuses the Sigstore OID written
-  as bytes, decimal numbers or base64 anywhere else. The container image's mirror has cosign verify its signature and
-  SBOM attestation from one copy of their manifests, each fetched by its digest, reads the project's id from those
-  same manifests - the attestation's certificate now held to it as the signature's is - and puts exactly those
-  manifests at each registry, replacing whatever signature was there; the release's SLSA provenance is held to the
-  project's id too, as its files are; and neither certificate reader relies any longer on cosign refusing a malformed
-  bundle to know which certificate it read. The server's own verifier reads the extension through OpenSSL and was
-  never affected.
 
 ### IMAP, POP3 and the webmail
 
@@ -387,22 +670,6 @@ for a stray `#` number or `@` name.
   properties the Control Panel writes as writable over REST and reachable from a Deck view; the ten it lists as
   missing are an account's directory fields and its external ID, and the server's country policy. The census had
   missed 16 COM members whose help string holds a `]`.
-- **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue: drag
-  over text, double-click a word, Ctrl+C, or right-click for Copy / Select all; with nothing selected, Copy takes the
-  whole text, and a selection dragged out into another program carries plain text only. Text inside buttons, lists,
-  tabs, menus, grids and editors is left to its control, and keyboard navigation and screen-reader output are
-  unchanged. Every plain list - domains, accounts, aliases and distribution lists, public folders, incoming relays,
-  an account's IMAP folders, folder permissions, group members, recipients, a route's addresses and the Active
-  Directory picker - copies its selected rows with Ctrl+C or its right-click Copy, one row per line in the list's
-  order, and offers Select all where several rows can be chosen; the Ctrl+K search's results copy from their
-  right-click Copy (its search box keeps the keyboard); data grids copy their rows as before. Live logs selects
-  several lines (click, Shift+click, Ctrl+A) and copies them exactly, in the log's order; it follows new lines only
-  while the end is in view and no longer splits a line the server is still writing into two rows. On REST API keys, a
-  key's label, id, state and scope can be copied. Every Copy button now writes the clipboard the same way: a program
-  that reads the clipboard the moment it changes (Windows' clipboard history, a remote-desktop client) no longer
-  makes a copy fail after a second's freeze (a chart's Copy then showed no confirmation, and the new API key's and
-  app password's Copy an error), and text copied just before the Control Panel is closed still pastes after it has
-  gone.
 
 ### Operations
 
@@ -442,100 +709,6 @@ for a stray `#` number or `@` name.
   live update, whose dependencies its distribution may not meet; apt or dnf then refuses it, and the server stays
   as it was. One installed from an AArch64 package, an AppImage or the ARM64 installer is told that the release
   carries nothing for it to download.
-
-- **Why the container image waits, said truly.** `.gitlab/ci/container-image.yml`,
-  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) ("What the owner sets on the registry", 3),
-  Roadmap2's release-chain row, the packaging README and a comment of `build/check-release-chain.py` said, and
-  6.3.4's notes below say, that the image waits because GitLab.com cannot transfer a project whose container
-  registry holds an image. GitLab's documentation does not say that: on GitLab.com a project whose registry is
-  enabled is transferred only within its top-level group, one with more than 1,000 container repositories not at
-  all, and a project must hold no image only on GitLab Self-Managed. The image waits because the maintainers decided
-  on 27 September 2026 to move the project into the group `hmailserver` before the first image is pushed, so that
-  its address, `registry.gitlab.com/hmailserver/hmailserver`, is the lasting one - a container repository's path is
-  always its project's - and 6.3.4's `SigstoreVerifier` already trusts the group's path with the project's id,
-  86730559. The texts that said the image appears at `registry.gitlab.com/progressiverobot/hmailserver` - the
-  comments of the Compose file, the chart's values and the Dockerfile, the packaging README, EvidencePack.md,
-  ContinuousIntegration.md's `cosign verify` example and SECURITY.md's `cosign verify-attestation` example, and
-  `renovate.json`, which also said the registry was not switched on - now name the group's address; the Compose file
-  and the chart still pull the present path, and change with the move. Nothing the pipeline does changes.
-- **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package jobs
-  for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
-  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md) and
-  [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job had
-  run: every `.deb` build job passed in pipelines 2886955494 and 2887115157, and every `.rpm` build job in
-  2887115157; no install job has started in any pipeline, no AppImage job has been started, and
-  `windows-packages-x64` built the unsigned x64 installer in 2887115157.
-  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no GitLab job has run, says
-  the GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's
-  cleanup policy as the API does: it kept two of the five patterns the document listed, and the maintainers added the
-  other three through the API on 28 September 2026, before the policy is ever switched on; it and README.md say that the fuzz schedule and Renovate's schedule and token
-  exist since 27 September. README.md no longer says the project has no ARM machine to build the AArch64 packages on
-  (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says the pipeline does not build them,
-  and Roadmap2's Windows on ARM row names the CI job it said there was not.
-  [PackageManagers.md](hmailserver/docs/PackageManagers.md) no longer says the GitHub workflow built the manifests
-  for the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage is
-  attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's
-  hMailServer 5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers; its
-  table no longer says the workflow ran on every release, and its walk for the first Chocolatey push says the push
-  waits for that. The documents that sent a reader to `6399e08a5` for the removed GitHub workflows now give
-  `faca023d4`, the same commit as `master`'s history holds it: `6399e08a5` is its copy from before its branch was
-  rebased, which `master`'s history does not hold.
-- **`HM_DB_WAIT_SECONDS`** (0 to 999999, default 0): the image's entrypoint waits for the `[Database]` server to
-  accept a TCP connection before opening it, and does not start (exit 69) when it has not. The entrypoint reads the
-  ini's `[Database]` section as the server does (spaces trimmed, names in any case), and `HM_INSTALL_KIND`, which
-  the image sets for the update check, is not a reason for it to open the database.
-- **A build without the live update, and a live update that knows a snap and a container** (not yet run in a
-  pipeline). CMake's new `-DHM_LIVE_UPDATE=OFF` builds the server with no apply step and installs neither
-  `hmailserver-update` nor its two units; an AppImage made from an OFF tree carries no `hmailserver-update`
-  either. Its update check still names a newer release and the distribution's own command
-  (`-DHM_UPDATE_COMMAND="apt upgrade hmailserver"`). A server in a snap (`SNAP` naming the directory it runs from)
-  or in the container image (`HM_INSTALL_KIND=container`) names `snap refresh hmailserver` or the image to pull,
-  and never downloads or installs a release file. `GET /api/v1/update` reports `installKind`, `liveUpdate`,
-  `updateCommand` and `updateAdvice`, and the Control Deck shows them. What the live update did in images before
-  6.3.6 is written down in [LiveUpdateKinds.md](hmailserver/docs/LiveUpdateKinds.md): it installed nothing,
-  downloaded two packages and reported HM6890. Tested by `build/test-install-kind.sh` (CI job
-  `linux-live-update`).
-- **A new Windows installation can be set up against SQL Server, PostgreSQL or MySQL with no window** (not yet
-  run against a server). Both installers take the database on the command line - `/dbtype=`, `/dbhost=`,
-  `/dbport=`, `/dbname=`, `/dbuser=`, `/dbpasswordfile=`, `/createdatabase=`, `/dbservice=` - or in the
-  container's own `HM_DB_*` variables, the password only in `HM_DB_PASSWORD` or a file, never on a command line.
-  `DBSetup.exe /unattended` then creates the database, or uses one that exists and upgrades it with DBUpdater if
-  it is older, and ends only at the schema the build requires, its lines in the setup log. Settings it cannot use
-  are refused before anything changes, among them a password file that is not UTF-8 and the characters the server
-  cannot yet pass to its database (a single quote or a backslash for PostgreSQL; for SQL Server a semicolon, or a
-  quote as a value's first character). This is how a silent installation of the ARM64 build, which has no
-  built-in database, finishes; its installer now refuses a silent new installation given no database before
-  anything is installed, rather than open DBSetup's wizard where nobody can answer it. On x64 it is an option
-  beside the built-in database, which stays the silent default unless `HM_DB_TYPE` is set in the machine's or the
-  user's environment, which makes a new installation an external one; the setup log says whether the type came
-  from `/dbtype` or the environment. The x64 installer still does not run on ARM64 under emulation
-  (`x64compatible`), by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its
-  reasons. The installer smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh
-  --database`).
-- **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script and runs
-  it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST or an
-  environment - loads it, compiled and searched, before the switch takes effect, and reports then a script that does
-  not compile, whatever runs beside the switch - a reload, a reinitialise, a switch-off, another switch-on: a reload
-  that read the switch as off is made again once it is on, and of two loads that overlap, the script of the one
-  started last stays in force, unless it does not compile, which is reported. A rule's Run function action against a
-  script loaded while scripting was off, which never compiled, is refused (HM5018) instead of being handed to the
-  engine. An empty script runs no engine.
-
-- **Crash records that place the fault.** The crash oracle's record adds, after the fields it always had, what an
-  access violation read, wrote or executed and where, the faulting address's image base and offset, and up to twelve
-  frames of the faulting thread; the REST API writes to the application log which method and path it answered 500
-  after an exception.
-- **Fixed: settings read while they were being reloaded.** hMailServer.ini's database and directory values, the
-  administrator's second factor, and each value of the settings store and its map are read and written under locks,
-  each value whole; a reinitialise or a COM Settings.Directories call could hand another thread an empty or freed
-  value. A reinitialise now builds the settings store, the SMTP, POP3, IMAP and cache configurations, the server
-  messages, blocked attachments, SSL certificates, DNS blacklists and SURBL servers, the local addresses and the
-  top-level domains whole before another thread can see them, and hands each over under a lock: a COM call made
-  during one - the Control Panel's or a script's - could copy a pointer while it was being replaced, or find the
-  settings not yet read and take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level,
-  device and format are read and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first
-  read. Several values read one after another are still not read as one set, and a setting changed during a
-  reinitialise, after the new settings were read, is stored but not in force until the next reinitialise or start.
 
 ### Build and tests
 
@@ -629,123 +802,6 @@ for a stray `#` number or `@` name.
   ([GitLab issue #25](https://gitlab.com/Progressiverobot/hmailserver/-/issues/25)).
 
 Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5).
-
-- **[Roadmap3.md](Roadmap3.md): the plan for everything the project had on GitHub.** A new file at the
-  repository root maps, row by row, what it takes to bring back on GitLab what a user could download, verify and
-  install before 18 September 2026 - the AArch64 `.deb` and `.rpm`, the AppImages, the container image, the
-  Sigstore bundles and the build provenance - and to add what the owner asked for beside them: the ARM64 Windows
-  installer, the apt and dnf repositories, winget and Chocolatey, and every other channel people install mail
-  servers from. It opens with a counter line like Roadmap2.md's, and `build/check-roadmap2.py` now holds both
-  files: it fails when either counter disagrees with its rows or either file is missing, checks one file alone
-  when given its name, and has a `--self-test`, run by the `checkers` job, whose controls include a wrong
-  Roadmap3.md counter beside a right Roadmap2.md one, which the check as it was let through. README.md,
-  Roadmap.md, CONTRIBUTING.md, SUPPORT.md, the documentation index and the Feature and merge request templates
-  link it. The `.deb` and `.rpm` help pages, which said no Roadmap2 row carried choosing a package by
-  distribution, now name the Roadmap3.md row that does.
-- **A clock flake in the two-factor tests, not a server fault.** The Windows gate of pipeline 2887524317 failed
-  `TwoFactorAuthentication.ACodeComputedElsewhereIsAccepted` with "The previous step must be accepted": the test
-  began at 23:37:29.5 UTC, half a second before a thirty-second step ended, computed the previous step's code in
-  step s and had it judged in step s+1, two steps behind the server and outside its window of one step either side.
-  `OneTimeCodes.WaitForRoomInTheStep` now returns at once when ten seconds or more of the step remain and otherwise
-  sleeps into the next step, and the two tests that judge codes against the server's step
-  (`ACodeComputedElsewhereIsAccepted` and `ACodeIsTakenOnceOverCom`) call it after enrolling. The suite's other
-  codes come from `OneTimeCodes.Fresh`, which never hands out a step behind the clock, or are refused whatever the
-  step (a wrong code, one five steps out, a wrong password or a spent budget), so they needed nothing. The new
-  fixture `ServerFreeTests.OneTimeCodesStep` replays the failed run against a clock of its own, without a server,
-  in both suites: without the wait the previous step's code is two steps behind (its negative control), with it
-  the code is judged in its own step.
-- **The ARM64 toolchain check could not find the ARM64 C++ runtime on any machine.**
-  `build/ci/packages/check-arm64-toolchain.ps1` looked for it with `Get-ChildItem -Path '...\VC\Redist\MSVC\*\arm64'
-  -Filter 'Microsoft.VC*.CRT'`, which with a wildcard in the path returns the `arm64` folders themselves and filters
-  their names. It reported the runtime missing on the laptop, whose Build Tools 18.9 has it, and on bench150 in
-  pipeline 2887115157, where `windows-packages-arm64` stopped on that report with the ARM64 tools and ATL for ARM64
-  present, as 6.3.5's notes below say. The check now asks for `...\arm64\Microsoft.VC*.CRT` as one path. It also no
-  longer tells the owner to add components the instance already has: when every component is installed and a file is
-  not there, it prints the Installer's `repair` of the instance, or, for the runtime, the `modify --add` of the
-  component that the instance's own catalog says installs `Microsoft.VisualCpp.CRT.Redist.ARM64` when the instance
-  lacks it. `check-arm64-toolchain.ps1 -SelfTest` holds both to instance trees and catalogs made to order, with the
-  old path and the old command as its negative controls; on the laptop the check now exits 0.
-- **The command-line packages are checked wherever they change.** `build/check-cli-packages.py`, in the
-  `checkers` job, fails when the manifest's version or function list drifts from `Version.h` or the module, or the
-  Python package gains a dependency, a version of its own, an install hook, a second copy of `hmctl` or a
-  standard-library module newer than Python 3.8, or `hmctl` runs code when it is imported; its `--self-test` breaks
-  each rule in a copy. The new `cli-packages` and `cli-powershell` jobs (`.gitlab/ci/cli-packages.yml`; merge
-  requests and branches, never a tag) build the sdist and the wheel twice and compare them, run `twine check
-  --strict`, install the wheel alone, and run `Test-ModuleManifest` and PSScriptAnalyzer - from the PowerShell
-  Gallery, held to its published SHA-512 - under pwsh. PSScriptAnalyzer's 25 findings in `HmailServer.psm1` are
-  fixed or justified on the one function, with no command, parameter or confirmation prompt changed;
-  `Export-HmConfiguration -Verbose` now says why the ini section is empty when the server does not answer for it.
-- **The Linux build includes the distribution's `zlib.h`.** Six core sources included the zlib header vendored
-  for `hMailServer.exe` on every platform, so the Linux server was compiled against zlib 1.3.2's header and
-  linked against the distribution's library (1.3.1 on Ubuntu 26.04). They include `<zlib.h>` under
-  `HM_PLATFORM_POSIX` now; the Windows build compiles the same text as before.
-- **An ARM64 publish of the .NET tools no longer takes the x64 COM wrapper from an earlier x64 publish.** MSBuild
-  searched each tool's own `publish` folder before the reference's hint path, so `build-tools.ps1 -Platform ARM64`
-  after an x64 publish compiled all five tools against the x64 wrapper (warning CS8012) and shipped it, in the
-  add-ons' `Addons` folders where nothing replaced it; `check-pe-machine.ps1` found five. The publish folders are
-  kept out of the projects' items (`Tools\Directory.Build.props`). CI builds in a clean checkout and never met it.
-- **`native-dependencies.ps1 -LibrariesRoot`** holds each linked library's version in an installer's component
-  list to the tree the build used, which records its own (OpenSSL's `VERSION.dat`, Boost's `version.hpp`,
-  PostgreSQL's `meson.build`); the ARM64 list was checked that way against the ARM64 libraries of 26 September.
-  The lists themselves are unchanged.
-- **A merge request answers for what it brings.** On GitLab's shared runners, with no secret:
-  `build/check-binary-manifest.py`, run by `checkers` in every pipeline, fails on a committed binary that
-  `hmailserver/docs/third-party-binaries.json` does not list at its SHA-256 (what `verify-binary-provenance.yml` did
-  until 18 September); `semgrep-sast-gate` holds a merge request on a Critical or High `semgrep-sast` finding in a
-  file it changes that `.gitlab/security-exceptions.yml`, as the merge request's base has it, does not accept
-  (`build/ci/security-gate.py --merge-request`, the release's own rule; OpenSSF Baseline OSPS-VM-06.02); and
-  `mr-dependency-check` holds one that adds a dependency version with a Critical or High advisory in OSV's own
-  export of NuGet's or PyPI's advisories (`build/ci/mr-dependency-check.py`), what GitHub's dependency review did
-  (`.gitlab/ci/mr-checks.yml`; ContinuousIntegration.md, "Merge request checks").
-- **The server is built and tested with the newest GCC as well as clang.** `linux-build-gcc` (`.gitlab/ci/gcc.yml`;
-  linix; `master` and `batch*`, never a tag) builds the server and its tester programs with the CI image's own GCC,
-  Ubuntu 26.04's GCC 15, and runs them and the OpenPGP round trip; `build/ci/linux-build.sh` takes
-  `HM_COMPILER=gcc`, and a GCC build makes no packages. The Debian and Ubuntu package jobs already built with GCC
-  12, 13 and 14; none built natively with GCC 15. The CI image already carried it through `build-essential`, and is
-  unchanged.
-- **OpenSSF Scorecard, self-run.** `scorecard` (`.gitlab/ci/scorecard.yml`, the schedule described `scorecard`) runs
-  Scorecard 5.5.0 taken from cache.nixos.org by its Nix store path, with every path of its closure pinned by NAR
-  hash, not from GitHub, and `build/ci/scorecard-pages.py` publishes its result and a badge at
-  https://updates.progressiverobot.com/scorecard/; a result it cannot fetch or read never stops the site's
-  deployment. Until the owner's `GITLAB_AUTH_TOKEN` exists it says "not configured" and passes.
-- **SonarQube Cloud's scope, and GitHub kept out of a job.** `.sonarcloud.properties` scopes SonarQube Cloud's
-  automatic analysis to the project's own code and tests. `.gitlab/ci/no-github.yml`'s `.no-github` puts GitHub's
-  six hosts at 0.0.0.0 and `::` inside a job, has the hosts file read first where an image has no
-  `/etc/nsswitch.conf`, and refuses a job it cannot protect. ContinuousIntegration.md says what GitLab's free tier
-  and Ultimate give and why the Code Quality widget is not used.
-- **The channels are checked where they change.** `channels-check` runs every channel script's self-test and proves
-  the verification with the pinned cosign itself against `build/ci/channels/fake-sigstore.py`, a Sigstore of the
-  jobs' own (a Fulcio-shaped authority with an embedded SCT, a Rekor-shaped log, a trusted root).
-  `build/check-channels.py`, in `checkers`, holds the jobs to protected master, by hand, allowed to fail, no ID
-  tokens and `.no-github` first, and the PKGBUILD, the AUR's pinned host keys, OBS's `_service` and the Copr Makefile
-  to shape.
-- **The Windows gate is not failed by an earlier run's crash record, and keeps what places a fault.**
-  build/ci/windows-gate.ps1 moves aside and prints the crash-oracle.log the binary before it left, and on a failure
-  saves the service's module list with every recorded address placed in it (server-modules.txt) and the Application
-  log's crash events (crash-events.txt). On 28 September a gate failed its first test on the record a killed earlier
-  gate had left, with every other test passed.
-- **Boost for the package builds comes from the job's cache, archives.boost.io or SourceForge.**
-  build/ci/packages/fetch-boost.sh makes six attempts at each source and holds every copy to the pinned SHA-256; the
-  EL, openSUSE and Debian 12 build jobs cache the tarball under its SHA-256. On 28 September three package jobs of
-  6.3.5's pipeline failed because some of archives.boost.io's addresses did not answer the runner.
-- **The CI's Python is 3.14, and Renovate no longer proposes a locked requirements file it cannot lock.** Every job
-  image pinned by digest is at Renovate's digest of 28 September 2026, and every Python job runs in
-  python:3.14-slim-trixie; the locked requirement files are remade for 3.14 with the same versions and hashes.
-  Renovate's Python merge request of that day had moved twelve versions inside build/ci/requirements.txt without
-  resolving or hashing them - click kept its old hashes, and Semgrep 1.178.0 accepts none of the new versions - so
-  the semgrep job, and with it the release's security gate, would have failed. Its pip manager now reads the .in
-  files only, and its merge request says how to remake the locked files. Microsoft.NET.Test.Sdk is 18.10.1.
-- **The semgrep job counts a file Semgrep could not parse, or parsed leaving more than ten of its lines unread, as a
-  hole in the scan**, as it did a rule that timed out: Semgrep reports both only as a warning, and the job had taken
-  `build/ci/semgrep.sh` (not parsed at all), `container-image-sign.sh` (97 of 138 lines unread, every command that
-  signs and attests the image) and `scorecard.sh` (117 of 243) as scanned; the three are now written so Semgrep's
-  bash parser reads every line.
-- **The regression tests that read a mailbox by the order its messages arrived in no longer depend on which delivery
-  thread wins.** Each message is in the mailbox before the next is sent (FullTextSearch, which failed 6.3.5's gate
-  once with "1 3" for "1 2"; RestApiRecoverDeleted, Discovery, ObjectStorage, and RestApiSelfService's subscriptions
-  and keywords tests), and the quota warning, which is queued before the message that crosses the threshold is
-  stored, is found by being the one message not sent rather than as the last one. About 290 other tests that deliver
-  several messages were read and left as they are: they count, compare sets, find by content, or already wait.
 
 ---
 
