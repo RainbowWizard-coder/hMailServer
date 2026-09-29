@@ -342,9 +342,15 @@ Not pinned, and why:
   from the archive at whatever version it has that day.
 * **The toolchains.** Visual Studio (toolset v145, which the project names),
   the Windows SDK, Inno Setup 6 - whose setup loader is part of every
-  installer - Strawberry Perl, Meson, Ninja and winflexbison are installed on
-  the build machine, not fetched by a script. Only the .NET SDK is pinned, by
-  `global.json`.
+  installer - and Strawberry Perl are installed on the build machine, not
+  fetched by a script. The .NET SDK is pinned by `global.json`. Python, Meson,
+  Ninja and winflexbison, which only libpq's build runs, are installed on a
+  developer's machine, or fetched by `libraries/get-libpq-tools.ps1`, which
+  `windows-packages-arm64` runs on bench150: Python 3.14.7 from nuget.org,
+  Meson 1.11.1 and Ninja 1.13.2 from PyPI and winflexbison 2.5.24 from
+  SourceForge, each held to the SHA-256 the script pins
+  ([PackagesWindows.md](PackagesWindows.md), "The ARM64 libraries"). None of them
+  is in anything the build ships.
 * **What the GitHub workflows fetched.** They have not run since
   18 September 2026, and are in the git history at `faca023d4`. The two inputs they left unpinned were the SLSA generator,
   referenced by tag because its verifier requires it (`sign-release.yml`), and

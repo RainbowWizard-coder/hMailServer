@@ -43,14 +43,15 @@
 #
 # And for a v* tag, the release (docs/ContinuousIntegration.md, "The release"):
 #
-#   windows-installer     bench150: the Windows installer, built in the bench's checkout
-#                         after windows-gate (build/ci/windows-installer.ps1);
+#   windows-installer     bench150: the x64 Windows installer, built in the bench's checkout
+#                         after windows-gate (build/ci/windows-installer.ps1); the ARM64 one is
+#                         windows-packages-arm64's (.gitlab/ci/packages-windows.yml);
 #   release               by hand: the tag, the version stamp and the settings checked, the
 #                         security scans' reports read (build/ci/security-gate.py), and
 #                         every file the release carries collected (build/ci/release-chain.py);
-#   release-authenticode  bench150: the installer Authenticode-signed through Azure Artifact
+#   release-authenticode  bench150: the two installers Authenticode-signed through Azure Artifact
 #                         Signing with the job's ID token (build/ci/windows-authenticode.ps1);
-#   release-sbom          the signed installer's own SBOM, <installer>.cdx.json; the x86-64 .deb's
+#   release-sbom          each signed installer's own SBOM, <installer>.cdx.json; the x86-64 .deb's
 #                         and .rpm's are linux-build's, and the AArch64 ones' their SBOM jobs'
 #                         (.gitlab/ci/packages-*.yml; build/asset-sbom.py, build/ci/release-chain.py);
 #   release-sign          every file signed with Sigstore as this pipeline (build/ci/release-sign.sh);
@@ -1369,16 +1370,17 @@ renovate:
 # pipeline, once its gates have passed, makes the release (docs/ContinuousIntegration.md,
 # "The release"; RELEASE.md has the runbook). In order:
 #
-#   windows-installer     automatic, after windows-gate: the installer, unsigned, in
-#                         the bench's checkout under the gate lock;
+#   windows-installer     automatic, after windows-gate: the x64 installer, unsigned, in
+#                         the bench's checkout under the gate lock (the ARM64 one is
+#                         windows-packages-arm64's, .gitlab/ci/packages-windows.yml);
 #   release               started by hand, after every gate: nothing is signed or sent
 #                         anywhere until a maintainer says so. It checks the tag (an
 #                         annotated tag signed by a key in .gitlab/allowed_signers),
 #                         Version.h against the tag, the cosign pin and the Azure
 #                         settings, and collects the files a release carries, each
 #                         package with its own SBOM;
-#   release-authenticode  bench150: the installer signed with Authenticode;
-#   release-sbom          GitLab's shared runners: the signed installer's own SBOM;
+#   release-authenticode  bench150: the two installers signed with Authenticode;
+#   release-sbom          GitLab's shared runners: each signed installer's own SBOM;
 #   release-sign          GitLab's shared runners: every file signed with Sigstore;
 #   release-verify        linix: every bundle checked with this commit's own server;
 #   release-publish       started by hand - after the installer smoke test of the signed
@@ -1540,6 +1542,9 @@ release:
       artifacts: true
     - job: windows-installer
       artifacts: true
+    # The ARM64 installer, hMailServer-<v>-arm64.exe, with the SHA256SUMS its job wrote.
+    - job: windows-packages-arm64
+      artifacts: true
     - job: deb-ubuntu26.04-arm64
       artifacts: true
     - job: deb-ubuntu26.04-arm64-sbom
@@ -1580,17 +1585,20 @@ release:
   script:
     - python3 build/ci/release-chain.py collect --out release-assets
     # The server release-verify checks the bundles with, kept for as long as the files:
-    # linux-build's own artifact expires in three days. And the component list
-    # release-sbom makes the installer's SBOM from, as linux-sbom wrote it.
-    - mkdir -p release-tools && cp linux-build/hmailserver linux-build/build-info.txt sbom/native-dependencies-x64.json release-tools/
+    # linux-build's own artifact expires in three days. And the component lists
+    # release-sbom makes the two installers' SBOMs from, as linux-sbom wrote them.
+    - mkdir -p release-tools && cp linux-build/hmailserver linux-build/build-info.txt sbom/native-dependencies-arm64.json sbom/native-dependencies-x64.json release-tools/
   artifacts:
     expire_in: 30 days
     paths:
       - release-assets/
       - release-tools/
 
-# Authenticode, before Sigstore: it changes the installer's bytes, and cosign signs the
-# bytes that ship. The job's ID token, audience api://AzureADTokenExchange, is what Entra
+# Authenticode, before Sigstore: it changes the installers' bytes, and cosign signs the
+# bytes that ship. Two calls, the x64 installer's and the ARM64 one's, each into its own
+# folder, since windows-authenticode.ps1 empties the one it is given; the job exits with
+# the first call's code that is not 0, and signs the ARM64 one only when the x64 one
+# was signed. The job's ID token, audience api://AzureADTokenExchange, is what Entra
 # ID exchanges for the signing service's token through the federated credential the
 # owner creates (RELEASE.md, "Authenticode"); there is no client secret. It stops,
 # naming what is missing, while a setting or the plugin is absent, and sends nothing.
@@ -1614,19 +1622,22 @@ release-authenticode:
     - |
       $version = $env:CI_COMMIT_TAG.Substring(1)
       & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-authenticode.ps1 -Installer "release-assets\hMailServer-$version-x64.exe" -OutDir release-authenticode
+      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-authenticode.ps1 -Installer "release-assets\hMailServer-$version-arm64.exe" -OutDir release-authenticode-arm64
       exit $LASTEXITCODE
   artifacts:
     expire_in: 30 days
     paths:
       - release-authenticode/
+      - release-authenticode-arm64/
 
-# The installer's own software bill of materials, made from the bytes Authenticode
+# Each installer's own software bill of materials, made from the bytes Authenticode
 # signed, before Sigstore signs it with every other file: each compiled file a release
 # carries goes out with <file>.cdx.json beside it (OpenSSF Baseline OSPS-QA-02.02; the
 # .deb's and the .rpm's are made in linux-build, where dpkg knows what they were built
-# against). build/asset-sbom.py, from linux-sbom's component list (kept in release's
-# release-tools/), the tools' lock files and the installer script's [Files]; SECURITY.md,
-# "Software bills of materials", says how a user checks one.
+# against). build/asset-sbom.py, from linux-sbom's component lists, x64 and ARM64 (kept
+# in release's release-tools/), the tools' lock files and each installer script's
+# [Files]; SECURITY.md, "Software bills of materials", says how a user checks one.
 release-sbom:
   stage: release
   image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d

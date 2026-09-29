@@ -356,6 +356,18 @@ for a stray `#` number or `@` name.
   `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` with the project's id, which
   every server from 6.3.4 on trusts. The release scripts no longer sign at the first path, which signed 6.3.5 and
   which servers still trust for it ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+- **The ARM64 Windows installer is in the release.** From 6.3.6 a release carries `hMailServer-<v>-arm64.exe`, the
+  installer for Windows on ARM, beside the x64 one: `release` collects it from `windows-packages-arm64`, held to the
+  SHA-256 that job wrote; `release-authenticode` signs it with Authenticode by a second call, and stops if the x64
+  installer was not signed; `release-sbom` makes its `.cdx.json` from the signed bytes and `linux-sbom`'s ARM64
+  component list; `release-sign` signs it with Sigstore, with its `.sigstore.json` copy, and the provenance names it.
+  A release is 60 files and 154 links. A server's update check asks for its own processor's installer by name - as
+  6.3.4 and 6.3.5 do - so an x64 server is never offered the ARM64 one, and `/download/hMailServer-arm64.exe` on the
+  update site leads to it. The rehearsal on a `batch*` branch collects it too. `build/check-release-chain.py` holds
+  every one of those places, and refuses a job the release needs that is allowed to fail, in either of the ways
+  GitLab lets it. The ARM64 build is cross-compiled on the x64 Windows runner from libraries built into that runner's
+  cache, and has never run on ARM64 hardware; the release notes say so
+  ([PackagesWindows.md](hmailserver/docs/PackagesWindows.md), [WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)).
 
 ### Administration
 
@@ -718,6 +730,20 @@ for a stray `#` number or `@` name.
   `build/ci/installer-smoke-run.sh` now stops and disables the Windows Update and Update Orchestrator services over
   SSH before it copies anything; the snapshot is left alone, so the next revert brings them back, and a failure to
   stop them is reported and does not stop the run.
+- **Both Windows package jobs count, and the ARM64 one builds.** `windows-packages-x64` and `windows-packages-arm64`
+  may no longer fail without failing the pipeline, and a tag's release waits for both. The ARM64 job's own script ran
+  whole on the Windows runner by hand, as LocalSystem, on 29 September 2026: the ARM64 OpenSSL, Boost and libpq built
+  into the runner's cache (17, 2 and under 1 minutes the first time), then the server, the tools and the installer in
+  under six minutes, and every native file the installer packs checked to be an ARM64 image, but Microsoft's ARM64EC
+  `vcruntime140_1.dll`, which an ARM64 process never loads. The runner's `PATH` is its service's own, so libpq's
+  build tools are fetched by the job: `libraries/get-libpq-tools.ps1` takes Python 3.14.7 from nuget.org, Meson
+  1.11.1 and Ninja 1.13.2 from PyPI and winflexbison 2.5.24 from SourceForge, each held to a pinned SHA-256, into the
+  cache, installing nothing. `windows-packages.ps1` named a variable of its Boost step `$tag`, which PowerShell reads
+  as its `-Tag` parameter, so every ARM64 build's `build-info.txt` named the tag `vc145`; fixed.
+- **The Windows runner refuses GitHub.** bench150's hosts file sends `github.com`, `api.github.com`,
+  `codeload.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to `0.0.0.0` and
+  `::`, so that anything a job runs that reaches for GitHub fails by name; both installers built afterwards
+  (ContinuousIntegration.md, "bench150").
 
 ---
 

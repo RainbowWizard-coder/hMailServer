@@ -42,6 +42,17 @@ refuses it. This checker holds them to each other. It fails when:
   * release-authenticode has no ID token for Entra ID (aud
     api://AzureADTokenExchange), or its script signs without the service's RFC
     3161 timestamp, or reads other settings than the release job checks;
+  * the ARM64 installer (hMailServer-<v>-arm64.exe, from 6.3.6) is not built,
+    signed and described as the x64 one is: release must need
+    windows-packages-arm64 (.gitlab/ci/packages-windows.yml) with its artifacts, not
+    optionally, and that job may not be allow_failure or manual in a v* tag's
+    pipeline; release-chain.py must collect it from packages-windows/arm64/ held to
+    that job's SHA256SUMS; release-authenticode must sign it into
+    release-authenticode-arm64/, the folder release-chain.py's sbom and
+    release-sign.sh read it from, and keep that folder; release (and the rehearsal)
+    must keep linux-sbom's ARM64 component list for its SBOM; release-sign.sh must
+    take it signed with its SBOM; and the rehearsal must need
+    windows-packages-arm64 too;
   * the release or release-publish job can start without a person (when: manual,
     allow_failure: false), a release job can run for anything but a protected v*
     tag, or the jobs' needs no longer put Authenticode before Sigstore, Sigstore
@@ -344,6 +355,12 @@ CARRIED_PACKAGES = {
     "rpm-aarch64": {"file": "packages-rpm", "build": "rpm-fedora44-aarch64", "sbom": "rpm-fedora44-aarch64-sbom",
                     "install": "rpm-fedora44-aarch64-install", "dir": "packages-rpm/fedora44-aarch64/generic/"},
 }
+# The job that builds the ARM64 Windows installer a release carries from 6.3.6
+# (.gitlab/ci/packages-windows.yml), where it leaves it with the SHA256SUMS it writes,
+# and the folder release-authenticode signs it into.
+ARM64_INSTALLER_JOB = "windows-packages-arm64"
+ARM64_INSTALLER_DIR = "packages-windows/arm64/"
+ARM64_SIGNED_DIR = "release-authenticode-arm64"
 # The job that gathers every other file a release carries from the package jobs
 # (.gitlab/ci/release-packages.yml): each distribution release's .deb and .rpm, the
 # AppImages and the source tarball, each with its SBOM; and the chart's job.
@@ -370,7 +387,7 @@ JOB_FILES = ("ci", "security", "image", "export", "packages-deb", "packages-rpm"
 # refuses a merge request, a tag, master and any branch but batch*.
 REHEARSAL_JOBS = {
     "release-rehearsal": (["linux-build", "linux-sbom", "deb-ubuntu26.04-arm64", "deb-ubuntu26.04-arm64-sbom", "rpm-fedora44-aarch64",
-                           "rpm-fedora44-aarch64-sbom", GATHER_JOB, CHART_JOB, "windows-packages-x64"],
+                           "rpm-fedora44-aarch64-sbom", GATHER_JOB, CHART_JOB, "windows-packages-x64", "windows-packages-arm64"],
                           ["python3 build/ci/release-chain.py collect --rehearse --out release-assets",
                            "python3 build/ci/release-chain.py sbom --rehearse --out release-sbom"]),
     "release-rehearsal-sign": (["release-rehearsal"], ["sh build/ci/release-sign.sh --rehearse"]),
@@ -383,7 +400,7 @@ REHEARSAL_REFUSAL = ('- if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_
 # releases and publishes nothing.
 NOT_IN_A_REHEARSAL = ("publish", "CI_JOB_TOKEN", "JOB-TOKEN", "release-cli", "glab", "curl", "wget", "api/v4", "PRIVATE-TOKEN")
 # The jobs whose artifacts release collects; it waits for every other gate without them.
-COLLECTED = ["linux-build", "linux-sbom", "windows-installer"] + [
+COLLECTED = ["linux-build", "linux-sbom", "windows-installer", "windows-packages-arm64"] + [
     job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom")] + [GATHER_JOB, CHART_JOB]
 # The security scans whose reports release reads (build/ci/security-gate.py's SCANS):
 # needed, not optionally, with their artifacts. semgrep-sast is GitLab's, in
@@ -590,16 +607,21 @@ def rule_items(text, jobs, seen=None):
 
 def tag_escapes(name, jobs):
     """How a job, in a v* tag's pipeline, could let a job that needs it start without its
-    having passed: allow_failure: true or when: manual in the job or a template it
-    extends, or in a rule of the rules it takes that a v* tag can match. A rule whose
-    if: asks for $CI_COMMIT_TAG !~ /^v/, with && alone, is one no tag matches. jobs
-    holds every block the job, its templates and their references can name."""
+    having passed: allow_failure: true, allow_failure with exit_codes (a need on a job
+    that failed with one of them is met, as on one allowed to fail at all) or when:
+    manual in the job or a template it extends, or in a rule of the rules it takes that
+    a v* tag can match. A rule whose if: asks for $CI_COMMIT_TAG !~ /^v/, with && alone,
+    is one no tag matches. jobs holds every block the job, its templates and their
+    references can name."""
     found = []
     order = template_order(name, jobs)
     for current in order:
         for line in jobs[current].split("\n"):
             if re.match(r"^  (allow_failure:\s*true|when:\s*manual)\s*$", line):
                 found.append("%s says %s" % (current, line.strip()))
+        for match in re.finditer(r"^  allow_failure:[ \t]*(?:\{[^}\n]*exit_codes[^}\n]*\}|\n    exit_codes:[^\n]*)", jobs[current],
+                                 re.MULTILINE):
+            found.append("%s says %s" % (current, " ".join(match.group(0).split())))
     deciding = [current for current in order if re.search(r"^  rules:", jobs[current], re.MULTILINE)]
     for item in (rule_items(jobs[deciding[0]], jobs) if deciding else []):
         if not re.search(r"^\s*(allow_failure:\s*true|when:\s*manual)\s*$", item, re.MULTILINE):
@@ -776,11 +798,14 @@ def probe_registry(chain, feed):
     cases = [
         ("an empty registry", Registry(), False),
         ("the Linux files, the sums and the SBOMs with the same bytes, as a publish that stopped part-way leaves them",
-         Registry(*[(n, "a" * 64) for n in digests if n != names["windows"]]), False),
+         Registry(*[(n, "a" * 64) for n in digests if n not in (names["windows"], names["windows-arm64"])]), False),
         ("a .deb with other bytes", Registry((names["deb-amd64"], "b" * 64)), True),
         ("a .deb held twice, the older with other bytes", Registry((names["deb-amd64"], "b" * 64), (names["deb-amd64"], "a" * 64)), True),
         ("the installer, which Authenticode makes after collect", Registry((names["windows"], "a" * 64)), True),
         ("the installer's SBOM, which release-sbom makes after collect", Registry((chain.sbom_name(names["windows"]), "a" * 64)), True),
+        ("the ARM64 installer, which Authenticode makes after collect", Registry((names["windows-arm64"], "a" * 64)), True),
+        ("the ARM64 installer's SBOM, which release-sbom makes after collect",
+         Registry((chain.sbom_name(names["windows-arm64"]), "a" * 64)), True),
         ("a bundle, which Sigstore makes after collect", Registry(("hmailserver.spdx.json.cosign.bundle", "c" * 64)), True),
         ("a bundle's .sigstore.json copy, which release-sign makes", Registry(("hmailserver.spdx.json.sigstore.json", "c" * 64)), True),
         ("the provenance, which release-sign attests", Registry((chain.provenance_name(version), "c" * 64)), True),
@@ -908,7 +933,7 @@ def check(texts, chain, feed):
     # needs have finished, so a gate it does not need can be released past.
     carried = [job[role] for _, job in sorted(CARRIED_PACKAGES.items()) for role in ("build", "sbom", "install")]
     order = {
-        "release": gates(jobs) + ["windows-installer"] + carried + [GATHER_JOB, CHART_JOB],
+        "release": gates(jobs) + ["windows-installer", ARM64_INSTALLER_JOB] + carried + [GATHER_JOB, CHART_JOB],
         "release-authenticode": ["release"],
         "release-sbom": ["release", "release-authenticode"],
         "release-sign": ["release", "release-authenticode", "release-sbom"],
@@ -991,6 +1016,10 @@ def check(texts, chain, feed):
         problems.append("release-sbom holds an ID token or runs on the project's own runners: it signs nothing and needs neither")
     if "sbom/native-dependencies-x64.json release-tools/" not in jobs["release"]:
         problems.append("release does not keep linux-sbom's component list in release-tools/, which release-sbom reads")
+    for where, text in (("release", jobs["release"]), ("release-rehearsal", blocks(texts["rehearsal"]).get("release-rehearsal", ""))):
+        if not re.search(r"^    - mkdir -p release-tools && cp [^\n]*sbom/native-dependencies-arm64\.json[^\n]* release-tools/\s*$", text, re.MULTILINE):
+            problems.append("%s does not keep linux-sbom's ARM64 component list, sbom/native-dependencies-arm64.json, in "
+                            "release-tools/, which release-sbom makes the ARM64 installer's SBOM from" % where)
     for needle, why in (('sboms=release-sbom', "release-sbom's artifact"),
                         ('cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"', "the installer's SBOM among the files it signs"),
                         ('grep -q "\\"content\\": \\"$signed_sha256\\"" "$sboms/$installer.cdx.json"', "the check that it describes the signed installer")):
@@ -1192,6 +1221,56 @@ def check(texts, chain, feed):
         if installer not in text:
             problems.append("%s does not name the installer %s, the name a Windows server looks for" % (
                 "release-authenticode" if name == "authenticode" else FILES["installer"], installer))
+
+    # The ARM64 installer: built by windows-packages-arm64, which release needs and which
+    # may not fail or wait in a tag's pipeline; collected from where it leaves it, held
+    # to its sums; signed by its own call into its own folder, which release-sbom and
+    # release-sign.sh read; and taken by release-sign.sh with its SBOM.
+    arm64 = feed.installer_names("$version")["windows-arm64"]
+    windows_jobs = blocks(texts["packages-windows"])
+    if ARM64_INSTALLER_JOB not in windows_jobs:
+        problems.append("%s has no job %s, which builds %s, a file the release carries" % (
+            FILES["packages-windows"], ARM64_INSTALLER_JOB, feed.installer_names("9.9.9")["windows-arm64"]))
+    else:
+        entry = need_entries(jobs["release"]).get(ARM64_INSTALLER_JOB)
+        if entry is not None and re.search(r"optional: true", entry):
+            problems.append("release needs %s optionally: a tag's pipeline without it would release past the ARM64 installer" % ARM64_INSTALLER_JOB)
+        for escape in tag_escapes(ARM64_INSTALLER_JOB, dict(jobs, **windows_jobs)):
+            problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s): release would "
+                            "carry %s past it" % (ARM64_INSTALLER_JOB, escape, feed.installer_names("9.9.9")["windows-arm64"]))
+    where = chain.sources("9.9.9")
+    arm64_name = feed.installer_names("9.9.9")["windows-arm64"]
+    if (where.get(arm64_name) or "").replace(os.sep, "/") != ARM64_INSTALLER_DIR + arm64_name or \
+            (chain.package_job_sums("9.9.9").get(arm64_name) or ("", ""))[0].replace(os.sep, "/") != ARM64_INSTALLER_DIR + "SHA256SUMS":
+        problems.append("build/ci/release-chain.py does not collect %s from %s%s held to that job's %sSHA256SUMS" % (
+            arm64_name, ARM64_INSTALLER_DIR, arm64_name, ARM64_INSTALLER_DIR))
+    if arm64_name not in chain.compiled_assets("9.9.9") or arm64_name not in chain.made_after_collect("9.9.9") or \
+            chain.sbom_name(arm64_name) not in chain.made_after_collect("9.9.9"):
+        problems.append("build/ci/release-chain.py does not carry %s as a compiled file whose signed bytes and SBOM are made "
+                        "after collect" % arm64_name)
+    authenticode_call = '-Installer "release-assets\\%s" -OutDir %s' % (arm64, ARM64_SIGNED_DIR)
+    if authenticode_call not in jobs["release-authenticode"] or \
+            not re.search(r"^      - %s/\s*$" % re.escape(ARM64_SIGNED_DIR), jobs["release-authenticode"], re.MULTILINE):
+        problems.append("release-authenticode does not sign the ARM64 installer (%s) or keep %s/: its SBOM and its "
+                        "Sigstore signature would be made from the unsigned bytes" % (authenticode_call, ARM64_SIGNED_DIR))
+    # The job's exit is its last call's: without the stop after the x64 call, an x64
+    # installer that was not signed would end a job the ARM64 call made pass.
+    x64_call = '-Installer "release-assets\\%s" -OutDir release-authenticode\n' % installer
+    if x64_call + "      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n" not in jobs["release-authenticode"]:
+        problems.append("release-authenticode does not stop when the x64 installer's call fails (%sif ($LASTEXITCODE -ne 0) "
+                        "{ exit $LASTEXITCODE }): the job would pass on the ARM64 call's exit alone" % x64_call.replace("\n", "; "))
+    if chain.INSTALLER_SBOMS["windows-arm64"]["signed"] != ARM64_SIGNED_DIR:
+        problems.append("build/ci/release-chain.py's sbom reads the signed ARM64 installer from %s, and release-authenticode "
+                        "signs it into %s" % (chain.INSTALLER_SBOMS["windows-arm64"]["signed"], ARM64_SIGNED_DIR))
+    # Each needle as often as the script needs it: the loop over both installers twice,
+    # once to hold each to its SBOM and once to take it into what is signed.
+    for needle, times, why in (('installer_arm64="hMailServer-${version}-arm64.exe"', 1, "the ARM64 installer's name"),
+                               ('for installer in "$installer_x64" "$installer_arm64"; do', 2,
+                                "both installers taken, held to their SBOMs and copied"),
+                               ('      *-arm64.exe) echo "$authenticode-arm64/$1" ;;', 1,
+                                "the ARM64 installer taken signed, from release-authenticode-arm64/")):
+        if texts["sign"].count(needle) != times:
+            problems.append("build/ci/release-sign.sh no longer has %s %s (%s)" % (needle, "once" if times == 1 else "%d times" % times, why))
 
     # The container image, in a file of its own that .gitlab-ci.yml includes. Its
     # !reference [.release-rules, rules] names the CI file's template.
@@ -1590,7 +1669,7 @@ def check(texts, chain, feed):
     # files, with a line in the release's sums: linux-build's own two, then sums_members.
     names_999 = feed.installer_names("9.9.9")
     unsummed = sorted(set(primaries) - set(chain.sums_members("9.9.9")) - {
-        names_999["windows"], names_999["deb-amd64"], names_999["rpm-x86_64"], chain.sums_name("9.9.9"),
+        names_999["windows"], names_999["windows-arm64"], names_999["deb-amd64"], names_999["rpm-x86_64"], chain.sums_name("9.9.9"),
         "hmailserver.spdx.json", "hmailserver.cyclonedx.json"})
     if unsummed:
         problems.append("the release carries %s with no line in the release's sums (build/ci/release-chain.py, sums_members)"
@@ -1973,8 +2052,8 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=58", "expected=13", "a release carries")
-    broken("verify counting another number of files", "verify", '[ "$verified" -eq 58 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
+    broken("another count of files", "sign", "expected=60", "expected=13", "a release carries")
+    broken("verify counting another number of files", "verify", '[ "$verified" -eq 60 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
     # The AArch64 packages a release carries, from the package jobs.
     broken("release not waiting for the arm64 .deb's install", "ci", "    - job: deb-ubuntu26.04-arm64-install\n      artifacts: false\n", "",
            "release does not need deb-ubuntu26.04-arm64-install")
@@ -2331,7 +2410,7 @@ def self_test(chain, feed):
     broken("a copy signed as a file of the release", "sign", "  case \"$file\" in *.cosign.bundle|*.sigstore.json) continue ;; esac",
            "  case \"$file\" in *.cosign.bundle) continue ;; esac", "or no longer passes over them")
     broken("the AppImages not held to their SBOMs", "verify", ' "$signed"/*.AppImage', "", "does not hold hMailServer-9.9.9-x86_64.AppImage to its SBOM")
-    broken("the SBOM count left at 5", "verify", '[ "$described" -eq 26 ]', '[ "$described" -eq 5 ]', "holds 5 file(s) to their SBOM")
+    broken("the SBOM count left at 5", "verify", '[ "$described" -eq 27 ]', '[ "$described" -eq 5 ]', "holds 5 file(s) to their SBOM")
     broken("the provenance not checked", "verify", "python3 build/ci/release-chain.py check-provenance", "true", "check-provenance")
     broken("the release's provenance not checked", "verify",
            '  python3 build/ci/release-chain.py check-provenance --assets "$signed" \\\n    || fail "the .sigstore.json copies or the '
@@ -2363,6 +2442,51 @@ def self_test(chain, feed):
            "or another token besides")
     broken("a rehearsal without the branch's installer", "rehearsal", "    - job: windows-packages-x64\n      artifacts: true\n", "",
            "release-rehearsal does not need windows-packages-x64")
+    broken("a rehearsal without the branch's ARM64 installer", "rehearsal", "    - job: windows-packages-arm64\n      artifacts: true\n", "",
+           "release-rehearsal does not need windows-packages-arm64")
+    broken("a rehearsal without the ARM64 component list", "rehearsal", " sbom/native-dependencies-arm64.json sbom/native-dependencies-x64.json",
+           " sbom/native-dependencies-x64.json",
+           "release-rehearsal does not keep linux-sbom's ARM64 component list")
+    # The ARM64 installer in a release.
+    broken("release without the ARM64 installer's job", "ci",
+           "    - job: windows-packages-arm64\n      artifacts: true\n", "", "release does not need windows-packages-arm64")
+    broken("release without the ARM64 installer's artifacts", "ci",
+           "    - job: windows-packages-arm64\n      artifacts: true\n", "    - job: windows-packages-arm64\n      artifacts: false\n",
+           "release does not bring windows-packages-arm64's artifacts")
+    broken("release needing the ARM64 installer's job optionally", "ci",
+           "    - job: windows-packages-arm64\n      artifacts: true\n", "    - job: windows-packages-arm64\n      artifacts: true\n      optional: true\n",
+           "release needs windows-packages-arm64 optionally")
+    broken("the ARM64 installer's job allowed to fail", "packages-windows",
+           "      artifacts: false\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "      artifacts: false\n  allow_failure: true\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "windows-packages-arm64 can let release start in a v* tag's pipeline without its having passed")
+    broken("the ARM64 installer's job allowed to fail with an exit code", "packages-windows",
+           "      artifacts: false\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "      artifacts: false\n  allow_failure:\n    exit_codes: [3]\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "windows-packages-arm64 can let release start in a v* tag's pipeline without its having passed "
+           "(windows-packages-arm64 says allow_failure: exit_codes: [3])")
+    broken("the ARM64 installer's template allowed to fail with an exit code, in flow style", "packages-windows",
+           "\n.windows-packages:\n  extends: .own-runners\n",
+           "\n.windows-packages:\n  extends: .own-runners\n  allow_failure: {exit_codes: [2]}\n",
+           "windows-packages-arm64 can let release start in a v* tag's pipeline without its having passed "
+           "(.windows-packages says allow_failure: {exit_codes: [2]})")
+    broken("the ARM64 installer's job gone", "packages-windows", "\nwindows-packages-arm64:\n", "\nwindows-packages-arm65:\n",
+           "has no job windows-packages-arm64")
+    broken("release-authenticode going on to the ARM64 installer when the x64 one was not signed", "ci",
+           "-OutDir release-authenticode\n      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n", "-OutDir release-authenticode\n",
+           "release-authenticode does not stop when the x64 installer's call fails")
+    broken("the ARM64 installer not signed", "ci",
+           '      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n      & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\\ci\\windows-authenticode.ps1 -Installer "release-assets\\hMailServer-$version-arm64.exe" -OutDir release-authenticode-arm64\n',
+           "", "release-authenticode does not sign the ARM64 installer")
+    broken("the signed ARM64 installer not kept", "ci", "      - release-authenticode-arm64/\n", "",
+           "release-authenticode does not sign the ARM64 installer")
+    broken("the ARM64 component list not kept for release-sbom", "ci", " sbom/native-dependencies-arm64.json sbom/native-dependencies-x64.json",
+           " sbom/native-dependencies-x64.json",
+           "release does not keep linux-sbom's ARM64 component list")
+    broken("release-sign.sh taking the x64 installer alone", "sign", 'for installer in "$installer_x64" "$installer_arm64"; do',
+           'for installer in "$installer_x64"; do', "both installers taken")
+    broken("release-sign.sh taking the ARM64 installer unsigned", "sign", '      *-arm64.exe) echo "$authenticode-arm64/$1" ;;\n', "",
+           "the ARM64 installer taken signed")
     broken("a job of the rehearsal's file that is not the rehearsal's", "rehearsal", "\nrelease-rehearsal-verify:\n",
            "\nrelease-rehearsal-publish:\n  script: [true]\n\nrelease-rehearsal-verify:\n", "is not the rehearsal's")
     broken("--rehearse taken with publish", "chain", 'if args.rehearse and args.command not in ("collect", "sbom", "check-provenance"):',
@@ -2605,7 +2729,7 @@ def self_test(chain, feed):
     patched("a package carried without its SBOM", "expected_assets",
             lambda version: [n for n in held_expected(version) if not n.endswith(".deb.cdx.json")], "without its SBOM")
     patched("a compiled file the SBOM rule does not know", "expected_assets",
-            lambda version: held_expected(version) + ["hMailServer-%s-arm64.exe" % version], "each of them needs its SBOM")
+            lambda version: held_expected(version) + ["hMailServer-%s-arm32.exe" % version], "each of them needs its SBOM")
     patched("collect taking whatever the registry holds", "check_registry_before_signing", lambda api, version, digests: [], "collect takes a registry holding")
     held_registry = chain.check_registry_before_signing
     patched("collect taking an installer already signed", "check_registry_before_signing",

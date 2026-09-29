@@ -495,7 +495,7 @@ Some 3rd party libraries which hMailServer relies on are large and updated frequ
 
 Create an environment variable named hMailServerLibs pointing at a folder where you will store hMailServer libraries, such as C:\Dev\hMailLibs.
 
-The repository carries one script per library. Each downloads the source archive of the version hMailServer is pinned to, verifies it against the SHA-256 recorded in the script, and builds it into the layout the project file expects. Run them in this order from the repository root, with Perl on `%PATH%` (OpenSSL and PostgreSQL need it) and, for PostgreSQL, Python with Meson and Ninja (`py -m pip install meson ninja`) and [winflexbison](https://sourceforge.net/projects/winflexbison/files/) on `%PATH%`:
+The repository carries one script per library. Each downloads the source archive of the version hMailServer is pinned to, verifies it against the SHA-256 recorded in the script, and builds it into the layout the project file expects. Run them in this order from the repository root, with Perl on `%PATH%` (OpenSSL and PostgreSQL need it) and, for PostgreSQL, Python with Meson and Ninja (`py -m pip install meson ninja`) and [winflexbison](https://sourceforge.net/projects/winflexbison/files/) on `%PATH%`. `libraries\get-libpq-tools.ps1 -Into <folder>` fetches those four, each held to the SHA-256 it pins, into one folder and prints the folders to put on `%PATH%`; it installs nothing:
 
    <pre>
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2

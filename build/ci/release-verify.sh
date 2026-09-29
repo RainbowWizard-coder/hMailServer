@@ -143,8 +143,8 @@ for file in "$signed"/*; do
 done
 rm -rf "$scratch"
 
-# The fifty-eight files a release carries (build/ci/release-chain.py, expected_assets).
-[ "$verified" -eq 58 ] || fail "$verified file(s) verified; a release is 58"
+# The sixty files a release carries (build/ci/release-chain.py, expected_assets).
+[ "$verified" -eq 60 ] || fail "$verified file(s) verified; a release is 60"
 
 # Each compiled file's own SBOM describes that very file (build/asset-sbom.py verify:
 # well formed, and its subject's SHA-256 is the file's), as a user checks it
@@ -172,7 +172,7 @@ for file in "$signed"/*.exe "$signed"/*.deb "$signed"/*.rpm "$signed"/*.AppImage
 "
   described=$((described + 1))
 done
-[ "$described" -eq 26 ] || fail "$described file(s) held to their SBOM; a release has 26"
+[ "$described" -eq 27 ] || fail "$described file(s) held to their SBOM; a release has 27"
 
 # Each primary file's .sigstore.json is its bundle, and the provenance names every
 # file of the release by its SHA-256 and nothing else, built by this pipeline from
@@ -261,7 +261,9 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
   echo "      --type slsaprovenance1 --certificate-identity '$identity' \\"
   echo "      --certificate-oidc-issuer https://gitlab.com <file>"
   echo ""
-  echo "The Windows installer is also signed with Authenticode through Azure Artifact Signing, with an RFC 3161 timestamp."
+  echo "The two Windows installers, x64 and ARM64, are also signed with Authenticode through Azure Artifact Signing, with an"
+  echo "RFC 3161 timestamp. The ARM64 one is for Windows on ARM; it is built to run there and has not yet been run on ARM64"
+  echo "hardware (\`hmailserver/docs/WindowsOnArm.md\`)."
   echo ""
   echo "The Linux packages are the generic \`.deb\` and \`.rpm\` an installed server's update check asks for, for"
   echo "x86-64 and AArch64, and one \`.deb\` or \`.rpm\` for each supported distribution release on each: Debian 12"
@@ -294,8 +296,15 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
   echo "container, from Alpine's distfiles mirror and aports, each file held to the SHA-512 its APKBUILD gives it, and"
   echo "packed twice to the same bytes; the bundled libraries' source fetched there, in an Ubuntu container, from"
   echo "Ubuntu's archive (or its snapshot service), each file held to the checksums of the signed index and of its"
-  echo "\`.dsc\`, and packed twice to the same bytes; the installer's SBOM from the installer as Authenticode signed it."
-  echo "The Windows installer was made by this pipeline on the project's Windows runner, in that runner's long-lived"
+  echo "\`.dsc\`, and packed twice to the same bytes; each installer's SBOM from that installer as Authenticode signed it."
+  echo "The ARM64 installer was made by this pipeline on the project's Windows runner, in the runner's own clean checkout"
+  echo "of the commit, cross-compiled with Visual Studio's ARM64 tools. Its ARM64 OpenSSL, Boost and libpq come from a"
+  echo "cache on that runner, built once from their pinned source archives by the same job's script and kept, and its"
+  echo "C++ runtime from that runner's Visual Studio, both outside the pipeline; every program and library it packs was"
+  echo "checked before it was packed to be ARM64 code or .NET that runs there, but Microsoft's ARM64EC"
+  echo "\`vcruntime140_1.dll\`, which an ARM64 process does not load (\`hmailserver/docs/PackagesWindows.md\`); and nothing"
+  echo "here proves that build reproducible."
+  echo "The x64 Windows installer was made by this pipeline on the project's Windows runner, in that runner's long-lived"
   echo "checkout, which the job requires to be at that commit with no change to a tracked file and no file git does not"
   echo "track where a build would take it in, and from the folders the installer takes whole it removes every file git"
   echo "does not track before building. The server and the tools in it are that checkout's incremental build of the"

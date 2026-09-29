@@ -13,9 +13,10 @@
 #                             and its SBOM, as collect does for a tag - the version is
 #                             Version.h's, and the x64 installer windows-packages-x64's,
 #                             built under its commit-stamped name, since windows-installer
-#                             runs for a v* tag alone - then counts what GitLab and Pages
-#                             would take of it; then sbom --rehearse makes the installer's
-#                             SBOM and the provenance's statement.
+#                             runs for a v* tag alone, and the ARM64 one
+#                             windows-packages-arm64's, as for a tag - then counts what
+#                             GitLab and Pages would take of it; then sbom --rehearse makes
+#                             the two installers' SBOMs and the provenance's statement.
 #   release-rehearsal-sign    the shared runners, in cosign's image (HM_COSIGN_IMAGE): every
 #                             file signed with Sigstore, its .sigstore.json copy made, and
 #                             the provenance attested, each checked with cosign
@@ -68,12 +69,14 @@ release-rehearsal:
       artifacts: true
     - job: windows-packages-x64
       artifacts: true
+    - job: windows-packages-arm64
+      artifacts: true
   timeout: 20 minutes
   rules:
     - !reference [.release-rehearsal-rules, rules]
   script:
     - python3 build/ci/release-chain.py collect --rehearse --out release-assets
-    - mkdir -p release-tools && cp linux-build/hmailserver linux-build/build-info.txt sbom/native-dependencies-x64.json release-tools/
+    - mkdir -p release-tools && cp linux-build/hmailserver linux-build/build-info.txt sbom/native-dependencies-arm64.json sbom/native-dependencies-x64.json release-tools/
     - python3 build/ci/release-chain.py sbom --rehearse --out release-sbom
   artifacts:
     expire_in: 7 days

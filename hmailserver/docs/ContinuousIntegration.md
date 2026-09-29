@@ -65,10 +65,10 @@ What runs where
 | `semgrep-sast-gate` | test | GitLab's shared runners | a merge request | `semgrep-sast`'s report read by the release's rule, for the files the merge request changes: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the merge request's base has it, does not accept fails it (`build/ci/security-gate.py --merge-request`; [Merge request checks](#merge-request-checks)) |
 | `mr-dependency-check` | check | GitLab's shared runners | a merge request that changes a dependency lock file | Every dependency version the merge request adds, looked up in OSV's own export of its ecosystem's advisories: a Critical or High advisory the base's exceptions do not accept fails it (`build/ci/mr-dependency-check.py`) |
 | `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
-| `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)) |
-| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the fifty-five files a release carries before the installer's SBOM (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
-| `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The installer Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
-| `release-sbom` | release | GitLab's shared runners | a `v*` tag, after `release-authenticode` | The signed installer's own SBOM, `<installer>.cdx.json`, and the statement of the release's SLSA provenance (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
+| `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
+| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the fifty-eight files a release carries before the two installers' SBOMs (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
+| `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The two installers, x64 and ARM64, Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
+| `release-sbom` | release | GitLab's shared runners | a `v*` tag, after `release-authenticode` | Each signed installer's own SBOM, `<installer>.cdx.json`, and the statement of the release's SLSA provenance (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
 | `release-sign` | release | GitLab's shared runners | a `v*` tag, after `release-sbom` | Every file signed with Sigstore as this pipeline, each primary file's bundle copied to `<file>.sigstore.json`, and the provenance attested (`build/ci/release-sign.sh`) |
 | `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update`, and the SBOMs, the copies and the provenance held to the files (`build/ci/release-verify.sh`) |
 | `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
@@ -478,11 +478,19 @@ What the host needs is everything the Windows bench needs
 bench), plus these:
 
 - **PowerShell 7 installed for the machine**, in `C:\Program Files\PowerShell\7`
-  and on the machine PATH. LocalSystem sees the machine PATH only, and a
+  and on the runner's PATH. LocalSystem sees the machine PATH only, and a
   PowerShell installed from the Microsoft Store is on no PATH but its
   installing user's. A service reads the machine PATH when it starts, so the
   runner service has to be restarted after PowerShell 7 is installed, and a
-  PATH change can need a reboot before a service sees it.
+  PATH change can need a reboot before a service sees it. On bench150 the
+  runner's PATH is not the machine PATH at all: the `gitlab-runner` service has
+  an `Environment` value of its own (`HKLM\SYSTEM\CurrentControlSet\Services\gitlab-runner`),
+  whose `PATH` is `C:\Program Files\PowerShell\7` followed by the machine
+  PATH as it was then (read on 29 September 2026; the machine PATH itself has
+  no PowerShell 7 in it). A tool a job needs must be on that `PATH`, which a
+  change to the machine PATH does not reach, or found by the job itself, as
+  Strawberry Perl and libpq's build tools are for `windows-packages-arm64`
+  ([PackagesWindows.md](PackagesWindows.md), "The ARM64 libraries").
 - Git on the machine PATH (`C:\Program Files\Git\cmd`), which it is.
 - `git config --system --add safe.directory C:/bench/hmailserver`. That checkout
   belongs to the Administrator, and the runner is LocalSystem. No other
@@ -527,6 +535,27 @@ bench), plus these:
   ALLUSERS=1 /qn`. `msiexec /x {2EF3A45E-5812-4982-A0EB-1A3609722F99} /qn`
   removes it; never run the `Uninstallation.bat` or `UninstallDotNetFolder.ps1`
   it ships, which delete all of `C:\Program Files\dotnet`.
+- For `windows-packages-arm64`: Visual Studio's ARM64 tools, ATL for ARM64 and
+  the ARM64 C++ runtime in the Build Tools instance, and the Windows SDK's ARM64
+  libraries, which `build/ci/packages/check-arm64-toolchain.ps1` checks
+  (all there on 29 September 2026); Strawberry Perl in `C:\Strawberry`, which
+  `libraries\build-common.ps1` finds without the PATH (5.42.2 there); and
+  access to `deb.debian.org`, `archives.boost.io`, `ftp.postgresql.org`,
+  `api.nuget.org`, `files.pythonhosted.org` and `downloads.sourceforge.net` (and
+  the mirror it sends a download to) for
+  the ARM64 libraries' sources and libpq's build tools, each held to its pinned
+  SHA-256 ([PackagesWindows.md](PackagesWindows.md)).
+- **Nothing from GitHub.** Since 29 September 2026 bench150's hosts file sends
+  `github.com`, `api.github.com`, `codeload.github.com`,
+  `objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to
+  `0.0.0.0` and to `::`, between two comment lines that name this section, so
+  that anything a job runs that reaches for GitHub fails by name ("The remote
+  name could not be resolved" from .NET) rather than quietly working. The file
+  as it was before is `C:\bench\hosts.before-github-block`; removing the lines
+  between the two comments undoes it. After the change `windows-packages-arm64`
+  and `windows-packages-x64` both built their installers by hand as LocalSystem
+  under the gate lock ([PackagesWindows.md](PackagesWindows.md), "What was run
+  by hand on bench150").
 
 ### Re-creating a runner
 
@@ -881,6 +910,8 @@ entries are to map `github.com`, `api.github.com`, `codeload.github.com`,
 `objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to
 0.0.0.0 in every job's `/etc/hosts` (`extra_hosts`), and bench150's hosts file
 to do the same, so that a tool that quietly reaches for GitHub fails by name.
+bench150's does since 29 September 2026, at 0.0.0.0 and at `::`
+([bench150](#bench150)).
 Two things that would not cover were found on 28 September 2026:
 
 - **An image with no `/etc/nsswitch.conf`**, such as Docker Hub's `nixos/nix`.
@@ -1479,12 +1510,12 @@ runbook.
 | Job | Where | What it does |
 |---|---|---|
 | `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
-| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the installer; the x86-64 `.deb` and `.rpm`, `linux-build`'s, and the generic AArch64 ones, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s (from 6.3.6), each with its own SBOM (`<package>.cdx.json`, which `linux-build` or the package's SBOM job made and which must describe the package, by SHA-256); from 6.3.6 every distribution release's `.deb` and `.rpm`, both AppImages and the source tarball, each with its SBOM, and the source of the libraries linked into the AppImages' runtime, which has none, as `release-packages` gathered them, and the Helm chart, `helm-chart-package`'s; the sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, `linux-build`'s `SHA256SUMS.txt` as it is with a line added for every other Linux file and the chart; and the tree's two SBOMs, checking every package, AppImage, the runtime's sources and the chart against the sums its build job wrote and the tarball with `build/check-source-tarball.py`; refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or the installer, its SBOM, a bundle, a bundle's `.sigstore.json` copy or the provenance at all, which only the jobs after it make; and last counts what GitLab and Pages will take of the release, refusing past a limit ([What a release carries](#the-release); `build/ci/release-chain.py collect`) |
-| `release-authenticode` | bench150 | Signs the installer through Azure Artifact Signing and requires a valid signature with an RFC 3161 timestamp (`build/ci/windows-authenticode.ps1`) |
-| `release-sbom` | shared runners, in Python's image | Makes the installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list (kept by `release` in `release-tools/`), the tools' lock files and the installer script; refuses an installer Authenticode left unchanged; then writes the statement of the release's SLSA v1 provenance, an in-toto statement naming all fifty-eight files by their SHA-256, the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
-| `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires the installer's SBOM and the provenance's statement to name the signed installer's SHA-256, then signs all fifty-eight files with Sigstore, checks each bundle's format and log entry and verifies it with cosign, copies each primary file's bundle to `<file>.sigstore.json` byte for byte, attests the statement with `cosign attest-blob` (a Rekor v1 dsse entry), and finds every file in it with `cosign verify-blob-attestation` (`build/ci/release-sign.sh`) |
+| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the x64 installer, `windows-installer`'s, and from 6.3.6 the ARM64 one, `windows-packages-arm64`'s, held to the `SHA256SUMS` that job wrote; the x86-64 `.deb` and `.rpm`, `linux-build`'s, and the generic AArch64 ones, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s (from 6.3.6), each with its own SBOM (`<package>.cdx.json`, which `linux-build` or the package's SBOM job made and which must describe the package, by SHA-256); from 6.3.6 every distribution release's `.deb` and `.rpm`, both AppImages and the source tarball, each with its SBOM, and the source of the libraries linked into the AppImages' runtime, which has none, as `release-packages` gathered them, and the Helm chart, `helm-chart-package`'s; the sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, `linux-build`'s `SHA256SUMS.txt` as it is with a line added for every other Linux file and the chart; and the tree's two SBOMs, checking every package, AppImage, the runtime's sources and the chart against the sums its build job wrote and the tarball with `build/check-source-tarball.py`; refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or an installer, its SBOM, a bundle, a bundle's `.sigstore.json` copy or the provenance at all, which only the jobs after it make; and last counts what GitLab and Pages will take of the release, refusing past a limit ([What a release carries](#the-release); `build/ci/release-chain.py collect`) |
+| `release-authenticode` | bench150 | Signs the x64 installer into `release-authenticode/`, and, when that is signed, the ARM64 one into `release-authenticode-arm64/`, each through Azure Artifact Signing, and requires a valid signature with an RFC 3161 timestamp on each (`build/ci/windows-authenticode.ps1`, called once for each) |
+| `release-sbom` | shared runners, in Python's image | Makes each installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json` and `hMailServer-<version>-arm64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list for that processor (both kept by `release` in `release-tools/`), the tools' lock files and that installer's script; refuses an installer Authenticode left unchanged; then writes the statement of the release's SLSA v1 provenance, an in-toto statement naming all sixty files by their SHA-256, the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
+| `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires each installer's SBOM and the provenance's statement to name that signed installer's SHA-256, then signs all sixty files with Sigstore, checks each bundle's format and log entry and verifies it with cosign, copies each primary file's bundle to `<file>.sigstore.json` byte for byte, attests the statement with `cosign attest-blob` (a Rekor v1 dsse entry), and finds every file in it with `cosign verify-blob-attestation` (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, holds each compiled file's and the tarball's SBOM to the file (`build/asset-sbom.py verify`), each `.sigstore.json` copy to its bundle and the provenance's statement to the files, the commit and the pipeline (`build/ci/release-chain.py check-provenance`), and writes the notes' verification section (`build/ci/release-verify.sh`) |
-| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 149 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows servers, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
+| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 154 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows servers on x64 and ARM64, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
 | `pages`, `package-repos` | shared runners, after `release-publish` | The update feed rendered from the releases with the new one in it, the apt and dnf repositories added, and the site deployed, in the tag's own pipeline ([The update feed](#the-update-feed)). Until 6.3.6 a trigger job, `update-feed`, was to start a pipeline on `master` for this; GitLab drops a multi-project trigger into the project that runs it (`invalid_bridge_trigger`), and 6.3.5's was |
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
@@ -1580,13 +1611,13 @@ signing job produces"). `build/check-release-chain.py`, in the `checkers` job,
 fails when a change to the file or the scripts breaks that, or the order of the
 jobs, or the manual starts.
 
-**What a release carries.** From 6.3.6, fifty-eight files, a bundle beside each,
+**What a release carries.** From 6.3.6, sixty files, a bundle beside each,
 a `.sigstore.json` copy of each primary file's bundle, and the SLSA provenance:
-149 files and as many links (`build/ci/release-chain.py`'s `release_files`).
+154 files and as many links (`build/ci/release-chain.py`'s `release_files`).
 
 | Files | How many | Made by |
 |---|---|---|
-| The Windows installer, `hMailServer-<v>-x64.exe` | 1 | `windows-installer`, signed by `release-authenticode` |
+| The Windows installers, `hMailServer-<v>-x64.exe` and, for Windows on ARM, `hMailServer-<v>-arm64.exe`, each the name its own processor's server looks for | 2 | `windows-installer` and `windows-packages-arm64` ([PackagesWindows.md](PackagesWindows.md)), each signed by `release-authenticode` |
 | The generic `.deb` and `.rpm` for x86-64 (`hmailserver_<v>_amd64.deb`, `hmailserver-<v>-1.x86_64.rpm`) and AArch64 (`hmailserver_<v>_arm64.deb`, `hmailserver-<v>-1.aarch64.rpm`), the names an installed server's update check asks for | 4 | `linux-build`; `deb-ubuntu26.04-arm64`, cross-compiled in Ubuntu 26.04's own container; `rpm-fedora44-aarch64`, in Fedora 44's |
 | Each distribution release's own package, both architectures: `hmailserver_<v>-1~<release>_<arch>.deb` for Debian 12 and 13 and Ubuntu 24.04, `hmailserver-<v>-1.<release>.<arch>.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed | 18 | `deb-<release>-<arch>` and `rpm-<release>-<arch>` (`.gitlab/ci/packages-deb.yml`, `packages-rpm.yml`), each in its release's own container |
 | The AppImages, `hMailServer-<v>-x86_64.AppImage` and `-aarch64.AppImage`, with the project's own runtime | 2 | `appimage-x86_64`, `appimage-aarch64` (`.gitlab/ci/packages-appimage.yml`) |
@@ -1595,10 +1626,10 @@ a `.sigstore.json` copy of each primary file's bundle, and the SLSA provenance:
 | The source tarball, `hmailserver-<v>.tar.gz`, with nothing non-free in it | 1 | `source-tarball` ([SourceTarball.md](SourceTarball.md)) |
 | The Helm chart, `hmailserver-chart-<v>.tgz` | 1 | `helm-chart-package` ([ContainerImage.md](ContainerImage.md)) |
 | `hmailserver-linux-<v>-SHA256SUMS.txt`: `linux-build`'s two lines, then one for every other Linux file, the two AppImage sources files and the chart | 1 | `release` |
-| Each compiled file's and the tarball's own SBOM, `<file>.cdx.json` (CycloneDX 1.6; SECURITY.md, "Software bills of materials") | 26 | `linux-build`, the two generic AArch64 packages' SBOM jobs, `release-packages`, and `release-sbom` for the installer |
+| Each compiled file's and the tarball's own SBOM, `<file>.cdx.json` (CycloneDX 1.6; SECURITY.md, "Software bills of materials") | 27 | `linux-build`, the two generic AArch64 packages' SBOM jobs, `release-packages`, and `release-sbom` for the two installers |
 | The SPDX and CycloneDX SBOMs of the tree | 2 | `linux-sbom` |
-| `<file>.cosign.bundle` beside each of those 58; `<file>.sigstore.json`, a byte-identical copy, beside each of the 32 but a compiled file's SBOM | 90 | `release-sign` |
-| `hmailserver-<v>.intoto.sigstore.json`, the SLSA v1 build provenance: an in-toto statement naming all 58 by their SHA-256, the commit and the tag's pipeline, signed with `cosign attest-blob` | 1 | `release-sbom` writes the statement, `release-sign` attests it |
+| `<file>.cosign.bundle` beside each of those 60; `<file>.sigstore.json`, a byte-identical copy, beside each of the 33 but a compiled file's SBOM | 93 | `release-sign` |
+| `hmailserver-<v>.intoto.sigstore.json`, the SLSA v1 build provenance: an in-toto statement naming all 60 by their SHA-256, the commit and the tag's pipeline, signed with `cosign attest-blob` | 1 | `release-sbom` writes the statement, `release-sign` attests it |
 
 6.3.5 carries nine files: the installer, the x86-64 `.deb` and `.rpm`, the sums,
 their SBOMs and the tree's, each with a bundle. The AArch64 packages, each
@@ -1611,9 +1642,20 @@ held, and Boost's header; an AppImage's build also what it bundles and what its 
 is made from that in the CI image (`build/ci/packages/package-sbom.sh`), by the
 generic AArch64 packages' SBOM jobs and by `release-packages`, which gathers the
 rest with the tarball (`build/ci/release-chain.py gather`) and holds each to the
-sums its build wrote. The ARM64 installer is not collected: `windows-packages-arm64`
-builds it once bench150 has what it needs, and it joins the release, with its
-SBOM and its own Authenticode signature, only once it has run on ARM64 hardware.
+sums its build wrote. The ARM64 installer is `windows-packages-arm64`'s,
+cross-compiled on bench150 in the runner's own clean checkout, held to the
+`SHA256SUMS` that job wrote, Authenticode-signed by its own call in
+`release-authenticode` and described by `release-sbom` from the ARM64 component
+list; every program and library it packs was checked before ISCC ran to be ARM64
+code or .NET that runs there, but Microsoft's ARM64EC `vcruntime140_1.dll`, which
+the check allows; its OpenSSL, Boost and libpq come from the runner's library
+cache, built once from their pinned archives and kept; and it has not been run on
+ARM64 hardware
+([WindowsOnArm.md](WindowsOnArm.md)). A server's update check asks for its own
+processor's installer by name (`UpdateChecker.cpp`, `PlatformInstallerName_`),
+so an x64 server is never offered the ARM64 one, and the site's
+`/download/hMailServer-x64.exe` and `/download/hMailServer-arm64.exe` each lead
+to their own file.
 The provenance is the project's own, verified with cosign (SECURITY.md, "Build
 provenance"): the SLSA project's generator and `slsa-verifier` are GitHub's. The
 verification section `release-verify` writes into a release's notes says all of
@@ -1658,11 +1700,11 @@ Pages reads 1,000 `_redirects` rules and 64 KiB, and a server reads a feed of
 4 MiB. `release` counts all of it before anything is signed, and
 `release-publish` again before anything is uploaded, over the live releases with
 the new one in them and the apt and dnf repositories kept as `package-repos`'
-`--keep` keeps them, and refuses past a limit (`check_budget`). 6.3.6 alone: 149
-links; `_redirects` 31 rules in 5,386 bytes, the feed's 15 and the apt and dnf
-repositories' 16; `releases.json` 50,704 bytes. Each later release of its shape
-adds 16 rules, 2,942 bytes and 50,701 bytes, so twenty-one such releases fit in
-`_redirects` before `--keep` is needed, and some eighty-two in the feed
+`--keep` keeps them, and refuses past a limit (`check_budget`). 6.3.6 alone: 154
+links; `_redirects` 33 rules in 5,700 bytes, the feed's 17 and the apt and dnf
+repositories' 16; `releases.json` 52,334 bytes. Each later release of its shape
+adds 16 rules, 2,942 bytes and 52,331 bytes, so twenty-one such releases fit in
+`_redirects` before `--keep` is needed, and some eighty in the feed
 ([UpdateFeed.md](UpdateFeed.md), "How much the site holds";
 [PackageManagers.md](PackageManagers.md), "What the repositories hold").
 
@@ -1679,8 +1721,10 @@ so it also rehearses the release, publishing nothing
   version is `Version.h`'s. The x64 installer is `windows-packages-x64`'s,
   `hMailServer-<v>-<first 8 of the commit>-x64.exe`, held to that job's
   `SHA256SUMS` and collected under the release's name, because
-  `windows-installer` runs for a `v*` tag alone. Then `sbom --rehearse` makes
-  the installer's SBOM and the provenance's statement.
+  `windows-installer` runs for a `v*` tag alone; the ARM64 one is
+  `windows-packages-arm64`'s, `hMailServer-<v>-<first 8 of the commit>-arm64.exe`,
+  held and named the same way. Then `sbom --rehearse` makes the two installers'
+  SBOMs and the provenance's statement.
 - `release-rehearsal-sign`, in cosign's image, runs `build/ci/release-sign.sh
   --rehearse`: every file signed, each copy made and the provenance attested,
   as the branch, `https://gitlab.com/<path>//.gitlab-ci.yml@refs/heads/<branch>`,

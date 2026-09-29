@@ -15,11 +15,13 @@
 #                                            on a protected batch* branch, as that branch
 #
 # In:   release-assets/        what the release job collected (build/ci/release-chain.py collect):
-#                              everything but the signed installer and its SBOM
-#       release-authenticode/  the Windows installer as release-authenticode signed it
-#                              (not in a rehearsal, which has no Authenticode: its installer
-#                              is collect's, windows-packages-x64's bytes)
-#       release-sbom/          that installer's own SBOM, and the provenance's statement
+#                              everything but the signed installers and their SBOMs
+#       release-authenticode/  the x64 Windows installer as release-authenticode signed it,
+#       release-authenticode-arm64/
+#                              and the ARM64 one (not in a rehearsal, which has no
+#                              Authenticode: its installers are collect's, the bytes of
+#                              windows-packages-x64 and windows-packages-arm64)
+#       release-sbom/          each installer's own SBOM, and the provenance's statement
 #                              over every file (build/ci/release-chain.py sbom)
 # Out:  release-signed/        every file, with <file>.cosign.bundle beside it; each primary
 #                              file's bundle again as <file>.sigstore.json, byte for byte;
@@ -97,7 +99,10 @@ else
   [ -n "$version" ] || fail "Version.h's HMAILSERVER_VERSION could not be read"
   ref="refs/heads/${branch}"
 fi
-installer="hMailServer-${version}-x64.exe"
+# The two Windows installers, x64 and ARM64, each signed by release-authenticode into a
+# folder of its own.
+installer_x64="hMailServer-${version}-x64.exe"
+installer_arm64="hMailServer-${version}-arm64.exe"
 statement="hmailserver-${version}.intoto.json"
 provenance="hmailserver-${version}.intoto.sigstore.json"
 # The project's path, and nothing else: a pipeline at any other path, the first one
@@ -119,35 +124,51 @@ fi
 cosign version 2>&1 | grep -E 'GitVersion|GitCommit' || true
 
 [ -d "$in" ] || fail "$in is not here: the release job's artifact did not arrive"
-[ -f "$in/$installer" ] || fail "$in/$installer is not here"
-if [ -z "$rehearse" ]; then
-  [ -f "$authenticode/$installer" ] || fail "$authenticode/$installer is not here: release-authenticode did not hand back a signed installer"
-  # The signed installer is not the unsigned one: Authenticode adds a signature, so the
-  # bytes change. The same bytes would mean nothing was signed.
-  if cmp -s "$in/$installer" "$authenticode/$installer"; then
-    fail "the installer release-authenticode handed back is byte for byte the unsigned one"
-  fi
-  shipped="$authenticode/$installer"
-else
-  shipped="$in/$installer"
-fi
-
-# The installer's SBOM, which must describe the signed bytes that ship: its subject's
-# SHA-256 is the signed installer's (build/asset-sbom.py writes it as "content").
-[ -f "$sboms/$installer.cdx.json" ] || fail "$sboms/$installer.cdx.json is not here: release-sbom did not hand back the installer's SBOM"
-signed_sha256=$(sha256sum "$shipped" | cut -d' ' -f1)
-grep -q "\"content\": \"$signed_sha256\"" "$sboms/$installer.cdx.json" \
-  || fail "$installer.cdx.json does not describe the signed installer (SHA-256 $signed_sha256)"
-# The provenance's statement, which names the signed installer too.
 [ -f "$sboms/$statement" ] || fail "$sboms/$statement is not here: release-sbom wrote no provenance statement"
-grep -q "\"sha256\": \"$signed_sha256\"" "$sboms/$statement" \
-  || fail "$statement does not name the signed installer (SHA-256 $signed_sha256)"
+
+# Where an installer's shipped bytes are: release-authenticode's folder for it, the
+# ARM64 one's with -arm64 after the name; in a rehearsal, collect's own.
+shipped_of() {
+  if [ -n "$rehearse" ]; then
+    echo "$in/$1"
+  else
+    case "$1" in
+      *-arm64.exe) echo "$authenticode-arm64/$1" ;;
+      *) echo "$authenticode/$1" ;;
+    esac
+  fi
+}
+
+for installer in "$installer_x64" "$installer_arm64"; do
+  [ -f "$in/$installer" ] || fail "$in/$installer is not here"
+  shipped=$(shipped_of "$installer")
+  if [ -z "$rehearse" ]; then
+    [ -f "$shipped" ] || fail "$shipped is not here: release-authenticode did not hand back a signed installer"
+    # The signed installer is not the unsigned one: Authenticode adds a signature, so the
+    # bytes change. The same bytes would mean nothing was signed.
+    if cmp -s "$in/$installer" "$shipped"; then
+      fail "the installer release-authenticode handed back is byte for byte the unsigned one: $installer"
+    fi
+  fi
+
+  # The installer's SBOM, which must describe the signed bytes that ship: its subject's
+  # SHA-256 is the signed installer's (build/asset-sbom.py writes it as "content").
+  [ -f "$sboms/$installer.cdx.json" ] || fail "$sboms/$installer.cdx.json is not here: release-sbom did not hand back the installer's SBOM"
+  signed_sha256=$(sha256sum "$shipped" | cut -d' ' -f1)
+  grep -q "\"content\": \"$signed_sha256\"" "$sboms/$installer.cdx.json" \
+    || fail "$installer.cdx.json does not describe the signed installer (SHA-256 $signed_sha256)"
+  # The provenance's statement, which names the signed installer too.
+  grep -q "\"sha256\": \"$signed_sha256\"" "$sboms/$statement" \
+    || fail "$statement does not name the signed installer $installer (SHA-256 $signed_sha256)"
+done
 
 rm -rf "$out"
 mkdir -p "$out"
 cp "$in"/* "$out"/
-cp "$shipped" "$out/$installer"
-cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"
+for installer in "$installer_x64" "$installer_arm64"; do
+  cp "$(shipped_of "$installer")" "$out/$installer"
+  cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"
+done
 
 # The flags every cosign from 2.4 on reads the same way; --use-signing-config exists
 # from 2.6 and is true by default from 3.0, and is turned off where it exists.
@@ -208,13 +229,13 @@ for file in "$out"/*; do
 done
 
 # Counted, because a loop over a glob that matched nothing passes having signed nothing:
-# the installer; the generic .deb and .rpm for x86-64 and AArch64; each Debian, Ubuntu,
-# Fedora, EL and openSUSE release's .deb or .rpm for both (eighteen); the two AppImages;
-# the source of the libraries linked into their runtime; the source of the libraries
-# they carry in usr/lib; the source tarball; the Helm chart; the sums; the tree's two
-# SBOMs; and the twenty-six SBOMs of the compiled files and the tarball
-# (build/ci/release-chain.py, expected_assets).
-expected=58
+# the two installers, x64 and ARM64; the generic .deb and .rpm for x86-64 and AArch64;
+# each Debian, Ubuntu, Fedora, EL and openSUSE release's .deb or .rpm for both
+# (eighteen); the two AppImages; the source of the libraries linked into their runtime;
+# the source of the libraries they carry in usr/lib; the source tarball; the Helm chart;
+# the sums; the tree's two SBOMs; and the twenty-seven SBOMs of the compiled files and
+# the tarball (build/ci/release-chain.py, expected_assets).
+expected=60
 [ "$signed" -eq "$expected" ] || fail "$signed file(s) signed; a release is $expected"
 
 # The provenance: the statement release-sbom wrote, attested as this pipeline.

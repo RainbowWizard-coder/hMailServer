@@ -6,22 +6,25 @@
 # - master, a batch* branch, a v* tag - on bench150, and kept as the job's artifact,
 # unsigned (hmailserver/docs/PackagesWindows.md). Included by .gitlab-ci.yml, whose
 # .own-runners rules these jobs take: never for a merge request, a scheduled
-# pipeline or a downstream pipeline.
+# pipeline or a downstream pipeline. Both count: a failed build fails the pipeline.
 #
 #   windows-packages-x64    the x64 server, tools, Control Panel and installer:
 #                           hMailServer-<version>-x64.exe for a v* tag, the name a
 #                           Windows server looks for, and
-#                           hMailServer-<version>-<commit>-x64.exe for a branch;
+#                           hMailServer-<version>-<commit>-x64.exe for a branch; a
+#                           release rehearsal on a batch* branch collects it;
 #   windows-packages-arm64  the same for Windows on ARM, -arm64.exe, with the ARM64
-#                           libraries built once into a cache on the bench. It stops
+#                           libraries built once into a cache on the bench, and
+#                           libpq's build tools fetched once beside them. It stops
 #                           first, naming what is missing and the Visual Studio
 #                           Installer command that mends it, while the bench's ARM64
-#                           toolchain is not whole, and it is allow_failure until one
-#                           run has passed (PackagesWindows.md says why and when to
-#                           change that). In batch41's pipeline 2887115157 it stopped
-#                           there on a report of the check's own fault: it could not
-#                           find the ARM64 C++ runtime on any machine until
-#                           28 September 2026.
+#                           toolchain is not whole. A v* tag's release collects its
+#                           installer (build/ci/release-chain.py), and so does a
+#                           rehearsal. In batch41's pipeline 2887115157 it stopped at
+#                           that check on a report of the check's own fault; run by
+#                           hand as LocalSystem on bench150 on 29 September 2026, the
+#                           whole job passed (PackagesWindows.md, "What was run by
+#                           hand on bench150").
 #
 # Both build in the runner's own checkout of the commit, as windows-dotnet does, not in
 # the bench's checkout that windows-gate tests and whose hMailServer service runs from
@@ -36,11 +39,12 @@
 # ARM64 one would leave the gate - or on a tag the release's installer - giving up
 # with exit 10. So they need windows-gate and windows-dotnet, and on a v* tag
 # windows-installer (optional: it is in a tag's pipeline only), which is why they sit
-# in the release stage: a job can need a job of its own or an earlier stage only. The
-# release job does not need them, but on a tag they are pending on bench150 before
-# release-authenticode is, and the bench runs one job at a time, so the signing waits
-# behind them: a few minutes in batch41's pipeline 2887115157, where the x64 job took
-# about six and the ARM64 one, stopping at its toolchain check, seconds.
+# in the release stage: a job can need a job of its own or an earlier stage only. On a
+# v* tag the release job needs windows-packages-arm64, whose installer it collects, so a
+# maintainer can start release once both builds are done: the x64 one took about six
+# minutes in batch41's pipeline 2887115157, and the ARM64 one, with its libraries
+# cached, about as long (PackagesWindows.md). release-authenticode, on bench150 too,
+# comes after release and so after both.
 #
 # The x64 libraries are the bench's own (C:\Dev\hMailLibs, as windows-gate's); the
 # ARM64 ones live in C:\bench\hMailLibs-arm64, apart from them.
@@ -49,10 +53,13 @@
 # package registry on GitLab and 7-zip.org, the .NET runtime from Microsoft, the NuGet
 # packages from nuget.org, Boost from archives.boost.io and PostgreSQL from
 # ftp.postgresql.org, each held to its pin. OpenSSL publishes its release archive on
-# GitHub only; Debian's archive carries the same bytes (openssl_4.0.2.orig.tar.gz has
-# the pinned SHA-256), and the GitLab sweep points libraries\build-openssl.ps1 there.
-# Until that is on the commit, the job does not build the ARM64 OpenSSL and says so
-# (build/ci/packages/windows-packages.ps1, step 6).
+# GitHub only; libraries\build-openssl.ps1 takes the same bytes from Debian's archive
+# (openssl_4.0.2.orig.tar.gz has the pinned SHA-256). libpq's build tools that are not
+# on the runner's PATH come from nuget.org (Python), PyPI (Meson, Ninja) and
+# SourceForge (winflexbison), each held to the SHA-256 libraries\get-libpq-tools.ps1
+# pins. bench150's hosts file sends github.com and its download hosts to 0.0.0.0, so
+# that anything that reaches for GitHub fails by name (docs/ContinuousIntegration.md,
+# "bench150").
 
 .windows-packages:
   extends: .own-runners
@@ -70,9 +77,9 @@
   # longer timeout: is cut down to it, and gate-lock.ps1 takes over a lock older than
   # five hours on the grounds that no job runs longer. The wait for the lock counts
   # towards it: up to 90 minutes (the split gate, or another pipeline's bench job),
-  # then the build - estimated at about an hour for x64, which took under six minutes
-  # in batch41's pipelines 2886955494 and 2887115157, and for ARM64 the first time
-  # another hour for its libraries (an estimate: no ARM64 build has run yet).
+  # then the build - under six minutes for x64 in batch41's pipelines 2886955494 and
+  # 2887115157, and for ARM64 the first time its libraries and libpq's tools as well
+  # (PackagesWindows.md, "What was run by hand on bench150", has the times).
   timeout: 4 hours
   variables:
     HM_GATE_LOCK: 'C:\bench\gate.lock'
@@ -122,31 +129,25 @@
       - logs/
       - libraries/build-*-arm64.log
 
-# Exit 2 alone may fail: the job's exit at its third step when Inno Setup 6 is missing,
-# which then shows as a warning instead of failing the pipeline; a failed build (3 to
-# 7) or a lock that is not ours (10) still fails it, as exit 4 did in batch41's
-# pipeline 2886955494. The allowance was made while bench150 had no Inno Setup for the
-# machine. It has had one since 26 September 2026 (docs/ContinuousIntegration.md,
-# "bench150"), and this job passed with it in pipeline 2887115157, so allow_failure is
-# due to go (hmailserver/docs/PackagesWindows.md, "What the owner must do", 4).
+# Not allowed to fail, not even with exit 2, the script's exit at its third step when
+# Inno Setup 6 is missing: that allowance was made while bench150 had no Inno Setup for
+# the machine. It has had one since 26 September 2026 (docs/ContinuousIntegration.md,
+# "bench150"), and this job passed with it in pipeline 2887115157.
 windows-packages-x64:
   extends: .windows-packages
-  allow_failure:
-    exit_codes: [2]
   variables:
     HM_PACKAGE_PLATFORM: x64
     HM_PACKAGE_FOLDER: x64
     HM_PACKAGE_LIBS: 'C:\Dev\hMailLibs'
 
-# allow_failure until the bench's ARM64 toolchain is whole and one run of this job has
-# passed; then remove it, so that a broken ARM64 build fails the pipeline as a broken
-# x64 build does (hmailserver/docs/PackagesWindows.md). The ARM64 tools and ATL for
-# ARM64 are on bench150 (pipeline 2887115157's toolchain check).
+# Not allowed to fail: a broken ARM64 build fails the pipeline as a broken x64 build
+# does, and a v* tag's release collects this job's installer (build/ci/release-chain.py),
+# which build/check-release-chain.py holds it to. The whole job passed by hand as
+# LocalSystem on bench150 on 29 September 2026 (hmailserver/docs/PackagesWindows.md).
 #
 # After windows-packages-x64 as well: side by side, whichever took the lock second
 # would wait for the other's whole build, and the ARM64 job's first run (its
-# libraries too) may take longer than the 90 minutes the x64 job waits. A need on a
-# job that failed only in the way allow_failure allows is met.
+# libraries too) may take longer than the 90 minutes the x64 job waits.
 windows-packages-arm64:
   extends: .windows-packages
   needs:
@@ -159,7 +160,6 @@ windows-packages-arm64:
       optional: true
     - job: windows-packages-x64
       artifacts: false
-  allow_failure: true
   variables:
     HM_PACKAGE_PLATFORM: ARM64
     HM_PACKAGE_FOLDER: arm64

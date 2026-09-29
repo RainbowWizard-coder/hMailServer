@@ -8,7 +8,7 @@
 A v* tag's pipeline (.gitlab-ci.yml, the release stage; docs/ContinuousIntegration.md,
 "The release") builds and tests, then waits for a maintainer to start the `release`
 job. The release-packages job has run `gather` before it; that job runs `collect`;
-Authenticode signs the installer, `release-sbom` runs `sbom`, Sigstore signs every
+Authenticode signs the two installers, `release-sbom` runs `sbom`, Sigstore signs every
 file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
 `release-publish`, also started by hand, runs `publish`:
 
@@ -38,7 +38,9 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             security scans of the commit finished, and every finding they raised that
             SECURITY.md's policy counts is in a scan's baseline or accepted in
             .gitlab/security-exceptions.yml (build/ci/security-gate.py); and the
-            artefacts of the jobs it needs - the Windows installer; the x86-64 .deb
+            artefacts of the jobs it needs - the x64 Windows installer,
+            windows-installer's, and the ARM64 one, windows-packages-arm64's, held to
+            the SHA-256 that job wrote; the x86-64 .deb
             and .rpm, linux-build's; the AArch64 .deb and .rpm, from the package
             jobs deb-ubuntu26.04-arm64 and rpm-fedora44-aarch64, with their SBOM
             jobs' SBOMs; what release-packages gathered; the Helm chart,
@@ -47,13 +49,13 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             the chart held to the SHA-256 its build job wrote and each SBOM to the
             file it describes, and the sums of every Linux file and the chart
             written as one file. The package hmailserver/<version> must not hold
-            any of them with other bytes already, nor the installer, its SBOM or a
+            any of them with other bytes already, nor an installer, its SBOM or a
             bundle at all: those are made by the jobs after this one, and a second
             signing never makes the same bytes. Last, before anything is signed,
             what GitLab and Pages will take of the release is counted
             (check_budget). Nothing leaves the pipeline.
 
-  sbom      the installer's own SBOM (build/asset-sbom.py), made from the bytes
+  sbom      each installer's own SBOM (build/asset-sbom.py), made from the bytes
             Authenticode signed - every compiled file a release carries goes out
             with an SBOM of its own, <file>.cdx.json (OpenSSF Baseline
             OSPS-QA-02.02; SECURITY.md, "Software bills of materials") - and the
@@ -79,13 +81,13 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             are the version's section of CHANGELOG.md and the verification the
             release-verify job wrote. Last, the feed is rendered from the API as the
             pages job will render it, and the new release must be in it with its
-            installer and bundle for Windows servers, for Debian and RPM servers on
-            x86-64 and on AArch64, and for the AppImages.
+            installer and bundle for Windows servers on x64 and on ARM64, for Debian
+            and RPM servers on x86-64 and on AArch64, and for the AppImages.
 
 A rehearsal (--rehearse; .gitlab/ci/release-rehearsal.yml) runs collect and sbom on a
-protected batch* branch: the version is Version.h's, the installer
-windows-packages-x64's, and the tag, the Authenticode settings, the scans and the
-registry are not asked about. What it collects is signed as the branch, which no
+protected batch* branch: the version is Version.h's, the installers
+windows-packages-x64's and windows-packages-arm64's, and the tag, the Authenticode
+settings, the scans and the registry are not asked about. What it collects is signed as the branch, which no
 server trusts, and published nowhere; publish and gather refuse --rehearse.
 
 None asks for a secret: the pipeline's own CI_JOB_TOKEN reads the registry, uploads
@@ -374,17 +376,25 @@ def gathered_builds(version):
     return builds
 
 
+def windows_installers(version):
+    """The two Windows installers a release carries from 6.3.6, x64 first: each is
+    Authenticode-signed after collect, by its own call in release-authenticode, and
+    each SBOM is made by release-sbom from the signed bytes. A server's update check
+    asks for its own processor's by name (UpdateChecker.cpp, PlatformInstallerName_),
+    so an x64 server is never offered the ARM64 one, nor an ARM64 server the x64 one."""
+    names = feed.installer_names(version)
+    return [names["windows"], names["windows-arm64"]]
+
+
 def compiled_assets(version):
     """The files a release carries that each go out with an SBOM of their own (OpenSSF
-    Baseline OSPS-QA-02.02): the installer; the generic .deb and .rpm for x86-64 and
-    for AArch64; each distribution release's .deb and .rpm; the two AppImages; and the
-    source tarball, whose SBOM lists the third-party code it holds. The ARM64 Windows
-    installer (windows-packages-arm64, hMailServer-<v>-arm64.exe) is not collected
-    until it has run on ARM64 hardware (Roadmap3 row 4, W3.1): it would come here, after
-    the x64 one, signed by its own Authenticode call, with release-sbom making its SBOM
-    (asset-sbom.py's windows-arm64), and into SERVED_PLATFORMS."""
+    Baseline OSPS-QA-02.02): the two Windows installers, x64 and, from 6.3.6, ARM64
+    (windows-packages-arm64, cross-compiled on bench150 and never yet run on ARM64
+    hardware: Roadmap3 row 4); the generic .deb and .rpm for x86-64 and for AArch64;
+    each distribution release's .deb and .rpm; the two AppImages; and the source
+    tarball, whose SBOM lists the third-party code it holds."""
     names = feed.installer_names(version)
-    return [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + [
+    return windows_installers(version) + [names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + [
         build["name"] for build in gathered_builds(version) if build["sbom"]]
 
 
@@ -415,22 +425,22 @@ def release_files(version):
 def sums_members(version):
     """The files whose lines follow linux-build's own two in the release's sums, in
     this order: the AArch64 .deb and .rpm, as from 6.3.6's first chain; then every
-    gathered file; then the chart. The Windows installer is not among them: collect
-    runs before Authenticode changes its bytes."""
+    gathered file; then the chart. The Windows installers are not among them: collect
+    runs before Authenticode changes their bytes."""
     names = feed.installer_names(version)
     return [names["deb-arm64"], names["rpm-aarch64"]] + [b["name"] for b in gathered_builds(version)] + [chart_name(version)]
 
 
 def made_after_collect(version):
-    """What the jobs after collect make: the installer's signed bytes (Authenticode) and
-    the installer's SBOM, which describes those bytes (release-sbom)."""
-    installer = feed.installer_names(version)["windows"]
-    return [installer, sbom_name(installer)]
+    """What the jobs after collect make: each installer's signed bytes (Authenticode) and
+    each installer's SBOM, which describes those bytes (release-sbom)."""
+    installers = windows_installers(version)
+    return installers + [sbom_name(installer) for installer in installers]
 
 
 def collected_assets(version):
-    """What collect gathers: every file but the installer's SBOM, which release-sbom makes."""
-    later = made_after_collect(version)[1:]
+    """What collect gathers: every file but the installers' SBOMs, which release-sbom makes."""
+    later = [sbom_name(installer) for installer in windows_installers(version)]
     return [name for name in expected_assets(version) if name not in later]
 
 
@@ -450,10 +460,23 @@ CHART_DIR = "helm-chart"
 # hMailServer-<version>-<first 8 of the commit>-x64.exe, so that no branch build is
 # mistaken for a release, with its SHA-256 in SHA256SUMS beside it.
 REHEARSAL_INSTALLER_DIR = "packages-windows/x64"
+# The ARM64 installer: windows-packages-arm64's, for a release and a rehearsal alike -
+# hMailServer-<version>-arm64.exe for a v* tag and
+# hMailServer-<version>-<first 8 of the commit>-arm64.exe on a branch, with its SHA-256
+# in SHA256SUMS beside it (build/ci/packages/windows-packages.ps1).
+ARM64_INSTALLER_DIR = "packages-windows/arm64"
 
 
-def rehearsal_installer(version, commit):
-    return "hMailServer-%s-%s-x64.exe" % (version, (commit or "")[:8])
+def rehearsal_installer(version, commit, arch="x64"):
+    return "hMailServer-%s-%s-%s.exe" % (version, (commit or "")[:8], arch)
+
+
+def arm64_installer_built(version, rehearsal=None):
+    """The name windows-packages-arm64 gives the ARM64 installer in its artifact: the
+    release's own for a tag, and the commit-stamped one on a branch."""
+    if rehearsal is not None:
+        return rehearsal_installer(version, rehearsal, "arm64")
+    return feed.installer_names(version)["windows-arm64"]
 
 
 def local(relative):
@@ -475,6 +498,7 @@ def sources(version, rehearsal=None):
         installer = os.path.join(local(REHEARSAL_INSTALLER_DIR), rehearsal_installer(version, rehearsal))
     places = {
         names["windows"]: installer,
+        names["windows-arm64"]: os.path.join(local(ARM64_INSTALLER_DIR), arm64_installer_built(version, rehearsal)),
         names["deb-amd64"]: os.path.join("linux-build", "packages", names["deb-amd64"]),
         names["rpm-x86_64"]: os.path.join("linux-build", "packages", names["rpm-x86_64"]),
         names["deb-arm64"]: deb_arm64,
@@ -499,11 +523,12 @@ def package_job_sums(version, rehearsal=None):
     """{file: (its build job's sums, the name that file gives it)}: deb-build.sh names
     the .deb as it is, and rpm-build.sh the generic copy by its place under generic/;
     every gathered package and AppImage, and the AppImages' two sources files, by its job's sums
-    as release-packages copied them; the chart by helm-chart-package's; and in a
-    rehearsal the installer by windows-packages-x64's, which names it with the
-    commit."""
+    as release-packages copied them; the chart by helm-chart-package's; the ARM64
+    installer by windows-packages-arm64's; and in a rehearsal the x64 installer by
+    windows-packages-x64's, each of the two naming it with the commit on a branch."""
     names = feed.installer_names(version)
     sums = {
+        names["windows-arm64"]: (os.path.join(local(ARM64_INSTALLER_DIR), "SHA256SUMS"), arm64_installer_built(version, rehearsal)),
         names["deb-arm64"]: (os.path.join(ARM64_DEB_DIR, "SHA256SUMS.txt"), names["deb-arm64"]),
         names["rpm-aarch64"]: (os.path.join(AARCH64_RPM_DIR, "SHA256SUMS.txt"), "generic/" + names["rpm-aarch64"]),
         chart_name(version): (os.path.join(CHART_DIR, "SHA256SUMS.txt"), chart_name(version)),
@@ -516,9 +541,16 @@ def package_job_sums(version, rehearsal=None):
     return sums
 
 
-# The component list release-sbom makes the installer's SBOM from, which linux-sbom
+# The component lists release-sbom makes the installers' SBOMs from, which linux-sbom
 # writes and the release job keeps in release-tools/ (build/ci/linux-sbom.sh).
 DEPENDENCY_LIST = "native-dependencies-x64.json"
+ARM64_DEPENDENCY_LIST = "native-dependencies-arm64.json"
+# Each installer's kind for build/asset-sbom.py, the component list its SBOM is made
+# from, and the folder release-authenticode leaves it in, signed.
+INSTALLER_SBOMS = {
+    "windows": {"kind": "windows-x64", "dependencies": DEPENDENCY_LIST, "signed": "release-authenticode"},
+    "windows-arm64": {"kind": "windows-arm64", "dependencies": ARM64_DEPENDENCY_LIST, "signed": "release-authenticode-arm64"},
+}
 
 
 def sbom_problems(directory, version, names=None):
@@ -996,7 +1028,7 @@ def collect(root, tag, out, env, run=subprocess.run, api=None, rehearse=False):
         # the sums that job wrote, and each compiled one with its SBOM beside it.
         for name, (relative, listed) in sorted(job_sums.items()):
             problems.extend(check_job_sums(os.path.join(root, relative), listed, os.path.join(root, places[name])))
-            if name in compiled_assets(version) and name != names["windows"]:
+            if name in compiled_assets(version) and name not in windows_installers(version):
                 problems.extend(sbom_problems(os.path.dirname(os.path.join(root, places[name])), version, [name]))
         # The tarball has no sums of its own job: it is held to this commit instead.
         problems.extend(tarball_problems(root, os.path.join(root, places[tarball_name(version)]), env.get("CI_COMMIT_SHA", ""), run))
@@ -1484,11 +1516,14 @@ def copy_problems(assets, version):
     return problems
 
 
-def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out, rehearse=False):
-    """release-sbom: the installer's own SBOM, from the bytes Authenticode signed. A
-    rehearsal has no Authenticode: its installer is collect's, as it is (tag is None)."""
+def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out, rehearse=False, platform="windows"):
+    """release-sbom: an installer's own SBOM, from the bytes Authenticode signed - the x64
+    one's (platform "windows") or the ARM64 one's ("windows-arm64"), each from its own
+    component list. A rehearsal has no Authenticode: its installer is collect's, as it
+    is (tag is None). out is made when it is not there, and what else it holds is kept:
+    the sbom command writes both installers' SBOMs into it."""
     version = read_version_h(root) if rehearse else version_of(tag)
-    installer = feed.installer_names(version)["windows"]
+    installer = feed.installer_names(version)[platform]
     if os.path.basename(installer_path) != installer or not os.path.isfile(installer_path):
         raise ReleaseError("%s is not the signed installer %s: release-authenticode's artifact did not arrive" % (installer_path, installer))
     unsigned = os.path.join(assets, installer)
@@ -1498,13 +1533,11 @@ def make_installer_sbom(root, tag, env, assets, installer_path, dependencies_pat
     try:
         with open(dependencies_path, encoding="utf-8-sig") as f:
             dependencies = json.load(f)
-        document = asset_sbom.make("windows-x64", installer_path, dependencies, root=root, version=version,
+        document = asset_sbom.make(INSTALLER_SBOMS[platform]["kind"], installer_path, dependencies, root=root, version=version,
                                    commit=env.get("CI_COMMIT_SHA", ""))
     except (OSError, ValueError, asset_sbom.SbomError) as e:
-        raise ReleaseError("the installer's SBOM could not be made: %s" % e)
-    if os.path.isdir(out):
-        shutil.rmtree(out)
-    os.makedirs(out)
+        raise ReleaseError("the SBOM of %s could not be made: %s" % (installer, e))
+    os.makedirs(out, exist_ok=True)
     path = os.path.join(out, sbom_name(installer))
     asset_sbom.write_document(document, path)
     say("  %s  %d components, describing %s (SHA-256 %s)" % (sbom_name(installer), len(document["components"]), installer,
@@ -1625,13 +1658,14 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
 
 # The kinds of server a release carries a file for (generate-update-feed.py's
 # installer_names): the feed must give each of them its file and its bundle.
-SERVED_PLATFORMS = ("windows", "deb-amd64", "rpm-x86_64", "deb-arm64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64")
+SERVED_PLATFORMS = ("windows", "windows-arm64", "deb-amd64", "rpm-x86_64", "deb-arm64", "rpm-aarch64", "appimage-x86_64",
+                    "appimage-aarch64")
 
 
 def check_feed_takes(api, tag, version):
-    """The feed the pages job will render includes this release, and a Windows
-    server, a Debian and an RPM server on x86-64 and on AArch64, and an AppImage on
-    either, each find its file and bundle in it."""
+    """The feed the pages job will render includes this release, and a Windows server
+    on x64 and on ARM64, a Debian and an RPM server on x86-64 and on AArch64, and an
+    AppImage on either, each find its file and bundle in it."""
     releases, files = feed.load(api.feed_get)
     tree, latest, warnings = feed.render(releases, files)
     ours = [w for w in warnings if w.startswith(tag + " ") or (tag + ":") in w]
@@ -1643,8 +1677,8 @@ def check_feed_takes(api, tag, version):
         release = feed.read_release(document, platform)
         if not release or not release["installer_url"] or not release["bundle_url"] or not release["installer_digest"]:
             raise ReleaseError("a %s server would find no file with its bundle in %s" % (platform, tag))
-    say("the feed takes %s: Windows servers, Debian and RPM servers on x86-64 and AArch64, and AppImages on either, "
-        "each find their file and its bundle; releases/latest is %s" % (tag, latest["tag_name"]))
+    say("the feed takes %s: Windows servers on x64 and ARM64, Debian and RPM servers on x86-64 and AArch64, and AppImages "
+        "on either, each find their file and its bundle; releases/latest is %s" % (tag, latest["tag_name"]))
 
 
 # ---------------------------------------------------------------- the self-test
@@ -1970,29 +2004,35 @@ def self_test():
         expect(problems == [], "a complete release, its tag on master and signed by master's one key, is collected: %s" % problems)
         gathered = sorted(os.listdir(out)) if os.path.isdir(out) else []
         expect(gathered == sorted(collected_assets(version)), "under the names a release carries: %s" % (gathered or "nothing"))
-        expect(sorted(set(expected_assets(version)) - set(collected_assets(version))) == [sbom_name(names["windows"])],
-               "everything but the installer's SBOM, which release-sbom makes from the signed installer")
+        expect(sorted(set(expected_assets(version)) - set(collected_assets(version))) == sorted(
+                   [sbom_name(names["windows"]), sbom_name(names["windows-arm64"])]),
+               "everything but the installers' SBOMs, which release-sbom makes from the signed installers")
+        expect(names["windows-arm64"] in gathered and names["windows-arm64"] in compiled_assets(version)
+               and compiled_assets(version)[:2] == [names["windows"], names["windows-arm64"]],
+               "the ARM64 installer is collected, after the x64 one, as a compiled file: %s" % gathered)
         expect(all(sbom_name(n) in expected_assets(version) for n in compiled_assets(version)),
                "every compiled file goes out with its SBOM")
         expect(names["deb-arm64"] in gathered and names["rpm-aarch64"] in gathered
                and sbom_name(names["deb-arm64"]) in gathered and sbom_name(names["rpm-aarch64"]) in gathered,
                "the AArch64 .deb and .rpm are collected with their SBOMs: %s" % gathered)
-        # Every file 6.3.6 carries, by name: the five of 6.3.5's chain, each distribution
-        # release's .deb and .rpm, the AppImages, the source of their runtime's libraries
-        # and of the libraries they carry, the tarball and the chart; each compiled one and
-        # the tarball with its SBOM, every Linux one with a line in the sums.
+        # Every file 6.3.6 carries, by name: the five of 6.3.5's chain, the ARM64
+        # installer, each distribution release's .deb and .rpm, the AppImages, the source
+        # of their runtime's libraries and of the libraries they carry, the tarball and the
+        # chart; each compiled one and the tarball with its SBOM, every Linux one with a
+        # line in the sums.
         every_deb = ["hmailserver_6.3.5-1~%s_%s.deb" % (d, a) for d in ("debian12", "debian13", "ubuntu24.04") for a in ("amd64", "arm64")]
         every_rpm = ["hmailserver-6.3.5-1.%s.%s.rpm" % (t, a) for t in ("fc44", "fc43", "el10", "el9", "suse.lp160", "suse.tw")
                      for a in ("x86_64", "aarch64")]
         more = every_deb + every_rpm + ["hMailServer-6.3.5-x86_64.AppImage", "hMailServer-6.3.5-aarch64.AppImage", "hmailserver-6.3.5.tar.gz"]
         runtime_sources = "hmailserver-6.3.5-appimage-runtime-sources.tar.gz"
         bundled_sources = "hmailserver-6.3.5-appimage-bundled-sources.tar.gz"
-        primaries = [names["windows"], names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"], names["rpm-aarch64"]] + more + [
+        primaries = [names["windows"], "hMailServer-6.3.5-arm64.exe", names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"],
+                     names["rpm-aarch64"]] + more + [
             runtime_sources, bundled_sources, "hmailserver-chart-6.3.5.tgz", sums_name(version), "hmailserver.spdx.json",
             "hmailserver.cyclonedx.json"]
-        with_sbom = primaries[:5] + more
+        with_sbom = primaries[:6] + more
         expect(len(every_deb) == 6 and len(every_rpm) == 12 and sorted(primary_assets(version)) == sorted(primaries),
-               "the primary files are the installer, the four generic packages, the 18 distribution releases' packages, the "
+               "the primary files are the two installers, the four generic packages, the 18 distribution releases' packages, the "
                "two AppImages, the source of their runtime's libraries and of the libraries they carry, the tarball, the "
                "chart, the sums and the two tree SBOMs: %s" % sorted(set(primary_assets(version)) ^ set(primaries)))
         expect(runtime_sources_name(version) == runtime_sources and runtime_sources not in compiled_assets(version)
@@ -2001,16 +2041,16 @@ def self_test():
         expect(bundled_sources_name(version) == bundled_sources and bundled_sources not in compiled_assets(version)
                and sbom_name(bundled_sources) not in expected_assets(version),
                "the bundled libraries' sources go out as source, without an SBOM: %s" % bundled_sources_name(version))
-        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 58,
+        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 60,
                "every compiled file and the tarball go out with <file>.cdx.json, the two AppImage sources files and the chart "
-               "without, 58 files in all: %d" % len(expected_assets(version)))
+               "without, 60 files in all: %d" % len(expected_assets(version)))
         expect(sorted(release_files(version)) == sorted(expected_assets(version) + [n + ".cosign.bundle" for n in expected_assets(version)]
                                                         + [n + ".sigstore.json" for n in primaries] + ["hmailserver-6.3.5.intoto.sigstore.json"])
-               and len(release_files(version)) == 149,
-               "a release is those 58, a bundle beside each, a .sigstore.json copy of each of the 32 primary files' bundles, "
-               "and the provenance: 149 files and links: %d" % len(release_files(version)))
-        expect(sorted(gathered) == sorted(set(expected_assets(version)) - {names["windows"] + ".cdx.json"}),
-               "collect gathers every one of them but the installer's SBOM: %s" % sorted(set(expected_assets(version)) - set(gathered)))
+               and len(release_files(version)) == 154,
+               "a release is those 60, a bundle beside each, a .sigstore.json copy of each of the 33 primary files' bundles, "
+               "and the provenance: 154 files and links: %d" % len(release_files(version)))
+        expect(sorted(gathered) == sorted(set(expected_assets(version)) - {names["windows"] + ".cdx.json", names["windows-arm64"] + ".cdx.json"}),
+               "collect gathers every one of them but the installers' SBOMs: %s" % sorted(set(expected_assets(version)) - set(gathered)))
         released_sums = b""
         if os.path.isfile(os.path.join(out, sums_name(version))):
             with open(os.path.join(out, sums_name(version)), "rb") as f:
@@ -2021,9 +2061,9 @@ def self_test():
                "the release's sums are linux-build's two lines as they are, then the AArch64 .deb's and .rpm's, then a "
                "line for every other Linux file and the chart: %r" % released_sums)
         listed = set(line.split()[1] for line in released_sums.decode("ascii").splitlines())
-        expect(listed == set(n for n in primaries if n not in (names["windows"], sums_name(version), "hmailserver.spdx.json",
-                                                               "hmailserver.cyclonedx.json")),
-               "every primary file but the installer, which Authenticode changes after collect, and the sums and tree "
+        expect(listed == set(n for n in primaries if n not in (names["windows"], names["windows-arm64"], sums_name(version),
+                                                               "hmailserver.spdx.json", "hmailserver.cyclonedx.json")),
+               "every primary file but the two installers, which Authenticode changes after collect, and the sums and tree "
                "SBOMs has a line in the sums: %s" % sorted(listed))
         if not gathered:
             # So that publishing is still tested when collecting failed.
@@ -2075,6 +2115,12 @@ def self_test():
                 api=FakeGitLab().seed("hmailserver.spdx.json.cosign.bundle", b"{}"))
         refused("an installer SBOM an earlier run left in the registry", "%s, which an earlier run's signing made" % sbom_name(names["windows"]),
                 api=FakeGitLab().seed(sbom_name(names["windows"]), b"{}"))
+        refused("an ARM64 installer an earlier run's signing left in the registry",
+                "already holds %s, which an earlier run's signing made" % names["windows-arm64"],
+                api=FakeGitLab().seed(names["windows-arm64"], ("the bytes of %s\n" % names["windows-arm64"]).encode("utf-8")))
+        refused("an ARM64 installer SBOM an earlier run left in the registry",
+                "%s, which an earlier run's signing made" % sbom_name(names["windows-arm64"]),
+                api=FakeGitLab().seed(sbom_name(names["windows-arm64"]), b"{}"))
         refused("a bundle's .sigstore.json copy an earlier run left in the registry",
                 "%s.sigstore.json, which an earlier run's signing made" % names["deb-arm64"],
                 api=FakeGitLab().seed(names["deb-arm64"] + ".sigstore.json", b"{}"))
@@ -2082,7 +2128,7 @@ def self_test():
                 api=FakeGitLab().seed(provenance_name(version), b"{}"))
         held = FakeGitLab()
         for name in collected_assets(version):
-            if name != names["windows"]:
+            if name not in windows_installers(version):
                 # As release-publish sent them: collect's files, the sums as collect wrote them.
                 with open(os.path.join(out, name), "rb") as f:
                     held.seed(name, f.read())
@@ -2126,8 +2172,30 @@ def self_test():
         os.remove(rpm_aarch64)
         refused("a release without the aarch64 .rpm", "%s is not in this job's artifacts (%s)" % (names["rpm-aarch64"], sources(version)[names["rpm-aarch64"]]))
         write(sources(version)[names["rpm-aarch64"]], ("the bytes of %s\n" % names["rpm-aarch64"]).encode("utf-8"))
+        # The ARM64 installer: windows-packages-arm64's, held to the SHA256SUMS that job
+        # wrote, under the name a tag's build gives it, and there at all.
+        arm_installer = os.path.join(root, sources(version)[names["windows-arm64"]])
+        expect(sources(version)[names["windows-arm64"]].replace(os.sep, "/") == "packages-windows/arm64/hMailServer-6.3.5-arm64.exe"
+               and package_job_sums(version)[names["windows-arm64"]] == (os.path.join("packages-windows", "arm64", "SHA256SUMS"),
+                                                                        names["windows-arm64"]),
+               "a tag's ARM64 installer is windows-packages-arm64's, held to that job's SHA256SUMS: %s, %s" % (
+                   sources(version)[names["windows-arm64"]], package_job_sums(version)[names["windows-arm64"]]))
+        win_sums_path = package_job_sums(version)[names["windows-arm64"]][0]
+        with open(os.path.join(root, win_sums_path), "rb") as f:
+            good_win_sums = f.read()
+        write(win_sums_path, ("%s  %s\r\n" % ("0" * 64, names["windows-arm64"])).encode("ascii"))
+        refused("an ARM64 installer that is not the bytes windows-packages-arm64 made", "gives %s the SHA-256 %s" % (names["windows-arm64"], "0" * 64))
+        write(win_sums_path, ("%s  %s\r\n" % (sha256_of(arm_installer), rehearsal_installer(version, built, "arm64"))).encode("ascii"))
+        refused("a tag's ARM64 installer under a branch build's name", "does not name %s" % names["windows-arm64"])
+        os.remove(os.path.join(root, win_sums_path))
+        refused("an ARM64 installer without windows-packages-arm64's sums", "the sums of the build that made %s" % names["windows-arm64"])
+        write(win_sums_path, good_win_sums)
+        os.remove(arm_installer)
+        refused("a release without the ARM64 installer", "%s is not in this job's artifacts (%s)" % (
+            names["windows-arm64"], sources(version)[names["windows-arm64"]]))
+        write(sources(version)[names["windows-arm64"]], ("the bytes of %s\n" % names["windows-arm64"]).encode("utf-8"))
         problems = collect(root, tag, os.path.join(work, "arm-again"), env, run=signed_tag, api=FakeGitLab())
-        expect(problems == [], "the AArch64 files put back, the release is collected again: %s" % problems)
+        expect(problems == [], "the AArch64 files and the ARM64 installer put back, the release is collected again: %s" % problems)
         refused("release sums the registry holds with other bytes", "already holds %s with the SHA-256" % sums_name(version),
                 api=FakeGitLab().seed(sums_name(version), sums.encode("utf-8")))
         os.remove(os.path.join(root, sources(version)["hmailserver.spdx.json"]))
@@ -2222,6 +2290,11 @@ def self_test():
         expect(branch_installer == "hMailServer-6.3.5-cccccccc-x64.exe", "the branch's installer is named with its commit: %s" % branch_installer)
         write(REHEARSAL_INSTALLER_DIR + "/" + branch_installer, b"MZ the branch's installer")
         write(REHEARSAL_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\r\n" % (hashlib.sha256(b"MZ the branch's installer").hexdigest(), branch_installer)).encode("ascii"))
+        branch_arm64 = rehearsal_installer(version, built, "arm64")
+        expect(branch_arm64 == "hMailServer-6.3.5-cccccccc-arm64.exe" and sources(version, built)[names["windows-arm64"]].replace(os.sep, "/")
+               == "packages-windows/arm64/" + branch_arm64, "the branch's ARM64 installer is named with its commit: %s" % branch_arm64)
+        write(ARM64_INSTALLER_DIR + "/" + branch_arm64, b"MZ the branch's ARM64 installer")
+        write(ARM64_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\r\n" % (hashlib.sha256(b"MZ the branch's ARM64 installer").hexdigest(), branch_arm64)).encode("ascii"))
         rehearsal_env = {"HM_COSIGN_IMAGE": env["HM_COSIGN_IMAGE"], "CI_COMMIT_SHA": built, "CI_COMMIT_BRANCH": "batch42",
                          "CI_COMMIT_REF_PROTECTED": "true", "CI_DEFAULT_BRANCH": "master", "CI_PROJECT_PATH": "hmailserver/hmailserver"}
         asked = []
@@ -2240,6 +2313,10 @@ def self_test():
         if os.path.isfile(os.path.join(rehearsed, names["windows"])):
             with open(os.path.join(rehearsed, names["windows"]), "rb") as f:
                 expect(f.read() == b"MZ the branch's installer", "a rehearsal's installer is windows-packages-x64's, under the release's name")
+        if os.path.isfile(os.path.join(rehearsed, names["windows-arm64"])):
+            with open(os.path.join(rehearsed, names["windows-arm64"]), "rb") as f:
+                expect(f.read() == b"MZ the branch's ARM64 installer",
+                       "a rehearsal's ARM64 installer is windows-packages-arm64's, under the release's name")
         expect(all(any(str(a).endswith("check-source-tarball.py") for a in call) for call in asked),
                "a rehearsal asks git nothing: no tag, no master, no allow-list: %s" % asked)
         for what, changes, needle in (("a tag's pipeline", {"CI_COMMIT_TAG": "v6.3.5"}, "never rehearsed"),
@@ -2253,6 +2330,11 @@ def self_test():
         put_back = swap(REHEARSAL_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\n" % ("0" * 64, branch_installer)).encode("ascii"))
         found = collect(root, None, os.path.join(work, "refused-rehearsal"), rehearsal_env, run=no_git, api=None, rehearse=True)
         expect(any("the file is not the one its build job made" in p for p in found), "a rehearsal's installer unlike its sums is refused: %s" % found)
+        put_back()
+        put_back = swap(ARM64_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\n" % ("0" * 64, branch_arm64)).encode("ascii"))
+        found = collect(root, None, os.path.join(work, "refused-rehearsal"), rehearsal_env, run=no_git, api=None, rehearse=True)
+        expect(any("gives %s the SHA-256 %s" % (branch_arm64, "0" * 64) in p for p in found),
+               "a rehearsal's ARM64 installer unlike its sums is refused: %s" % found)
         put_back()
         expect(signing_identity(rehearsal_env, rehearse=True) == "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/heads/batch42",
                "a rehearsal signs as its branch, an identity no server trusts")
@@ -2297,6 +2379,34 @@ def self_test():
         except ReleaseError as e:
             expect("could not be made" in str(e), "an installer SBOM without the component list is refused, saying why: %s" % e)
         expect(not os.path.isdir(os.path.join(work, "release-sbom")), "and nothing is written")
+        arm_signed_dir = os.path.join(work, "release-authenticode-arm64")
+        os.makedirs(arm_signed_dir)
+        shutil.copyfile(os.path.join(out, names["windows-arm64"]), os.path.join(arm_signed_dir, names["windows-arm64"]))
+        with open(os.path.join(arm_signed_dir, names["windows-arm64"]), "ab") as f:
+            f.write(b"a signature")
+        # The group's path, where a release is signed from: both refusals below come
+        # before the provenance's identity is asked for, so they must not pass only
+        # because another path would be refused later.
+        sbom_env = dict(env, CI_COMMIT_TAG=tag, CI_PROJECT_PATH="hmailserver/hmailserver")
+        both = {"windows": (os.path.join(signed_dir, names["windows"]), os.path.join(work, "none.json")),
+                "windows-arm64": (os.path.join(arm_signed_dir, names["windows-arm64"]), os.path.join(work, "none.json"))}
+        try:
+            release_sbom(root, sbom_env, out, {"windows": both["windows"]}, os.path.join(work, "release-sbom"))
+            failures.append("release-sbom asked for the x64 installer's SBOM alone is refused")
+        except ReleaseError as e:
+            expect("a release carries the installers of" in str(e), "release-sbom asked for one installer's SBOM is refused: %s" % e)
+        try:
+            release_sbom(root, sbom_env, out, both, os.path.join(work, "release-sbom"))
+            failures.append("release-sbom without the component lists is refused")
+        except ReleaseError as e:
+            expect("could not be made" in str(e) and not os.path.isdir(os.path.join(work, "release-sbom")),
+                   "release-sbom without the component lists is refused and writes nothing: %s" % e)
+        try:
+            make_installer_sbom(root, tag, env, out, os.path.join(signed_dir, names["windows"]), os.path.join(work, "none.json"),
+                                os.path.join(work, "arm-sbom"), platform="windows-arm64")
+            failures.append("the x64 installer is refused as the ARM64 one")
+        except ReleaseError as e:
+            expect("is not the signed installer %s" % names["windows-arm64"] in str(e), "the x64 installer is refused as the ARM64 one: %s" % e)
 
         # Publishing, against a registry and a releases API held in memory. The
         # installer's SBOM, as release-sbom makes it, describes the installer.
@@ -2304,6 +2414,8 @@ def self_test():
         shutil.copytree(out, signed)
         with open(os.path.join(signed, sbom_name(names["windows"])), "wb") as f:
             f.write(sbom_of(os.path.join(signed, names["windows"]), "windows-x64"))
+        with open(os.path.join(signed, sbom_name(names["windows-arm64"])), "wb") as f:
+            f.write(sbom_of(os.path.join(signed, names["windows-arm64"]), "windows-arm64"))
         for name in expected_assets(version):
             with open(os.path.join(signed, name + ".cosign.bundle"), "w") as f:
                 f.write('{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json", "for": "%s"}' % name)
@@ -2346,9 +2458,9 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 149 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "149 links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 149 and link_problems(links) == [],
+            expect(len(links) == 154 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "154 links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 154 and link_problems(links) == [],
                    "every permanent download path is its own, and one GitLab takes: %s" % link_problems(links))
             paths = dict((l["name"], l["direct_asset_path"]) for l in links)
             expect(paths.get(names["deb-arm64"]) == "/hmailserver_arm64.deb"
@@ -2369,7 +2481,7 @@ def self_test():
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 149 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 154 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
@@ -2377,7 +2489,7 @@ def self_test():
                    "the feed publishes the release as the stable one: %s" % warnings)
             if "releases/tags/v6.3.5" in tree:
                 document = json.loads(tree["releases/tags/v6.3.5"].decode("utf-8"))
-                for platform in ("deb-arm64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64"):
+                for platform in ("windows-arm64", "deb-arm64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64"):
                     offered = feed.read_release(document, platform)
                     expect(offered and offered["installer_name"] == names[platform] and offered["bundle_url"],
                            "a server installed from the %s finds its file and its bundle in the feed: %s" % (platform, offered))
@@ -2387,7 +2499,15 @@ def self_test():
                        "the site's download names for the AArch64 packages lead to this release's files: %s" % rules)
                 expect(("/download/hMailServer-x86_64.AppImage", registry_url(version, names["appimage-x86_64"]), 302) in rules
                        and ("/download/hMailServer-aarch64.AppImage.cosign.bundle", registry_url(version, names["appimage-aarch64"] + ".cosign.bundle"), 302) in rules
-                       and len(rules) == 15, "and the AppImages', fifteen rules in all: %s" % rules)
+                       and len(rules) == 17, "and the AppImages', seventeen rules in all: %s" % rules)
+                # An x64 server is offered the x64 installer, and an ARM64 server the ARM64
+                # one: each by its own name, never the other's.
+                expect(feed.read_release(document, "windows")["installer_name"] == names["windows"]
+                       and feed.read_release(document, "windows-arm64")["installer_name"] == names["windows-arm64"]
+                       and ("/download/hMailServer-x64.exe", registry_url(version, names["windows"]), 302) in rules
+                       and ("/download/hMailServer-arm64.exe", registry_url(version, names["windows-arm64"]), 302) in rules,
+                       "an x64 server and the site's x64 name get the x64 installer, and an ARM64 server and the ARM64 name "
+                       "the ARM64 one: %s" % rules)
             # A release whose arm64 .deb has lost its bundle's link is one no arm64 Debian
             # server could install: the feed's check after publishing says so.
             for platform in ("deb-arm64", "rpm-aarch64", "appimage-aarch64"):
@@ -2454,7 +2574,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 144 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 149 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")
@@ -2543,7 +2663,7 @@ def self_test():
                and statement["predicate"]["runDetails"]["builder"]["id"] == tag_identity
                and statement["predicate"]["buildDefinition"]["resolvedDependencies"][0]["digest"]["gitCommit"] == built
                and statement["predicate"]["runDetails"]["metadata"]["startedOn"] == "2026-10-02T08:00:00Z",
-               "the statement names all 58 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
+               "the statement names all 60 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
         try:
             write_statement(version, tag_identity, dict(list(files.items())[1:]), publish_env, statement_dir)
             failures.append("a statement that leaves a file out is refused")
@@ -2652,9 +2772,9 @@ def self_test():
         digests = dict((n, sha256_of(os.path.join(signed, n))) for n in release_files(version))
         sizes = dict((n, os.path.getsize(os.path.join(signed, n))) for n in release_files(version))
         expect(check_budget(None, tag, version, digests, sizes, out=said.append) == [], "one release is well within every limit")
-        expect(len(said) == 2 and "58 files and 149 links (32 primary files, 26 SBOMs, 58 bundles, 32 .sigstore.json copies" in said[0]
-               and "_redirects 31 rules" in said[1] and "the feed's 15, the repositories' 16, 16 of them this release's" in said[1],
-               "the counts: 149 links; _redirects the feed's fifteen rules (the download page and seven kinds of file with their "
+        expect(len(said) == 2 and "60 files and 154 links (33 primary files, 27 SBOMs, 60 bundles, 33 .sigstore.json copies" in said[0]
+               and "_redirects 33 rules" in said[1] and "the feed's 17, the repositories' 16, 16 of them this release's" in said[1],
+               "the counts: 154 links; _redirects the feed's seventeen rules (the download page and eight kinds of file with their "
                "bundles) and the repositories' sixteen: %s" % said)
         crowded = FakeGitLab()
         for minor in range(40):
@@ -2823,18 +2943,34 @@ def self_test():
 
 # ---------------------------------------------------------------- main
 
-def release_sbom(root, env, assets, installer_path, dependencies_path, out, rehearse=False):
-    """The sbom command: the installer's own SBOM (make_installer_sbom), then the
+def release_sbom(root, env, assets, installers, out, rehearse=False):
+    """The sbom command: each installer's own SBOM (make_installer_sbom), then the
     provenance's statement over every file the release carries - collect's, the
-    installer as Authenticode signed it, and its SBOM - for release-sign to attest.
-    In a rehearsal the installer is collect's and the identity the branch's."""
+    installers as Authenticode signed them, and their SBOMs - for release-sign to
+    attest. installers: {platform: (the signed installer, its component list)}, for
+    "windows" and "windows-arm64". In a rehearsal the installers are collect's and the
+    identity the branch's. out is emptied first, and left empty when an SBOM cannot
+    be made."""
     tag = None if rehearse else env.get("CI_COMMIT_TAG", "")
-    path = make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out, rehearse=rehearse)
     version = read_version_h(root) if rehearse else version_of(tag)
-    installer = feed.installer_names(version)["windows"]
+    if sorted(installers) != sorted(INSTALLER_SBOMS):
+        raise ReleaseError("the SBOMs of %s were asked for, and a release carries the installers of %s" % (
+            sorted(installers), sorted(INSTALLER_SBOMS)))
+    if os.path.isdir(out):
+        shutil.rmtree(out)
     files = dict((name, os.path.join(assets, name)) for name in collected_assets(version))
-    files[installer] = installer_path
-    files[sbom_name(installer)] = path
+    try:
+        for platform in sorted(installers):
+            installer_path, dependencies_path = installers[platform]
+            path = make_installer_sbom(root, tag, env, assets, installer_path, dependencies_path, out, rehearse=rehearse,
+                                       platform=platform)
+            installer = feed.installer_names(version)[platform]
+            files[installer] = installer_path
+            files[sbom_name(installer)] = path
+    except ReleaseError:
+        if os.path.isdir(out):
+            shutil.rmtree(out)
+        raise
     return write_statement(version, signing_identity(env, rehearse), files, env, out)
 
 
@@ -2847,8 +2983,13 @@ def main():
                         "installer's SBOM and the provenance's statement go (release-sbom); gather: where the gathered "
                         "files go (release-packages)")
     parser.add_argument("--dependencies", default=os.path.join("release-tools", DEPENDENCY_LIST),
-                        help="sbom: build/native-dependencies.ps1's list, as linux-sbom wrote it")
-    parser.add_argument("--installer-dir", default="release-authenticode", help="sbom: where the signed installer is")
+                        help="sbom: build/native-dependencies.ps1's list for the x64 installer, as linux-sbom wrote it")
+    parser.add_argument("--arm64-dependencies", default=os.path.join("release-tools", ARM64_DEPENDENCY_LIST),
+                        help="sbom: build/native-dependencies.ps1 -Platform ARM64's list, as linux-sbom wrote it")
+    parser.add_argument("--installer-dir", default=INSTALLER_SBOMS["windows"]["signed"],
+                        help="sbom: where the signed x64 installer is")
+    parser.add_argument("--arm64-installer-dir", default=INSTALLER_SBOMS["windows-arm64"]["signed"],
+                        help="sbom: where the signed ARM64 installer is")
     parser.add_argument("--assets", default="release-signed", help="publish, check-provenance: the signed files and "
                         "their bundles")
     parser.add_argument("--verification", default=os.path.join("release-verified", "verification.md"),
@@ -2869,12 +3010,15 @@ def main():
                 if problems:
                     raise ReleaseError("; ".join(problems))
                 version = read_version_h(ROOT)
-                installer_path = os.path.join(ROOT, "release-assets", feed.installer_names(version)["windows"])
+                places = {"windows": "release-assets", "windows-arm64": "release-assets"}
             else:
                 version = version_of(tag)
-                installer_path = os.path.join(ROOT, args.installer_dir, feed.installer_names(version)["windows"])
-            release_sbom(ROOT, os.environ, os.path.join(ROOT, "release-assets"), installer_path,
-                         os.path.join(ROOT, args.dependencies), os.path.join(ROOT, args.out or "release-sbom"), args.rehearse)
+                places = {"windows": args.installer_dir, "windows-arm64": args.arm64_installer_dir}
+            lists = {"windows": args.dependencies, "windows-arm64": args.arm64_dependencies}
+            installers = dict((platform, (os.path.join(ROOT, places[platform], feed.installer_names(version)[platform]),
+                                          os.path.join(ROOT, lists[platform]))) for platform in INSTALLER_SBOMS)
+            release_sbom(ROOT, os.environ, os.path.join(ROOT, "release-assets"), installers,
+                         os.path.join(ROOT, args.out or "release-sbom"), args.rehearse)
             return 0
         if args.command == "collect":
             if args.rehearse:

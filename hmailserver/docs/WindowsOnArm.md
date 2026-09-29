@@ -18,9 +18,15 @@ on bench150, which is x64, in every pipeline of `master`, a `batch*` branch and 
 tag, and runs none of it. Up to 6.3.5 it stopped at its toolchain check, in 6.3.5's
 tag pipeline too, and was let fail: the check looked for Visual Studio's ARM64 C++
 runtime by a path that finds it in no installation, while bench150 has the ARM64
-tools, ATL and SDK libraries. The check is corrected in the tree after 6.3.5 (the
-Unreleased section of CHANGELOG.md), and the next `batch*` pipeline is the first to
-show whether the job gets past it there ([PackagesWindows.md](PackagesWindows.md)). The Roadmap2 row "Windows on ARM" stays in motion until an ARM64 build has
+tools, ATL and SDK libraries. With the check corrected (the Unreleased section of
+CHANGELOG.md), the job's own script ran whole on bench150 by hand, as LocalSystem,
+on 29 September 2026: it built the three libraries into the bench's cache, the
+server, the tools and the installer, and found every native file the installer
+packs to be an ARM64 image but Microsoft's ARM64EC `vcruntime140_1.dll`, which it
+allows ([PackagesWindows.md](PackagesWindows.md), "What was run by hand on
+bench150"). The job may no longer fail, and from 6.3.6 a release
+carries the ARM64 installer, Authenticode-signed, with its SBOM and its Sigstore
+bundle. The Roadmap2 row "Windows on ARM" stays in motion until an ARM64 build has
 been installed and has run the regression suite on real hardware. Until then, read
 every "works" below as "is built to work", and [What is proven, and what needs ARM64
 hardware](#what-is-proven-and-what-needs-arm64-hardware) for what has been shown on x64.
@@ -42,7 +48,7 @@ What the ARM64 server can use
 | Backup and restore | Yes | The installer carries 7-Zip's own ARM64 console, `arm64/7za.exe` from the same 7-Zip Extra 26.03 package as the x64 one. |
 | The Control Panel, DBSetup, DBSetupQuick, DBUpdater, the add-ons | Yes, native | They are .NET 10 applications, published for `win-arm64`. The installer carries the ARM64 .NET 10 Desktop Runtime and installs it when it is missing. |
 | The C++ runtime | Yes | The ARM64 build of the v145 runtime, gathered from Visual Studio's `arm64` redistributable folder. |
-| Live update | Yes, by name | An ARM64 server looks for `hMailServer-<version>-arm64.exe` in a release (`UpdateChecker`), and the feed generator knows that name. No release carries one yet, so until one does, the check says that the release has no ARM64 installer. |
+| Live update | Yes, by name | An ARM64 server looks for `hMailServer-<version>-arm64.exe` in a release (`UpdateChecker`), and the feed generator knows that name. No release up to 6.3.5 carries one, so for those the check says that the release has no ARM64 installer; from 6.3.6 a release carries it with its Sigstore bundle. An x64 server never takes it: it looks for `-x64.exe` by name. |
 | `VersionArchitecture` (COM), the status page, the metrics label, SNMP | Say `ARM64` | They said `x64` for every 64-bit build. |
 
 The service account, the settings (in the database, as on x64), the Control

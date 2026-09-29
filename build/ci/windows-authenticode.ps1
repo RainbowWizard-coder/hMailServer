@@ -77,7 +77,7 @@ if (-not $env:AZURE_ID_TOKEN) { Stop-Signing 2 'the job has no AZURE_ID_TOKEN: i
 if ($env:ARTIFACT_SIGNING_ENDPOINT -notmatch '^https://[a-z0-9]+\.codesigning\.azure\.net/?$') {
    Stop-Signing 2 "ARTIFACT_SIGNING_ENDPOINT is not a region's Artifact Signing endpoint (https://<region>.codesigning.azure.net)"
 }
-if (-not (Test-Path -LiteralPath $Installer)) { Stop-Signing 5 "$Installer is not here: windows-installer's artifact did not arrive" }
+if (-not (Test-Path -LiteralPath $Installer)) { Stop-Signing 5 "$Installer is not here: the release job's artifact, which carries both installers, did not arrive" }
 $Installer = (Resolve-Path -LiteralPath $Installer).ProviderPath
 $name = Split-Path -Leaf $Installer
 $versionBefore = (Get-Item -LiteralPath $Installer).VersionInfo.FileVersion

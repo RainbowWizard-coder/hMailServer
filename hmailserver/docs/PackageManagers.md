@@ -333,11 +333,13 @@ make Fedora stop too. The cost is that an outage of the site then stops every
   package jobs make - 6.3.6 is the first - adds sixteen (eight `.deb`s: four
   suites, two architectures; eight `.rpm`s: `fc44`, `fc43`, `el10` and `el9`,
   two architectures; openSUSE's go through OBS), 2,942 bytes, beside the feed's
-  own download links, which are fifteen from 6.3.6 (the download page, and seven
-  files with their bundles: the installer, the four generic packages and the two
-  AppImages). So 6.3.6 alone makes 31 rules in 5,386 bytes, and twenty-one
-  releases of its shape fit; the twenty-second does not. Counted on 28 September
-  2026 by `build/ci/release-chain.py`'s `check_budget`, which the `release` job
+  own download links, which are seventeen from 6.3.6 (the download page, and
+  eight files with their bundles: the x64 and ARM64 installers, the four generic
+  packages and the two AppImages). So 6.3.6 alone makes 33 rules in 5,700 bytes,
+  and twenty-one releases of its shape fit; the twenty-second does not. Counted on
+  28 September 2026, and with the ARM64 installer on 29 September
+  ([UpdateFeed.md](UpdateFeed.md), "How much the site holds"), by
+  `build/ci/release-chain.py`'s `check_budget`, which the `release` job
   runs before anything is signed and `release-publish` before anything is
   uploaded, over the live releases with the new one in them, so a release that
   would take the site past the limit is refused before it is made, naming

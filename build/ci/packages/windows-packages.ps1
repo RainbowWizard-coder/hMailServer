@@ -36,7 +36,11 @@
         libraries\build-openssl.ps1 fetches its source from github.com (a string
         in its code names github.com), which this project's CI does not
         download from: the job stops, saying so. The GitLab sweep's version
-        takes the same archive from Debian's, and with it the job builds OpenSSL;
+        takes the same archive from Debian's, and with it the job builds OpenSSL.
+        libpq's build tools that are not on PATH - Meson, Ninja, flex, bison, and
+        the Python Meson runs on - are fetched by libraries\get-libpq-tools.ps1
+        into -LibsDir\tools, each held to its pinned SHA-256, and put ahead on
+        PATH for the libraries' builds alone;
      7. the third-party files (build\get-installer-binaries.ps1, which also places
         the ADO type libraries the server #imports) and then the server, Release
         (build\build.ps1), with hMailServerLibs pointing at -LibsDir;
@@ -234,14 +238,17 @@ if ($Platform -eq 'ARM64') {
          Complete = @("$libpqDir\libpq.dll", "$libpqDir\libpq.lib"); Dlls = @("$libpqDir\libpq.dll") }
    )
    $env:hMailServerLibs = $LibsDir
+   $pathBefore = $env:PATH
    foreach ($library in $libraries) {
       $absent = @($library.Complete | Where-Object { -not (Test-Path -LiteralPath $_) })
       if ($library.Name -eq 'Boost') {
-         # Every library the server auto-links, release and debug, tagged -a64.
-         $tag = "vc145"
+         # Every library the server auto-links, release and debug, tagged -a64. Not
+         # $tag: PowerShell's names ignore case, and that is the -Tag parameter, which
+         # a Boost toolset tag would turn into a release tag for the steps after this.
+         $toolsetTag = "vc145"
          foreach ($lib in 'thread', 'filesystem', 'regex', 'chrono', 'atomic') {
             foreach ($variant in 'mt', 'mt-gd') {
-               if (-not (Get-ChildItem -Path (Join-Path $boostDir 'stage\lib') -Filter "libboost_$lib-$tag-$variant-a64-*.lib" -ErrorAction SilentlyContinue)) { $absent += "$boostDir\stage\lib\libboost_$lib-$tag-$variant-a64-*.lib" }
+               if (-not (Get-ChildItem -Path (Join-Path $boostDir 'stage\lib') -Filter "libboost_$lib-$toolsetTag-$variant-a64-*.lib" -ErrorAction SilentlyContinue)) { $absent += "$boostDir\stage\lib\libboost_$lib-$toolsetTag-$variant-a64-*.lib" }
             }
          }
       }
@@ -266,12 +273,34 @@ if ($Platform -eq 'ARM64') {
                "and retry the job") -f $openssl, $LibsDir, $library.Script, ($gitHub -join '; '))
          }
       }
+      if ($library.Name -eq 'libpq') {
+         # PostgreSQL's Meson build needs Meson, Ninja, flex and bison on PATH (and
+         # Python, which Meson runs on), and the runner's LocalSystem sees only the
+         # PATH its service was given, which has none of them. What is not on PATH is
+         # fetched by libraries\get-libpq-tools.ps1 into the cache, each file held to
+         # its pinned SHA-256, and put ahead on PATH for the libraries' builds.
+         $toolsAbsent = @()
+         foreach ($names in @(@('meson'), @('ninja'), @('win_flex', 'flex'), @('win_bison', 'bison'))) {
+            if (-not @($names | Where-Object { Get-Command $_ -ErrorAction SilentlyContinue }).Count) { $toolsAbsent += $names[0] }
+         }
+         if ($toolsAbsent.Count) {
+            "  libpq's build tools not on PATH ($($toolsAbsent -join ', ')): libraries\get-libpq-tools.ps1 -Into $LibsDir\tools"
+            $toolsOutput = @(& $shell -NoProfile -ExecutionPolicy Bypass -File libraries\get-libpq-tools.ps1 -Into (Join-Path $LibsDir 'tools') 2>&1)
+            $toolsCode = $LASTEXITCODE
+            $toolsOutput | Select-Object -Last 8 | ForEach-Object { "    $_" }
+            $toolsPath = @($toolsOutput | Where-Object { "$_" -like 'LIBPQ TOOLS PATH=*' } | ForEach-Object { "$_".Substring('LIBPQ TOOLS PATH='.Length) })
+            if ($toolsCode -ne 0 -or -not $toolsPath.Count) { Stop-Packages 3 "libraries\get-libpq-tools.ps1 did not put libpq's build tools in $LibsDir\tools (exit $toolsCode)" }
+            $env:PATH = $toolsPath[-1] + ';' + $env:PATH
+         }
+      }
       Invoke-Step "the ARM64 $($library.Name) ($($library.Script) -Platform ARM64)" {
          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $library.Script @($library.Arguments) -Platform ARM64 *>&1 | Select-Object -Last 15 | ForEach-Object { "    $_" }
       }
       $still = @($library.Complete | Where-Object { -not (Test-Path -LiteralPath $_) })
       if ($still.Count) { Stop-Packages 3 "$($library.Script) ended without $($still -join ', ')" }
    }
+   # libpq's tools are for the libraries' builds alone.
+   $env:PATH = $pathBefore
    $dlls = @($libraries | ForEach-Object { $_.Dlls })
    "  the cached DLLs are ARM64:"
    & (Join-Path $root 'build\ci\packages\check-pe-machine.ps1') -Path $dlls -Expect ARM64

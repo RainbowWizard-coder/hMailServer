@@ -36,6 +36,10 @@
       - Visual Studio 2026 with the x64 build tools (vcvars64.bat is located
         automatically via vswhere).
 
+    get-libpq-tools.ps1 -Into <folder> fetches Python, Meson, Ninja and winflexbison,
+    each held to its pinned SHA-256, into one folder and prints the folders to put on
+    PATH; the windows-packages-arm64 job runs it when they are not on PATH.
+
 .PARAMETER Version
     The PostgreSQL version to build, e.g. 18.3. Must be 17.x or later.
 
@@ -172,15 +176,16 @@ $vsInstall = Resolve-VcVars64 -Platform $Platform
 # --- Verify the build tools are available ---------------------------------------
 
 # Named here rather than discovered by Meson twenty minutes in: each missing tool fails
-# now with what to install. The CI action installs the last three itself; a developer
-# follows the README.
+# now with what to install. A developer follows the README, or runs
+# get-libpq-tools.ps1, which the windows-packages-arm64 job runs for a runner that has
+# none of them.
 Resolve-NativePerl
 
 $tools = @(
-    @{ Names = @('meson');              Hint = "Meson - py -m pip install meson" },
-    @{ Names = @('ninja');              Hint = "Ninja - py -m pip install ninja" },
-    @{ Names = @('win_flex', 'flex');   Hint = "flex - win_flex.exe from winflexbison (https://sourceforge.net/projects/winflexbison/) on PATH" },
-    @{ Names = @('win_bison', 'bison'); Hint = "bison - win_bison.exe from winflexbison (https://sourceforge.net/projects/winflexbison/) on PATH" }
+    @{ Names = @('meson');              Hint = "Meson - py -m pip install meson, or libraries\get-libpq-tools.ps1" },
+    @{ Names = @('ninja');              Hint = "Ninja - py -m pip install ninja, or libraries\get-libpq-tools.ps1" },
+    @{ Names = @('win_flex', 'flex');   Hint = "flex - win_flex.exe from winflexbison (https://sourceforge.net/projects/winflexbison/) on PATH, or libraries\get-libpq-tools.ps1" },
+    @{ Names = @('win_bison', 'bison'); Hint = "bison - win_bison.exe from winflexbison (https://sourceforge.net/projects/winflexbison/) on PATH, or libraries\get-libpq-tools.ps1" }
 )
 
 foreach ($tool in $tools)

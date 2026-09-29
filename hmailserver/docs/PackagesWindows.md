@@ -3,26 +3,34 @@ Windows installers in CI
 
 Every protected pipeline builds both Windows installers on bench150: master, a
 `batch*` branch and a `v*` tag. The x64 installer is the one every release has
-carried. The ARM64 installer is for Windows on ARM. Both are built unsigned and
-kept as the job's artifact. The jobs are in `.gitlab/ci/packages-windows.yml`,
-which `.gitlab-ci.yml` includes.
+carried. The ARM64 installer is for Windows on ARM, and from 6.3.6 a release
+carries it too ([Signing, and the release](#signing-and-the-release)). Both are
+built unsigned and kept as the job's artifact. The jobs are in
+`.gitlab/ci/packages-windows.yml`, which `.gitlab-ci.yml` includes.
 
-**Both jobs have run on bench150; only the x64 one has built an installer.**
-They were written and parse-checked on 26 September 2026 on the maintainer's
-laptop ([What was run, and the result](#what-was-run-and-the-result)), and first
-ran in `batch41`'s pipelines on 27 September
+**Both jobs have built their installer on bench150, and both count.** They were
+written and parse-checked on 26 September 2026 on the maintainer's laptop
+([What was run, and the result](#what-was-run-and-the-result)), and first ran
+in `batch41`'s pipelines on 27 September
 ([What the pipelines ran](#what-the-pipelines-ran)): `windows-packages-x64`
-built `hMailServer-6.3.5-70eb52b9-x64.exe` in pipeline 2887115157, and
-`windows-packages-arm64` stopped at its toolchain check, on a report that was
-the check's own fault.
+built `hMailServer-6.3.5-70eb52b9-x64.exe` in pipeline 2887115157 and has
+passed every time it ran since (four pipelines; in five others it was cancelled
+or skipped with the pipeline), and `windows-packages-arm64` stopped at its
+toolchain check, on a report that was the check's own fault, up to 6.3.5's tag
+pipeline. With the check corrected (batch42), the ARM64 job's own script ran
+whole by hand on bench150 as LocalSystem on 29 September 2026 and built the
+ARM64 installer, every native file in it an ARM64 image but Microsoft's ARM64EC
+`vcruntime140_1.dll`, which the check allows
+([What was run by hand on bench150](#what-was-run-by-hand-on-bench150)).
+Neither job may fail now.
 
 What each job makes
 -------------------
 
 | Job | Runs on | Makes | Fails the pipeline |
 |---|---|---|---|
-| `windows-packages-x64` | bench150 (shell, pwsh), stage `release`, after `windows-gate` and `windows-dotnet` (and `windows-installer` on a tag) | the x64 server, tools, Control Panel and installer | yes, except exit 2 (Inno Setup missing), allowed for now (see below) |
-| `windows-packages-arm64` | bench150, the same | the ARM64 server, tools, Control Panel and installer, and the ARM64 libraries once | no, `allow_failure: true` for now (see below) |
+| `windows-packages-x64` | bench150 (shell, pwsh), stage `release`, after `windows-gate` and `windows-dotnet` (and `windows-installer` on a tag) | the x64 server, tools, Control Panel and installer | yes |
+| `windows-packages-arm64` | bench150, the same, and after `windows-packages-x64` | the ARM64 server, tools, Control Panel and installer; the ARM64 libraries and libpq's build tools once | yes |
 
 Each job builds in the runner's own checkout of the commit, as `windows-dotnet`
 does. It does not use the bench's checkout (`C:\bench\hmailserver`), where
@@ -39,29 +47,32 @@ the gate, or on a tag the release's installer, give up with exit 10. So both job
 need `windows-gate` and `windows-dotnet`, and on a `v*` tag `windows-installer`
 (an optional need, because that job is only in a tag's pipeline). A job can only
 need jobs of its own or an earlier stage, which is why they are in the `release`
-stage. The `release` job does not need them, so they add no wait to a release. A
-failed gate or .NET job means no installer from that pipeline.
+stage. On a `v*` tag the `release` job needs `windows-packages-arm64`, whose
+installer it collects, and so waits for both builds; `release` is started by
+hand after every gate in any case. A failed gate or .NET job means no installer
+from that pipeline.
 
 The ARM64 job also needs `windows-packages-x64`. Side by side, whichever job took
 the lock second would wait for the other's whole build, and the ARM64 job's first
-run, with its libraries, may take longer than the 90 minutes the x64 job waits. An
-x64 job that stopped with the allowed exit 2 still lets the ARM64 job run; an x64
-build that failed any other way means no ARM64 build in that pipeline.
+run, with its libraries, may take longer than the 90 minutes the x64 job waits. A
+failed x64 build means no ARM64 build in that pipeline.
 
 They wait up to 90 minutes for the lock, and the job timeout is 4 hours, the
 runners' own `maximum_timeout`. A longer `timeout:` would be cut to 4 hours, and
 the script's own stop (`RUNNER_SCRIPT_TIMEOUT`, 3h50m) has to come before it so that
 `after_script` still releases the lock.
 
-`windows-packages-x64` is allowed to fail with exit 2 only, the exit of its third
-step when Inno Setup 6 is missing. Exit 2 shows as a warning; every other failure
-still fails the pipeline, as the version check's exit 4 did in pipeline
-2886955494. The allowance was made while bench150 had no Inno Setup for the
-machine. It has had one since 26 September 2026 (ContinuousIntegration.md,
-bench150), and the job passed with it in pipeline 2887115157, so the condition
-for removing the `allow_failure` - Inno Setup installed and one run passed - is
-met; removing it is a change to `.gitlab/ci/packages-windows.yml` still to make
-([What the owner must do](#what-the-owner-must-do), 4).
+Neither job is allowed to fail. `windows-packages-x64` was allowed exit 2, the
+exit of its third step when Inno Setup 6 is missing, while bench150 had no Inno
+Setup for the machine; it has had one since 26 September 2026
+(ContinuousIntegration.md, bench150), the job has passed with it every time it
+ran since 2887115157, and the allowance was removed on 29 September 2026.
+`windows-packages-arm64` was `allow_failure: true` until one run had passed;
+its script passed by hand on bench150 as LocalSystem the same day, and that
+allowance was removed with the other. A `v*` tag's release collects the ARM64
+installer, so `build/check-release-chain.py` holds the ARM64 job to it: `release`
+must need it, not optionally, with its artifacts, and it may not be allowed to
+fail or wait for a press in a tag's pipeline.
 
 Both jobs run `build/ci/packages/windows-packages.ps1 -Platform x64|ARM64`. In
 order, it does the following. Any failed step stops the job with an exit code
@@ -109,9 +120,10 @@ successful pipeline's artifacts for each ref):
 - `SHA256SUMS` and `build-info.txt`. The second records the commit, the Visual
   Studio version, ISCC, the .NET SDK, the library versions and folder, and the
   Authenticode status, which is always unsigned.
-- ARM64 only, `lockfiles/`: any `packages.arm64.lock.json` that the first ARM64
+- ARM64 only, `lockfiles/`: any `packages.arm64.lock.json` that an ARM64
   publish created and the repository does not have yet, to be committed
-  (WindowsOnArm.md).
+  (WindowsOnArm.md). The repository has one for each of the seven projects the
+  ARM64 publish restores, and the run of 29 September 2026 created none.
 - `logs/` (`build.ps1`'s MSBuild log) and `libraries/build-*-arm64.log`.
 
 Each installer is about 100 MB, because it carries its .NET Desktop Runtime. Two
@@ -123,10 +135,15 @@ project's own runner. No hosted runner is used, and GitLab has no hosted Windows
 ARM runner.
 
 The update checker is unchanged. A Windows server looks for
-`hMailServer-<version>-x64.exe`, or `-arm64.exe` on ARM64 (`UpdateChecker.cpp`),
-in a release. These jobs make exactly those names for a tag. The distro-specific
-Linux names of the other package jobs are not something the update checker
-knows about. Making it distro-aware is a later row.
+`hMailServer-<version>-x64.exe`, or `-arm64.exe` on ARM64 (`UpdateChecker.cpp`,
+`PlatformInstallerName_`, chosen when the server is compiled), in a release.
+These jobs make exactly those names for a tag. An x64 server therefore never
+takes the ARM64 installer, which is a file of its own in the release and in the
+feed (`build/generate-update-feed.py`'s `installer_names`), and the site's
+download names follow each by its own name: `/download/hMailServer-x64.exe` and
+`/download/hMailServer-arm64.exe`. The distro-specific Linux names of the other
+package jobs are not something the update checker knows about. Making it
+distro-aware is a later row.
 
 The ARM64 toolchain
 -------------------
@@ -224,9 +241,32 @@ with the ARM64 tools installed:
 
 That downloads from Debian too, and holds the archive to the pinned SHA-256.
 
-Boost comes from archives.boost.io and PostgreSQL from ftp.postgresql.org. libpq
-also needs Strawberry Perl, Meson, Ninja, `win_flex` and `win_bison` on the
-bench's PATH, and `build-pgsql.ps1` names each one that is missing.
+Boost comes from archives.boost.io and PostgreSQL from ftp.postgresql.org.
+
+libpq's build also needs Perl, Python with Meson and Ninja, and `win_flex` and
+`win_bison`. Perl is Strawberry Perl, 5.42.2 on bench150 in `C:\Strawberry`,
+which `libraries\build-common.ps1` finds there without the PATH. The others
+were on no PATH the runner sees: its PATH is the `gitlab-runner` service's own
+(ContinuousIntegration.md, "bench150"), and a change to the machine PATH does
+not reach it. So when any of them is not on PATH, the job runs
+`libraries\get-libpq-tools.ps1 -Into C:\bench\hMailLibs-arm64\tools`, which
+downloads each of these, holds it to the SHA-256 the script pins, unpacks it
+there and installs nothing, and puts the folders ahead on PATH for the
+libraries' builds alone:
+
+| Tool | From | Pinned SHA-256 |
+|---|---|---|
+| Python 3.14.7 | nuget.org, `python.3.14.7.nupkg`: the Python Software Foundation's whole interpreter for build machines; nuget.org states its SHA-512 | `46a4da5529a92d18ff894911f6e6033a8253198d705b8161bf28c9123c87d46b` |
+| Meson 1.11.1 | PyPI, `meson-1.11.1-py3-none-any.whl`, installed with pip from the file (`--no-index --no-deps`) | `9b3a023657e393dbc5335b95c561337d49b7a458f5541e47ec44f2cc566e0d80` |
+| Ninja 1.13.2 | PyPI, `ninja-1.13.2-py3-none-win_amd64.whl`, the same way | `1293f4078278b70d0ee4b6cc8f3a9e030656c9b2f59909970343c4fe76070118` |
+| winflexbison 2.5.24 (win_flex 2.6.4, win_bison 3.7.4) | SourceForge, `win_flex_bison-2.5.24.zip`; SourceForge states its MD5 | `39c6086ce211d5415500acc5ed2d8939861ca1696aee48909c7f6daf5122b505` |
+
+Meson 1.11.1 is the version libpq's ARM64 build was first made with, on
+26 September 2026. winflexbison's later 2.5.25 is published on GitHub only.
+`get-libpq-tools.ps1` keeps a folder whose `tools.txt` names the same pins and
+makes it again when a pin changes; `build-pgsql.ps1` names it in the hint for
+each tool it finds missing. A developer can run it too, or install the tools as
+the README says.
 
 The check of what the installer carries
 ---------------------------------------
@@ -277,34 +317,49 @@ Two findings from building this check, both against real files:
   an x64-marked assembly in the ARM64 installer, so a wrapper made the old way
   fails the job with exit 6.
 
-Signing
--------
+Signing, and the release
+------------------------
 
 Signing stays in the release chain. The jobs here build unsigned installers for
 every protected pipeline. Only a release's installers are signed, by
-`release-authenticode`, once a maintainer starts the release. Wiring the ARM64
-installer into a release is the integrator's job. It needs these changes:
+`release-authenticode`, once a maintainer starts the release. From 6.3.6 a
+`v*` tag's release carries the ARM64 installer beside the x64 one, done on
+29 September 2026 in these places:
 
-1. `build/ci/release-chain.py`:
-   - `expected_assets()` gains `names["windows-arm64"]`;
-   - `sources()` maps it to `packages-windows/arm64/hMailServer-<version>-arm64.exe`
-     (the x64 one stays `release-windows/`, from `windows-installer`).
-2. `.gitlab-ci.yml`:
-   - `release` needs `windows-packages-arm64` with `artifacts: true`;
-   - `windows-packages-arm64` loses `allow_failure`;
-   - `build/check-release-chain.py` currently reads `.gitlab-ci.yml` alone and
-     has to follow the include.
+1. `build/ci/release-chain.py`: `compiled_assets()` carries
+   `hMailServer-<version>-arm64.exe` after the x64 installer, and `collect`
+   takes it from `windows-packages-arm64`'s artifact,
+   `packages-windows/arm64/`, held to the `SHA256SUMS` that job wrote (the x64
+   one stays `release-windows/`, from `windows-installer`). Like the x64 one it
+   is not in the release's Linux sums, since Authenticode changes its bytes
+   after `collect`. `sbom` makes its SBOM,
+   `hMailServer-<version>-arm64.exe.cdx.json`, from the signed bytes with
+   `build/asset-sbom.py`'s `windows-arm64` kind and `linux-sbom`'s
+   `native-dependencies-arm64.json`; `publish` requires the feed to give an
+   ARM64 Windows server its file and bundle. A release is 60 files and 154
+   links.
+2. `.gitlab-ci.yml`: `release` needs `windows-packages-arm64` with
+   `artifacts: true` and keeps `native-dependencies-arm64.json` in
+   `release-tools/`; `windows-packages-arm64` has no `allow_failure`.
 3. `release-authenticode`: a second `windows-authenticode.ps1` call, after the
-   x64 one:
+   x64 one, when that one has signed:
 
        -Installer "release-assets\hMailServer-$version-arm64.exe" -OutDir release-authenticode-arm64
 
-   It needs its own `-OutDir`, because the script empties its `-OutDir` first.
+   It has its own `-OutDir`, because the script empties its `-OutDir` first.
    The job exits with the first non-zero code of the two, and
-   `release-authenticode-arm64/` joins its artifacts.
-4. `build/ci/release-sign.sh`: copy the signed ARM64 installer over the unsigned
-   one, as it does for x64, with the same "not byte for byte the unsigned one"
-   check. Then cosign signs it with the rest.
+   `release-authenticode-arm64/` is among its artifacts.
+4. `build/ci/release-sign.sh`: takes each installer signed from its own folder,
+   with the same "not byte for byte the unsigned one" check, holds each
+   installer's SBOM and the provenance's statement to its signed SHA-256, and
+   cosign signs both with the rest (60 files); `release-verify.sh` counts 60
+   files and 27 SBOMs.
+5. The rehearsal on a `batch*` branch (`.gitlab/ci/release-rehearsal.yml`)
+   needs `windows-packages-arm64` too and collects its commit-stamped
+   installer under the release's name.
+
+`build/check-release-chain.py` reads `packages-windows.yml` and holds every one
+of those places, with a negative control for each in its `--self-test`.
 
 For a tag, `windows-packages-x64` builds the same x64 installer as
 `windows-installer`, which builds it in the bench's checkout after the gate.
@@ -314,29 +369,42 @@ retire `windows-installer` in favour of `windows-packages-x64` (and drop
 integrator's and the owner's choice. Keeping both costs one more x64 build under
 the lock in a release pipeline.
 
-What the owner must do
-----------------------
+What was the owner's to do, and where it stands
+-----------------------------------------------
 
-1. **The ARM64 toolchain on bench150.** Its Build Tools 18.10 instance has the
-   ARM64 tools and ATL for ARM64: pipeline 2887115157's check found both
-   components and every compiler and library file. It reported the ARM64 C++
-   runtime missing, which was the check's own fault (*Finding the runtime*, in
-   [The ARM64 toolchain](#the-arm64-toolchain)), so whether bench150 has it is
-   for the next run of `windows-packages-arm64` to say. If that run names
-   something, run, from an elevated prompt, the command it prints with the
-   instance's path.
-2. Land the GitLab sweep's `build-openssl.ps1` (Debian's archive), or put the
-   ARM64 OpenSSL into `C:\bench\hMailLibs-arm64` by hand (see
-   [The ARM64 libraries](#the-arm64-libraries)).
-3. Make sure bench150 has what `build-pgsql.ps1` needs on the runner's (the
-   service's) PATH: Strawberry Perl, Meson, Ninja, `win_flex` and `win_bison`.
-   It has to be the machine PATH, because the runner is LocalSystem.
-4. Inno Setup 6 installed for the machine: done on 26 September 2026, and
-   `windows-packages-x64` passed with it in pipeline 2887115157. What is left
-   of this item is to remove that job's `allow_failure: exit_codes: [2]`.
-5. After the first ARM64 run, commit the `lockfiles/` from its artifact.
-6. When one ARM64 run has passed, remove `allow_failure: true` from
-   `windows-packages-arm64`.
+Every item of this list is done; none of them needed the owner in the end.
+
+1. **The ARM64 toolchain on bench150.** Done: nothing was missing. Its Build
+   Tools 18.10 instance has the ARM64 tools, ATL for ARM64 and the ARM64 C++
+   runtime (`VC\Redist\MSVC\14.51.36231\arm64\Microsoft.VC145.CRT`), and the
+   Windows SDK 10.0.26100.0 its ARM64 libraries: the corrected check exited 0
+   there as LocalSystem on 29 September 2026. Pipeline 2887115157's report of a
+   missing runtime was the check's own fault (*Finding the runtime*, in
+   [The ARM64 toolchain](#the-arm64-toolchain)).
+2. **The ARM64 OpenSSL.** Done: `build-openssl.ps1` takes OpenSSL's release
+   archive from Debian's, and the job built OpenSSL 4.0.2 into
+   `C:\bench\hMailLibs-arm64` on 29 September 2026.
+3. **libpq's build tools.** Done in the tree, not on the machine:
+   `get-libpq-tools.ps1` fetches Python, Meson, Ninja and winflexbison into the
+   library cache, each held to its pin ([The ARM64 libraries](#the-arm64-libraries)).
+   The runner's PATH is its service's own, which a machine PATH change does not
+   reach, so installing them on the machine PATH would not have been enough.
+   Strawberry Perl was on bench150 already.
+4. **Inno Setup 6 for the machine.** Done on 26 September 2026, and
+   `windows-packages-x64` has passed with it every time it ran since
+   2887115157; its `allow_failure: exit_codes: [2]` is removed.
+5. **The ARM64 lock files.** Nothing to commit: the repository has
+   `packages.arm64.lock.json` for all seven projects the ARM64 publish
+   restores, and the run of 29 September 2026 created none.
+6. **`allow_failure: true` on `windows-packages-arm64`.** Removed, the ARM64
+   job's script having passed on bench150.
+7. **Nothing from GitHub on bench150.** Done by the maintainers on
+   29 September 2026: its hosts file sends GitHub's six hosts to `0.0.0.0` and
+   `::` (ContinuousIntegration.md, "bench150"), and both jobs' scripts built
+   their installers afterwards.
+
+What only the owner can give is an ARM64 Windows machine, for WindowsOnArm.md's
+"What a first run on ARM64 hardware has to show".
 
 What the first run must confirm
 -------------------------------
@@ -349,8 +417,10 @@ installer with the libraries of `C:\Dev\hMailLibs`, the files
 whole job in under six minutes where an hour was estimated (whether the
 server's 3 min 47 s reused objects of the checkout's earlier builds was not
 looked at); and GitLab saw the script's own exit code, failing pipeline 2886955494 on the
-x64 job's exit 4 while `allow_failure: exit_codes: [2]` stood. Everything ARM64
-past the toolchain check is still as written:
+x64 job's exit 4 while `allow_failure: exit_codes: [2]` stood. The ARM64 ones
+past the toolchain check were shown by hand on bench150 on 29 September 2026
+([What was run by hand on bench150](#what-was-run-by-hand-on-bench150)); each
+item says what came of it:
 
 - The runner checkout on bench150 builds the x64 server from clean with only
   `C:\Dev\hMailLibs` and `get-installer-binaries.ps1`. That includes the ADO
@@ -360,25 +430,31 @@ past the toolchain check is still as written:
   as LocalSystem. `Find-MsBuild` asks vswhere without `-prerelease`, so a Visual
   Studio Insiders instance is not used.
 - `build.ps1 -Platform ARM64`, `build-tools.ps1 -Platform ARM64` and
-  `hMailServerARM64.iss` have never been run anywhere (WindowsOnArm.md).
-  Neither have the three `-Platform ARM64` library builds, including libpq's
-  Meson cross file.
+  `hMailServerARM64.iss` had been run on the laptop only (WindowsOnArm.md), and
+  the three `-Platform ARM64` library builds, with libpq's Meson cross file,
+  there too. **Shown on bench150 as LocalSystem**: all of them, in the job's
+  own script, from a clean checkout.
 - The win-arm64 runtime packs are restored from nuget.org, and the ARM64
-  publish creates its lock files without failing the restore.
+  publish creates its lock files without failing the restore. **Shown**: the
+  restore took the committed `packages.arm64.lock.json` files, created none and
+  changed no tracked file.
 - The x64 build takes about an hour in a clean checkout. The ARM64 libraries add
   about an hour the first time (WindowsOnArm.md's estimates: 15 to 25, 5 to 15
-  and 3 to 10 minutes). Both are estimates.
+  and 3 to 10 minutes). **Measured**: the ARM64 OpenSSL took 17 minutes on
+  bench150, Boost 2, and libpq with its tools under 1; the rest of the ARM64
+  job, the server, the tools and the installer, about 5.
 - The job timeouts (4 hours, up to 90 minutes of it waiting for the lock) fit the
-  ARM64 job's first run, which builds its libraries too.
-- `allow_failure: exit_codes: [2]` sees the script's own exit code. The job's
-  script ends with `exit $code` under the runner's pwsh, and GitLab documents
-  exit codes for shell executors, but no job of this project has relied on it yet.
+  ARM64 job's first run, which builds its libraries too. **Shown**: the first
+  run's libraries and build take under half an hour.
+- `allow_failure: exit_codes: [2]` sees the script's own exit code. GitLab did,
+  failing pipeline 2886955494 on exit 4; the allowance is gone now.
 - `GIT_CLEAN_FLAGS` keeps the two .NET runtime installers between jobs. It was
   checked with git itself, not with the runner.
 - No file in the x64 or ARM64 set other than `vcruntime140_1.dll` needs
-  `-Allow`. The x64 set of the laptop's existing build passed (below). The
-  ARM64 publish's NuGet dependencies, for example SqlClient's SNI, have not
-  been seen.
+  `-Allow`. **Shown** for the ARM64 set on bench150: 75 images, 74 of them the
+  processor's or AnyCPU and `vcruntime140_1.dll` allowed; the ARM64 publish's
+  NuGet dependencies are ARM64 or AnyCPU; none of the packed tools carries
+  SqlClient's SNI.
 
 What was run, and the result
 ----------------------------
@@ -442,6 +518,76 @@ gone on refusing after the sweep, because it only understood a quoted `$tarUrl`
 assignment. The CI file was loaded again with the include and `extends` resolved.
 GitLab's CI lint was still not run, and neither job had run on bench150 then.
 
+What was run by hand on bench150
+--------------------------------
+
+On 29 September 2026, `build/ci/packages/windows-packages.ps1 -Platform ARM64
+-OutDir <clone>\packages-windows\arm64 -LibsDir C:\bench\hMailLibs-arm64`, the
+job's own command, as the runner would run it: as LocalSystem, from a scheduled
+task that runs once as `NT AUTHORITY\SYSTEM` (`C:\bench\w31\w31-run.ps1`), with
+the `gitlab-runner` service's own `PATH` (PowerShell 7 and the machine PATH),
+`CI_COMMIT_SHA` set to the commit and `GIT_TERMINAL_PROMPT=0`,
+`GCM_INTERACTIVE=Never` and `MSBUILDDISABLENODEREUSE=1` as the job sets them,
+in a clone of the agent's own in `C:\bench\w31\hmailserver` - never the bench's
+checkout - cleaned as the runner cleans (`git clean -ffdx`, keeping the .NET
+runtimes), and under the gate lock (holder `w31-agent`), taken before the
+checkout and released after the build. The bench's hMailServer service was not
+touched.
+
+- **Run 1, at `07af4cc12` (batch42 as it was), 14:27-14:50 UTC.** The toolchain
+  check passed as LocalSystem: Build Tools 18.10.12210.168 with MSBuild, the
+  x64 and ARM64 tools and ATL for ARM64, toolset 14.51.36231 with the ARM64
+  C++ runtime at `VC\Redist\MSVC\14.51.36231\arm64\Microsoft.VC145.CRT`, and
+  Windows SDK 10.0.26100.0 with its ARM64 libraries. The ARM64 OpenSSL 4.0.2
+  was built from Debian's archive (17 minutes) and Boost 1.92.0 (2 minutes)
+  into the cache; libpq stopped with exit 3, "meson was not found on PATH".
+  That is what `get-libpq-tools.ps1` is for ([The ARM64 libraries](#the-arm64-libraries)).
+- **Run 2** stopped in seconds on the agent's own mistake: its configuration
+  file gave the library folder with a JSON escape (`\b`) in it. Nothing was
+  built; its wrapper refuses such a configuration now.
+- **Run 3, at `f494bdb13`, 14:52-14:59 UTC: passed, exit 0, in 6.6 minutes.**
+  OpenSSL and Boost came from the cache; `get-libpq-tools.ps1` fetched Python
+  3.14.7, Meson 1.11.1, Ninja 1.13.2 and winflexbison 2.5.24, each to its pin,
+  and libpq 18.3 was built for ARM64 against the ARM64 OpenSSL; the three
+  cached DLLs are ARM64 images. Then the third-party files (the ARM64 C++
+  runtime from Visual Studio, 7-Zip's ARM64 console), the server (Release,
+  ARM64), the tools and the Control Panel published for `win-arm64`, the ARM64
+  .NET Desktop Runtime, both pinned placements checked, no tracked file
+  changed, and ISCC. `check-pe-machine.ps1` over what `hMailServerARM64.iss`
+  packs: 75 PE images - 24 ARM64 native, 11 ARM64 .NET assemblies, 39 AnyCPU
+  .NET assemblies, all right, and `vcruntime140_1.dll`, ARM64EC, allowed as
+  above - and 634 other files; the .NET runtime installer (`{tmp}`) is held to
+  its pin instead. Every native file the installer carries is an `AA64` image
+  but that one. The installer: `hMailServer-6.3.5-f494bdb1-arm64.exe`,
+  79,710,290 bytes, SHA-256
+  `7efc687e3e30185766b4cf3e6503b6a02a32249782153b102ded98f952108bdc`, version
+  resource 6.3.5.0, unsigned by design. It was not run: bench150 is x64.
+
+Run 3 also showed a fault of the script, fixed in `0644d4157`: its Boost step
+named a variable `$tag`, which PowerShell reads as the script's `-Tag`
+parameter, so every ARM64 run's `build-info.txt` said `ref tag vc145`, and the
+checks for a tag's installer ran on a branch's.
+
+- **Run 4, the x64 job's script at `0644d4157`, 16:45-16:51 UTC: passed, exit
+  0, in 5.9 minutes**, with `-LibsDir C:\Dev\hMailLibs` as `windows-packages-x64`
+  gives it: `hMailServer-6.3.5-0644d415-x64.exe`, 88,353,129 bytes, SHA-256
+  `35ca8c2ef2b4169fd46171c735f8b1348869886b93eff9d7a7c58a68d814db4a`;
+  `check-pe-machine.ps1`: 85 PE images, all right.
+- **Run 5, the ARM64 job's script at `0644d4157`, 16:51-16:57 UTC: passed, exit
+  0, in 5.6 minutes**, the three libraries and libpq's tools from the cache:
+  `hMailServer-6.3.5-0644d415-arm64.exe`, 79,733,197 bytes, SHA-256
+  `3c5ef18501957fe9564803e9d1bc8e2c61f045dd214344a8898bb6f5f3c77a81`;
+  `check-pe-machine.ps1`: 75 PE images, 74 right and `vcruntime140_1.dll`
+  allowed, as in run 3; `build-info.txt` says `ref branch b42-win-arm64`.
+
+The hosts file's block of GitHub (ContinuousIntegration.md, "bench150") was
+written at 14:43 UTC, during run 1: Boost's archive, everything runs 3 and 5
+fetched, and everything the x64 build of run 4 fetched - the third-party files
+from the project's package registry and 7-zip.org, the NuGet packages, the .NET
+runtime - came through with it in place. The bench's hMailServer service was
+running throughout and was not stopped: `build.ps1` builds with the projects'
+pre- and post-build events off.
+
 What the pipelines ran
 ----------------------
 
@@ -465,7 +611,13 @@ What the pipelines ran
   file, and Windows SDK 10.0.26100.0 with its ARM64 libraries - and the ARM64
   C++ runtime reported missing, which the check could not have found anywhere
   ([The ARM64 toolchain](#the-arm64-toolchain)).
-- **2887524317 (`63d58f8a6`).** Both jobs were waiting for `windows-gate`
-  when this was written, on 28 September 2026 at 00:40 UTC.
+- **2887524317 (`63d58f8a6`, 28 September 2026).** `windows-packages-x64`
+  passed in 687 s; `windows-packages-arm64` stopped at the toolchain check
+  after 28 s, as in 2887115157.
+- **The pipelines after it, to 6.3.5.** `windows-packages-x64` passed in each -
+  batch41's 2891564033 (504 s), 6.3.5's tag pipeline 2892097590 (472 s) and
+  master's 2892849251 (426 s) - and `windows-packages-arm64` stopped at the
+  toolchain check in each, allowed to fail, 18 to 26 s.
 
-No ARM64 library, server or installer has been built by a pipeline yet.
+No ARM64 library, server or installer has been built by a pipeline yet; the
+first is the next protected pipeline with this check and these jobs in it.
