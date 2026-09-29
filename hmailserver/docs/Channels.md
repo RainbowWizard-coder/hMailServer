@@ -113,8 +113,11 @@ release's pipeline pushes it ([ContainerImage.md](ContainerImage.md)).
 - **What it verifies.** `:<version>` is resolved to its digest; then, by that
   digest, `cosign verify` of the image's signature and `cosign verify-attestation
   --type cyclonedx` of its SBOM, both as the tag's pipeline (the identities above),
-  and the project's id in the signing certificate, read from cosign's signature
-  manifest (`sha256-<digest>.sig`).
+  and the project's id in the signing certificate, read from its extensions
+  (`build/ci/sigstore-certificate.py`) in cosign's signature manifest
+  (`sha256-<digest>.sig`), whose every certificate naming the identity must carry
+  it, and which is refused where Go's JSON reader, cosign's, would read it
+  otherwise.
 - **What it copies.** `regctl image copy --digest-tags --referrers` of the source by
   its digest, so cosign's `.sig` and `.att` beside the image, and beside each
   platform's manifest of a multi-platform image, go with it. It copies to

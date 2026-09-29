@@ -169,7 +169,25 @@ refuses it. This checker holds them to each other. It fails when:
     --rehearse and release-verify.sh --rehearse; holds an ID token but Sigstore's in
     its signing job, or names the job token, the registry or publish; or the scripts
     sign as a branch other than in their rehearsal, or as one that is not a protected
-    batch* branch, or release-chain.py takes --rehearse with publish or gather.
+    batch* branch, or release-chain.py takes --rehearse with publish or gather;
+  * a Fulcio certificate's field is read by searching the certificate's bytes, which
+    its public key - bytes its holder chooses - can fill with whatever is searched
+    for: release-verify.sh must read the installer's repository id
+    (1.3.6.1.4.1.57264.1.15) with build/ci/sigstore-certificate.py, and
+    container-image-deb.sh, in cosign's image without Python, with its shell twin
+    build/ci/sigstore-certificate.sh; both readers must answer every case of
+    sigstore-certificate.py's own (this project's id planted in a key in front of the
+    extension naming another, 6.3.3's real Fulcio certificate so planted, the
+    extension twice or holding anything but one UTF8String, a certificate cut short,
+    a length DER would write shorter, and bundles whose chain's first certificate -
+    the one cosign verifies - is spelled so that a count of "rawBytes" misses it,
+    its second carrying this project's id) as the cases say, the shell one under sh here
+    (a CI job without sh fails); and no file of build/ or .gitlab/ but those two may
+    hold the Sigstore OID arc 1.3.6.1.4.1.57264 as bytes - as hex in any spelling,
+    as decimal numbers, or as the base64 of a certificate that holds it; and
+    container-image-deb.sh must refuse a cosign without verify-blob
+    --new-bundle-format, which alone reads the bundle strictly enough for the shell
+    reader's one certificate to be the one cosign verified.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -848,6 +866,12 @@ def check(texts, chain, feed):
             problems.append("build/ci/release-sign.sh no longer has %s (%s)" % (needle, why))
     if "python3 build/asset-sbom.py verify \"$file.cdx.json\" \"$file\"" not in texts["verify"]:
         problems.append("build/ci/release-verify.sh no longer holds each compiled file's SBOM to the file (build/asset-sbom.py verify)")
+    for needle, why in (('said=$(python3 build/ci/sigstore-certificate.py repository-id "$signed/$installer.cosign.bundle")',
+                         "the installer's repository id read from its certificate's extensions"),
+                        ("  id=86730559) id_row=", "the id this project's")):
+        if needle not in texts["verify"]:
+            problems.append("build/ci/release-verify.sh no longer has %s (%s), which build/ci/sigstore-certificate.py reads "
+                            "from the certificate's extensions and not from its bytes" % (needle, why))
     if "sbom_problems(assets, version)" not in function_text(texts["chain"], "publish"):
         problems.append("build/ci/release-chain.py's publish no longer holds each compiled file's SBOM to its file before it uploads")
 
@@ -1091,9 +1115,14 @@ def check(texts, chain, feed):
                         "it would push from the project's first path, whose image changes its address with the move")
     fetch = texts["image-deb"]
     for needle, why in (('cosign verify-blob $verify_flags --bundle "$out/$name.cosign.bundle"', "each file verified against its bundle"),
+                        ("  || fail \"this cosign has no verify-blob --new-bundle-format", "the bundle read strictly, as the "
+                         "shell reader's reading of the certificate cosign verified needs: never the old format's cert"),
+                        ('verify_flags="--new-bundle-format"', "the bundle read strictly"),
                         ('--certificate-identity "$candidate" --certificate-oidc-issuer "$issuer"', "as this project's pipeline"),
                         ('candidate="$repository//.gitlab-ci.yml@refs/tags/$tag"', "for this tag"),
-                        ("040a0c083836373330353539", "the project's id in the certificate"),
+                        ('said=$(sh build/ci/sigstore-certificate.sh repository-id "$out/$name.cosign.bundle")',
+                         "the project's id read from the certificate's extensions"),
+                        ('"id=$project_id") id_said="$project_id" ;;', "the project's id in the certificate"),
                         ('https://gitlab.com/hmailserver/hmailserver//*) fail', "the id required at the group's path"),
                         ('for name in "$deb" "$deb.cdx.json"; do', "the .deb and its SBOM"),
                         ('"$api/packages/generic/hmailserver/$version/$name"', "from the release's own files")):
@@ -1591,6 +1620,69 @@ def check(texts, chain, feed):
     if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
         problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
     return problems, notes
+
+
+# The readers of a Fulcio certificate's fields (1.3.6.1.4.1.57264.*), which no other file
+# of build/ or .gitlab/ may hold as bytes: one that does reads a field by searching.
+CERTIFICATE_READERS = ("build/ci/sigstore-certificate.py", "build/ci/sigstore-certificate.sh")
+
+
+def certificate_module():
+    return _load(os.path.join("build", "ci", "sigstore-certificate.py"), "sigstore_certificate")
+
+
+def certificate_problems(module, shell=None, script=None, answer_of=None, environ=None):
+    """(problems, notes): both certificate readers held to sigstore-certificate.py's cases."""
+    return module.reader_problems(shell, script or module.SHELL_READER, environ, answer_of)
+
+
+def scanned_texts():
+    """{path: text} of each text file of build/ and .gitlab/, and .gitlab-ci.yml."""
+    texts = {}
+    for name in tree_files():
+        if not (name.startswith(("build/", ".gitlab/")) or name == ".gitlab-ci.yml"):
+            continue
+        try:
+            with open(os.path.join(ROOT, name), "rb") as f:
+                texts[name] = f.read().decode("utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+    return texts
+
+
+def base64_runs(data):
+    """The base64 characters that data alone decides, at each of the three places a
+    run of bytes can start in base64: what a search of a certificate's base64 for data
+    would look for."""
+    runs = []
+    for shift in range(3):
+        text = base64.b64encode(bytes(shift) + data).decode("ascii")
+        first = -(-8 * shift // 6)
+        runs.append(text[first:(8 * (shift + len(data))) // 6])
+    return runs
+
+
+def byte_search_problems(texts):
+    """Each file of texts but the readers that holds the arc's DER OID element as far
+    as 57264 - the first ten bytes of the repository id's - as bytes: as hex, in
+    whatever spelling (its text with 0x, \\x and every character that is not a hex
+    digit taken out), as decimal numbers with anything but a digit between them, or as
+    the base64 of a certificate holding it. (None is written here, which would be a
+    file holding it.)"""
+    arc = certificate_module().REPOSITORY_ID_OID[:10]
+    prefix = arc.hex()
+    decimal = re.compile(r"(?<![0-9])0*" + r"[^0-9]{1,8}0*".join(str(b) for b in arc) + r"(?![0-9])")
+    runs = base64_runs(arc)
+    problems = []
+    for name, text in sorted(texts.items()):
+        if name in CERTIFICATE_READERS:
+            continue
+        if prefix in re.sub(r"0x|\\x|[^0-9a-f]", "", text.lower()) or decimal.search(text) \
+                or any(run in text for run in runs):
+            problems.append("%s holds the Sigstore OID arc 1.3.6.1.4.1.57264 as bytes: a certificate's field is read from "
+                            "its extensions, with build/ci/sigstore-certificate.py, never by searching its bytes, which "
+                            "its public key can fill" % name)
+    return problems
 
 
 def load_texts():
@@ -2121,6 +2213,91 @@ def self_test(chain, feed):
     patched("collect refusing the same bytes", "check_registry_before_signing",
             lambda api, version, digests: held_registry(api, version, dict((n, "f" * 64) for n in digests)), "collect refuses a registry holding the Linux files")
 
+    # The certificate readers: the tree's pass, and each reads a planted certificate
+    # wrongly once it searches the bytes.
+    module = certificate_module()
+    found, notes = certificate_problems(module)
+    if found:
+        failures.append("the certificate readers pass: %s" % found)
+    if any("no sh here" in n for n in notes):
+        print("NOTE: %s; the shell reader's negative control is skipped" % notes[0])
+
+    def searching(certificate):
+        """The reader release-verify.sh had: the OID's first place in the bytes."""
+        at = certificate.find(module.REPOSITORY_ID_OID)
+        if at < 0:
+            return "absent"
+        rest = certificate[at + len(module.REPOSITORY_ID_OID):]
+        rest = rest[3:] if rest[:1] == b"\x01" else rest
+        if rest[:1] != b"\x04" or rest[2:3] != b"\x0c":
+            return "refused"
+        return "id=" + rest[4:4 + rest[3]].decode("utf-8", "replace")
+    found, _ = certificate_problems(module, shell=False, answer_of=searching)
+    if not any("planted" in p for p in found):
+        failures.append("a Python reader that searches the certificate's bytes is caught: %s" % found)
+    if not any("no sh here" in n for n in notes):
+        work = tempfile.mkdtemp(prefix="hm-check-certificate-")
+        try:
+            searcher = os.path.join(work, "searching.sh")
+            with open(searcher, "w", encoding="utf-8", newline="\n") as f:
+                # The reader container-image-deb.sh had: the OID's first place in the hex.
+                f.write("set -eu\n"
+                        "raw=$(grep -o '\"rawBytes\": \"[^\"]*\"' \"$2\" | head -n 1 | cut -d'\"' -f4)\n"
+                        "hex=$(printf '%%s' \"$raw\" | base64 -d | od -An -tx1 -v | tr -d ' \\n')\n"
+                        "case \"$hex\" in\n"
+                        "  *%s*) rest=\"${hex#*%s}\"; rest=\"${rest#0101ff}\"\n"
+                        "    case \"$rest\" in\n"
+                        "      040a0c08%s*) echo id=%s ;;\n"
+                        "      *) echo 'refused: another id'; exit 1 ;;\n"
+                        "    esac ;;\n"
+                        "  *) echo absent ;;\n"
+                        "esac\n" % (module.REPOSITORY_ID_OID.hex(), module.REPOSITORY_ID_OID.hex(),
+                                     module.PROJECT_ID.encode().hex(), module.PROJECT_ID))
+            found, _ = certificate_problems(module, script=searcher)
+            if not any("sigstore-certificate.sh reads" in p and "planted" in p for p in found):
+                failures.append("a shell reader that searches the certificate's bytes is caught: %s" % found)
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+    empty = tempfile.mkdtemp(prefix="hm-check-no-sh-")
+    try:
+        found, _ = certificate_problems(module, environ={"CI": "true", "PATH": empty})
+    finally:
+        shutil.rmtree(empty, ignore_errors=True)
+    if not any("no sh" in p for p in found):
+        failures.append("a CI job without sh, where the shell reader is not held to the Python one, is caught: %s" % found)
+    scanned = scanned_texts()
+    if byte_search_problems(scanned):
+        failures.append("no file searches a certificate's bytes: %s" % byte_search_problems(scanned))
+    for what, text in (("as hex", 'oid=%s' % module.REPOSITORY_ID_OID.hex()),
+                       ("as a Python list", "oid = bytes([%s])" % ", ".join("0x%02X" % b for b in module.REPOSITORY_ID_OID)),
+                       ("as escapes", 'oid = b"%s"' % "".join("\\x%02x" % b for b in module.REPOSITORY_ID_OID)),
+                       ("as decimal od output", 'case "$bytes" in *"%s"*) ;; esac' % "   ".join(
+                           str(b) for b in module.REPOSITORY_ID_OID)),
+                       ("as a decimal Python list", "oid = bytes([%s])" % ", ".join(str(b) for b in module.REPOSITORY_ID_OID)),
+                       ("as the base64 of a certificate that holds it", 'case "$raw" in *%s*) ;; esac' % base64.b64encode(
+                           module.REAL_CERTIFICATE).decode()[module.REAL_CERTIFICATE.find(module.REPOSITORY_ID_OID) * 4 // 3 - 4:][:24]),
+                       ("as base64, a byte after a place base64 starts", 'grep -c %s' % base64.b64encode(
+                           b"\x01" + module.REPOSITORY_ID_OID).decode()[2:14]),
+                       ("  ... two bytes after", 'grep -c %s' % base64.b64encode(
+                           b"\x01\x02" + module.REPOSITORY_ID_OID).decode()[3:16])):
+        planted = dict(scanned, **{"build/ci/release-verify.sh": scanned["build/ci/release-verify.sh"] + "\n" + text + "\n"})
+        if not any("release-verify.sh holds the Sigstore OID arc" in p for p in byte_search_problems(planted)):
+            failures.append("the OID's bytes %s in release-verify.sh are caught" % what)
+    broken("release-verify.sh reading the id by itself", "verify",
+           'said=$(python3 build/ci/sigstore-certificate.py repository-id "$signed/$installer.cosign.bundle")',
+           'said=$(python3 - "$signed/$installer.cosign.bundle" < /dev/null)', "release-verify.sh no longer has said=")
+    broken("release-verify.sh taking any id", "verify", "  id=86730559) id_row=", "  id=*) id_row=", "the id this project's")
+    broken("container-image-deb.sh reading the id by itself", "image-deb",
+           'said=$(sh build/ci/sigstore-certificate.sh repository-id "$out/$name.cosign.bundle")',
+           'said=$(od -An -tx1 "$out/$name.cosign.bundle")', "the project's id read from the certificate's extensions")
+    broken("container-image-deb.sh taking any id", "image-deb", '"id=$project_id") id_said="$project_id" ;;',
+           'id=*) id_said="$project_id" ;;', "the project's id in the certificate")
+    broken("container-image-deb.sh verifying a bundle of the old format", "image-deb", 'verify_flags="--new-bundle-format"',
+           'verify_flags=""', "the bundle read strictly")
+    broken("container-image-deb.sh going on with a cosign that has no --new-bundle-format", "image-deb",
+           "  || fail \"this cosign has no verify-blob --new-bundle-format", "  || true \"this cosign has no verify-blob "
+           "--new-bundle-format", "never the old format's cert")
+
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
@@ -2133,6 +2310,9 @@ def main():
     if "--self-test" in sys.argv[1:]:
         return self_test(chain, feed)
     problems, notes = check(load_texts(), chain, feed)
+    found, said = certificate_problems(certificate_module())
+    problems += found + byte_search_problems(scanned_texts())
+    notes += said
     for note in notes:
         print("NOTE: " + note)
     for problem in problems:

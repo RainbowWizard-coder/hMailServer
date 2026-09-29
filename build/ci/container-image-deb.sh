@@ -30,7 +30,8 @@
 # paths a server trusts, since the release may have been signed before the project's
 # move and this job run after it - with the project's id in the certificate required
 # for the group's path, as the server requires it (SigstoreVerifier.cpp,
-# build/ci/release-verify.sh). The transport is not what is trusted: busybox's wget,
+# build/ci/release-verify.sh), read from the certificate's extensions
+# (build/ci/sigstore-certificate.sh). The transport is not what is trusted: busybox's wget,
 # the one this image has, does not check a server's TLS certificate, so nothing is
 # sent that a listener could use - no token: the project is public, and its release
 # and package registry answer anonymously - and a file altered on the way fails its
@@ -72,10 +73,14 @@ if ! command -v cosign > /dev/null 2>&1; then
   [ -x /ko-app/cosign ] && PATH="/ko-app:$PATH" || fail "there is no cosign in this image: HM_COSIGN_IMAGE must be cosign's own -dev image"
 fi
 cosign version 2>&1 | grep -E 'GitVersion|GitCommit' || true
-verify_flags=""
-if cosign verify-blob --help 2>&1 | grep -q -- '--new-bundle-format'; then
-  verify_flags="--new-bundle-format"
-fi
+# The bundle read as the Sigstore bundle it is, strictly - no field twice, none cosign
+# does not know - which build/ci/sigstore-certificate.sh's reading of the one
+# certificate cosign verified rests on. A cosign without --new-bundle-format reads the
+# old format, its "cert" field, and passes over every field it does not know, so the
+# certificate the reader found would be one cosign never looked at.
+cosign verify-blob --help 2>&1 | grep -q -- '--new-bundle-format' \
+  || fail "this cosign has no verify-blob --new-bundle-format: HM_COSIGN_IMAGE must be cosign 2.4 or later"
+verify_flags="--new-bundle-format"
 
 rm -rf "$out"
 mkdir -p "$out"
@@ -130,25 +135,22 @@ for name in "$deb" "$deb.cdx.json"; do
 
   # The project's id in the certificate (Fulcio's 1.3.6.1.4.1.57264.1.15, a UTF8String
   # in an OCTET STRING): required at the group's path, and where it is there at all,
-  # this project's.
-  raw=$(grep -o '"rawBytes" *: *"[^"]*"' "$out/$name.cosign.bundle" | head -n 1 | sed 's/.*"\([^"]*\)"$/\1/')
-  [ -n "$raw" ] || fail "$name.cosign.bundle carries no certificate"
-  hex=$(printf '%s' "$raw" | base64 -d | od -An -tx1 -v | tr -d ' \n')
-  oid=060a2b0601040183bf30010f
-  case "$hex" in
-    *"$oid"*)
-      rest="${hex#*"$oid"}"
-      rest="${rest#0101ff}"
-      # 04 0a 0c 08 then the eight digits of 86730559.
-      case "$rest" in
-        040a0c083836373330353539*) id_said="$project_id" ;;
-        *) fail "the certificate of $name names another repository id than $project_id" ;;
-      esac ;;
-    *)
+  # this project's. Read from the certificate's extensions by
+  # build/ci/sigstore-certificate.sh (this image has no Python, and cosign checks no
+  # CI's extension but GitHub's), which build/ci/sigstore-certificate.py holds to its
+  # own reading - never by a search of the certificate's bytes, whose public key, bytes
+  # its holder chooses, could hold this project's id in front of the extension naming
+  # another's.
+  said=$(sh build/ci/sigstore-certificate.sh repository-id "$out/$name.cosign.bundle") \
+    || fail "the certificate of $name could not be read for the project's id: ${said#refused: }"
+  case "$said" in
+    "id=$project_id") id_said="$project_id" ;;
+    absent)
       case "$identity" in
         https://gitlab.com/hmailserver/hmailserver//*) fail "the certificate of $name, at the group's path, records no repository id" ;;
       esac
       id_said="none recorded" ;;
+    *) fail "the certificate of $name names the repository id '${said#id=}', not $project_id" ;;
   esac
 
   if [ -n "$signed_as" ] && [ "$signed_as" != "$identity" ]; then

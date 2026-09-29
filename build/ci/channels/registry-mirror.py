@@ -86,6 +86,7 @@ DESTINATIONS = [
 REPOSITORY = re.compile(r"^[a-z0-9.\-]+(:[0-9]+)?(/[a-z0-9]+([._\-][a-z0-9]+)*)+$")
 ATTESTATION_TYPE = "cyclonedx"
 SIG_CERTIFICATE = "dev.sigstore.cosign/certificate"
+PEM_CERTIFICATE = re.compile(r"\A\s*-----BEGIN CERTIFICATE-----\s+([A-Za-z0-9+/=\s]+?)-----END CERTIFICATE-----\s*\Z")
 
 
 def say(line=""):
@@ -236,38 +237,104 @@ def verify_image(tools, repository, digest, version, identities, issuer):
     if code != 0:
         raise Refused("%s has no %s SBOM attested by %s: nothing was copied.\n  cosign said: %s"
                       % (reference, ATTESTATION_TYPE, identity, (err or out).splitlines()[-1] if (err or out) else ""))
-    recorded = signature_repository_id(tools, repository, digest, identity)
-    if recorded is not None and recorded != rf.PROJECT_ID:
-        raise Refused("the image's signing certificate names the repository id %s, not %s" % (recorded, rf.PROJECT_ID))
-    if recorded is None and identity.startswith(rf.GROUP_REPOSITORY + "//"):
-        raise Refused("the image's signing certificate, at the group's path, records no repository id")
-    return identity, recorded
+    recorded = signature_repository_ids(tools, repository, digest, identity)
+    for found in recorded:
+        if found is not None and found != rf.PROJECT_ID:
+            raise Refused("the image's signing certificate names the repository id %s, not %s" % (found, rf.PROJECT_ID))
+        if found is None and identity.startswith(rf.GROUP_REPOSITORY + "//"):
+            raise Refused("the image's signing certificate, at the group's path, records no repository id")
+    return identity, (rf.PROJECT_ID if rf.PROJECT_ID in recorded else None)
 
 
-def signature_repository_id(tools, repository, digest, identity):
-    """The repository id in the certificate of the image's signature that names
-    identity, read from cosign's signature manifest (sha256-<hex>.sig)."""
+# The fields of an image manifest and of a descriptor as cosign's reader (go-containerregistry's
+# v1.Manifest and v1.Descriptor) names them.
+MANIFEST_FIELDS = ("schemaVersion", "mediaType", "config", "layers", "annotations", "subject")
+DESCRIPTOR_FIELDS = ("mediaType", "size", "digest", "data", "urls", "annotations", "platform", "artifactType")
+IMAGE_MANIFEST_TYPES = ("application/vnd.oci.image.manifest.v1+json", "application/vnd.docker.distribution.manifest.v2+json")
+
+
+def json_object_once(pairs):
+    """A JSON object's members as a dict; ValueError for a key that is not ASCII, or a
+    key there twice in any case: Go's encoding/json, which cosign reads a manifest with,
+    matches a field's name whatever its case, and with Unicode's folds (a long s is an
+    s), and the last of two such keys wins, where Python's json takes each key as it is
+    spelled."""
+    found, folded = {}, set()
+    for key, value in pairs:
+        if not key.isascii():
+            raise ValueError("a key that is not ASCII, %s" % json.dumps(key))
+        if key.lower() in folded:
+            raise ValueError("the key %s twice, in some case" % json.dumps(key))
+        folded.add(key.lower())
+        found[key] = value
+    return found
+
+
+def signature_layers(text):
+    """The layers of cosign's signature manifest (sha256-<hex>.sig), as cosign reads
+    them; ValueError for one it could read otherwise. cosign reads it with Go's
+    encoding/json into go-containerregistry's v1.Manifest, where "Layers", "LAYERS" or
+    "layers" with a long s (U+017F) is "layers" too, and "Annotations" a layer's
+    "annotations" (cosign 2.6.5 verifies a signature so hidden from a reader that takes
+    only "layers"), and it takes an index at that tag for its linux/amd64 manifest: so
+    a key of those fields not spelled as they are, and an index, are refused, and a key
+    twice in any case."""
+    manifest = json.loads(text, object_pairs_hook=json_object_once)
+    if not isinstance(manifest, dict):
+        raise ValueError("it is not a JSON object")
+
+    def spelled(item, fields):
+        for key in item:
+            if key not in fields and key.lower() in [field.lower() for field in fields]:
+                raise ValueError("the key %s, which cosign reads as %s" % (
+                    json.dumps(key), next(f for f in fields if f.lower() == key.lower())))
+    spelled(manifest, MANIFEST_FIELDS)
+    if "manifests" in manifest or manifest.get("mediaType", IMAGE_MANIFEST_TYPES[0]) not in IMAGE_MANIFEST_TYPES:
+        raise ValueError("it is not an image manifest, whose layers are the signatures")
+    layers = manifest.get("layers")
+    if not isinstance(layers, list) or not all(isinstance(layer, dict) for layer in layers):
+        raise ValueError("its layers are not a list of descriptors")
+    for layer in layers:
+        spelled(layer, DESCRIPTOR_FIELDS)
+        if not isinstance(layer.get("annotations", {}), dict):
+            raise ValueError("a layer's annotations are not an object")
+    return layers
+
+
+def signature_repository_ids(tools, repository, digest, identity):
+    """The repository id (or None) of EVERY certificate in the image's signature
+    manifest (cosign's sha256-<hex>.sig) that names identity in its subject alternative
+    name, each read from its extensions (build/ci/sigstore-certificate.py). Every one:
+    cosign verify passes when one signature verifies, and which one it was it does not
+    say, so a signature layer added beside it - whose certificate nothing but this ever
+    reads - must not be the one read instead. Refused when none names identity, or when
+    a certificate cannot be read."""
     code, out, err = tools.regctl_("manifest", "get", "%s:sha256-%s.sig" % (repository, digest.split(":", 1)[1]),
                                    "--format", "raw-body")
     if code != 0:
         raise Refused("the image's signature manifest could not be read: %s" % err[-300:])
     try:
-        layers = json.loads(out).get("layers") or []
-    except ValueError:
-        raise Refused("the image's signature manifest is not JSON")
+        layers = signature_layers(out)
+    except ValueError as error:
+        raise Refused("the image's signature manifest is not one cosign and this read alike: %s" % error)
+    recorded = []
     for layer in layers:
         text = (layer.get("annotations") or {}).get(SIG_CERTIFICATE) or ""
-        body = "".join(line for line in text.splitlines() if line and not line.startswith("-----"))
-        try:
-            der = base64.b64decode(body)
-        except ValueError:
+        if not text:
             continue
-        if identity.encode("utf-8") in der:
-            try:
-                return rf.repository_id(der)
-            except ValueError as error:
-                raise Refused("the image's signing certificate could not be read: %s" % error)
-    raise Refused("no signature of the image carries a certificate naming %s" % identity)
+        pem = PEM_CERTIFICATE.match(text)
+        try:
+            if not pem:
+                raise ValueError("it is not one PEM certificate")
+            der = base64.b64decode("".join(pem.group(1).split()), validate=True)
+            if identity not in rf.sigstore_certificate.uris(der):
+                continue
+            recorded.append(rf.repository_id(der))
+        except ValueError as error:
+            raise Refused("a certificate of the image's signatures could not be read: %s" % error)
+    if not recorded:
+        raise Refused("no signature of the image carries a certificate naming %s" % identity)
+    return recorded
 
 
 # ---------------------------------------------------------------- the job
@@ -413,20 +480,40 @@ def self_test():
     digest = "sha256:" + "d" * 64
     group = rf.identities(version)[1]
 
+    def layer_of(rid="86730559", key=b"", uris=None):
+        """A signature layer whose certificate carries the repository id rid, key as its
+        public key's bytes, and uris (the identity when None) in its SAN."""
+        cert = rf.test_certificate(rid, key=key, uris=uris or [group])
+        text = base64.b64encode(cert).decode()
+        pem = "-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n" % "\n".join(
+            text[i:i + 64] for i in range(0, len(text), 64))
+        return {"mediaType": "application/vnd.dev.cosign.simplesigning.v1+json", "size": 250,
+                "digest": "sha256:" + "a" * 64, "annotations": {SIG_CERTIFICATE: pem}}
+
+    def manifest_text(layers, extra=""):
+        """A signature manifest of layers, with the JSON members extra after them."""
+        return json.dumps({"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                           "layers": layers})[:-1] + extra + "}"
+
     class FakeTools:
-        def __init__(self, signed=True, attested=True, rid="86730559", moved=("9.9", "latest"), copies_ok=True):
+        def __init__(self, signed=True, attested=True, rid="86730559", moved=("9.9", "latest"), copies_ok=True, layers=None,
+                     body=None):
             self.calls, self.signed, self.attested, self.rid, self.moved = [], signed, attested, rid, moved
             self.copies_ok = copies_ok
             self.images = {}
+            # Each signature layer's certificate: its id, its key's bytes, the names in its SAN.
+            self.layers = layers if layers is not None else [{"rid": rid}]
+            # Or the signature manifest's text, made with layer_of: body(layer_of).
+            self.body = body
 
         def regctl_(self, *arguments, stdin=None):
             self.calls.append(("regctl",) + arguments + (("<stdin>",) if stdin else ()))
             if arguments[:2] == ("manifest", "get"):
-                # The identity stands where a certificate's subject alternative name
-                # would; the id, when there is one, in the extensions.
-                cert = rf.test_certificate(self.rid, key=group.encode())
-                pem = "-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n" % base64.b64encode(cert).decode()
-                return 0, json.dumps({"layers": [{"annotations": {SIG_CERTIFICATE: pem}}]}), ""
+                # The identity in each certificate's subject alternative name; the id,
+                # when there is one, in its extensions.
+                if self.body is not None:
+                    return 0, self.body(layer_of), ""
+                return 0, json.dumps({"layers": [layer_of(**layer) for layer in self.layers]}), ""
             if arguments[:2] == ("image", "copy"):
                 if self.copies_ok:
                     self.images[arguments[-1]] = digest
@@ -481,6 +568,14 @@ def self_test():
         expect("  ... and the image verified again at each destination",
                sum(1 for c in fake.calls if c[0] == "cosign" and c[1] == "verify" and "--help" not in c
                    and c[-1].startswith("docker.io/progressiverobot/hmailserver@")) == 1)
+        fake = FakeTools(layers=[{"rid": "86730559"}, {"rid": "86730559"}, {"rid": None, "uris": ["https://example.org/other"]}])
+        globals()["say"] = lambda line="": None
+        try:
+            code = registry_mirror(os.path.join(work, "a2"), environ, tools_for=lambda config: fake)
+        finally:
+            globals()["say"] = held_say
+        expect("an image signed twice as this project's pipeline, and once by another identity, is copied",
+               code == 0 and any(c[:3] == ("regctl", "image", "copy") for c in fake.calls))
         fake = FakeTools(moved=())
         globals()["say"] = lambda line="": None
         try:
@@ -494,6 +589,37 @@ def self_test():
                 ("an image without its SBOM attested", FakeTools(attested=False), "SBOM attested"),
                 ("a signature at the group's path without the project's id", FakeTools(rid=None), "records no repository id"),
                 ("another project's id", FakeTools(rid="1267388815"), "not 86730559"),
+                # The layer first whose certificate holds the identity's bytes - in its key -
+                # and this project's id, before the one that verified, naming another id.
+                ("a signature added before the verified one, this project's id in its extensions and the identity in its key",
+                 FakeTools(layers=[{"rid": "86730559", "key": group.encode(), "uris": ["https://gitlab.com/someone/else"]},
+                                   {"rid": "1267388815"}]), "not 86730559"),
+                ("  ... the one added naming the identity too", FakeTools(layers=[{"rid": "86730559"}, {"rid": "1267388815"}]),
+                 "not 86730559"),
+                ("  ... this project's id planted in the key of the one that verified",
+                 FakeTools(layers=[{"rid": "1267388815", "key": b"\x00" * 7 + rf.sigstore_certificate.planted()}]),
+                 "not 86730559"),
+                # The signature cosign verified where Go's encoding/json finds it and Python's
+                # json does not, and one of this project's where Python looks: cosign 2.6.5
+                # verifies a signature so hidden (a key-signed one, against registry:2).
+                ("a signature under \"Layers\" beside \"layers\"", FakeTools(body=lambda layer: manifest_text(
+                    [layer()], ', "Layers": [%s]' % json.dumps(layer("1267388815")))), "in some case"),
+                ("  ... under \"LAYERS\" alone", FakeTools(body=lambda layer: json.dumps({
+                    "schemaVersion": 2, "LAYERS": [layer("1267388815")]})), "which cosign reads as layers"),
+                ("  ... under \"layers\" with a long s", FakeTools(body=lambda layer: manifest_text(
+                    [layer()], ', "layer\\u017f": [%s]' % json.dumps(layer("1267388815")))), "not ASCII"),
+                ("  ... its certificate under a layer's \"Annotations\"", FakeTools(body=lambda layer: manifest_text(
+                    [layer(), dict([m for m in layer().items() if m[0] != "annotations"],
+                                   Annotations=layer("1267388815")["annotations"])])),
+                 "which cosign reads as annotations"),
+                ("  ... an index at the signature's tag, whose linux/amd64 manifest cosign reads",
+                 FakeTools(body=lambda layer: json.dumps({"schemaVersion": 2, "manifests": [], "layers": [layer()]})),
+                 "not an image manifest"),
+                ("  ... \"layers\" twice", FakeTools(body=lambda layer: manifest_text(
+                    [layer("1267388815")], ', "layers": [%s]' % json.dumps(layer()))), "in some case"),
+                ("no signature whose certificate names the identity",
+                 FakeTools(layers=[{"rid": "86730559", "key": group.encode(), "uris": ["https://gitlab.com/someone/else"]}]),
+                 "carries a certificate naming"),
                 ("a destination that does not hold the digest after the copy", FakeTools(copies_ok=False), "after the copy")):
             globals()["say"] = lambda line="": None
             try:

@@ -29,8 +29,9 @@ the account arrives - with no new release made for it:
                 since a release signed before the project's move may be published
                 after it - and with the project's id (86730559) in the certificate
                 required at the group's path and refused if another, as the server
-                requires (SigstoreVerifier.cpp; build/ci/container-image-deb.sh does
-                the same in shell). A file that does not verify stops the job before
+                requires (SigstoreVerifier.cpp); the id read from the certificate's
+                extensions by build/ci/sigstore-certificate.py, as container-image-deb.sh
+                reads it in shell. A file that does not verify stops the job before
                 anything is published anywhere.
 
   the tools     cosign and regctl, each a static binary taken out of its own image by
@@ -92,8 +93,6 @@ ISSUER = "https://gitlab.com"
 # project's id must be in the certificate too.
 REPOSITORIES = ("https://gitlab.com/Progressiverobot/hmailserver", "https://gitlab.com/hmailserver/hmailserver")
 GROUP_REPOSITORY = REPOSITORIES[1]
-# Fulcio's source repository identifier, 1.3.6.1.4.1.57264.1.15, as DER.
-REPOSITORY_ID_OID = bytes.fromhex("060a2b0601040183bf30010f")
 USER_AGENT = "hmailserver-channels (+https://gitlab.com/hmailserver/hmailserver)"
 BUNDLE = ".cosign.bundle"
 
@@ -253,107 +252,16 @@ def identities(version):
 
 # ---------------------------------------------------------------- the certificate's repository id
 
-def der_length(data, at):
-    """(length, where the content begins) of the DER element whose length byte is at."""
-    if at >= len(data):
-        raise ValueError("a DER element the certificate ends inside")
-    first = data[at]
-    if first < 0x80:
-        return first, at + 1
-    count = first & 0x7F
-    if count == 0 or count > 4 or at + 1 + count > len(data):
-        raise ValueError("a DER length the certificate cannot have")
-    return int.from_bytes(data[at + 1:at + 1 + count], "big"), at + 1 + count
-
-
-def der_children(data, start, end):
-    """(tag, where the element begins, where its content begins, where it ends) of
-    each DER element from start to end, which must hold whole elements."""
-    at = start
-    while at < end:
-        length, content = der_length(data, at + 1)
-        if content + length > end:
-            raise ValueError("a DER element runs past the one that holds it")
-        yield data[at], at, content, content + length
-        at = content + length
-
-
-def der(tag, content):
-    """One DER element: the self-tests' certificates are made of these."""
-    if len(content) < 0x80:
-        return bytes([tag, len(content)]) + content
-    size = len(content).to_bytes((len(content).bit_length() + 7) // 8, "big")
-    return bytes([tag, 0x80 | len(size)]) + size + content
-
-
-def repository_id(certificate):
-    """The source repository identifier Fulcio wrote into a DER certificate
-    (1.3.6.1.4.1.57264.1.15, an OCTET STRING holding a UTF8String), or None.
-
-    Read from the certificate's extensions (tbsCertificate's [3]) and nowhere else:
-    the extension's bytes can be anywhere in a certificate - an RSA public key is
-    bytes its holder chooses - and one who could sign at the group's path could put
-    this project's id there, in front of their own."""
-    tag, _, start, end = next(der_children(certificate, 0, len(certificate)), (None, 0, 0, 0))
-    if tag != 0x30 or end != len(certificate):
-        raise ValueError("not a DER certificate")
-    parts = list(der_children(certificate, start, end))
-    if not parts or parts[0][0] != 0x30:
-        raise ValueError("the certificate holds no tbsCertificate")
-    found = None
-    for tag, _, start, end in der_children(certificate, parts[0][2], parts[0][3]):
-        if tag != 0xA3:  # [3] EXPLICIT Extensions
-            continue
-        holder = list(der_children(certificate, start, end))
-        if len(holder) != 1 or holder[0][0] != 0x30:
-            raise ValueError("the certificate's extensions are not a SEQUENCE")
-        for extension in der_children(certificate, holder[0][2], holder[0][3]):
-            if extension[0] != 0x30:
-                raise ValueError("an extension that is not a SEQUENCE")
-            fields = list(der_children(certificate, extension[2], extension[3]))
-            if not fields or fields[0][0] != 0x06:
-                raise ValueError("an extension without its OID")
-            if certificate[fields[0][1]:fields[0][3]] != REPOSITORY_ID_OID:
-                continue
-            if found is not None:
-                raise ValueError("the repository id extension is in the certificate twice")
-            fields = fields[1:]
-            if fields and fields[0][0] == 0x01:  # critical
-                fields = fields[1:]
-            if len(fields) != 1 or fields[0][0] != 0x04:
-                raise ValueError("the repository id extension holds no OCTET STRING")
-            inner = list(der_children(certificate, fields[0][2], fields[0][3]))
-            if len(inner) != 1 or inner[0][0] != 0x0C:
-                raise ValueError("the repository id is not a UTF8String")
-            found = certificate[inner[0][2]:inner[0][3]].decode("utf-8")
-    return found
-
-
-def test_certificate(repository_id=None, key=b"", critical=False, twice=False):
-    """A certificate's shape, for the self-tests: a tbsCertificate whose public key's
-    bytes are `key`, and whose extensions carry the repository id when one is given."""
-    extensions = b""
-    if repository_id is not None:
-        value = der(0x04, der(0x0C, repository_id.encode("utf-8")))
-        extensions = der(0x30, REPOSITORY_ID_OID + (b"\x01\x01\xff" if critical else b"") + value) * (2 if twice else 1)
-    spki = der(0x30, der(0x30, der(0x06, b"\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01")) + der(0x03, b"\x00" + key))
-    tbs = der(0x30, der(0xA0, der(0x02, b"\x02")) + der(0x02, b"\x01") + spki
-              + (der(0xA3, der(0x30, extensions)) if extensions else b""))
-    return der(0x30, tbs + der(0x30, der(0x06, b"\x2a\x86\x48\xce\x3d\x04\x03\x03")) + der(0x03, b"\x00"))
-
-
-def bundle_certificate(bundle):
-    """The signing certificate, DER, of a Sigstore bundle (v0.3's certificate, or the
-    first of v0.1 and v0.2's chain)."""
-    import base64
-    material = bundle.get("verificationMaterial") or {}
-    raw = (material.get("certificate") or {}).get("rawBytes")
-    if not raw:
-        chain = (material.get("x509CertificateChain") or {}).get("certificates") or []
-        raw = chain[0].get("rawBytes") if chain else None
-    if not raw:
-        raise ValueError("the bundle carries no certificate")
-    return base64.b64decode(raw)
+# Read from the certificate's extensions by build/ci/sigstore-certificate.py, the one
+# reader of the release chain and the channels (container-image-deb.sh's shell reader
+# is held to it): never by a search of the certificate's bytes, which its public key,
+# bytes its holder chooses, could fill with this project's id.
+sigstore_certificate = load("sigstore_certificate", os.path.join("build", "ci", "sigstore-certificate.py"))
+REPOSITORY_ID_OID = sigstore_certificate.REPOSITORY_ID_OID
+der = sigstore_certificate.der
+repository_id = sigstore_certificate.repository_id
+bundle_certificate = sigstore_certificate.bundle_certificate
+test_certificate = sigstore_certificate.test_certificate
 
 
 # ---------------------------------------------------------------- cosign
@@ -384,9 +292,8 @@ def verify_file(path, bundle_path, version, cosign, trusted_root=None, run=subpr
                       "  cosign said: %s" % (name, version, " or ".join(identities(version)),
                                             said.splitlines()[-1] if said else "nothing"))
     try:
-        with open(bundle_path, encoding="utf-8") as f:
-            recorded = repository_id(bundle_certificate(json.load(f)))
-    except (OSError, ValueError, KeyError) as error:
+        recorded = repository_id(sigstore_certificate.read_bundle(bundle_path))
+    except ValueError as error:
         raise Refused("%s's bundle verified, but its certificate could not be read for the project's id: %s" % (name, error))
     if recorded is not None and recorded != PROJECT_ID:
         raise Refused("%s's certificate names the repository id %s, not %s: another project's pipeline signed it"
@@ -725,15 +632,15 @@ def self_test(cosign=None):
     try:
         files = dict((n, ("content of %s" % n).encode()) for n in names)
 
-        def bundle_for(repository_id):
+        def bundle_for(repository_id, key=b""):
             import base64
-            cert = test_certificate(repository_id)
+            cert = test_certificate(repository_id, key=key)
             return json.dumps({"verificationMaterial": {"certificate": {"rawBytes": base64.b64encode(cert).decode()}}}).encode()
 
-        def world(signer, repository_id="86730559", links=None, missing=None):
+        def world(signer, repository_id="86730559", links=None, missing=None, key=b""):
             state = {"verify": []}
             served = dict(files)
-            served.update(dict((n + BUNDLE, bundle_for(repository_id)) for n in names))
+            served.update(dict((n + BUNDLE, bundle_for(repository_id, key)) for n in names))
 
             def fake_http(url, data=None, headers=None, method=None, timeout=120, fix=None):
                 if url.endswith("/releases/v" + version):
@@ -773,6 +680,17 @@ def self_test(cosign=None):
             globals()["http"] = fake_http
             refused("another project's id", lambda: verified_files(
                 version, names, os.path.join(work, "d"), "cosign", run=run), "not 86730559")
+            # Another project's pipeline at the group's path, this project's id planted in its
+            # key in front of the extension naming its own: the extension is what counts.
+            fake_http, run, state = world(identities(version)[1], repository_id="1267388815",
+                                          key=b"\x00" * 7 + sigstore_certificate.planted())
+            globals()["http"] = fake_http
+            refused("another project's id, with this project's planted in the key", lambda: verified_files(
+                version, names, os.path.join(work, "d2"), "cosign", run=run), "names the repository id 1267388815")
+            fake_http, run, state = world(identities(version)[1], repository_id=None, key=sigstore_certificate.planted())
+            globals()["http"] = fake_http
+            refused("  ... and with no id of its own at the group's path", lambda: verified_files(
+                version, names, os.path.join(work, "d3"), "cosign", run=run), "records no repository id")
             fake_http, run, state = world("https://gitlab.com/someone/else//.gitlab-ci.yml@refs/tags/v9.9.9")
             globals()["http"] = fake_http
             refused("a file signed by another pipeline", lambda: verified_files(

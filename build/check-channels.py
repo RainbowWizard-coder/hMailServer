@@ -203,7 +203,7 @@ def self_test():
         for relative in names + [os.path.join(CHANNELS, n) for n in os.listdir(os.path.join(ROOT, CHANNELS))
                                  if os.path.isfile(os.path.join(ROOT, CHANNELS, n))] + [
                 os.path.join("build", "ci", "cli-packages.py"), os.path.join("build", "check-cli-packages.py"),
-                os.path.join("build", "ci", "release-chain.py")]:
+                os.path.join("build", "ci", "release-chain.py"), os.path.join("build", "ci", "sigstore-certificate.py")]:
             target = os.path.join(work, "tree", relative)
             os.makedirs(os.path.dirname(target), exist_ok=True)
             shutil.copyfile(os.path.join(ROOT, relative), target)

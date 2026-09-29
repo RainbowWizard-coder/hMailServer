@@ -202,37 +202,20 @@ fi
 # at the server requires it when the certificate carries it, for the group's always, and
 # the notes say which it was, from the installer's bundle. The first release says here
 # whether Fulcio writes it for GitLab at all, which the move to the group waits for.
+# Read from the certificate's extensions by build/ci/sigstore-certificate.py, never by
+# a search of its bytes: its public key, bytes its holder chooses, could hold this
+# project's id in front of the extension naming another's.
 installer="hMailServer-${version}-x64.exe"
-repository_id=$(python3 - "$signed/$installer.cosign.bundle" <<'PY'
-import base64, json, sys
-bundle = json.load(open(sys.argv[1], encoding="utf-8"))
-material = bundle["verificationMaterial"]
-raw = (material.get("certificate") or material["x509CertificateChain"]["certificates"][0])["rawBytes"]
-der = base64.b64decode(raw)
-oid = bytes([0x06, 0x0A, 0x2B, 0x06, 0x01, 0x04, 0x01, 0x83, 0xBF, 0x30, 0x01, 0x0F])
-at = der.find(oid)
-if at < 0:
-    print("absent")
-else:
-    # The extension: the OID, a critical flag when there is one (01 01 ff), then an
-    # OCTET STRING whose content is a DER UTF8String.
-    rest = der[at + len(oid):]
-    if rest[0] == 0x01:
-        rest = rest[3:]
-    if rest[0] != 0x04 or rest[2] != 0x0C:
-        print("unreadable")
-    else:
-        print(rest[4:4 + rest[3]].decode("utf-8", "replace"))
-PY
-)
-case "$repository_id" in
-  86730559) id_row="| Repository id | \`86730559\` |" ;;
+said=$(python3 build/ci/sigstore-certificate.py repository-id "$signed/$installer.cosign.bundle") \
+  || fail "the certificate of $installer could not be read for the repository id: ${said#refused: }"
+case "$said" in
+  id=86730559) id_row="| Repository id | \`86730559\` |" ;;
   absent)
     # The server refused such a file above already where the path is the group's.
     [ "$repository" = "https://gitlab.com/Progressiverobot/hmailserver" ] \
       || fail "the certificate records no repository id, which a server requires for $repository"
     id_row="| Repository id | not in the certificate; a server checks it only when it is there |" ;;
-  *) fail "the certificate names the repository id '$repository_id', not 86730559" ;;
+  *) fail "the certificate names the repository id '${said#id=}', not 86730559" ;;
 esac
 
 provenance="hmailserver-${version}.intoto.sigstore.json"

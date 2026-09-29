@@ -297,6 +297,19 @@ for a stray `#` number or `@` name.
   link of the server passed 6 GB and was killed); `aur-publish` writes the verified tarball's SHA-256 in.
 - **The Chocolatey package's id comes from `make-package-manifests.ps1 -ChocolateyId`**: `hmailserver`, or
   `hmailserver-progressiverobot` if upstream's maintainers do not add the project. Its addresses are the group's.
+- **The release checks read the signing certificate's fields from its extensions, never by searching its bytes, and
+  only from the certificate cosign verified.** release-verify.sh and container-image-deb.sh took the project id
+  (Fulcio's 1.3.6.1.4.1.57264.1.15) from wherever its bytes first appeared, and a certificate's public key is bytes
+  its holder chooses; registry-mirror read the id from whichever signature certificate held the identity's bytes, and
+  check-provenance matched the identity the same way. One reader, build/ci/sigstore-certificate.py, now walks the
+  certificate's DER to its extensions, with a shell twin for cosign's image held to it case by case. The shell reader
+  reads a v0.3 bundle only - cosign verifies just the first certificate of a v0.1 or v0.2 chain, and accepts field
+  names spelled in ways a count of `rawBytes` misses - container-image-deb.sh refuses a cosign without
+  `--new-bundle-format`, and registry-mirror refuses a signature manifest Go's JSON reader would read otherwise (a
+  key in another case or with a long s, a key twice, an index at the `.sig` tag); the Python reader refuses a
+  duplicated key. build/check-release-chain.py holds every script to the readers and refuses the Sigstore OID written
+  as bytes, decimal numbers or base64 anywhere else. The server's own verifier reads the extension through OpenSSL
+  and was never affected.
 
 ### IMAP, POP3 and the webmail
 

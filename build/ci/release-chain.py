@@ -167,6 +167,20 @@ def _load_repos():
 # _redirects rules count with the feed's (check_budget).
 repos = _load_repos()
 
+
+def _load_certificate():
+    path = os.path.join(ROOT, "build", "ci", "sigstore-certificate.py")
+    spec = importlib.util.spec_from_file_location("sigstore_certificate", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# A Fulcio certificate's fields, read from its extensions and never by a search of its
+# bytes (build/ci/sigstore-certificate.py): the provenance's certificate is held to the
+# identity by its subject alternative name.
+sigstore_certificate = _load_certificate()
+
 PROJECT_ID = feed.PROJECT_ID
 PACKAGE = "hmailserver"
 API_BASE = "https://gitlab.com/api/v4"
@@ -1327,15 +1341,6 @@ def write_statement(version, identity, files, env, out):
     return path
 
 
-def certificate_der(bundle):
-    material = bundle.get("verificationMaterial") or {}
-    raw = (material.get("certificate") or {}).get("rawBytes")
-    if not raw:
-        chain = (material.get("x509CertificateChain") or {}).get("certificates") or [{}]
-        raw = chain[0].get("rawBytes")
-    return base64.b64decode(raw or "")
-
-
 def provenance_problems(assets, version, identity, commit):
     """The provenance in assets is a Sigstore bundle holding a DSSE envelope of an
     in-toto statement with the SLSA v1 predicate; the statement names every file of
@@ -1373,12 +1378,15 @@ def provenance_problems(assets, version, identity, commit):
     sources = (predicate.get("buildDefinition") or {}).get("resolvedDependencies") or []
     if not any((d.get("digest") or {}).get("gitCommit") == commit for d in sources):
         problems.append("the provenance does not name %s as the source it was built from" % commit)
+    # The identity is the certificate's subject alternative name, read from its
+    # extensions: a search of its bytes would find it in a public key that holds it.
     try:
-        der = certificate_der(bundle)
-    except (ValueError, TypeError):
-        der = b""
-    if identity.encode("utf-8") not in der:
-        problems.append("the provenance's certificate does not name %s" % identity)
+        named = sigstore_certificate.uris(sigstore_certificate.bundle_certificate(bundle))
+    except ValueError as error:
+        named = ["(%s)" % error]
+    if identity not in named:
+        problems.append("the provenance's certificate does not name %s: its subject alternative name is %s"
+                        % (identity, ", ".join(named) or "none"))
     entries = (bundle.get("verificationMaterial") or {}).get("tlogEntries") or []
     if not entries or (entries[0].get("kindVersion") or {}).get("kind") != "dsse" or not entries[0].get("integratedTime"):
         problems.append("the provenance's log entry is not a dsse entry of the public log with its integratedTime")
@@ -2181,7 +2189,8 @@ def self_test():
             shutil.copyfile(os.path.join(signed, name + ".cosign.bundle"), os.path.join(signed, name + ".sigstore.json"))
         tag_identity = SIGNER_IDENTITY_PREFIX + tag
 
-        def fake_provenance(directory, identity=tag_identity, commit=built, statement_changes=None, bundle_changes=None):
+        def fake_provenance(directory, identity=tag_identity, commit=built, statement_changes=None, bundle_changes=None,
+                            certificate_identity=None, key=b""):
             """A bundle as cosign attest-blob --statement writes it: a DSSE envelope of the
             statement, a certificate naming the identity, and a dsse log entry."""
             digests = dict((n, sha256_of(os.path.join(directory, n))) for n in expected_assets(version)
@@ -2191,7 +2200,8 @@ def self_test():
                 statement_changes(statement)
             bundle = {"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
                       "verificationMaterial": {"certificate": {"rawBytes": base64.b64encode(
-                          b"\x30\x82 a certificate whose SAN is " + identity.encode("utf-8")).decode("ascii")},
+                          sigstore_certificate.test_certificate(PROJECT_ID, key=key, uris=[certificate_identity or identity])
+                      ).decode("ascii")},
                           "tlogEntries": [{"kindVersion": {"kind": "dsse", "version": "0.0.1"}, "integratedTime": "1790000000"}]},
                       "dsseEnvelope": {"payloadType": IN_TOTO_PAYLOAD, "payload": base64.b64encode(json.dumps(statement).encode("utf-8")).decode("ascii"),
                                        "signatures": [{"sig": "MEUC"}]}}
@@ -2439,6 +2449,19 @@ def self_test():
                 refuses("a release whose provenance another pipeline signed", "names the builder", assets_dir=twisted)
         found = provenance_problems(signed, version, tag_identity.replace("Progressiverobot", "someone"), built)
         expect(any("certificate does not name" in p for p in found), "a provenance whose certificate names another identity is refused: %s" % found)
+        # The identity's bytes in the certificate's public key, its SAN another pipeline's:
+        # the SAN is what names it.
+        planted = os.path.join(work, "provenance-planted")
+        shutil.copytree(signed, planted)
+        fake_provenance(planted, certificate_identity=tag_identity.replace("Progressiverobot", "someone"),
+                        key=tag_identity.encode("utf-8"))
+        found = provenance_problems(planted, version, tag_identity, built)
+        expect(any("certificate does not name" in p for p in found),
+               "a provenance whose certificate names another identity, with this one in its key, is refused: %s" % found)
+        fake_provenance(planted, bundle_changes=lambda bundle_: bundle_["verificationMaterial"]["certificate"].update(
+            rawBytes=bundle_["verificationMaterial"]["certificate"]["rawBytes"][:-8]))
+        found = provenance_problems(planted, version, tag_identity, built)
+        expect(any("certificate does not name" in p for p in found), "a provenance whose certificate is cut short is refused: %s" % found)
         uncopied = os.path.join(work, "uncopied")
         shutil.copytree(signed, uncopied)
         os.remove(os.path.join(uncopied, names["deb-arm64"] + ".sigstore.json"))
