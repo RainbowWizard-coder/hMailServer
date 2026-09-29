@@ -150,6 +150,12 @@ for a stray `#` number or `@` name.
   six hosts at 0.0.0.0 and `::` inside a job, has the hosts file read first where an image has no
   `/etc/nsswitch.conf`, and refuses a job it cannot protect. ContinuousIntegration.md says what GitLab's free tier
   and Ultimate give and why the Code Quality widget is not used.
+- **The channels are checked where they change.** `channels-check` runs every channel script's self-test and proves
+  the verification with the pinned cosign itself against `build/ci/channels/fake-sigstore.py`, a Sigstore of the
+  jobs' own (a Fulcio-shaped authority with an embedded SCT, a Rekor-shaped log, a trusted root).
+  `build/check-channels.py`, in `checkers`, holds the jobs to protected master, by hand, allowed to fail, no ID
+  tokens and `.no-github` first, and the PKGBUILD, the AUR's pinned host keys, OBS's `_service` and the Copr Makefile
+  to shape.
 
 ### Operations
 
@@ -436,6 +442,25 @@ for a stray `#` number or `@` name.
   GPL-3.0's text, under which the runtime takes lzo (runtime.c being AGPL-3.0-or-later). GCC's start-up files and
   libgcc stay out, under the GCC Runtime Library Exception
   ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences"; work item 36).
+- **The release channels, each published by hand from `master`, dormant until its account exists** (none live yet).
+  `.gitlab/ci/channels.yml` adds `registry-mirror` (the image by digest, with its cosign signature and SBOM
+  attestation, to Docker Hub, Quay.io and optionally Amazon ECR Public, with `regctl`), `aur-publish` (the AUR's
+  `hmailserver`), `ppa-upload` (the Debian source package to `ppa:hmailserver/hmailserver` for Ubuntu 24.04 and
+  26.04), `copr-build` (Fedora Copr through its webhook; `.copr/Makefile` makes the source RPM in Copr's builder),
+  `obs-publish` (the openSUSE Build Service, from `platform/packaging/obs/_service`), `chocolatey-release` with
+  `chocolatey-publish` (packed on bench150), `snap-upload` (edge and candidate) and `channels-verify`, the dry run.
+  Each publishes the release `HM_CHANNEL_VERSION` names or the update feed's latest (Copr and OBS the latest alone),
+  verifies every release file it takes against its Sigstore bundle as the tag's pipeline - the project's id, read
+  from the certificate's extensions, required at the group's path - before it logs in or sends anything, and never
+  moves a channel back to an older release. The snap, not a release file, is held to the verified tarball or the tag;
+  OBS fetches the tarball itself once the job has checked the permanent link serves the verified bytes. cosign and
+  regctl come out of their images pinned by digest; nothing from GitHub, and no credential on a command line
+  ([Channels.md](hmailserver/docs/Channels.md)).
+- **The Arch package builds from the release's source tarball**, not a git tag, as a distribution's build
+  (`-DHM_LIVE_UPDATE=OFF`, naming `makepkg -si` from the AUR as its update) and without LTO (Arch's default full-LTO
+  link of the server passed 6 GB and was killed); `aur-publish` writes the verified tarball's SHA-256 in.
+- **The Chocolatey package's id comes from `make-package-manifests.ps1 -ChocolateyId`**: `hmailserver`, or
+  `hmailserver-progressiverobot` if upstream's maintainers do not add the project. Its addresses are the group's.
 
 ### IMAP, POP3 and the webmail
 

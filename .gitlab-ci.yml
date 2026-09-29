@@ -130,6 +130,8 @@ include:
   - local: .gitlab/ci/gcc.yml
   # OpenSSF Scorecard, weekly, published on the feed's site; dormant without GITLAB_AUTH_TOKEN (docs/ContinuousIntegration.md, "OpenSSF Scorecard").
   - local: .gitlab/ci/scorecard.yml
+  # The release channels: a signed release published to Docker Hub, Quay, ECR Public, the AUR, a Launchpad PPA, Copr, OBS, Chocolatey and the Snap Store, by hand on master, each dormant until its account exists (docs/Channels.md).
+  - local: .gitlab/ci/channels.yml
 
 stages:
   - check
@@ -257,7 +259,7 @@ checkers:
 
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
-      for name in authz-choke-point binary-manifest cli-packages collection-iteration com-error-info com-shared-copies \
+      for name in authz-choke-point binary-manifest channels cli-packages collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage help-map idl-case mysql-charset password-choice-sites release-chain \
                   roadmap2 role-choke-point sbom-inputs source-tarball; do
         check python3 "build/check-$name.py" --self-test
@@ -283,6 +285,10 @@ checkers:
       check python3 build/ci/mr-dependency-check.py --self-test
       # The Scorecard result's publication on the feed site, against a site it serves on the loopback.
       check python3 build/ci/scorecard-pages.py --self-test
+      # The release channels' publishers, against a feed, a release, a registry and their tools in memory.
+      for s in release-files registry-mirror aur-publish ppa-upload copr-build obs-publish snap-upload fake-sigstore; do
+        check python3 "build/ci/channels/$s.py" --self-test
+      done
       # The secret scan the hooks and the landing run, without a scanner: what it
       # reads, what it asks the scanner, and that it refuses when there is none.
       check python3 build/scan-secrets.py --self-test

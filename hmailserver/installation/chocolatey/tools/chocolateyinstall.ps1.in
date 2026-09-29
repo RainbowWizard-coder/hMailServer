@@ -13,7 +13,8 @@
 $ErrorActionPreference = 'Stop'
 
 $packageArgs = @{
-    packageName    = 'hmailserver'
+    # hmailserver, or hmailserver-progressiverobot: the id this package was packed as.
+    packageName    = $env:ChocolateyPackageName
     fileType       = 'exe'
     url64bit       = '@INSTALLER_URL@'
     checksum64     = '@INSTALLER_SHA256@'
@@ -38,4 +39,4 @@ Write-Host 'hMailServer @VERSION@ is installed. The administrator password is NO
 Write-Host 'unattended install - the wizard page that asks for one is skipped. Set one before'
 Write-Host 'the server is reachable from anywhere but this machine: open the Control Panel'
 Write-Host 'from the Start menu. Documentation:'
-Write-Host 'https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home'
+Write-Host 'https://gitlab.com/hmailserver/hmailserver/-/wikis/home'

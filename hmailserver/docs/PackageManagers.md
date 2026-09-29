@@ -29,9 +29,19 @@ is upstream's hMailServer 5.6.8.2574, approved by a moderator on 4 February
 `chtof` as its maintainers, and **unlisted**: "This package is unlisted and
 hidden from package listings" (read on 28 September 2026). A search of the feed
 does not show an unlisted package, which is why this section said until then
-that the feed had none. The nuspec still names `hmailserver`: to publish under
-it the project must become one of that package's maintainers, or take another
-identifier, and which is the owner's decision.
+that the feed had none. To publish under `hmailserver` the project must become
+one of that package's maintainers, or take another identifier, and which is the
+owner's decision: the maintainers drafted the request to them, and
+`hmailserver-progressiverobot` is the other identifier. The nuspec's id is
+rendered from `build/make-package-manifests.ps1 -ChocolateyId`, one of those two.
+
+**From 6.3.6 the Chocolatey package is published by CI**, from `master`, by the
+jobs `chocolatey-release` and `chocolatey-publish`
+([Channels.md](Channels.md), "Chocolatey"): the release's installer verified
+against its Sigstore bundle, the package rendered from those bytes and packed on
+bench150, and pushed with `CHOCO_API_KEY`, which does not exist yet - until it
+does, the jobs say "not configured". winget stays by hand, and paused: its
+community repository takes pull requests on GitHub alone.
 
 What a user will type
 ---------------------
@@ -70,7 +80,8 @@ What is in the repository
 | `hmailserver/installation/chocolatey/hmailserver.nuspec.in` | The Chocolatey package metadata, as a template. |
 | `hmailserver/installation/chocolatey/tools/chocolateyinstall.ps1.in` | Downloads the release installer, checks it against the SHA-256, runs it unattended. |
 | `hmailserver/installation/chocolatey/tools/chocolateyuninstall.ps1` | Runs the Inno uninstaller found through the `hMailServer_is1` registry key. Not a template: nothing in it changes between versions. |
-| `build/make-package-manifests.ps1` | Renders all of the above for a version, computing the hash from the actual installer. |
+| `build/make-package-manifests.ps1` | Renders all of the above for a version, computing the hash from the actual installer; `-ChocolateyId` is `hmailserver` or `hmailserver-progressiverobot`. |
+| `build/ci/channels/chocolatey-publish.ps1` | The `chocolatey-publish` job ([Channels.md](Channels.md)): the verified installer rendered, packed with `choco pack` and pushed. |
 | `build/check-package-manifests.py` | Validates the rendered manifests against Microsoft's published JSON schemas and cross-checks them against the Chocolatey package. |
 | `package-managers.yml` (a GitHub workflow, in the git history at `faca023d4`) | Was to run the two on every published release, keep the result as an artifact, and submit when armed; it arrived after the `v6.3.3` tag, so no release ran it. It was not ported to GitLab ([ContinuousIntegration.md](ContinuousIntegration.md), "From GitHub Actions to GitLab CI"), so the two are run by hand. |
 
@@ -141,7 +152,9 @@ winget:
    new identifier. Expect questions the first time; answer them on the pull
    request.
 
-Chocolatey:
+Chocolatey (what `chocolatey-publish` does once `CHOCO_API_KEY` is set, except
+that it pushes with an HTTP request carrying the key in a header rather than on
+`choco push`'s command line):
 
 1. The identifier first. `hmailserver` is upstream's unlisted package (above),
    so a push under it is refused until the pushing account is one of that
@@ -178,6 +191,10 @@ validated and kept the files — it just said in the log that it submitted
 nothing. That was the deliberate default, and it holds for whatever replaces
 it: no release should open a pull request against somebody else's repository by
 surprise.
+
+For Chocolatey, `chocolatey-publish` replaces it from 6.3.6 ([Channels.md](Channels.md)),
+with the same default: it submits nothing until `CHOCO_API_KEY` is set, and then
+only a release the update feed lists, whose installer it has verified.
 
 apt and dnf
 -----------
@@ -252,7 +269,10 @@ dnf repository exists once a stable release carries the per-distribution
 `el10` and `el9` for x86_64 and aarch64. A release that carries the generic `.rpm`
 alone, as 6.3.4 does today (the README's download line), adds nothing to them.
 openSUSE's packages (`.suse.lp160`, `.suse.tw`) are not served either: zypper
-is not dnf, and nothing here has been tried with it.
+is not dnf, and nothing here has been tried with it. zypper takes the release
+through the openSUSE Build Service instead, which builds it from the source
+tarball and signs its own repository ([Channels.md](Channels.md), "openSUSE Build
+Service").
 
 The `.repo` file:
 
@@ -517,10 +537,11 @@ Not tried:
 What this does not do
 ---------------------
 
-* **No Arch AUR package.** The `.deb` and `.rpm` have the apt and dnf
-  repositories below; the AppImages were attached to the releases 6.3.0 to
+* **No Arch package here.** The `.deb` and `.rpm` have the apt and dnf
+  repositories above; the AppImages were attached to the releases 6.3.0 to
   6.3.3, and no release since carries them ([PackagesAppImage.md](PackagesAppImage.md));
-  the Arch AUR is a separate roadmap row.
+  the Arch package is the AUR's `hmailserver`, which `aur-publish` publishes from
+  the release's source tarball ([Channels.md](Channels.md)).
 * **No `winget install` of a pre-release.** The workflow refused a tag that was
   not three numbers, and a pre-release is not submitted by hand either, because package managers should not hand an alpha to
   somebody typing `winget install hmailserver`.

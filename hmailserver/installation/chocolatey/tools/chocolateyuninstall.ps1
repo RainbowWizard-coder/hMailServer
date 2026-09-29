@@ -34,7 +34,8 @@ if (@($key).Count -gt 1) {
 $file = $key.UninstallString.Trim('"')
 
 $packageArgs = @{
-    packageName    = 'hmailserver'
+    # hmailserver, or hmailserver-progressiverobot: the id this package was packed as.
+    packageName    = $env:ChocolateyPackageName
     fileType       = 'exe'
     file           = $file
     silentArgs     = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART'

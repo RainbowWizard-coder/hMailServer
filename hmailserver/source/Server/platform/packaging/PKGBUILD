@@ -5,9 +5,19 @@
 
 # The Arch package. SUSE and the RPM distributions consume the .rpm CPack builds;
 # Arch has no equivalent of that, so it gets a PKGBUILD that builds from the
-# repository with the same CMakeLists.txt the .deb and .rpm are built from.
+# release's source tarball with the same CMakeLists.txt the .deb and .rpm are built
+# from - the tarball the release signs (hmailserver/docs/SourceTarball.md); no
+# release before the tarball existed can be built with it.
 #
 # Build it with:  makepkg -si
+#
+# The AUR's copy is this file as aur-publish renders it for a release
+# (build/ci/channels/aur-publish.py; hmailserver/docs/Channels.md): pkgver the
+# release's, pkgrel counted up when this file changes between releases, and
+# sha256sums the SHA-256 of the tarball it downloaded and verified against the
+# release's Sigstore bundle. In the tree the tarball is not made yet when this file
+# is committed, so sha256sums is SKIP here: a build from the tree takes the tarball
+# on trust from the release's HTTPS address, and the AUR's does not.
 #
 # WHAT IS DIFFERENT FROM THE .deb AND .rpm, and it is worth knowing before
 # reading further: this package installs no maintainer scripts. Arch stopped
@@ -24,6 +34,11 @@
 # same one the Debian and RPM scripts give for not STARTING it: nothing here can
 # know the database credentials, and a server that cannot reach a database is a
 # server writing to the log once a second.
+#
+# And it is a distribution's build: -DHM_LIVE_UPDATE=OFF, so it carries no
+# hmailserver-update and never replaces itself with the project's .deb or .rpm;
+# its update check still says when a newer release exists, and names the command
+# in build() below (hmailserver/docs/LiveUpdateKinds.md).
 
 pkgname=hmailserver
 
@@ -34,8 +49,8 @@ pkgname=hmailserver
 # that header at configure time, and CPACK_PACKAGE_VERSION - and therefore the
 # .deb and .rpm file names - comes from it. This file cannot do the same, because
 # makepkg parses it as a shell script and never runs CMake, and because
-# source= below fetches a git TAG built from this number rather than the tree it
-# was copied out of.
+# source= below fetches the release's source tarball of this number rather than
+# the tree it was copied out of.
 #
 # So it is verified instead: build/check-linux-version-stamp.sh compares this
 # line with Version.h, and GitLab CI's checkers and linux-build jobs run it.
@@ -45,9 +60,10 @@ pkgver=6.3.5
 pkgrel=1
 pkgdesc="A mail server for SMTP, IMAP and POP3"
 arch=('x86_64' 'aarch64')
-# The project's home since GitHub suspended its account on 18 September 2026;
-# source= below clones the release tag from here.
-url="https://gitlab.com/Progressiverobot/hmailserver"
+# The project's home since GitHub suspended its account on 18 September 2026, at
+# the group's path it moves to (its first path, Progressiverobot/hmailserver,
+# redirects there).
+url="https://gitlab.com/hmailserver/hmailserver"
 license=('AGPL-3.0-or-later')
 
 # Matched to what hmailserver/source/Server/CMakeLists.txt actually links:
@@ -66,7 +82,7 @@ depends=('boost-libs' 'openssl' 'zlib' 'postgresql-libs' 'libldap')
 #
 # boost is here as well as boost-libs because the headers are in the split
 # package; postgresql-libs carries libpq-fe.h itself, so it needs no -dev twin.
-makedepends=('cmake' 'ninja' 'clang' 'boost' 'git')
+makedepends=('cmake' 'ninja' 'clang' 'boost')
 
 optdepends=(
    'mariadb-libs: MySQL and MariaDB backend - libmariadb.so.3, which the server
@@ -76,14 +92,27 @@ optdepends=(
     installs'
    'clamav: virus scanning, reached over TCP with clamd INSTREAM'
    'spamassassin: spam scoring, reached over TCP with spamd'
+   'python: hmctl, the command-line client of the REST API, in /usr/bin'
+   '7zip: the backup archive'
 )
+
+# Built without link-time optimisation. Arch's makepkg.conf turns it on for every
+# package (OPTIONS=(... lto), LTOFLAGS="-flto=auto"), and with clang that is a full
+# LTO link of the whole server: on 28 September 2026 the final link of
+# /usr/bin/hmailserver alone passed 6 GB of memory and was killed, in a clean Arch
+# Linux container building this file. The project builds, tests and releases the
+# server without LTO; a packager with the memory to spare may drop the line.
+options=('!lto')
 
 # pacman keeps an edited configuration and leaves the package's version beside it
 # as a .pacnew. This is the Arch equivalent of a Debian conffile, and it is why
 # an upgrade here does not overwrite database credentials.
 backup=('etc/hmailserver/hMailServer.ini')
 
-source=("git+${url}.git#tag=v${pkgver}")
+# The release's source tarball, from the project's package registry by the
+# project's id, which a move between namespaces keeps. aur-publish writes its
+# SHA-256 here (above).
+source=("https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/${pkgver}/hmailserver-${pkgver}.tar.gz")
 sha256sums=('SKIP')
 
 build() {
@@ -96,10 +125,15 @@ build() {
    # install rules in the CMakeLists depend on that: the configuration goes to
    # ${CMAKE_INSTALL_SYSCONFDIR}/hmailserver and the logrotate rule to
    # ${CMAKE_INSTALL_SYSCONFDIR}/logrotate.d.
-   cmake -S "${srcdir}/${pkgname}/hmailserver/source/Server" -B build -G Ninja \
+   #
+   # -DHM_LIVE_UPDATE=OFF, and the command the update check names instead: see the
+   # note at the top.
+   cmake -S "${srcdir}/${pkgname}-${pkgver}/hmailserver/source/Server" -B build -G Ninja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr \
-      -DCMAKE_INSTALL_LIBDIR=lib
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DHM_LIVE_UPDATE=OFF \
+      -DHM_UPDATE_COMMAND="makepkg -si from https://aur.archlinux.org/hmailserver.git"
 
    cmake --build build
 }
@@ -138,10 +172,10 @@ z /etc/hmailserver              0750 root       hmailserver -
 z /etc/hmailserver/hMailServer.ini 0640 root    hmailserver -
 TMPFILES
 
-   install -Dm644 "${srcdir}/${pkgname}/LICENSE" \
+   install -Dm644 "${srcdir}/${pkgname}-${pkgver}/LICENSE" \
       "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 
    install -Dm644 \
-      "${srcdir}/${pkgname}/hmailserver/source/Server/platform/packaging/README.md" \
+      "${srcdir}/${pkgname}-${pkgver}/hmailserver/source/Server/platform/packaging/README.md" \
       "${pkgdir}/usr/share/doc/${pkgname}/README.md"
 }

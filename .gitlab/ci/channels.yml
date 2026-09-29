@@ -1,0 +1,350 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The release channels: the signed release published to the places people install it
+# from, each by a job of its own, by hand, on master (hmailserver/docs/Channels.md).
+# Included from .gitlab-ci.yml.
+#
+#   channels-verify     the release's source tarball and Windows installer downloaded
+#                       and verified, as every job below verifies what it publishes,
+#                       and nothing published: the dry run a maintainer starts before
+#                       any account exists (build/ci/channels/release-files.py verify);
+#   registry-mirror     the container image, by its digest, with its signature and
+#                       SBOM attestation, from registry.gitlab.com/hmailserver/
+#                       hmailserver to Docker Hub, Quay.io and Amazon ECR Public
+#                       (build/ci/channels/registry-mirror.py);
+#   aur-publish         the Arch User Repository's hmailserver: the PKGBUILD for the
+#                       release and its .SRCINFO, pushed over SSH
+#                       (build/ci/channels/aur-publish.py);
+#   ppa-upload          the release's Debian source package, signed and uploaded to
+#                       the project's Launchpad PPA for Ubuntu 24.04 and 26.04
+#                       (build/ci/channels/ppa-upload.py);
+#   copr-build          Fedora Copr's build of the release, started through the
+#                       package's webhook; Copr builds the source RPM itself from
+#                       .copr/Makefile (build/ci/channels/copr-build.py);
+#   obs-publish         the openSUSE Build Service's source service run for the
+#                       release (hmailserver/source/Server/platform/packaging/obs/
+#                       _service; build/ci/channels/obs-publish.py);
+#   chocolatey-release  then chocolatey-publish on bench150: the installer verified on
+#                       a Linux runner, then the Chocolatey package packed from those
+#                       bytes and pushed (build/ci/channels/chocolatey-publish.ps1);
+#   snap-upload         the snap snap-build made in the same pipeline
+#                       (.gitlab/ci/snap.yml), uploaded to the Snap Store's edge and
+#                       candidate channels (build/ci/channels/snap-upload.py).
+#
+# Each publishes a RELEASE, never the commit its pipeline is for: the one the
+# project's CI/CD variable HM_CHANNEL_VERSION names, or else the update feed's
+# releases/latest, which the feed must list as published (not a draft, not a
+# pre-release) - build/ci/cli-packages.py's rule, which the PyPI and Gallery jobs use
+# too. A version is never given when a job is started: the project refuses pipeline
+# variables (ci_pipeline_variables_minimum_override_role no_one_allowed). Each
+# downloads the release's files and verifies their Sigstore bundles as this project's
+# pipeline for the tag, at either path a server trusts, with the project's id in the
+# certificate at the group's path, BEFORE it publishes anything; and each is dormant
+# until its credential exists - it says "not configured" and passes. So an account
+# that arrives weeks after a release still publishes that release, from master, with
+# no new release made for it.
+#
+# The rules: a protected master's own pipeline and nothing else - never a tag's, a
+# merge request's, a schedule's or the feed's downstream one - and each job manual and
+# allowed to fail, so that a master pipeline is never held for a channel nobody has
+# set up. Each job has an environment of its own, so each credential can be scoped
+# to the one job that uses it (Settings, CI/CD, Variables, "Environments"), and a
+# resource group, so that two presses never publish at once. chocolatey-publish is the
+# one that is not pressed: it follows chocolatey-release, whose verified installer it
+# packs, on bench150, where choco runs, and is allowed to fail like the rest.
+#
+# cosign and regctl are taken out of their own images, pinned by digest, by
+# release-files.py: cosign from HM_COSIGN_IMAGE (gcr.io, .gitlab-ci.yml), regctl
+# from HM_REGCTL_IMAGE below (Docker Hub's regclient/regctl). Nothing comes from
+# GitHub; the jobs on GitLab's shared runners take .no-github first, and the ones on
+# the project's machines run behind their runners' own GitHub block.
+#
+# No job here holds a secret in this file. Every credential is a protected, masked
+# project variable, which a job reads from its environment and hands to its tool on
+# standard input, in a file of the job's own or in a request header - never on a
+# command line and never in the log.
+#
+# channels-check, in a merge request's or a branch's pipeline when a channel's files
+# change, runs every script's self-test, and proves the verification with the pinned
+# cosign itself against a Sigstore of its own (build/ci/channels/fake-sigstore.py).
+
+.channels-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_TAG
+      when: never
+    - changes:
+        - build/ci/channels/**/*
+        - .gitlab/ci/channels.yml
+        - .copr/**/*
+        - hmailserver/source/Server/platform/packaging/PKGBUILD
+        - hmailserver/source/Server/platform/packaging/obs/**/*
+        - hmailserver/installation/chocolatey/**/*
+        - build/make-package-manifests.ps1
+        - build/ci/cli-packages.py
+        - build/ci/release-chain.py
+
+.channels-publish:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+
+channels-check:
+  stage: check
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  needs: []
+  timeout: 20 minutes
+  rules:
+    - !reference [.channels-changes, rules]
+  before_script:
+    - !reference [.no-github, before_script]
+    # python3 and its cryptography, which fake-sigstore.py makes its authority with,
+    # from Debian; pwsh is the image's.
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends python3 python3-cryptography git openssh-client ca-certificates > /dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - |
+      set -e
+      for script in release-files registry-mirror aur-publish ppa-upload copr-build obs-publish snap-upload fake-sigstore; do
+        echo ""
+        echo "\$ python3 build/ci/channels/$script.py --self-test"
+        python3 "build/ci/channels/$script.py" --self-test
+      done
+      echo ""
+      echo "\$ pwsh build/ci/channels/chocolatey-publish.ps1 -SelfTest"
+      pwsh -NoProfile -NonInteractive -File build/ci/channels/chocolatey-publish.ps1 -SelfTest
+      # The verification with the cosign every channel job runs: out of the pinned
+      # image, then against bundles and a trusted root of the fixture's own.
+      python3 build/ci/channels/release-files.py fetch-tool cosign --into /tmp/channel-tools
+      python3 build/ci/channels/fake-sigstore.py --self-test --cosign /tmp/channel-tools/cosign
+      python3 build/ci/channels/release-files.py --self-test --cosign /tmp/channel-tools/cosign
+
+channels-verify:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  rules:
+    - !reference [.channels-publish, rules]
+  before_script:
+    - !reference [.no-github, before_script]
+  script:
+    - python3 build/ci/channels/release-files.py verify --out channels-verify
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - channels-verify/verification.json
+
+registry-mirror:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 30 minutes
+  interruptible: false
+  resource_group: registry-mirror
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: container-registries
+  variables:
+    # regctl 0.11.6, the image's multi-platform index as Docker Hub served it on
+    # 28 September 2026 (hub.docker.com's tag list and the registry, which agree).
+    HM_REGCTL_IMAGE: "docker.io/regclient/regctl:v0.11.6@sha256:db2e5f3a5de80b24d53fea5af9edf7021a53f2689f1e166ef2f0e200dad4fb3a"
+  before_script:
+    - !reference [.no-github, before_script]
+  script:
+    - python3 build/ci/channels/registry-mirror.py --out registry-mirror
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - registry-mirror/mirror.json
+
+aur-publish:
+  stage: release
+  # Arch Linux's own image, whose makepkg writes the .SRCINFO the AUR requires: the
+  # base image of 20 September 2026 by digest (hub.docker.com's tag list).
+  image: archlinux:base-20260920.0.596911@sha256:f3691b4dde62ba4c4b6f0ae2c1fbf28e8c0c8c4b9a35c7e06dc1f70e21aa29f6
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  resource_group: aur-publish
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: aur
+    url: https://aur.archlinux.org/packages/hmailserver
+  before_script:
+    # Arch asks systemd-resolved before the hosts file; in a container nothing
+    # resolves but DNS, and .no-github needs the hosts file read first.
+    - "sed -i 's/^hosts:.*/hosts: files dns/' /etc/nsswitch.conf"
+    - !reference [.no-github, before_script]
+    - pacman -Syu --noconfirm --needed python git openssh > /dev/null
+    # makepkg will not run as root: the .SRCINFO is made as this user.
+    - useradd --create-home builder
+  script:
+    - python3 build/ci/channels/aur-publish.py --out aur-publish
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - aur-publish/PKGBUILD
+      - aur-publish/.SRCINFO
+      - aur-publish/verification.json
+
+ppa-upload:
+  stage: release
+  # Debian 13 by digest, as package-repos has it: devscripts' mk-origtargz and
+  # debsign, dpkg-dev and dput, from Debian.
+  image: debian:13@sha256:d5ce19d4736f0ebbacd686d1040271a5aeb0cc920f5990c1bfae1717627f0674
+  needs: []
+  timeout: 30 minutes
+  interruptible: false
+  resource_group: ppa-upload
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: launchpad
+    url: https://launchpad.net/~hmailserver/+archive/ubuntu/hmailserver
+  before_script:
+    - !reference [.no-github, before_script]
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends python3 ca-certificates devscripts dpkg-dev dput gnupg xz-utils > /dev/null
+  script:
+    - python3 build/ci/channels/ppa-upload.py --out ppa-upload
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - ppa-upload/verification.json
+      - ppa-upload/*.dsc
+      - ppa-upload/*.debian.tar.xz
+      - ppa-upload/*.changes
+      - ppa-upload/*.buildinfo
+
+copr-build:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 30 minutes
+  interruptible: false
+  resource_group: copr-build
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: copr
+  before_script:
+    - !reference [.no-github, before_script]
+  script:
+    - python3 build/ci/channels/copr-build.py trigger --out copr-build
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - copr-build/verification.json
+
+obs-publish:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  resource_group: obs-publish
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: obs
+  before_script:
+    - !reference [.no-github, before_script]
+  script:
+    - python3 build/ci/channels/obs-publish.py --out obs-publish
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - obs-publish/verification.json
+
+chocolatey-release:
+  stage: release
+  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  needs: []
+  timeout: 20 minutes
+  interruptible: false
+  rules:
+    - !reference [.channels-publish, rules]
+  before_script:
+    - !reference [.no-github, before_script]
+  script:
+    - python3 build/ci/channels/release-files.py verify --out chocolatey-release "hMailServer-{version}-x64.exe"
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - chocolatey-release/verification.json
+
+# The Chocolatey package, on bench150, where choco runs: after chocolatey-release, and
+# only then. Not pressed itself: pressing chocolatey-release starts both.
+chocolatey-publish:
+  stage: release
+  tags: [bench150]
+  needs:
+    - job: chocolatey-release
+      artifacts: true
+  timeout: 30 minutes
+  interruptible: false
+  resource_group: chocolatey-publish
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"
+      allow_failure: true
+  environment:
+    name: chocolatey
+    url: https://community.chocolatey.org/packages/hmailserver
+  variables:
+    GIT_TERMINAL_PROMPT: "0"
+    GCM_INTERACTIVE: "Never"
+  script:
+    - |
+      & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\channels\chocolatey-publish.ps1 -Verification chocolatey-release\verification.json -OutDir chocolatey-publish
+      exit $LASTEXITCODE
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - chocolatey-publish/*.nupkg
+      - chocolatey-publish/manifests/chocolatey/
+
+# The snap snap-build made in this pipeline (.gitlab/ci/snap.yml; hmailserver/docs/Snap.md),
+# on the runner snap-build uses, where snapd and snapcraft run. The need is optional
+# so that this file stands without snap.yml; without the snap the job refuses.
+snap-upload:
+  stage: release
+  tags: [linix-systemd]
+  needs:
+    - job: snap-build
+      artifacts: true
+      optional: true
+  timeout: 30 minutes
+  interruptible: false
+  resource_group: snap-upload
+  rules:
+    - !reference [.channels-publish, rules]
+  environment:
+    name: snap-store
+    url: https://snapcraft.io/hmailserver
+  script:
+    - python3 build/ci/channels/snap-upload.py --snaps snap --out snap-upload
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - snap-upload/verification.json

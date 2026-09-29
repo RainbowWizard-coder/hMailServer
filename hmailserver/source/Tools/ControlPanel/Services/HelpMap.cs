@@ -147,6 +147,7 @@ namespace hMailServer.ControlPanel.Services
       {
          "AccountRecovery.md",
          "BrandLogos.md",
+         "Channels.md",
          "CommandLinePackages.md",
          "Complaints.md",
          "ContainerImage.md",

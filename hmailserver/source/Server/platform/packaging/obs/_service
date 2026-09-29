@@ -1,0 +1,31 @@
+<!--
+  https://www.progressiverobot.com
+  Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+  SPDX-License-Identifier: AGPL-3.0-or-later
+
+  The openSUSE Build Service package hmailserver's source service
+  (hmailserver/docs/Channels.md, "openSUSE Build Service"): the owner puts this file
+  in the OBS package once, and it is the package's only file. When the service runs,
+  OBS fetches the latest release's source tarball through GitLab's permanent link to
+  it (no token: the project is public), takes the RPM spec and its Source1 out of that
+  tarball - the release's own, never a copy kept on OBS - and then downloads the
+  spec's Source0, the same tarball under its versioned name. OBS builds it for Leap and
+  Tumbleweed and signs the repository it publishes, which zypper then takes.
+
+  Nothing here names a version, so the file never changes between releases. The
+  service runs when the obs-publish job starts it (build/ci/channels/obs-publish.py),
+  after that job has verified the release's tarball against its Sigstore bundle and
+  checked that GitLab's permanent link leads to exactly those bytes; OBS itself
+  checks nothing but HTTPS.
+-->
+<services>
+  <service name="download_url">
+    <param name="url">https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/hmailserver.tar.gz</param>
+    <param name="filename">hmailserver-latest.tar.gz</param>
+  </service>
+  <service name="extract_file">
+    <param name="archive">*hmailserver-latest.tar.gz</param>
+    <param name="files">*/hmailserver/source/Server/platform/packaging/rpm/hmailserver.spec */hmailserver/source/Server/platform/packaging/rpm/hmailserver.sysusers</param>
+  </service>
+  <service name="download_files"/>
+</services>

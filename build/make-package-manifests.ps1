@@ -82,7 +82,16 @@ param(
     [switch] $Check,
 
     # Fail unless the local installer carries a valid Authenticode signature.
-    [switch] $RequireSignedInstaller
+    [switch] $RequireSignedInstaller,
+
+    # The Chocolatey package's id. hmailserver is upstream's package (5.6.8.2574, last
+    # updated January 2022, now unlisted), which the project publishes under once its
+    # maintainers add the project's account; hmailserver-progressiverobot is the id
+    # the owner chose instead if they do not (hmailserver/docs/PackageManagers.md,
+    # hmailserver/docs/Channels.md). The chocolatey-publish job passes its project
+    # variable HM_CHOCOLATEY_ID here.
+    [ValidateSet('hmailserver', 'hmailserver-progressiverobot')]
+    [string] $ChocolateyId = 'hmailserver'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -181,6 +190,7 @@ $tokens = @{
     '@INSTALLER_URL@'    = $InstallerUrl
     '@INSTALLER_SHA256@' = $Sha256
     '@RELEASE_DATE@'     = $ReleaseDate
+    '@CHOCOLATEY_ID@'    = $ChocolateyId
 }
 
 function Convert-Template {
@@ -309,8 +319,8 @@ try {
     if ($parsed.package.metadata.version -ne $Version) {
         $problems += "the nuspec version is $($parsed.package.metadata.version), not $Version"
     }
-    if ($parsed.package.metadata.id -ne 'hmailserver') {
-        $problems += "the nuspec id is $($parsed.package.metadata.id), not hmailserver"
+    if ($parsed.package.metadata.id -ne $ChocolateyId) {
+        $problems += "the nuspec id is $($parsed.package.metadata.id), not $ChocolateyId"
     }
 }
 catch {

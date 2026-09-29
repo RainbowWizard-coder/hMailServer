@@ -267,8 +267,10 @@ def check_chocolatey(directory, manifests):
 
     identifier = text("id")
     version = text("version")
-    if identifier != "hmailserver":
-        problem("the nuspec id is %r, not 'hmailserver'" % identifier)
+    # hmailserver, upstream's unlisted package, or the id the owner takes instead
+    # (build/make-package-manifests.ps1 -ChocolateyId; hmailserver/docs/Channels.md).
+    if identifier not in ("hmailserver", "hmailserver-progressiverobot"):
+        problem("the nuspec id is %r, not 'hmailserver' or 'hmailserver-progressiverobot'" % identifier)
     for required in ("version", "title", "authors", "description", "summary", "projectUrl", "licenseUrl", "tags"):
         if not text(required):
             problem("the nuspec has no <%s>, which Chocolatey requires" % required)

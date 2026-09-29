@@ -11,22 +11,26 @@
   The package downloads the release's own signed installer and checks it against
   the SHA-256 the manifest carries - it does not embed the 76 MB installer, which
   is why there is no tools/VERIFICATION.txt: nothing binary is shipped inside it.
+
+  @CHOCOLATEY_ID@ is hmailserver or hmailserver-progressiverobot (the script's
+  -ChocolateyId). The addresses are the project's at the group's path it moves to;
+  its first path, Progressiverobot/hmailserver, redirects there.
 -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
-    <id>hmailserver</id>
+    <id>@CHOCOLATEY_ID@</id>
     <version>@VERSION@</version>
-    <packageSourceUrl>https://gitlab.com/Progressiverobot/hmailserver/-/tree/master/hmailserver/installation/chocolatey</packageSourceUrl>
+    <packageSourceUrl>https://gitlab.com/hmailserver/hmailserver/-/tree/master/hmailserver/installation/chocolatey</packageSourceUrl>
     <owners>Progressive Robot Ltd</owners>
     <title>hMailServer</title>
     <authors>Christopher Holloway, Progressive Robot Ltd</authors>
-    <projectUrl>https://gitlab.com/Progressiverobot/hmailserver</projectUrl>
+    <projectUrl>https://gitlab.com/hmailserver/hmailserver</projectUrl>
     <copyright>Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer by Martin Knafve.</copyright>
-    <licenseUrl>https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectSourceUrl>https://gitlab.com/Progressiverobot/hmailserver</projectSourceUrl>
-    <docsUrl>https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home</docsUrl>
-    <bugTrackerUrl>https://gitlab.com/Progressiverobot/hmailserver/-/issues</bugTrackerUrl>
+    <projectSourceUrl>https://gitlab.com/hmailserver/hmailserver</projectSourceUrl>
+    <docsUrl>https://gitlab.com/hmailserver/hmailserver/-/wikis/home</docsUrl>
+    <bugTrackerUrl>https://gitlab.com/hmailserver/hmailserver/-/issues</bugTrackerUrl>
     <tags>hmailserver mail mailserver email smtp imap pop3 dkim dmarc spam webmail server admin</tags>
     <summary>A free, open-source mail server for Windows - SMTP, IMAP and POP3, with anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.</summary>
     <description><![CDATA[
@@ -60,7 +64,7 @@ open the Control Panel from the Start menu.
 Uninstalling runs the installer's own uninstaller. It does not delete the message store or the
 database: that is deliberate, and removing them is the administrator's decision to make by hand.
 ]]></description>
-    <releaseNotes>https://gitlab.com/Progressiverobot/hmailserver/-/releases/@TAG@</releaseNotes>
+    <releaseNotes>https://gitlab.com/hmailserver/hmailserver/-/releases/@TAG@</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />

@@ -52,6 +52,10 @@ hmailserver/source/Tools/Cli/hmctl text eol=lf
 # distributions' packaging reads with shell, rpm and Guix on Linux: a line read
 # with its carriage return names a path that is not there, and nothing is left out.
 build/source-exclusions.txt text eol=lf
+# And Fedora Copr's make_srpm (.copr/Makefile, hmailserver/docs/Channels.md), which GNU
+# make reads in Copr's Linux builder: a recipe line read with its carriage return
+# runs a command whose last argument ends in one.
+.copr/** text eol=lf
 
 ###############################################################################
 # The OpenPGP fixtures, byte for byte.
