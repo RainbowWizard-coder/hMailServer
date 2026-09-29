@@ -137,6 +137,13 @@ private:
    // the authorisation question, which is also what installs the audit actor.
    bool MayAdministerDomain_(__int64 domainID) const;
    bool MayAdministerAddress_(const HM::String &address) const;
+
+   // Whether the caller may use the helpers that do work in the server - the
+   // legacy Blowfish transform, the resolver, the Sieve parser and interpreter,
+   // the rule matcher: an authenticated credential of any level, or the
+   // service's own event-script host (ScriptServer::IsScriptRunningOnThisThread).
+   // A COM client that never authenticated is refused.
+   bool MayUseServerHelpers_() const;
 public:
 };
 

@@ -55,6 +55,7 @@
 #include "../Common/Persistence/PersistentDomain.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Sieve/SieveScript.h"
+#include "../Common/Scripting/ScriptServer.h"
 #include "COMError.h"
 #include "../Common/Util/WebPush.h"
 #include "../Common/Util/Unicode.h"
@@ -98,6 +99,13 @@ STDMETHODIMP InterfaceUtilities::ResolveMXRecords(BSTR DomainName, BSTR *Result)
          return COMError::GenerateGenericMessage();
 
       *Result = nullptr;
+
+      // Drives the server's own resolver from a caller-chosen name, so it is a
+      // credential's to run and not an anonymous client's: the Control Panel's
+      // MX-query tool asks it after signing in. Without this, a client that never
+      // authenticated set the server resolving names of its choosing.
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
 
       HM::String sDomainName(DomainName);
       sDomainName.Trim();
@@ -331,9 +339,14 @@ STDMETHODIMP InterfaceUtilities::GetMailServer(BSTR EMailAddress, BSTR *MailServ
 {
    try
    {
+      // The server's resolver again, reached by an email address: a credential's
+      // to run, for the reason ResolveMXRecords is.
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
       HM::String sDomainName;
       HM::String sEMail(EMailAddress);
-   
+
       sDomainName = HM::StringParser::ExtractDomain (EMailAddress);
    
       std::vector<HM::String> saDomainNames;
@@ -402,6 +415,13 @@ STDMETHODIMP InterfaceUtilities::CheckSieveSyntax(BSTR Script, BSTR *Result)
 {
    try
    {
+      // Runs the Sieve parser over caller-supplied text. A parser on untrusted
+      // input is work a credential asks for, not an anonymous client: over REST
+      // a script is parsed only for a caller that has signed in (PUT
+      // /api/v1/me/filters, ManageSieve's PUTSCRIPT).
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
       HM::String sScript(Script);
 
       HM::String sError = HM::SieveScript::CheckSyntax(sScript);
@@ -420,6 +440,13 @@ STDMETHODIMP InterfaceUtilities::EvaluateSieveScript(BSTR Script, BSTR RawMessag
 {
    try
    {
+      // Parses and runs a Sieve script against a caller-supplied message. Like
+      // CheckSieveSyntax it is an interpreter on untrusted input, and the REST
+      // route /api/v1/sieve/evaluate refuses a caller with no key; a credential
+      // is required here for the same reason.
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
       HM::String sScript(Script);
       HM::String sRawMessage(RawMessage);
 
@@ -439,10 +466,17 @@ STDMETHODIMP InterfaceUtilities::BlowfishEncrypt(BSTR Input, BSTR *Output)
 {
    try
    {
-      HM::String sInput(Input);  
-   
+      // The server's legacy stored-secret transform, keyed by a value built into
+      // the build: a credential's to run, not an anonymous client's. An
+      // authenticated account may still use it, as it always could
+      // (BlowfishEncryptShouldNotRequireAdminPrivileges).
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
+      HM::String sInput(Input);
+
       HM::String sOutput = HM::Crypt::Instance()->EnCrypt(sInput, HM::Crypt::ETBlowFish);
-   
+
       *Output = sOutput.AllocSysString();
    
       return S_OK;
@@ -457,10 +491,16 @@ STDMETHODIMP InterfaceUtilities::BlowfishDecrypt(BSTR Input, BSTR *Output)
 {
    try
    {
+      // Reverses the legacy stored-secret transform above. A credential is
+      // required for the same reason, so that recovering a stored value through
+      // the interface is a credential's act and not an anonymous client's.
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
       HM::String sInput(Input);
-   
+
       HM::String sOutput = HM::Crypt::Instance()->DeCrypt(sInput, HM::Crypt::ETBlowFish);
-   
+
       *Output = sOutput.AllocSysString();
    
       return S_OK;
@@ -561,8 +601,14 @@ STDMETHODIMP InterfaceUtilities::IsLocalHost(BSTR sHostname, VARIANT_BOOL *bIsVa
 {
    try
    {
+      // Resolves a caller-chosen host name to decide whether it is one of this
+      // server's own addresses - a name lookup on untrusted input, as the MX
+      // methods are, so a credential runs it.
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
       *bIsValid = HM::Utilities::IsLocalHost(sHostname) ? VARIANT_TRUE : VARIANT_FALSE;
-   
+
       return S_OK;
    }
    catch (...)
@@ -575,8 +621,15 @@ STDMETHODIMP InterfaceUtilities::CriteriaMatch(BSTR MatchValue, eRuleMatchType m
 {
    try
    {
+      // Runs a rule-criterion match, which for a wildcard or regular expression
+      // is the matcher working over caller-supplied patterns and text - a
+      // credential's to run, as the REST route that answers the same question
+      // (POST /api/v1/rules/match) refuses a caller with no key.
+      if (!MayUseServerHelpers_())
+         return authentication_->GetAccessDenied();
+
       HM::RuleApplier ruleApplier;
-   
+
       *bMatch = ruleApplier.TestMatch(MatchValue, (HM::RuleCriteria::MatchType) matchType, TestValue) ? VARIANT_TRUE : VARIANT_FALSE;
    
       return S_OK;
@@ -919,6 +972,33 @@ namespace
       HM::Unicode::MultiByteToWide(utf8, wide);
       return wide;
    }
+}
+
+bool
+InterfaceUtilities::MayUseServerHelpers_() const
+{
+   // A COM client that never authenticated - through an Application it did not
+   // sign in to, or a Utilities object it created itself, which share the
+   // anonymous credential - is refused: with an administrator password set, the
+   // members that ask this ran for any local caller. An authenticated account
+   // of any level is answered, as it always was (API/Basics.cs,
+   // BlowfishEncryptShouldNotRequireAdminPrivileges).
+   if (authentication_->GetIsAuthenticated())
+      return true;
+
+   // And so is the service's own event-script host. A VBScript or JScript
+   // handler runs in this process, as the service account, and its objects carry
+   // no credential unless it signs in; before this question was asked, a
+   // handler that created hMailServer.Utilities and resolved a sender's MX or
+   // matched a pattern did so without signing in, and it still does. Asked of the
+   // calling thread, not of the object: whichever thread COM constructed the
+   // object on, it lives in the process's one apartment, the MTA, where the
+   // event threads are too, so the script calls it directly, on the thread
+   // running the script - and a client in another process is answered on one of
+   // COM's own threads, which never run one. Nothing else is given: every other
+   // member asks the credential alone, so the same script's Application is still
+   // refused its Settings.
+   return HM::ScriptServer::IsScriptRunningOnThisThread();
 }
 
 bool

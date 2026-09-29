@@ -73,6 +73,92 @@ namespace RegressionTests.API
          Assert.AreEqual("Test", utilities.BlowfishDecrypt("08d04d2ef52d64ce0"));
       }
 
+      // Whether this server refuses an unauthenticated administrator - i.e. has an
+      // administrator password. With none, hMailServer answers COM anonymously as
+      // the server administrator by design, so there is no "unauthenticated" state
+      // to test; the tests that need one say so and are skipped rather than passing
+      // vacuously.
+      private static bool UnauthenticatedIsRefused()
+      {
+         var probe = new Application();
+
+         // Held as an object: COM answers an Account or null, and the Linux suite's
+         // shim, where this file is also compiled, a bool - which it never reaches,
+         // since its Authenticate skips the test.
+         object administrator = probe.Authenticate("Administrator", "");
+         return administrator == null;
+      }
+
+      // Refused as COM refuses a credential that may not use a member, and not by
+      // some other failure of the member itself - ResolveMXRecords of a name no
+      // DNS knows throws too, so a bare COMException would pass without the check
+      // having been made at all.
+      private static void AssertAccessDenied(Action call, string member)
+      {
+         var refused = Assert.Throws<COMException>(call, member);
+         StringAssert.Contains("You do not have access to this property / method", refused.Message, member);
+      }
+
+      [Test]
+      [Description("The work-doing members of COM Utilities - the ones that operate the server's legacy " +
+                   "secret transform, drive its resolver, or run the Sieve or rule matcher on caller input - " +
+                   "refuse a caller that never authenticated, whether it reached the object through " +
+                   "Application.Utilities or created it directly, while the same members answer once authenticated.")]
+      public void UtilitiesWorkMembersRequireAuthentication()
+      {
+         if (!UnauthenticatedIsRefused())
+            Assert.Ignore("This server has no administrator password, so COM answers anonymously as the " +
+                          "server administrator and there is no unauthenticated caller to refuse.");
+
+         // Two ways an unauthenticated caller reaches the object: through the
+         // Application it never signed in to, and by creating the coclass directly,
+         // which every COM client can do. Both share the anonymous credential.
+         var throughApplication = new Application().Utilities;
+         var createdDirectly = new Utilities();
+
+         foreach (var utilities in new[] { throughApplication, createdDirectly })
+         {
+            // A short input to BlowfishEncrypt/Decrypt on purpose: the transform is
+            // exercised only to show the member refuses before doing any work.
+            AssertAccessDenied(() => { var unused = utilities.BlowfishEncrypt("x"); }, "BlowfishEncrypt");
+            AssertAccessDenied(() => { var unused = utilities.BlowfishDecrypt("08d04d2ef52d64ce"); }, "BlowfishDecrypt");
+            AssertAccessDenied(() => { var unused = utilities.ResolveMXRecords("example.test"); }, "ResolveMXRecords");
+            AssertAccessDenied(() => { var unused = utilities.GetMailServer("someone@example.test"); }, "GetMailServer");
+            AssertAccessDenied(() => { var unused = utilities.IsLocalHost("localhost"); }, "IsLocalHost");
+            AssertAccessDenied(() => { var unused = utilities.CheckSieveSyntax("keep;"); }, "CheckSieveSyntax");
+            AssertAccessDenied(() => { var unused = utilities.EvaluateSieveScript("keep;", "Subject: x\r\n\r\nbody"); }, "EvaluateSieveScript");
+            AssertAccessDenied(() => { var unused = utilities.CriteriaMatch("Test", eRuleMatchType.eMTEquals, "Test"); }, "CriteriaMatch");
+         }
+
+         // The authenticated administrator, which the fixture holds, still answers.
+         var authenticated = _application.Utilities;
+         Assert.AreEqual("08d04d2ef52d64ce", authenticated.BlowfishEncrypt("Test"));
+         Assert.AreEqual("Test", authenticated.BlowfishDecrypt("08d04d2ef52d64ce"));
+         Assert.IsTrue(authenticated.CriteriaMatch("Test", eRuleMatchType.eMTEquals, "Test"));
+         Assert.AreEqual("", authenticated.CheckSieveSyntax("keep;"));
+      }
+
+      [Test]
+      [Description("The stateless helpers of COM Utilities - a hash, a GUID, the syntax validators - answer " +
+                   "without authentication, as they always have: they touch no server state and hold no secret, " +
+                   "and a shipped event script (TnefDecoder.vbs) creates the object directly and calls GenerateGUID " +
+                   "without signing in.")]
+      public void UtilitiesStatelessHelpersDoNotRequireAuthentication()
+      {
+         if (!UnauthenticatedIsRefused())
+            Assert.Ignore("This server has no administrator password, so COM answers anonymously as the " +
+                          "server administrator and there is no unauthenticated caller to answer.");
+
+         var utilities = new Utilities();
+
+         Assert.IsNotEmpty(utilities.GenerateGUID());
+         Assert.IsNotEmpty(utilities.MD5("Password"));
+         Assert.IsTrue(utilities.IsValidEmailAddress("someone@example.test"));
+         Assert.IsFalse(utilities.IsValidEmailAddress("not-an-address"));
+         Assert.IsTrue(utilities.IsValidIPAddress("8.8.8.8"));
+         Assert.IsTrue(utilities.IsValidDomainName("example.test"));
+      }
+
       [Test]
       [Description("Issue 210, Duplicate UIDS when COM Messages.Add is used")]
       public void TestAddMessage()

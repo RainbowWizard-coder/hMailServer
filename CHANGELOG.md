@@ -455,6 +455,13 @@ for a stray `#` number or `@` name.
   and COM `Utilities.BlowfishEncrypt` and `BlowfishDecrypt` - is written and read byte for byte as 6.3.4 did: about
   31 million comparisons with the old code and 60,000 answers from a 6.3.4 service found no difference. HM7277's
   source is now `LegacyBlowfish::EncryptToString`.
+- **COM `Utilities`'s helpers that do work answer an authenticated caller or an event script.** Through
+  `Application.Utilities` or created as `hMailServer.Utilities`, `BlowfishEncrypt`, `BlowfishDecrypt`,
+  `ResolveMXRecords`, `GetMailServer`, `IsLocalHost`, `CheckSieveSyntax`, `EvaluateSieveScript` and `CriteriaMatch`
+  answer a caller that has called `Authenticate` (an account of any level, or the administrator) or an event script
+  running in the service, as the rest of the COM API and the equivalent REST routes do; a server with no
+  administrator password answers as it did. `MD5`, `SHA256`, `GenerateGUID`, `IsStrongPassword` and the three syntax
+  validators stay open.
 
 ### Build and tests
 

@@ -2756,7 +2756,30 @@ namespace hMailServer
          throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
       }
 
-      public string IsValidEmailAddress(string address)
+      // The syntax validators, GenerateGUID and IsLocalHost, typed as the COM
+      // interface types them, so that API/Basics.cs compiles here: no route answers
+      // them, and a test that reaches one is skipped with the reason.
+      public bool IsValidEmailAddress(string address)
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
+      }
+
+      public bool IsValidIPAddress(string address)
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
+      }
+
+      public bool IsValidDomainName(string domainName)
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
+      }
+
+      public string GenerateGUID()
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
+      }
+
+      public bool IsLocalHost(string hostName)
       {
          throw NotOnThisServer.Skipped(NotOnThisServer.NoUtilityCall);
       }

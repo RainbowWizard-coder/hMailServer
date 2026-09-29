@@ -178,6 +178,15 @@ namespace HM
       // all the same, for the first half of the rule - what a handler changes
       // (Message.Save) is never recorded as whoever happened to be acting on the
       // thread that fired the event.
+      //
+      // The boundary is also what ScriptServer::IsScriptRunningOnThisThread
+      // answers from: every run of a script is inside one, so the count below is
+      // above zero on a thread for exactly as long as a script runs there. A count
+      // rather than a flag, because a script can fire another on the same thread
+      // before it has finished: an error reported by something it asked for runs
+      // OnError there and then (ErrorManager::ReportError).
+      thread_local int scripts_running_on_thread = 0;
+
       class ScriptActorBoundary
       {
       public:
@@ -186,10 +195,13 @@ namespace HM
             role_actor_(RoleManager::CurrentActor())
          {
             RoleManager::ClearCurrentActor();
+            scripts_running_on_thread++;
          }
 
          ~ScriptActorBoundary()
          {
+            scripts_running_on_thread--;
+
             // The role actor here, and the audit trail's as audit_scope_ goes.
             RoleManager::SetCurrentActor(role_actor_);
          }
@@ -321,6 +333,12 @@ namespace HM
 #endif
 
       return languages;
+   }
+
+   bool
+   ScriptServer::IsScriptRunningOnThisThread()
+   {
+      return scripts_running_on_thread > 0;
    }
 
    bool

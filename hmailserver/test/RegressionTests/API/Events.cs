@@ -1365,5 +1365,140 @@ namespace RegressionTests.API
             LeaveAnEmptyVBScriptScriptLoaded();
          }
       }
+
+      [Test]
+      [Description("An event script uses the COM Utilities members a client in another process must sign in for - the " +
+                   "legacy Blowfish transform, the resolver, the Sieve parser and interpreter, the rule matcher - without " +
+                   "signing in, as it always could: through a Utilities object it creates, and through an Application it " +
+                   "creates and never authenticates. Nothing else is given to those objects: the same Application is still " +
+                   "refused its Settings.")]
+      public void AnEventScriptUsesTheUtilitiesHelpersWithoutSigningIn()
+      {
+         // With no administrator password every COM object answers as the server
+         // administrator, a script's included, and the script below would prove
+         // nothing about an unauthenticated one.
+         object administrator = new Application().Authenticate("Administrator", "");
+         if (administrator != null)
+            Assert.Ignore("This server has no administrator password, so an event script's COM objects answer as the " +
+                          "server administrator and are never unauthenticated.");
+
+         const string mailDomain = "scripthost.example.test";
+         const string mailExchange = "mx.scripthost.example.test";
+
+         // TEST-NET-1 (RFC 5737): asked about, never connected to.
+         const string mailExchangeAddress = "192.0.2.27";
+
+         SuiteDns.Zone
+            .WithMx(mailDomain, 10, mailExchange)
+            .WithA(mailExchange, mailExchangeAddress);
+
+         try
+         {
+            // Every answer, or the error in its place, goes into a header of the
+            // message the handler is given, so that what the script saw is read
+            // back from the delivered message rather than from a log.
+            var script =
+               "Sub OnAcceptMessage(oClient, oMessage)\r\n" +
+               "   Call Report(oMessage, \"Direct\", CreateObject(\"hMailServer.Utilities\"))\r\n" +
+               "   Dim oApp\r\n" +
+               "   Set oApp = CreateObject(\"hMailServer.Application\")\r\n" +
+               "   Call Report(oMessage, \"Application\", oApp.Utilities)\r\n" +
+               "   Dim sHostName\r\n" +
+               "   On Error Resume Next\r\n" +
+               "   sHostName = oApp.Settings.HostName\r\n" +
+               "   Call Note(oMessage, \"Application\", \"Settings\", \"answered\", Err.Number, Err.Description)\r\n" +
+               "   On Error Goto 0\r\n" +
+               "   oMessage.Save\r\n" +
+               "End Sub\r\n" +
+               "\r\n" +
+               "Sub Report(oMessage, sVia, oUtilities)\r\n" +
+               "   Dim r\r\n" +
+               "   On Error Resume Next\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.BlowfishEncrypt(\"Test\")\r\n" +
+               "   Call Note(oMessage, sVia, \"BlowfishEncrypt\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.BlowfishDecrypt(\"08d04d2ef52d64ce\")\r\n" +
+               "   Call Note(oMessage, sVia, \"BlowfishDecrypt\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.ResolveMXRecords(\"" + mailDomain + "\")\r\n" +
+               "   Call Note(oMessage, sVia, \"ResolveMXRecords\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.GetMailServer(\"someone@" + mailDomain + "\")\r\n" +
+               "   Call Note(oMessage, sVia, \"GetMailServer\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.IsLocalHost(\"127.0.0.1\")\r\n" +
+               "   Call Note(oMessage, sVia, \"IsLocalHost\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.CheckSieveSyntax(\"keep;\")\r\n" +
+               "   Call Note(oMessage, sVia, \"CheckSieveSyntax\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.EvaluateSieveScript(\"keep;\", \"Subject: x\" & vbCrLf & vbCrLf & \"body\")\r\n" +
+               "   Call Note(oMessage, sVia, \"EvaluateSieveScript\", r, Err.Number, Err.Description)\r\n" +
+               "   Err.Clear\r\n" +
+               "   r = oUtilities.CriteriaMatch(\"Test\", 1, \"Test\")\r\n" +
+               "   Call Note(oMessage, sVia, \"CriteriaMatch\", r, Err.Number, Err.Description)\r\n" +
+               "End Sub\r\n" +
+               "\r\n" +
+               "Sub Note(oMessage, sVia, sMember, vValue, iError, sError)\r\n" +
+               "   Dim sText\r\n" +
+               "   If iError <> 0 Then\r\n" +
+               "      sText = \"error \" & sError\r\n" +
+               "   ElseIf VarType(vValue) = vbBoolean Then\r\n" +
+               "      If vValue Then sText = \"True\" Else sText = \"False\"\r\n" +
+               "   Else\r\n" +
+               "      sText = Replace(CStr(vValue), vbTab, \" \")\r\n" +
+               "   End If\r\n" +
+               "   oMessage.HeaderValue(\"X-\" & sVia & \"-\" & sMember) = \"[\" & sText & \"]\"\r\n" +
+               "End Sub\r\n";
+
+            var scripting = _settings.Scripting;
+            File.WriteAllText(scripting.CurrentScriptFile, script);
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Test", "SampleBody");
+            var message = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+
+            foreach (var via in new[] { "Direct", "Application" })
+            {
+               AssertAnswered(message, via, "BlowfishEncrypt", "08d04d2ef52d64ce");
+               AssertAnswered(message, via, "BlowfishDecrypt", "Test");
+               AssertAnswered(message, via, "GetMailServer", mailExchangeAddress);
+
+               // The exchange's name as the resolver hands it back, then its address.
+               StringAssert.IsMatch("(?i)X-" + via + @"-ResolveMXRecords: \[" + System.Text.RegularExpressions.Regex.Escape(mailExchange) +
+                  @"\.? " + System.Text.RegularExpressions.Regex.Escape(mailExchangeAddress) + @"\]", message,
+                  "ResolveMXRecords, reached " + via + ", did not give an event script that never signed in the answer " +
+                  "it gives an authenticated caller. Message: " + message);
+               AssertAnswered(message, via, "CheckSieveSyntax", "");
+               AssertAnswered(message, via, "EvaluateSieveScript", "keep");
+               AssertAnswered(message, via, "CriteriaMatch", "True");
+
+               // Whether 127.0.0.1 is one of the addresses the server listens on
+               // depends on its ports; that the member answered is what is asked.
+               StringAssert.IsMatch("X-" + via + @"-IsLocalHost: \[(True|False)\]", message,
+                  "IsLocalHost, reached " + via + ", did not answer the event script. Message: " + message);
+            }
+
+            StringAssert.IsMatch(@"X-Application-Settings:\s+\[error ", message,
+               "The unauthenticated Application an event script creates was given its Settings: the script host's " +
+               "exemption reached beyond the Utilities helpers. Message: " + message);
+         }
+         finally
+         {
+            SuiteDns.Reset();
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      private static void AssertAnswered(string message, string via, string member, string expected)
+      {
+         StringAssert.Contains("X-" + via + "-" + member + ": [" + expected + "]", message,
+            member + ", reached " + via + ", did not give an event script that never signed in the answer it gives " +
+            "an authenticated caller. Message: " + message);
+      }
    }
 }

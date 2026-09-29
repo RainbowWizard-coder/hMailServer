@@ -130,6 +130,16 @@ namespace HM
       // build.script_languages.
       static std::vector<AnsiString> GetRunnableLanguages();
 
+      // Whether an event script is running on the calling thread: a handler, a
+      // rule's Run function, or the file's top level while it is checked or
+      // loaded - every run the server makes, each inside its ScriptActorBoundary.
+      // An hMailServer object a Windows script creates lives in this process's
+      // MTA, where the event threads are too, so the script calls it directly and
+      // its members run on the thread running the script; a COM client in
+      // another process is answered on one of COM's own threads, which never run
+      // one. InterfaceUtilities::MayUseServerHelpers_ asks it.
+      static bool IsScriptRunningOnThisThread();
+
    private:
 
       static String GetScriptExtension_(const String &language);
