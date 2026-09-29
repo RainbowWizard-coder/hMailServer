@@ -1,0 +1,3 @@
+# The account the server runs as: a system account whose home is the mail store,
+# with no password and a shell that cannot log in (sysusers.d(5)).
+u hmailserver - "hMailServer mail server" /var/lib/hmailserver /usr/sbin/nologin

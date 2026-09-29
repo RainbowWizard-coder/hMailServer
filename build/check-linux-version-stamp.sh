@@ -28,6 +28,13 @@
 #   3. pkgver in platform/packaging/PKGBUILD equals Version.h's version. This one
 #      genuinely cannot be derived: makepkg parses the PKGBUILD as a shell script
 #      and never runs CMake.
+#   3b. The source packages carry the version as their formats require, and
+#      neither can derive it: debian-src/debian/changelog's one entry is
+#      <version>+ds-<revision> (the repacked tarball's version), and
+#      rpm/hmailserver.spec's Version: is <version>, with one %changelog entry for
+#      <version>-<release>. One entry each, rewritten when a release is stamped:
+#      an entry for an older release would be a second literal to go stale
+#      (hmailserver/docs/SourcePackages.md).
 #   4. Nothing else under platform/packaging/ carries a hard-coded version at all.
 #      The packaging README used to spell out "hmailserver_6.2.28_amd64.deb" in
 #      five places; those now say <version>, and this check is what keeps a
@@ -71,6 +78,8 @@ VERSION_H="${SERVER_DIR}/Common/Application/Version.h"
 CMAKELISTS="${SERVER_DIR}/CMakeLists.txt"
 PACKAGING="${SERVER_DIR}/platform/packaging"
 PKGBUILD="${PACKAGING}/PKGBUILD"
+DEB_CHANGELOG="${PACKAGING}/debian-src/debian/changelog"
+RPM_SPEC="${PACKAGING}/rpm/hmailserver.spec"
 
 failures=0
 
@@ -83,7 +92,7 @@ fail()
    failures=$((failures + 1))
 }
 
-for file in "${VERSION_H}" "${CMAKELISTS}" "${PKGBUILD}"; do
+for file in "${VERSION_H}" "${CMAKELISTS}" "${PKGBUILD}" "${DEB_CHANGELOG}" "${RPM_SPEC}"; do
    if [ ! -f "${file}" ]; then
       fail "${file#"${REPO_ROOT}/"} is not there. This check cannot say anything about the version stamps without it."
       exit 1
@@ -154,15 +163,50 @@ else
    echo "PKGBUILD pkgver                            ${PKGVER}"
 fi
 
+# ------------------------------------------------------- 3b. the source packages
+
+# The Debian changelog: one entry, whose version is the repacked tarball's.
+# Every line that opens an entry names the package in column one.
+deb_entries="$(grep -cE '^[a-z0-9][a-z0-9+.-]* \(' "${DEB_CHANGELOG}" || true)"
+deb_first="$(head -n 1 "${DEB_CHANGELOG}" | tr -d '\r')"
+deb_version="$(sed -n '1s/^hmailserver (\([^)]*\)).*/\1/p' "${DEB_CHANGELOG}" | tr -d '\r')"
+if [ "${deb_entries}" != 1 ]; then
+   fail "platform/packaging/debian-src/debian/changelog has ${deb_entries} entries; it keeps one, the release's, rewritten when a release is stamped."
+elif [[ ! "${deb_version}" =~ ^${VERSION//./\\.}\+ds-[0-9]+$ ]]; then
+   fail "platform/packaging/debian-src/debian/changelog opens '${deb_first}': its version must be ${VERSION}+ds-<revision>, the repacked tarball of Version.h's ${VERSION}."
+else
+   echo "debian-src changelog                       ${deb_version}"
+fi
+
+# The spec: Version:, and one %changelog entry that ends with it.
+spec_version="$(sed -n 's/^Version:[[:space:]]*\([^[:space:]]*\).*$/\1/p' "${RPM_SPEC}" | head -n 1 | tr -d '\r')"
+spec_entries="$(sed -n '/^%changelog/,$p' "${RPM_SPEC}" | grep -c '^\* ' || true)"
+spec_entry="$(sed -n '/^%changelog/,$p' "${RPM_SPEC}" | grep '^\* ' | head -n 1 | tr -d '\r')"
+if [ "${spec_version}" != "${VERSION}" ]; then
+   fail "platform/packaging/rpm/hmailserver.spec says Version: ${spec_version} and Version.h says ${VERSION}."
+elif [ "${spec_entries}" != 1 ]; then
+   fail "platform/packaging/rpm/hmailserver.spec's %changelog has ${spec_entries} entries; it keeps one, the release's, rewritten when a release is stamped."
+elif [[ ! "${spec_entry}" =~ \ -\ ${VERSION//./\\.}-[0-9]+$ ]]; then
+   fail "platform/packaging/rpm/hmailserver.spec's %changelog entry is '${spec_entry}': it must end with - ${VERSION}-<release>."
+else
+   echo "rpm spec Version and %changelog            ${spec_version}"
+fi
+
 # ------------------------------------------- 4. no other literal under packaging/
 
 # Deliberately narrow: "6.x.y" and nothing else, so the OpenSSL 3.0, Boost 1.83
 # and CMake 3.22 that these files legitimately name are not swept up. The
 # PKGBUILD's own pkgver line is the one occurrence there is meant to be.
-stray="$(grep -rnE '6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null | grep -v '^[^:]*/PKGBUILD:[0-9]*:pkgver=' || true)"
+# The stamps 3b holds are the other occurrences meant to be: the Debian changelog's
+# first line, the spec's Version: and its one %changelog entry.
+stray="$(grep -rnE '6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null \
+   | grep -v '^[^:]*/PKGBUILD:[0-9]*:pkgver=' \
+   | grep -v '^[^:]*/debian-src/debian/changelog:1:hmailserver (' \
+   | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:Version:' \
+   | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:\* .* - [0-9][0-9.]*-[0-9][0-9]*$' || true)"
 
 if [ -n "${stray}" ]; then
-   fail "A version literal has appeared under platform/packaging/ outside the PKGBUILD's pkgver line. Nothing there should spell a version out - the file names are '<version>' in the README for exactly this reason, because a literal in prose goes stale the release after it is written:"
+   fail "A version literal has appeared under platform/packaging/ outside the stamps 3 and 3b hold (the PKGBUILD's pkgver, the Debian changelog's entry, the spec's Version: and %changelog entry). Nothing there should spell a version out - the file names are '<version>' in the README for exactly this reason, because a literal in prose goes stale the release after it is written:"
    echo "${stray}" | sed "s|^${REPO_ROOT}/||" | sed 's/^/    /'
 fi
 
@@ -200,9 +244,11 @@ if [ "${failures}" -ne 0 ]; then
    echo "${failures} version-stamp problem(s). The Linux packages would be built, named and"
    echo "published at a version that does not match what the server reports for itself."
    echo
-   echo "Stamping a release on this platform is two edits and no more:"
+   echo "Stamping a release on this platform is four edits and no more:"
    echo "  hmailserver/source/Server/Common/Application/Version.h   HMAILSERVER_VERSION and HMAILSERVER_VERSION_NUMERIC"
    echo "  hmailserver/source/Server/platform/packaging/PKGBUILD    pkgver"
+   echo "  .../platform/packaging/debian-src/debian/changelog       its one entry: <version>+ds-1, the date"
+   echo "  .../platform/packaging/rpm/hmailserver.spec              Version:, and its one %changelog entry"
    exit 1
 fi
 

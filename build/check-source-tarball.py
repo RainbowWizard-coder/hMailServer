@@ -38,7 +38,12 @@ tarball a third:
       excluded; QuickJS's among them, the vendored engine the Linux server runs
       its event scripts in;
     - where a line holds a space, the "?" Debian's Files-Excluded needs in its
-      place matches that path and no other.
+      place matches that path and no other;
+    - the Debian source package's Files-Excluded (DEBIAN_COPYRIGHT below) begins
+      with the list as --files-excluded prints it, and each pattern after it -
+      the Debian package's own - matches files under hmailserver/test/ alone,
+      at least one, none of them read by the Debian build (CMakeLists.txt and
+      debian/rules).
 
   a tarball (python3 build/check-source-tarball.py TARBALL [--commit SHA]):
     - gzip without a file name or a time in its header (gzip -n);
@@ -113,7 +118,22 @@ OTHER_LINUX_SCRIPTS = (
     "build/ci/packages/appimage-bundled-sources.sh",
     "hmailserver/source/Server/platform/packaging/build-appimage.sh",
     "hmailserver/source/Server/platform/packaging/PKGBUILD",
+    # The source packages (hmailserver/docs/SourcePackages.md): their builds, and the
+    # jobs that build and install them.
+    "hmailserver/source/Server/platform/packaging/debian-src/debian/rules",
+    "hmailserver/source/Server/platform/packaging/rpm/hmailserver.spec",
+    "build/ci/packages/srcpkg-deb.sh",
+    "build/ci/packages/srcpkg-rpm.sh",
+    "build/ci/packages/srcpkg-install.sh",
 )
+# The Debian source package's copyright file, whose Files-Excluded is this list as
+# --files-excluded prints it, then the Debian package's own patterns: test data the
+# project's tarball keeps for its suites and a Debian archive cannot take, because
+# no licence is stated for it. Those may only be files under DEBIAN_ONLY_UNDER that
+# the Debian build - the CMake build and debian/rules - does not read.
+DEBIAN_COPYRIGHT = "hmailserver/source/Server/platform/packaging/debian-src/debian/copyright"
+DEBIAN_RULES = "hmailserver/source/Server/platform/packaging/debian-src/debian/rules"
+DEBIAN_ONLY_UNDER = "hmailserver/test/"
 SUITE_PROJECT = "hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj"
 # The SDK compiles every .cs under the project's own directory and restores what its
 # lock file pins, and dotnet reads the SDK's version from global.json at the top.
@@ -247,6 +267,52 @@ def files_excluded(entries):
     for entry in entries:
         lines.append(" " + debian_pattern(entry))
     return "\n".join(lines)
+
+
+def copyright_files_excluded(text):
+    """The Files-Excluded patterns of a copyright file's header paragraph, in order."""
+    header = text.replace("\r\n", "\n").split("\n\n", 1)[0]
+    patterns, inside = [], False
+    for line in header.split("\n"):
+        if line.startswith("Files-Excluded:"):
+            inside = True
+            patterns += line[len("Files-Excluded:"):].split()
+        elif inside and line[:1] in (" ", "\t"):
+            patterns += line.split()
+        else:
+            inside = False
+    return patterns
+
+
+def check_debian_copyright(tracked, read, entries, cmake_text):
+    """debian-src/debian/copyright's Files-Excluded: the list, then test data alone."""
+    if DEBIAN_COPYRIGHT not in tracked:
+        return []
+    problems = []
+    patterns = copyright_files_excluded(read(DEBIAN_COPYRIGHT))
+    wanted = [debian_pattern(entry) for entry in entries]
+    if patterns[:len(wanted)] != wanted:
+        problems.append("%s's Files-Excluded does not begin with %s as it stands: put in what "
+                        "build/check-source-tarball.py --files-excluded prints" % (DEBIAN_COPYRIGHT, EXCLUSIONS))
+        return problems
+    debian_reads = cmake_reads(cmake_text)
+    if DEBIAN_RULES in tracked:
+        debian_reads |= script_reads(read(DEBIAN_RULES))
+    for pattern in patterns[len(wanted):]:
+        regex = debian_regex(pattern)
+        matched = sorted(p for p in tracked if regex.match(p))
+        if not matched:
+            problems.append("%s's Files-Excluded has %r, which matches nothing in the tree: a file renamed or removed" %
+                            (DEBIAN_COPYRIGHT, pattern))
+        for path in matched:
+            if not path.startswith(DEBIAN_ONLY_UNDER):
+                problems.append("%s's Files-Excluded has %r, which leaves out %s: beyond %s it holds test data alone, "
+                                "and a path the tarball should not carry goes in %s" %
+                                (DEBIAN_COPYRIGHT, pattern, path, EXCLUSIONS, EXCLUSIONS))
+            elif any(path == r or path.startswith(r + "/") for r in debian_reads):
+                problems.append("%s's Files-Excluded has %r, which leaves out %s, and the Debian build reads it" %
+                                (DEBIAN_COPYRIGHT, pattern, path))
+    return problems
 
 
 # ---------------------------------------------------------------- what the Linux build reads
@@ -445,6 +511,7 @@ def check_tree(tracked, read, list_text):
             problems.append("%s is not in the tree, and every tarball must carry it (%s)" % (path, why))
         elif excluded_by(path, entries):
             problems.append("%s leaves out %s, which every tarball must carry (%s)" % (EXCLUSIONS, path, why))
+    problems += check_debian_copyright(tracked, read, entries, cmake_text)
     return problems, entries
 
 
@@ -701,6 +768,25 @@ def self_test():
     expect("the Files-Excluded field writes a space as ?",
            [] if " hmailserver/docs/Licenses/License?-?Microsoft?SQL?Server?Compact?Edition.rtf" in files_excluded(parse_list(good)[0])
            else ["no"], None)
+
+    # The Debian source package's copyright file: the list, then test data alone.
+    def with_copyright(field_lines, rules=""):
+        text = "Format: x\n" + "\n".join(field_lines) + "\nComment: y\n\nFiles: *\nLicense: z\n"
+        return dict(fixed, **{DEBIAN_COPYRIGHT: text, DEBIAN_RULES: rules,
+                              "hmailserver/test/TestData/DKIM/Good/Test 1.eml": ""})
+    field = files_excluded(parse_list(good)[0]).split("\n")
+    expect("a copyright file whose Files-Excluded is the list and test data",
+           run(with_copyright(field + [" hmailserver/test/TestData/DKIM/Good/Test?1.eml"]), good), None)
+    expect("a copyright file missing a line of the list",
+           run(with_copyright([f for f in field if "COM" not in f]), good), "does not begin with build/source-exclusions.txt")
+    expect("a copyright file leaving out what is not test data",
+           run(with_copyright(field + [" global.json"]), good), "test data alone")
+    expect("a copyright file leaving out a file that is not there",
+           run(with_copyright(field + [" hmailserver/test/none.txt"]), good), "matches nothing in the tree")
+    expect("a copyright file leaving out test data debian/rules reads",
+           run(with_copyright(field + [" hmailserver/test/TestData/DKIM/good_1.txt"],
+                              rules="\tcp hmailserver/test/TestData/DKIM/good_1.txt x\n"), good),
+           "the Debian build reads it")
 
     print("a tarball against the list:")
 

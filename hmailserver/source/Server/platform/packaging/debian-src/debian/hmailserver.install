@@ -1,0 +1,10 @@
+etc/fail2ban/filter.d/hmailserver.conf
+etc/fail2ban/jail.d/hmailserver.conf
+etc/hmailserver/hMailServer.ini
+etc/logrotate.d/hmailserver
+usr/bin/dh2048.pem
+usr/bin/hmailserver
+usr/bin/tlds.txt
+usr/lib/hmailserver/autoban-hook
+usr/lib/systemd/system/hmailserver.service
+usr/share/hmailserver

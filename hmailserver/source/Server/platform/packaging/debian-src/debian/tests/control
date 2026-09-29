@@ -1,0 +1,9 @@
+Test-Command: pg_virtualenv debian/tests/server-starts
+Depends:
+ @,
+ postgresql,
+ postgresql-common,
+Restrictions:
+ allow-stderr,
+ isolation-container,
+ needs-root,

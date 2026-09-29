@@ -1,0 +1,190 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The source packages: the Debian source package
+# (hmailserver/source/Server/platform/packaging/debian-src/debian) and the RPM spec
+# (platform/packaging/rpm/hmailserver.spec), each built from the source tarball as
+# a distribution builds it - the live update off, the distribution's shared Boost -
+# with the network refused, held to lintian or rpmlint, and then installed and
+# started in a clean container (hmailserver/docs/SourcePackages.md). Included by
+# .gitlab-ci.yml.
+#
+#   srcpkg-<release>           linix: build/ci/packages/srcpkg-deb.sh or srcpkg-rpm.sh
+#                              in the release's own container, from the source-tarball
+#                              job's artifact: the tools and the build's dependencies
+#                              with the network, then dpkg-buildpackage -us -uc or
+#                              rpmbuild -ba under build/ci/packages/offline.c, which
+#                              refuses every socket but a local one, then lintian or
+#                              rpmlint - an error fails the job, the warnings are
+#                              listed in its log and its artifact
+#   srcpkg-<release>-install   linix: build/ci/packages/srcpkg-install.sh in a clean
+#                              container of the release: for Debian and Ubuntu the
+#                              package's own autopkgtest, which installs the .deb
+#                              files and starts the server against a throwaway
+#                              PostgreSQL; for the RPM releases the same test after
+#                              dnf or zypper installs the packages
+#
+# for debian13, ubuntu24.04, ubuntu26.04, fedora44, el10 (AlmaLinux 10), leap16 and
+# tumbleweed, x86-64 only.
+#
+# These jobs check; they make nothing a release carries. So they run in a batch*
+# branch's pipeline and in master's, wherever the source-tarball job runs, and never
+# in a v* tag's - the tag's tree has passed them in its batch's pipeline, and the tag
+# pipeline stays as short as it can be - and never for a merge request or an
+# unprotected ref, which reach no job on the project's runners (.own-runners in
+# .gitlab-ci.yml says why). release needs none of them. Every rule that makes a job
+# is .own-runners' own, taken by !reference, so a job here exists only where
+# source-tarball, which takes the same rules, exists to be needed.
+#
+# The builds join linix-package-build, the resource group of the package files, so
+# that one package build runs on linix at a time. The images are the ones the
+# package files pin, by the digest of each's x86-64 manifest, taken from those files
+# so that one digest is kept in one place, and AlmaLinux 10's, which is new here:
+# the EL package jobs build Boost themselves in Red Hat's UBI 10, which carries no
+# boost-devel, and a distribution build takes its Boost from the distribution, which
+# on EL 10 is in CodeReady Builder. Nothing here is fetched from GitHub: the
+# packages come from each release's own archive, and rpmlint on AlmaLinux from EPEL.
+
+# ------------------------------------------------------------------ images
+# AlmaLinux 10 from Docker Hub, read on 28 September 2026: the linux/amd64 manifest
+# of almalinux:10's index.
+.srcpkg-image-el10:
+  image:
+    name: almalinux:10@sha256:7b3a2db3971727029b6aed0e6c30ad0f3812229ac5447520acea308cb535800d
+    pull_policy: if-not-present
+
+# ------------------------------------------------------------------ templates
+# Never on a tag, and on no protected branch but master and batch*; then
+# .own-runners' rules, which refuse a schedule's pipeline, a merge request and an
+# unprotected ref, and make the job for a protected ref whose push changes more than
+# documentation - exactly where source-tarball is made.
+.srcpkg-rules:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: never
+    - !reference [.own-runners, rules]
+
+.srcpkg-build:
+  stage: build
+  tags: [linix]
+  needs:
+    - job: source-tarball
+      artifacts: true
+  timeout: 1 hour 30 minutes
+  resource_group: linix-package-build
+  rules:
+    - !reference [.srcpkg-rules, rules]
+  # Four compilers, not the package files' six: these builds carry the debug
+  # information a distribution builds with, which takes more
+  # memory per compiler than the project's own packages' builds, in a job of 8 GB.
+  # The links run one at a time (debian/rules, the spec).
+  variables:
+    HM_SOURCE_TARBALL: source-tarball
+    HM_BUILD_JOBS: "4"
+    HM_OUT_DIR: source-packages/$HM_SRCPKG_TARGET
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - source-packages/
+
+.srcpkg-build-deb:
+  extends: .srcpkg-build
+  script:
+    - bash build/ci/packages/srcpkg-deb.sh
+
+.srcpkg-build-rpm:
+  extends: .srcpkg-build
+  script:
+    - bash build/ci/packages/srcpkg-rpm.sh
+
+# Its needs are the build of the same release, with its artifacts.
+.srcpkg-install:
+  stage: test
+  tags: [linix]
+  timeout: 30 minutes
+  rules:
+    - !reference [.srcpkg-rules, rules]
+  variables:
+    HM_PACKAGES_DIR: source-packages/$HM_SRCPKG_TARGET
+  script:
+    - bash build/ci/packages/srcpkg-install.sh
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - source-packages/*/install.txt
+      - source-packages/*/autopkgtest/
+
+# ------------------------------------------------------------------ Debian 13 (trixie)
+srcpkg-debian13:
+  extends: [.srcpkg-build-deb, .deb-image-debian13-amd64]
+  variables: {HM_SRCPKG_TARGET: debian13}
+
+srcpkg-debian13-install:
+  extends: [.srcpkg-install, .deb-image-debian13-amd64]
+  needs: [srcpkg-debian13]
+  variables: {HM_SRCPKG_TARGET: debian13}
+
+# ------------------------------------------------------------------ Ubuntu 24.04 (noble)
+srcpkg-ubuntu24.04:
+  extends: [.srcpkg-build-deb, .deb-image-ubuntu24.04-amd64]
+  variables: {HM_SRCPKG_TARGET: ubuntu24.04}
+
+srcpkg-ubuntu24.04-install:
+  extends: [.srcpkg-install, .deb-image-ubuntu24.04-amd64]
+  needs: [srcpkg-ubuntu24.04]
+  variables: {HM_SRCPKG_TARGET: ubuntu24.04}
+
+# ------------------------------------------------------------------ Ubuntu 26.04
+srcpkg-ubuntu26.04:
+  extends: [.srcpkg-build-deb, .deb-image-ubuntu26.04-amd64]
+  variables: {HM_SRCPKG_TARGET: ubuntu26.04}
+
+srcpkg-ubuntu26.04-install:
+  extends: [.srcpkg-install, .deb-image-ubuntu26.04-amd64]
+  needs: [srcpkg-ubuntu26.04]
+  variables: {HM_SRCPKG_TARGET: ubuntu26.04}
+
+# ------------------------------------------------------------------ Fedora 44
+srcpkg-fedora44:
+  extends: [.srcpkg-build-rpm, .rpm-image-fedora44-x86_64]
+  variables: {HM_SRCPKG_TARGET: fedora44}
+
+srcpkg-fedora44-install:
+  extends: [.srcpkg-install, .rpm-image-fedora44-x86_64]
+  needs: [srcpkg-fedora44]
+  variables: {HM_SRCPKG_TARGET: fedora44}
+
+# ------------------------------------------------------------------ EL 10 (AlmaLinux 10)
+srcpkg-el10:
+  extends: [.srcpkg-build-rpm, .srcpkg-image-el10]
+  variables: {HM_SRCPKG_TARGET: el10}
+
+srcpkg-el10-install:
+  extends: [.srcpkg-install, .srcpkg-image-el10]
+  needs: [srcpkg-el10]
+  variables: {HM_SRCPKG_TARGET: el10}
+
+# ------------------------------------------------------------------ openSUSE Leap 16.0
+srcpkg-leap16:
+  extends: [.srcpkg-build-rpm, .rpm-image-leap16-x86_64]
+  variables: {HM_SRCPKG_TARGET: leap16}
+
+srcpkg-leap16-install:
+  extends: [.srcpkg-install, .rpm-image-leap16-x86_64]
+  needs: [srcpkg-leap16]
+  variables: {HM_SRCPKG_TARGET: leap16}
+
+# ------------------------------------------------------------------ openSUSE Tumbleweed
+srcpkg-tumbleweed:
+  extends: [.srcpkg-build-rpm, .rpm-image-tumbleweed-x86_64]
+  variables: {HM_SRCPKG_TARGET: tumbleweed}
+
+srcpkg-tumbleweed-install:
+  extends: [.srcpkg-install, .rpm-image-tumbleweed-x86_64]
+  needs: [srcpkg-tumbleweed]
+  variables: {HM_SRCPKG_TARGET: tumbleweed}

@@ -1,0 +1,11 @@
+# The mail store, its scratch, event-script and database directories, and the
+# logs: 0750 and the service's, since they hold other people's mail and a record
+# of who sent it to whom (tmpfiles.d(5)). The configuration's owner and mode -
+# root's, readable by the service's group, never writable by it - are postinst's,
+# which leaves them alone where the administrator has set others with
+# dpkg-statoverride: a "z" line here would set them again at every boot.
+d /var/lib/hmailserver              0750 hmailserver hmailserver -
+d /var/lib/hmailserver/temp         0750 hmailserver hmailserver -
+d /var/lib/hmailserver/events       0750 hmailserver hmailserver -
+d /var/lib/hmailserver/database     0750 hmailserver hmailserver -
+d /var/log/hmailserver              0750 hmailserver hmailserver -

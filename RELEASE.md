@@ -434,9 +434,9 @@ that administrators upgrade by hand.
    several steps past the last stable - and it was missing from this step until
    6.2.23.
 
-7. **Version stamp**, twelve files. The Windows nine: `Version.h` (version,
+7. **Version stamp**, fourteen files. The Windows nine: `Version.h` (version,
    numeric, build), `section_setup_64.iss`, and all seven `.csproj`
-   `<Version>` values. Then three outside the Windows build:
+   `<Version>` values. Then five outside the Windows build:
    * `hmailserver/source/Tools/Cli/HmailServer.psd1` - `ModuleVersion`, the
      PowerShell module's version on the PowerShell Gallery. A data file cannot
      read `Version.h`, so it is written; `build/check-cli-packages.py` fails the
@@ -446,6 +446,13 @@ that administrators upgrade by hand.
    * `hmailserver/source/Server/platform/packaging/PKGBUILD` - `pkgver`, which
      is also the tag the PKGBUILD fetches. It cannot be derived: `makepkg`
      parses the PKGBUILD as a shell script and never runs CMake.
+   * `hmailserver/source/Server/platform/packaging/debian-src/debian/changelog` -
+     its one entry, `hmailserver (<version>+ds-1) unstable`, and the date line
+     under it ([SourcePackages.md](hmailserver/docs/SourcePackages.md)).
+   * `hmailserver/source/Server/platform/packaging/rpm/hmailserver.spec` -
+     `Version:` and its one `%changelog` entry, `- <version>-1`.
+     `build/check-linux-version-stamp.sh` holds both to `Version.h`, each with a
+     single entry.
    * `hmailserver/source/Tools/ImportTool.Tests/packages.lock.json` - the entry
      for the project's own version. Regenerate it (`dotnet restore
      --force-evaluate` on that project) rather than editing it by hand.

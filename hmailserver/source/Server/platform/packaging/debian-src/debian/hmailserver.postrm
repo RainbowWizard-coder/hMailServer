@@ -1,0 +1,21 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# On purge, the logs go, as Debian Policy asks (10.8). The mail store,
+# /var/lib/hmailserver, and the database are the administrator's data and stay,
+# and so does the hmailserver account, so that what is left keeps an owner with
+# a name (README.Debian).
+
+set -e
+
+case "$1" in
+   purge)
+      rm -rf /var/log/hmailserver
+      ;;
+esac
+
+#DEBHELPER#
+
+exit 0

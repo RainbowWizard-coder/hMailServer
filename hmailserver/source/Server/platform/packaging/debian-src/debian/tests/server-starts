@@ -1,0 +1,173 @@
+#!/bin/bash
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The installed server started against a throwaway database, and asked whether
+# SMTP and IMAP answer: debian/tests/control runs it under pg_virtualenv, which
+# makes a PostgreSQL cluster for the test and sets PGHOST, PGPORT, PGUSER and
+# PGPASSWORD. The RPM source packages' install jobs run it too, against a cluster
+# of their own (build/ci/packages/srcpkg-install.sh). As root: it runs the verbs
+# the way an administrator runs them, and starts the server the way its unit
+# does - as hmailserver, with CAP_NET_BIND_SERVICE and no new privileges.
+#
+# It uses a configuration and directories of its own under a temporary
+# directory, the packaged configuration copied and edited as README.md tells an
+# administrator to edit it, so the installed /etc/hmailserver and /var/lib are
+# left as the package made them.
+
+set -euo pipefail
+
+for name in PGHOST PGPORT PGUSER PGPASSWORD; do
+   if [ -z "${!name:-}" ]; then
+      echo "$name is not set: run this under pg_virtualenv, or give it a PostgreSQL to use." >&2
+      exit 2
+   fi
+done
+
+ADMIN_PASSWORD=autopkgtest-admin
+DATABASE=hmailserver_autopkgtest
+# Under /tmp, not AUTOPKGTEST_TMP: the service's account must reach it, and the
+# test's own directory may be root's alone.
+work=$(mktemp -d /tmp/hmailserver-test.XXXXXX)
+chmod 0755 "$work"
+ini="$work/hMailServer.ini"
+server_pid=""
+
+show_logs() {
+   echo "---- the server's output"
+   tail -n 60 "$work/server.log" 2> /dev/null || true
+   echo "---- its logs"
+   tail -n 60 "$work"/log/*.log 2> /dev/null || true
+}
+stop_server() {
+   if [ -n "$server_pid" ] && kill -0 "$server_pid" 2> /dev/null; then
+      kill "$server_pid" 2> /dev/null || true
+      for _ in $(seq 1 30); do
+         kill -0 "$server_pid" 2> /dev/null || break
+         sleep 1
+      done
+      kill -9 "$server_pid" 2> /dev/null || true
+   fi
+   server_pid=""
+}
+fail() {
+   echo "FAILED: $*"
+   show_logs
+   stop_server
+   exit 1
+}
+trap 'stop_server; rm -rf "$work"' EXIT
+
+echo "== the installed server: $(/usr/bin/hmailserver --version)"
+getent passwd hmailserver > /dev/null || fail "the package made no hmailserver account"
+
+echo "== a configuration of its own, against PostgreSQL at $PGHOST:$PGPORT"
+for directory in data data/temp data/events data/database log; do
+   install -d -o hmailserver -g hmailserver -m 0750 "$work/$directory"
+done
+install -o root -g hmailserver -m 0640 /etc/hmailserver/hMailServer.ini "$ini"
+sed -i \
+   -e "s|^DataFolder=.*|DataFolder=$work/data|" \
+   -e "s|^LogFolder=.*|LogFolder=$work/log|" \
+   -e "s|^TempFolder=.*|TempFolder=$work/data/temp|" \
+   -e "s|^EventFolder=.*|EventFolder=$work/data/events|" \
+   -e "s|^DatabaseFolder=.*|DatabaseFolder=$work/data/database|" \
+   -e 's|^Type=.*|Type=PostgreSQL|' \
+   -e "s|^Server=.*|Server=$PGHOST|" \
+   -e "s|^Database=.*|Database=$DATABASE|" \
+   -e "s|^Username=.*|Username=$PGUSER|" \
+   -e "s|^Password=.*|Password=$PGPASSWORD|" \
+   -e "s|^Port=.*|Port=$PGPORT|" \
+   -e 's|^ProtectStoredSecretsWithDPAPI=.*|ProtectStoredSecretsWithDPAPI=0|' \
+   -e 's|^WindowsEventLogEnabled=.*|WindowsEventLogEnabled=0|' \
+   "$ini"
+grep -E '^(DataFolder|Type|Server|Database|Username|Port)=' "$ini"
+
+as_service() {
+   runuser -u hmailserver -- /usr/bin/hmailserver --config "$ini" "$@"
+}
+
+echo "== check the configuration, create the schema, set the administrator password"
+as_service --check-config || fail "--check-config"
+as_service --create-database || fail "--create-database"
+echo "$ADMIN_PASSWORD" | /usr/bin/hmailserver --config "$ini" --set-admin-password > /dev/null \
+   || fail "--set-admin-password"
+# What the unit's first start does before the server listens: a self-signed
+# certificate, and STARTTLS on the mail ports (docs/SecureDefaults.md).
+as_service --apply-new-install-defaults || fail "--apply-new-install-defaults"
+
+# Port 25 is the unit's. A testbed with a mail server of its own already on it
+# gets the listeners moved up by 20000, which the database says and the server
+# reads at its start.
+smtp=25
+imap=143
+if (exec 3<> /dev/tcp/127.0.0.1/25) 2> /dev/null; then
+   echo "something already answers on port 25 here: the listeners move to 20000 and up"
+   PGDATABASE=$DATABASE psql -q -c "update hm_tcpipports set portnumber = portnumber + 20000"
+   smtp=20025
+   imap=20143
+fi
+
+echo "== start it as its unit does"
+(
+   cd "$work/data"
+   umask 0027
+   exec setpriv --reuid=hmailserver --regid=hmailserver --init-groups \
+      --inh-caps=+net_bind_service --ambient-caps=+net_bind_service \
+      --bounding-set=-all,+net_bind_service --no-new-privs \
+      /usr/bin/hmailserver --config "$ini" --foreground
+) > "$work/server.log" 2>&1 &
+server_pid=$!
+
+# Reads one reply line from descriptor 3, without its carriage return.
+reply() {
+   local line
+   IFS= read -r -t 15 line <&3 || return 1
+   printf '%s\n' "${line%$'\r'}"
+}
+
+# Tried in a subshell: a connection refused by an exec of the shell itself could
+# end the script.
+answered=""
+for _ in $(seq 1 60); do
+   kill -0 "$server_pid" 2> /dev/null || fail "the server exited before it answered"
+   if (exec 3<> "/dev/tcp/127.0.0.1/$smtp") 2> /dev/null; then
+      answered=yes
+      break
+   fi
+   sleep 1
+done
+[ -n "$answered" ] || fail "nothing answered on port $smtp in a minute"
+
+echo "== SMTP on $smtp"
+exec 3<> "/dev/tcp/127.0.0.1/$smtp"
+greeting=$(reply) || fail "no greeting on port $smtp"
+echo "S: $greeting"
+[[ $greeting == 220\ * ]] || fail "the greeting is not 220: $greeting"
+printf 'EHLO autopkgtest.invalid\r\n' >&3
+extensions=""
+while line=$(reply); do
+   echo "S: $line"
+   extensions="$extensions $line"
+   [[ $line == 250\ * ]] && break
+   [[ $line == 250-* ]] || fail "EHLO answered: $line"
+done
+[[ $extensions == *STARTTLS* ]] || fail "EHLO does not offer STARTTLS, which the first start's defaults turn on"
+printf 'QUIT\r\n' >&3
+bye=$(reply) || fail "no answer to QUIT"
+echo "S: $bye"
+[[ $bye == 221* ]] || fail "QUIT answered: $bye"
+exec 3>&-
+
+echo "== IMAP on $imap"
+(exec 3<> "/dev/tcp/127.0.0.1/$imap") 2> /dev/null || fail "nothing answers on port $imap"
+exec 3<> "/dev/tcp/127.0.0.1/$imap"
+greeting=$(reply) || fail "no IMAP greeting"
+echo "S: $greeting"
+[[ $greeting == "* OK"* ]] || fail "the IMAP greeting is not * OK: $greeting"
+printf 'a1 LOGOUT\r\n' >&3
+exec 3>&-
+
+stop_server
+echo "PASSED: hmailserver started against a new PostgreSQL database and answered SMTP (with STARTTLS) and IMAP."

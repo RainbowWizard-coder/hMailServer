@@ -1,0 +1,34 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# What rpmlint reports about hmailserver.spec that the package does on purpose,
+# each with its reason. rpmlint and fedora-review read a file of this name beside
+# the spec, and openSUSE's build service the same lines from hmailserver-rpmlintrc.
+# build/ci/packages/srcpkg-rpm.sh gives rpmlint these filters as a configuration
+# instead, where a filter that one distribution's rpmlint has no line for is not an
+# error. Nothing else is filtered (hmailserver/docs/SourcePackages.md lists what
+# rpmlint reports).
+
+# The mail store, its scratch, event-script and database directories and the logs
+# hold other people's mail and a record of who sent it to whom: 0750 and the
+# service's own. The configuration directory is root's and the service's group's.
+addFilter("non-standard-dir-perm /var/lib/hmailserver 750")
+addFilter("non-standard-dir-perm /var/lib/hmailserver/temp 750")
+addFilter("non-standard-dir-perm /var/lib/hmailserver/events 750")
+addFilter("non-standard-dir-perm /var/lib/hmailserver/database 750")
+addFilter("non-standard-dir-perm /var/log/hmailserver 750")
+addFilter("non-standard-dir-perm /etc/hmailserver 750")
+
+# The configuration carries the administrator's and the database's passwords:
+# root's, readable by the service's group and nobody else.
+addFilter("non-readable /etc/hmailserver/hMailServer.ini 640")
+
+# Data, not programs: the Public Suffix List and the Diffie-Hellman group, which the
+# server reads from the directory its own binary is in (Utilities::GetBinDirectory).
+# Moving them under /usr/share needs the server to look there (a question for a
+# distribution's maintainer, in SourcePackages.md).
+addFilter("script-without-shebang /usr/bin/tlds.txt")
+addFilter("script-without-shebang /usr/bin/dh2048.pem")
+addFilter("wrong-script-end-of-line-encoding /usr/bin/tlds.txt")
+addFilter("wrong-script-end-of-line-encoding /usr/bin/dh2048.pem")

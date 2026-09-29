@@ -260,6 +260,26 @@ for a stray `#` number or `@` name.
   signature only the account can see would pass. The check now reads with a configuration of its own that no login is
   written to, and a failed logout is said in the log; Channels.md says a registry's earlier signature or attestation
   for the image is replaced by the verified one.
+- **A Debian source package and an RPM spec, built from the release's source tarball as a distribution builds them.**
+  `hmailserver/source/Server/platform/packaging/debian-src/debian/` builds `hmailserver` and `hmailserver-cli`
+  (debhelper 13) from `hmailserver_<version>+ds.orig.tar.gz`: the release tarball repacked by `Files-Excluded`, which
+  is the project's exclusion list plus five test files that state no licence and the Debian build does not read.
+  `platform/packaging/rpm/hmailserver.spec` builds the same two packages for Fedora, EL and openSUSE from the tarball
+  as it is. Both are built without the live update, naming `apt upgrade hmailserver`, `dnf upgrade hmailserver` or
+  `zypper update hmailserver` instead, and link the distribution's shared Boost (`-DHM_BOOST_STATIC=OFF`, new; the
+  project's own packages keep it static). The account comes from `sysusers.d`, the unit is installed and not started,
+  `hmctl` is a package of its own that depends on `python3`, and the server's `--version` and the tester programs run
+  in the build, and neither links with LTO. The Debian package has a DEP-5 copyright over every third-party notice,
+  three of which a distribution's review still has to settle: XMLite, Blowfish and VariantDateTime, inherited from
+  the original hMailServer and compiled into the server, whose files carry only their author's own notice (XMLite) or
+  none; a watch file on GitLab's releases API; and an autopkgtest that starts the server against a throwaway
+  PostgreSQL and asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2025.04.26`.
+  New CI jobs (`.gitlab/ci/source-packages.yml`, `batch*` and `master` only) build both for Debian 13, Ubuntu 24.04
+  and 26.04, Fedora 44, EL 10, Leap 16 and Tumbleweed with the network refused, fail on a lintian or rpmlint error,
+  and install and start the result in a clean container. On the laptop the spec built on Fedora 44 and EL 10 and each
+  server installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its
+  autopkgtest; a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had
+  corrupted, not a GCC 16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
 
 ### Administration
 
@@ -551,6 +571,18 @@ for a stray `#` number or `@` name.
   libraries; the checker now fails when either stops running `.no-github`'s `before_script` - taken out of its
   `extends`, or replaced by a `before_script` of its own or of a nearer template - and its self-test breaks it six
   ways.
+- **A build step can be run with the network refused, on a runner that cannot `unshare`.**
+  `build/ci/packages/offline.c` installs a seccomp filter under `no_new_privs` that makes `socket(2)` fail for every
+  address family but `AF_UNIX` and `AF_NETLINK`, and `io_uring_setup(2)` fail, then runs the command; every child
+  inherits it. The source packages' builds run under it, since linix's unprivileged containers are refused
+  `unshare(2)` by Docker's default seccomp profile. It refuses making a socket, not using one: a socket open before
+  it starts stays usable, and the jobs' shells hold none.
+- **The version stamps and the exclusion list reach the source packages.** `build/check-linux-version-stamp.sh` holds
+  the Debian changelog's one entry (`<version>+ds-<revision>`) and the spec's `Version:` and one `%changelog` entry
+  to `Version.h`, so stamping a release is now fourteen edits; `build/check-source-tarball.py` holds
+  `debian/copyright`'s `Files-Excluded` to the exclusion list plus test data the Debian build does not read, and the
+  new build scripts to the list; `build/add-license-headers.py` treats only maintainer-script hooks and `rules` in a
+  `debian` or `rpm` directory as scripts, since a changelog or copyright file cannot begin with a comment.
 
 ---
 

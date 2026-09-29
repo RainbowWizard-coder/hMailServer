@@ -1,0 +1,13 @@
+# The releases, from GitLab's API: each release links its files in the project's
+# package registry, the source tarball among them. Nothing here reaches GitHub.
+# The project id stays when the project moves group. The tarball is repacked
+# without Files-Excluded (debian/copyright) and takes the +ds suffix. Its
+# signature is a Sigstore bundle, which uscan cannot check: verify it with cosign
+# as hmailserver/docs/SourcePackages.md says.
+version=4
+opts="searchmode=plain, \
+      repacksuffix=+ds, \
+      dversionmangle=s/\+ds\d*$//, \
+      compression=gz" \
+  https://gitlab.com/api/v4/projects/86730559/releases \
+  https://gitlab\.com/api/v4/projects/86730559/packages/generic/hmailserver/[^/"]+/hmailserver-(\d[\d.]*)\.tar\.gz

@@ -1,0 +1,29 @@
+hMailServer for Debian
+======================
+
+This package is built without the server's live update: apt updates it. The
+server still checks for a newer release, when its update check is on, and
+names the command that installs it: apt upgrade hmailserver.
+
+It is installed enabled and stopped. Before it can start it needs a database
+(PostgreSQL, or MySQL and MariaDB with libmariadb3), an administrator password
+and a schema; /usr/share/doc/hmailserver/README.md, "Install and get running",
+has every step, in short:
+
+  sudoedit /etc/hmailserver/hMailServer.ini           [Database]
+  sudo hmailserver --set-admin-password
+  sudo -u hmailserver hmailserver --create-database
+  sudo hmailserver --create-stored-secrets-key
+  sudo hmailserver --export-stored-secrets-key /root/hmailserver-stored-secrets.key
+  sudo -u hmailserver hmailserver --check-config
+  sudo systemctl start hmailserver
+
+The REST API, the Control Deck in a browser and hmctl (the hmailserver-cli
+package) need the REST listener, which is off: sudo hmailserver --set-setting
+RestApiPort=8080, then restart the service.
+
+Purging the package removes its configuration and /var/log/hmailserver. It
+leaves the mail store, /var/lib/hmailserver, the database and the hmailserver
+account: remove those by hand once you are sure.
+
+ -- Christopher Holloway <christopher.j.holloway@outlook.com>  Mon, 28 Sep 2026 20:00:00 +0000

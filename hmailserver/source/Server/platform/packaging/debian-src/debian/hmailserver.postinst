@@ -1,0 +1,55 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# debhelper's part comes first: systemd-sysusers makes the hmailserver account,
+# systemd-tmpfiles its directories, and the unit is enabled without being started
+# (debian/rules says why). Then the configuration's owner and mode, and, on an
+# upgrade of a configured server only, the schema is brought to this build's and
+# a server that was running is restarted on the new binary - the order the
+# project's own .deb keeps (platform/packaging/debian/postinst).
+
+set -e
+
+#DEBHELPER#
+
+case "$1" in
+   configure)
+      # The configuration's owner and mode, unless the administrator has set
+      # another with dpkg-statoverride (Debian Policy 10.9). They are set here
+      # alone: a tmpfiles.d "z" line would set them again at every boot, over
+      # the administrator's.
+      for entry in "0750 /etc/hmailserver" "0640 /etc/hmailserver/hMailServer.ini"; do
+         mode=${entry%% *}
+         path=${entry#* }
+         if [ -e "$path" ] && ! dpkg-statoverride --list "$path" > /dev/null 2>&1; then
+            chown root:hmailserver "$path"
+            chmod "$mode" "$path"
+         fi
+      done
+
+      # $2 is the version being upgraded from: empty on a first install. A
+      # server with no database configured has no schema to upgrade.
+      if [ -n "$2" ] && grep -q '^Type=[A-Za-z]' /etc/hmailserver/hMailServer.ini 2> /dev/null; then
+         if ! runuser -u hmailserver -- /usr/bin/hmailserver --upgrade-database; then
+            echo "hmailserver: the database schema was not upgraded; run" >&2
+            echo "   sudo -u hmailserver hmailserver --upgrade-database" >&2
+            echo "and read what it says before starting the service." >&2
+         fi
+         if [ -d /run/systemd/system ] && command -v deb-systemd-invoke > /dev/null 2>&1; then
+            deb-systemd-invoke try-restart hmailserver.service > /dev/null || true
+         fi
+      fi
+      ;;
+
+   abort-upgrade | abort-remove | abort-deconfigure)
+      ;;
+
+   *)
+      echo "postinst called with unknown argument '$1'" >&2
+      exit 1
+      ;;
+esac
+
+exit 0

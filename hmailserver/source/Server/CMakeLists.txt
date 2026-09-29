@@ -296,8 +296,23 @@ find_package(ZLIB REQUIRED)
 # Ubuntu 24.04, libicu76 on 26.04). The first static-Boost package proved that:
 # no Boost in its Depends, and libicu74 still there. The headers alone give
 # the same boost::regex, and nothing here includes boost/regex/icu.hpp.
-set(Boost_USE_STATIC_LIBS ON)
+#
+# HM_BOOST_STATIC OFF links the distribution's shared Boost instead, which is what
+# a distribution's own package does: its archive rebuilds the package whenever its
+# Boost moves, so the soname it names is always one the release carries, and its
+# policy asks for shared libraries over embedded copies. The source packages under
+# platform/packaging/debian-src and platform/packaging/rpm build so
+# (hmailserver/docs/SourcePackages.md). The project's own packages keep ON, for the
+# reason above. A variable of its own rather than Boost_USE_STATIC_LIBS on the
+# command line, because the set() below would hide a cache value of that name.
+option(HM_BOOST_STATIC "Link Boost statically (the project's own packages); OFF links the distribution's shared Boost" ON)
+set(Boost_USE_STATIC_LIBS ${HM_BOOST_STATIC})
 find_package(Boost 1.83 REQUIRED COMPONENTS thread chrono filesystem)
+if(HM_BOOST_STATIC)
+   message(STATUS "Boost ${Boost_VERSION}: linked statically")
+else()
+   message(STATUS "Boost ${Boost_VERSION}: the shared libraries, linked dynamically (HM_BOOST_STATIC OFF)")
+endif()
 
 # libpq. PGConnection.h and PGRecordset.h include <libpq-fe.h> by that bare name,
 # the way the Windows project reaches it through an include directory, and Debian

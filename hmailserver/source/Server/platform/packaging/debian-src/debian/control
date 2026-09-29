@@ -1,0 +1,58 @@
+Source: hmailserver
+Section: mail
+Priority: optional
+Maintainer: Christopher Holloway <christopher.j.holloway@outlook.com>
+Rules-Requires-Root: no
+Build-Depends:
+ cmake (>= 3.22),
+ debhelper-compat (= 13),
+ dh-sequence-installsysusers,
+ libboost-chrono-dev (>= 1.83),
+ libboost-dev (>= 1.83),
+ libboost-filesystem-dev (>= 1.83),
+ libboost-thread-dev (>= 1.83),
+ libldap-dev,
+ libpq-dev,
+ libssl-dev (>= 3.0),
+ ninja-build,
+ zlib1g-dev,
+Standards-Version: 4.7.2
+Homepage: https://gitlab.com/Progressiverobot/hmailserver
+Vcs-Browser: https://gitlab.com/Progressiverobot/hmailserver/-/tree/master/hmailserver/source/Server/platform/packaging/debian-src
+Vcs-Git: https://gitlab.com/Progressiverobot/hmailserver.git
+
+Package: hmailserver
+Architecture: any
+Depends:
+ systemd | systemd-standalone-tmpfiles | systemd-tmpfiles,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Recommends:
+ 7zip | p7zip-full,
+ hmailserver-cli,
+Suggests:
+ fail2ban,
+ libmariadb3,
+ postgresql | mariadb-server,
+Description: mail server for SMTP, IMAP and POP3
+ hMailServer is a mail server: SMTP for sending and receiving, IMAP and POP3
+ for reading, with SPF, DKIM, DMARC and ARC, DNS blocklists and greylisting,
+ TLS with certificates from ACME, and a REST API with a browser-based
+ administration page, the Control Deck. Its accounts, messages' metadata and
+ settings are kept in PostgreSQL, or in MySQL or MariaDB through libmariadb,
+ which it loads when it is configured to.
+ .
+ This is a maintained fork of the Windows mail server of that name, ported to
+ Linux. This build has no live update of its own: the package manager updates
+ it, and the server's update check names that command.
+
+Package: hmailserver-cli
+Architecture: all
+Depends:
+ python3,
+ ${misc:Depends},
+Description: command-line client for hMailServer's REST API
+ hmctl administers an hMailServer over its REST API - domains, accounts,
+ aliases, settings, the queue, certificates and the rest - from a shell, on
+ the server itself or on another machine, Linux or Windows. It is one Python 3
+ file that needs nothing beyond the standard library.

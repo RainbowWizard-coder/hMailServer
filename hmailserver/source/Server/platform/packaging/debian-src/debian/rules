@@ -1,0 +1,79 @@
+#!/usr/bin/make -f
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The Debian source package's build (hmailserver/docs/SourcePackages.md): the
+# CMake build under hmailserver/source/Server, configured as a distribution
+# builds it - without the live update, which the archive stands in for, naming
+# the command that updates the server instead, and against the release's own
+# shared Boost rather than the static archives the project's own .deb carries.
+# Nothing is fetched while it builds.
+
+# No link-time optimisation, which Ubuntu's dpkg-buildflags turn on by default and
+# Debian's do not, for the memory, as the RPM spec does: with it a GNU ld of the
+# whole static core was sampled at 2.7 GB, and once at 6.0 GB, in the laptop's
+# builds of 28 September 2026, besides the LTRANS compilers -flto=auto starts, one
+# for each processor the build sees - eight on linix, whose jobs have 8 GB
+# (hmailserver/docs/SourcePackages.md).
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all optimize=-lto
+
+include /usr/share/dpkg/architecture.mk
+
+BUILDDIR := obj-$(DEB_HOST_GNU_TYPE)
+
+%:
+	dh $@ --buildsystem=cmake+ninja --sourcedirectory=hmailserver/source/Server --builddirectory=$(BUILDDIR)
+
+# One link at a time. Six programs link the whole static core, each a large link
+# with the debug information the archive builds with, and several at once under -j4,
+# with Ubuntu's LTO, ran a 10 GB machine out of memory (28 September 2026). The
+# compilers still run in parallel.
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DHM_LIVE_UPDATE=OFF \
+		"-DHM_UPDATE_COMMAND=apt upgrade hmailserver" \
+		-DHM_BOOST_STATIC=OFF \
+		-DCMAKE_JOB_POOLS=link=1 \
+		-DCMAKE_JOB_POOL_LINK=link
+
+# First the server itself, which has to get as far as printing its version: every
+# static constructor runs before main, so a server that cannot start fails the
+# build here, as the RPM spec's %check has it fail (a server that died before main
+# got past the testers alone in a Fedora build on 29 September 2026; SourcePackages.md).
+# Then the tester programs the build makes beside the server: the RFC 7208 suite and
+# the SPF testers, the event scripts' JavaScript binding, the SNMP agent's
+# decoder and cryptography, and the object store's request signatures. None
+# opens a socket, reads a configuration or needs a database, so they run here,
+# with the network refused, in seconds.
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+	set -e; cd $(BUILDDIR); echo "== hmailserver --version"; ./hmailserver --version; \
+	  for tester in $(TESTERS); do echo "== $$tester"; ./$$tester; done
+endif
+endif
+
+# hmctl goes to hmailserver-cli, which depends on python3; its shebang names the
+# interpreter that dependency installs, as Debian asks of a script.
+override_dh_auto_install:
+	dh_auto_install
+	sed -i '1s|^#!/usr/bin/env python3$$|#!/usr/bin/python3|' debian/tmp/usr/bin/hmctl
+	# CMake's FILES_MATCHING install of DBScripts leaves the one subdirectory that
+	# holds no .sql behind, empty.
+	find debian/tmp/usr/share/hmailserver -type d -empty -delete
+
+# tlds.txt and dh2048.pem are data the server reads from its own directory, not
+# programs, and dh_fixperms makes everything in /usr/bin executable.
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0644 debian/hmailserver/usr/bin/tlds.txt debian/hmailserver/usr/bin/dh2048.pem
+
+# Enabled and not started, on a first install and on an upgrade: nothing in the
+# package knows the database the server should use, and one started without it
+# writes an error to its log every second. postinst restarts a server that was
+# already running, after the schema is upgraded.
+override_dh_installsystemd:
+	dh_installsystemd --no-start

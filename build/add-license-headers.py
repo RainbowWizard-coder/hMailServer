@@ -95,8 +95,13 @@ BLOCK_COMMENT = {'.xaml', '.resx', '.md'}
 BY_NAME = {'CMakeLists.txt': '.cmake',
            # The Linux packaging's files without an extension.
            'PKGBUILD': '.sh', 'Dockerfile': '.sh', 'autoban-hook': '.sh'}
-# The maintainer scripts of the .deb and the .rpm, named by their hook.
+# The maintainer scripts of the .deb and the .rpm, named by their hook, and a
+# Debian source package's debian/rules. Only these names: the rest of a debian/
+# directory without an extension - changelog, control, copyright, watch - is read
+# by dpkg's and uscan's own parsers, and a changelog or a copyright file cannot
+# begin with a comment (platform/packaging/debian-src/debian).
 SCRIPTLET_DIRS = {'debian', 'rpm'}
+SCRIPTLET_NAMES = {'preinst', 'postinst', 'prerm', 'postrm', 'pre', 'post', 'preun', 'postun', 'rules'}
 
 # A header is made canonical here when the file has one, and never added.
 NORMALISE_ONLY = {'.resx', '.md', '.ini', '.conf', '.service', '.logrotate'}
@@ -132,7 +137,7 @@ def candidates():
             if name in SKIP_FILES:
                 continue
             ext = BY_NAME.get(name) or os.path.splitext(name)[1].lower()
-            if not ext and os.path.basename(dirpath) in SCRIPTLET_DIRS:
+            if not ext and os.path.basename(dirpath) in SCRIPTLET_DIRS and name in SCRIPTLET_NAMES:
                 ext = '.sh'
             if ext in LINE_COMMENT or ext in BLOCK_COMMENT:
                 yield os.path.join(dirpath, name), ext

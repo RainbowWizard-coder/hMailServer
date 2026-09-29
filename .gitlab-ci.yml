@@ -110,6 +110,9 @@ include:
   - local: .gitlab/ci/packages-windows.yml
   # The source tarball the Linux build and suite run from and a release carries (docs/SourceTarball.md).
   - local: .gitlab/ci/source-tarball.yml
+  # The Debian source package and the RPM spec, built from the tarball with the network
+  # refused, linted, installed and started; batch* and master only (docs/SourcePackages.md).
+  - local: .gitlab/ci/source-packages.yml
   # What a release carries from the package jobs besides the generic packages - each
   # distribution release's .deb and .rpm, the AppImages and the source tarball -
   # gathered with each one's SBOM, for release and its rehearsal (docs/ContinuousIntegration.md).
