@@ -259,7 +259,7 @@ checkers:
 
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
-      for name in authz-choke-point binary-manifest channels cli-packages collection-iteration com-error-info com-shared-copies \
+      for name in authz-choke-point binary-manifest changelog channels cli-packages collection-iteration com-error-info com-shared-copies \
                   db-settings-coverage help-map idl-case mysql-charset password-choice-sites release-chain \
                   roadmap2 role-choke-point sbom-inputs source-tarball; do
         check python3 "build/check-$name.py" --self-test
