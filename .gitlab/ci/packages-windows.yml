@@ -6,7 +6,7 @@
 # - master, a batch* branch, a v* tag - on bench150, and kept as the job's artifact,
 # unsigned (hmailserver/docs/PackagesWindows.md). Included by .gitlab-ci.yml, whose
 # .own-runners rules these jobs take: never for a merge request, a scheduled
-# pipeline or the feed's downstream pipeline.
+# pipeline or a downstream pipeline.
 #
 #   windows-packages-x64    the x64 server, tools, Control Panel and installer:
 #                           hMailServer-<version>-x64.exe for a v* tag, the name a

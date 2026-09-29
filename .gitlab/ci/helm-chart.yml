@@ -18,7 +18,7 @@
 #
 # For a protected v* tag, whose release carries the chart, and a protected batch*
 # branch, where the release is rehearsed; not for master, a merge request, a schedule
-# or the feed's pipeline. Nothing here holds a secret.
+# or a downstream pipeline. Nothing here holds a secret.
 helm-chart-package:
   stage: build
   # Alpine 3.24, by the digest chart-and-compose pins, and its community/helm.

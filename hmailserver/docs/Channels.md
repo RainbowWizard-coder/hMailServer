@@ -37,7 +37,7 @@ loads):
 
 1. **Only on `master`, only by hand.** The jobs are created in a protected `master`
    branch pipeline and nowhere else: never for a tag, a merge request, a schedule or
-   the update feed's downstream pipeline. Each is manual and allowed to fail, so a
+   a downstream pipeline. Each is manual and allowed to fail, so a
    `master` pipeline is never held for a channel nobody has set up.
 2. **A release, never the commit.** The release is the one the project's CI/CD
    variable `HM_CHANNEL_VERSION` names (`6.3.6`), or else the latest release in the

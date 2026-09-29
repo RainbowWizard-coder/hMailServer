@@ -25,11 +25,12 @@ and from the first change after 6.3.4 every change, a release's included, lands
 through a merge request that the other maintainer approves before the owner
 merges it by fast-forward, its pipeline green (GOVERNANCE.md, Review). A batch
 lands that way with `python3 build/land-via-mr.py batchN` (written on 26
-September 2026; none has landed yet), which refuses a merge request without that
-approval unless the owner overrides it for one landing (`--land-without-approval
-"<reason>"`), and every commit it lands is signed off (`git commit -s`;
-CONTRIBUTING.md, "Merge requests"). Until the first such landing, a tree that has
-passed the gate is pushed to `master` directly.
+September 2026; the first, batch41, landed through merge request !1 on 29
+September 2026, with the owner's override, and is reviewed afterwards), which
+refuses a merge request without that approval unless the owner overrides it for
+one landing (`--land-without-approval "<reason>"`), and every commit it lands is
+signed off (`git commit -s`; CONTRIBUTING.md, "Merge requests"). Before that
+first landing, a tree that had passed the gate was pushed to `master` directly.
 
 **From 6.3.6, releases pause.** 6.3.6 is the last release for the time being.
 Security releases are still made, until 30 September 2027
@@ -39,10 +40,11 @@ describes below.
 
 ## The release on GitLab
 
-For 6.3.5 onwards. Written on 26 September 2026 and not yet run: the first
-release made this way is also the first test of it, and
-`hmailserver/docs/ContinuousIntegration.md` ("The release") lists what only that
-run can show and the one-time steps the owner takes first. The jobs are in
+For 6.3.5 onwards. Written on 26 September 2026, and first run for 6.3.5,
+which tag pipeline 2892097590 published on 29 September 2026 at 10:20:45 UTC.
+`hmailserver/docs/ContinuousIntegration.md` ("The release") lists what that run
+showed - its release links' paths and its `update-feed` job failed, and 6.3.6
+changes both - and the one-time steps the owner takes first. The jobs are in
 `.gitlab-ci.yml`, and `build/check-release-chain.py` holds them to what a server
 built after 6.3.3 needs.
 
@@ -147,7 +149,12 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    signing jobs after it, and a second signing never makes the same bytes (a new
    timestamp, a new certificate). And it counts what GitLab and Pages will take
    before anything is signed: every link of the release GitLab must accept (a
-   `direct_asset_path` of at most 128 characters of letters, digits, `_ . - /`),
+   `direct_asset_path` of at most 128 characters of letters, digits, `_ . - /`:
+   the file's name without the version after one slash, which GitLab serves at
+   `/-/releases/vX.Y.Z/downloads/<name>` and, while the release is the latest, at
+   `/-/releases/permalink/latest/downloads/<name>` - never a path beginning
+   `/downloads/`, which GitLab would serve at `.../downloads/downloads/<name>`, as
+   it served 6.3.5's links until they were corrected by hand),
    and the update feed's site with the release in it - `_redirects`, with the apt
    and dnf repositories' rules, under the 1,000 rules and 64 KiB Pages reads, and
    `releases.json` under the 4 MiB a server reads, the repositories kept as
@@ -155,12 +162,18 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    has been signed or sent when it refuses.
 
    Before starting it, compare the line `hMailServer.exe <SHA-256>` that
-   `windows-installer` printed with the hash step 8 measured and the notes
-   give. The installer carries that executable, built in bench150's checkout;
-   a different hash means bench150's compiler, Windows SDK or libraries are
-   not the ones step 8 used, and the notes would name an executable the
-   release does not ship. Bring bench150 to that toolchain and retry
-   `windows-installer` first ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
+   `windows-installer` printed in its job log with the hash step 8 measured,
+   which the version's `CHANGELOG.md` section gives (step 8). The installer
+   carries that executable, built in bench150's checkout; a different hash
+   means bench150's compiler, Windows SDK or libraries are not the ones step 8
+   used, and the notes would name an executable the release does not ship.
+   Bring bench150 to that toolchain and retry `windows-installer` first
+   ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)). The
+   verification section `release-verify` adds to the notes names the release's
+   files by their SHA-256 - the installer among them - and not the executable
+   inside the installer, so the line in the job log is the only place the
+   pipeline states it. 6.3.5's section gave no such hash, and nothing was
+   compared.
 4. **`release-authenticode`, `release-sbom`, `release-sign` and `release-verify`
    follow by themselves.** `release-sbom` makes the signed installer's own SBOM
    and the statement of the release's SLSA v1 provenance, which names every file
@@ -215,8 +228,11 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    the digest that was signed, creates the release with a
    link per file named after it, and checks that the feed the API now gives
    offers the release to Windows servers, to Debian and RPM servers on
-   x86-64 and AArch64, and to the AppImages. `update-feed` then
-   runs `pages` on `master`. Check the site:
+   x86-64 and AArch64, and to the AppImages. `pages` and `package-repos`, which
+   wait for it, then render the feed with the release in it and deploy the site
+   from the same pipeline (6.3.5's `update-feed`, a trigger of a pipeline on
+   `master`, was refused by GitLab, and its feed was deployed by a `master`
+   pipeline started by hand). Check the site:
 
    ```
    python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com
@@ -298,6 +314,14 @@ off as a signature of the sums, or the other way round. Both files are
 uploaded and linked like every other file of the release. SECURITY.md,
 "Verifying a release", gives users the same two commands.
 
+The tag's own pipeline, when one runs for a release made by hand, stays
+blocked: `pages` and `package-repos` wait for `release-publish`, which such a
+release never starts. The update feed then gains the release at the next
+scheduled pipeline on `master`, or at once from a `master` pipeline started by
+hand, which runs `pages` and `package-repos` without waiting
+([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The
+update feed").
+
 ## A security release during the pause
 
 From 6.3.6 no feature release is made, but a confirmed vulnerability still ships
@@ -358,8 +382,8 @@ particular, check four things:
    [The release on GitLab](#the-release-on-gitlab)), with the previous release
    and on its own.
 8. **Owner: start `release-publish`.** Only an Owner's job may upload to the
-   package `hmailserver`. `update-feed` then brings the site up to date. Check
-   it with
+   package `hmailserver`. `pages` and `package-repos` then bring the site up to
+   date in the same pipeline. Check it with
    `python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com`
    and `python3 build/check-atom-feed.py --site https://updates.progressiverobot.com`.
 9. **Owner: remove the federated credential** (`az ad app federated-credential
@@ -522,7 +546,9 @@ that administrators upgrade by hand.
    in one directory cannot show a path: until 26 September 2026 they were
    identical while a checkout elsewhere built another executable
    ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)). Put
-   the hash in the release notes' verification section so anyone
+   the hash in the release notes - on GitLab, the version's `CHANGELOG.md`
+   section, before the tag, since `release-verify`'s verification section names
+   the installer and not the executable in it - so anyone
    with the same toolchain (v145, Windows SDK 10.0.26100) and library layout
    can check the published binary came from the published source. The two
    builds in the release tree rewrite the `hMailServer.exe` step 9 tests

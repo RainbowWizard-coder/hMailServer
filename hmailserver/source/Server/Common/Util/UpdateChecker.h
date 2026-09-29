@@ -61,7 +61,7 @@ namespace HM
 
       struct Snapshot
       {
-         Snapshot() : state(StateNotChecked), installer_size(0), integrated_time(0), installing_since_unix(0), last_check_unix(0) {}
+         Snapshot() : state(StateNotChecked), installer_size(0), integrated_time(0), installing_since_unix(0), last_check_unix(0), check_failures(0) {}
 
          State state;
          String available_version;     // "6.2.28"; empty unless a newer release is known
@@ -77,13 +77,17 @@ namespace HM
          AnsiString signer_identity;   // the workflow identity the bundle's certificate names
          __int64 integrated_time;      // when the transparency log recorded the signature, Unix seconds
          String verified_at;           // local time the installer was verified
-         String apply_status;          // the helper's last outcome: ok, failed, rolled-back, rollback-failed, no-rollback
+         // The helper's last outcome, read at start-up (UpdateInstaller::ReportLastOutcome)
+         // and kept until the service stops or the next outcome replaces it: a check
+         // does not clear it (until 6.3.6 the start-up check, a second after, did).
+         String apply_status;          // ok, failed, rolled-back, rollback-failed, no-rollback
          String apply_version;         // the version that outcome was about
          String apply_detail;          // what the helper said
          __int64 installing_since_unix; // when the installer was handed over, Unix seconds; 0 unless StateInstalling
          String last_checked;          // local time; empty until a check has completed
          __int64 last_check_unix;      // the same as Unix seconds; 0 until then
          String last_error;            // empty unless the last check failed
+         int check_failures;           // checks that failed since the last that succeeded
       };
 
       static Snapshot Current();
@@ -212,10 +216,26 @@ namespace HM
       static bool FetchReleaseByTag(const String &version, ReleaseAssets &assets, String &error);
 
       // UpdateCheckHours since the last check, or no check yet: the scheduled task
-      // runs every quarter hour and reads the feed only when this says so.
+      // runs every quarter hour and reads the feed only when this says so. After a
+      // check that failed, once, CHECK_RETRY_SECONDS instead (NextCheckUnix): a
+      // first check can fail for a reason that has gone ten minutes later - on a
+      // new machine, a first TLS handshake whose certificate check took the time
+      // the site allowed the request - and the next try was otherwise a day away.
+      // The task's next run is what reads it: a quarter of an hour after a failed
+      // scheduled check (ten minutes is less than a quarter hour, so that a check
+      // that took its whole timeout is still due at the next run), and ten to
+      // twenty-five minutes after a manual one.
       static bool CheckIsDue();
+      // When the scheduled check is next due, Unix seconds: the last check's time
+      // plus UpdateCheckHours, or plus CHECK_RETRY_SECONDS after a first failure in
+      // a row. The task reads the feed at its first quarter-hourly run from then. 0
+      // when no check has run since the service started (the next run of the task
+      // reads it).
+      static __int64 NextCheckUnix(const Snapshot &snapshot);
+      static constexpr __int64 CHECK_RETRY_SECONDS = 600;
       // Makes the next check due: called when the servers (re)start, so a changed
-      // UpdateChannel or UpdateFeedUrl is read at once rather than a day later.
+      // UpdateChannel or UpdateFeedUrl is read at once rather than a day later. The
+      // count of failed checks starts again with it.
       static void ResetSchedule();
       // UpdateWindow as configured: its normalised text, whether it is open now,
       // and the parse error if it has one (text is then the setting as written).

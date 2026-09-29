@@ -7,7 +7,8 @@
 
 A v* tag's pipeline ends in the release chain (docs/ContinuousIntegration.md, "The
 release"): windows-installer, release, release-authenticode, release-sbom,
-release-sign, release-verify, release-publish and update-feed. Most of what makes a release
+release-sign, release-verify and release-publish, then pages and package-repos, which
+deploy the update feed with the release in it. Most of what makes a release
 installable is fixed in places that do not look like each other - the identity
 SigstoreVerifier.cpp compiles in, the file the pipeline is defined in, the ID
 token's audience, cosign's flags, the order of the jobs - and a change to any one
@@ -76,13 +77,17 @@ refuses it. This checker holds them to each other. It fails when:
   * the pinned-image pattern the release job holds HM_COSIGN_IMAGE to at run time
     (build/ci/release-chain.py) is not this checker's, which a CI/CD variable of
     the same name could otherwise take past;
-  * update-feed is not a trigger of this project's master that passes no
-    variables, or a job other than pages would run in the pipeline it starts: that
-    pipeline's source is "pipeline", and every job refuses it (and a schedule),
-    except the few whose own rules can only match something else, each named here
-    with why. Its pipeline is told apart by its source because a trigger job's
-    variables reach the downstream pipeline as pipeline variables, which GitLab
-    refuses by default in a project made since 17.7;
+  * the feed does not follow the release in the tag's own pipeline: pages must run
+    for a protected v* tag and need release-publish - optionally, since that job is
+    in a v* tag's pipeline alone, and without its artifacts - and nothing else, and
+    package-repos, which deploys the site, must need pages with its artifacts; or a
+    job of the CI files triggers a pipeline of another project or of this one
+    (trigger: project), which GitLab drops as invalid_bridge_trigger when the project
+    is its own, as it dropped 6.3.5's update-feed, and which would name a path the
+    project's move into the group changes. Every job but pages and the few whose own
+    rules can only match something else, each named here with why, refuses a
+    schedule's pipeline and a downstream one (source "pipeline"), which nothing here
+    starts;
   * a scheduled pipeline is not chosen by its schedule's description: linux-fuzz,
     linux-coverage, renovate, forge-export (.gitlab/ci/forge-export.yml) and secret_detection
     (.gitlab/ci/gitlab-security.yml, the whole history) each run for the schedule
@@ -262,7 +267,7 @@ FILES = {
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
-                "release-publish", "update-feed"]
+                "release-publish"]
 # The container image's jobs, in .gitlab/ci/container-image.yml, and what each must
 # need: the .deb is taken from the release once it is published, the image built from
 # it and pushed, and signed, scanned and started once it is pushed.
@@ -288,12 +293,12 @@ IMAGE_FIRST = "container-image-deb"
 # fetch and push refuse, exiting non-zero, unless it is "1". Nothing committed may set it.
 RUNTIME_GATE = 'if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then'
 GATED_SCRIPTS = ("image-deb", "image-build")
-# Jobs that need not begin with REFUSAL, because their own rules match nothing the
-# feed's pipeline (source "pipeline", on master) is - each with the text that makes
-# it so. None of them is a gate of a tag's pipeline, so release need not wait for
-# them either.
+# Jobs that need not begin with REFUSAL, because their own rules match nothing a
+# downstream pipeline (source "pipeline", on master) is, or run in one on purpose -
+# each with the text that makes it so. None of them is a gate of a tag's pipeline,
+# so release need not wait for them either.
 EXEMPT = {
-    "pages": ("$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH", "the feed pipeline's one job"),
+    "pages": ("$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH", "the default branch, whatever started its pipeline, and the feed's schedule"),
     "linux-fuzz": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "fuzz" &&', "only the fuzz schedule"),
     "linux-coverage": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" &&', "only the coverage schedule"),
     "renovate": ('$CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "renovate" &&', "only Renovate's schedule"),
@@ -302,7 +307,8 @@ EXEMPT = {
 }
 TAG_ONLY = '$CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"'
 # What every job but EXEMPT's begins its rules with, when: never: every scheduled
-# pipeline, and the feed's downstream pipeline, whose CI_PIPELINE_SOURCE is "pipeline".
+# pipeline, and a downstream pipeline, whose CI_PIPELINE_SOURCE is "pipeline" (nothing of
+# this project starts one: the release's feed is deployed in the tag's own pipeline).
 REFUSAL = '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"'
 # The schedules that each run one job of their own, by their description, and the
 # file the job is in. pages, which runs for every other schedule on master, refuses these.
@@ -786,6 +792,76 @@ def probe_registry(chain, feed):
     return problems
 
 
+# A permanent download address as the tree writes one: GitLab's for the latest
+# release, the name after it perhaps on the next line of a document.
+PERMALINK = re.compile(r"/-/releases/permalink/latest/downloads/\s*([A-Za-z0-9_.\-]+)")
+
+
+def permalink_texts():
+    """{path: text} of each file of the tree that writes GitLab's permanent download
+    address, but the generated help pages (made from the documents)."""
+    texts = {}
+    for name in tree_files():
+        if name.endswith("HelpPagesData.cpp") or name.startswith(("libraries/", "fuzz/corpus")):
+            continue
+        try:
+            with open(os.path.join(ROOT, name), "rb") as f:
+                data = f.read()
+        except OSError:
+            continue
+        if b"/-/releases/permalink/latest/downloads/" not in data:
+            continue
+        try:
+            texts[name] = data.decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+    return texts
+
+
+def link_path_problems(chain, documents):
+    """The release links' paths (direct_asset_path), which GitLab serves at
+    /-/releases/<tag>/downloads<path> and the latest release's at
+    /-/releases/permalink/latest/downloads<path>: each is one slash and the file's
+    permanent name (release-chain.py's permalink_name), never under /downloads/ -
+    GitLab puts that in front itself, and 6.3.5's links, whose paths said
+    /downloads/<name>, were each a 404 until they were corrected by hand - and a
+    file's bundle and copy are at its own path with the suffix added, so that the
+    latest release's installer and the bundle that verifies it are both at
+    permalink/latest; release-chain.py refuses a path under /downloads/ before
+    anything is uploaded; and every permanent address the tree writes (README,
+    Channels.md, the OBS _service, the scripts) names a path a release's links have."""
+    problems = []
+    version = "9.9.9"
+    files = chain.release_files(version)
+    links = chain.release_links(version, files)
+    paths = dict((link["name"], link["direct_asset_path"]) for link in links)
+    for name, path in sorted(paths.items()):
+        if path != "/" + chain.permalink_name(name, version) or path.startswith("/downloads/"):
+            problems.append("build/ci/release-chain.py links %s at the path %s, which GitLab serves at %s: a link's path is "
+                            "one slash and the file's permanent name, /%s (GitLab puts /-/releases/<tag>/downloads in front "
+                            "itself; 6.3.5's /downloads/<name> paths were 404s)" % (
+                                name, path, chain.download_url("<tag>", path), chain.permalink_name(name, version)))
+    for name in chain.primary_assets(version):
+        for suffix in (chain.BUNDLE, chain.BUNDLE_COPY):
+            if name in paths and paths.get(name + suffix) != paths[name] + suffix:
+                problems.append("build/ci/release-chain.py links %s at %s, not beside %s at %s%s: the latest release's file "
+                                "and the bundle that verifies it are no longer both at permalink/latest under one name" % (
+                                    name + suffix, paths.get(name + suffix), name, paths[name], suffix))
+    if not any("/downloads/downloads/" in p for p in chain.link_problems([{"name": "a", "url": "u", "direct_asset_path": "/downloads/a"}])):
+        problems.append("build/ci/release-chain.py's link_problems takes a link whose path begins /downloads/, which GitLab "
+                        "would serve at .../downloads/downloads/<name>: publish would upload every file and create a "
+                        "release whose every link is a 404, as 6.3.5's were")
+    served = set(path[1:] for path in paths.values())
+    for document, text in sorted(documents.items()):
+        for found in PERMALINK.finditer(text):
+            name = found.group(1).rstrip(".,")
+            if name not in served:
+                problems.append("%s gives the address .../-/releases/permalink/latest/downloads/%s, which no link of a "
+                                "release has: the paths are %s" % (document, name, ", ".join(sorted(
+                                    path for path in served if "." in path and not path.endswith((chain.BUNDLE, chain.BUNDLE_COPY)))[:6]) + ", ..."))
+    return problems
+
+
 def function_text(source, name):
     """The text of a top-level function of a Python file."""
     match = re.search(r"^def %s\(.*?(?=^def |^class |^# -{10,}|\Z)" % re.escape(name), source, re.MULTILINE | re.DOTALL)
@@ -808,12 +884,12 @@ def check(texts, chain, feed):
     release_rules = jobs.get(".release-rules", "")
     if TAG_ONLY not in release_rules or 'merge_request_event' not in release_rules or REFUSAL not in release_rules:
         problems.append(".release-rules no longer holds the release jobs to a protected v* tag, refusing merge requests, "
-                        "a schedule and the feed's pipeline (%s)" % REFUSAL)
+                        "a schedule and a downstream pipeline (%s)" % REFUSAL)
     for name in RELEASE_JOBS:
         text = rules_text(name, jobs)
         if TAG_ONLY not in text:
             problems.append("%s can run for something that is not a protected v* tag: its rules must be .release-rules" % name)
-        if re.search(r"^  trigger:", jobs[name], re.MULTILINE) and name != "update-feed":
+        if re.search(r"^  trigger:", jobs[name], re.MULTILINE):
             problems.append("%s is a trigger: a child or downstream pipeline's ID token has no ci_config_ref_uri, and nothing in it can be signed" % name)
     for name in ("release", "release-publish"):
         if not re.search(r"when: manual\s*\n\s*allow_failure: false", jobs[name]):
@@ -831,7 +907,6 @@ def check(texts, chain, feed):
         "release-sign": ["release", "release-authenticode", "release-sbom"],
         "release-verify": ["release", "release-sign"],
         "release-publish": ["release-sign", "release-verify"],
-        "update-feed": ["release-publish"],
         "windows-installer": ["windows-gate"],
     }
     for name, wanted in sorted(order.items()):
@@ -1306,6 +1381,7 @@ def check(texts, chain, feed):
     if size != chain.MAX_FEED_BYTES:
         problems.append("build/ci/release-chain.py counts the feed against %d bytes, and a server reads %d (UpdateChecker.cpp, "
                         "MAX_FEED_BYTES)" % (chain.MAX_FEED_BYTES, size))
+    problems.extend(link_path_problems(chain, texts.get("permalinks", {})))
 
     # Every other file the release carries from the package jobs, gathered by one job
     # that needs each build and its test, none of which may fail on a tag.
@@ -1561,15 +1637,32 @@ def check(texts, chain, feed):
         problems.append("build/ci/release-chain.py takes --rehearse with a command that publishes or gathers, or gives a "
                         "rehearsal's collect the job's token")
 
-    # The feed pipeline runs pages and nothing else.
-    update = jobs["update-feed"]
-    project = feed.PROJECT_URL.split("/", 3)[3]
-    if not re.search(r"^  trigger:\s*\n    project: %s\s*\n    branch: master\s*$" % re.escape(project), update, re.MULTILINE):
-        problems.append("update-feed does not trigger a pipeline of %s on master" % project)
-    if re.search(r"^  variables:", update, re.MULTILINE) or not re.search(r"^  inherit:\s*\n    variables: false\s*$", update, re.MULTILINE):
-        problems.append("update-feed passes variables to the pipeline it starts (its own, or the file's without inherit: "
-                        "variables: false): GitLab takes them as pipeline variables, which the project refuses by default, "
-                        "and the trigger fails")
+    # The feed follows the release in the tag's own pipeline: pages waits for
+    # release-publish there, and package-repos, which needs pages, deploys the site.
+    pages_job = jobs.get("pages", "")
+    pages_needs = need_entries(pages_job)
+    publish_need = pages_needs.get("release-publish", "")
+    if TAG_ONLY not in rules_text("pages", jobs):
+        problems.append("pages does not run for a protected v* tag (%s): the tag's pipeline would not deploy the feed with "
+                        "its release in it" % TAG_ONLY)
+    if not publish_need or not re.search(r"optional: true", publish_need) or not re.search(r"artifacts: false", publish_need) \
+            or sorted(pages_needs) != ["release-publish"]:
+        problems.append("pages does not need release-publish, optionally and without its artifacts, and nothing else (it "
+                        "needs %s): in a v* tag's pipeline the feed must be rendered once the release exists, and on master, "
+                        "where release-publish is not, at once" % (sorted(pages_needs) or "nothing"))
+    repos_job = blocks(texts["repos"]).get("package-repos", "")
+    if not re.search(r"artifacts: true", need_entries(repos_job).get("pages", "")) or not re.search(r"^  pages: true\s*$", repos_job, re.MULTILINE):
+        problems.append("package-repos does not need pages with its artifacts, or does not deploy the site (pages: true): the "
+                        "release's feed would not reach Pages after release-publish")
+    # No trigger of a project: GitLab drops one naming its own project
+    # (invalid_bridge_trigger, Ci::CreateDownstreamPipelineService), as it dropped
+    # 6.3.5's update-feed, and a path breaks when the project moves into the group.
+    for where, text in [(".gitlab-ci.yml", ci)] + sorted(texts.get("ci-includes", {}).items()):
+        for name, block in sorted(blocks(text).items()):
+            if re.search(r"^  trigger:[ \t]*(?:[^\s#{]|\{[^}\n]*project:)", block, re.MULTILINE) or re.search(r"^  trigger:\s*\n(?:    .*\n)*?    project:", block + "\n", re.MULTILINE):
+                problems.append("%s in %s triggers a pipeline of a project (trigger: project): GitLab refuses a multi-project "
+                                "trigger into the project that runs it (invalid_bridge_trigger, as 6.3.5's update-feed was), "
+                                "and a project's path changes when it moves into the group" % (name, where))
     for name, text in sorted(jobs.items()):
         if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS:
             continue
@@ -1580,7 +1673,7 @@ def check(texts, chain, feed):
                 problems.append("%s is exempt from the refusal because it runs for %s, but its rules no longer say %s" % (name, why, needle))
             continue
         if not re.search(r"- if: " + re.escape(REFUSAL) + r"[^\n]*\n\s+when: never", rules):
-            problems.append("%s would run in the feed's pipeline (source pipeline, on master) or a schedule's: "
+            problems.append("%s would run in a downstream pipeline (source pipeline, on master) or a schedule's: "
                             "its rules must begin with - if: %s, when: never" % (name, REFUSAL))
 
     # The schedules: each chosen by its description, one way in.
@@ -1801,6 +1894,9 @@ def byte_search_problems(texts):
 def load_texts():
     texts = dict((key, read(relative)) for key, relative in FILES.items())
     texts["tree"] = tree_files()
+    texts["permalinks"] = permalink_texts()
+    texts["ci-includes"] = dict((name, read(name)) for name in texts["tree"]
+                                if name.startswith(".gitlab/ci/") and name.endswith(".yml"))
     return texts
 
 
@@ -1831,6 +1927,33 @@ def self_test(chain, feed):
             failures.append("a run-time image check that takes any registry is caught: %s" % found)
     finally:
         chain.PINNED_IMAGE = held
+    # The links' paths: 6.3.5's /downloads/<name>, a bundle kept apart from its file,
+    # a check that would take the first, and a document naming a path no link has.
+    for what, name, value, needle in (
+            ("links under /downloads/, as 6.3.5's were", "link_path",
+             lambda name, version: "/downloads/" + held_permalink(name, version), "/-/releases/<tag>/downloads/downloads/"),
+            ("a bundle's path keeping the version", "permalink_name",
+             lambda name, version: name if name.endswith(chain.BUNDLE) else held_permalink(name, version), "no longer both at permalink/latest"),
+            ("a link check that takes a path under /downloads/", "link_problems", lambda links, description="": [],
+             "link_problems takes a link whose path begins /downloads/")):
+        held_permalink = chain.permalink_name
+        held_value = getattr(chain, name)
+        try:
+            setattr(chain, name, value)
+            found, _ = check(texts, chain, feed)
+            if not any(needle in p for p in found):
+                failures.append("%s is caught: %s" % (what, found))
+        finally:
+            setattr(chain, name, held_value)
+    for what, planted in (("a versioned name", "hmailserver-9.9.9.tar.gz"), ("the old doubled path", "downloads/hMailServer-x64.exe"),
+                          ("a name no release carries", "hMailServer.exe")):
+        copy = dict(texts, permalinks=dict(texts["permalinks"], **{"hmailserver/docs/Planted.md":
+                    "Download `https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest/downloads/%s`.\n" % planted}))
+        found, _ = check(copy, chain, feed)
+        if not any("Planted.md gives the address" in p for p in found):
+            failures.append("a document with %s at permalink/latest is caught: %s" % (what, found))
+    if not texts["permalinks"] or not any(PERMALINK.search(t) for t in texts["permalinks"].values()):
+        failures.append("the tree's permanent download addresses are read (README.md, Channels.md, the OBS _service): %s" % sorted(texts["permalinks"]))
     broken("cosign from ghcr.io", "ci", 'HM_COSIGN_IMAGE: "gcr.io/projectsigstore/cosign:', 'HM_COSIGN_IMAGE: "ghcr.io/sigstore/cosign:', "never ghcr.io")
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
@@ -1885,12 +2008,39 @@ def self_test(chain, feed):
            "      allow_failure: false\n  before_script:", "must wait for a person")
     broken("Sigstore before Authenticode", "ci", "    - job: release-authenticode\n      artifacts: true\n    - job: release-sbom\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN",
            "    - job: release-sbom\n      artifacts: true\n  timeout: 30 minutes\n  interruptible: false\n  rules:\n    - !reference [.release-rules, rules]\n  id_tokens:\n    SIGSTORE_ID_TOKEN", "release-sign does not need release-authenticode")
-    broken("a job that would run in the feed's pipeline", "ci", '.not-a-fuzz-pipeline:\n  rules:\n    - if: ' + REFUSAL,
-           '.not-a-fuzz-pipeline:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule"', "checkers would run in the feed's pipeline")
-    broken("the feed's pipeline marked by a variable", "ci", "  inherit:\n    variables: false\n  trigger:",
-           "  inherit:\n    variables: false\n  variables:\n    HM_PIPELINE: feed\n  trigger:", "update-feed passes variables")
-    broken("the file's variables passed to the feed's pipeline", "ci", "  inherit:\n    variables: false\n  trigger:", "  trigger:",
-           "update-feed passes variables")
+    broken("a job that would run in a downstream pipeline", "ci", '.not-a-fuzz-pipeline:\n  rules:\n    - if: ' + REFUSAL,
+           '.not-a-fuzz-pipeline:\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "schedule"', "checkers would run in a downstream pipeline")
+    # The feed after the release, in the tag's own pipeline.
+    publish_need = "  needs:\n    - job: release-publish\n      artifacts: false\n      optional: true\n  timeout: 15 minutes"
+    broken("pages at the start of a tag's pipeline, before the release exists", "ci", publish_need, "  needs: []\n  timeout: 15 minutes",
+           "pages does not need release-publish")
+    broken("pages needing release-publish where master's pipeline has none", "ci", publish_need,
+           publish_need.replace("      optional: true\n", ""), "pages does not need release-publish, optionally")
+    broken("pages bringing release-publish's artifacts", "ci", publish_need, publish_need.replace("artifacts: false", "artifacts: true"),
+           "pages does not need release-publish, optionally and without its artifacts")
+    broken("pages needing a gate too", "ci", publish_need, publish_need.replace("  timeout:", "    - job: checkers\n      artifacts: false\n  timeout:"),
+           "and nothing else")
+    broken("pages not for a v* tag", "ci", '    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n  script:\n    - python3 build/generate-update-feed.py --self-test',
+           "  script:\n    - python3 build/generate-update-feed.py --self-test", "pages does not run for a protected v* tag")
+    broken("package-repos without pages' site", "repos", "    - job: pages\n      artifacts: true\n", "",
+           "package-repos does not need pages with its artifacts")
+    broken("package-repos deploying nothing", "repos", "  pages: true\n", "  pages: false\n", "or does not deploy the site")
+    trigger_job = ("\nupdate-feed:\n  stage: release\n  needs: [release-publish]\n  rules:\n    - !reference [.release-rules, rules]\n"
+                   "  inherit:\n    variables: false\n  trigger:\n    project: Progressiverobot/hmailserver\n    branch: master\n")
+    broken("6.3.5's update-feed trigger back", "ci", "\ninstaller-smoke:\n", trigger_job + "\ninstaller-smoke:\n",
+           "update-feed in .gitlab-ci.yml triggers a pipeline of a project")
+    broken("a trigger naming the group's path", "ci", "\ninstaller-smoke:\n", "\nfeed-again:\n  stage: release\n  trigger: hmailserver/hmailserver\n\ninstaller-smoke:\n",
+           "feed-again in .gitlab-ci.yml triggers a pipeline of a project")
+    included = sorted(texts["ci-includes"])[0]
+    copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{included: texts["ci-includes"][included] + trigger_job})})
+    found, _ = check(copy, chain, feed)
+    if not any("update-feed in %s triggers a pipeline of a project" % included in p for p in found):
+        failures.append("a project trigger in an included file (%s) is caught: %s" % (included, found))
+    child = "\nchild:\n  stage: release\n  trigger:\n    include: .gitlab/ci/child.yml\n"
+    copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{included: texts["ci-includes"][included] + child})})
+    found, _ = check(copy, chain, feed)
+    if any("triggers a pipeline of a project" in p for p in found):
+        failures.append("a child pipeline's trigger (include) is not taken for a project's: %s" % found)
     broken("release started past the schema-upgrade gate", "ci", "    - job: linux-db-upgrade-mysql\n      artifacts: false\n", "",
            "release does not need linux-db-upgrade-mysql")
     broken("release fetching a gate's logs", "ci", "    - job: linux-suite\n      artifacts: false\n", "    - job: linux-suite\n      artifacts: true\n",

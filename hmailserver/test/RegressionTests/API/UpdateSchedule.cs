@@ -241,6 +241,136 @@ namespace RegressionTests.API
          Assert.IsNotEmpty(Directory.GetFileSystemEntries(_backupDirectory), "The backup was written to the destination.");
       }
 
+      [Test]
+      public void TheLastApplysOutcomeOutlivesTheStartUpCheck()
+      {
+         // The Updates folder made by the server, with its own permissions, as an
+         // apply leaves it: a download makes it.
+         var status = _application.Status;
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), status.UpdateLastError);
+
+         // The outcome the helper writes while the service is down, after an
+         // install. The start-up task reports it, then runs the check it is due; on
+         // 6.3.4 and 6.3.5 that check, a second later, replaced the whole status and
+         // dropped the outcome, and Status.UpdateApplyOutcome, the REST route and the
+         // Control Panel said nothing of the update (#10's test, 29 September 2026).
+         File.WriteAllText(OutcomePath, "ok " + Running + " the installer succeeded and the service is running" + Environment.NewLine);
+         const string checkSaid = "Update check: hMailServer ";
+         int checks = Occurrences(LogHandler.ReadCurrentDefaultLog(), checkSaid);
+         WriteSetting("UpdateCheckEnabled", "1");
+         _application.Reinitialize();
+
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at start-up.");
+         WaitUntil(() => Occurrences(LogHandler.ReadCurrentDefaultLog(), checkSaid) > checks, 30, "The start-up check did not run.");
+         StringAssert.Contains("Update applied: hMailServer " + Running + " is installed", LogHandler.ReadCurrentDefaultLog());
+         status = _application.Status;
+         StringAssert.StartsWith("ok " + Running + ": the installer succeeded", status.UpdateApplyOutcome,
+            "The check that followed the start kept the outcome it had just been told.");
+         (int code, string body) = Http("GET", "/api/v1/update");
+         Assert.AreEqual(200, code, body);
+         StringAssert.Contains("\"apply\":{\"status\":\"ok\",\"version\":\"" + Running + "\",\"detail\":\"the installer succeeded", body);
+
+         // And every check after it, one that succeeds and one that fails.
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         StringAssert.StartsWith("ok " + Running + ": ", status.UpdateApplyOutcome);
+         _feed.SetResponse(500, "{\"message\":\"boom\"}");
+         Assert.IsFalse(status.CheckForUpdate());
+         StringAssert.StartsWith("ok " + Running + ": ", status.UpdateApplyOutcome);
+      }
+
+      [Test]
+      public void AVerifiedInstallerIsKeptAcrossARestartAndNotFetchedAgain()
+      {
+         // A service that may not install - one running as NT SERVICE\hMailServer -
+         // with UpdateAutoDownload=1 downloads and verifies, and leaves the install to
+         // an administrator. On 6.3.4 and 6.3.5 it fetched the whole installer again
+         // every time it started, since the verdict lives in the process (#10's test,
+         // 29 September 2026). Outside the window here, so nothing is applied.
+         WriteSetting("UpdateCheckEnabled", "1");
+         WriteSetting("UpdateAutoDownload", "1");
+         WriteSetting("UpdateBackupBeforeApply", "0");
+         WriteSetting("UpdateWindow", WindowAwayFromNow());
+         _application.Reinitialize();
+
+         var status = _application.Status;
+         WaitUntil(() => status.UpdateState == 3, 60, "The task did not download and verify the installer. State: " + status.UpdateState + " " + status.UpdateLastError);
+         string installer = "GET /download/hMailServer-" + Newer + "-x64.exe ";
+         Assert.AreEqual(1, CountRequests(installer), "One download.");
+         string path = status.UpdateInstallerPath;
+         byte[] verified = File.ReadAllBytes(path);
+         DateTime written = File.GetLastWriteTimeUtc(path);
+
+         // A new process: its status starts empty, and its start-up check finds the
+         // release again.
+         RestartServerAndReacquireCom();
+         status = _application.Status;
+         WaitUntil(() => status.UpdateState == 3, 60, "After the restart the installer was not verified. State: " + status.UpdateState + " " + status.UpdateLastError);
+         Assert.AreEqual(1, CountRequests(installer), "The installer verified before the restart is verified again where it is, not fetched again.");
+         Assert.AreEqual(path, status.UpdateInstallerPath);
+         Assert.AreEqual(written, File.GetLastWriteTimeUtc(path), "The file is the one kept.");
+         Assert.AreEqual(FakeSigstore.ReleaseSigning(Newer).Identity, status.UpdateSignerIdentity, "And its signer is read from its bundle again.");
+         StringAssert.Contains("Update: hMailServer " + Newer + " is already in " + path + " and verified again: signed by " + FakeSigstore.ReleaseSigning(Newer).Identity,
+            LogHandler.ReadCurrentDefaultLog());
+
+         // A kept copy that is no longer the file that was signed is deleted and
+         // fetched again.
+         byte[] changed = (byte[]) verified.Clone();
+         changed[changed.Length / 2] ^= 0xFF;
+         File.WriteAllBytes(path, changed);
+         RestartServerAndReacquireCom();
+         status = _application.Status;
+         WaitUntil(() => status.UpdateState == 3, 60, "After the second restart the installer was not fetched and verified. State: " + status.UpdateState + " " + status.UpdateLastError);
+         Assert.AreEqual(2, CountRequests(installer), "A kept copy that does not verify is fetched again.");
+         Assert.AreEqual(verified, File.ReadAllBytes(path), "The release's own bytes are back.");
+         StringAssert.Contains("Update: the copy of hMailServer " + Newer + " kept in " + path + " did not verify again, so it is deleted and fetched again: ",
+            LogHandler.ReadCurrentDefaultLog());
+      }
+
+      [Test]
+      public void AKeptInstallerOutlivesAStartWhoseFirstCheckFails()
+      {
+         // The task sweeps the Updates folder after each check, keeping the files of
+         // the running version and of the one on offer. A start whose first check
+         // fails knows of none on offer, and the sweep took the installer the process
+         // before had downloaded and verified - the copy kept across the restart to
+         // be verified again where it is - so the next check that succeeded fetched
+         // it again. The first check on a new machine failed that way on 29 September
+         // 2026 (#10's test). Nothing is swept until a check says what is on offer.
+         WriteSetting("UpdateCheckEnabled", "1");
+         WriteSetting("UpdateAutoDownload", "1");
+         WriteSetting("UpdateBackupBeforeApply", "0");
+         WriteSetting("UpdateWindow", WindowAwayFromNow());
+         _application.Reinitialize();
+
+         var status = _application.Status;
+         WaitUntil(() => status.UpdateState == 3, 60, "The task did not download and verify the installer. State: " + status.UpdateState + " " + status.UpdateLastError);
+         string installer = "GET /download/hMailServer-" + Newer + "-x64.exe ";
+         Assert.AreEqual(1, CountRequests(installer), "One download.");
+         string path = status.UpdateInstallerPath;
+
+         // The feed silent while the service starts again: its start-up check fails,
+         // and the sweep runs after it, in the same run of the task.
+         const string failedSaid = "Update check failed: ";
+         int failures = Occurrences(LogHandler.ReadCurrentDefaultLog(), failedSaid);
+         _feed.SetStall(LatestPath, 1);
+         RestartServerAndReacquireCom();
+         status = _application.Status;
+         WaitUntil(() => Occurrences(LogHandler.ReadCurrentDefaultLog(), failedSaid) > failures, 60,
+            "The start-up check did not fail on the silent feed.");
+         Thread.Sleep(3000);
+         Assert.IsTrue(File.Exists(path), "The kept installer outlives a start whose first check failed.");
+         Assert.IsTrue(File.Exists(path + ".cosign.bundle"), "And its bundle.");
+
+         // The next check that succeeds finds the release again, and the download
+         // verifies the kept copy where it is.
+         _feed.SetStall(LatestPath, 0);
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), status.UpdateLastError);
+         Assert.AreEqual(1, CountRequests(installer), "The kept installer is verified again, not fetched again.");
+         StringAssert.Contains("Update: hMailServer " + Newer + " is already in " + path + " and verified again", LogHandler.ReadCurrentDefaultLog());
+      }
+
       // ---- the fixture ---------------------------------------------------------------
 
       // The quiet program twice: as the newer release's installer and as the running
@@ -355,6 +485,14 @@ namespace RegressionTests.API
       private int CountRequests(string fragment)
       {
          return _feed.Requests.Count(request => request.Contains(fragment));
+      }
+
+      private static int Occurrences(string text, string what)
+      {
+         int count = 0;
+         for (int at = text.IndexOf(what, StringComparison.Ordinal); at >= 0; at = text.IndexOf(what, at + what.Length, StringComparison.Ordinal))
+            count++;
+         return count;
       }
 
       private static string WaitForOutcome(string path, int seconds)

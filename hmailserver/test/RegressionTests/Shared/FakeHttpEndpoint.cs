@@ -37,6 +37,7 @@ namespace RegressionTests.Shared
       private readonly Dictionary<string, Route> _routes = new Dictionary<string, Route>(StringComparer.Ordinal);
       private readonly Dictionary<string, Queue<Route>> _sequences = new Dictionary<string, Queue<Route>>(StringComparer.Ordinal);
       private readonly Dictionary<string, int> _stalls = new Dictionary<string, int>(StringComparer.Ordinal);
+      private readonly Dictionary<string, byte[]> _raw = new Dictionary<string, byte[]>(StringComparer.Ordinal);
 
       private sealed class Route
       {
@@ -173,6 +174,23 @@ namespace RegressionTests.Shared
          }
       }
 
+      /// <summary>
+      ///    Requests for one exact path are read, recorded and answered with exactly
+      ///    these bytes, whatever they are - a status line and headers cut short,
+      ///    say - and then the connection is closed: a service that ends its answer
+      ///    part-way. null answers the path again.
+      /// </summary>
+      public void SetRawAnswer(string path, byte[] bytes)
+      {
+         lock (_lock)
+         {
+            if (bytes != null)
+               _raw[path] = bytes;
+            else
+               _raw.Remove(path);
+         }
+      }
+
       /// <summary>How many requests with this method were made for one exact path.</summary>
       public int CountRequests(string method, string path)
       {
@@ -187,6 +205,7 @@ namespace RegressionTests.Shared
             _routes.Clear();
             _sequences.Clear();
             _stalls.Clear();
+            _raw.Clear();
          }
       }
 
@@ -287,12 +306,16 @@ namespace RegressionTests.Shared
          string location = null;
          string requestPath = RequestPath(text);
          int stall = 0;
+         byte[] rawAnswer = null;
          lock (_lock)
          {
             _requests.Add(text);
             _bodies.Add(bodyBytes2);
             if (requestPath != null)
+            {
                _stalls.TryGetValue(requestPath, out stall);
+               _raw.TryGetValue(requestPath, out rawAnswer);
+            }
          }
 
          if (stall > 0)
@@ -300,6 +323,13 @@ namespace RegressionTests.Shared
             DateTime until = DateTime.UtcNow.AddSeconds(stall);
             while (DateTime.UtcNow < until && !_stopping)
                Thread.Sleep(100);
+            return;
+         }
+
+         if (rawAnswer != null)
+         {
+            stream.Write(rawAnswer, 0, rawAnswer.Length);
+            stream.Flush();
             return;
          }
 

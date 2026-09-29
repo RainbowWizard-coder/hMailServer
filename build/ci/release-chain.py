@@ -549,15 +549,27 @@ def is_primary(name):
 
 
 def permalink_name(name, version):
-    """The release's permanent download name, as every release since 6.2.19 has
-    had it: the version taken out of a package's name (hMailServer-x64.exe,
-    hmailserver_amd64.deb, hmailserver.x86_64.rpm; a distribution release's
-    hmailserver_debian12_amd64.deb and hmailserver.fc44.x86_64.rpm, the tarball's
-    hmailserver.tar.gz, the chart's hmailserver-chart.tgz, the provenance's
-    hmailserver.intoto.sigstore.json); a bundle, its copy and a tree SBOM keep
-    theirs, but for a character GitLab refuses in a link's path (link_safe)."""
-    if (not is_primary(name) and name != provenance_name(version)) or name.startswith("hmailserver.") and name.endswith(".json"):
-        return link_safe(name)
+    """A file's permanent download name: the path of its link, which GitLab serves
+    at /-/releases/<tag>/downloads/<name> and, while its release is the latest, at
+    /-/releases/permalink/latest/downloads/<name> (release_links). The file's name
+    with the version taken out, as every release since 6.2.19 has had its packages'
+    (hMailServer-x64.exe, hmailserver_amd64.deb, hmailserver.x86_64.rpm; a
+    distribution release's hmailserver_debian12_amd64.deb and
+    hmailserver.fc44.x86_64.rpm, the tarball's hmailserver.tar.gz, the chart's
+    hmailserver-chart.tgz, the sums' hmailserver-linux-SHA256SUMS.txt, the
+    provenance's hmailserver.intoto.sigstore.json). From 6.3.6 the same for every
+    file: an SBOM, a bundle and a bundle's .sigstore.json copy are named after the
+    file they are of (hMailServer-x64.exe.cdx.json, hMailServer-x64.exe.cosign.bundle,
+    hMailServer-x64.exe.sigstore.json), so that the latest release's installer and
+    the bundle that verifies it are both at permalink/latest, as the update site's
+    /download/ names are (build/generate-update-feed.py). 6.3.5's bundles kept the
+    version in their paths, and 6.3.4's SBOMs theirs. The tree's two SBOMs carry no
+    version. The link's name is always the file's own, which is what a server and
+    the feed read; only the path loses the version, and never a character GitLab
+    refuses in a path (link_safe)."""
+    for suffix in (BUNDLE, BUNDLE_COPY):
+        if name.endswith(suffix) and len(name) > len(suffix):
+            return permalink_name(name[:-len(suffix)], version) + suffix
     for marker, replacement in (("-%s-1." % version, "."), ("_%s-1~" % version, "_"), ("-%s" % version, ""),
                                 ("_%s" % version, "")):
         if marker in name:
@@ -581,11 +593,34 @@ def registry_url(version, name):
     return "%s/packages/generic/%s/%s/%s" % (feed.API, PACKAGE, urllib.parse.quote(version, safe=""), urllib.parse.quote(name, safe=""))
 
 
+# GitLab serves a release link's direct_asset_path below the release's own page,
+# at /-/releases/<tag>/downloads<path>, and while the release is the latest also at
+# /-/releases/permalink/latest/downloads<path> (docs.gitlab.com, "Permanent links to
+# release assets"): the path is what follows /downloads, and begins with a slash.
+# 6.3.5's links were given /downloads/<name>, so each was served at
+# .../downloads/downloads/<name>, which is a 404 - until the 18 links were corrected
+# by hand on 29 September 2026. link_problems refuses such a path.
+DOWNLOADS = "/downloads"
+
+
+def link_path(name, version):
+    """A file's direct_asset_path: its permanent name, after the slash GitLab wants."""
+    return "/" + permalink_name(name, version)
+
+
+def download_url(tag, path, project_url=None):
+    """Where GitLab serves a link's path: tag is the release's, or "permalink/latest"
+    for whichever release is the latest (GitLab's pick: the newest released_at, a
+    pre-release included, not the update site's /download/, which is the newest stable
+    version)."""
+    return (project_url or feed.PROJECT_URL) + "/-/releases/" + tag + DOWNLOADS + path
+
+
 def release_links(version, names):
     links = []
     for name in sorted(names):
         links.append({"name": name, "url": registry_url(version, name), "link_type": link_type(name),
-                      "direct_asset_path": "/downloads/" + permalink_name(name, version)})
+                      "direct_asset_path": link_path(name, version)})
     return links
 
 
@@ -617,6 +652,10 @@ def link_problems(links, description=""):
         if len(path) > GITLAB_LINK_PATH_MAX or not GITLAB_LINK_PATH.match(path):
             problems.append("the link %s would have the path %s, which GitLab refuses (at most %d characters of letters, "
                             "digits, _ . - and /, ending in a letter or a digit)" % (link["name"], path, GITLAB_LINK_PATH_MAX))
+        elif path == DOWNLOADS or path.startswith(DOWNLOADS + "/"):
+            problems.append("the link %s would have the path %s, which GitLab serves at %s: it puts %s in front of a "
+                            "path itself, so the path is the file's name alone (6.3.5's links, corrected by hand)" % (
+                                link["name"], path, download_url("<tag>", path), DOWNLOADS))
         if not GITLAB_FILE_NAME.match(link["name"]):
             problems.append("%s is not a name the generic package registry takes for a file" % link["name"])
     if len(description) > GITLAB_DESCRIPTION_MAX:
@@ -1631,8 +1670,9 @@ def self_test():
     expect(permalink_name("hmailserver_6.3.5_amd64.deb", version) == "hmailserver_amd64.deb", "the .deb's permanent name")
     expect(permalink_name("hmailserver-6.3.5-1.x86_64.rpm", version) == "hmailserver.x86_64.rpm", "the .rpm's permanent name")
     expect(permalink_name("hmailserver-linux-6.3.5-SHA256SUMS.txt", version) == "hmailserver-linux-SHA256SUMS.txt", "the sums' permanent name")
-    expect(permalink_name("hMailServer-6.3.5-x64.exe.cosign.bundle", version) == "hMailServer-6.3.5-x64.exe.cosign.bundle", "a bundle keeps its name")
-    expect(permalink_name("hmailserver.spdx.json", version) == "hmailserver.spdx.json", "an SBOM keeps its name")
+    expect(permalink_name("hMailServer-6.3.5-x64.exe.cosign.bundle", version) == "hMailServer-x64.exe.cosign.bundle",
+           "a bundle's permanent name is its file's with the bundle's suffix")
+    expect(permalink_name("hmailserver.spdx.json", version) == "hmailserver.spdx.json", "the tree's SBOM has no version to take out")
     expect(link_type("hmailserver_6.3.5_amd64.deb") == "package" and link_type("hmailserver.spdx.json") == "other"
            and link_type("hMailServer-6.3.5-x64.exe.cosign.bundle") == "other", "packages are packages, the rest is other")
     for bad in ("6.3.5", "v", "build-inputs-1", "vx.1"):
@@ -1643,12 +1683,13 @@ def self_test():
             pass
     expect(version_of("v6.3.5-rc1") == "6.3.5-rc1", "a pre-release's tag names its version")
     # The files 6.3.6 adds, and their permanent paths: a distribution release's name
-    # keeps its release, the ~ of a .deb's version never reaches a path, and a bundle
-    # and its copy keep their names.
+    # keeps its release, the ~ of a .deb's version never reaches a path, and an SBOM,
+    # a bundle and its copy are named after the file they are of.
     for name, path in (("hmailserver_6.3.5-1~debian12_amd64.deb", "hmailserver_debian12_amd64.deb"),
                        ("hmailserver_6.3.5-1~ubuntu24.04_arm64.deb.cdx.json", "hmailserver_ubuntu24.04_arm64.deb.cdx.json"),
-                       ("hmailserver_6.3.5-1~debian13_arm64.deb.cosign.bundle", "hmailserver_6.3.5-1-debian13_arm64.deb.cosign.bundle"),
-                       ("hmailserver_6.3.5-1~debian13_arm64.deb.sigstore.json", "hmailserver_6.3.5-1-debian13_arm64.deb.sigstore.json"),
+                       ("hmailserver_6.3.5-1~debian13_arm64.deb.cosign.bundle", "hmailserver_debian13_arm64.deb.cosign.bundle"),
+                       ("hmailserver_6.3.5-1~debian13_arm64.deb.sigstore.json", "hmailserver_debian13_arm64.deb.sigstore.json"),
+                       ("hmailserver_6.3.5-1~debian13_arm64.deb.cdx.json.cosign.bundle", "hmailserver_debian13_arm64.deb.cdx.json.cosign.bundle"),
                        ("hmailserver-6.3.5-1.fc44.x86_64.rpm", "hmailserver.fc44.x86_64.rpm"),
                        ("hmailserver-6.3.5-1.suse.lp160.aarch64.rpm", "hmailserver.suse.lp160.aarch64.rpm"),
                        ("hMailServer-6.3.5-x86_64.AppImage", "hMailServer-x86_64.AppImage"),
@@ -1656,30 +1697,62 @@ def self_test():
                        ("hmailserver-6.3.5.tar.gz", "hmailserver.tar.gz"), ("hmailserver-chart-6.3.5.tgz", "hmailserver-chart.tgz"),
                        ("hmailserver-6.3.5.intoto.sigstore.json", "hmailserver.intoto.sigstore.json"),
                        ("hmailserver.spdx.json.sigstore.json", "hmailserver.spdx.json.sigstore.json"),
-                       ("hMailServer-6.3.5-x64.exe.sigstore.json", "hMailServer-6.3.5-x64.exe.sigstore.json")):
+                       ("hmailserver-linux-6.3.5-SHA256SUMS.txt.cosign.bundle", "hmailserver-linux-SHA256SUMS.txt.cosign.bundle"),
+                       ("hMailServer-6.3.5-x64.exe.sigstore.json", "hMailServer-x64.exe.sigstore.json"),
+                       ("hMailServer-6.3.5-x64.exe.cdx.json", "hMailServer-x64.exe.cdx.json"),
+                       ("hMailServer-6.3.5-x64.exe.cdx.json.cosign.bundle", "hMailServer-x64.exe.cdx.json.cosign.bundle")):
         expect(permalink_name(name, version) == path, "%s's permanent name is %s: %s" % (name, path, permalink_name(name, version)))
     expect(link_type("hMailServer-6.3.5-x86_64.AppImage") == "package" and link_type("hmailserver-6.3.5.tar.gz") == "other"
            and link_type("hmailserver_6.3.5_amd64.deb.sigstore.json") == "other" and link_type(provenance_name(version)) == "other",
            "an AppImage is a package; the tarball, a bundle's copy and the provenance are other")
     every_link = release_links(version, release_files(version))
     expect(link_problems(every_link) == [], "every link of a release is one GitLab takes: %s" % link_problems(every_link))
+    # Where GitLab serves each link (6.3.5's links said /downloads/<name>, and GitLab
+    # served them at .../downloads/downloads/<name>): the path is the file's name
+    # after one slash, so the release's own address is .../-/releases/<tag>/downloads/
+    # <name> and the latest release's .../-/releases/permalink/latest/downloads/<name>,
+    # the addresses README.md, Channels.md and the OBS _service give; and a file's
+    # bundle is at the same address with .cosign.bundle added, as on the update site.
+    paths = dict((link["name"], link["direct_asset_path"]) for link in every_link)
+    expect(all(p.startswith("/") and not p.startswith(DOWNLOADS + "/") and p.count("/") == 1 for p in paths.values()),
+           "every link's path is one slash and the file's permanent name, never under %s/: %s" % (
+               DOWNLOADS, sorted(p for p in paths.values() if p.startswith(DOWNLOADS + "/") or p.count("/") != 1)))
+    expect(download_url("permalink/latest", paths["hMailServer-6.3.5-x64.exe"])
+           == "https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest/downloads/hMailServer-x64.exe"
+           and download_url(tag, paths["hmailserver-6.3.5.tar.gz"])
+           == "https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5/downloads/hmailserver.tar.gz",
+           "the installer at permalink/latest/downloads/hMailServer-x64.exe, the tarball at v6.3.5/downloads/hmailserver.tar.gz")
+    unpaired = [n for n in primary_assets(version) if paths.get(n + BUNDLE) != paths.get(n) + BUNDLE
+                or paths.get(n + BUNDLE_COPY) != paths.get(n) + BUNDLE_COPY]
+    expect(not unpaired, "each primary file's bundle and copy are at its path with the suffix added: %s" % unpaired)
+    unpaired = [n for n in compiled_assets(version) if paths.get(sbom_name(n)) != sbom_name(paths.get(n))
+                or paths.get(sbom_name(n) + BUNDLE) != sbom_name(paths.get(n)) + BUNDLE]
+    expect(not unpaired, "each compiled file's SBOM and its bundle are at its path with the suffix added: %s" % unpaired)
     for what, links, needle in (
-            ("a path with the ~ of a .deb's version", [{"name": "a~b.deb", "url": "u1", "direct_asset_path": "/downloads/a~b.deb"}], "which GitLab refuses"),
-            ("a path over 128 characters", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/" + "a" * 118}], "which GitLab refuses"),
-            ("a path ending in a dot", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a."}], "which GitLab refuses"),
-            ("two links of one path", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a"},
-                                       {"name": "b", "url": "u2", "direct_asset_path": "/downloads/a"}], "direct asset path"),
-            ("two links of one name", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a"},
-                                       {"name": "a", "url": "u2", "direct_asset_path": "/downloads/b"}], "the name a"),
-            ("a file name the registry refuses", [{"name": "~a", "url": "u1", "direct_asset_path": "/downloads/a"}], "registry takes")):
+            ("a path with the ~ of a .deb's version", [{"name": "a~b.deb", "url": "u1", "direct_asset_path": "/a~b.deb"}], "which GitLab refuses"),
+            ("a path over 128 characters", [{"name": "a", "url": "u1", "direct_asset_path": "/" + "a" * 128}], "which GitLab refuses"),
+            ("a path ending in a dot", [{"name": "a", "url": "u1", "direct_asset_path": "/a."}], "which GitLab refuses"),
+            ("a path under /downloads/, which GitLab prefixes itself", [{"name": "a", "url": "u1", "direct_asset_path": "/downloads/a"}],
+             "/-/releases/<tag>/downloads/downloads/a"),
+            ("two links of one path", [{"name": "a", "url": "u1", "direct_asset_path": "/a"},
+                                       {"name": "b", "url": "u2", "direct_asset_path": "/a"}], "direct asset path"),
+            ("two links of one name", [{"name": "a", "url": "u1", "direct_asset_path": "/a"},
+                                       {"name": "a", "url": "u2", "direct_asset_path": "/b"}], "the name a"),
+            ("a file name the registry refuses", [{"name": "~a", "url": "u1", "direct_asset_path": "/a"}], "registry takes")):
         found = link_problems(links)
         expect(any(needle in p for p in found), "%s is refused: %s" % (what, found))
+    expect(link_problems([{"name": "a", "url": "u1", "direct_asset_path": "/downloadsa"}]) == [],
+           "a file whose name merely begins with downloads is not taken for GitLab's prefix")
     expect(any("GitLab takes" in p for p in link_problems([], "x" * (GITLAB_DESCRIPTION_MAX + 1))), "notes over a million characters are refused")
+    # A package revision after -1 (a rebuilt distribution package) keeps its ~ past
+    # the version's marker; link_safe is what keeps it out of the path.
+    rebuilt = "hmailserver_6.3.5-2~debian12_amd64.deb"
+    expect(link_problems(release_links(version, [rebuilt])) == [], "a rebuilt distribution package's link is one GitLab takes")
     held_safe = globals()["link_safe"]
     globals()["link_safe"] = lambda name: name
     try:
-        expect(any("hmailserver_6.3.5-1~debian12_amd64.deb" in p for p in link_problems(release_links(version, release_files(version)))),
-               "without link_safe, a distribution release's .deb would carry its ~ into a path GitLab refuses")
+        expect(any(rebuilt in p for p in link_problems(release_links(version, [rebuilt]))),
+               "without link_safe, a rebuilt distribution package would carry its ~ into a path GitLab refuses")
     finally:
         globals()["link_safe"] = held_safe
 
@@ -2273,9 +2346,20 @@ def self_test():
             expect(len(set(l["direct_asset_path"] for l in links)) == 149 and link_problems(links) == [],
                    "every permanent download path is its own, and one GitLab takes: %s" % link_problems(links))
             paths = dict((l["name"], l["direct_asset_path"]) for l in links)
-            expect(paths.get(names["deb-arm64"]) == "/downloads/hmailserver_arm64.deb"
-                   and paths.get(names["rpm-aarch64"]) == "/downloads/hmailserver.aarch64.rpm",
-                   "the AArch64 packages' permanent names are the feed's download names: %s" % paths)
+            expect(paths.get(names["deb-arm64"]) == "/hmailserver_arm64.deb"
+                   and paths.get(names["rpm-aarch64"]) == "/hmailserver.aarch64.rpm"
+                   and paths.get(names["rpm-aarch64"] + BUNDLE) == "/hmailserver.aarch64.rpm.cosign.bundle",
+                   "the AArch64 packages' permanent names, and their bundles', are the feed's download names: %s" % dict(
+                       (n, p) for n, p in paths.items() if "aarch64.rpm" in n or "_arm64.deb" in n))
+            # And every file's, the update site's /download/<name> the same name as
+            # GitLab's permalink/latest/downloads/<name>, its bundle's too.
+            aliases = feed.download_aliases()
+            for platform, name in sorted(names.items()):
+                if name in paths:
+                    expect(paths[name] == aliases[platform][len(feed.DOWNLOAD) - 1:]
+                           and paths[name + BUNDLE] == aliases[platform][len(feed.DOWNLOAD) - 1:] + BUNDLE,
+                           "%s and its bundle are at the update site's download name, %s: %s %s" % (
+                               name, aliases[platform], paths[name], paths.get(name + BUNDLE)))
             expect(payload["name"] == "hMailServer 6.3.5" and "The notes." in payload["description"] and SIGNER_IDENTITY_PREFIX in payload["description"],
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
@@ -2546,11 +2630,14 @@ def self_test():
         shutil.copytree(signed, unproven)
         os.remove(os.path.join(unproven, provenance_name(version)))
         refuses("a release without its provenance", "missing %s" % provenance_name(version), assets_dir=unproven)
-        globals()["link_safe"] = lambda name: name
+        # 6.3.5's links, whose paths said /downloads/<name>: refused before any upload.
+        held_path = globals()["link_path"]
+        globals()["link_path"] = lambda name, version_: DOWNLOADS + "/" + permalink_name(name, version_)
         try:
-            refuses("a release with a link GitLab would refuse, found before any upload", "which GitLab refuses")
+            refuses("a release whose links' paths begin /downloads/, as 6.3.5's did, found before any upload",
+                    "/-/releases/<tag>/downloads/downloads/%s" % permalink_name(names["windows"], version))
         finally:
-            globals()["link_safe"] = held_safe
+            globals()["link_path"] = held_path
 
         # What the site takes: counted for this release alone (a rehearsal), then beside
         # as many releases of its shape as the project will have made in some years.

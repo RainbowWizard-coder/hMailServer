@@ -289,6 +289,17 @@ copy_logs_back() {
    scp "${ssh_opts[@]}" -q -r "$remote:C:/smoke/logs" "$out/"
 }
 
+# Windows Update stopped and disabled on the VM for the run. The clean snapshot was
+# taken on 25 September 2026, and every revert resumes a Windows that has not updated
+# since: on 29 September 2026, during the live-update test of issue #10, it installed
+# KB5122871 and restarted the VM in the middle of the test. The snapshot is left as
+# the owner took it; the next revert brings the service back, so this holds for one
+# run and costs nothing after it. A failure here is reported and the run goes on:
+# Windows Update being up is a risk to the run, not a result.
+hold_windows_update() {
+   ssh "${ssh_opts[@]}" "$remote" 'powershell -NoProfile -Command "Stop-Service -Name UsoSvc,wuauserv -Force -ErrorAction SilentlyContinue; Set-Service -Name wuauserv -StartupType Disabled; Set-Service -Name UsoSvc -StartupType Disabled -ErrorAction SilentlyContinue; (Get-Service -Name wuauserv).Status"'
+}
+
 # The address must be the VM's: ARP answers with the MAC of the .vmx.
 check_address() {
    ping -n 1 -w 1000 "$host" > /dev/null 2>&1
@@ -332,6 +343,8 @@ settle_address
 say "== waiting for SSH on $host"
 wait_for_ssh || { say "no SSH answer from $host within ten minutes"; exit 3; }
 check_address || exit 3
+say "== holding Windows Update off for the run"
+hold_windows_update 2>&1 | tr -d '\r' | tee -a "$console" || say "   Windows Update could not be stopped; the run goes on"
 
 say "== copying the installers and the script"
 first_name=$(basename "$first_local")

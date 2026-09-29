@@ -560,6 +560,14 @@ namespace
             snapshot.integrated_time = snapshot_.integrated_time;
             snapshot.verified_at = snapshot_.verified_at;
          }
+         // The last apply's outcome is not the check's to forget. It is read at
+         // start-up, a moment before the start-up check, and 6.3.4 and 6.3.5 lost it
+         // there: after an update Status.UpdateApplyOutcome, the REST route and the
+         // Control Panel said nothing, and only the log had it. It stays until the
+         // service stops or the next apply's outcome replaces it.
+         snapshot.apply_status = snapshot_.apply_status;
+         snapshot.apply_version = snapshot_.apply_version;
+         snapshot.apply_detail = snapshot_.apply_detail;
          snapshot_ = snapshot;
       }
 
@@ -693,14 +701,27 @@ namespace
       return true;
    }
 
+   __int64
+   UpdateChecker::NextCheckUnix(const Snapshot &snapshot)
+   {
+      if (snapshot.last_check_unix == 0)
+         return 0;
+      __int64 interval = (__int64) IniFileSettings::Instance()->GetUpdateCheckHours() * 3600;
+      // One retry sooner after a check that failed, then the usual interval again: a
+      // feed that is down stays asked once in UpdateCheckHours, and each failure is a
+      // line in the log.
+      if (snapshot.check_failures == 1 && interval > CHECK_RETRY_SECONDS)
+         interval = CHECK_RETRY_SECONDS;
+      return snapshot.last_check_unix + interval;
+   }
+
    bool
    UpdateChecker::CheckIsDue()
    {
       Snapshot snapshot = Current();
       if (snapshot.last_check_unix == 0)
          return true;
-      __int64 interval = (__int64) IniFileSettings::Instance()->GetUpdateCheckHours() * 3600;
-      return (__int64) time(nullptr) - snapshot.last_check_unix >= interval;
+      return (__int64) time(nullptr) >= NextCheckUnix(snapshot);
    }
 
    void
@@ -708,6 +729,9 @@ namespace
    {
       boost::lock_guard<boost::mutex> guard(mutex_);
       snapshot_.last_check_unix = 0;
+      // And the failures counted: a start is a new try, whose first failure has
+      // its retry too.
+      snapshot_.check_failures = 0;
    }
 
    void
@@ -746,13 +770,21 @@ namespace
       error = reason;
       RecordFailure(reason);
 
+      int failures = 0;
       {
          boost::lock_guard<boost::mutex> guard(mutex_);
          snapshot_.last_checked = Time::GetCurrentDateTime();
          snapshot_.last_check_unix = (__int64) time(nullptr);
+         failures = ++snapshot_.check_failures;
       }
 
-      LOG_APPLICATION(Formatter::Format(_T("Update check failed: {0}"), reason));
+      // The first failure in a row is due again in ten minutes (NextCheckUnix), which
+      // the scheduled task, running every quarter hour, reads at its first run from
+      // then; the line says so where the scheduled check is on.
+      String retry;
+      if (failures == 1 && IniFileSettings::Instance()->GetUpdateCheckEnabled())
+         retry = Formatter::Format(_T(" The scheduled check tries again at its first run {0} minutes or more from now."), (int) (CHECK_RETRY_SECONDS / 60));
+      LOG_APPLICATION(Formatter::Format(_T("Update check failed: {0}{1}"), reason, retry));
       return false;
    }
 
@@ -979,6 +1011,10 @@ namespace
          body += ",\"backupBeforeApply\":" + AnsiString(IniFileSettings::Instance()->GetUpdateBackupBeforeApply() ? "true" : "false");
       }
       body += ",\"lastChecked\":" + Quote_(snapshot.last_checked);
+      // When the scheduled check is next due, ISO 8601 UTC - it reads the feed at the
+      // task's first quarter-hourly run from then: empty while it is off, and until
+      // its first run since the service started.
+      body += ",\"nextCheck\":" + Quote_(IniFileSettings::Instance()->GetUpdateCheckEnabled() ? FormatUnixTime(NextCheckUnix(snapshot)) : String());
       body += ",\"lastError\":" + Quote_(snapshot.last_error);
       body += "}";
       return body;

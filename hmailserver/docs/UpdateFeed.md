@@ -15,8 +15,10 @@ server built after 6.3.3 reads it without being told. A server from 6.2.28 to
 6.3.3 still reads GitHub, and one line in its configuration points it here.
 
 *The site has been deployed since 26 September 2026 and answers over HTTPS with a
-certificate for its name. No release has been signed on GitLab yet: 6.3.4 was
-built and signed by hand, as below.*
+certificate for its name. 6.3.5, published on 29 September 2026, is the first
+release this project's GitLab pipeline signed; 6.3.4 was built and signed by hand,
+as below. A server on 6.3.4 installs 6.3.5 by its live update: see
+[From 6.3.4 on, by the live update](#from-634-on-by-the-live-update).*
 
 A server from 6.2.28 to 6.3.3
 -----------------------------
@@ -122,17 +124,17 @@ checks](#what-a-server-built-after-633-checks)).
   byte as GitHub published them, with the bundles GitHub Actions made. They
   verify against the old server's own signer, so a server on 6.2.28 can go to
   6.3.3 by the live update as before, with a rollback image.
-- **The first release signed on GitLab will not install through an old
-  server's live update.** The releases after 6.3.4 are to be signed by this
-  project's GitLab CI pipeline for their `v*` tag, since nothing can be signed
-  on GitHub any more; none has been yet. 6.3.4 itself was built and
+- **A release signed on GitLab does not install through an old server's live
+  update.** From 6.3.5 the releases are signed by this project's GitLab CI
+  pipeline for their `v*` tag, since nothing can be signed on GitHub any more.
+  6.3.4 itself was built and
   Authenticode-signed by hand and carries no Sigstore bundle, so no server
   installs it by the live update: one offered it says it cannot be verified and
   downloads nothing (`UpdateDownloader.cpp`; the feed's check lets it through
   by name, `UNSIGNED_BY_DESIGN` in `build/generate-update-feed.py`). It is
-  installed by hand, as below. An old server's check will find a release
-  signed on GitLab, but its download will be refused: "The certificate names
-  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v...`,
+  installed by hand, as below. An old server's check finds a release signed
+  on GitLab - 6.3.5 - but its download is refused: "The certificate names
+  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`,
   not this repository's release workflow." Nothing is installed, and the server
   runs on as it was.
 - **Turn automatic download off until then.** With `UpdateAutoDownload=1`
@@ -172,9 +174,9 @@ This has costs. While the lines are set, the server refuses every GitHub-signed
 release, and that includes the rollback image of the version it is running, so
 the install runs without one. The log then says "no rollback image ... could be
 had", and a new version that does not start needs reinstalling by hand. These
-values are what the new version compiles in, and they are proved only when the
-first release signed on GitLab exists: check them against that release's notes
-before you rely on them.
+values are what the new version compiles in, and 6.3.5's certificate names exactly
+them (its release notes, "Verification"); that a server from 6.2.28 to 6.3.3 so
+configured installs a GitLab-signed release has not been tried.
 
 Leave the lines in place until the new version is running: the old server
 verifies the installer once more as it hands it over, with the same settings.
@@ -193,6 +195,72 @@ would install whatever anyone who ever holds that path signs for a `v*` tag -
 the id is what tells the project apart there, and only a server built after
 6.3.3 checks it. Once the project has moved, a server still on 6.2.28 to 6.3.3
 is upgraded by hand, once, to a release that knows the group's path.
+
+From 6.3.4 on, by the live update
+---------------------------------
+
+A server on 6.3.4 knows the GitLab signer and reads this feed without being told,
+and 6.3.5 is the first release it can install by its live update. The maintainers
+tried that on 29 September 2026 on a Windows Server 2025 machine reverted to a
+clean snapshot for each run, against the published 6.3.5 and this feed:
+
+- **A service running as LocalSystem** - an upgrade from an earlier version keeps
+  that account ([ServiceAccount.md](ServiceAccount.md)), and a new installation
+  takes it with `/serviceaccount=localsystem` - found 6.3.5, downloaded it,
+  verified it as signed by the pipeline for `v6.3.5`, took its backup and
+  installed it through the updater, unattended, in its window. It came back as
+  6.3.5 with the schema upgraded from 6104 to 6105 after about 24 seconds
+  without mail, and its domains, accounts, messages and settings as they were.
+- **Without a rollback image.** 6.3.4 carries no Sigstore bundle, so a server on
+  6.3.4 cannot verify its own version's installer to keep as the image to go
+  back to, and installs 6.3.5 without one. The log says so before the install
+  ("Update: no rollback image for hMailServer 6.3.4 could be had (release 6.3.4
+  carries no x64 installer with a Sigstore bundle...)"): a 6.3.5 that did not
+  start would need a manual reinstall. Every
+  release from 6.3.5 on carries its bundle, so a server on 6.3.5 has an image
+  for the next one.
+- **A service running as `NT SERVICE\hMailServer`**, the account a new 6.3.4
+  installation gives it, found, downloaded and verified 6.3.5, then logged
+  `HM7463` once and left the install to an administrator
+  ([ServiceAccount.md](ServiceAccount.md)): download the installer from the
+  release page, check that `Get-AuthenticodeSignature` reports it Valid, and run
+  it as an administrator. Nothing was left half-installed.
+- **The Linux live update from 6.3.4 has not been tried.** The test was
+  Windows's. A 6.3.4 `.deb` or `.rpm` server is built to hand 6.3.5's generic
+  package to `hmailserver-update` the same way, and nothing has shown it yet.
+
+The test found three things in the live update of 6.3.4 and 6.3.5, which 6.3.6
+changes:
+
+- **The apply's outcome was forgotten a second after the start.** The service
+  reads the helper's outcome at start-up, and the check that follows replaced
+  the whole update status: `Status.UpdateApplyOutcome`, `apply` in `GET
+  /api/v1/update` and the Control Panel said nothing of the update, and only
+  the log had it. From 6.3.6 a check keeps it; it stays until the service stops
+  or the next apply's outcome replaces it.
+- **A first check could fail with "The response carried no HTTP headers."** On
+  the new machine the first check failed with it after 10.8 seconds, and the next,
+  half a minute later, took 1.2 seconds and succeeded. The sentence meant only
+  that no answer had arrived; the likeliest cause, a first TLS handshake slowed
+  by Windows checking a certificate chain for the first time until the site gave
+  up on the request, is a guess it could not confirm. From 6.3.6 the sentence
+  says who ended the connection, after how many bytes and seconds, the TLS
+  handshake's share of them, and how the read ended ("`<host>` ended the
+  connection without answering, `<n>` s after it was made, `<m>` s of them in the
+  TLS handshake (`<how the read ended>`)"), and a check that failed is due again
+  once, ten minutes later, before it waits `UpdateCheckHours` again: the
+  scheduled task, which runs every quarter hour, reads the feed at its first run
+  from then, a quarter of an hour after a scheduled check that failed
+  (`nextCheck` in `GET /api/v1/update` says when it is due).
+- **A service that cannot install downloaded the installer at every start.**
+  With `UpdateAutoDownload=1`, a service running as `NT SERVICE\hMailServer`
+  fetched the whole installer, 88 MB for 6.3.5, each time it started, and left
+  it to an administrator each time. From 6.3.6 the verified copy is kept across
+  a restart and verified again where it is (see [What a server built after 6.3.3
+  checks](#what-a-server-built-after-633-checks)).
+
+Up to 6.3.5 these are the servers' own, and an upgrade to 6.3.6 is what changes
+them.
 
 What a server built after 6.3.3 checks
 --------------------------------------
@@ -225,10 +293,11 @@ project's to keep, and because the feed is not the project's word either:
 - **The GitLab signer is held to the project, not the path.** The project
   lives in a personal namespace, and a path can pass to someone else after a
   rename. Fulcio records the project's id beside the path, and the id is the
-  project's for ever. No GitLab-issued certificate has been seen here yet, so
-  the id is checked when the certificate carries one, rather than required: a
-  server that refused every certificate for lacking an extension Fulcio turned
-  out not to write could install nothing.
+  project's for ever. The servers up to 6.3.6 were written before any
+  GitLab-issued certificate had been seen, so they check the id when the
+  certificate carries one rather than require it: a server that refused every
+  certificate for lacking an extension Fulcio turned out not to write could
+  install nothing. 6.3.5's, the first, records it (`86730559`).
 - **The path the project is to move to is trusted already, and only with the
   project's id.** The project is to leave the personal namespace for the group
   `hmailserver` (https://gitlab.com/hmailserver), which the owner reserved for
@@ -243,7 +312,8 @@ project's to keep, and because the feed is not the project's word either:
   three settings below). The cost is the project's: the
   project does not move until a release signed from the present path has shown
   that Fulcio records the id (its notes say, from `release-verify`), since if
-  Fulcio wrote none, nothing signed from the group would install.
+  Fulcio wrote none, nothing signed from the group would install. 6.3.5 showed
+  it on 29 September 2026.
 - **A file is held to its release.** A GitLab job signs for the tag it ran
   for, and the identity names that tag. A server built after 6.3.3 refuses a
   file whose certificate names another tag than the release the feed offers it
@@ -283,6 +353,19 @@ project's to keep, and because the feed is not the project's word either:
   not kept as the one waiting, and an apply refuses an installer held to no
   release, or to one not newer than the server's own. Nothing is downloaded
   while an update is being installed.
+- **A verified installer outlives a restart, and is verified again.** From
+  6.3.6, a download that finds the release's installer and its bundle already in
+  the `Updates` folder holds them to everything a fresh download is held to - the
+  feed's size and digest, the bundle, the version resource, Authenticode where it
+  is required - and fetches nothing when they pass ("Update: hMailServer 6.3.6 is
+  already in ... and verified again"); a copy that no longer passes is deleted,
+  bundle and all, and fetched again. Until a check has said what is on offer -
+  after a start whose first check failed - the task's sweep of the folder leaves
+  it alone, so the copy is still there for the next check that succeeds. Up to
+  6.3.5 the verdict lived in the process alone, so every restart fetched the
+  installer again, and a service
+  that cannot install it (below) with `UpdateAutoDownload=1` downloaded the whole
+  installer each time it started.
 - **A version with a suffix is a pre-release.** A suffix is anything in the
   version but digits and dots - `6.3.5-rc1`, and `6.3.5rc1` too. The stable
   channel passes over such a version whatever the feed's `prerelease` flag says,
@@ -342,12 +425,13 @@ What the signing job produces
 
 The signing is the `release-sign` job of `.gitlab-ci.yml`, with
 `build/ci/release-sign.sh`, written on 26 September 2026 for 6.3.5 onwards
-([ContinuousIntegration.md](ContinuousIntegration.md), "The release"). It has not
-run yet: 6.3.4 was released by hand, with an Authenticode signature and no bundle.
-Every server built after 6.3.3 refuses a bundle that is not exactly what this
-verifier reads, so the job is held to all of this. `build/check-release-chain.py`
-fails on a change to the job that breaks a point it can see in the file, and the
-first release is to be checked against the list by hand before it is published:
+([ContinuousIntegration.md](ContinuousIntegration.md), "The release"). It first
+ran for 6.3.5, on 29 September 2026; 6.3.4 was released by hand, with an
+Authenticode signature and no bundle. Every server built after 6.3.3 refuses a
+bundle that is not exactly what this verifier reads, so the job is held to all of
+this. `build/check-release-chain.py` fails on a change to the job that breaks a
+point it can see in the file, and a release is checked against the list by hand
+before it is published, as 6.3.5 was:
 
 - [ ] **In `.gitlab-ci.yml` itself**, in the top-level pipeline of a protected
       `v*` tag: not a child or downstream pipeline, whose ID token carries no
@@ -456,9 +540,10 @@ same name each release's own permanent link has:
 Each has its Sigstore bundle beside it at the same name with `.cosign.bundle`
 added, for example `/download/hMailServer-x64.exe.cosign.bundle`. A name has a
 link only when that release carries its file. A name it does not carry answers
-404, never a file of another release. 6.3.4 carries the x64 installer, the amd64
-`.deb` and the x86-64 `.rpm`, and no bundle, so its other names answer 404 until
-a stable release carries them again. The release pipeline carries the
+404, never a file of another release. 6.3.5 carries the x64 installer, the amd64
+`.deb` and the x86-64 `.rpm`, each with its bundle (6.3.4 carried the same three
+and no bundle), so its other names answer 404 until a stable release carries
+them again. The release pipeline carries the
 AArch64 `.deb` and `.rpm` and both AppImages from 6.3.6, each with its bundle, so
 `hmailserver_arm64.deb`, `hmailserver.aarch64.rpm`, `hMailServer-x86_64.AppImage`
 and `hMailServer-aarch64.AppImage` answer from the first stable release that has
@@ -478,9 +563,24 @@ of them has a `/download/` name: a server never asks for them by name, and the
 release's own permanent links on GitLab name each one, their paths
 (`direct_asset_path`) the file's name with the version taken out, as for the
 files above: `hmailserver_debian12_amd64.deb`, `hmailserver.el9.x86_64.rpm`,
-`hmailserver.tar.gz`, `hmailserver-chart.tgz` (the `~` of a `.deb`'s version, which
-GitLab refuses in a link's path, is a `-` in a bundle's). They are what the apt and
+`hmailserver.tar.gz`, `hmailserver-chart.tgz`. They are what the apt and
 dnf repositories serve once those are published ([PackageManagers.md](PackageManagers.md)).
+
+**GitLab's own permanent links.** Every file of a release is also at
+`https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest/downloads/<name>`
+while its release is the latest, and always at `.../-/releases/v<version>/downloads/<name>`,
+`<name>` being its link's path: the file's name with the version taken out.
+GitLab picks the latest by date, a pre-release included, where `/download/` follows
+the newest stable version. From 6.3.6 the path of an SBOM, a bundle and a bundle's
+`.sigstore.json` copy is its file's with the suffix added
+(`hMailServer-x64.exe.cdx.json`, `hMailServer-x64.exe.cosign.bundle`), so the
+installer and the bundle that verifies it are both at `permalink/latest` under the
+same names as here, and no path holds a version or the `~` of a `.deb`'s, which
+GitLab refuses in a path. 6.3.5's bundles keep the version in their paths
+(`hMailServer-6.3.5-x64.exe.cosign.bundle`), and 6.3.4's SBOMs theirs. A link's
+name is always the file's own, with the version; that is what a server and this
+feed read ([ContinuousIntegration.md](ContinuousIntegration.md), "The links' names
+and paths").
 
 A server installed from one of those distribution releases' packages is, to its
 update check, a Debian or an RPM installation like any other: dpkg or rpm owns

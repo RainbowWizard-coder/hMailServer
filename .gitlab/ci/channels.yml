@@ -47,7 +47,7 @@
 # no new release made for it.
 #
 # The rules: a protected master's own pipeline and nothing else - never a tag's, a
-# merge request's, a schedule's or the feed's downstream one - and each job manual and
+# merge request's, a schedule's or a downstream one - and each job manual and
 # allowed to fail, so that a master pipeline is never held for a channel nobody has
 # set up. Each job has an environment of its own, so each credential can be scoped
 # to the one job that uses it (Settings, CI/CD, Variables, "Environments"), and a

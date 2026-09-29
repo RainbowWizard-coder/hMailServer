@@ -314,12 +314,17 @@ answers `HM_REST_PORT` for `RestApiPort`.
 
 ## What is not there
 
-* **The container path has not been run.** The verb has been run as
-  `hMailServer.exe --apply-environment` on Windows only. Its POSIX half (`environ`,
-  `stat`, `access`, `fputs`) compiles with clang on Linux, and the entrypoint's
-  choice of when to run the verb was run under bash with a made-up data
-  directory; the image's entrypoint as a whole, the POSIX verb against a database,
-  the chart and the Compose file have not been executed.
+* **The container path has run by hand only.** On 28 September 2026 the image
+  built from this tree's Dockerfile and 6.3.4's published `.deb` was started in
+  WSL beside PostgreSQL by the start test ([ContainerImage.md](ContainerImage.md),
+  "The start test"): its entrypoint waited for the database, created the schema
+  and applied the REST settings the test gives it through the environment, and the
+  server answered SMTP and the REST API. So the image's entrypoint and the POSIX
+  verb have run against a database, outside a pipeline. No pipeline has: no image
+  has been pushed yet, so `container-image-start` has not run (6.3.5 has no
+  image), and `linux-image` builds the image without starting it. The chart and
+  the Compose file have not been executed: `chart-and-compose` lints and renders
+  the chart and resolves the Compose file.
 * **No live reload from a ConfigMap change.** A restart applies it - the verb runs
   before the server, so every key is in effect when the server has started. A
   reinitialise does not re-run the verb; it takes a value the verb stored while the

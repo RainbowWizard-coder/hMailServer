@@ -20,8 +20,9 @@ namespace HM
    class UpdateDownloader
    {
    public:
-      // On the calling thread. True when the installer is in place and verified;
-      // false with error and the files gone. The failure is recorded as the
+      // On the calling thread. True when the installer is in place and verified -
+      // one an earlier download left there, verified again (VerifyKept), or one
+      // fetched now; false with error and the files gone. The failure is recorded as the
       // verdict (StateFailed), except where the state is not the download's to
       // change - a check answered while it ran, or an update is being installed -
       // when last_error alone says why. In a snap, a container or a build without
@@ -61,6 +62,16 @@ namespace HM
       static bool FetchVerified(const String &installerUrl, const String &bundleUrl, const String &installerPath, __int64 expectedSize,
                                 const String &expectedDigest, const String &expectedVersion, const SigstoreTrust &trust,
                                 SigstoreVerdict &verdict, String &why);
+
+      // An installer an earlier download left at installerPath, with its bundle
+      // beside it, held to everything FetchVerified holds a fresh one to. True when
+      // it passes. False with why empty when there is no such pair; false with why
+      // saying what failed when there is one that no longer passes, which is then
+      // deleted, bundle and all. What DownloadAndVerify does before it fetches, so
+      // that a restart - which starts the verdict afresh - does not fetch the same
+      // installer again. Not compiled without the live update, like FetchVerified.
+      static bool VerifyKept(const String &installerPath, __int64 expectedSize, const String &expectedDigest, const String &expectedVersion,
+                             const SigstoreTrust &trust, SigstoreVerdict &verdict, String &why);
 
       // Authenticode, when UpdateRequireAuthenticode=1: WinVerifyTrust on the file.
       static bool AuthenticodeTrusted(const String &path, String &why);

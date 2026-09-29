@@ -225,6 +225,59 @@ namespace HM
    // rollback image. A build without the live update (HM_LIVE_UPDATE=0,
    // UpdateChecker.h) fetches no release file, and compiles neither.
 #if HM_LIVE_UPDATE
+   namespace
+   {
+      // What an installer has to pass before it is kept, and a kept one before it
+      // is used again: the feed's size and digest when it states them, the Sigstore
+      // bundle beside it, its own version resource, and Authenticode where
+      // UpdateRequireAuthenticode asks for it. False with why naming the first that
+      // failed; described names the file in why ("the download", "the kept copy").
+      bool CheckInstaller_(const String &path, const String &bundlePath, __int64 expectedSize, const String &expectedDigest,
+                           const String &expectedVersion, const SigstoreTrust &trust, const TCHAR *described,
+                           SigstoreVerdict &verdict, String &why)
+      {
+         unsigned __int64 size = 0;
+         FileUtilities::FileSize64(path, size);
+         if (expectedSize > 0 && (__int64) size != expectedSize)
+         {
+            why = Formatter::Format(_T("The feed says the installer is {0} bytes; {1} is {2}."), expectedSize, String(described), (__int64) size);
+            return false;
+         }
+
+         // The feed's digest is a cheap consistency check, not the proof; the
+         // proof is the bundle. A disagreement between the two means one of them
+         // is not what it claims, and that is enough to stop.
+         std::vector<unsigned char> digest;
+         String hashError;
+         if (!SigstoreVerifier::Sha256File(path, digest, hashError))
+         {
+            why = hashError;
+            return false;
+         }
+         AnsiString stated = AnsiString(expectedDigest);
+         stated.MakeLower();
+         if (stated.StartsWith("sha256:") && std::string(stated.c_str() + 7) != SigstoreVerifier::Hex(digest))
+         {
+            why = Formatter::Format(_T("The feed says the installer's SHA-256 is {0}; {1}'s is {2}."),
+               String(stated.c_str() + 7), String(described), String(SigstoreVerifier::Hex(digest).c_str()));
+            return false;
+         }
+
+         AnsiString bundleJson;
+         SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
+         String versionWhy;
+         if (!SigstoreVerifier::VerifyFile(path, bundleJson, trust, verdict, expectedVersion))
+            why = Formatter::Format(_T("The installer did not verify against its Sigstore bundle: {0}"), verdict.error);
+         else if (!UpdateDownloader::InstallerVersionIs(path, expectedVersion, versionWhy))
+            why = Formatter::Format(_T("The installer is not the release it was offered as: {0}"), versionWhy);
+         else if (IniFileSettings::Instance()->GetUpdateRequireAuthenticode() && !UpdateDownloader::AuthenticodeTrusted(path, why))
+            why = Formatter::Format(_T("The installer's Authenticode signature was refused: {0}."), why);
+         else
+            return true;
+         return false;
+      }
+   }
+
    bool
    UpdateDownloader::FetchVerified(const String &installerUrl, const String &bundleUrl, const String &installerPath, __int64 expectedSize,
                                    const String &expectedDigest, const String &expectedVersion, const SigstoreTrust &trust,
@@ -241,50 +294,13 @@ namespace HM
          why = Formatter::Format(_T("The Sigstore bundle could not be fetched: {0}"), why);
       else if (!HttpsClient::Download(AnsiString(installerUrl), partialPath, MAX_INSTALLER_BYTES, status, why))
          why = Formatter::Format(_T("The installer could not be fetched: {0}"), why);
-      else
+      else if (CheckInstaller_(partialPath, bundlePath, expectedSize, expectedDigest, expectedVersion, trust, _T("the download"), verdict, why))
       {
-         unsigned __int64 size = 0;
-         FileUtilities::FileSize64(partialPath, size);
-         if (expectedSize > 0 && (__int64) size != expectedSize)
-            why = Formatter::Format(_T("The feed says the installer is {0} bytes; the download is {1}."), expectedSize, (__int64) size);
+         Remove_(installerPath);
+         if (!FileUtilities::Move(partialPath, installerPath))
+            why = Formatter::Format(_T("{0} could not be moved into place."), partialPath);
          else
-         {
-            // The feed's digest is a cheap consistency check, not the proof; the
-            // proof is the bundle. A disagreement between the two means one of them
-            // is not what it claims, and that is enough to stop.
-            std::vector<unsigned char> digest;
-            String hashError;
-            if (!SigstoreVerifier::Sha256File(partialPath, digest, hashError))
-               why = hashError;
-            else
-            {
-               AnsiString stated = AnsiString(expectedDigest);
-               stated.MakeLower();
-               if (stated.StartsWith("sha256:") && std::string(stated.c_str() + 7) != SigstoreVerifier::Hex(digest))
-                  why = Formatter::Format(_T("The feed says the installer's SHA-256 is {0}; the download's is {1}."),
-                     String(stated.c_str() + 7), String(SigstoreVerifier::Hex(digest).c_str()));
-               else
-               {
-                  AnsiString bundleJson;
-                  SigstoreVerifier::ReadBundle(bundlePath, bundleJson);
-                  String versionWhy;
-                  if (!SigstoreVerifier::VerifyFile(partialPath, bundleJson, trust, verdict, expectedVersion))
-                     why = Formatter::Format(_T("The installer did not verify against its Sigstore bundle: {0}"), verdict.error);
-                  else if (!InstallerVersionIs(partialPath, expectedVersion, versionWhy))
-                     why = Formatter::Format(_T("The installer is not the release it was offered as: {0}"), versionWhy);
-                  else if (IniFileSettings::Instance()->GetUpdateRequireAuthenticode() && !AuthenticodeTrusted(partialPath, why))
-                     why = Formatter::Format(_T("The installer's Authenticode signature was refused: {0}."), why);
-                  else
-                  {
-                     Remove_(installerPath);
-                     if (!FileUtilities::Move(partialPath, installerPath))
-                        why = Formatter::Format(_T("{0} could not be moved into place."), partialPath);
-                     else
-                        ok = true;
-                  }
-               }
-            }
-         }
+            ok = true;
       }
 
       if (!ok)
@@ -293,6 +309,24 @@ namespace HM
          Remove_(bundlePath);
       }
       return ok;
+   }
+
+   bool
+   UpdateDownloader::VerifyKept(const String &installerPath, __int64 expectedSize, const String &expectedDigest, const String &expectedVersion,
+                                const SigstoreTrust &trust, SigstoreVerdict &verdict, String &why)
+   {
+      why.Empty();
+      String bundlePath = installerPath + _T(".cosign.bundle");
+      if (!FileUtilities::Exists(installerPath) || !FileUtilities::Exists(bundlePath))
+         return false;
+
+      if (CheckInstaller_(installerPath, bundlePath, expectedSize, expectedDigest, expectedVersion, trust, _T("the kept copy"), verdict, why))
+         return true;
+
+      // Not the file it was: gone, both of it, and fetched again by the caller.
+      Remove_(installerPath);
+      Remove_(bundlePath);
+      return false;
    }
 #endif
 
@@ -385,6 +419,36 @@ namespace HM
       String installerPath = directory + FileUtilities::PathSeparator + snapshot.installer_name;
       SigstoreVerdict verdict;
       String why;
+
+      // The installer an earlier download verified, still here - kept across a
+      // restart, since the verdict lives in the process and the file on disk: it is
+      // verified again where it is, as a fresh download would be, and fetched only
+      // when it no longer passes. 6.3.4 and 6.3.5 fetched it again after every
+      // restart, and a service that cannot install it (NT SERVICE\hMailServer,
+      // docs/ServiceAccount.md) with UpdateAutoDownload=1 downloaded the whole
+      // installer each time it started.
+      String keptWhy;
+      if (VerifyKept(installerPath, snapshot.installer_size, snapshot.installer_digest, snapshot.available_version, trust, verdict, keptWhy))
+      {
+         if (!UpdateChecker::RecordDownloaded(installerPath, snapshot.available_version, verdict.identity, verdict.integrated_time))
+         {
+            // A check answered meanwhile and offers another release; the file is
+            // this one's, and the sweep takes it once it is not on offer.
+            error = Formatter::Format(_T("A check while hMailServer {0} was being verified changed the release on offer. Check again, then download again."),
+               snapshot.available_version);
+            UpdateChecker::RecordLastError(error);
+            return false;
+         }
+         LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is already in {1} and verified again: signed by {2}, recorded by the transparency log at {3}. Nothing was fetched."),
+            snapshot.available_version, installerPath, String(verdict.identity), UpdateChecker::FormatUnixTime(verdict.integrated_time)));
+         return true;
+      }
+      if (!keptWhy.IsEmpty())
+      {
+         LOG_APPLICATION(Formatter::Format(_T("Update: the copy of hMailServer {0} kept in {1} did not verify again, so it is deleted and fetched again: {2}"),
+            snapshot.available_version, installerPath, keptWhy));
+      }
+
       if (!FetchVerified(snapshot.installer_url, snapshot.bundle_url, installerPath, snapshot.installer_size, snapshot.installer_digest,
                          snapshot.available_version, trust, verdict, why))
       {

@@ -7,7 +7,7 @@
 | 6.3.x   | :white_check_mark: security fixes until 30 September 2027 ([While releases pause](#while-releases-pause)) |
 | < 6.3   | :x:                |
 
-The 6.3 line is the one that receives security fixes. Its latest release is 6.3.5, published on 28 September
+The 6.3 line is the one that receives security fixes. Its latest release is 6.3.5, published on 29 September
 2026. A fix for a confirmed vulnerability ships in the next release; it is not back-ported to 6.2 or anything
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier hMailServer version,
@@ -68,8 +68,10 @@ notes describe the vulnerability and credit you, and the issue is made public.
 One known risk to the third target: the chain that signs and publishes a release ran on GitHub Actions until
 GitHub suspended the project's account. Its replacement, the release jobs of `.gitlab-ci.yml`
 ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-release), "The
-release"), is written and has not run yet; until it has, a release is built and signed by hand, as 6.3.4 was. If
-that holds a fix past 90 days, that is a slip like any other, and you will be told before the target passes.
+release"), first ran for 6.3.5, on 29 September 2026. Where it cannot run - the signing identity's validation
+lapsed, a runner lost - a release is built and signed by hand, as 6.3.4 was ([RELEASE.md](RELEASE.md), "A release
+made by hand"). If that holds a fix past 90 days, that is a slip like any other, and you will be told before the
+target passes.
 
 ## Coordinated disclosure
 
@@ -277,13 +279,13 @@ verified the original.
 
   Only GitHub Actions can issue that identity, so no later release can carry it. 6.3.4, built and signed by hand,
   carries no bundle. From 6.3.5 the release jobs of `.gitlab-ci.yml` sign each asset in the tag's own pipeline,
-  with the issuer `https://gitlab.com`. 6.3.5, published on 29 September 2026, was the first, and carries the
-  identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, the path the project
-  began at, with the project's id, `86730559`, in the certificate. The project moved into the group
-  [`hmailserver`](https://gitlab.com/hmailserver) later that day, and the releases after 6.3.5 carry the identity
-  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and id. A
-  server from 6.3.4 on trusts both paths, the group's only with that id, whatever its update settings say
-  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+  with the identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` and the
+  issuer `https://gitlab.com`: 6.3.5, on 29 September 2026, was the first, and its certificate records the
+  project's id, `86730559`, as its release notes say. The project is to move to the group
+  [`hmailserver`](https://gitlab.com/hmailserver), and the releases signed after the move will carry the identity
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and the
+  project's id, `86730559`, in the certificate. A server from 6.3.4 on trusts both paths, the group's only with that id,
+  whatever its update settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
   From 6.3.6 each file but a compiled file's SBOM also carries its bundle a second time, byte for byte, as
   `<file>.sigstore.json`, the name Sigstore's own clients and OpenSSF Scorecard look for; either name verifies the
@@ -554,7 +556,8 @@ anything is published.
   out of a `git add` (the test fixtures' directories apart). After the push, the `secret_detection` job scans the
   commits a push to `master` or a merge request brings (not a push to another branch without a merge request)
   and fails the pipeline on a finding that
-  `.gitleaksignore` does not name. It has not run on GitLab yet: `master` is still pushed with `ci.skip`. The
+  `.gitleaksignore` does not name. It has run in `master`'s pipelines since 27 September 2026: 2886389460 failed on
+  twenty-four vetted test fixtures, which `.gitleaksignore` has named since, and 2892849251, on 29 September, passed. The
   whole history was scanned once, on 26 September 2026, with the job's own image on the project's Linux machine:
   thirty findings, each read and none a secret (test fixtures, the key parsers' test armour, AWS's documented
   example key), which `.gitleaksignore` names. The scans of a batch before its landing, the same day, found

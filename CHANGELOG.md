@@ -8,7 +8,7 @@ the tests and the verification - are on its GitLab release page,
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.5, published on 28 September 2026.** Anything that arrived after it is in the tree
+**The latest release is 6.3.5, published on 29 September 2026.** Anything that arrived after it is in the tree
 after 6.3.5 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-635-not-yet-released)
 and will carry a version number when a release is cut.
 
@@ -322,6 +322,29 @@ for a stray `#` number or `@` name.
   `debian/copyright`, the RPM spec and SourcePackages.md no longer list it. A new `datetime-tests` program runs the
   date class's and the date parsers' tests on Linux, where ClassTester does not run, in `linux-build` and in the
   Debian and RPM package builds.
+- **A release's download links work, and each file's bundle is beside it at GitLab's permanent address.** 6.3.5's 18
+  links were given the path `/downloads/<name>`, and GitLab, which serves a link's path below
+  `/-/releases/<tag>/downloads` itself, served each at `.../downloads/downloads/<name>`: a 404, until the links were
+  corrected by hand through the API on 29 September 2026. `build/ci/release-chain.py` now gives each link the file's
+  name without the version after one slash, and refuses a path under `/downloads/` before anything is signed or
+  uploaded. From 6.3.6 every file's path follows that rule - a bundle's and a bundle's `.sigstore.json` copy's too,
+  whose paths kept the version up to 6.3.5 (6.3.5's bundles, 6.3.3's copies), as 6.3.4's SBOMs' did - so
+  `https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/hMailServer-x64.exe` and
+  `.../hMailServer-x64.exe.cosign.bundle` are the latest installer and the bundle that verifies it, under the names
+  the update site's `/download/` gives them. A link's name is still the file's own, which servers and the feed read.
+  `release-chain.py --self-test` holds the paths, where GitLab serves them and the pairing, with 6.3.5's paths as a
+  negative control; `build/check-release-chain.py` holds them and every `permalink/latest` address the tree writes
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The links' names and paths").
+- **The release's own pipeline deploys the update feed with the release in it.** 6.3.5's tag pipeline ended in
+  `update-feed`, a trigger of a pipeline on `master` running `pages` alone. GitLab refused it the moment it started,
+  once `release-publish` had passed (`invalid_bridge_trigger`, "downstream pipeline trigger definition is invalid"):
+  it drops a multi-project trigger naming the project that runs it. The tag's pipeline therefore reads "failed", and
+  the feed was deployed by a `master` pipeline started by hand. `update-feed` is gone; in a `v*` tag's pipeline
+  `pages` now needs `release-publish` and runs once it has passed, and `package-repos` deploys the site from that
+  pipeline. On `master` and in a schedule's pipeline `pages` runs at once, as before. No token, variable or project
+  path is involved, so the project's move into the group on 29 September changed nothing here.
+  `build/check-release-chain.py` fails on a `pages` that does not wait for `release-publish` and on any `trigger:
+  project` in a CI file.
 
 ### Administration
 
@@ -488,6 +511,28 @@ for a stray `#` number or `@` name.
   running in the service, as the rest of the COM API and the equivalent REST routes do; a server with no
   administrator password answers as it did. `MD5`, `SHA256`, `GenerateGUID`, `IsStrongPassword` and the three syntax
   validators stay open.
+- **The last update's outcome survives the check that follows the start.** The service reads the update helper's
+  outcome at start-up, and on 6.3.4 and 6.3.5 the start-up check, a second later, replaced the whole update status:
+  after an update `Status.UpdateApplyOutcome`, `apply` in `GET /api/v1/update` and the Control Panel said nothing,
+  and only the log had it (issue #10's test, 29 September 2026). A check now keeps it; it stays until the service
+  stops or the next outcome replaces it. Tested by `UpdateSchedule.TheLastApplysOutcomeOutlivesTheStartUpCheck`.
+- **An update check that gets no answer says why, and a failed scheduled check is tried again soon after, once.** A
+  new server's first check failed with "The response carried no HTTP headers." after 10.8 seconds, and the next with
+  the scheduled check alone was a day away. An answer that ends before its headers is now reported with who ended the
+  connection, after how many bytes and how many seconds after the connection was made, the TLS handshake's share and
+  how the read ended - for every request of the server's HTTP client, not only the update check (not the installer's
+  and bundle's downloads) - and a scheduled check that fails when the one before it did not is due again ten minutes
+  later and read at the quarter-hourly task's next run, a quarter of an hour after a failed scheduled check, then
+  every `UpdateCheckHours` as before. `GET /api/v1/update` gains `nextCheck`, when the scheduled check is next due.
+  Tested by `UpdateCheck.AFeedThatEndsTheConnectionWithoutAnAnswerIsReportedAsSuch` and
+  `UpdateCheck.AScheduledCheckThatFailedIsTriedAgainOnceTenMinutesLater`.
+- **A verified installer is kept across a restart.** With `UpdateAutoDownload=1`, a service that cannot install an
+  update itself (`NT SERVICE\hMailServer`, `HM7463`) downloaded the whole installer, 88 MB for 6.3.5, every time it
+  started. A download now finds the installer and bundle an earlier one left in the `Updates` folder, holds them to
+  everything a fresh download is held to, and fetches nothing when they pass; a copy that no longer passes is deleted
+  and fetched again, and a start whose first check fails no longer sweeps the kept copy away. Tested by
+  `UpdateSchedule.AVerifiedInstallerIsKeptAcrossARestartAndNotFetchedAgain` and
+  `UpdateSchedule.AKeptInstallerOutlivesAStartWhoseFirstCheckFails`.
 
 ### Build and tests
 
@@ -646,10 +691,26 @@ for a stray `#` number or `@` name.
   read; `build/check-blowfish-constants.py` recomputes pi's first 8,336 hexadecimal digits and compares them with the
   cipher's 1,042 table words, with a `--self-test` in the `checkers` job; `API/Basics.cs` holds the COM API to the
   same values. The source packages' builds also run `singleton-tests`.
+- **The documents say what 6.3.5's release did.** RELEASE.md, SECURITY.md, CONTRIBUTING.md,
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+  [UpdateFeed.md](hmailserver/docs/UpdateFeed.md), [WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md) and
+  [EnvironmentConfiguration.md](hmailserver/docs/EnvironmentConfiguration.md) said the release chain had never run,
+  dated 6.3.5 the 28th, or described the update-feed trigger. They now give 29 September, what 6.3.5's tag pipeline
+  showed and measured, and, in UpdateFeed.md's new "From 6.3.4 on, by the live update", issue #10's test: a 6.3.4
+  service running as LocalSystem installed 6.3.5 unattended, without a rollback image since 6.3.4 carries no Sigstore
+  bundle; one running as `NT SERVICE\hMailServer` verified it and left it to an administrator (`HM7463`); the Linux
+  live update from 6.3.4 has not been tried. RELEASE.md step 3 compares the `hMailServer.exe` line
+  `windows-installer` prints with the hash the version's CHANGELOG section gives, since a pipeline release's
+  verification section names the installer and not the executable in it.
+- **The installer smoke test holds Windows Update off for its run.** Its VM resumes from a snapshot of 25 September
+  2026 at every run, and on 29 September Windows Update installed an update and restarted it in the middle of a test.
+  `build/ci/installer-smoke-run.sh` now stops and disables the Windows Update and Update Orchestrator services over
+  SSH before it copies anything; the snapshot is left alone, so the next revert brings them back, and a failure to
+  stop them is reported and does not stop the run.
 
 ---
 
-## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-28
+## [6.3.5](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5) - 2026-09-29
 
 Everything that landed on `master` after the `v6.3.4` tag, from 27 September 2026 ([compare `v6.3.4` with
 `v6.3.5`](https://gitlab.com/Progressiverobot/hmailserver/-/compare/v6.3.4...v6.3.5)). The schema moves from **6104

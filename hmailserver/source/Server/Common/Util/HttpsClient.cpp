@@ -243,12 +243,16 @@ namespace HM
 
       // The whole answer, up to max_response_bytes. Past it, false - unless
       // stop_at_limit, when the read stops there, what was read is kept to be
-      // parsed, and truncated says so.
+      // parsed, and truncated says so. ended is how the read ended: the end of the
+      // stream, or the error that stopped it, which is what an answer too short to
+      // parse is reported with (NoAnswer_).
       template <typename ReadSome>
-      bool ReadWholeResponse_(ReadSome read_some, size_t max_response_bytes, std::string &raw, bool stop_at_limit, bool &truncated)
+      bool ReadWholeResponse_(ReadSome read_some, size_t max_response_bytes, std::string &raw, bool stop_at_limit, bool &truncated,
+                              boost::system::error_code &ended)
       {
          char buffer[4096];
-         boost::system::error_code errorCode;
+         boost::system::error_code &errorCode = ended;
+         errorCode.clear();
          truncated = false;
 
          for (;;)
@@ -327,6 +331,44 @@ namespace HM
          const boost::system::error_code code = systemError->code();
          const std::string reason = code.message() + " [" + code.category().name() + ":" + std::to_string(code.value()) + "]";
          return String(reason.c_str());
+      }
+
+      // Why an answer that ended before its headers did could not be read, in place
+      // of ParseResponse_'s bare "carried no HTTP headers": that the other end
+      // ended the connection, how many bytes it had sent, how the read ended, and
+      // how long after the connection was made - the TLS handshake's part of it
+      // apart. On 29 September 2026 a new server's first update check failed with
+      // that bare sentence after 10.8 seconds, and nothing said whether the site
+      // had closed the connection, reset it or sent half an answer, nor how long
+      // the handshake had taken. handshake_seconds is negative for plain http.
+      String NoAnswer_(const AnsiString &host, size_t received, const boost::system::error_code &ended, double seconds,
+                       double handshake_seconds)
+      {
+         // Not ended: the read stopped at the size limit (keep_head_of_long_answer)
+         // before the headers did.
+         if (!ended)
+            return Formatter::Format(_T("{0} sent {1} bytes without the end of its headers, more than this client reads of an answer."),
+               String(host), (__int64) received);
+         String how = String((ended.message() + " [" + ended.category().name() + ":" + std::to_string(ended.value()) + "]").c_str());
+         String elapsed;
+         elapsed.Format(_T("%.1f"), seconds);
+         String handshake;
+         if (handshake_seconds >= 0)
+         {
+            String part;
+            part.Format(_T("%.1f"), handshake_seconds);
+            handshake = Formatter::Format(_T(", {0} s of them in the TLS handshake"), part);
+         }
+         if (received == 0)
+            return Formatter::Format(_T("{0} ended the connection without answering, {1} s after it was made{2} ({3})."),
+               String(host), elapsed, handshake, how);
+         return Formatter::Format(_T("{0} ended the connection {1} bytes into its answer, before the end of its headers, {2} s after it was made{3} ({4})."),
+            String(host), (__int64) received, elapsed, handshake, how);
+      }
+
+      double SecondsSince_(const Clock::time_point &start)
+      {
+         return std::chrono::duration<double>(Clock::now() - start).count();
       }
    }
 
@@ -990,12 +1032,18 @@ namespace HM
          // One deadline for all of it, taken before the name is looked up: the lookup,
          // the connection, the proxy's CONNECT, the handshake, the request and every
          // read of the answer spend the same timeout_seconds between them.
+         const Clock::time_point started = Clock::now();
          const Clock::time_point deadline = DeadlineIn_(timeout_seconds);
 
          boost::asio::io_context ioContext;
 
          std::string raw;
          bool truncated = false;
+         boost::system::error_code ended;
+         double handshakeSeconds = -1;
+         // When the connection was made - through the proxy's CONNECT, if there is one -
+         // which is what an answer that never came is timed from (NoAnswer_).
+         Clock::time_point connected = started;
 
          if (https)
          {
@@ -1034,6 +1082,7 @@ namespace HM
             boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
             if (!Connect_(ioContext, stream.next_layer(), host, port, true, proxyHost, proxyPort, deadline, error, public_only, not_link_local))
                return false;
+            connected = Clock::now();
 
             stream.set_verify_mode(boost::asio::ssl::verify_peer);
             if (trustFile)
@@ -1051,7 +1100,9 @@ namespace HM
                return false;
             }
 
+            const Clock::time_point handshakeStarted = Clock::now();
             HandshakeWithin_(ioContext, stream, deadline);
+            handshakeSeconds = SecondsSince_(handshakeStarted);
             WriteWithin_(ioContext, stream.next_layer(), stream, request.c_str(), (size_t) request.GetLength(), deadline);
 
             const auto readSome = [&ioContext, &stream, &deadline](char *data, size_t size, boost::system::error_code &ec)
@@ -1059,7 +1110,7 @@ namespace HM
                return ReadSomeWithin_(ioContext, stream.next_layer(), stream, data, size, deadline, ec);
             };
 
-            if (!ReadWholeResponse_(readSome, max_response_bytes, raw, keep_head_of_long_answer, truncated))
+            if (!ReadWholeResponse_(readSome, max_response_bytes, raw, keep_head_of_long_answer, truncated, ended))
             {
                error = _T("The response exceeded the size limit.");
                return false;
@@ -1070,6 +1121,7 @@ namespace HM
             boost::asio::ip::tcp::socket socket(ioContext);
             if (!Connect_(ioContext, socket, host, port, false, proxyHost, proxyPort, deadline, error, public_only, not_link_local))
                return false;
+            connected = Clock::now();
 
             WriteWithin_(ioContext, socket, socket, request.c_str(), (size_t) request.GetLength(), deadline);
 
@@ -1078,7 +1130,7 @@ namespace HM
                return ReadSomeWithin_(ioContext, socket, socket, data, size, deadline, ec);
             };
 
-            if (!ReadWholeResponse_(readSome, max_response_bytes, raw, keep_head_of_long_answer, truncated))
+            if (!ReadWholeResponse_(readSome, max_response_bytes, raw, keep_head_of_long_answer, truncated, ended))
             {
                error = _T("The response exceeded the size limit.");
                return false;
@@ -1086,7 +1138,13 @@ namespace HM
          }
 
          if (!ParseResponse_(raw, response, error))
+         {
+            // An answer that ended before its headers did: say who ended it and how,
+            // not only that the headers are missing.
+            if (raw.find("\r\n\r\n") == std::string::npos)
+               error = NoAnswer_(host, raw.size(), ended, SecondsSince_(connected), handshakeSeconds);
             return false;
+         }
 
          response.truncated = truncated;
          return true;

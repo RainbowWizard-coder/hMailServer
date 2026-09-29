@@ -15,11 +15,14 @@ nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
 on `master`, failed eleven of its jobs ([What the first pipeline found](#what-the-first-pipeline-found));
 `master`'s pipeline 2886389460 on 27 September passed 25 of its 29, failed
 `secret_detection`, `semgrep` and `static-analysis`, and left `db-matrix`
-manual. This page was written before either runner had taken a job: the ported
-Linux jobs' times below are those of their scripts run by hand on linix, in the
-jobs' own images and beside the same services, and every other duration is an
-estimate made from the gates run by hand, and says so. A pipeline's own times
-are on its jobs' pages.
+manual. The release jobs first ran for 6.3.5, whose tag pipeline 2892097590
+published the release on 29 September 2026 ([The release](#the-release)). This
+page was written before either runner had taken a job: the ported Linux jobs'
+times below are those of their scripts run by hand on linix, in the jobs' own
+images and beside the same services, and every other duration is an estimate
+made from the gates run by hand, and says so, but for the times 6.3.5's
+pipeline measured ([How long each job takes](#how-long-each-job-takes)). A
+pipeline's own times are on its jobs' pages.
 
 What runs where
 ---------------
@@ -38,7 +41,7 @@ What runs where
 | `cli-powershell` | check | GitLab's shared runners | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`) |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
 | `linux-build-gcc` | test | linix | `master` or a `batch*` branch; never a tag | The same server and tester programs built with GCC, the distribution's default compiler, and the testers and the OpenPGP round trip run; no packages (`.gitlab/ci/gcc.yml`; [The GCC build](#the-gcc-build)) |
-| `pages` | release | GitLab's shared runners | `master`, a `v*` tag, a schedule on `master` | Renders the update feed from the project's releases into `public/`; it deploys nothing itself (`pages: false`, from `.gitlab/ci/package-repos.yml`) (see [The update feed](#the-update-feed)) |
+| `pages` | release | GitLab's shared runners | `master`, a `v*` tag after `release-publish`, a schedule on `master` | Renders the update feed from the project's releases into `public/`; it deploys nothing itself (`pages: false`, from `.gitlab/ci/package-repos.yml`) (see [The update feed](#the-update-feed)) |
 | `package-repos` | release | GitLab's shared runners | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and the project's OpenSSF Scorecard result when there is one ([OpenSSF Scorecard](#openssf-scorecard)), and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 16 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
@@ -69,7 +72,6 @@ What runs where
 | `release-sign` | release | GitLab's shared runners | a `v*` tag, after `release-sbom` | Every file signed with Sigstore as this pipeline, each primary file's bundle copied to `<file>.sigstore.json`, and the provenance attested (`build/ci/release-sign.sh`) |
 | `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update`, and the SBOMs, the copies and the provenance held to the files (`build/ci/release-verify.sh`) |
 | `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
-| `update-feed` | release | (a trigger) | a `v*` tag, after `release-publish` | Starts a downstream pipeline on `master`, passing no variables, which runs `pages` and `package-repos` alone |
 | `release-packages` | test | linix | a `v*` tag or a `batch*` branch, where the package jobs run, after every package build it gathers and its install or test job | Every distribution release's `.deb` and `.rpm`, both AppImages, the source of the libraries linked into their runtime, the source of the libraries they carry in `usr/lib` and the source tarball, each held to its build's sums (the tarball to `build/check-source-tarball.py`) and each but the two sources files given its SBOM, for `release` and the rehearsal (`.gitlab/ci/release-packages.yml`, `build/ci/release-chain.py gather`; [What a release carries](#the-release)) |
 | `release-rehearsal`, `release-rehearsal-sign`, `release-rehearsal-verify` | release | GitLab's shared runners; the shared runners in cosign's image; linix | a protected `batch*` branch, where the package jobs run; never a tag, `master` or a merge request | The release rehearsed: collected, signed as the branch and verified, published nowhere (`.gitlab/ci/release-rehearsal.yml`; [The release rehearsal](#the-release-rehearsal)) |
 | `helm-chart-package` | build | GitLab's shared runners | a `v*` tag or a `batch*` branch | The Helm chart packaged at the release's version as `hmailserver-chart-<version>.tgz`, a file of the release (`.gitlab/ci/helm-chart.yml`, `build/ci/helm-chart-package.sh`; [ContainerImage.md](ContainerImage.md)) |
@@ -120,7 +122,7 @@ Which pipeline runs what
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
 | any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, `semgrep-sast` and `semgrep-sast-gate`, `mr-dependency-check` when a lock file changed, `secret_detection`, and `sign-off` ([Merge request checks](#merge-request-checks)) |
 | a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
-| a `v*` tag | the tag's | all of them but the jobs of a schedule of their own, `secret_detection`, `sign-off`, `linux-build-gcc` and the merge request checks (the commit's `master` pipeline ran `secret_detection`, and its batch `sign-off` and `linux-build-gcc`), with `release`, `release-publish` and `installer-smoke` manual ([The release](#the-release)). `semgrep-sast` runs, for the release job to read |
+| a `v*` tag | the tag's | all of them but the jobs of a schedule of their own, `secret_detection`, `sign-off`, `linux-build-gcc` and the merge request checks (the commit's `master` pipeline ran `secret_detection`, and its batch `sign-off` and `linux-build-gcc`), with `release`, `release-publish` and `installer-smoke` manual, and `pages` and `package-repos` after `release-publish` ([The release](#the-release)). `semgrep-sast` runs, for the release job to read |
 | any other tag | none | |
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
 | the schedule described `coverage`, on `master` | the schedule's | `linux-coverage` alone ([The coverage schedule](#the-coverage-schedule)) |
@@ -129,7 +131,7 @@ Which pipeline runs what
 | the schedule described `export`, on `master` | the schedule's | `forge-export` alone ([Mirroring.md](Mirroring.md)) |
 | the schedule described `scorecard`, on `master`, weekly | the schedule's | `scorecard`, then `pages` and `package-repos`, which publish its result ([OpenSSF Scorecard](#openssf-scorecard)) |
 | any other pipeline schedule on `master` (the update feed's, `update feed`) | the schedule's | `pages` and `package-repos` alone (see [The update feed](#the-update-feed)) |
-| the pipeline `update-feed` starts (on `master`, source `pipeline`) | a downstream pipeline | `pages` and `package-repos` alone |
+| a downstream pipeline on `master` (source `pipeline`: another project's trigger, or the trigger API called with a job token; nothing of this project's starts one) | a downstream pipeline | `pages` and `package-repos` alone |
 
 A schedule is told apart by its description, which GitLab gives the pipeline
 as `CI_PIPELINE_SCHEDULE_DESCRIPTION`, compared whole: `fuzz`, `coverage`,
@@ -1462,10 +1464,17 @@ The release
 -----------
 
 A protected `v*` tag's pipeline ends in the release, for 6.3.5 onwards. It was
-written on 26 September 2026, while 6.3.4 was released by hand, and **none of it
-has run**: see [What waits for the owner](#what-waits-for-the-owner) and
-[What only a first run can show](#what-only-a-first-run-can-show). RELEASE.md
-has the runbook.
+written on 26 September 2026, while 6.3.4 was released by hand, and **first ran
+for 6.3.5**: tag pipeline 2892097590 passed every gate, `release` was started
+at 09:39 UTC on 29 September 2026, the four jobs after it passed within three
+minutes, and `release-publish` created the release at 10:20:45 UTC, after the
+installer smoke test of the signed installer. Two things did not work, and 6.3.6
+changes both: the links' paths ([What GitLab and Pages take](#the-release),
+below) and `update-feed`, the trigger that was to deploy the feed, which GitLab
+refused at once ([The update feed](#the-update-feed)); the tag's pipeline
+therefore reads "failed". See [What waits for the owner](#what-waits-for-the-owner)
+and [What 6.3.5's run showed](#what-635s-run-showed). RELEASE.md has the
+runbook.
 
 | Job | Where | What it does |
 |---|---|---|
@@ -1476,7 +1485,7 @@ has the runbook.
 | `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires the installer's SBOM and the provenance's statement to name the signed installer's SHA-256, then signs all fifty-eight files with Sigstore, checks each bundle's format and log entry and verifies it with cosign, copies each primary file's bundle to `<file>.sigstore.json` byte for byte, attests the statement with `cosign attest-blob` (a Rekor v1 dsse entry), and finds every file in it with `cosign verify-blob-attestation` (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, holds each compiled file's and the tarball's SBOM to the file (`build/asset-sbom.py verify`), each `.sigstore.json` copy to its bundle and the provenance's statement to the files, the commit and the pipeline (`build/ci/release-chain.py check-provenance`), and writes the notes' verification section (`build/ci/release-verify.sh`) |
 | `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 149 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows servers, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
-| `update-feed` | a trigger | A downstream pipeline on `master`, which runs `pages` and `package-repos` alone: every other job refuses a pipeline whose source is `pipeline`. It passes no variables, not even the file's (`inherit: variables: false`), because GitLab takes a trigger job's variables as pipeline variables, which this project refuses at GitLab's default for a project made since 17.7 |
+| `pages`, `package-repos` | shared runners, after `release-publish` | The update feed rendered from the releases with the new one in it, the apt and dnf repositories added, and the site deployed, in the tag's own pipeline ([The update feed](#the-update-feed)). Until 6.3.6 a trigger job, `update-feed`, was to start a pipeline on `master` for this; GitLab drops a multi-project trigger into the project that runs it (`invalid_bridge_trigger`), and 6.3.5's was |
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
 `release`, after every gate of the tag has passed. A manual job can be started
@@ -1613,10 +1622,38 @@ incremental build of the tag's commit, not a clean one, and its OpenSSL, libpq
 and C++ runtime come from the bench's library tree and Visual Studio; the notes
 say that too.
 
+**The links' names and paths.** A release has one link per file. Its name is
+the file's own, with the version (`hMailServer-6.3.6-x64.exe`), and that is what
+a server and the update feed read. Its path (`direct_asset_path`) is the file's
+name with the version taken out (`/hMailServer-x64.exe`), because GitLab serves
+a link's path twice: at `/-/releases/v6.3.6/downloads/hMailServer-x64.exe`, the
+release's own, and, while the release is the latest, at
+`/-/releases/permalink/latest/downloads/hMailServer-x64.exe`, which is how
+README.md, Channels.md and the OBS service reach the newest file without knowing
+its version. From 6.3.6 every link's path is made that way, an SBOM's, a
+bundle's and a bundle's `.sigstore.json` copy's included
+(`/hMailServer-x64.exe.cdx.json`, `/hMailServer-x64.exe.cosign.bundle`,
+`/hMailServer-x64.exe.sigstore.json`), so that the latest installer and the
+bundle that verifies it are both at `permalink/latest`, under the names the
+update site's `/download/` gives them ([UpdateFeed.md](UpdateFeed.md), "The
+download links"). Earlier releases differ: 6.3.4's SBOMs and 6.3.5's bundles keep
+the version in their paths (`/hMailServer-6.3.5-x64.exe.cosign.bundle`), and a
+`permalink/latest` address of one of those names works only while that release
+is the latest. GitLab's permanent link picks the release with the latest
+`released_at`, a pre-release included; the update site's `/download/` names
+follow the newest stable version instead. The path is the name after one slash:
+GitLab puts `/-/releases/<tag>/downloads` in front of it itself. 6.3.5's links
+were given `/downloads/<name>`, so GitLab served each at
+`.../downloads/downloads/<name>`, a 404, until the 18 links were corrected by
+hand through the API the same day; `release-chain.py` now refuses such a path
+before anything is uploaded, and `build/check-release-chain.py` holds the paths,
+the pairing and every `permalink/latest` address the tree writes.
+
 **What GitLab and Pages take.** GitLab sets no limit on a release's links, but
 each link's permanent path must be at most 128 characters of letters, digits and
-`_ . - /` (6.3.6's longest is 76; the `~` of a `.deb`'s version, which GitLab
-refuses there, is written `-`), and each link's name, address and path its own.
+`_ . - /` (6.3.6's longest is 58, and no path carries a version, so the `~` of a
+distribution release's `.deb` version, which GitLab refuses there, never reaches
+one), and each link's name, address and path its own.
 Pages reads 1,000 `_redirects` rules and 64 KiB, and a server reads a feed of
 4 MiB. `release` counts all of it before anything is signed, and
 `release-publish` again before anything is uploaded, over the live releases with
@@ -1824,14 +1861,16 @@ the pipeline can check, and the one every server's trust in a release rests on.
    offered both flags the script tests for, busybox had every tool the script
    uses (`cmp`, `grep`, `sed`, `tr`, `wc`, `find`), and `release-sign.sh`
    parsed and ran up to its first refusal, the missing `release-assets/`. It
-   has not signed anything: that needs a tag's ID token. A new version is a
+   signed 6.3.5's files in `release-sign` on 29 September 2026. A new version is a
    new tag and digest here, never an image from `ghcr.io`, and
    `build/check-release-chain.py` fails on a tag without its digest.
 2. **Inno Setup 6 and the Artifact Signing Client Tools on bench150**, as
    administrator ([bench150](#bench150)). Done on 26 September 2026.
    `windows-packages-x64` built the unsigned x64 installer with that Inno
    Setup in pipeline 2887115157 (27 September 2026); `windows-installer` and
-   `release-authenticode`, which run only for a `v*` tag, have not run.
+   `release-authenticode`, which run only for a `v*` tag, first ran in 6.3.5's
+   tag pipeline on 29 September 2026 (130 s and 44 s; the signer
+   `CN=Progressive Robot Ltd`, with Microsoft's RFC 3161 timestamp).
 3. **The Azure side of Authenticode**: a federated credential for each
    release's tag alone, made before the tag is pushed and removed after, and
    the five CI/CD variables, once (RELEASE.md, "Authenticode", has what to
@@ -1860,43 +1899,50 @@ the pipeline can check, and the one every server's trust in a release rests on.
    Check it again whenever the project's members or settings change, and after
    the move to the group, whose members and Owners can reach the project too.
 
-The feed's pipeline needs nothing here. `update-feed` passes no variables, so
-the project's *Minimum role to use pipeline variables* can stay at GitLab's
-default for a new project, *No one allowed*; it is told apart from other
-pipelines on `master` by its source, `pipeline`.
+The feed needs nothing here. `pages` and `package-repos` run in the tag's own
+pipeline once `release-publish` has passed, with no variable and no token but
+the job's own, so the project's *Minimum role to use pipeline variables* stays
+at GitLab's default for a new project, *No one allowed*.
 
-### What only a first run can show
+### What 6.3.5's run showed
 
-Nothing here has run. These are written from the documentation and have not
-been seen working:
+These were written from the documentation before anything had run. 6.3.5's tag
+pipeline (2892097590, 29 September 2026) settled the first eight:
 
-- that a job which `needs` a manual job waits for it rather than being skipped
-  (GitLab documents a blocking manual job, `allow_failure: false`, as holding
-  the jobs after it, which is why both buttons are blocking);
-- that GitLab's Fulcio certificate carries the repository id, which the notes
-  report either way;
-- that the gcr.io `-dev` tag chosen exists and that cosign reads
-  `SIGSTORE_ID_TOKEN` from the environment in it, as GitLab's own documentation
-  shows for its keyless example;
-- that the Artifact Signing plugin's credential chain includes the workload
-  identity credential (`AZURE_FEDERATED_TOKEN_FILE`) - the job exchanges the
-  token itself first, so that a mismatch is reported in Entra's words, but
-  SignTool's own exchange is the plugin's;
-- that `update-feed` may trigger a pipeline in its own project with the job
-  token, that the pipeline's source is `pipeline` (GitLab's documented source
-  for a multi-project pipeline, which a `trigger: project` of the same project
-  makes), and that GitLab Pages deploys from that pipeline;
-- that the generic package upload answers with `file_sha256`, which the job
-  does not rely on: it reads the registry back instead;
-- that the job token may list the project's packages and their files, which
-  `release` now does before anything is signed and `release-publish` before
-  and after its upload;
-- that fetching `master` in the job's shallow checkout brings its history down
-  to the tagged commit, so that the ancestry check answers yes for a tag on
-  `master`: seen with git 2.50 over `file://`, against a scratch copy whose
-  `master` was this tree's branch (the real `master` has no `.gitlab/allowed_signers` yet),
-  with the real `v6.3.4` tag passing and an unsigned tag off `master` refused;
-  not on GitLab's runners;
+- **Shown:** a job which `needs` a manual job waits for it rather than being
+  skipped: `update-feed`, made when the pipeline was, started only when
+  `release-publish` had passed, four hours later (GitLab documents a blocking
+  manual job, `allow_failure: false`, as holding the jobs after it, which is why
+  both buttons are blocking, and why `pages` can wait for `release-publish` in
+  a tag's pipeline);
+- **Shown:** GitLab's Fulcio certificate carries the repository id: 6.3.5's
+  records `86730559` beside the identity
+  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`
+  and the issuer `https://gitlab.com`, as its notes say;
+- **Shown:** the gcr.io `-dev` tag chosen exists and cosign reads
+  `SIGSTORE_ID_TOKEN` from the environment in it: `release-sign` signed every
+  file;
+- **Shown:** the Artifact Signing plugin's credential chain includes the
+  workload identity credential (`AZURE_FEDERATED_TOKEN_FILE`):
+  `release-authenticode` signed the installer;
+- **Refuted:** that `update-feed` could trigger a pipeline in its own project.
+  GitLab dropped it at once with `invalid_bridge_trigger` ("downstream pipeline
+  trigger definition is invalid"): `Ci::CreateDownstreamPipelineService` refuses
+  a `trigger: project` naming the project the job runs in, whatever the
+  pipeline it would make. The feed was deployed that day by a pipeline on
+  `master` started through the API, and from 6.3.6 the tag's own `pages` and
+  `package-repos` deploy it after `release-publish` ([The update feed](#the-update-feed));
+- **Not relied on:** that the generic package upload answers with
+  `file_sha256`; the job reads the registry back instead, and did;
+- **Shown:** the job token may list the project's packages and their files:
+  `release` did before anything was signed, and `release-publish` before and
+  after its upload;
+- **Shown:** fetching `master` in the job's shallow checkout brings its history
+  down to the tagged commit: `release` took `v6.3.5`, an annotated tag on
+  `master` signed by the owner's key, on GitLab's runners.
+
+Not yet shown, because 6.3.5 had no image and no AArch64 package:
+
 - that GitLab's registry takes `container-image`'s push with the job's own
   registry credentials. The push itself - three tags naming one digest for
   `v6.3.1`, one tag for `v6.3.1-rc1`, the checks on what was pushed, the dotenv
@@ -2152,7 +2198,14 @@ What the runs proposed:
 How long each job takes
 -----------------------
 
-**Written before any job had run.** The first pipeline (2884863496, 26
+**Written before any job had run, and not yet replaced row by row.** 6.3.5's
+tag pipeline (2892097590, 29 September 2026), whose every gate passed, took
+2 h 42 min for `windows-gate`, 2 h 26 min for `linux-suite`, 49 min for
+`static-analysis`, 18 min for `linux-sanitize`, 17 min for `linux-build`, 16 min
+for `linux-repro`, 13 min for `linux-cross`, 2 min for `windows-dotnet` and
+`windows-installer`, and under a minute for each release job; 5 h 38 min from
+its first job to its last, the package jobs' queue on linix included. The first
+pipeline (2884863496, 26
 September 2026, several of its jobs failing part way) took 2 h 29 min for
 `windows-gate`, 2 h 7 min for `linux-suite`, 38 min for `static-analysis`,
 20 min for `linux-build`, 16 min for `linux-sanitize`, 13 min for
@@ -2239,28 +2292,40 @@ It runs for a push to `master`, for a `v*` tag, and for a pipeline schedule on
 `master` (the feed's own is described `update feed`) but the four described
 `fuzz`, `renovate`, `export` and `security`, and never for a merge request, a `batch*`
 branch or any other branch.
-A release is created on GitLab after its tag is pushed, so the tag's own run
-of `pages` misses it. A release made by the release jobs ends with
-`update-feed`, which starts a pipeline on `master` running `pages` and `package-repos` alone; the
-schedule brings the feed up to date after a release made or edited any other
-way.
-Until there is one, running a pipeline on `master` by hand after a release is
-published does the same (Build, Pipelines, Run pipeline), along with every other
-`master` job.
+A release is created on GitLab after its tag is pushed, so in a `v*` tag's
+pipeline `pages` needs `release-publish` and runs only once it has passed; then
+`package-repos` deploys the site with the new release in it, from the tag's own
+pipeline. GitLab deploys Pages from whichever pipeline's job succeeds, whatever
+its ref, once that pipeline's commit is its ref's newest, and a tag's commit
+always is (`Gitlab::Pages::DeploymentValidations`). The need is optional,
+since `release-publish` is in a tag's pipeline alone: on `master` and in a
+schedule's pipeline `pages` runs at once. The schedule brings the feed up to
+date after a release made or edited any other way, and so does running a
+pipeline on `master` by hand (Build, Pipelines, Run pipeline), along with every
+other `master` job - which is how 6.3.5's feed was deployed (pipeline
+2892849251), because its tag pipeline's `update-feed` could not start one.
 
-**A schedule's pipeline runs `pages` and `package-repos` alone, and so does the feed's.** A
-scheduled pipeline is a pipeline on `master` to every job in the file, and so
-is the downstream pipeline a release's `update-feed` job starts, whose
-`CI_PIPELINE_SOURCE` is `pipeline`, so each of the others says it is not for
-one: `.own-runners` (and so every job on linix and bench150) and
-`.not-a-fuzz-pipeline` (and so `checkers`, `harnesses` and `editorconfig`)
-begin with `- if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE ==
-"pipeline"` with `when: never` - any schedule and the feed's pipeline - and the
+Until 6.3.6 the release ended with `update-feed`, a trigger job meant to start
+a pipeline on `master` running `pages` and `package-repos` alone. GitLab refuses
+that: `Ci::CreateDownstreamPipelineService` drops a bridge whose `trigger:
+project` is the project it runs in and which is not a child pipeline, with
+`invalid_bridge_trigger` ("downstream pipeline trigger definition is invalid"),
+before it looks at the pipeline it would make, and a path in `trigger: project`
+would have broken again when the project moves into the group.
+`build/check-release-chain.py` now fails on a `trigger: project` in any CI
+file, and on a `pages` that does not wait for `release-publish`.
+
+**A schedule's pipeline runs `pages` and `package-repos` alone, and so does a
+downstream one.** A scheduled pipeline is a pipeline on `master` to every job in
+the file, and so is a downstream pipeline on `master`, whose
+`CI_PIPELINE_SOURCE` is `pipeline` - nothing of this project starts one since
+6.3.6, but another project's trigger or the trigger API called with a job token
+would - so each of the others says it is not for one: `.own-runners` (and so
+every job on linix and bench150) and `.not-a-fuzz-pipeline` (and so `checkers`,
+`harnesses` and `editorconfig`) begin with `- if: $CI_PIPELINE_SOURCE ==
+"schedule" || $CI_PIPELINE_SOURCE == "pipeline"` with `when: never`, and the
 four path-bound checks, `db-matrix`, the release jobs and GitLab's two scanners
-carry the same rule. The feed's pipeline is told apart by its source rather
-than by a variable because a trigger job's variables reach the pipeline it
-starts as pipeline variables, which GitLab refuses by default in a project made
-since 17.7, and the trigger would fail. `build/check-release-chain.py` fails on
+carry the same rule. `build/check-release-chain.py` fails on
 a job that does not, apart from the few whose own rules match nothing on such a
 pipeline. `pages` itself skips the three schedules described `fuzz`, `renovate`
 and `security`, each of which runs its own job alone (`linux-fuzz`, `renovate`,

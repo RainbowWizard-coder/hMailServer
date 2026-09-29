@@ -7,7 +7,7 @@
 
   .gitlab/ci/channels.yml  every job but channels-check is created for a protected
                            master's own pipeline alone - never a tag's, a merge
-                           request's, a schedule's or the feed's downstream one - and
+                           request's, a schedule's or a downstream one - and
                            is started by hand and allowed to fail (chocolatey-publish
                            follows chocolatey-release instead); no job asks for
                            id_tokens or secrets; each runs a script of

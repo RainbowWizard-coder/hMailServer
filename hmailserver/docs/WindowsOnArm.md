@@ -13,9 +13,14 @@ installer.
 on an x64 machine, and first compiled there on 26 September 2026: the three
 libraries, the server, the tools and `hMailServer-6.3.4-arm64.exe` all built,
 and every native image is an `AA64` machine image, but none of it has run. The project
-has no ARM64 Windows machine. The CI job `windows-packages-arm64` is to cross-compile
-it on bench150, which is x64, and runs none of it; on 28 September 2026 it had not
-yet got past its toolchain check ([PackagesWindows.md](PackagesWindows.md)). The Roadmap2 row "Windows on ARM" stays in motion until an ARM64 build has
+has no ARM64 Windows machine. The CI job `windows-packages-arm64` cross-compiles it
+on bench150, which is x64, in every pipeline of `master`, a `batch*` branch and a `v*`
+tag, and runs none of it. Up to 6.3.5 it stopped at its toolchain check, in 6.3.5's
+tag pipeline too, and was let fail: the check looked for Visual Studio's ARM64 C++
+runtime by a path that finds it in no installation, while bench150 has the ARM64
+tools, ATL and SDK libraries. The check is corrected in the tree after 6.3.5 (the
+Unreleased section of CHANGELOG.md), and the next `batch*` pipeline is the first to
+show whether the job gets past it there ([PackagesWindows.md](PackagesWindows.md)). The Roadmap2 row "Windows on ARM" stays in motion until an ARM64 build has
 been installed and has run the regression suite on real hardware. Until then, read
 every "works" below as "is built to work", and [What is proven, and what needs ARM64
 hardware](#what-is-proven-and-what-needs-arm64-hardware) for what has been shown on x64.

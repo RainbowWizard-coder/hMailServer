@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -224,6 +225,87 @@ namespace RegressionTests.API
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
          Assert.AreEqual(2, status.UpdateState);
          Assert.IsEmpty(status.UpdateLastError);
+      }
+
+      [Test]
+      public void AFeedThatEndsTheConnectionWithoutAnAnswerIsReportedAsSuch()
+      {
+         // On 29 September 2026 a new server's first check failed with "The response
+         // carried no HTTP headers." after 10.8 seconds: the site had ended the
+         // connection without answering, most of the time having gone in the first
+         // TLS handshake, and the sentence said neither. The check says what happened
+         // now - who ended the connection, after how long, and how the read ended.
+         _feed.SetStall(LatestPath, 1);
+         var status = _application.Status;
+         Assert.IsFalse(status.CheckForUpdate(), "No answer is no verdict.");
+         Assert.AreEqual(5, status.UpdateState);
+         string error = status.UpdateLastError;
+         StringAssert.StartsWith("The update feed could not be read: 127.0.0.1 ended the connection without answering, ", error);
+         StringAssert.IsMatch(@"without answering, [0-9]+\.[0-9] s after it was made \(.+\)\.$", error, "How long after, and how the read ended.");
+         StringAssert.DoesNotContain("TLS handshake", error, "The feed is plain http on the loopback: there was no handshake to time.");
+         StringAssert.DoesNotContain("carried no HTTP headers", error);
+
+         // An answer that ends part-way through its headers says how far it got.
+         _feed.SetStall(LatestPath, 0);
+         byte[] cut = Encoding.ASCII.GetBytes("HTTP/1.0 200 OK\r\nContent-Type: application/json\r\n");
+         _feed.SetRawAnswer(LatestPath, cut);
+         Assert.IsFalse(status.CheckForUpdate());
+         StringAssert.StartsWith("The update feed could not be read: 127.0.0.1 ended the connection " + cut.Length + " bytes into its answer, before the end of its headers, ",
+            status.UpdateLastError);
+
+         // An answer that is not HTTP at all keeps its own reason.
+         _feed.SetRawAnswer(LatestPath, Encoding.ASCII.GetBytes("SSH-2.0-OpenSSH_9.6\r\n\r\n"));
+         Assert.IsFalse(status.CheckForUpdate());
+         StringAssert.Contains("The response did not start with an HTTP status line.", status.UpdateLastError);
+
+         _feed.SetRawAnswer(LatestPath, null);
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+      }
+
+      [Test]
+      public void AScheduledCheckThatFailedIsTriedAgainOnceTenMinutesLater()
+      {
+         // The first check of a new server can fail for a reason that has gone ten
+         // minutes later; with the scheduled check alone, the next try was a day away.
+         // One retry due ten minutes later - the quarter-hourly task reads it at its
+         // next run - then UpdateCheckHours again, so that a feed that is down is not
+         // asked every quarter hour.
+         const string retrySaid = "The scheduled check tries again at its first run 10 minutes or more from now.";
+         int said = Occurrences(LogHandler.ReadCurrentDefaultLog(), retrySaid);
+         _feed.SetStall(LatestPath, 1);
+         WriteSetting("UpdateCheckEnabled", "1");
+         _application.Reinitialize();
+
+         // The line is written once the failure is recorded.
+         WaitUntil(() => Occurrences(LogHandler.ReadCurrentDefaultLog(), retrySaid) > said, 30,
+            "The start-up check did not fail on the silent feed, or its line does not say when it is tried again.");
+         var status = _application.Status;
+         Assert.AreEqual(5, status.UpdateState);
+         Assert.AreEqual(1, _feed.CountRequests("GET", LatestPath), "The start-up check read the feed once.");
+         TimeSpan untilNext = NextCheck() - DateTime.UtcNow;
+         Assert.IsTrue(untilNext > TimeSpan.FromMinutes(8) && untilNext <= TimeSpan.FromMinutes(10), "After a first failure, ten minutes: " + untilNext);
+
+         // A second failure in a row goes back to UpdateCheckHours (an hour at least).
+         Assert.IsFalse(status.CheckForUpdate());
+         untilNext = NextCheck() - DateTime.UtcNow;
+         Assert.IsTrue(untilNext > TimeSpan.FromMinutes(55), "After a second failure, UpdateCheckHours: " + untilNext);
+
+         // A check that succeeds starts the count again: the next failure is tried
+         // again in ten minutes.
+         _feed.SetStall(LatestPath, 0);
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         untilNext = NextCheck() - DateTime.UtcNow;
+         Assert.IsTrue(untilNext > TimeSpan.FromMinutes(55), "After a success, UpdateCheckHours: " + untilNext);
+         _feed.SetStall(LatestPath, 1);
+         Assert.IsFalse(status.CheckForUpdate());
+         untilNext = NextCheck() - DateTime.UtcNow;
+         Assert.IsTrue(untilNext <= TimeSpan.FromMinutes(10), "A first failure after a success is tried again in ten minutes: " + untilNext);
+         _feed.SetStall(LatestPath, 0);
+
+         // With the scheduled check off there is no next check to name.
+         WriteSetting("UpdateCheckEnabled", "0");
+         _application.Reinitialize();
+         StringAssert.Contains("\"nextCheck\":\"\"", Http("GET", "/api/v1/update").body);
       }
 
       [Test]
@@ -537,6 +619,25 @@ namespace RegressionTests.API
       private static void WriteSetting(string key, string value)
       {
          IniFileSetting.Write(key, value);
+      }
+
+      private static int Occurrences(string text, string what)
+      {
+         int count = 0;
+         for (int at = text.IndexOf(what, StringComparison.Ordinal); at >= 0; at = text.IndexOf(what, at + what.Length, StringComparison.Ordinal))
+            count++;
+         return count;
+      }
+
+      // GET /api/v1/update's nextCheck, ISO 8601 UTC: when the scheduled check is next
+      // due, which the task reads at its first quarter-hourly run from then.
+      private static DateTime NextCheck()
+      {
+         string body = Http("GET", "/api/v1/update").body;
+         Match next = Regex.Match(body, "\"nextCheck\":\"([^\"]+)\"");
+         Assert.IsTrue(next.Success, "The verdict names the next scheduled check: " + body);
+         return DateTime.ParseExact(next.Groups[1].Value, "yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
       }
 
       private static void WaitUntil(Func<bool> condition, int seconds, string message)

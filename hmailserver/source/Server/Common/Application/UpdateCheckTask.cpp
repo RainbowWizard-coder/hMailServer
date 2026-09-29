@@ -40,8 +40,18 @@ namespace HM
       // and the outcome file the Control Panel reads. Everything else is a version
       // this server has finished with. Nothing here is load-bearing - a deleted
       // installer is downloaded and verified again - so a failure is not reported.
+      //
+      // Nothing is swept while no check has said what is on offer: a process whose
+      // first check failed knows no available version, and would take the
+      // installer an earlier process downloaded and verified - kept across the
+      // restart to be verified again where it is (UpdateDownloader::VerifyKept) -
+      // for a version it has finished with, and fetch it again at the next check
+      // that succeeds. Up to date is an answer: nothing is on offer then.
       void Sweep_(const UpdateChecker::Snapshot &snapshot)
       {
+         if (snapshot.available_version.IsEmpty() && snapshot.state != UpdateChecker::StateUpToDate)
+            return;
+
          String directory = UpdateDownloader::UpdatesDirectory();
          if (directory.IsEmpty() || !FileUtilities::DirectoryExists(directory))
             return;

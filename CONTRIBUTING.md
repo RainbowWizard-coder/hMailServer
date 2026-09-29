@@ -56,8 +56,8 @@ Contents:
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
 | Copies off GitLab | The repository by a push mirror to a second forge, and the issues, merge requests, releases and wiki by the weekly `forge-export` job: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for setting both up |
 
-The latest release is **6.3.5, published on 28 September 2026**. Anything this repository describes that
-arrived after it is in the tree after 6.3.4 and not yet released.
+The latest release is **6.3.5, published on 29 September 2026**. Anything this repository describes that
+arrived after it is in the tree after 6.3.5 and not yet released.
 
 The documents at the repository root:
 
@@ -432,7 +432,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-portal-script.py` | Runs the webmail's script against a small DOM and a stubbed API | Needs `node`; `--no-node` runs the static checks only |
 | `check-project-items.py` | No file listed twice in a project, and every listed file exists | |
 | `check-roadmap2.py` | The counter line at the top of `Roadmap2.md` and of `Roadmap3.md` equals that file's rows' marks | **Rewrites** each counter with `--write`; `Roadmap3.md` (or `Roadmap2.md`) as an argument checks that file alone; `--self-test` |
-| `check-release-chain.py` | The release jobs of `.gitlab-ci.yml`, their scripts and `SigstoreVerifier.cpp`'s GitLab identity agree: the ID tokens' audiences, cosign's flags, the order of the jobs, the two manual starts, and every other job refusing the feed's pipeline; the release waits for the four security scans and reads their reports before it collects anything, and `.gitlab/security-exceptions.yml` is well formed and the owner's | `--self-test` |
+| `check-release-chain.py` | The release jobs of `.gitlab-ci.yml`, their scripts and `SigstoreVerifier.cpp`'s GitLab identity agree: the ID tokens' audiences, cosign's flags, the order of the jobs, the two manual starts, the feed deployed in the tag's own pipeline after `release-publish` and no trigger of a project, every other job refusing a schedule's and a downstream pipeline, and the release links' paths; the release waits for the four security scans and reads their reports before it collects anything, and `.gitlab/security-exceptions.yml` is well formed and the owner's | `--self-test` |
 | `check-role-choke-point.py` | `RoleManager` is the only decider of what a credential may do; every `RouteKind` is classified | `--self-test` |
 | `check-sbom-inputs.py` | Every input the build pins - in `third-party-binaries.json`, `native-dependencies.ps1`, `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1`, and every library `CMakeLists.txt` finds - is in the SBOM's component list, at its pinned version and with its pinned hash | `--self-test`; `--sbom FILE` (repeatable) holds a finished SPDX or CycloneDX document to it. Runs `native-dependencies.ps1` when `pwsh` or `powershell` is present, and reads its tables when neither is |
 | `check-setting-levels.py` | A setting with domain or account levels is read only through `EffectiveSetting`, and its marks agree with `build/settings-levels.txt` | Proves its own negative controls on every run |

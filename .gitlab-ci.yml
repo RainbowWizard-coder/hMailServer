@@ -58,7 +58,8 @@
 #                         (build/ci/release-verify.sh);
 #   release-publish       by hand: the files uploaded to the package registry and the GitLab
 #                         release created (build/ci/release-chain.py);
-#   update-feed           a pipeline on master that runs pages alone, so the feed has the release.
+#   pages, package-repos  after release-publish, in the tag's own pipeline: the update feed
+#                         rendered with the new release in it and the site deployed.
 #
 # And each in a pipeline of its own, from the pipeline schedule whose description is
 # the word given (the owner makes each; docs/ContinuousIntegration.md says how):
@@ -188,14 +189,14 @@ variables:
 # publish its result,
 # and any other - the update feed's - pages (with package-repos). So every
 # job on the shared runners takes these rules, and .own-runners below begins with
-# the same refusal, which also keeps them out of the downstream pipeline a release
-# starts on master (update-feed, below; its source is "pipeline"), which runs pages
-# alone. A schedule is chosen by its description and not by a variable because the
-# project refuses pipeline variables (ci_pipeline_variables_minimum_override_role
-# no_one_allowed), and GitLab counts a schedule's variables as pipeline variables:
-# it would not save one. The description is a predefined variable, which that does
-# not touch. The feed's pipeline is told apart by its source for the same reason: a
-# trigger job's variables reach the pipeline it starts as pipeline variables.
+# the same refusal. It refuses a downstream pipeline too (source "pipeline"): none of
+# this project's jobs starts one - the release's feed is deployed in the tag's own
+# pipeline (pages, below) - and one another project's trigger or a job token's call
+# of the trigger API started on master would run pages alone. A schedule is chosen
+# by its description and not by a variable because the project refuses pipeline
+# variables (ci_pipeline_variables_minimum_override_role no_one_allowed), and GitLab
+# counts a schedule's variables as pipeline variables: it would not save one. The
+# description is a predefined variable, which that does not touch.
 .not-a-fuzz-pipeline:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
@@ -390,14 +391,29 @@ sign-off:
 # what picks up a release made or edited after its tag's pipeline ran; a schedule's
 # pipeline runs this job alone, the checks and the own runners' jobs each skipping a
 # pipeline whose source is a schedule (docs/ContinuousIntegration.md, "The update
-# feed", says how the schedule is made). release-publish is followed by update-feed,
-# which starts a downstream pipeline on the default branch (source "pipeline"): this
-# job alone again, once the release exists. Never for a merge request: a fork's code
+# feed", says how the schedule is made). Never for a merge request: a fork's code
 # must not publish the feed. On the shared runners, like the checks.
+#
+# In a v* tag's pipeline it waits for release-publish, so that the release is in the
+# feed it renders, and package-repos, which needs it, deploys the site from the tag's
+# own pipeline: GitLab deploys Pages from whichever pipeline's job succeeds, whatever
+# its ref, once that pipeline's commit is its ref's newest (Gitlab::Pages::
+# DeploymentValidations, read 29 September 2026), and a tag's commit always is. The
+# need is optional because release-publish is in a v* tag's pipeline alone: on the
+# default branch and in a schedule's pipeline pages runs at once, as it always has.
+# Until 6.3.6 a job update-feed after release-publish triggered a pipeline on the
+# default branch instead, and GitLab drops a multi-project trigger into the project
+# that runs it (invalid_bridge_trigger, "downstream pipeline trigger definition is
+# invalid": Ci::CreateDownstreamPipelineService); 6.3.5's tag pipeline failed on it,
+# and its feed was deployed by a master pipeline started by hand.
+# build/check-release-chain.py holds this.
 pages:
   stage: release
   image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
-  needs: []
+  needs:
+    - job: release-publish
+      artifacts: false
+      optional: true
   timeout: 15 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -440,8 +456,8 @@ pages:
 # changed, so they run everything.
 .own-runners:
   rules:
-    # A scheduled pipeline (linux-fuzz's, linux-coverage's, renovate's, the feed's) and the feed's
-    # downstream one (source "pipeline", from update-feed) run no job here.
+    # A scheduled pipeline (linux-fuzz's, linux-coverage's, renovate's, the feed's) and a
+    # downstream one (source "pipeline", which nothing of this project starts) run no job here.
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
       when: never
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
@@ -1363,7 +1379,8 @@ renovate:
 #   release-publish       started by hand - after the installer smoke test of the signed
 #                         installer, run from the VMware host - uploads and creates the
 #                         release;
-#   update-feed           a downstream pipeline on master (source "pipeline"): pages, alone.
+#   pages, package-repos  then, in this pipeline, the update feed with the release in it,
+#                         and the site deployed (pages, above, needs release-publish).
 #
 # The signing happens in this, the tag's own top-level pipeline, because Fulcio names
 # the certificate after the ID token's ci_config_ref_uri, which a child or downstream
@@ -1703,24 +1720,9 @@ release-publish:
   script:
     - python3 build/ci/release-chain.py publish --assets release-signed --verification release-verified/verification.md
 
-# The feed, now that the release exists: this tag's own pages ran before it did. A
-# downstream pipeline on master - its CI_PIPELINE_SOURCE is "pipeline" - runs pages and
-# nothing else (every other job's rules refuse that source), which renders the feed
-# from the releases and deploys it. It passes no variables, not even the file's own:
-# GitLab hands a trigger job's variables to the pipeline it starts as pipeline
-# variables, which a project made since GitLab 17.7 refuses by default
-# (ci_pipeline_variables_minimum_override_role no_one_allowed), and the trigger would
-# fail.
-update-feed:
-  stage: release
-  needs: [release-publish]
-  rules:
-    - !reference [.release-rules, rules]
-  inherit:
-    variables: false
-  trigger:
-    project: Progressiverobot/hmailserver
-    branch: master
+# The feed, now that the release exists, is this pipeline's own pages and package-repos,
+# which wait for release-publish (pages, above) - not a pipeline triggered on master,
+# which GitLab refuses to a trigger job of the same project.
 
 # The installer smoke test: the Windows installer installed, upgraded and uninstalled on
 # a throwaway VM reverted to a clean snapshot before and after. The VM runs in VMware
