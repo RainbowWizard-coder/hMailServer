@@ -152,6 +152,8 @@ namespace HM
       no_of_dbconnection_attempts_(6),
       no_of_dbconnection_attempts_Delay(5),
       database_allow_unencrypted_connection_(false),
+      // What a missing [Database] UpgradeOnStart gives: a start does not upgrade.
+      database_upgrade_on_start_(false),
       sqldbtype_(HM::DatabaseSettings::TypeUnknown),
       simulate_database_failure_enabled_(false),
       running_values_latched_(false),

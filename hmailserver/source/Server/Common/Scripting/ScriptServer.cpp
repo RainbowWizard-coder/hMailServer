@@ -279,7 +279,9 @@ namespace HM
       script_compiled_(false),
       refusal_reported_(false),
       loads_committed_(0),
-      switch_generation_(0)
+      switch_generation_(0),
+      load_ticket_(0),
+      ticket_in_force_(0)
    {
       
    }
@@ -601,44 +603,76 @@ namespace HM
    void
    ScriptServer::LoadScripts()
    {
-      // The generation before the switch: see switch_generation_.
-      unsigned long generation = 0;
-
+      // A load with scripting off that finds scripting switched on since it read the
+      // switch installs nothing (switch_generation_), and is made again: the switch
+      // now reads on, so the load compiles the file as it is now. Each round needs
+      // another switch-on between its reads and its commit, so this ends.
+      for (;;)
       {
-         boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
-         generation = switch_generation_;
-      }
+         // The generation before the switch, and the ticket before the file.
+         unsigned long long generation = 0;
+         unsigned long long ticket = 0;
 
-      LoadScripts_(Configuration::Instance()->GetUseScriptServer(), generation);
+         {
+            boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+            generation = switch_generation_;
+            ticket = ++load_ticket_;
+         }
+
+         if (!LoadScripts_(Configuration::Instance()->GetUseScriptServer(), generation, ticket).switched_on)
+            return;
+      }
    }
 
    void
    ScriptServer::SwitchOn(const std::function<void()> &store)
    {
-      const unsigned long loaded = LoadScripts_(true, 0);
+      // The count before this load, for when it installs nothing; the ticket
+      // before it reads the file.
+      unsigned long long before = 0;
+      unsigned long long ticket = 0;
+
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+         before = loads_committed_;
+         ticket = ++load_ticket_;
+      }
+
+      // Already on - another switch-on got here first, or this is a settings page
+      // saved with scripting on - and nothing to load first; but the store, the
+      // generation and the check below are made all the same: the switch may have
+      // been switched off and a load made with it off since it was read here.
+      LoadOutcome loaded = { false, false, 0 };
+      if (!Configuration::Instance()->GetUseScriptServer())
+         loaded = LoadScripts_(true, 0, ticket);
 
       store();
 
-      // Another load installed a script after this one, and left it uncompiled:
-      // a load with scripting off that read the switch before store stored it.
-      // Loaded again, now that every load that starts reads the switch as on. A
-      // load that committed nothing (the script did not compile, and was
-      // reported) is not made again for nothing.
+      // Another load installed a script since this one - since its commit, or,
+      // when it installed nothing (already on, refused and reported, or a later
+      // load in force), since it started - and left it uncompiled: a load with
+      // scripting off that read the switch before store stored it. Loaded again,
+      // from the switch, now that every load that starts reads it as on (unless
+      // it has been switched off since, when nothing need run). Nothing else is
+      // loaded again: a refused load's script is not reported twice for nothing.
       bool reload = false;
 
       {
          boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
          ++switch_generation_;
-         reload = !script_compiled_ && loads_committed_ != loaded;
+         const unsigned long long mark = loaded.committed ? loaded.count : before;
+         reload = !script_compiled_ && loads_committed_ != mark;
       }
 
       if (reload)
-         LoadScripts_(true, 0);
+         LoadScripts();
    }
 
-   unsigned long
-   ScriptServer::LoadScripts_(bool scriptingOn, unsigned long generation)
+   ScriptServer::LoadOutcome
+   ScriptServer::LoadScripts_(bool scriptingOn, unsigned long long generation, unsigned long long ticket)
    {
+      const LoadOutcome nothing = { false, false, 0 };
+
       // A load is all-or-nothing, and it never partly succeeds.
       //
       // The handler flags gate security-relevant events - OnClientLogon and
@@ -684,12 +718,18 @@ namespace HM
          {
             boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
 
-            // Scripting was switched on after this load read it as off: the
-            // switch's load installs the script compiled (or refuses it, and says
-            // so), and this uncompiled text is not put over it
-            // (switch_generation_).
+            // Scripting was switched on after this load read it as off: this
+            // uncompiled text is not put over the switch's load, and LoadScripts
+            // makes this load again, from the switch (switch_generation_).
             if (switch_generation_ != generation)
-               return loads_committed_;
+            {
+               const LoadOutcome again = { false, true, 0 };
+               return again;
+            }
+
+            // A load that started after this one is in force (load_ticket_).
+            if (ticket <= ticket_in_force_)
+               return nothing;
 
             script_language_ = new_language;
             script_extension_ = new_extension;
@@ -714,14 +754,17 @@ namespace HM
 
             scripts_loaded_ = true;
             script_compiled_ = false;
-            return ++loads_committed_;
+            ticket_in_force_ = ticket;
+
+            const LoadOutcome committed = { true, false, ++loads_committed_ };
+            return committed;
          }
 
          String sMessage = CompileContents_(new_language, script_file, new_contents, true);
          if (!sMessage.IsEmpty())
          {
             ReportRejectedLoad_(sMessage);
-            return LoadsCommitted_();
+            return nothing;
          }
 
          // Determine which functions are available. Detected into locals: each of
@@ -761,13 +804,18 @@ namespace HM
             ReportRejectedLoad_("File: " + script_file + "\r\n" +
                "The script compiled, but a later run of it, made to find out which event handlers it declares, did not complete: " +
                detection_failure);
-            return LoadsCommitted_();
+            return nothing;
          }
 
          // Commit. Nothing in this block runs a script, reports an error or takes
          // another lock, so an event being fired on another thread sees either the
          // whole of the old script or the whole of the new one.
          boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+
+         // A load that started after this one is in force (load_ticket_): its text
+         // was read no earlier than this one's.
+         if (ticket <= ticket_in_force_)
+            return nothing;
 
          script_language_ = new_language;
          script_extension_ = new_extension;
@@ -794,7 +842,10 @@ namespace HM
 
          scripts_loaded_ = true;
          script_compiled_ = true;
-         return ++loads_committed_;
+         ticket_in_force_ = ticket;
+
+         const LoadOutcome committed = { true, false, ++loads_committed_ };
+         return committed;
       }
       catch (...)
       {
@@ -804,14 +855,7 @@ namespace HM
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5017, "ScriptServer::LoadScripts", "An exception was thrown when loading scripts. The scripts have not been loaded; any scripts loaded before this attempt remain in force.");
       }
 
-      return LoadsCommitted_();
-   }
-
-   unsigned long
-   ScriptServer::LoadsCommitted_() const
-   {
-      boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
-      return loads_committed_;
+      return nothing;
    }
 
 

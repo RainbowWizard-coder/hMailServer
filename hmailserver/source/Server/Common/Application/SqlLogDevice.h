@@ -161,7 +161,7 @@ namespace HM
 
       // Switches the device on or off. Called from Logger::SetLogDevice, which is
       // driven by the logdevice property - including the change event
-      // PropertySet::Refresh() raises for every setting at startup.
+      // Configuration::Load raises for every setting at startup.
       void SetEnabled(bool enabled);
 
       // Accepts one entry for asynchronous insertion.

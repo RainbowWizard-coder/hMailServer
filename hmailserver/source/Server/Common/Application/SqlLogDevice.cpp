@@ -221,8 +221,8 @@ namespace HM
       case DatabaseNotRunning:
          // Startup, shutdown, or a reinitialize in between. Normal and transient,
          // and it must not be reported as degradation: the property change that
-         // switches this device on arrives from PropertySet::Refresh() during
-         // Configuration::Load, so every service start with SQL logging selected
+         // switches this device on arrives from the change events
+         // Configuration::Load raises, so every service start with SQL logging selected
          // would otherwise file an error before a single listener exists.
          Suspend_();
          return;
@@ -379,8 +379,8 @@ namespace HM
       // Only while the server is fully running. Between StateStopping and the
       // point where Application::ExitInstance releases the connection manager the
       // pool is being torn down, and startup is the same situation in reverse:
-      // the property change that enables this device arrives from
-      // PropertySet::Refresh() during Configuration::Load, long before any
+      // the property change that enables this device arrives from the change
+      // events Configuration::Load raises, long before any
       // listener exists. Logging in either window goes to file, which is where an
       // administrator looks for startup and shutdown problems anyway. Draining
       // - maintenance mode - is the server fully up with its doors closed, and

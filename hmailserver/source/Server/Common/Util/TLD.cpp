@@ -29,7 +29,9 @@ namespace HM
    void 
    TLD::Initialize()
    {
-      tld_.clear();
+      // Read into a set of its own and swapped in whole, so that a lookup on another
+      // thread never sees the list half read.
+      std::set<String> tlds;
 
       String sTLDSFile = Utilities::GetBinDirectory();
       if (sTLDSFile.Right(1) != FileUtilities::PathSeparator)
@@ -55,14 +57,20 @@ namespace HM
          String sErrorMessage;
          sErrorMessage.Format(_T("Failed to load file with TLD's %s."), sTLDSFile.c_str());
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 4335, "TLD::_LoadCCTLD", sErrorMessage);
-
-         return;
+      }
+      else
+      {
+         std::vector<String> vecTLDs = StringParser::SplitString(sContents, "\r\n");
+         for (auto iter = vecTLDs.begin(); iter != vecTLDs.end(); iter++)
+            tlds.insert(*iter);
       }
 
-      std::vector<String> vecTLDs = StringParser::SplitString(sContents, "\r\n");
-      for (auto iter = vecTLDs.begin(); iter != vecTLDs.end(); iter++)
-         tld_.insert(*iter);
-
+      // Empty when the file could not be read, as the list always was then; the
+      // list replaced is let go of after the lock.
+      {
+         boost::lock_guard<boost::mutex> guard(tld_mutex_);
+         tld_.swap(tlds);
+      }
    }
 
    bool 
@@ -71,6 +79,8 @@ namespace HM
       String sTmp = sName;
 
       sTmp.ToLower();
+
+      boost::lock_guard<boost::mutex> guard(tld_mutex_);
 
       if (tld_.find(sName) != tld_.end())
          return true;

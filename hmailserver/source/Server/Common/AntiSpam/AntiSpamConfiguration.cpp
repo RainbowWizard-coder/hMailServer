@@ -41,13 +41,32 @@ namespace HM
       // skipped every DNS blacklist for that message (upstream #566).
       std::shared_ptr<DNSBlackLists> dnsBlackLists = std::shared_ptr<DNSBlackLists>(new DNSBlackLists);
       dnsBlackLists->Refresh();
-      dnsBlackLists_ = dnsBlackLists;
 
       std::shared_ptr<SURBLServers> surblServers = std::shared_ptr<SURBLServers>(new SURBLServers);
       surblServers->Refresh();
-      surblServers_ = surblServers;
+
+      // Swapped under the lock, so that the lists replaced are let go of after it.
+      {
+         boost::lock_guard<boost::mutex> guard(lists_mutex_);
+         dnsBlackLists_.swap(dnsBlackLists);
+         surblServers_.swap(surblServers);
+      }
 
       return true;
+   }
+
+   std::shared_ptr<DNSBlackLists>
+   AntiSpamConfiguration::GetDNSBlackLists() const
+   {
+      boost::lock_guard<boost::mutex> guard(lists_mutex_);
+      return dnsBlackLists_;
+   }
+
+   std::shared_ptr<SURBLServers>
+   AntiSpamConfiguration::GetSURBLServers() const
+   {
+      boost::lock_guard<boost::mutex> guard(lists_mutex_);
+      return surblServers_;
    }
 
    std::shared_ptr<PropertySet> 
@@ -242,7 +261,7 @@ namespace HM
    AntiSpamConfiguration::XMLStore(XNode *pBackupNode, int iOptions)
    {
       // SURBL SERVERS
-      if (!surblServers_->XMLStore(pBackupNode, iOptions))
+      if (!GetSURBLServers()->XMLStore(pBackupNode, iOptions))
          return false;
 
       // GREYLISTING WHITEADDRESSES
@@ -280,7 +299,7 @@ namespace HM
          return false;
 
       // DNS BLACK LISTS
-      if (!dnsBlackLists_->XMLStore(pBackupNode, iOptions))
+      if (!GetDNSBlackLists()->XMLStore(pBackupNode, iOptions))
          return false;
 
       return true;
@@ -290,8 +309,9 @@ namespace HM
    AntiSpamConfiguration::XMLLoad(XNode *pBackupNode, int iRestoreOptions)
    {
       // SURBL SERVERS
-      surblServers_->Refresh();
-      if (!surblServers_->XMLLoad(pBackupNode, iRestoreOptions))
+      std::shared_ptr<SURBLServers> surblServers = GetSURBLServers();
+      surblServers->Refresh();
+      if (!surblServers->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       // GREYLISTING WHITEADDRESSES
@@ -330,8 +350,9 @@ namespace HM
          return false;
 
       // DNS BLACK LISTS
-      dnsBlackLists_->Refresh();
-      if (!dnsBlackLists_->XMLLoad(pBackupNode, iRestoreOptions))
+      std::shared_ptr<DNSBlackLists> dnsBlackLists = GetDNSBlackLists();
+      dnsBlackLists->Refresh();
+      if (!dnsBlackLists->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       return true;

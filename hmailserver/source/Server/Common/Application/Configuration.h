@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "Backup.h"
 
 #include "../AntiSpam/AntiSpamConfiguration.h"
@@ -35,12 +37,12 @@ namespace HM
       Configuration();
       virtual ~Configuration();
 
-      std::shared_ptr<POP3Configuration> GetPOP3Configuration() const { return pop3_configuration_; }
-      std::shared_ptr<SMTPConfiguration> GetSMTPConfiguration() const { return smtp_configuration_; }
-      std::shared_ptr<IMAPConfiguration> GetIMAPConfiguration() const { return imap_configuration_; }
+      std::shared_ptr<POP3Configuration> GetPOP3Configuration() const { return Published_(pop3_configuration_); }
+      std::shared_ptr<SMTPConfiguration> GetSMTPConfiguration() const { return Published_(smtp_configuration_); }
+      std::shared_ptr<IMAPConfiguration> GetIMAPConfiguration() const { return Published_(imap_configuration_); }
       AntiSpamConfiguration &GetAntiSpamConfiguration() { return anti_spam_configuration_; }
       AntiVirusConfiguration &GetAntiVirusConfiguration() { return anti_virus_configuration_; }
-      std::shared_ptr<CacheConfiguration> GetCacheConfiguration() const { return cache_configuration_; }
+      std::shared_ptr<CacheConfiguration> GetCacheConfiguration() const { return Published_(cache_configuration_); }
 
       bool Load();
 
@@ -726,19 +728,49 @@ namespace HM
 
       std::shared_ptr<PropertySet> GetSettings() const;
 
-      std::shared_ptr<ServerMessages> GetServerMessages() {return server_messages_;}
+      std::shared_ptr<ServerMessages> GetServerMessages() {return Published_(server_messages_);}
       std::shared_ptr<TCPIPPorts> GetTCPIPPorts() const;
-      std::shared_ptr<BlockedAttachments> GetBlockedAttachments() {return blocked_attachments_;}
-      std::shared_ptr<SSLCertificates> GetSSLCertificates() {return ssl_certificates_;}
-      std::shared_ptr<PropertySet> GetPropertySet() {return property_set_;}
+      std::shared_ptr<BlockedAttachments> GetBlockedAttachments() {return Published_(blocked_attachments_);}
+      std::shared_ptr<SSLCertificates> GetSSLCertificates() {return Published_(ssl_certificates_);}
+      std::shared_ptr<PropertySet> GetPropertySet() {return Published_(property_set_);}
 
    private:
 
       // Creates the hm_settings rows that a database made before a feature
       // existed has none of, each with the default that is today's behaviour.
-      // Runs once per Load, on the start-up thread, before anything else can read
-      // the property set. See PropertySet::EnsureLong for why it is needed at all.
-      void EnsureSettingDefaults_();
+      // Runs once per Load, on the set Load is building, before it is published
+      // and anything else can read it. See PropertySet::EnsureLong for why it is
+      // needed at all.
+      void EnsureSettingDefaults_(PropertySet &settings);
+
+      // The objects Load builds are published under publication_mutex_, and every
+      // getter copies its pointer under it. A reinitialise runs Load while other
+      // threads read the configuration - on Windows a COM call from the Control
+      // Panel or a script, which nothing stops - and a std::shared_ptr copied on
+      // one thread while it is assigned on another is a data race that can leave
+      // the copy holding a freed control block. Held only to copy or swap a
+      // pointer: never across a database call, an event or an error report, and
+      // the object a publication replaces is let go of after it is released. A
+      // leaf: nothing else is locked under it.
+      template <class T>
+      std::shared_ptr<T> Published_(const std::shared_ptr<T> &member) const
+      {
+         boost::lock_guard<boost::mutex> guard(publication_mutex_);
+         return member;
+      }
+
+      template <class T>
+      void Publish_(std::shared_ptr<T> &member, std::shared_ptr<T> object)
+      {
+         {
+            boost::lock_guard<boost::mutex> guard(publication_mutex_);
+            member.swap(object);
+         }
+
+         // object now holds what was published before, and goes here, unlocked.
+      }
+
+      mutable boost::mutex publication_mutex_;
 
       std::shared_ptr<POP3Configuration> pop3_configuration_;
       std::shared_ptr<SMTPConfiguration> smtp_configuration_;
@@ -756,8 +788,8 @@ namespace HM
 
       std::shared_ptr<PropertySet> property_set_;
 
-      int crash_simulation_mode_;
-
-      bool ipv6_available_;
+      // Set by a COM call, and by Load, on one thread while others read them.
+      std::atomic<int> crash_simulation_mode_;
+      std::atomic<bool> ipv6_available_;
    };
 }

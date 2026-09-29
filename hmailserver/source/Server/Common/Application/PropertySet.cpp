@@ -49,14 +49,16 @@ namespace HM
       
    }
 
-   void 
+   std::vector<std::shared_ptr<Property> >
    PropertySet::Refresh()
    {
+      std::vector<std::shared_ptr<Property> > read;
+
       SQLCommand command("select * from hm_settings");
       std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
-   
+
       if (!pRS)
-         return;
+         return read;
 
       std::map<String, std::shared_ptr<Property> > tmpMap;
 
@@ -90,15 +92,21 @@ namespace HM
          items_ = tmpMap;
       }
 
-      // The change events are raised from the map just read, outside the lock: a
-      // handler reads settings of its own through this set.
-      auto iter = tmpMap.begin();
-      auto iterEnd = tmpMap.end();
-      for (; iter != iterEnd; iter++)
-      {
-         // Trigger an change-event for all options.
-         OnPropertyChanged_((*iter).second);
-      }
+      // In the map's order, which is the order the change events were raised in
+      // when this raised them itself.
+      read.reserve(tmpMap.size());
+      for (const auto &entry : tmpMap)
+         read.push_back(entry.second);
+
+      return read;
+   }
+
+   void
+   PropertySet::RaiseChangeEvents(const std::vector<std::shared_ptr<Property> > &properties)
+   {
+      // Outside items_mutex_: a handler reads settings of its own.
+      for (const auto &property : properties)
+         OnPropertyChanged_(property);
    }
 
    bool
@@ -316,7 +324,8 @@ namespace HM
 
       // No change event: the value that has just been stored is the default, so
       // nothing about the server's behaviour has changed and nothing needs to be
-      // told. Refresh() raises one for every property that WAS in the database.
+      // told. Configuration::Load raises one for every property that WAS in the
+      // database (RaiseChangeEvents).
    }
 
    void

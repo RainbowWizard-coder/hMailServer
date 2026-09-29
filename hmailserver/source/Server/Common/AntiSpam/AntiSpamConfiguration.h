@@ -176,8 +176,8 @@ namespace HM
       std::shared_ptr<GreyListingBypassEntries> GetGreyListingBypassEntries();
       std::shared_ptr<WhiteListAddresses> GetWhiteListAddresses();
       std::shared_ptr<BlockedSenders> GetBlockedSenders();
-      std::shared_ptr<DNSBlackLists> GetDNSBlackLists() {return dnsBlackLists_;}
-      std::shared_ptr<SURBLServers> GetSURBLServers() {return surblServers_;}
+      std::shared_ptr<DNSBlackLists> GetDNSBlackLists() const;
+      std::shared_ptr<SURBLServers> GetSURBLServers() const;
 
    private:
       
@@ -187,6 +187,11 @@ namespace HM
 
       std::shared_ptr<DNSBlackLists> dnsBlackLists_;
       std::shared_ptr<SURBLServers> surblServers_;
+
+      // Guards the two pointers above: Load replaces them at a reinitialise while
+      // other threads copy them (Configuration's publication_mutex_ has the reason).
+      // Held only to copy or swap a pointer - a leaf.
+      mutable boost::mutex lists_mutex_;
 
    };
 }

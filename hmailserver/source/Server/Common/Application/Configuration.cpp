@@ -64,118 +64,149 @@ namespace HM
       IPAddress address;
       ipv6_available_ = address.TryParse("::F", false);
 
-      property_set_ = std::shared_ptr<PropertySet>(new PropertySet());
-      property_set_->Refresh();
+      // Each object is built and filled here, where no other thread can see it, and
+      // only then published (Publish_); until it is, a reader gets the one the
+      // previous load published - at a start, none, and nothing reads it then:
+      // COM's class objects are resumed after InitInstance and REST starts in
+      // StartServers. The one first load COM is up for is the Reinitialize
+      // DBUpdater makes after upgrading a database a start refused (HM5011), and
+      // until the application is initialised COM refuses a configuration read
+      // (InterfaceApplication::EnsureDatabaseConnectivity_, InterfaceSettings::
+      // LoadSettings) - as it did before this load, when every getter was null. A
+      // reinitialise runs this while other threads read the configuration: until
+      // 29 September 2026 each member was assigned as it was built, so a reader
+      // could copy a pointer while it was being assigned, find the new property set
+      // before it was filled and read every setting as missing (HM5015, and 0), or
+      // find an SMTP or IMAP configuration whose lists were not loaded yet.
+      std::shared_ptr<PropertySet> settings(new PropertySet());
+      const std::vector<std::shared_ptr<Property> > read = settings->Refresh();
 
-      EnsureSettingDefaults_();
+      EnsureSettingDefaults_(*settings);
 
-      // The two records a profile keeps (Profiles.h), made empty here while this is
-      // the only thread, so that an apply on a request thread updates a row and never
+      // The two records a profile keeps (Profiles.h), made empty here, before the set
+      // is published, so that an apply on a request thread updates a row and never
       // inserts one into the set others are reading. Not settings, so not in
       // EnsureSettingDefaults_, which build/generate-settings-defaults.py reads as
       // the list of what a database ships with.
-      Profiles::EnsureRecords(*property_set_);
+      Profiles::EnsureRecords(*settings);
 
-      pop3_configuration_ = std::shared_ptr<POP3Configuration>(new POP3Configuration);
-      smtp_configuration_ = std::shared_ptr<SMTPConfiguration>(new SMTPConfiguration);
-      imap_configuration_ = std::shared_ptr<IMAPConfiguration>(new IMAPConfiguration);
-      cache_configuration_ = std::shared_ptr<CacheConfiguration>(new CacheConfiguration);
-      
-      if (!smtp_configuration_->Load())
+      Publish_(property_set_, settings);
+
+      // The change event of every setting read from the database, raised once the
+      // set is published: a handler reads settings of its own through GetSettings
+      // (AWStats), and the logger takes its mask, device and format from these.
+      settings->RaiseChangeEvents(read);
+
+      // The four are published together, whether or not they loaded, as they always
+      // were: a start that fails here leaves the COM API up, and it reads them.
+      std::shared_ptr<POP3Configuration> pop3(new POP3Configuration);
+      std::shared_ptr<SMTPConfiguration> smtp(new SMTPConfiguration);
+      std::shared_ptr<IMAPConfiguration> imap(new IMAPConfiguration);
+      std::shared_ptr<CacheConfiguration> cache(new CacheConfiguration);
+
+      const bool smtpLoaded = smtp->Load();
+      const bool imapLoaded = imap->Load();
+
+      Publish_(pop3_configuration_, pop3);
+      Publish_(smtp_configuration_, smtp);
+      Publish_(imap_configuration_, imap);
+      Publish_(cache_configuration_, cache);
+
+      if (!smtpLoaded)
          return false;
 
       if (!anti_spam_configuration_.Load())
          return false;
 
-      server_messages_ = std::shared_ptr<ServerMessages> (new ServerMessages);
-      server_messages_->Refresh();
+      std::shared_ptr<ServerMessages> serverMessages(new ServerMessages);
+      serverMessages->Refresh();
+      Publish_(server_messages_, serverMessages);
 
-      blocked_attachments_ = std::shared_ptr<BlockedAttachments>(new BlockedAttachments);
-      blocked_attachments_->Refresh();
+      std::shared_ptr<BlockedAttachments> blockedAttachments(new BlockedAttachments);
+      blockedAttachments->Refresh();
+      Publish_(blocked_attachments_, blockedAttachments);
 
-      ssl_certificates_ = std::shared_ptr<SSLCertificates>(new SSLCertificates);
-      ssl_certificates_->Refresh();
+      std::shared_ptr<SSLCertificates> sslCertificates(new SSLCertificates);
+      sslCertificates->Refresh();
+      Publish_(ssl_certificates_, sslCertificates);
 
       ScriptServer::Instance()->LoadScripts();
       TLD::Instance()->Initialize();
       LocalIPAddresses::Instance()->LoadIPAddresses();
 
-      return imap_configuration_->Load();
+      return imapLoaded;
    }
 
    void
-   Configuration::EnsureSettingDefaults_()
+   Configuration::EnsureSettingDefaults_(PropertySet &settings)
    {
-      if (!property_set_)
-         return;
-
       // The syslog sink. Every default is the server as it has always been: off,
       // with nowhere to send to. The rows exist all the same, because a read of a
       // missing property reports HM5015 - see PropertySet::EnsureLong.
-      property_set_->EnsureLong(PROPERTY_SYSLOG_ENABLED, 0);
-      property_set_->EnsureString(PROPERTY_SYSLOG_HOST, _T(""));
-      property_set_->EnsureLong(PROPERTY_SYSLOG_PORT, 514);
-      property_set_->EnsureLong(PROPERTY_SYSLOG_TRANSPORT, 0);          // UDP
-      property_set_->EnsureLong(PROPERTY_SYSLOG_FACILITY, 2);           // mail
-      property_set_->EnsureLong(PROPERTY_SYSLOG_SEVERITY, 6);           // informational
+      settings.EnsureLong(PROPERTY_SYSLOG_ENABLED, 0);
+      settings.EnsureString(PROPERTY_SYSLOG_HOST, _T(""));
+      settings.EnsureLong(PROPERTY_SYSLOG_PORT, 514);
+      settings.EnsureLong(PROPERTY_SYSLOG_TRANSPORT, 0);          // UDP
+      settings.EnsureLong(PROPERTY_SYSLOG_FACILITY, 2);           // mail
+      settings.EnsureLong(PROPERTY_SYSLOG_SEVERITY, 6);           // informational
 
       // SMTP, POP3, IMAP and application events, which is what an administrator
       // watching a mail server wants. TCP/IP and debug are left out: both are
       // diagnostic chatter, and a collector charged by volume is a real cost.
-      property_set_->EnsureLong(PROPERTY_SYSLOG_LOGTYPES,
+      settings.EnsureLong(PROPERTY_SYSLOG_LOGTYPES,
          Logger::LSSMTP | Logger::LSPOP3 | Logger::LSApplication | Logger::LSIMAP);
 
       // The password breach check: off, the public corpus, one sighting, and an
       // endpoint that cannot be used lets the change through. Off is the server as
       // it has always been, which no change on upgrade may alter.
-      property_set_->EnsureLong(PROPERTY_BREACH_CHECK_ENABLED, 0);
-      property_set_->EnsureString(PROPERTY_BREACH_CHECK_URL, PasswordBreachCheck::DefaultUrl);
+      settings.EnsureLong(PROPERTY_BREACH_CHECK_ENABLED, 0);
+      settings.EnsureString(PROPERTY_BREACH_CHECK_URL, PasswordBreachCheck::DefaultUrl);
 
       // Spam traps: a day's ban, a month on the block list, three months of
       // record, and nothing taught to SpamAssassin. The rows exist from the
       // start because a read of a missing property reports HM5015, and a server
       // with no trap declared does none of it whatever they say.
-      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_BAN_MINUTES, 1440);
-      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_BLOCK_DAYS, 30);
-      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS, 90);
-      property_set_->EnsureLong(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN, 0);
+      settings.EnsureLong(PROPERTY_SPAM_TRAP_BAN_MINUTES, 1440);
+      settings.EnsureLong(PROPERTY_SPAM_TRAP_BLOCK_DAYS, 30);
+      settings.EnsureLong(PROPERTY_SPAM_TRAP_HIT_RETENTION_DAYS, 90);
+      settings.EnsureLong(PROPERTY_SPAM_TRAP_TEACH_SPAMASSASSIN, 0);
 
       // The message store's form (Persistence/MessageStore.h): off, and 256 KB
       // for the day it is turned on. Schema 6098 seeds the same two rows; these
       // are here because every delivery reads the first, and a read of a missing
       // property reports HM5015 every time.
-      property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_COMPRESSION, 0);
-      property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB, 256);
+      settings.EnsureLong(PROPERTY_MESSAGE_STORE_COMPRESSION, 0);
+      settings.EnsureLong(PROPERTY_MESSAGE_STORE_DEDUP_MIN_KB, 256);
 
       // PST import: no directory, so no PST migration job is taken until an
       // administrator names one. The row exists from the start because a read
       // of a missing property reports HM5015.
-      property_set_->EnsureString(PROPERTY_PST_IMPORT_DIRECTORY, _T(""));
+      settings.EnsureString(PROPERTY_PST_IMPORT_DIRECTORY, _T(""));
 
       // The message store on an object store (Persistence/MessageStoreObjects.h,
       // docs/ObjectStorage.md): no store, and new mail on the local disk. A
       // server that never names a store reads and writes exactly as it did;
       // every delivery asks the first two through MessageStore::Backend.
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_BACKEND, _T("file"));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SERVICE, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ENDPOINT, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_REGION, _T("us-east-1"));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_BUCKET, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ADDRESSING, _T("auto"));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_PREFIX, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ACCESS_KEY, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SECRET, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SAS, _T(""));
-      property_set_->EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_CA_FILE, _T(""));
-      property_set_->EnsureLong(PROPERTY_MESSAGE_STORE_OBJECT_CACHE_MB, 32);
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_BACKEND, _T("file"));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SERVICE, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ENDPOINT, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_REGION, _T("us-east-1"));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_BUCKET, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ADDRESSING, _T("auto"));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_PREFIX, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_ACCESS_KEY, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SECRET, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_SAS, _T(""));
+      settings.EnsureString(PROPERTY_MESSAGE_STORE_OBJECT_CA_FILE, _T(""));
+      settings.EnsureLong(PROPERTY_MESSAGE_STORE_OBJECT_CACHE_MB, 32);
 
       // Greylisting, hardened (SMTP/GreyListing.h): no slide, no abuse threshold,
       // and an hour's lock that means nothing while the threshold is 0. Schema 6072
       // seeds the same three rows; these are here for the same reason as the rest.
-      property_set_->EnsureLong(PROPERTY_GL_SLIDE_ON_EARLY_RETRY, 0);
-      property_set_->EnsureLong(PROPERTY_GL_ABUSE_THRESHOLD, 0);
-      property_set_->EnsureLong(PROPERTY_GL_ABUSE_LOCK_MINUTES, 60);
-      property_set_->EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
+      settings.EnsureLong(PROPERTY_GL_SLIDE_ON_EARLY_RETRY, 0);
+      settings.EnsureLong(PROPERTY_GL_ABUSE_THRESHOLD, 0);
+      settings.EnsureLong(PROPERTY_GL_ABUSE_LOCK_MINUTES, 60);
+      settings.EnsureLong(PROPERTY_BREACH_CHECK_MINIMUM_COUNT, 1);
 
       // SMTP policy the score cannot express (discussions #283, #285, #286).
       // Every one at the value that leaves the server as it was: SPF's SoftFail,
@@ -184,13 +215,13 @@ namespace HM
       // recipients is neither refused nor banned. A ban, once switched on, lasts
       // a day, which is the operator's own suggestion; it is never applied while
       // the refusal is off.
-      property_set_->EnsureLong(PROPERTY_USE_SPF_SOFTFAIL_SCORE, 0);
-      property_set_->EnsureLong(PROPERTY_USE_SPF_TEMPERROR_SCORE, 0);
-      property_set_->EnsureLong(PROPERTY_USE_SPF_PERMERROR_SCORE, 0);
-      property_set_->EnsureLong(PROPERTY_SPF_TEMPERROR_DEFER, 0);
-      property_set_->EnsureLong(PROPERTY_REJECT_MULTI_RCPT_NULL_SENDER, 0);
-      property_set_->EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER, 0);
-      property_set_->EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS, 24);
+      settings.EnsureLong(PROPERTY_USE_SPF_SOFTFAIL_SCORE, 0);
+      settings.EnsureLong(PROPERTY_USE_SPF_TEMPERROR_SCORE, 0);
+      settings.EnsureLong(PROPERTY_USE_SPF_PERMERROR_SCORE, 0);
+      settings.EnsureLong(PROPERTY_SPF_TEMPERROR_DEFER, 0);
+      settings.EnsureLong(PROPERTY_REJECT_MULTI_RCPT_NULL_SENDER, 0);
+      settings.EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER, 0);
+      settings.EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS, 24);
 
       // The reputation watch: on, the four lists that answer an ordinary resolver
       // for nothing, and no address of its own. Schema 6049 seeds the same three
@@ -205,14 +236,14 @@ namespace HM
       // turning this on beneath it would start sending that address to four third
       // parties daily on the strength of an upgrade. This value therefore only
       // ever applies to a database with no row at all, which is a new one.
-      property_set_->EnsureLong(PROPERTY_REPUTATION_WATCH_ENABLED, 1);
-      property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, ReputationWatch::DefaultLists);
-      property_set_->EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
+      settings.EnsureLong(PROPERTY_REPUTATION_WATCH_ENABLED, 1);
+      settings.EnsureString(PROPERTY_REPUTATION_WATCH_LISTS, ReputationWatch::DefaultLists);
+      settings.EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
 
       // The help panes' "Open on the wiki" link: the project's wiki, since that
       // is where the same documents are published. Empty hides the link.
-      property_set_->EnsureString(PROPERTY_HELP_WIKI_BASE_URL, _T("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/"));
-      property_set_->EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
+      settings.EnsureString(PROPERTY_HELP_WIKI_BASE_URL, _T("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/"));
+      settings.EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
 
       // Bounces read, and the suppression list. Off, and with it off nothing below
       // is consulted. The other seven are what an administrator gets on switching it
@@ -220,13 +251,13 @@ namespace HM
       // recipient is refused with a reason, entries do not expire by age, delivery
       // reports are read, counts are kept 90 days and a report is matched for 7 days
       // after the message went, which is also how long a BATV tag stays valid.
-      property_set_->EnsureLong(PROPERTY_BOUNCE_PROCESSING_ENABLED, 0);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_HARD_THRESHOLD, 1);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_MAILBOX_FULL_IS_HARD, 0);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_ACTION, 0);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS, 0);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_READ_REPORTS, 1);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, 90);
+      settings.EnsureLong(PROPERTY_BOUNCE_PROCESSING_ENABLED, 0);
+      settings.EnsureLong(PROPERTY_BOUNCE_HARD_THRESHOLD, 1);
+      settings.EnsureLong(PROPERTY_BOUNCE_MAILBOX_FULL_IS_HARD, 0);
+      settings.EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_ACTION, 0);
+      settings.EnsureLong(PROPERTY_BOUNCE_SUPPRESSION_EXPIRY_DAYS, 0);
+      settings.EnsureLong(PROPERTY_BOUNCE_READ_REPORTS, 1);
+      settings.EnsureLong(PROPERTY_BOUNCE_COUNT_RETENTION_DAYS, 90);
 
       // Complaints, read: the feedback loops. Off, with no mailbox named, which is
       // the server as it has always been - it has never read an abuse report.
@@ -244,26 +275,26 @@ namespace HM
       // default now agrees with it.
       //
       // The complaints themselves are kept for half a year.
-      property_set_->EnsureLong(PROPERTY_COMPLAINT_PROCESSING_ENABLED, 0);
-      property_set_->EnsureString(PROPERTY_COMPLAINT_MAILBOX, _T(""));
-      property_set_->EnsureLong(PROPERTY_COMPLAINT_THRESHOLD, 0);
-      property_set_->EnsureLong(PROPERTY_COMPLAINT_RETENTION_DAYS, 180);
-      property_set_->EnsureLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, 7);
+      settings.EnsureLong(PROPERTY_COMPLAINT_PROCESSING_ENABLED, 0);
+      settings.EnsureString(PROPERTY_COMPLAINT_MAILBOX, _T(""));
+      settings.EnsureLong(PROPERTY_COMPLAINT_THRESHOLD, 0);
+      settings.EnsureLong(PROPERTY_COMPLAINT_RETENTION_DAYS, 180);
+      settings.EnsureLong(PROPERTY_BOUNCE_REPORT_WINDOW_DAYS, 7);
 
       // Web Push. Off, with no keys and no contact: a server that has never been
       // configured for it queues nothing and reaches no push service. A day's time
       // to live so that a phone that was off overnight is still told; ten devices
       // an account, which is more than anybody has; five attempts, the alert
       // webhook's number.
-      property_set_->EnsureLong(PROPERTY_WEB_PUSH_ENABLED, 0);
-      property_set_->EnsureString(PROPERTY_WEB_PUSH_SUBJECT, _T(""));
-      property_set_->EnsureLong(PROPERTY_WEB_PUSH_TTL_SECONDS, 86400);
-      property_set_->EnsureLong(PROPERTY_WEB_PUSH_MAX_PER_ACCOUNT, 10);
-      property_set_->EnsureLong(PROPERTY_WEB_PUSH_MAX_ATTEMPTS, 5);
-      property_set_->EnsureString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, _T(""));
-      property_set_->EnsureString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, _T(""));
+      settings.EnsureLong(PROPERTY_WEB_PUSH_ENABLED, 0);
+      settings.EnsureString(PROPERTY_WEB_PUSH_SUBJECT, _T(""));
+      settings.EnsureLong(PROPERTY_WEB_PUSH_TTL_SECONDS, 86400);
+      settings.EnsureLong(PROPERTY_WEB_PUSH_MAX_PER_ACCOUNT, 10);
+      settings.EnsureLong(PROPERTY_WEB_PUSH_MAX_ATTEMPTS, 5);
+      settings.EnsureString(PROPERTY_WEB_PUSH_VAPID_PUBLIC_KEY, _T(""));
+      settings.EnsureString(PROPERTY_WEB_PUSH_VAPID_PRIVATE_KEY, _T(""));
       // The regression suite's loopback push service, and nothing else: off.
-      property_set_->EnsureLong(PROPERTY_WEB_PUSH_LOOPBACK_HTTP, 0);
+      settings.EnsureLong(PROPERTY_WEB_PUSH_LOOPBACK_HTTP, 0);
 
       // The Web Key Directory. Off, which is the server as it has always been: no
       // key of anybody's is served until an administrator switches this on AND the
@@ -271,65 +302,65 @@ namespace HM
       // a key upload is judged against: 64 KiB of key, eight keys an account, and a
       // key whose user ids do not carry the account's own address is refused unless
       // an administrator says otherwise for that one upload.
-      property_set_->EnsureLong(PROPERTY_OPENPGP_WKD_ENABLED, 0);
-      property_set_->EnsureLong(PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES, 65536);
-      property_set_->EnsureLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT, 8);
-      property_set_->EnsureLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, 1);
+      settings.EnsureLong(PROPERTY_OPENPGP_WKD_ENABLED, 0);
+      settings.EnsureLong(PROPERTY_OPENPGP_KEY_MAXIMUM_BYTES, 65536);
+      settings.EnsureLong(PROPERTY_OPENPGP_KEYS_PER_ACCOUNT, 8);
+      settings.EnsureLong(PROPERTY_OPENPGP_REQUIRE_ADDRESS, 1);
 
       // OpenPGP in the webmail. The page offers it; a Web Key Directory lookup
       // is made when a correspondent's key is wanted and a keyserver one is not,
       // because the directory asks the correspondent's own domain and the
       // keyserver asks a third party who is nobody's mail server.
-      property_set_->EnsureLong(PROPERTY_OPENPGP_PORTAL_ENABLED, 1);
-      property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_WKD, 1);
-      property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_KEYSERVER, 0);
-      property_set_->EnsureString(PROPERTY_OPENPGP_KEYSERVER_URL, _T("https://keys.openpgp.org"));
-      property_set_->EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
-      property_set_->EnsureLong(PROPERTY_PROTECTED_MESSAGE_DAYS, 30);
+      settings.EnsureLong(PROPERTY_OPENPGP_PORTAL_ENABLED, 1);
+      settings.EnsureLong(PROPERTY_OPENPGP_LOOKUP_WKD, 1);
+      settings.EnsureLong(PROPERTY_OPENPGP_LOOKUP_KEYSERVER, 0);
+      settings.EnsureString(PROPERTY_OPENPGP_KEYSERVER_URL, _T("https://keys.openpgp.org"));
+      settings.EnsureLong(PROPERTY_OPENPGP_LOOKUP_TIMEOUT, 10);
+      settings.EnsureLong(PROPERTY_PROTECTED_MESSAGE_DAYS, 30);
 
       // The list manager (Util/ListManager.h): no base URL, so a managed list
       // offers its mailto addresses and no link until an administrator says
       // where the pages are reached; one hard bounce, or five soft ones within
       // thirty days, stop a member being sent the list's mail. Nothing here
       // does anything until a list is managed.
-      property_set_->EnsureString(PROPERTY_LIST_BASE_URL, _T(""));
-      property_set_->EnsureLong(PROPERTY_LIST_HARD_BOUNCES, 1);
-      property_set_->EnsureLong(PROPERTY_LIST_SOFT_BOUNCES, 5);
-      property_set_->EnsureLong(PROPERTY_LIST_BOUNCE_WINDOW_DAYS, 30);
+      settings.EnsureString(PROPERTY_LIST_BASE_URL, _T(""));
+      settings.EnsureLong(PROPERTY_LIST_HARD_BOUNCES, 1);
+      settings.EnsureLong(PROPERTY_LIST_SOFT_BOUNCES, 5);
+      settings.EnsureLong(PROPERTY_LIST_BOUNCE_WINDOW_DAYS, 30);
 
       // The organisation CA for S/MIME (Util/OrganisationCa.h): no base URL, so a
       // certificate a domain's authority issues names no CRL and no root to fetch
       // until an administrator says where the web services listener is reached.
       // Nothing is issued at all until an administrator creates an authority.
-      property_set_->EnsureString(PROPERTY_SMIME_AUTHORITY_BASE_URL, _T(""));
+      settings.EnsureString(PROPERTY_SMIME_AUTHORITY_BASE_URL, _T(""));
 
       // Outbound shaping (SMTP/DestinationBackoff.h). The back-off on, at two
       // minutes doubling to an hour: a destination that says slow down is
       // obeyed on a stock installation, which is what a mail transfer agent is
       // expected to do. The two connection ceilings off, so nothing is held
       // that was not held before until an administrator sets one.
-      property_set_->EnsureLong(PROPERTY_OUTBOUND_BACKOFF_MINUTES, 2);
-      property_set_->EnsureLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES, 60);
-      property_set_->EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST, 0);
-      property_set_->EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT, 0);
+      settings.EnsureLong(PROPERTY_OUTBOUND_BACKOFF_MINUTES, 2);
+      settings.EnsureLong(PROPERTY_OUTBOUND_BACKOFF_MAX_MINUTES, 60);
+      settings.EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_DEST, 0);
+      settings.EnsureLong(PROPERTY_MAX_OUTBOUND_CONNS_PER_TENANT, 0);
 
       // Attachments opened somewhere safe (AntiVirus/Sandbox.h): OFF, with no
       // sandbox named. Schema 6091 seeds the same thirteen rows; these are here
       // because the poller reads SandboxPollSeconds every second, and a read of
       // a missing property reports HM5015 every time.
-      property_set_->EnsureLong(PROPERTY_SANDBOX_ENABLED, 0);
-      property_set_->EnsureString(PROPERTY_SANDBOX_SUBMIT_URL, _T(""));
-      property_set_->EnsureString(PROPERTY_SANDBOX_VERDICT_URL, _T(""));
-      property_set_->EnsureString(PROPERTY_SANDBOX_TOKEN, _T(""));
-      property_set_->EnsureLong(PROPERTY_SANDBOX_TIMEOUT_MINUTES, 15);
-      property_set_->EnsureLong(PROPERTY_SANDBOX_TIMEOUT_ACTION, 0);
-      property_set_->EnsureLong(PROPERTY_SANDBOX_MAX_SIZE_KB, 20480);
-      property_set_->EnsureString(PROPERTY_SANDBOX_TYPES, _T("exe,dll,scr,js,jse,vbs,wsf,hta,msi,bat,cmd,ps1,jar,lnk,iso,img,docm,xlsm,pptm,doc,xls,ppt,rtf,pdf,zip,7z,rar"));
-      property_set_->EnsureLong(PROPERTY_SANDBOX_POLL_SECONDS, 30);
-      property_set_->EnsureLong(PROPERTY_SANDBOX_SCORE_THRESHOLD, 70);
-      property_set_->EnsureLong(PROPERTY_SANDBOX_CACHE_HOURS, 24);
-      property_set_->EnsureLong(PROPERTY_SANDBOX_INTERNAL_MAIL, 0);
-      property_set_->EnsureLong(PROPERTY_SANDBOX_MAX_FILES, 10);
+      settings.EnsureLong(PROPERTY_SANDBOX_ENABLED, 0);
+      settings.EnsureString(PROPERTY_SANDBOX_SUBMIT_URL, _T(""));
+      settings.EnsureString(PROPERTY_SANDBOX_VERDICT_URL, _T(""));
+      settings.EnsureString(PROPERTY_SANDBOX_TOKEN, _T(""));
+      settings.EnsureLong(PROPERTY_SANDBOX_TIMEOUT_MINUTES, 15);
+      settings.EnsureLong(PROPERTY_SANDBOX_TIMEOUT_ACTION, 0);
+      settings.EnsureLong(PROPERTY_SANDBOX_MAX_SIZE_KB, 20480);
+      settings.EnsureString(PROPERTY_SANDBOX_TYPES, _T("exe,dll,scr,js,jse,vbs,wsf,hta,msi,bat,cmd,ps1,jar,lnk,iso,img,docm,xlsm,pptm,doc,xls,ppt,rtf,pdf,zip,7z,rar"));
+      settings.EnsureLong(PROPERTY_SANDBOX_POLL_SECONDS, 30);
+      settings.EnsureLong(PROPERTY_SANDBOX_SCORE_THRESHOLD, 70);
+      settings.EnsureLong(PROPERTY_SANDBOX_CACHE_HOURS, 24);
+      settings.EnsureLong(PROPERTY_SANDBOX_INTERNAL_MAIL, 0);
+      settings.EnsureLong(PROPERTY_SANDBOX_MAX_FILES, 10);
 
       // The SNMP agent (Util/SnmpAgent.h): OFF, and even when it is switched on
       // it answers nobody until a manager's address is in the allow list - an
@@ -337,17 +368,17 @@ namespace HM
       // SNMPv2c off with no community, and no contact or location. No schema step
       // seeds these; the agent reads them at every start, and a read of a missing
       // property reports HM5015 every time.
-      property_set_->EnsureLong(PROPERTY_SNMP_ENABLED, 0);
-      property_set_->EnsureLong(PROPERTY_SNMP_PORT, 161);
-      property_set_->EnsureString(PROPERTY_SNMP_BIND_ADDRESS, _T(""));
-      property_set_->EnsureString(PROPERTY_SNMP_ALLOWED_ADDRESSES, _T(""));
-      property_set_->EnsureString(PROPERTY_SNMP_V3_USER, _T(""));
-      property_set_->EnsureString(PROPERTY_SNMP_V3_AUTH_PASSWORD, _T(""));
-      property_set_->EnsureString(PROPERTY_SNMP_V3_PRIV_PASSWORD, _T(""));
-      property_set_->EnsureLong(PROPERTY_SNMP_V2C_ENABLED, 0);
-      property_set_->EnsureString(PROPERTY_SNMP_V2C_COMMUNITY, _T(""));
-      property_set_->EnsureString(PROPERTY_SNMP_CONTACT, _T(""));
-      property_set_->EnsureString(PROPERTY_SNMP_LOCATION, _T(""));
+      settings.EnsureLong(PROPERTY_SNMP_ENABLED, 0);
+      settings.EnsureLong(PROPERTY_SNMP_PORT, 161);
+      settings.EnsureString(PROPERTY_SNMP_BIND_ADDRESS, _T(""));
+      settings.EnsureString(PROPERTY_SNMP_ALLOWED_ADDRESSES, _T(""));
+      settings.EnsureString(PROPERTY_SNMP_V3_USER, _T(""));
+      settings.EnsureString(PROPERTY_SNMP_V3_AUTH_PASSWORD, _T(""));
+      settings.EnsureString(PROPERTY_SNMP_V3_PRIV_PASSWORD, _T(""));
+      settings.EnsureLong(PROPERTY_SNMP_V2C_ENABLED, 0);
+      settings.EnsureString(PROPERTY_SNMP_V2C_COMMUNITY, _T(""));
+      settings.EnsureString(PROPERTY_SNMP_CONTACT, _T(""));
+      settings.EnsureString(PROPERTY_SNMP_LOCATION, _T(""));
 
       // Zero-access mailboxes: OFF. A mailbox with this on is one the
       // administrator cannot read, search, export or recover, and a lost
@@ -355,145 +386,145 @@ namespace HM
       // chooses that with its eyes open, once, here. Schema 6083 seeds the
       // same row; this is here because a read of a missing property reports
       // HM5015 every time.
-      property_set_->EnsureLong(PROPERTY_ZERO_ACCESS_ALLOWED, 0);
+      settings.EnsureLong(PROPERTY_ZERO_ACCESS_ALLOWED, 0);
 
       // Mailbox encryption at rest: an open key closes fifteen minutes after
       // its last use once no session holds it. Schema 6099 seeds the same row;
       // this is here because every sweep reads it.
-      property_set_->EnsureLong(PROPERTY_MAILBOX_KEY_IDLE_MINUTES, 15);
+      settings.EnsureLong(PROPERTY_MAILBOX_KEY_IDLE_MINUTES, 15);
 
       // The quota policy's two server-wide shares. Both 0, which is the server
       // as it has always been: no grace past a mailbox's limit, and no point at
       // which an account stops being able to send. A domain that sets its own
       // overrides them; these are what a domain that sets none inherits.
-      property_set_->EnsureLong(PROPERTY_QUOTA_GRACE_PERCENT, 0);
-      property_set_->EnsureLong(PROPERTY_QUOTA_SEND_STOP_PERCENT, 0);
+      settings.EnsureLong(PROPERTY_QUOTA_GRACE_PERCENT, 0);
+      settings.EnsureLong(PROPERTY_QUOTA_SEND_STOP_PERCENT, 0);
 
       // Brand logos: on. Nothing is fetched until a reader opens a list holding
       // mail this server judged dmarc=pass and recorded so, which needs the
       // Authentication-Results header on; then one lookup a day per domain.
-      property_set_->EnsureLong(PROPERTY_BRAND_LOGOS_ENABLED, 1);
+      settings.EnsureLong(PROPERTY_BRAND_LOGOS_ENABLED, 1);
 
       // Other accounts a reader adds in the webmail: three each, on public hosts
       // only. A private address is the administrator's to allow - an old mail
       // server inside the network being moved from - because the server makes the
       // connection, from inside that network, on the reader's word.
-      property_set_->EnsureLong(PROPERTY_READER_FETCH_ACCOUNTS_MAX, 3);
-      property_set_->EnsureLong(PROPERTY_READER_FETCH_PRIVATE_ADDRESSES, 0);
+      settings.EnsureLong(PROPERTY_READER_FETCH_ACCOUNTS_MAX, 3);
+      settings.EnsureLong(PROPERTY_READER_FETCH_PRIVATE_ADDRESSES, 0);
 
       // Importing with a sign-in: nothing is offered until an administrator
       // registers this server with a provider and says where it is reached from.
       // The endpoints are the providers' public ones.
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_REDIRECT_BASE_URL, _T(""));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_REDIRECT_BASE_URL, _T(""));
 
       // Addresses elsewhere a reader proves with a code and sends as: five each.
-      property_set_->EnsureLong(PROPERTY_READER_SENDER_ADDRESSES_MAX, 5);
+      settings.EnsureLong(PROPERTY_READER_SENDER_ADDRESSES_MAX, 5);
 
       // Masked addresses a reader makes for one sign-up each: twenty.
-      property_set_->EnsureLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, 20);
+      settings.EnsureLong(PROPERTY_READER_MASKED_ADDRESSES_MAX, 20);
 
       // Deleted items kept for recovery: off, as the roadmap row says, since it
       // keeps a copy of everything a person deletes for as long as it says.
-      property_set_->EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
+      settings.EnsureLong(PROPERTY_RECOVER_DELETED_DAYS, 0);
 
       // The organisation's directory: on, as Outlook's and Google's are, and
       // bounded to the reader's own domain. A server whose one domain holds
       // people who are not one organisation turns it off (DirectoryStore.h).
-      property_set_->EnsureLong(PROPERTY_DIRECTORY_ENABLED, 1);
+      settings.EnsureLong(PROPERTY_DIRECTORY_ENABLED, 1);
 
       // And a person may set their own title, telephone numbers and photo. Off
       // leaves those to the administrator; the opt-out stays the person's
       // either way.
-      property_set_->EnsureLong(PROPERTY_DIRECTORY_USER_EDITABLE, 1);
+      settings.EnsureLong(PROPERTY_DIRECTORY_USER_EDITABLE, 1);
 
       // The recovery address and the recovery codes: offered, but inert until a
       // person sets an address and proves it, and until the server has a public
       // address for the links to point at.
-      property_set_->EnsureLong(PROPERTY_ACCOUNT_RECOVERY_ENABLED, 1);
-      property_set_->EnsureLong(PROPERTY_RECOVERY_RESET_LINK_MINUTES, 30);
-      property_set_->EnsureLong(PROPERTY_RECOVERY_VERIFY_LINK_HOURS, 24);
+      settings.EnsureLong(PROPERTY_ACCOUNT_RECOVERY_ENABLED, 1);
+      settings.EnsureLong(PROPERTY_RECOVERY_RESET_LINK_MINUTES, 30);
+      settings.EnsureLong(PROPERTY_RECOVERY_VERIFY_LINK_HOURS, 24);
 
       // Offline in the webmail: the last thirty days, as the roadmap row says;
       // the reader chooses under it, and chooses nothing until they do.
-      property_set_->EnsureLong(PROPERTY_READER_OFFLINE_DAYS_MAX, 30);
+      settings.EnsureLong(PROPERTY_READER_OFFLINE_DAYS_MAX, 30);
 
       // The sample domain: none made. Not a setting anybody sets - the row is
       // the marker SampleDomain writes when it makes example.test and clears
       // when it removes it, kept in hm_settings because that is where a value
       // the server has to find again on every start lives.
-      property_set_->EnsureLong(PROPERTY_SAMPLE_DOMAIN_ID, 0);
+      settings.EnsureLong(PROPERTY_SAMPLE_DOMAIN_ID, 0);
 
       // Messages that expire: no base URL of their own until one is set; the
       // digest's or the import sign-in's serves until then.
-      property_set_->EnsureString(PROPERTY_CONFIDENTIAL_BASE_URL, _T(""));
+      settings.EnsureString(PROPERTY_CONFIDENTIAL_BASE_URL, _T(""));
 
       // Outbound content policy: no account-number pattern until one is set;
       // the card and IBAN detectors need none.
-      property_set_->EnsureString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN, _T(""));
+      settings.EnsureString(PROPERTY_DLP_ACCOUNT_NUMBER_PATTERN, _T(""));
 
       // The reports our own domains receive: a year, which is what the paid
       // services keep, by the day the report was read. Nothing is read until a
       // domain names a report mailbox, so the row costs an upgraded server nothing.
-      property_set_->EnsureLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS, 365);
+      settings.EnsureLong(PROPERTY_DOMAIN_REPORT_RETENTION_DAYS, 365);
       // Compromised-account detection: WATCH by default. The baseline is
       // recorded and a takeover shape raises the alert saying what enforcing
       // would have done; nothing is held and nobody is locked until an
       // administrator has read that and set the mode to enforce, because the
       // false positive of this control is a person locked out of their mail.
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_DETECTION_MODE, 1);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_BASELINE_DAYS, 30);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_MINIMUM_HISTORY, 20);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_VOLUME_FACTOR, 4);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_VOLUME_FLOOR, 30);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_RECIPIENT_FLOOR, 20);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_NEW_RECIPIENT_SHARE, 80);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_SCORE_TO_LOCK, 3);
-      property_set_->EnsureLong(PROPERTY_COMPROMISE_HELD_DAYS, 7);
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL, _T("https://oauth2.googleapis.com/token"));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID, _T(""));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET, _T(""));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"));
-      property_set_->EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/token"));
+      settings.EnsureLong(PROPERTY_COMPROMISE_DETECTION_MODE, 1);
+      settings.EnsureLong(PROPERTY_COMPROMISE_BASELINE_DAYS, 30);
+      settings.EnsureLong(PROPERTY_COMPROMISE_MINIMUM_HISTORY, 20);
+      settings.EnsureLong(PROPERTY_COMPROMISE_VOLUME_FACTOR, 4);
+      settings.EnsureLong(PROPERTY_COMPROMISE_VOLUME_FLOOR, 30);
+      settings.EnsureLong(PROPERTY_COMPROMISE_RECIPIENT_FLOOR, 20);
+      settings.EnsureLong(PROPERTY_COMPROMISE_NEW_RECIPIENT_SHARE, 80);
+      settings.EnsureLong(PROPERTY_COMPROMISE_SCORE_TO_LOCK, 3);
+      settings.EnsureLong(PROPERTY_COMPROMISE_HELD_DAYS, 7);
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_ID, _T(""));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_CLIENT_SECRET, _T(""));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_AUTHORIZE_URL, _T("https://accounts.google.com/o/oauth2/v2/auth"));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_GOOGLE_TOKEN_URL, _T("https://oauth2.googleapis.com/token"));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_ID, _T(""));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_CLIENT_SECRET, _T(""));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_AUTHORIZE_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"));
+      settings.EnsureString(PROPERTY_IMPORT_OAUTH_MICROSOFT_TOKEN_URL, _T("https://login.microsoftonline.com/common/oauth2/v2.0/token"));
 
       // Passkeys: offered, because offering one changes nothing until somebody
       // enrols one, and a person who never does signs in with their password
       // exactly as before. The relying party id is empty, which means the host
       // the page was served on.
-      property_set_->EnsureLong(PROPERTY_PASSKEYS_ENABLED, 1);
-      property_set_->EnsureString(PROPERTY_PASSKEY_RELYING_PARTY, _T(""));
+      settings.EnsureLong(PROPERTY_PASSKEYS_ENABLED, 1);
+      settings.EnsureString(PROPERTY_PASSKEY_RELYING_PARTY, _T(""));
 
       // The origins a passkey may be used at: empty, which means the host the
       // page was served on, until a relying party is set - and then they must
       // be named, since a parent-domain relying party is one every sibling of
       // this server could ask a passkey for (PasskeyStore.h).
-      property_set_->EnsureString(PROPERTY_PASSKEY_ALLOWED_ORIGINS, _T(""));
+      settings.EnsureString(PROPERTY_PASSKEY_ALLOWED_ORIGINS, _T(""));
 
       // Single sign-on: off, because there is no issuer until an administrator
       // names one, and no account is created for a stranger who signs in at one
       // until auto-provisioning is switched on as well.
-      property_set_->EnsureString(PROPERTY_OIDC_ISSUER, _T(""));
-      property_set_->EnsureString(PROPERTY_OIDC_CLIENT_ID, _T(""));
-      property_set_->EnsureString(PROPERTY_OIDC_CLIENT_SECRET, _T(""));
-      property_set_->EnsureString(PROPERTY_OIDC_SCOPES, _T("openid email"));
-      property_set_->EnsureLong(PROPERTY_OIDC_AUTO_PROVISION, 0);
-      property_set_->EnsureString(PROPERTY_OIDC_ADMINISTRATORS, _T(""));
-      property_set_->EnsureString(PROPERTY_OIDC_REDIRECT_BASE_URL, _T(""));
+      settings.EnsureString(PROPERTY_OIDC_ISSUER, _T(""));
+      settings.EnsureString(PROPERTY_OIDC_CLIENT_ID, _T(""));
+      settings.EnsureString(PROPERTY_OIDC_CLIENT_SECRET, _T(""));
+      settings.EnsureString(PROPERTY_OIDC_SCOPES, _T("openid email"));
+      settings.EnsureLong(PROPERTY_OIDC_AUTO_PROVISION, 0);
+      settings.EnsureString(PROPERTY_OIDC_ADMINISTRATORS, _T(""));
+      settings.EnsureString(PROPERTY_OIDC_REDIRECT_BASE_URL, _T(""));
 
       // SAML sign-in: off, for the same reason - no identity provider until an
       // administrator names one - and with an Assertion's own signature
       // demanded, provisioning off and nobody opening the Control Deck.
-      property_set_->EnsureString(PROPERTY_SAML_IDP_ENTITY_ID, _T(""));
-      property_set_->EnsureString(PROPERTY_SAML_IDP_SSO_URL, _T(""));
-      property_set_->EnsureString(PROPERTY_SAML_IDP_CERTIFICATE, _T(""));
-      property_set_->EnsureString(PROPERTY_SAML_SP_ENTITY_ID, _T(""));
-      property_set_->EnsureString(PROPERTY_SAML_EMAIL_ATTRIBUTE, _T("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"));
-      property_set_->EnsureLong(PROPERTY_SAML_REQUIRE_SIGNED_ASSERTION, 1);
-      property_set_->EnsureLong(PROPERTY_SAML_AUTO_PROVISION, 0);
-      property_set_->EnsureString(PROPERTY_SAML_ADMINISTRATORS, _T(""));
-      property_set_->EnsureString(PROPERTY_SAML_BUTTON_LABEL, _T("Sign in with SAML"));
+      settings.EnsureString(PROPERTY_SAML_IDP_ENTITY_ID, _T(""));
+      settings.EnsureString(PROPERTY_SAML_IDP_SSO_URL, _T(""));
+      settings.EnsureString(PROPERTY_SAML_IDP_CERTIFICATE, _T(""));
+      settings.EnsureString(PROPERTY_SAML_SP_ENTITY_ID, _T(""));
+      settings.EnsureString(PROPERTY_SAML_EMAIL_ATTRIBUTE, _T("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"));
+      settings.EnsureLong(PROPERTY_SAML_REQUIRE_SIGNED_ASSERTION, 1);
+      settings.EnsureLong(PROPERTY_SAML_AUTO_PROVISION, 0);
+      settings.EnsureString(PROPERTY_SAML_ADMINISTRATORS, _T(""));
+      settings.EnsureString(PROPERTY_SAML_BUTTON_LABEL, _T("Sign in with SAML"));
    }
 
    void
@@ -507,7 +538,7 @@ namespace HM
       }
       else if (sPropertyName == PROPERTY_LOGDEVICE)
       {
-         // Activate the configured log device. PropertySet::Refresh() raises a
+         // Activate the configured log device. Configuration::Load raises a
          // change event for every property when the settings are loaded, so this
          // carries the stored value at startup as well as on change - exactly how
          // PROPERTY_LOGGING above gets its initial value. Having the Logger read
@@ -529,15 +560,16 @@ namespace HM
          Application::Instance()->OnPropertyChanged(pProperty);
       } 
 
-      if (smtp_configuration_)
-         smtp_configuration_->OnPropertyChanged(pProperty);
+      std::shared_ptr<SMTPConfiguration> smtpConfiguration = GetSMTPConfiguration();
+      if (smtpConfiguration)
+         smtpConfiguration->OnPropertyChanged(pProperty);
    }
 
 
    std::shared_ptr<PropertySet>
    Configuration::GetSettings() const
    {
-      return property_set_;
+      return Published_(property_set_);
    }
 
    std::shared_ptr<TCPIPPorts>
@@ -1362,19 +1394,26 @@ namespace HM
       // when every load ran the engine, and a script that does not compile is
       // reported now rather than at the next reload. Every switch comes through
       // here - COM's Scripting.Enabled, the REST scripting group, and an
-      // environment or a profile, which apply through that group's row. Should
+      // environment, which applies through that group's row (no profile has the
+      // switch's row; one that had would come through here too) - but a
+      // backup's restore, which writes the value it holds (PropertySet::XMLLoad)
+      // and then reinitialises the server, whose load reads the switch. Should
       // the store then refuse the switch (a setting the environment manages),
       // scripting stays off, and nothing runs the script that was loaded. A
       // reload or a reinitialise on another thread that read the switch as off
       // cannot leave its uncompiled text in force once the switch is on
-      // (ScriptServer::SwitchOn).
-      if (newVal && !GetUseScriptServer())
+      // (ScriptServer::SwitchOn). Every store of on goes through SwitchOn, even
+      // with the switch already on - which SwitchOn reads itself, and then loads
+      // nothing first: a plain store here, after a read of on that a switch-off
+      // on another thread made stale, let a load made with scripting off leave
+      // its uncompiled text in force under the switch.
+      if (newVal)
       {
          ScriptServer::Instance()->SwitchOn([this]() { GetSettings()->SetBool(PROPERTY_USESCRIPTSERVER, true); });
          return;
       }
 
-      GetSettings()->SetBool(PROPERTY_USESCRIPTSERVER, newVal);
+      GetSettings()->SetBool(PROPERTY_USESCRIPTSERVER, false);
    }
 
    bool
@@ -1852,7 +1891,7 @@ namespace HM
    bool 
    Configuration::GetMessageIndexing()
    {
-      return property_set_->GetBool(PROPERTY_MESSAGE_INDEXING);
+      return GetSettings()->GetBool(PROPERTY_MESSAGE_INDEXING);
    }
 
    void 
@@ -1863,7 +1902,7 @@ namespace HM
       else
          MessageIndexer::Instance()->Stop();
 
-      property_set_->SetBool(PROPERTY_MESSAGE_INDEXING, enable);
+      GetSettings()->SetBool(PROPERTY_MESSAGE_INDEXING, enable);
    }
 
    bool
@@ -3176,7 +3215,7 @@ namespace HM
       // BackupExecuter deletes the archive it was building when this returns false.
 
       // PROPERTIES
-      if (!property_set_->XMLStore(pBackupNode))
+      if (!GetSettings()->XMLStore(pBackupNode))
          return false;
 
       // hMailServer.INI's [Settings] section, which is in the database from schema
@@ -3204,22 +3243,22 @@ namespace HM
       if (!GetTCPIPPorts()->XMLStore(pBackupNode, 0))
          return false;
 
-      if (!ssl_certificates_->XMLStore(pBackupNode, 0))
+      if (!GetSSLCertificates()->XMLStore(pBackupNode, 0))
          return false;
 
-      if (!blocked_attachments_->XMLStore(pBackupNode, 0))
+      if (!GetBlockedAttachments()->XMLStore(pBackupNode, 0))
          return false;
 
-      if (!smtp_configuration_->XMLStore(pBackupNode, 0))
+      if (!GetSMTPConfiguration()->XMLStore(pBackupNode, 0))
          return false;
 
-      if (!imap_configuration_->XMLStore(pBackupNode, 0))
+      if (!GetIMAPConfiguration()->XMLStore(pBackupNode, 0))
          return false;
 
       if (!anti_spam_configuration_.XMLStore(pBackupNode, 0))
          return false;
 
-      if (!cache_configuration_->XMLStore(pBackupNode, 0))
+      if (!GetCacheConfiguration()->XMLStore(pBackupNode, 0))
          return false;
 
       return true;
@@ -3229,7 +3268,7 @@ namespace HM
    Configuration::XMLLoad(XNode *pBackupNode, int iRestoreOptions)
    {
       // PROPERTIES
-      if (!property_set_->XMLLoad(pBackupNode))
+      if (!GetSettings()->XMLLoad(pBackupNode))
          return false;
 
       // [Settings]. Absent from an archive taken before schema 6011, in which case
@@ -3255,28 +3294,30 @@ namespace HM
 
       // SSL certs must be restored before TCP/IP ports, since the
       // TCP/IP ports refers to the SSL certs.
-      ssl_certificates_->Refresh();
-      if (!ssl_certificates_->XMLLoad(pBackupNode, iRestoreOptions))
+      std::shared_ptr<SSLCertificates> sslCertificates = GetSSLCertificates();
+      sslCertificates->Refresh();
+      if (!sslCertificates->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       // TCP/IP ports
       if (!GetTCPIPPorts()->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
-      blocked_attachments_->Refresh();
-      if (!blocked_attachments_->XMLLoad(pBackupNode, iRestoreOptions))
+      std::shared_ptr<BlockedAttachments> blockedAttachments = GetBlockedAttachments();
+      blockedAttachments->Refresh();
+      if (!blockedAttachments->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
-      if (!smtp_configuration_->XMLLoad(pBackupNode, iRestoreOptions))
+      if (!GetSMTPConfiguration()->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
-      if (!imap_configuration_->XMLLoad(pBackupNode, iRestoreOptions))
+      if (!GetIMAPConfiguration()->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       if (!anti_spam_configuration_.XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
-      if (!cache_configuration_->XMLLoad(pBackupNode, iRestoreOptions))
+      if (!GetCacheConfiguration()->XMLLoad(pBackupNode, iRestoreOptions))
          return false;
 
       return true;

@@ -754,6 +754,7 @@
     <Compile Include="API\RestApiGreylistBypass.cs" />
     <Compile Include="API\RestApiFetchAccounts.cs" />
     <Compile Include="API\RestApiSettings.cs" />
+    <Compile Include="API\SettingsDuringReinitialize.cs" />
     <Compile Include="API\RestApiRules.cs" />
     <Compile Include="API\RestApiCertificatesAndPorts.cs" />
     <Compile Include="API\RestApiRoutesAndAliases.cs" />

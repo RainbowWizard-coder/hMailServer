@@ -12,13 +12,15 @@ deny this logon, keep that download on the remote server. A rule's "Run function
 action calls a function of the same file by name.
 
 No handler is called until you switch scripting on: the switch is off as shipped,
-and with it off no handler is called for any event. The file is loaded all the same -
+and with it off no handler is called for any event. With it off the file is read -
 at start, at every reload, at `Reload()` and at `POST /api/v1/settings/scripting/reload` -
-and on every engine loading a file runs its code outside functions: once to compile
-it and once more for each of the fifteen handlers looked for, switch on or off. Keep
-that code to declarations. A top level that throws, or runs past the timeout, is
-reported then as a load that failed (HM5016, HM5710 or HM5021), whether scripting is
-on or not.
+but no engine runs it and nothing in it is checked. Switching scripting on - the
+Control Panel, COM's `Scripting.Enabled`, `PUT /api/v1/settings/scripting` or the
+environment - loads the file before the switch takes effect, and so does
+every load while it is on: on every engine loading a file runs its code outside
+functions, once to compile it and once more for each of the fifteen handlers looked
+for. Keep that code to declarations. A top level that throws, or runs past the
+timeout, is reported then as a load that failed (HM5016, HM5710 or HM5021).
 
 ---
 
@@ -46,14 +48,15 @@ Storing the language loads nothing. The script in force goes on running, in the
 language it was loaded in, until the next load; every event is called in that
 language, never in the one the setting names meanwhile.
 
-A language the build does not run is refused **when the script is loaded** - at
-start, at every reload, at `Reload()` and `POST /api/v1/settings/scripting/reload` -
-with one line in the ERROR log (HM5016, or HM5710 when an earlier script stays in
-force, as it then does), naming the language to use instead, whether the file for it
-exists or not. Not once per event: the load refuses, nothing of the new file is
-registered, and no event tries it. While scripting is switched off the file is left
-alone and nothing is reported; a script loaded then in a language the build does not
-run registers no handler, and if scripting is switched on without a reload, the first
+A language the build does not run is refused **when the script is loaded with
+scripting on** - when scripting is switched on, and while it is on at start, at every
+reload, at `Reload()` and `POST /api/v1/settings/scripting/reload` - with one line in
+the ERROR log (HM5016, or HM5710 when an earlier script stays in force, as it then
+does), naming the language to use instead, whether the file for it exists or not. Not
+once per event: the load refuses, nothing of the new file is registered, and no event
+tries it. While scripting is switched off the file is read but not run and nothing is
+reported; a script loaded then registers no handler, and if the load that switches
+scripting on refuses the file, that script stays in force, never compiled: the first
 event that reaches it - a rule's "Run function" action, the one call no handler gates
 - is reported (HM5018) and the rest are skipped without a line until the next load.
 
@@ -87,7 +90,8 @@ hmctl settings set scripting --set enabled=true
 hmctl settings get scripting current_script_file
 ```
 
-Then `POST /api/v1/settings/scripting/reload` loads the file, and
+Switching scripting on loads the file, `POST /api/v1/settings/scripting/reload`
+loads it again after an edit, and
 `POST /api/v1/settings/scripting/check` answers `{"result":""}` when it compiles
 and the error, with its line, when it does not. Over REST alone the first and
 fourth steps are `PUT /api/v1/settings/scripting` with `{"language":"JavaScript"}`
@@ -400,7 +404,7 @@ is that the script cannot reach past the objects it is given.
 
 | What | Where |
 |---|---|
-| A script that does not compile, or whose top level throws | HM5016 at start (nothing loaded), HM5710 at a reload (the earlier script stays in force) - one line naming the file, the error, `Line: n Column: n` and the stack |
+| A script that does not compile, or whose top level throws - loaded with scripting on, or when scripting is switched on | HM5016 at start (nothing loaded), HM5710 at a reload or a switch (the earlier script stays in force) - one line naming the file, the error, `Line: n Column: n` and the stack |
 | A script whose handlers could not be looked for - a later run of its top level threw, or reached the memory ceiling | HM5016 or HM5710, as a script that does not compile: the load is refused rather than installed with a handler switched off |
 | A language this build does not run | HM5016 or HM5710, once per load, naming the language to use, whether the file for it exists or not |
 | A top level that runs past the timeout | HM5021, and the load refused |
@@ -408,7 +412,7 @@ is that the script cannot reach past the objects it is given.
 | A handler stopped at the timeout | HM7341 |
 | A handler stopped at the memory ceiling | HM7342 |
 | The engine could not be started (memory) | HM7340 |
-| An event that reaches a script loaded, while scripting was off, in a language this build does not run - in practice a rule's "Run function" | HM5018, once per load |
+| An event that reaches a script loaded while scripting was off and never compiled since - the load that switched scripting on refused it, in a language this build does not run or one that does not compile - in practice a rule's "Run function" | HM5018, once per load |
 | On Windows, an event whose call was built for VBScript while a reload installed JScript, or the reverse | HM5018, once per load; that one event is skipped rather than run in the other language |
 | On Windows, a rule's "Run function" whose name is not a plain identifier | HM5018, each time the rule matches; the function is not run |
 | On Linux, a rule's "Run function" whose name is not a plain identifier | a `Script Error: ... ReferenceError - Description: <name> is not a function defined in the event script` line in the ERROR log, each time the rule matches; the name is never evaluated and nothing is run |

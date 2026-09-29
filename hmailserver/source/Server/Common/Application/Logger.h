@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "../Util/File.h"
 #include "../Application/IniFileSettings.h"
 
@@ -103,15 +105,15 @@ namespace HM
       void SetLogMask(int iMask);
 
       // Both are driven by Configuration::OnPropertyChanged, which
-      // PropertySet::Refresh() raises for every setting at load time as well as
+      // Configuration::Load raises for every setting at load time as well as
       // on change - so these also carry the stored value at startup. Reading the
       // settings from inside the Logger instead is not an option: the Logger logs
       // during startup, before the property set exists.
       void SetLogDevice(int device);
       void SetLogFormat(int format);
 
-      int GetLogDevice() const { return log_device_; }
-      int GetLogFormat() const { return log_format_; }
+      int GetLogDevice() const { return log_device_.load(std::memory_order_relaxed); }
+      int GetLogFormat() const { return log_format_.load(std::memory_order_relaxed); }
 
       // Writes an already-rendered line straight to the file device, bypassing
       // device selection. Used by the SQL log device when it has to fall back to
@@ -153,7 +155,7 @@ namespace HM
 
       int GetLogMask() 
       {
-         return log_mask_;
+         return log_mask_.load(std::memory_order_relaxed);
       }
 
       String GetCurrentLogFileName(LogType lt) ;
@@ -225,15 +227,20 @@ namespace HM
       int  max_log_line_len_;      
 
       String live_log_;
-      int log_mask_;
 
-      // Written by whichever thread applies a settings change, read by every
-      // thread that logs. Deliberately plain ints and not synchronised, exactly
-      // as log_mask_ above already is: both are aligned 32-bit values that cannot
-      // tear, and the worst a racing reader can see is one entry rendered or
-      // routed by the previous setting.
-      int log_device_;
-      int log_format_;
+      // Written by whichever thread applies a settings change - and by
+      // Configuration::Load at every start and reinitialise, from the change events
+      // it raises - and read by every thread that logs. Atomics: a racing reader
+      // still sees at worst one entry filtered, rendered or routed by the previous
+      // setting, which is what the plain ints these were promised; but a plain int
+      // written on one thread and read on another is a data race, which
+      // ThreadSanitizer reported on a reinitialise (29 September 2026). The three
+      // getters read them relaxed, and Logger.cpp's tests of them are ordinary atomic
+      // loads - on x64 either is the plain load instruction, on ARM64 the second is
+      // a load-acquire; no read-modify-write is made of any of them.
+      std::atomic<int> log_mask_;
+      std::atomic<int> log_device_;
+      std::atomic<int> log_format_;
 
       File normal_log_file_;
       File error_log_file_;

@@ -21,5 +21,10 @@ namespace HM
    private:
 
       std::set<String> tld_;
+
+      // Guards tld_: Configuration::Load reads the list again at a reinitialise
+      // while a spam test may be looking a name up in it. Held only to look up or
+      // to swap in the list read - a leaf.
+      boost::mutex tld_mutex_;
    };
 }

@@ -499,11 +499,14 @@ for a stray `#` number or `@` name.
   reasons. The installer smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh
   --database`).
 - **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script and runs
-  it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST, an environment
-  or a profile - loads it, compiled and searched, before the switch takes effect, and reports then a script that does
-  not compile, whatever reload runs beside the switch. A rule's Run function action against a script loaded while
-  scripting was off, which never compiled, is refused (HM5018) instead of being handed to the engine. An empty script
-  runs no engine.
+  it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST or an
+  environment - loads it, compiled and searched, before the switch takes effect, and reports then a script that does
+  not compile, whatever runs beside the switch - a reload, a reinitialise, a switch-off, another switch-on: a reload
+  that read the switch as off is made again once it is on, and of two loads that overlap, the script of the one
+  started last stays in force, unless it does not compile, which is reported. A rule's Run function action against a
+  script loaded while scripting was off, which never compiled, is refused (HM5018) instead of being handed to the
+  engine. An empty script runs no engine.
+
 - **Crash records that place the fault.** The crash oracle's record adds, after the fields it always had, what an
   access violation read, wrote or executed and where, the faulting address's image base and offset, and up to twelve
   frames of the faulting thread; the REST API writes to the application log which method and path it answered 500
@@ -511,7 +514,14 @@ for a stray `#` number or `@` name.
 - **Fixed: settings read while they were being reloaded.** hMailServer.ini's database and directory values, the
   administrator's second factor, and each value of the settings store and its map are read and written under locks,
   each value whole; a reinitialise or a COM Settings.Directories call could hand another thread an empty or freed
-  value. Several values read one after another are still not read as one set.
+  value. A reinitialise now builds the settings store, the SMTP, POP3, IMAP and cache configurations, the server
+  messages, blocked attachments, SSL certificates, DNS blacklists and SURBL servers, the local addresses and the
+  top-level domains whole before another thread can see them, and hands each over under a lock: a COM call made
+  during one - the Control Panel's or a script's - could copy a pointer while it was being replaced, or find the
+  settings not yet read and take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level,
+  device and format are read and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first
+  read. Several values read one after another are still not read as one set, and a setting changed during a
+  reinitialise, after the new settings were read, is stored but not in force until the next reinitialise or start.
 
 ### Build and tests
 

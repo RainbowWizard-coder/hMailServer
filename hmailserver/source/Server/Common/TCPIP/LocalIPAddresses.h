@@ -21,6 +21,12 @@ namespace HM
    private:
       
       std::vector<std::pair<IPAddress, int> > local_ports_;
+
+      // Guards local_ports_: LoadIPAddresses fills it again at every start of the
+      // servers and every reinitialise (Configuration::Load) while other threads
+      // walk it - COM's Utilities.IsLocalHost, and a connection being made. Held
+      // only to walk it or to swap in the list built - a leaf.
+      boost::mutex local_ports_mutex_;
    };
 
 

@@ -97,18 +97,25 @@ namespace HM
       // Refreshes the scripts in the event directory. With scripting switched off
       // no engine runs: the script's text and language are installed with no
       // handler registered, and switching scripting on (Configuration::
-      // SetUseScriptServer) loads it again, compiled and searched.
+      // SetUseScriptServer) loads it again, compiled and searched. A load that
+      // read the switch as off and finds scripting switched on since installs
+      // nothing and is made again, from the switch (switch_generation_); and a
+      // load installs nothing over the script of a load that started after it
+      // (load_ticket_), so of two loads that overlap, the script of the one
+      // started last stays in force - unless it was refused, and said so.
       void LoadScripts();
 
-      // Switches scripting on, for Configuration::SetUseScriptServer: store
-      // stores the switch. The script is loaded first as a load with scripting on
-      // loads it - compiled, searched for its handlers, refused and reported if it
-      // does not compile - so that the handlers are registered from the moment an
-      // event can see the switch on; and once more after store, when a load that
-      // read the switch as off installed its uncompiled text over this one in
-      // between (switch_generation_). store may throw
+      // Every switch of scripting to on, for Configuration::SetUseScriptServer:
+      // store stores the switch. When the switch reads off, the script is loaded
+      // first as a load with scripting on loads it - compiled, searched for its
+      // handlers, refused and reported if it does not compile - so that the
+      // handlers are registered from the moment an event can see the switch on.
+      // After store - whether or not the switch read on already - a load that read
+      // the switch as off before it cannot install its uncompiled text any more
+      // (switch_generation_), and if one installed it in between, the script is
+      // loaded once more (LoadScripts). store may throw
       // (EnvironmentSettings::Refusal, a setting the environment manages); the
-      // switch then stays off, and the exception is the caller's.
+      // switch then stays as it was, and the exception is the caller's.
       void SwitchOn(const std::function<void()> &store);
       
       String GetCurrentScriptFile() const;
@@ -191,15 +198,26 @@ namespace HM
       // whether to judge as scripting on does - a language this build does not run
       // is then refused - or as scripting off does, which lets it pass.
 
-      unsigned long LoadScripts_(bool scriptingOn, unsigned long generation);
+      // What a load did.
+      struct LoadOutcome
+      {
+         // The load installed its script: it is the one in force.
+         bool committed;
+
+         // A load with scripting off found scripting switched on since it read the
+         // switch, and installed nothing: LoadScripts makes it again.
+         bool switched_on;
+
+         // loads_committed_ as the commit left it, when committed.
+         unsigned long long count;
+      };
+
+      LoadOutcome LoadScripts_(bool scriptingOn, unsigned long long generation, unsigned long long ticket);
       // LoadScripts and SwitchOn: a load with scripting off (no engine, nothing
       // registered) or on (compiled and searched). generation, for a load with
       // scripting off, is switch_generation_ as it was read before the switch
-      // was. Returns loads_committed_ as this load left it: read in the hold that
-      // commits, or after a load that committed nothing.
-
-      unsigned long LoadsCommitted_() const;
-      // loads_committed_, read under state_mutex_.
+      // was; ticket is the load's own, taken before it read anything
+      // (load_ticket_).
 
       bool has_on_client_connect_;
       bool has_on_accept_message_;
@@ -235,20 +253,33 @@ namespace HM
       bool refusal_reported_;
 
       // How many loads have installed a script, with scripting on or off. SwitchOn
-      // compares it with the count its own load left, to see whether another load
-      // installed a script after it. Guarded by state_mutex_.
-      unsigned long loads_committed_;
+      // compares it with the count its own load left - or, when its load installed
+      // nothing, with the count from before it - to see whether another load
+      // installed a script since. Guarded by state_mutex_.
+      unsigned long long loads_committed_;
 
-      // Raised by SwitchOn once the switch is stored. A load with scripting off
-      // reads it before it reads the switch, and does not install its uncompiled
-      // text if it has moved by the time it would: scripting was switched on after
-      // that load read it as off, and the switch's own load installs the script
-      // compiled (or refuses it, and says so). Without it a reload or a
-      // reinitialise that read the switch as off
-      // just before SetUseScriptServer stored it on could install its text after
-      // the switch's load, leaving scripting on with no handler registered until
-      // the next load. Guarded by state_mutex_.
-      unsigned long switch_generation_;
+      // Raised by SwitchOn once the switch is stored, every time scripting is set
+      // on. A load with scripting off reads it before it reads the switch, and does
+      // not install its uncompiled text if it has moved by the time it would:
+      // scripting was switched on after that load read it as off. LoadScripts then
+      // makes the load again, and the switch now reads on, so a reload asked for
+      // beside a switch-on is not lost. Without it a reload or a reinitialise that
+      // read the switch as off just before SetUseScriptServer stored it on could
+      // install its text after the switch's load, leaving scripting on with no
+      // handler registered until the next load. Guarded by state_mutex_.
+      unsigned long long switch_generation_;
+
+      // The last ticket handed to a load: each load takes the next, with the
+      // generation, before it reads the switch or the file. ticket_in_force_ is the
+      // ticket of the load whose script is in force, and a load whose ticket is not
+      // later than it installs nothing: two loads that overlap - a reload beside a
+      // reinitialise, or a switch-on's load that read the file before a reload that
+      // finished first - used to install in the order they finished, so the text a
+      // load read before an edit could replace the text a later load read after it.
+      // A load that started after the edit is always the later one. Both guarded by
+      // state_mutex_.
+      unsigned long long load_ticket_;
+      unsigned long long ticket_in_force_;
 
       String script_contents_;
       String script_extension_;

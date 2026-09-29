@@ -28,7 +28,9 @@ namespace HM
    void
    LocalIPAddresses::LoadIPAddresses()
    {
-      local_ports_.clear();
+      // Built in a list of its own and swapped in whole, so that a walk on another
+      // thread never sees it half built.
+      std::vector<std::pair<IPAddress, int> > localPorts;
 
       std::vector<IPAddress> localAddresses;
 
@@ -79,23 +81,29 @@ namespace HM
             {
                IPAddress address = (*iter);
 
-               local_ports_.push_back(std::make_pair(address, portNumber));
+               localPorts.push_back(std::make_pair(address, portNumber));
 
-               local_ports_.push_back(std::make_pair(IPAddress(), portNumber));
+               localPorts.push_back(std::make_pair(IPAddress(), portNumber));
             }
          }
          else
          {
-            local_ports_.push_back(std::make_pair(pTCPIPPort->GetAddress(), pTCPIPPort->GetPortNumber()));
+            localPorts.push_back(std::make_pair(pTCPIPPort->GetAddress(), pTCPIPPort->GetPortNumber()));
          }
       }
 
-      
+      // The list replaced is let go of after the lock.
+      {
+         boost::lock_guard<boost::mutex> guard(local_ports_mutex_);
+         local_ports_.swap(localPorts);
+      }
    }
 
-   bool 
+   bool
    LocalIPAddresses::IsLocalIPAddress(const IPAddress &address)
    {
+      boost::lock_guard<boost::mutex> guard(local_ports_mutex_);
+
       auto iter = local_ports_.begin();
       auto iterEnd = local_ports_.end();
 
@@ -113,10 +121,12 @@ namespace HM
    bool 
    LocalIPAddresses::IsLocalPort(const IPAddress &address, int port)
    {
+      bool loopbackAddress = IsWithinLoopbackRange(address);
+
+      boost::lock_guard<boost::mutex> guard(local_ports_mutex_);
+
       auto iter = local_ports_.begin();
       auto iterEnd = local_ports_.end();
-
-      bool loopbackAddress = IsWithinLoopbackRange(address);
 
       for (; iter != iterEnd; iter++)
       {

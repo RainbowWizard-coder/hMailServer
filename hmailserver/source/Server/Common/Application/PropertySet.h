@@ -43,7 +43,17 @@ namespace HM
       PropertySet(void);
       ~PropertySet(void);
 
-      void Refresh();
+      // Reads every row of hm_settings into the set, in place of what it held, and
+      // returns the properties read. It raises no change event: Configuration::Load
+      // fills a set no other thread can see yet, and a handler reads settings of its
+      // own through the set Configuration publishes, so the events are raised once
+      // this one is published (RaiseChangeEvents).
+      std::vector<std::shared_ptr<Property> > Refresh();
+
+      // The change event of each property, as a setting changed by a write raises
+      // it: how the logger's mask, device and format and the caches' settings take
+      // the values a load read.
+      void RaiseChangeEvents(const std::vector<std::shared_ptr<Property> > &properties);
 
 
       long GetLong(const String &sPropertyName);
@@ -73,11 +83,11 @@ namespace HM
       // without a schema step of its own. It matters because of what GetProperty_
       // does when a property is missing: it reports HM5015 on EVERY read, so a
       // feature whose settings have no rows fills the error log of an installation
-      // that has never used it. Called from Configuration::Load, on the one thread
-      // that is running at that point, before any other thread can read the set -
-      // which is why this may write to items_ and the getters may not. That holds
-      // at a start; at a reinitialise Configuration::Load publishes the new set
-      // before it runs this, and items_mutex_ is what makes the insert safe then.
+      // that has never used it. Called from Configuration::Load on the set it is
+      // building, before the set is published and any other thread can read it -
+      // at a start and at a reinitialise alike - and by --apply-environment
+      // (EnvironmentSettings) on the published set, in a process of its own that
+      // opens no listener; the insert is made under items_mutex_ either way.
       void EnsureLong(const String &sPropertyName, long lValue);
 
       // Whether the set holds a row of this name - without the HM5015 a read
@@ -134,13 +144,13 @@ namespace HM
       // Every property the set holds, by name.
       std::map<String, std::shared_ptr<Property> > items_;
 
-      // Guards items_ - the map itself; each Property guards its own value.
-      // Configuration::Load publishes a new set before it has filled it (Refresh)
-      // and ensured its defaults (EnsureLong, EnsureString), and a profile's
-      // records are written into it on a request thread (WriteBookkeeping), while
-      // every other thread looks settings up in it; a lookup in a std::map that
-      // another thread is inserting into can follow a pointer the insert has just
-      // moved. Held only to find, copy or insert an entry: nothing is called under
+      // Guards items_ - the map itself; each Property guards its own value. A
+      // profile's records are written into the published set on a request thread
+      // (WriteBookkeeping) while every other thread looks settings up in it, and a
+      // lookup in a std::map that another thread is inserting into can follow a
+      // pointer the insert has just moved. (Configuration::Load fills a set and
+      // ensures its defaults before it publishes it.) Held only to find, copy or
+      // insert an entry: nothing is called under
       // it - not the database, not a change event, not the error report of a
       // missing name - so no other lock is ever taken under it: a leaf.
       mutable boost::mutex items_mutex_;
