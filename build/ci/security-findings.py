@@ -98,8 +98,18 @@ SEMGREP_UNPARSED = {"Lexical error", "Syntax error", "Other syntax error", "AST 
 # A partial parse that leaves more lines of a file unread than this is a hole: a
 # construct on a line or two the parser does not know is skipped, but one it loses a
 # block to is not (1.178.0 skipped lines 42 to 138 of container-image-sign.sh, all of
-# its commands, for one-line case statements, and said "warn").
+# its commands, for one-line case statements, and said "warn"). The lines are counted
+# once each: Semgrep names a line as often as it failed on it (1.178.0: line 276 of
+# build/linux-tu-census.sh three times), and a line named three times is one line.
 SEMGREP_PARTIAL_LINES = 10
+# Semgrep's names for a rule that did not finish with a file, which it reports at level
+# "warn": its own list of the errors that leave a file not fully scanned (semgrep/error.py,
+# is_scan_failure: a timeout, memory, the stack, a taint fixpoint that timed out), a rule
+# that failed while matching, and one that stopped at too many matches. 1.178.0 writes
+# "Out of memory" (measured, with --max-memory 20), not "OutOfMemory", which this read
+# before and which matched nothing.
+SEMGREP_GAVE_UP = {"Timeout", "Out of memory", "Stack overflow", "FixpointTimeout",
+                   "Internal matching error", "Too many matches"}
 
 
 def now():
@@ -329,25 +339,40 @@ def read_semgrep(path, remap=None, rule_prefix=""):
     for e in data.get("errors", []):
         # A hole in the scan, whatever level Semgrep gives it: a file it could not parse
         # at all, a partial parse that left more than SEMGREP_PARTIAL_LINES lines of a
-        # file unread, and a rule that gave up on a file (a timeout). Semgrep reports the
-        # first two at level "warn", and the job took them for a scan of the whole file.
-        # A partial parse of a line or two - a construct the parser does not know,
-        # skipped, and the rest of the file scanned - is not a hole.
+        # file unread, and a rule that did not finish with a file (SEMGREP_GAVE_UP).
+        # Semgrep reports all three at level "warn", and the job took them for a scan of
+        # the whole file. A partial parse of a line or two - a construct the parser does
+        # not know, skipped, and the rest of the file scanned - is not a hole.
         kind = e.get("type")
         typed_spans = kind[1] if isinstance(kind, list) and len(kind) > 1 and isinstance(kind[1], list) else []
         kind = kind[0] if isinstance(kind, list) and kind else kind
         level = str(e.get("level", "error")).lower()
         spans = [s for s in (e.get("spans") or typed_spans) if isinstance(s, dict)] or [{}]
-        unread = sum(max(0, (s.get("end") or {}).get("line", 0) - (s.get("start") or {}).get("line", 0) + 1)
-                     for s in spans if s.get("start") and s.get("end"))
-        if level not in ("error", "fatal") and kind not in ("Timeout", "OutOfMemory") and kind not in SEMGREP_UNPARSED \
+        # The lines the spans cover, each counted once: a span's end line is its last
+        # (1.178.0: lines 42 to 138 of container-image-sign.sh, "end" 138, column 9),
+        # and spans repeat and overlap.
+        ranges = sorted((s["start"]["line"], s["end"]["line"]) for s in spans
+                        if isinstance(s.get("start"), dict) and isinstance(s.get("end"), dict)
+                        and isinstance(s["start"].get("line"), int) and isinstance(s["end"].get("line"), int)
+                        and s["end"]["line"] >= s["start"]["line"])
+        unread, reach, merged = 0, 0, []
+        for first, last in ranges:
+            if last <= reach:
+                continue
+            first = max(first, reach + 1)
+            if merged and first == merged[-1][1] + 1:
+                merged[-1][1] = last
+            else:
+                merged.append([first, last])
+            unread += last - first + 1
+            reach = last
+        if level not in ("error", "fatal") and kind not in SEMGREP_GAVE_UP and kind not in SEMGREP_UNPARSED \
                 and not (kind == "PartialParsing" and unread > SEMGREP_PARTIAL_LINES):
             continue
         file = e.get("path") or spans[0].get("file") or spans[0].get("path", "")
         said = str(e.get("message", "")).split("\n")[0][:300]
         if kind == "PartialParsing":
-            said = "%d lines left unread (%s): %s" % (unread, ", ".join(
-                "%s-%s" % ((s.get("start") or {}).get("line"), (s.get("end") or {}).get("line")) for s in spans), said)
+            said = "%d lines left unread (%s): %s" % (unread, ", ".join("%d-%d" % (a, b) for a, b in merged), said)
         errors.append(finding("semgrep", rule_of(str(e.get("rule_id") or kind or "semgrep-error")), place(file),
                               (spans[0].get("start") or {}).get("line", 0), 0, "Unknown", "%s: %s" % (kind, said)))
     return findings, errors

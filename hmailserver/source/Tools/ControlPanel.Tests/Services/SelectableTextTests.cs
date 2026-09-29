@@ -424,9 +424,77 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotMatch(@"static\s+OffScreenReader_\s", source);
          string row = WithheldRowTests.MemberText(source, "private static string RowText_(ListBox list, object item, OffScreenReader_ reader)");
          Assert.True(row != null, "SelectableList.RowText_ is gone.");
+         Assert.Contains("view.View is GridView grid && item is not Visual && item is not Visual3D", row);
          Assert.True(row.IndexOf("item is Visual", StringComparison.Ordinal) >= 0
-                     && row.IndexOf("item is Visual", StringComparison.Ordinal) < row.IndexOf("reader.Built(", StringComparison.Ordinal),
+                     && row.IndexOf("item is Visual", StringComparison.Ordinal) < row.IndexOf("reader.Built(list,", StringComparison.Ordinal),
             "A row that is an element is put into the reader's presenter again.");
+      }
+
+      /// <summary>
+      /// A row handed to the reader's template reads as the same row built afresh would. Two
+      /// ways it did not, measured with templates of each kind against the old per-row build:
+      /// an element further in that builds what it shows when measured (a ContentControl
+      /// whose content is an object, or changes kind; an ItemsControl; a control the row
+      /// before hid) kept the row before's, because Measure stops at the elements it finds
+      /// unchanged and the reader's presenter is in no layout pass; and a row Equal to the
+      /// one before (a type compared by a key) kept the one before's words, because WPF
+      /// reads a binding again only for a data context that is not Equal to the old one.
+      /// No list in the Control Panel had such a template or such rows; every list is
+      /// registered, so the next one would have copied other rows' words.
+      /// </summary>
+      [Fact]
+      public void AHandedOverRow_ReadsAsOneBuiltAfresh()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "SelectableList.cs"));
+
+         string built = WithheldRowTests.MemberText(source, "public string Built(object key, object item, DataTemplate template, DataTemplateSelector selector)");
+         Assert.True(built != null, "SelectableList.OffScreenReader_.Built is gone.");
+         Assert.Contains("if (EqualButAnother_(presenter.Content, item))", built);
+         Assert.Contains("presenter.Content = null;", built);
+         Assert.Contains("MeasureWhole_(presenter);", built);
+         Assert.True(built.IndexOf("MeasureWhole_(presenter);", StringComparison.Ordinal) > built.IndexOf("presenter.Content = item;", StringComparison.Ordinal)
+                     && built.IndexOf("MeasureWhole_(presenter);", StringComparison.Ordinal) < built.IndexOf("TextsIn_(presenter, presenter)", StringComparison.Ordinal),
+            "The row is measured whole after it is handed over and before it is read.");
+
+         string bound = WithheldRowTests.MemberText(source, "public string Bound(object key, object item, BindingBase binding)");
+         Assert.True(bound != null, "SelectableList.OffScreenReader_.Bound is gone.");
+         Assert.Contains("if (EqualButAnother_(probe.DataContext, item))", bound);
+         Assert.Contains("probe.DataContext = null;", bound);
+
+         string equal = WithheldRowTests.MemberText(source, "private static bool EqualButAnother_(object before, object item)");
+         Assert.True(equal != null, "SelectableList.OffScreenReader_.EqualButAnother_ is gone.");
+         Assert.Contains("!ReferenceEquals(before, item) && Equals(before, item)", equal);
+
+         string whole = WithheldRowTests.MemberText(source, "private void MeasureWhole_(ContentPresenter presenter)");
+         Assert.True(whole != null, "SelectableList.OffScreenReader_.MeasureWhole_ is gone.");
+         Assert.Contains("Unmeasured_(presenter, presenter, unmeasured_);", whole);
+         Assert.Contains("InvalidateMeasure()", whole);
+
+         string unmeasured = WithheldRowTests.MemberText(source, "private static void Unmeasured_(DependencyObject node, DependencyObject row, List<UIElement> found)");
+         Assert.True(unmeasured != null, "SelectableList.OffScreenReader_.Unmeasured_ is gone.");
+         foreach (string kind in new[] { "!stale.IsMeasureValid", "node is Control", "node is ContentPresenter", "node is ItemsPresenter", "IsItemsHost: true" })
+            Assert.Contains(kind, unmeasured);
+      }
+
+      /// <summary>
+      /// A list view's row is read column by column, in the columns' order, on screen or not.
+      /// Read from the screen, a row gave its cells in the order they were made and nothing
+      /// for an empty one, so one copy of the AD picker's rows mixed two layouts: a row on
+      /// screen with no display name had its e-mail address under Name, and with the E-mail
+      /// column dragged to the front the rows on screen kept the old order and those out of
+      /// view took the new.
+      /// </summary>
+      [Fact]
+      public void AListViewsRow_IsReadColumnByColumn_OnScreenOrNot()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "SelectableList.cs"));
+         string row = WithheldRowTests.MemberText(source, "private static string RowText_(ListBox list, object item, OffScreenReader_ reader)");
+         Assert.True(row != null, "SelectableList.RowText_ is gone.");
+         int grid = row.IndexOf("view.View is GridView grid", StringComparison.Ordinal);
+         int screen = row.IndexOf("ContainerFromItem(item)", StringComparison.Ordinal);
+         Assert.True(grid >= 0 && screen >= 0 && grid < screen,
+            "A list view's row on screen is read from the screen again, not column by column.");
+         Assert.Contains("grid.Columns.Select(column => column.DisplayMemberBinding != null", row);
       }
 
       // ---- helpers -------------------------------------------------------------------------

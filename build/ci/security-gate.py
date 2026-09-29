@@ -595,7 +595,8 @@ def self_test():
         # The semgrep job's holes, which make its report's status "failure" and so hold
         # the release (security-findings.py, read_semgrep), as Semgrep 1.178.0 writes
         # them: a file it could not parse, and a partial parse that lost a block, each
-        # at level "warn"; a partial parse of one line is not a hole, a timeout is.
+        # at level "warn"; a partial parse of one line is not a hole, nor is one line
+        # named eleven times; a timeout, a rule out of memory or out of stack is.
         def span(first, last, key):
             return {key: "build/ci/sign.sh", "start": {"line": first, "col": 1, "offset": 0},
                     "end": {"line": last, "col": 9, "offset": 9}}
@@ -609,13 +610,28 @@ def self_test():
                 {"code": 3, "level": "warn", "type": ["PartialParsing", [span(102, 102, "path")]], "path": "build/ci/one.sh",
                  "spans": [span(102, 102, "file")], "message": "Syntax error at line build/ci/one.sh:102:"},
                 {"code": 2, "level": "warn", "type": "Timeout", "path": "src/Portal.js", "rule_id": "a-rule",
-                 "message": "Timeout when running a-rule on src/Portal.js"}]}, f)
+                 "message": "Timeout when running a-rule on src/Portal.js"},
+                {"code": 2, "level": "warn", "type": "Out of memory", "path": "src/Big.js",
+                 "message": "Out of memory at line src/Big.js:1:\n Exceeded memory limit"},
+                {"code": 2, "level": "warn", "type": "Stack overflow", "path": "src/Deep.py",
+                 "message": "Stack overflow at line src/Deep.py:1:\n"},
+                {"code": 3, "level": "warn", "type": ["PartialParsing", [span(276, 276, "path")] * 11],
+                 "path": "build/ci/same.sh", "spans": [span(276, 276, "file")] * 11, "message": "Syntax error"},
+                {"code": 3, "level": "warn", "type": ["PartialParsing", [span(1, 8, "path"), span(5, 10, "path")]],
+                 "path": "build/ci/ten.sh", "message": "Syntax error"},
+                {"code": 3, "level": "warn", "type": ["PartialParsing", [span(1, 8, "path"), span(20, 22, "path")]],
+                 "path": "build/ci/eleven.sh", "message": "Syntax error"}]}, f)
         _, holes = findings_module.read_semgrep(semgrep_json)
-        expect(sorted(h["path"] for h in holes) == ["build/ci/semgrep.sh", "build/ci/sign.sh", "src/Portal.js"],
-               "semgrep's holes are a file it could not parse, a partial parse of 97 lines and a timeout, not a partial "
-               "parse of one line: %s" % sorted((h["path"], h["message"][:60]) for h in holes))
+        expect(sorted(h["path"] for h in holes) == ["build/ci/eleven.sh", "build/ci/semgrep.sh", "build/ci/sign.sh",
+                                                    "src/Big.js", "src/Deep.py", "src/Portal.js"],
+               "semgrep's holes are a file it could not parse, a partial parse of 97 lines, one of 11 lines in two spans "
+               "given only in its type, a timeout, a rule out of memory and one out of stack - not a partial parse of "
+               "one line, of one line named eleven times, or of ten lines in two overlapping spans: %s"
+               % sorted((h["path"], h["message"][:60]) for h in holes))
         expect(any("97 lines left unread (42-138)" in h["message"] for h in holes),
                "a partial parse that is a hole says how many lines it left unread, and which")
+        expect(any("11 lines left unread (1-8, 20-22)" in h["message"] for h in holes),
+               "a partial parse whose spans are only in its type is read from there")
         for scan, name in BASELINES.items():
             with open(os.path.join(root, name), "w", encoding="utf-8") as f:
                 f.write("# baseline\n%s\tcppcheck\tbufferAccess\tsrc/a.cpp:2\tm\n" % old)

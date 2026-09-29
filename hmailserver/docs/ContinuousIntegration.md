@@ -2623,8 +2623,10 @@ fires on two identical lines of one file, their order counts too.
   clang-tidy could not parse, a file Semgrep could not parse or parsed leaving more
   than ten of its lines unread (Semgrep reports both only as a warning, and its
   bash parser cannot read a `case` written on one line, or an `if` whose condition
-  holds a here-document), or a Semgrep rule that timed out on a file. A hole is
-  never a pass, and no baseline excuses it.
+  holds a here-document; a line Semgrep names more than once is one line), or a
+  Semgrep rule that did not finish with a file - it timed out, ran out of memory
+  or of stack, failed while matching, or stopped at too many matches, each also
+  only a warning. A hole is never a pass, and no baseline excuses it.
 
 So the day `allow_failure` comes off a job, a new finding fails the pipeline and
 an old one does not.

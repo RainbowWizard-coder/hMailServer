@@ -100,12 +100,29 @@ namespace hMailServer.ControlPanel.Services
       /// A row's text as it is shown: every visible piece of text in the row, in the
       /// row's own order, tab-separated, leaving out the words of buttons, text boxes
       /// and icons in it. A row scrolled out of view (a list does not keep what it is
-      /// not showing) is built again from the list's own template to be read.
+      /// not showing) is built again from the list's own template to be read. A list
+      /// view's row is read column by column, in the columns' order, an empty one kept.
       /// </summary>
       public static string RowText(ListBox list, object item) => RowText_(list, item, new OffScreenReader_());
 
       private static string RowText_(ListBox list, object item, OffScreenReader_ reader)
       {
+         // A list view's row, on screen or not, column by column in the order the columns
+         // are shown, each column's text in its place even when it is empty, so that the
+         // rows of one copy line up. Read from the screen, a row had its cells in the order
+         // they were made - a column dragged to the front stayed where it was - and an empty
+         // cell gave nothing (measured on the AD picker: a row on screen with no display name
+         // copied its e-mail address under Name, and with the E-mail column dragged first the
+         // rows on screen kept the old order while those out of view took the new). The
+         // columns one by one - a row presenter would join the columns the list shows and
+         // could change their widths.
+         if (list is ListView view && view.View is GridView grid && item is not Visual && item is not Visual3D)
+         {
+            return string.Join("\t", grid.Columns.Select(column => column.DisplayMemberBinding != null
+               ? reader.Bound(column, item, column.DisplayMemberBinding)
+               : reader.Built(column, item, column.CellTemplate, column.CellTemplateSelector)));
+         }
+
          var container = (item as ListBoxItem) ?? list.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
          if (container != null)
          {
@@ -120,16 +137,7 @@ namespace hMailServer.ControlPanel.Services
          if (item is Visual || item is Visual3D)
             return string.Join("\t", TextsIn_((DependencyObject)item, (DependencyObject)item));
 
-         // Not on screen: the row as the list would build it. A list view's columns
-         // one by one - a row presenter would join the columns the list shows and
-         // could change their widths - and otherwise the item's template.
-         if (list is ListView view && view.View is GridView grid)
-         {
-            return string.Join("\t", grid.Columns.Select(column => column.DisplayMemberBinding != null
-               ? reader.Bound(column, item, column.DisplayMemberBinding)
-               : reader.Built(column, item, column.CellTemplate, column.CellTemplateSelector)));
-         }
-
+         // Not on screen: the row as the list would build it, from the item's template.
          if (list.ItemTemplate != null || list.ItemTemplateSelector != null)
             return reader.Built(list, item, list.ItemTemplate, list.ItemTemplateSelector);
 
@@ -144,12 +152,16 @@ namespace hMailServer.ControlPanel.Services
       /// another, as a list recycles its rows. Built afresh for every row, the domains
       /// page's account template took 1.2 to 2.5 milliseconds a row: Select all and
       /// Ctrl+C on 5,000 accounts held the Control Panel for 8 seconds, on 20,000 for 24.
-      /// Kept only while one copy is read, so no row outlives it.
+      /// Kept only while one copy is read, so no row outlives it. A row handed over reads
+      /// as the same row built afresh would: see <see cref="EqualButAnother_"/> and
+      /// <see cref="MeasureWhole_"/>.
       /// </summary>
       private sealed class OffScreenReader_
       {
+         private static readonly Size Unbounded_ = new(double.PositiveInfinity, double.PositiveInfinity);
          private readonly Dictionary<object, TextBlock> probes_ = new();
          private readonly Dictionary<object, ContentPresenter> presenters_ = new();
+         private readonly List<UIElement> unmeasured_ = new();
 
          /// <summary>What a binding shows for the item, read through a text block of its own.</summary>
          public string Bound(object key, object item, BindingBase binding)
@@ -161,6 +173,8 @@ namespace hMailServer.ControlPanel.Services
                probes_.Add(key, probe);
             }
 
+            if (EqualButAnother_(probe.DataContext, item))
+               probe.DataContext = null;
             probe.DataContext = item;
             return probe.Text ?? "";
          }
@@ -174,9 +188,79 @@ namespace hMailServer.ControlPanel.Services
                presenters_.Add(key, presenter);
             }
 
+            if (EqualButAnother_(presenter.Content, item))
+               presenter.Content = null;
             presenter.Content = item;
-            presenter.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            MeasureWhole_(presenter);
             return string.Join("\t", TextsIn_(presenter, presenter));
+         }
+
+         /// <summary>
+         /// A row Equal to the one before it and not the same row, as two rows of a type
+         /// that compares by a key can be: WPF reads a binding again only when the new data
+         /// context is not Equal to the old, so such a row goes in through null, or it is
+         /// read with the words of the one before (measured: the second row of every Equal
+         /// pair was).
+         /// </summary>
+         private static bool EqualButAnother_(object before, object item)
+            => before != null && !ReferenceEquals(before, item) && Equals(before, item);
+
+         /// <summary>
+         /// Measures the row whole, as a list's layout pass would. Measure goes only as deep
+         /// as the elements it finds changed, and a presenter of ours is in no layout pass,
+         /// so an element further in that builds what it shows when it is measured - a
+         /// ContentControl whose content is now another kind of thing, an ItemsControl whose
+         /// items changed, a control this row shows and the one before hid - is measured
+         /// again from the top, or it keeps the row before's (measured: a nested
+         /// ContentControl copied the first row's object on every row after it, and a nested
+         /// ItemsControl's items were left out).
+         /// </summary>
+         private void MeasureWhole_(ContentPresenter presenter)
+         {
+            presenter.Measure(Unbounded_);
+            for (int pass = 0; pass < 3; pass++)
+            {
+               unmeasured_.Clear();
+               Unmeasured_(presenter, presenter, unmeasured_);
+               if (unmeasured_.Count == 0)
+                  return;
+
+               foreach (UIElement element in unmeasured_)
+               {
+                  for (DependencyObject node = element; node != null; node = VisualTreeHelper.GetParent(node))
+                  {
+                     (node as UIElement)?.InvalidateMeasure();
+                     if (node == presenter)
+                        break;
+                  }
+               }
+
+               presenter.Measure(Unbounded_);
+            }
+         }
+
+         /// <summary>
+         /// The elements <see cref="TextsIn_"/> reads that build what they show when they are
+         /// measured - a templated element, and the panel an ItemsControl fills - and whose
+         /// measure is out of date. A text block's words, and a plain panel's children, are
+         /// there without one; measuring those again for every row whose "inactive" came
+         /// or went cost the domains page's account template a quarter more.
+         /// </summary>
+         private static void Unmeasured_(DependencyObject node, DependencyObject row, List<UIElement> found)
+         {
+            if (node is UIElement element && element.Visibility != Visibility.Visible)
+               return;
+            if (node != row && (IsInteractive_(node) || node is Wpf.Ui.Controls.IconElement))
+               return;
+            if (node is TextBlock)
+               return;
+            if (node is UIElement stale && !stale.IsMeasureValid
+                && (node is Control || node is ContentPresenter || node is ItemsPresenter || node is Panel { IsItemsHost: true }))
+               found.Add(stale);
+
+            int count = node is Visual || node is Visual3D ? VisualTreeHelper.GetChildrenCount(node) : 0;
+            for (int i = 0; i < count; i++)
+               Unmeasured_(VisualTreeHelper.GetChild(node, i), row, found);
          }
       }
 
