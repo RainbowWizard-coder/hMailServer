@@ -25,7 +25,12 @@
     "vulnerabilityFixStrategy": "highest"
   },
   "dependencyDashboardOSVVulnerabilitySummary": "all",
-  "ignorePaths": ["**/node_modules/**"],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "build/ci/requirements.txt",
+    "build/requirements-dev.txt",
+    "build/ci/cli-packages-requirements.txt"
+  ],
   "enabledManagers": [
     "nuget",
     "dockerfile",
@@ -36,6 +41,10 @@
     "pep621",
     "custom.regex"
   ],
+  "pip_requirements": {
+    "description": "The Python packages are chosen in the .in files and locked, with every dependency and the SHA-256 of every file PyPI has for each, in the .txt files uv makes from them (each file's header gives the command). Renovate reads the .in files only: its pip_requirements manager moves a version in a .txt file without resolving the others against it or hashing the new files, which on 28 September 2026 gave a merge request whose click 8.5.0 kept 8.4.2's hashes, and whose click, MCP, OpenTelemetry, jsonschema and PyJWT versions semgrep 1.178.0 does not accept (it asks for click~=8.4.2, mcp==1.29.0, opentelemetry-api~=1.37.0). The .txt files are in ignorePaths.",
+    "managerFilePatterns": ["/(^|/)[^/]*requirements[^/]*\\.in$/"]
+  },
   "hostRules": [
     {
       "description": "The project takes nothing from GitHub (its account was suspended on 18 September 2026): no lookup, release note or digest is read from there.",
@@ -283,15 +292,19 @@
       ]
     },
     {
-      "description": "npm and Python: no manifest in the tree today (the harnesses use Node's and Python's standard libraries only). A package.json or a requirements file added later is covered, one merge request a week each.",
+      "description": "npm: no package.json in the tree today (the harnesses use Node's standard library only). One added later is covered, one merge request a week.",
       "matchDatasources": ["npm"],
       "groupName": "npm packages",
       "groupSlug": "npm"
     },
     {
+      "description": "Python: the .in files of build/ and build/ci/ and the command-line package's pyproject.toml, one merge request a week.",
       "matchDatasources": ["pypi"],
       "groupName": "Python packages",
-      "groupSlug": "python"
+      "groupSlug": "python",
+      "prBodyNotes": [
+        "**Remake the locked .txt file of each .in file this merge request changes, on this branch.** Renovate changed the chosen versions only. Run the uv command in the .txt file's header, in the image its job runs in (the .in file says which), which resolves every dependency against the new versions and hashes every file PyPI has for them; a version the others do not accept fails there, not in the pipeline. For build/ci/requirements.in, run build/ci/semgrep.sh and regenerate its baseline if the new Semgrep finds what the old one did not (docs/ContinuousIntegration.md, 'Security scanning')."
+      ]
     },
     {
       "description": "A new release waits three days before it is proposed, so that a release pulled soon after it was published is never offered. Security fixes do not wait.",
