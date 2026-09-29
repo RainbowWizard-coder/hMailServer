@@ -31,6 +31,12 @@ approval unless the owner overrides it for one landing (`--land-without-approval
 CONTRIBUTING.md, "Merge requests"). Until the first such landing, a tree that has
 passed the gate is pushed to `master` directly.
 
+**From 6.3.6, releases pause.** 6.3.6 is the last release for the time being.
+Security releases are still made, until 30 September 2027
+(SECURITY.md, "While releases pause"), in the way
+[A security release during the pause](#a-security-release-during-the-pause)
+describes below.
+
 ## The release on GitLab
 
 For 6.3.5 onwards. Written on 26 September 2026 and not yet run: the first
@@ -291,6 +297,87 @@ The namespace is `file`, not git's `git`, so a tag signature cannot be passed
 off as a signature of the sums, or the other way round. Both files are
 uploaded and linked like every other file of the release. SECURITY.md,
 "Verifying a release", gives users the same two commands.
+
+## A security release during the pause
+
+From 6.3.6 no feature release is made, but a confirmed vulnerability still ships
+in a release: 6.3.6 with fixes, as 6.3.7, 6.3.8 and so on. Which versions are
+supported, until when, and what gets a release is in SECURITY.md, "While
+releases pause" (the maintainers' decision of 29 September 2026). A security
+release is made by the tag's pipeline, as in
+[The release on GitLab](#the-release-on-gitlab), with the steps of
+[Order of operations](#order-of-operations) below it. What differs is the
+order in which things become public, and the steps only the owner can take.
+
+**Before starting**, check what the release depends on is still valid: the
+table in SECURITY.md, "What must stay valid for a security release". In
+particular, check four things:
+
+- the findings of `.gitlab/security-exceptions.yml` that expire before the
+  release (298 of them on 26 and 27 March 2027) have been read again, or the
+  release job refuses;
+- the Artifact Signing identity validation has not lapsed (the Azure portal);
+- linix and bench150 are up and online on GitLab
+  (`hmailserver/docs/ContinuousIntegration.md`, "The runners");
+- the project's path, which the federated credential's subject names:
+  `Progressiverobot/hmailserver` until the move into the group,
+  `hmailserver/hmailserver` after it.
+
+1. **Fix it without pushing.** Write the fix and its regression test, which must
+   fail against the build before the fix. Then run steps 2 to 9 of
+   [Order of operations](#order-of-operations) by hand, on the maintainers'
+   machines: the Windows suite on a bench, and the Linux build and suite on
+   linix by hand (`build/ci/linux-build.sh`, `build/ci/linux-suite.sh`). Step
+   8c's fuzz run may cite the previous minor's run when no fuzzed parser
+   changed. Nothing is pushed yet: the repository is public, and the fix is
+   visible from the moment it is.
+2. **Write the notes**: the version's `CHANGELOG.md` section, headed
+   `## [X.Y.Z](...) - <date>`, committed with the stamp of step 7. The section
+   says what was fixed, names the confidential issue, and credits the reporter.
+   It does not say how to exploit the flaw, because it is public from the push,
+   about a day before the release.
+3. **Land it**, with `python3 build/land-via-mr.py batchN`: the batch's branch
+   pipeline runs every gate, and Zain Ul Abidin approves the merge request.
+   **Owner:** if waiting for that approval would take the fix past its
+   disclosure window, land it with
+   `--land-without-approval "<the issue and the date it is due>"`. The change is
+   then reviewed on its merge request afterwards (GOVERNANCE.md, Review).
+4. **Owner: the federated credential for the tag**, made before the tag is
+   pushed, as [On GitLab, from 6.3.5](#on-gitlab-from-635) step 1 says. Use the
+   project's path of that day in the subject.
+5. **Owner: the tag.** Sign it with the key in `.gitlab/allowed_signers`, check
+   it, and push it (step 2 of [The release on GitLab](#the-release-on-gitlab)).
+   No one else holds that key, and `release` refuses a tag signed by any other.
+6. **Owner: start `release`** once the tag's gates have passed. The owner is the
+   only person in the project with the Maintainer role, which a manual job on a
+   protected tag needs (the project access token `laptop-git` is an Owner too:
+   SECURITY.md, "What must stay valid for a security release").
+   `release-authenticode`, `release-sbom`, `release-sign`
+   and `release-verify` then follow by themselves.
+7. **The installer smoke test**, by hand, on the signed installer (step 5 of
+   [The release on GitLab](#the-release-on-gitlab)), with the previous release
+   and on its own.
+8. **Owner: start `release-publish`.** Only an Owner's job may upload to the
+   package `hmailserver`. `update-feed` then brings the site up to date. Check
+   it with
+   `python3 build/generate-update-feed.py --check --site https://updates.progressiverobot.com`
+   and `python3 build/check-atom-feed.py --site https://updates.progressiverobot.com`.
+9. **Owner: remove the federated credential** (`az ad app federated-credential
+   delete`, [On GitLab, from 6.3.5](#on-gitlab-from-635)).
+10. **Disclose.** Make the confidential issue public. Request the CVE ID from it,
+    if that has not been done, and quote it on the issue. Answer the reporter,
+    and announce the release. The update feed carries the release to every
+    server whose live update is on. A server from 6.2.28 to 6.3.3 still needs
+    the one `UpdateFeedUrl` line (`hmailserver/docs/UpdateFeed.md`).
+
+**If Authenticode cannot be had in time**, for example because the identity
+validation has lapsed, the pipeline cannot publish. `release-sbom`, and every
+job after it, waits for `release-authenticode`. The fallback is
+[A release made by hand](#a-release-made-by-hand), as 6.3.4 was. Its sums are
+signed with the tag's key, and it carries no Sigstore bundle. No server installs
+it by live update, and `build/generate-update-feed.py` publishes it as the
+stable release only once `UNSIGNED_BY_DESIGN` names it. Say so in the notes, so
+that administrators upgrade by hand.
 
 ## Order of operations
 

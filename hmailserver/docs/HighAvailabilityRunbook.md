@@ -8,7 +8,8 @@ message storage, a floating virtual IP, and a health check). This keeps the mail
 server itself simple and avoids split-brain message corruption.
 
 For an active/active or sharded design you would need a different storage and
-locking model; that is out of scope here.
+locking model; that is out of scope here. [ActiveActive.md](ActiveActive.md)
+designs one for two or more nodes on one database. It is not built.
 
 ---
 

@@ -374,9 +374,11 @@ scan did not finish or found something `SECURITY.md`'s policy counts that no bas
 `.gitlab/security-exceptions.yml` accepts ([Before a release](hmailserver/docs/ContinuousIntegration.md#before-a-release-the-scans-hold-it)). On the second Windows bench:
 *windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
 the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
-`dotnet format --verify-no-changes`). A `v*` tag also gets a *release* job, which is a placeholder until the
-release chain is built, and a pipeline schedule runs *linux-fuzz*, the MIME harnesses under libFuzzer, every
-night. The two machines never take a job for a merge request, above all not one from a fork, nor for a push
+`dotnet format --verify-no-changes`). The package jobs of `.gitlab/ci/packages-deb.yml`, `-rpm.yml` and
+`-appimage.yml` build, install and test each distribution's package and the AppImages on the Linux lab machine. A `v*` tag's pipeline ends in the release jobs, for 6.3.5 onwards, which the owner starts
+([RELEASE.md](RELEASE.md), "The release on GitLab"), and a `batch*` branch's rehearses them and publishes
+nothing (`.gitlab/ci/release-rehearsal.yml`). A pipeline schedule runs *linux-fuzz*, the MIME harnesses under
+libFuzzer, every night. The two machines never take a job for a merge request, above all not one from a fork, nor for a push
 that changes nothing but Markdown files at the root or under `.gitlab/`;
 [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) says why, what each old
 GitHub workflow became, where every tool comes from, and how the runners, their image and the bench's gate

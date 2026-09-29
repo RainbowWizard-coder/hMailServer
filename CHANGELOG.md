@@ -246,6 +246,14 @@ for a stray `#` number or `@` name.
   project's id too, as its files are; and neither certificate reader relies any longer on cosign refusing a malformed
   bundle to know which certificate it read. The server's own verifier reads the extension through OpenSSL and was
   never affected.
+- **An Atom feed of releases** at https://updates.progressiverobot.com/releases.atom: every release, newest first,
+  the first paragraph of its notes as the summary, ids that do not change when the project moves into the group;
+  build/check-atom-feed.py holds it to RFC 4287 and to releases.json in the pages job
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "The Atom feed"). The files a server reads are unchanged, byte
+  for byte, and a release whose name XML cannot carry is entered under its tag rather than stopping the feed.
+- **Releases pause after 6.3.6; security fixes do not.** The 6.3 line receives security fixes until 30 September
+  2027, each in a release of its own ([SECURITY.md](SECURITY.md), "While releases pause"; [RELEASE.md](RELEASE.md),
+  "A security release during the pause").
 
 ### Administration
 
@@ -367,6 +375,8 @@ for a stray `#` number or `@` name.
   device and format are read and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first
   read. Several values read one after another are still not read as one set, and a setting changed during a
   reinitialise, after the new settings were read, is stored but not in force until the next reinitialise or start.
+- **Active-active nodes: the design, not built** ([ActiveActive.md](hmailserver/docs/ActiveActive.md)). Until it is,
+  one service per database.
 
 ### Build and tests
 

@@ -43,6 +43,11 @@ Set the service to Manual on the standby rather than Disabled: a disabled
 service cannot be started by the failover runbook without an extra step that
 will be forgotten at 3 a.m.
 
+What two nodes serving one database at once would need - leases on the queue,
+locks that hold across nodes, sessions on any node - is designed in
+[ActiveActive.md](ActiveActive.md). None of it is built, and until it is, all of
+this section stands.
+
 What is where
 -------------
 

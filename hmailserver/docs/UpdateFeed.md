@@ -428,6 +428,7 @@ with no redirect.
 | `/releases.json` | Every release, newest first, a list | The pre-release channel's built-in address, and the value of `UpdateFeedUrl` above |
 | `/releases/tags/v<version>` | One release | The rollback's lookup, for either of the two above |
 | `/releases/` | A page showing the same list | A browser, or a client that followed the redirect |
+| `/releases.atom` | The same releases, newest first, as an Atom feed | A feed reader; no server reads it |
 | `/` | A page saying what the site is, with the download links | A person |
 | `/download/<name>` | A 302 to a file of the newest stable release | A person, a script, a page that links a download |
 | `/download/` | A 302 to that release's page on GitLab | A person |
@@ -571,6 +572,51 @@ render instead, so that the site keeps what it had.
 GitLab Pages gives `releases.json` the JSON type and guesses the type of the
 files without an extension from their content, which makes them text. The
 server does not look at the type.
+
+### The Atom feed
+
+`/releases.atom` is for people who follow releases in a feed reader, as
+GitHub's feed of a project's releases was until 18 September 2026. It is an
+Atom feed (RFC 4287) with one entry for each release in `releases.json`, in the
+same order, newest first:
+
+- the title is the release's name, or its tag when the name is blank;
+- the link is the release's page on GitLab;
+- the updated and published times are the time the release was made;
+- a category says whether it is a release or a pre-release;
+- the summary is the first paragraph of the release's own notes, as plain text,
+  cut at 1,000 characters. The note a release re-hosted from GitHub opens with,
+  and any heading, table or code, is skipped.
+
+The summary comes from the release's notes on GitLab, not from `CHANGELOG.md`,
+for three reasons. The feed is made from the releases alone, whichever commit
+runs the script. A release re-hosted from GitHub or made by hand has no section
+of its own there. And a release's notes are what its page shows. The feed's own
+updated time is that of its newest entry, so the file changes only when a
+release does.
+
+An entry's id is `tag:updates.progressiverobot.com,2026:releases/<tag>`, a tag
+URI made from the release's tag alone. A feed reader remembers the entries it
+has shown by their ids. An id made from the release page's address would change
+when the project moves into the group `hmailserver`, and every reader would
+show every release again. This one does not change when the feed is made
+again, when a release is edited, or when the project moves.
+
+The site's pages link the feed, and name it for a browser's feed discovery.
+GitLab also serves a feed of its own at `/-/releases.atom` under the project's
+address. That one carries the whole notes, runs to a megabyte, and its ids are
+the release pages' addresses, which the move changes. It also lists
+`build-inputs-1`, which is not a server release.
+
+`build/check-atom-feed.py` checks the feed against RFC 4287: the elements the
+feed and every entry must have, RFC 3339 dates, and ids that are unique and in
+the form above. It also holds the feed to `releases.json` and
+`releases/latest`: an entry for each release, in order, with its name, page,
+time and kind, so the newest entry is the newest release, and an entry for the
+stable release `releases/latest` names. `--previous` compares an earlier copy,
+and fails if one of its ids is missing. Its negative controls refuse each kind
+of broken feed. The generator's `--self-test` runs the checker and its negative
+controls, and `--serve-check` runs it against the feed the site serves.
 
 How it is published
 -------------------

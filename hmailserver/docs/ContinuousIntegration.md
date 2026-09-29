@@ -2210,6 +2210,16 @@ serves it. The script reads GitLab's public API and needs no token and no
 variable. What it publishes is what the releases say at that moment, whichever
 commit ran it.
 
+The tree includes `releases.atom`, an Atom feed of the same releases for feed
+readers ([UpdateFeed.md](UpdateFeed.md), "The Atom feed"). `build/check-atom-feed.py`
+holds it to RFC 4287 and to `releases.json`. The self-test runs that checker on
+the feed made from its canned releases, with the checker's own negative
+controls, and `--serve-check` runs it on the `releases.atom` the site would
+serve. So `pages` runs it both ways, and `package-repos` runs it again in its
+own `--serve-check`. The `checkers` job runs `build/check-atom-feed.py` with no
+argument, as it runs every `build/check-*.py`: that checks the feed the
+generator makes from the checker's own releases, with no network.
+
 `pages` no longer deploys the site itself. `package-repos`
 (`.gitlab/ci/package-repos.yml`) needs it and takes its `public/`. It adds the
 signed apt and dnf repositories when the signing key is set, and nothing when it

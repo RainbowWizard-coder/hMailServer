@@ -4,7 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 6.3.x   | :white_check_mark: |
+| 6.3.x   | :white_check_mark: security fixes until 30 September 2027 ([While releases pause](#while-releases-pause)) |
 | < 6.3   | :x:                |
 
 The 6.3 line is the one that receives security fixes. Its latest release is 6.3.5, published on 28 September
@@ -12,6 +12,9 @@ The 6.3 line is the one that receives security fixes. Its latest release is 6.3.
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier hMailServer version,
 so the answer to a vulnerability in an older version is to upgrade.
+
+From 6.3.6, releases pause: no feature release follows it until the maintainers say otherwise here. Security
+releases still do, as [While releases pause](#while-releases-pause) says, below.
 
 ## Reporting a vulnerability
 
@@ -80,6 +83,125 @@ do not pay bounties.
 **CVE IDs.** GitLab is a CVE Numbering Authority for public projects hosted on GitLab.com. A CVE ID is requested
 from the vulnerability's confidential issue, through GitLab's *Create CVE ID Request*, and quoted in the release
 notes.
+
+## While releases pause
+
+6.3.6 is the last release for the time being, the owner's decision of 28 September 2026. What follows is **the
+maintainers' decision of 29 September 2026**, taken under the owner's delegation. The maintainers write here when
+it changes.
+
+### What is supported, and for how long
+
+- **The 6.3 line, as its newest release:** 6.3.6, and each security release made after it (6.3.7, 6.3.8 and so
+  on). A security release is 6.3.6 with fixes. During the pause `master` takes fixes only, and a security release
+  is cut from `master` like every other release. There is still no maintenance branch, and nothing is
+  back-ported. An installation of 6.3.5, 6.2 or anything older is upgraded in place to the newest release, as
+  [Supported versions](#supported-versions) says.
+- **Until 30 September 2027.** Before that date, the maintainers write here whether support continues. If nothing
+  has been written, the 6.3 line is not supported from 1 October 2027, and the table above is changed to say so.
+- **Why that date.** It is as far as the project's own record reaches:
+  - the last of the findings that `.gitlab/security-exceptions.yml` accepts expire on 25 and 27 September 2027.
+    After its expiry, a finding holds every release again until it has been read again;
+  - the GitLab tokens used by the maintainers' machine, Renovate and SonarQube Cloud expire on 26 and
+    27 September 2027 ([What must stay valid](#what-must-stay-valid-for-a-security-release), below).
+
+  A later date would be a promise that rests on renewals nobody has made yet. A year is also long enough for
+  several reports to run through the 90-day timetable one after another.
+- **One date comes first.** 298 of the accepted findings (263 of *static-analysis*, 31 of *semgrep-sast* and 4 of
+  *semgrep*) expire on 26 and 27 March 2027. From the day after, the release job refuses a release while any of
+  them is still found and has not been read again (`build/ci/security-gate.py`). So the maintainers read them again
+  before 26 March 2027, and give each a new expiry. Otherwise, a
+  report that arrives after that date waits on that reading as well as on its fix.
+
+### What gets a release
+
+- **Every confirmed vulnerability**, on the targets in [What to expect](#what-to-expect). The pause changes when
+  features ship, not when fixes do.
+  - A critical or high one ships as soon as its fix has passed the gates.
+  - Medium and low ones may be held for each other, but none is held past 90 days from its acknowledgement.
+- **A dependency advisory.** A high or critical advisory against a dependency the release ships is treated as a
+  vulnerability in hMailServer and ships the same way, when hMailServer's code reaches the affected code
+  ([Dependencies](#dependencies-software-composition-analysis)). When it does not, the advisory goes in the VEX
+  document, not in a release.
+- **Other defects** are fixed on `master`. They ship with the next security release, or when releases resume.
+
+### How a report is handled
+
+The routes, the targets and the 90-day disclosure timetable above are unchanged. Security response rests on
+Christopher Holloway ([GOVERNANCE.md](GOVERNANCE.md#maintainers)). Zain Ul Abidin can see every report, and
+taking the duty on is the maintainers' decision.
+
+1. **Acknowledge** within 5 working days, and **assess** within 10: reproduce it, or ask for what is missing.
+2. **Fix** with a regression test that fails against the build before the fix. The fix is built and tested by
+   hand on the maintainers' own machines before anything is pushed: the Windows suite on a bench and the Linux
+   suite on linix ([RELEASE.md](RELEASE.md), "A security release during the pause").
+3. **Push only when that has passed.** The project's pipelines run only for what is on GitLab, and its
+   repository is public. So from the push of the fix until the release is published, the fix can be seen and the
+   advisory cannot. That is about a day: the batch's pipeline, then the tag's. Keep that window short. The
+   commit message and the version's `CHANGELOG.md` section, which are public from the push, say what was fixed
+   and credit the reporter. They do not say how to exploit it.
+4. **Release** it ([How a security release is made](#how-a-security-release-is-made), below).
+5. **Disclose** once the release is on the update feed: make the issue public, request the CVE ID from it if that
+   has not been done, and announce the release.
+
+### How a security release is made
+
+A security release is a release like any other, made by the tag's pipeline ([RELEASE.md](RELEASE.md), "A security
+release during the pause", has the steps). Five of the steps are the owner's, and no other person can take them.
+The project access token `laptop-git` holds the Owner role as well ([What must stay
+valid](#what-must-stay-valid-for-a-security-release), below), so GitLab would let steps 1 and 4 be taken with it:
+
+1. **Landing the fix.** Zain Ul Abidin approves the batch's merge request and the owner lands it
+   (`build/land-via-mr.py`). When waiting would take a fix past its disclosure window, the owner may land it
+   without that approval, giving the reason (`--land-without-approval`, [GOVERNANCE.md](GOVERNANCE.md), Review).
+   The change is then reviewed afterwards.
+2. **The Azure federated credential for that one tag**, made before the tag is pushed. Its subject names the
+   project's path at that moment, `hmailserver/hmailserver` once the project has moved into the group
+   ([RELEASE.md](RELEASE.md), "On GitLab, from 6.3.5"). Without it, `release-authenticode` cannot sign the
+   installer, and no later job runs.
+3. **The release tag, signed with the one key in `.gitlab/allowed_signers`.** That is the owner's key, on his own
+   machine. `release` refuses a tag signed by any other key.
+4. **Starting `release`, and later `release-publish`, as the owner.** He is the only person among the project's
+   members with the Maintainer role or above; the one other member with such a role is the project access token
+   `laptop-git`, an Owner. The package protection rules let only an Owner upload a release's files.
+5. **Removing the federated credential** once the release is published.
+
+Two more things are needed besides:
+
+- the project's two runners, linix and bench150, must be up
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The runners");
+- the installer smoke test is run by hand between `release-sign` and `release-publish`.
+
+If the Azure side cannot sign, the pipeline cannot publish a release. This could happen if the identity
+validation has lapsed and cannot be renewed in time. The fallback is [a release made by
+hand](RELEASE.md#a-release-made-by-hand), as 6.3.4 was: its sums are signed with the tag's key, and it carries no
+Sigstore bundle. No server installs such a release by live update. Each installation is upgraded by hand.
+
+### What must stay valid for a security release
+
+What a release depends on that expires, as recorded on 29 September 2026. The GitLab tokens' dates were read
+through GitLab's API that day. No value of any of them is in the repository, and none is written here.
+
+| What | Used for | Expires |
+|---|---|---|
+| The release-tag signing key, the one key in `.gitlab/allowed_signers` | Signing each release tag, on the owner's machine | An SSH key has no expiry. A lost key is replaced by putting its successor on `master` ([GOVERNANCE.md](GOVERNANCE.md#critical-assets)) |
+| The Azure federated credential | `release-authenticode`'s exchange of the job's ID token | It does not expire. It is made for one tag and removed after that release. An app registration holds twenty at most |
+| Azure Artifact Signing's identity validation | Every Authenticode signature | It must be renewed, and signing stops if it lapses. **The date is not recorded here**: it is read in the Azure portal (the Artifact Signing account, *Identity validations*), which has no API for it |
+| The Azure subscription (pay-as-you-go) | The Artifact Signing account | It does not expire, but it must be kept paid |
+| The app registration's client secret, made for the GitHub workflow on 10 September 2026 | Nothing since the move to GitLab: the pipeline needs no secret | 10 September 2028. It should be deleted (`az ad app credential delete`), not left to run out |
+| `.gitlab/security-exceptions.yml`, 469 accepted findings | The release job's security gate | Each finding has its own date: 286 expire on 26 March 2027, 12 on 27 March 2027, 169 on 25 September 2027 and 2 on 27 September 2027. After its date, a finding holds every release until it has been read again and given a new expiry |
+| `RENOVATE_TOKEN`, the owner's personal access token `renovate` | Renovate's merge requests | 27 September 2027 |
+| `sonarcloud-hmailserver`, the owner's personal access token | SonarQube Cloud's binding to the GitLab group | 27 September 2027 |
+| `laptop-git`, a project access token with the Owner role and the `api` scope | Work from the maintainers' machine. No CI job uses it: the jobs use their own `CI_JOB_TOKEN`. As an Owner it can do in the project what the owner's account can, landing a change and starting the release jobs included | 27 September 2027 |
+| `glab-laptop`, the owner's personal access token | `glab` on the maintainers' machine, which `build/land-via-mr.py` needs | 26 September 2027 |
+| `GITLAB_AUTH_TOKEN`, the owner's personal access token for Scorecard | The weekly Scorecard job | Not made yet (the variable does not exist). A year from when it is made ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "OpenSSF Scorecard") |
+| `HM_EXPORT_TOKEN`, and `HM_EXPORT_FULL_TOKEN` if set | The weekly export ([Mirroring.md](hmailserver/docs/Mirroring.md)) | Not made yet. The date is chosen when a token is made. The job names it from 30 days before |
+| `HM_REPO_SIGNING_KEY`, the apt and dnf repositories' signing subkey | `package-repos` | Not made yet. Five years from when it is made. The job warns from 180 days before ([PackageManagers.md](hmailserver/docs/PackageManagers.md)) |
+| The release channels' credentials (`PSGALLERY_API_KEY`, `SNAPCRAFT_STORE_CREDENTIALS`, `DOCKERHUB_TOKEN`, `QUAY_ROBOT_TOKEN`, `AUR_SSH_KEY`, `OBS_RUNSERVICE_TOKEN`, `LAUNCHPAD_SIGNING_KEY`, `COPR_WEBHOOK_URL`) | Publishing a release to its channels, not making it ([Channels.md](hmailserver/docs/Channels.md)) | None made yet. The PowerShell Gallery's key lasts 365 days at most, and the snap's credentials carry a date. The Copr webhook does not expire. The rest expire as set when made |
+| `CI_JOB_TOKEN` and the jobs' ID tokens (Sigstore's, Azure's, PyPI's) | The release jobs | Each lives for its job. Nothing to renew |
+
+A token is replaced before its date, not on it, and the table is updated when it is. The maintainers keep the
+dates in a calendar as well.
 
 ## Scope
 
@@ -440,12 +562,16 @@ anything is published.
   key quoted in a document and the help pages made from it; the document describes it since, and the twelve are
   named too. The same scan on GitLab is a schedule the owner runs once
   ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Security scanning").
-- The one credential the release automation needed, for the Azure identity that Authenticode-signs the
-  installer, was held in GitHub Actions' secrets; the identity itself is in Azure. Release signatures are keyless
-  (Sigstore, bound to the workflow's own identity), so there is no signing key to protect. Release tags are signed
-  with a maintainer's SSH key, whose public half is in `.gitlab/allowed_signers`.
+- The one credential the release automation needed on GitHub, for the Azure identity that Authenticode-signs
+  the installer, was held in GitHub Actions' secrets. The identity itself is in Azure. On GitLab no secret is
+  needed: the release job's ID token is exchanged through a federated credential made for one tag at a time
+  ([RELEASE.md](RELEASE.md), "On GitLab, from 6.3.5"). The client secret made for the GitHub workflow is still
+  on the app registration, valid until 10 September 2028. It is to be deleted.
+  Release signatures are keyless (Sigstore, bound to the pipeline's own identity), so there is no signing key to
+  protect. Release tags are signed with a maintainer's SSH key, whose public half is in `.gitlab/allowed_signers`.
 - A secret is rotated when a maintainer leaves, when the pipeline that uses it changes hands, or on any suspicion
-  of exposure; the Azure identity's secret has an expiry and is replaced before it.
+  of exposure. Every token that expires is replaced before its date
+  ([What must stay valid](#what-must-stay-valid-for-a-security-release)).
 - Test environments use throwaway credentials that the suite creates and destroys; none of them is a real
   account.
 

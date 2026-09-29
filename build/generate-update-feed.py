@@ -24,9 +24,30 @@ generic package registry. The files it writes, under public/:
                           the list escaped, so nothing in a release's name runs
                           on the updates domain
   releases/tags/<tag>     one release object per release: the rollback's lookup
+  releases.atom           the same releases, newest first, as an Atom feed
+                          (RFC 4287) for a feed reader, below; no server reads it
   index.html              a page for a person who opens the address
   _redirects              GitLab Pages' redirect rules: the stable download
                           links, below; for people, never a server
+
+The Atom feed. releases.atom has an entry for every release releases.json
+lists, in its order: the release's name as the title, its page on GitLab as the
+link, the time it was released as the entry's updated and published times, a
+category saying release or pre-release, and a summary: the first paragraph of
+the release's own notes, the description GitLab holds, as plain text (the note a
+re-hosted release opens with, headings, tables and code left out; at most
+SUMMARY_MAX characters). The notes rather than CHANGELOG.md's section because the
+feed is made from the releases alone, whichever commit runs this - a CHANGELOG
+is the commit's, it holds no section for a release re-hosted from GitHub or
+made by hand, and --check --site compares with what the API says now - and
+because a release's notes are what its page shows. The feed's updated time is
+the newest entry's, so a render changes the file only when a release does.
+Every id is a tag URI made from the release's tag alone (ATOM_ID_PREFIX), so it
+stays the same across renders, edits of a release, and the project's move into
+the group hmailserver, which changes every release page's address: a reader
+remembers entries by id, and an id made from the page would show every release
+again after the move. build/check-atom-feed.py holds the feed to RFC 4287 and
+to releases.json; --self-test and --serve-check run it.
 
 The stable download links. /download/<name> answers a 302 to the file of the
 release releases/latest is - the newest stable VERSION - in the package
@@ -85,13 +106,15 @@ Usage, from the repository root:
       exit 1 when DIR, or the site at URL, is not what the API says now
   python3 build/generate-update-feed.py --serve-check DIR
       serve DIR as GitLab Pages would and read every URL a server derives,
-      both channels and a rollback, with a copy of the server's parser
+      both channels and a rollback, with a copy of the server's parser, and
+      the Atom feed with build/check-atom-feed.py
   python3 build/generate-update-feed.py --self-test
       the above against canned API answers, with no network
 """
 import argparse
 import datetime
 import html
+import html.entities
 import http.server
 import json
 import os
@@ -132,6 +155,18 @@ TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+
 
 RELEASE_KEYS = ["tag_name", "name", "html_url", "published_at", "draft", "prerelease", "assets"]
 ASSET_KEYS = ["name", "size", "digest", "browser_download_url"]
+
+# The Atom feed (releases.atom). Its ids are tag URIs (RFC 4151) on the feed's own
+# name, minted in 2026, and an entry's is the release's tag after "releases/":
+# nothing in them moves with the project's path. build/check-atom-feed.py holds
+# a feed to exactly these.
+ATOM_PATH = "releases.atom"
+ATOM_NS = "http://www.w3.org/2005/Atom"
+ATOM_ID_PREFIX = "tag:updates.progressiverobot.com,2026:"
+ATOM_FEED_ID = ATOM_ID_PREFIX + "releases"
+# The longest summary, in characters; a longer first paragraph is cut at a
+# sentence, or else a word, before it.
+SUMMARY_MAX = 1000
 
 
 class FeedError(Exception):
@@ -328,6 +363,193 @@ def feed_bytes(value):
     return (text + "\n").encode("utf-8")
 
 
+# ---------------------------------------------------------------- the Atom feed
+
+def atom_entry_id(tag):
+    """An entry's id: the release's tag, which a protected tag keeps for good."""
+    return ATOM_ID_PREFIX + "releases/" + tag
+
+
+# What XML 1.0 cannot carry at all (the C0 controls but tab, line feed and
+# carriage return, a lone surrogate, U+FFFE and U+FFFF), and so is left out.
+XML_UNUSABLE = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")
+
+
+def xml_text(value):
+    """value as XML character data or an attribute's value in double quotes."""
+    value = XML_UNUSABLE.sub("", "%s" % value)
+    return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def atom_title(name, tag):
+    """An entry's title: the release's name as XML carries it, or its tag when
+    that leaves nothing to show. An empty atom:title fails check-atom-feed.py,
+    and with it the pages job, which would keep a release's name of blanks from
+    reaching the servers too; build/check-atom-feed.py expects the same."""
+    text = XML_UNUSABLE.sub("", "%s" % name)
+    return text if text.strip() else tag
+
+
+# The note every release re-hosted from GitHub opens with: "*Re-published on
+# GitLab on 24 September 2026 from the GitHub release of ...*". It is about the
+# page, not the release, so the summary is the paragraph after it.
+REHOSTED_NOTE = re.compile(r"^[*_]*Re-published on GitLab\b")
+MARKDOWN_HEADING = re.compile(r"^#{1,6}(\s|$)")
+MARKDOWN_RULE = re.compile(r"^([-*_])( *\1){2,} *$")
+MARKDOWN_FENCE = re.compile(r"^(```|~~~)")
+MARKDOWN_LIST_ITEM = re.compile(r"^([-*+]|\d{1,9}[.)])\s+")
+CODE_SPAN = re.compile(r"(`+)(.+?)\1")
+# A link's destination and title: (url), (url "title"), (<url with spaces>), and a
+# url with one level of parentheses in it (https://host/a_(b)), as CommonMark reads them.
+LINK_DESTINATION = r"\((?:\s*<[^<>]*>|(?:[^()\s]|\([^()\s]*\))*)(?:\s+(?:\"[^\"]*\"|'[^']*'|\([^()]*\)))?\s*\)"
+# Raw HTML inline, which a page renders as markup and never shows: a tag, open or
+# closing, and a comment.
+HTML_INLINE = re.compile(r"<!--.*?-->|</?[A-Za-z][A-Za-z0-9-]*"
+                         r"(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s\"'=<>`]+|'[^']*'|\"[^\"]*\"))?)*\s*/?>")
+# A character reference, which a page shows as its character: CommonMark's, with
+# the semicolon.
+CHARACTER_REFERENCE = re.compile(r"&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});")
+
+
+def plain_markdown(text):
+    """One paragraph of Markdown as the text it shows: links and images as their
+    text, raw HTML's tags gone and its character references as their characters,
+    emphasis and backslash escapes gone, code spans as their code."""
+    # A code span stands aside as a mark of the private use area while the rest
+    # is read, so that emphasis around one (**after `354`, the fix.**) is still
+    # seen as emphasis and nothing inside one is.
+    code = []
+
+    def aside(match):
+        code.append(match.group(2).strip())
+        return "\ue000%d\ue001" % (len(code) - 1)
+
+    text = CODE_SPAN.sub(aside, text.replace("\ue000", "").replace("\ue001", ""))
+    # GitHub's alert, "> [!WARNING]" and the quote under it.
+    text = re.sub(r"^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*", lambda m: m.group(1).capitalize() + ": ", text)
+    text = re.sub(r"!\[([^\]]*)\]" + LINK_DESTINATION, r"\1", text)
+    text = re.sub(r"\[([^\]]+)\]" + LINK_DESTINATION, r"\1", text)
+    text = re.sub(r"<(https?://[^>\s]+)>", r"\1", text)
+    text = HTML_INLINE.sub("", text)
+    text = re.sub(r"\*\*(?=\S)(.+?)(?<=\S)\*\*", r"\1", text)
+    text = re.sub(r"(?<!\w)__(?=\S)(.+?)(?<=\S)__(?!\w)", r"\1", text)
+    text = re.sub(r"(?<![\w*])\*(?=\S)(.+?)(?<=\S)\*(?![\w*])", r"\1", text)
+    text = re.sub(r"(?<![\w_])_(?=\S)(.+?)(?<=\S)_(?![\w_])", r"\1", text)
+    text = re.sub(r"\\([!-/:-@\[-`{-~])", r"\1", text)
+    # Last, so that what a reference stands for is text and never markup; a
+    # reference to the marks a code span stands aside with is left out, and a
+    # name HTML does not define (&notaname;) is text as it stands.
+    def character(match):
+        reference = match.group(0)
+        if not reference.startswith("&#") and reference[1:] not in html.entities.html5:
+            return reference
+        return html.unescape(reference).replace("\ue000", "").replace("\ue001", "")
+
+    text = CHARACTER_REFERENCE.sub(character, text)
+    text = re.sub("\ue000(\\d+)\ue001", lambda m: code[int(m.group(1))] if int(m.group(1)) < len(code) else "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def release_summary(description, fallback):
+    """The Atom summary of a release: the first paragraph of its notes that is
+    prose - not the re-hosting note, a heading, a rule, a table or code - as
+    plain text, cut to SUMMARY_MAX characters; fallback when there is none."""
+    paragraphs = []
+    current = []
+    fenced = False
+    for line in (description or "").replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        stripped = line.strip()
+        if MARKDOWN_FENCE.match(stripped):
+            fenced = not fenced
+            stripped = ""
+        elif fenced:
+            continue
+        if not stripped or MARKDOWN_HEADING.match(stripped) or stripped.startswith("|") or MARKDOWN_RULE.match(stripped):
+            if current:
+                paragraphs.append(current)
+            current = []
+            continue
+        # A hard line break's backslash, and a list item's marker: the items of a
+        # list read as one paragraph.
+        stripped = MARKDOWN_LIST_ITEM.sub("", stripped.lstrip("> ")).rstrip("\\").rstrip()
+        current.append(stripped)
+    if current:
+        paragraphs.append(current)
+    for paragraph in paragraphs:
+        text = " ".join(paragraph)
+        if REHOSTED_NOTE.match(text):
+            continue
+        # Read no more of a paragraph than a summary can show, so that no release's
+        # notes can make the markup's patterns work through a whole book.
+        text = plain_markdown(text[:4 * SUMMARY_MAX])
+        if not text:
+            continue
+        if len(text) > SUMMARY_MAX:
+            cut = text[:SUMMARY_MAX - 4]
+            sentence = cut.rfind(". ")
+            word = cut.rfind(" ")
+            if sentence >= SUMMARY_MAX // 2:
+                text = cut[:sentence + 1] + " ..."
+            elif word > 0:
+                text = cut[:word].rstrip(",;:") + " ..."
+            else:
+                text = cut + " ..."
+        return text
+    return fallback
+
+
+def atom_bytes(rendered, summaries):
+    """releases.atom (RFC 4287): an entry for every release of rendered, the
+    release objects of releases.json in its order, newest first. summaries maps a
+    tag to its entry's summary. The same releases make the same bytes: the feed's
+    updated time is its newest entry's, not the time of the render."""
+    e = xml_text
+    lines = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<feed xmlns="%s" xml:lang="en">' % ATOM_NS,
+        ' <id>%s</id>' % e(ATOM_FEED_ID),
+        ' <title>hMailServer releases</title>',
+        ' <subtitle>Every release of hMailServer, newest first: the releases the update feed at %s gives a server, '
+        'each with the first paragraph of its notes.</subtitle>' % e(SITE),
+        ' <updated>%s</updated>' % e(max(r["published_at"] for r in rendered)),
+        ' <link rel="self" type="application/atom+xml" href="%s"/>' % e(SITE + "/" + ATOM_PATH),
+        ' <link rel="alternate" type="text/html" href="%s"/>' % e(PROJECT_URL + "/-/releases"),
+        ' <author><name>The hMailServer maintainers</name><uri>%s</uri></author>' % e(PROJECT_URL),
+        ' <generator>build/generate-update-feed.py</generator>',
+    ]
+    for release in rendered:
+        tag = release["tag_name"]
+        term, label = ("pre-release", "Pre-release") if release["prerelease"] else ("release", "Release")
+        lines += [
+            ' <entry>',
+            '  <id>%s</id>' % e(atom_entry_id(tag)),
+            '  <title>%s</title>' % e(atom_title(release["name"], tag)),
+            '  <link rel="alternate" type="text/html" href="%s"/>' % e(release["html_url"]),
+            '  <updated>%s</updated>' % e(release["published_at"]),
+            '  <published>%s</published>' % e(release["published_at"]),
+            '  <category term="%s" label="%s"/>' % (term, label),
+            '  <summary>%s</summary>' % e(summaries.get(tag) or release["name"]),
+            ' </entry>',
+        ]
+    lines.append('</feed>')
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+_ATOM_CHECKER = []
+
+
+def atom_checker():
+    """build/check-atom-feed.py, loaded once: what holds releases.atom to RFC 4287
+    and to releases.json."""
+    if not _ATOM_CHECKER:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("check_atom_feed", os.path.join(ROOT, "build", "check-atom-feed.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _ATOM_CHECKER.append(module)
+    return _ATOM_CHECKER[0]
+
+
 def render(releases, files):
     """The tree, as {relative path: bytes}, the release releases/latest is, and a
     warning for each release left out. A release that cannot be published as it
@@ -379,10 +601,15 @@ def render(releases, files):
         if compare_versions(candidate["tag_name"], latest["tag_name"]) > 0:
             latest = candidate
 
+    # Each release's summary from its own notes, which the release objects do not
+    # carry: a server reads exactly RELEASE_KEYS.
+    summaries = dict((r["tag_name"], release_summary(r.get("description"), r.get("name") or r["tag_name"])) for r in candidates)
+
     tree = {
         "releases/latest": feed_bytes(latest),
         "releases.json": feed_bytes(rendered),
         "releases/index.html": releases_page(rendered).encode("utf-8"),
+        ATOM_PATH: atom_bytes(rendered, summaries),
         "index.html": index_page(latest, rendered).encode("utf-8"),
         "_redirects": redirects_bytes(redirect_rules(latest)),
     }
@@ -399,11 +626,13 @@ def releases_page(rendered):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hMailServer releases</title>
+<link rel="alternate" type="application/atom+xml" title="hMailServer releases" href="../releases.atom">
 <style>body{{font:16px/1.5 system-ui,sans-serif;max-width:60rem;margin:2rem auto;padding:0 16px}}pre{{white-space:pre-wrap;word-break:break-all}}</style>
 </head>
 <body>
 <h1>hMailServer releases</h1>
-<p>Every release in the update feed, newest first, as <a href="../releases.json"><code>releases.json</code></a> gives it to a server.</p>
+<p>Every release in the update feed, newest first, as <a href="../releases.json"><code>releases.json</code></a> gives it to a server.
+To follow them in a feed reader, subscribe to <a href="../releases.atom"><code>releases.atom</code></a>.</p>
 <pre>{listing}</pre>
 </body>
 </html>
@@ -418,6 +647,7 @@ def index_page(latest, rendered):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hMailServer update feed</title>
+<link rel="alternate" type="application/atom+xml" title="hMailServer releases" href="releases.atom">
 <style>body{{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 16px}}code{{word-break:break-all}}</style>
 </head>
 <body>
@@ -429,6 +659,7 @@ It is made from the <a href="{project}/-/releases">project's releases on GitLab<
 <li><a href="releases/latest"><code>releases/latest</code></a>: the newest release that is not a pre-release, which a server on the stable channel reads.</li>
 <li><a href="releases.json"><code>releases.json</code></a>: every release, which a server on the pre-release channel reads.</li>
 <li><code>releases/tags/v&lt;version&gt;</code>: one release, which a server reads to roll back to the version it runs.</li>
+<li><a href="releases.atom"><code>releases.atom</code></a>: every release as an Atom feed, newest first, for a feed reader. No server reads it.</li>
 </ul>
 <p>A server from 6.2.28 to 6.3.3 still looks for its updates on GitHub. One line in its <code>hMailServer.ini</code> points it here:
 <code>UpdateFeedUrl={site}/releases.json</code>. <a href="{document}">How, and what it changes</a>.</p>
@@ -839,6 +1070,31 @@ class PagesServer(object):
         self.server.server_close()
 
 
+def serve_check_atom(base, out):
+    """/releases.atom as Pages serves it from base, held by build/check-atom-feed.py
+    to RFC 4287 and to the /releases.json and /releases/latest served beside it.
+    Returns the problems."""
+    url = SITE + "/" + ATOM_PATH
+    status, body, _ = fetch_no_redirect(base + "/" + ATOM_PATH)
+    if status != 200:
+        out("  %-3d %s" % (status, url))
+        return ["%s answered HTTP %d" % (url, status)]
+    documents = {}
+    for path in ("/releases.json", "/releases/latest"):
+        answer, content, _ = fetch_no_redirect(base + path)
+        try:
+            documents[path] = json.loads(content.decode("utf-8")) if answer == 200 else None
+        except ValueError:
+            documents[path] = None
+    checker = atom_checker()
+    found = checker.check_atom(body, documents["/releases.json"], documents["/releases/latest"])
+    if documents["/releases.json"] is None:
+        found.append("%s/releases.json could not be read, so the Atom feed was not held to it" % SITE)
+    entries = checker.entry_ids(body)
+    out("  200 %s -> %d entries, the newest %s" % (url, len(entries), entries[0] if entries else "none"))
+    return ["%s: %s" % (url, problem) for problem in found]
+
+
 def serve_check(directory, constants, out=print):
     """Every URL a server derives, read from directory served as Pages serves it,
     and each answer read as the server reads it. Returns the problems found."""
@@ -934,6 +1190,9 @@ def serve_check(directory, constants, out=print):
         if stable:
             for configured_value in ("", configured):
                 read(by_tag_url(constants, configured_value, stable["version"]), False, by_tag=True)
+
+        out("the Atom feed of the releases, for a feed reader (build/check-atom-feed.py):")
+        problems.extend(serve_check_atom(base, out))
 
         out("the download links, which follow releases/latest (_redirects):")
         redirects = os.path.join(directory, "_redirects")
@@ -1046,7 +1305,7 @@ def self_test():
     tags = sorted(n for n in tree if n.startswith("releases/tags/"))
     expect(tags == sorted("releases/tags/" + t for t in ("v6.3.5-rc1", "v6.3.4", "v6.2.29", "v6.3.3", "v6.2.22-pre1", "v6.0.0-B4")),
            "a tag file for every server release, none for build-inputs-1 or the upcoming 6.9.0: %s" % tags)
-    expect(set(tree) == set(tags) | {"releases/latest", "releases.json", "releases/index.html", "index.html", "_redirects"},
+    expect(set(tree) == set(tags) | {"releases/latest", "releases.json", "releases/index.html", ATOM_PATH, "index.html", "_redirects"},
            "the tree is the documented files")
     expect(latest["tag_name"] == "v6.3.4", "releases/latest is the highest stable version, not the latest date (6.2.29 was published after 6.3.4): %s"
            % latest["tag_name"])
@@ -1134,6 +1393,79 @@ def self_test():
             expect(re.match(r"^sha256:[0-9a-f]{64}$", a["digest"]) is not None, "a digest is sha256:<hex>")
     v634 = [r for r in listing if r["tag_name"] == "v6.3.4"][0]
     expect(v634["published_at"] == "2026-10-01T11:00:00Z", "released_at is written in UTC as GitHub wrote it: %s" % v634["published_at"])
+
+    # The Atom feed: RFC 4287 and releases.json's releases, in its order, as
+    # build/check-atom-feed.py holds it - and that checker refuses each way of
+    # breaking one (its own self-test, which the pages job runs this way).
+    checker = atom_checker()
+    problems = checker.check_atom(tree[ATOM_PATH], listing, latest)
+    expect(problems == [], "releases.atom is a valid Atom feed of the releases releases.json lists: %s" % problems)
+    expect(checker.entry_ids(tree[ATOM_PATH]) == [atom_entry_id(r["tag_name"]) for r in listing],
+           "releases.atom has an entry for each release, newest first, its id made from the tag")
+    expect(b"<summary>notes</summary>" in tree[ATOM_PATH] and b"&lt;script&gt;" in tree[ATOM_PATH],
+           "each entry's summary is its notes, and a name's markup is text")
+    checker_failures = checker.self_test()
+    expect(checker_failures == [], "build/check-atom-feed.py refuses every broken feed of its self-test: %s" % checker_failures)
+    expect(b'<a href="releases.atom">' in tree["index.html"]
+           and b'<link rel="alternate" type="application/atom+xml" title="hMailServer releases" href="releases.atom">' in tree["index.html"]
+           and b'<a href="../releases.atom">' in tree["releases/index.html"]
+           and b'<link rel="alternate" type="application/atom+xml" title="hMailServer releases" href="../releases.atom">' in tree["releases/index.html"],
+           "the site's pages link the Atom feed, for a person and for a reader's discovery")
+    rerendered = render(json.loads(json.dumps(loaded)), files)[0]
+    expect(rerendered[ATOM_PATH] == tree[ATOM_PATH], "the same releases render the same releases.atom, whenever")
+    moved = json.loads(json.dumps(loaded))
+    for r in moved:
+        r["_links"]["self"] = r["_links"]["self"].replace("/Progressiverobot/", "/hmailserver/")
+        r["name"] = r["name"] + " (edited)"
+        r["description"] = "Edited notes."
+    moved_atom = render(moved, files)[0][ATOM_PATH]
+    expect(checker.entry_ids(moved_atom) == checker.entry_ids(tree[ATOM_PATH]) and b"/hmailserver/hmailserver/-/releases/v6.3.4" in moved_atom,
+           "a move of the project and an edited name and notes change the links and no id")
+    for description, summary in (
+            (None, "fallback"), ("", "fallback"), ("# Heading\n\n---\n", "fallback"),
+            ("*Re-published on GitLab on 24 September 2026 from the GitHub release.*\n\n# hMailServer 6.3.3\n\nThe lead.\n\nMore.", "The lead."),
+            ("Line one\\\nline two, with **bold**, *emphasis*, `a_b*c`, [a link](https://x/y) and ![an image](i.png).",
+             "Line one line two, with bold, emphasis, a_b*c, a link and an image."),
+            ("```\ncode first\n```\n\n| a | b |\n|---|---|\n\n- item one\n- item two", "item one item two"),
+            ("hmailserver_6.3.4_amd64.deb and snake_case stay, \\- an escape goes.", "hmailserver_6.3.4_amd64.deb and snake_case stay, - an escape goes."),
+            ("#123 is an issue, not a heading.", "#123 is an issue, not a heading."),
+            ("**Mail could hang after `354`, and this is the fix.** hm__x__y stays.", "Mail could hang after 354, and this is the fix. hm__x__y stays."),
+            ("> [!WARNING]\n> **Fresh installations fail** - use 6.2.20.", "Warning: Fresh installations fail - use 6.2.20."),
+            ("See [the docs](https://example.com/a_(b)) and [this](<https://example.com/a b> \"title\") now.", "See the docs and this now."),
+            ("Raw <b>HTML</b> goes,<br> <!-- a comment --> x < y > z stays, `<code>` stays.", "Raw HTML goes, x < y > z stays, <code> stays."),
+            ("AT&T &amp; R&amp;D&nbsp;x &#x41;&#66; &notanentity; `&amp;` &#xE000;0&#xE001;.", "AT&T & R&D x AB &notanentity; &amp; 0.")):
+        got = release_summary(description, "fallback")
+        expect(got == summary, "the summary of %r is %r: %r" % (description, summary, got))
+    # A name XML cannot carry whole - a control character, a carriage return - is
+    # left as a parser reads it, and the feed is still held to releases.json.
+    odd = json.loads(json.dumps(loaded))
+    of_tag = [r for r in odd if r["tag_name"] == "v6.3.4"][0]
+    of_tag["name"] = "hMailServer\x0b 6.3.4\r\nsecond line"
+    odd_tree, odd_latest, _ = render(odd, files)
+    problems = checker.check_atom(odd_tree[ATOM_PATH], json.loads(odd_tree["releases.json"].decode("utf-8")), odd_latest)
+    expect(problems == [], "a release name with a control character and a line break still makes a feed held to releases.json: %s" % problems)
+    # A name of blanks, or of what XML cannot carry, is published in releases.json as
+    # it is; the entry's title is the tag, so the feed still passes and the pages job
+    # still publishes the release to the servers.
+    for blank in ("   ", "\x01\x02", "\r\n"):
+        of_tag["name"] = blank
+        odd_tree, odd_latest, _ = render(odd, files)
+        problems = checker.check_atom(odd_tree[ATOM_PATH], json.loads(odd_tree["releases.json"].decode("utf-8")), odd_latest)
+        expect(problems == [] and b"<title>v6.3.4</title>" in odd_tree[ATOM_PATH],
+               "a release named %r has its tag as the entry's title, and the feed passes: %s" % (blank, problems))
+    # Notes that would keep the markup's patterns busy are read no further than a summary needs.
+    started = time.time()
+    busy = release_summary("**a " * 200000, "fallback")
+    expect(time.time() - started < 5 and len(busy) <= SUMMARY_MAX, "a paragraph of 200,000 unmatched ** is summarised at once: %.1f s" % (time.time() - started))
+    for busy_text in ("<a b" * 100000, "[a](" * 100000, "[a](b(c" * 100000, "&#" * 100000):
+        started = time.time()
+        busy = release_summary(busy_text, "fallback")
+        expect(time.time() - started < 5 and len(busy) <= SUMMARY_MAX, "a paragraph of %r... is summarised at once: %.1f s" % (busy_text[:8], time.time() - started))
+    long_text = ("A sentence of the lead. " * 60).strip()
+    cut = release_summary(long_text, "fallback")
+    expect(len(cut) <= SUMMARY_MAX and cut.endswith("lead. ...") and long_text.startswith(cut[:-4]),
+           "a long lead is cut at a sentence, within %d characters: %d, %r" % (SUMMARY_MAX, len(cut), cut[-30:]))
+    expect(xml_text("a\x00b\x1bc\ud800d&<>\"") == "abcd&amp;&lt;&gt;&quot;", "what XML cannot carry is left out, and the rest escaped")
     exe = [a for a in v634["assets"] if a["name"] == "hMailServer-6.3.4-x64.exe"][0]
     expect(exe["size"] == len("hMailServer-6.3.4-x64.exe") * 1000, "a file uploaded twice is described as its later upload")
     spaced = [a for a in v634["assets"] if a["name"] == "notes with space+plus.txt"]
@@ -1371,7 +1703,25 @@ def self_test():
             f.write(tree["releases/latest"])
         expect(any("the download links would lead to v6.3.5-rc1, a pre-release" in p for p in problems),
                "serve-check fails when the download links would follow a pre-release: %s" % problems)
-        expect(serve_check(directory, constants, out=lambda line: None) == [], "and the site put back passes")
+
+        # The Atom feed, read from the site as a reader reads it and held to the
+        # releases.json served beside it: missing, and without its newest entry.
+        atom_path = os.path.join(directory, ATOM_PATH)
+        os.remove(atom_path)
+        problems = serve_check(directory, constants, out=lambda line: None)
+        expect(problems == ["%s/%s answered HTTP 404" % (SITE, ATOM_PATH)], "serve-check fails without releases.atom: %s" % problems)
+        newest = tree[ATOM_PATH].index(b" <entry>")
+        with open(atom_path, "wb") as f:
+            f.write(tree[ATOM_PATH][:newest] + tree[ATOM_PATH][tree[ATOM_PATH].index(b" </entry>\n") + len(b" </entry>\n"):])
+        problems = serve_check(directory, constants, out=lambda line: None)
+        expect(any(p.startswith(SITE + "/" + ATOM_PATH + ": ") and "not the newest release releases.json lists" in p for p in problems),
+               "serve-check fails on a releases.atom without the newest release: %s" % problems)
+        with open(atom_path, "wb") as f:
+            f.write(tree[ATOM_PATH])
+        lines = []
+        expect(serve_check(directory, constants, out=lines.append) == [], "and the site put back passes")
+        expect(any("200 %s/%s -> 6 entries, the newest %s" % (SITE, ATOM_PATH, atom_entry_id("v6.3.5-rc1")) in l for l in lines),
+               "serve-check reads the Atom feed: %s" % [l for l in lines if ATOM_PATH in l])
 
     for failure in failures:
         print("FAILED: " + failure)

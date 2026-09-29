@@ -146,6 +146,7 @@ namespace hMailServer.ControlPanel.Services
       public static readonly IReadOnlyList<string> ReferenceOnly = new[]
       {
          "AccountRecovery.md",
+         "ActiveActive.md",
          "BrandLogos.md",
          "Channels.md",
          "CommandLinePackages.md",

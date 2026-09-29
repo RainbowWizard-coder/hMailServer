@@ -38,12 +38,16 @@ and is stewarded by Progressive Robot Ltd. Decisions are made by the
 maintainers, in the open, on the issue tracker.
 
 On GitLab, since 26 September 2026, Christopher Holloway's account
-`Progressiverobot` is the project's only Owner and its only member with the
-Maintainer role or above. Zain Ul Abidin (`zainulabidin1990`) and Christopher
-Holloway's older account `chrisholloway5` hold the Developer role; the owner
-decided both. `master` and the `v*` tags are protected for Maintainers, so
-every change reaches `master` through the owner, Zain Ul Abidin's included,
-and only the owner can create a release tag.
+`Progressiverobot` is the project's only Owner among its people and its only
+person with the Maintainer role or above. One project access token, `laptop-git`,
+which the maintainers' machine works with, holds the Owner role too until it
+expires on 27 September 2027; it is the owner's, used on the owner's machine,
+and SECURITY.md lists what it can do. Zain Ul Abidin (`zainulabidin1990`) and
+Christopher Holloway's older account `chrisholloway5` hold the Developer role;
+the owner decided both. `master` and the `v*` tags are protected for
+Maintainers, so every change reaches `master` through the owner or that token,
+Zain Ul Abidin's included, and only they can create a release tag, which the
+`release` job also holds to the one key in `.gitlab/allowed_signers`.
 
 The two maintainers are unassociated: Christopher Holloway is from Progressive
 Robot Ltd, and Zain Ul Abidin is independent of it (the owner's statement of
