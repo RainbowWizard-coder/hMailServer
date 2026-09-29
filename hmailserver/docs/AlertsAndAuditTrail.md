@@ -161,9 +161,12 @@ way:
   (`tarpit_count` and `tarpit_delay` on `/api/v1/settings/antispam`,
   `user_interface_language` and `rewrite_envelope_from_when_forwarding` on
   `/api/v1/settings`), hmctl, and the Control Panel pages built on them. The stored value is read before it is replaced.
-  `PasswordPepper`, the one key kept in the file and never stored, is read from
+  `PasswordPepper`, a key kept in the file and never stored, is read from
   the file for the same purpose, so a new pepper — after which no hash made
-  before it verifies — is a row like any other key's, reading `(changed)`.
+  before it verifies — is a row like any other key's, reading `(changed)`. So
+  are the five settings of the live update's trust, kept in the file alone from
+  6.3.6, when `hmailserver --set-setting` changes one; an administrator's
+  change over COM or REST is refused and records nothing.
   `hm_inisettings` is not an audited table either, for the same reason as
   `hm_settings`.
 

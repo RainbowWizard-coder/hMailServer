@@ -20,6 +20,9 @@
 #include "../Util/FileUtilities.h"
 #include "../Util/ServiceAccount.h"
 #include "../Util/Unicode.h"
+#include "../Util/AuditTrail.h"
+#include "../Util/SigstoreVerifier.h"
+#include "EnvironmentSettings.h"
 
 // The Win32 profile API - GetPrivateProfileString and the three calls
 // beside it - lives in kernel32 and has no POSIX equivalent, so the POSIX
@@ -1457,6 +1460,31 @@ namespace HM
       std::map<String, String> overrides;
       IniSettingStore::ReadOverrides(overrides);
 
+      // Not the live update's trust, which is read from [Settings] alone - where
+      // hmailserver --verify-update, root's check on Linux, reads it - so that the
+      // two checks cannot disagree. A line for one here is ignored, and said at
+      // every start while it is there.
+      std::vector<String> trustOverrides;
+      for (auto iter = overrides.begin(); iter != overrides.end();)
+      {
+         if (IniSettingStore::IsTrustAnchorName((*iter).first))
+         {
+            trustOverrides.push_back((*iter).first);
+            iter = overrides.erase(iter);
+         }
+         else
+         {
+            iter++;
+         }
+      }
+
+      if (!trustOverrides.empty())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5809, "IniFileSettings::LoadDatabaseSettings",
+            Formatter::Format(_T("The [SettingsOverride] section of {0} names the live update's trust, which is read from the [Settings] section of the same file alone - where hmailserver --verify-update, the check as root on Linux, reads it - so that line is ignored: {1}. Move it to [Settings]."),
+               GetInitializationFile(), StringParser::JoinVector(trustOverrides, _T(", "))));
+      }
+
       std::set<String> overridden;
 
       for (auto iter = overrides.begin(); iter != overrides.end(); iter++)
@@ -1552,8 +1580,10 @@ namespace HM
             shadowed = file_overrides_.find(key) != file_overrides_.end();
 
             // A key kept in the file only is never in the overlay: it is read from the
-            // file, which is where the store just put it.
-            if (database_settings_loaded_ && !shadowed && !IniSettingStore::IsFileOnlyName(key))
+            // file, which is where the store just put it. Nor the live update's trust,
+            // read from the file alone, which the store wrote there - for a command
+            // run as the file's owner - or did not write at all.
+            if (database_settings_loaded_ && !shadowed && !IniSettingStore::IsFileOnlyName(key) && !IniSettingStore::IsTrustAnchorName(key))
                database_settings_[key] = value;
          }
 
@@ -1683,9 +1713,15 @@ namespace HM
       // sections that say where the database IS - so a value from the database could
       // never be needed to reach it, and allowing one would be a way to point a
       // server at a different database by writing to the one it already has.
+      //
+      // And not the live update's trust (IniSettingStore::IsTrustAnchorName), which
+      // is read from the file alone for the same kind of reason: it says what an
+      // update is checked against, and hmailserver --verify-update, root's check on
+      // Linux, reads it here - from the file, with this parse - so the server must
+      // too, or the two checks would not be the same check.
       const bool settingsSection = sSection.CompareNoCase(_T("Settings")) == 0;
 
-      if (settingsSection)
+      if (settingsSection && !IniSettingStore::IsTrustAnchorName(sKey))
       {
          String stored;
          bool found = false;
@@ -2647,6 +2683,14 @@ namespace HM
    }
 
    void
+   IniFileSettingsTester::SetOverlayLoaded_(bool loaded)
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+      boost::lock_guard<boost::recursive_mutex> guard(ini->database_settings_mutex_);
+      ini->database_settings_loaded_ = loaded;
+   }
+
+   void
    IniFileSettingsTester::Test()
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -2860,6 +2904,209 @@ namespace HM
             String(_T("A removal of TlsRptOrganizationName did not publish its default: the tester's value was still in effect when it returned.")));
 
       TestSavesRacingSaves_();
+
+      TestTrustAnchors();
+   }
+
+   void
+   IniFileSettingsTester::TestTrustAnchors()
+   {
+      IniFileSettings *ini = IniFileSettings::Instance();
+      const String iniFile = IniFileSettings::GetInitializationFile();
+
+      const TCHAR *keys[] =
+      {
+         _T("UpdateSigningIdentity"),
+         _T("UpdateSigningIssuer"),
+         _T("UpdateSourceRepository"),
+         _T("UpdateTrustRootsFile"),
+         _T("UpdateLogPublicKeyFile")
+      };
+      const size_t count = sizeof(keys) / sizeof(keys[0]);
+
+      // 1. The five, in any case, and nothing beside them.
+      for (size_t k = 0; k < count; k++)
+      {
+         String lower = keys[k];
+         lower.ToLower();
+         if (!IniSettingStore::IsTrustAnchorName(keys[k]) || !IniSettingStore::IsTrustAnchorName(lower))
+            FailSettingsTest_(Formatter::Format(_T("{0} is not taken for the live update's trust."), String(keys[k])));
+      }
+
+      const TCHAR *others[] = { _T("UpdateChannel"), _T("UpdateFeedUrl"), _T("PasswordPepper"), _T("UpdateSigningIdentity2"), _T("") };
+      for (const TCHAR *other : others)
+      {
+         if (IniSettingStore::IsTrustAnchorName(other))
+            FailSettingsTest_(Formatter::Format(_T("'{0}' is taken for the live update's trust."), String(other)));
+      }
+
+      // What the file says, read as root's check reads it: the [Settings] line.
+      std::vector<String> fileValues;
+      for (size_t k = 0; k < count; k++)
+      {
+         const DWORD bufferSize = 4096;
+         TCHAR value[bufferSize];
+         GetPrivateProfileString(_T("Settings"), keys[k], _T(""), value, bufferSize, iniFile.c_str());
+         fileValues.push_back(String(value));
+      }
+
+      // 2. The database's overlay holding a value for each - what a row an earlier
+      //    version stored would have put there - and the server reading the file's.
+      const bool wasLoaded = OverlayLoaded_();
+      std::vector<char> had(count, 0);
+      std::vector<String> before(count);
+      for (size_t k = 0; k < count; k++)
+      {
+         String value;
+         had[k] = GetOverlay_(keys[k], value) ? 1 : 0;
+         before[k] = value;
+      }
+
+      auto putBack = [&]()
+      {
+         for (size_t k = 0; k < count; k++)
+            RestoreOverlay_(keys[k], had[k] != 0, before[k]);
+         SetOverlayLoaded_(wasLoaded);
+         Publish_();
+      };
+
+      try
+      {
+         SetOverlayLoaded_(true);
+         for (size_t k = 0; k < count; k++)
+            SetOverlay_(keys[k], _T("https://tester.invalid/a-value-the-database-holds"));
+         Publish_();
+
+         for (size_t k = 0; k < count; k++)
+         {
+            const String read = ini->GetSettingsValue(keys[k]);
+            if (read != fileValues[k])
+               FailSettingsTest_(Formatter::Format(_T("{0} reads '{1}' where the file holds '{2}': the database's value was used."), String(keys[k]), read, fileValues[k]));
+         }
+
+         const String getters[] =
+         {
+            ini->GetUpdateSigningIdentity(),
+            ini->GetUpdateSigningIssuer(),
+            ini->GetUpdateSourceRepository(),
+            ini->GetUpdateTrustRootsFile(),
+            ini->GetUpdateLogPublicKeyFile()
+         };
+         for (size_t k = 0; k < count; k++)
+         {
+            if (getters[k] != fileValues[k])
+               FailSettingsTest_(Formatter::Format(_T("The loader resolved {0} to '{1}' where the file holds '{2}': the server would check an update with the database's value."), String(keys[k]), getters[k], fileValues[k]));
+         }
+
+         // The trust itself, as the verifier builds it - the one --verify-update
+         // builds with no database at all. Only while the file names no trust
+         // root or log key of its own: a file of those that is missing is a
+         // refusal of its own, which is not what this asks. And only where no
+         // database was loaded to begin with - trust-anchor-tests, not the
+         // service - because the comparison unloads the overlay for a moment,
+         // and a running server would read every setting from the file then.
+         if (!wasLoaded && fileValues[3].IsEmpty() && fileValues[4].IsEmpty())
+         {
+            SigstoreTrust withOverlay;
+            String error;
+            if (!SigstoreVerifier::ConfiguredTrust(withOverlay, error))
+               FailSettingsTest_(_T("The configured trust could not be built: ") + error);
+
+            SetOverlayLoaded_(false);
+            Publish_();
+
+            SigstoreTrust fileAlone;
+            if (!SigstoreVerifier::ConfiguredTrust(fileAlone, error))
+               FailSettingsTest_(_T("The configured trust could not be built from the file alone: ") + error);
+
+            SetOverlayLoaded_(true);
+            Publish_();
+
+            if (withOverlay.signers.size() != fileAlone.signers.size())
+               FailSettingsTest_(_T("The trust the server builds and the one --verify-update builds from the file alone name different numbers of signers."));
+            for (size_t i = 0; i < withOverlay.signers.size(); i++)
+            {
+               if (withOverlay.signers[i].identity_prefix != fileAlone.signers[i].identity_prefix ||
+                   withOverlay.signers[i].issuer != fileAlone.signers[i].issuer ||
+                   withOverlay.signers[i].repository != fileAlone.signers[i].repository)
+               {
+                  FailSettingsTest_(_T("The trust the server builds and the one --verify-update builds from the file alone differ."));
+               }
+            }
+         }
+
+         // 3. An administrator's change - the actor every COM call and REST request
+         //    installs - refused in the sentence that names the file; the value the
+         //    file already holds let through, and nothing written.
+         AuditTrail::Actor actor;
+         actor.present = true;
+         actor.name = _T("Administrator");
+         actor.kind = _T("administrator");
+         actor.interface_name = _T("COM");
+         AuditScope scope(actor);
+
+         for (size_t k = 0; k < count; k++)
+         {
+            const String changed = fileValues[k] + _T("-changed");
+
+            String sentence;
+            try
+            {
+               ini->WriteSettingsValue(keys[k], changed);
+            }
+            catch (const EnvironmentSettings::Refusal &refusal)
+            {
+               sentence = refusal.Sentence();
+            }
+
+            if (sentence.IsEmpty())
+               FailSettingsTest_(Formatter::Format(_T("An administrator's change to {0} was not refused."), String(keys[k])));
+            if (sentence.Find(iniFile) < 0)
+               FailSettingsTest_(Formatter::Format(_T("The refusal of {0} does not name the file it is kept in: {1}"), String(keys[k]), sentence));
+#ifdef HM_PLATFORM_POSIX
+            if (sentence.Find(_T("hmailserver --set-setting")) < 0)
+               FailSettingsTest_(Formatter::Format(_T("The refusal of {0} does not say how it is set on this platform: {1}"), String(keys[k]), sentence));
+#endif
+
+            String unchanged;
+            if (IniSettingStore::RefusesTrustAnchorChange(keys[k], &fileValues[k], unchanged))
+               FailSettingsTest_(Formatter::Format(_T("A write of the value the file already holds for {0} is refused: {1}"), String(keys[k]), unchanged));
+            if (!ini->WriteSettingsValue(keys[k], fileValues[k]))
+               FailSettingsTest_(Formatter::Format(_T("A write of the value the file already holds for {0} was not let through."), String(keys[k])));
+
+            bool removalRefused = false;
+            try
+            {
+               ini->RemoveSettingsValue(keys[k]);
+            }
+            catch (const EnvironmentSettings::Refusal &)
+            {
+               removalRefused = true;
+            }
+
+            if (removalRefused != !fileValues[k].IsEmpty())
+               FailSettingsTest_(Formatter::Format(_T("The removal of {0}, which the file {1}, was {2}."), String(keys[k]),
+                  fileValues[k].IsEmpty() ? String(_T("does not set")) : String(_T("sets")),
+                  removalRefused ? String(_T("refused")) : String(_T("let through"))));
+         }
+
+         // Nothing of that reached the file.
+         for (size_t k = 0; k < count; k++)
+         {
+            const DWORD bufferSize = 4096;
+            TCHAR value[bufferSize];
+            GetPrivateProfileString(_T("Settings"), keys[k], _T(""), value, bufferSize, iniFile.c_str());
+            if (String(value) != fileValues[k])
+               FailSettingsTest_(Formatter::Format(_T("A refused change to {0} reached the file, which now holds '{1}'."), String(keys[k]), String(value)));
+         }
+      }
+      catch (...)
+      {
+         putBack();
+         throw;
+      }
+
+      putBack();
    }
 
    void
@@ -2880,10 +3127,15 @@ namespace HM
    // stored and in effect; and reading a row before a PUT updated it and the file
    // after, putting the old value back into both.
    //
-   // Eight keys nothing reads while the internal suite runs: report and signing
-   // names, an ACME contact, the autoconfig and MTA-STS hosts. The threads have no
-   // audit actor, so the storm writes no rows into the audit trail. What each key
-   // held is put back however the test ends.
+   // Eight keys nothing reads while the internal suite runs, and no subscriber
+   // acts on: report names and addresses, an ACME contact and the autoconfig and
+   // MTA-STS hosts. Not the live update's signing names any more, which were
+   // three of them until 6.3.6: they are read from hMailServer.INI alone now and
+   // have no row to race over (IniSettingStore::IsTrustAnchorName). Nor
+   // OtelServiceName, which three subscribers restart the OpenTelemetry
+   // exporters on at every save (Application.cpp). The threads
+   // have no audit actor, so the storm writes no rows into the audit trail. What
+   // each key held is put back however the test ends.
    //---------------------------------------------------------------------------()
    {
       IniFileSettings *ini = IniFileSettings::Instance();
@@ -2895,9 +3147,9 @@ namespace HM
          _T("AcmeContactEmail"),
          _T("AutoconfigClientHost"),
          _T("MtaStsPolicyMx"),
-         _T("UpdateSigningIdentity"),
-         _T("UpdateSigningIssuer"),
-         _T("UpdateSourceRepository")
+         _T("DmarcRptFromAddress"),
+         _T("TlsRptFromAddress"),
+         _T("TlsRptOrganizationName")
       };
       const size_t count = sizeof(keys) / sizeof(keys[0]);
       const int operations = 200;

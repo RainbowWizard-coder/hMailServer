@@ -690,7 +690,12 @@ Administration and monitoring:
                                  ; release signers: GitHub's sign-release.yml up to 6.3.3, the GitLab CI pipeline
                                  ; for a v* tag after); UpdateSigningIssuer= the OIDC issuer (empty = each signer's
                                  ; own); UpdateSourceRepository= the repository it must record (empty = each
-                                 ; signer's, - = any). Each replaces its part of every signer
+                                 ; signer's, - = any). Each replaces its part of every signer.
+                                 ; From 6.3.6 these five trust settings are read from this file alone, never from
+                                 ; the database: the process an update is checked for may not choose what it is
+                                 ; checked against, and on Linux root's check (hmailserver --verify-update) reads
+                                 ; this file. COM and the REST API refuse them; set them here as an administrator,
+                                 ; or on Linux with sudo hmailserver --set-setting (docs/UpdateFeed.md)
    UpdateRequireAuthenticode=0   ; 1: the installer must also carry an Authenticode signature Windows trusts
                               ; (WinVerifyTrust at download, no revocation check, no publisher pin). The
                               ; installers have been signed since 6.3.1; earlier ones carry none, and 1 refuses them.

@@ -9363,6 +9363,9 @@ Pokračovat?</value>
   <data name="Set header value" xml:space="preserve">
     <value>Nastavit hodnotu hlavičky</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Nastavuje se jen v hMailServer.ini</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Nastavte port HTTP nebo HTTPS na stránce Webové služby a autokonfigurace WebServicesHttpPort a/nebo WebServicesHttpsPort, aby URL odpovídaly, a poté pro každou poštovní doménu publikujte DNS záznamy autoconfig.&lt;domain&gt; a autodiscover.&lt;domain&gt; ukazující na tento server. Jde o adresní záznamy a tato stránka kontroluje pouze TXT záznamy, takže je odsud potvrdit nelze.</value>
   </data>

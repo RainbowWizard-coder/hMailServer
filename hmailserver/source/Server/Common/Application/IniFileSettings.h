@@ -1734,12 +1734,27 @@ namespace HM
    public:
       void Test();
 
+      /// <summary>
+      /// The live update's trust (IniSettingStore::IsTrustAnchorName), which Test
+      /// runs inside the service and trust-anchor-tests runs on Linux against a
+      /// configuration file of its own: the five keys and no other are the trust;
+      /// with the database's overlay holding a value for each, the server reads
+      /// the file's - by name, through the loader's block and through the trust
+      /// SigstoreVerifier builds, which is the one --verify-update builds from the
+      /// same file with no database at all; and an administrator's change to one
+      /// is refused in the sentence that names the file, while the value the file
+      /// already holds is let through without a write. It changes nothing it does
+      /// not put back, and writes neither the file nor the database.
+      /// </summary>
+      void TestTrustAnchors();
+
    private:
       static void SetOverlay_(const String &key, const String &value);
       static bool GetOverlay_(const String &key, String &value);
       static void RestoreOverlay_(const String &key, bool had, const String &value);
       static void Publish_();
       static bool OverlayLoaded_();
+      static void SetOverlayLoaded_(bool loaded);
       static void TestSavesRacingSaves_();
    };
 }

@@ -183,9 +183,13 @@ configured installs a GitLab-signed release has not been tried.
 
 Leave the lines in place until the new version is running: the old server
 verifies the installer once more as it hands it over, with the same settings.
-Then clear all three the way the last bullet above clears `UpdateFeedUrl` - the
-Control Panel, `DELETE /api/v1/settings/ini/<name>`, or `hmailserver
---set-setting <name>=` - and not in the file, which the new version puts back.
+Then clear all three. On 6.3.4 and 6.3.5 that is done the way the last bullet
+above clears `UpdateFeedUrl` - the Control Panel, `DELETE
+/api/v1/settings/ini/<name>`, or `hmailserver --set-setting <name>=` - and not
+in the file, which those two versions put back. From 6.3.6 the three are read
+from the file alone ([Where the trust is read from](#where-the-trust-is-read-from)):
+delete the lines from `[Settings]` with an editor run as an administrator, or on
+Linux with `sudo hmailserver --set-setting <name>=`, and restart the service.
 Left set, they keep the new version to the GitLab signer alone, with all of
 that signer's checks: they restate its own values (see below). They also keep
 it to the path the project began at: the project moved to the group
@@ -229,9 +233,42 @@ clean snapshot for each run, against the published 6.3.5 and this feed:
   ([ServiceAccount.md](ServiceAccount.md)): download the installer from the
   release page, check that `Get-AuthenticodeSignature` reports it Valid, and run
   it as an administrator. Nothing was left half-installed.
-- **The Linux live update from 6.3.4 has not been tried.** The test was
-  Windows's. A 6.3.4 `.deb` or `.rpm` server is built to hand 6.3.5's generic
-  package to `hmailserver-update` the same way, and nothing has shown it yet.
+- **On Linux, from the `.deb` and the `.rpm`.** Tried on 29 September 2026 in
+  two throwaway systemd containers, each a 6.3.4 server installed from the
+  release's package with PostgreSQL 18 beside it, against the published 6.3.5
+  and this feed. On Ubuntu 26.04 a server with `UpdateCheckEnabled=1`,
+  `UpdateAutoDownload=1` and an `UpdateWindow` found 6.3.5 by
+  `hmailserver_6.3.5_amd64.deb`, downloaded it, verified it as signed by the
+  pipeline for `v6.3.5`, took its backup and handed it to `hmailserver-update`
+  in its window, unattended. The helper verified it again as root, stopped the
+  unit, installed it with `apt-get`, whose post-install step upgraded the schema
+  from 6104 to 6105, started the unit and wrote `ok 6.3.5`. The server was
+  without listeners for about six seconds, and its mail was as it was. On
+  Fedora 44 the same happened by hand over the REST API (`POST
+  /api/v1/update/check`, `.../download`, `.../install`) with
+  `hmailserver-6.3.5-1.x86_64.rpm` and `dnf`. Neither had a rollback image, as
+  above.
+- **On Linux up to 6.3.5, the backup before an unattended apply needs a
+  destination outside the data directory.** The packaged unit lets the service
+  write only under `/var/lib/hmailserver` and `/var/log/hmailserver`. A
+  destination under `/var/lib/hmailserver` is inside the data directory, and on
+  6.3.4 and 6.3.5 a backup there copies itself into itself and fails (`HM5014`,
+  "Could not backup data directory"), every time. With
+  `UpdateBackupBeforeApply=1`, the default, the update is then not applied, a
+  quarter hour after a quarter hour: the Ubuntu server's was refused for an hour
+  and a half. Make the destination elsewhere, give it to the service, and add it
+  to the unit:
+
+  ```sh
+  sudo install -d -o hmailserver -g hmailserver -m 0750 /var/backups/hmailserver
+  sudo systemctl edit hmailserver      # [Service]  ReadWritePaths=/var/backups/hmailserver
+  sudo systemctl restart hmailserver
+  ```
+
+  then set the destination to `/var/backups/hmailserver` (the Deck's Backup
+  page, or `PUT /api/v1/settings/backup`). From 6.3.6 a destination inside the
+  data directory works (below), but a backup there is on the disk it backs up,
+  so one elsewhere is still the better place.
 
 The test found three things in the live update of 6.3.4 and 6.3.5, which 6.3.6
 changes:
@@ -241,7 +278,9 @@ changes:
   the whole update status: `Status.UpdateApplyOutcome`, `apply` in `GET
   /api/v1/update` and the Control Panel said nothing of the update, and only
   the log had it. From 6.3.6 a check keeps it; it stays until the service stops
-  or the next apply's outcome replaces it.
+  or the next apply's outcome replaces it. On Linux the same: with the scheduled
+  check on, `apply` in `GET /api/v1/update` was empty at every look after the
+  update, because the check ran a second after the outcome was read.
 - **A first check could fail with "The response carried no HTTP headers."** On
   the new machine the first check failed with it after 10.8 seconds, and the next,
   half a minute later, took 1.2 seconds and succeeded. The sentence meant only
@@ -262,6 +301,38 @@ changes:
   it to an administrator each time. From 6.3.6 the verified copy is kept across
   a restart and verified again where it is (see [What a server built after 6.3.3
   checks](#what-a-server-built-after-633-checks)).
+
+The Linux test found three more, which 6.3.6 changes as well:
+
+- **A backup destination inside the data directory failed every backup**, as
+  above: the copy of the data directory walked into its own staging folder, left
+  a nested tree behind, and every unattended apply was refused. From 6.3.6 the
+  copy leaves out the destination, the temp directory and the backup's staging
+  folder wherever they are inside the data directory - recognised by what they
+  are, not by how their path is spelt, so `/var/lib/hmailserver2` is not taken
+  for `/var/lib/hmailserver` and case and separators on Windows do not matter -
+  and the backup log names each one. A restore empties the data directory around
+  them and around the archive it is restoring from. See
+  [Backup.md](Backup.md), "A destination inside the data directory".
+- **Every backup carried the `Updates` folder**, so the backup taken before an
+  apply held the package the apply was about to install: 15 MB of the Ubuntu
+  server's 15.4 MB archive, beside 353 bytes of mail; on Windows it is the
+  installer and the rollback image. From 6.3.6 a backup leaves the folder out, as
+  it leaves out the recoverable store, and a restore leaves this machine's own
+  folder where it is - so a restored server never reads an apply's outcome it did
+  not make, and an older archive's copy is not put back.
+- **Root's check and the server read the trust from two places.** On a Linux
+  package `hmailserver --verify-update`, the helper's check as root, reads the
+  five trust settings from `/etc/hmailserver/hMailServer.ini` alone, while the
+  server read the values stored in the database, where the REST API and the Deck
+  write. On the Fedora server an `UpdateSigningIdentity` set over REST was used by
+  the server and not by root, and the same value set with `hmailserver
+  --set-setting`, which writes the file, made root refuse the release: a site's
+  own signer set over REST would have had every apply fail as root, and a value
+  cleared over REST but still in the file would have kept root on the old trust.
+  From 6.3.6 the server reads them from the file too, on every platform, and
+  nothing that runs as the service may change them ([Where the trust is read
+  from](#where-the-trust-is-read-from)).
 
 Up to 6.3.5 these are the servers' own, and an upgrade to 6.3.6 is what changes
 them.
@@ -424,6 +495,67 @@ signer kept, so such a server trusts the path the project began at alone.
 `hmailserver --verify-update`, which the Linux update helper runs as root,
 checks everything but the release, which it is not given; the helper holds the
 package to an upgrade itself.
+
+### Where the trust is read from
+
+The five settings that make the trust - `UpdateSigningIdentity`,
+`UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and
+`UpdateLogPublicKeyFile` - are read from the `[Settings]` section of
+`hMailServer.ini` alone from 6.3.6, on every platform, and never from the
+database. They are the one deliberate exception, beside `PasswordPepper`, to
+the rule that a setting lives in the database, and the reason is security: the
+process an update is checked for must not choose what it is checked against.
+On Linux the service's database user may write the settings store, and the
+REST API and the Deck write there; root's check exists so that a service that
+has been taken over cannot have root install something the release workflow
+never signed, and `hmailserver --verify-update` opens no database - so the
+server reads the five with the same parse from the same file, and the two checks
+are one check.
+
+- **Where they are set.** On Linux, as root: `sudo hmailserver --set-setting
+  UpdateSigningIdentity=...` (`NAME=` with nothing after it clears one), then
+  restart or reload the service; root's check uses the new value at once. On
+  Windows, in the file itself with an editor run as an administrator, then
+  restart the service. `[SettingsOverride]` does not apply to them: a line for
+  one there is ignored and named in the error log (`HM5809`) at every start.
+- **What refuses them.** COM (`Settings.SetIniSetting` and `DeleteIniSetting`),
+  the REST API (`PUT` and `DELETE /api/v1/settings/ini/<name>`, 409), and so the
+  Control Panel, the Deck, a settings profile and the audit trail's put-back,
+  each with the sentence that names the file and says how the setting is set.
+  A write of the value the file already holds, and the removal of one the file
+  does not set, change nothing and are taken, so that a configuration read and
+  written back whole is not turned away. The Control Panel shows the five and
+  does not edit them.
+- **A value an earlier version stored.** 6.3.4 and 6.3.5 kept the five in the
+  database like any other setting. At 6.3.6's first start such a row is taken
+  out; where it held something the file does not, the error log says so once,
+  as `HM5809`, naming the setting and both values, so that an administrator who
+  set a signer over REST learns it no longer applies and can put it in the file.
+  It is never written into the file: that would be the service choosing the
+  trust after all. Read both values: where the file has a line of its own, it is
+  the file's that applies from then on, even where the database's was the
+  narrower of the two - a repository check the file switches off with `-` while
+  the database kept it on, or an older path left in the file after the database's
+  was cleared. Up to 6.3.5 on Linux root's check read the file's already, and an
+  apply had to pass both; from 6.3.6 the file's is the only one, so make it the
+  one wanted.
+- **More than one server on one database.** The first 6.3.6 server to start
+  takes the rows out for all of them, so a 6.3.5 server still running on the
+  same database reads the five from its own file, or the built-in trust, from its
+  next start or reinitialise. Put a signer of the site's own into every server's
+  file before the first of them is upgraded.
+- **Backups.** An archive does not carry them, and a restore does not put back
+  one an older archive carried; the application log names it. Copy them to a
+  standby or a new machine with the file, as `PasswordPepper` is copied
+  ([WarmStandby.md](WarmStandby.md)).
+- **On Windows** there is no second check to agree with: `hMailServer.Updater.exe`
+  runs as the service's own account, and the service may apply an update only
+  when that account is an administrator (LocalSystem), so the helper holds the
+  installer to the SHA-256 the service verified rather than verifying it again.
+  The service's check is the only one, and it reads the trust from the same
+  file as on Linux. Under `NT SERVICE\hMailServer`, which a new installation
+  runs as, the file is read-only to the service, so there too the service cannot
+  choose its trust.
 
 What the signing job produces
 -----------------------------

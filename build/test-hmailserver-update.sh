@@ -372,7 +372,7 @@ expect_one_line
 expect_call "systemctl stop hmailserver.service"
 expect_call "hmailserver --verify-update ${UPDATES}/hmailserver_9.9.9_amd64.deb"
 expect_call "hmailserver --verify-update ${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb"
-expect_call "apt-get install -y --no-install-recommends -o DPkg::Lock::Timeout=300 ${UPDATES}/hmailserver_9.9.9_amd64.deb"
+expect_call "apt-get install -y -q --no-install-recommends -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 ${UPDATES}/hmailserver_9.9.9_amd64.deb"
 expect_call "systemctl start hmailserver.service"
 expect_no_call "dpkg -i"
 [ -f "${REQUEST}" ] && fail "the request was not removed" || pass
@@ -428,7 +428,7 @@ printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
 run_helper
 expect_rc 1
 expect_outcome_starts "rolled-back 9.9.9 the package was installed but the service was not back after 2 seconds (failed); hMailServer 9.9.8 was reinstalled and the service is running"
-expect_call "apt-get install -y --no-install-recommends --allow-downgrades -o DPkg::Lock::Timeout=300 ${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb"
+expect_call "apt-get install -y -q --no-install-recommends --allow-downgrades -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 ${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb"
 [ "$(calls | grep -c 'systemctl stop')" = 2 ] && pass || fail "expected two stops (one before the rollback)"
 [ "$(calls | grep -c 'systemctl start')" = 2 ] && pass || fail "expected two starts"
 

@@ -23,6 +23,7 @@
 #include "../Util/ExternalSenderTagger.h"
 #include "../Util/ImpersonationCheck.h"
 #include "../Application/MailboxRestore.h"
+#include "../Application/BackupExecuter.h"
 #include "../Util/ReputationWatch.h"
 #include "../Util/DisclaimerAdder.h"
 #include "../Util/Journaling.h"
@@ -248,6 +249,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing MailboxRestore\n"));
       MailboxRestoreTester mailboxRestoreTester;
       mailboxRestoreTester.Test();
+
+      // A backup's copy of the data directory and a restore's emptying of it,
+      // on a scratch tree: a destination inside the data directory, however it
+      // is written, the temp directory and the live update's folder are left
+      // out of the one and left in place by the other.
+      OutputDebugString(_T("hMailServer: Testing the backup's exclusions\n"));
+      BackupExecuterTester backupExecuterTester;
+      backupExecuterTester.Test();
 
       // The archive index's XML: written byte for byte as every earlier version
       // wrote it, every character read back as written, and indexes that stop

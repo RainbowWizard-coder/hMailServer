@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using RegressionTests.Shared;
 
 namespace RegressionTests.Infrastructure
@@ -137,6 +138,38 @@ namespace RegressionTests.Infrastructure
 
          Assert.IsTrue(after.Contains(ProbeKey), "A newly written setting did not appear in the enumeration.");
          Assert.AreEqual(before.Length + 1, after.Length, "Exactly one name should have been added.");
+      }
+
+      [Test]
+      [Description("The live update's trust is read from hMailServer.INI alone: a change to any of its five settings over COM is refused in the sentence that names the file and changes nothing, and a write of the value the file holds is let through.")]
+      public void TheLiveUpdatesTrustIsNotChangedOverCom()
+      {
+         // The process an update is checked for may not choose what it is checked
+         // against (IniSettingStore::IsTrustAnchorName, docs/UpdateFeed.md). On the
+         // Linux suite these go over REST, which refuses them with 409 in the same
+         // sentence.
+         foreach (string key in IniFileSetting.TrustAnchorKeys)
+         {
+            string held = _application.Settings.GetIniSetting(key);
+
+            var refusal = Assert.Throws<COMException>(() => _application.Settings.SetIniSetting(key, "https://example.invalid/not-the-file's"),
+               "A change to " + key + " over COM was accepted.");
+            Assert.IsTrue(refusal.Message.IndexOf("hMailServer.ini", StringComparison.OrdinalIgnoreCase) >= 0,
+               "The refusal of " + key + " does not name the file it is kept in: " + refusal.Message);
+            StringAssert.Contains("never from the database", refusal.Message);
+            Assert.AreEqual(held, _application.Settings.GetIniSetting(key), "A refused change to " + key + " changed it.");
+
+            // The value it already has changes nothing and is not refused - a client
+            // writing back every setting it read is not turned away for these.
+            _application.Settings.SetIniSetting(key, held);
+
+            if (held.Length > 0)
+               Assert.Throws<COMException>(() => _application.Settings.DeleteIniSetting(key), "The removal of " + key + ", which the file sets, was accepted.");
+            else
+               _application.Settings.DeleteIniSetting(key);
+
+            Assert.AreEqual(held, _application.Settings.GetIniSetting(key));
+         }
       }
 
       [Test]

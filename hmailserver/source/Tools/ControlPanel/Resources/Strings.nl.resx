@@ -9363,6 +9363,9 @@ Doorgaan?</value>
   <data name="Set header value" xml:space="preserve">
     <value>Headerwaarde instellen</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Alleen ingesteld in hMailServer.ini</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Stel de HTTP- of HTTPS-poort in op de pagina Webservices en autoconfiguratie in zodat de URL's antwoorden, en publiceer vervolgens voor elk maildomein DNS-records autoconfig.&lt;domain&gt; en autodiscover.&lt;domain&gt; die naar deze server wijzen. Dit zijn adresrecords, en deze pagina controleert alleen TXT-records, dus ze kunnen hiervandaan niet worden bevestigd.</value>
   </data>

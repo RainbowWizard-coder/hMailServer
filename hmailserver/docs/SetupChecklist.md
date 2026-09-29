@@ -208,7 +208,8 @@ directory, and the server keeps its own stores in the same place: `ACME`, `Blobs
 name is one of these - a single label, in any case - or the name of any directory
 `hMailServer.ini` places directly under the data directory, would share the store's
 directory. A backup leaves out the mail of a domain named as a store it does not
-carry (`Recoverable`, `Discovery`, `Confidential`, `Protected`; [Backup.md](Backup.md)),
+carry (`Recoverable`, `Discovery`, `Confidential`, `Protected`, and from 6.3.6
+`Updates`; [Backup.md](Backup.md)),
 in any case, and a restore does not put it back. Where the two are one directory -
 always on Windows, whose file system does not tell `protected` from `Protected`, and
 on Linux, where a domain's directory is named in lower case, for `temp`, `events` and

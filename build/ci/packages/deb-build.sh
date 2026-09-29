@@ -369,6 +369,16 @@ field() { dpkg-deb -f "$deb" "$1"; }
 [ "$(field Architecture)" = "$arch" ] || { echo "FAILED: Architecture is '$(field Architecture)', not $arch"; exit 4; }
 depends=$(field Depends)
 [ -n "$depends" ] || { echo "FAILED: no Depends: dpkg-shlibdeps found none of the binary's libraries"; exit 4; }
+# ca-certificates is named by CMakeLists.txt whatever dpkg-shlibdeps finds, so the
+# line is not empty without it; the C library is what shlibdeps always names.
+case "$depends" in
+  *libc6*) ;;
+  *) echo "FAILED: Depends names no library: dpkg-shlibdeps found none of the binary's libraries: $depends"; exit 4 ;;
+esac
+case "$depends" in
+  *ca-certificates*) ;;
+  *) echo "FAILED: Depends does not name ca-certificates, which every HTTPS request the server makes needs: $depends"; exit 4 ;;
+esac
 case "$depends" in
   *libboost*) echo "FAILED: Depends names Boost, which is linked statically: $depends"; exit 4 ;;
 esac

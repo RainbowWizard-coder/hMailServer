@@ -520,6 +520,20 @@ What it does not carry, and why:
   configuration once that rotation is over, but when `diff` or `apply` finds
   them different it asks the server's rotation route, and while the server says
   it holds them they are left out of the comparison and of what is sent.
+* **The live update's trust** - `UpdateSigningIdentity`, `UpdateSigningIssuer`,
+  `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile`.
+  From 6.3.6 a server reads those five from its own `hMailServer.ini` alone and
+  refuses a change to one over the REST API: they say what that machine's
+  updates are checked against, which is the machine's and not the
+  configuration's. They are left out of the document as the keys the server's
+  environment sets are, by `hmctl config export` and `Export-HmConfiguration`
+  alike. A document an earlier version of either exported can still carry them:
+  `diff` and `apply` (`Compare-HmConfiguration` and `Import-HmConfiguration`)
+  leave them out of the plan and say so in one line naming them, `Skipped
+  UpdateSourceRepository: the live update's trust ...` - on the standard error
+  under `--json`, and as a warning from the module - so they neither count as a
+  difference nor fail the apply. Set them in each server's file
+  ([UpdateFeed.md](UpdateFeed.md), "Where the trust is read from").
 
 ### What this server has changed from stock
 

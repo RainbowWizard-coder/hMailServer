@@ -72,7 +72,8 @@ into the file is named in the error log as `HM5804` and put back at the next sta
 |---|---|
 | `ArchiveDir` | Archiving stops; existing archived copies are not found |
 | `AcmeCertificateDirectory` | ACME state and issued certificates |
-| `OAuth2PublicKeyFile`, `UpdateTrustRootsFile`, `UpdateLogPublicKeyFile` | Token validation and update verification refuse |
+| `OAuth2PublicKeyFile` | Token validation refuses |
+| `UpdateTrustRootsFile`, `UpdateLogPublicKeyFile` | Update verification refuses. From 6.3.6 these two, with the other three settings of the live update's trust, are read from the `[Settings]` section of the file alone and never from this store ([UpdateFeed.md](UpdateFeed.md), "Where the trust is read from"): change them in the file, in step 4, and restart the service |
 | `RestApiCertificateFile` / `PrivateKeyFile`, `MetricsServerCertificateFile` / `PrivateKeyFile`, `WebServicesCertificateFile` / `PrivateKeyFile` | The listener starts without TLS, or does not start |
 
 ### In the registry
@@ -152,9 +153,10 @@ reach the database or to let an administrator in without one: `[Directories]`,
 with the language list in `[GUILanguages]`. So are the sections the settings store
 has not taken over - `[LDAP]`, `[SendingLimits]` and `[SendingLimitsOverrides]`,
 none of which holds a path; a `[SettingsOverride]` section, if you have one, which
-is applied over the store at every start (a path in it moves here too); and one
-`[Settings]` key, `PasswordPepper`, which is kept out of the database on purpose
-and is not a path.
+is applied over the store at every start (a path in it moves here too); and six
+`[Settings]` keys kept out of the database on purpose: `PasswordPepper`, which is
+not a path, and from 6.3.6 the live update's trust, of which
+`UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` are paths and move here too.
 
 The file is read from the directory the running `hMailServer.exe` sits in when
 one is there, and otherwise from the registry (`Common/Util/Utilities.cpp:102`),

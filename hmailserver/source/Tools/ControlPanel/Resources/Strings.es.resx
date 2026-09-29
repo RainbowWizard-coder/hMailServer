@@ -9363,6 +9363,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Set header value" xml:space="preserve">
     <value>Establecer el valor de una cabecera</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Solo se define en hMailServer.ini</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Establezca el puerto HTTP o HTTPS en la página Servicios web y autoconfiguración para que las URL respondan, y luego publique registros DNS autoconfig.&lt;domain&gt; y autodiscover.&lt;domain&gt; para cada dominio de correo, apuntando a este servidor. Son registros de dirección, y esta página comprueba solo registros TXT, así que no pueden confirmarse desde aquí.</value>
   </data>

@@ -591,14 +591,22 @@ install_package()
          # dpkg on a machine without it. Both wait for the lock rather than fail
          # on an unattended-upgrades run that happens to be under way. Only the
          # rollback is allowed to be a downgrade.
+         #
+         # Quietly, for the journal this runs into: -q leaves out apt's progress
+         # indicators, and Dpkg::Use-Pty=0 runs dpkg without the terminal apt
+         # otherwise gives it, under which dpkg rewrites its "Reading database"
+         # line in place with carriage returns - which journald stored as
+         # "[614B blob data]" in the first real Linux live update (29 September
+         # 2026). Progress-Fancy=0 is the status bar's own switch, off with it.
+         # What was installed and every message is still there.
          export DEBIAN_FRONTEND=noninteractive
          if command -v apt-get >/dev/null 2>&1; then
             if [ "$downgrade" = 1 ]; then
-               run apt-get install -y --no-install-recommends --allow-downgrades \
-                  -o DPkg::Lock::Timeout=300 "$file"
+               run apt-get install -y -q --no-install-recommends --allow-downgrades \
+                  -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 "$file"
             else
-               run apt-get install -y --no-install-recommends \
-                  -o DPkg::Lock::Timeout=300 "$file"
+               run apt-get install -y -q --no-install-recommends \
+                  -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 "$file"
             fi
          else
             run dpkg -i "$file"

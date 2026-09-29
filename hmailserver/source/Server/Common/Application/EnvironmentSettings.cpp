@@ -1432,7 +1432,9 @@ namespace HM
                String value = request.value;
                value.Trim();
 
-               const bool fileOnly = IniSettingStore::IsFileOnlyName(request.name);
+               // The pepper, and the live update's trust, which are read from the
+               // file alone and have no row to compare.
+               const bool fileOnly = IniSettingStore::IsFileOnlyName(request.name) || IniSettingStore::IsTrustAnchorName(request.name);
                if (fileOnly)
                {
                   before = IniFileSettings::Instance()->GetSettingsValue(request.name);

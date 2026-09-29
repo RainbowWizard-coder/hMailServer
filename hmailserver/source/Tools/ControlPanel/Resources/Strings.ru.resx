@@ -9363,6 +9363,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set header value" xml:space="preserve">
     <value>Задать значение заголовка</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Задаётся только в hMailServer.ini</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Задайте порт HTTP или HTTPS на странице «Веб-службы и автоконфигурация» WebServicesHttpPort и (или) WebServicesHttpsPort, чтобы URL отвечали, а затем для каждого почтового домена опубликуйте записи DNS autoconfig.&lt;domain&gt; и autodiscover.&lt;domain&gt;, указывающие на этот сервер. Это адресные записи, а данная страница проверяет только записи TXT, поэтому подтвердить их отсюда невозможно.</value>
   </data>

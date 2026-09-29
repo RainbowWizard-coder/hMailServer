@@ -1782,6 +1782,42 @@ ROTATION_OWNED = ("dkim_selector", "dkim_private_key_file", "dkim_secondary_sele
 
 CONFIG_VERSION = 1
 
+# The live update's trust: the five [Settings] keys a server from 6.3.6 reads
+# from its own hMailServer.ini alone and refuses to change over the REST API
+# (docs/UpdateFeed.md, "Where the trust is read from"). They say what that
+# machine's updates are checked against, which is the machine's and not the
+# configuration's, so they are left out of the document as the keys the
+# server's environment sets are. A document an earlier hmctl exported can
+# carry them: diff and apply leave them out and say so, rather than plan a
+# write the server refuses and fail the whole apply for it.
+TRUST_ANCHOR_KEYS = ("UpdateSigningIdentity", "UpdateSigningIssuer", "UpdateSourceRepository",
+                     "UpdateTrustRootsFile", "UpdateLogPublicKeyFile")
+
+
+def is_trust_anchor(name):
+    """Whether an ini key is one of the live update's trust, matched without case
+    as the server matches it."""
+    return str(name).lower() in set(key.lower() for key in TRUST_ANCHOR_KEYS)
+
+
+def trust_anchors_in(document):
+    """The trust keys a document's ini section carries, which diff and apply
+    leave out: an export from before they were left out of it."""
+    ini = (document.get("sections") or {}).get("ini") or {}
+    return sorted(key for key in ini if is_trust_anchor(key))
+
+
+def say_trust_anchors_skipped(document, as_json):
+    """One line naming the trust keys a document carries and diff or apply left
+    out, on the standard error under --json so that the JSON stays JSON."""
+    skipped = trust_anchors_in(document)
+    if not skipped:
+        return
+    line = ("Skipped %s: the live update's trust, which a server reads from its own hMailServer.ini "
+            "and does not take over the REST API (docs/UpdateFeed.md, \"Where the trust is read from\"). "
+            "Set it in that server's file. An export from this hmctl leaves it out." % ", ".join(skipped))
+    print(line, file=sys.stderr if as_json else sys.stdout)
+
 
 def without_rotation_owned(row, rotation_on=None):
     if rotation_on is None:
@@ -1893,6 +1929,10 @@ def read_configuration(client, domains=None):
                     continue
                 if str(row["name"]).lower() in managed:
                     continue
+                # The live update's trust, which is the machine's: see
+                # TRUST_ANCHOR_KEYS.
+                if is_trust_anchor(row["name"]):
+                    continue
                 values[str(row["name"])] = row.get("value")
             document["sections"]["ini"] = dict(sorted(values.items()))
             continue
@@ -1966,6 +2006,10 @@ def configuration_plan(live, wanted, in_flight=None):
     here = live_sections.get("ini", {})
     there = wanted_sections.get("ini", {})
     for key in sorted(there.keys()):
+        # Left out, and said by the caller (say_trust_anchors_skipped): the
+        # server takes none of them over the REST API.
+        if is_trust_anchor(key):
+            continue
         if here.get(key) != there.get(key):
             plan.append(("ini", "set", key, "%r -> %r" % (here.get(key), there.get(key))))
 
@@ -2108,8 +2152,10 @@ def config_diff(client, arguments):
     live = read_configuration(client)
     plan = configuration_plan(live, wanted, lambda name: rotation_in_flight(client, name))
     render_plan(plan, arguments.json)
+    say_trust_anchors_skipped(wanted, arguments.json)
     # A difference is an exit code, so that a pipeline can gate on it the way it
-    # gates on a failing test.
+    # gates on a failing test. A trust key the document carries is not one: it
+    # is left out, and the line above says so.
     return EXIT_OK if not plan else EXIT_ERROR
 
 
@@ -2125,6 +2171,7 @@ def config_apply(client, arguments):
 
     if not arguments.force:
         render_plan(plan, arguments.json)
+        say_trust_anchors_skipped(wanted, arguments.json)
         if deletions and not arguments.allow_delete:
             print("")
             print("%d entr(ies) on the server are not in the document. They are left alone; "
@@ -2133,6 +2180,8 @@ def config_apply(client, arguments):
             print("")
             print("Nothing was changed. Add --force to apply this plan.")
         return EXIT_OK
+
+    say_trust_anchors_skipped(wanted, False)
 
     applied, refused = 0, []
     for section, verb, key, detail in plan:

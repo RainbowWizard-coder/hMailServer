@@ -74,13 +74,15 @@ Not in the archive, deliberately
 | `[Database]` and `[Directories]` in `hMailServer.ini` | Per-machine. They are how this installation finds its database and its data folder, and they would be wrong on the machine you restore onto. Keep a copy of the file |
 | The administrator password and its second-factor secret | In `hMailServer.ini`, for the same reason: they are what lets you in when there is no database |
 | The stored-secrets key (`[Security] StoredSecretsKey`), and the database's record of it | The key the second factors and the `[Settings]` secrets are sealed under in the database. The archive does not need it - it carries those secrets opened - and a restore seals them under the restoring server's own key; the database's record of which key it is (`StoredSecretsKeyId`, and the last export's) is not carried either, since it names this installation's key. **A database-level backup does need it** - a dump, a SQL Server backup, a copy of `hMailServer.sdf`: restored without the key it brings back every second factor and `[Settings]` secret unopenable, and on Windows a copy of `hMailServer.ini` is no copy of the key. Export it as soon as it is made - `hMailServer.exe --export-stored-secrets-key FILE`, elevated, or `sudo hmailserver --export-stored-secrets-key FILE` - and keep the file with the database backups, stored apart from them as the pepper is; the setup checklist asks until it has been. Lost with no copy anywhere, `--forget-sealed-secrets KEYID` clears what it sealed ([SecretsAtRest.md](SecretsAtRest.md)) |
-| `PasswordPepper` | The one `[Settings]` key the settings store never holds and the archive never carries. Its whole purpose is to be somewhere the password hashes are not, and the archive holds the hashes: every Argon2id and scrypt hash was made with it, and without it each verifies false. It lives in `hMailServer.ini` only - the server takes it back out of the database if an earlier start put it there, and says so in the application log. **A restore onto new hardware needs the same pepper in that machine's `hMailServer.ini` before an account whose password is an Argon2id or scrypt hash can sign in**; PBKDF2, SHA-256 and MD5 hashes, and the administrator password, do not use it. Keep a copy of the value with the backups, apart from the archive |
+| `PasswordPepper` | A `[Settings]` key the settings store never holds and the archive never carries; the live update's trust, below, is kept the same way. Its whole purpose is to be somewhere the password hashes are not, and the archive holds the hashes: every Argon2id and scrypt hash was made with it, and without it each verifies false. It lives in `hMailServer.ini` only - the server takes it back out of the database if an earlier start put it there, and says so in the application log. **A restore onto new hardware needs the same pepper in that machine's `hMailServer.ini` before an account whose password is an Argon2id or scrypt hash can sign in**; PBKDF2, SHA-256 and MD5 hashes, and the administrator password, do not use it. Keep a copy of the value with the backups, apart from the archive |
 | TLS certificate and DKIM key **files** | The database stores the *paths*, not the files. A restore onto a machine where those paths hold nothing gives you a server that starts, serves no TLS and signs nothing. Keep them inside the data directory (where the message-store backup carries them) or copy them yourself |
 | Mail still in the delivery queue, and its recipients | A queued message is in flight rather than in a mailbox. Let the queue drain before a migration |
 | Deleted items kept for recovery, and what a legal hold kept | The rows of `hm_recoverable` are not carried, and **Back up messages** leaves `<data directory>\Recoverable` out of its copy of the data directory; a restore of the data directory leaves that folder where it is, so the rows the server has and the files they name stay together. See [RecoverDeleted.md](RecoverDeleted.md) |
 | eDiscovery cases, searches, holds and exports | The four `hm_discovery*` tables are not carried, and **Back up messages** leaves `<data directory>\Discovery` - each search's results and each export's zip - out of its copy; a restore of the data directory leaves it where it is. A server rebuilt from an archive has no case and no hold, so place the holds again before its mail can be deleted. A restore with **Back up domains** deletes every domain first, so it is refused, before anything is changed, while an account or a domain is under a legal hold. See [Discovery.md](Discovery.md) |
 | Messages that expire, and password-protected messages | The rows of `hm_confidential` and `hm_protectedmessages` are not carried, and **Back up messages** leaves `<data directory>\Confidential` - each kept copy of a message that expires, whole and in the clear - and `<data directory>\Protected` - the ciphertext behind each password-protected message's link - out of its copy of the data directory; a restore of the data directory leaves both folders where they are. A copy made to be deleted at a time is not carried into an archive that outlives it. Archives taken by 6.3.4 builds before this change **do** hold those folders: a message that has expired or been withdrawn since is still in them, so apply the retention you would apply to the mail itself, or delete those archives. A restore from one of them leaves the folders out as it leaves them out of a backup. See [ConfidentialMessages.md](ConfidentialMessages.md) and [OpenPGP.md](OpenPGP.md) |
-| The mail of a domain named as one of those four folders | A domain's mail is kept in the directory named after it, so a domain named `recoverable`, `discovery`, `confidential` or `protected` has its mail in the folder the backup leaves out, and a restore does not put it back. Such names are refused for a new domain since 6.3.4, and one that already has one is reported in the error log (HM7597) and on the first-hour checklist: rename it before relying on the backup. See [SetupChecklist.md](SetupChecklist.md) |
+| The live update's folder, `<data directory>\Updates` | **Back up messages** leaves it out of its copy of the data directory from 6.3.6, and a restore leaves this machine's own where it is: the installer or package waiting to be applied and its Sigstore bundle, the rollback image, the helper's copy, its logs and request, the single-use apply token and the outcome of the last apply. None of it is mail and none of it is wanted after a restore, here or on another machine: an installer is downloaded and verified again, a token is good for one apply within the hour on the machine that issued it, and the outcome file is read at start-up, so a restored copy would have a server report an apply it never made. Up to 6.3.5 every archive carried it, so the backup taken before an unattended apply held the package that apply was about to install - 15 MB beside 353 bytes of mail in the first Linux live update. An older archive's copy is not put back. See [UpdateFeed.md](UpdateFeed.md) |
+| The live update's trust: `UpdateSigningIdentity`, `UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` | From 6.3.6 read from `hMailServer.ini` alone, never from the database, so that the process an update is checked for cannot choose what it is checked against. The archive does not carry them, and a restore does not put back the copy an archive from 6.3.4 or 6.3.5 carries - the application log names it. A site that sets them copies them to a new machine with the file. See [UpdateFeed.md](UpdateFeed.md), "Where the trust is read from" |
+| The mail of a domain named as one of those five folders | A domain's mail is kept in the directory named after it, so a domain named `recoverable`, `discovery`, `confidential`, `protected` or `updates` has its mail in the folder the backup leaves out, and a restore does not put it back. Such names are refused for a new domain since 6.3.4, and one that already has one is reported in the error log (HM7597) and on the first-hour checklist: rename it before relying on the backup. See [SetupChecklist.md](SetupChecklist.md) |
 | A managed mailing list's archive | The rows of `hm_listarchive` are not carried: they are what the list sent, not its configuration. The archived copies themselves are files under `<data directory>\Lists\<list id>\`, and an archive taken with **Back up messages** holds them because that copies the data directory - a members-only list's messages included, as plain text. Restored, the files are back on disk under the list's old id with no row naming them: no page shows them and nothing removes them, so delete that folder by hand. The list's settings and members come back, and its archive starts again from its next posting. See [MailingLists.md](MailingLists.md) |
 | The full-text index | Derived from the messages, and rebuilt by the indexer. Carrying it would roughly double the archive to save work a background task does anyway |
 | Per-message and per-mailbox annotations (RFC 5257, RFC 5464) | Keyed on ids a restore reassigns. Recorded as a gap in `Roadmap2.md` rather than silently dropped |
@@ -92,6 +94,71 @@ Not in the archive, deliberately
 | The journal of mailbox moves (`hm_mailboxmoves`) | A record of what this installation did to its own store, not part of a mailbox. A restore is not a moment in a move: the account comes back at the address the archive holds, so a carried row would describe a move this store has no trace of. The audit trail is the record a person reads - see [MailboxMove.md](MailboxMove.md) |
 | The IP warm-up's daily counts (`hm_warmupcounts`) | Traffic: how many recipients each warming address sent to each provider on each day. The schedules themselves are carried; a schedule restored onto another server, or moved with the database to another backend, starts its day at zero there, so its first day there may send up to that day's ceiling again. See [IpWarmup.md](IpWarmup.md) |
 | The links in quarantine digests already sent (`hm_digesttokens`) | Each is good once and expires within `QuarantineDigestLinkHours`, and names a quarantine entry the archive does not hold. The next digest issues new ones |
+
+
+A destination inside the data directory
+---------------------------------------
+
+**Back up messages** copies the data directory into a staging folder and puts the
+copy in the archive, and a restore empties the data directory before it copies
+the archive's store back. From 6.3.6 both leave three directories alone wherever
+they are inside the data directory, at any depth:
+
+- **the backup destination**, with the archives in it;
+- **the temp directory** (`TempFolder`), where an encrypted backup stages its
+  copy and every restore, and every backup's verified restore, extract the
+  store - the Linux packages' `hMailServer.ini` puts it at
+  `/var/lib/hmailserver/temp`, inside the data directory;
+- **the run's own staging folder**, and for a restore the folder of the archive
+  it is restoring from and the store extracted from it.
+
+A directory is recognised by what it is - its identity on the file system, the
+device and inode on Linux, the volume, the file system's 128-bit file identifier
+and the creation time on Windows - not by how its path is written: a destination
+written in another case, with other separators, through a symbolic link, a
+junction, a `subst` drive, the administrative share or with a short name is the
+same directory, and `/var/lib/hmailserver2` is never taken for
+`/var/lib/hmailserver`. A directory the file system gives no identifier of its
+own - an identifier of 0 or all ones, as a network server without file
+identifiers answers - is not taken for any of them, so a destination on such a
+share inside the data directory fails as it did up to 6.3.5 rather than a
+mailbox being taken for it and left out. The backup
+log names each one a copy left out ("Left out of the copy of the data directory
+...") and each one a restore left in place ("Left in place while the data
+directory ... was emptied for the restore"); a directory on the way down to one
+of them is emptied around it rather than removed. An archive in the data
+directory's own root - a destination that is the data directory itself - is
+neither copied into the staging folder nor deleted by a restore. A copy of one
+of them that an earlier run left in the staging folder - the nested folders a
+failed backup of 6.3.5 or earlier left behind - is removed rather than archived,
+and a restore does not write an older archive's copy of one back into it. The
+folder of the archive being restored is the exception to that last: it is left
+in place, with the archive and whatever is beside it, and what the archive holds
+for that folder is copied into it, since it may be a mailbox's folder that
+somebody put the archive in.
+
+So a destination inside the data directory works, and it is accepted as it
+always was. What it means is that **the backup lives on the disk it backs up**:
+a disk that fails, fills or is lost takes the mail and every archive of it
+together, and the archives use the space the mail needs. On Linux it is the easy
+choice - `/var/lib/hmailserver` and `/var/log/hmailserver` are the only places
+the packaged unit lets the service write without a drop-in - and the better one
+is still a directory elsewhere, added to the unit ([PackagesDeb.md](PackagesDeb.md),
+"The live update"), or a copy of the archives taken off the machine.
+
+Up to 6.3.5 such a destination failed every backup: the copy walked into its own
+staging folder, copying the copy into itself until the path was too long
+(`HM5014`, "Could not backup data directory"), and left the nested folders
+behind. With `UpdateBackupBeforeApply=1`, the default, that also refused every
+unattended update - which is how the first Linux live update found it, on 29
+September 2026. Reading the code for the fix found two more of the same kind on
+the Linux packages, whose temp directory is inside the data directory; neither
+was reproduced, and 6.3.6 removes both: an encrypted backup with messages staged
+in the temp directory and copied itself into itself the same way, every time;
+and a restore of messages, emptying the data directory, deleted the temp
+directory and with it the store it had extracted there a moment before, then
+failed with the data directory already emptied and the domains already removed -
+the archive itself untouched.
 
 
 References: how a scheduled send survives a restore

@@ -179,7 +179,12 @@ namespace
          "                    the process list and sudo's log would keep it. A port\n"
          "                    must be 0-65535 and RestApiBindAddress an IP address\n"
          "                    or localhost. Run it as root, as --set-admin-password\n"
-         "                    is: the file is root's.\n"
+         "                    is: the file is root's. The live update's trust -\n"
+         "                    UpdateSigningIdentity, UpdateSigningIssuer,\n"
+         "                    UpdateSourceRepository, UpdateTrustRootsFile and\n"
+         "                    UpdateLogPublicKeyFile - goes into the file alone,\n"
+         "                    where the server and hmailserver-update's check as\n"
+         "                    root both read it, and the REST API cannot change it.\n"
          "  --apply-environment\n"
          "                    store every setting the environment names -\n"
          "                    HM_SETTING_<key> for a [Settings] key, HM_PROPERTY_<name>\n"
@@ -871,8 +876,12 @@ namespace
       {
          // What the store held, for the line printed below. A key kept in the
          // file only - the password pepper - has no row on purpose and is written
-         // to the file alone; WriteSetting knows which is which.
+         // to the file alone; WriteSetting knows which is which. So is the live
+         // update's trust, which is read from the file alone (IniSettingStore::
+         // IsTrustAnchorName) and which this command, run as the file's owner with
+         // no administrator's session on the thread, is the Linux way to set.
          const bool fileOnly = HM::IniSettingStore::IsFileOnlyName(name);
+         const bool trustAnchor = HM::IniSettingStore::IsTrustAnchorName(name);
          std::map<HM::String, std::pair<HM::String, HM::String> > rows;
          HM::IniSettingStore::ReadAllRows(rows);
          const bool had = rows.find(name) != rows.end();
@@ -890,7 +899,12 @@ namespace
             const HM::AnsiString stored(secret && !value.IsEmpty() ? HM::String(_T("(set)")) : value);
             const HM::AnsiString previous(secret && !previousValue.IsEmpty() ? HM::String(_T("(set)")) : previousValue);
 
-            if (fileOnly)
+            if (trustAnchor)
+            {
+               std::printf("%s=%s written to %s. This key is part of the live update's trust and is read from the file alone, never from the database, so that the service cannot choose what its own updates are checked against; hmailserver-update's check as root uses it from now on, and the server when it next starts or is reloaded.\n",
+                  shown.c_str(), stored.c_str(), iniFile.c_str());
+            }
+            else if (fileOnly)
             {
                std::printf("%s=%s written to %s. This key is kept in the file only, never in the database and never in a backup archive, and applies when the server next starts or is reloaded.\n",
                   shown.c_str(), stored.c_str(), iniFile.c_str());
@@ -925,7 +939,12 @@ namespace
             std::map<HM::String, HM::String> overrides;
             HM::IniSettingStore::ReadOverrides(overrides);
             std::map<HM::String, HM::String>::const_iterator forced = overrides.find(name);
-            if (forced != overrides.end())
+            if (forced != overrides.end() && trustAnchor)
+            {
+               std::printf("Note: [SettingsOverride] in %s names %s as well, and that line is ignored: the live update's trust is read from [Settings] alone (HM5809). Remove it from that section.\n",
+                  iniFile.c_str(), shown.c_str());
+            }
+            else if (forced != overrides.end())
             {
                const HM::AnsiString forcedShown(secret && !forced->second.IsEmpty() ? HM::String(_T("(set)")) : forced->second);
                std::printf("Note: [SettingsOverride] in %s forces %s=%s, which is applied over the stored value at every start (HM5807). Remove it from that section to let the value stored now take effect.\n",

@@ -12211,7 +12211,8 @@ namespace HM
 #endif
       if (!stream)
          return BuildResponse_(404, "{\"error\":\"no such log file\"}");
-      // The backup log is written as UTF-16 with a byte-order mark; the others
+      // The backup and event logs are written as UTF-16 with a byte-order mark
+      // on Windows, and as UTF-8 elsewhere from 6.3.6 (Logger.cpp); the others
       // are narrow. Decode by what the file says it is, not by its name.
       unsigned char bom[2] = { 0, 0 };
       stream.read(reinterpret_cast<char *>(bom), 2);
@@ -12234,8 +12235,9 @@ namespace HM
          size_t offset = start == 0 ? 2 : 0;
          if (chunk.size() > offset)
          {
-            // Decoded rather than reinterpreted: the file is UTF-16LE on disk on
-            // every platform, and a wchar_t is four bytes on Linux, so a copy of the
+            // Decoded rather than reinterpreted: such a file is UTF-16LE on disk on
+            // every platform - on Linux one an earlier version wrote and this one
+            // has not opened yet - and a wchar_t is four bytes there, so a copy of the
             // bytes would read every other character as a surrogate. The codec is
             // the one File::Write and ReadCompleteTextFile use.
             std::wstring wide = Unicode::FromUtf16Le(

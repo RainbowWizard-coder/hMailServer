@@ -612,6 +612,18 @@ no database open at all. Three consequences worth knowing before you touch this 
   start on. A key there is applied over the store and announced by name in the error log at every start.
   Nothing writes that section but a person.
 
+Six `[Settings]` keys are the deliberate exception, read from the file alone and never from the database, each
+for a reason of security. `PasswordPepper` (`IniSettingStore::IsFileOnlyName`) protects the password hashes only
+while it is somewhere the database and its backups are not. The live update's trust - `UpdateSigningIdentity`,
+`UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile`
+(`IniSettingStore::IsTrustAnchorName`, from 6.3.6) - is what an update is checked against, and the process an
+update is checked for must not choose it: on Linux, root checks every package again with `hmailserver
+--verify-update`, which opens no database and reads the file, and the server has to read the same values or the
+two checks disagree. COM and the REST API refuse a change to those five, a row an earlier version stored is
+taken out at the next start (`HM5809`), and `[SettingsOverride]` does not apply to them
+(`hmailserver/docs/UpdateFeed.md`, "Where the trust is read from"). A new key joins them only for a reason of
+that weight, said in the commit message.
+
 `IniFileSettings` is the seam readers go through, with `IniSettingStore` behind it as the only class that
 touches the file as a file. Three sections are still read around it - `[LDAP]`, `[SendingLimits]` and
 `[SendingLimitsOverrides]` - and `build/check-ini-coverage.py` records those three and fails on any other.

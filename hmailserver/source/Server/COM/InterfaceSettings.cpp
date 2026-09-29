@@ -3012,6 +3012,13 @@ STDMETHODIMP InterfaceSettings::SetIniSetting(BSTR Name, BSTR Value)
       if (!HM::IniSettingStore::IsStorableValue(value))
          return COMError::GenerateError("The value is longer than 4000 characters or contains a line break, so it could not be stored or read back as one setting.");
 
+      // The live update's trust is read from hMailServer.INI alone and is not
+      // changed over COM (IniSettingStore::IsTrustAnchorName). The store refuses
+      // it as well; this says so first, in the same sentence.
+      HM::String trustRefusal;
+      if (HM::IniSettingStore::RefusesTrustAnchorChange(name, &value, trustRefusal))
+         return COMError::GenerateError(trustRefusal);
+
       if (!HM::IniFileSettings::Instance()->WriteSettingsValue(name, value))
          return COMError::GenerateError("The setting could not be stored. Settings are held in the database, so this means the server could not write to it. Nothing has been changed.");
 
@@ -3039,6 +3046,10 @@ STDMETHODIMP InterfaceSettings::DeleteIniSetting(BSTR Name)
 
       if (!HM::IniSettingStore::IsStorableName(name))
          return COMError::GenerateError("The setting name is empty, longer than 100 characters, surrounded by whitespace, or contains one of = [ ] or a line break.");
+
+      HM::String trustRefusal;
+      if (HM::IniSettingStore::RefusesTrustAnchorChange(name, nullptr, trustRefusal))
+         return COMError::GenerateError(trustRefusal);
 
       if (!HM::IniFileSettings::Instance()->RemoveSettingsValue(name))
          return COMError::GenerateError("The setting could not be removed. Settings are held in the database, so this means the server could not write to it. Nothing has been changed.");

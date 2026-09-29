@@ -583,11 +583,13 @@ stops). So the apply is a request, and the request is taken by root.
    service can write any request it likes, and none of them gets root to
    install a file the release workflow did not sign, or one that is not an
    upgrade.
-5. It installs: `apt-get install -y --no-install-recommends
-   -o DPkg::Lock::Timeout=300 <package>` where apt-get exists (so a newer
-   package's dependencies are met, and an `unattended-upgrades` run is waited
-   for rather than tripped over), else `dpkg -i`; `dnf install -y` or
-   `rpm -Uvh` on an rpm system. Only the rollback passes `--allow-downgrades`.
+5. It installs: `apt-get install -y -q --no-install-recommends
+   -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0
+   <package>` where apt-get exists (so a newer package's dependencies are met,
+   and an `unattended-upgrades` run is waited for rather than tripped over, and
+   the journal gets apt's and dpkg's messages without the progress that
+   journald stored as "[614B blob data]" before these switches were added),
+   else `dpkg -i`; `dnf install -y` or `rpm -Uvh` on an rpm system. Only the rollback passes `--allow-downgrades`.
    The package's own `postinst` / `%post` runs the schema upgrade as the
    service user (`hmailserver --upgrade-database`) as it does on any upgrade;
    no token is needed, which is why none is issued here.
@@ -706,13 +708,17 @@ hmailserver (V+1) to (V)"), started the unit, and - PostgreSQL having been
 started again meanwhile - wrote `rolled-back <V+1> ...; hMailServer <V> was
 reinstalled and the service is running`, with the server on V and ready.
 
-What that leaves unproven: the same run against a *release-signed* package
-under the public trust (the packages CI builds carry no bundle;
-`sign-release.yml` signs at release time), which the first release after this
-change is the occasion for; the `.rpm` route on a real dnf host, exercised
-against the fakes only; and the AppImage swap under a real unit, likewise. The
-Windows path is untouched by everything above except the bundle read, which
-now takes the file's bytes as they are on both platforms.
+What that leaves unproven: the rollback against a *release-signed* package
+(the last release made by hand carries no bundle, so the first update that can
+have a rollback image is from the first release the pipeline signed to the one
+after it), and the AppImage swap under a real unit. The run against
+release-signed packages under the public trust was made on 29 September 2026,
+from the release made by hand to the first the pipeline signed: the `.deb` on
+Ubuntu 26.04 unattended, and the `.rpm` on Fedora 44 through dnf; the Linux
+live update's part of [UpdateFeed.md](../../../../docs/UpdateFeed.md) describes
+the run and what it found. The Windows path is
+untouched by everything above except the bundle read, which now takes the
+file's bytes as they are on both platforms.
 
 ## What the packaging pass found, and fixed
 

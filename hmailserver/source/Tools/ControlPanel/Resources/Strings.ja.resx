@@ -9363,6 +9363,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Set header value" xml:space="preserve">
     <value>ヘッダー値を設定</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>hMailServer.ini でのみ設定</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>URL が応答するように、Web サービスと自動設定ページで HTTP または HTTPS ポートを設定し、次に各メール ドメインについて、このサーバーを指す autoconfig.&lt;domain&gt; と autodiscover.&lt;domain&gt; の DNS レコードを公開してください。これらはアドレス レコードであり、このページは TXT レコードのみを確認するため、ここからは確認できません。</value>
   </data>

@@ -9363,6 +9363,9 @@ Vil du fortsætte?</value>
   <data name="Set header value" xml:space="preserve">
     <value>Sæt headerværdi</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Angives kun i hMailServer.ini</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Angiv HTTP- eller HTTPS-porten på siden Webtjenester og autokonfiguration, så URL'erne svarer, og publicér så DNS-posterne autoconfig.&lt;domain&gt; og autodiscover.&lt;domain&gt; for hvert postdomæne, pegende på denne server. Det er adresseposter, og denne side kontrollerer kun TXT-poster, så de kan ikke bekræftes herfra.</value>
   </data>

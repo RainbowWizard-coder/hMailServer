@@ -218,6 +218,16 @@ that Debian 12 or Ubuntu 24.04 does not have, and apt refuses it there. Boost is
 not in `Depends` at all, because the server links it statically
 (`hmailserver/source/Server/CMakeLists.txt`, "Boost is linked STATICALLY").
 
+One name is not the linker's: `ca-certificates`, which `CMakeLists.txt` puts
+first on the line from 6.3.6 (`CPACK_DEBIAN_PACKAGE_DEPENDS`, and `Requires:` in
+the `.rpm`). OpenSSL has no certificate authorities of its own, and every HTTPS
+request the server makes - the update check and its download, a JWKS, an object
+store, a webhook - is checked against the distribution's bundle in
+`/etc/ssl/certs`. A real Ubuntu or Debian server has it already; a minimal image
+does not, and there the update check would fail on the feed's certificate. The
+first Linux live update found the package did not ask for it: PostgreSQL had
+pulled it in.
+
 The jobs
 --------
 
@@ -313,7 +323,8 @@ control file's `Version` are always the same value. `deb-build.sh` checks both,
 and fails if either differs. It also fails when:
 
 - the `Architecture` field is not the target's;
-- `Depends` is empty or names Boost;
+- `Depends` names no library (`libc6`, which `dpkg-shlibdeps` always writes),
+  does not name `ca-certificates`, or names Boost;
 - the licence files are missing or not the tree's ([The licences](#the-licences));
 - the binary is not an executable for the target;
 - the container is not the release the file would be named after.
@@ -479,6 +490,54 @@ architecture:
 and it has no systemd to start the unit.
 `build/ci/linux-package-install.sh` does the first for linux-build's amd64
 package in the `linux-package-deb` job, and says what a container cannot prove.
+
+The live update
+---------------
+
+A server installed from the Ubuntu 26.04 `.deb` updates itself.
+`hmailserver-update.path`, which `postinst` enables and starts, takes the
+server's request and runs `/usr/lib/hmailserver/hmailserver-update` as root,
+which verifies the package again, installs it with `apt-get` - whose `postinst`
+upgrades the schema - and starts the unit. It was tried from 6.3.4 to 6.3.5 on
+29 September 2026, unattended ([UpdateFeed.md](UpdateFeed.md), "From 6.3.4 on,
+by the live update"). `sudo /usr/lib/hmailserver/hmailserver-update check`
+says whether a machine can apply one. To have it apply updates by itself:
+
+```sh
+sudo hmailserver --set-setting UpdateCheckEnabled=1
+sudo hmailserver --set-setting UpdateAutoDownload=1
+sudo hmailserver --set-setting 'UpdateWindow=Sun 03:00'
+sudo systemctl restart hmailserver
+```
+
+and a backup destination, since `UpdateBackupBeforeApply=1`, the default, backs
+up before every unattended apply and applies nothing without one - or
+`UpdateBackupBeforeApply=0`. Put the destination outside `/var/lib/hmailserver`
+and give it to the unit with a `ReadWritePaths` drop-in:
+
+```sh
+sudo install -d -o hmailserver -g hmailserver -m 0750 /var/backups/hmailserver
+sudo systemctl edit hmailserver      # [Service]  ReadWritePaths=/var/backups/hmailserver
+sudo systemctl restart hmailserver
+```
+
+then set it on the Deck's Backup page or with `PUT /api/v1/settings/backup`. A
+destination under `/var/lib/hmailserver` - the one place the unit lets the
+service write without a drop-in - is inside the data directory: up to 6.3.5 a
+backup there copied itself into itself and failed every time, and so did every
+unattended apply; from 6.3.6 it works, but the backup is then on the disk it
+backs up ([Backup.md](Backup.md)). The update looks for the generic name,
+`hmailserver_<version>_amd64.deb`; see "The update checker was not changed in
+this work" above for the distribution packages.
+
+The trust the package is checked against - `UpdateSigningIdentity` and the four
+settings beside it - is read from `/etc/hmailserver/hMailServer.ini` alone, by
+the server and by the helper's check as root alike, and set with `sudo
+hmailserver --set-setting`; the REST API and the Deck refuse it
+([UpdateFeed.md](UpdateFeed.md), "Where the trust is read from"). The helper
+runs `apt-get` quietly (`-q`, `Dpkg::Use-Pty=0`), so its journal holds what was
+installed and not dpkg's progress, which journald stored as "[614B blob data]"
+up to 6.3.5.
 
 Running a job by hand
 ---------------------

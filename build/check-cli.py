@@ -395,11 +395,15 @@ ANSWERS = {
     # RestApiPort is set by the server's environment, from a variable: listed
     # with its value, since nothing withholds it, and named in the environment
     # map - which is what keeps it out of both clients' exports.
+    # UpdateSourceRepository is one of the live update's trust, which a server
+    # from 6.3.6 reads from its own hMailServer.ini alone: listed like any key,
+    # left out of both clients' exports by name, and refused over PUT (REFUSALS).
     ("GET", "/api/v1/settings/ini"): {
-        "names": ["DisableAUTHList", "OAuth2HmacSecret", "RestApiPort"],
+        "names": ["DisableAUTHList", "OAuth2HmacSecret", "RestApiPort", "UpdateSourceRepository"],
         "settings": [{"name": "DisableAUTHList", "value": "0", "secret": False},
                      {"name": "OAuth2HmacSecret", "value": "(set)", "secret": True},
-                     {"name": "RestApiPort", "value": "8045", "secret": False}],
+                     {"name": "RestApiPort", "value": "8045", "secret": False},
+                     {"name": "UpdateSourceRepository", "value": "https://gitlab.example.net/mail/hmailserver", "secret": False}],
         "environment": {"RestApiPort": "variable"}},
     ("PUT", "/api/v1/settings/ini/DisableAUTHList"): {"name": "DisableAUTHList", "value": "1", "present": True},
     # What this server has changed from stock: the shape SettingsDiff::Json
@@ -643,6 +647,11 @@ REFUSALS = {
         "error": "The next key's record has not resolved for the propagation period yet.",
         "reason": "propagation",
         "status": dict(ROTATION_STATUS, domain="example.net")}),
+    # The live update's trust, which the server takes from its hMailServer.ini
+    # alone (IniSettingStore::TrustAnchorRefusal): a client must not send it.
+    ("PUT", "/api/v1/settings/ini/UpdateSourceRepository"): (409, {
+        "error": "UpdateSourceRepository is part of the trust the live update checks a new version against, and it is "
+                 "read from hMailServer.ini alone, never from the database, so it is not changed here."}),
 }
 
 # Routes that answer once and refuse afterwards, which is what the real one does:
@@ -1581,6 +1590,38 @@ def run_powershell_config_cases(url, tmp, verbose):
     check(isinstance(ini, dict) and "RestApiPort" not in ini,
           "the module's document carries a [Settings] key the server's environment sets - the deployment's, "
           "which the server refuses to be sent: %r" % (ini,))
+    check(isinstance(ini, dict) and "UpdateSourceRepository" not in ini,
+          "the module's document carries the live update's trust, which a server reads from its own "
+          "hMailServer.ini and refuses over the REST API: %r" % (ini,))
+
+    # A document an earlier module exported, which carried the trust: no step
+    # for it, a warning that names it, and -Force sends the rest and not it.
+    # Made by the module itself, as the stale document below is: re-serialised
+    # here, its rows' keys would come back in another order.
+    older_path = os.path.join(tmp, "ps-older.json")
+    completed = run("$d = Get-Content -Path '%s' -Raw | ConvertFrom-Json; "
+                    "$d.sections.ini | Add-Member -Force -NotePropertyName UpdateSourceRepository -NotePropertyValue 'https://gitlab.com/Progressiverobot/hmailserver'; "
+                    "$d.sections.ini.DisableAUTHList = '1'; "
+                    "$d | ConvertTo-Json -Depth 20 | Set-Content -Path '%s' -Encoding utf8"
+                    % (document.replace("'", "''"), older_path.replace("'", "''")))
+    check(completed.returncode == 0, "the module could not write the older document: %s" % completed.stderr.strip()[:300])
+    completed = run("Compare-HmConfiguration -Path '%s' 3>&1 | ForEach-Object { if ($_ -is [System.Management.Automation.WarningRecord]) { 'WARNING: ' + $_.Message } else { $_.Section + ' ' + $_.Key } }"
+                    % older_path.replace("'", "''"))
+    check(completed.returncode == 0 and "ini DisableAUTHList" in completed.stdout
+          and "ini UpdateSourceRepository" not in completed.stdout
+          and "WARNING: Skipped UpdateSourceRepository" in completed.stdout,
+          "Compare-HmConfiguration of a document carrying the trust must plan the rest and warn that the trust was "
+          "skipped, exit %d:\n%s %s" % (completed.returncode, completed.stdout, completed.stderr.strip()[:300]))
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run("Import-HmConfiguration -Path '%s' -Force -Confirm:$false -WarningAction SilentlyContinue | Out-Null"
+                    % older_path.replace("'", "''"))
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    writes = [(r["method"], r["path"]) for r in applying if r["method"] != "GET"]
+    check(completed.returncode == 0 and writes == [("PUT", "/api/v1/settings/ini/DisableAUTHList")],
+          "Import-HmConfiguration -Force of a document carrying the trust must write the rest and not the trust, "
+          "exit %d, writes %s %s" % (completed.returncode, writes, completed.stderr.strip()[:300]))
 
     # The same document, read by the other client: one vocabulary, one file.
     completed = subprocess.run(
@@ -1775,6 +1816,50 @@ def run_config_cases(url, tmp):
     check(exported_ini.get("DisableAUTHList") == "0" and "RestApiPort" not in exported_ini,
           "the document's ini section must hold the ordinary key and not the one the server's environment sets "
           "(the route's environment map names it): %r" % (exported_ini,))
+    check("UpdateSourceRepository" not in exported_ini,
+          "the document carries the live update's trust, which a server reads from its own hMailServer.ini "
+          "and refuses over the REST API: %r" % (exported_ini,))
+
+    # A document an earlier hmctl exported, which carried the trust: it still
+    # matches, and apply leaves the key out with a line rather than send a PUT
+    # the server refuses and exit 1 for it.
+    older = json.loads(first)
+    older["sections"]["ini"]["UpdateSourceRepository"] = "https://gitlab.com/Progressiverobot/hmailserver"
+    older["sections"]["ini"]["updatesigningidentity"] = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/"
+    older_path = os.path.join(tmp, "config-older.json")
+    with open(older_path, "w", encoding="utf-8") as handle:
+        json.dump(older, handle, indent=2, sort_keys=True)
+
+    completed = run(["config", "diff", older_path])
+    check(completed.returncode == 0 and "already matches" in completed.stdout
+          and "Skipped UpdateSourceRepository, updatesigningidentity" in completed.stdout,
+          "a document whose only difference is the live update's trust must match and say the keys were skipped, "
+          "exit %d:\n%s" % (completed.returncode, completed.stdout))
+
+    completed = run(["config", "diff", older_path, "--json"])
+    check(completed.returncode == 0 and "Skipped UpdateSourceRepository" in completed.stderr,
+          "under --json the skipped trust keys must be said on the standard error, exit %d:\n%s\n%s"
+          % (completed.returncode, completed.stdout, completed.stderr))
+    try:
+        json.loads(completed.stdout)
+    except ValueError:
+        problem("config diff --json of a document carrying the trust printed something that is not JSON:\n%s"
+                % completed.stdout)
+
+    older["sections"]["ini"]["DisableAUTHList"] = "1"
+    with open(older_path, "w", encoding="utf-8") as handle:
+        json.dump(older, handle, indent=2, sort_keys=True)
+    with Recorder.lock:
+        Recorder.requests = []
+    completed = run(["config", "apply", older_path, "--force"])
+    with Recorder.lock:
+        applying = list(Recorder.requests)
+    writes = [(r["method"], r["path"]) for r in applying if r["method"] != "GET"]
+    check(completed.returncode == 0 and writes == [("PUT", "/api/v1/settings/ini/DisableAUTHList")]
+          and "Skipped UpdateSourceRepository, updatesigningidentity" in completed.stdout
+          and "1 applied, 0 refused" in completed.stdout,
+          "apply --force of a document carrying the trust must write the rest, leave the trust out with a line "
+          "and exit 0; exit %d, writes %s:\n%s" % (completed.returncode, writes, completed.stdout))
     check("example.com" in first and "ann@example.com" in first,
           "the document holds neither the domain nor its accounts")
     check("all@example.com" in first, "the document holds no distribution list")

@@ -71,8 +71,10 @@ license=('AGPL-3.0-or-later')
 # package here), Boost (thread, filesystem, regex, headers) and Iconv. Iconv has
 # no package here because glibc carries it - find_package(Iconv) finds nothing
 # to link on this libc and that is correct. libldap carries ldap.h itself, so it
-# needs no -dev twin in makedepends.
-depends=('boost-libs' 'openssl' 'zlib' 'postgresql-libs' 'libldap')
+# needs no -dev twin in makedepends. ca-certificates: the authorities every HTTPS
+# request the server makes is checked against - the update check, a JWKS, an
+# object store, a webhook.
+depends=('boost-libs' 'openssl' 'zlib' 'postgresql-libs' 'libldap' 'ca-certificates')
 
 # clang is not a matter of taste. Common/Util/StdString.h calls members of its own
 # dependent base without this->, which only MSVC and clang's

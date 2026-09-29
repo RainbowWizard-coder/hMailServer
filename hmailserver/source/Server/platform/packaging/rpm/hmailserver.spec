@@ -77,6 +77,9 @@ BuildRequires:  ninja-build
 Requires(post): util-linux
 # /etc/logrotate.d/hmailserver rotates the server's logs.
 Requires:       logrotate
+# The certificate authorities every HTTPS request the server makes is checked
+# against - the update check, a JWKS, an object store, a webhook.
+Requires:       ca-certificates
 
 # QuickJS, vendored unmodified under hmailserver/source/Server/quickjs and linked
 # into the server: no distribution this builds for ships it as a library.
@@ -171,13 +174,15 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # Then the tester programs the build makes beside the server: the RFC 7208 suite and
 # the SPF testers, the JavaScript binding, the SNMP agent, the object store's
 # request signatures, the singletons, the legacy Blowfish scheme, the backup
-# index's XML, the date class with the date parsers built on it and the Public
-# Suffix List's cut of a host name - the list debian/rules runs. No socket, no
-# configuration, no database; seconds.
+# index's XML, the date class with the date parsers built on it, the Public
+# Suffix List's cut of a host name, the backup's exclusions and the live update's
+# trust (the last two on scratch files under $TMPDIR, removed again) - the list
+# debian/rules runs. No socket, none of the system's configuration, no database,
+# no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests; do
   echo "== $tester"
   ./$tester
 done

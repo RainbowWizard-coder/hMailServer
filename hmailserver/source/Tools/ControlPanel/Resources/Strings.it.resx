@@ -9363,6 +9363,9 @@ Continuare?</value>
   <data name="Set header value" xml:space="preserve">
     <value>Imposta il valore dell'intestazione</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Impostato solo in hMailServer.ini</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Imposta la porta HTTP o HTTPS nella pagina Servizi web e configurazione automatica perché gli URL rispondano, poi pubblica per ogni dominio di posta i record DNS autoconfig.&lt;domain&gt; e autodiscover.&lt;domain&gt; che puntano a questo server. Sono record di indirizzo, e questa pagina controlla solo i record TXT, quindi da qui non possono essere confermati.</value>
   </data>

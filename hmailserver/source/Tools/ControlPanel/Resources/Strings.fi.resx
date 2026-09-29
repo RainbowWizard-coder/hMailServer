@@ -9363,6 +9363,9 @@ Jatketaanko?</value>
   <data name="Set header value" xml:space="preserve">
     <value>Aseta otsakkeen arvo</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Asetetaan vain hMailServer.ini-tiedostossa</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>Aseta HTTP- tai HTTPS-portti sivulla Verkkopalvelut ja automaattinen määritys-tiedostossa, jotta URL-osoitteet vastaavat, ja julkaise sitten jokaiselle postiverkkotunnukselle autoconfig.&lt;domain&gt;- ja autodiscover.&lt;domain&gt;-DNS-tietueet, jotka osoittavat tähän palvelimeen. Nämä ovat osoitetietueita, ja tämä sivu tarkistaa vain TXT-tietueet, joten niitä ei voi vahvistaa täältä.</value>
   </data>

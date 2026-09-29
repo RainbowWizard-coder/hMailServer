@@ -9,7 +9,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <algorithm>
+#include <set>
 #include "../Util/File.h"
+#include "../Util/ByteBuffer.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/OtelLogExporter.h"
 #include "../Util/SyslogSink.h"
@@ -42,6 +44,89 @@ static const int kSyslogPriorityError = 3;
 namespace HM
 {
    
+   namespace
+   {
+      // THE BACKUP AND EVENT LOGS' ENCODING. On Windows they are UTF-16LE with a
+      // byte order mark, as they always were, and every reader there expects it.
+      // Elsewhere they are UTF-8, as the application and error logs are: the
+      // first real Linux live update (29 September 2026) found the backup log
+      // unreadable to tail and grep - every character followed by a NUL - beside
+      // an application log that was plain text, and logrotate's copytruncate
+      // then left a file whose mark was gone and whose text was still UTF-16.
+      bool WritesUtf16_(Logger::LogType lt)
+      {
+#ifdef HM_PLATFORM_POSIX
+         (void) lt;
+         return false;
+#else
+         return lt == Logger::Backup || lt == Logger::Events;
+#endif
+      }
+
+      bool IsTextLogKeptWhole_(Logger::LogType lt)
+      {
+         // Lines of these two logs are read whole - the backup's failures name
+         // a file and say what to do - so MaxLogLineLen does not cut them, as it
+         // never did while they were written as UTF-16.
+         return lt == Logger::Backup || lt == Logger::Events;
+      }
+
+#ifdef HM_PLATFORM_POSIX
+      // A backup or event log an earlier version wrote as UTF-16LE, converted to
+      // UTF-8 in place the first time this process opens it, so that its old
+      // lines and the new ones are one encoding: with its FF FE mark, or - after
+      // logrotate's copytruncate took the mark with the rest - by its second
+      // byte being NUL under a first that is not, which a line of either log,
+      // starting with the date, never is in UTF-8.
+      void ConvertUtf16Log_(const String &fileName)
+      {
+         // Nothing may leave here: it runs inside the logger, under its lock, on
+         // whatever thread logged first, and File's reads report and rethrow.
+         try
+         {
+            File source;
+            if (!source.Open(fileName, File::OTReadOnly))
+               return;
+
+            // The first two bytes decide, and only a file that is UTF-16 is read
+            // whole: a UTF-8 log - every one from the first start of this version
+            // on - is not read into memory at every start to be looked at.
+            std::shared_ptr<ByteBuffer> head = source.ReadChunk(2);
+            if (!head || head->GetSize() < 2)
+               return;
+
+            const unsigned char *first = (const unsigned char *) head->GetCharBuffer();
+
+            size_t skip = 0;
+            if (first[0] == 0xFF && first[1] == 0xFE)
+               skip = 2;
+            else if (first[0] == 0 || first[1] != 0)
+               return;
+
+            if (!source.SetPosition(0))
+               return;
+
+            std::shared_ptr<ByteBuffer> buffer = source.ReadFile();
+            source.Close();
+
+            if (!buffer || buffer->GetSize() < skip)
+               return;
+
+            const unsigned char *bytes = (const unsigned char *) buffer->GetCharBuffer();
+            const size_t size = buffer->GetSize();
+
+            const String text(Unicode::FromUtf16Le(bytes + skip, size - skip));
+            FileUtilities::WriteToFileAtomically(fileName, Unicode::ToUtf8(text));
+         }
+         catch (...)
+         {
+            // Left as it is: the new lines are appended in UTF-8 after the old
+            // ones, which is what a failure to convert costs.
+         }
+      }
+#endif
+   }
+
    Logger::Logger()
    {
       log_mask_ = 0;
@@ -703,11 +788,11 @@ namespace HM
          break;
       case Backup:
          file = &backup_log_file_;
-         writeUnicode = true;
+         writeUnicode = WritesUtf16_(lt);
          break;
       case Events:
          file = &events_log_file_;
-         writeUnicode = true;
+         writeUnicode = WritesUtf16_(lt);
          break;
       case IMAP:
          if (sep_svc_logs_) 
@@ -765,6 +850,17 @@ namespace HM
       
       if (!file->IsOpen())
       {
+#ifdef HM_PLATFORM_POSIX
+         // Once a process for each of the two, before the first line: an older
+         // version's UTF-16 file becomes the UTF-8 this one appends.
+         if (fileExists && (lt == Backup || lt == Events))
+         {
+            static std::set<String> converted;
+            if (converted.insert(fileName).second)
+               ConvertUtf16Log_(fileName);
+         }
+#endif
+
          if (!file->Open(fileName, File::OTAppend))
             return nullptr;
 
@@ -801,7 +897,7 @@ namespace HM
          break;
       case Backup:
       case Events:
-         writeUnicode = true;
+         writeUnicode = WritesUtf16_(lt);
          break;
       }
 
@@ -812,6 +908,13 @@ namespace HM
       if (writeUnicode)
       {
          if (!file->Write(sData))
+            ReportWriteFailure_(file->GetName());
+      }
+      else if (IsTextLogKeptWhole_(lt))
+      {
+         // The backup and event logs outside Windows: UTF-8, every character of
+         // the line and the whole of it (WritesUtf16_).
+         if (!file->Write(Unicode::ToUtf8(sData)))
             ReportWriteFailure_(file->GetName());
       }
       else

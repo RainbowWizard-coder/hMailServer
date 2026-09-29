@@ -334,10 +334,11 @@ namespace RegressionTests.Infrastructure
       /// <summary>
       ///    The event log as written since DeleteEventLog's mark, read from the file
       ///    the server names (current_event_log), without a lock so that the server
-      ///    goes on writing it. The server writes it as UTF-16 after a byte order
-      ///    mark, on this platform as on Windows (File::Write), so the bytes after the
-      ///    mark are decoded as the start of the file says; with no mark at the start
-      ///    they are UTF-8. Empty when the file is not there yet. A file shorter than
+      ///    goes on writing it. The server writes it as UTF-8 on this platform from
+      ///    6.3.6, as it writes its application log, and converted a file an earlier
+      ///    version wrote as UTF-16 after a byte order mark (Logger.cpp); the bytes
+      ///    are decoded as the start of the file says - UTF-16 after an FF FE mark,
+      ///    and otherwise UTF-8 - so a server of either kind is read right. Empty when the file is not there yet. A file shorter than
       ///    the mark is a new file, and all of it is new.
       /// </summary>
       public static string ReadEventLog()

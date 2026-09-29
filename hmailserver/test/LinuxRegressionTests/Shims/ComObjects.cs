@@ -964,7 +964,10 @@ namespace hMailServer
       //
       // The routes refuse what the COM members refuse, in the same sentences,
       // and a refusal here is thrown as the COMException the fixtures expect
-      // (IniSettingsOverCom asserts the type), carrying the route's sentence.
+      // (IniSettingsOverCom asserts the type), carrying the route's sentence:
+      // 400 for a name or a value, 409 for a change the server will not take -
+      // one to the live update's trust, which is read from hMailServer.ini alone,
+      // or to a setting the environment manages - and 500 when it could not.
 
       private static void IniRouteOrSkip()
       {
@@ -974,7 +977,7 @@ namespace hMailServer
 
       private static ApiAnswer IniRefusalAsComException(ApiAnswer answer, string doing)
       {
-         if (answer.Status == 400 || answer.Status == 500)
+         if (answer.Status == 400 || answer.Status == 409 || answer.Status == 500)
             throw new System.Runtime.InteropServices.COMException(answer.Error);
          return answer.Expect(200, doing);
       }

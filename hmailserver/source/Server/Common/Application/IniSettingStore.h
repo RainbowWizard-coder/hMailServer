@@ -213,7 +213,9 @@ namespace HM
 
       /// <summary>
       /// The [Settings] keys the database must never hold, which stay in the file
-      /// and nowhere else: today only PasswordPepper.
+      /// and nowhere else and which an administrator may set over COM or REST:
+      /// today only PasswordPepper. The live update's trust is kept out of the
+      /// database as well, by rules of its own (IsTrustAnchorName).
       ///
       /// The pepper is the one setting whose whole purpose is to be somewhere the
       /// password hashes are not. Crypt::ApplyPepper_ mixes it into every Argon2id
@@ -226,6 +228,63 @@ namespace HM
       /// after making sure the file holds the value the server was running on.
       /// </summary>
       static bool IsFileOnlyName(const String &name);
+
+      /// <summary>
+      /// The five [Settings] keys that are the live update's trust:
+      /// UpdateSigningIdentity, UpdateSigningIssuer, UpdateSourceRepository,
+      /// UpdateTrustRootsFile and UpdateLogPublicKeyFile. Matched without case.
+      ///
+      /// They are read from the [Settings] section of hMailServer.INI alone, on
+      /// every platform, never from the database - with PasswordPepper
+      /// (IsFileOnlyName), the deliberate exception to the rule that a setting
+      /// belongs in the database, made for security. The
+      /// process an update is checked for must not choose what it is checked
+      /// against: on Linux, hmailserver-update checks a package again as root
+      /// with `hmailserver --verify-update`, which opens no database and reads
+      /// this file, precisely so that a service that has been taken over cannot
+      /// have root install something the release workflow never signed; a
+      /// service whose trust came from the database it may write would be
+      /// checked by rules it chose, and the two checks would disagree - the first
+      /// real Linux live update, on 29 September 2026, showed a signer stored
+      /// over REST used by the server and not by root. So the server reads them
+      /// with the same parse root's check uses; every interface an administrator
+      /// reaches over the service - COM, the REST API, the Control Deck and the
+      /// Control Panel - refuses to change them (TrustAnchorRefusal), taking
+      /// only the value the file already has; a row an earlier version stored is
+      /// ignored, taken out at the next start and named there (HM5809); a
+      /// [SettingsOverride] line for one is ignored and named; and a backup
+      /// neither carries them nor restores them. They are written only by what
+      /// runs with the file's own rights and no administrator's session on the
+      /// thread: `hmailserver --set-setting` as root, an editor run as an
+      /// administrator on Windows, and --apply-environment in a container.
+      ///
+      /// On Windows no second check exists: hMailServer.Updater.exe runs as the
+      /// service's own account, which may apply an update only when it is an
+      /// administrator (UpdateInstaller::CanApplyHere), and holds the installer to
+      /// the SHA-256 the service verified - so there the service is the only
+      /// check, and what it checks with is the file, as everywhere.
+      /// </summary>
+      static bool IsTrustAnchorName(const String &name);
+
+      /// <summary>
+      /// The sentence an administrator's change to one of those keys is refused
+      /// with: which file holds it, why the service may not change it, and how it
+      /// is set - `sudo hmailserver --set-setting` on Linux, the file itself on
+      /// Windows.
+      /// </summary>
+      static String TrustAnchorRefusal(const String &name);
+
+      /// <summary>
+      /// Whether an administrator's change to name is one the trust rule refuses,
+      /// and the sentence: a key IsTrustAnchorName answers, given a value other
+      /// than the one its line in the file holds (compared trimmed, as the file is
+      /// read), or - newValue null - removed while its line holds a value. A write
+      /// of the value the file already has, and the removal of a key the file
+      /// does not set, change nothing and are not refused, so that a client that
+      /// writes back every setting it read - an export applied again - is not
+      /// turned away for these. False for every other name.
+      /// </summary>
+      static bool RefusesTrustAnchorChange(const String &name, const String *newValue, String &sentence);
 
       /// <summary>
       /// Whether a setting's VALUE is a secret, by its name: a password, a shared
@@ -429,6 +488,9 @@ namespace HM
       /// line: it is what a removal would have to take out.
       /// </summary>
       static bool FileLine_(const String &name, String &value);
+
+      /// <summary>How one of the live update's trust settings is set on this platform, as one sentence.</summary>
+      static String TrustAnchorHowTo_();
 
       /// <summary>
       /// Said once per process, the first time an administrator's change finds

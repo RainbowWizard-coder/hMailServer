@@ -102,6 +102,9 @@ namespace HM
       /// catch reports the sentence (COMError::GenerateGenericMessage); the REST
       /// dispatch answers it with 409. Deliberately not a std::exception, so that
       /// nothing written for those catches it by accident on the way out.
+      /// IniSettingStore's writes throw it for one more refusal of the same kind,
+      /// with its own sentence: a change to the live update's trust, which is read
+      /// from hMailServer.INI alone (IniSettingStore::IsTrustAnchorName).
       /// </summary>
       class Refusal
       {

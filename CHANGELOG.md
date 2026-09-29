@@ -350,6 +350,13 @@ for a stray `#` number or `@` name.
   `release-chain.py --self-test` holds the paths, where GitLab serves them and the pairing, with 6.3.5's paths as a
   negative control; `build/check-release-chain.py` holds them and every `permalink/latest` address the tree writes
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The links' names and paths").
+- **The `.deb` and the `.rpm` require `ca-certificates`**, which every HTTPS request the server makes needs, the
+  update check's among them; in the first Linux live update PostgreSQL had pulled it in. So do the source packages
+  and the Arch package.
+- **The `.rpm`'s `%changelog` is its own**: one entry, from the version's heading in `CHANGELOG.md` and dated by
+  `SOURCE_DATE_EPOCH`, in place of CPack's placeholder of 2010.
+- **The Linux update helper runs `apt-get` quietly** (`-q`, `Dpkg::Use-Pty=0`), so the journal no longer holds
+  dpkg's progress as "[614B blob data]".
 - **The release's own pipeline deploys the update feed with the release in it.** 6.3.5's tag pipeline ended in
   `update-feed`, a trigger of a pipeline on `master` running `pages` alone. GitLab refused it the moment it started,
   once `release-publish` had passed (`invalid_bridge_trigger`, "downstream pipeline trigger definition is invalid"):
@@ -623,6 +630,36 @@ for a stray `#` number or `@` name.
   and fetched again, and a start whose first check fails no longer sweeps the kept copy away. Tested by
   `UpdateSchedule.AVerifiedInstallerIsKeptAcrossARestartAndNotFetchedAgain` and
   `UpdateSchedule.AKeptInstallerOutlivesAStartWhoseFirstCheckFails`.
+- **Fixed: a backup destination inside the data directory failed every backup, and so every unattended update.**
+  The copy of the data directory walked into its own staging folder until the path was too long (`HM5014`): the
+  first Linux live update, whose destination was under `/var/lib/hmailserver`, was refused for an hour and a half.
+  A backup now leaves out, and a restore leaves in place, the destination, the temp directory and the run's staging
+  folder - and a restore the folder of the archive it restores from - wherever they are inside the data directory,
+  recognised by the directory itself rather than its spelling; the backup log names each. Such a destination works,
+  and the backup is then on the disk it backs up ([Backup.md](hmailserver/docs/Backup.md)). The same change removes
+  two faults of the Linux packages, whose temp directory is inside the data directory, found by reading the code and
+  not reproduced: an encrypted backup with messages failed the same way, and a restore of messages deleted the store
+  it had just extracted. Tested by `backup-tests`, `BackupExecuterTester` and
+  `BackupRestore.ADestinationInsideTheDataDirectoryIsBackedUpToAndRestoredFrom`.
+- **A backup no longer carries the live update's folder.** `Updates` - the package or installer waiting to be
+  applied, the rollback image, the apply token and the last apply's outcome - was in every archive, 15 MB of the
+  first Linux live update's 15.4 MB, and a restored copy of the outcome would have a server report an apply it
+  never made. It is left out as the recoverable store is, and a restore leaves this machine's own where it is.
+- **The live update's trust is read from `hMailServer.ini` alone.** The server read `UpdateSigningIdentity`,
+  `UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` from the
+  database, where the REST API and the Deck write, and root's `hmailserver --verify-update` on Linux from the file,
+  so a signer set over REST was used by the one and not the other. The process an update is checked for must not
+  choose what it is checked against: on every platform the server now reads them from the file, and COM and the REST
+  API (409) - and so the Control Panel, the Deck, a profile and the audit trail's put-back - refuse a change. **On
+  upgrade** a value 6.3.4 or 6.3.5 stored in the database no longer applies: the first start takes it out and names
+  it once as `HM5809`. Set them with `sudo hmailserver --set-setting` on Linux, and in the file on Windows
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "Where the trust is read from"). `hmctl config export` and
+  `Export-HmConfiguration` leave the five out, as they leave out what the server's environment sets, and `diff` and
+  `apply` of a document an earlier version exported skip them with a line naming them rather than fail the apply
+  ([CommandLine.md](hmailserver/docs/CommandLine.md)). Tested by `trust-anchor-tests`, by `IniSettingsOverCom`,
+  `RestApiSettings` and `IniSettingsMirror`, and by `check-cli.py`.
+- **The backup and event logs are UTF-8 on Linux**, as the other logs are; they were UTF-16LE. A file an earlier
+  version wrote is converted when the server first opens it. Windows keeps UTF-16LE.
 
 ### Build and tests
 
@@ -788,8 +825,8 @@ for a stray `#` number or `@` name.
   dated 6.3.5 the 28th, or described the update-feed trigger. They now give 29 September, what 6.3.5's tag pipeline
   showed and measured, and, in UpdateFeed.md's new "From 6.3.4 on, by the live update", issue #10's test: a 6.3.4
   service running as LocalSystem installed 6.3.5 unattended, without a rollback image since 6.3.4 carries no Sigstore
-  bundle; one running as `NT SERVICE\hMailServer` verified it and left it to an administrator (`HM7463`); the Linux
-  live update from 6.3.4 has not been tried. RELEASE.md step 3 compares the `hMailServer.exe` line
+  bundle; one running as `NT SERVICE\hMailServer` verified it and left it to an administrator (`HM7463`); and the
+  Linux live update from 6.3.4, tried the same day (below). RELEASE.md step 3 compares the `hMailServer.exe` line
   `windows-installer` prints with the hash the version's CHANGELOG section gives, since a pipeline release's
   verification section names the installer and not the executable in it.
 - **The installer smoke test holds Windows Update off for its run.** Its VM resumes from a snapshot of 25 September
@@ -811,6 +848,13 @@ for a stray `#` number or `@` name.
   `codeload.github.com`, `objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to `0.0.0.0` and
   `::`, so that anything a job runs that reaches for GitHub fails by name; both installers built afterwards
   (ContinuousIntegration.md, "bench150").
+- **The documents say what the first Linux live update showed.** On 29 September 2026 a 6.3.4 server from the
+  `.deb` on Ubuntu 26.04 installed 6.3.5 unattended, and one from the `.rpm` on Fedora 44 by hand over REST, both
+  without a rollback image. [UpdateFeed.md](hmailserver/docs/UpdateFeed.md), PackagesDeb.md, PackagesRpm.md, the
+  packaging README and [Roadmap3.md](Roadmap3.md) say so where they said it was untried.
+- **`backup-tests` and `trust-anchor-tests`**, two more tester programs `linux-build.sh` runs, and the source
+  packages' builds too (`dh_auto_test` and `%check`, [SourcePackages.md](hmailserver/docs/SourcePackages.md)); both
+  run in the class tests on Windows as well.
 
 ---
 

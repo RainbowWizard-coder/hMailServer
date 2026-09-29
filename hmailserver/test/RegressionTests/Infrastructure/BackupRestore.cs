@@ -1085,6 +1085,75 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("A destination inside the data directory is left out of the copy, so the backup completes and verifies; and a restore from it puts the mail back and keeps the destination and the archive")]
+      public void ADestinationInsideTheDataDirectoryIsBackedUpToAndRestoredFrom()
+      {
+         // The first real Linux live update's configuration (29 September 2026):
+         // /var/lib/hmailserver/backup under the data directory /var/lib/hmailserver.
+         // Every backup copied its own staging folder into itself until the path
+         // was too long, HM5014, and so every unattended apply was refused. The
+         // same code runs here. The directory is made in capitals and given as the
+         // destination in small letters, so that the copy has to know it by what
+         // it is and not by how it is spelt. On Linux the same copy and restore are
+         // held to this by backup-tests (BackupExecuterTester).
+         _backupMessages = true;
+
+         if (Directory.Exists(_backupDir))
+            Directory.Delete(_backupDir, true);
+
+         string inside = Paths.Combine(_application.Settings.Directories.DataDirectory, "BACKUPINSIDE-" + TestSetup.UniqueString());
+         Directory.CreateDirectory(inside);
+         SetBackupDir(inside.Replace("BACKUPINSIDE-", "backupinside-"));
+
+         try
+         {
+            var domain = _application.Domains.get_ItemByName("example.test");
+            var account = SingletonProvider<TestSetup>.Instance.AddAccount(domain, "inside@example.test", "test");
+            SmtpClientSimulator.StaticSend("sender@example.test", account.Address, "First", "The first message.");
+            SmtpClientSimulator.StaticSend("sender@example.test", account.Address, "Second", "The second message.");
+            Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 2);
+
+            bool completed = BackupEnvironment();
+            string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            Assert.IsTrue(completed, "The backup did not complete. Backup log: " + log);
+            Assert.IsTrue(log.Contains("Left out of the copy of the data directory"), "The log does not name what the copy left out. Backup log: " + log);
+            Assert.IsTrue(log.Contains("the backup destination"), "The destination was not left out. Backup log: " + log);
+            Assert.IsTrue(log.Contains("exactly what this run wrote"), "The verified restore did not pass. Backup log: " + log);
+
+            string[] archives = Directory.GetFiles(inside, "HMBackup *.7z");
+            Assert.AreEqual(1, archives.Length, "Expected exactly one archive in " + inside);
+            Assert.IsFalse(Directory.Exists(Paths.Combine(inside, "DataBackup")), "The staging folder was left in the destination.");
+
+            // The restore deletes every domain and empties the data directory before
+            // it copies the archive's store back: it must do that around the
+            // destination, which holds the archive it is restoring from. Status.StartTime,
+            // which says the restore is over, has one-second resolution.
+            Thread.Sleep(1100);
+            RestoreEnvironment();
+
+            Assert.IsTrue(File.Exists(archives[0]), "The restore deleted the archive it restored from, which is inside the data directory.");
+            Pop3ClientSimulator.AssertMessageCount("inside@example.test", "test", 2);
+
+            string restoreLog = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            Assert.IsTrue(restoreLog.Contains("Left in place while the data directory"), "The restore does not name what it left in place. Backup log: " + restoreLog);
+            Assert.IsTrue(restoreLog.Contains("Restore completed successfully"), "The restore did not complete. Backup log: " + restoreLog);
+         }
+         finally
+         {
+            try
+            {
+               if (Directory.Exists(inside))
+                  Directory.Delete(inside, true);
+            }
+            catch (IOException)
+            {
+               // Left behind, it is a folder in the data directory no domain is named
+               // after; not worth failing the test over.
+            }
+         }
+      }
+
+      [Test]
       [Description("A restore deletes every domain before it loads the backup's, and deletes no key file a DKIM key rotation generated doing it: the restored domain names the same file and the file is still on disk. The restored domain's new ID is the control that the restore really did delete and recreate it.")]
       public void ARestoreKeepsTheKeyFilesTheRotationGenerated()
       {

@@ -24,6 +24,7 @@ Vcs-Git: https://gitlab.com/hmailserver/hmailserver.git
 Package: hmailserver
 Architecture: any
 Depends:
+ ca-certificates,
  systemd | systemd-standalone-tmpfiles | systemd-tmpfiles,
  ${misc:Depends},
  ${shlibs:Depends},

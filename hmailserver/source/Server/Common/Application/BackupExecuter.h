@@ -51,7 +51,10 @@ namespace HM
       // already on local disk - and because the one thing this function has to be
       // able to say, when the copy into an emptied data directory fails, is "keep
       // the staged files, they are now the only copy".
-      bool RestoreDataDirectory_(BackupRestorer &restorer);
+      // archiveFile is the archive being restored: a restore empties the data
+      // directory around it, and around the destination and the temp directory,
+      // wherever they are inside it.
+      bool RestoreDataDirectory_(BackupRestorer &restorer, const String &archiveFile);
       void ReportRestoreFailure_(const String &message);
       
       int backup_mode_;
@@ -71,5 +74,30 @@ namespace HM
       // written under two of them.
       bool encrypt_;
       String passphrase_;
+   };
+
+   // What the copy of the data directory a backup makes, and the emptying and
+   // the copy a restore makes, leave alone (DataDirectoryExclusions_ and
+   // IsKeptOutOfBackup_ in BackupExecuter.cpp), on a scratch tree of its own
+   // under the system's temp directory: a destination inside the data
+   // directory, written in capitals with forward slashes on Windows and through
+   // a symbolic link elsewhere, is left out of the copy with the temp directory
+   // and the live update's folder, and one directory whose name begins with the
+   // data directory's is not taken for it, and what an encrypted backup
+   // measures first is what the copy then stages; a restore keeps the
+   // destination's archives, the temp directory with the store extracted into
+   // it, the archive being restored three levels down and the live update's
+   // folder, and empties the rest; and the copy of an older archive's store
+   // puts the mail back, the mail it holds in the archive's own folder too, and
+   // not its live update outcome, nor its copies of the destination and the
+   // temp directory. The exclusions are built by the
+   // functions the backup and the restore build theirs with. It runs inside the service
+   // with the other class tests (ClassTester), and on Linux as backup-tests.
+   // It needs no database and no setting. It throws std::logic_error naming the
+   // first thing that is wrong.
+   class BackupExecuterTester
+   {
+   public:
+      void Test();
    };
 }

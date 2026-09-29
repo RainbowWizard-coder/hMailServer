@@ -66,12 +66,48 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    The live update's trust: the five [Settings] keys the server reads from
+      ///    hMailServer.ini alone, never from the database, and refuses to change over
+      ///    COM and REST (IniSettingStore::IsTrustAnchorName, docs/UpdateFeed.md).
+      /// </summary>
+      public static readonly string[] TrustAnchorKeys =
+      {
+         "UpdateSigningIdentity", "UpdateSigningIssuer", "UpdateSourceRepository", "UpdateTrustRootsFile", "UpdateLogPublicKeyFile"
+      };
+
+      public static bool IsTrustAnchor(string key)
+      {
+         return TrustAnchorKeys.Any(k => string.Equals(k, key, System.StringComparison.OrdinalIgnoreCase));
+      }
+
+      /// <summary>
       ///    Stores one setting, through the same COM call the Control Panel and the
       ///    REST API use. The server writes the row and the file's copy together, so
       ///    a test that goes on to read the file still sees the value.
+      ///
+      ///    The live update's trust is the exception, since the server refuses it over
+      ///    COM: it is written into the file, as an administrator sets it, and then
+      ///    written over COM with the value the file now holds - which the server lets
+      ///    through without storing anything, and which reloads the settings, so that
+      ///    the value is in effect when this returns as it is for any other key.
       /// </summary>
       public static void Write(string key, string value)
       {
+         if (IsTrustAnchor(key))
+         {
+            if (string.IsNullOrEmpty(value))
+               DeleteFileOnly("Settings", key);
+            else
+               WriteFileOnly("Settings", key, value);
+
+            var settings = SingletonProvider<TestSetup>.Instance.GetApp().Settings;
+            if (string.IsNullOrEmpty(value))
+               settings.DeleteIniSetting(key);
+            else
+               settings.SetIniSetting(key, value);
+            return;
+         }
+
          SingletonProvider<TestSetup>.Instance.GetApp().Settings.SetIniSetting(key, value);
       }
 
@@ -162,6 +198,12 @@ namespace RegressionTests.Shared
       /// </summary>
       public static void Delete(string key)
       {
+         if (IsTrustAnchor(key))
+         {
+            Write(key, null);
+            return;
+         }
+
          SingletonProvider<TestSetup>.Instance.GetApp().Settings.DeleteIniSetting(key);
       }
 

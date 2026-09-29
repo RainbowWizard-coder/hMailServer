@@ -9363,6 +9363,9 @@ Devam edilsin mi?</value>
   <data name="Set header value" xml:space="preserve">
     <value>Başlık değerini ayarla</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>Yalnızca hMailServer.ini dosyasında ayarlanır</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>HTTP veya HTTPS bağlantı noktasını Web hizmetleri ve otomatik yapılandırma sayfasında ayarlayın'de WebServicesHttpPort ve/veya WebServicesHttpsPort'u ayarlayın, ardından her posta etki alanı için bu sunucuya işaret eden autoconfig.&lt;domain&gt; ve autodiscover.&lt;domain&gt; DNS kayıtlarını yayımlayın. Bunlar adres kayıtlarıdır ve bu sayfa yalnızca TXT kayıtlarını denetler, bu yüzden buradan doğrulanamazlar.</value>
   </data>

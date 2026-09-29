@@ -394,6 +394,64 @@ namespace RegressionTests.Infrastructure
          }
       }
 
+      private const string TrustKey = "UpdateSigningIssuer";
+
+      [Test]
+      [Description("The live update's trust is read from hMailServer.INI alone: with the database holding one value and the " +
+                   "file another, the server uses the file's; the row an earlier version stored is taken out at the next start " +
+                   "and named once as HM5809; and the start never writes the database's value into the file.")]
+      public void TheLiveUpdatesTrustIsReadFromTheFileAlone()
+      {
+         const string fromFile = "https://gitlab.example.net";
+         const string fromDatabase = "https://database.example.net";
+
+         // The row first, and outside the try: on a server with no Database object -
+         // the Linux suite's shim - the test stops here, before the file is touched
+         // and before the finally would try to put a file it never changed back.
+         _application.Database.ExecuteSQL("delete from hm_inisettings where inisettingname = '" + TrustKey + "'");
+
+         try
+         {
+            // What a server that ran 6.3.5 or earlier has after a PUT over REST or a
+            // save in the Control Panel: the row. And an administrator's own line in
+            // the file, with a different signer's issuer.
+            _application.Database.ExecuteSQL(
+               "insert into hm_inisettings (inisettingname, inisettingvalue, inisettingfilevalue) values ('" + TrustKey +
+               "', '" + fromDatabase + "', '" + fromDatabase + "')");
+            IniFileSetting.WriteFileOnly(TrustKey, fromFile);
+
+            Reload();
+
+            Assert.AreEqual(fromFile, _settings.GetIniSetting(TrustKey), "The server used the database's value, not the file's.");
+            Assert.IsFalse(HasStoredRow(TrustKey), "The row an earlier version stored was not taken out at the next start.");
+            Assert.AreEqual(fromFile, IniFileSetting.Read(TrustKey), "The start wrote the database's value into the file.");
+            CustomAsserts.AssertReportedError("HM5809", TrustKey, fromDatabase);
+
+            // Once: with the row gone, the next start has nothing to say.
+            Reload();
+            StringAssert.DoesNotContain("HM5809", ErrorLog(), "HM5809 was said again at a start with no row to name.");
+
+            // Nor may it be put back over COM.
+            Assert.Throws<System.Runtime.InteropServices.COMException>(() => _settings.SetIniSetting(TrustKey, fromDatabase));
+            Assert.IsFalse(HasStoredRow(TrustKey), "A refused change stored a row.");
+            Assert.AreEqual(fromFile, IniFileSetting.Read(TrustKey), "A refused change reached the file.");
+            Assert.AreEqual(fromFile, _settings.GetIniSetting(TrustKey));
+         }
+         finally
+         {
+            try
+            {
+               IniFileSetting.DeleteFileOnly("Settings", TrustKey);
+               _application.Database.ExecuteSQL("delete from hm_inisettings where inisettingname = '" + TrustKey + "'");
+               _application.Reinitialize();
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // The real failure, if there is one, is the one to report.
+            }
+         }
+      }
+
       [Test]
       [Description("A value with spaces at either end is stored as hMailServer.INI will read it back, trimmed, so that it " +
                    "is not reported as an edit to the file at every start; and a row a build before this one stored " +

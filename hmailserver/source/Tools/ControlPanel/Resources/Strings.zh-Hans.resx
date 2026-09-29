@@ -9363,6 +9363,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Set header value" xml:space="preserve">
     <value>设置标头值</value>
   </data>
+  <data name="Set in hMailServer.ini only" xml:space="preserve">
+    <value>仅在 hMailServer.ini 中设置</value>
+  </data>
   <data name="Set the HTTP or HTTPS port on the Web services &amp; autoconfiguration page so the URLs answer, then publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; DNS records for each mail domain, pointing at this server. These are address records, and this page checks TXT records only, so they cannot be confirmed from here." xml:space="preserve">
     <value>在“Web 服务和自动配置”页面设置 HTTP 或 HTTPS 端口以使 URL 能够响应，然后为每个邮件域发布指向此服务器的 autoconfig.&lt;domain&gt; 和 autodiscover.&lt;domain&gt; DNS 记录。这些是地址记录，而此页面只检查 TXT 记录，因此无法从此处确认。</value>
   </data>

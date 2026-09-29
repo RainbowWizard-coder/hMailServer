@@ -791,6 +791,31 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The live update's trust is not changed over REST: a PUT of any of its five settings with another value, and the DELETE of one the file sets, answer 409 with the sentence that names hMailServer.ini and change nothing; a PUT of the value the file holds is taken.")]
+      public void TheLiveUpdatesTrustIsNotChangedOverRest()
+      {
+         foreach (string key in IniFileSetting.TrustAnchorKeys)
+         {
+            string path = "/api/v1/settings/ini/" + key;
+            string held = _settings.GetIniSetting(key);
+
+            (int putStatus, string putBody) = Http("PUT", path, "{\"value\":\"https://example.invalid/refused\"}");
+            Assert.AreEqual(409, putStatus, "PUT " + path + ": " + putBody);
+            Assert.IsTrue(putBody.IndexOf("hMailServer.ini", StringComparison.OrdinalIgnoreCase) >= 0,
+               "The refusal of " + key + " does not name the file it is kept in: " + putBody);
+            StringAssert.Contains("never from the database", putBody);
+            Assert.AreEqual(held, _settings.GetIniSetting(key), "A refused PUT changed " + key + ".");
+
+            (int sameStatus, string sameBody) = Http("PUT", path, "{\"value\":" + JsonString(held) + "}");
+            Assert.AreEqual(200, sameStatus, "A PUT of the value the file holds for " + key + " was refused: " + sameBody);
+
+            (int deleteStatus, string deleteBody) = Http("DELETE", path);
+            Assert.AreEqual(held.Length > 0 ? 409 : 200, deleteStatus, "DELETE " + path + ": " + deleteBody);
+            Assert.AreEqual(held, _settings.GetIniSetting(key), "A DELETE changed " + key + ".");
+         }
+      }
+
+      [Test]
       [Description("The list masks a setting whose name says its value is a secret as (set): the list is what a configuration export is built from, and an export goes into a repository. Read by name, the value is the value, as GetIniSetting answers over COM; a key FILE is a path and is not masked.")]
       public void IniSettingListMasksASecretAndNotAPath()
       {

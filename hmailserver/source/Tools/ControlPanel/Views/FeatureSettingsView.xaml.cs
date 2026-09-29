@@ -145,6 +145,18 @@ namespace hMailServer.ControlPanel.Views
                applies = environment;
             }
 
+            // The live update's trust is read by the server from hMailServer.INI
+            // alone, never from the database, and a change over COM is refused
+            // (docs/UpdateFeed.md): the process an update is checked for may not
+            // choose what it is checked against. Shown, then, and not edited; the
+            // editor keeps the value it read, which a save does not write because
+            // it has not changed.
+            if (InSettingsSection && Key != null && TrustAnchorKeys.Contains(Key))
+            {
+               content.IsEnabled = false;
+               applies = L("Set in hMailServer.ini only");
+            }
+
             return new FieldRow { Label = caption, Hint = hint, Content = content, Applies = applies };
          }
 
@@ -154,6 +166,19 @@ namespace hMailServer.ControlPanel.Views
          /// section of the file.
          /// </summary>
          protected virtual bool InSettingsSection => true;
+
+         /// <summary>
+         /// The live update's trust (IniSettingStore::IsTrustAnchorName on the
+         /// server): the five [Settings] keys it reads from hMailServer.INI alone.
+         /// </summary>
+         private static readonly HashSet<string> TrustAnchorKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+         {
+            "UpdateSigningIdentity", // no-loc
+            "UpdateSigningIssuer", // no-loc
+            "UpdateSourceRepository", // no-loc
+            "UpdateTrustRootsFile", // no-loc
+            "UpdateLogPublicKeyFile" // no-loc
+         };
 
          /// <summary>The width of a text editor on these pages: one column, whatever the value.</summary>
          protected const double EditorWidth = 520;

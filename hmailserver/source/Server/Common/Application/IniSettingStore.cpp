@@ -447,9 +447,15 @@ namespace HM
       // Every row, a file-only name's included: a row for PasswordPepper is left
       // only when the start could not write it into the file, and the start ran on
       // the stored value then (Synchronize, step 1), so a reload must too - reading
-      // the file's instead would change the pepper every hash is made with.
+      // the file's instead would change the pepper every hash is made with. Not
+      // the live update's trust, whose row is never used (IsTrustAnchorName).
       for (auto iter = rows.begin(); iter != rows.end(); iter++)
+      {
+         if (IsTrustAnchorName((*iter).first))
+            continue;
+
          values[(*iter).first] = (*iter).second.first;
+      }
 
       return true;
    }
@@ -484,6 +490,37 @@ namespace HM
       std::vector<String> keptInFileOnly;
       std::vector<String> olderInFile;
 
+      // The live update's trust (IsTrustAnchorName): rows an earlier version
+      // stored, which are not used and are taken out. Named in HM5809 when the
+      // row said something the file does not, and in the application log when
+      // the two agreed.
+      std::vector<String> trustIgnored;
+      std::vector<String> trustTakenOut;
+      std::vector<String> trustLeft;
+      auto dropTrustRow = [&](const String &name, const String &storedValue, bool hasLine, const String &fileNow)
+      {
+         String stored = storedValue;
+         stored.Trim();
+
+         const bool agrees = stored.Compare(fileNow) == 0;
+         const bool deleted = DeleteRow_(name);
+
+         if (!deleted)
+            trustLeft.push_back(name);
+
+         if (agrees)
+         {
+            if (deleted)
+               trustTakenOut.push_back(name);
+            return;
+         }
+
+         trustIgnored.push_back(Formatter::Format(_T("{0}, which the database held as \"{1}\" and {2}"),
+            name, stored,
+            hasLine && !fileNow.IsEmpty() ? Formatter::Format(_T("the file holds as \"{0}\""), fileNow)
+                                          : String(_T("the file does not set, so the built-in trust applies"))));
+      };
+
       // 1. Everything the file has.
       //
       //    Matched case-sensitively, while Windows treats ini keys case-insensitively.
@@ -505,6 +542,16 @@ namespace HM
          const String &fileNow = (*iter).second;
 
          auto row = rows.find(name);
+
+         if (IsTrustAnchorName(name))
+         {
+            // Read from the file by IniFileSettings and by --verify-update alike,
+            // and never adopted: a row an earlier version stored is taken out.
+            if (row != rows.end())
+               dropTrustRow(name, (*row).second.first, true, fileNow);
+
+            continue;
+         }
 
          if (IsFileOnlyName(name))
          {
@@ -629,6 +676,19 @@ namespace HM
             continue;
 
          const String &storedValue = (*iter).second.first;
+
+         if (IsTrustAnchorName(name))
+         {
+            // Never written into the file from the row: that would be the service
+            // choosing the trust after all. What the file says is asked as the
+            // server reads it, without case: a line spelt in other capitals than
+            // the row's is not in iniValues, and still the value in use.
+            String fileValue;
+            const bool hasLine = FileLine_(name, fileValue);
+            fileValue.Trim();
+            dropTrustRow(name, storedValue, hasLine, fileValue);
+            continue;
+         }
 
          if (IsFileOnlyName(name))
          {
@@ -809,6 +869,24 @@ namespace HM
             StringParser::JoinVector(keptInFileOnly, _T(", "))));
       }
 
+      if (!trustIgnored.empty())
+      {
+         // Once: the row is gone after this start, so the next says nothing - unless
+         // it could not be taken out, which the sentence says.
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5809, "IniSettingStore::Synchronize",
+            Formatter::Format(_T("The live update's trust is read from {0} alone from this version on, never from the database, so a value an earlier version stored in the database no longer applies: {1}. {2} If the database's value is the one wanted, set it in the file. {3}"),
+               IniFileSettings::GetInitializationFile(), StringParser::JoinVector(trustIgnored, _T("; ")),
+               trustLeft.empty() ? String(_T("The database's copy has been taken out, so this is said once."))
+                                 : Formatter::Format(_T("The database's copy of {0} could not be taken out, so this is said again at the next start."), StringParser::JoinVector(trustLeft, _T(", "))),
+               TrustAnchorHowTo_()));
+      }
+
+      if (!trustTakenOut.empty())
+      {
+         LOG_APPLICATION(Formatter::Format(_T("IniSettingStore: these settings are the live update's trust, read from hMailServer.INI alone; an earlier version had stored them in the database as well, with the value the file holds, and that copy has been taken out: {0}."),
+            StringParser::JoinVector(trustTakenOut, _T(", "))));
+      }
+
       if (!adopted.empty())
       {
          LOG_APPLICATION(Formatter::Format("IniSettingStore: {0} setting(s) from the [Settings] section of hMailServer.INI are now stored in the database, which is the settings store.",
@@ -848,10 +926,15 @@ namespace HM
 
       std::map<String, std::pair<String, String> > rows;
 
+      // A row of the live update's trust is not a setting the server holds - it
+      // is read from the file alone - so it is named only when the file has it.
       if (ReadAllRows(rows))
       {
          for (auto iter = rows.begin(); iter != rows.end(); iter++)
-            united.insert((*iter).first);
+         {
+            if (!IsTrustAnchorName((*iter).first))
+               united.insert((*iter).first);
+         }
       }
 
       for (auto iter = united.begin(); iter != united.end(); iter++)
@@ -886,6 +969,62 @@ namespace HM
    IniSettingStore::IsFileOnlyName(const String &name)
    {
       return name.CompareNoCase(_T("PasswordPepper")) == 0;
+   }
+
+   bool
+   IniSettingStore::IsTrustAnchorName(const String &name)
+   {
+      return name.CompareNoCase(_T("UpdateSigningIdentity")) == 0 ||
+             name.CompareNoCase(_T("UpdateSigningIssuer")) == 0 ||
+             name.CompareNoCase(_T("UpdateSourceRepository")) == 0 ||
+             name.CompareNoCase(_T("UpdateTrustRootsFile")) == 0 ||
+             name.CompareNoCase(_T("UpdateLogPublicKeyFile")) == 0;
+   }
+
+   String
+   IniSettingStore::TrustAnchorHowTo_()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return _T("Set one as root with sudo hmailserver --set-setting NAME=VALUE - NAME= with nothing after it clears it - and restart or reload the service; hmailserver-update's check as root reads the file at once.");
+#else
+      return _T("An administrator sets one in the [Settings] section of that file with an editor run as an administrator, and restarts the service.");
+#endif
+   }
+
+   String
+   IniSettingStore::TrustAnchorRefusal(const String &name)
+   {
+      return Formatter::Format(_T("{0} is part of the trust the live update checks a new version against, and it is read from {1} alone, never from the database, so it is not changed here: a service that could change it could choose what its own updates are checked against, and on Linux hmailserver-update checks every package again as root with the file's value (docs/UpdateFeed.md). Nothing was changed. {2}"),
+         name, IniFileSettings::GetInitializationFile(), TrustAnchorHowTo_());
+   }
+
+   bool
+   IniSettingStore::RefusesTrustAnchorChange(const String &name, const String *newValue, String &sentence)
+   {
+      sentence.Empty();
+
+      if (!IsTrustAnchorName(name))
+         return false;
+
+      String fileHolds;
+      FileLine_(name, fileHolds);
+      fileHolds.Trim();
+
+      if (newValue)
+      {
+         String value = *newValue;
+         value.Trim();
+
+         if (value.Compare(fileHolds) == 0)
+            return false;
+      }
+      else if (fileHolds.IsEmpty())
+      {
+         return false;
+      }
+
+      sentence = TrustAnchorRefusal(name);
+      return true;
    }
 
    bool
@@ -1116,6 +1255,43 @@ namespace HM
       if (!IsStorableName(name) || !IsStorableValue(value))
          return false;
 
+      if (IsTrustAnchorName(name))
+      {
+         // An administrator's change - every COM call and every REST request
+         // carries one on the thread - is refused, unless it is the value the
+         // file already holds, which changes nothing and is not written.
+         if (AuditTrail::HasActor())
+         {
+            String sentence;
+            if (RefusesTrustAnchorChange(name, &value, sentence))
+               throw EnvironmentSettings::Refusal(sentence);
+
+            return true;
+         }
+
+         // No administrator's session: hmailserver --set-setting run as root, an
+         // --apply-environment in a container. The file alone, which is what the
+         // caller may write and what every reader reads, and a row an earlier
+         // version stored taken out.
+         if (!IniFileSettings::InitializationFileWritable())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5806, "IniSettingStore::WriteSetting",
+               IniFileSettings::InitializationFileRefusal(name, TrustAnchorHowTo_()));
+            return false;
+         }
+
+         String previousFileValue;
+         const bool hadLine = FileLine_(name, previousFileValue);
+
+         if (!WriteIniValue_(_T("Settings"), name, value))
+            return false;
+
+         DeleteRow_(name);
+
+         RecordChange_(name, hadLine, previousFileValue, true, value, false);
+         return true;
+      }
+
       if (IsFileOnlyName(name))
       {
          // The file, and a row taken out if an earlier start put one there. The
@@ -1262,6 +1438,41 @@ namespace HM
       if (!IsStorableName(name))
          return false;
 
+      if (IsTrustAnchorName(name))
+      {
+         // As WriteSetting: an administrator is refused unless the file sets no
+         // value, when there is nothing to remove.
+         if (AuditTrail::HasActor())
+         {
+            String sentence;
+            if (RefusesTrustAnchorChange(name, nullptr, sentence))
+               throw EnvironmentSettings::Refusal(sentence);
+
+            return true;
+         }
+
+         String iniFile = IniFileSettings::GetInitializationFile();
+         if (iniFile.IsEmpty() || !IniFileSettings::InitializationFileWritable())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5806, "IniSettingStore::RemoveSetting",
+               IniFileSettings::InitializationFileRefusal(Formatter::Format(_T("The line for '{0}'"), name), TrustAnchorHowTo_()));
+            return false;
+         }
+
+         String previousFileValue;
+         const bool hadLine = FileLine_(name, previousFileValue);
+
+         if (WritePrivateProfileString(_T("Settings"), name.c_str(), nullptr, iniFile.c_str()) == FALSE)
+            return false;
+
+         WritePrivateProfileString(nullptr, nullptr, nullptr, iniFile.c_str());
+
+         DeleteRow_(name);
+
+         RecordChange_(name, hadLine, previousFileValue, false, String(), false);
+         return true;
+      }
+
       // Returning a key the environment manages to its default is a change the
       // next start would undo, and is refused to an administrator as a write is.
       EnvironmentSettings::RefuseAdministratorChange(EnvironmentSettings::StoreIni, name);
@@ -1376,6 +1587,11 @@ namespace HM
          if (IsFileOnlyName((*iter).first))
             continue;
 
+         // Nor a row of the live update's trust, which is read from the file alone
+         // and which a restore would have no business putting anywhere.
+         if (IsTrustAnchorName((*iter).first))
+            continue;
+
          // A sealed secret goes into the archive opened, as the server's other stored
          // secrets go into the settings it carries (Backup.md): a restore has to put
          // it back on a server that may hold another stored-secrets key, or none, and
@@ -1422,6 +1638,7 @@ namespace HM
 
       std::vector<String> writeFailures;
       std::vector<String> notWritten;
+      std::vector<String> trustNotRestored;
 
       // As in Synchronize: the service's own account may not write the file, and
       // is not made to try (IniFileSettings.h).
@@ -1436,6 +1653,16 @@ namespace HM
 
          if (name.IsEmpty())
             continue;
+
+         // The live update's trust, which an archive from before 6.3.6 can carry:
+         // neither into the database, where nothing reads it, nor into the file,
+         // which would be the service choosing the trust by way of a restore.
+         if (IsTrustAnchorName(name))
+         {
+            if (!value.IsEmpty())
+               trustNotRestored.push_back(name);
+            continue;
+         }
 
          if (IsFileOnlyName(name))
          {
@@ -1525,6 +1752,12 @@ namespace HM
 
       if (!notWritten.empty())
          NoteReadOnlyFile_();
+
+      if (!trustNotRestored.empty())
+      {
+         LOG_APPLICATION(Formatter::Format(_T("IniSettingStore: the archive carried {0}, the live update's trust, which this server reads from hMailServer.INI alone; the archived values were not restored. {1}"),
+            StringParser::JoinVector(trustNotRestored, _T(", ")), TrustAnchorHowTo_()));
+      }
 
       return true;
    }

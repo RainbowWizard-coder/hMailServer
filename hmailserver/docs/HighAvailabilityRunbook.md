@@ -169,9 +169,12 @@ cleanly.
 * What *is* per node, and is yours to keep in step by hand or with your
   configuration-management tooling: `[Directories]`, `[Database]` and
   `[Security]` in each node's INI (the paths, the connection, the administrator
-  password and its second factor); `PasswordPepper`, the one `[Settings]` key
+  password and its second factor); `PasswordPepper`, a `[Settings]` key
   that lives in the file only and must be identical on both nodes or no
-  account whose password is an Argon2id or scrypt hash signs in on B; the
+  account whose password is an Argon2id or scrypt hash signs in on B; from
+  6.3.6 the five settings of the live update's trust, where a site sets them,
+  which live in the file only as well ([UpdateFeed.md](UpdateFeed.md), "Where
+  the trust is read from"); the
   **stored-secrets key**, `[Security] StoredSecretsKey`, which every account's
   second factor and the `[Settings]` secrets in the shared database are sealed
   under once the installation has one, and which must be the database's key on

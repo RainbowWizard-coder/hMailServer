@@ -2532,6 +2532,24 @@ function Get-HmChangedSetting {
     if ($Summary) { $answer } else { Get-HmCollection -Answer $answer -Key 'settings' }
 }
 
+# The live update's trust: the five [Settings] keys a server from 6.3.6 reads
+# from its own hMailServer.ini alone and refuses to change over the REST API
+# (docs/UpdateFeed.md, "Where the trust is read from"). They say what that
+# machine's updates are checked against, which is the machine's and not the
+# configuration's, so Export-HmConfiguration leaves them out as it leaves out
+# the keys the server's environment sets; a document an earlier module
+# exported can carry them, and Compare-HmConfiguration and so
+# Import-HmConfiguration leave them out of the plan and say so, rather than
+# plan a write the server refuses.
+$script:TrustAnchorKeys = @('UpdateSigningIdentity', 'UpdateSigningIssuer', 'UpdateSourceRepository',
+                            'UpdateTrustRootsFile', 'UpdateLogPublicKeyFile')
+
+function Test-HmTrustAnchorKey {
+    param([Parameter(Mandatory = $true)] [string] $Name)
+    # -contains matches without case, as the server matches the names.
+    return $script:TrustAnchorKeys -contains $Name
+}
+
 function Export-HmConfiguration {
     <#
     .SYNOPSIS
@@ -2584,6 +2602,8 @@ function Export-HmConfiguration {
             # the document: applied, the placeholder would overwrite the secret.
             if ($row.PSObject.Properties.Name -contains 'secret' -and $row.secret) { continue }
             if ($managed.ContainsKey(([string] $row.name).ToLowerInvariant())) { continue }
+            # The live update's trust, which is the machine's: see $script:TrustAnchorKeys.
+            if (Test-HmTrustAnchorKey -Name ([string] $row.name)) { continue }
             $ini[[string] $row.name] = $row.value
         }
     }
@@ -2671,12 +2691,18 @@ function Compare-HmConfiguration {
         }
     }
 
+    $skipped = @()
     foreach ($key in ($wanted.sections.ini.PSObject.Properties.Name | Sort-Object)) {
+        # Left out, and said below: the server takes none of them over the REST API.
+        if (Test-HmTrustAnchorKey -Name $key) { $skipped += $key; continue }
         $before = $live.sections.ini.$key
         if ($before -ne $wanted.sections.ini.$key) {
             $plan += [pscustomobject] @{ Section = 'ini'; Verb = 'set'; Key = $key
                                          Detail = "$before -> $($wanted.sections.ini.$key)" }
         }
+    }
+    if ($skipped) {
+        Write-Warning ("Skipped {0}: the live update's trust, which a server reads from its own hMailServer.ini and does not take over the REST API (docs/UpdateFeed.md, `"Where the trust is read from`"). Set it in that server's file. An export from this module leaves it out." -f ($skipped -join ', '))
     }
 
     foreach ($section in $script:ConfigurationSections) {

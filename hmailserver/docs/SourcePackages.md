@@ -50,7 +50,7 @@ and updated by its package manager, so these differ where that matters:
 | The unit | enabled, not started | Debian: enabled, not started (`dh_installsystemd --no-start`); RPM: the distribution's preset decides (`%systemd_post`, `%service_add_post`), which leaves it disabled unless a preset names it |
 | An upgrade | the schema upgraded, a running server restarted | the same: `postinst` or `%post` runs `hmailserver --upgrade-database` when a database is configured, then `try-restart` (`%systemd_postun_with_restart` on RPM) |
 | A purge (Debian) | keeps the logs and the mail store | removes `/var/log/hmailserver`, as Debian Policy 10.8 asks; keeps the mail store, the database and the account |
-| The tester programs | run by `linux-build` | run by the build itself: `dh_auto_test` and `%check` run `spf-tests`, `script-binding-tests`, `snmp-tests`, `object-store-signature-tests`, `singleton-tests`, `legacy-blowfish-tests`, `xml-tree-tests`, `datetime-tests` and `public-suffix-tests`, and both first run `hmailserver --version`, so a server that cannot start fails the build |
+| The tester programs | run by `linux-build` | run by the build itself: `dh_auto_test` and `%check` run `spf-tests`, `script-binding-tests`, `snmp-tests`, `object-store-signature-tests`, `singleton-tests`, `legacy-blowfish-tests`, `xml-tree-tests`, `datetime-tests`, `public-suffix-tests` and, from 6.3.6, `backup-tests` and `trust-anchor-tests` - the last two on scratch files of their own under `$TMPDIR`, removed again, with no network, none of the system's configuration and no root - and both first run `hmailserver --version`, so a server that cannot start fails the build |
 
 `-DHM_BOOST_STATIC` is new with these packages: `CMakeLists.txt` set
 `Boost_USE_STATIC_LIBS` itself, which hid any value given on the command line, and
@@ -156,9 +156,9 @@ linted but not kept in the job's artifacts: nothing reads them, and Fedora's
 debuginfo alone is 245 MB. The builds are in the resource group
 `linix-package-build`, with the other package builds, one at a time on linix.
 
-**Memory, and no LTO.** A distribution builds with debug information (`-g`), and six
-programs link the whole static core: the server
-and the five tester programs. One GNU `ld` of them reaches 3.0 GB with link-time
+**Memory, and no LTO.** A distribution builds with debug information (`-g`), and
+thirteen programs link the whole static core: the server, `openpgp-writer` and
+the eleven tester programs `dh_auto_test` and `%check` run. One GNU `ld` of them reaches 3.0 GB with link-time
 optimisation (measured on the laptop with one link at a time, 28 September; a
 sampler of that day's LTO links also saw one at 6.0 GB), and 1.5 GB without it on
 Fedora 44 and 0.9 GB on Ubuntu 26.04 (29 September), where one compiler peaked at
