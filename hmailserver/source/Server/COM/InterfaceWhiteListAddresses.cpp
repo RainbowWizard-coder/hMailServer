@@ -89,14 +89,13 @@ InterfaceWhiteListAddresses::get_Item(long Index, IInterfaceWhiteListAddress **p
       if (!object_)
          return GetAccessDenied();
 
-      CComObject<InterfaceWhiteListAddress>* pInterfaceWhiteListAddress = new CComObject<InterfaceWhiteListAddress>();
-      pInterfaceWhiteListAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::WhiteListAddress> pBA = object_->GetItem(Index);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceWhiteListAddress>* pInterfaceWhiteListAddress = new CComObject<InterfaceWhiteListAddress>();
+      pInterfaceWhiteListAddress->SetAuthentication(authentication_);
       pInterfaceWhiteListAddress->AttachItem(pBA);
       pInterfaceWhiteListAddress->AttachParent(object_, true);
       pInterfaceWhiteListAddress->AddRef();
@@ -137,14 +136,13 @@ InterfaceWhiteListAddresses::get_ItemByDBID(long lDBID, IInterfaceWhiteListAddre
       if (!object_)
          return GetAccessDenied();
 
-      CComObject<InterfaceWhiteListAddress>* pInterfaceWhiteListAddress = new CComObject<InterfaceWhiteListAddress>();
-      pInterfaceWhiteListAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::WhiteListAddress> pBA = object_->GetItemByDBID(lDBID);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceWhiteListAddress>* pInterfaceWhiteListAddress = new CComObject<InterfaceWhiteListAddress>();
+      pInterfaceWhiteListAddress->SetAuthentication(authentication_);
       pInterfaceWhiteListAddress->AttachItem(pBA);
       pInterfaceWhiteListAddress->AttachParent(object_, true);
       pInterfaceWhiteListAddress->AddRef();
@@ -167,14 +165,13 @@ InterfaceWhiteListAddresses::get_ItemByName(BSTR sName, IInterfaceWhiteListAddre
       if (!object_)
          return GetAccessDenied();
 
-      CComObject<InterfaceWhiteListAddress>* pInterfaceWhiteListAddress = new CComObject<InterfaceWhiteListAddress>();
-      pInterfaceWhiteListAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::WhiteListAddress> pBA = object_->GetItemByName(sName);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceWhiteListAddress>* pInterfaceWhiteListAddress = new CComObject<InterfaceWhiteListAddress>();
+      pInterfaceWhiteListAddress->SetAuthentication(authentication_);
       pInterfaceWhiteListAddress->AttachItem(pBA);
       pInterfaceWhiteListAddress->AttachParent(object_, true);
       pInterfaceWhiteListAddress->AddRef();

@@ -62,14 +62,13 @@ InterfaceGreyListingWhiteAddresses::get_Item(long Index, IInterfaceGreyListingWh
       if (!gl_white_addresses_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGreyListingWhiteAddress>* pInterfaceGreyListingWhiteAddress = new CComObject<InterfaceGreyListingWhiteAddress>();
-      pInterfaceGreyListingWhiteAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::GreyListingWhiteAddress> pBA = gl_white_addresses_->GetItem(Index);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceGreyListingWhiteAddress>* pInterfaceGreyListingWhiteAddress = new CComObject<InterfaceGreyListingWhiteAddress>();
+      pInterfaceGreyListingWhiteAddress->SetAuthentication(authentication_);
       pInterfaceGreyListingWhiteAddress->AttachItem(pBA);
       pInterfaceGreyListingWhiteAddress->AttachParent(gl_white_addresses_, true);
       pInterfaceGreyListingWhiteAddress->AddRef();
@@ -110,14 +109,13 @@ InterfaceGreyListingWhiteAddresses::get_ItemByDBID(long lDBID, IInterfaceGreyLis
       if (!gl_white_addresses_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGreyListingWhiteAddress>* pInterfaceGreyListingWhiteAddress = new CComObject<InterfaceGreyListingWhiteAddress>();
-      pInterfaceGreyListingWhiteAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::GreyListingWhiteAddress> pBA = gl_white_addresses_->GetItemByDBID(lDBID);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceGreyListingWhiteAddress>* pInterfaceGreyListingWhiteAddress = new CComObject<InterfaceGreyListingWhiteAddress>();
+      pInterfaceGreyListingWhiteAddress->SetAuthentication(authentication_);
       pInterfaceGreyListingWhiteAddress->AttachItem(pBA);
       pInterfaceGreyListingWhiteAddress->AttachParent(gl_white_addresses_, true);
       pInterfaceGreyListingWhiteAddress->AddRef();
@@ -140,14 +138,13 @@ InterfaceGreyListingWhiteAddresses::get_ItemByName(BSTR sName, IInterfaceGreyLis
       if (!gl_white_addresses_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGreyListingWhiteAddress>* pInterfaceGreyListingWhiteAddress = new CComObject<InterfaceGreyListingWhiteAddress>();
-      pInterfaceGreyListingWhiteAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::GreyListingWhiteAddress> pBA = gl_white_addresses_->GetItemByName(sName);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceGreyListingWhiteAddress>* pInterfaceGreyListingWhiteAddress = new CComObject<InterfaceGreyListingWhiteAddress>();
+      pInterfaceGreyListingWhiteAddress->SetAuthentication(authentication_);
       pInterfaceGreyListingWhiteAddress->AttachItem(pBA);
       pInterfaceGreyListingWhiteAddress->AttachParent(gl_white_addresses_, true);
       pInterfaceGreyListingWhiteAddress->AddRef();

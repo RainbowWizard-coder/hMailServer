@@ -141,17 +141,15 @@ STDMETHODIMP InterfaceDomains::get_ItemByName(BSTR ItemName, IInterfaceDomain **
       if (!authentication_->GetIsAuthenticated())
          return authentication_->GetAccessDenied();
    
-      CComObject<InterfaceDomain>* pDomain = new CComObject<InterfaceDomain>();
-      pDomain->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Domain> pPersDomain = objects_->GetItemByName(ItemName);
    
       if (!pPersDomain)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDomain>* pDomain = new CComObject<InterfaceDomain>();
+      pDomain->SetAuthentication(authentication_);
       pDomain->AttachItem(pPersDomain);
       pDomain->AttachParent(objects_, true);
-      pDomain->SetAuthentication(authentication_);
    
       pDomain->AddRef();
       *pVal = pDomain;
@@ -174,14 +172,12 @@ STDMETHODIMP InterfaceDomains::get_Item(long Index, IInterfaceDomain **pVal)
       if (!authentication_->GetIsAuthenticated())
          return authentication_->GetAccessDenied();
    
-      CComObject<InterfaceDomain>* pDomain = new CComObject<InterfaceDomain>();
-      pDomain->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Domain> pPersDomain = objects_->GetItem(Index);
    
       if (!pPersDomain)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDomain>* pDomain = new CComObject<InterfaceDomain>();
       pDomain->SetAuthentication(authentication_);
       pDomain->AttachItem(pPersDomain);
       pDomain->AttachParent(objects_, true);
@@ -208,14 +204,12 @@ STDMETHODIMP InterfaceDomains::get_ItemByDBID(long DBID, IInterfaceDomain **pVal
       if (!authentication_->GetIsAuthenticated())
          return authentication_->GetAccessDenied();
    
-      CComObject<InterfaceDomain>* pDomain = new CComObject<InterfaceDomain>();
-      pDomain->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Domain> pPersDomain = objects_->GetItemByDBID(DBID);
    
       if (!pPersDomain)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDomain>* pDomain = new CComObject<InterfaceDomain>();
       pDomain->SetAuthentication(authentication_);
       pDomain->AttachItem(pPersDomain);
       pDomain->AttachParent(objects_, true);

@@ -59,14 +59,13 @@ InterfaceGreyListingBypassEntries::get_Item(long Index, IInterfaceGreyListingByp
       if (!entries_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGreyListingBypassEntry>* pInterface = new CComObject<InterfaceGreyListingBypassEntry>();
-      pInterface->SetAuthentication(authentication_);
-
       std::shared_ptr<HM::GreyListingBypassEntry> pEntry = entries_->GetItem(Index);
 
       if (!pEntry)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
 
+      CComObject<InterfaceGreyListingBypassEntry>* pInterface = new CComObject<InterfaceGreyListingBypassEntry>();
+      pInterface->SetAuthentication(authentication_);
       pInterface->AttachItem(pEntry);
       pInterface->AttachParent(entries_, true);
       pInterface->AddRef();
@@ -110,14 +109,13 @@ InterfaceGreyListingBypassEntries::get_ItemByDBID(long lDBID, IInterfaceGreyList
       if (!entries_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGreyListingBypassEntry>* pInterface = new CComObject<InterfaceGreyListingBypassEntry>();
-      pInterface->SetAuthentication(authentication_);
-
       std::shared_ptr<HM::GreyListingBypassEntry> pEntry = entries_->GetItemByDBID(lDBID);
 
       if (!pEntry)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
 
+      CComObject<InterfaceGreyListingBypassEntry>* pInterface = new CComObject<InterfaceGreyListingBypassEntry>();
+      pInterface->SetAuthentication(authentication_);
       pInterface->AttachItem(pEntry);
       pInterface->AttachParent(entries_, true);
       pInterface->AddRef();
@@ -140,9 +138,6 @@ InterfaceGreyListingBypassEntries::get_ItemByName(BSTR sName, IInterfaceGreyList
       if (!entries_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGreyListingBypassEntry>* pInterface = new CComObject<InterfaceGreyListingBypassEntry>();
-      pInterface->SetAuthentication(authentication_);
-
       // The pattern is stored lower-cased, so it is looked up that way.
       HM::String pattern = sName;
       pattern.Trim();
@@ -153,6 +148,8 @@ InterfaceGreyListingBypassEntries::get_ItemByName(BSTR sName, IInterfaceGreyList
       if (!pEntry)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
 
+      CComObject<InterfaceGreyListingBypassEntry>* pInterface = new CComObject<InterfaceGreyListingBypassEntry>();
+      pInterface->SetAuthentication(authentication_);
       pInterface->AttachItem(pEntry);
       pInterface->AttachParent(entries_, true);
       pInterface->AddRef();

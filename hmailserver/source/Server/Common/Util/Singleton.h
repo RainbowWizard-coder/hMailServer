@@ -14,26 +14,24 @@ public:
 
    }
 
+   // The one T, made by whichever thread asks first. A function-local static is
+   // initialised exactly once however many threads arrive together: the others
+   // wait until the constructor has returned, and every caller then sees the
+   // whole object (C++11 [stmt.dcl]/4 - MSVC since Visual Studio 2015 unless
+   // /Zc:threadSafeInit- is given, GCC and clang unless -fno-threadsafe-statics
+   // is; no build of this server gives either). Until 6.3.6 the pointer was
+   // tested outside the lock and not again inside it, so two threads reaching a
+   // singleton's first Instance() together - several are first reached on a
+   // delivery, COM or REST thread rather than at start - could each make a T,
+   // and a reader could see the pointer before the object it points at.
+   //
+   // The T is made with new and never deleted, as it always was: no singleton is
+   // destroyed at exit, so none can be used after it is gone by another's
+   // destructor or by a thread still running when the process ends.
    static T * Instance()
    {
-      if (instance_ == nullptr)
-      {
-         boost::lock_guard<boost::recursive_mutex> guard(create_instance_mutex_);
+      static T * const instance = new T();
 
-         instance_ = new T();
-      }
-
-      
-
-      return instance_;
+      return instance;
    }
-
-private:
-
-   static T * instance_;
-   static boost::recursive_mutex create_instance_mutex_;
-
 };
-
-template <class T> T *Singleton<T>::instance_ = nullptr;
-template <class T> boost::recursive_mutex Singleton<T>::create_instance_mutex_;

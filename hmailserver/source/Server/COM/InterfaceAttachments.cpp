@@ -61,14 +61,13 @@ STDMETHODIMP InterfaceAttachments::get_Item(long Index, IInterfaceAttachment **p
       if (!attachments_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAttachment>* pInterfaceAttachment = new CComObject<InterfaceAttachment>();
-      pInterfaceAttachment->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Attachment> pAttachment = attachments_->GetItem(Index);
    
       if (!pAttachment)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceAttachment>* pInterfaceAttachment = new CComObject<InterfaceAttachment>();
+      pInterfaceAttachment->SetAuthentication(authentication_);
       pInterfaceAttachment->Attach(pAttachment);
       pInterfaceAttachment->AddRef();
       *pVal = pInterfaceAttachment;

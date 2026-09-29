@@ -25,14 +25,12 @@ STDMETHODIMP InterfaceRules::get_ItemByDBID(long lDBID, IInterfaceRule** pVal)
       if (!rules_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRule>* pInterfaceRule = new CComObject<InterfaceRule>();
-      pInterfaceRule->SetAuthentication(authentication_);
-   
-   
       std::shared_ptr<HM::Rule> pRule = rules_->GetItemByDBID(lDBID);
       if (!pRule)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRule>* pInterfaceRule = new CComObject<InterfaceRule>();
+      pInterfaceRule->SetAuthentication(authentication_);
       pInterfaceRule->AttachParent(rules_, true);
       pInterfaceRule->AttachItem(pRule);
       pInterfaceRule->AddRef();
@@ -53,13 +51,12 @@ STDMETHODIMP InterfaceRules::get_Item(long lIndex, IInterfaceRule** pVal)
       if (!rules_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRule>* pInterfaceRule = new CComObject<InterfaceRule>();
-      pInterfaceRule->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Rule> pRule = rules_->GetItem(lIndex);
       if (!pRule)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRule>* pInterfaceRule = new CComObject<InterfaceRule>();
+      pInterfaceRule->SetAuthentication(authentication_);
       pInterfaceRule->AttachParent(rules_, true);
       pInterfaceRule->AttachItem(pRule);
       pInterfaceRule->AddRef();

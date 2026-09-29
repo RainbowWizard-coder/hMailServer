@@ -72,14 +72,13 @@ STDMETHODIMP InterfaceAliases::get_Item(long Index, IInterfaceAlias **pVal)
       if (!aliases_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAlias>* pAlias = new CComObject<InterfaceAlias>();
-      pAlias->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Alias> pPersAlias = aliases_->GetItem(Index);
    
       if (!pPersAlias)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceAlias>* pAlias = new CComObject<InterfaceAlias>();
+      pAlias->SetAuthentication(authentication_);
       pAlias->AttachItem(pPersAlias);
       pAlias->AddRef();
       *pVal = pAlias;

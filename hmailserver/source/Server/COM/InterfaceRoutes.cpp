@@ -130,13 +130,12 @@ InterfaceRoutes::get_ItemByName(BSTR ItemName, IInterfaceRoute **pVal)
       if (!routes_)
          return GetAccessDenied();
    
-      CComObject<InterfaceRoute>* pRouteInterface = new CComObject<InterfaceRoute>();
-      pRouteInterface->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Route> pRoute = routes_->GetItemByName(ItemName);
       if (!pRoute)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRoute>* pRouteInterface = new CComObject<InterfaceRoute>();
+      pRouteInterface->SetAuthentication(authentication_);
       pRouteInterface->AttachItem(pRoute);
       pRouteInterface->AttachSharedParent(routes_, true);
    
@@ -159,13 +158,12 @@ InterfaceRoutes::get_ItemByDBID(long lDBID, IInterfaceRoute **pVal)
       if (!routes_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRoute>* pRouteInterface = new CComObject<InterfaceRoute>();
-      pRouteInterface->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Route> pRoute = routes_->GetItemByDBID(lDBID);
       if (!pRoute)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRoute>* pRouteInterface = new CComObject<InterfaceRoute>();
+      pRouteInterface->SetAuthentication(authentication_);
       pRouteInterface->AttachItem(pRoute);
       pRouteInterface->AttachSharedParent(routes_, true);
    

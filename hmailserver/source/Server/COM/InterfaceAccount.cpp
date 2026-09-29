@@ -850,14 +850,13 @@ STDMETHODIMP InterfaceAccount::get_Messages(IInterfaceMessages **pVal)
       if (!object_)
          return GetAccessDenied();
 
-      CComObject<InterfaceMessages>* pMessages = new CComObject<InterfaceMessages>();
-      pMessages->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Messages> pMsgs = object_->GetMessages();
    
       if (!pMsgs)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceMessages>* pMessages = new CComObject<InterfaceMessages>();
+      pMessages->SetAuthentication(authentication_);
       pMessages->Attach(pMsgs);
       pMessages->AddRef();
       *pVal = pMessages;

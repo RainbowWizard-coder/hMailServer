@@ -65,14 +65,13 @@ InterfaceSURBLServers::get_Item(long Index, IInterfaceSURBLServer **pVal)
       if (!surbl_servers_)
          return GetAccessDenied();
 
-      CComObject<InterfaceSURBLServer>* pInterfaceSURBLServer = new CComObject<InterfaceSURBLServer>();
-      pInterfaceSURBLServer->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::SURBLServer> pDNSBlackList = surbl_servers_->GetItem(Index);
    
       if (!pDNSBlackList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceSURBLServer>* pInterfaceSURBLServer = new CComObject<InterfaceSURBLServer>();
+      pInterfaceSURBLServer->SetAuthentication(authentication_);
       pInterfaceSURBLServer->AttachItem(pDNSBlackList);
       pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, true);
       pInterfaceSURBLServer->AddRef();
@@ -113,14 +112,13 @@ InterfaceSURBLServers::get_ItemByDBID(long lDBID, IInterfaceSURBLServer **pVal)
       if (!surbl_servers_)
          return GetAccessDenied();
 
-      CComObject<InterfaceSURBLServer>* pInterfaceSURBLServer = new CComObject<InterfaceSURBLServer>();
-      pInterfaceSURBLServer->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::SURBLServer> pDNSBlackList = surbl_servers_->GetItemByDBID(lDBID);
    
       if (!pDNSBlackList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceSURBLServer>* pInterfaceSURBLServer = new CComObject<InterfaceSURBLServer>();
+      pInterfaceSURBLServer->SetAuthentication(authentication_);
       pInterfaceSURBLServer->AttachItem(pDNSBlackList);
       pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, true);
       pInterfaceSURBLServer->AddRef();
@@ -174,13 +172,12 @@ InterfaceSURBLServers::get_ItemByDNSHost(BSTR ItemName, IInterfaceSURBLServer **
       if (!surbl_servers_)
          return GetAccessDenied();
 
-      CComObject<InterfaceSURBLServer>* pInterfaceSURBLServer = new CComObject<InterfaceSURBLServer>();
-      pInterfaceSURBLServer->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::SURBLServer> pDNSBL = surbl_servers_->GetItemByName(ItemName);
       if (!pDNSBL)
          return S_FALSE;
    
+      CComObject<InterfaceSURBLServer>* pInterfaceSURBLServer = new CComObject<InterfaceSURBLServer>();
+      pInterfaceSURBLServer->SetAuthentication(authentication_);
       pInterfaceSURBLServer->AttachItem(pDNSBL);
       pInterfaceSURBLServer->AttachSharedParent(surbl_servers_, true);
       pInterfaceSURBLServer->AddRef();

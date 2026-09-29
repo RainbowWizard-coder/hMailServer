@@ -33,9 +33,12 @@ registry to Docker Hub, Quay.io and, when wanted, Amazon ECR Public
      them back. Then cosign's signature and attestation manifests (sha256-<digest>.sig
      and .att) are copied there out of the layout: the manifests that were verified,
      not whatever the source's tags answer by then - so neither --digest-tags nor
-     --referrers, which would copy the source's as they stand, unverified. Each tag at
-     the destination is held to its digest, and the image there is verified again the
-     same way, anonymously, from the destination.
+     --referrers, which would copy the source's as they stand, unverified; a .sig or
+     .att the destination already held at those tags is replaced, not added to. Each
+     tag at the destination is held to its digest, and the image there is verified
+     again the same way, anonymously, from the destination: by a regctl whose
+     configuration directory is a fresh one of its own, which no login has been
+     written to - not the one the copies logged in with, whatever its logout did.
 
 The tools are cosign and regctl out of their pinned images (release-files.py). The
 credentials reach regctl on its standard input, into a configuration directory of
@@ -48,6 +51,7 @@ Usage, from the root of a checkout:
 
 import argparse
 import base64
+import copy
 import datetime
 import hashlib
 import hmac
@@ -187,8 +191,10 @@ class Tools:
         self.cosign = cosign
         self.regctl = regctl
         self.run = run
-        # regctl keeps its logins in $HOME/.regctl: a home of the job's own.
+        # regctl keeps its logins in $HOME/.regctl, and reads Docker's configuration's
+        # too: a home of the job's own, and no REGCTL_CONFIG naming another file.
         self.env = dict(os.environ, HOME=config, DOCKER_CONFIG=os.path.join(config, "docker"))
+        self.env.pop("REGCTL_CONFIG", None)
         self.insecure = tuple(insecure)
 
     def regctl_(self, *arguments, stdin=None):
@@ -508,18 +514,30 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
         shutil.rmtree(out)
     os.makedirs(out)
     config = tempfile.mkdtemp(prefix="hm-registry-mirror-")
+    # The destinations' re-check reads with regctl's configuration here: a directory
+    # nothing logs in from, so the check is anonymous whatever became of a logout.
+    anonymous = tempfile.mkdtemp(prefix="hm-registry-mirror-anonymous-")
     try:
         source = (fix.get("registry_source") if fix else None) or SOURCE
         identities = (fix.get("image_identities") if fix else None) or rf.identities(version)
         issuer = (fix.get("image_issuer") if fix else None) or rf.ISSUER
         insecure = ("localhost", "127.0.0.1") if fix else ()
-        if tools_for is not None:
-            tools = tools_for(config)
-        else:
-            tools = Tools(rf.tool_path("cosign", out, environ), rf.tool_path("regctl", out, environ), config, run, insecure)
-        for host in insecure:
-            for port in ("5000",):
-                tools.regctl_("registry", "set", "%s:%s" % (host, port), "--tls", "disabled")
+
+        def tools_at(home, like=None):
+            """cosign and regctl with home as their configuration directory: the
+            binaries like's, or fetched once from their pinned images."""
+            if tools_for is not None:
+                made = tools_for(home)
+            elif like is not None:
+                made = Tools(like.cosign, like.regctl, home, run, insecure)
+            else:
+                made = Tools(rf.tool_path("cosign", out, environ), rf.tool_path("regctl", out, environ), home, run, insecure)
+            for host in insecure:
+                for port in ("5000",):
+                    made.regctl_("registry", "set", "%s:%s" % (host, port), "--tls", "disabled")
+            return made
+
+        tools = tools_at(config)
 
         digest = tools.digest("%s:%s" % (source, version))
         if not digest:
@@ -567,8 +585,13 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
                 at = tools.digest(attached + suffix)
                 if at != held[kind]:
                     raise Refused("%s is %s after the copy, not the %s verified, %s" % (attached + suffix, at, what, held[kind]))
-            tools.regctl_("registry", "logout", host)
-            verify_image(tools, repository, digest, [identity], issuer, os.path.join(out, "verified", "destination-%d" % number))
+            code, _, err = tools.regctl_("registry", "logout", host)
+            if code != 0:
+                say("%s: regctl registry logout %s failed (%s); the check below reads without that login all the same"
+                    % (destination["name"], host, err[-200:]))
+            # Anonymously: a regctl whose configuration no login has been written to.
+            verify_image(tools_at(anonymous, tools), repository, digest, [identity], issuer,
+                         os.path.join(out, "verified", "destination-%d" % number))
             say("%s: %s:%s, each %s, verified there as %s"
                 % (destination["name"], repository, ",".join(tags), digest, identity))
             record["destinations"][destination["name"]] = {"repository": repository, "tags": tags}
@@ -579,6 +602,7 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
         return 0
     finally:
         shutil.rmtree(config, ignore_errors=True)
+        shutil.rmtree(anonymous, ignore_errors=True)
 
 
 # ---------------------------------------------------------------- self-test
@@ -876,8 +900,12 @@ def self_test(cosign=None):
         answered in turn, the last one again and again) and the destinations'."""
 
         def __init__(self, signed=True, attested=True, sig=None, att=None, moved=("9.9", "latest"), copies_ok=True,
-                     attached_ok=True, lying=()):
+                     attached_ok=True, lying=(), logout_ok=True):
             self.calls, self.moved, self.copies_ok, self.attached_ok, self.lying = [], moved, copies_ok, attached_ok, lying
+            # The configuration directory this view was made for (None for the one the
+            # job is handed whatever it asks), where each call ran (beside calls), and
+            # the hosts logged in to from each directory.
+            self.home, self.homes, self.logins, self.logout_ok = None, [], {}, logout_ok
             hexdigest = digest.split(":", 1)[1]
             self.tags = {"%s:%s" % (SOURCE, version): [digest],
                          "%s:sha256-%s.sig" % (SOURCE, hexdigest): sig or [manifest([layer(good=signed)])],
@@ -886,6 +914,22 @@ def self_test(cosign=None):
                 self.tags["%s:%s" % (SOURCE, tag)] = [digest if tag in moved else other_image]
             self.tags = dict((k, v if isinstance(v, list) else [v]) for k, v in self.tags.items())
 
+        def at(self, home):
+            """These tools with regctl's configuration in home: the same registry, calls
+            and logins."""
+            view = copy.copy(self)
+            view.home = home
+            return view
+
+        def record(self, call):
+            self.calls.append(call)
+            self.homes.append(self.home)
+
+        def logged_in(self, reference):
+            """Whether regctl, reading reference from this view's directory, would send a
+            login: the host's, kept in that directory and not logged out of."""
+            return reference.split("/", 1)[0] in self.logins.get(self.home, set())
+
         def resolve(self, reference):
             answers = self.tags.get(reference)
             if not answers:
@@ -893,7 +937,15 @@ def self_test(cosign=None):
             return answers.pop(0) if len(answers) > 1 else answers[0]
 
         def regctl_(self, *arguments, stdin=None):
-            self.calls.append(("regctl",) + arguments + (("<stdin>",) if stdin else ()))
+            self.record(("regctl",) + arguments + (("<stdin>",) if stdin else ()))
+            if arguments[:2] == ("registry", "login"):
+                self.logins.setdefault(self.home, set()).add(arguments[2])
+                return 0, "", ""
+            if arguments[:2] == ("registry", "logout"):
+                if not self.logout_ok:
+                    return 1, "", "failed to remove the login"
+                self.logins.get(self.home, set()).discard(arguments[2])
+                return 0, "", ""
             if arguments[:2] == ("image", "copy"):
                 source, target = arguments[-2], arguments[-1]
                 if source.startswith("ocidir://"):
@@ -914,7 +966,7 @@ def self_test(cosign=None):
             return 0, "", ""
 
         def regctl_bytes(self, *arguments):
-            self.calls.append(("regctl",) + arguments)
+            self.record(("regctl",) + arguments + (("<logged in>",) if self.logged_in(arguments[2]) else ()))
             if arguments[:2] == ("manifest", "get") and "@" in arguments[2]:
                 at = arguments[2].split("@", 1)[1]
             elif arguments[:2] == ("blob", "get"):
@@ -926,11 +978,11 @@ def self_test(cosign=None):
             return 0, blobs[at] + (b" " if at in self.lying else b""), ""
 
         def digest(self, reference):
-            self.calls.append(("regctl", "image", "digest", reference))
+            self.record(("regctl", "image", "digest", reference) + (("<logged in>",) if self.logged_in(reference) else ()))
             return self.resolve(reference)
 
         def cosign_(self, *arguments):
-            self.calls.append(("cosign",) + arguments)
+            self.record(("cosign",) + arguments)
             if arguments[0] == "verify" and "--help" in arguments:
                 return 0, "--new-bundle-format", ""
             identity = arguments[arguments.index("--certificate-identity") + 1]
@@ -1024,6 +1076,32 @@ def self_test(cosign=None):
                and any(c[1:3] == ("manifest", "get") and c[3].startswith("docker.io/progressiverobot/hmailserver@")
                        for c in fake.calls))
 
+        # The re-check at each destination reads from a regctl configuration that no
+        # login was written to - with the logout done, and with the logout failing.
+        for what, logout_ok in (("", True), (", its logout failing", False)):
+            fake = FakeTools(logout_ok=logout_ok)
+            said = []
+            globals()["say"] = lambda line="": said.append(line)
+            try:
+                code = registry_mirror(os.path.join(work, "anonymous"), environ, tools_for=fake.at)
+            except Refused as error:
+                code = "refused: %s" % error
+            finally:
+                globals()["say"] = held_say
+            # Each destination's host, where it was logged in from and when it was logged
+            # out of; then every read of that host after its logout.
+            homes_logged_in = set(fake.homes[i] for i, c in enumerate(fake.calls) if c[1:3] == ("registry", "login"))
+            anonymous_reads = {}
+            for host in ("docker.io", "quay.io"):
+                logout = next((i for i, c in enumerate(fake.calls) if c[1:4] == ("registry", "logout", host)), None)
+                reads = [(fake.homes[i], c) for i, c in enumerate(fake.calls) if logout is not None and i > logout
+                         and c[0] == "regctl" and c[1:3] in (("manifest", "get"), ("blob", "get"), ("image", "digest"))
+                         and c[3].startswith(host + "/")]
+                anonymous_reads[host] = bool(reads) and all(
+                    home not in homes_logged_in and c[-1] != "<logged in>" for home, c in reads)
+            expect("the re-check at each destination reads from a configuration no login was written to%s (%s)"
+                   % (what, code), code == 0 and len(homes_logged_in) == 1 and all(anonymous_reads.values())
+                   and (logout_ok or any("logout docker.io failed" in line for line in said)))
         # A source whose .sig tag answers the signature that verified, then another: the
         # destination gets the one verified.
         others = manifest([layer(rid="1267388815")])

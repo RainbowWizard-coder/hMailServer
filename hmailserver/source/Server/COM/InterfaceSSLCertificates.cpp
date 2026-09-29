@@ -101,14 +101,13 @@ InterfaceSSLCertificates::get_Item(long Index, IInterfaceSSLCertificate **pVal)
       if (!ssl_certificates_)
          return GetAccessDenied();
 
-      CComObject<InterfaceSSLCertificate>* pInterfaceSSLCertificate = new CComObject<InterfaceSSLCertificate>();
-      pInterfaceSSLCertificate->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::SSLCertificate> pBA = ssl_certificates_->GetItem(Index);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceSSLCertificate>* pInterfaceSSLCertificate = new CComObject<InterfaceSSLCertificate>();
+      pInterfaceSSLCertificate->SetAuthentication(authentication_);
       pInterfaceSSLCertificate->AttachItem(pBA);
       pInterfaceSSLCertificate->AttachSharedParent(ssl_certificates_, true);
       pInterfaceSSLCertificate->AddRef();
@@ -149,14 +148,13 @@ InterfaceSSLCertificates::get_ItemByDBID(long lDBID, IInterfaceSSLCertificate **
       if (!ssl_certificates_)
          return GetAccessDenied();
 
-      CComObject<InterfaceSSLCertificate>* pInterfaceSSLCertificate = new CComObject<InterfaceSSLCertificate>();
-      pInterfaceSSLCertificate->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::SSLCertificate> pBA = ssl_certificates_->GetItemByDBID(lDBID);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceSSLCertificate>* pInterfaceSSLCertificate = new CComObject<InterfaceSSLCertificate>();
+      pInterfaceSSLCertificate->SetAuthentication(authentication_);
       pInterfaceSSLCertificate->AttachItem(pBA);
       pInterfaceSSLCertificate->AttachSharedParent(ssl_certificates_, true);
       pInterfaceSSLCertificate->AddRef();

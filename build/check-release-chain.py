@@ -158,8 +158,12 @@ refuses it. This checker holds them to each other. It fails when:
     sums, as a primary file without an SBOM, that job must make it with
     build/ci/packages/appimage-bundled-sources.sh from both AppImage jobs' records, and
     build-appimage.sh, appimage-test.sh and that script must name it as release-chain.py
-    does, and the image carry hMailServer's own AGPL-3.0 text; or a Linux file the
-    release carries, the chart or either sources file has no line in the release's
+    does, and the image carry hMailServer's own AGPL-3.0 text; or either sources job
+    does not keep GitHub out of itself with .no-github (.gitlab/ci/no-github.yml),
+    whose before_script must be the one the job runs - taken in its extends where
+    nothing nearer has a before_script, or as the first line of the one that decides
+    it - since both fetch sources by recipes some of which name GitHub; or a Linux file
+    the release carries, the chart or either sources file has no line in the release's
     sums;
   * release-sign.sh stops copying each primary file's bundle to <file>.sigstore.json,
     attesting the provenance's statement (cosign attest-blob --statement, in the
@@ -253,6 +257,8 @@ FILES = {
     "appimage-pack": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "build-appimage.sh"),
     "appimage-test": os.path.join("build", "ci", "packages", "appimage-test.sh"),
     "bundled-sources": os.path.join("build", "ci", "packages", "appimage-bundled-sources.sh"),
+    # .no-github, which keeps GitHub out of a job itself.
+    "no-github": os.path.join(".gitlab", "ci", "no-github.yml"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
@@ -591,6 +597,33 @@ def tag_escapes(name, jobs):
             found.append("a rule a v* tag can match, %r, makes it %s" % (
                 condition or item.strip().split("\n")[0], "manual" if "manual" in item else "allowed to fail"))
     return found
+
+
+def takes_no_github(name, jobs):
+    """Whether a job runs .no-github's before_script (.gitlab/ci/no-github.yml), which
+    keeps GitHub out of the job itself. The block that decides the job's before_script
+    is the first of the job and its templates, in the order GitLab lets them decide a
+    key, that has one: it must be .no-github, or begin with
+    !reference [.no-github, before_script]. A job's own before_script, or a nearer
+    template's, replaces what extends brings, whole, so .no-github in extends behind one
+    keeps nothing out. jobs holds every block the job and its templates can name."""
+    for current in template_order(name, jobs):
+        match = re.search(r"^  before_script:(.*)$", jobs[current], re.MULTILINE)
+        if not match:
+            continue
+        if current == ".no-github":
+            return True
+        first = match.group(1).strip()
+        if not first:
+            # The key's list: its first item, before the next key of the block.
+            for line in jobs[current][match.end():].split("\n")[1:]:
+                if re.match(r"^ {0,2}\S", line):
+                    break
+                if line.startswith("    - "):
+                    first = line[6:].strip()
+                    break
+        return first.lstrip("[").startswith("!reference [.no-github, before_script]")
+    return False
 
 
 def need_entries(block):
@@ -1449,6 +1482,19 @@ def check(texts, chain, feed):
                 or 'grep -qx " *GNU AFFERO GENERAL PUBLIC LICENSE" "$agpl"' not in texts["appimage-test"]:
             problems.append("%s or %s no longer puts hMailServer's own AGPL-3.0 text in the image, or holds it there"
                             % (FILES["appimage-pack"], FILES["appimage-test"]))
+    # Both sources jobs fetch from outside the project - Alpine's GitLab and distfiles
+    # mirror, Ubuntu's archive and snapshot service - by recipes, five of the Alpine
+    # APKBUILDs naming GitHub as their source, and neither script is to follow one
+    # there: .no-github keeps GitHub out of the job itself, on any runner and in any
+    # image, which the runner's hosts entries alone do not.
+    no_github_jobs = dict(blocks(texts["ci"]))
+    no_github_jobs.update(appimage_jobs)
+    no_github_jobs.update(blocks(texts["no-github"]))
+    for job in (RUNTIME_SOURCES_JOB, BUNDLED_SOURCES_JOB):
+        if job in appimage_jobs and not takes_no_github(job, no_github_jobs):
+            problems.append("%s in %s does not keep GitHub out of itself: .no-github (%s) is not in its extends, or a "
+                            "before_script of its own or of a nearer template replaces .no-github's without beginning with "
+                            "!reference [.no-github, before_script]" % (job, FILES["packages-appimage"], FILES["no-github"]))
     # Every Linux file the release carries, the chart and the AppImages' two sources
     # files, with a line in the release's sums: linux-build's own two, then sums_members.
     names_999 = feed.installer_names("9.9.9")
@@ -2279,6 +2325,41 @@ def self_test(chain, feed):
            "appimage-bundled-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n",
            "appimage-bundled-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n  allow_failure: true\n",
            "appimage-bundled-sources can let release start in a v* tag's pipeline")
+    # .no-github in the two sources jobs.
+    runtime_extends = "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n"
+    bundled_extends = "appimage-bundled-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n"
+    broken("the runtime's sources job without .no-github", "packages-appimage", runtime_extends,
+           "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules]\n",
+           "appimage-runtime-sources in .gitlab")
+    broken("the bundled libraries' sources job without .no-github", "packages-appimage", bundled_extends,
+           "appimage-bundled-sources:\n  extends: [.appimage, .appimage-follow-rules]\n",
+           "appimage-bundled-sources in .gitlab")
+    broken("the bundled libraries' sources job with a before_script of its own", "packages-appimage", bundled_extends,
+           bundled_extends + "  before_script:\n    - apt-get update\n", "appimage-bundled-sources in .gitlab")
+    broken("the runtime's sources job with a one-line before_script of its own", "packages-appimage", runtime_extends,
+           runtime_extends + "  before_script: [apk add curl]\n", "appimage-runtime-sources in .gitlab")
+    # .no-github named ahead of a template that has a before_script: the later one
+    # decides the key.
+    copy = dict(texts)
+    copy["packages-appimage"] = copy["packages-appimage"].replace(
+        runtime_extends, "appimage-runtime-sources:\n  extends: [.appimage, .no-github, .appimage-before]\n", 1) + \
+        "\n.appimage-before:\n  before_script:\n    - apk add curl\n"
+    found, _ = check(copy, chain, feed)
+    if runtime_extends not in texts["packages-appimage"] or not any("appimage-runtime-sources in .gitlab" in p for p in found):
+        failures.append("the runtime's sources job's .no-github ahead of a template with a before_script is caught: %s" % found)
+    broken(".no-github gone from its file", "no-github", "\n.no-github:\n", "\n.no-github-gone:\n",
+           "appimage-bundled-sources in .gitlab")
+    for what, old, new in (
+            ("the runtime's sources job with its own before_script that begins with .no-github's", runtime_extends,
+             "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules]\n  before_script:\n"
+             "    - !reference [.no-github, before_script]\n    - apk add curl\n"),
+            ("the runtime's sources job with .no-github behind a template with no before_script", runtime_extends,
+             "appimage-runtime-sources:\n  extends: [.no-github, .appimage, .appimage-follow-rules]\n")):
+        copy = dict(texts)
+        copy["packages-appimage"] = copy["packages-appimage"].replace(old, new, 1)
+        found, _ = check(copy, chain, feed)
+        if old not in texts["packages-appimage"] or any("does not keep GitHub out of itself" in p for p in found):
+            failures.append("%s passes: %s" % (what, [p for p in found if "GitHub" in p]))
     broken("the image naming another file than the release's", "appimage-pack",
            'BUNDLED_SOURCES="hmailserver-${VERSION}-appimage-bundled-sources.tar.gz"',
            'BUNDLED_SOURCES="hmailserver-${VERSION}-appimage-sources.tar.gz"',

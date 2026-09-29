@@ -28,13 +28,12 @@ STDMETHODIMP InterfaceRuleActions::get_ItemByDBID(long lDBID, IInterfaceRuleActi
       if (!rule_actions_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRuleAction>* pInterfaceRuleAction = new CComObject<InterfaceRuleAction>();
-      pInterfaceRuleAction->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::RuleAction> pRule = rule_actions_->GetItemByDBID(lDBID);
       if (!pRule)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRuleAction>* pInterfaceRuleAction = new CComObject<InterfaceRuleAction>();
+      pInterfaceRuleAction->SetAuthentication(authentication_);
       pInterfaceRuleAction->AttachItem(pRule);
       pInterfaceRuleAction->AttachParent(rule_actions_, true);
       pInterfaceRuleAction->AddRef();
@@ -55,13 +54,12 @@ STDMETHODIMP InterfaceRuleActions::get_Item(long lIndex, IInterfaceRuleAction** 
       if (!rule_actions_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRuleAction>* pInterfaceRuleAction = new CComObject<InterfaceRuleAction>();
-      pInterfaceRuleAction->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::RuleAction> pRule = rule_actions_->GetItem(lIndex);
       if (!pRule)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRuleAction>* pInterfaceRuleAction = new CComObject<InterfaceRuleAction>();
+      pInterfaceRuleAction->SetAuthentication(authentication_);
       pInterfaceRuleAction->AttachItem(pRule);
       pInterfaceRuleAction->AttachParent(rule_actions_, true);
       pInterfaceRuleAction->AddRef();

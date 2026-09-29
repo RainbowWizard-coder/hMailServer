@@ -48,15 +48,14 @@ InterfaceRecipients::get_Item(long Index, IInterfaceRecipient **pVal)
       if (!message_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRecipient>* pInterfaceRecipient = new CComObject<InterfaceRecipient>();
-      pInterfaceRecipient->SetAuthentication(authentication_);
-   
       // owned by this call: the recipients of the message this COM object wraps, reached on its apartment's thread only
       std::vector<std::shared_ptr<HM::MessageRecipient> > vecRecipients = message_->GetRecipients()->GetVector();
    
-      if (Index >= (long) vecRecipients.size())
+      if (Index < 0 || Index >= (long) vecRecipients.size())
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRecipient>* pInterfaceRecipient = new CComObject<InterfaceRecipient>();
+      pInterfaceRecipient->SetAuthentication(authentication_);
       std::shared_ptr<HM::MessageRecipient> pRecipient = vecRecipients[Index];
    
       pInterfaceRecipient->AttachItem(pRecipient);

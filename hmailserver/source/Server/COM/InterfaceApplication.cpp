@@ -164,11 +164,15 @@ STDMETHODIMP InterfaceApplication::get_BackupManager(IInterfaceBackupManager **p
          return hResult;
    
       CComObject<InterfaceBackupManager>* pInterfaceBackupManager = new CComObject<InterfaceBackupManager>;
+      pInterfaceBackupManager->AddRef();
       pInterfaceBackupManager->SetAuthentication(authentication_);
       if (!pInterfaceBackupManager->LoadSettings())
+      {
+         // This call holds the one reference, so the release destroys it.
+         pInterfaceBackupManager->Release();
          return COMError::GenerateError("Backup manager not available");
+      }
         
-      pInterfaceBackupManager->AddRef();
       *pVal = pInterfaceBackupManager;
    
       return S_OK;

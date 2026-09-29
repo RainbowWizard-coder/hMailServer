@@ -68,14 +68,13 @@ InterfaceRouteAddresses::get_Item(long Index, IInterfaceRouteAddress **pVal)
       if (!route_addresses_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRouteAddress>* pInterfaceRouteAddress = new CComObject<InterfaceRouteAddress>();
-      pInterfaceRouteAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::RouteAddress> pRouteAddress = route_addresses_->GetItem(Index);
    
       if (!pRouteAddress)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceRouteAddress>* pInterfaceRouteAddress = new CComObject<InterfaceRouteAddress>();
+      pInterfaceRouteAddress->SetAuthentication(authentication_);
       pInterfaceRouteAddress->AttachItem(pRouteAddress);
       pInterfaceRouteAddress->AttachSharedParent(route_addresses_, true);
       pInterfaceRouteAddress->AddRef();

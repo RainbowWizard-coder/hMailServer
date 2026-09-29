@@ -1818,7 +1818,19 @@ interface IInterfaceUtilities : IDispatch{
    // /api/v1/audit/verify and POST /api/v1/audit/{id}/revert answer.
    [id(61), helpstring("The audit trail as JSON - total, offset and entries, newest first, each with id, time, actor, actor_type, interface, address, object_type, object, action, detail, hash and previous_hash - filtered by a substring of the actor when Actor is not empty. MaxRows 1 to 1000, Offset from 0.")] HRESULT GetAuditTrail([in] BSTR Actor, [in] long MaxRows, [in] long Offset, [out, retval] BSTR *Json);
    [id(62), helpstring("Walks the audit trail's hash chain: JSON with intact, rows_checked, first_broken_id and reason.")] HRESULT VerifyAuditTrail([out, retval] BSTR *Json);
-   [id(63), helpstring("Puts a setting back to the value the audit row with this id says it had, through the same setter the change came through, so the put-back is itself recorded. Answers the value written, or (default) for a [Settings] key returned to its default. Raises an error for a row that is not a setting's change, a secret, a value the trail cut, or a setting this server no longer has.")] HRESULT RevertAuditedChange([in] long AuditId, [out, retval] BSTR *RestoredValue);
+   // RevertAuditedChange writes the old value where the server reads the setting
+   // (AuditRevert::PutBack): an hm_settings property into its column, by SetBool for
+   // a switch, SetLong for a number and SetString for a text, and a [Settings] key
+   // through IniFileSettings. It raises an error, with the reason, for an id no
+   // row has, a row that is not a setting's change, a secret's, a value the trail
+   // cut, a row whose values hold " -> " themselves unless it is the setting's
+   // latest change in the trail and exactly one place to divide it leaves the value
+   // the setting has now as the new side (a [Settings] key's such row always), a
+   // number's row that holds no number, a setting this server no longer has, and a
+   // write that failed. The list is here and not in the helpstring because MIDL
+   // keeps the first 260 characters of a helpstring in the type library and drops
+   // the rest (measured with 10.0.26100.0): the helpstring is whole within them.
+   [id(63), helpstring("Puts a setting back to the value audit row AuditId says it had, by the setter of the column the server reads, and records the put-back. Answers the value written (true or false for a switch, (default) for a [Settings] key's default) or raises why it cannot.")] HRESULT RevertAuditedChange([in] long AuditId, [out, retval] BSTR *RestoredValue);
    [id(64), helpstring("Rewrites the server's own log files so that no line names the address: every occurrence becomes [erased]. Returns the number of occurrences rewritten. The half of an erasure that EraseAddressTraces leaves alone, because a rewritten log is a weaker record; asked for deliberately, as article 17 requires. Server administrator only.")] HRESULT EraseAddressLogLines([in] BSTR Address, [out, retval] long *LinesChanged);
    [id(60), helpstring("The first-hour checklist as JSON: eight items - domain, account, submission, spf, dkim, dmarc, backup, second_factor - each done, action_needed, cannot_tell or not_needed, with findings carrying a code, its arguments and an English sentence. With LookUpDns the SPF, DKIM and DMARC records of every active domain are looked up, which takes the resolver's timeout for each missing record; without it the record items say which host to look up.")] HRESULT GetSetupChecklist([in] VARIANT_BOOL LookUpDns, [out, retval] BSTR *Json);
    // The sample domain (Common/Application/SampleDomain.h): example.test with

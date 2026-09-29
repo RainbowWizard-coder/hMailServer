@@ -115,17 +115,15 @@ STDMETHODIMP InterfaceAccounts::get_Item(long Index, IInterfaceAccount **pVal)
       if (!accounts_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAccount>* pAccountInt = new CComObject<InterfaceAccount>();
-      pAccountInt->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItem(Index);
    
       if (!pAccount)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
       
+      CComObject<InterfaceAccount>* pAccountInt = new CComObject<InterfaceAccount>();
+      pAccountInt->SetAuthentication(authentication_);
       pAccountInt->AttachItem(pAccount);
       pAccountInt->AttachParent(accounts_, true);
-      pAccountInt->SetAuthentication(authentication_);
       pAccountInt->AddRef();
       *pVal = pAccountInt;
    
@@ -160,16 +158,14 @@ STDMETHODIMP InterfaceAccounts::get_ItemByDBID(long DBID, IInterfaceAccount **pV
       if (!accounts_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAccount>* pAccountInt = new CComObject<InterfaceAccount>();
-      pAccountInt->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItemByDBID(DBID);
    
       if (!pAccount)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
-      pAccountInt->AttachItem(pAccount);
+      CComObject<InterfaceAccount>* pAccountInt = new CComObject<InterfaceAccount>();
       pAccountInt->SetAuthentication(authentication_);
+      pAccountInt->AttachItem(pAccount);
       pAccountInt->AttachParent(accounts_, true);
       pAccountInt->AddRef();
       *pVal = pAccountInt;
@@ -190,16 +186,14 @@ STDMETHODIMP InterfaceAccounts::get_ItemByAddress(BSTR Address, IInterfaceAccoun
          return GetAccessDenied();
 
    
-      CComObject<InterfaceAccount>* pAccountInt = new CComObject<InterfaceAccount>();
-      pAccountInt->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Account> pAccount = accounts_->GetItemByName(Address);
    
       if (!pAccount)
          return COMError::WithoutMessage(DISP_E_BADINDEX); 
    
-      pAccountInt->AttachItem(pAccount);
+      CComObject<InterfaceAccount>* pAccountInt = new CComObject<InterfaceAccount>();
       pAccountInt->SetAuthentication(authentication_);
+      pAccountInt->AttachItem(pAccount);
       pAccountInt->AttachParent(accounts_, true);
       pAccountInt->AddRef();
       *pVal = pAccountInt;

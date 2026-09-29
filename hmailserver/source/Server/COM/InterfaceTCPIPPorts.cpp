@@ -85,14 +85,13 @@ InterfaceTCPIPPorts::get_Item(long Index, IInterfaceTCPIPPort **pVal)
       if (!tcpip_ports_)
          return GetAccessDenied();
 
-      CComObject<InterfaceTCPIPPort>* pInterfaceTCPIPPort = new CComObject<InterfaceTCPIPPort>();
-      pInterfaceTCPIPPort->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::TCPIPPort> pBA = tcpip_ports_->GetItem(Index);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceTCPIPPort>* pInterfaceTCPIPPort = new CComObject<InterfaceTCPIPPort>();
+      pInterfaceTCPIPPort->SetAuthentication(authentication_);
       pInterfaceTCPIPPort->AttachItem(pBA);
       pInterfaceTCPIPPort->AttachParent(tcpip_ports_, true);
       pInterfaceTCPIPPort->AddRef();
@@ -133,14 +132,13 @@ InterfaceTCPIPPorts::get_ItemByDBID(long lDBID, IInterfaceTCPIPPort **pVal)
       if (!tcpip_ports_)
          return GetAccessDenied();
 
-      CComObject<InterfaceTCPIPPort>* pInterfaceTCPIPPort = new CComObject<InterfaceTCPIPPort>();
-      pInterfaceTCPIPPort->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::TCPIPPort> pBA = tcpip_ports_->GetItemByDBID(lDBID);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceTCPIPPort>* pInterfaceTCPIPPort = new CComObject<InterfaceTCPIPPort>();
+      pInterfaceTCPIPPort->SetAuthentication(authentication_);
       pInterfaceTCPIPPort->AttachItem(pBA);
       pInterfaceTCPIPPort->AttachParent(tcpip_ports_, true);
       pInterfaceTCPIPPort->AddRef();

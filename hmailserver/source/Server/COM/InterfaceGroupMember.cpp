@@ -133,14 +133,13 @@ InterfaceGroupMember::get_Account(IInterfaceAccount **pVal)
       if (!object_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAccount>* pInterfaceAccount = new CComObject<InterfaceAccount>();
-      pInterfaceAccount->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Account> pAccount = std::shared_ptr<HM::Account>(new HM::Account);
          
       if (!HM::PersistentAccount::ReadObject(pAccount, (__int64) object_->GetAccountID()))
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceAccount>* pInterfaceAccount = new CComObject<InterfaceAccount>();
+      pInterfaceAccount->SetAuthentication(authentication_);
       pInterfaceAccount->AttachItem(pAccount);
       pInterfaceAccount->AddRef();
       *pVal = pInterfaceAccount;

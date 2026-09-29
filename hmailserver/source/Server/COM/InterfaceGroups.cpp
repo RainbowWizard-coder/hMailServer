@@ -64,14 +64,13 @@ InterfaceGroups::get_Item(long Index, IInterfaceGroup **pVal)
       if (!groups_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
-      pInterfaceGroup->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Group> pBA = groups_->GetItem(Index);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
+      pInterfaceGroup->SetAuthentication(authentication_);
       pInterfaceGroup->AttachItem(pBA);
       pInterfaceGroup->AttachSharedParent(groups_, true);
       pInterfaceGroup->AddRef();
@@ -112,14 +111,13 @@ InterfaceGroups::get_ItemByDBID(long lDBID, IInterfaceGroup **pVal)
       if (!groups_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
-      pInterfaceGroup->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Group> pBA = groups_->GetItemByDBID(lDBID);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
+      pInterfaceGroup->SetAuthentication(authentication_);
       pInterfaceGroup->AttachItem(pBA);
       pInterfaceGroup->AttachSharedParent(groups_, true);
       pInterfaceGroup->AddRef();
@@ -142,14 +140,13 @@ InterfaceGroups::get_ItemByName(BSTR sName, IInterfaceGroup **pVal)
       if (!groups_)
          return GetAccessDenied();
 
-      CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
-      pInterfaceGroup->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Group> pBA = groups_->GetItemByName(sName);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceGroup>* pInterfaceGroup = new CComObject<InterfaceGroup>();
+      pInterfaceGroup->SetAuthentication(authentication_);
       pInterfaceGroup->AttachItem(pBA);
       pInterfaceGroup->AttachSharedParent(groups_, true);
       pInterfaceGroup->AddRef();

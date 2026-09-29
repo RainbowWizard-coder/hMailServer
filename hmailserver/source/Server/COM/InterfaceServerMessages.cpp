@@ -68,14 +68,13 @@ InterfaceServerMessages::get_Item(long Index, IInterfaceServerMessage **pVal)
       if (!server_messages_)
          return GetAccessDenied();
 
-      CComObject<InterfaceServerMessage>* pInterfaceServerMessage = new CComObject<InterfaceServerMessage>();
-      pInterfaceServerMessage->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::ServerMessage> pSM = server_messages_->GetItem(Index);
    
       if (!pSM)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceServerMessage>* pInterfaceServerMessage = new CComObject<InterfaceServerMessage>();
+      pInterfaceServerMessage->SetAuthentication(authentication_);
       pInterfaceServerMessage->AttachItem(pSM);
       pInterfaceServerMessage->AttachSharedParent(server_messages_, true);
       pInterfaceServerMessage->AddRef();
@@ -97,14 +96,13 @@ InterfaceServerMessages::get_ItemByDBID(long lDBID, IInterfaceServerMessage **pV
       if (!server_messages_)
          return GetAccessDenied();
 
-      CComObject<InterfaceServerMessage>* pInterfaceServerMessage = new CComObject<InterfaceServerMessage>();
-      pInterfaceServerMessage->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::ServerMessage> pSM = server_messages_->GetItemByDBID(lDBID);
    
       if (!pSM)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceServerMessage>* pInterfaceServerMessage = new CComObject<InterfaceServerMessage>();
+      pInterfaceServerMessage->SetAuthentication(authentication_);
       pInterfaceServerMessage->AttachItem(pSM);
       pInterfaceServerMessage->AttachSharedParent(server_messages_, true);
       pInterfaceServerMessage->AddRef();
@@ -127,14 +125,13 @@ InterfaceServerMessages::get_ItemByName(BSTR sName, IInterfaceServerMessage **pV
       if (!server_messages_)
          return GetAccessDenied();
 
-      CComObject<InterfaceServerMessage>* pInterfaceServerMessage = new CComObject<InterfaceServerMessage>();
-      pInterfaceServerMessage->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::ServerMessage> pSM = server_messages_->GetItemByName(sName);
    
       if (!pSM)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceServerMessage>* pInterfaceServerMessage = new CComObject<InterfaceServerMessage>();
+      pInterfaceServerMessage->SetAuthentication(authentication_);
       pInterfaceServerMessage->AttachItem(pSM);
       pInterfaceServerMessage->AttachSharedParent(server_messages_, true);
       pInterfaceServerMessage->AddRef();

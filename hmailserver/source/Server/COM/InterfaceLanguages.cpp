@@ -28,13 +28,12 @@ STDMETHODIMP InterfaceLanguages::get_ItemByName(BSTR ItemName, IInterfaceLanguag
 {
    try
    {
-      CComObject<InterfaceLanguage>* pInterfaceLanguage = new CComObject<InterfaceLanguage>();
-   
       std::shared_ptr<HM::Language> pLanguage = HM::Languages::Instance()->GetLanguage(ItemName);
    
       if (!pLanguage)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceLanguage>* pInterfaceLanguage = new CComObject<InterfaceLanguage>();
       pInterfaceLanguage->Attach(pLanguage);
       pInterfaceLanguage->AddRef();
    
@@ -52,13 +51,12 @@ STDMETHODIMP InterfaceLanguages::get_Item(long Index, IInterfaceLanguage **pVal)
 {
    try
    {
-      CComObject<InterfaceLanguage>* pInterfaceLanguage = new CComObject<InterfaceLanguage>();
-   
       std::shared_ptr<HM::Language> pLanguage = HM::Languages::Instance()->GetLanguage(Index);
    
       if (!pLanguage)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceLanguage>* pInterfaceLanguage = new CComObject<InterfaceLanguage>();
       pInterfaceLanguage->Attach(pLanguage);
       pInterfaceLanguage->AddRef();
    

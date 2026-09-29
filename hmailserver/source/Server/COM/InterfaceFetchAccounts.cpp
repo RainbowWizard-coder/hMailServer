@@ -23,13 +23,12 @@ STDMETHODIMP InterfaceFetchAccounts::get_ItemByDBID(long lDBID, IInterfaceFetchA
       if (!fetch_accounts_)
          return GetAccessDenied();
 
-      CComObject<InterfaceFetchAccount>* pInterfaceAccount = new CComObject<InterfaceFetchAccount>();
-      pInterfaceAccount->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::FetchAccount> pFetchAccount = fetch_accounts_->GetItemByDBID(lDBID);
       if (!pFetchAccount)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceFetchAccount>* pInterfaceAccount = new CComObject<InterfaceFetchAccount>();
+      pInterfaceAccount->SetAuthentication(authentication_);
       pInterfaceAccount->AttachItem(pFetchAccount);
       pInterfaceAccount->AttachParent(fetch_accounts_, true);
       pInterfaceAccount->AddRef();
@@ -50,13 +49,12 @@ STDMETHODIMP InterfaceFetchAccounts::get_Item(long lIndex, IInterfaceFetchAccoun
       if (!fetch_accounts_)
          return GetAccessDenied();
 
-      CComObject<InterfaceFetchAccount>* pInterfaceAccount = new CComObject<InterfaceFetchAccount>();
-      pInterfaceAccount->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::FetchAccount> pFetchAccount = fetch_accounts_->GetItem(lIndex);
       if (!pFetchAccount)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceFetchAccount>* pInterfaceAccount = new CComObject<InterfaceFetchAccount>();
+      pInterfaceAccount->SetAuthentication(authentication_);
       pInterfaceAccount->AttachItem(pFetchAccount);
       pInterfaceAccount->AttachParent(fetch_accounts_, true);
       pInterfaceAccount->AddRef();

@@ -115,14 +115,13 @@ STDMETHODIMP InterfaceDistributionLists::get_Item(long Index, IInterfaceDistribu
       if (!distribution_lists_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDistributionList>* pList = new CComObject<InterfaceDistributionList>();
-      pList->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DistributionList> pPersList = distribution_lists_->GetItem(Index);
    
       if (!pPersList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceDistributionList>* pList = new CComObject<InterfaceDistributionList>();
+      pList->SetAuthentication(authentication_);
       pList->AttachItem(pPersList);
       pList->AttachParent(distribution_lists_, true);
       pList->AddRef();
@@ -159,14 +158,13 @@ STDMETHODIMP InterfaceDistributionLists::get_ItemByDBID(long DBID, IInterfaceDis
       if (!distribution_lists_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDistributionList>* pList = new CComObject<InterfaceDistributionList>();
-      pList->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DistributionList> pPersList = distribution_lists_->GetItemByDBID(DBID);
    
       if (!pPersList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceDistributionList>* pList = new CComObject<InterfaceDistributionList>();
+      pList->SetAuthentication(authentication_);
       pList->AttachItem(pPersList);
       pList->AttachParent(distribution_lists_, true);
       pList->AddRef();
@@ -187,14 +185,13 @@ STDMETHODIMP InterfaceDistributionLists::get_ItemByAddress(BSTR sAddress, IInter
       if (!distribution_lists_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDistributionList>* pList = new CComObject<InterfaceDistributionList>();
-      pList->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DistributionList> pPersList = distribution_lists_->GetItemByAddress(sAddress);
    
       if (!pPersList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceDistributionList>* pList = new CComObject<InterfaceDistributionList>();
+      pList->SetAuthentication(authentication_);
       pList->AttachItem(pPersList);
       pList->AttachParent(distribution_lists_, true);
       pList->AddRef();

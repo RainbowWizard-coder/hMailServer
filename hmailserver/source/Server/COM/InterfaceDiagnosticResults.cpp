@@ -39,7 +39,7 @@ STDMETHODIMP InterfaceDiagnosticResults::get_Item(long Index, IInterfaceDiagnost
       if (!authentication_->GetIsServerAdmin())
          return authentication_->GetAccessDenied();
    
-      if (Index >= (long) results_.size())
+      if (Index < 0 || Index >= (long) results_.size())
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
       CComObject<InterfaceDiagnosticResult>* pResult = new CComObject<InterfaceDiagnosticResult>();

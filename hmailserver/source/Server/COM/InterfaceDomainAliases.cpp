@@ -25,13 +25,12 @@ STDMETHODIMP InterfaceDomainAliases::get_ItemByDBID(long lDBID, IInterfaceDomain
       if (!domain_aliases_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDomainAlias>* pInterfaceDA = new CComObject<InterfaceDomainAlias>();
-      pInterfaceDA->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DomainAlias> pDomainAlias = domain_aliases_->GetItemByDBID(lDBID);
       if (!pDomainAlias)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDomainAlias>* pInterfaceDA = new CComObject<InterfaceDomainAlias>();
+      pInterfaceDA->SetAuthentication(authentication_);
       pInterfaceDA->AttachItem(pDomainAlias);
       pInterfaceDA->AttachParent(domain_aliases_, true);
       pInterfaceDA->AddRef();
@@ -52,13 +51,12 @@ STDMETHODIMP InterfaceDomainAliases::get_Item(long lIndex, IInterfaceDomainAlias
       if (!domain_aliases_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDomainAlias>* pInterfaceAccount = new CComObject<InterfaceDomainAlias>();
-      pInterfaceAccount->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DomainAlias> pDomainAlias = domain_aliases_->GetItem(lIndex);
       if (!pDomainAlias)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDomainAlias>* pInterfaceAccount = new CComObject<InterfaceDomainAlias>();
+      pInterfaceAccount->SetAuthentication(authentication_);
       pInterfaceAccount->AttachItem(pDomainAlias);
       pInterfaceAccount->AttachParent(domain_aliases_, true);
       pInterfaceAccount->AddRef();

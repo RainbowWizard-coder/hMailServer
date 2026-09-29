@@ -92,14 +92,13 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::get_Item(long Index, IInterfaceIMAP
       if (!acl_permission_)
          return GetAccessDenied();
 
-      CComObject<InterfaceIMAPFolderPermission>* pACLPermission = new CComObject<InterfaceIMAPFolderPermission>();
-      pACLPermission->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::ACLPermission> pPersACLPermission = acl_permission_->GetItem(Index);
    
       if (!pPersACLPermission)
          return COMError::WithoutMessage(DISP_E_BADINDEX);  
    
+      CComObject<InterfaceIMAPFolderPermission>* pACLPermission = new CComObject<InterfaceIMAPFolderPermission>();
+      pACLPermission->SetAuthentication(authentication_);
       pACLPermission->AttachItem(pPersACLPermission);
       pACLPermission->AttachParent(acl_permission_, true);
       pACLPermission->AddRef();

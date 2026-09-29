@@ -125,14 +125,13 @@ InterfaceBlockedAttachments::get_ItemByDBID(long lDBID, IInterfaceBlockedAttachm
       if (!blocked_attachments_)
          return GetAccessDenied();
 
-      CComObject<InterfaceBlockedAttachment>* pInterfaceBlockedAttachment = new CComObject<InterfaceBlockedAttachment>();
-      pInterfaceBlockedAttachment->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::BlockedAttachment> pBA = blocked_attachments_->GetItemByDBID(lDBID);
    
       if (!pBA)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceBlockedAttachment>* pInterfaceBlockedAttachment = new CComObject<InterfaceBlockedAttachment>();
+      pInterfaceBlockedAttachment->SetAuthentication(authentication_);
       pInterfaceBlockedAttachment->AttachItem(pBA);
       pInterfaceBlockedAttachment->AttachSharedParent(blocked_attachments_, true);
       pInterfaceBlockedAttachment->AddRef();

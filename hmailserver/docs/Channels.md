@@ -131,8 +131,13 @@ release's pipeline pushes it ([ContainerImage.md](ContainerImage.md)).
   layout: the manifests that were verified, not whatever the source's tags answer by
   then - so not `--digest-tags` or `--referrers`, which would copy the source's as
   they stand, unverified (the image is one platform's, and nothing is attached to it
-  as a referrer). Each tag at the destination is held to its digest, and the image
-  there is verified again the same way, anonymously, from the destination.
+  as a referrer). A `.sig` or `.att` the destination already holds at those tags -
+  from an earlier run, or put there by anyone else with push access - is replaced
+  by the verified one, not added to. Each tag at the destination is held to its
+  digest, and the image there is verified again the same way, anonymously, from the
+  destination: regctl reads it with a configuration directory of its own that no
+  login has been written to, so the check cannot run logged in, whatever the logout
+  before it did (a failed logout is said in the log).
 - **The destinations**, each configured by its pair of variables:
   - Docker Hub: `docker.io/progressiverobot/hmailserver` (or `DOCKERHUB_REPOSITORY`,
     which must be on `docker.io`). A Personal account's public repository is free;
@@ -456,7 +461,9 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   no CycloneDX SBOM is attested, copying nothing. The certificate read out of its
   `.sig` manifest names that account and no repository id, and `regctl image copy
   --digest-tags` of it by digest into an OCI layout carried
-  `sha256-<digest>.sig` with it, at the same digest.
+  `sha256-<digest>.sig` with it, at the same digest. That was the job before 29
+  September, which copied the signature so; since then it copies the manifests it
+  verified, out of its own layout ("What it copies", above).
 - **The AUR, end to end**, in a clean `archlinux:base-devel` container: against a
   signed fixture release of this tree's tarball, `aur-publish` verified it, rendered
   the PKGBUILD, made `.SRCINFO` with `makepkg --printsrcinfo` as an unprivileged

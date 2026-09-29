@@ -904,7 +904,12 @@ job's own `before_script` replaces whatever `extends` brings. It is plain POSIX
 `sh` with built-ins only, and was run on 28 September 2026 in `nixos/nix`,
 `python:3.13-slim-trixie` and `alpine:3.24` (each passed), in Debian with
 `hosts: dns files` and as a user who cannot write `/etc/hosts` (each refused).
-`scorecard`, `semgrep-sast-gate` and `mr-dependency-check` take it.
+`scorecard`, `semgrep-sast-gate` and `mr-dependency-check` take it, and so do
+the AppImages' two sources jobs, `appimage-runtime-sources` and
+`appimage-bundled-sources`, which fetch the libraries' sources from Alpine's and
+Ubuntu's archives and never from the address a recipe names (GitHub, for five
+of the Alpine ones): `build/check-release-chain.py` fails when either stops
+running `.no-github`'s `before_script`.
 
 The .NET job
 ------------

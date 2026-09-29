@@ -254,6 +254,12 @@ for a stray `#` number or `@` name.
 - **Releases pause after 6.3.6; security fixes do not.** The 6.3 line receives security fixes until 30 September
   2027, each in a release of its own ([SECURITY.md](SECURITY.md), "While releases pause"; [RELEASE.md](RELEASE.md),
   "A security release during the pause").
+- **The container image's mirror checks each registry as anyone would see it.** `registry-mirror` verifies the image
+  again at each destination, which Channels.md calls anonymous; it read with the regctl configuration it had logged
+  in with and ignored whether the logout worked, so a failed logout left the check logged in, where an image or a
+  signature only the account can see would pass. The check now reads with a configuration of its own that no login is
+  written to, and a failed logout is said in the log; Channels.md says a registry's earlier signature or attestation
+  for the image is replaced by the verified one.
 
 ### Administration
 
@@ -281,7 +287,8 @@ for a stray `#` number or `@` name.
   was cut at its first arrow, while its row is the setting's latest change in the trail, or refused when the row does
   not say where the old value ends. A switch put back by 6.3.4 or 6.3.5 keeps a `true` or `false` in its unread text
   column, which does nothing; one put back twice by those versions left a row `true -> false` or `false -> true`
-  describing that text column, and putting that row back now sets the switch.
+  describing that text column, and putting that row back now sets the switch. `Utilities.RevertAuditedChange`'s help
+  text in the type library says so too.
 
 ### Operations
 
@@ -391,6 +398,19 @@ for a stray `#` number or `@` name.
   its own - and a language's first `String` call read its file into a table other calls were reading at the same
   time, which could crash the service on Windows (on Linux nothing reads them). Both are now built whole and handed
   over under a lock, as the settings are since the reinitialise fix.
+- **Fixed: a part of the server that two threads asked for first at the same moment could be made twice.** Each of
+  the server's 61 kinds of shared part made on first use (the logger, the caches, the rate limiter, the recipient
+  callout's cache, the outgoing OAuth2 token client and the others) was checked for outside its lock and not again
+  inside it, so two threads arriving together - two deliveries, or a COM call beside a REST request - could each make
+  one, and what the first was given was lost; a thread could also be handed one before it was whole. Each is now made
+  exactly once, and, as before, never taken down at exit; `singleton-tests`, which `linux-build` runs, holds it to
+  that.
+- **Fixed: a COM look-up that found nothing left an object behind.** Asking a COM collection for an index, id or name
+  it does not hold - `Languages.Item`, `Domains.ItemByName`, `Accounts.ItemByAddress` and 62 other look-ups,
+  `IMAPFolders.Add` when the name was taken or the folder could not be saved, and `Application.BackupManager` when no
+  backup manager was available - made the object it would have answered with before looking, and kept it, never
+  released, when the answer was no. Each now looks first. `Recipients.Item` and `DiagnosticResults.Item` also refuse
+  a negative index, which read outside their list.
 
 ### Build and tests
 
@@ -526,6 +546,11 @@ for a stray `#` number or `@` name.
   and keywords tests), and the quota warning, which is queued before the message that crosses the threshold is
   stored, is found by being the one message not sent rather than as the last one. About 290 other tests that deliver
   several messages were read and left as they are: they count, compare sets, find by content, or already wait.
+- **`build/check-release-chain.py` holds the AppImages' two sources jobs to `.no-github`.**
+  `appimage-runtime-sources` and `appimage-bundled-sources` fetch sources whose recipes name GitHub for five Alpine
+  libraries; the checker now fails when either stops running `.no-github`'s `before_script` - taken out of its
+  `extends`, or replaced by a `before_script` of its own or of a nearer template - and its self-test breaks it six
+  ways.
 
 ---
 

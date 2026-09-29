@@ -69,14 +69,13 @@ InterfaceDNSBlackLists::get_Item(long Index, IInterfaceDNSBlackList **pVal)
       if (!black_lists_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDNSBlackList>* pInterfaceDNSBlackList = new CComObject<InterfaceDNSBlackList>();
-      pInterfaceDNSBlackList->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DNSBlackList> pDNSBlackList = black_lists_->GetItem(Index);
    
       if (!pDNSBlackList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDNSBlackList>* pInterfaceDNSBlackList = new CComObject<InterfaceDNSBlackList>();
+      pInterfaceDNSBlackList->SetAuthentication(authentication_);
       pInterfaceDNSBlackList->AttachItem(pDNSBlackList);
       pInterfaceDNSBlackList->AttachSharedParent(black_lists_, true);
       pInterfaceDNSBlackList->AddRef();
@@ -117,13 +116,13 @@ InterfaceDNSBlackLists::get_ItemByDBID(long lDBID, IInterfaceDNSBlackList **pVal
       if (!black_lists_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDNSBlackList>* pInterfaceDNSBlackList = new CComObject<InterfaceDNSBlackList>();
-      pInterfaceDNSBlackList->SetAuthentication(authentication_);
       std::shared_ptr<HM::DNSBlackList> pDNSBlackList = black_lists_->GetItemByDBID(lDBID);
    
       if (!pDNSBlackList)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDNSBlackList>* pInterfaceDNSBlackList = new CComObject<InterfaceDNSBlackList>();
+      pInterfaceDNSBlackList->SetAuthentication(authentication_);
       pInterfaceDNSBlackList->AttachItem(pDNSBlackList);
       pInterfaceDNSBlackList->AttachSharedParent(black_lists_, true);
       pInterfaceDNSBlackList->AddRef();
@@ -176,13 +175,12 @@ InterfaceDNSBlackLists::get_ItemByDNSHost(BSTR ItemName, IInterfaceDNSBlackList 
       if (!black_lists_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDNSBlackList>* pInterfaceDNSBlackList = new CComObject<InterfaceDNSBlackList>();
-      pInterfaceDNSBlackList->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DNSBlackList> pDNSBL = black_lists_->GetItemByName(ItemName);
       if (!pDNSBL)
          return S_FALSE;
    
+      CComObject<InterfaceDNSBlackList>* pInterfaceDNSBlackList = new CComObject<InterfaceDNSBlackList>();
+      pInterfaceDNSBlackList->SetAuthentication(authentication_);
       pInterfaceDNSBlackList->AttachItem(pDNSBL);
       pInterfaceDNSBlackList->AttachSharedParent(black_lists_, true);
       pInterfaceDNSBlackList->AddRef();
