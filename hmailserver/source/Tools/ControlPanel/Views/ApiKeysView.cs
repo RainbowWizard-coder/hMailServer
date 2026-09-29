@@ -185,16 +185,12 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(copy, "apikeys-copy");
          copy.Click += (s, e) =>
          {
-            try
+            // Another process can hold the clipboard open. Saying so is better
+            // than a button that silently did nothing with a value that cannot
+            // be shown again.
+            if (!ClipboardWriter.TrySetText(newKeyToken_.Text, out string error))
             {
-               Clipboard.SetText(newKeyToken_.Text);
-            }
-            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-            {
-               // Another process can hold the clipboard open. Saying so is better
-               // than a button that silently did nothing with a value that cannot
-               // be shown again.
-               MessageBox.Show(F("The clipboard could not be written: {0}\r\n\r\nSelect the key above and copy it by hand - it will not be shown again.", ex.Message),
+               MessageBox.Show(F("The clipboard could not be written: {0}\r\n\r\nSelect the key above and copy it by hand - it will not be shown again.", error),
                   L("Control Panel"));
             }
          };

@@ -31,9 +31,20 @@ namespace hMailServer.ControlPanel
          // every page resolves on-brand, theme-aware state colours.
          Services.ThemeTokens.Initialize();
 
-         // Every page's text and values can be selected and copied (issue #48);
-         // class handlers, so registered before the first window has any text.
+         // Every page's text and values can be selected and copied (issue #48),
+         // and every plain list's selected rows; class handlers, so registered
+         // before the first window has any text or list.
          SelectableText.Install();
+         SelectableList.Install();
+      }
+
+      protected override void OnExit(ExitEventArgs e)
+      {
+         // Text copied a moment before the Control Panel was closed still pastes
+         // after it has gone: the clipboard is given its own copy now if it was not
+         // yet (ClipboardWriter).
+         ClipboardWriter.FlushBeforeExit();
+         base.OnExit(e);
       }
 
       private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs args)

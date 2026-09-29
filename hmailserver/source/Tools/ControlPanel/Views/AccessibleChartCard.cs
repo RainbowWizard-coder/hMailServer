@@ -879,17 +879,13 @@ namespace hMailServer.ControlPanel.Views
       {
          ChartDataTable table = ChartDataTable.Build(definition_, SeriesSamples_(), times_);
 
-         try
+         // Another process can hold the clipboard open; that is not worth a
+         // dialog, and the table itself is still on screen to read.
+         if (ClipboardWriter.TrySetText(table.ToDelimitedText()))
          {
-            Clipboard.SetText(table.ToDelimitedText());
             Toast.Info(table.Rows.Count == 1
                ? L("1 sample copied to the clipboard.")
                : F("{0} samples copied to the clipboard.", table.Rows.Count.ToString("N0", CultureInfo.CurrentCulture)), L(definition_.Title));
-         }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
-         {
-            // Another process can hold the clipboard open; that is not worth a
-            // dialog, and the table itself is still on screen to read.
          }
       }
 

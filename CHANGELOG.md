@@ -387,13 +387,22 @@ for a stray `#` number or `@` name.
   properties the Control Panel writes as writable over REST and reachable from a Deck view; the ten it lists as
   missing are an account's directory fields and its external ID, and the server's country policy. The census had
   missed 16 COM members whose help string holds a `]`.
-- **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue:
-  drag over text, double-click a word, Ctrl+C, or right-click for Copy / Select all; with nothing selected, Copy
-  takes the whole text. Text inside buttons, lists, tabs, menus, grids and editors is left to its control, and
-  keyboard navigation and screen-reader output are unchanged. Live logs selects several lines (click, Shift+click,
-  Ctrl+A) and copies them exactly, in the log's order; it follows new lines only while the end is in view and no
-  longer splits a line the server is still writing into two rows. On REST API keys, a key's label, id, state and
-  scope can be copied.
+- **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue: drag
+  over text, double-click a word, Ctrl+C, or right-click for Copy / Select all; with nothing selected, Copy takes the
+  whole text, and a selection dragged out into another program carries plain text only. Text inside buttons, lists,
+  tabs, menus, grids and editors is left to its control, and keyboard navigation and screen-reader output are
+  unchanged. Every plain list - domains, accounts, aliases and distribution lists, public folders, incoming relays,
+  an account's IMAP folders, folder permissions, group members, recipients, a route's addresses and the Active
+  Directory picker - copies its selected rows with Ctrl+C or its right-click Copy, one row per line in the list's
+  order, and offers Select all where several rows can be chosen; the Ctrl+K search's results copy from their
+  right-click Copy (its search box keeps the keyboard); data grids copy their rows as before. Live logs selects
+  several lines (click, Shift+click, Ctrl+A) and copies them exactly, in the log's order; it follows new lines only
+  while the end is in view and no longer splits a line the server is still writing into two rows. On REST API keys, a
+  key's label, id, state and scope can be copied. Every Copy button now writes the clipboard the same way: a program
+  that reads the clipboard the moment it changes (Windows' clipboard history, a remote-desktop client) no longer
+  makes a copy fail after a second's freeze (a chart's Copy then showed no confirmation, and the new API key's and
+  app password's Copy an error), and text copied just before the Control Panel is closed still pastes after it has
+  gone.
 
 ### Operations
 

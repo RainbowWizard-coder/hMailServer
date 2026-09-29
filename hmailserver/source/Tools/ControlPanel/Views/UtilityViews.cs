@@ -249,7 +249,7 @@ namespace hMailServer.ControlPanel.Views
          run.Click += async (s, e) => await RunQuery();
          actions.Children.Add(run);
          var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0) };
-         copy.Click += (s, e) => { try { if (output_.Text.Length > 0) Clipboard.SetText(output_.Text); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ } };
+         copy.Click += (s, e) => ClipboardWriter.TrySetText(output_.Text);   // best effort: the output stays on screen to select
          actions.Children.Add(copy);
          Grid.SetColumn(actions, 1);
          inputRow.Children.Add(actions);
@@ -522,7 +522,7 @@ namespace hMailServer.ControlPanel.Views
          run.Click += async (s, e) => await Run();
          actions.Children.Add(run);
          var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0) };
-         copy.Click += (s, e) => { try { if (output_.Text.Length > 0) Clipboard.SetText(output_.Text); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ } };
+         copy.Click += (s, e) => ClipboardWriter.TrySetText(output_.Text);   // best effort: the output stays on screen to select
          actions.Children.Add(copy);
          Grid.SetColumn(actions, 2);
          inputRow.Children.Add(actions);

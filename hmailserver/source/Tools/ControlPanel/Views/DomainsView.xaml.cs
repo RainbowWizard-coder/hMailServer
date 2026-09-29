@@ -513,7 +513,7 @@ namespace hMailServer.ControlPanel.Views
       {
          string pw = Services.PasswordGenerator.Generate(16);
          NewAccountPassword.Password = pw;
-         try { Clipboard.SetText(pw); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+         ClipboardWriter.TrySetText(pw);   // best effort: the eye icon shows the password as well
          Services.Toast.Info(L("Generated password copied to clipboard \u2014 reveal it with the eye icon."), L("Password"));
       }
 

@@ -1107,7 +1107,7 @@ namespace hMailServer.ControlPanel.Views
          password_.Password = pw;
          generatedShow_.Text = pw;
          generatedShow_.Visibility = Visibility.Visible;
-         try { Clipboard.SetText(pw); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+         ClipboardWriter.TrySetText(pw);   // best effort: the password is also shown beside the box
          UpdatePasswordStrength();
       }
 

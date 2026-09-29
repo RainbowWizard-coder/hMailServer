@@ -59,7 +59,7 @@ namespace hMailServer.ControlPanel.Views
          var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy") };
          copy.Click += (s, e) =>
          {
-            try { Clipboard.SetText(content.Text); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+            ClipboardWriter.TrySetText(content.Text);   // best effort: the source stays on screen to select
          };
 
          // Close is the one thing to do here, so it is the primary and takes

@@ -15,8 +15,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 {
    /// <summary>
    /// Issue #48: the text and values on the Control Panel's pages can be selected and
-   /// copied, and the live log's lines too (Services/SelectableText.cs,
-   /// Views/LogsView.xaml.cs).
+   /// copied, the live log's lines and every plain list's rows too, and every Copy
+   /// writes the clipboard the one way (Services/SelectableText.cs, SelectableList.cs,
+   /// ClipboardWriter.cs, Views/LogsView.xaml.cs).
    ///
    /// The behaviour is WPF's and is not rendered here - this assembly is WPF-free - so
    /// what is held is what the behaviour rests on: the Copy menu's two captions in
@@ -236,16 +237,196 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The REST API keys page shows a new key once; its Copy button stays exactly as it
-      /// was, and nothing on the page can show a stored key (the store holds a digest).
+      /// The REST API keys page shows a new key once; its Copy button stays, says so when
+      /// the clipboard cannot be written, and nothing on the page can show a stored key
+      /// (the store holds a digest).
       /// </summary>
       [Fact]
       public void TheNewKey_KeepsItsCopyButton()
       {
          string code = ReadControlPanelFile(Path.Join("Views", "ApiKeysView.cs"));
          Assert.Contains("Content = L(\"Copy to clip_board\")", code);
-         Assert.Contains("Clipboard.SetText(newKeyToken_.Text);", code);
+         Assert.Contains("if (!ClipboardWriter.TrySetText(newKeyToken_.Text, out string error))", code);
+         Assert.Contains("The clipboard could not be written: {0}", code);
          Assert.Contains("newKeyToken_.Text = \"\";", code);
+      }
+
+      /// <summary>
+      /// A selection dragged out of a text carries plain text only: the editor would add
+      /// RTF and XAML in the theme's colours (white text on the dark theme), which Copy
+      /// already leaves out.
+      /// </summary>
+      [Fact]
+      public void ADragOutOfText_CarriesPlainTextOnly()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "SelectableText.cs"));
+         string install = WithheldRowTests.MemberText(source, "public static void Install()");
+         Assert.True(install != null, "SelectableText.Install is gone.");
+         Assert.Contains("DataObject.SettingDataEvent", install);
+
+         string handler = WithheldRowTests.MemberText(source, "private static void OnSettingData(object sender, DataObjectSettingDataEventArgs e)");
+         Assert.True(handler != null, "SelectableText.OnSettingData is gone, so a drag out of a text carries RTF and XAML again.");
+         Assert.Contains("e.CancelCommand();", handler);
+         Assert.Contains("DataFormats.UnicodeText", handler);
+      }
+
+      // ---- the clipboard ---------------------------------------------------------------------
+
+      /// <summary>
+      /// Every Copy goes through ClipboardWriter. WPF's Clipboard.SetText flushes at once,
+      /// retrying with the UI thread asleep, so a clipboard watcher that asks for the text
+      /// in that moment waits on the sleeping thread: measured with a watcher that quick,
+      /// it threw CLIPBRD_E_CANT_OPEN after a second on every copy - the chart's Copy showed
+      /// no toast and the Control Panel froze for that second - while ClipboardWriter's
+      /// copies all landed at once.
+      /// </summary>
+      [Fact]
+      public void EveryCopy_GoesThroughClipboardWriter()
+      {
+         string root = ControlPanelDirectory("");
+         Assert.True(root != null, "ControlPanel could not be found from the test binaries.");
+
+         var offenders = new List<string>();
+         foreach (string path in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+         {
+            string relative = Path.GetRelativePath(root, path);
+            if (relative.StartsWith("bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                || relative.StartsWith("obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                || relative == Path.Join("Services", "ClipboardWriter.cs"))
+            {
+               continue;
+            }
+
+            string code = File.ReadAllText(path);
+            foreach (Match m in Regex.Matches(code, @"\bClipboard\s*\.\s*(SetText|SetDataObject|SetData|SetFileDropList|SetImage|SetAudio|Flush)\s*\("))
+               offenders.Add(relative + ": " + m.Value);
+         }
+
+         Assert.True(offenders.Count == 0, "Written to the clipboard around ClipboardWriter: " + string.Join("; ", offenders));
+      }
+
+      /// <summary>
+      /// The flush follows the copy on the dispatcher, so a copy made just before the
+      /// Control Panel closes is flushed as it exits - measured, without it the text was
+      /// gone after the exit, four times in four - and nothing asks Clipboard.IsCurrent,
+      /// which retries asleep as SetText does.
+      /// </summary>
+      [Fact]
+      public void ClipboardWriter_FlushesAsTheControlPanelExits()
+      {
+         string app = ReadControlPanelFile("App.xaml.cs");
+         string onExit = WithheldRowTests.MemberText(app, "protected override void OnExit(ExitEventArgs e)");
+         Assert.True(onExit != null && onExit.Contains("ClipboardWriter.FlushBeforeExit();", StringComparison.Ordinal),
+            "App.OnExit no longer flushes the last copy, so text copied just before the Control Panel closes is lost.");
+
+         string writer = ReadControlPanelFile(Path.Join("Services", "ClipboardWriter.cs"));
+         Assert.Contains("Clipboard.SetDataObject(data, false);", writer);
+         Assert.DoesNotMatch(@"Clipboard\.IsCurrent\s*\(", writer);
+         Assert.DoesNotMatch(@"Clipboard\.SetText\s*\(", writer);
+      }
+
+      // ---- lists -------------------------------------------------------------------------
+
+      [Fact]
+      public void TheApplication_InstallsSelectableList_BeforeTheFirstWindow()
+      {
+         string app = ReadControlPanelFile("App.xaml.cs");
+         string onStartup = WithheldRowTests.MemberText(app, "protected override void OnStartup(StartupEventArgs e)");
+         Assert.True(onStartup != null && onStartup.Contains("SelectableList.Install();", StringComparison.Ordinal),
+            "App.OnStartup no longer installs SelectableList, so no list's rows can be copied.");
+      }
+
+      /// <summary>
+      /// Registered for ListBox, so for every ListView too; a list with its own Copy or
+      /// menu (the live log) is left to it, and so is one inside something with a menu.
+      /// With nothing chosen, Ctrl+C goes on as it did before a list could copy.
+      /// </summary>
+      [Fact]
+      public void Lists_CopyTheirRows_UnlessTheyCopySomethingOfTheirOwn()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "SelectableList.cs"));
+         string install = WithheldRowTests.MemberText(source, "public static void Install()");
+         Assert.True(install != null, "SelectableList.Install is gone.");
+         Assert.Contains("RegisterClassCommandBinding(typeof(ListBox)", install);
+         Assert.Contains("RegisterClassHandler(typeof(ListBox), FrameworkElement.ContextMenuOpeningEvent", install);
+
+         string copyable = WithheldRowTests.MemberText(source, "public static bool IsCopyable(ListBox list)");
+         Assert.True(copyable != null, "SelectableList.IsCopyable is gone.");
+         Assert.Contains("list.ContextMenu != null", copyable);
+         Assert.Contains("binding.Command == ApplicationCommands.Copy", copyable);
+         Assert.Contains("SelectableText.GetIsEnabled(list)", copyable);
+
+         string canCopy = WithheldRowTests.MemberText(source, "private static void OnCanCopy(object sender, CanExecuteRoutedEventArgs e)");
+         Assert.True(canCopy != null, "SelectableList.OnCanCopy is gone.");
+         Assert.Contains("e.ContinueRouting = true;", canCopy);
+
+         // The live log keeps its own Copy and menu.
+         string logs = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml.cs"));
+         Assert.Contains("LogList.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy", logs);
+         Assert.Contains("LogList.ContextMenu = SelectableText.CopyMenu(", logs);
+      }
+
+      /// <summary>
+      /// The selected rows in the list's own order, one per line, each as shown: the
+      /// pieces of text in a row tab-separated as a data grid's cells, without the words
+      /// of the row's buttons or an icon's glyph, and a row out of view built again from
+      /// the list's template (a list does not keep what it does not show).
+      /// </summary>
+      [Fact]
+      public void ARowIsCopiedAsShown_InTheListsOrder()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "SelectableList.cs"));
+         string rows = WithheldRowTests.MemberText(source, "public static string SelectedRowsText(ListBox list)");
+         Assert.True(rows != null, "SelectableList.SelectedRowsText is gone.");
+         Assert.Contains("SameItem.Instance", rows);
+         Assert.Contains("foreach (object item in list.Items)", rows);
+         Assert.Contains("string.Join(\"\\r\\n\", lines)", rows);
+
+         string row = WithheldRowTests.MemberText(source, "private static string RowText_(ListBox list, object item, OffScreenReader_ reader)");
+         Assert.True(row != null, "SelectableList.RowText_ is gone.");
+         foreach (string path in new[] { "ContainerFromItem(item)", "view.View is GridView grid", "list.ItemTemplate != null", "list.DisplayMemberPath" })
+            Assert.Contains(path, row);
+
+         string interactive = WithheldRowTests.MemberText(source, "private static bool IsInteractive_(DependencyObject node)");
+         Assert.True(interactive != null, "SelectableList.IsInteractive_ is gone.");
+         foreach (string control in new[] { "ButtonBase", "TextBoxBase", "PasswordBox", "ComboBox", "ScrollBar", "Thumb" })
+            Assert.Matches(@"\bnode is " + control + @"\b", interactive);
+         Assert.Contains("Wpf.Ui.Controls.IconElement", source);
+      }
+
+      /// <summary>
+      /// A copy of many rows builds each template once and hands it one row after another:
+      /// built afresh for every row out of view, Select all and Ctrl+C on the domains page's
+      /// accounts held the Control Panel for 2.5 seconds at 1,000 accounts, 8 at 5,000 and
+      /// 24 at 20,000, and 0.1, 0.4 and 1.3 seconds so. The reader lives for one copy, so it
+      /// keeps no row (and no page) after it; and a row that is an element itself is read
+      /// where it is, never put into a presenter of the reader's, which it would take as
+      /// its parent and so refuse the list's own when it came back into view.
+      /// </summary>
+      [Fact]
+      public void ACopyOfManyRows_BuildsEachTemplateOnce()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "SelectableList.cs"));
+         string rows = WithheldRowTests.MemberText(source, "public static string SelectedRowsText(ListBox list)");
+         Assert.True(rows != null, "SelectableList.SelectedRowsText is gone.");
+         Assert.Contains("var reader = new OffScreenReader_();", rows);
+         Assert.Contains("RowText_(list, item, reader)", rows);
+
+         string built = WithheldRowTests.MemberText(source, "public string Built(object key, object item, DataTemplate template, DataTemplateSelector selector)");
+         Assert.True(built != null, "SelectableList.OffScreenReader_.Built is gone.");
+         Assert.Contains("presenters_.TryGetValue(key, out ContentPresenter presenter)", built);
+         Assert.Contains("presenter.Content = item;", built);
+
+         string bound = WithheldRowTests.MemberText(source, "public string Bound(object key, object item, BindingBase binding)");
+         Assert.True(bound != null, "SelectableList.OffScreenReader_.Bound is gone.");
+         Assert.Contains("probes_.TryGetValue(key, out TextBlock probe)", bound);
+
+         Assert.DoesNotMatch(@"static\s+OffScreenReader_\s", source);
+         string row = WithheldRowTests.MemberText(source, "private static string RowText_(ListBox list, object item, OffScreenReader_ reader)");
+         Assert.True(row != null, "SelectableList.RowText_ is gone.");
+         Assert.True(row.IndexOf("item is Visual", StringComparison.Ordinal) >= 0
+                     && row.IndexOf("item is Visual", StringComparison.Ordinal) < row.IndexOf("reader.Built(", StringComparison.Ordinal),
+            "A row that is an element is put into the reader's presenter again.");
       }
 
       // ---- helpers -------------------------------------------------------------------------

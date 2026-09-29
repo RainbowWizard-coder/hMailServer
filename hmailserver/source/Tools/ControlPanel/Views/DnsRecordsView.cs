@@ -1773,7 +1773,7 @@ namespace hMailServer.ControlPanel.Views
 
       private static void CopyToClipboard(string text)
       {
-         try { if (!string.IsNullOrEmpty(text)) Clipboard.SetText(text); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+         ClipboardWriter.TrySetText(text);   // best effort, as it always was: the record stays on screen to copy
       }
 
       /// <summary>A button that opens the page owning a related setting - the same

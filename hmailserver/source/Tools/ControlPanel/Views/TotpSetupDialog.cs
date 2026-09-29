@@ -129,8 +129,8 @@ namespace hMailServer.ControlPanel.Views
          var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
          copy.Click += (s, e) =>
          {
-            try { if (!string.IsNullOrEmpty(secret_.Text)) Clipboard.SetText(secret_.Text.Replace(" ", "")); }
-            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+            // Best effort, as it always was: the key stays on screen to type or select.
+            ClipboardWriter.TrySetText(secret_.Text.Replace(" ", ""));
          };
          Grid.SetColumn(copy, 1);
          keyRow.Children.Add(copy);

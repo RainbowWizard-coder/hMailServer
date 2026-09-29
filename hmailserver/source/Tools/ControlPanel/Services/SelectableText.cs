@@ -6,7 +6,6 @@ using System;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -40,8 +39,9 @@ namespace hMailServer.ControlPanel.Services
    /// act as buttons), text boxes, list, tree, tab and menu items, data grid cells
    /// and headers, tool tips, icons and the title bar. A press there has to stay a
    /// press on the control. A list is copied by its rows: a data grid already copies
-   /// its selected rows with Ctrl+C, and the live log copies its selected lines
-   /// (LogsView). A container can opt its text out with <see cref="IsEnabledProperty"/>.
+   /// its selected rows with Ctrl+C, the live log copies its selected lines
+   /// (LogsView), and every other list its selected rows (<see cref="SelectableList"/>).
+   /// A container can opt its text and lists out with <see cref="IsEnabledProperty"/>.
    ///
    /// The selecting is WPF's own text editor, the one behind every read-only TextBox,
    /// attached to the TextBlock read-only. It is internal to WPF and reached by
@@ -60,11 +60,12 @@ namespace hMailServer.ControlPanel.Services
    /// again when the text leaves the screen, because each one registers for the
    /// dispatcher's shutdown and a page rebuilt on every visit would pile them up.
    /// </summary>
-   public static partial class SelectableText
+   public static class SelectableText
    {
       /// <summary>
-      /// False on an element turns selecting off for every piece of text inside it.
-      /// Inherited, so one setting covers a whole panel.
+      /// False on an element turns selecting off for every piece of text inside it,
+      /// and copying rows off for every list inside it (SelectableList). Inherited,
+      /// so one setting covers a whole panel.
       /// </summary>
       public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
          "IsEnabled", typeof(bool), typeof(SelectableText),
@@ -132,6 +133,13 @@ namespace hMailServer.ControlPanel.Services
             new KeyEventHandler(OnPreviewKeyDown));
          EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.RequestBringIntoViewEvent,
             new RequestBringIntoViewEventHandler(OnRequestBringIntoView));
+
+         // A selection can be dragged out of its text, as out of a read-only text
+         // box, and the editor builds the drag's data as it would for its own Copy:
+         // with RTF and XAML beside the text, in the theme's colours (measured: white
+         // text in the RTF on the dark theme). Plain text only, as Copy puts it.
+         EventManager.RegisterClassHandler(typeof(TextBlock), DataObject.SettingDataEvent,
+            new DataObjectSettingDataEventHandler(OnSettingData));
       }
 
       /// <summary>
@@ -188,84 +196,21 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// Puts text on the clipboard, as plain text.
-      ///
-      /// In two steps, not Clipboard.SetText's one. SetText hands the text over and
-      /// then flushes it - makes the clipboard hold its own copy, so the text
-      /// outlives this program - at once, retrying with the UI thread asleep. A
-      /// program watching the clipboard (Windows' clipboard history is one) opens
-      /// it the moment it changes and asks this program for the text; asleep, the
-      /// UI thread cannot answer, the watcher keeps the clipboard open waiting, and
-      /// every retry of the flush fails: CLIPBRD_E_CANT_OPEN after a second, on
-      /// every copy, which is what .NET Framework's WPF and .NET 10's both did on
-      /// the laptop this was written on while one was watching. So the text goes
-      /// on the clipboard first - it can be pasted from that moment - and the
-      /// flush follows from the dispatcher, once the watcher has been answered.
-      /// A copy that fails outright is said in a toast rather than left as a
-      /// Copy that silently did nothing.
+      /// Puts text on the clipboard, as plain text, through <see cref="ClipboardWriter"/>
+      /// (which says why in two steps). A copy that fails outright is said in a toast
+      /// rather than left as a Copy that silently did nothing.
       /// </summary>
       public static void SetClipboard(string text)
       {
-         if (string.IsNullOrEmpty(text))
-            return;
-
-         var data = new DataObject(DataFormats.UnicodeText, text);
-         try
-         {
-            Clipboard.SetDataObject(data, false);
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            Toast.Failure(L("Could not copy: ") + ex.Message);
-            return;
-         }
-
-         FlushWhenFree_(data, 0);
+         if (!ClipboardWriter.TrySetText(text, out string error))
+            Toast.Failure(L("Could not copy: ") + error);
       }
-
-      private const int FlushAttempts = 20;
-
-      /// <summary>
-      /// Makes the clipboard keep its own copy of <paramref name="data"/>, so a copy
-      /// made just before the Control Panel is closed still pastes. One attempt per
-      /// tick, with the dispatcher running in between, while the text is still the
-      /// clipboard's; given up after about three seconds, when the text is still
-      /// there to paste for as long as the Control Panel runs.
-      /// </summary>
-      private static void FlushWhenFree_(IDataObject data, int attempt)
-      {
-         var timer = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background)
-         {
-            Interval = TimeSpan.FromMilliseconds(150)
-         };
-         timer.Tick += (s, e) =>
-         {
-            timer.Stop();
-            try
-            {
-               if (!Clipboard.IsCurrent(data))
-                  return;   // something else has been copied since; nothing of ours to keep
-               if (OleFlushClipboard() >= 0)
-                  return;
-            }
-            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-            {
-               // Asked again on the next tick, as for a failed flush.
-            }
-
-            if (attempt + 1 < FlushAttempts)
-               FlushWhenFree_(data, attempt + 1);
-         };
-         timer.Start();
-      }
-
-      [LibraryImport("ole32.dll")]
-      private static partial int OleFlushClipboard();
 
       /// <summary>
       /// The Copy and Select all menu, for a control that copies something of its
-      /// own - the live log's lines. The same words and the same keys as the menu on
-      /// a piece of text.
+      /// own - the live log's lines, a list's rows (SelectableList). The same words
+      /// and the same keys as the menu on a piece of text; no Select all without
+      /// <paramref name="selectAll"/>.
       /// </summary>
       public static ContextMenu CopyMenu(Action copy, Func<bool> canCopy, Action selectAll)
       {
@@ -342,6 +287,16 @@ namespace hMailServer.ControlPanel.Services
          e.Effects = dragEffects_;
          e.Handled = dragHandled_;
          dragArgs_ = null;
+      }
+
+      private static void OnSettingData(object sender, DataObjectSettingDataEventArgs e)
+      {
+         // This text's own editor, not a text box inside the text (which puts plain text anyway).
+         if (sender is TextBlock block && ReferenceEquals(e.OriginalSource, block) && TextEditorAccess.IsAttached(block)
+             && e.Format != DataFormats.UnicodeText && e.Format != DataFormats.Text)
+         {
+            e.CancelCommand();
+         }
       }
 
       private static void OnCanCopy(object sender, CanExecuteRoutedEventArgs e)

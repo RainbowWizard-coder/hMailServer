@@ -423,15 +423,10 @@ namespace hMailServer.ControlPanel.Views
 
       private void CopyIssued()
       {
-         try
-         {
-            Clipboard.SetText(issuedValue_.Text);
+         if (ClipboardWriter.TrySetText(issuedValue_.Text, out string error))
             status_.Text = "Copied.";
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            status_.Text = L("Could not copy: ") + ex.Message;
-         }
+         else
+            status_.Text = L("Could not copy: ") + error;
       }
    }
 }
