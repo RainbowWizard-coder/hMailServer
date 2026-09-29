@@ -757,12 +757,17 @@ chart-and-compose:
         echo "the chart wrote a Secret beside existingSecret"; exit 1
       fi
       echo "The chart lints, renders what a real install needs, and refuses what it must."
+    # In a subshell: a job's script lines share one shell, and the next line runs
+    # from the checkout's root (batch42's pipeline 2894275689 looked for
+    # build/ci/helm-repo.py under packaging/docker).
     - |
-      cd hmailserver/source/Server/platform/packaging/docker
-      mkdir -p secrets certs
-      printf '%s' x > secrets/db_password
-      printf '%s' y > secrets/admin_password
-      docker compose config --quiet
+      (
+        cd hmailserver/source/Server/platform/packaging/docker
+        mkdir -p secrets certs
+        printf '%s' x > secrets/db_password
+        printf '%s' y > secrets/admin_password
+        docker compose config --quiet
+      )
       echo "The Compose file resolves."
     # The Helm repository's writer, which package-repos runs on master: a break is seen here first.
     - python3 build/ci/helm-repo.py --self-test
