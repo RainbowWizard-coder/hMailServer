@@ -704,6 +704,13 @@ Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/
   build/ci/packages/fetch-boost.sh makes six attempts at each source and holds every copy to the pinned SHA-256; the
   EL, openSUSE and Debian 12 build jobs cache the tarball under its SHA-256. On 28 September three package jobs of
   6.3.5's pipeline failed because some of archives.boost.io's addresses did not answer the runner.
+- **The CI's Python is 3.14, and Renovate no longer proposes a locked requirements file it cannot lock.** Every job
+  image pinned by digest is at Renovate's digest of 28 September 2026, and every Python job runs in
+  python:3.14-slim-trixie; the locked requirement files are remade for 3.14 with the same versions and hashes.
+  Renovate's Python merge request of that day had moved twelve versions inside build/ci/requirements.txt without
+  resolving or hashing them - click kept its old hashes, and Semgrep 1.178.0 accepts none of the new versions - so
+  the semgrep job, and with it the release's security gate, would have failed. Its pip manager now reads the .in
+  files only, and its merge request says how to remake the locked files. Microsoft.NET.Test.Sdk is 18.10.1.
 
 ---
 
