@@ -12,7 +12,7 @@
 #include "AntiSpamConfiguration.h"
 
 #include "../TCPIP/DNSResolver.h"
-#include "../Util/TLD.h"
+#include "DMARC/PublicSuffixList.h"
 
 
 #ifdef _DEBUG
@@ -82,11 +82,34 @@ namespace HM
       // No MX records were found.
 
       // Extract the domain name from the host name. For example, replace
-      // cgi.example.com with example.com.
+      // cgi.example.com with example.com, and mail.example.act.edu.au with
+      // example.act.edu.au: the registrable domain by the Public Suffix List.
       bool bIsIPAddress = false;
       String sDomainName = sHostName;
-      if (!TLD::Instance()->GetDomainNameFromHost(sDomainName, bIsIPAddress))
-         return true;
+      if (!PublicSuffixList::GetRegistrableDomain(sDomainName, bIsIPAddress))
+      {
+         // No registrable domain to fall back to. A name of two labels or more,
+         // none of them empty, is then a public suffix itself - github.io, co.uk,
+         // act.edu.au - with no registrant above it whose MX could answer for it,
+         // and its own MX was asked about above and has none: it fails, as a
+         // registered name without an MX does. Until 6.3.6 the cut knew only the
+         // names in SURBL's list of 2006 for suffixes, so a sender at github.io
+         // was cut to github.io and failed; passing every suffix instead would let
+         // a sender at any of the list's thousands of names past this test. One
+         // label, or a name with an empty label, is not judged, as before.
+         String name = sHostName;
+         name.TrimRight(_T("."));
+         const std::vector<String> labels = StringParser::SplitString(name, _T("."));
+
+         bool wellFormed = labels.size() >= 2;
+         for (const String &label : labels)
+         {
+            if (label.IsEmpty())
+               wellFormed = false;
+         }
+
+         return !wellFormed;
+      }
 
       if (bIsIPAddress)
       {

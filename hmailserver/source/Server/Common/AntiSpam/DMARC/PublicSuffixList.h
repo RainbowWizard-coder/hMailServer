@@ -33,5 +33,49 @@ namespace HM
       // build cannot produce; the caller decides the failure direction for
       // that case (see the comment at the call site in DMARC.cpp).
       static size_t GetPublicSuffixLabelCount(const std::vector<String> &labels);
+
+      // Cuts a host name to the name a URI blocklist is asked about and whose MX
+      // records the MX-record spam test falls back to: its registrable domain,
+      // the public suffix and the one label registered under it, from the same
+      // list and the same rules as DMARC's organizational domain. SURBL::CleanHost_
+      // and SpamTestMXRecords call it.
+      //
+      //   www.example.co.uk    -> example.co.uk
+      //   a.b.c.kawasaki.jp    -> b.c.kawasaki.jp     (*.kawasaki.jp)
+      //   www.city.kawasaki.jp -> city.kawasaki.jp    (!city.kawasaki.jp)
+      //   tenant.github.io     -> tenant.github.io    (a PRIVATE suffix)
+      //   10.20.30.40          -> 40.30.20.10, isIPAddress set
+      //
+      // The result is lowercase, and trailing dots are dropped. An IPv4 address
+      // comes back with its octets reversed, as a DNS list is asked about one.
+      // Returns false, and leaves host as it was, for a name that is a public
+      // suffix or shorter (co.uk, com, localhost, the empty name), and for one
+      // whose registrable domain would hold an empty label ("a..com"): there is
+      // no registrant's name to look up.
+      //
+      // Until 6.3.6 this was TLD::GetDomainNameFromHost, which cut at two labels,
+      // or at three under a name in SURBL's list of two-level domains of 2006,
+      // a file beside the binary, and reported error 4335 when that file could
+      // not be read. The list is compiled in now and cannot be missing, so 4335
+      // is no longer reported; the number is retired and not to be given to
+      // another error.
+      static bool GetRegistrableDomain(String &host, bool &isIPAddress);
+   };
+
+   // PublicSuffixList held to what the spam tests need of it: the registrable
+   // domain of names under one-label, multi-label, wildcard and exception
+   // rules and under PRIVATE suffixes, names that are suffixes themselves,
+   // IPv4 addresses, case, trailing dots and empty labels, the names where
+   // the cut differs from the one SURBL's list of 2006 gave, and the same
+   // answer as DMARC's organizational domain for every name that has one. It
+   // runs inside the service with the other class tests (ClassTester, which
+   // Utilities.RunTestSuite reaches), and on Linux as public-suffix-tests. It
+   // needs no database, no setting, no file and no network, and it reports
+   // nothing to the error log. It throws std::logic_error naming the first
+   // thing that is wrong.
+   class PublicSuffixListTester
+   {
+   public:
+      void Test();
    };
 }

@@ -55,9 +55,9 @@ permissions the build needs on the output directory.
 Provision the output directory as the installed layout expects:
 `hMailServer.ini` with a `[Directories]` section and an empty
 `AdministratorPassword`, the `Logs`, `Temp` and `Events` folders, a copy of
-`DBScripts\` with CRLF line endings, `Languages\`, `dh2048.pem` and `tlds.txt`
-from `installation\Extras`, and a `Bin\` folder holding `7za.exe` and a second
-copy of `hMailServer.ini`.
+`DBScripts\` with CRLF line endings, `Languages\`, `dh2048.pem` from
+`installation\Extras`, and a `Bin\` folder holding `7za.exe` and a second copy
+of `hMailServer.ini`.
 
 2. SQL Server Compact and the bench database
 --------------------------------------------
@@ -276,7 +276,7 @@ host; the defaults are the PostgreSQL-backed tree the CI job lays out
 (`build/ci/linux-suite.sh`, run by the `linux-suite` job of `.gitlab-ci.yml`;
 before that, the GitHub workflow `linux-build.yml`'s `regression-on-linux`, in the git history at `v6.3.3`), which is also
 the recipe for a hand-made one: `DBScripts` from the checkout beside the binary,
-`tlds.txt` and `dh2048.pem` from `installation/Extras`, an INI with
+`dh2048.pem` from `installation/Extras`, an INI with
 `Type=PostgreSQL` and `RestApiPort=8045`, `--create-database`, the SMTP, POP3
 and IMAP listeners moved off the privileged ports with an `UPDATE` of
 `hm_tcpipports` (the submission listener keeps its stock 587 where the server

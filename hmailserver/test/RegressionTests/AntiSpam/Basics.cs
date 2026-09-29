@@ -41,7 +41,16 @@ namespace RegressionTests.AntiSpam
             // negative half of that test only means something if the positive half
             // reaches the server at all.
             .WithMx("microsoft.com", 10, "mx.microsoft.test")
-            .WithA("mx.microsoft.test", "192.0.2.40");
+            .WithA("mx.microsoft.test", "192.0.2.40")
+            // The names a host is cut to by the Public Suffix List, under a suffix
+            // of two labels (co.uk) and one of three (act.edu.au): listed for
+            // SurblAsksAboutTheDomainRegisteredUnderAPublicSuffix, and with an MX
+            // for MxCheckFallsBackToTheDomainRegisteredUnderAPublicSuffix. Nothing
+            // is served for the hosts under them.
+            .WithA("surbl-cut.co.uk.multi.surbl.org", "127.0.0.2")
+            .WithA("surbl-cut.act.edu.au.multi.surbl.org", "127.0.0.2")
+            .WithMx("mx-cut.act.edu.au", 10, "mx.mx-cut.test")
+            .WithA("mx.mx-cut.test", "192.0.2.41");
       }
 
       [OneTimeTearDown]
@@ -285,6 +294,51 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      public void MxCheckFallsBackToTheDomainRegisteredUnderAPublicSuffix()
+      {
+         // A sender's host with no MX of its own is judged by its registrable
+         // domain's, cut by the Public Suffix List. mail.mx-cut.act.edu.au has none;
+         // mx-cut.act.edu.au, registered under the three-label suffix act.edu.au,
+         // has one, so the first message is taken. Until 6.3.6 the cut came from
+         // SURBL's list of 2006, which knew edu.au and not act.edu.au: it asked
+         // act.edu.au, which has no MX, and the message was refused. Nothing
+         // answers for mail.no-mx-cut.act.edu.au or its registrable domain, and
+         // that message is refused, so the first was taken by the fallback and not
+         // by a check that did not run.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "mx-cut@example.test", "test");
+
+         _antiSpam.SpamDeleteThreshold = 1;
+         _antiSpam.UseMXChecks = true;
+         _antiSpam.UseMXChecksScore = 2;
+
+         var smtpClientSimulator = new SmtpClientSimulator();
+
+         smtpClientSimulator.Send("test@mail.mx-cut.act.edu.au", account.Address, "INBOX",
+            "From a host whose registrable domain has an MX.");
+
+         CustomAsserts.Throws<DeliveryFailedException>(
+            () => smtpClientSimulator.Send("test@mail.no-mx-cut.act.edu.au", account.Address, "INBOX",
+               "From a host whose registrable domain has none."));
+
+         // A sender at a public suffix itself, which has no MX here, has no
+         // registrable domain to fall back to and is refused: act.edu.au, and the
+         // PRIVATE suffix github.io. The list of 2006 cut both to themselves and
+         // refused them too; passing a name because it is a suffix would let a
+         // sender at any of the list's names past the test.
+         CustomAsserts.Throws<DeliveryFailedException>(
+            () => smtpClientSimulator.Send("test@act.edu.au", account.Address, "INBOX",
+               "From a public suffix of three labels."));
+
+         CustomAsserts.Throws<DeliveryFailedException>(
+            () => smtpClientSimulator.Send("test@github.io", account.Address, "INBOX",
+               "From a PRIVATE public suffix."));
+
+         _antiSpam.UseMXChecks = false;
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 1);
+      }
+
+      [Test]
       public void TestMultiLineSurblImproperlyTerminatedLine()
       {
          // Create a test account
@@ -349,6 +403,37 @@ namespace RegressionTests.AntiSpam
             "A link: http://open-resolver-code.test/ here");
          var contents = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
          Assert.IsFalse(contents.Contains("X-hMailServer-Spam"), "A resolver's refusal code was taken as a listing.");
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblAsksAboutTheDomainRegisteredUnderAPublicSuffix()
+      {
+         // A link's host is looked up whole and as its registrable domain, cut by
+         // the Public Suffix List. Only the cut names are listed here, so a message
+         // is tagged only when the cut kept the label registered under the suffix:
+         // surbl-cut.co.uk under the two-label co.uk, and surbl-cut.act.edu.au
+         // under the three-label act.edu.au. Until 6.3.6 the cut came from SURBL's
+         // list of 2006, which knew edu.au and not act.edu.au, and the second link
+         // was looked up as act.edu.au - a public suffix, which no list lists.
+         var underTwo = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-cut-two@example.test", "test");
+         var underThree = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-cut-three@example.test", "test");
+         var surblServer = ArmSurbl_("");
+         var smtp = new SmtpClientSimulator();
+
+         smtp.Send(underTwo.Address, underTwo.Address, "SURBL-Cut-Two",
+            "A link: http://a.b.surbl-cut.co.uk/page here");
+         var underTwoText = Pop3ClientSimulator.AssertGetFirstMessageText(underTwo.Address, "test");
+         Assert.IsTrue(underTwoText.Contains("X-hMailServer-Spam"),
+            "a.b.surbl-cut.co.uk was not looked up as surbl-cut.co.uk, which is listed.");
+
+         smtp.Send(underThree.Address, underThree.Address, "SURBL-Cut-Three",
+            "A link: http://mail.surbl-cut.act.edu.au/page here");
+         var underThreeText = Pop3ClientSimulator.AssertGetFirstMessageText(underThree.Address, "test");
+         Assert.IsTrue(underThreeText.Contains("X-hMailServer-Spam"),
+            "mail.surbl-cut.act.edu.au was not looked up as surbl-cut.act.edu.au, which is listed.");
+
          surblServer.Active = false;
          surblServer.Save();
       }

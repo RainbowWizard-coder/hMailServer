@@ -42,8 +42,7 @@ Release:        1%{?dist}
 Summary:        Mail server for SMTP, IMAP and POP3
 # The server is the project's (AGPL-3.0-or-later); compiled into it are QuickJS
 # (MIT), the MIME coder (BSD-1-Clause), CStdString (its own permissive notice)
-# and the Public Suffix List's rules (MPL-2.0); tlds.txt, SURBL's 2006 list of
-# two-level country-code domains, states no licence.
+# and the Public Suffix List's rules (MPL-2.0).
 License:        AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive
 URL:            https://gitlab.com/hmailserver/hmailserver
 Source0:        https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/%{version}/hmailserver-%{version}.tar.gz
@@ -172,12 +171,13 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # Then the tester programs the build makes beside the server: the RFC 7208 suite and
 # the SPF testers, the JavaScript binding, the SNMP agent, the object store's
 # request signatures, the singletons, the legacy Blowfish scheme, the backup
-# index's XML, and the date class with the date parsers built on it - the list
-# debian/rules runs. No socket, no configuration, no database; seconds.
+# index's XML, the date class with the date parsers built on it and the Public
+# Suffix List's cut of a host name - the list debian/rules runs. No socket, no
+# configuration, no database; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests; do
   echo "== $tester"
   ./$tester
 done
@@ -228,7 +228,6 @@ fi
 %license LICENSE
 %doc hmailserver/source/Server/platform/packaging/README.md
 %{_bindir}/hmailserver
-%{_bindir}/tlds.txt
 %{_bindir}/dh2048.pem
 %dir %{_prefix}/lib/hmailserver
 %{_prefix}/lib/hmailserver/autoban-hook

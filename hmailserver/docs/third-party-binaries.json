@@ -48,7 +48,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 33",
+      "used_by": "section_files_common.iss line 34",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/libmysql.dll. Repoint the installer at the libraries copy and delete this one.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#libmysql.dll"
     },
@@ -64,7 +64,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/auth_gssapi_client.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/auth_gssapi_client.dll"
     },
@@ -80,7 +80,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/auth_named_pipe.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/auth_named_pipe.dll"
     },
@@ -96,7 +96,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/authentication_windows_client.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/authentication_windows_client.dll"
     },
@@ -112,7 +112,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/caching_sha2_password.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/caching_sha2_password.dll"
     },
@@ -128,7 +128,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/client_ed25519.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/client_ed25519.dll"
     },
@@ -144,7 +144,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/dialog.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/dialog.dll"
     },
@@ -160,7 +160,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/mysql_clear_password.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/mysql_clear_password.dll"
     },
@@ -176,7 +176,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/parsec.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/parsec.dll"
     },
@@ -192,7 +192,7 @@
       "authenticode": "NotSigned",
       "authenticode_signer": null,
       "disposition": "fetched",
-      "used_by": "section_files_common.iss line 37 (.\\Extras\\plugin\\*.dll)",
+      "used_by": "section_files_common.iss line 38 (.\\Extras\\plugin\\*.dll)",
       "why": "Byte-identical to libraries/mariadb-connector-c-3.4.9/plugin/sha256_password.dll.",
       "source": "build-inputs-1/mariadb-connector-c-3.4.9-win64-client.zip#plugin/sha256_password.dll"
     },

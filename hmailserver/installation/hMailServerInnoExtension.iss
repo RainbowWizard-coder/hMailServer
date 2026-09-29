@@ -1911,6 +1911,12 @@ begin
    DeleteFile(ExpandConstant('{app}\Bin\License.txt'));
    DeleteFile(ExpandConstant('{app}\Bin\Sourcecode.txt'));
 
+   // SURBL's list of two-level domains of 2006, which versions before 6.3.6
+   // installed here and read to cut host names for the SURBL lookups and the
+   // MX-record test. The server cuts them by the Public Suffix List it compiles
+   // in now, and nothing reads the file.
+   DeleteFile(ExpandConstant('{app}\Bin\tlds.txt'));
+
    Result := true;
 end;
 

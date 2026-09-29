@@ -57,7 +57,6 @@ rpm -qp --requires "$rpm_file" | grep -v '^rpmlib(' | sed 's/^/  requires /'
 REQUIRED_FILES="
 /usr/bin/hmailserver
 /usr/bin/hmctl
-/usr/bin/tlds.txt
 /usr/bin/dh2048.pem
 /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql
 /usr/share/hmailserver/DBScripts/CreateTablesMySQL.sql

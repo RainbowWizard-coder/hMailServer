@@ -26,7 +26,6 @@ Source: "..\source\Addons\Events\*.*"; DestDir: "{app}\Events"; Flags: onlyifdoe
 
 Source: "..\source\Translations\*"; Excludes: "CVS,.cvsignore,.#*"; DestDir: "{app}\Languages"; Components: server admintools;
 
-Source: ".\Extras\tlds.txt"; DestDir: "{app}\Bin";  Flags: ignoreversion; Components: server;
 Source: ".\Extras\dh2048.pem"; DestDir: "{app}\Bin";  Flags: ignoreversion; Components: server;
 
 #ifndef HM_ARM64

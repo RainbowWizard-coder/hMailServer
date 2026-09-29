@@ -91,8 +91,8 @@ hmailserver/tools/VS2005
 # uninstall helper, the winget and Chocolatey templates, and 7-Zip's licence (the
 # installer carries 7za.exe; the Linux packages recommend the distribution's 7-Zip).
 # What stays of hmailserver/installation is what CMakeLists.txt installs:
-# WebAdmin/ (the Control Deck and its catalogues) and Extras/tlds.txt and
-# Extras/dh2048.pem, which the server cannot work without.
+# WebAdmin/ (the Control Deck and its catalogues) and Extras/dh2048.pem, which
+# the server cannot work without.
 hmailserver/installation/Extras/7za.exe.license.txt
 hmailserver/installation/InnoSocketCheck
 hmailserver/installation/License.rtf

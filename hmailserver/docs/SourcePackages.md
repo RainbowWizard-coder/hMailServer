@@ -50,7 +50,7 @@ and updated by its package manager, so these differ where that matters:
 | The unit | enabled, not started | Debian: enabled, not started (`dh_installsystemd --no-start`); RPM: the distribution's preset decides (`%systemd_post`, `%service_add_post`), which leaves it disabled unless a preset names it |
 | An upgrade | the schema upgraded, a running server restarted | the same: `postinst` or `%post` runs `hmailserver --upgrade-database` when a database is configured, then `try-restart` (`%systemd_postun_with_restart` on RPM) |
 | A purge (Debian) | keeps the logs and the mail store | removes `/var/log/hmailserver`, as Debian Policy 10.8 asks; keeps the mail store, the database and the account |
-| The tester programs | run by `linux-build` | run by the build itself: `dh_auto_test` and `%check` run `spf-tests`, `script-binding-tests`, `snmp-tests`, `object-store-signature-tests`, `singleton-tests`, `legacy-blowfish-tests`, `xml-tree-tests` and `datetime-tests`, and both first run `hmailserver --version`, so a server that cannot start fails the build |
+| The tester programs | run by `linux-build` | run by the build itself: `dh_auto_test` and `%check` run `spf-tests`, `script-binding-tests`, `snmp-tests`, `object-store-signature-tests`, `singleton-tests`, `legacy-blowfish-tests`, `xml-tree-tests`, `datetime-tests` and `public-suffix-tests`, and both first run `hmailserver --version`, so a server that cannot start fails the build |
 
 `-DHM_BOOST_STATIC` is new with these packages: `CMakeLists.txt` set
 `Boost_USE_STATIC_LIBS` itself, which hid any value given on the command line, and
@@ -103,10 +103,10 @@ project's own files (AGPL-3.0-or-later, Martin Knafve's and the maintainers'), i
 declares every third-party notice in the repacked tarball: QuickJS (MIT, as
 `Expat`), the MIME coder (BSD-1-Clause), `CStdString` (its own notice), the RFC
 7208 test suite (BSD-3-Clause), the Public Suffix List's data compiled into the
-server (MPL-2.0), `tlds.txt` (SURBL's 2006 list; no licence stated), the ATL script host, which only the Windows server
+server (MPL-2.0), the ATL script host, which only the Windows server
 compiles (its own notice), the DKIM corpus (Perl's terms), and the licence texts under
 `hmailserver/docs/Licenses`, which are notices of components not in the source.
-`tlds.txt` is declared as `none-stated`, which a Debian archive does not accept
+Since 6.3.6 no file is declared `none-stated`, a declaration a Debian archive does not accept
 ([the questions below](#questions-for-a-debian-or-fedora-maintainer)). The AGPL's
 text is written out in full: Debian's `/usr/share/common-licenses` does not carry
 it.
@@ -495,17 +495,18 @@ Questions for a Debian or Fedora maintainer
   1999, from CodeGuru), which stated no licence and whose helpers kept the names
   of MFC's `COleDateTime`, with `DateTime.cpp`, written from the calendar and the
   OLE Automation date's definition. Each keeps the old code's behaviour, held to
-  it by a differential test over millions of cases.
+  it by a differential test over millions of cases. Nor is a file left that the
+  server reads and whose licence is unsettled: `tlds.txt`, SURBL's list of
+  two-level domains of 2006, which stated none, gave way in 6.3.6 to the Public
+  Suffix List the server already compiled in.
 - **The Public Suffix List.** The server compiles the list's rules in
-  (`PublicSuffixListData.h`); `tlds.txt` beside its binary is not the list but
-  SURBL's 2006 table of two-level country-code domains, with no licence stated,
-  which the SURBL lookups and the MX-record test read. Debian ships
-  the list as `publicsuffix` and Fedora as `publicsuffix-list`; using the
-  distribution's copy needs a change to how the server loads it.
-- **Data files in `/usr/bin`.** `tlds.txt` and `dh2048.pem` are installed beside
-  the binary because the server reads them from its own directory. A distribution
-  would want them under `/usr/share/hmailserver`, which needs the server to look
-  there.
+  (`PublicSuffixListData.h`), and DMARC, the SURBL lookups and the MX-record
+  test read them. Debian ships the list as `publicsuffix` and Fedora as
+  `publicsuffix-list`; using the distribution's copy needs a change to how the
+  server loads it.
+- **A data file in `/usr/bin`.** `dh2048.pem` is installed beside the binary
+  because the server reads it from its own directory. A distribution would want
+  it under `/usr/share/hmailserver`, which needs the server to look there.
 - **The DKIM corpus.** Its files are declared as Mail::DKIM's by their names and
   contents; the project has no record of when they were taken.
 - **`CStdString`'s licence.** Its notice is its own ("This code is 100% free. Use it
@@ -522,8 +523,8 @@ Questions for a Debian or Fedora maintainer
   the one. Whether GCC 16 links the
   server with LTO is untested: the one try ran on the laptop's lossy file system.
 - **The rpmlint filters.** `rpm/hmailserver.rpmlintrc` keeps the mail store's and the
-  configuration's modes and the two data files in `/usr/bin` from being reported;
-  a reviewer may prefer other modes, or the data files moved (above).
+  configuration's modes and the data file in `/usr/bin` from being reported; a
+  reviewer may prefer other modes, or the data file moved (above).
 - **`uses-dpkg-database-directly`.** The server's update check reads dpkg's record
   to know that a package installed it; with the live update off it only names the
   update command, and could stop reading it in a distribution's build.

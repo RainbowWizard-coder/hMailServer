@@ -11,7 +11,7 @@
 #include "../../Common/TCPIP/DNSResolver.h"
 #include "../../SMTP/BLCheck.h"
 
-#include "../../Common/Util/TLD.h"
+#include "DMARC/PublicSuffixList.h"
 #include <boost/regex.hpp>
 
 #ifdef _DEBUG
@@ -261,7 +261,9 @@ namespace HM
    bool
    SURBL::CleanHost_(String &sDomain) const
    {
+      // The registrable domain by the Public Suffix List; the full host was
+      // collected already, so both are looked up.
       bool bIsIPAddress = false;
-      return TLD::Instance()->GetDomainNameFromHost(sDomain, bIsIPAddress);
+      return PublicSuffixList::GetRegistrableDomain(sDomain, bIsIPAddress);
    }
 }

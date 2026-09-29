@@ -54,10 +54,6 @@ fi
 # Every file the server opens, and why each one is here (the list the old
 # workflow asserted on both package formats):
 #   hmailserver                the service
-#   tlds.txt                   SURBL's list of two-level country-code domains,
-#                              which the SURBL lookups and the MX-record test
-#                              cut a host name with; without it TLD::Initialize
-#                              reports 4335
 #   dh2048.pem                 the Diffie-Hellman group; without it every TLS
 #                              context reports a critical 5603
 #   CreateTables*.sql          the schema --create-database runs
@@ -66,7 +62,6 @@ fi
 #   the units, the configuration, the logrotate rule, the update helper
 REQUIRED_FILES="
 /usr/bin/hmailserver
-/usr/bin/tlds.txt
 /usr/bin/dh2048.pem
 /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql
 /usr/share/hmailserver/DBScripts/CreateTablesMySQL.sql

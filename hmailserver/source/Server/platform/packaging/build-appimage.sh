@@ -263,23 +263,17 @@ mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/share/applications" \
 
 install -m 0755 "${BINARY}" "${APPDIR}/usr/bin/hmailserver"
 
-# Beside the binary, because that is where the server looks for them:
+# Beside the binary, because that is where the server looks for it:
 # Utilities::GetBinDirectory() on this platform is the directory of the running
-# image (/proc/self/exe), not ProgramFolder. The .deb and .rpm put them in the
+# image (/proc/self/exe), not ProgramFolder. The .deb and .rpm put it in the
 # same relative place for the same reason.
 #
 #   dh2048.pem  the Diffie-Hellman group. Without it SslContextInitializer
 #               reports a CRITICAL 5603 and every TLS context refuses the
 #               connection - an AppImage without this file is a mail server
 #               that cannot do TLS at all.
-#   tlds.txt    SURBL's list of two-level country-code domains (not the Public
-#               Suffix List, which DMARC has compiled in). Without it
-#               TLD::Initialize reports 4335, and the SURBL lookups and the
-#               MX-record test cut every host name to its last two labels.
 install -m 0644 "${REPO_ROOT}/hmailserver/installation/Extras/dh2048.pem" \
    "${APPDIR}/usr/bin/dh2048.pem"
-install -m 0644 "${REPO_ROOT}/hmailserver/installation/Extras/tlds.txt" \
-   "${APPDIR}/usr/bin/tlds.txt"
 
 # The SQL the administrator has to run to create the schema. It is small, it is
 # what the .deb and .rpm install to the same relative path, and an AppImage

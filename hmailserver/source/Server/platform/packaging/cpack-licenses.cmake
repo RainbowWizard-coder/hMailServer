@@ -16,8 +16,7 @@
 # copyright of what the server is built from and under which licence, with the
 # AGPL-3.0-or-later in full and the terms of what is compiled into the binary -
 # QuickJS, the MIME coder, CStdString, the Public Suffix List's rules and the
-# rest - with what is known of the files that state no licence, tlds.txt among
-# them. It is the same file the source package's own .deb carries, not a second
+# rest. It is the same file the source package's own .deb carries, not a second
 # one to keep in step with it.
 #
 #   .deb  /usr/share/doc/hmailserver/copyright, where Debian Policy 12.5 wants

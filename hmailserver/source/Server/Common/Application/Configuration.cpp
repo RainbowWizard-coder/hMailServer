@@ -16,7 +16,6 @@
 #include "../Cache/CacheContainer.h"
 #include "../Application/ObjectCache.h"
 #include "../Scripting/ScriptServer.h"
-#include "../Util/TLD.h"
 #include "../TCPIP/LocalIPAddresses.h"
 
 #include "../../POP3/POP3Configuration.h"
@@ -131,7 +130,6 @@ namespace HM
       Publish_(ssl_certificates_, sslCertificates);
 
       ScriptServer::Instance()->LoadScripts();
-      TLD::Instance()->Initialize();
       LocalIPAddresses::Instance()->LoadIPAddresses();
 
       return imapLoaded;

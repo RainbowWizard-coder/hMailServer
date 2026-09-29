@@ -147,28 +147,8 @@ License: MPL-2.0
 Comment:
  Made from the Public Suffix List (https://publicsuffix.org/) by
  build/generate-public-suffix-list.ps1, and compiled into /usr/bin/hmailserver,
- where DMARC finds a domain's organisational domain with it.
-
-Files: hmailserver/installation/Extras/tlds.txt
-Copyright: 2004-2006 SURBL
-License: none-stated
-Comment:
- Not the Public Suffix List, which it predates: SURBL's table of two-level
- country-code domains (com.ac, co.uk, ...), which its implementation guidelines
- of 2006 offered, "partially-complete", to software that looks domains up in
- its lists, so that a name under one of them is looked up at three levels.
- Less its carriage returns, the file is byte for byte the list SURBL served at
- http://spamcheck.freeapp.net/two-level-tlds on 27 April 2006 (last modified 14
- April 2006; 992 lines, SHA-256
- 1aeda16b1421a7b95396fca2e059e73abcdafaf590cdb21354a9cce614d191de, as the
- Internet Archive holds it). SpamAssassin 3.1.8's RegistrarBoundaries.pm, whose
- list holds every one of its domains, says of its own: "data from
- http://spamcheck.freeapp.net/two-level-tlds , in turn from
- http://www.bestregistrar.com/help/ccTLD.htm". SURBL published the list with no
- copyright notice and no licence. The server reads it beside its binary
- (/usr/bin/tlds.txt) to cut a host name to the domain it looks up in a SURBL
- list and in the MX-record spam test (TLD::GetDomainNameFromHost); DMARC does
- not read it.
+ where DMARC finds a domain's organisational domain with it, and the SURBL
+ lookups and the MX-record spam test the registrable domain of a host name.
 
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
@@ -934,13 +914,6 @@ License: StdString
  it, good for you.  I kinda like capitalism. Please don't blame me if it causes
  your $30 billion dollar satellite explode in orbit.  If you redistribute it in
  any form, I'd appreciate it if you would leave this notice here.
-
-License: none-stated
- This file states no licence, and the project has no record of one. It is
- declared here as it is, so that the question is seen: a Debian archive needs a
- licence for every file it distributes, and the server reads this one, so
- leaving it out is not open to this package the way it is for the unlicensed
- test data.
 
 License: MPL-2.0
  This Source Code Form is subject to the terms of the Mozilla Public License,

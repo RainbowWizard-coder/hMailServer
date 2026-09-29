@@ -173,14 +173,8 @@ From the CMakeLists install rules, with the prefix above:
 
 ```
 /usr/bin/hmailserver                        the server; one file
-/usr/bin/tlds.txt                           SURBL's 2006 list of two-level country-code
-                                            domains (not the Public Suffix List), read
-                                            from the binary's own directory; the SURBL
-                                            lookups and the MX-record test cut a host
-                                            name to its domain with it, and without it
-                                            TLD::Initialize reports 4335
-/usr/bin/dh2048.pem                         the Diffie-Hellman group, also read from
-                                            the binary's own directory; without it
+/usr/bin/dh2048.pem                         the Diffie-Hellman group, read from the
+                                            binary's own directory; without it
                                             every TLS context reports a critical 5603
 /usr/share/hmailserver/DBScripts/*.sql      schema creation and upgrade scripts
 /usr/share/hmailserver/WebAdmin/index.html  the Control Deck, served at GET / by the
@@ -202,12 +196,12 @@ From the CMakeLists install rules, with the prefix above:
 /etc/logrotate.d/hmailserver                the log rotation rule
 ```
 
-The two `/usr/bin` data files and the two under `/usr/share/hmailserver` are found
-by different mechanisms and it matters which: `tlds.txt` and `dh2048.pem` are read
-from the running executable's own directory (`Utilities::GetBinDirectory`), while
-`DBScripts` and `WebAdmin` are read from `ProgramFolder` in the configuration -
-which this package sets to `/usr/share/hmailserver`. Move either and the
-corresponding pair has to move with it.
+The `/usr/bin` data file and the two under `/usr/share/hmailserver` are found by
+different mechanisms and it matters which: `dh2048.pem` is read from the running
+executable's own directory (`Utilities::GetBinDirectory`), while `DBScripts` and
+`WebAdmin` are read from `ProgramFolder` in the configuration - which this
+package sets to `/usr/share/hmailserver`. Moving the first needs the server to
+look elsewhere; moving the other two needs `ProgramFolder` to follow.
 
 CPack adds one file the install rules do not: the copyright file, where each
 format keeps it - `/usr/share/doc/hmailserver/copyright` in the `.deb` (Debian
@@ -731,10 +725,10 @@ when the packaging changes.
   CMakeLists now generates a `conffiles` control file for the `.deb` and marks
   the file `%config(noreplace)` in the `.rpm`; the Arch package's `backup=`
   array was already this mechanism.
-* **`tlds.txt` and `dh2048.pem` were not installed.** Both are read from the
-  directory the executable is in, and without the second
-  `SslContextInitializer` reports a critical 5603 for every TLS context. Both
-  are installed beside the binary from `hmailserver/installation/Extras`.
+* **`dh2048.pem` was not installed.** It is read from the directory the
+  executable is in, and without it `SslContextInitializer` reports a critical
+  5603 for every TLS context. It is installed beside the binary from
+  `hmailserver/installation/Extras`.
 * **The RPM had no `%postun`.** `rpm/postun` runs `systemctl daemon-reload`.
 * **The configuration landed in `/usr/etc`.** CPack prefixes a relative
   `sysconfdir` with the packaging prefix; the install rules write `/etc`

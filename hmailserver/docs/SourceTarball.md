@@ -67,7 +67,7 @@ literal path per line, with the reason for each group; in short:
 | `hmailserver/source/Tools/*` but `Cli` | The Control Panel and the database tools, every one a `net10.0-windows` project. `Cli` stays: the packages install its `hmctl`. |
 | `hmailserver/source/Addons` | The VBScript add-ons the Windows installer copies (the Linux server runs its event scripts in JavaScript). |
 | `hmailserver/tools/*` but `Scripts` and `Anonymizer.sql` | .NET Framework developer tools, a batch file, a Visual Studio 2005 file. |
-| `hmailserver/installation/*` but `WebAdmin/`, `Extras/tlds.txt` and `Extras/dh2048.pem` | The Inno Setup sources, pictures and licence page, the socket-check DLL's source, the uninstall helper, the winget and Chocolatey templates, 7-Zip's licence. What stays is what `CMakeLists.txt` installs: the Control Deck and its catalogues, the list of top-level domains and the Diffie-Hellman group. |
+| `hmailserver/installation/*` but `WebAdmin/` and `Extras/dh2048.pem` | The Inno Setup sources, pictures and licence page, the socket-check DLL's source, the uninstall helper, the winget and Chocolatey templates, 7-Zip's licence. What stays is what `CMakeLists.txt` installs: the Control Deck and its catalogues, and the Diffie-Hellman group. |
 
 Left in on purpose: the whole of `hmailserver/test` (the Linux suite links about
 340 of `RegressionTests`' files and reads `SSL examples`, and the fuzz seeds come
@@ -125,8 +125,7 @@ Everything else in the tarball is the project's, under the AGPL-3.0-or-later in
 | The MIME encoder and decoder (Jeff Lee) | `hmailserver/source/Server/Common/Mime` | BSD-style | `hmailserver/docs/Licenses/License - MIME Message encoder analyzer.rtf` |
 | `CStdString` (Joseph M. O'Leary) | `hmailserver/source/Server/Common/Util/StdString.h` | its own permissive notice | `hmailserver/docs/Licenses/License - String library.rtf` |
 | The RFC 7208 test suite, which `spf-tests` runs | `hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.yml` | BSD-style | `rfc7208-tests.LICENSE` beside it, and `hmailserver/docs/Licenses/License - RFC 7208 test suite.txt` |
-| The Public Suffix List's rules, compiled into the server | `hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h` | MPL-2.0 | the MPL's own notice in the file's header |
-| SURBL's list of two-level country-code domains (SURBL, 2004-2006), which the SURBL lookups and the MX-record test read; not the Public Suffix List | `hmailserver/installation/Extras/tlds.txt` | none stated | none in the file |
+| The Public Suffix List's rules, compiled into the server, which DMARC, the SURBL lookups and the MX-record test read | `hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h` | MPL-2.0 | the MPL's own notice in the file's header |
 | The ATL Active Script host (VisionTech Limited, 2001), which only `hMailServer.exe` compiles | `hmailserver/source/Server/Common/Scripting/ScriptSite.h` | its own permissive notice (use, modify and redistribute, keeping the notice) | the notice in the file, under the project's SPDX header, which does not describe it |
 | DKIM test messages, which the Windows suite and the fuzzing seeds read: most appear to be the test corpus of Mail::DKIM (Jason Long, Messiah College), distributed under Perl's terms | `hmailserver/test/TestData/DKIM` | Perl's (GPL-1.0-or-later or Artistic-1.0-Perl), for those | none in the tree |
 

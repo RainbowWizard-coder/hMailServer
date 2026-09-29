@@ -161,7 +161,7 @@ echo "== the server tree"
 cp "$BINARY" "$T/program/hmailserver"
 chmod +x "$T/program/hmailserver"
 cp -r hmailserver/source/DBScripts "$T/program/DBScripts"
-cp hmailserver/installation/Extras/tlds.txt hmailserver/installation/Extras/dh2048.pem "$T/program/"
+cp hmailserver/installation/Extras/dh2048.pem "$T/program/"
 sha256sum "$T/program/hmailserver"
 
 echo "== the database ($PGUSER@$PGH/$DB)"

@@ -24,11 +24,9 @@ addFilter("non-standard-dir-perm /etc/hmailserver 750")
 # root's, readable by the service's group and nobody else.
 addFilter("non-readable /etc/hmailserver/hMailServer.ini 640")
 
-# Data, not programs: the Public Suffix List and the Diffie-Hellman group, which the
-# server reads from the directory its own binary is in (Utilities::GetBinDirectory).
-# Moving them under /usr/share needs the server to look there (a question for a
-# distribution's maintainer, in SourcePackages.md).
-addFilter("script-without-shebang /usr/bin/tlds.txt")
+# Data, not a program: the Diffie-Hellman group, which the server reads from the
+# directory its own binary is in (Utilities::GetBinDirectory). Moving it under
+# /usr/share needs the server to look there (a question for a distribution's
+# maintainer, in SourcePackages.md).
 addFilter("script-without-shebang /usr/bin/dh2048.pem")
-addFilter("wrong-script-end-of-line-encoding /usr/bin/tlds.txt")
 addFilter("wrong-script-end-of-line-encoding /usr/bin/dh2048.pem")

@@ -113,4 +113,60 @@ namespace HM
       // own organizational domain) instead of unmatchable.
       return 1;
    }
+
+   bool
+   PublicSuffixList::GetRegistrableDomain(String &host, bool &isIPAddress)
+   {
+      isIPAddress = false;
+
+      // Prepared as DMARC::GetOrganizationalDomain prepares a domain, so that a
+      // name has one registrable domain whichever of them asks.
+      String name = host;
+      name.MakeLower();
+      name.TrimRight(_T("."));
+
+      std::vector<String> labels = StringParser::SplitString(name, _T("."));
+
+      // A literal IPv4 address in a link is looked up with its octets
+      // reversed, as a DNS list is asked about an address.
+      if (labels.size() == 4 && StringParser::IsValidIPAddress(name))
+      {
+         host = labels[3] + _T(".") + labels[2] + _T(".") + labels[1] + _T(".") + labels[0];
+         isIPAddress = true;
+         return true;
+      }
+
+      size_t suffixLabels = GetPublicSuffixLabelCount(labels);
+
+      // 0 means the compiled-in tables are empty, which the generator refuses
+      // to produce. Were a broken regeneration ever committed, the implicit
+      // rule answers here - a cut at two labels, as it was when the list of
+      // 2006 could not be read - PublicSuffixListTester fails, and DMARC
+      // reports it (6150) when it next evaluates a message.
+      if (suffixLabels == 0)
+         suffixLabels = 1;
+
+      // The name is a public suffix itself (co.uk, or c.kawasaki.jp under
+      // *.kawasaki.jp), or the empty name: nobody has registered it.
+      if (labels.size() <= suffixLabels)
+         return false;
+
+      const size_t registrableLabels = suffixLabels + 1;
+
+      String result;
+      for (size_t index = labels.size() - registrableLabels; index < labels.size(); index++)
+      {
+         // "a..com": the label registered under the suffix is empty, and that
+         // is no name to look up.
+         if (labels[index].IsEmpty())
+            return false;
+
+         if (!result.IsEmpty())
+            result += _T(".");
+         result += labels[index];
+      }
+
+      host = result;
+      return true;
+   }
 }

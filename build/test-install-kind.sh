@@ -54,7 +54,7 @@
 #   The database: HM_PG_HOST (127.0.0.1), HM_PG_PORT (5432), HM_PG_USER
 #   (hmailserver), HM_PG_PASSWORD (hmtest), HM_PG_DATABASE (hminstallkind) - an
 #   empty database or one this script used before; nothing else of it is read.
-#   The server's own copies of DBScripts, tlds.txt and dh2048.pem come from this
+#   The server's own copies of DBScripts and dh2048.pem come from this
 #   checkout (--repo-root, the checkout this script is in by default).
 #
 # Exit status: 0 when every check passes, 1 when any does not, 2 when it could
@@ -270,7 +270,7 @@ export PGPASSWORD="${HM_PG_PASSWORD:-hmtest}"
 T="${WORK}/tree"
 mkdir -p "${T}/program" "${T}/Data" "${T}/Logs" "${T}/Temp" "${T}/Events" "${T}/Database"
 cp -r "${REPO_ROOT}/hmailserver/source/DBScripts" "${T}/program/DBScripts"
-cp "${REPO_ROOT}/hmailserver/installation/Extras/tlds.txt" "${REPO_ROOT}/hmailserver/installation/Extras/dh2048.pem" "${T}/program/"
+cp "${REPO_ROOT}/hmailserver/installation/Extras/dh2048.pem" "${T}/program/"
 INI="${T}/program/hMailServer.ini"
 cat > "${INI}" <<INI
 [Directories]

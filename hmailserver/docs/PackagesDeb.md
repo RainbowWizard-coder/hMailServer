@@ -424,10 +424,7 @@ the Arch package carried hMailServer's own licence.
   which licence, with the AGPL-3.0-or-later in full and the terms of what is
   compiled into the binary - QuickJS (MIT), the MIME coder (BSD-1-Clause),
   CStdString (a permissive notice of its own), the Public Suffix List's rules
-  (MPL-2.0) and the rest it names. It also declares, with what is known of them,
-  the files whose licence is not settled because they state none, among them
-  `/usr/bin/tlds.txt`: SURBL's 2006 list of two-level country-code domains,
-  which is not the Public Suffix List. Ubuntu's container images keep it where
+  (MPL-2.0) and the rest it names. Ubuntu's container images keep it where
   their `dpkg` leaves out the rest of `/usr/share/doc`.
 - `/usr/share/hmailserver/licenses/AGPL-3.0.txt`, hMailServer's own licence, the
   FSF's file byte for byte (the repository's `LICENSE` without its carriage

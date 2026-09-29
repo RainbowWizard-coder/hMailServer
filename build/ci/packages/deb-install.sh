@@ -132,7 +132,7 @@ echo "version $answer" >> "$report"
 step "every file an installation needs"
 count=0
 for f in \
-    /usr/bin/hmailserver /usr/bin/hmctl /usr/bin/tlds.txt /usr/bin/dh2048.pem \
+    /usr/bin/hmailserver /usr/bin/hmctl /usr/bin/dh2048.pem \
     /usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql \
     /usr/share/hmailserver/DBScripts/CreateTablesMySQL.sql \
     /usr/share/hmailserver/WebAdmin/index.html \

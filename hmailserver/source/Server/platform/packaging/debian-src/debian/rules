@@ -44,11 +44,11 @@ override_dh_auto_configure:
 # Then the tester programs the build makes beside the server: the RFC 7208 suite and
 # the SPF testers, the event scripts' JavaScript binding, the SNMP agent's
 # decoder and cryptography, the object store's request signatures, the
-# singletons, the legacy Blowfish scheme, the backup index's XML, and the date
-# class with the MIME, IMAP and system-date parsers built on it. None opens a
-# socket, reads a configuration or needs a database, so they run here, with the
-# network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests
+# singletons, the legacy Blowfish scheme, the backup index's XML, the date class
+# with the MIME, IMAP and system-date parsers built on it, and the Public Suffix
+# List's cut of a host name. None opens a socket, reads a configuration or needs a
+# database, so they run here, with the network refused, in seconds.
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -67,11 +67,11 @@ override_dh_auto_install:
 	# holds no .sql behind, empty.
 	find debian/tmp/usr/share/hmailserver -type d -empty -delete
 
-# tlds.txt and dh2048.pem are data the server reads from its own directory, not
-# programs, and dh_fixperms makes everything in /usr/bin executable.
+# dh2048.pem is data the server reads from its own directory, not a program, and
+# dh_fixperms makes everything in /usr/bin executable.
 override_dh_fixperms:
 	dh_fixperms
-	chmod 0644 debian/hmailserver/usr/bin/tlds.txt debian/hmailserver/usr/bin/dh2048.pem
+	chmod 0644 debian/hmailserver/usr/bin/dh2048.pem
 
 # Enabled and not started, on a first install and on an upgrade: nothing in the
 # package knows the database the server should use, and one started without it

@@ -541,6 +541,19 @@ add_executable(xml-tree-tests ${SERVER_DIR}/platform/xml_tree_tests_main.cpp)
 target_link_libraries(xml-tree-tests PRIVATE hmailserver_core)
 set_target_properties(xml-tree-tests PROPERTIES OUTPUT_NAME xml-tree-tests)
 
+# ---------------------------------------------------------------- the Public Suffix List's cut
+#
+# PublicSuffixListTester (Common/AntiSpam/DMARC/PublicSuffixList.h) as a program
+# of its own, for the reason spf-tests is one: on Windows it runs inside the
+# server through ClassTester, which nothing reaches here. The name the SURBL
+# lookups ask about and the MX-record spam test falls back to, cut from a host by
+# the compiled-in list: wildcard and exception rules, PRIVATE names, suffixes,
+# addresses, and DMARC's organizational domain the same name. No network, no
+# configuration, no database. Not installed; a bench tool.
+add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_main.cpp)
+target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
+set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)
+
 # ---------------------------------------------------------------- the OpenPGP writer
 #
 # The one OpenPGP message this server writes - a delivery to a zero-access
@@ -691,18 +704,15 @@ install(FILES ${SERVER_DIR}/platform/packaging/hmailserver.logrotate
    RENAME hmailserver
    DESTINATION /etc/logrotate.d)
 
-# Two data files the server reads from its own directory and cannot work without.
-# tlds.txt is SURBL's 2006 list of two-level country-code domains (co.uk, com.ac;
-# not the Public Suffix List, which DMARC has compiled in), with which the SURBL
-# lookups and the MX-record spam test cut a host name to its domain
-# (TLD::GetDomainNameFromHost; TLD::Initialize reports 4335 without it, and every
-# name is then cut to two labels); dh2048.pem is the Diffie-Hellman
-# group, and SslContextInitializer reports a critical 5603 for EVERY TLS context
-# when it is missing - which is to say the server would install and then refuse
-# every encrypted connection. They go beside the binary, which is where the code
-# looks: Utilities::GetBinDirectory is the running executable's own directory.
+# The data file the server reads from its own directory and cannot work without:
+# dh2048.pem, the Diffie-Hellman group. SslContextInitializer reports a critical
+# 5603 for EVERY TLS context when it is missing - which is to say the server would
+# install and then refuse every encrypted connection. It goes beside the binary,
+# which is where the code looks: Utilities::GetBinDirectory is the running
+# executable's own directory. Until 6.3.6 a second file went with it, SURBL's
+# list of two-level domains of 2006; the SURBL lookups and the MX-record test cut
+# host names by the Public Suffix List compiled in now.
 install(FILES
-   ${SERVER_DIR}/../../installation/Extras/tlds.txt
    ${SERVER_DIR}/../../installation/Extras/dh2048.pem
    DESTINATION ${CMAKE_INSTALL_BINDIR})
 
@@ -839,8 +849,7 @@ set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
 # CStdString (a permissive notice of its own), the Public Suffix List's rules
 # (MPL-2.0) and Boost (BSL-1.0), linked statically. The source package's spec names
 # the same less Boost, whose shared libraries it links. Neither can name a notice
-# no identifier names yet or a file that states no licence, such as tlds.txt
-# (SURBL's list of 2006): the copyright file declares those
+# no identifier names yet: the copyright file declares those
 # (hmailserver/docs/SourcePackages.md).
 set(CPACK_RPM_PACKAGE_LICENSE
    "AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND BSL-1.0")

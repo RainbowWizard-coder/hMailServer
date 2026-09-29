@@ -137,7 +137,7 @@ echo "== what the image carries"
 ( cd "$work" && "$image" --appimage-extract > /dev/null )
 root="$work/squashfs-root"
 for f in AppRun hmailserver.desktop hmailserver.svg .DirIcon \
-         usr/bin/hmailserver usr/bin/dh2048.pem usr/bin/tlds.txt \
+         usr/bin/hmailserver usr/bin/dh2048.pem \
          usr/share/hmailserver/DBScripts/CreateTablesPGSQL.sql \
          usr/share/hmailserver/WebAdmin/index.html \
          usr/share/hmailserver/hMailServer.ini.default \

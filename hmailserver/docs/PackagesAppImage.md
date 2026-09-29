@@ -196,7 +196,7 @@ and needs the target's loader.
 4. The image carries the Control Deck and every one of its catalogues, byte for
    byte, as well as:
    - the schema scripts;
-   - `dh2048.pem` and `tlds.txt`;
+   - `dh2048.pem`;
    - the live update's apply step;
    - the licences, among them `appimage-runtime.txt`, which must name the
      release file with the runtime's libraries' source, the licence files of

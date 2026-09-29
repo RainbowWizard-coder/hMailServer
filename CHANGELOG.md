@@ -131,8 +131,8 @@ for a stray `#` number or `@` name.
   Compact 3.5's headers and both copies of its licence, which are not free, and what only the Windows build and its
   installer use (the rest of `libraries/` with the Fat Cow icons, the COM API, the Windows service host and
   helpers, the vendored zlib, the Control Panel and the database tools, the VBScript add-ons, the .NET Framework
-  developer tools and the installer's sources, keeping the Control Deck, `tlds.txt` and `dh2048.pem`, which the
-  packages install). It is reproducible - every entry carries the commit's time, uid and gid 0 and a 0644 or 0755
+  developer tools and the installer's sources, keeping the Control Deck and `dh2048.pem`, which the packages
+  install). It is reproducible - every entry carries the commit's time, uid and gid 0 and a 0644 or 0755
   mode, line endings are `.gitattributes`' alone (no system attributes file is read, and a clone whose
   `.git/info/attributes` sets any is refused), gzip writes no name or time - and git 2.39.5, 2.47.3, 2.50.1 and
   2.53.0 with gzip 1.10 to 1.14 made the same bytes. QuickJS stays and is declared with the other third-party
@@ -287,10 +287,9 @@ for a stray `#` number or `@` name.
   6.3.6 every Linux install puts hMailServer's AGPL-3.0 text, the FSF's file byte for byte, at
   `/usr/share/hmailserver/licenses/AGPL-3.0.txt` beside `QuickJS.txt`, as the AppImages carry it; the `.deb` carries
   `/usr/share/doc/hmailserver/copyright` and the `.rpm` `/usr/share/licenses/hmailserver/copyright` - the Debian
-  source package's machine-readable copyright file, with the AGPL in full, the terms of what is compiled into the
-  server, and what is known of the files that state no licence - among them `tlds.txt`, SURBL's 2006 list of
-  two-level country-code domains, which the project had credited to the Public Suffix List - and the `.rpm` marks all
-  three `%license`, so that `rpm -qL` lists them. Its `License` now names the licences an identifier can name,
+  source package's machine-readable copyright file, with the AGPL in full and the terms of what is compiled into the
+  server - and the `.rpm` marks all three `%license`, so that `rpm -qL` lists them. Its `License` now names the
+  licences an identifier can name,
   `AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive AND BSL-1.0`, where
   it named the AGPL alone. `build/ci/packages/check-licenses.sh` holds the three files to the tree by SHA-256, mode
   and owner: `linux-build`, `deb-build.sh` and `rpm-build.sh` refuse a package without them, and every install test
@@ -368,6 +367,19 @@ for a stray `#` number or `@` name.
   GitLab lets it. The ARM64 build is cross-compiled on the x64 Windows runner from libraries built into that runner's
   cache, and has never run on ARM64 hardware; the release notes say so
   ([PackagesWindows.md](hmailserver/docs/PackagesWindows.md), [WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)).
+- **The SURBL lookups and the MX-record test cut host names by the Public Suffix List, and `tlds.txt` is gone.** To
+  ask a URI blocklist about a link's host, and to judge a sender's host that has no MX by its domain's, the server
+  cut the name to two labels, or to three under a name in `tlds.txt` - SURBL's list of 2006, which stated no licence
+  and was installed beside the binary on every platform. It now cuts to the registrable domain by the Public Suffix
+  List it already compiles in for DMARC, PRIVATE section included, as SURBL's own list of today does:
+  `mail.example.act.edu.au` is asked about as `example.act.edu.au`, not the suffix `act.edu.au`; `a.b.c.kawasaki.jp`
+  as `b.c.kawasaki.jp`; `tenant.github.io` as itself, not `github.io`; and `mail.gov.je` as `gov.je`, one of the 134
+  names of the old list that are not public suffixes today. SURBL is still asked about the whole host too. A sender
+  at a public suffix itself that has no MX, `github.io` or `co.uk`, fails the MX-record test, since there is no
+  registrant's domain above it to fall back to; the old cut failed the first and passed the second. Error 4335, the
+  list not read, is retired. The installer deletes `Bin\tlds.txt` on upgrade, and the Linux packages no longer carry
+  it. The cut's tests run in ClassTester and, on Linux, as the new `public-suffix-tests` program, in `linux-build`
+  and in the Debian and RPM package builds.
 
 ### Administration
 
@@ -492,13 +504,13 @@ for a stray `#` number or `@` name.
   administrator's second factor, and each value of the settings store and its map are read and written under locks,
   each value whole; a reinitialise or a COM Settings.Directories call could hand another thread an empty or freed
   value. A reinitialise now builds the settings store, the SMTP, POP3, IMAP and cache configurations, the server
-  messages, blocked attachments, SSL certificates, DNS blacklists and SURBL servers, the local addresses and the
-  top-level domains whole before another thread can see them, and hands each over under a lock: a COM call made
-  during one - the Control Panel's or a script's - could copy a pointer while it was being replaced, or find the
-  settings not yet read and take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level,
-  device and format are read and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first
-  read. Several values read one after another are still not read as one set, and a setting changed during a
-  reinitialise, after the new settings were read, is stored but not in force until the next reinitialise or start.
+  messages, blocked attachments, SSL certificates, DNS blacklists, SURBL servers and the local addresses whole
+  before another thread can see them, and hands each over under a lock: a COM call made during one - the Control
+  Panel's or a script's - could copy a pointer while it was being replaced, or find the settings not yet read and
+  take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level, device and format are read
+  and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first read. Several values read
+  one after another are still not read as one set, and a setting changed during a reinitialise, after the new
+  settings were read, is stored but not in force until the next reinitialise or start.
 - **Active-active nodes: the design, not built** ([ActiveActive.md](hmailserver/docs/ActiveActive.md)). Until it is,
   one service per database.
 - **Fixed: languages read while they were being reloaded.** A reinitialise rebuilt, in place, the translations COM's

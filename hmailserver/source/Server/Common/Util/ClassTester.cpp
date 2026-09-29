@@ -105,6 +105,7 @@ namespace
 #include "AccountLockout.h"
 #include "Totp.h"
 #include "../AntiSpam/DMARC/DmarcTreeWalk.h"
+#include "../AntiSpam/DMARC/PublicSuffixList.h"
 #include "RateLimiter.h"
 #include "TransparentTransmissionBuffer.h"
 #include "../Cache/Cache.h"
@@ -255,6 +256,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing XmlTree\n"));
       XmlTreeTester xmlTreeTester;
       xmlTreeTester.Test();
+
+      // The name the SURBL lookups ask about and the MX-record test falls back
+      // to, cut from a host by the compiled-in Public Suffix List: wildcard and
+      // exception rules, PRIVATE names, bare suffixes, addresses, and the same
+      // name as DMARC's organizational domain.
+      OutputDebugString(_T("hMailServer: Testing PublicSuffixList\n"));
+      PublicSuffixListTester publicSuffixListTester;
+      publicSuffixListTester.Test();
 
       // The command lines of the custom virus scanner and ClamWin: the file's
       // path one argument wherever %FILE% stands, quoted or not, and ClamWin's
