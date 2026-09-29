@@ -122,10 +122,16 @@ namespace RegressionTests.IMAP
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "fulltext-identity@example.test", "test");
 
+         // Each message is in the inbox before the next is sent: the expected sequence
+         // numbers name the messages in the order sent, and two messages accepted one
+         // after the other can be delivered in either order by two delivery threads.
          var smtpClientSimulator = new SmtpClientSimulator();
          smtpClientSimulator.Send(account.Address, account.Address, "Alpha subject", "say hello world today");
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 1);
          smtpClientSimulator.Send(account.Address, account.Address, "Beta subject", "the othello festival programme");
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 2);
          smtpClientSimulator.Send(account.Address, account.Address, "GammaNeedle subject", "entirely unrelated content");
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 3);
          smtpClientSimulator.Send(account.Address, account.Address, "Delta subject", "the quick brown fox jumps over the lazy dog");
          ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 4);
 
@@ -185,8 +191,11 @@ namespace RegressionTests.IMAP
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "fulltext-delete@example.test", "test");
 
+         // In the order sent, one at a time, since the searches below name them by
+         // sequence number (see SearchResultsAreIdenticalWithTheIndexOnAndOff).
          var smtpClientSimulator = new SmtpClientSimulator();
          smtpClientSimulator.Send(account.Address, account.Address, "First", "carries uniqueAlphaNeedle within");
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 1);
          smtpClientSimulator.Send(account.Address, account.Address, "Second", "carries uniqueBetaNeedle within");
          ImapClientSimulator.AssertMessageCount(account.Address, "test", "INBOX", 2);
 
