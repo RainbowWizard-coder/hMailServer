@@ -110,21 +110,29 @@ The channels
 image from `registry.gitlab.com/hmailserver/hmailserver`, the only place the
 release's pipeline pushes it ([ContainerImage.md](ContainerImage.md)).
 
-- **What it verifies.** `:<version>` is resolved to its digest; then, by that
-  digest, `cosign verify` of the image's signature and `cosign verify-attestation
-  --type cyclonedx` of its SBOM, both as the tag's pipeline (the identities above),
-  and the project's id in the signing certificate, read from its extensions
-  (`build/ci/sigstore-certificate.py`) in cosign's signature manifest
-  (`sha256-<digest>.sig`), whose every certificate naming the identity must carry
-  it, and which is refused where Go's JSON reader, cosign's, would read it
-  otherwise.
-- **What it copies.** `regctl image copy --digest-tags --referrers` of the source by
-  its digest, so cosign's `.sig` and `.att` beside the image, and beside each
-  platform's manifest of a multi-platform image, go with it. It copies to
+- **What it verifies.** `:<version>` is resolved to its digest. The image's
+  manifest by that digest, and cosign's signature and attestation manifests beside
+  it (`sha256-<digest>.sig` and `.att`, each tag resolved once and the manifest then
+  fetched by its digest and held to it, with its blobs), are written as cosign's own
+  OCI layout (the one `cosign save` writes). Then, of those bytes and with no second
+  read of the registry, `cosign verify --local-image` of the image's signature and
+  `cosign verify-attestation --local-image --type cyclonedx` of its SBOM, both as the
+  tag's pipeline (the identities above), and the project's id in every signing and
+  every attesting certificate that names the identity, read from its extensions
+  (`build/ci/sigstore-certificate.py`) in the same two manifests: this project's
+  where there is one, and one required at the group's path. A manifest whose keys
+  Go's JSON reader, cosign's, could read otherwise - a field's name in another case
+  or outside ASCII, a key twice, a key that is not one of the manifest's or a
+  descriptor's fields, an index - is refused.
+- **What it copies.** `regctl image copy` of the source by its digest, to
   `:<version>` always, and to `:<major>.<minor>` and `:latest` only where the
   source's own tag of that name is the same digest: an older release mirrored late
-  never moves them back. Then each tag at the destination is held to the digest,
-  and the image there is verified again with cosign, anonymously, as a user would.
+  never moves them back. Then cosign's `.sig` and `.att` beside it, copied out of the
+  layout: the manifests that were verified, not whatever the source's tags answer by
+  then - so not `--digest-tags` or `--referrers`, which would copy the source's as
+  they stand, unverified (the image is one platform's, and nothing is attached to it
+  as a referrer). Each tag at the destination is held to its digest, and the image
+  there is verified again the same way, anonymously, from the destination.
 - **The destinations**, each configured by its pair of variables:
   - Docker Hub: `docker.io/progressiverobot/hmailserver` (or `DOCKERHUB_REPOSITORY`,
     which must be on `docker.io`). A Personal account's public repository is free;
@@ -491,7 +499,19 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
   snap's channel-map reader read the store's live answer for another snap, and
   `hmailserver`'s (none yet); `chocolatey-publish.ps1 -NoPush` packed 6.3.4's
   installer as `hmailserver-progressiverobot` again, with choco's own lines in the
-  log.
+  log. Then `registry-mirror`'s reading, against a local `registry:2` with an image
+  cosign 2.6.5 signed and attested with a key: the layout the job writes, fetched
+  with regctl 0.11.6, verified with `cosign verify --local-image` and
+  `verify-attestation --local-image`; its `.sig` and `.att` copied out of it to
+  another repository, where they were the same digests and verified again; and a
+  registry that serves the signature tag as an index under `"MANIFESTS"` with
+  `"layers"` beside it had cosign verify the index's child while the reading before
+  this one took the layer beside it (`registry:2` refuses to store such a manifest;
+  a registry of its own served it). And keyless, with `fake-sigstore.py`'s authority
+  handed to cosign by the variables its tag form reads, offline: the job took an image
+  this project's pipeline signed and attested, and refused one another project's
+  pipeline signed, or attested, at the identity - each of which cosign itself verified
+  (`registry-mirror.py --self-test --cosign`, which `channels-check` runs).
 
 Not tried, because the accounts do not exist: a push to Docker Hub, Quay.io, ECR
 Public, the AUR, Launchpad, Copr, OBS, Chocolatey or the Snap Store; Launchpad's and

@@ -241,12 +241,15 @@ class FakeSigstore:
         return struct.pack(">H", len(listed)) + listed
 
     def bundle(self, content, identity, issuer="https://gitlab.com", repository=None, repository_id=None,
-               signed_at=None, sign_other=None, other_log_key=None, no_code_signing=False, log_index=2620945251):
+               signed_at=None, sign_other=None, other_log_key=None, no_code_signing=False, log_index=2620945251,
+               leaf_key=None):
         """The bundle cosign sign-blob --new-bundle-format writes for content, signed as
-        identity; or the deviation the arguments ask for."""
+        identity; or the deviation the arguments ask for. leaf_key: the key the leaf
+        certifies, when the caller signs something else with it too (an attestation's
+        envelope)."""
         signed_at = signed_at or (self.now - datetime.timedelta(hours=1))
         digest = hashlib.sha256(sign_other if sign_other is not None else content).digest()
-        leaf_key = ec.generate_private_key(ec.SECP256R1())
+        leaf_key = leaf_key or ec.generate_private_key(ec.SECP256R1())
         serial = x509.random_serial_number()
 
         def leaf(with_sct=None):
@@ -332,6 +335,52 @@ class FakeSigstore:
             "messageSignature": {"messageDigest": {"algorithm": "SHA2_256", "digest": b64(digest)},
                                  "signature": b64(signature)},
         }
+
+    def image_layer(self, payload, identity, attestation=False, **kwargs):
+        """(the layer's bytes, its annotations) as cosign sign - or with attestation,
+        cosign attest, payload then an in-toto statement - writes a layer in the tag form
+        beside an image (sha256-<digest>.sig, .att), signed keylessly as identity: the
+        signature, the leaf, the chain and the log's signed entry timestamp. An
+        attestation's layer is its DSSE envelope, whose signature is inside it. The log's
+        entry is a hashedrekord over the layer's bytes, which cosign's reading of the
+        tag form holds to the layer by its hash and its certificate."""
+        key = ec.generate_private_key(ec.SECP256R1())
+        predicate = None
+        if attestation:
+            predicate = json.loads(payload.decode("utf-8")).get("predicateType")
+            kind = b"application/vnd.in-toto+json"
+            signed = b"DSSEv1 %d %s %d %s" % (len(kind), kind, len(payload), payload)
+            payload = json.dumps({"payloadType": kind.decode("ascii"), "payload": b64(payload), "signatures": [
+                {"keyid": "", "sig": b64(key.sign(signed, ec.ECDSA(hashes.SHA256())))}]}).encode("ascii")
+        made = self.bundle(payload, identity, leaf_key=key, **kwargs)
+        material = made["verificationMaterial"]
+        entry = material["tlogEntries"][0]
+        rekor = {"SignedEntryTimestamp": entry["inclusionPromise"]["signedEntryTimestamp"],
+                 "Payload": {"body": entry["canonicalizedBody"], "integratedTime": int(entry["integratedTime"]),
+                             "logIndex": int(entry["logIndex"]), "logID": base64.b64decode(entry["logId"]["keyId"]).hex()}}
+        annotations = {
+            "dev.cosignproject.cosign/signature": "" if attestation else made["messageSignature"]["signature"],
+            "dev.sigstore.cosign/certificate": pem("CERTIFICATE", base64.b64decode(material["certificate"]["rawBytes"])),
+            "dev.sigstore.cosign/chain": pem("CERTIFICATE", self.intermediate.public_bytes(serialization.Encoding.DER))
+            + pem("CERTIFICATE", self.root.public_bytes(serialization.Encoding.DER)),
+            "dev.sigstore.cosign/bundle": json.dumps(rekor, separators=(",", ":"))}
+        if predicate:
+            annotations["predicateType"] = predicate
+        return payload, annotations
+
+    def legacy_environment(self, directory):
+        """The variables cosign's verification of the tag form takes this authority's
+        roots, log key and CT log key from, instead of the public Sigstore's: with them
+        cosign verify and verify-attestation need no network."""
+        paths = dict((name, os.path.join(directory, name)) for name in ("fulcio.pem", "rekor.pub", "ctlog.pub"))
+        with open(paths["fulcio.pem"], "w", encoding="ascii", newline="\n") as f:
+            f.write(pem("CERTIFICATE", self.root.public_bytes(serialization.Encoding.DER))
+                    + pem("CERTIFICATE", self.intermediate.public_bytes(serialization.Encoding.DER)))
+        for name, key in (("rekor.pub", self.log_key), ("ctlog.pub", self.ct_key)):
+            with open(paths[name], "wb") as f:
+                f.write(key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))
+        return {"SIGSTORE_ROOT_FILE": paths["fulcio.pem"], "SIGSTORE_REKOR_PUBLIC_KEY": paths["rekor.pub"],
+                "SIGSTORE_CT_LOG_PUBLIC_KEY_FILE": paths["ctlog.pub"]}
 
     def write_bundle(self, path, content, identity, **kwargs):
         with open(path, "w", encoding="utf-8", newline="\n") as f:

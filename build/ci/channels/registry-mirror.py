@@ -16,19 +16,26 @@ registry to Docker Hub, Quay.io and, when wanted, Amazon ECR Public
      (public.ecr.aws/<alias>/hmailserver). Half a pair fails the job.
   2. The release, as every channel takes it (build/ci/channels/release-files.py).
   3. The source, registry.gitlab.com/hmailserver/hmailserver:<version>, resolved to
-     its digest, and verified before anything is sent: cosign verify of the image by
-     that digest as this project's pipeline for the tag (either path a server trusts),
-     cosign verify-attestation of its CycloneDX SBOM as the same identity, and the
-     project's id in the signing certificate (read from the signature's manifest, as
-     for the release's files: required at the group's path, and refused if another).
-  4. For each configured destination: regctl image copy of the source BY ITS DIGEST,
-     with --digest-tags (cosign keeps the signature and the attestation beside the
-     image as sha256-<digest>.sig and .att, for the index and for each platform's
-     manifest) and --referrers, to :<version>; and to :<major>.<minor> and :latest only
-     where the source's own tag of that name is the same digest, so an older release
-     mirrored late never moves them back. Then each tag at the destination is held to
-     the digest, and the image there verified again with cosign, anonymously, as a
-     user would pull and verify it.
+     its digest, and verified before anything is sent. The image's manifest by that
+     digest, and cosign's signature and attestation manifests beside it
+     (sha256-<digest>.sig and .att, each tag resolved once and the manifest then
+     fetched by its digest), are written as cosign's own OCI layout; then, of those
+     very bytes, cosign verify --local-image as this project's pipeline for the tag
+     (either path a server trusts), cosign verify-attestation --local-image of its
+     CycloneDX SBOM as the same identity, and the project's id in every signing and
+     attesting certificate naming that identity, read from the manifests in the layout
+     (as for the release's files: required at the group's path, and refused if
+     another). No second read of the registry: what cosign verifies is what the id is
+     read from.
+  4. For each configured destination: regctl image copy of the source BY ITS DIGEST
+     to :<version>; and to :<major>.<minor> and :latest only where the source's own tag
+     of that name is the same digest, so an older release mirrored late never moves
+     them back. Then cosign's signature and attestation manifests (sha256-<digest>.sig
+     and .att) are copied there out of the layout: the manifests that were verified,
+     not whatever the source's tags answer by then - so neither --digest-tags nor
+     --referrers, which would copy the source's as they stand, unverified. Each tag at
+     the destination is held to its digest, and the image there is verified again the
+     same way, anonymously, from the destination.
 
 The tools are cosign and regctl out of their pinned images (release-files.py). The
 credentials reach regctl on its standard input, into a configuration directory of
@@ -188,6 +195,12 @@ class Tools:
         answer = self.run([self.regctl] + list(arguments), capture_output=True, text=True, input=stdin, env=self.env)
         return answer.returncode, (answer.stdout or "").strip(), (answer.stderr or "").strip()
 
+    def regctl_bytes(self, *arguments):
+        """regctl's standard output as the bytes it wrote: a manifest's body or a blob,
+        whose digest is of exactly those bytes."""
+        answer = self.run([self.regctl] + list(arguments), capture_output=True, env=self.env)
+        return answer.returncode, answer.stdout or b"", (answer.stderr or b"").decode("utf-8", "replace").strip()
+
     def cosign_(self, *arguments):
         flags = []
         if any(a.startswith(self.insecure) for a in arguments if self.insecure):
@@ -209,56 +222,35 @@ def verify_flags(tools):
     return ["--new-bundle-format=false"] if "--new-bundle-format" in (out + err) else []
 
 
-def verify_image(tools, repository, digest, version, identities, issuer):
-    """(identity, repository id) of an image that verifies, by digest, as one of the
-    identities, with its SBOM attested by the same; Refused otherwise."""
-    reference = "%s@%s" % (repository, digest)
-    flags = verify_flags(tools)
-    identity, said = None, ""
-    for candidate in identities:
-        code, out, err = tools.cosign_("verify", *flags, "--certificate-identity", candidate,
-                                       "--certificate-oidc-issuer", issuer, reference)
-        said = err or out
-        if code == 0:
-            try:
-                answers = json.loads(out)
-            except ValueError:
-                raise Refused("cosign verify answered no JSON for %s" % reference)
-            if not answers or any((a.get("critical") or {}).get("image", {}).get("docker-manifest-digest") != digest
-                                  for a in answers):
-                raise Refused("the signature cosign verified is not over %s" % digest)
-            identity = candidate
-            break
-    if identity is None:
-        raise Refused("%s does not verify as signed by %s: nothing was copied.\n  cosign said: %s"
-                      % (reference, " or ".join(identities), said.splitlines()[-1] if said else "nothing"))
-    code, out, err = tools.cosign_("verify-attestation", *flags, "--type", ATTESTATION_TYPE, "--certificate-identity",
-                                   identity, "--certificate-oidc-issuer", issuer, reference)
-    if code != 0:
-        raise Refused("%s has no %s SBOM attested by %s: nothing was copied.\n  cosign said: %s"
-                      % (reference, ATTESTATION_TYPE, identity, (err or out).splitlines()[-1] if (err or out) else ""))
-    recorded = signature_repository_ids(tools, repository, digest, identity)
-    for found in recorded:
-        if found is not None and found != rf.PROJECT_ID:
-            raise Refused("the image's signing certificate names the repository id %s, not %s" % (found, rf.PROJECT_ID))
-        if found is None and identity.startswith(rf.GROUP_REPOSITORY + "//"):
-            raise Refused("the image's signing certificate, at the group's path, records no repository id")
-    return identity, (rf.PROJECT_ID if rf.PROJECT_ID in recorded else None)
-
+# ---------------------------------------------------------------- what cosign verifies, fetched once
 
 # The fields of an image manifest and of a descriptor as cosign's reader (go-containerregistry's
-# v1.Manifest and v1.Descriptor) names them.
-MANIFEST_FIELDS = ("schemaVersion", "mediaType", "config", "layers", "annotations", "subject")
+# v1.Manifest and v1.Descriptor) names them: a signature or attestation manifest with any
+# other key is refused.
+MANIFEST_FIELDS = ("schemaVersion", "mediaType", "config", "layers", "annotations", "subject", "artifactType")
 DESCRIPTOR_FIELDS = ("mediaType", "size", "digest", "data", "urls", "annotations", "platform", "artifactType")
 IMAGE_MANIFEST_TYPES = ("application/vnd.oci.image.manifest.v1+json", "application/vnd.docker.distribution.manifest.v2+json")
+IMAGE_INDEX_TYPES = ("application/vnd.oci.image.index.v1+json", "application/vnd.docker.distribution.manifest.list.v2+json")
+DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
+# cosign's own OCI layout (cosign save, its pkg/oci/layout), which cosign verify
+# --local-image and verify-attestation --local-image read: each part is the first
+# manifest of index.json whose "kind" annotation names it.
+KIND = "kind"
+KIND_IMAGE = "dev.cosignproject.cosign/image"
+KIND_INDEX = "dev.cosignproject.cosign/imageIndex"
+KIND_SIGNATURES = "dev.cosignproject.cosign/sigs"
+KIND_ATTESTATIONS = "dev.cosignproject.cosign/atts"
+# cosign's tags beside an image: its signatures and its attestations.
+ATTACHED = ((".sig", KIND_SIGNATURES, "signature"), (".att", KIND_ATTESTATIONS, "attestation"))
 
 
 def json_object_once(pairs):
     """A JSON object's members as a dict; ValueError for a key that is not ASCII, or a
     key there twice in any case: Go's encoding/json, which cosign reads a manifest with,
-    matches a field's name whatever its case, and with Unicode's folds (a long s is an
-    s), and the last of two such keys wins, where Python's json takes each key as it is
-    spelled."""
+    matches a field's name whatever its case, and through Unicode's case mappings (a
+    long s, U+017F, is an s), and the last of two such keys wins, where Python's json
+    takes each key as it is spelled. No key outside ASCII is taken, so no mapping of
+    one onto a field's name is left to know."""
     found, folded = {}, set()
     for key, value in pairs:
         if not key.isascii():
@@ -270,53 +262,150 @@ def json_object_once(pairs):
     return found
 
 
-def signature_layers(text):
-    """The layers of cosign's signature manifest (sha256-<hex>.sig), as cosign reads
-    them; ValueError for one it could read otherwise. cosign reads it with Go's
-    encoding/json into go-containerregistry's v1.Manifest, where "Layers", "LAYERS" or
-    "layers" with a long s (U+017F) is "layers" too, and "Annotations" a layer's
-    "annotations" (cosign 2.6.5 verifies a signature so hidden from a reader that takes
-    only "layers"), and it takes an index at that tag for its linux/amd64 manifest: so
-    a key of those fields not spelled as they are, and an index, are refused, and a key
-    twice in any case."""
+def attached_manifest(text):
+    """(media type, config, layers) of cosign's signature or attestation manifest
+    (sha256-<hex>.sig or .att) as cosign reads it; ValueError for one it could read
+    otherwise. cosign reads it with Go's encoding/json into go-containerregistry's
+    v1.Manifest, where "Layers", "LAYERS" or "layers" with a long s (U+017F) is
+    "layers" too, "Annotations" a layer's "annotations", and the last of two such keys
+    wins (cosign 2.6.5 verifies a signature so hidden from a reader that takes only
+    "layers"); and a registry that serves the tag as an index hands cosign the child
+    its "Manifests" names, beside the "layers" a reader of the body would take (cosign
+    verifies that child). So every key of the manifest, and of its config and each
+    layer, must be one of v1.Manifest's or v1.Descriptor's fields spelled as the field
+    is; no key of any object may be there twice in any case or be other than ASCII; the
+    manifest must be an image manifest; and each annotation must be a string, as Go's
+    map[string]string takes it."""
     manifest = json.loads(text, object_pairs_hook=json_object_once)
     if not isinstance(manifest, dict):
         raise ValueError("it is not a JSON object")
 
-    def spelled(item, fields):
+    def only(item, fields, what):
         for key in item:
-            if key not in fields and key.lower() in [field.lower() for field in fields]:
-                raise ValueError("the key %s, which cosign reads as %s" % (
-                    json.dumps(key), next(f for f in fields if f.lower() == key.lower())))
-    spelled(manifest, MANIFEST_FIELDS)
-    if "manifests" in manifest or manifest.get("mediaType", IMAGE_MANIFEST_TYPES[0]) not in IMAGE_MANIFEST_TYPES:
+            if key not in fields:
+                raise ValueError("%s holds the key %s, which is not a field of %s spelled as it is (%s)"
+                                 % (what, json.dumps(key), "v1.Manifest" if fields is MANIFEST_FIELDS else "v1.Descriptor",
+                                    ", ".join(fields)))
+    only(manifest, MANIFEST_FIELDS, "the manifest")
+    media = manifest.get("mediaType", IMAGE_MANIFEST_TYPES[0])
+    if media not in IMAGE_MANIFEST_TYPES:
         raise ValueError("it is not an image manifest, whose layers are the signatures")
-    layers = manifest.get("layers")
-    if not isinstance(layers, list) or not all(isinstance(layer, dict) for layer in layers):
-        raise ValueError("its layers are not a list of descriptors")
-    for layer in layers:
-        spelled(layer, DESCRIPTOR_FIELDS)
-        if not isinstance(layer.get("annotations", {}), dict):
-            raise ValueError("a layer's annotations are not an object")
-    return layers
+    config, layers = manifest.get("config"), manifest.get("layers")
+    if not isinstance(config, dict) or not isinstance(layers, list) or not all(isinstance(layer, dict) for layer in layers):
+        raise ValueError("its config and layers are not descriptors")
+    for descriptor in [config] + layers:
+        only(descriptor, DESCRIPTOR_FIELDS, "a descriptor")
+        annotations = descriptor.get("annotations", {})
+        if not isinstance(annotations, dict) or not all(isinstance(v, str) for v in annotations.values()):
+            raise ValueError("a descriptor's annotations are not an object of strings")
+        size = descriptor.get("size")
+        if not isinstance(descriptor.get("digest"), str) or not DIGEST.match(descriptor["digest"]) \
+                or type(size) is not int or size < 0:
+            raise ValueError("a descriptor without a SHA-256 digest and a size")
+    return media, config, layers
 
 
-def signature_repository_ids(tools, repository, digest, identity):
-    """The repository id (or None) of EVERY certificate in the image's signature
-    manifest (cosign's sha256-<hex>.sig) that names identity in its subject alternative
-    name, each read from its extensions (build/ci/sigstore-certificate.py). Every one:
-    cosign verify passes when one signature verifies, and which one it was it does not
-    say, so a signature layer added beside it - whose certificate nothing but this ever
-    reads - must not be the one read instead. Refused when none names identity, or when
-    a certificate cannot be read."""
-    code, out, err = tools.regctl_("manifest", "get", "%s:sha256-%s.sig" % (repository, digest.split(":", 1)[1]),
-                                   "--format", "raw-body")
+def sha256_digest(data):
+    return "sha256:" + hashlib.sha256(data).hexdigest()
+
+
+def manifest_at(tools, repository, digest):
+    """The manifest repository@digest, the bytes the registry sent, which must be digest's."""
+    code, body, err = tools.regctl_bytes("manifest", "get", "%s@%s" % (repository, digest), "--format", "raw-body")
     if code != 0:
-        raise Refused("the image's signature manifest could not be read: %s" % err[-300:])
+        raise Refused("%s@%s could not be read: %s" % (repository, digest, err[-300:]))
+    if sha256_digest(body) != digest:
+        raise Refused("%s@%s answered a manifest whose digest is %s" % (repository, digest, sha256_digest(body)))
+    return body
+
+
+def blob_at(tools, repository, descriptor):
+    """The blob a descriptor names, which must be its digest and its size."""
+    code, data, err = tools.regctl_bytes("blob", "get", repository, descriptor["digest"])
+    if code != 0:
+        raise Refused("the blob %s of %s could not be read: %s" % (descriptor["digest"], repository, err[-300:]))
+    if sha256_digest(data) != descriptor["digest"] or len(data) != descriptor["size"]:
+        raise Refused("%s answered a blob for %s that is not it" % (repository, descriptor["digest"]))
+    return data
+
+
+def fetch_layout(tools, repository, digest, layout):
+    """The image repository@digest with its signature and attestation manifests, written
+    as cosign's own OCI layout at layout, for cosign verify --local-image and
+    verify-attestation --local-image and for the certificate reader alike: each tag
+    (sha256-<hex>.sig, .att) resolved once, each manifest then fetched once by its
+    digest and held to it, with its config and layers (not the image's layers, which no
+    verification reads). Nothing of them is fetched again, by cosign or by the reader,
+    so a registry that answers a tag one way and then another cannot have cosign verify
+    one signature manifest and the reader read another; and cosign reads each manifest
+    as this one says it is, whatever a registry calls it. {kind: digest} of the three."""
+    if os.path.exists(layout):
+        shutil.rmtree(layout)
+    blobs = os.path.join(layout, "blobs", "sha256")
+    os.makedirs(blobs)
+
+    def keep(data):
+        with open(os.path.join(blobs, sha256_digest(data).split(":", 1)[1]), "wb") as f:
+            f.write(data)
+
+    image = manifest_at(tools, repository, digest)
     try:
-        layers = signature_layers(out)
-    except ValueError as error:
-        raise Refused("the image's signature manifest is not one cosign and this read alike: %s" % error)
+        media = json.loads(image.decode("utf-8"), object_pairs_hook=json_object_once).get("mediaType")
+    except (ValueError, UnicodeDecodeError, AttributeError):
+        media = None
+    if media not in IMAGE_MANIFEST_TYPES + IMAGE_INDEX_TYPES:
+        raise Refused("%s@%s is not an image manifest or an image index naming its media type" % (repository, digest))
+    kind = KIND_IMAGE if media in IMAGE_MANIFEST_TYPES else KIND_INDEX
+    keep(image)
+    manifests = [{"mediaType": media, "size": len(image), "digest": digest, "annotations": {KIND: kind}}]
+    held = {kind: digest}
+    for suffix, kind, what in ATTACHED:
+        tag = "%s:sha256-%s%s" % (repository, digest.split(":", 1)[1], suffix)
+        at = tools.digest(tag)
+        if not at:
+            raise Refused("%s could not be read: the image has no %s there" % (tag, what))
+        body = manifest_at(tools, repository, at)
+        try:
+            media, config, layers = attached_manifest(body.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError) as error:
+            raise Refused("the image's %s manifest (%s@%s) is not one cosign and this read alike: %s"
+                          % (what, repository, at, error))
+        for descriptor in [config] + layers:
+            keep(blob_at(tools, repository, descriptor))
+        keep(body)
+        manifests.append({"mediaType": media, "size": len(body), "digest": at, "annotations": {KIND: kind}})
+        held[kind] = at
+    with open(os.path.join(layout, "oci-layout"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump({"imageLayoutVersion": "1.0.0"}, f)
+    with open(os.path.join(layout, "index.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump({"schemaVersion": 2, "mediaType": IMAGE_INDEX_TYPES[0], "manifests": manifests}, f, indent=1)
+    return held
+
+
+def layout_manifest(layout, kind):
+    """The bytes of the manifest cosign's layout reader takes as kind: the first of
+    index.json's manifests annotated so (its imageByAnnotation); None when there is none."""
+    with open(os.path.join(layout, "index.json"), encoding="utf-8") as f:
+        index = json.load(f, object_pairs_hook=json_object_once)
+    for descriptor in index.get("manifests") or []:
+        if (descriptor.get("annotations") or {}).get(KIND) == kind and DIGEST.match(descriptor.get("digest") or ""):
+            with open(os.path.join(layout, "blobs", "sha256", descriptor["digest"].split(":", 1)[1]), "rb") as f:
+                return f.read()
+    return None
+
+
+def certificate_ids(body, identity, what):
+    """The repository id (or None) of EVERY certificate in a signature or attestation
+    manifest that names identity in its subject alternative name, each read from its
+    extensions (build/ci/sigstore-certificate.py). Every one: cosign verify and
+    verify-attestation pass when one signature verifies, and which one it was they do
+    not say, so a layer added beside it - whose certificate nothing but this ever reads
+    - must not be the one read instead. Refused when none names identity, or when a
+    certificate cannot be read."""
+    try:
+        _, _, layers = attached_manifest((body or b"").decode("utf-8"))
+    except (ValueError, UnicodeDecodeError) as error:
+        raise Refused("the image's %s manifest is not one cosign and this read alike: %s" % (what, error))
     recorded = []
     for layer in layers:
         text = (layer.get("annotations") or {}).get(SIG_CERTIFICATE) or ""
@@ -331,10 +420,61 @@ def signature_repository_ids(tools, repository, digest, identity):
                 continue
             recorded.append(rf.repository_id(der))
         except ValueError as error:
-            raise Refused("a certificate of the image's signatures could not be read: %s" % error)
+            raise Refused("a certificate of the image's %ss could not be read: %s" % (what, error))
     if not recorded:
-        raise Refused("no signature of the image carries a certificate naming %s" % identity)
+        raise Refused("no %s of the image carries a certificate naming %s" % (what, identity))
     return recorded
+
+
+def held_to_the_project(recorded, identity, what):
+    """The rule the release's files are held to (release-files.py, verify_file): each
+    certificate's repository id this project's where there is one, and one there at
+    the group's path."""
+    for found in recorded:
+        if found is not None and found != rf.PROJECT_ID:
+            raise Refused("the image's %s certificate names the repository id %s, not %s" % (what, found, rf.PROJECT_ID))
+        if found is None and identity.startswith(rf.GROUP_REPOSITORY + "//"):
+            raise Refused("the image's %s certificate, at the group's path, records no repository id" % what)
+
+
+def verify_image(tools, repository, digest, identities, issuer, layout):
+    """(identity, repository id, {kind: digest}) of an image that verifies, by digest,
+    as one of the identities, with its SBOM attested by the same: fetched once into
+    layout (fetch_layout), verified there by cosign, and every signing and attesting
+    certificate naming the identity held to the project's id there; Refused otherwise."""
+    reference = "%s@%s" % (repository, digest)
+    held = fetch_layout(tools, repository, digest, layout)
+    flags = verify_flags(tools)
+    identity, said = None, ""
+    for candidate in identities:
+        code, out, err = tools.cosign_("verify", *flags, "--local-image", "--certificate-identity", candidate,
+                                       "--certificate-oidc-issuer", issuer, layout)
+        said = err or out
+        if code == 0:
+            try:
+                answers = json.loads(out)
+            except ValueError:
+                raise Refused("cosign verify answered no JSON for %s" % reference)
+            if not answers or any((a.get("critical") or {}).get("image", {}).get("docker-manifest-digest") != digest
+                                  for a in answers):
+                raise Refused("the signature cosign verified is not over %s" % digest)
+            identity = candidate
+            break
+    if identity is None:
+        raise Refused("%s does not verify as signed by %s: nothing was copied.\n  cosign said: %s"
+                      % (reference, " or ".join(identities), said.splitlines()[-1] if said else "nothing"))
+    code, out, err = tools.cosign_("verify-attestation", *flags, "--local-image", "--type", ATTESTATION_TYPE,
+                                   "--certificate-identity", identity, "--certificate-oidc-issuer", issuer, layout)
+    if code != 0:
+        raise Refused("%s has no %s SBOM attested by %s: nothing was copied.\n  cosign said: %s"
+                      % (reference, ATTESTATION_TYPE, identity, (err or out).splitlines()[-1] if (err or out) else ""))
+    signed = certificate_ids(layout_manifest(layout, KIND_SIGNATURES), identity, "signature")
+    held_to_the_project(signed, identity, "signing")
+    # The SBOM's attestation too: cosign verify-attestation holds its certificate to the
+    # identity, and nothing else holds it to the project.
+    held_to_the_project(certificate_ids(layout_manifest(layout, KIND_ATTESTATIONS), identity, "attestation"), identity,
+                        "attestation's")
+    return identity, (rf.PROJECT_ID if rf.PROJECT_ID in signed else None), held
 
 
 # ---------------------------------------------------------------- the job
@@ -387,13 +527,17 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
                           " those after it) have not pushed it (hmailserver/docs/ContainerImage.md, 'Publishing')"
                           % (source, version))
         say("the source: %s:%s is %s" % (source, version, digest))
-        identity, recorded = verify_image(tools, source, digest, version, identities, issuer)
-        say("verified: %s@%s, signed and its SBOM attested as %s (repository id: %s)"
-            % (source, digest, identity, recorded or "none recorded"))
+        # What was verified stays in the job's folder, cosign's own layout of it: the
+        # image's manifest, and its signature and attestation manifests with their blobs.
+        verified = os.path.join(out, "verified", "source")
+        identity, recorded, held = verify_image(tools, source, digest, identities, issuer, verified)
+        say("verified: %s@%s, signed (%s) and its SBOM attested (%s) as %s (repository id: %s)"
+            % (source, digest, held[KIND_SIGNATURES], held[KIND_ATTESTATIONS], identity, recorded or "none recorded"))
         tags = mirror_tags(tools, source, digest, version)
 
-        record = {"version": version, "source": source, "digest": digest, "identity": identity, "destinations": {}}
-        for destination, repository in destinations:
+        record = {"version": version, "source": source, "digest": digest, "identity": identity,
+                  "signature": held[KIND_SIGNATURES], "attestation": held[KIND_ATTESTATIONS], "destinations": {}}
+        for number, (destination, repository) in enumerate(destinations):
             host = repository.split("/", 1)[0]
             if destination["name"] == "Amazon ECR Public" and not (fix and fix.get("registry_destinations")):
                 user, password = "AWS", ecr_public_password(environ)
@@ -404,16 +548,27 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
             if code != 0:
                 raise Refused("%s refused the login of %s: %s" % (destination["name"], user, err[-300:]))
             for tag in tags:
-                code, _, err = tools.regctl_("image", "copy", "--digest-tags", "--referrers",
-                                             "%s@%s" % (source, digest), "%s:%s" % (repository, tag))
+                code, _, err = tools.regctl_("image", "copy", "%s@%s" % (source, digest), "%s:%s" % (repository, tag))
                 if code != 0:
                     raise Refused("the copy to %s:%s failed: %s" % (repository, tag, err[-400:]))
+            # Then the signature and attestation manifests that were verified, out of the
+            # layout they were verified in: not the source's tags read again, which could
+            # answer otherwise by now.
+            attached = "%s:sha256-%s" % (repository, digest.split(":", 1)[1])
+            for suffix, kind, what in ATTACHED:
+                code, _, err = tools.regctl_("image", "copy", "ocidir://%s@%s" % (verified, held[kind]), attached + suffix)
+                if code != 0:
+                    raise Refused("the copy of the verified %s to %s failed: %s" % (what, attached + suffix, err[-400:]))
             for tag in tags:
-                held = tools.digest("%s:%s" % (repository, tag))
-                if held != digest:
-                    raise Refused("%s:%s is %s after the copy, not %s" % (repository, tag, held, digest))
+                at = tools.digest("%s:%s" % (repository, tag))
+                if at != digest:
+                    raise Refused("%s:%s is %s after the copy, not %s" % (repository, tag, at, digest))
+            for suffix, kind, what in ATTACHED:
+                at = tools.digest(attached + suffix)
+                if at != held[kind]:
+                    raise Refused("%s is %s after the copy, not the %s verified, %s" % (attached + suffix, at, what, held[kind]))
             tools.regctl_("registry", "logout", host)
-            verify_image(tools, repository, digest, version, [identity], issuer)
+            verify_image(tools, repository, digest, [identity], issuer, os.path.join(out, "verified", "destination-%d" % number))
             say("%s: %s:%s, each %s, verified there as %s"
                 % (destination["name"], repository, ",".join(tags), digest, identity))
             record["destinations"][destination["name"]] = {"repository": repository, "tags": tags}
@@ -428,7 +583,190 @@ def registry_mirror(out, environ=None, run=subprocess.run, tools_for=None):
 
 # ---------------------------------------------------------------- self-test
 
-def self_test():
+def real_cosign_cases(expect, cosign, work):
+    """The layout fetch_layout writes, verified by a real cosign (channels-check's, out
+    of the pinned image). With a key of the test's own: cosign verifies the signature and
+    the attestation from it, refuses one another key made, and reads a signature
+    manifest's keys as Go does - a signature under "Layers" or "layer<long s>", which
+    fetch_layout refuses for that reason. Keyless, as the release's pipeline signs, with
+    fake-sigstore.py's authority: verify_image end to end, which takes the image this
+    project's pipeline signed and attested, and refuses one another project's pipeline
+    signed or attested at the identity, which cosign itself verifies."""
+    try:
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+    except ImportError:
+        print("skip  the layouts against a real cosign: the cryptography package is not installed")
+        return
+    blobs, tags = {}, {}
+
+    def put(data):
+        blobs[sha256_digest(data)] = data
+        return sha256_digest(data)
+
+    def descriptor(data, media, annotations=None):
+        found = {"mediaType": media, "size": len(data), "digest": put(data)}
+        if annotations is not None:
+            found["annotations"] = annotations
+        return found
+
+    key, other = ec.generate_private_key(ec.SECP256R1()), ec.generate_private_key(ec.SECP256R1())
+    public = os.path.join(work, "cosign.pub")
+    with open(public, "wb") as f:
+        f.write(key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))
+    repository = "registry.test/hmailserver/hmailserver"
+    image = json.dumps({"schemaVersion": 2, "mediaType": IMAGE_MANIFEST_TYPES[1], "config": descriptor(
+        b'{"architecture":"amd64","os":"linux","config":{}}', "application/vnd.docker.container.image.v1+json"),
+        "layers": []}).encode()
+    digest = put(image)
+    config = descriptor(b'{"architecture":"","os":"","config":{},"rootfs":{"type":"layers","diff_ids":[]}}',
+                        "application/vnd.oci.image.config.v1+json")
+
+    def signature_layer(signer):
+        payload = json.dumps({"critical": {"identity": {"docker-reference": repository},
+                                           "image": {"docker-manifest-digest": digest},
+                                           "type": "cosign container image signature"}, "optional": None}).encode()
+        signature = base64.b64encode(signer.sign(payload, ec.ECDSA(hashes.SHA256()))).decode()
+        return descriptor(payload, "application/vnd.dev.cosign.simplesigning.v1+json",
+                          {"dev.cosignproject.cosign/signature": signature})
+
+    def attestation_layer(signer):
+        statement = json.dumps({"_type": "https://in-toto.io/Statement/v0.1", "predicateType": "https://cyclonedx.org/bom",
+                                "subject": [{"name": repository, "digest": {"sha256": digest.split(":", 1)[1]}}],
+                                "predicate": {"bomFormat": "CycloneDX", "specVersion": "1.6", "components": []}}).encode()
+        kind = b"application/vnd.in-toto+json"
+        signed = b"DSSEv1 %d %s %d %s" % (len(kind), kind, len(statement), statement)
+        envelope = json.dumps({"payloadType": kind.decode(), "payload": base64.b64encode(statement).decode(), "signatures": [
+            {"keyid": "", "sig": base64.b64encode(signer.sign(signed, ec.ECDSA(hashes.SHA256()))).decode()}]}).encode()
+        return descriptor(envelope, "application/vnd.dsse.envelope.v1+json", {"dev.cosignproject.cosign/signature": "",
+                                                                             "predicateType": "https://cyclonedx.org/bom"})
+
+    def manifest(layers, extra=""):
+        return put((json.dumps({"schemaVersion": 2, "mediaType": IMAGE_MANIFEST_TYPES[0], "config": config,
+                                "layers": layers})[:-1] + extra + "}").encode())
+
+    class Registry:
+        def regctl_bytes(self, *arguments):
+            at = arguments[2].split("@", 1)[1] if arguments[:2] == ("manifest", "get") else arguments[3]
+            return (0, blobs[at], "") if at in blobs else (1, b"", "not found")
+
+        def digest(self, reference):
+            return tags.get(reference)
+
+    attached = "%s:sha256-%s" % (repository, digest.split(":", 1)[1])
+    tags[attached + ".sig"] = manifest([signature_layer(key)])
+    tags[attached + ".att"] = manifest([attestation_layer(key)])
+    layout = os.path.join(work, "cosign-layout")
+    fetch_layout(Registry(), repository, digest, layout)
+
+    def verify(kind="verify"):
+        command = [cosign, kind, "--key", public, "--insecure-ignore-tlog", "--new-bundle-format=false", "--local-image"]
+        if kind == "verify-attestation":
+            command[2:2] = ["--type", ATTESTATION_TYPE]
+        answer = subprocess.run(command + [layout], capture_output=True, text=True)
+        return answer.returncode, answer.stdout, ((answer.stderr or "").strip().splitlines() or [""])[-1][:100]
+
+    code, out, said = verify()
+    expect("cosign %s verifies the signature in the layout fetch_layout wrote, over the image's digest (%s)"
+           % (os.path.basename(cosign), said), code == 0 and digest in out)
+    code, _, said = verify("verify-attestation")
+    expect("  ... and the SBOM's attestation (%s)" % said, code == 0)
+
+    def with_signatures(body):
+        """The layout with its signature manifest replaced by body (the manifest's
+        digest), every blob made here beside it."""
+        path = os.path.join(layout, "index.json")
+        with open(path, encoding="utf-8") as f:
+            index = json.load(f)
+        for entry in index["manifests"]:
+            if entry["annotations"][KIND] == KIND_SIGNATURES:
+                entry["digest"], entry["size"] = body, len(blobs[body])
+        for at, data in blobs.items():
+            with open(os.path.join(layout, "blobs", "sha256", at.split(":", 1)[1]), "wb") as f:
+                f.write(data)
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(index, f)
+
+    with_signatures(manifest([signature_layer(other)]))
+    code, _, said = verify()
+    expect("  ... and refuses a signature another key made (%s)" % said, code != 0)
+    for what, extra in (("\"Layers\"", '"Layers"'), ("\"layer\\u017f\"", '"layer\\u017f"')):
+        # One that verifies nothing under "layers", the one that does under the other key.
+        good = signature_layer(key)
+        body = manifest([signature_layer(other)], ", %s: [%s]" % (extra, json.dumps(good)))
+        tags[attached + ".sig"] = body
+        try:
+            fetch_layout(Registry(), repository, digest, os.path.join(work, "refused-layout"))
+            fetched = "fetched"
+        except Refused as error:
+            fetched = str(error)
+        with_signatures(body)
+        code, _, said = verify()
+        expect("  ... and verifies a signature under %s beside \"layers\", as Go reads it (%s), which fetch_layout "
+               "refuses (%s)" % (what, said, fetched[-60:]), code == 0 and fetched != "fetched")
+
+    # Keyless, as the release's pipeline signs and attests the image: fake-sigstore.py's
+    # authority, handed to cosign by the variables its tag form reads it from, so no
+    # network; verify_image end to end, cosign verifying the layout it wrote.
+    fake = load("fake_sigstore", os.path.join(HERE, "fake-sigstore.py")).FakeSigstore()
+    environment = dict(os.environ, HOME=work, **fake.legacy_environment(work))
+    group = rf.identities("9.9.9")[1]
+
+    def keyless(attestation=False, rid="86730559", identity=group):
+        if attestation:
+            payload = json.dumps({"_type": "https://in-toto.io/Statement/v0.1", "predicateType": "https://cyclonedx.org/bom",
+                                  "subject": [{"name": repository, "digest": {"sha256": digest.split(":", 1)[1]}}],
+                                  "predicate": {"bomFormat": "CycloneDX", "specVersion": "1.6", "components": []}}).encode()
+        else:
+            payload = json.dumps({"critical": {"identity": {"docker-reference": repository},
+                                               "image": {"docker-manifest-digest": digest},
+                                               "type": "cosign container image signature"}, "optional": None}).encode()
+        data, annotations = fake.image_layer(payload, identity, attestation=attestation, repository=rf.GROUP_REPOSITORY,
+                                             repository_id=rid)
+        return descriptor(data, "application/vnd.dsse.envelope.v1+json" if attestation else
+                          "application/vnd.dev.cosign.simplesigning.v1+json", annotations)
+
+    class Keyless(Registry):
+        def cosign_(self, *arguments):
+            answer = subprocess.run([cosign] + list(arguments), capture_output=True, text=True, env=environment)
+            return answer.returncode, (answer.stdout or "").strip(), (answer.stderr or "").strip()
+
+    def by_cosign(kind):
+        """cosign's own verdict on the layout verify_image fetched, as the identity."""
+        command = [cosign, kind, "--new-bundle-format=false", "--local-image", "--certificate-identity", group,
+                   "--certificate-oidc-issuer", rf.ISSUER] + (["--type", ATTESTATION_TYPE] if kind != "verify" else [])
+        return subprocess.run(command + [os.path.join(work, "keyless")], capture_output=True, text=True,
+                              env=environment).returncode == 0
+
+    for what, signature, attestation, needle in (
+            ("this project's pipeline signed and attested it", keyless(), keyless(True), None),
+            ("another project's pipeline signed it at the identity", keyless(rid="1267388815"), keyless(True),
+             "signing certificate names the repository id 1267388815"),
+            ("another project's pipeline attested its SBOM at the identity", keyless(), keyless(True, rid="1267388815"),
+             "attestation's certificate names the repository id 1267388815"),
+            ("  ... with no id, at the group's path", keyless(), keyless(True, rid=None),
+             "attestation's certificate, at the group's path, records no repository id"),
+            ("another tag's pipeline signed and attested it", keyless(identity=group.replace("v9.9.9", "v9.9.8")),
+             keyless(True, identity=group.replace("v9.9.9", "v9.9.8")), "does not verify as signed")):
+        tags[attached + ".sig"] = manifest([signature])
+        tags[attached + ".att"] = manifest([attestation])
+        try:
+            said = verify_image(Keyless(), repository, digest, rf.identities("9.9.9"), rf.ISSUER, os.path.join(work, "keyless"))
+            said = "verified as %s, repository id %s" % (said[0], said[1])
+        except Refused as error:
+            said = str(error)
+        verdicts = (by_cosign("verify"), by_cosign("verify-attestation"))
+        if needle is None:
+            expect("keyless: %s - cosign %s verifies it from the layout, and the job takes it (%s)"
+                   % (what, os.path.basename(cosign), said[:90]), said == "verified as %s, repository id 86730559" % group
+                   and verdicts == (True, True))
+        else:
+            expect("keyless: %s - refused (%s), where cosign verify and verify-attestation say %s"
+                   % (what, said.splitlines()[0][:90], verdicts), needle in said
+                   and (verdicts == (True, True) or needle == "does not verify as signed"))
+
+
+def self_test(cosign=None):
     failures = []
 
     def expect(what, condition):
@@ -475,88 +813,180 @@ def self_test():
     finally:
         globals()["say"] = held_say
 
-    # The job against a registry and a cosign in memory.
+    # The job against a registry, regctl and cosign in memory.
     version = "9.9.9"
-    digest = "sha256:" + "d" * 64
     group = rf.identities(version)[1]
+    work = tempfile.mkdtemp(prefix="hm-mirror-test-")
+    blobs = {}
 
-    def layer_of(rid="86730559", key=b"", uris=None):
-        """A signature layer whose certificate carries the repository id rid, key as its
-        public key's bytes, and uris (the identity when None) in its SAN."""
-        cert = rf.test_certificate(rid, key=key, uris=uris or [group])
-        text = base64.b64encode(cert).decode()
+    def put(data):
+        blobs[sha256_digest(data)] = data
+        return sha256_digest(data)
+
+    def descriptor(data, media, annotations=None):
+        found = {"mediaType": media, "size": len(data), "digest": put(data)}
+        if annotations is not None:
+            found["annotations"] = annotations
+        return found
+
+    config_of = descriptor(b'{"architecture":"amd64","os":"linux","config":{}}', "application/vnd.docker.container.image.v1+json")
+    image = json.dumps({"schemaVersion": 2, "mediaType": IMAGE_MANIFEST_TYPES[1], "config": config_of, "layers": []}).encode()
+    digest = put(image)
+    other_image = put(image.replace(b'"layers": []', b'"layers": [], "annotations": {"another": "image"}'))
+
+    def layer(rid="86730559", key=b"", uris=None, good=True, attestation=False):
+        """A signature layer (or an attestation's) whose certificate carries the
+        repository id rid, key as its public key's bytes and uris (the identity when
+        None) in its SAN; with good, the in-memory cosign finds its signature good for
+        an identity its SAN names, and with good an identity, for that one whatever
+        the SAN's URIs are (as a name of another kind in it would be)."""
+        text = base64.b64encode(rf.test_certificate(rid, key=key, uris=uris or [group])).decode()
         pem = "-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n" % "\n".join(
             text[i:i + 64] for i in range(0, len(text), 64))
-        return {"mediaType": "application/vnd.dev.cosign.simplesigning.v1+json", "size": 250,
-                "digest": "sha256:" + "a" * 64, "annotations": {SIG_CERTIFICATE: pem}}
+        payload = json.dumps({"critical": {"image": {"docker-manifest-digest": digest}}, "rid": rid,
+                              "key": base64.b64encode(key).decode(), "attestation": attestation}).encode()
+        return descriptor(payload, "application/vnd.dsse.envelope.v1+json" if attestation else
+                          "application/vnd.dev.cosign.simplesigning.v1+json",
+                          {"dev.cosignproject.cosign/signature": "" if attestation else "MEUC", SIG_CERTIFICATE: pem,
+                           "test/verifies": good if isinstance(good, str) else "yes" if good else "no"})
 
-    def manifest_text(layers, extra=""):
-        """A signature manifest of layers, with the JSON members extra after them."""
-        return json.dumps({"schemaVersion": 2, "mediaType": "application/vnd.oci.image.manifest.v1+json",
-                           "layers": layers})[:-1] + extra + "}"
+    signature_config = descriptor(b'{"architecture":"","os":"","config":{},"rootfs":{"type":"layers","diff_ids":[]}}',
+                                  "application/vnd.oci.image.config.v1+json")
+
+    def manifest(layers, extra="", key="layers"):
+        """cosign's signature or attestation manifest of layers under key, with the JSON
+        members extra after them."""
+        return put((json.dumps({"schemaVersion": 2, "mediaType": IMAGE_MANIFEST_TYPES[0], "config": signature_config,
+                                key: layers})[:-1] + extra + "}").encode())
+
+    def go_fold(value):
+        """value as Go's encoding/json reads it into cosign's structs: a key in any case,
+        or with a long s, is the field's, and the last of two wins."""
+        if isinstance(value, dict):
+            found = {}
+            for key, item in value.items():
+                found[key.replace("\u017f", "s").lower()] = go_fold(item)
+            return found
+        if isinstance(value, list):
+            return [go_fold(v) for v in value]
+        return value
 
     class FakeTools:
-        def __init__(self, signed=True, attested=True, rid="86730559", moved=("9.9", "latest"), copies_ok=True, layers=None,
-                     body=None):
-            self.calls, self.signed, self.attested, self.rid, self.moved = [], signed, attested, rid, moved
-            self.copies_ok = copies_ok
-            self.images = {}
-            # Each signature layer's certificate: its id, its key's bytes, the names in its SAN.
-            self.layers = layers if layers is not None else [{"rid": rid}]
-            # Or the signature manifest's text, made with layer_of: body(layer_of).
-            self.body = body
+        """regctl and cosign against blobs, the source's tags (each a digest, or a list
+        answered in turn, the last one again and again) and the destinations'."""
+
+        def __init__(self, signed=True, attested=True, sig=None, att=None, moved=("9.9", "latest"), copies_ok=True,
+                     attached_ok=True, lying=()):
+            self.calls, self.moved, self.copies_ok, self.attached_ok, self.lying = [], moved, copies_ok, attached_ok, lying
+            hexdigest = digest.split(":", 1)[1]
+            self.tags = {"%s:%s" % (SOURCE, version): [digest],
+                         "%s:sha256-%s.sig" % (SOURCE, hexdigest): sig or [manifest([layer(good=signed)])],
+                         "%s:sha256-%s.att" % (SOURCE, hexdigest): att or [manifest([layer(good=attested, attestation=True)])]}
+            for tag in ("9.9", "latest"):
+                self.tags["%s:%s" % (SOURCE, tag)] = [digest if tag in moved else other_image]
+            self.tags = dict((k, v if isinstance(v, list) else [v]) for k, v in self.tags.items())
+
+        def resolve(self, reference):
+            answers = self.tags.get(reference)
+            if not answers:
+                return None
+            return answers.pop(0) if len(answers) > 1 else answers[0]
 
         def regctl_(self, *arguments, stdin=None):
             self.calls.append(("regctl",) + arguments + (("<stdin>",) if stdin else ()))
-            if arguments[:2] == ("manifest", "get"):
-                # The identity in each certificate's subject alternative name; the id,
-                # when there is one, in its extensions.
-                if self.body is not None:
-                    return 0, self.body(layer_of), ""
-                return 0, json.dumps({"layers": [layer_of(**layer) for layer in self.layers]}), ""
             if arguments[:2] == ("image", "copy"):
+                source, target = arguments[-2], arguments[-1]
+                if source.startswith("ocidir://"):
+                    layout, _, at = source[len("ocidir://"):].rpartition("@")
+                    if not os.path.isfile(os.path.join(layout, "blobs", "sha256", at.split(":", 1)[1])):
+                        return 1, "", "not in the layout"
+                    if self.attached_ok:
+                        self.tags[target] = [at]
+                    return 0, "", ""
                 if self.copies_ok:
-                    self.images[arguments[-1]] = digest
+                    self.tags[target] = [source.split("@", 1)[1]]
+                    if "--digest-tags" in arguments:
+                        base = target.rsplit(":", 1)[0]
+                        for suffix in (".sig", ".att"):
+                            at = self.resolve("%s:sha256-%s%s" % (SOURCE, digest.split(":", 1)[1], suffix))
+                            self.tags["%s:sha256-%s%s" % (base, digest.split(":", 1)[1], suffix)] = [at]
                 return 0, "", ""
             return 0, "", ""
 
+        def regctl_bytes(self, *arguments):
+            self.calls.append(("regctl",) + arguments)
+            if arguments[:2] == ("manifest", "get") and "@" in arguments[2]:
+                at = arguments[2].split("@", 1)[1]
+            elif arguments[:2] == ("blob", "get"):
+                at = arguments[3]
+            else:
+                return 1, b"", "not by digest"
+            if at not in blobs:
+                return 1, b"", "not found"
+            return 0, blobs[at] + (b" " if at in self.lying else b""), ""
+
+        def digest(self, reference):
+            self.calls.append(("regctl", "image", "digest", reference))
+            return self.resolve(reference)
+
         def cosign_(self, *arguments):
             self.calls.append(("cosign",) + arguments)
-            ok = self.signed if arguments[0] == "verify" else self.attested
             if arguments[0] == "verify" and "--help" in arguments:
                 return 0, "--new-bundle-format", ""
             identity = arguments[arguments.index("--certificate-identity") + 1]
-            if ok and identity == group:
-                return 0, json.dumps([{"critical": {"image": {"docker-manifest-digest": digest}}}]), ""
+            kind = KIND_SIGNATURES if arguments[0] == "verify" else KIND_ATTESTATIONS
+            if "--local-image" in arguments:
+                body = layout_manifest(arguments[-1], kind)
+            else:
+                # cosign given the registry fetches the tag itself: a read of its own.
+                repository, at = arguments[-1].split("@", 1)
+                body = blobs.get(self.resolve("%s:sha256-%s%s" % (repository, at.split(":", 1)[1],
+                                                                  ".sig" if kind == KIND_SIGNATURES else ".att")))
+            try:
+                layers = go_fold(json.loads(body)).get("layers") or []
+            except (TypeError, ValueError):
+                layers = []
+            for found in layers:
+                annotations = found.get("annotations") or {}
+                certificate = PEM_CERTIFICATE.match(annotations.get(SIG_CERTIFICATE) or "")
+                verifies = annotations.get("test/verifies")
+                if verifies == identity or verifies == "yes" and certificate and identity in rf.sigstore_certificate.uris(
+                        base64.b64decode("".join(certificate.group(1).split()))):
+                    return 0, json.dumps([{"critical": {"image": {"docker-manifest-digest": digest}}}]), ""
             return 1, "", "Error: no matching signatures"
-
-        def digest(self, reference):
-            if reference == "%s:%s" % (SOURCE, version):
-                return digest
-            if reference.startswith(SOURCE + ":"):
-                return digest if reference.rsplit(":", 1)[1] in self.moved else "sha256:" + "e" * 64
-            return self.images.get(reference)
 
     environ = {"HM_CHANNEL_VERSION": version, "DOCKERHUB_USERNAME": "progressiverobot", "DOCKERHUB_TOKEN": "dckr_pat_secret",
                "QUAY_ROBOT_USER": "hmailserver+ci", "QUAY_ROBOT_TOKEN": "quay-secret"}
     held = rf.release_version
-    work = tempfile.mkdtemp(prefix="hm-mirror-test-")
+    held_say = globals()["say"]
+
+    def job(fake, name):
+        """The job's exit code, or what it refused."""
+        globals()["say"] = lambda line="": None
+        try:
+            return registry_mirror(os.path.join(work, name), environ, tools_for=lambda config: fake)
+        except Refused as error:
+            return "refused: %s" % error
+        finally:
+            globals()["say"] = held_say
+
     try:
         rf.release_version = lambda environ, fix: (version, "HM_CHANNEL_VERSION")
         fake = FakeTools()
-        held_say = globals()["say"]
-        globals()["say"] = lambda line="": None
-        try:
-            code = registry_mirror(os.path.join(work, "a"), environ, tools_for=lambda config: fake)
-        finally:
-            globals()["say"] = held_say
-        copies = [c for c in fake.calls if c[:3] == ("regctl", "image", "copy")]
-        expect("verified, then copied by digest with --digest-tags and --referrers to both, each tag the source has",
+        code = job(fake, "a")
+        out = os.path.join(work, "a")
+        expect("the job passes, the image signed and attested as the release's pipeline does (%s)" % code, code == 0)
+        record = {}
+        if code == 0:
+            with open(os.path.join(out, "mirror.json"), encoding="utf-8") as f:
+                record = json.load(f)
+        copies = [c for c in fake.calls if c[:3] == ("regctl", "image", "copy") and not c[-2].startswith("ocidir://")]
+        expect("verified, then copied by digest to both, each tag the source has, and nothing beside it unverified",
                code == 0 and [c[-1] for c in copies] == [
                    "docker.io/progressiverobot/hmailserver:9.9.9", "docker.io/progressiverobot/hmailserver:9.9",
                    "docker.io/progressiverobot/hmailserver:latest", "quay.io/hmailserver/hmailserver:9.9.9",
                    "quay.io/hmailserver/hmailserver:9.9", "quay.io/hmailserver/hmailserver:latest"]
-               and all(c[3:5] == ("--digest-tags", "--referrers") and c[5] == "%s@%s" % (SOURCE, digest) for c in copies))
+               and all(c[3:] == ("%s@%s" % (SOURCE, digest), c[-1]) for c in copies))
         first_copy = fake.calls.index(copies[0])
         expect("  ... the source verified (signature and attestation) before any login or copy",
                [c[1] for c in fake.calls[:first_copy] if c[0] == "cosign"] == ["verify", "verify", "verify",
@@ -565,71 +995,148 @@ def self_test():
                    i for i, c in enumerate(fake.calls[:first_copy]) if c[0] == "cosign"))
         expect("  ... the credentials only on regctl's standard input",
                not any("dckr_pat_secret" in " ".join(c) or "quay-secret" in " ".join(c) for c in fake.calls))
-        expect("  ... and the image verified again at each destination",
-               sum(1 for c in fake.calls if c[0] == "cosign" and c[1] == "verify" and "--help" not in c
-                   and c[-1].startswith("docker.io/progressiverobot/hmailserver@")) == 1)
-        fake = FakeTools(layers=[{"rid": "86730559"}, {"rid": "86730559"}, {"rid": None, "uris": ["https://example.org/other"]}])
-        globals()["say"] = lambda line="": None
-        try:
-            code = registry_mirror(os.path.join(work, "a2"), environ, tools_for=lambda config: fake)
-        finally:
-            globals()["say"] = held_say
+        verifications = [c for c in fake.calls if c[0] == "cosign" and "--help" not in c]
+        expect("  ... cosign given the layout the manifests were fetched into, never the registry",
+               verifications and all("--local-image" in c and os.path.dirname(c[-1]) == os.path.join(out, "verified")
+                                     for c in verifications))
+        hexdigest = digest.split(":", 1)[1]
+        resolved = [c[-1] for c in fake.calls if c[1:3] == ("image", "digest")]
+        expect("  ... the source's .sig and .att tags each resolved once, and every manifest read by its digest",
+               resolved.count("%s:sha256-%s.sig" % (SOURCE, hexdigest)) == 1
+               and resolved.count("%s:sha256-%s.att" % (SOURCE, hexdigest)) == 1
+               and all("@" in c[3] for c in fake.calls if c[1:3] == ("manifest", "get")))
+        kinds = []
+        if os.path.isfile(os.path.join(out, "verified", "source", "index.json")):
+            with open(os.path.join(out, "verified", "source", "index.json"), encoding="utf-8") as f:
+                kinds = [m["annotations"][KIND] for m in json.load(f)["manifests"]]
+        expect("  ... the layout is cosign's: index.json names the image, its signatures and its attestations",
+               kinds == [KIND_IMAGE, KIND_SIGNATURES, KIND_ATTESTATIONS])
+        attached = [c for c in fake.calls if c[:3] == ("regctl", "image", "copy") and c[-2].startswith("ocidir://")]
+        expect("  ... the verified signature and attestation copied out of the layout to each destination, after the image",
+               [(c[-2].split("@")[1], c[-1]) for c in attached] == [
+                   (record.get("signature"), "docker.io/progressiverobot/hmailserver:sha256-%s.sig" % hexdigest),
+                   (record.get("attestation"), "docker.io/progressiverobot/hmailserver:sha256-%s.att" % hexdigest),
+                   (record.get("signature"), "quay.io/hmailserver/hmailserver:sha256-%s.sig" % hexdigest),
+                   (record.get("attestation"), "quay.io/hmailserver/hmailserver:sha256-%s.att" % hexdigest)]
+               and fake.calls.index(attached[0]) > fake.calls.index(copies[2]))
+        expect("  ... and the image verified again at each destination, from there",
+               sum(1 for c in verifications if c[1] == "verify" and c[-1].endswith("destination-0")) == 1
+               and any(c[1:3] == ("manifest", "get") and c[3].startswith("docker.io/progressiverobot/hmailserver@")
+                       for c in fake.calls))
+
+        # A source whose .sig tag answers the signature that verified, then another: the
+        # destination gets the one verified.
+        others = manifest([layer(rid="1267388815")])
+        fake = FakeTools(sig=[manifest([layer()]), others])
+        code = job(fake, "a1")
+        expect("a source's .sig that changes after it was verified: the destination gets the verified one (%s)" % code,
+               code == 0 and fake.tags["docker.io/progressiverobot/hmailserver:sha256-%s.sig" % hexdigest] ==
+               [manifest([layer()])])
+        fake = FakeTools(sig=[manifest([layer(), layer(), layer(rid=None, uris=["https://example.org/other"])])])
+        code = job(fake, "a2")
         expect("an image signed twice as this project's pipeline, and once by another identity, is copied",
                code == 0 and any(c[:3] == ("regctl", "image", "copy") for c in fake.calls))
         fake = FakeTools(moved=())
-        globals()["say"] = lambda line="": None
-        try:
-            registry_mirror(os.path.join(work, "b"), environ, tools_for=lambda config: fake)
-        finally:
-            globals()["say"] = held_say
+        job(fake, "b")
         expect("an older release: :<major>.<minor> and :latest left where the source has them",
-               [c[-1].rsplit(":", 1)[1] for c in fake.calls if c[:3] == ("regctl", "image", "copy")] == ["9.9.9", "9.9.9"])
-        for what, fake, needle in (
-                ("an unsigned image", FakeTools(signed=False), "does not verify as signed"),
-                ("an image without its SBOM attested", FakeTools(attested=False), "SBOM attested"),
-                ("a signature at the group's path without the project's id", FakeTools(rid=None), "records no repository id"),
-                ("another project's id", FakeTools(rid="1267388815"), "not 86730559"),
-                # The layer first whose certificate holds the identity's bytes - in its key -
-                # and this project's id, before the one that verified, naming another id.
-                ("a signature added before the verified one, this project's id in its extensions and the identity in its key",
-                 FakeTools(layers=[{"rid": "86730559", "key": group.encode(), "uris": ["https://gitlab.com/someone/else"]},
-                                   {"rid": "1267388815"}]), "not 86730559"),
-                ("  ... the one added naming the identity too", FakeTools(layers=[{"rid": "86730559"}, {"rid": "1267388815"}]),
-                 "not 86730559"),
-                ("  ... this project's id planted in the key of the one that verified",
-                 FakeTools(layers=[{"rid": "1267388815", "key": b"\x00" * 7 + rf.sigstore_certificate.planted()}]),
-                 "not 86730559"),
-                # The signature cosign verified where Go's encoding/json finds it and Python's
-                # json does not, and one of this project's where Python looks: cosign 2.6.5
-                # verifies a signature so hidden (a key-signed one, against registry:2).
-                ("a signature under \"Layers\" beside \"layers\"", FakeTools(body=lambda layer: manifest_text(
-                    [layer()], ', "Layers": [%s]' % json.dumps(layer("1267388815")))), "in some case"),
-                ("  ... under \"LAYERS\" alone", FakeTools(body=lambda layer: json.dumps({
-                    "schemaVersion": 2, "LAYERS": [layer("1267388815")]})), "which cosign reads as layers"),
-                ("  ... under \"layers\" with a long s", FakeTools(body=lambda layer: manifest_text(
-                    [layer()], ', "layer\\u017f": [%s]' % json.dumps(layer("1267388815")))), "not ASCII"),
-                ("  ... its certificate under a layer's \"Annotations\"", FakeTools(body=lambda layer: manifest_text(
-                    [layer(), dict([m for m in layer().items() if m[0] != "annotations"],
-                                   Annotations=layer("1267388815")["annotations"])])),
-                 "which cosign reads as annotations"),
-                ("  ... an index at the signature's tag, whose linux/amd64 manifest cosign reads",
-                 FakeTools(body=lambda layer: json.dumps({"schemaVersion": 2, "manifests": [], "layers": [layer()]})),
-                 "not an image manifest"),
-                ("  ... \"layers\" twice", FakeTools(body=lambda layer: manifest_text(
-                    [layer("1267388815")], ', "layers": [%s]' % json.dumps(layer()))), "in some case"),
-                ("no signature whose certificate names the identity",
-                 FakeTools(layers=[{"rid": "86730559", "key": group.encode(), "uris": ["https://gitlab.com/someone/else"]}]),
-                 "carries a certificate naming"),
-                ("a destination that does not hold the digest after the copy", FakeTools(copies_ok=False), "after the copy")):
+               [c[-1].rsplit(":", 1)[1] for c in fake.calls if c[:3] == ("regctl", "image", "copy")
+                and not c[-2].startswith("ocidir://")] == ["9.9.9", "9.9.9"])
+
+        def hidden(key_extra):
+            """A signature manifest whose "layers" hold one that verifies nothing but
+            carries this project's id, and whose other key holds another project's that
+            verifies: cosign 2.6.5 reads the second (Go's encoding/json), a reader of
+            "layers" the first."""
+            return manifest([layer(good=False)], ', %s: [%s]' % (key_extra, json.dumps(layer(rid="1267388815"))))
+
+        index = put(json.dumps({"schemaVersion": 2, "mediaType": IMAGE_INDEX_TYPES[0], "manifests": [
+            {"mediaType": IMAGE_MANIFEST_TYPES[0], "digest": manifest([layer(rid="1267388815")]), "size": 1,
+             "platform": {"architecture": "amd64", "os": "linux"}}]}).encode())
+        cases = [
+            ("an unsigned image", FakeTools(signed=False), "does not verify as signed"),
+            ("an image without its SBOM attested", FakeTools(attested=False), "SBOM attested"),
+            ("an image without an attestation manifest", FakeTools(att=[None]), "the image has no attestation there"),
+            ("a signature at the group's path without the project's id", FakeTools(sig=[manifest([layer(rid=None)])]),
+             "signing certificate, at the group's path, records no repository id"),
+            ("another project's id", FakeTools(sig=[manifest([layer(rid="1267388815")])]), "not 86730559"),
+            # The layer first whose certificate holds the identity's bytes - in its key -
+            # and this project's id, before the one that verified, naming another id.
+            ("a signature added before the verified one, this project's id in its extensions and the identity in its key",
+             FakeTools(sig=[manifest([layer(key=group.encode(), uris=["https://gitlab.com/someone/else"], good=False),
+                                      layer(rid="1267388815")])]), "not 86730559"),
+            ("  ... the one added naming the identity too",
+             FakeTools(sig=[manifest([layer(good=False), layer(rid="1267388815")])]), "not 86730559"),
+            ("  ... this project's id planted in the key of the one that verified",
+             FakeTools(sig=[manifest([layer(rid="1267388815", key=b"\x00" * 7 + rf.sigstore_certificate.planted())])]),
+             "not 86730559"),
+            # The signature cosign verified where Go's encoding/json finds it and Python's
+            # json does not, and one of this project's where Python looks: cosign 2.6.5
+            # verifies a signature so hidden (a key-signed one, against registry:2).
+            ("a signature under \"Layers\" beside \"layers\"", FakeTools(sig=[hidden('"Layers"')]), "in some case"),
+            ("  ... under \"LAYERS\" alone", FakeTools(sig=[manifest([layer(rid="1267388815")], key="LAYERS")]),
+             "not a field of v1.Manifest"),
+            ("  ... under \"layers\" with a long s", FakeTools(sig=[hidden('"layer\\u017f"')]), "not ASCII"),
+            ("  ... its certificate under a layer's \"Annotations\"", FakeTools(sig=[manifest([layer(good=False), dict(
+                [m for m in layer(rid="1267388815").items() if m[0] != "annotations"],
+                Annotations=layer(rid="1267388815")["annotations"])])]), "not a field of v1.Descriptor"),
+            ("  ... an index at the signature's tag, whose linux/amd64 manifest cosign reads", FakeTools(sig=[index]),
+             "not a field of v1.Manifest"),
+            # A registry serving the tag as an index hands cosign the child that
+            # "Manifests" names, and a reader of the body the "layers" beside it (cosign
+            # 2.6.5 verifies it; registry:2 refuses to store it).
+            ("  ... an index under \"MANIFESTS\" beside \"layers\"", FakeTools(sig=[manifest(
+                [layer()], ', "MANIFESTS": [{"mediaType": "%s", "digest": "%s", "size": 1}]'
+                % (IMAGE_MANIFEST_TYPES[0], manifest([layer(rid="1267388815")])))]), "not a field of v1.Manifest"),
+            ("  ... \"layers\" twice", FakeTools(sig=[manifest([layer(rid="1267388815")], ', "layers": [%s]' % json.dumps(
+                layer()))]), "in some case"),
+            ("  ... a key cosign does not read", FakeTools(sig=[manifest([layer()], ', "layerz": []')]),
+             "not a field of v1.Manifest"),
+            ("  ... a certificate that is not a string", FakeTools(sig=[manifest([dict(layer(), annotations={
+                SIG_CERTIFICATE: 1, "test/verifies": "yes"})])]), "an object of strings"),
+            ("no signature whose certificate names the identity in a URI, the reader's",
+             FakeTools(sig=[manifest([layer(key=group.encode(), uris=["https://gitlab.com/someone/else"], good=group)])]),
+             "carries a certificate naming"),
+            # The SBOM's attestation, held to the project's id as the signature is.
+            ("an SBOM attested by another project's pipeline at the identity",
+             FakeTools(att=[manifest([layer(rid="1267388815", attestation=True)])]),
+             "attestation's certificate names the repository id 1267388815"),
+            ("  ... at the group's path without the project's id", FakeTools(att=[manifest([layer(rid=None, attestation=True)])]),
+             "attestation's certificate, at the group's path, records no repository id"),
+            ("  ... this project's id planted in its key", FakeTools(att=[manifest([layer(
+                rid="1267388815", key=b"\x00" * 7 + rf.sigstore_certificate.planted(), attestation=True)])]),
+             "attestation's certificate names the repository id 1267388815"),
+            ("  ... an attestation added beside this project's", FakeTools(att=[manifest([layer(attestation=True), layer(
+                rid="1267388815", attestation=True, good=False)])]), "attestation's certificate names the repository id"),
+            ("  ... under \"Layers\" beside \"layers\"", FakeTools(att=[manifest([layer(attestation=True, good=False)], (
+                ', "Layers": [%s]' % json.dumps(layer(rid="1267388815", attestation=True))))]), "in some case"),
+            # A registry that answers the .sig tag with the signature another project's
+            # pipeline made at the identity, and then with this project's: one read, so
+            # cosign and the reader both have the first.
+            ("a .sig tag answering another project's signature, then this project's",
+             FakeTools(sig=[manifest([layer(rid="1267388815")]), manifest([layer()])]), "not 86730559"),
+            ("a .sig tag answering this project's signature that verifies nothing, then another project's that does",
+             FakeTools(sig=[manifest([layer(good=False)]), manifest([layer(rid="1267388815")])]), "does not verify as signed"),
+            ("a manifest answered by its digest that is not it", FakeTools(lying=(digest,)), "whose digest is"),
+            ("a signature's blob that is not its digest",
+             FakeTools(lying=(json.loads(blobs[manifest([layer()])])["layers"][0]["digest"],)), "that is not it"),
+            ("a destination that does not hold the digest after the copy", FakeTools(copies_ok=False), "after the copy"),
+            ("a destination that does not hold the verified signature after the copy (the source's changed since)",
+             FakeTools(sig=[manifest([layer()]), manifest([layer(rid="1267388815")])], attached_ok=False),
+             "not the signature verified")]
+        for what, fake, needle in cases:
             globals()["say"] = lambda line="": None
             try:
                 refused("refused: " + what, lambda: registry_mirror(os.path.join(work, "c"), environ,
                                                                    tools_for=lambda config: fake), needle)
             finally:
                 globals()["say"] = held_say
-            if what != "a destination that does not hold the digest after the copy":
+            if "destination" not in what:
                 expect("  ... and nothing was logged in to or copied",
                        not any(c[1:3] in (("registry", "login"), ("image", "copy")) for c in fake.calls))
+        if cosign:
+            real_cosign_cases(expect, cosign, work)
+        else:
+            print("skip  the layouts against a real cosign: no --cosign given")
     finally:
         rf.release_version = held
         shutil.rmtree(work, ignore_errors=True)
@@ -645,10 +1152,11 @@ def self_test():
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--cosign", help="with --self-test: a cosign to verify the layouts with")
     parser.add_argument("--out", default="registry-mirror")
     arguments = parser.parse_args()
     if arguments.self_test:
-        return self_test()
+        return self_test(arguments.cosign)
     try:
         return registry_mirror(os.path.abspath(arguments.out))
     except Refused as error:

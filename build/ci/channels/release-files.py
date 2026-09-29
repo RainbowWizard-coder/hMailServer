@@ -458,7 +458,8 @@ def fetch_tool(tool, into, environ=None, get=registry_get, machine=None):
     path = os.path.join(into, tool)
     with open(path, "wb") as f:
         f.write(data)
-    os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    # Executable by the job's own user, who alone runs it.
+    os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR)
     say("%s: %s from %s (SHA-256 %s)" % (tool, path, reference, hashlib.sha256(data).hexdigest()))
     return path
 

@@ -92,6 +92,14 @@ CPPCHECK_ANALYSIS_ERRORS = {
     "cppcheckError", "unknownMacro", "instantiationError", "premium-internalError",
 }
 CLANG_TIDY_ANALYSIS_ERRORS = {"clang-diagnostic-error"}
+# Semgrep's names for a file its parser could not read at all, which it reports at
+# level "warn" (1.178.0: build/ci/semgrep.sh itself, a "Syntax error" at "warn").
+SEMGREP_UNPARSED = {"Lexical error", "Syntax error", "Other syntax error", "AST builder error"}
+# A partial parse that leaves more lines of a file unread than this is a hole: a
+# construct on a line or two the parser does not know is skipped, but one it loses a
+# block to is not (1.178.0 skipped lines 42 to 138 of container-image-sign.sh, all of
+# its commands, for one-line case statements, and said "warn").
+SEMGREP_PARTIAL_LINES = 10
 
 
 def now():
@@ -319,19 +327,29 @@ def read_semgrep(path, remap=None, rule_prefix=""):
                                 severity.get(str(extra.get("severity", "")).upper(), "Unknown"),
                                 extra.get("message", ""), cwes))
     for e in data.get("errors", []):
-        # A file Semgrep could not parse at all, or a rule that gave up on a file (a
-        # timeout), is a hole in the scan. A partial parse - Semgrep skipped a few
-        # constructs and scanned the rest - is reported at level "warn" and is not.
+        # A hole in the scan, whatever level Semgrep gives it: a file it could not parse
+        # at all, a partial parse that left more than SEMGREP_PARTIAL_LINES lines of a
+        # file unread, and a rule that gave up on a file (a timeout). Semgrep reports the
+        # first two at level "warn", and the job took them for a scan of the whole file.
+        # A partial parse of a line or two - a construct the parser does not know,
+        # skipped, and the rest of the file scanned - is not a hole.
         kind = e.get("type")
+        typed_spans = kind[1] if isinstance(kind, list) and len(kind) > 1 and isinstance(kind[1], list) else []
         kind = kind[0] if isinstance(kind, list) and kind else kind
         level = str(e.get("level", "error")).lower()
-        if level not in ("error", "fatal") and kind not in ("Timeout", "OutOfMemory"):
+        spans = [s for s in (e.get("spans") or typed_spans) if isinstance(s, dict)] or [{}]
+        unread = sum(max(0, (s.get("end") or {}).get("line", 0) - (s.get("start") or {}).get("line", 0) + 1)
+                     for s in spans if s.get("start") and s.get("end"))
+        if level not in ("error", "fatal") and kind not in ("Timeout", "OutOfMemory") and kind not in SEMGREP_UNPARSED \
+                and not (kind == "PartialParsing" and unread > SEMGREP_PARTIAL_LINES):
             continue
-        spans = e.get("spans") or [{}]
-        file = e.get("path") or spans[0].get("file", "")
+        file = e.get("path") or spans[0].get("file") or spans[0].get("path", "")
+        said = str(e.get("message", "")).split("\n")[0][:300]
+        if kind == "PartialParsing":
+            said = "%d lines left unread (%s): %s" % (unread, ", ".join(
+                "%s-%s" % ((s.get("start") or {}).get("line"), (s.get("end") or {}).get("line")) for s in spans), said)
         errors.append(finding("semgrep", rule_of(str(e.get("rule_id") or kind or "semgrep-error")), place(file),
-                              (spans[0].get("start") or {}).get("line", 0), 0, "Unknown",
-                              "%s: %s" % (kind, str(e.get("message", "")).split("\n")[0][:300])))
+                              (spans[0].get("start") or {}).get("line", 0), 0, "Unknown", "%s: %s" % (kind, said)))
     return findings, errors
 
 

@@ -88,7 +88,12 @@ closure_problems() {
     seen="${seen}${name} "
   done
   while read -r pinned base32 sri; do
-    case "$seen" in *" ${pinned} "*) ;; *) echo "${pinned}, pinned, is not in the realised closure" ;; esac
+    # Every case here over lines of its own: Semgrep's bash parser cannot read a case
+    # on one line, and one it cannot read leaves the rest of the script unscanned.
+    case "$seen" in
+      *" ${pinned} "*) ;;
+      *) echo "${pinned}, pinned, is not in the realised closure" ;;
+    esac
   done <<< "$CLOSURE"
 }
 
@@ -161,19 +166,37 @@ self_test() {
   said=$(while read -r name _ sri; do printf '/nix/store/%s %s\n' "$name" "$sri"; done <<< "$CLOSURE" | closure_problems)
   expect "${said:-none}" none "the hashes in SRI form pass too"
   said=$(printf '%s\n' "${store/sha256:0brx32/sha256:1brx32}" | closure_problems)
-  case "$said" in *"scorecard-5.5.0 has the NAR hash"*) ;; *) echo "FAILED: another NAR hash for Scorecard is refused (said: $said)"; failures=$((failures + 1)) ;; esac
+  case "$said" in
+    *"scorecard-5.5.0 has the NAR hash"*) ;;
+    *) echo "FAILED: another NAR hash for Scorecard is refused (said: $said)"; failures=$((failures + 1)) ;;
+  esac
   said=$(printf '%s\n/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-extra-1.0 sha256:x\n' "$store" | closure_problems)
-  case "$said" in *"extra-1.0 is in the closure and not pinned"*) ;; *) echo "FAILED: a path the pin does not name is refused (said: $said)"; failures=$((failures + 1)) ;; esac
+  case "$said" in
+    *"extra-1.0 is in the closure and not pinned"*) ;;
+    *) echo "FAILED: a path the pin does not name is refused (said: $said)"; failures=$((failures + 1)) ;;
+  esac
   said=$(while read -r name base32 _; do [ "${name#*-glibc-}" = "$name" ] && printf '/nix/store/%s %s\n' "$name" "$base32"; done <<< "$CLOSURE" | closure_problems)
-  case "$said" in *"glibc-2.42-84, pinned, is not in the realised closure"*) ;; *) echo "FAILED: a pinned path missing from the closure is refused (said: $said)"; failures=$((failures + 1)) ;; esac
+  case "$said" in
+    *"glibc-2.42-84, pinned, is not in the realised closure"*) ;;
+    *) echo "FAILED: a pinned path missing from the closure is refused (said: $said)"; failures=$((failures + 1)) ;;
+  esac
   said=$(printf '' | closure_problems)
-  case "$said" in *"scorecard-5.5.0, pinned, is not in"*) ;; *) echo "FAILED: nothing realised is refused (said: $said)"; failures=$((failures + 1)) ;; esac
+  case "$said" in
+    *"scorecard-5.5.0, pinned, is not in"*) ;;
+    *) echo "FAILED: nothing realised is refused (said: $said)"; failures=$((failures + 1)) ;;
+  esac
   said=$(printf '%s\n' "${store/sha256:0brx32y7m1z68clfasdp3rypih6l5r0liy2bh21jmds4q6fvkipj/error: path is not valid}" | closure_problems)
-  case "$said" in *"scorecard-5.5.0 has the NAR hash 'error: path"*) ;; *) echo "FAILED: an error in place of a hash is refused (said: $said)"; failures=$((failures + 1)) ;; esac
+  case "$said" in
+    *"scorecard-5.5.0 has the NAR hash 'error: path"*) ;;
+    *) echo "FAILED: an error in place of a hash is refused (said: $said)"; failures=$((failures + 1)) ;;
+  esac
   # Without the token: "not configured", exit 0, nothing written.
   out=$(env -u GITLAB_AUTH_TOKEN bash "${BASH_SOURCE[0]}" "$work/out" 2>&1); code=$?
   expect "$code" 0 "without GITLAB_AUTH_TOKEN the run exits 0"
-  case "$out" in *"not configured"*) ;; *) echo "FAILED: without the token it says 'not configured' (said: $out)"; failures=$((failures + 1)) ;; esac
+  case "$out" in
+    *"not configured"*) ;;
+    *) echo "FAILED: without the token it says 'not configured' (said: $out)"; failures=$((failures + 1)) ;;
+  esac
   if [ -e "$work/out/scorecard.json" ]; then echo "FAILED: without the token nothing is written"; failures=$((failures + 1)); fi
   out=$(GITLAB_AUTH_TOKEN="" bash "${BASH_SOURCE[0]}" "$work/out" 2>&1); code=$?
   expect "$code" 0 "an empty GITLAB_AUTH_TOKEN is not configured either"

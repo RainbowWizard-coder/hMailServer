@@ -125,6 +125,8 @@ channels-check:
       python3 build/ci/channels/release-files.py fetch-tool cosign --into /tmp/channel-tools
       python3 build/ci/channels/fake-sigstore.py --self-test --cosign /tmp/channel-tools/cosign
       python3 build/ci/channels/release-files.py --self-test --cosign /tmp/channel-tools/cosign
+      # And the OCI layout registry-mirror verifies the image in, against that cosign.
+      python3 build/ci/channels/registry-mirror.py --self-test --cosign /tmp/channel-tools/cosign
 
 channels-verify:
   stage: release
@@ -168,6 +170,9 @@ registry-mirror:
     expire_in: 90 days
     paths:
       - registry-mirror/mirror.json
+      # What was verified: cosign's layout of the image's manifest and its signature and
+      # attestation manifests, at the source and at each destination.
+      - registry-mirror/verified/
 
 aur-publish:
   stage: release

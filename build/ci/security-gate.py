@@ -591,6 +591,31 @@ def self_test():
 
         old = fp("cppcheck", "bufferAccess", "src/a.cpp", 2)
         new = fp("clang-tidy", "cert-err34-c", "src/a.cpp", 3)
+
+        # The semgrep job's holes, which make its report's status "failure" and so hold
+        # the release (security-findings.py, read_semgrep), as Semgrep 1.178.0 writes
+        # them: a file it could not parse, and a partial parse that lost a block, each
+        # at level "warn"; a partial parse of one line is not a hole, a timeout is.
+        def span(first, last, key):
+            return {key: "build/ci/sign.sh", "start": {"line": first, "col": 1, "offset": 0},
+                    "end": {"line": last, "col": 9, "offset": 9}}
+        semgrep_json = os.path.join(work, "semgrep.json")
+        with open(semgrep_json, "w", encoding="utf-8") as f:
+            json.dump({"results": [], "errors": [
+                {"code": 3, "level": "warn", "type": "Syntax error", "path": "build/ci/semgrep.sh",
+                 "message": "Syntax error at line build/ci/semgrep.sh:1:\n `#!/bin/bash"},
+                {"code": 3, "level": "warn", "type": ["PartialParsing", [span(42, 138, "path")]], "path": "build/ci/sign.sh",
+                 "spans": [span(42, 138, "file")], "message": "Syntax error at line build/ci/sign.sh:42:\n `set -eu"},
+                {"code": 3, "level": "warn", "type": ["PartialParsing", [span(102, 102, "path")]], "path": "build/ci/one.sh",
+                 "spans": [span(102, 102, "file")], "message": "Syntax error at line build/ci/one.sh:102:"},
+                {"code": 2, "level": "warn", "type": "Timeout", "path": "src/Portal.js", "rule_id": "a-rule",
+                 "message": "Timeout when running a-rule on src/Portal.js"}]}, f)
+        _, holes = findings_module.read_semgrep(semgrep_json)
+        expect(sorted(h["path"] for h in holes) == ["build/ci/semgrep.sh", "build/ci/sign.sh", "src/Portal.js"],
+               "semgrep's holes are a file it could not parse, a partial parse of 97 lines and a timeout, not a partial "
+               "parse of one line: %s" % sorted((h["path"], h["message"][:60]) for h in holes))
+        expect(any("97 lines left unread (42-138)" in h["message"] for h in holes),
+               "a partial parse that is a hole says how many lines it left unread, and which")
         for scan, name in BASELINES.items():
             with open(os.path.join(root, name), "w", encoding="utf-8") as f:
                 f.write("# baseline\n%s\tcppcheck\tbufferAccess\tsrc/a.cpp:2\tm\n" % old)

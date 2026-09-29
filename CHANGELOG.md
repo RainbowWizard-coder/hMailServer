@@ -308,8 +308,13 @@ for a stray `#` number or `@` name.
   `--new-bundle-format`, and registry-mirror refuses a signature manifest Go's JSON reader would read otherwise (a
   key in another case or with a long s, a key twice, an index at the `.sig` tag); the Python reader refuses a
   duplicated key. build/check-release-chain.py holds every script to the readers and refuses the Sigstore OID written
-  as bytes, decimal numbers or base64 anywhere else. The server's own verifier reads the extension through OpenSSL
-  and was never affected.
+  as bytes, decimal numbers or base64 anywhere else. The container image's mirror has cosign verify its signature and
+  SBOM attestation from one copy of their manifests, each fetched by its digest, reads the project's id from those
+  same manifests - the attestation's certificate now held to it as the signature's is - and puts exactly those
+  manifests at each registry, replacing whatever signature was there; the release's SLSA provenance is held to the
+  project's id too, as its files are; and neither certificate reader relies any longer on cosign refusing a malformed
+  bundle to know which certificate it read. The server's own verifier reads the extension through OpenSSL and was
+  never affected.
 
 ### IMAP, POP3 and the webmail
 
@@ -721,6 +726,11 @@ Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/
   resolving or hashing them - click kept its old hashes, and Semgrep 1.178.0 accepts none of the new versions - so
   the semgrep job, and with it the release's security gate, would have failed. Its pip manager now reads the .in
   files only, and its merge request says how to remake the locked files. Microsoft.NET.Test.Sdk is 18.10.1.
+- **The semgrep job counts a file Semgrep could not parse, or parsed leaving more than ten of its lines unread, as a
+  hole in the scan**, as it did a rule that timed out: Semgrep reports both only as a warning, and the job had taken
+  `build/ci/semgrep.sh` (not parsed at all), `container-image-sign.sh` (97 of 138 lines unread, every command that
+  signs and attests the image) and `scorecard.sh` (117 of 243) as scanned; the three are now written so Semgrep's
+  bash parser reads every line.
 
 ---
 

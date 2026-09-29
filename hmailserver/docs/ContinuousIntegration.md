@@ -2620,8 +2620,11 @@ fires on two identical lines of one file, their order counts too.
 - 0 when nothing is new;
 - 1 when something is new;
 - 2 when the scan has a hole: a tool that did not finish, a file cppcheck or
-  clang-tidy could not parse, or a Semgrep rule that timed out on a file. A hole
-  is never a pass, and no baseline excuses it.
+  clang-tidy could not parse, a file Semgrep could not parse or parsed leaving more
+  than ten of its lines unread (Semgrep reports both only as a warning, and its
+  bash parser cannot read a `case` written on one line, or an `if` whose condition
+  holds a here-document), or a Semgrep rule that timed out on a file. A hole is
+  never a pass, and no baseline excuses it.
 
 So the day `allow_failure` comes off a job, a new finding fails the pipeline and
 an old one does not.

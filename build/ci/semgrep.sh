@@ -89,8 +89,10 @@ echo "== the rules, from semgrep.dev"
 mkdir -p "$work/rules"
 for pack in $packs; do
   name=$(echo "$pack" | tr '/' '-')
-  # Python's urllib rather than curl, which the image does not have.
-  if ! python3 - "https://semgrep.dev/c/$pack" "$work/rules/$name.yml" <<'EOF'
+  # Python's urllib rather than curl, which the image does not have. Its failure is
+  # taken after || on this line, not by an if around it: Semgrep's bash parser cannot
+  # read an if whose condition holds a here-document, and read none of this script.
+  python3 - "https://semgrep.dev/c/$pack" "$work/rules/$name.yml" <<'EOF' || { echo "could not fetch $pack from semgrep.dev"; exit 2; }
 import sys, time, urllib.request
 url, target = sys.argv[1], sys.argv[2]
 for attempt in range(3):
@@ -107,10 +109,6 @@ for attempt in range(3):
         time.sleep(5 * (attempt + 1))
 sys.exit(1)
 EOF
-  then
-    echo "could not fetch $pack from semgrep.dev"
-    exit 2
-  fi
   cp "$work/rules/$name.yml" "$out/rules/"
   echo "$pack: $(grep -c '^- id:' "$work/rules/$name.yml") rules"
 done

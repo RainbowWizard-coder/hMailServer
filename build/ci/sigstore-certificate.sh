@@ -38,7 +38,10 @@
 # material cannot be X.509 certificate chain"), and holds one certificate, whose
 # rawBytes, spelled as grep finds it, is then the one "rawBytes" there is. The media
 # type is the one key of that name a bundle has, and cosign refuses it twice in any
-# spelling, so the one literal "mediaType" is the bundle's own.
+# spelling, so the one literal "mediaType" is the bundle's own. And a bundle that
+# writes any character of ASCII as a \u escape is refused, the one way a name is
+# spelled so that grep does not find it (a .proto name aside, refused by name): so no
+# certificate is left uncounted even where cosign would take what 2.6.5 refuses.
 set -eu
 LC_ALL=C
 export LC_ALL
@@ -64,20 +67,30 @@ esac
 if grep -q -e '"x509CertificateChain"' -e '"x509_certificate_chain"' -e '"raw_bytes"' "$bundle"; then
   refuse "the bundle holds a certificate chain, or a certificate's bytes under a name this reader does not count"
 fi
+# Nor a character of ASCII written as a \u escape: no encoder writes one (cosign's
+# bundles have none), and a name so written - "raw\u0042ytes",
+# "x509\u0043ertificateChain" - is one cosign reads and grep does not count.
+# Refused, the one literal "rawBytes" is the one certificate the file has whatever
+# cosign would make of the rest (a member it does not know, a key twice, a chain in a
+# v0.3 bundle), not only because cosign 2.6.5 refuses each of those.
+if grep -q '\\u00[2-7][0-9A-Fa-f]' "$bundle"; then
+  refuse "the bundle writes a character of ASCII as an escape, which could hide a name from this reader"
+fi
 count=$(grep -o '"rawBytes"' "$bundle" | wc -l | tr -d ' ')
 [ "$count" = 1 ] || refuse "the bundle holds $count rawBytes, not the one certificate of a v0.3 bundle"
 raw=$(grep -o '"rawBytes" *: *"[^"]*"' "$bundle" | sed 's/.*"\([^"]*\)"$/\1/')
 case "$raw" in
   "" | *[!A-Za-z0-9+/=]* | *=*[!=]* | *===*) refuse "the bundle's certificate is not base64" ;;
 esac
-[ $((${#raw} % 4)) -eq 0 ] || refuse "the bundle's certificate is not base64"
+length=${#raw}
+[ $((length % 4)) -eq 0 ] || refuse "the bundle's certificate is not base64"
 pad=0
 case "$raw" in
   *==) pad=2 ;;
   *=) pad=1 ;;
 esac
 # What base64 must decode to, so that a decoder stopping short is caught too.
-size=$((${#raw} * 3 / 4 - pad))
+size=$((length * 3 / 4 - pad))
 
 # The certificate as decimal bytes, one number a field, walked as DER.
 # shellcheck disable=SC2016

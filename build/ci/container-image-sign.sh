@@ -90,17 +90,28 @@ printf '%s' "$CI_REGISTRY_PASSWORD" | cosign login "$CI_REGISTRY" --username "$C
 
 sign_flags="--yes --rekor-url https://rekor.sigstore.dev --fulcio-url https://fulcio.sigstore.dev"
 help=$(cosign sign --help 2>&1 || true)
-case "$help" in *--use-signing-config*) sign_flags="$sign_flags --use-signing-config=false" ;; esac
-case "$help" in *--new-bundle-format*) sign_flags="$sign_flags --new-bundle-format=false" ;; esac
+# Each case over lines of its own: Semgrep's bash parser cannot read a case on one
+# line, and a case it cannot read leaves the rest of the script unscanned.
+case "$help" in
+  *--use-signing-config*) sign_flags="$sign_flags --use-signing-config=false" ;;
+esac
+case "$help" in
+  *--new-bundle-format*) sign_flags="$sign_flags --new-bundle-format=false" ;;
+esac
 verify_flags=""
-case "$(cosign verify --help 2>&1 || true)" in *--new-bundle-format*) verify_flags="--new-bundle-format=false" ;; esac
+case "$(cosign verify --help 2>&1 || true)" in
+  *--new-bundle-format*) verify_flags="--new-bundle-format=false" ;;
+esac
 
 echo ""
 echo "== $image"
+# The flags are split into words on purpose, here and below: busybox sh has no arrays.
 # shellcheck disable=SC2086
+# nosemgrep
 cosign sign $sign_flags "$image" || fail "cosign did not sign $image"
 
 # shellcheck disable=SC2086
+# nosemgrep
 cosign verify $verify_flags --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" \
   "$image" > "$out/verify.json" 2> "$out/verify.log" \
   || { cat "$out/verify.log"; fail "$image does not verify as signed by $identity"; }
@@ -110,11 +121,17 @@ grep -q "${image#*@}" "$out/verify.json" || fail "the signature cosign verify fo
 # The SBOM, attested to the image by its digest.
 attest_flags="--yes --rekor-url https://rekor.sigstore.dev --fulcio-url https://fulcio.sigstore.dev"
 attest_help=$(cosign attest --help 2>&1 || true)
-case "$attest_help" in *--use-signing-config*) attest_flags="$attest_flags --use-signing-config=false" ;; esac
-case "$attest_help" in *--new-bundle-format*) attest_flags="$attest_flags --new-bundle-format=false" ;; esac
+case "$attest_help" in
+  *--use-signing-config*) attest_flags="$attest_flags --use-signing-config=false" ;;
+esac
+case "$attest_help" in
+  *--new-bundle-format*) attest_flags="$attest_flags --new-bundle-format=false" ;;
+esac
 # shellcheck disable=SC2086
+# nosemgrep
 cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image" || fail "cosign did not attest the SBOM to $image"
 # shellcheck disable=SC2086
+# nosemgrep
 cosign verify-attestation $verify_flags --type cyclonedx --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" \
   "$image" > "$out/verify-attestation.json" 2> "$out/verify-attestation.log" \
   || { cat "$out/verify-attestation.log"; fail "the SBOM attested to $image does not verify as $identity's"; }

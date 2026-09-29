@@ -44,13 +44,16 @@ cosign refuses a v0.3 bundle that carries a chain - and takes its one "rawBytes"
 v0.3 bundle has one, and cosign verify-blob --new-bundle-format parses a bundle
 strictly, no field twice and none it does not know). It refuses a bundle with none or
 more, or with a chain, or with a raw_bytes - the name the field has in the .proto,
-which cosign reads too - and base64 that is not canonical. Why: cosign also reads a
-field's name written with \\u escapes, and in a v0.1 or v0.2 bundle verifies the first
-certificate of a chain alone, so a chain whose first certificate is spelled so that
-grep does not count it, and whose second is one anyone can make, would hand a reader
-that counted its way to a v0.1 bundle's one "rawBytes" the second (the self-test's
-chain cases; cosign 2.6.5 verifies such a bundle). On a v0.3 bundle the two answer the
-same.
+which cosign reads too - or with a character of ASCII written as a \\u escape, and
+base64 that is not canonical. Why: cosign also reads a field's name written with \\u
+escapes, and in a v0.1 or v0.2 bundle verifies the first certificate of a chain alone,
+so a chain whose first certificate is spelled so that grep does not count it, and whose
+second is one anyone can make, would hand a reader that counted its way to a v0.1
+bundle's one "rawBytes" the second (the self-test's chain cases; cosign 2.6.5 verifies
+such a bundle). The escapes refused, no certificate of the file goes uncounted, even
+beside a member cosign does not know or a key twice, which cosign 2.6.5 refuses and
+the shell reader does not rest on. On a v0.3 bundle as cosign writes one the two
+answer the same.
 
 Usage, from the root of a checkout:
   python3 build/ci/sigstore-certificate.py repository-id BUNDLE
@@ -228,11 +231,18 @@ def bundle_certificate(bundle):
 
 
 def unique_keys(pairs):
-    """A JSON object's members as a dict, refused when a key is there twice."""
+    """A JSON object's members as a dict, refused when a key is there twice, or is a
+    field's name as the .proto has it (raw_bytes, verification_material): cosign reads
+    that name as the field as well as its JSON name (rawBytes), where this reads the
+    JSON name alone, and no bundle's JSON name has an underscore. So which of two such
+    names is the field is never left to cosign's refusing both (2.6.5 does)."""
     found = {}
     for key, value in pairs:
         if key in found:
             raise ValueError("the key %s is in the bundle twice" % json.dumps(key))
+        if "_" in key:
+            raise ValueError("the key %s is a field's name as the .proto has it, which cosign reads as its JSON name"
+                             % json.dumps(key))
         found[key] = value
     return found
 
@@ -511,6 +521,26 @@ def reader_problems(shell=None, script=SHELL_READER, environ=None, answer_of=Non
                          % (real, "application/vnd.dev.sigstore.bundle.v0.3+json")), "id=" + REAL_REPOSITORY_ID, "refused"),
                  ("a bundle without a media type", '{"verificationMaterial": {"certificate": {"rawBytes": "%s"}}}' % real,
                   "id=" + REAL_REPOSITORY_ID, "refused"),
+                 # The certificate cosign verified under a name written with an escape, which
+                 # grep does not count, and one carrying this project's id where grep looks:
+                 # cosign 2.6.5 refuses each bundle (a member it does not know, a key twice,
+                 # a chain in a v0.3 bundle), and the shell reader refuses it by itself.
+                 ("a v0.3 bundle, its certificate under raw\\u0042ytes, this project's id in a member no bundle has",
+                  v03 % ('{"x": {"rawBytes": "%s"}, "certificate": {"raw\\u0042ytes": "%s"}}' % (mine, real)),
+                  "id=" + REAL_REPOSITORY_ID, "refused"),
+                 ("  ... in a second certificate under the name spelled as it is",
+                  v03 % ('{"certificate": {"rawBytes": "%s"}, "\\u0063ertificate": {"raw\\u0042ytes": "%s"}}'
+                         % (mine, real)), "refused", "refused"),
+                 ("  ... as the second of a chain whose name is escaped",
+                  v03 % ('{"x509\\u0043ertificateChain": {"certificates": [{"raw\\u0042ytes": "%s"}, {"rawBytes": "%s"}]}}'
+                         % (real, mine)), "id=" + REAL_REPOSITORY_ID, "refused"),
+                 ("a v0.3 bundle whose media type's name is escaped", v03.replace('"mediaType"', '"\\u006dediaType"')
+                  % ('{"certificate": {"rawBytes": "%s"}}' % real), "id=" + REAL_REPOSITORY_ID, "refused"),
+                 # The .proto's name of a field beside its JSON name, which cosign reads as
+                 # the one field (2.6.5 refuses the two as a key twice).
+                 ("this project's id under verificationMaterial, the signer's under verification_material",
+                  (v03 % ('{"certificate": {"rawBytes": "%s"}}' % mine))[:-1]
+                  + ', "verification_material": {"certificate": {"rawBytes": "%s"}}}' % real, "refused", "refused"),
                  ("a bundle without a certificate", v03 % '{"publicKey": {"hint": "x"}}', "refused", "refused")]
         runs = [(what, bundle_json(certificate), expected, expected) for what, certificate, expected in listed] + extra
         for number, (what, text, python_expected, shell_expected) in enumerate(runs):
@@ -525,7 +555,11 @@ def reader_problems(shell=None, script=SHELL_READER, environ=None, answer_of=Non
                 if said != python_expected:
                     problems.append("sigstore-certificate.py reads %s as %s, not %s" % (what, shown(said), python_expected))
             try:
-                ran = subprocess.run(command + [script, "repository-id", path], capture_output=True, timeout=60)
+                # Semgrep's taint rule reads the PATH as input a caller controls: here it is
+                # the sh this self-test was given (--shell) or found, running this checkout's
+                # reader, the arguments a list that no shell reads.
+                ran = subprocess.run(command + [script, "repository-id", path],  # nosemgrep
+                                     capture_output=True, timeout=60)
             except (OSError, subprocess.TimeoutExpired) as error:
                 problems.append("the shell reader could not be run (%s): %s" % (" ".join(command), error))
                 break
