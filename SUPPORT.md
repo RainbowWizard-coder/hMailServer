@@ -1,10 +1,10 @@
 # Getting help
 
-The project's home is GitLab since 22 September 2026: <https://gitlab.com/Progressiverobot/hmailserver>. GitHub
+The project's home is GitLab since 22 September 2026: <https://gitlab.com/hmailserver/hmailserver>. GitHub
 has been unavailable to the project since 18 September 2026, so older links to its issues, discussions and
 releases answer 404.
 
-**Something is broken** — open an [issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues) with the
+**Something is broken** — open an [issue](https://gitlab.com/hmailserver/hmailserver/-/issues) with the
 **Bug** template.
 
 The most useful report contains, in order of value:
@@ -27,7 +27,7 @@ issue.
 "has anyone got X working" are issues too.
 
 **No GitLab account** — email the report or the question to the project's Service Desk address,
-[contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com).
+[contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com).
 GitLab files the message as a confidential issue, which only the maintainers see, and their replies reach you by
 email.
 
@@ -44,6 +44,6 @@ Two commitments in return:
 
 ## Before reporting
 
-- Check the [releases](https://gitlab.com/Progressiverobot/hmailserver/-/releases) — the newest version may already address it.
+- Check the [releases](https://gitlab.com/hmailserver/hmailserver/-/releases) — the newest version may already address it.
 - Check [Roadmap2.md](Roadmap2.md) for the work planned now, and [Roadmap.md](Roadmap.md) for known gaps and what was deliberately not done.
-- Search the existing [issues](https://gitlab.com/Progressiverobot/hmailserver/-/issues). The issues and discussions of the former GitHub project are out of reach while GitHub is; a number written as "GitHub issue N" in this repository refers to them.
+- Search the existing [issues](https://gitlab.com/hmailserver/hmailserver/-/issues). The issues and discussions of the former GitHub project are out of reach while GitHub is; a number written as "GitHub issue N" in this repository refers to them.

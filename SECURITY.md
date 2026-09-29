@@ -18,11 +18,11 @@ so the answer to a vulnerability in an older version is to upgrade.
 Report it privately, by either route:
 
 - **A confidential issue on GitLab:**
-  <https://gitlab.com/Progressiverobot/hmailserver/-/issues/new?issue[confidential]=true>. The link ticks
+  <https://gitlab.com/hmailserver/hmailserver/-/issues/new?issue[confidential]=true>. The link ticks
   *This issue is confidential* for you; check that it is still ticked before you submit, and choose the
   **Security** template. A confidential issue is visible only to you and the project's maintainers.
 - **Email** to the project's Service Desk address:
-  [contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com).
+  [contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com).
   GitLab files the message as a confidential issue, and the maintainers' replies reach you by email, so no
   GitLab account is needed.
 
@@ -109,7 +109,7 @@ a pointer back here:
 
 ## Verifying a release
 
-Releases are at <https://gitlab.com/Progressiverobot/hmailserver/-/releases>. Every release up to and including
+Releases are at <https://gitlab.com/hmailserver/hmailserver/-/releases>. Every release up to and including
 6.3.3 was first published on GitHub. Where GitLab's releases page carries a file from one of them, it is the same
 file, byte for byte, with the same signatures and Sigstore bundle, so everything below verifies it exactly as it
 verified the original.
@@ -155,12 +155,13 @@ verified the original.
 
   Only GitHub Actions can issue that identity, so no later release can carry it. 6.3.4, built and signed by hand,
   carries no bundle. From 6.3.5 the release jobs of `.gitlab-ci.yml` sign each asset in the tag's own pipeline,
-  with the identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` and the
-  issuer `https://gitlab.com`; none of them has run yet. The project is to move to the group
-  [`hmailserver`](https://gitlab.com/hmailserver), and the releases signed after the move will carry the identity
-  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and the
-  project's id, `86730559`, in the certificate. A server from 6.3.4 on trusts both paths, the group's only with that id,
-  whatever its update settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+  with the issuer `https://gitlab.com`. 6.3.5, published on 29 September 2026, was the first, and carries the
+  identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, the path the project
+  began at, with the project's id, `86730559`, in the certificate. The project moved into the group
+  [`hmailserver`](https://gitlab.com/hmailserver) later that day, and the releases after 6.3.5 carry the identity
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and id. A
+  server from 6.3.4 on trusts both paths, the group's only with that id, whatever its update settings say
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
   Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In
@@ -236,9 +237,9 @@ pipeline identity as its signature:
 
 ```
 cosign verify-attestation --type cyclonedx \
-  --certificate-identity https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
+  --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
   --certificate-oidc-issuer https://gitlab.com \
-  registry.gitlab.com/progressiverobot/hmailserver@sha256:<digest> | jq -r .payload | base64 -d | jq .predicate
+  registry.gitlab.com/hmailserver/hmailserver@sha256:<digest> | jq -r .payload | base64 -d | jq .predicate
 ```
 
 What an SBOM cannot say: the Linux libraries other than Boost are the distribution's, found at run time, so their

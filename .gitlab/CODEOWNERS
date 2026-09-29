@@ -1,4 +1,4 @@
-# Code owners for Progressiverobot/hmailserver, in GitLab's CODEOWNERS format
+# Code owners for hmailserver/hmailserver, in GitLab's CODEOWNERS format
 # (https://docs.gitlab.com/user/project/codeowners/).
 #
 # GitLab reads this file from the root, docs/ or .gitlab/; it is here. Code

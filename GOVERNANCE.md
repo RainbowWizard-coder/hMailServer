@@ -2,7 +2,7 @@ Governance
 ==========
 
 This document describes how the hMailServer fork at
-[Progressiverobot/hmailserver](https://gitlab.com/Progressiverobot/hmailserver)
+[hmailserver/hmailserver](https://gitlab.com/hmailserver/hmailserver)
 is run: who decides what, how decisions are made, and what each role is
 expected to do. It describes the project as it actually is today, not as an
 aspirational structure.

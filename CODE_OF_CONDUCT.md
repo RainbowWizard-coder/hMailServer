@@ -57,7 +57,7 @@ posting via an official social media account, or acting as an appointed
 representative at an online or offline event.
 
 For this project, community spaces include the GitLab project at
-<https://gitlab.com/Progressiverobot/hmailserver> — issues, merge requests, code
+<https://gitlab.com/hmailserver/hmailserver> — issues, merge requests, code
 review, commit messages and the wiki — and, while it was the project's home, the
 GitHub repository.
 
@@ -67,10 +67,10 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported privately to Christopher Holloway / Progressive Robot Ltd
 (`Progressiverobot` on GitLab), by either route:
 
-* a [confidential issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues/new?issue[confidential]=true)
+* a [confidential issue](https://gitlab.com/hmailserver/hmailserver/-/issues/new?issue[confidential]=true)
   on the GitLab project, which only you and the maintainers can see; or
 * an email to the project's Service Desk address,
-  [contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com),
+  [contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com](mailto:contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com),
   which GitLab files as a confidential issue and which needs no GitLab account.
 
 All complaints will be reviewed and investigated promptly and fairly.

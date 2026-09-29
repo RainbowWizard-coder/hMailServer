@@ -11,7 +11,7 @@ change is held to, and how a change reaches `master`. By taking part you agree t
 [Code of Conduct](CODE_OF_CONDUCT.md).
 
 **The project's home is GitLab since 22 September 2026:
-<https://gitlab.com/Progressiverobot/hmailserver>.** GitHub has been unavailable to the project since
+<https://gitlab.com/hmailserver/hmailserver>.** GitHub has been unavailable to the project since
 18 September 2026, so every link to github.com/Progressiverobot - in older notes, commit messages and
 documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitlab-ci.yml`) on every push and
 every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,
@@ -46,12 +46,12 @@ Contents:
 
 | What | Where |
 |---|---|
-| The project | <https://gitlab.com/Progressiverobot/hmailserver> |
-| Issues | <https://gitlab.com/Progressiverobot/hmailserver/-/issues> |
-| Merge requests | <https://gitlab.com/Progressiverobot/hmailserver/-/merge_requests> |
-| Releases | <https://gitlab.com/Progressiverobot/hmailserver/-/releases>; the latest is always at <https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest> |
-| The wiki | <https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home> |
-| The issue board | <https://gitlab.com/Progressiverobot/hmailserver/-/boards> |
+| The project | <https://gitlab.com/hmailserver/hmailserver> |
+| Issues | <https://gitlab.com/hmailserver/hmailserver/-/issues> |
+| Merge requests | <https://gitlab.com/hmailserver/hmailserver/-/merge_requests> |
+| Releases | <https://gitlab.com/hmailserver/hmailserver/-/releases>; the latest is always at <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest> |
+| The wiki | <https://gitlab.com/hmailserver/hmailserver/-/wikis/home> |
+| The issue board | <https://gitlab.com/hmailserver/hmailserver/-/boards> |
 | The forum | <https://www.hmailserver.co.uk/> |
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
 | Copies off GitLab | The repository by a push mirror to a second forge, and the issues, merge requests, releases and wiki by the weekly `forge-export` job: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for setting both up |
@@ -106,9 +106,9 @@ from the description-template list when you open the issue.
   [Roadmap.md](Roadmap.md) records what was deliberately not done, with the reason. A concrete problem with a
   log beats a list of wishes.
 * **A vulnerability**: never an issue anyone can read. Open a
-  [confidential issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues/new?issue[confidential]=true)
+  [confidential issue](https://gitlab.com/hmailserver/hmailserver/-/issues/new?issue[confidential]=true)
   (the link ticks *This issue is confidential* for you), or email the project's Service Desk address,
-  `contact-project+progressiverobot-hmailserver-86730559-issue-@incoming.gitlab.com`, which files the mail as a
+  `contact-project+hmailserver-hmailserver-86730559-issue-@incoming.gitlab.com`, which files the mail as a
   confidential issue. [SECURITY.md](SECURITY.md) has the rest.
 
 The labels:
@@ -129,7 +129,7 @@ The templates add their label with a quick action. GitLab runs a quick action on
 to do what it does, so if the label does not appear on your issue, the maintainer adds it.
 
 **Small tasks.** The issues labelled
-[`good first issue`](https://gitlab.com/Progressiverobot/hmailserver/-/issues/?label_name%5B%5D=good%20first%20issue)
+[`good first issue`](https://gitlab.com/hmailserver/hmailserver/-/issues/?label_name%5B%5D=good%20first%20issue)
 are real, bounded pieces of work, each of which closes a gap recorded in the roadmap; none is make-work. Each
 says what it is for, where to look, how to check it, and what "done" means. Comment on one to claim it. If it
 turns out to be larger than it looked, say so on the issue rather than growing the change. The ones filed under
@@ -183,7 +183,7 @@ third-party files the installer carries (7-Zip's `7za.exe`, the MariaDB client a
 SQL Server Compact 4.0 runtime), and a second copy of the MariaDB client and its plugins under
 `libraries\mariadb-connector-c-3.4.9\`, which the post-build step copies beside the server.
 `build\get-installer-binaries.ps1` downloads them from the project's `build-inputs-1` release, whose files are in
-the project's package registry on GitLab (<https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>,
+the project's package registry on GitLab (<https://gitlab.com/hmailserver/hmailserver/-/releases/build-inputs-1>,
 the same bytes GitHub served until 18 September 2026), and 7-Zip's console from 7-zip.org, and checks each against
 the SHA-256 in `hmailserver/docs/third-party-binaries.json`
 ([ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md#where-the-build-gets-them)). The server, the
@@ -785,7 +785,7 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    a fix goes to `master` and ships in the next release.
 3. **Keep it to one logical change.** Add or update regression tests for a change of behaviour. Say in the
    description which checks you ran and on what; the merge-request template asks.
-4. **Open the merge request against `master`** of `Progressiverobot/hmailserver`, and sign off every commit.
+4. **Open the merge request against `master`** of `hmailserver/hmailserver`, and sign off every commit.
 5. **Review.** Zain Ul Abidin, the second maintainer, reviews the change - or, for a merge request of his own,
    the owner does - asks for changes in threads on the merge request, and presses **Approve** when it is right.
    GitLab will not merge a merge request with an unresolved thread or a pipeline that has not passed (both are

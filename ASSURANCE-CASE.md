@@ -12,7 +12,7 @@ in [Residual risk](#8-residual-risk).
 
 **Status since 18 September 2026.** GitHub has been unavailable to the project
 since 18 September 2026, and its home has been
-[GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September
+[GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September
 2026. Claim C7 rests on the release chain that ran on GitHub Actions
 (`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`, in the git
 history at `v6.3.3`). It holds for the releases that chain signed, 6.2.19 to
