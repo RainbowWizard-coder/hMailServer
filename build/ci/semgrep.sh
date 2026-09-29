@@ -191,13 +191,16 @@ fi
 # there for the run, and taken away again.
 cp build/ci/semgrepignore .semgrepignore
 created_ignore=yes
-# --metrics off: nothing about the scan is sent to Semgrep. --timeout 60: the
+# --metrics off: nothing about the scan is sent to Semgrep. --timeout 300: the
 # default of five seconds a rule gives up on Portal.js (800 KB), and a rule that
-# gave up is a hole. --max-target-bytes: the Deck's page is half a megabyte.
+# gave up is a hole; 60 seconds was not enough on linix while it ran a pipeline's
+# other jobs beside this one (batch42's pipeline 2894275689: three rules timed out
+# on WebAdmin/index.html, 600 KB, and one on Portal.js). --max-target-bytes: the
+# Deck's page is half a megabyte.
 "$semgrep" scan --metrics off --disable-version-check --oss-only \
   --config "$work/rules" \
   --include '*.cs' --include '*.py' --include '*.js' --include '*.sh' \
-  --timeout 60 --timeout-threshold 0 --max-target-bytes 5000000 --jobs "$jobs" \
+  --timeout 300 --timeout-threshold 0 --max-target-bytes 5000000 --jobs "$jobs" \
   --json --output "$out/semgrep.json" \
   . "$work/pages" > "$out/semgrep.log" 2>&1
 code=$?

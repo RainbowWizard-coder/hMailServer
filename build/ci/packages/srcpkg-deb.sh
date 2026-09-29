@@ -100,7 +100,7 @@ case "$work" in
 esac
 rm -rf "$out" "$work"
 mkdir -p "$out" "$work/meta"
-started=$(date +%s)
+started=$EPOCHSECONDS
 echo "$PRETTY_NAME, $name, $jobs jobs"
 
 # ------------------------------------------------------------------ with the network
@@ -207,10 +207,10 @@ fi
 echo "under offline: getent ahosts deb.debian.org fails, as every socket but a local one does"
 
 step "dpkg-buildpackage -us -uc -j$jobs"
-build_started=$(date +%s)
+build_started=$EPOCHSECONDS
 ( cd "$src" && "$work/offline" dpkg-buildpackage -us -uc -j"$jobs" ) > "$out/build.log" 2>&1
 code=$?
-echo "exit $code after $(( $(date +%s) - build_started )) s"
+echo "exit $code after $(( EPOCHSECONDS - build_started )) s"
 if [ "$code" -ne 0 ]; then
   grep -E 'error:|^FAILED|dpkg-buildpackage: error|dh_[a-z_]*: error' "$out/build.log" | head -n 40
   tail -n 40 "$out/build.log"
@@ -264,10 +264,10 @@ grep -q '\./usr/bin/hmctl$' <<< "$(dpkg-deb -c "$cli_deb")" || fail "hmailserver
   echo "depends $depends"
   echo "lintian errors $errors warnings $warnings info $infos"
   echo "commit ${CI_COMMIT_SHA:-unknown}"
-  echo "seconds $(( $(date +%s) - started ))"
+  echo "seconds $(( EPOCHSECONDS - started ))"
 } | tee -a "$out/build-info.txt"
 ls -l "$out"
 
 rm -rf "$work"
 echo ""
-echo "BUILT: hmailserver $deb_version for $PRETTY_NAME from $name, with the network refused, lintian clean of errors ($warnings warning(s)), in $(( $(date +%s) - started )) s."
+echo "BUILT: hmailserver $deb_version for $PRETTY_NAME from $name, with the network refused, lintian clean of errors ($warnings warning(s)), in $(( EPOCHSECONDS - started )) s."

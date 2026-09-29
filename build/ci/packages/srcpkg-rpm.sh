@@ -99,7 +99,7 @@ rm -rf "$out" "$work"
 mkdir -p "$out" "$work/meta"
 topdir="$work/rpmbuild"
 mkdir -p "$topdir"/{SOURCES,SPECS,BUILD,RPMS,SRPMS}
-started=$(date +%s)
+started=$EPOCHSECONDS
 echo "$PRETTY_NAME, $name, $jobs jobs"
 
 # ------------------------------------------------------------------ with the network
@@ -184,11 +184,11 @@ fi
 echo "under offline: getent ahosts gitlab.com fails, as every socket but a local one does"
 
 step "rpmbuild -ba"
-build_started=$(date +%s)
+build_started=$EPOCHSECONDS
 "$work/offline" rpmbuild -ba "${define[@]}" --define "_smp_build_ncpus $jobs" --define "_smp_mflags -j$jobs" \
   "$spec" > "$out/build.log" 2>&1
 code=$?
-echo "exit $code after $(( $(date +%s) - build_started )) s"
+echo "exit $code after $(( EPOCHSECONDS - build_started )) s"
 if [ "$code" -ne 0 ]; then
   grep -E 'error:|^FAILED|RPM build errors|^    ' "$out/build.log" | head -n 40
   tail -n 40 "$out/build.log"
@@ -253,9 +253,9 @@ echo "requires: $(grep -E '^lib(boost|ssl|pq|ldap|crypto)' <<< "$server_requires
   echo "packages $(cd "$out" && ls -- *.rpm | tr '\n' ' ')"
   echo "rpmlint errors ${errors:-?} warnings ${warnings:-?}"
   echo "commit ${CI_COMMIT_SHA:-unknown}"
-  echo "seconds $(( $(date +%s) - started ))"
+  echo "seconds $(( EPOCHSECONDS - started ))"
 } | tee -a "$out/build-info.txt"
 
 rm -rf "$work"
 echo ""
-echo "BUILT: $(basename "$server_rpm") for $PRETTY_NAME from $name, with the network refused, rpmlint clean of errors (${warnings:-?} warning(s)), in $(( $(date +%s) - started )) s."
+echo "BUILT: $(basename "$server_rpm") for $PRETTY_NAME from $name, with the network refused, rpmlint clean of errors (${warnings:-?} warning(s)), in $(( EPOCHSECONDS - started )) s."

@@ -65,7 +65,7 @@ esac
 [ $? -eq 0 ] || refuse "the packages are for $target, but this container is $PRETTY_NAME."
 dir=$(cd "$dir" && pwd)
 report="$dir/install.txt"
-started=$(date +%s)
+started=$EPOCHSECONDS
 echo "$PRETTY_NAME: $(cd "$dir" && ls -- *.deb *.rpm 2> /dev/null | tr '\n' ' ')" | tee "$report"
 
 retry() {
@@ -99,15 +99,15 @@ if [ "$family" = deb ]; then
     --output-dir "$dir/autopkgtest" "${debs[@]}" "$dsc" -- null
   code=$?
   echo "autopkgtest exit $code"
-  cat "$dir/autopkgtest/summary" 2> /dev/null | tee -a "$report"
+  if [ -f "$dir/autopkgtest/summary" ]; then tee -a "$report" < "$dir/autopkgtest/summary"; fi
   # 0: every test passed; 2: at least one was skipped; anything else failed.
   [ "$code" -eq 0 ] || fail "autopkgtest exited $code (the summary above; the log is autopkgtest/log)"
   # debian/tests/control's one test is a Test-Command, which autopkgtest names command1.
   grep -q ' PASS' "$dir/autopkgtest/summary" 2> /dev/null || fail "autopkgtest's summary has no PASS"
   echo "installed: $(dpkg-query -W -f '${Package} ${Version} ${Status}\n' hmailserver hmailserver-cli | tr '\n' ';')" | tee -a "$report"
-  echo "seconds $(( $(date +%s) - started ))" >> "$report"
+  echo "seconds $(( EPOCHSECONDS - started ))" >> "$report"
   echo ""
-  echo "PACKAGE PASSED: the Debian source package's .deb files install on $PRETTY_NAME and its autopkgtest starts the server ($(( $(date +%s) - started )) s)."
+  echo "PACKAGE PASSED: the Debian source package's .deb files install on $PRETTY_NAME and its autopkgtest starts the server ($(( EPOCHSECONDS - started )) s)."
   exit 0
 fi
 
@@ -184,6 +184,6 @@ case "$family" in
   zypper) retry zypper -n remove hmailserver hmailserver-cli || fail "zypper remove" ;;
 esac
 [ ! -e /usr/bin/hmailserver ] || fail "/usr/bin/hmailserver is still there after the removal"
-echo "seconds $(( $(date +%s) - started ))" >> "$report"
+echo "seconds $(( EPOCHSECONDS - started ))" >> "$report"
 echo ""
-echo "PACKAGE PASSED: $(basename "$server_rpm") installs on $PRETTY_NAME, the server starts against PostgreSQL and answers SMTP and IMAP, and it comes off again ($(( $(date +%s) - started )) s)."
+echo "PACKAGE PASSED: $(basename "$server_rpm") installs on $PRETTY_NAME, the server starts against PostgreSQL and answers SMTP and IMAP, and it comes off again ($(( EPOCHSECONDS - started )) s)."
