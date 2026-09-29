@@ -88,7 +88,8 @@ for prefix in "${prefixes[@]}"; do
   started=$(date +%s)
   if ! curl -fsSL --retry 5 --retry-all-errors --retry-max-time 300 --connect-timeout 10 \
             --speed-limit 10240 --speed-time 60 -o "$destination.part" "$url"; then
-    echo "$file did not download from $host ($url): six attempts in $(( $(date +%s) - started )) s. Trying the next source."
+    now=$(date +%s)
+    echo "$file did not download from $host ($url): six attempts in $((now - started)) s. Trying the next source."
     continue
   fi
 
@@ -98,7 +99,8 @@ for prefix in "${prefixes[@]}"; do
   fi
 
   mv -f "$destination.part" "$destination" || exit 3
-  echo "$file: from $host in $(( $(date +%s) - started )) s, SHA-256 $sha256"
+  now=$(date +%s)
+  echo "$file: from $host in $((now - started)) s, SHA-256 $sha256"
 
   # Kept for the next job. A copy made beside it and renamed, so that a cache
   # the job is stopped while writing never holds half a tarball under its name

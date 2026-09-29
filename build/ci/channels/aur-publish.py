@@ -128,7 +128,7 @@ def printsrcinfo(pkgbuild_text, run=subprocess.run):
         command = ["makepkg", "--printsrcinfo"]
         if hasattr(os, "geteuid") and os.geteuid() == 0:
             run(["chown", "-R", BUILD_USER, work], check=True)
-            os.chmod(work, 0o755)
+            os.chmod(work, 0o755)  # nosemgrep: the build user's own directory, holding only the PKGBUILD makepkg reads
             command = ["runuser", "-u", BUILD_USER, "--"] + command
         answer = run(command, cwd=work, capture_output=True, text=True)
         if answer.returncode != 0:

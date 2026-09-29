@@ -313,7 +313,7 @@ def self_test():
                 "no snapcraft here")
         with open(os.path.join(work, "snapcraft" + (".exe" if os.name == "nt" else "")), "w") as f:
             f.write("")
-        os.chmod(os.path.join(work, "snapcraft" + (".exe" if os.name == "nt" else "")), 0o755)
+        os.chmod(os.path.join(work, "snapcraft" + (".exe" if os.name == "nt" else "")), 0o755)  # nosemgrep: the self-test's empty stand-in
         del calls[:]
         code = snap_upload(os.path.join(work, "e"), snaps, environ, http=never, run=run())
         uploads = [c for c in calls if c[0][0] == "snapcraft"]
