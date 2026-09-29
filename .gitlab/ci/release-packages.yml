@@ -9,13 +9,14 @@
 #   release-packages  linix, in the CI image (PowerShell, Python, dpkg-deb, rpm): each
 #                     Debian and Ubuntu release's .deb and each Fedora, EL and openSUSE
 #                     release's .rpm, for x86-64 and AArch64 (.gitlab/ci/packages-deb.yml,
-#                     packages-rpm.yml); the two AppImages and the source of the libraries
-#                     linked into their runtime (packages-appimage.yml); and the source
-#                     tarball (source-tarball.yml). Each is held to the SHA-256 its build
-#                     job wrote - the tarball to build/check-source-tarball.py and this
+#                     packages-rpm.yml); the two AppImages, the source of the libraries
+#                     linked into their runtime and the source of the libraries they
+#                     carry in usr/lib (packages-appimage.yml); and the source tarball
+#                     (source-tarball.yml). Each is held to the SHA-256 its build job
+#                     wrote - the tarball to build/check-source-tarball.py and this
 #                     commit - and copied under its name into release-packages/, with that
-#                     job's sums under release-packages/job-sums/, and, but for the
-#                     runtime's sources, which is source, its SBOM made beside it: a
+#                     job's sums under release-packages/job-sums/, and, but for the two
+#                     AppImage sources files, which are source, its SBOM made beside it: a
 #                     package's and an AppImage's by build/ci/packages/package-sbom.sh
 #                     from what its build recorded it was built against, the tarball's by
 #                     build/asset-sbom.py from the tarball (build/ci/release-chain.py
@@ -23,8 +24,8 @@
 #
 # Why a job of its own: the release job may need fifty jobs at most (GitLab's
 # ci_needs_size_limit, 50 on GitLab.com), and it needs thirty-one already (thirty-three
-# with this job and helm-chart-package); these are forty more, which would make
-# seventy-one. So this job needs each build with its artifacts and each install
+# with this job and helm-chart-package); these are forty-one more, which would make
+# seventy-two. So this job needs each build with its artifacts and each install
 # or AppImage test job without, none optionally: it does not run until every one of
 # them has passed, and release, which needs it, does not either. None of them may fail
 # or wait for a press in a v* tag's pipeline (build/check-release-chain.py holds that,
@@ -120,6 +121,8 @@ release-packages:
     - job: appimage-test-aarch64
       artifacts: false
     - job: appimage-runtime-sources
+      artifacts: true
+    - job: appimage-bundled-sources
       artifacts: true
     - job: source-tarball
       artifacts: true

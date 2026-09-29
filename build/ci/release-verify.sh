@@ -143,21 +143,22 @@ for file in "$signed"/*; do
 done
 rm -rf "$scratch"
 
-# The fifty-seven files a release carries (build/ci/release-chain.py, expected_assets).
-[ "$verified" -eq 57 ] || fail "$verified file(s) verified; a release is 57"
+# The fifty-eight files a release carries (build/ci/release-chain.py, expected_assets).
+[ "$verified" -eq 58 ] || fail "$verified file(s) verified; a release is 58"
 
 # Each compiled file's own SBOM describes that very file (build/asset-sbom.py verify:
 # well formed, and its subject's SHA-256 is the file's), as a user checks it
 # (SECURITY.md, "Software bills of materials"); and the source tarball's. The source
-# of the AppImages' runtime's libraries has none: it is source, and its README.txt
-# names each library, version, licence and where each file came from.
+# of the AppImages' runtime's libraries and of the libraries they carry in usr/lib has
+# none: each is source, and its README.txt names each library or package, version,
+# licence and where each file came from.
 sbom_rows=""
 described=0
 for file in "$signed"/*.exe "$signed"/*.deb "$signed"/*.rpm "$signed"/*.AppImage "$signed"/*.tar.gz; do
   [ -f "$file" ] || continue
   name=$(basename "$file")
   case "$name" in
-    *-appimage-runtime-sources.tar.gz)
+    *-appimage-runtime-sources.tar.gz | *-appimage-bundled-sources.tar.gz)
       [ ! -f "$file.cdx.json" ] || fail "$name is source and goes out without an SBOM, and $name.cdx.json is here"
       continue
       ;;
@@ -278,6 +279,13 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
   echo "and Alpine's build script and patches from aports at the commit its package records - is"
   echo "\`hmailserver-${version}-appimage-runtime-sources.tar.gz\`, which each AppImage names in"
   echo "\`usr/share/hmailserver/licenses/appimage-runtime.txt\` (\`hmailserver/docs/PackagesAppImage.md\`, \"Licences\")."
+  echo "Each AppImage also carries in \`usr/lib\` the shared libraries the server needs that are not left to the host,"
+  echo "libpq, libldap and what they need, among them GnuTLS, Nettle, GMP, libidn2, libunistring, libtasn1 and keyutils,"
+  echo "which are under the LGPL: copied from Ubuntu 24.04's packages, with each package's copyright file and the"
+  echo "licence texts those name, listed in \`usr/share/hmailserver/licenses/bundled.txt\`, beside hMailServer's own"
+  echo "AGPL-3.0 text. The source of every one of them, exactly as Ubuntu built it - each source package at the version"
+  echo "the image's package was built from, from Ubuntu's archive - is"
+  echo "\`hmailserver-${version}-appimage-bundled-sources.tar.gz\`, which \`bundled.txt\` names."
   echo "The source tarball holds nothing that is not free"
   echo "(\`hmailserver/docs/SourceTarball.md\`), and the Helm chart names this release's image."
   echo ""
@@ -287,7 +295,9 @@ provenance="hmailserver-${version}.intoto.sigstore.json"
   echo "AppImages in that checkout too, each in its distribution's own container, and their SBOMs from what those"
   echo "containers recorded the build was built against; the runtime's libraries' source fetched there, in an Alpine"
   echo "container, from Alpine's distfiles mirror and aports, each file held to the SHA-512 its APKBUILD gives it, and"
-  echo "packed twice to the same bytes; the installer's SBOM from the installer as Authenticode signed it."
+  echo "packed twice to the same bytes; the bundled libraries' source fetched there, in an Ubuntu container, from"
+  echo "Ubuntu's archive (or its snapshot service), each file held to the checksums of the signed index and of its"
+  echo "\`.dsc\`, and packed twice to the same bytes; the installer's SBOM from the installer as Authenticode signed it."
   echo "The Windows installer was made by this pipeline on the project's Windows runner, in that runner's long-lived"
   echo "checkout, which the job requires to be at that commit with no change to a tracked file and no file git does not"
   echo "track where a build would take it in, and from the folders the installer takes whole it removes every file git"

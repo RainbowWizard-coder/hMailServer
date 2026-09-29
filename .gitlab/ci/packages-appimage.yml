@@ -26,6 +26,13 @@
 #       the update checker and the update feed look for - and run; beside it what
 #       it was built against and what it bundles, for its SBOM
 #       (build/ci/packages/appimage-build.sh)
+#   appimage-bundled-sources
+#       linix, ubuntu:24.04: the source of every library the two AppImages carry in
+#       usr/lib, exactly as Ubuntu built it - each source package at the version the
+#       image's package was built from, from Ubuntu's archive - as the release file
+#       hmailserver-<version>-appimage-bundled-sources.tar.gz, which each image names
+#       beside those libraries' copyright files
+#       (build/ci/packages/appimage-bundled-sources.sh)
 #   appimage-test-x86_64, appimage-test-aarch64
 #       linix, fedora:44: the AppImage run on a distribution it was not built on,
 #       with nothing the build installed (build/ci/packages/appimage-test.sh)
@@ -46,7 +53,12 @@
 # bundle and its .sigstore.json copy, and no SBOM, being source: the LGPL-2.1 of
 # libfuse3 and the GPL of lzo ask for it (docs/PackagesAppImage.md, "Licences").
 # release-packages needs appimage-runtime-sources and gathers it, and each AppImage
-# job needs it for the libraries' licence files, which the image carries.
+# job needs it for the libraries' licence files, which the image carries. And the
+# source of the libraries each image carries in usr/lib, copied from Ubuntu 24.04,
+# hmailserver-<version>-appimage-bundled-sources.tar.gz, the same way and without an
+# SBOM: the LGPL of GnuTLS, Nettle, GMP, libidn2, libunistring, libtasn1 and keyutils
+# asks for it. appimage-bundled-sources needs both AppImage jobs for their records of
+# what they carry, and release-packages needs it and gathers it.
 #
 # When: on a protected v* tag and a batch* branch, every job at once, as part of the
 # release and of its rehearsal (.gitlab/ci/release-rehearsal.yml); on any other
@@ -227,6 +239,46 @@ appimage-aarch64:
     expire_in: 30 days
     paths:
       - appimage/
+
+# ---------------------------------------------------------------- the bundled libraries' sources
+
+# From the two AppImage jobs' records of what each image carries in usr/lib
+# (appimage/built-against-<arch>/bundled.txt, each library with its package and the
+# source package and version it was built from, and archive.txt, when that job's apt
+# read the archive): each source package, its .dsc and every file it lists, from
+# Ubuntu's archive, or from Ubuntu's snapshot service at a recorded time for a version
+# the archive has dropped since, every file held to the Sources index of an InRelease
+# verified with Ubuntu's archive keys and again to its .dsc; packed reproducibly, then
+# made again from nothing in another directory, under another umask, and compared byte
+# for byte. .no-github keeps GitHub out of the job itself. Leaves
+# appimage-bundled-sources/: the tarball and SHA256SUMS.txt naming it.
+appimage-bundled-sources:
+  extends: [.appimage, .appimage-follow-rules, .no-github]
+  stage: build
+  needs: [appimage-x86_64, appimage-aarch64]
+  image:
+    # ubuntu:24.04, linux/amd64: appimage-x86_64's
+    name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
+    pull_policy: if-not-present
+    docker:
+      platform: linux/amd64
+  timeout: 30 minutes
+  script:
+    - bash build/ci/packages/appimage-bundled-sources.sh pack appimage/built-against-x86_64 appimage/built-against-aarch64
+    - (umask 0077 && HM_OUT_DIR=/tmp/bundled-sources-again bash build/ci/packages/appimage-bundled-sources.sh pack appimage/built-against-x86_64 appimage/built-against-aarch64 > /tmp/bundled-sources-again.log 2>&1) || { tail -n 40 /tmp/bundled-sources-again.log; exit 1; }
+    - |
+      first=$(sha256sum appimage-bundled-sources/hmailserver-*-appimage-bundled-sources.tar.gz | cut -d' ' -f1)
+      second=$(sha256sum /tmp/bundled-sources-again/hmailserver-*-appimage-bundled-sources.tar.gz | cut -d' ' -f1)
+      echo "first  $first"
+      echo "second $second"
+      if [ "$first" != "$second" ]; then
+        echo "The same records made two different tarballs."
+        exit 1
+      fi
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - appimage-bundled-sources/
 
 # ---------------------------------------------------------------- on another distribution
 

@@ -19,10 +19,13 @@
 #
 #   bash build/ci/packages/appimage-build.sh
 #
-# It reads appimage/runtime-<arch> (the runtime job's artifact) and
-# appimage-runtime-sources/licenses-<arch>/, the licence files of the libraries
-# linked into that runtime (the appimage-runtime-sources job's), which the image
-# carries under usr/share/hmailserver/licenses/appimage-runtime/, and leaves:
+# It reads appimage/runtime-<arch> and runtime-<arch>-linked.txt, what the runtime
+# links (the runtime job's artifacts), and appimage-runtime-sources/licenses-<arch>/,
+# the licence files of the libraries linked into that runtime (the
+# appimage-runtime-sources job's), which the image carries under
+# usr/share/hmailserver/licenses/appimage-runtime/. build-appimage.sh puts in the
+# image the copyright files of the Ubuntu packages whose libraries it copies into
+# usr/lib, and bundled.txt, the list of them. It leaves:
 #   appimage/hMailServer-<version>-<arch>.AppImage   the name UpdateChecker.cpp and
 #                                                   generate-update-feed.py expect
 #   appimage/SHA256SUMS-<arch>.txt
@@ -37,11 +40,22 @@
 #                                                   (this container's for x86_64;
 #                                                   appimage-cross.sh's for aarch64), and
 #                                                   bundled.txt, each library the image
-#                                                   carries in usr/lib with the package and
-#                                                   version its file came from. The
-#                                                   release-packages job makes
-#                                                   <image>.cdx.json from them
+#                                                   carries in usr/lib with the package,
+#                                                   version and SHA-256 of the file it came
+#                                                   from and the source package and version
+#                                                   it was built from (the image's own list
+#                                                   with the SHA-256s), and runtime-linked.txt,
+#                                                   what the runtime in front of it links
+#                                                   statically. The release-packages job
+#                                                   makes <image>.cdx.json from them
 #                                                   (build/asset-sbom.py --kind appimage).
+#                                                   And archive.txt, when this container's
+#                                                   apt read Ubuntu's archive, the date of
+#                                                   each index it read and when its dpkg
+#                                                   installed each of those packages, for
+#                                                   the appimage-bundled-sources job to find
+#                                                   those source packages again
+#                                                   (build/ci/packages/appimage-bundled-sources.sh).
 #
 # The environment it reads:
 #   HM_BUILD_DIR    where CMake configures and ninja builds (/tmp/hm-appimage)
@@ -77,6 +91,10 @@ if [ ! -f "$runtime" ]; then
   echo "No runtime at $runtime: the appimage-runtime-$arch job makes it (build/ci/packages/appimage-runtime.sh)."
   exit 2
 fi
+if [ ! -s "$runtime-linked.txt" ]; then
+  echo "No record of what the runtime links at $runtime-linked.txt, which the image's SBOM lists: the appimage-runtime-$arch job writes it."
+  exit 2
+fi
 if [ ! -d "$runtime_licenses" ]; then
   echo "No licence files of the runtime's libraries at $runtime_licenses: the appimage-runtime-sources job makes them (build/ci/packages/appimage-runtime-sources.sh)."
   exit 2
@@ -101,6 +119,9 @@ tools="build-essential cmake ninja-build"
 [ -z "$prebuilt" ] || tools=""
 echo "== the packages, from Ubuntu's archive"
 apt-get update -qq
+# When the indexes the libraries below come from were read: the snapshot of the
+# archive at this time holds them, whatever the archive holds later (archive.txt).
+archive_updated=$(date -u +%Y%m%dT%H%M%SZ)
 # shellcheck disable=SC2086
 apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends \
   $tools \
@@ -190,41 +211,69 @@ if [ -z "$prebuilt" ]; then
 fi
 [ -s "$facts/dpkg.txt" ] && [ -s "$facts/boost-version.hpp" ] \
   || { echo "No record of what the server was compiled against in $facts (appimage-cross.sh writes the aarch64 one)."; exit 1; }
-# Each library build-appimage.sh copied into usr/lib, by the package that owns the
-# file ldd resolved it to here: "<soname> <package>:<arch> <version> <sha256>". The
-# copy in the image has a RUNPATH of its own, so the package file's SHA-256 is
-# recorded as that, not as the copy's. dpkg names a file by the path the package
-# ships it at, which since Ubuntu's /usr merge may be /usr/lib/... where ldd says
-# /lib/..., or the real file behind the soname's link.
-owner_of() {
-  local path=$1 real candidate owner
-  real=$(readlink -f "$path")
-  for candidate in "$path" "$real" "/usr$path" "/usr$real" "${path#/usr}" "${real#/usr}"; do
-    owner=$(dpkg -S "$candidate" 2> /dev/null | head -n 1 | sed -n 's/^\([^ ,]*\): .*/\1/p')
-    if [ -n "$owner" ]; then
-      case "$owner" in
-        *:*) printf '%s\n' "$owner" ;;
-        *) printf '%s:%s\n' "$owner" "$(dpkg --print-architecture)" ;;
-      esac
-      return 0
-    fi
-  done
-  return 1
-}
+# Each library build-appimage.sh copied into usr/lib, from the image's own list of
+# them (usr/share/hmailserver/licenses/bundled.txt: "library usr/lib/<soname>
+# <package>:<arch> <version> <source> <source version>", each package as dpkg named
+# the owner of the file ldd resolved), with that file's SHA-256: "<soname>
+# <package>:<arch> <version> <sha256> <source> <source version>". The copy in the
+# image has a RUNPATH of its own, so the package file's SHA-256 is recorded as that,
+# not as the copy's.
+list="$build_dir/AppDir/usr/share/hmailserver/licenses/bundled.txt"
+[ -s "$list" ] || { echo "The image carries no usr/share/hmailserver/licenses/bundled.txt: build-appimage.sh writes it where dpkg is."; exit 1; }
 bundled_names=$(sed -n 's/^Bundled://p' "$out/package-$arch.log" | head -n 1)
+[ -n "$bundled_names" ] || { echo "build-appimage.sh said nothing of what it bundled."; exit 1; }
 resolved="$(ldd "$build_dir/hmailserver")"
 : > "$facts/bundled.txt"
+listed=0
 for soname in $bundled_names; do
   [ "$soname" != none ] || continue
+  line=$(awk -v f="usr/lib/$soname" '$1 == "library" && $2 == f' "$list")
+  [ "$(printf '%s\n' "$line" | grep -c .)" -eq 1 ] || { echo "The image's bundled.txt does not list usr/lib/$soname once."; exit 1; }
+  read -r _ _ owner package_version source_package source_version extra <<< "$line"
+  [ -n "$source_version" ] && [ -z "$extra" ] || { echo "The image's bundled.txt gives usr/lib/$soname as \"$line\"."; exit 1; }
   path=$(printf '%s\n' "$resolved" | awk -v s="$soname" '$1 == s && $2 == "=>" { print $3; exit }')
   [ -n "$path" ] && [ -f "$path" ] || { echo "ldd no longer resolves $soname, which the image carries."; exit 1; }
-  owner=$(owner_of "$path") || { echo "dpkg names no package that owns $path ($soname), which the image carries."; exit 1; }
-  version=$(dpkg-query -W -f '${Version}' "$owner" 2> /dev/null)
-  [ -n "$version" ] || { echo "dpkg has no version of $owner."; exit 1; }
-  printf '%s %s %s %s\n' "$soname" "$owner" "$version" "$(sha256sum "$(readlink -f "$path")" | cut -d' ' -f1)" >> "$facts/bundled.txt"
+  printf '%s %s %s %s %s %s\n' "$soname" "$owner" "$package_version" "$(sha256sum "$(readlink -f "$path")" | cut -d' ' -f1)" \
+    "$source_package" "$source_version" >> "$facts/bundled.txt"
+  listed=$((listed + 1))
 done
-[ -n "$bundled_names" ] || { echo "build-appimage.sh said nothing of what it bundled."; exit 1; }
+[ "$(grep -c '^library ' "$list")" -eq "$listed" ] \
+  || { echo "The image's bundled.txt lists $(grep -c '^library ' "$list") libraries, and build-appimage.sh bundled $listed."; exit 1; }
 cat "$facts/bundled.txt"
+# What the runtime in front of the image links statically, as its job recorded it
+# from the linker's map, for the SBOM.
+cp "$runtime-linked.txt" "$facts/runtime-linked.txt"
+# When this container's apt read Ubuntu's archive, and the date of each index it
+# read (the InRelease files apt keeps): the appimage-bundled-sources job takes each
+# source package from the archive, or, for a version the archive has dropped since,
+# from its snapshot service at one of these times
+# (build/ci/packages/appimage-bundled-sources.sh).
+{
+  echo "distribution $ID $VERSION_ID $VERSION_CODENAME"
+  echo "arch $arch"
+  echo "updated $archive_updated"
+  for index in /var/lib/apt/lists/*_InRelease; do
+    [ -f "$index" ] || continue
+    suite=$(sed -n 's/^Suite: //p' "$index" | head -n 1)
+    stamp=$(sed -n 's/^Date: //p' "$index" | head -n 1)
+    [ -n "$suite" ] && [ -n "$stamp" ] || continue
+    echo "index $suite $(date -u -d "$stamp" +%Y%m%dT%H%M%SZ)"
+  done | LC_ALL=C sort -u
+  # And when dpkg installed each package a library came from (its file list's time):
+  # a package the image's base already had stays at the version it had when the base
+  # was made, which the archive may have superseded before this apt read it, and only
+  # the snapshot of that time still indexes its source.
+  for owner in $(awk '{ print $2 }' "$facts/bundled.txt" | LC_ALL=C sort -u); do
+    files="/var/lib/dpkg/info/$owner.list"
+    [ -f "$files" ] || files="/var/lib/dpkg/info/${owner%%:*}.list"
+    [ -f "$files" ] || { echo "dpkg keeps no file list of $owner, to say when it was installed." >&2; exit 1; }
+    echo "installed $owner $(date -u -d "@$(stat -c %Y "$files")" +%Y%m%dT%H%M%SZ)"
+  done
+} > "$facts/archive.txt"
+cat "$facts/archive.txt"
+# Every source package among them is one the sources job knows the licence of: a
+# library the image starts to carry is looked at before a release carries it.
+bash build/ci/packages/appimage-bundled-sources.sh check "$facts"
 
 ( cd "$out" && sha256sum "$(basename "$image")" > "SHA256SUMS-$arch.txt" )
 {
@@ -235,5 +284,6 @@ cat "$facts/bundled.txt"
   echo "packed on $PRETTY_NAME ($arch), glibc $(ldd --version | head -n 1 | awk '{ print $NF }'); the server: $compiler"
   echo "boost $(dpkg-query -W -f '${Version}' libboost1.83-dev 2> /dev/null || echo unknown) (static)"
   grep -E '^(Bundled|Left to the host):' "$out/package-$arch.log"
+  echo "their licences in usr/share/hmailserver/licenses/bundled/, their source $(sed -n 's/^sources //p' "$list")"
   echo "runtime $(sed -n 's/^sha256 //p' "$runtime.txt" 2> /dev/null || echo unknown)"
 } | tee "$out/appimage-$arch.txt"

@@ -170,8 +170,8 @@ verified the original.
 
 - **Build provenance** (from 6.3.6). `hmailserver-<version>.intoto.sigstore.json` on the release page is the
   release's SLSA v1 build provenance: an in-toto statement that names every file of the release by its SHA-256 - the
-  installer, every package, the AppImages, the source of the libraries linked into their runtime, the source tarball,
-  the chart, the sums and every SBOM - with the commit it
+  installer, every package, the AppImages, the source of the libraries linked into their runtime and of the libraries
+  they carry, the source tarball, the chart, the sums and every SBOM - with the commit it
   was built from and the tag's pipeline as the builder, signed by that pipeline with Sigstore (a bundle holding a DSSE
   envelope, recorded in the public Rekor log). cosign is the verifier; the SLSA project's `slsa-verifier` is not
   needed. To check that a download is one the tag's pipeline built:
@@ -227,7 +227,7 @@ CycloneDX 1.6, beside it on the release page and named after it:
 | `hMailServer-<version>-x64.exe`, the Windows installer | `hMailServer-<version>-x64.exe.cdx.json` | OpenSSL, Boost and libpq, which the server is linked against, and the zlib compiled into it, at the versions `hMailServer.vcxproj` builds with; every third-party file the installer packs (the .NET runtime, the MSVC runtime, 7-Zip, the MariaDB client, SQL Server Compact), each file by the SHA-256 [third-party-binaries.json](hmailserver/docs/third-party-binaries.json) pins it by; and every NuGet package of the tools it installs, at the version and with the SHA-512 their `packages.lock.json` resolves |
 | `hmailserver_<version>_amd64.deb`, `hmailserver-<version>-1.x86_64.rpm`, and from 6.3.6 `hmailserver_<version>_arm64.deb` and `hmailserver-<version>-1.aarch64.rpm` | `<package>.cdx.json` | The libraries the Linux server needs from the distribution (glibc, libstdc++, OpenSSL, zlib, libpq, OpenLDAP), each with the development package and version it was built against; Boost, linked into the binary, at its exact version; the QuickJS compiled into it; and what the package itself declares it depends on |
 | from 6.3.6, each distribution release's own package: `hmailserver_<version>-1~<release>_<arch>.deb` for Debian 12 and 13 and Ubuntu 24.04, `hmailserver-<version>-1.<release>.<arch>.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed | `<package>.cdx.json` | The same as the generic packages', from what that release's build container recorded; where the job built Boost from boost.org's release tarball (Debian 12, EL, openSUSE) the SBOM says so |
-| from 6.3.6, `hMailServer-<version>-x86_64.AppImage` and `hMailServer-<version>-aarch64.AppImage` | `<image>.cdx.json` | The server's libraries as for a package, and every library the image carries in `usr/lib`, by the Ubuntu 24.04 package and version its file came from and that file's SHA-256 (the copy in the image has a RUNPATH of its own) |
+| from 6.3.6, `hMailServer-<version>-x86_64.AppImage` and `hMailServer-<version>-aarch64.AppImage` | `<image>.cdx.json` | The server's libraries as for a package; every library the image carries in `usr/lib`, by the Ubuntu 24.04 package and version its file came from, that file's SHA-256 (the copy in the image has a RUNPATH of its own) and the source package and version it was built from; and every Alpine package whose files the runtime in front of the image links statically, at its version, with its aports commit, its licence and each file linked |
 | from 6.3.6, the source tarball `hmailserver-<version>.tar.gz` | `hmailserver-<version>.tar.gz.cdx.json` | The third-party code and data it holds, as [SourceTarball.md](hmailserver/docs/SourceTarball.md) declares them, each held to the tarball, QuickJS at the version its `VERSION` file gives |
 | the container image, once one is published | an attestation on the image (predicate type `cyclonedx`) | Every distribution package in the image, as Syft reads it, and what the `.deb`'s own SBOM names inside the binary |
 | the source tree | `hmailserver.spdx.json`, `hmailserver.cyclonedx.json` | Syft's inventory of the tree, with the native libraries it cannot see added |
@@ -238,6 +238,17 @@ with the binary. It is source, not a compiled file, and has no SBOM: its `README
 licence and aports commit and where each file came from. Each source file of a library is held to the SHA-512 its
 APKBUILD, Alpine's build script, gives it, and each APKBUILD and patch to the aports commit its package records
 ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences").
+
+From 6.3.6 a release also carries `hmailserver-<version>-appimage-bundled-sources.tar.gz`, the source of every shared
+library the AppImages carry in `usr/lib`, as Ubuntu built them: each source package (its `.dsc`, upstream archives and
+Ubuntu's changes) at the version the image's package was built from, which the LGPL of GnuTLS, Nettle, GMP, libidn2,
+libunistring, libtasn1 and keyutils asks to be offered with the binary. It is source and has no SBOM: its `README.txt`
+names each source package, its version and licence, the libraries each image took from it, and each file's SHA-256.
+Each file came from Ubuntu's archive, or its snapshot service for a version the archive has dropped, and is held to
+the SHA-256 of a `Sources` index whose `InRelease` verified against Ubuntu's archive keys, and again to its `.dsc`.
+Each AppImage lists those libraries, their packages and source packages in
+`usr/share/hmailserver/licenses/bundled.txt`, which names the file, beside each package's copyright file and
+hMailServer's own AGPL-3.0 text ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences").
 
 Each document's subject (`metadata.component`) is its file, by SHA-256 and SHA-512, so it cannot be mistaken for
 another file's. `build/asset-sbom.py` makes them: the release jobs of `.gitlab-ci.yml` make the x86-64 packages' in

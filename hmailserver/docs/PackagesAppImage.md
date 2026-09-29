@@ -87,7 +87,8 @@ with distribution tools:
   `usr/lib`, except the ones it leaves to the host. It then sets the RUNPATH with
   `patchelf`: `$ORIGIN/../lib` on the server and `$ORIGIN` on each library. It
   then resolves the image's own server again and fails if any library comes from
-  outside the image when it was not meant to.
+  outside the image when it was not meant to. Beside them it puts each library's
+  package's copyright file and a list of what it carries ([Licences](#licences)).
 - **The AppDir's root:** it writes `AppRun`, the desktop file, the icon and
   `.DirIcon`.
 - **Packing:** it runs `mksquashfs -root-owned -comp zstd` and writes the runtime
@@ -154,9 +155,10 @@ minutes.
 | `appimage-runtime-x86_64` | `alpine:3.24` amd64 | `appimage/runtime-x86_64` and `.txt` (what it was built from and links, the licences, and where the source is), after `build/ci/packages/appimage-runtime.sh` proves it on a small AppImage of its own; and `runtime-x86_64-linked.txt`, every file the link took with its Alpine package, version, aports commit and licence ([Licences](#licences)) |
 | `appimage-runtime-aarch64` | `alpine:3.24` arm64, under qemu-user | `appimage/runtime-aarch64`, `.txt` and `-linked.txt`, proved the same way |
 | `appimage-runtime-sources` | `alpine:3.24` amd64 | `appimage-runtime-sources/hmailserver-<v>-appimage-runtime-sources.tar.gz`, the source of every library the two runtimes link as Alpine built it, made twice and compared, with `SHA256SUMS.txt`; and `licenses-<arch>/`, each library's licence files for that architecture's AppImage (`build/ci/packages/appimage-runtime-sources.sh`) |
-| `appimage-x86_64` | `ubuntu:24.04` amd64 | Builds the server with GCC 13 and makes `hMailServer-<v>-x86_64.AppImage`, with the runtime's libraries' licence files, then runs it (`appimage-build.sh`, then `appimage-test.sh`) |
+| `appimage-x86_64` | `ubuntu:24.04` amd64 | Builds the server with GCC 13 and makes `hMailServer-<v>-x86_64.AppImage`, with the runtime's libraries' licence files, the copyright files of the libraries it bundles, their list and hMailServer's own licence, then runs it (`appimage-build.sh`, then `appimage-test.sh`); and `built-against-x86_64/`, what its SBOM and the bundled libraries' sources are made from |
 | `appimage-aarch64-compile` | `ubuntu:24.04` amd64 | `appimage/hmailserver-aarch64`, cross-compiled against Ubuntu 24.04's own arm64 libraries from ports.ubuntu.com (`appimage-cross.sh`) |
 | `appimage-aarch64` | `ubuntu:24.04` arm64, under qemu-user | `hMailServer-<v>-aarch64.AppImage` from that binary (`appimage-build.sh` with `HM_PREBUILT`), then runs it |
+| `appimage-bundled-sources` | `ubuntu:24.04` amd64 | `appimage-bundled-sources/hmailserver-<v>-appimage-bundled-sources.tar.gz`, the source of every library the two images carry in `usr/lib`, as Ubuntu built it, made twice and compared, with `SHA256SUMS.txt` (`build/ci/packages/appimage-bundled-sources.sh`; [Licences](#licences)) |
 | `appimage-test-x86_64`, `appimage-test-aarch64` | `fedora:44` from registry.fedoraproject.org | Nothing. Runs the AppImage on a distribution it was not built on, with nothing that the build installed (`appimage-test.sh`) |
 
 **When the jobs run:**
@@ -199,7 +201,10 @@ and needs the target's loader.
    - the licences, among them `appimage-runtime.txt`, which must name the
      release file with the runtime's libraries' source, the licence files of
      every library it lists (libfuse3's and lzo's at least), and the GPL-3.0's
-     text;
+     text; hMailServer's own AGPL-3.0 text; and `bundled.txt`, which must list
+     every library in `usr/lib` and nothing else, and name the release file with
+     their source, with the copyright file of each library's package and every
+     licence text those files name;
    - `AppRun`, the desktop file and the icon.
 5. Where FUSE can be had, the mounted run works too. In a container it usually
    cannot, and the script says so rather than failing.
@@ -222,7 +227,8 @@ What was run, and with what result
 ----------------------------------
 
 Everything below was run by hand on linix, on 26 September 2026 (the runtime's
-sources on the laptop, on 28 September), in containers from the same images and
+sources on the laptop, on 28 September, and the bundled libraries' licences and
+sources there on 29 September), in containers from the same images and
 digests as the jobs, and not by GitLab. **No GitLab
 pipeline has run any of these jobs yet.** They were in `batch41`'s pipelines
 2886955494 and 2887115157 (27 September 2026), where nobody started the runtime
@@ -309,6 +315,49 @@ each removed afterwards:
 on the laptop), a whole AppImage build with `--runtime-licenses` and
 `appimage-test.sh` on a real image, and the jobs in a pipeline.
 
+### The bundled libraries' licences and sources
+
+Run on the laptop on 29 September 2026, in WSL's Docker, from this branch's tree
+(Version.h's 6.3.5), in one container at a time: `ubuntu:24.04` amd64 of the digest
+`appimage-x86_64` and `appimage-bundled-sources` name (`49675449…`, Ubuntu 24.04.5),
+then `fedora:44` amd64 of the digest `appimage-test-x86_64` names. The runtime and
+its licence files were those the runtime's sources' check made on 28 September
+(`3c004d2c…`), from the same `runtime.c` and scripts.
+
+| What | Result |
+|---|---|
+| The server, built in that container as `appimage-build.sh` builds it (GCC 13.3, ninja at `-j2`) | **Built** in 2,698 s. |
+| `appimage-build.sh` on that tree | **Passed end to end,** its own `appimage-test.sh` included. `hMailServer-6.3.5-x86_64.AppImage` is 19,303,016 bytes, SHA-256 `874b7c3e…`, with the same 19 libraries bundled and 8 left to the host; in `usr/share/hmailserver/licenses/`: `AGPL-3.0.txt` (`0d96a4ff…`, the FSF's file), `bundled.txt` listing the 19 with their 18 packages and 14 source packages, 18 copyright files, and 12 licence texts (Apache-2.0, Artistic, GFDL-1.2 and 1.3, GPL-1, 2 and 3, LGPL-2, 2.1 and 3, and the links `GPL` and `LGPL`). `built-against-x86_64/` holds `bundled.txt` with the source packages, `runtime-linked.txt` and `archive.txt`; `appimage-bundled-sources.sh check` passed on it. |
+| `build-appimage.sh` again, from another build directory | **The same image, byte for byte** (`874b7c3e…`). |
+| `appimage-test.sh` on that image in `fedora:44` | **Passed,** the new checks with it. |
+| `appimage-test.sh` on nine copies of the image, each changed one way and packed again with the same runtime | **Each refused, naming it:** a package's copyright file gone; a library missing from `bundled.txt`; `bundled.txt` naming a library the image lacks; `bundled.txt` naming another release's sources; a licence text a copyright file names gone; the LGPL-3.0 without the GPL-3.0; `AGPL-3.0.txt` gone; the GPL-3.0's text in its place; `bundled.txt` gone. The unchanged copy passed. |
+| `build-appimage.sh` with the container changed for one run each | **As meant:** without `libffi8`'s copyright file, refused naming it; without `/usr/share/common-licenses/Artistic`, which a copyright file names, refused naming it; without `dpkg-query`, made with a warning, and `appimage-test.sh` refused that image for its missing `bundled.txt`. |
+| The image's SBOM, `asset-sbom.py make --kind appimage` on Windows with `native-dependencies.ps1`'s list and the image's `built-against-x86_64/` | **Made and verified:** 36 components, the 8 of the server's own list, the 19 bundled libraries by Ubuntu package with their source package, and the 9 Alpine packages the runtime links (`fuse3-static`, `lzo-dev`, `musl-dev`, `squashfuse-dev`, `zstd-static`, `lz4-static`, `xz-static`, `zlib-static` and `libgcc-static`) with commit, licence and files. |
+| `appimage-bundled-sources.sh pack` on that record and the same record relabelled `aarch64` (ports.ubuntu.com's arm64 indexes gave every one of the 18 packages at the same version that day), twice, the second under umask 0077 in another directory | **The same bytes:** 75,319,738 bytes, SHA-256 `40df2d53…`; 14 source packages, 48 files, every one from `archive.ubuntu.com` and held to the `Sources` index of a signed `InRelease` and to its `.dsc`; about 25 s a run. Read back with Python on Windows: 69 entries in order, 0:0, dated `SOURCE_DATE_EPOCH`, 0644 and 0755; `SHA256SUMS` right for all 53 other files; the 34 files the 14 `.dsc`s list held to them; and all 48 source files equal to what the archive's `Sources` indexes, fetched again there, give. |
+| `pack` given what it must refuse, or cannot get | **Refused,** each naming why: a source package whose licence it does not name (`libffi-ng`), a line without its source package, two records of one architecture, a version neither the archive nor its snapshot indexes, an `InRelease` checked against another keyring (Ubuntu's cloud image key), a `.dsc` with one byte more than its index gives, the archive out of reach. `gpgv` refused an `InRelease` with one line of its text changed. |
+| `pack` given a version the archive has dropped (`gnutls28` 3.8.3-1.1ubuntu3.4) with a recorded time of 1 January 2026 | **Packed** from `snapshot.ubuntu.com/ubuntu/20260101T000000Z/`. The snapshot service answered a burst of requests with 503 once; the fetch now retries with a growing wait. |
+| GitHub from that container | Unreachable, as `.no-github` makes it in the job. |
+
+**Not run for the bundled libraries:** the aarch64 AppImage (no qemu-user on the
+laptop: its record was the x86_64 one relabelled), and the jobs in a pipeline.
+
+### The re-check of the bundled libraries' licences and sources
+
+Run on the laptop on 29 September 2026, after the above, in the same images by
+digest, one container at a time. What it found and changed:
+
+| What | Result |
+|---|---|
+| The pinned `ubuntu:24.04` as pulled (its build of 11 September 2026) against what `appimage-build.sh` installs | Nine of the fourteen source packages - `gnutls28`, `nettle`, `gmp`, `libidn2`, `libunistring`, `libtasn1-6`, `p11-kit`, `libffi` and `e2fsprogs` - come from the image as it was built: `apt-get install` does not change a package it already has. The records named no time the archive's snapshot still indexed such a version once the archive superseded it, so the first security update of any of them after the image's build would have failed the job until the image was bumped. **Fixed:** `archive.txt` records when dpkg installed each package, and `pack` looks there first. |
+| `pack` on a record of `gnutls28` 3.8.3-1.1ubuntu3.4, which the archive has dropped, with dpkg's time of 1 January 2026 and the job's times of 29 September | **Packed** from the snapshot of 1 January, and `README.txt` names that snapshot as the place. The script as it was, on the same record: refused, having looked only at 29 September's snapshots. Without the `installed` line: refused, naming it. |
+| `appimage-build.sh` end to end with `HM_PREBUILT` (the server compiled above), with the fixes | **Passed,** its `appimage-test.sh` included: `archive.txt` gives each of the 18 packages its time (the ten the base had, of those nine source packages, 11 September; the others that minute), and the image carries 13 licence texts, MPL-1.1 now among them. |
+| `appimage-test.sh` in `fedora:44` | The new image **passed**; the image made before the fix **refused** (libffi8's copyright file names MPL-1.1 in braces, and that image does not carry it); the new image repacked without MPL-1.1, or with a copyright file naming a text in braces the image lacks, **refused**; repacked unchanged, **passed**. |
+| `pack` on the new records (the x86_64 one, and it relabelled `aarch64`), twice, the second under umask 0077 elsewhere | **The same bytes,** 75,320,239; all fourteen from the archive. Read back: 69 entries in name order, 0:0, one date, 0644 and 0755, gzip with no name or time. |
+| `gpgv --keyring <Ubuntu's> --output` as `pack` calls it, on the archive's `InRelease` and on changed copies | The output is exactly the signed text. Unsigned lines before the armour or after the signature: accepted, and left out of the output, which is what `pack` reads. A second message after the first, altered, with the first's signature: refused. With keys of the test's own: a key not in the keyring, refused; two messages, both signed by a key of the keyring, refused; a key of the keyring since expired, accepted for a signature made before (Ubuntu's three archive keys in 24.04's `ubuntu-keyring` never expire). |
+| The README's changed-library route, on the image | **Works:** `libkeyutils` built from the packed `keyutils` source with one change (a constructor that says so), put at `usr/lib/libkeyutils.so.1` of the extracted image with `patchelf --set-rpath '$ORIGIN'`: `AppRun --version` loads it (`LD_DEBUG=libs`: from `usr/lib`); packed again behind the release's runtime, the new AppImage runs it too, extracted and with `--appimage-extract-and-run`. |
+| The licences, from the copyright files and the packed sources | As the table above says, with three corrections: GnuTLS's library carries LGPL-3.0-or-later OR GPL-2.0-or-later code; Debian's `libidn2` copyright file gives `lib/*` the GPL-3.0-or-later where `lib/*.c` say LGPL-3.0-or-later OR GPL-2.0-or-later; `libcom_err`'s `lib/et` is MIT-style by its files (`com_right.c` BSD, `vfprintf.c` not in its build). `libidn2`'s own gnulib holds the GPL-3.0-or-later `progname` module, which its programs use: its message is in no library in `usr/lib`. Nothing bundled is GPL-only. |
+| The image's SBOM (`asset-sbom.py make --kind appimage` on the builder's image and records) | **Valid** against CycloneDX 1.6's JSON schema, strict (`cyclonedx-python-lib` 11.12.0); every purl parses (`packageurl-python`): `pkg:apk/alpine/<package>@<version>?arch=...&distro=alpine-3.24.2` for the runtime's nine. |
+
 **Not run:**
 
 - **Any job in a GitLab pipeline** (above). GitLab has created the jobs from
@@ -321,6 +370,8 @@ on the laptop), a whole AppImage build with `--runtime-licenses` and
 
 Licences
 --------
+
+### The runtime
 
 The runtime is linked statically, so what the link takes from Alpine's packages
 goes out inside every AppImage, in the runtime in front of the image.
@@ -411,12 +462,144 @@ GPL-3.0's section 6(d) asks, and must stay there as long as the AppImages do:
 never delete it from the package `hmailserver/<version>` while that release's
 AppImages are offered.
 
-**Still open, outside the runtime.** The shared libraries `build-appimage.sh`
-copies into the image's `usr/lib` from Ubuntu 24.04 are not the runtime's, and
-this does not cover them. Some are under the LGPL (GnuTLS, which the bundled
-`libldap` is built with, is LGPL-2.1-or-later), which asks for the library's
-source too when the library itself is conveyed; the image carries none of their
-copyright files, and the release none of their source.
+### The libraries in `usr/lib`
+
+`build-appimage.sh` copies into the image's `usr/lib` every library `ldd`
+resolves for the server but those it leaves to the host (above), from the Ubuntu
+24.04 packages the job's container installed: libpq and libldap, which the server
+links, and what they need. Each goes out under its own licence. On 29 September
+2026, x86_64 (ports.ubuntu.com had the same versions for arm64 that day):
+
+| Libraries | Ubuntu packages | Source package and version | Licence of the library, as its copyright file and sources give it | What it asks of a binary |
+|---|---|---|---|---|
+| `libgnutls.so.30` | `libgnutls30t64` | `gnutls28` 3.8.3-1.1ubuntu3.6 | LGPL-2.1-or-later, with parts under LGPL-3.0-or-later OR GPL-2.0-or-later (`lib/nettle`'s backported, GOST and FIPS code, by the copyright file's own stanzas), so the library as built goes out under the LGPL-3.0-or-later, as upstream's README says of its binaries, which link GMP; CRYPTOGAMS (BSD-style, or the GPL) for `lib/accelerated/x86` (the programs and `libgnutls-openssl`, not bundled, are GPL-3.0-or-later) | The library's source, offered from the same place as the binary (the LGPL-2.1's sections 4 and 6, the GPL-3.0's section 6); the LGPL-2.1's, the LGPL-3.0's and the GPL-3.0's texts; that a changed copy can be used (section 6, 4(d)) |
+| `libtasn1.so.6` | `libtasn1-6` | `libtasn1-6` 4.19.0-3ubuntu0.24.04.2 | LGPL-2.1-or-later (its programs are GPL-3.0-or-later) | The same |
+| `libkeyutils.so.1` | `libkeyutils1` | `keyutils` 1.6.3-3build1 | LGPL-2.0-or-later (its programs are GPL-2.0-or-later) | The same |
+| `libnettle.so.8`, `libhogweed.so.6` | `libnettle8t64`, `libhogweed6t64` | `nettle` 3.9.1-2.2build1.1 | LGPL-3.0-or-later OR GPL-2.0-or-later, taken under the LGPL-3.0 | The source (the GPL-3.0's section 6, which the LGPL-3.0 applies); the LGPL-3.0's and the GPL-3.0's texts (section 4(b)); that a changed copy can be used (4(d)) |
+| `libgmp.so.10` | `libgmp10` | `gmp` 2:6.3.0+dfsg-2ubuntu6.1 | The same | The same |
+| `libidn2.so.0` | `libidn2-0` | `libidn2` 2.3.7-2build1.1 | The same, by `lib/*.c`'s own notices and upstream's README (Debian's copyright file has a stanza giving `lib/*` the GPL-3.0-or-later, which those notices do not bear out; its programs are GPL-3.0-or-later) | The same |
+| `libunistring.so.5` | `libunistring5` | `libunistring` 1.1-2build1.1 | The same | The same |
+| `libpq.so.5` | `libpq5` | `postgresql-16` 16.15-0ubuntu0.24.04.1 | PostgreSQL | The notice |
+| `libldap.so.2`, `liblber.so.2` | `libldap2` | `openldap` 2.6.10+dfsg-0ubuntu0.24.04.1 | OLDAP-2.8 | The notice |
+| `libgssapi_krb5.so.2`, `libkrb5.so.3`, `libk5crypto.so.3`, `libkrb5support.so.0` | `libgssapi-krb5-2`, `libkrb5-3`, `libk5crypto3`, `libkrb5support0` | `krb5` 1.20.1-6ubuntu2.10 | MIT and other BSD-style notices (a few files BSD-3-Clause OR GPL-2.0-or-later, at the recipient's choice) | The notices |
+| `libsasl2.so.2` | `libsasl2-2` | `cyrus-sasl2` 2.1.28+dfsg1-5ubuntu3.1 | BSD-3-Clause-Attribution (Carnegie Mellon University's), RSA Data Security's MD5 notice (`lib/md5.c`) and other BSD-style licences | The notices, with CMU's acknowledgement |
+| `libp11-kit.so.0` | `libp11-kit0` | `p11-kit` 0.25.3-4ubuntu2.2 | BSD-3-Clause | The notice |
+| `libffi.so.8` | `libffi8` | `libffi` 3.4.6-1build1 | MIT | The notice |
+| `libcom_err.so.2` | `libcom-err2` | `e2fsprogs` 1.47.0-2.4~exp1ubuntu4.1 | MIT-style: `lib/et`'s own notices and upstream's `NOTICE` (Debian's copyright file lists it under a catch-all GPL-2 stanza that it calls a simplification) | Nothing for a binary |
+
+What `build-appimage.sh` puts in the image, where `dpkg` is (in the jobs, Ubuntu
+24.04), in `usr/share/hmailserver/licenses/`:
+
+- `bundled/<package>/copyright` for each package a library came from: the
+  copyright file as Ubuntu ships it (`/usr/share/doc/<package>/copyright`, which
+  Ubuntu's container image keeps when it drops the rest of `/usr/share/doc`);
+- `bundled/common-licenses/<name>`: every licence text those files name by its
+  place in `/usr/share/common-licenses`, one at a time or several in the shell's
+  braces (libffi8's `/usr/share/common-licenses/{MPL-1.1,GPL-2,LGPL-2.1}`) - in
+  24.04's: Apache-2.0, Artistic, GFDL-1.2 and GFDL-1.3, GPL-1, GPL-2 and GPL-3,
+  LGPL-2, LGPL-2.1 and LGPL-3, and MPL-1.1, with `GPL` and `LGPL` as the links
+  Ubuntu has - and the GPL-3.0 whenever the LGPL-3.0
+  is there, since the LGPL-3.0 is written as permissions added to it. A name the
+  machine does not have stops the build;
+- `bundled.txt`: each library as `library usr/lib/<soname> <package>:<arch>
+  <version> <source> <source version>`, and the release file with their source,
+  `sources hmailserver-<version>-appimage-bundled-sources.tar.gz`, with its address
+  in the package registry and on the release's page.
+
+`appimage-build.sh` keeps the same list, with the SHA-256 of each package's file,
+as `built-against-<arch>/bundled.txt`, for the SBOM and the sources job, and
+`archive.txt`, when its apt read the archive, the date of each index it read, and
+when its dpkg installed each package a library came from (the time of dpkg's file
+list of it): a package the image's base already had is at the version it had when
+the base was made, which the archive may have superseded before the job ran.
+It then runs `appimage-bundled-sources.sh check`, which fails the image's own job
+for a source package whose licence that script does not name: a library the image
+starts to carry is looked at before a release carries it.
+
+**Which ask for their source, and what goes out.** By their own terms, seven:
+libtasn1 and keyutils (LGPL-2.x); GnuTLS (LGPL-2.1-or-later, with parts under
+LGPL-3.0-or-later OR GPL-2.0-or-later, so the LGPL-3.0 as built); and Nettle, GMP,
+libidn2 and libunistring (LGPL-3.0, of LGPL-3.0-or-later OR GPL-2.0-or-later). Each is conveyed as a shared
+library the server loads through its RUNPATH, the "suitable shared library
+mechanism" of the LGPL-2.1's section 6(b) and the LGPL-3.0's 4(d)(1): the source
+goes out beside the binary, from the same place (section 4 and 6(d) of the
+LGPL-2.1, 6(d) of the GPL-3.0), and a changed copy of a library is used when it
+is put at `usr/lib/<soname>` of an extracted image (the file's `README.txt` says
+how, and how to make an AppImage of it again). The other seven ask only for their
+notices, which the copyright files carry. The release file carries the source of
+all fourteen all the same:
+
+- the copyright files of libffi and cyrus-sasl2 give GPL terms to parts of their
+  Debian packaging, and e2fsprogs' to every file it does not name, and whether a
+  patch reaches a library is a judgement the release should not rest on;
+- libpq and libldap are what the server links for its database and directory,
+  which some read as part of the AGPL's Corresponding Source when they are
+  conveyed with it;
+- the cost is size, below.
+
+**How large, and why one file.** 75,320,239 bytes for the fourteen source
+packages on 29 September 2026. PostgreSQL's is 33 MB of it (`postgresql-16`'s
+upstream archive), e2fsprogs' 9.7 MB and krb5's 8.8 MB; the seven the LGPL asks
+for are 17.5 MB. Source packages are the same for every architecture, and both
+images take the same versions, so the release carries one file for both: one per
+architecture would carry the same bytes twice. A version only one architecture
+took is packed beside the other.
+
+**Where the source comes from, and how it is held.** The
+`appimage-bundled-sources` job (`build/ci/packages/appimage-bundled-sources.sh
+pack`, in the `ubuntu:24.04` image `appimage-x86_64` runs in, by digest) reads both
+images' records and, for each source package at each version they name:
+
+- takes it from Ubuntu's archive (`https://archive.ubuntu.com/ubuntu/`), or, for
+  a version the archive no longer indexes, from Ubuntu's snapshot service
+  (`https://snapshot.ubuntu.com/ubuntu/<time>/`) at a time the image's build
+  recorded: first when dpkg installed a package built from that version, which is
+  the case of a package the pinned image's base had (on 29 September 2026 nine of
+  the fourteen source packages were at the versions of the image's own build, 11
+  September, which `apt-get install` does not change), then when the job's apt read
+  the archive and its indexes' dates; nothing from anywhere else and no redirect
+  followed, and the job keeps GitHub out of itself (`.no-github`). `README.txt`
+  names, for each package, the place it was taken from;
+- holds every file to one chain: the `InRelease` of `noble`, `noble-updates` and
+  `noble-security`, verified with `gpgv` against Ubuntu's archive keys
+  (`ubuntu-keyring`'s `/usr/share/keyrings/ubuntu-archive-keyring.gpg` in the
+  pinned image); each `Sources` index, held to the SHA-256 and size its
+  `InRelease` gives; the `.dsc` and every other file of the source package, held
+  to the SHA-256 and size the `Sources` index gives; and every file the `.dsc`
+  lists, held again to the `.dsc`, which must name the package and version the
+  record does.
+
+With them go `README.txt` (each package, the libraries each image took from it,
+its licence and what that asks, each file's SHA-256 and where it came from, how to
+build a package again as Ubuntu did, and how to run an AppImage with a changed
+library), the images' records as `bundled-<arch>.txt` and `archive-<arch>.txt`,
+and `SHA256SUMS`. It is packed reproducibly, as the runtime's sources are, and the
+job makes it again from nothing, in another directory under another umask, and
+compares the bytes. The release carries it with a line in the sums, a bundle and
+a `.sigstore.json` copy, named in the provenance, and without an SBOM, being
+source. Like the runtime's sources, it must stay on the release as long as the
+AppImages do.
+
+### hMailServer's own licence
+
+hMailServer is under the AGPL-3.0-or-later, whose section 4 asks for a copy of
+the licence to go with every copy of the program. Each image carries the
+repository's `LICENSE`, the FSF's text, as
+`usr/share/hmailserver/licenses/AGPL-3.0.txt`, without the carriage returns
+`.gitattributes` checks it out with, which makes it the FSF's file byte for byte
+(SHA-256 `0d96a4ff…`); `appimage-test.sh` requires it. Its source is the
+release's source tarball, `hmailserver-<version>.tar.gz`.
+
+### In the SBOM
+
+Each AppImage's SBOM (`<image>.cdx.json`, `build/asset-sbom.py --kind appimage`)
+lists every library in `usr/lib` by its Ubuntu package and version, with the
+source package and version it was built from and its copyright file's place in
+the image; and every Alpine package whose files the runtime links statically
+(`--runtime-linked`: the runtime job's record, which `appimage-build.sh` keeps as
+`built-against-<arch>/runtime-linked.txt`), at its version, as
+`pkg:apk/alpine/<package>@<version>`, with its aports origin and commit, its
+licence as apk gives it, and each file linked.
 
 The names, and the update checker
 ---------------------------------
@@ -473,9 +656,10 @@ What the owner must do
      `appimage-build.sh` recorded in `appimage/built-against-<arch>/`: `dpkg.txt`
      and `boost-version.hpp`, what the server was compiled against (the
      container's own for x86_64; `appimage-cross.sh`'s for the cross-compiled
-     aarch64 server), and `bundled.txt`, each library the image carries in
-     `usr/lib` by the package, version and SHA-256 of the file it was copied from
-     (`build/asset-sbom.py --kind appimage`);
+     aarch64 server), `bundled.txt`, each library the image carries in `usr/lib`
+     by the package, version and SHA-256 of the file it was copied from and the
+     source package and version it was built from, and `runtime-linked.txt`, what
+     the runtime links statically (`build/asset-sbom.py --kind appimage`);
    - `collect` takes both into the release, with a line each in the sums; each
      is signed with its bundle and `.sigstore.json` copy and named in the
      provenance, and the feed offers each to an installed AppImage by the name
@@ -495,9 +679,14 @@ What the owner must do
    linked into it, as Alpine built it, is the release file
    `hmailserver-<version>-appimage-runtime-sources.tar.gz`, which every AppImage
    names in `usr/share/hmailserver/licenses/appimage-runtime.txt`, beside the
-   libraries' licence files. Nothing is left for the owner but to keep that file
-   on each release for as long as its AppImages are there. The Ubuntu libraries
-   the image bundles in `usr/lib` are still open (the end of "Licences").
+   libraries' licence files. The Ubuntu libraries the image carries in `usr/lib`
+   go out with their packages' copyright files, the licence texts those name and
+   `bundled.txt`, which lists them and names the release file with their source,
+   `hmailserver-<version>-appimage-bundled-sources.tar.gz`: each of the fourteen
+   source packages at the version the image took, from Ubuntu's archive, which
+   the LGPL of seven of them asks for. Each image carries hMailServer's own
+   AGPL-3.0 text too. Nothing is left for the owner but to keep both sources
+   files on each release for as long as its AppImages are there.
 
 For the integrator
 ------------------

@@ -146,26 +146,27 @@ for a stray `#` number or `@` name.
   without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
 
 - **The release carries every file the pipeline makes for it** (not yet run in a pipeline). From 6.3.6 a release is
-  57 files and 146 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and 13,
+  58 files and 149 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and 13,
   Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
   architectures (`hmailserver_<v>-1~<release>_<arch>.deb`, `hmailserver-<v>-1.<release>.<arch>.rpm`); both AppImages,
-  with the project's own runtime (work item 36), and the source of the libraries linked into it (below); the source
-  tarball; the Helm chart; the sums of every Linux file, the runtime's sources and the chart; an SBOM for each of the
-  25 compiled files and the tarball, and the tree's two; a Sigstore bundle beside each, a byte-identical
-  `<file>.sigstore.json` of each primary file's bundle, and `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build
-  provenance naming every file by its SHA-256, signed as the pipeline with `cosign attest-blob` and checked with
-  `cosign verify-blob-attestation` (SECURITY.md, "Build provenance"). The new `release-packages` job gathers the
-  per-distribution packages, the AppImages, the runtime's sources and the tarball, holds each to its build's sums and
-  makes the SBOM of each but the runtime's sources (`build/asset-sbom.py` gains the kinds `appimage`, which lists
-  what the image bundles, and `source`), so that `release` stays under GitLab's fifty needs. Before anything is
-  signed, and again before anything is uploaded, the release counts what GitLab and Pages take: every link's path
-  (the `~` of a `.deb`'s version, which GitLab refuses there, is written `-`), `_redirects` under 1,000 rules and 64
-  KiB with the apt and dnf rules, and the feed under the 4 MiB a server reads (with the repositories as
-  `package-repos`' `--keep` keeps them). The apt and dnf suites will serve the new packages once the repository key
-  exists; openSUSE's go through OBS. A protected `batch*` branch rehearses the chain
-  (`.gitlab/ci/release-rehearsal.yml`): collected with `windows-packages-x64`'s installer, signed as the branch,
-  which no server trusts, and checked with the server's own verifier, which must refuse every bundle at its identity;
-  nothing is published (ContinuousIntegration.md, "What a release carries", "The release rehearsal").
+  with the project's own runtime (work item 36), the source of the libraries linked into it and the source of the
+  libraries they carry in `usr/lib` (below); the source tarball; the Helm chart; the sums of every Linux file, the
+  two AppImage sources files and the chart; an SBOM for each of the 25 compiled files and the tarball, and the tree's
+  two; a Sigstore bundle beside each, a byte-identical `<file>.sigstore.json` of each primary file's bundle, and
+  `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build provenance naming every file by its SHA-256, signed as the
+  pipeline with `cosign attest-blob` and checked with `cosign verify-blob-attestation` (SECURITY.md, "Build
+  provenance"). The new `release-packages` job gathers the per-distribution packages, the AppImages, the two AppImage
+  sources files and the tarball, holds each to its build's sums and makes the SBOM of each but the sources files
+  (`build/asset-sbom.py` gains the kinds `appimage`, which lists what the image bundles and what its runtime links,
+  and `source`), so that `release` stays under GitLab's fifty needs. Before anything is signed, and again before
+  anything is uploaded, the release counts what GitLab and Pages take: every link's path (the `~` of a `.deb`'s
+  version, which GitLab refuses there, is written `-`), `_redirects` under 1,000 rules and 64 KiB with the apt and
+  dnf rules, and the feed under the 4 MiB a server reads (with the repositories as `package-repos`' `--keep` keeps
+  them). The apt and dnf suites will serve the new packages once the repository key exists; openSUSE's go through
+  OBS. A protected `batch*` branch rehearses the chain (`.gitlab/ci/release-rehearsal.yml`): collected with
+  `windows-packages-x64`'s installer, signed as the branch, which no server trusts, and checked with the server's own
+  verifier, which must refuse every bundle at its identity; nothing is published (ContinuousIntegration.md, "What a
+  release carries", "The release rehearsal").
 
 - **The source of the AppImages' runtime's libraries goes out with them** (not yet run in a pipeline). Each
   AppImage's runtime is linked statically on Alpine, and two of the libraries it takes in, libfuse3 (LGPL-2.1) and
@@ -183,6 +184,27 @@ for a stray `#` number or `@` name.
   GPL-3.0's text, under which the runtime takes lzo (runtime.c being AGPL-3.0-or-later). GCC's start-up files and
   libgcc stay out, under the GCC Runtime Library Exception
   ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences"; work item 36).
+
+- **The AppImages carry the licences of the libraries in their `usr/lib`, and the release their source** (not yet run
+  in a pipeline). Each AppImage carries in `usr/lib` the shared libraries the server needs that are not left to the
+  host - libpq, libldap and what they need, nineteen files from fourteen Ubuntu 24.04 source packages - and seven of
+  them are under the LGPL (GnuTLS, Nettle, GMP, libidn2, libunistring, libtasn1 and keyutils), which asks for the
+  library's source to be offered with the binary. From 6.3.6 each image carries, in
+  `usr/share/hmailserver/licenses/`, the copyright file of every package a library came from, every licence text
+  those name (a list in braces included), `bundled.txt`, which lists each library with its package, version and
+  source package and names the release file with their source, and hMailServer's own AGPL-3.0 text (`AGPL-3.0.txt`).
+  The release carries `hmailserver-<v>-appimage-bundled-sources.tar.gz`: all fourteen source packages (`.dsc`,
+  upstream archives, Ubuntu's changes) at the versions the images took, from Ubuntu's archive or, for a version the
+  archive has superseded since - as a package the pinned build image already had can be, which the build does not
+  upgrade - from its snapshot service at the time the image's dpkg installed it, each file held to the `Sources`
+  index of an `InRelease` verified against Ubuntu's archive keys and again to its `.dsc`, with a README.txt saying
+  what each licence asks, where each package was taken from and how to run an AppImage with a changed library; about
+  75 MB, one file for both architectures. The new `appimage-bundled-sources` job packs it reproducibly, twice, and
+  compares; the release gathers it like the runtime's sources, with no SBOM. Each AppImage's SBOM now lists every
+  Alpine package its runtime links statically, with its aports commit and licence, and each bundled library's source
+  package; a library an image starts to carry fails the image's own job until its licence is named in
+  `build/ci/packages/appimage-bundled-sources.sh` ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md),
+  "Licences"; work item 36).
 
 - **The release channels, each published by hand from `master`, dormant until its account exists** (none live yet).
   `.gitlab/ci/channels.yml` adds `registry-mirror` (the image by digest, with its cosign signature and SBOM

@@ -107,6 +107,10 @@ OTHER_LINUX_SCRIPTS = (
     # source) ask for (docs/PackagesAppImage.md, "Licences").
     "build/ci/packages/appimage-runtime.sh",
     "build/ci/packages/appimage-runtime-sources.sh",
+    # And the pack of the source of the libraries the AppImages carry in usr/lib, which
+    # appimage-build.sh runs to check their licences are known: every AppImage names
+    # the release file it makes (docs/PackagesAppImage.md, "Licences").
+    "build/ci/packages/appimage-bundled-sources.sh",
     "hmailserver/source/Server/platform/packaging/build-appimage.sh",
     "hmailserver/source/Server/platform/packaging/PKGBUILD",
 )

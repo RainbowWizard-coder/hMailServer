@@ -67,7 +67,9 @@
 #   cmake --build build/linux --target hmailserver
 #
 # What it needs on PATH: ldd (glibc's), readelf and strip (binutils), patchelf,
-# and mksquashfs (squashfs-tools) - each a distribution package.
+# and mksquashfs (squashfs-tools) - each a distribution package. And dpkg, for
+# the licences of the libraries it copies (below): without it, as on Fedora, it
+# says the image will not carry them, and makes it all the same.
 #
 # HOW THE AppImage IS MADE
 #
@@ -84,6 +86,18 @@
 #     to $ORIGIN/../lib and each copied library's to $ORIGIN, so they are found
 #     inside the image and nowhere else;
 #   * the desktop file and the icon at the AppDir's root, and .DirIcon.
+#
+# And the licences, in usr/share/hmailserver/licenses/: hMailServer's own, the
+# AGPL-3.0 (AGPL-3.0.txt, the repository's LICENSE); QuickJS's; the runtime's
+# notice and its libraries' licence files (appimage-runtime.txt and
+# appimage-runtime/); and for the libraries copied into usr/lib, the copyright
+# file of the package each came from, as the distribution ships it
+# (bundled/<package>/copyright), the licence texts those files name in
+# /usr/share/common-licenses (bundled/common-licenses/), and bundled.txt, which
+# lists each library with its package, version and source package, and names the
+# release file with their source, hmailserver-<version>-appimage-bundled-sources.tar.gz
+# (build/ci/packages/appimage-bundled-sources.sh; docs/PackagesAppImage.md,
+# "Licences").
 #
 # The server is built on the oldest distribution release that has the Boost it
 # needs (1.83): Ubuntu 24.04, glibc 2.39. The AppImage runs where glibc is 2.39
@@ -131,7 +145,7 @@ while [ "$#" -gt 0 ]; do
          shift 2
          ;;
       -h|--help)
-         sed -n '5,92p' "${BASH_SOURCE[0]}"
+         sed -n '5,106p' "${BASH_SOURCE[0]}"
          exit 0
          ;;
       *)
@@ -277,6 +291,15 @@ cp -r "${REPO_ROOT}/hmailserver/source/DBScripts" "${APPDIR}/usr/share/hmailserv
 # here at the same path they give it.
 install -Dm 0644 "${REPO_ROOT}/hmailserver/source/Server/quickjs/LICENSE" \
    "${APPDIR}/usr/share/hmailserver/licenses/QuickJS.txt"
+
+# hMailServer's own licence, the AGPL-3.0-or-later. Its section 4 asks for a copy
+# of the licence to go with every copy of the program, and section 6 conveys the
+# object code on the terms of sections 4 and 5. The repository's LICENSE is the
+# FSF's text; .gitattributes checks it out with CRLF line ends on every platform,
+# and the image carries it with them taken off, which is the FSF's file byte for
+# byte (SHA-256 0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0).
+tr -d '\r' < "${REPO_ROOT}/LICENSE" > "${APPDIR}/usr/share/hmailserver/licenses/AGPL-3.0.txt"
+chmod 0644 "${APPDIR}/usr/share/hmailserver/licenses/AGPL-3.0.txt"
 
 # The Control Deck. AppRun points ProgramFolder at this same directory, and
 # RestApiServer::HandleWebAdminPage_ opens <ProgramFolder>/WebAdmin/index.html;
@@ -596,6 +619,148 @@ while read -r soname arrow path _; do
          ;;
    esac
 done <<< "$(env -u LD_LIBRARY_PATH ldd "${APPDIR}/usr/bin/hmailserver")"
+
+# ---------------------------------------------------------------- their licences
+
+# Each library copied into usr/lib goes out under its own licence, and the image
+# carries what those licences ask to go with the binary:
+#
+#   bundled/<package>/copyright   the copyright file of the distribution package
+#                                 the library's file came from, as the distribution
+#                                 ships it (/usr/share/doc/<package>/copyright, which
+#                                 Ubuntu's container images keep when they drop the
+#                                 rest of /usr/share/doc);
+#   bundled/common-licenses/      every licence text those files name by its place
+#                                 in /usr/share/common-licenses, as the distribution
+#                                 ships it there (the GPL's and the LGPL's among
+#                                 them), with the GPL-3.0 beside the LGPL-3.0, which
+#                                 is written as permissions added to it and asks for
+#                                 both texts (its section 4(b));
+#   bundled.txt                   each library, its package and version, and the
+#                                 source package and version it was built from; and
+#                                 the release file with the source of every one of
+#                                 them, hmailserver-<version>-appimage-bundled-sources.tar.gz,
+#                                 which the appimage-bundled-sources job makes from
+#                                 the archive's source packages at exactly these
+#                                 versions (build/ci/packages/appimage-bundled-sources.sh).
+#
+# The LGPL of GnuTLS, Nettle, GMP, libidn2, libunistring, libtasn1 and keyutils asks
+# for that source to be offered with the binary, from the same place (docs/
+# PackagesAppImage.md, "Licences", says which library is under which licence).
+#
+# The package of each file is dpkg's answer, so this needs a Debian or Ubuntu
+# machine; where there is no dpkg it says the image carries none of it.
+BUNDLED_SOURCES="hmailserver-${VERSION}-appimage-bundled-sources.tar.gz"
+LICENSES="${APPDIR}/usr/share/hmailserver/licenses"
+
+# The package that owns a file ldd resolved, as <package>:<architecture>. dpkg names
+# a file by the path the package ships it at, which since the /usr merge may be
+# /usr/lib/... where ldd says /lib/..., or the real file behind the soname's link.
+owner_of()
+{
+   local path="$1" real candidate owner
+   real="$(readlink -f "${path}")"
+   for candidate in "${path}" "${real}" "/usr${path}" "/usr${real}" "${path#/usr}" "${real#/usr}"; do
+      owner="$(dpkg -S "${candidate}" 2> /dev/null | head -n 1 | sed -n 's/^\([^ ,]*\): .*/\1/p' || true)"
+      if [ -n "${owner}" ]; then
+         case "${owner}" in
+            *:*) printf '%s\n' "${owner}" ;;
+            *) printf '%s:%s\n' "${owner}" "$(dpkg --print-architecture)" ;;
+         esac
+         return 0
+      fi
+   done
+   return 1
+}
+
+if ! command -v dpkg > /dev/null 2>&1 || ! command -v dpkg-query > /dev/null 2>&1; then
+   echo "WARNING: no dpkg here: this image does not carry the copyright files of the libraries in its usr/lib, which" >&2
+   echo "         their licences ask for, nor bundled.txt; the CI jobs pack on Ubuntu 24.04, which has it." >&2
+else
+   mkdir -p "${LICENSES}/bundled"
+   bundled_list="${BUILD_DIR}/bundled.list"
+   : > "${bundled_list}"
+   for soname in ${BUNDLED}; do
+      path="$(printf '%s\n' "${LDD_OUTPUT}" | awk -v s="${soname}" '$1 == s && $2 == "=>" { print $3; exit }')"
+      if ! owner="$(owner_of "${path}")"; then
+         echo "dpkg names no package that owns ${path} (${soname}), which the image carries: its licence cannot go with it." >&2
+         exit 1
+      fi
+      package="${owner%%:*}"
+      # shellcheck disable=SC2016
+      read -r version source_package source_version <<< "$(dpkg-query -W -f '${Version} ${source:Package} ${source:Version}' "${owner}" 2> /dev/null || true)"
+      if [ -z "${version:-}" ] || [ -z "${source_package:-}" ] || [ -z "${source_version:-}" ]; then
+         echo "dpkg gives no version, source package and source version of ${owner} (${soname})." >&2
+         exit 1
+      fi
+      copyright="$(readlink -f "/usr/share/doc/${package}/copyright" || true)"
+      if [ -z "${copyright}" ] || [ ! -f "${copyright}" ] || [ ! -s "${copyright}" ]; then
+         echo "${owner} ships no /usr/share/doc/${package}/copyright here: the licence of ${soname} cannot go with it." >&2
+         exit 1
+      fi
+      install -Dm 0644 "${copyright}" "${LICENSES}/bundled/${package}/copyright"
+      printf 'library usr/lib/%s %s %s %s %s\n' "${soname}" "${owner}" "${version}" "${source_package}" "${source_version}" \
+         >> "${bundled_list}"
+   done
+
+   # The names the copyright files give, "/usr/share/common-licenses/GPL-2", sometimes
+   # at the end of a sentence, or several at once in the shell's braces,
+   # "/usr/share/common-licenses/{MPL-1.1,GPL-2,LGPL-2.1}" (libffi8's). One this
+   # machine does not have stops the build: the image would point at a text it does
+   # not carry. appimage-test.sh reads them the same way.
+   licence_names="$(grep -hoE '/usr/share/common-licenses/(\{[A-Za-z0-9._+,-]+\}|[A-Za-z0-9][A-Za-z0-9._+-]*)' "${LICENSES}/bundled/"*/copyright 2> /dev/null \
+      | sed 's|^/usr/share/common-licenses/||; s/^{//; s/}$//' | tr ',' '\n' | sed 's/\.*$//' | grep . | LC_ALL=C sort -u || true)"
+   needs_gpl3=0
+   for name in ${licence_names}; do
+      text="$(readlink -f "/usr/share/common-licenses/${name}" || true)"
+      case "${text}" in
+         /usr/share/common-licenses/*) ;;
+         *) text="" ;;
+      esac
+      if [ -z "${text}" ] || [ ! -f "${text}" ]; then
+         echo "A bundled library's copyright file names /usr/share/common-licenses/${name}, which this machine does not have." >&2
+         exit 1
+      fi
+      install -Dm 0644 "${text}" "${LICENSES}/bundled/common-licenses/$(basename "${text}")"
+      # A name that is a link there (GPL -> GPL-3, LGPL -> LGPL-3) is the same link here.
+      if [ "$(basename "${text}")" != "${name}" ]; then
+         ln -sfn "$(basename "${text}")" "${LICENSES}/bundled/common-licenses/${name}"
+      fi
+      [ "$(basename "${text}")" != "LGPL-3" ] || needs_gpl3=1
+   done
+   if [ "${needs_gpl3}" -eq 1 ] && [ ! -f "${LICENSES}/bundled/common-licenses/GPL-3" ]; then
+      [ -f /usr/share/common-licenses/GPL-3 ] || { echo "The LGPL-3.0 goes with the GPL-3.0, and this machine has no /usr/share/common-licenses/GPL-3." >&2; exit 1; }
+      install -Dm 0644 /usr/share/common-licenses/GPL-3 "${LICENSES}/bundled/common-licenses/GPL-3"
+   fi
+
+   # shellcheck source=/dev/null
+   distribution="$(. /etc/os-release && echo "${ID} ${VERSION_ID}")"
+   {
+      echo "# The shared libraries this AppImage carries in usr/lib, each copied by build-appimage.sh from the"
+      echo "# package of the distribution it was packed on that owns the file: the file, the package and its version,"
+      echo "# and the source package and version it was built from (library <file> <package>:<arch> <version> <source>"
+      echo "# <source version>)."
+      echo "# Each package's copyright file, as the distribution ships it, is bundled/<package>/copyright beside this"
+      echo "# file; a licence text one names as /usr/share/common-licenses/<name> is bundled/common-licenses/<name>."
+      echo "# The source of every one of these libraries, as the distribution built it - each source package at the"
+      echo "# version above, as its archive holds it - is the release file ${BUNDLED_SOURCES},"
+      echo "# published with the AppImages of release v${VERSION}:"
+      echo "#   https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/${VERSION}/${BUNDLED_SOURCES}"
+      echo "# and on the release's page, ${CI_PROJECT_URL:-https://gitlab.com/Progressiverobot/hmailserver}/-/releases/v${VERSION},"
+      echo "# as downloads/hmailserver-appimage-bundled-sources.tar.gz. Its README.txt says what each licence asks, and how"
+      echo "# to run this AppImage with a changed copy of a library (section 6 of the LGPL-2.1, 4(d) of the LGPL-3.0)."
+      echo "# hMailServer itself is under the AGPL-3.0-or-later: AGPL-3.0.txt, beside this file."
+      echo "distribution ${distribution}"
+      echo "arch ${ARCH}"
+      echo "sources ${BUNDLED_SOURCES}"
+      LC_ALL=C sort "${bundled_list}"
+   } > "${LICENSES}/bundled.txt"
+   chmod 0644 "${LICENSES}/bundled.txt"
+   rm -f "${bundled_list}"
+   echo "Bundled libraries' licences: $(grep -c '^library ' "${LICENSES}/bundled.txt") file(s) listed in usr/share/hmailserver/licenses/bundled.txt," \
+      "$(find "${LICENSES}/bundled" -mindepth 2 -maxdepth 2 -name copyright | wc -l) copyright file(s)," \
+      "$(find "${LICENSES}/bundled/common-licenses" -mindepth 1 -maxdepth 1 2> /dev/null | wc -l) licence text(s) of common-licenses"
+fi
 
 # ---------------------------------------------------------------- build it
 

@@ -1447,8 +1447,9 @@ windows-installer:
 # it needs the two whose generic files the release carries, with their SBOM and install
 # jobs, and release-packages (.gitlab/ci/release-packages.yml), which needs every other
 # package build and its install job, both AppImages and their tests, the source of the
-# libraries linked into the AppImages' runtime (appimage-runtime-sources) and the source
-# tarball, and gathers them, each but the runtime's sources with an SBOM: a job may need
+# libraries linked into the AppImages' runtime (appimage-runtime-sources), the source of
+# the libraries they carry in usr/lib (appimage-bundled-sources) and the source
+# tarball, and gathers them, each but the two sources files with an SBOM: a job may need
 # fifty jobs at most on GitLab.com. helm-chart-package makes the chart. The scans are
 # allow_failure, so their failure does not stop the pipeline: release-chain.py collect
 # reads their reports instead (build/ci/security-gate.py) and refuses while a scan did

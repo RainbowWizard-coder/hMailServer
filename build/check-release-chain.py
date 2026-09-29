@@ -151,8 +151,16 @@ refuses it. This checker holds them to each other. It fails when:
     must gather it from the appimage-runtime-sources job's artifact, held to that
     job's sums, as a primary file without an SBOM, and that job must make it with
     build/ci/packages/appimage-runtime-sources.sh from both runtime jobs, whose
-    licence files each AppImage job needs; or a Linux file the release carries, the
-    chart or the runtime's sources has no line in the release's sums;
+    licence files each AppImage job needs; or without the source of the libraries they
+    carry in usr/lib (hmailserver-<v>-appimage-bundled-sources.tar.gz, which the LGPL
+    of GnuTLS and the others asks to be offered with them): release-chain.py must
+    gather it from the appimage-bundled-sources job's artifact, held to that job's
+    sums, as a primary file without an SBOM, that job must make it with
+    build/ci/packages/appimage-bundled-sources.sh from both AppImage jobs' records, and
+    build-appimage.sh, appimage-test.sh and that script must name it as release-chain.py
+    does, and the image carry hMailServer's own AGPL-3.0 text; or a Linux file the
+    release carries, the chart or either sources file has no line in the release's
+    sums;
   * release-sign.sh stops copying each primary file's bundle to <file>.sigstore.json,
     attesting the provenance's statement (cosign attest-blob --statement, in the
     bundle format, to Rekor v1) or finding every file in it with cosign
@@ -239,6 +247,12 @@ FILES = {
     "tarball-ci": os.path.join(".gitlab", "ci", "source-tarball.yml"),
     "rehearsal": os.path.join(".gitlab", "ci", "release-rehearsal.yml"),
     "checker": os.path.join("hmailserver", "source", "Server", "Common", "Util", "UpdateChecker.cpp"),
+    # What names the source of the AppImages' bundled libraries: the script that packs
+    # the image and lists them, the test that holds the image to it, and the script that
+    # packs the source.
+    "appimage-pack": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "build-appimage.sh"),
+    "appimage-test": os.path.join("build", "ci", "packages", "appimage-test.sh"),
+    "bundled-sources": os.path.join("build", "ci", "packages", "appimage-bundled-sources.sh"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
@@ -324,6 +338,9 @@ CHART_JOB = "helm-chart-package"
 # and where it leaves it (.gitlab/ci/packages-appimage.yml).
 RUNTIME_SOURCES_JOB = "appimage-runtime-sources"
 RUNTIME_SOURCES_DIR = "appimage-runtime-sources/"
+# And the source of the libraries the AppImages carry in usr/lib.
+BUNDLED_SOURCES_JOB = "appimage-bundled-sources"
+BUNDLED_SOURCES_DIR = "appimage-bundled-sources/"
 # Its rules: made for a v* tag and a batch* branch only, and there by .own-runners'
 # rules, in exactly the pipelines the package jobs are made in.
 GATHER_REFUSAL = "- if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/\n      when: never\n    - !reference [.own-runners, rules]"
@@ -1382,8 +1399,58 @@ def check(texts, chain, feed):
             if RUNTIME_SOURCES_JOB not in needs(appimage_jobs.get("appimage-" + arch, "")):
                 problems.append("appimage-%s does not need %s, whose licence files of the runtime's libraries the image "
                                 "carries" % (arch, RUNTIME_SOURCES_JOB))
-    # Every Linux file the release carries, the chart and the runtime's sources, with a
-    # line in the release's sums: linux-build's own two, then sums_members.
+
+    # And with the source of the libraries they carry in usr/lib, copied from Ubuntu
+    # (build/ci/packages/appimage-bundled-sources.sh; docs/PackagesAppImage.md,
+    # "Licences"), which each image names in bundled.txt: gathered from its job, held to
+    # that job's sums, signed like every primary file, with a line in the release's
+    # sums, and no SBOM, being source; the job packing it from both AppImage jobs'
+    # records; and the image, its test and the pack naming it as release-chain.py does.
+    bundled_name = chain.bundled_sources_name("9.9.9")
+    bundled_job = appimage_jobs.get(BUNDLED_SOURCES_JOB, "")
+    if any(name.endswith(".AppImage") for name in primaries):
+        found_builds = [b for b in chain.gathered_builds("9.9.9") if b["name"] == bundled_name]
+        if bundled_name not in primaries or not found_builds:
+            problems.append("the release carries the AppImages without %s, the source of the libraries they carry in usr/lib, "
+                            "which the LGPL of GnuTLS, Nettle, GMP, libidn2, libunistring, libtasn1 and keyutils asks to be "
+                            "offered with them (build/ci/release-chain.py, gathered_builds)" % bundled_name)
+        else:
+            build = found_builds[0]
+            if (build["job"], build["path"], build["sums"], build["listed"]) != (
+                    BUNDLED_SOURCES_JOB, BUNDLED_SOURCES_DIR + bundled_name, BUNDLED_SOURCES_DIR + "SHA256SUMS.txt", bundled_name):
+                problems.append("build/ci/release-chain.py gathers %s from %s, made by %s, held to %s: not from %s's %s, held to "
+                                "its SHA256SUMS.txt" % (bundled_name, build["path"], build["job"], build["sums"],
+                                                         BUNDLED_SOURCES_JOB, BUNDLED_SOURCES_DIR))
+        if bundled_name in chain.compiled_assets("9.9.9"):
+            problems.append("build/ci/release-chain.py counts %s a compiled file: it is source, and goes out without an SBOM"
+                            % bundled_name)
+        if "- bash build/ci/packages/appimage-bundled-sources.sh pack " not in bundled_job \
+                or not re.search(r"^      - %s\s*$" % re.escape(BUNDLED_SOURCES_DIR), bundled_job, re.MULTILINE):
+            problems.append("%s has no %s job that runs build/ci/packages/appimage-bundled-sources.sh pack and keeps %s"
+                            % (FILES["packages-appimage"], BUNDLED_SOURCES_JOB, BUNDLED_SOURCES_DIR))
+        pack_lines = re.findall(r"^    - bash build/ci/packages/appimage-bundled-sources\.sh pack (.*)$", bundled_job, re.MULTILINE)
+        for arch in chain.APPIMAGE_ARCHES:
+            if bundled_job and ("appimage-" + arch not in needs(bundled_job)
+                                or not pack_lines or "appimage/built-against-%s" % arch not in pack_lines[0].split()):
+                problems.append("%s does not pack from appimage-%s's record of what its image carries (it must need the job "
+                                "and pack appimage/built-against-%s)" % (BUNDLED_SOURCES_JOB, arch, arch))
+        # The name each place writes, for version 9.9.9 as each spells the version: the
+        # list the image carries, the test's hold on it, and the file the pack makes.
+        named = (("appimage-pack", 'BUNDLED_SOURCES="%s"', "${VERSION}", "the image's bundled.txt"),
+                 ("appimage-test", 'grep -Fqx "sources %s"', "$expected", "the image's test"),
+                 ("bundled-sources", 'name="%s"', "$version", "the pack"))
+        for key, form, spelling, what in named:
+            if form % chain.bundled_sources_name(spelling) not in texts[key]:
+                problems.append("%s (%s) does not name %s as build/ci/release-chain.py does: the image would name a file "
+                                "the release does not carry" % (FILES[key], what, chain.bundled_sources_name(spelling)))
+        if "tr -d '\\r' < \"${REPO_ROOT}/LICENSE\" > \"${APPDIR}/usr/share/hmailserver/licenses/AGPL-3.0.txt\"" \
+                not in texts["appimage-pack"] \
+                or 'agpl="$root/usr/share/hmailserver/licenses/AGPL-3.0.txt"' not in texts["appimage-test"] \
+                or 'grep -qx " *GNU AFFERO GENERAL PUBLIC LICENSE" "$agpl"' not in texts["appimage-test"]:
+            problems.append("%s or %s no longer puts hMailServer's own AGPL-3.0 text in the image, or holds it there"
+                            % (FILES["appimage-pack"], FILES["appimage-test"]))
+    # Every Linux file the release carries, the chart and the AppImages' two sources
+    # files, with a line in the release's sums: linux-build's own two, then sums_members.
     names_999 = feed.installer_names("9.9.9")
     unsummed = sorted(set(primaries) - set(chain.sums_members("9.9.9")) - {
         names_999["windows"], names_999["deb-amd64"], names_999["rpm-x86_64"], chain.sums_name("9.9.9"),
@@ -1722,8 +1789,8 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=57", "expected=13", "a release carries")
-    broken("verify counting another number of files", "verify", '[ "$verified" -eq 57 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
+    broken("another count of files", "sign", "expected=58", "expected=13", "a release carries")
+    broken("verify counting another number of files", "verify", '[ "$verified" -eq 58 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
     # The AArch64 packages a release carries, from the package jobs.
     broken("release not waiting for the arm64 .deb's install", "ci", "    - job: deb-ubuntu26.04-arm64-install\n      artifacts: false\n", "",
            "release does not need deb-ubuntu26.04-arm64-install")
@@ -2151,6 +2218,81 @@ def self_test(chain, feed):
            "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n",
            "appimage-runtime-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n  allow_failure: true\n",
            "appimage-runtime-sources can let release start in a v* tag's pipeline")
+
+    # The source of the libraries the AppImages carry in usr/lib: missing from the
+    # release, missing from its sums, gathered from elsewhere, held to no sums or with
+    # an SBOM, its job not wired, or a place naming another file than the release's.
+    bundled_file = "hmailserver-9.9.9-appimage-bundled-sources.tar.gz"
+    for what, replacement, needle in (
+            ("the AppImages released without their bundled libraries' sources",
+             lambda version: [b for b in held_builds(version) if b["kind"] != "bundled-sources"],
+             "the release carries the AppImages without %s" % bundled_file),
+            ("the bundled libraries' sources gathered from another job's artifact",
+             lambda version: [dict(b, path="appimage/" + b["name"]) if b["kind"] == "bundled-sources" else b for b in held_builds(version)],
+             "gathers %s from appimage/" % bundled_file),
+            ("the bundled libraries' sources made by another job",
+             lambda version: [dict(b, job="appimage-x86_64") if b["kind"] == "bundled-sources" else b for b in held_builds(version)],
+             "made by appimage-x86_64"),
+            ("the bundled libraries' sources held to no sums",
+             lambda version: [dict(b, sums=None) if b["kind"] == "bundled-sources" else b for b in held_builds(version)],
+             "held to None")):
+        chain.gathered_builds = replacement
+        try:
+            found, _ = check(texts, chain, feed)
+        finally:
+            chain.gathered_builds = held_builds
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+    chain.sums_members = lambda version: [n for n in held_members(version) if not n.endswith("-appimage-bundled-sources.tar.gz")]
+    try:
+        found, _ = check(texts, chain, feed)
+    finally:
+        chain.sums_members = held_members
+    if not any("%s with no line in the release's sums" % bundled_file in p for p in found):
+        failures.append("the bundled libraries' sources without a line in the release's sums is caught: %s" % found)
+    chain.compiled_assets = lambda version: held_compiled_assets(version) + [chain.bundled_sources_name(version)]
+    try:
+        found, _ = check(texts, chain, feed)
+    finally:
+        chain.compiled_assets = held_compiled_assets
+    if not any("counts %s a compiled file" % bundled_file in p for p in found):
+        failures.append("the bundled libraries' sources counted a compiled file is caught: %s" % found)
+    broken("the bundled libraries' sources not waited for", "release-packages",
+           "    - job: appimage-bundled-sources\n      artifacts: true\n", "",
+           "release-packages does not need appimage-bundled-sources")
+    broken("the bundled libraries' sources gathered without their artifacts", "release-packages",
+           "    - job: appimage-bundled-sources\n      artifacts: true\n", "    - job: appimage-bundled-sources\n      artifacts: false\n",
+           "must need appimage-bundled-sources with artifacts: true")
+    broken("the bundled libraries' sources packed from one AppImage alone", "packages-appimage",
+           "  needs: [appimage-x86_64, appimage-aarch64]\n", "  needs: [appimage-x86_64]\n",
+           "appimage-bundled-sources does not pack from appimage-aarch64's record")
+    broken("the bundled libraries' sources packed without the aarch64 record", "packages-appimage",
+           "pack appimage/built-against-x86_64 appimage/built-against-aarch64\n",
+           "pack appimage/built-against-x86_64\n", "appimage-bundled-sources does not pack from appimage-aarch64's record")
+    broken("the bundled libraries' sources job not packing", "packages-appimage",
+           "    - bash build/ci/packages/appimage-bundled-sources.sh pack ", "    - bash build/ci/packages/appimage-bundled-sources.sh check ",
+           "has no appimage-bundled-sources job that runs")
+    broken("the bundled libraries' sources job keeping nothing", "packages-appimage",
+           "    paths:\n      - appimage-bundled-sources/\n", "    paths:\n      - appimage-bundled-sources/x\n",
+           "has no appimage-bundled-sources job that runs")
+    broken("the bundled libraries' sources job made where a tag may pass it", "packages-appimage",
+           "appimage-bundled-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n",
+           "appimage-bundled-sources:\n  extends: [.appimage, .appimage-follow-rules, .no-github]\n  allow_failure: true\n",
+           "appimage-bundled-sources can let release start in a v* tag's pipeline")
+    broken("the image naming another file than the release's", "appimage-pack",
+           'BUNDLED_SOURCES="hmailserver-${VERSION}-appimage-bundled-sources.tar.gz"',
+           'BUNDLED_SOURCES="hmailserver-${VERSION}-appimage-sources.tar.gz"',
+           "the image's bundled.txt) does not name hmailserver-${VERSION}-appimage-bundled-sources.tar.gz")
+    broken("the image's test holding it to another file", "appimage-test",
+           '"sources hmailserver-$expected-appimage-bundled-sources.tar.gz"', '"sources hmailserver-$expected-appimage-sources.tar.gz"',
+           "the image's test) does not name")
+    broken("the pack making another file than the release's", "bundled-sources",
+           'name="hmailserver-$version-appimage-bundled-sources.tar.gz"', 'name="hmailserver-$version-sources.tar.gz"',
+           "the pack) does not name")
+    broken("the image without hMailServer's AGPL-3.0 text", "appimage-pack",
+           '"${APPDIR}/usr/share/hmailserver/licenses/AGPL-3.0.txt"\nchmod 0644 "${APPDIR}/usr/share/hmailserver/licenses/AGPL-3.0.txt"',
+           '"${APPDIR}/usr/share/hmailserver/licenses/LICENSE"\nchmod 0644 "${APPDIR}/usr/share/hmailserver/licenses/LICENSE"',
+           "no longer puts hMailServer's own AGPL-3.0 text in the image")
 
     # The release tag and the registry.
     owner_line = [l for l in texts["signers"].split("\n") if l.strip() and not l.startswith("#")]

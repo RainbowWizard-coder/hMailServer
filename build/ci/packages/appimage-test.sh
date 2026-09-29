@@ -21,10 +21,13 @@
 #     per-user tree and its configuration;
 #   * the image carries the Control Deck and every one of its catalogues byte for
 #     byte, the schema scripts, the Diffie-Hellman group, the public-suffix list,
-#     the live update's apply step, the licences - among them the runtime's
-#     notice, which names the release file with its libraries' source, those
-#     libraries' own licence files and the GPL-3.0's text - the desktop file and
-#     the icon;
+#     the live update's apply step, the licences - hMailServer's own AGPL-3.0 text;
+#     the runtime's notice, which names the release file with its libraries'
+#     source, those libraries' own licence files and the GPL-3.0's text; and
+#     bundled.txt, which lists every library in usr/lib with its package and
+#     source package and names the release file with their source, with each
+#     package's copyright file and every licence text those files name - the
+#     desktop file and the icon;
 #   * where FUSE can be had (a /dev/fuse this process may open and a fusermount3),
 #     the same run mounted instead of extracted. In a container there is usually no
 #     FUSE, and that is said, not failed.
@@ -139,6 +142,8 @@ for f in AppRun hmailserver.desktop hmailserver.svg .DirIcon \
          usr/share/hmailserver/WebAdmin/index.html \
          usr/share/hmailserver/hMailServer.ini.default \
          usr/share/hmailserver/licenses/QuickJS.txt \
+         usr/share/hmailserver/licenses/AGPL-3.0.txt \
+         usr/share/hmailserver/licenses/bundled.txt \
          usr/share/hmailserver/licenses/appimage-runtime.txt \
          usr/share/hmailserver/licenses/appimage-runtime/fuse3/LGPL2.txt \
          usr/share/hmailserver/licenses/appimage-runtime/lzo/COPYING \
@@ -162,6 +167,49 @@ gpl3="$root/usr/share/hmailserver/licenses/appimage-runtime/GPL-3.0.txt"
 grep -qx " *GNU GENERAL PUBLIC LICENSE" "$gpl3" && grep -qx " *Version 3, 29 June 2007" "$gpl3" \
   || { echo "appimage-runtime/GPL-3.0.txt is not the GPL-3.0's text."; exit 1; }
 echo "the runtime's notice, naming its libraries' source, their licence files and the GPL-3.0's text"
+# hMailServer's own licence: the AGPL-3.0's text (build-appimage.sh), whose two
+# lines neither the GPL's nor the LGPL's text has.
+agpl="$root/usr/share/hmailserver/licenses/AGPL-3.0.txt"
+grep -qx " *GNU AFFERO GENERAL PUBLIC LICENSE" "$agpl" && grep -qx " *Version 3, 19 November 2007" "$agpl" \
+  || { echo "usr/share/hmailserver/licenses/AGPL-3.0.txt is not the AGPL-3.0's text."; exit 1; }
+# The libraries in usr/lib: each listed in bundled.txt with its package and source
+# package, each package's copyright file beside it, every licence text those files
+# name by its place in /usr/share/common-licenses, and the release file with their
+# source named (build-appimage.sh; build/ci/packages/appimage-bundled-sources.sh).
+licences="$root/usr/share/hmailserver/licenses"
+grep -Fqx "sources hmailserver-$expected-appimage-bundled-sources.tar.gz" "$licences/bundled.txt" \
+  || { echo "bundled.txt does not name hmailserver-$expected-appimage-bundled-sources.tar.gz, the release file with its libraries' source."; exit 1; }
+listed=0
+for library in "$root"/usr/lib/*.so*; do
+  [ -f "$library" ] || continue
+  grep -Fq "library usr/lib/$(basename "$library") " "$licences/bundled.txt" \
+    || { echo "usr/lib/$(basename "$library") is in the image and not in bundled.txt."; exit 1; }
+  listed=$((listed + 1))
+done
+while read -r kind file owner package_version source_package source_version extra; do
+  [ "$kind" = library ] || continue
+  [ -n "$source_version" ] && [ -z "$extra" ] \
+    || { echo "bundled.txt lists \"$kind $file $owner $package_version $source_package $source_version $extra\"."; exit 1; }
+  [ -f "$root/$file" ] || { echo "bundled.txt lists $file, which the image does not carry."; exit 1; }
+  [ -s "$licences/bundled/${owner%%:*}/copyright" ] \
+    || { echo "The image carries $file from ${owner%%:*} without that package's copyright file."; exit 1; }
+  listed=$((listed - 1))
+done < "$licences/bundled.txt"
+[ "$listed" -eq 0 ] || { echo "usr/lib and bundled.txt do not list the same libraries."; exit 1; }
+named=0
+# (A name as build-appimage.sh reads it: "/usr/share/common-licenses/GPL-2", or several
+# in braces, "/usr/share/common-licenses/{MPL-1.1,GPL-2,LGPL-2.1}".)
+for name in $(grep -hoE '/usr/share/common-licenses/(\{[A-Za-z0-9._+,-]+\}|[A-Za-z0-9][A-Za-z0-9._+-]*)' "$licences"/bundled/*/copyright \
+    | sed 's|^/usr/share/common-licenses/||; s/^{//; s/}$//' | tr ',' '\n' | sed 's/\.*$//' | grep . | sort -u || true); do
+  [ -f "$licences/bundled/common-licenses/$name" ] \
+    || { echo "A bundled library's copyright file names /usr/share/common-licenses/$name, and the image does not carry it."; exit 1; }
+  named=$((named + 1))
+done
+if [ -f "$licences/bundled/common-licenses/LGPL-3" ] && [ ! -f "$licences/bundled/common-licenses/GPL-3" ]; then
+  echo "The image carries the LGPL-3.0's text without the GPL-3.0's, which it is written as permissions added to."
+  exit 1
+fi
+echo "hMailServer's AGPL-3.0 text; bundled.txt naming its libraries' source, with the copyright files of their packages and the $named licence text(s) those name"
 [ -x "$root/AppRun" ] && [ -x "$root/usr/bin/hmailserver" ] && [ -x "$root/usr/lib/hmailserver/hmailserver-update" ] \
   || { echo "AppRun, the server or the update step is not executable."; exit 1; }
 if [ -f hmailserver/installation/WebAdmin/index.html ]; then

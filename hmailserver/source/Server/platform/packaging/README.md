@@ -151,7 +151,15 @@ runtime, which `build/ci/packages/appimage-runtime-sources.sh pack` extracts (th
 CI jobs pass it): libfuse3's LGPL-2.1 and lzo's GPL ask for their text, and for
 their source, which a release carries as
 `hmailserver-<version>-appimage-runtime-sources.tar.gz`. Beside them it always puts
-the GPL-3.0's text, `appimage/GPL-3.0.txt`, under which the runtime takes lzo.
+the GPL-3.0's text, `appimage/GPL-3.0.txt`, under which the runtime takes lzo,
+and hMailServer's own AGPL-3.0 text, the repository's `LICENSE`, as
+`usr/share/hmailserver/licenses/AGPL-3.0.txt`. Where `dpkg` is (Debian, Ubuntu,
+the CI's Ubuntu 24.04), it also puts the copyright file of the package each
+library in `usr/lib` came from, the licence texts those name, and `bundled.txt`,
+which lists each library with its package and source package and names the
+release file with their source, `hmailserver-<version>-appimage-bundled-sources.tar.gz`
+(`build/ci/packages/appimage-bundled-sources.sh`); without `dpkg` it says the image
+carries none of that.
 The GitLab jobs in `.gitlab/ci/packages-appimage.yml` build both architectures on
 Ubuntu 24.04 (glibc 2.39) and run the result on Fedora; `docs/PackagesAppImage.md`
 says what has been run.

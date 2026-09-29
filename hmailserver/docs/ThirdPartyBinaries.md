@@ -326,7 +326,12 @@ Not pinned, and why:
   from Alpine's distfiles mirror and Alpine's build script and patches from
   aports, each held to the SHA-512 the build script gives - and the release
   carries it, so an unpinned version is still one whose source goes out with it
-  ([PackagesAppImage.md](PackagesAppImage.md), "Licences").
+  ([PackagesAppImage.md](PackagesAppImage.md), "Licences"). So with the Ubuntu
+  libraries the image carries in `usr/lib`: each image's `bundled.txt` records
+  each one's package, version and source package and version, and the
+  `appimage-bundled-sources` job fetches each source package at exactly that
+  version from Ubuntu's archive (or its snapshot service), each file held to the
+  checksums of the signed index and of its `.dsc`, and the release carries it.
 * **The Public Suffix List.** `build/generate-public-suffix-list.ps1` downloads
   the current list from publicsuffix.org, as its maintainers ask. What the
   build compiles is the generated `PublicSuffixListData.h`, committed with the

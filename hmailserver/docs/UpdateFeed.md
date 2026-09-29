@@ -500,7 +500,7 @@ waits for the repositories: until they exist, that command would find nothing.
 
 ### How much the site holds
 
-A release as 6.3.6 is has 146 links (Roadmap3, "Release collects every file"). The
+A release as 6.3.6 is has 149 links (Roadmap3, "Release collects every file"). The
 site that carries it (`build/ci/release-chain.py`'s `check_budget`, which the
 `release` job runs before anything is signed and `release-publish` before anything
 is uploaded, both refusing past a limit, with the apt and dnf repositories kept as
@@ -508,8 +508,8 @@ is uploaded, both refusing past a limit, with the apt and dnf repositories kept 
 
 | | 6.3.6 alone | Grows by, per release of its shape | The limit |
 |---|---|---|---|
-| `releases.json` | 49,610 bytes | 49,607 bytes | 4 MiB, the largest feed a server reads (`MAX_FEED_BYTES`, `UpdateChecker.cpp`): about eighty-four releases of this shape |
-| `releases/latest` | 48,720 bytes | nothing: it is the one release | 4 MiB |
+| `releases.json` | 50,704 bytes | 50,701 bytes | 4 MiB, the largest feed a server reads (`MAX_FEED_BYTES`, `UpdateChecker.cpp`): about eighty-two releases of this shape |
+| `releases/latest` | 49,796 bytes | nothing: it is the one release | 4 MiB |
 | `_redirects` | 31 rules in 5,386 bytes: the feed's 15 (the download page and seven files with their bundles) and the apt and dnf repositories' 16 | 16 rules, 2,942 bytes | 1,000 rules and 64 KiB, which Pages reads: twenty-one releases of this shape fit, and the twenty-second needs `--keep` ([PackageManagers.md](PackageManagers.md), "What the repositories hold") |
 
 GitLab sets no limit on the number of a release's links; each link's permanent
@@ -517,7 +517,10 @@ path must be at most 128 characters of letters, digits and `_ . - /`, and its
 name, address and path its own within the release, or the release is not created,
 which the two jobs check first; 6.3.6's longest is 76. Measured on 28 September
 2026 with the file sizes a release has (sizes of eight digits and more), by
-`check_budget` over releases of 6.3.6's shape.
+`check_budget` over releases of 6.3.6's shape; on 29 September the source of the
+AppImages' bundled libraries, its bundle and its copy added 1,094 bytes to
+`releases.json` and 1,076 to `releases/latest`, the difference `check_budget`
+measured with that file and without it.
 
 GitLab's own `/-/releases/permalink/latest` is the release with the latest
 `released_at` date. GitLab has no pre-release flag, so a pre-release, or the

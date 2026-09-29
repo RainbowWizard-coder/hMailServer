@@ -27,9 +27,10 @@
 # It writes <package>.cdx.json and holds it to the package (asset-sbom.py verify).
 #
 # An AppImage is taken the same way (the release-packages job, build/ci/release-chain.py
-# gather): its build records built-against-<arch>/ with bundled.txt beside dpkg.txt
-# (build/ci/packages/appimage-build.sh), and the document lists what the image carries
-# too (--kind appimage --bundled). HM_NATIVE_DEPENDENCIES, when set, names a component
+# gather): its build records built-against-<arch>/ with bundled.txt and
+# runtime-linked.txt beside dpkg.txt (build/ci/packages/appimage-build.sh), and the
+# document lists what the image carries in usr/lib and what its runtime links
+# statically too (--kind appimage --bundled --runtime-linked). HM_NATIVE_DEPENDENCIES, when set, names a component
 # list build/native-dependencies.ps1 already wrote, so that a job making many SBOMs
 # runs it once.
 set -euo pipefail
@@ -72,7 +73,9 @@ case "$package" in
     esac
     [ -f "$facts/dpkg.txt" ] || fail "no $facts/dpkg.txt: the AppImage's build did not record what it was compiled against"
     [ -f "$facts/bundled.txt" ] || fail "no $facts/bundled.txt: the AppImage's build did not record what it carries"
-    record=(--kind appimage --dpkg-list "$facts/dpkg.txt" --target-arch "$arch" --bundled "$facts/bundled.txt")
+    [ -f "$facts/runtime-linked.txt" ] || fail "no $facts/runtime-linked.txt: the AppImage's build did not keep the record of what its runtime links"
+    record=(--kind appimage --dpkg-list "$facts/dpkg.txt" --target-arch "$arch" --bundled "$facts/bundled.txt"
+      --runtime-linked "$facts/runtime-linked.txt")
     ;;
   *) fail "$package is neither a .deb, an .rpm nor an AppImage" ;;
 esac

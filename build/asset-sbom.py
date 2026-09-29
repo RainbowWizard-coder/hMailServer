@@ -40,10 +40,14 @@ needs, and nothing that only another asset carries:
       the Linux server's libraries as for a package, what the build container's
       dpkg recorded each was built against (--dpkg-list, as a package job records
       it: build/ci/packages/appimage-build.sh for x86_64, appimage-cross.sh for the
-      cross-compiled aarch64 server), and every library the image carries in
-      usr/lib (--bundled): by the Ubuntu 24.04 package and version its file came
-      from, which build-appimage.sh copied and gave a RUNPATH, so the copy's bytes
-      are not the package's and the package file's SHA-256 is a property, not a hash.
+      cross-compiled aarch64 server), every library the image carries in usr/lib
+      (--bundled): by the Ubuntu 24.04 package and version its file came from, and
+      the source package and version that was built from, which build-appimage.sh
+      copied and gave a RUNPATH, so the copy's bytes are not the package's and the
+      package file's SHA-256 is a property, not a hash; and every Alpine package whose
+      files the runtime in front of the image links statically (--runtime-linked, the
+      runtime job's record of its link), at its version, with its aports commit and
+      its licence.
   source
       the source tarball (build/ci/source-tarball.sh): the third-party code and
       data it holds, as hmailserver/docs/SourceTarball.md declares them
@@ -73,7 +77,8 @@ Usage:
           --boost-header built-against/boost-version.hpp --read-package
   python3 build/asset-sbom.py make --kind appimage --asset hMailServer-6.3.6-x86_64.AppImage \\
           --dependencies native-dependencies-x64.json --dpkg-list built-against-x86_64/dpkg.txt --target-arch amd64 \\
-          --boost-header built-against-x86_64/boost-version.hpp --bundled built-against-x86_64/bundled.txt
+          --boost-header built-against-x86_64/boost-version.hpp --bundled built-against-x86_64/bundled.txt \\
+          --runtime-linked built-against-x86_64/runtime-linked.txt
   python3 build/asset-sbom.py make --kind source --asset hmailserver-6.3.6.tar.gz
   python3 build/asset-sbom.py image --syft image.syft.cdx.json --deb-sbom hmailserver_6.3.5_amd64.deb.cdx.json \\
           --image registry.gitlab.com/progressiverobot/hmailserver@sha256:<digest> --version 6.3.5 --out FILE
@@ -534,9 +539,11 @@ def boost_package(entry, kind):
 def read_bundled(path, arch):
     """What an AppImage carries in usr/lib, as build/ci/packages/appimage-build.sh
     records it (bundled.txt): one line per library, "<soname> <package>:<arch>
-    <version> <sha256 of the package's file>", from the dpkg of the container that
-    packed it. [(soname, package, version, sha256)]. A library whose package dpkg
-    could not name is refused: the document would leave out what the image holds."""
+    <version> <sha256 of the package's file> <source package> <source version>", from
+    the dpkg of the container that packed it. [(soname, package, version, sha256,
+    source, source version)]. A library whose package dpkg could not name, or whose
+    source it could not, is refused: the document would leave out what the image
+    holds, or where its source is."""
     try:
         text = read_text(path)
     except OSError as e:
@@ -546,13 +553,15 @@ def read_bundled(path, arch):
         fields = line.split()
         if not fields:
             continue
-        if len(fields) != 4 or not re.match(r"^[A-Za-z0-9._+\-]+\.so(\.[0-9]+)*$", fields[0]) \
-                or not re.match(r"^[a-z0-9][a-z0-9.+\-]*:[a-z0-9]+$", fields[1]) or not re.match(r"^[0-9a-f]{64}$", fields[3]):
-            raise SbomError("%s line %d is not '<soname> <package>:<arch> <version> <sha256>': %r" % (path, number, line))
+        if len(fields) != 6 or not re.match(r"^[A-Za-z0-9._+\-]+\.so(\.[0-9]+)*$", fields[0]) \
+                or not re.match(r"^[a-z0-9][a-z0-9.+\-]*:[a-z0-9]+$", fields[1]) or not re.match(r"^[0-9a-f]{64}$", fields[3]) \
+                or not re.match(r"^[a-z0-9][a-z0-9.+\-]+$", fields[4]):
+            raise SbomError("%s line %d is not '<soname> <package>:<arch> <version> <sha256> <source> <source version>': %r"
+                            % (path, number, line))
         package, _, package_arch = fields[1].partition(":")
         if package_arch not in (arch, "all"):
             raise SbomError("%s line %d: %s is a package of %s, not of %s, the image's" % (path, number, fields[1], package_arch, arch))
-        bundled.append((fields[0], package, fields[2], fields[3]))
+        bundled.append((fields[0], package, fields[2], fields[3], fields[4], fields[5]))
     names = [b[0] for b in bundled]
     if len(names) != len(set(names)):
         raise SbomError("%s names a library twice" % path)
@@ -561,17 +570,89 @@ def read_bundled(path, arch):
 
 def bundled_components(bundled, arch):
     """A component for each library an AppImage carries: the Ubuntu 24.04 package
-    its file came from. The copy in usr/lib has a RUNPATH of build-appimage.sh's
-    and so other bytes than the package's file, whose SHA-256 is given as a
-    property; the image's own SHA-256 is the subject's."""
+    its file came from, and the source package and version that was built from,
+    whose source the release file hmailserver-<v>-appimage-bundled-sources.tar.gz
+    carries. The copy in usr/lib has a RUNPATH of build-appimage.sh's and so other
+    bytes than the package's file, whose SHA-256 is given as a property; the image's
+    own SHA-256 is the subject's."""
     components = []
-    for soname, package, version, sha256 in bundled:
+    for soname, package, version, sha256, source, source_version in bundled:
         components.append({
             "type": "library", "bom-ref": "bundled-" + safe_ref(soname), "name": package, "version": version,
             "description": "%s, bundled in the AppImage's usr/lib" % soname, "scope": "required",
             "purl": "pkg:deb/ubuntu/%s@%s?arch=%s&distro=ubuntu-24.04" % (package, version, arch),
             "properties": [prop("kind", "bundled"), prop("bundled-as", "usr/lib/" + soname),
-                           prop("package-file-sha256", sha256), prop("linkage", "dynamic, from the image")],
+                           prop("package-file-sha256", sha256), prop("linkage", "dynamic, from the image"),
+                           prop("source-package", "%s %s" % (source, source_version)),
+                           prop("copyright-file", "usr/share/hmailserver/licenses/bundled/%s/copyright" % package)],
+        })
+    return components
+
+
+# The AppImage runtime's architectures as the record names them (uname -m), and the
+# image's as dpkg does.
+RUNTIME_ARCHES = {"amd64": "x86_64", "arm64": "aarch64"}
+
+
+def read_runtime_linked(path, arch):
+    """What the runtime at the front of an AppImage links statically, as its job
+    recorded it from the linker's map (build/ci/packages/appimage-runtime-sources.sh
+    record, runtime-<arch>-linked.txt, which appimage-build.sh keeps as
+    built-against-<arch>/runtime-linked.txt): "alpine <release>", "arch <machine>" and
+    one line per file, "linked <path> <package> <version> <origin> <aports commit>
+    <licence...>". (release, [(path, package, version, origin, commit, licence)]). A
+    record of another architecture, of no file, or without libfuse3, is refused."""
+    try:
+        text = read_text(path)
+    except OSError as e:
+        raise SbomError("%s cannot be read: %s. The runtime's job records it from the link" % (path, e))
+    release, machine, linked = None, None, []
+    for number, line in enumerate(text.splitlines(), 1):
+        fields = line.split()
+        if not fields or line.startswith("#"):
+            continue
+        if fields[0] == "alpine" and len(fields) == 2 and re.match(r"^[0-9]+(\.[0-9]+)+$", fields[1]):
+            release = fields[1]
+        elif fields[0] == "arch" and len(fields) == 2:
+            machine = fields[1]
+        elif fields[0] == "linked" and len(fields) >= 7 and fields[1].startswith("/") \
+                and re.match(r"^[a-z0-9][a-z0-9._+\-]*$", fields[2]) and re.match(r"^[0-9][A-Za-z0-9._+~\-]*-r[0-9]+$", fields[3]) \
+                and re.match(r"^[a-z0-9][a-z0-9._+\-]*$", fields[4]) and re.match(r"^[0-9a-f]{40}$", fields[5]):
+            linked.append((fields[1], fields[2], fields[3], fields[4], fields[5], " ".join(fields[6:])))
+        else:
+            raise SbomError("%s line %d is not 'alpine <release>', 'arch <machine>' or 'linked <path> <package> <version> "
+                            "<origin> <commit> <licence>': %r" % (path, number, line))
+    if not release or machine != RUNTIME_ARCHES.get(arch):
+        raise SbomError("%s is the record of a runtime for %s on Alpine %s, not of the %s AppImage's" % (
+            path, machine, release, RUNTIME_ARCHES.get(arch, arch)))
+    if not linked or not any(entry[3] == "fuse3" for entry in linked):
+        raise SbomError("%s records no link of libfuse3: it is not the record of this runtime's link" % path)
+    return release, linked
+
+
+def runtime_components(release, linked, arch):
+    """A component for each Alpine package whose files the AppImage's runtime links
+    statically, at its version, with its aports origin and commit, its licence as
+    apk's database gives it (Alpine's, an SPDX-like expression, given as a name) and
+    each file linked. Their source is the release file
+    hmailserver-<v>-appimage-runtime-sources.tar.gz but GCC's, whose start-up files
+    are under the GCC Runtime Library Exception."""
+    grouped = {}
+    for path, package, version, origin, commit, licence in linked:
+        entry = grouped.setdefault((package, version), {"origin": origin, "commit": commit, "licence": licence, "files": []})
+        if (entry["origin"], entry["commit"], entry["licence"]) != (origin, commit, licence):
+            raise SbomError("the runtime's record gives %s %s two origins, commits or licences" % (package, version))
+        entry["files"].append(path)
+    components = []
+    for (package, version), entry in sorted(grouped.items()):
+        components.append({
+            "type": "library", "bom-ref": "runtime-" + safe_ref(package), "name": package, "version": version,
+            "description": "linked statically into the AppImage's runtime: %s" % ", ".join(sorted(entry["files"])),
+            "scope": "required", "licenses": [{"license": {"name": entry["licence"]}}],
+            "purl": "pkg:apk/alpine/%s@%s?arch=%s&distro=alpine-%s" % (package, version, RUNTIME_ARCHES[arch], release),
+            "properties": [prop("kind", "runtime-static"), prop("linkage", "static, into the AppImage's runtime"),
+                           prop("aports-origin", entry["origin"]), prop("aports-commit", entry["commit"])]
+                          + [prop("linked-file", f) for f in sorted(entry["files"])],
         })
     return components
 
@@ -727,18 +808,21 @@ def document(subject_component, components, sha256, kind, extra_tools=None):
 
 def make(kind, asset, dependencies, root=ROOT, version=None, commit=None, contains=None, query_dpkg=False,
          read_package=False, run=default_run, boost_header=BOOST_HEADER, dpkg_list=None, rpm_list=None, target_arch=None,
-         bundled=None):
+         bundled=None, runtime_linked=None):
     if kind not in KINDS:
         raise SbomError("%s is not a kind of asset this makes (%s)" % (kind, ", ".join(sorted(KINDS))))
     if not os.path.isfile(asset) or os.path.getsize(asset) == 0:
         raise SbomError("%s is not a file, or is empty" % asset)
     if (query_dpkg or read_package or dpkg_list or rpm_list) and KINDS[kind]["target"] != "linux":
         raise SbomError("--query-dpkg, --dpkg-list, --rpm-list and --read-package are for a .deb or an .rpm, and --dpkg-list for an AppImage too")
-    if kind == "appimage" and (read_package or query_dpkg or rpm_list or not dpkg_list or not bundled):
-        raise SbomError("an AppImage's document is made from its build's record alone: --dpkg-list, --target-arch and "
-                        "--bundled, which build/ci/packages/appimage-build.sh writes (it has no package metadata to read)")
+    if kind == "appimage" and (read_package or query_dpkg or rpm_list or not dpkg_list or not bundled or not runtime_linked):
+        raise SbomError("an AppImage's document is made from its build's record alone: --dpkg-list, --target-arch, "
+                        "--bundled and --runtime-linked, which build/ci/packages/appimage-build.sh writes (it has no "
+                        "package metadata to read)")
     if bundled and kind != "appimage":
         raise SbomError("--bundled is for an AppImage")
+    if runtime_linked and kind != "appimage":
+        raise SbomError("--runtime-linked is for an AppImage")
     if kind == "source":
         if contains:
             raise SbomError("a source tarball's document takes nothing but the tarball")
@@ -770,6 +854,9 @@ def make(kind, asset, dependencies, root=ROOT, version=None, commit=None, contai
         recorded_built_against(linux, read_rpm_list(rpm_list), "rpm", None, boost_header, rpm_list)
     if bundled:
         components += bundled_components(read_bundled(bundled, target_arch), target_arch)
+    if runtime_linked:
+        release, linked = read_runtime_linked(runtime_linked, target_arch)
+        components += runtime_components(release, linked, target_arch)
     package_version, declared = package_facts(kind, asset, run) if read_package else (None, None)
     component = subject(os.path.basename(asset), kind, version, sha256, sha512, size,
                         commit if commit is not None else commit_of(root), declared, contains, package_version)
@@ -1165,32 +1252,77 @@ def self_test():
         # An AppImage: the server's libraries as the build recorded them, and what it
         # carries in usr/lib by package.
         image_file = write("out/hMailServer-6.3.6-x86_64.AppImage", b"\x7fELF an AppImage")
-        bundled = write("record/bundled.txt", "libpq.so.5 libpq5:amd64 16.10-0ubuntu0.24.04.1 %s\n"
-                        "liblber.so.2 libldap2:amd64 2.6.7+dfsg-1~exp1ubuntu8.2 %s\n\n" % ("1" * 64, "2" * 64))
+        bundled = write("record/bundled.txt", "libpq.so.5 libpq5:amd64 16.10-0ubuntu0.24.04.1 %s postgresql-16 16.10-0ubuntu0.24.04.1\n"
+                        "liblber.so.2 libldap2:amd64 2.6.7+dfsg-1~exp1ubuntu8.2 %s openldap 2.6.7+dfsg-1~exp1ubuntu8.2\n\n"
+                        % ("1" * 64, "2" * 64))
+        commit_a, commit_b = "a" * 40, "b" * 40
+        runtime_record = ("# What build/ci/packages/appimage-runtime.sh linked into runtime-x86_64\nalpine 3.24.2\narch x86_64\n"
+                          "linked /usr/lib/crti.o musl-dev 1.2.6-r2 musl %s MIT\n"
+                          "linked /usr/lib/libc.a musl-dev 1.2.6-r2 musl %s MIT\n"
+                          "linked /usr/lib/libfuse3.a fuse3-static 3.18.3-r0 fuse3 %s GPL-2.0-only AND LGPL-2.1-only\n"
+                          "linked /usr/lib/liblzo2.a lzo-dev 2.10-r5 lzo %s GPL-2.0-or-later\n" % (commit_a, commit_a, commit_b, commit_b))
+        runtime_linked = write("record/runtime-linked.txt", runtime_record)
         appimage = make("appimage", image_file, dependencies, root=work, commit="c" * 40, dpkg_list=native_record, target_arch="amd64",
-                        boost_header=boost_header, bundled=bundled)
+                        boost_header=boost_header, bundled=bundled, runtime_linked=runtime_linked)
         carried = dict((c["bom-ref"], c) for c in appimage["components"])
         expect(carried.get("bundled-libpq.so.5", {}).get("purl") == "pkg:deb/ubuntu/libpq5@16.10-0ubuntu0.24.04.1?arch=amd64&distro=ubuntu-24.04"
                and "bundled-liblber.so.2" in carried and "native-linux-openssl" in carried and "native-quickjs" in carried,
                "the AppImage lists its bundled libraries by package, beside the server's own: %s" % sorted(carried))
+        expect({"name": "hmailserver:source-package", "value": "postgresql-16 16.10-0ubuntu0.24.04.1"}
+               in carried.get("bundled-libpq.so.5", {}).get("properties", []),
+               "a bundled library names the source package and version it was built from")
         expect(not any(h for c in appimage["components"] if c["bom-ref"].startswith("bundled-") for h in c.get("hashes", [])),
                "a bundled copy, whose RUNPATH the packing changed, is not given the package file's hash as its own")
+        musl = carried.get("runtime-musl-dev", {})
+        expect(musl.get("purl") == "pkg:apk/alpine/musl-dev@1.2.6-r2?arch=x86_64&distro=alpine-3.24.2"
+               and [p["value"] for p in musl.get("properties", []) if p["name"] == "hmailserver:linked-file"] == ["/usr/lib/crti.o", "/usr/lib/libc.a"]
+               and {"name": "hmailserver:aports-commit", "value": commit_a} in musl.get("properties", [])
+               and carried.get("runtime-fuse3-static", {}).get("licenses") == [{"license": {"name": "GPL-2.0-only AND LGPL-2.1-only"}}]
+               and "runtime-lzo-dev" in carried,
+               "the AppImage lists what its runtime links statically, by Alpine package, with each file, commit and licence: %s"
+               % sorted(r for r in carried if r.startswith("runtime-")))
         expect(appimage["metadata"]["component"]["purl"] == "pkg:generic/hmailserver@6.3.5?file_name=hMailServer-6.3.6-x86_64.AppImage"
                and structure_problems(appimage) == [], "the AppImage's document is well formed: %s" % structure_problems(appimage))
         refused("an AppImage without its bundled list", "--bundled",
-                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header))
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header,
+                             runtime_linked=runtime_linked))
+        refused("an AppImage without its runtime's record", "--runtime-linked",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header,
+                             bundled=bundled))
         refused("an AppImage read as a package", "no package metadata",
                 lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
-                             boost_header=boost_header, bundled=bundled, read_package=True, run=container))
+                             boost_header=boost_header, bundled=bundled, runtime_linked=runtime_linked, read_package=True, run=container))
         refused("a bundled library dpkg could not name", "is not '<soname>",
                 lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
-                             boost_header=boost_header, bundled=write("record/unknown.txt", "libpq.so.5 unknown unknown %s\n" % ("1" * 64))))
+                             boost_header=boost_header, runtime_linked=runtime_linked,
+                             bundled=write("record/unknown.txt", "libpq.so.5 unknown unknown %s postgresql-16 16\n" % ("1" * 64))))
+        refused("a bundled library without its source package", "is not '<soname>",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, runtime_linked=runtime_linked,
+                             bundled=write("record/nosource.txt", "libpq.so.5 libpq5:amd64 16.10 %s\n" % ("1" * 64))))
         refused("a bundled library of the other architecture", "not of amd64",
                 lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
-                             boost_header=boost_header, bundled=write("record/arm.txt", "libpq.so.5 libpq5:arm64 16 %s\n" % ("1" * 64))))
+                             boost_header=boost_header, runtime_linked=runtime_linked,
+                             bundled=write("record/arm.txt", "libpq.so.5 libpq5:arm64 16 %s postgresql-16 16\n" % ("1" * 64))))
+        refused("the runtime's record of the other architecture", "not of the x86_64 AppImage's",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, bundled=bundled,
+                             runtime_linked=write("record/runtime-arm.txt", runtime_record.replace("arch x86_64", "arch aarch64"))))
+        refused("a runtime's record without libfuse3", "records no link of libfuse3",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, bundled=bundled,
+                             runtime_linked=write("record/runtime-nofuse.txt", "\n".join(
+                                 l for l in runtime_record.split("\n") if " fuse3 " not in l))))
+        refused("a runtime's record line it cannot read", "is not 'alpine <release>'",
+                lambda: make("appimage", image_file, dependencies, root=work, dpkg_list=native_record, target_arch="amd64",
+                             boost_header=boost_header, bundled=bundled,
+                             runtime_linked=write("record/runtime-bad.txt", runtime_record + "linked /usr/lib/libz.a zlib-static 1.3.2-r0 zlib nocommit Zlib\n")))
         refused("a bundled list for a .deb", "--bundled is for an AppImage",
                 lambda: make("deb", deb, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header,
                              bundled=bundled))
+        refused("a runtime's record for a .deb", "--runtime-linked is for an AppImage",
+                lambda: make("deb", deb, dependencies, root=work, dpkg_list=native_record, target_arch="amd64", boost_header=boost_header,
+                             runtime_linked=runtime_linked))
 
         # The source tarball: what docs/SourceTarball.md declares, each held to the tarball.
         def tarball(path, version, leave_out=None, stray=None):
@@ -1283,7 +1415,9 @@ def main():
                        help="Boost's version.hpp as the build compiled against it (%s)" % BOOST_HEADER)
     maker.add_argument("--read-package", action="store_true", help="what the .deb or the .rpm declares it depends on")
     maker.add_argument("--bundled", help="an AppImage's bundled.txt (build/ci/packages/appimage-build.sh): the libraries "
-                       "it carries, by package")
+                       "it carries, by package and source package")
+    maker.add_argument("--runtime-linked", help="an AppImage's runtime-linked.txt (build/ci/packages/appimage-build.sh keeps "
+                       "the runtime job's record): what its runtime links statically, by Alpine package")
     imager = commands.add_parser("image", help="the SBOM of the container image")
     imager.add_argument("--syft", required=True, help="Syft's CycloneDX JSON of the image")
     imager.add_argument("--deb-sbom", required=True, help="the .deb's own SBOM, which this script made")
@@ -1315,7 +1449,7 @@ def main():
             bom = make(args.kind, args.asset, dependencies, root=args.root, version=args.version, commit=args.commit,
                        contains=contains, query_dpkg=args.query_dpkg, read_package=args.read_package,
                        boost_header=args.boost_header, dpkg_list=args.dpkg_list, rpm_list=args.rpm_list,
-                       target_arch=args.target_arch, bundled=args.bundled)
+                       target_arch=args.target_arch, bundled=args.bundled, runtime_linked=args.runtime_linked)
             out = args.out or args.asset + SUFFIX
             write_document(bom, out)
             print("%s: %d components, describing %s (SHA-256 %s)" % (out, len(bom["components"]), os.path.basename(args.asset),

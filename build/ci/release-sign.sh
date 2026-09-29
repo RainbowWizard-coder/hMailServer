@@ -209,10 +209,11 @@ done
 # Counted, because a loop over a glob that matched nothing passes having signed nothing:
 # the installer; the generic .deb and .rpm for x86-64 and AArch64; each Debian, Ubuntu,
 # Fedora, EL and openSUSE release's .deb or .rpm for both (eighteen); the two AppImages;
-# the source of the libraries linked into their runtime; the source tarball; the Helm
-# chart; the sums; the tree's two SBOMs; and the twenty-six SBOMs of the compiled files
-# and the tarball (build/ci/release-chain.py, expected_assets).
-expected=57
+# the source of the libraries linked into their runtime; the source of the libraries
+# they carry in usr/lib; the source tarball; the Helm chart; the sums; the tree's two
+# SBOMs; and the twenty-six SBOMs of the compiled files and the tarball
+# (build/ci/release-chain.py, expected_assets).
+expected=58
 [ "$signed" -eq "$expected" ] || fail "$signed file(s) signed; a release is $expected"
 
 # The provenance: the statement release-sbom wrote, attested as this pipeline.
