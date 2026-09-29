@@ -61,7 +61,7 @@ namespace HM
          DateTimeSpan span;
          span.SetDateTimeSpan(0, hours, 0, 0);
 
-         // operator- and not -=, which DateTime declares and never defines.
+         // operator- and not -=, which DateTime does not have.
          DateTime cutoff = DateTime::GetCurrentTime() - span;
 
          return cutoff < lastSent;

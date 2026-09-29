@@ -44,10 +44,11 @@ override_dh_auto_configure:
 # Then the tester programs the build makes beside the server: the RFC 7208 suite and
 # the SPF testers, the event scripts' JavaScript binding, the SNMP agent's
 # decoder and cryptography, the object store's request signatures, the
-# singletons, the legacy Blowfish scheme and the backup index's XML. None
-# opens a socket, reads a configuration or needs a database, so they run here,
-# with the network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests
+# singletons, the legacy Blowfish scheme, the backup index's XML, and the date
+# class with the MIME, IMAP and system-date parsers built on it. None opens a
+# socket, reads a configuration or needs a database, so they run here, with the
+# network refused, in seconds.
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))

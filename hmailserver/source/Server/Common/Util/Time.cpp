@@ -582,8 +582,8 @@ namespace HM
       // "" is the right answer for input we cannot use, and it is already the
       // established one: SaveObject substitutes the current time for an empty create
       // time, so the message is stored with a slightly wrong date instead of being
-      // stored nowhere. DateTime::SetDateTime is the range check (OleDateFromTm
-      // rejects month 0, day 30 of February, hour 24, minute and second 60).
+      // stored nowhere. DateTime::SetDateTime is the range check (it refuses
+      // month 0, day 30 of February, hour 24, minute and second 60).
       DateTime validate;
       validate.SetDateTime((int) lYear, (int) lMonth, (int) lDay, (int) lHour, (int) lMinute, (int) lSecond);
 
@@ -591,7 +591,7 @@ namespace HM
          return "";
 
       // ...and a year the column cannot hold, which SetDateTime does not police:
-      // OleDateFromTm accepts any year up to 9999, while SQL Server's datetime
+      // it accepts any year up to 9999, while SQL Server's datetime
       // begins at 1753. Below that the INSERT fails again, so the same fallback
       // applies.
       const long minimumStorableYear = 1753;

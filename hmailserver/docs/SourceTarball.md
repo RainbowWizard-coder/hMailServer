@@ -128,7 +128,6 @@ Everything else in the tarball is the project's, under the AGPL-3.0-or-later in
 | The Public Suffix List's rules, compiled into the server | `hmailserver/source/Server/Common/AntiSpam/DMARC/PublicSuffixListData.h` | MPL-2.0 | the MPL's own notice in the file's header |
 | SURBL's list of two-level country-code domains (SURBL, 2004-2006), which the SURBL lookups and the MX-record test read; not the Public Suffix List | `hmailserver/installation/Extras/tlds.txt` | none stated | none in the file |
 | The ATL Active Script host (VisionTech Limited, 2001), which only `hMailServer.exe` compiles | `hmailserver/source/Server/Common/Scripting/ScriptSite.h` | its own permissive notice (use, modify and redistribute, keeping the notice) | the notice in the file, under the project's SPDX header, which does not describe it |
-| A date class (Mark A. Richman, 1999, from CodeGuru; its helpers keep MFC's `COleDateTime` names), compiled into both servers | `hmailserver/source/Server/Common/Util/VariantDateTime.cpp`, `VariantDateTime.h` | none stated | the author's name in the file's comment |
 | DKIM test messages, which the Windows suite and the fuzzing seeds read: most appear to be the test corpus of Mail::DKIM (Jason Long, Messiah College), distributed under Perl's terms | `hmailserver/test/TestData/DKIM` | Perl's (GPL-1.0-or-later or Artistic-1.0-Perl), for those | none in the tree |
 
 And test data with no licence stated at all: messages captured from third

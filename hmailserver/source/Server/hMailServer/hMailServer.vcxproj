@@ -684,6 +684,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\CrashSimulation.cpp" />
     <ClCompile Include="..\Common\Util\Crypt.cpp" />
     <ClCompile Include="..\Common\Util\DataProtector.cpp" />
+    <ClCompile Include="..\Common\Util\DateTime.cpp" />
     <ClCompile Include="..\Common\Util\OAuth2TokenValidator.cpp" />
     <ClCompile Include="..\Common\Util\ClientCertificateIdentity.cpp" />
     <ClCompile Include="..\Common\Util\GssapiAcceptor.cpp" />
@@ -954,7 +955,6 @@ EXIT 0
     <ClCompile Include="..\Common\Util\TransparentTransmissionBuffer.cpp" />
     <ClCompile Include="..\Common\Util\Unicode.cpp" />
     <ClCompile Include="..\Common\Util\Utilities.cpp" />
-    <ClCompile Include="..\Common\Util\VariantDateTime.cpp" />
     <ClCompile Include="..\Common\Util\XmlTree.cpp" />
     <ClCompile Include="..\Common\Util\XmlTreeTester.cpp" />
     <ClCompile Include="..\COM\COMAuthentication.cpp" />

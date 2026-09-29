@@ -590,6 +590,19 @@ add_executable(singleton-tests ${SERVER_DIR}/platform/singleton_tests_main.cpp)
 target_link_libraries(singleton-tests PRIVATE Threads::Threads)
 set_target_properties(singleton-tests PROPERTIES OUTPUT_NAME singleton-tests)
 
+# ---------------------------------------------------------------- the date class
+#
+# DateTimeTests (Common/Util/DateTime.cpp) and TimeTester (Common/Util/Time.cpp) as
+# a program of their own, for the reason spf-tests is one: on Windows they run
+# inside the server through ClassTester, which nothing reaches here. The date
+# class is the project's own since 6.3.6, written to the behaviour of the one it
+# replaced; these hold it to known dates, and the MIME, IMAP and system-date
+# parsers to their examples. No clock, time zone, network or configuration.
+# Not installed; a bench tool.
+add_executable(datetime-tests ${SERVER_DIR}/platform/datetime_tests_main.cpp)
+target_link_libraries(datetime-tests PRIVATE hmailserver_core)
+set_target_properties(datetime-tests PROPERTIES OUTPUT_NAME datetime-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

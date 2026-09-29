@@ -741,8 +741,8 @@ namespace HM
       // robust option here. The stored format is "YYYY-MM-DD HH:MM:SS", where
       // lexicographic order IS chronological order, and doing the comparison in C++
       // keeps four SQL dialects' date arithmetic out of a sweep that deletes mail.
-      // DateTime looks like the obvious type for this and is not: its operator DATE
-      // is declared but never implemented, so the natural expression does not link.
+      // DateTime looks like the obvious type for this and is not: it has no
+      // conversion to DATE, so the natural expression does not compile.
       std::time_t cutoffTime = std::time(0) - (static_cast<std::time_t>(retentionDays) * 24 * 60 * 60);
 
       struct tm cutoffTm;

@@ -269,17 +269,15 @@ for a stray `#` number or `@` name.
   `zypper update hmailserver` instead, and link the distribution's shared Boost (`-DHM_BOOST_STATIC=OFF`, new; the
   project's own packages keep it static). The account comes from `sysusers.d`, the unit is installed and not started,
   `hmctl` is a package of its own that depends on `python3`, and the server's `--version` and the tester programs run
-  in the build, and neither links with LTO. The Debian package has a DEP-5 copyright over every third-party notice,
-  one of which a distribution's review still has to settle: VariantDateTime, inherited from the original hMailServer
-  and compiled into the server, whose files carry no licence; a watch file on GitLab's releases API; and an
-  autopkgtest that starts the server against a throwaway PostgreSQL and asks SMTP and IMAP for their greetings. The
-  spec declares `Provides: bundled(quickjs) = 2025.04.26`. New CI jobs (`.gitlab/ci/source-packages.yml`, `batch*`
-  and `master` only) build both for Debian 13, Ubuntu 24.04 and 26.04, Fedora 44, EL 10, Leap 16 and Tumbleweed with
-  the network refused, fail on a lintian or rpmlint error, and install and start the result in a clean container. On
-  the laptop the spec built on Fedora 44 and EL 10 and each server installed and started against PostgreSQL, and the
-  Debian package built on Ubuntu 26.04 and passed its autopkgtest; a Fedora 44 server that died before `main` there
-  was a file the laptop's WSL file system had corrupted, not a GCC 16 or code defect. See
-  [SourcePackages.md](hmailserver/docs/SourcePackages.md).
+  in the build, and neither links with LTO. The Debian package has a DEP-5 copyright over every third-party notice; a
+  watch file on GitLab's releases API; and an autopkgtest that starts the server against a throwaway PostgreSQL and
+  asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2025.04.26`. New CI jobs
+  (`.gitlab/ci/source-packages.yml`, `batch*` and `master` only) build both for Debian 13, Ubuntu 24.04 and 26.04,
+  Fedora 44, EL 10, Leap 16 and Tumbleweed with the network refused, fail on a lintian or rpmlint error, and install
+  and start the result in a clean container. On the laptop the spec built on Fedora 44 and EL 10 and each server
+  installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its autopkgtest;
+  a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had corrupted, not a GCC
+  16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
 - **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file** (not yet run in a pipeline). Until
   now the release's `.deb` and `.rpm`, and every per-release package built with them, carried QuickJS's licence and
   nothing of the project's own: no AGPL-3.0 text, which the AGPL's sections 4 and 6 ask to go with every copy, and no
@@ -310,6 +308,20 @@ for a stray `#` number or `@` name.
   and, on Linux, as the new `xml-tree-tests` program, which the Debian and RPM source-package builds also run. HM4229
   reports the same codes in new words. `debian/copyright`, the RPM spec and the source-package documents no longer
   declare XMLite, and `check-source-tarball.py` now refuses a `debian/copyright` paragraph whose files are gone.
+- **The date class is the project's own.** `HM::DateTime`, which every stored date, expiry, IMAP UIDVALIDITY and MIME
+  date passes through, was a class of 1999 from CodeGuru that stated no licence and kept the names of MFC's
+  `COleDateTime` in its helpers, compiled into both servers: a file no distribution's archive could take.
+  `Common/Util/DateTime.cpp` replaces it, written from the calendar and the OLE Automation date's definition to the
+  old class's behaviour. A differential test held the two to the same answers bit for bit (a NaN's sign aside) under
+  MSVC, GCC 15 and clang 21 - every day of the years 0 to 9999, every second of 24 days and some 57 million other
+  operations a run, about 84 million comparisons in all - and, on Linux, ran the server's own MIME, IMAP and
+  system-date parsers over both; a second check held the new class to Python's calendar on every day of the years 1
+  to 9999 and to the C library's local time in twelve time zones. Nothing an administrator or a client sees changes,
+  except that a date made from a NaN (which only a COM client could pass) now reads as no date instead of undefined
+  behaviour. With it, no file compiled into the server is left whose licence a distribution has to settle:
+  `debian/copyright`, the RPM spec and SourcePackages.md no longer list it. A new `datetime-tests` program runs the
+  date class's and the date parsers' tests on Linux, where ClassTester does not run, in `linux-build` and in the
+  Debian and RPM package builds.
 
 ### Administration
 

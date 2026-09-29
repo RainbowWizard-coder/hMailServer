@@ -877,30 +877,6 @@ d6bc0ac2aa0005b9e4da	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/Ut
 e7d0755c05e510c11f81	clang-tidy	concurrency-mt-unsafe	hmailserver/source/Server/Common/Util/Utilities.cpp:263	function is not thread safe
 69fb93bd043d7721a06d	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/Util/VCard.cpp:449	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
 2771a2307897148fc97b	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/Util/VCard.cpp:639	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
-e7d74cc90722c78efd41	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:87	uninitialized record type: 'parts'
-f898c72c7c3c5b6760e6	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:102	constructor does not initialize these fields: status_
-1b1af5ffc8c40a14cbed	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:108	constructor does not initialize these fields: dt_, status_
-faa09eb740d4f9d3aaf5	clang-tidy	clang-analyzer-optin.cplusplus.UninitializedObject	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:110	1 uninitialized field at the end of the constructor call
-e1d7a47ac777fca4d226	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:144	constructor does not initialize these fields: status_
-3f87422b9c2beec5d50e	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:153	uninitialized record type: 'ptm'
-828427e3f45e217b5641	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:173	constructor does not initialize these fields: dt_
-039d4610052d5a06dcd9	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:182	constructor does not initialize these fields: dt_
-4f2c01de133a3c1da89a	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:312	uninitialized record type: 'tmTemp'
-ed7f8fce0ec7a17653ef	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:345	uninitialized record type: 'tmTemp'
-31b313557b3870b5ca36	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:355	uninitialized record type: 'tmTemp'
-f6dd841f789a1c48d893	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:365	uninitialized record type: 'tmTemp'
-f4fed7c33e86076d27bb	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:375	uninitialized record type: 'tmTemp'
-0b72741d442640acf399	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:386	uninitialized record type: 'tmTemp'
-c38dd13464f098f0d4e4	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:396	uninitialized record type: 'tmTemp'
-8a54aabfcac9fd100509	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:406	uninitialized record type: 'tmTemp'
-b1241d099e6ba79db35c	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:416	uninitialized record type: 'tmTemp'
-b79f081c76d2349c25a5	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:468	uninitialized record type: 'ptm'
-abf07e786e38656aca27	clang-tidy	cert-oop54-cpp	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:495	operator=() does not handle self-assignment properly
-e9596a4eb966d0393efd	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:858	constructor does not initialize these fields: status_
-ae5950490332b6476897	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:864	constructor does not initialize these fields: status_
-e3a4946d041f13ca4e09	clang-tidy	cert-oop54-cpp	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:911	operator=() does not handle self-assignment properly
-91981b2d5fad39ee98c2	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:986	uninitialized record type: 'tmTemp'
-26b176d808d68fded541	clang-tidy	cert-err33-c	hmailserver/source/Server/Common/Util/VariantDateTime.cpp:1008	the value returned by this function should not be disregarded; neglecting it may lead to errors
 452e4e6cf3654b07fb41	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/Util/WebServicesServer.cpp:67	performing an implicit widening conversion to type 'const size_t' (aka 'const unsigned long') of a multiplication performed in type 'int'
 ecc65008931beb012a53	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/Common/Util/WebServicesServer.cpp:280	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether
 b8faa10f993bbe158c2e	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/Common/Util/WebServicesServer.cpp:429	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether

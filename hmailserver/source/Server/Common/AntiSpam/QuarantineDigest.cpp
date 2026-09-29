@@ -141,8 +141,7 @@ namespace HM
 
          DateTimeSpan span;
          span.SetDateTimeSpan(0, hours, 0, 0);
-         // operator+ and not +=: DateTime declares the compound operators but
-         // defines only the plain ones, so += compiles and does not link.
+         // operator+ and not +=: DateTime has only the plain operators.
          expires = expires + span;
 
          return Time::GetTimeStampFromDateTime(expires);

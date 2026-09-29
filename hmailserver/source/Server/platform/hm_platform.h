@@ -214,7 +214,7 @@ typedef void *              HKEY;
 typedef int32_t             HRESULT;
 typedef short               VARIANT_BOOL;
 // An OLE date: days since 30 December 1899, the fraction being the time of day.
-// The tree's DateTime class is a copy of MFC's COleDateTime and carries it.
+// The tree's DateTime class (Common/Util/VariantDateTime.h) carries it.
 typedef double              DATE;
 // A locale identifier. The tree passes one to the string class's locale-aware
 // comparisons; on POSIX the C++ locale does that work, so the value is carried
@@ -322,7 +322,7 @@ typedef DWORD *             LPDWORD;
 
 // Calling conventions. On x86 these picked a stack discipline; on x64 there is
 // one convention and Windows itself defines them all away. The tree still writes
-// PASCAL in one signature (DateTime::GetCurrentTime) and __stdcall in a few.
+// __stdcall in a few signatures.
 #define WINAPI
 #define PASCAL
 #define STDMETHODCALLTYPE
@@ -364,26 +364,6 @@ struct IErrorInfo;
 // exists only so that a Windows-only signature parses.
 typedef const struct _CERT_CONTEXT *PCCERT_CONTEXT;
 
-// _bstr_t is Microsoft's COM string wrapper (comutil.h). One declaration in the
-// core names it - DateTimeSpan::Format - and that method is defined in terms of
-// a formatted wide string, so this is the whole of what it has to be: something
-// that owns a wide string, is constructible from one and converts back to one.
-// It is NOT a COM object and does not reference-count; nothing in this build
-// hands one to COM, because COM is not in this build.
-class _bstr_t
-{
-public:
-   _bstr_t() {}
-   _bstr_t(const wchar_t *text) : value_(text ? text : L"") {}
-   _bstr_t(const std::wstring &text) : value_(text) {}
-
-   operator const wchar_t *() const { return value_.c_str(); }
-   const wchar_t *operator*() const { return value_.c_str(); }
-   size_t length() const { return value_.length(); }
-
-private:
-   std::wstring value_;
-};
 typedef const struct _CERT_CHAIN_CONTEXT *PCCERT_CHAIN_CONTEXT;
 struct ITypeInfo;
 typedef struct tagVARIANT VARIANT;

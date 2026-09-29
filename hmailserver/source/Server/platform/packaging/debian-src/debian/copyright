@@ -133,19 +133,6 @@ Files: hmailserver/source/Server/Common/Util/StdString.h
 Copyright: 2002 Joseph M. O'Leary
 License: StdString
 
-Files: hmailserver/source/Server/Common/Util/VariantDateTime.cpp
-       hmailserver/source/Server/Common/Util/VariantDateTime.h
-Copyright: 1999 Mark A. Richman
-License: none-stated
-Comment:
- A date class from an article on CodeGuru (April 1999), as VariantDateTime.cpp
- says, compiled into /usr/bin/hmailserver. It states no licence, and its helpers
- keep MFC's names - AFX_OLE_DATETIME_ERROR, and OleDateFromTm and TmFromOleDate
- after MFC's _AfxOleDateFromTm and _AfxTmFromOleDate - so it appears to be
- adapted from MFC's COleDateTime, whose source is Microsoft's
- (hmailserver/docs/SourcePackages.md, "Questions for a Debian or Fedora
- maintainer").
-
 Files: hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.yml
        hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.LICENSE
        hmailserver/docs/Licenses/License?-?RFC?7208?test?suite.txt
@@ -949,11 +936,11 @@ License: StdString
  any form, I'd appreciate it if you would leave this notice here.
 
 License: none-stated
- These files state no licence, and the project has no record of one. They are
- declared here as they are, so that the question is seen: a Debian archive
- needs a licence for every file it distributes, and each of them is compiled
- into the server or read by it, so leaving them out is not open to this package
- the way it is for the unlicensed test data.
+ This file states no licence, and the project has no record of one. It is
+ declared here as it is, so that the question is seen: a Debian archive needs a
+ licence for every file it distributes, and the server reads this one, so
+ leaving it out is not open to this package the way it is for the unlicensed
+ test data.
 
 License: MPL-2.0
  This Source Code Form is subject to the terms of the Mozilla Public License,
