@@ -215,7 +215,8 @@ def ppa_upload(out, environ=None, run=subprocess.run):
     # The key, in a GnuPG home of the job's own.
     home = tempfile.mkdtemp(prefix="hm-ppa-gnupg-")
     try:
-        os.chmod(home, 0o700)  # nosemgrep: owner only, as GnuPG requires of its home
+        # Owner only, as GnuPG requires of its home.
+        os.chmod(home, 0o700)  # nosemgrep
         gpg_env = dict(environ, GNUPGHOME=home)
         passphrase = environ.get("LAUNCHPAD_SIGNING_PASSPHRASE") or ""
         with open(os.path.join(home, "gpg.conf"), "w") as f:
