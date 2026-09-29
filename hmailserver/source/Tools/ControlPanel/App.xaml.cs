@@ -30,6 +30,10 @@ namespace hMailServer.ControlPanel
          // Register the semantic colour tokens before any window loads so that
          // every page resolves on-brand, theme-aware state colours.
          Services.ThemeTokens.Initialize();
+
+         // Every page's text and values can be selected and copied (issue #48);
+         // class handlers, so registered before the first window has any text.
+         SelectableText.Install();
       }
 
       private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs args)

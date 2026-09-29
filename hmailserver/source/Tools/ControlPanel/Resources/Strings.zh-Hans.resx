@@ -9024,6 +9024,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>选择 Active Directory 账户</value>
   </data>
+  <data name="Select _all" xml:space="preserve">
+    <value>全选(_A)</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>选择一个域</value>
   </data>

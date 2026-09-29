@@ -33,9 +33,11 @@
 
         <!-- The log's severity palette (Log*Brush) is the viewer's own and not a
              design token; each line holds one of ThemeTokens' shared brushes, which
-             are recoloured in place on a theme change. -->
+             are recoloured in place on a theme change. Extended selection: lines are
+             chosen as a list's rows are (click, Shift+click, Ctrl+click, Ctrl+A) and
+             copied with Ctrl+C or the list's menu - see the code-behind. -->
         <scaffold:Card Grid.Row="1" Padding="4">
-            <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0"
+            <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
                      FontFamily="Cascadia Mono, Consolas" FontSize="12"
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
                      VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"

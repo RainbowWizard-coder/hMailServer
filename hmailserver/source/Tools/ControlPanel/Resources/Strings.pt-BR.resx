@@ -9024,6 +9024,9 @@ Continuar?</value>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Selecionar contas do Active Directory</value>
   </data>
+  <data name="Select _all" xml:space="preserve">
+    <value>Selecionar _tudo</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Selecione um domínio</value>
   </data>

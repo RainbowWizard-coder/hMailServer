@@ -194,6 +194,7 @@ LOCALISED = {
    "Services/ConnectionStatus.cs",
    "Services/SettingsPageStatus.cs",
    "Services/ThemeTokens.cs",
+   "Services/SelectableText.cs",
 }
 
 # Literal texts that are the same in every language and are not captions to

@@ -9024,6 +9024,9 @@ Devam edilsin mi?</value>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Active Directory hesaplarını seçin</value>
   </data>
+  <data name="Select _all" xml:space="preserve">
+    <value>_Tümünü seç</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Bir etki alanı seçin</value>
   </data>

@@ -9024,6 +9024,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Seleccionar cuentas de Active Directory</value>
   </data>
+  <data name="Select _all" xml:space="preserve">
+    <value>Seleccionar _todo</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Seleccione un dominio</value>
   </data>

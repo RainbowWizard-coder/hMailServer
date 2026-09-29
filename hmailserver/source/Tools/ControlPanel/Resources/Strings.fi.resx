@@ -9024,6 +9024,9 @@ Jatketaanko?</value>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Valitse Active Directory -tilit</value>
   </data>
+  <data name="Select _all" xml:space="preserve">
+    <value>Valitse _kaikki</value>
+  </data>
   <data name="Select a domain" xml:space="preserve">
     <value>Valitse verkkotunnus</value>
   </data>
