@@ -185,10 +185,11 @@ sigstore_certificate = _load_certificate()
 PROJECT_ID = feed.PROJECT_ID
 PACKAGE = "hmailserver"
 API_BASE = "https://gitlab.com/api/v4"
-# The identity Fulcio writes for this project's pipeline of tag <tag>, which
-# SigstoreVerifier.cpp's GITLAB_IDENTITY_PREFIX accepts. build/check-release-chain.py
-# holds the two to each other.
-SIGNER_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/"
+# The identity Fulcio writes for this project's pipeline of tag <tag>, at the group's
+# path the project has been at since 29 September 2026, which SigstoreVerifier.cpp's
+# GITLAB_GROUP_IDENTITY_PREFIX accepts. build/check-release-chain.py holds the two to
+# each other. 6.3.5 was signed at the project's first path, Progressiverobot/hmailserver.
+SIGNER_IDENTITY_PREFIX = "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/"
 SIGNER_ISSUER = "https://gitlab.com"
 VERSION_H = os.path.join("hmailserver", "source", "Server", "Common", "Application", "Version.h")
 ALLOWED_SIGNERS = ".gitlab/allowed_signers"
@@ -1330,11 +1331,13 @@ def gather(root, version, out, commit, make_sbom=None, run=subprocess.run):
 
 # ---------------------------------------------------------------- the provenance
 
-# The paths a server trusts a signature from, and the repository each names: the
-# project's now, and the group's it is to move to (release-sign.sh's case on
-# CI_PROJECT_PATH, which build/check-release-chain.py holds this to).
-SIGNING_REPOSITORIES = {"Progressiverobot/hmailserver": "https://gitlab.com/Progressiverobot/hmailserver",
-                        "hmailserver/hmailserver": "https://gitlab.com/hmailserver/hmailserver"}
+# The path a release is signed from, and the repository it names: the group's, where
+# the project has been since 29 September 2026 and where a server requires the
+# project's id (release-sign.sh's case on CI_PROJECT_PATH, which
+# build/check-release-chain.py holds this to). The first path, Progressiverobot/
+# hmailserver, signed 6.3.5; servers still trust it for that, and nothing new is
+# signed there: a pipeline at that path now is another project's.
+SIGNING_REPOSITORIES = {"hmailserver/hmailserver": "https://gitlab.com/hmailserver/hmailserver"}
 IN_TOTO_STATEMENT = "https://in-toto.io/Statement/v1"
 SLSA_PROVENANCE = "https://slsa.dev/provenance/v1"
 IN_TOTO_PAYLOAD = "application/vnd.in-toto+json"
@@ -1718,9 +1721,9 @@ def self_test():
            "every link's path is one slash and the file's permanent name, never under %s/: %s" % (
                DOWNLOADS, sorted(p for p in paths.values() if p.startswith(DOWNLOADS + "/") or p.count("/") != 1)))
     expect(download_url("permalink/latest", paths["hMailServer-6.3.5-x64.exe"])
-           == "https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest/downloads/hMailServer-x64.exe"
+           == "https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/hMailServer-x64.exe"
            and download_url(tag, paths["hmailserver-6.3.5.tar.gz"])
-           == "https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5/downloads/hmailserver.tar.gz",
+           == "https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.5/downloads/hmailserver.tar.gz",
            "the installer at permalink/latest/downloads/hMailServer-x64.exe, the tarball at v6.3.5/downloads/hmailserver.tar.gz")
     unpaired = [n for n in primary_assets(version) if paths.get(n + BUNDLE) != paths.get(n) + BUNDLE
                 or paths.get(n + BUNDLE_COPY) != paths.get(n) + BUNDLE_COPY]
@@ -2220,7 +2223,7 @@ def self_test():
         write(REHEARSAL_INSTALLER_DIR + "/" + branch_installer, b"MZ the branch's installer")
         write(REHEARSAL_INSTALLER_DIR + "/SHA256SUMS", ("%s  %s\r\n" % (hashlib.sha256(b"MZ the branch's installer").hexdigest(), branch_installer)).encode("ascii"))
         rehearsal_env = {"HM_COSIGN_IMAGE": env["HM_COSIGN_IMAGE"], "CI_COMMIT_SHA": built, "CI_COMMIT_BRANCH": "batch42",
-                         "CI_COMMIT_REF_PROTECTED": "true", "CI_DEFAULT_BRANCH": "master", "CI_PROJECT_PATH": "Progressiverobot/hmailserver"}
+                         "CI_COMMIT_REF_PROTECTED": "true", "CI_DEFAULT_BRANCH": "master", "CI_PROJECT_PATH": "hmailserver/hmailserver"}
         asked = []
 
         def no_git(arguments, **kwargs):
@@ -2251,12 +2254,14 @@ def self_test():
         found = collect(root, None, os.path.join(work, "refused-rehearsal"), rehearsal_env, run=no_git, api=None, rehearse=True)
         expect(any("the file is not the one its build job made" in p for p in found), "a rehearsal's installer unlike its sums is refused: %s" % found)
         put_back()
-        expect(signing_identity(rehearsal_env, rehearse=True) == "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/heads/batch42",
+        expect(signing_identity(rehearsal_env, rehearse=True) == "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/heads/batch42",
                "a rehearsal signs as its branch, an identity no server trusts")
-        expect(signing_identity({"CI_PROJECT_PATH": "hmailserver/hmailserver", "CI_COMMIT_TAG": "v6.3.5"})
-               == "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5", "a release signs as its tag, at either path")
-        for what, identity_env in (("another path", {"CI_PROJECT_PATH": "someone/hmailserver", "CI_COMMIT_TAG": "v6.3.5"}),
-                                   ("a branch taken as a release", {"CI_PROJECT_PATH": "Progressiverobot/hmailserver", "CI_COMMIT_BRANCH": "batch42"})):
+        expect(signing_identity({"CI_PROJECT_PATH": "hmailserver/hmailserver", "CI_COMMIT_TAG": "v6.3.6"})
+               == "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.6", "a release signs as its tag, at the group's path")
+        for what, identity_env in (("another path", {"CI_PROJECT_PATH": "someone/hmailserver", "CI_COMMIT_TAG": "v6.3.6"}),
+                                   ("the first path, which signed 6.3.5 and is not the project's now",
+                                    {"CI_PROJECT_PATH": "Progressiverobot/hmailserver", "CI_COMMIT_TAG": "v6.3.6"}),
+                                   ("a branch taken as a release", {"CI_PROJECT_PATH": "hmailserver/hmailserver", "CI_COMMIT_BRANCH": "batch42"})):
             try:
                 signing_identity(identity_env)
                 failures.append("a signing identity for %s is refused" % what)
@@ -2329,8 +2334,8 @@ def self_test():
             with open(os.path.join(directory, provenance_name(version)), "w", encoding="utf-8") as f:
                 f.write(text_changes(json.dumps(bundle)) if text_changes else json.dumps(bundle))
 
-        publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/", "CI_PROJECT_PATH": "Progressiverobot/hmailserver",
-                       "CI_COMMIT_SHA": built, "CI_PIPELINE_URL": "https://gitlab.com/Progressiverobot/hmailserver/-/pipelines/1"}
+        publish_env = {"CI_PROJECT_ID": PROJECT_ID, "CI_API_V4_URL": API_BASE + "/", "CI_PROJECT_PATH": "hmailserver/hmailserver",
+                       "CI_COMMIT_SHA": built, "CI_PIPELINE_URL": "https://gitlab.com/hmailserver/hmailserver/-/pipelines/1"}
         fake_provenance(signed)
         verification = "## Verification\n\nSigned by %s%s." % (SIGNER_IDENTITY_PREFIX, tag)
         api = FakeGitLab()
@@ -2577,13 +2582,13 @@ def self_test():
             expect(any(needle in p for p in found), "a provenance with %s is refused: %s" % (what, found))
             if what == "another builder":
                 refuses("a release whose provenance another pipeline signed", "names the builder", assets_dir=twisted)
-        found = provenance_problems(signed, version, tag_identity.replace("Progressiverobot", "someone"), built)
+        found = provenance_problems(signed, version, tag_identity.replace("/hmailserver/hmailserver/", "/someone/hmailserver/"), built)
         expect(any("certificate does not name" in p for p in found), "a provenance whose certificate names another identity is refused: %s" % found)
         # The identity's bytes in the certificate's public key, its SAN another pipeline's:
         # the SAN is what names it.
         planted = os.path.join(work, "provenance-planted")
         shutil.copytree(signed, planted)
-        fake_provenance(planted, certificate_identity=tag_identity.replace("Progressiverobot", "someone"),
+        fake_provenance(planted, certificate_identity=tag_identity.replace("/hmailserver/hmailserver/", "/someone/hmailserver/"),
                         key=tag_identity.encode("utf-8"))
         found = provenance_problems(planted, version, tag_identity, built)
         expect(any("certificate does not name" in p for p in found),
@@ -2593,8 +2598,10 @@ def self_test():
         found = provenance_problems(planted, version, tag_identity, built)
         expect(any("certificate does not name" in p for p in found), "a provenance whose certificate is cut short is refused: %s" % found)
         # The repository id, held as a server holds the release's files to it: this
-        # project's where there is one, and one at the group's path.
-        group_identity = tag_identity.replace("/Progressiverobot/", "/hmailserver/")
+        # project's where there is one, and one at the group's path, which is the
+        # path a release is signed as now.
+        group_identity = tag_identity
+        first_identity = tag_identity.replace("/hmailserver/hmailserver/", "/Progressiverobot/hmailserver/")
         for what, kwargs, at, needle in (
                 ("another project's id", {"repository_id": "1267388815"}, tag_identity,
                  "certificate names the repository id 1267388815"),
@@ -2613,8 +2620,8 @@ def self_test():
             fake_provenance(planted, **kwargs)
             found = provenance_problems(planted, version, at, built)
             expect(any(needle in p for p in found), "a provenance with %s is refused: %s" % (what, found))
-        fake_provenance(planted, repository_id=None)
-        found = provenance_problems(planted, version, tag_identity, built)
+        fake_provenance(planted, repository_id=None, identity=first_identity)
+        found = provenance_problems(planted, version, first_identity, built)
         expect(found == [], "a provenance without an id, at the path the project began at, is taken: %s" % found)
         fake_provenance(planted, identity=group_identity)
         found = provenance_problems(planted, version, group_identity, built)

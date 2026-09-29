@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel
       /// has no HelpWikiBaseUrl setting to say otherwise - an older server. A
       /// server that has the setting is believed, an empty one included.
       /// </summary>
-      private const string DefaultHelpWikiBaseUrl = "https://gitlab.com/Progressiverobot/hmailserver/-/wikis/";
+      private const string DefaultHelpWikiBaseUrl = "https://gitlab.com/hmailserver/hmailserver/-/wikis/";
 
       private bool helpOpen_;
       private bool helpWanted_;

@@ -95,7 +95,7 @@ over COM. The check reads the feed then, whether or not the daily check is on.
   on the stable channel (6.3.3)."
 - On an older version the answer is that a newer release is available, with
   its version and date and a link to its page on
-  `gitlab.com/Progressiverobot/hmailserver/-/releases/`. `GET /api/v1/update`
+  `gitlab.com/hmailserver/hmailserver/-/releases/`. `GET /api/v1/update`
   shows the installer's address in the project's package registry
   (`https://gitlab.com/api/v4/projects/86730559/packages/generic/...`).
 - Before the change, the same check said "The update feed answered HTTP 404."
@@ -161,7 +161,10 @@ On Windows only - the Linux builds from 6.3.0 to 6.3.3 cannot apply an update
 at all, and answer "This build cannot apply an update". A server from 6.2.28 to
 6.3.3 already reads three settings that replace the identity it trusts. They
 were made for a site that signs its own releases. Set to this project's GitLab
-signer, they let the old server's live update install a GitLab-signed release:
+signer at the path the project began at, they let the old server's live update
+install 6.3.5, the one release signed there, while 6.3.5 is the newest stable
+release; from 6.3.6 the releases are signed at the group's path, which these
+settings must not name (below):
 
 ```ini
 [Settings]
@@ -185,16 +188,17 @@ Control Panel, `DELETE /api/v1/settings/ini/<name>`, or `hmailserver
 --set-setting <name>=` - and not in the file, which the new version puts back.
 Left set, they keep the new version to the GitLab signer alone, with all of
 that signer's checks: they restate its own values (see below). They also keep
-it to the project's present path: once the project has moved to the group
-`hmailserver` (below), a server that still has them refuses every release
-signed after the move. Clear them before then.
+it to the path the project began at: the project moved to the group
+`hmailserver` on 29 September 2026 (below), and a server that still has them
+refuses every release signed after the move, from 6.3.6. Clear them.
 
 Never point these three at the group's path, `hmailserver/hmailserver`. A
 server from 6.2.28 to 6.3.3 checks no repository id at all, so pinned there it
 would install whatever anyone who ever holds that path signs for a `v*` tag -
 the id is what tells the project apart there, and only a server built after
-6.3.3 checks it. Once the project has moved, a server still on 6.2.28 to 6.3.3
-is upgraded by hand, once, to a release that knows the group's path.
+6.3.3 checks it. Once a release newer than 6.3.5 is published, a server still on
+6.2.28 to 6.3.3 is upgraded by hand, once, to a release that knows the group's
+path.
 
 From 6.3.4 on, by the live update
 ---------------------------------
@@ -266,14 +270,15 @@ What a server built after 6.3.3 checks
 --------------------------------------
 
 The trust is a list of this project's signers, compiled in: the GitHub
-workflow, and the GitLab pipeline under two paths, the project's now and the
-group's it is to move to. A certificate is accepted only when it is one
+workflow, and the GitLab pipeline under two paths, the one the project began at
+and the group's it moved to on 29 September 2026. A certificate is accepted only
+when it is one
 entry's whole: its identity, and that same entry's issuer, repository and
 repository id.
 
 | | GitHub | GitLab | GitLab, after the move |
 |---|---|---|---|
-| Signed | Every release from 6.2.19 to 6.3.3 | The releases from 6.3.5 until the project moves, by the `release-sign` job; 6.3.4 carries no bundle | The releases after the project moves to the group `hmailserver`; none yet |
+| Signed | Every release from 6.2.19 to 6.3.3 | 6.3.5, by the `release-sign` job, the one release signed before the project moved; 6.3.4 carries no bundle | Every release from 6.3.6, since the project moved to the group `hmailserver` on 29 September 2026 |
 | Identity (the certificate's subject alternative name begins with) | `https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@` | `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v` | `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v` |
 | Issuer | `https://token.actions.githubusercontent.com` | `https://gitlab.com` | `https://gitlab.com` |
 | Repository | `https://github.com/Progressiverobot/hmailserver` | `https://gitlab.com/Progressiverobot/hmailserver` | `https://gitlab.com/hmailserver/hmailserver` |
@@ -291,29 +296,29 @@ project's to keep, and because the feed is not the project's word either:
   bundles on the re-hosted releases were all issued by 2026-09-15T01:00:18Z,
   and all record the id `1267388815`.
 - **The GitLab signer is held to the project, not the path.** The project
-  lives in a personal namespace, and a path can pass to someone else after a
-  rename. Fulcio records the project's id beside the path, and the id is the
-  project's for ever. The servers up to 6.3.6 were written before any
-  GitLab-issued certificate had been seen, so they check the id when the
-  certificate carries one rather than require it: a server that refused every
-  certificate for lacking an extension Fulcio turned out not to write could
-  install nothing. 6.3.5's, the first, records it (`86730559`).
-- **The path the project is to move to is trusted already, and only with the
-  project's id.** The project is to leave the personal namespace for the group
-  `hmailserver` (https://gitlab.com/hmailserver), which the owner reserved for
-  it on 26 September 2026. A transfer changes the path in every certificate
-  the pipeline is given and keeps the project's id, and a server trusts only
-  what is compiled into it, so a server that knew only the present path would
-  refuse every release signed after the move. Every server from 6.3.4 on knows
-  both paths. For the group's the id is required: the path is not the
-  project's until the move, and whoever holds it then - were the group lost,
-  or the project moved on again - could sign for a `v*` tag of their own
-  there, but never with this project's id. No setting relaxes it (see the
-  three settings below). The cost is the project's: the
-  project does not move until a release signed from the present path has shown
-  that Fulcio records the id (its notes say, from `release-verify`), since if
-  Fulcio wrote none, nothing signed from the group would install. 6.3.5 showed
-  it on 29 September 2026.
+  lived in a personal namespace until 29 September 2026, and a path can pass to
+  someone else after a rename or a move. Fulcio records the project's id beside
+  the path, and the id is the project's for ever. The servers up to 6.3.6 were
+  written before any GitLab-issued certificate had been seen, so they check the
+  id when the certificate carries one rather than require it: a server that
+  refused every certificate for lacking an extension Fulcio turned out not to
+  write could install nothing. 6.3.5's, the first, records it (`86730559`).
+- **The path the project moved to was trusted before the move, and only with
+  the project's id.** The project left the personal namespace on 29 September
+  2026 for the group `hmailserver` (https://gitlab.com/hmailserver), which the
+  owner had reserved for it on 26 September 2026. A transfer changes the path
+  in every certificate the pipeline is given and keeps the project's id, and a
+  server trusts only what is compiled into it, so a server that knew only the
+  first path would refuse every release signed after the move. Every server
+  from 6.3.4 on knows both paths. For the group's the id is required: the path
+  was not the project's until the move, and whoever holds it later - were the
+  group lost, or the project moved on again - could sign for a `v*` tag of
+  their own there, but never with this project's id. No setting relaxes it (see
+  the three settings below). The cost was the project's: it did not move until
+  a release signed from the first path had shown that Fulcio records the id
+  (its notes say, from `release-verify`), since had Fulcio written none,
+  nothing signed from the group would install. 6.3.5 showed it (`86730559`),
+  and the project moved the same day.
 - **A file is held to its release.** A GitLab job signs for the tag it ran
   for, and the identity names that tag. A server built after 6.3.3 refuses a
   file whose certificate names another tag than the release the feed offers it
@@ -415,7 +420,7 @@ own value changes nothing about that signer. And where the settings
 turn one signer into another's identity, issuer and repository without its
 checks - the three GitLab values above, still set after an upgrade, do that to
 the GitHub entry and to the group's - the copy is dropped and the unchanged
-signer kept, so such a server trusts the project's present path alone.
+signer kept, so such a server trusts the path the project began at alone.
 `hmailserver --verify-update`, which the Linux update helper runs as root,
 checks everything but the release, which it is not given; the helper holds the
 package to an upgrade itself.
@@ -470,12 +475,11 @@ before it is published, as 6.3.5 was:
       same commit, not only with cosign. Check the certificate's identity,
       issuer, repository and id against the table above, and put them in the
       release's notes.
-- [ ] **The project's path, and its id**: the job signs as the path it runs
-      at, `Progressiverobot/hmailserver` until the project moves to the group
-      and `hmailserver/hmailserver` after, and from no other. Before the move,
-      the notes of a release signed from the present path must show the id
-      `86730559` in the certificate: a server requires it for the group's path,
-      so the project does not move until one has.
+- [ ] **The project's path, and its id**: the job signs as the group's path,
+      `hmailserver/hmailserver`, where the project has been since 29 September
+      2026, and from no other; 6.3.5, before the move, was signed as the first
+      path, `Progressiverobot/hmailserver`. The release's notes must show the id
+      `86730559` in the certificate: a server requires it for the group's path.
 
 How the job meets each point: it is a job of the tag's own pipeline and never a
 trigger; the tag is checked as an annotated tag on a commit `master` has,
@@ -488,8 +492,8 @@ https://rekor.sigstore.dev`, and with `--use-signing-config=false` wherever the
 cosign in the image has that option, then refuses a bundle that is not a
 Sigstore bundle with a `messageSignature` and a hashedrekord 0.0.1 entry with an
 `integratedTime` and the log's promise or proof; both refuse to run at a
-project path (`CI_PROJECT_PATH`) other than the two above, and name the
-identity after the one they run at; `release-verify` runs
+project path (`CI_PROJECT_PATH`) other than the group's, and name the identity
+after it; `release-verify` runs
 `hmailserver --verify-update` from `linux-build` of the same commit on every
 file, requires that identity, and writes the notes' verification section
 with the repository id as the certificate states it; and `release-publish`
@@ -567,7 +571,7 @@ files above: `hmailserver_debian12_amd64.deb`, `hmailserver.el9.x86_64.rpm`,
 dnf repositories serve once those are published ([PackageManagers.md](PackageManagers.md)).
 
 **GitLab's own permanent links.** Every file of a release is also at
-`https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest/downloads/<name>`
+`https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/<name>`
 while its release is the latest, and always at `.../-/releases/v<version>/downloads/<name>`,
 `<name>` being its link's path: the file's name with the version taken out.
 GitLab picks the latest by date, a pre-release included, where `/download/` follows
@@ -635,10 +639,10 @@ per link, `from to 302`, the target the file's address in the package registry.
 Pages serves a file before a rule, so nothing is written under `public/download/`.
 Pages answers only 301, 302 and 200, and only 301 and 302 with an absolute
 target. It reads at most 1,000 rules and 64 KiB. It ignores a trailing slash, so
-`/download` works too. The rules name the custom domain's paths. On the
-`progressiverobot.gitlab.io` address they would need the project's path in front
-of them, and they are not written for it. At `/_redirects` Pages shows each rule
-and whether it is valid.
+`/download` works too. The rules name the custom domain's paths, and they answer
+the same at the project's own Pages address, GitLab's unique domain for it,
+`hmailserver-94fa55.gitlab.io`. At `/_redirects` Pages shows each rule and
+whether it is valid.
 
 The links are for people and scripts. A server does not read them, because it
 follows no redirect. They are HTTPS addresses like the rest of the site, which
@@ -697,15 +701,16 @@ release does.
 
 An entry's id is `tag:updates.progressiverobot.com,2026:releases/<tag>`, a tag
 URI made from the release's tag alone. A feed reader remembers the entries it
-has shown by their ids. An id made from the release page's address would change
-when the project moves into the group `hmailserver`, and every reader would
-show every release again. This one does not change when the feed is made
-again, when a release is edited, or when the project moves.
+has shown by their ids. An id made from the release page's address would have
+changed when the project moved into the group `hmailserver` on 29 September
+2026, and every reader would have shown every release again. This one does not
+change when the feed is made again, when a release is edited, or when the
+project moves.
 
 The site's pages link the feed, and name it for a browser's feed discovery.
 GitLab also serves a feed of its own at `/-/releases.atom` under the project's
 address. That one carries the whole notes, runs to a megabyte, and its ids are
-the release pages' addresses, which the move changes. It also lists
+the release pages' addresses, which the move changed. It also lists
 `build-inputs-1`, which is not a server release.
 
 `build/check-atom-feed.py` checks the feed against RFC 4287: the elements the
@@ -763,7 +768,16 @@ the repository key, as not in the releases.
 
 The name is a CNAME, `updates` to `progressiverobot.gitlab.io`, served DNS-only
 (not proxied) at Cloudflare. The domain is added and verified in the project's
-Pages settings, and GitLab issues and renews its Let's Encrypt certificate.
+Pages settings, and GitLab issues and renews its Let's Encrypt certificate. The
+CNAME was made while the project was in the personal namespace, and it still
+works since the move: GitLab Pages serves every site, a custom domain's
+included, at the same addresses, and picks the site by the name asked for, not
+by the `*.gitlab.io` name the CNAME goes through. On 29 September 2026, after
+the move, `progressiverobot.gitlab.io` and `hmailserver.gitlab.io` both
+resolved to 35.185.44.232 and 2600:1901:0:7b8a::, the domain was still
+verified, and the site answered the feed at `updates.progressiverobot.com`.
+Pointing the CNAME at `hmailserver.gitlab.io`, the group's own name, is tidier
+and changes nothing a server sees; it is the owner's DNS change, and optional.
 
 A server reads the site anonymously, so Pages must be visible to everyone
 (Settings, General, Visibility, Pages). If Pages is restricted to the project's

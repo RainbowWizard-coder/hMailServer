@@ -144,10 +144,15 @@ The wiki link
 -------------
 
 `HelpWikiBaseUrl`, a server setting in `hm_settings` (never an ini key),
-shipped as `https://gitlab.com/Progressiverobot/hmailserver/-/wikis/`, the
-project's wiki. Each pane's *Open on the wiki* is that URL with the
-document's name as the page. It is `help_wiki_base_url` on `GET` and `PUT
-/api/v1/settings`, so it is on the Deck's Settings page; on the Control
+shipped as `https://gitlab.com/hmailserver/hmailserver/-/wikis/`, the
+project's wiki. Up to 6.3.5 it was shipped as
+`https://gitlab.com/Progressiverobot/hmailserver/-/wikis/`, the project's path
+before it moved into the group `hmailserver` on 29 September 2026, and a
+database set up then keeps that value through an upgrade, as it keeps any
+setting; GitLab redirects the old address to the new one, so the link still
+works, and setting the new value is the administrator's choice. Each pane's
+*Open on the wiki* is that URL with the document's name as the page. It is
+`help_wiki_base_url` on `GET` and `PUT /api/v1/settings`, so it is on the Deck's Settings page; on the Control
 Panel's Advanced page under General; and `Settings.HelpWikiBaseUrl` over COM.
 A value that is not empty and not an absolute `http://` or `https://` URL is
 refused in the same words on every door; empty hides the link everywhere.

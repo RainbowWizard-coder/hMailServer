@@ -107,11 +107,14 @@ namespace HM
       const __int64 GITHUB_ISSUED_BEFORE = 1789689600;   // 2026-09-18T00:00:00Z
       const char *GITHUB_LAST_VERSION = "6.3.3";
 
-      // Every release from 6.3.5 is to be signed by the release-sign job of this
-      // project's GitLab CI pipeline for a v* tag (6.3.4 was released by hand with
-      // no bundle). None has been yet: this entry is compiled in from Fulcio's
-      // documented GitLab form, and the first signed release is what proves it
-      // (docs/UpdateFeed.md, "What the signing job produces").
+      // This project's GitLab CI pipeline for a v* tag at the path the project
+      // began at, in the owner's personal namespace. Its release-sign job signed
+      // 6.3.5 on 29 September 2026, the first release signed on GitLab (6.3.4 was
+      // released by hand with no bundle), and the project moved into the group
+      // below later that day, so nothing more is signed here. The entry was
+      // compiled in from Fulcio's documented GitLab form before anything had been
+      // signed, and stays so that a server goes on taking 6.3.5, to install it or
+      // to roll back to it (docs/UpdateFeed.md, "What the signing job produces").
       // Fulcio names a GitLab CI job by the ci_config_ref_uri claim of its ID token,
       // "https://" + gitlab.com/<project path>//<CI file>@<ref>, records
       // https://gitlab.com as the issuer, https://gitlab.com/<project path> as the
@@ -124,38 +127,40 @@ namespace HM
       // presents another identity and is refused. The project id, 86730559, holds
       // it to this project and not to whichever takes the path after a rename or a
       // transfer of the namespace. The id is checked when the certificate carries
-      // one: no GitLab-issued certificate has been seen here yet, and a server that
-      // refused every one for lacking an extension Fulcio turned out not to write
-      // could install nothing; the path, the issuer and the repository are
-      // required either way.
+      // one: no GitLab-issued certificate had been seen when this entry was
+      // written, and a server that refused every one for lacking an extension
+      // Fulcio turned out not to write could install nothing (6.3.5's recorded
+      // 86730559); the path, the issuer and the repository are required either
+      // way.
       const char *GITLAB_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v";
       const char *GITLAB_ISSUER = "https://gitlab.com";
       const char *GITLAB_REPOSITORY = "https://gitlab.com/Progressiverobot/hmailserver";
       const char *GITLAB_REPOSITORY_ID = "86730559";
 
-      // And the same pipeline after the project moves. The project is to leave the
-      // personal namespace Progressiverobot for the group hmailserver
-      // (https://gitlab.com/hmailserver), which the owner reserved for it on 26
-      // September 2026. A transfer keeps the project's id and changes its path, and
-      // with the path the identity and the source repository Fulcio writes, so no
-      // certificate from the pipeline after the move names the entry above. A
-      // server trusts only the signers compiled into it: one that knew only the
-      // entry above would refuse every release signed after the move, and nothing
-      // but an upgrade by hand would get it past. This entry is here so that every
-      // server from 6.3.4 on takes those releases. Nothing has been signed from
-      // this path, and nothing will be until the move. The prefix is anchored as
-      // the entry above's is, and the issuer is the same.
+      // And the same pipeline at the group's path, where the project has been
+      // since 29 September 2026: it left the personal namespace Progressiverobot
+      // that day for the group hmailserver (https://gitlab.com/hmailserver), which
+      // the owner had reserved for it on 26 September 2026. A transfer keeps the
+      // project's id and changes its path, and with the path the identity and the
+      // source repository Fulcio writes, so no certificate from the pipeline after
+      // the move names the entry above. A server trusts only the signers compiled
+      // into it: one that knew only the entry above would refuse every release
+      // signed after the move, and nothing but an upgrade by hand would get it
+      // past. This entry was compiled in from 6.3.4, before the move, so that
+      // every server from 6.3.4 on takes those releases; every release from 6.3.6
+      // is signed here. The prefix is anchored as the entry above's is, and the
+      // issuer is the same.
       //
       // Here the id is required, where the entry above checks it only when the
-      // certificate carries one. That entry's path is the project's own today, in
-      // the owner's own namespace, where nobody else can make a project; its id
-      // guards against whoever holds the path after the project has left it, and
-      // it is optional because a server that refused every certificate for lacking
-      // an extension Fulcio turned out not to write could install nothing. This
-      // path is not the project's until the move. The group can be lost, or the
-      // project moved on again, and whoever holds the path then can run a pipeline
-      // for a v* tag of their own there and be named exactly as this entry names
-      // it. Only the id tells them apart: a transfer keeps 86730559, and GitLab
+      // certificate carries one. That entry's path was the project's own until the
+      // move, in the owner's own namespace, where nobody else can make a project;
+      // its id guards against whoever holds the path now that the project has left
+      // it, and it is optional because a server that refused every certificate for
+      // lacking an extension Fulcio turned out not to write could install nothing.
+      // This path was not the project's until the move, and the group can be lost,
+      // or the project moved on again, and whoever holds the path then can run a
+      // pipeline for a v* tag of their own there and be named exactly as this
+      // entry names it. Only the id tells them apart: a transfer keeps 86730559, and GitLab
       // gives no other project that id, so a certificate for this path must record
       // it, and one that records none is nobody's. Whoever registers the path, now
       // or ever, cannot sign as this project from a project of their own - and
@@ -163,14 +168,14 @@ namespace HM
       // UpdateSigningIssuer and UpdateSourceRepository make of the signers ("-"
       // included, which drops every entry's id with its repository), Verify_
       // refuses a certificate that names this path or this repository without
-      // the project's id. The cost falls on the project, not on a server:
-      // Fulcio's GitLab mapping writes the
-      // project's id as the source repository identifier, but no GitLab-issued
-      // certificate has been seen here yet, and if Fulcio wrote none, nothing
-      // signed from the group would install. The first release signed from the
-      // personal namespace shows which (release-verify puts the id it found in the
-      // release's notes), and the project is not to move before one has shown it
-      // (docs/UpdateFeed.md, "What a server built after 6.3.3 checks").
+      // the project's id. The cost fell on the project, not on a server: Fulcio's
+      // GitLab mapping writes the project's id as the source repository
+      // identifier, but no GitLab-issued certificate had been seen when this entry
+      // was written, and had Fulcio written none, nothing signed from the group
+      // would install. So the project did not move before a release signed from
+      // the personal namespace had shown it: 6.3.5's certificate records 86730559,
+      // which release-verify put in the release's notes (docs/UpdateFeed.md, "What
+      // a server built after 6.3.3 checks").
       const char *GITLAB_GROUP_IDENTITY_PREFIX = "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v";
       const char *GITLAB_GROUP_REPOSITORY = "https://gitlab.com/hmailserver/hmailserver";
 
@@ -682,10 +687,11 @@ namespace HM
       // would take a certificate the real one refuses. Stronger: the one whose
       // identity was not replaced (it keeps its release check and its limits),
       // then the one nothing was replaced in; between equals, the first. The same
-      // three values turn the group's entry into the present path's without the
-      // id, and it goes the same way: a server that keeps them set trusts the
-      // project's present path alone, and refuses what is signed after the move
-      // until they are cleared, which docs/UpdateFeed.md tells it to do.
+      // three values turn the group's entry into the first path's without the id,
+      // and it goes the same way: a server that keeps them set trusts the
+      // project's first path alone, and refuses every release signed after the
+      // move, from 6.3.6, until they are cleared, which docs/UpdateFeed.md tells it
+      // to do.
       String identity = settings->GetUpdateSigningIdentity();
       String issuer = settings->GetUpdateSigningIssuer();
       String repository = settings->GetUpdateSourceRepository();
@@ -1220,14 +1226,14 @@ namespace HM
       }
 
       // Whatever the settings made of the signers, a certificate that names the
-      // group the project is to move to - that project's path in its identity, or
+      // group the project moved to - that project's path in its identity, or
       // its repository - is this project's only with this project's id, which is
       // all that tells the project from whoever holds the path then
       // (GITLAB_GROUP_IDENTITY_PREFIX says why). The group's own entry requires
       // it; this is so that no setting takes such a certificate without it: not
       // the repository check off ("-"), which drops every entry's id with its
       // repository, and not an identity or a repository of the site's own that
-      // names the group's path, where the copy of the present path's entry,
+      // names the group's path, where the copy of the first path's entry,
       // whose id went with its repository, is the one kept. Without regard to
       // case, which does not tell GitLab's paths apart.
       String groupRefusal;

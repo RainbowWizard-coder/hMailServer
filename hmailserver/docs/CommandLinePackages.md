@@ -230,8 +230,8 @@ What the owner sets
 | Environment name | `pypi` |
 
 The namespace and project are the project's path when the job runs:
-`hmailserver/hmailserver` after the move into the group, `Progressiverobot/hmailserver`
-before it. PyPI checks the ID token's `project_path`, its `ci_config_ref_uri`, which
+`hmailserver/hmailserver` since the move into the group on 29 September 2026
+(`Progressiverobot/hmailserver` before it). PyPI checks the ID token's `project_path`, its `ci_config_ref_uri`, which
 names `.gitlab-ci.yml` for a job of an included file too, and its `environment`. The
 GitLab environment `pypi` is made by the job's first run. On GitLab's Free tier an
 environment cannot be protected (that is Premium), so what holds the job is its rules:

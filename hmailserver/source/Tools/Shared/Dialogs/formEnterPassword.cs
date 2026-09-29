@@ -55,7 +55,7 @@ namespace hMailServer.Shared
          // The project's wiki, where the Control Panel's help links go too: the
          // installer's "Administrator password" step says what this password is.
          // The upstream page this used to open is not this server's documentation.
-         Process.Start(new ProcessStartInfo("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/Installing-hMailServer#the-wizard-page-by-page")
+         Process.Start(new ProcessStartInfo("https://gitlab.com/hmailserver/hmailserver/-/wikis/Installing-hMailServer#the-wizard-page-by-page")
          {
             UseShellExecute = true
          });

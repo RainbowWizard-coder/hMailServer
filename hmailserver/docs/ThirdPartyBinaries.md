@@ -68,7 +68,7 @@ generic package registry on GitLab
 (`https://gitlab.com/api/v4/projects/86730559/packages/generic/build-inputs/<n>/<asset>`),
 where `build-inputs-1` was re-published byte for byte after GitHub suspended the
 project's account on 18 September 2026
-(<https://gitlab.com/Progressiverobot/hmailserver/-/releases/build-inputs-1>).
+(<https://gitlab.com/hmailserver/hmailserver/-/releases/build-inputs-1>).
 Until 26 September 2026 it downloaded from GitHub's address, which has answered
 404 since. A file already in the script's cache
 (`%LOCALAPPDATA%\hmailserver\build-inputs`, or the folder given to `-Cache`)

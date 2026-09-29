@@ -81,7 +81,7 @@ Usage:
           --runtime-linked built-against-x86_64/runtime-linked.txt
   python3 build/asset-sbom.py make --kind source --asset hmailserver-6.3.6.tar.gz
   python3 build/asset-sbom.py image --syft image.syft.cdx.json --deb-sbom hmailserver_6.3.5_amd64.deb.cdx.json \\
-          --image registry.gitlab.com/progressiverobot/hmailserver@sha256:<digest> --version 6.3.5 --out FILE
+          --image registry.gitlab.com/hmailserver/hmailserver@sha256:<digest> --version 6.3.5 --out FILE
   python3 build/asset-sbom.py verify FILE.cdx.json FILE      the document describes this very file
   python3 build/asset-sbom.py --self-test                    no network, no dpkg, no rpm
 
@@ -109,7 +109,7 @@ import uuid
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPEC = "1.6"
 SUFFIX = ".cdx.json"
-PROJECT_URL = "https://gitlab.com/Progressiverobot/hmailserver"
+PROJECT_URL = "https://gitlab.com/hmailserver/hmailserver"
 SUPPLIER = {"name": "Progressive Robot Ltd", "url": ["https://www.progressiverobot.com"]}
 VERSION_H = os.path.join("hmailserver", "source", "Server", "Common", "Application", "Version.h")
 INSTALLATION = os.path.join("hmailserver", "installation")
@@ -1364,7 +1364,7 @@ def self_test():
             {"bom-ref": "pkg:deb/hmailserver@6.3.5", "type": "library", "name": "hmailserver", "version": "6.3.5"}],
             "metadata": {"tools": {"components": [{"type": "application", "author": "anchore", "name": "syft", "version": "1.33.0"}]}}}
         digest = "e" * 64
-        image = image_document(syft, linux, "registry.gitlab.com/progressiverobot/hmailserver@sha256:" + digest, "6.3.5")
+        image = image_document(syft, linux, "registry.gitlab.com/hmailserver/hmailserver@sha256:" + digest, "6.3.5")
         names = [c["name"] for c in image["components"]]
         expect("libssl3t64" in names and "quickjs" in names and "linux-boost" in names, "the image lists Syft's packages and the .deb's own: %s" % names)
         expect(image["metadata"]["component"]["hashes"] == [{"alg": "SHA-256", "content": digest}] and

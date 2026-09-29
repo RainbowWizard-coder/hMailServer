@@ -82,7 +82,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 API = os.environ.get("CI_API_V4_URL", "https://gitlab.com/api/v4").rstrip("/")
 PROJECT = os.environ.get("CI_PROJECT_ID", "86730559")
-REPOSITORY = os.environ.get("CI_PROJECT_URL", "https://gitlab.com/Progressiverobot/hmailserver") + ".git"
+REPOSITORY = os.environ.get("CI_PROJECT_URL", "https://gitlab.com/hmailserver/hmailserver") + ".git"
 
 MAINTAINER = 40
 RELEASES_CHECKED = 5

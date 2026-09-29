@@ -175,7 +175,7 @@ namespace HM
          { _T("greylistinginitialdelete"), _T(""), 24, KindNumber, LevelServer },
          { _T("GreyListingSlideOnEarlyRetry"), _T(""), 0, KindNumber, LevelServer },
          { _T("groupcachettl"), _T(""), 60, KindEither, LevelServer },
-         { _T("HelpWikiBaseUrl"), _T("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/"), 0, KindString, LevelServer },
+         { _T("HelpWikiBaseUrl"), _T("https://gitlab.com/hmailserver/hmailserver/-/wikis/"), 0, KindString, LevelServer },
          { _T("hostname"), _T(""), 0, KindString, LevelServer },
          { _T("IMAPHierarchyDelimiter"), _T("."), 0, KindString, LevelServer },
          { _T("ImapMasterUser"), _T(""), 0, KindString, LevelServer },

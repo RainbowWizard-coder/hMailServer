@@ -68,11 +68,11 @@ else
   [ -n "$version" ] || fail "Version.h's HMAILSERVER_VERSION could not be read"
   ref="refs/heads/${branch}"
 fi
-# The project's path, which the certificate names: the personal namespace the project
-# began in, or the group it is to move to - the two GitLab paths the server trusts, the
-# group's only with the project's id, which a transfer keeps.
+# The project's path, which the certificate names: the group's, where the project has
+# been since 29 September 2026, and which a server trusts only with the project's id.
+# The first path, Progressiverobot/hmailserver, signed 6.3.5; release-sign.sh signs
+# nothing new there, and this verifies what it signs.
 case "${CI_PROJECT_PATH:-}" in
-  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;
   hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;
   *) fail "the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from" ;;
 esac
@@ -199,10 +199,10 @@ if [ -n "$rehearse" ]; then
   exit 0
 fi
 
-# The repository id (Fulcio's 1.3.6.1.4.1.57264.1.15): for the path the project began
-# at the server requires it when the certificate carries it, for the group's always, and
-# the notes say which it was, from the installer's bundle. The first release says here
-# whether Fulcio writes it for GitLab at all, which the move to the group waits for.
+# The repository id (Fulcio's 1.3.6.1.4.1.57264.1.15), which a server requires at the
+# group's path, and which the notes give from the installer's bundle. 6.3.5, the first
+# release signed here, at the path the project began at, showed that Fulcio writes it
+# for GitLab (86730559); the project moved into the group after it.
 # Read from the certificate's extensions by build/ci/sigstore-certificate.py, never by
 # a search of its bytes: its public key, bytes its holder chooses, could hold this
 # project's id in front of the extension naming another's.
@@ -211,11 +211,8 @@ said=$(python3 build/ci/sigstore-certificate.py repository-id "$signed/$installe
   || fail "the certificate of $installer could not be read for the repository id: ${said#refused: }"
 case "$said" in
   id=86730559) id_row="| Repository id | \`86730559\` |" ;;
-  absent)
-    # The server refused such a file above already where the path is the group's.
-    [ "$repository" = "https://gitlab.com/Progressiverobot/hmailserver" ] \
-      || fail "the certificate records no repository id, which a server requires for $repository"
-    id_row="| Repository id | not in the certificate; a server checks it only when it is there |" ;;
+  # The server refused such a file above already: at the group's path the id is required.
+  absent) fail "the certificate records no repository id, which a server requires for $repository" ;;
   *) fail "the certificate names the repository id '${said#id=}', not 86730559" ;;
 esac
 

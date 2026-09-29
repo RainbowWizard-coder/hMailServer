@@ -5,8 +5,9 @@ already cost a release cycle or nearly shipped a defect.
 
 **Status since 18 September 2026.** GitHub has been unavailable to the project
 since 18 September 2026, and its home has been
-[GitLab](https://gitlab.com/Progressiverobot/hmailserver) since 22 September
-2026. Steps 11 to 13 below describe the release chain as it ran on GitHub -
+[GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September
+2026, in the group `hmailserver` since 29 September 2026. Steps 11 to 13
+below describe the release chain as it ran on GitHub -
 the draft release, the Linux packages, the SBOMs, Sigstore and Authenticode
 signing, the installer smoke test and the package managers as GitHub Releases
 and GitHub Actions - and are kept as the history of how releases up to 6.3.3
@@ -199,10 +200,11 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    pipeline with `cosign attest-blob`: 149 links in all. `release-sign` finds every
    file in the provenance with cosign, and `release-verify` holds the provenance
    and the copies to the files. Read `release-verify`'s `verification.md`: the identity must
-   be `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
-   or, once the project has moved to the group, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`.
-   Note the repository id it gives: until one release signed before the move
-   shows `86730559`, the project does not move (hmailserver/docs/UpdateFeed.md).
+   be `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
+   the group's path the project has been at since 29 September 2026 (6.3.5,
+   before the move, was signed as `https://gitlab.com/Progressiverobot/hmailserver//...`),
+   and the repository id `86730559`, which a server requires at the group's path
+   (hmailserver/docs/UpdateFeed.md).
 5. **The installer smoke test**, on the signed installer: download
    `release-signed/` from `release-sign`'s artifacts to the VMware host and run
    `bash build/ci/installer-smoke-run.sh <the previous release's installer>
@@ -344,8 +346,8 @@ particular, check four things:
 - linix and bench150 are up and online on GitLab
   (`hmailserver/docs/ContinuousIntegration.md`, "The runners");
 - the project's path, which the federated credential's subject names:
-  `Progressiverobot/hmailserver` until the move into the group,
-  `hmailserver/hmailserver` after it.
+  `hmailserver/hmailserver` since the move into the group on 29 September
+  2026 (`Progressiverobot/hmailserver` before it, for 6.3.5).
 
 1. **Fix it without pushing.** Write the fix and its regression test, which must
    fail against the build before the fix. Then run steps 2 to 9 of
@@ -864,7 +866,7 @@ token carried. What the owner creates:
    app registration that holds the *Artifact Signing Certificate Profile
    Signer* role on the certificate profile (the one used for 6.3.1 to 6.3.4
    will do), before the tag is pushed: issuer `https://gitlab.com`, subject
-   `project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z` - a
+   `project_path:hmailserver/hmailserver:ref_type:tag:ref:vX.Y.Z` - a
    GitLab ID token's subject for that tag, which Entra ID matches exactly -
    and audience `api://AzureADTokenExchange`. The portal has it under the app
    registration's Certificates & secrets, Federated credentials, *Other
@@ -874,7 +876,7 @@ token carried. What the owner creates:
    {
      "name": "gitlab-hmailserver-vX.Y.Z",
      "issuer": "https://gitlab.com",
-     "subject": "project_path:Progressiverobot/hmailserver:ref_type:tag:ref:vX.Y.Z",
+     "subject": "project_path:hmailserver/hmailserver:ref_type:tag:ref:vX.Y.Z",
      "audiences": ["api://AzureADTokenExchange"]
    }
    ```

@@ -736,7 +736,7 @@ set(CPACK_PACKAGE_NAME hmailserver)
 set(CPACK_PACKAGE_VENDOR "Progressive Robot Ltd")
 set(CPACK_PACKAGE_CONTACT "christopher.j.holloway@outlook.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "hMailServer, a mail server for SMTP, IMAP and POP3")
-set(CPACK_PACKAGE_HOMEPAGE_URL "https://gitlab.com/Progressiverobot/hmailserver")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://gitlab.com/hmailserver/hmailserver")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGING_INSTALL_PREFIX /usr)
 # DESTDIR mode, stated rather than left to CPack's version to decide. The unit,

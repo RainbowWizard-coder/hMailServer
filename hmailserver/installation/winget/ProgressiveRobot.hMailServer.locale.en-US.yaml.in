@@ -19,14 +19,14 @@ PackageVersion: "@VERSION@"
 PackageLocale: en-US
 Publisher: Progressive Robot Ltd
 PublisherUrl: https://www.progressiverobot.com
-PublisherSupportUrl: https://gitlab.com/Progressiverobot/hmailserver/-/issues
+PublisherSupportUrl: https://gitlab.com/hmailserver/hmailserver/-/issues
 Author: Christopher Holloway
 PackageName: hMailServer
-PackageUrl: https://gitlab.com/Progressiverobot/hmailserver
+PackageUrl: https://gitlab.com/hmailserver/hmailserver
 License: AGPL-3.0-or-later
-LicenseUrl: https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/LICENSE
+LicenseUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
 Copyright: Copyright (c) 2026 Progressive Robot Ltd. Based on hMailServer by Martin Knafve.
-CopyrightUrl: https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/LICENSE
+CopyrightUrl: https://gitlab.com/hmailserver/hmailserver/-/blob/master/LICENSE
 ShortDescription: A free, open-source mail server for Windows - SMTP, IMAP and POP3, with anti-spam and anti-virus filtering, DKIM, DMARC, MTA-STS, a webmail client and a REST API.
 Description: |-
   hMailServer is a free, open-source mail server implementing SMTP, IMAP and POP3, with
@@ -67,11 +67,11 @@ Tags:
   - spam-filter
   - webmail
   - server
-ReleaseNotesUrl: https://gitlab.com/Progressiverobot/hmailserver/-/releases/@TAG@
+ReleaseNotesUrl: https://gitlab.com/hmailserver/hmailserver/-/releases/@TAG@
 Documentations:
   - DocumentLabel: Documentation
-    DocumentUrl: https://gitlab.com/Progressiverobot/hmailserver/-/wikis/home
+    DocumentUrl: https://gitlab.com/hmailserver/hmailserver/-/wikis/home
   - DocumentLabel: Release notes
-    DocumentUrl: https://gitlab.com/Progressiverobot/hmailserver/-/releases
+    DocumentUrl: https://gitlab.com/hmailserver/hmailserver/-/releases
 ManifestType: defaultLocale
 ManifestVersion: 1.10.0

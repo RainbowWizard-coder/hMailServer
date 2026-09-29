@@ -3,7 +3,8 @@
 This file records what changed in each release of hMailServer that this project has published, newest first,
 and what is in the tree after the latest release. It is a summary. The full notes of a release - the reasoning,
 the tests and the verification - are on its GitLab release page,
-`https://gitlab.com/Progressiverobot/hmailserver/-/releases/<tag>`, which every section below links to.
+`https://gitlab.com/hmailserver/hmailserver/-/releases/<tag>`, which every section below links to (the sections up
+to 6.3.5 link the project's first path, `gitlab.com/Progressiverobot/hmailserver`, which GitLab redirects).
 
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
@@ -14,16 +15,17 @@ and will carry a version number when a release is cut.
 
 ## Where the releases are
 
-The project's home is <https://gitlab.com/Progressiverobot/hmailserver>. Its releases were published on GitHub
-until GitHub suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in older
-text now answers 404. Every release up to 6.3.3 has been re-created on GitLab from the GitHub original, under its
-original date and with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved:
-<https://gitlab.com/Progressiverobot/hmailserver/-/releases>, with the latest always at
-<https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest>. A tag with no release is at
-`https://gitlab.com/Progressiverobot/hmailserver/-/tags/<tag>`.
+The project's home is <https://gitlab.com/hmailserver/hmailserver>, in the group `hmailserver` since 29 September
+2026 (its first path on GitLab, `Progressiverobot/hmailserver`, redirects there). Its releases were published on
+GitHub until GitHub suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in
+older text now answers 404. Every release up to 6.3.3 has been re-created on GitLab from the GitHub original, under
+its original date and with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved:
+<https://gitlab.com/hmailserver/hmailserver/-/releases>, with the latest always at
+<https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. A tag with no release is at
+`https://gitlab.com/hmailserver/hmailserver/-/tags/<tag>`.
 
 One release is not a version of the server and has no section here:
-[`build-inputs-1`](https://gitlab.com/Progressiverobot/hmailserver/-/tags/build-inputs-1), of 11 September 2026,
+[`build-inputs-1`](https://gitlab.com/hmailserver/hmailserver/-/tags/build-inputs-1), of 11 September 2026,
 holds the three third-party files the Windows installer build downloads instead of keeping them in git - the
 7-Zip 19.00 console, the MariaDB Connector/C 3.4.9 client and the SQL Server Compact 4.0 SP1 x64 runtime. Each is
 recorded by SHA-256 in `hmailserver/docs/third-party-binaries.json` and fetched by
@@ -345,6 +347,15 @@ for a stray `#` number or `@` name.
   path is involved, so the project's move into the group on 29 September changed nothing here.
   `build/check-release-chain.py` fails on a `pages` that does not wait for `release-publish` and on any `trigger:
   project` in a CI file.
+- **The project is at `gitlab.com/hmailserver/hmailserver`.** It moved from the owner's namespace into the group
+  `hmailserver` on 29 September 2026, keeping its id, 86730559, and the old addresses redirect. The documents, the
+  packages' metadata, the Control Panel's links, the policy link of the server's `/.well-known/security.txt` and the
+  Service Desk address name the group's path, and a new database gets `HelpWikiBaseUrl`
+  `https://gitlab.com/hmailserver/hmailserver/-/wikis/`; one set up before keeps its value, which GitLab redirects.
+  From 6.3.6 every release is signed as
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` with the project's id, which
+  every server from 6.3.4 on trusts. The release scripts no longer sign at the first path, which signed 6.3.5 and
+  which servers still trust for it ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
 ### Administration
 

@@ -35,7 +35,7 @@ namespace hMailServer.ControlPanel.Views
          inner.Children.Add(Text(L("A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)."),
             "TextBody", new Thickness(0, 0, 0, 12)));
 
-         inner.Children.Add(Link("gitlab.com/Progressiverobot/hmailserver", "https://gitlab.com/Progressiverobot/hmailserver"));
+         inner.Children.Add(Link("gitlab.com/hmailserver/hmailserver", "https://gitlab.com/hmailserver/hmailserver"));
 
          var card = new Card
          {

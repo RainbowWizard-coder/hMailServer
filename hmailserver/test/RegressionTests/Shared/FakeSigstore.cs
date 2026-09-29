@@ -41,17 +41,18 @@ namespace RegressionTests.Shared
       // The second signer the server trusts: a job of this project's GitLab CI
       // pipeline for a v* tag, as Fulcio names it ("https://" and the ID token's
       // ci_config_ref_uri claim), with GitLab as the issuer, the GitLab project as
-      // the repository and the project's id as its identifier. The tag's version
-      // follows the prefix.
+      // the repository and the project's id as its identifier, at the path the
+      // project began at, which signed 6.3.5. The tag's version follows the
+      // prefix.
       public const string GitLabReleaseIdentityPrefix = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v";
       public const string GitLabIssuer = "https://gitlab.com";
       public const string GitLabRepository = "https://gitlab.com/Progressiverobot/hmailserver";
       public const string GitLabRepositoryId = "86730559";
 
-      // The third: the same pipeline once the project has moved from the personal
-      // namespace to the group hmailserver, which the owner reserved for it. A
-      // transfer changes the path and keeps the project's id, and the server
-      // requires the id for this path.
+      // The third: the same pipeline since the project moved from the personal
+      // namespace to the group hmailserver on 29 September 2026, which signs every
+      // release from 6.3.6. A transfer changes the path and keeps the project's
+      // id, and the server requires the id for this path.
       public const string GitLabGroupReleaseIdentityPrefix = "https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v";
       public const string GitLabGroupRepository = "https://gitlab.com/hmailserver/hmailserver";
 
@@ -59,17 +60,34 @@ namespace RegressionTests.Shared
       // it signed as a later one.
       public const string GitHubLastVersion = "6.3.3";
 
+      // The newest release signed at the path the project began at: the project
+      // moved into the group after it.
+      public const string GitLabFirstPathLastVersion = "6.3.5";
+
       // The authority must be valid at GitHubSigningTime whenever the suite runs.
       private static readonly DateTimeOffset AuthorityFrom = new DateTimeOffset(2025, 9, 1, 0, 0, 0, TimeSpan.Zero);
 
       /// <summary>
       ///    How this project's release of version is signed: by the GitLab CI pipeline
-      ///    for its own tag after 6.3.3, now; by the GitHub workflow, run from a branch
-      ///    before the suspension, for 6.3.3 and before - which is the only way the
-      ///    server accepts that signer. version is a plain "6.3.4".
+      ///    for its own tag at the group's path from 6.3.6, with the project's id;
+      ///    by the same pipeline at the path the project began at for 6.3.5 (and
+      ///    6.3.4, which in truth carries no bundle); by the GitHub workflow, run
+      ///    from a branch before the suspension, for 6.3.3 and before - which is the
+      ///    only way the server accepts that signer. version is a plain "6.3.4".
       /// </summary>
       public static Options ReleaseSigning(string version)
       {
+         if (new Version(version) > new Version(GitLabFirstPathLastVersion))
+         {
+            return new Options
+            {
+               Identity = GitLabGroupReleaseIdentityPrefix + version,
+               Issuer = GitLabIssuer,
+               Repository = GitLabGroupRepository,
+               RepositoryId = GitLabRepositoryId,
+               SignedAt = DateTimeOffset.UtcNow
+            };
+         }
          if (new Version(version) > new Version(GitHubLastVersion))
          {
             return new Options

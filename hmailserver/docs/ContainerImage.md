@@ -14,7 +14,8 @@ like every other file of the release:
 
 The image's address is the project's path in the group `hmailserver`, which is where
 the image stays. The maintainers decided on 27 September 2026 to push the first
-image only once the project is at that path, because a container repository's
+image only once the project was at that path, where it has been since 29 September
+2026, because a container repository's
 address is always its project's: an image pushed from the project's first path,
 `registry.gitlab.com/progressiverobot/hmailserver`, would have changed its address
 under everyone who pulled it. So no image is pushed from that path, and a release
@@ -74,7 +75,8 @@ cosign verify-attestation --type cyclonedx \
 
 The identity is the project's path when the image was signed: an image is pushed and
 signed only from the group's path, so it is the group's. The `.deb` the image was
-built from may have been signed before the project moved, as
+built from may have been signed before the project moved on 29 September 2026 (6.3.5's
+was), as
 `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`;
 the release page's verification section says which.
 
@@ -113,8 +115,8 @@ helm install mail ./hmailserver-chart-<version>.tgz --set database.host=...
 ```
 
 The identity is the project's path when the release was signed, as for every
-file of the release: a release tagged before the project moved into the group
-was signed as
+file of the release: a release tagged before the project moved into the group on
+29 September 2026 (6.3.5, the one its pipeline signed there) was signed as
 `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
 and the release page's verification section says which.
 
@@ -190,9 +192,9 @@ are in every `v*` tag's pipeline whatever the variable was at the tag, and a rel
 published before the project's move has its image pushed from its own pipeline
 after it:
 
-1. The project is at `gitlab.com/hmailserver/hmailserver` (Roadmap3.md, section 8,
-   the move into the group), and the registry's cleanup policy keeps the five
-   documented tag patterns (ContinuousIntegration.md, "What the owner sets on the
+1. The project is at `gitlab.com/hmailserver/hmailserver`, since 29 September
+   2026 (Roadmap3.md, section 8, the move into the group), and the registry's
+   cleanup policy keeps the five documented tag patterns (ContinuousIntegration.md, "What the owner sets on the
    registry").
 2. A maintainer adds `HM_PUBLISH_IMAGE` = `1` as a project CI/CD variable
    (Settings, CI/CD, Variables; Protected, since a `v*` tag is a protected ref), or
@@ -204,9 +206,9 @@ or to a schedule (`ci_pipeline_variables_minimum_override_role` is `no_one_allow
 so nobody can turn the jobs on for one run.
 Nothing committed sets it, and no rule reads it: `build/check-release-chain.py`
 fails a CI file that does either, and holds the two scripts to their refusal.
-`container-image` pushes only at the group's path: in a pipeline whose project is
-still at its first path it refuses, exit 3, and pushes nothing, so a switch set
-before the move cannot put an image at the address the move would change.
+`container-image` pushes only at the group's path, and at any other it fails and
+pushes nothing: the project's first path, `registry.gitlab.com/progressiverobot/hmailserver`,
+is another project's since the move.
 `container-image-sbom` and `container-image-start` run in linix's CI image of the
 tag's commit (`hmailserver-ci/linux:<release>-<hash>`), which is built there and
 never pulled: keep that tag on linix until the release's image jobs have run.

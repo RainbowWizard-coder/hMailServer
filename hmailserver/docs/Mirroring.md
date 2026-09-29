@@ -3,7 +3,7 @@ Mirroring and exports
 
 On 18 September 2026 GitHub suspended the project's account, and with it went the
 only other copy of the repository, the issues and the wiki. Since 22 September the
-project lives on GitLab alone (<https://gitlab.com/Progressiverobot/hmailserver>,
+project lives on GitLab alone (<https://gitlab.com/hmailserver/hmailserver>,
 project 86730559): the 46 issues, the labels, the boards and the wiki exist nowhere
 else. This document is how that stops being true. It has two halves:
 
@@ -42,7 +42,8 @@ The weekly export
 `forge-export` (`.gitlab/ci/forge-export.yml`, which `.gitlab-ci.yml` includes)
 runs `build/ci/forge-export.py` on linix, once a week, in the pipeline of the
 schedule whose description is `export`, and in no other pipeline. It writes one
-archive, `progressiverobot-hmailserver-export-<UTC time>.tar.gz`:
+archive, `hmailserver-hmailserver-export-<UTC time>.tar.gz` (the project's path slug,
+`CI_PROJECT_PATH_SLUG`, since the move into the group on 29 September 2026):
 
 | File | What it holds |
 |---|---|
@@ -204,9 +205,9 @@ The owner's checklist
 12. Put the tokens' expiry dates in the calendar. The job names one in its log
     from 30 days before.
 
-**When the project moves** to the group `hmailserver`, the mirror and the export
-move with it: the mirror is a setting of the project, and the job reads the
-project's id and address from the pipeline.
+**When the project moves**, as it did to the group `hmailserver` on 29 September
+2026, the mirror and the export move with it: the mirror is a setting of the
+project, and the job reads the project's id and address from the pipeline.
 
 Using a copy
 ------------

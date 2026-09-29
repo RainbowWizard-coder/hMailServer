@@ -70,12 +70,12 @@ fail() {
 
 if [ "$push" = 1 ]; then
   # The switch, read as the job runs: the jobs exist in every v* tag's pipeline, so
-  # that a release published before the project's move can still have its image
-  # pushed from its own pipeline afterwards, and nothing is pushed until the
-  # project's variable says so.
+  # that a release published before the project's move into the group (6.3.5) can
+  # still have its image pushed from its own pipeline afterwards, and nothing is
+  # pushed until the project's variable says so.
   if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then
     echo "REFUSED: the project's CI/CD variable HM_PUBLISH_IMAGE is not 1, so no image is pushed."
-    echo "It is set once the project is at registry.gitlab.com/hmailserver/hmailserver"
+    echo "It is set by the maintainers for the image at registry.gitlab.com/hmailserver/hmailserver"
     echo "(hmailserver/docs/ContainerImage.md, 'Publishing'); then run the image jobs again."
     exit 3
   fi
@@ -111,20 +111,15 @@ esac
 # the project's own repository at the group's path, the image's lasting address, which
 # the Compose file and the chart name, with the version's tag always, and the minor
 # line's and latest only for a release without a suffix - a pre-release never moves
-# them. Never from the project's first path, registry.gitlab.com/progressiverobot/
-# hmailserver: a container repository's path is always its project's, so an image
-# pushed there would change its address with the move, and the maintainers decided on
-# 27 September 2026 to push the first image only once the project is in the group.
-# The switch above is set only after the move; this holds a switch set too early.
+# them. Never anywhere else: a container repository's path is always its project's,
+# and the maintainers decided on 27 September 2026 to push the first image only once
+# the project was in the group, so that its address would not change with the move.
+# The project moved on 29 September 2026; a pipeline whose registry is the first
+# path, registry.gitlab.com/progressiverobot/hmailserver, is another project's now.
 if [ "$push" = 1 ]; then
   repository="${CI_REGISTRY_IMAGE:-}"
   case "$repository" in
     registry.gitlab.com/hmailserver/hmailserver) ;;
-    registry.gitlab.com/progressiverobot/hmailserver)
-      echo "REFUSED: the project is still at its first path, so its registry image is $repository;"
-      echo "an image is pushed only at registry.gitlab.com/hmailserver/hmailserver, once the project"
-      echo "has moved into the group (hmailserver/docs/ContainerImage.md, 'Publishing'). Nothing was pushed."
-      exit 3 ;;
     *) fail "the project's registry image is '$repository', not registry.gitlab.com/hmailserver/hmailserver, which the Compose file and the chart name" ;;
   esac
   printf '%s\n' "$version" | grep -Eqx '[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}' || fail "$version is not a container image tag"

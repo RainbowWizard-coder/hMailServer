@@ -37,8 +37,8 @@ namespace RegressionTests.API
       // suite's own where RestListener finds one already on.
       private static int RestPort = 9104;
       private const string AdminPassword = "testar";
-      private const string LatestPath = "/repos/Progressiverobot/hmailserver/releases/latest";
-      private const string ListPath = "/repos/Progressiverobot/hmailserver/releases";
+      private const string LatestPath = "/repos/hmailserver/hmailserver/releases/latest";
+      private const string ListPath = "/repos/hmailserver/hmailserver/releases";
       private const string Published = "2026-09-12T10:00:00Z";
 
       private FakeHttpEndpoint _feed;
@@ -121,7 +121,7 @@ namespace RegressionTests.API
          Assert.AreEqual(2, status.UpdateState, "State 2 is 'a newer release is available'.");
          Assert.AreEqual(Newer, status.AvailableVersion);
          Assert.AreEqual(Published, status.AvailableVersionPublished);
-         Assert.AreEqual("https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + Newer, status.AvailableVersionUrl,
+         Assert.AreEqual("https://gitlab.com/hmailserver/hmailserver/-/releases/v" + Newer, status.AvailableVersionUrl,
             "The release page, not the author's page or the API URL, both of which the feed also carries under html_url and url.");
          Assert.IsNotEmpty(status.UpdateLastChecked);
          Assert.IsEmpty(status.UpdateLastError);
@@ -393,7 +393,7 @@ namespace RegressionTests.API
          var status = _application.Status;
          Assert.IsTrue(status.CheckForUpdate(), "releases/latest is read whatever its Content-Type. Error: " + status.UpdateLastError);
          Assert.AreEqual(Newer, status.AvailableVersion);
-         Assert.AreEqual("https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + Newer, status.AvailableVersionUrl);
+         Assert.AreEqual("https://gitlab.com/hmailserver/hmailserver/-/releases/v" + Newer, status.AvailableVersionUrl);
          StringAssert.StartsWith("GET /releases/latest HTTP/1.0", _feed.Requests[_feed.Requests.Count - 1]);
          string body = Http("GET", "/api/v1/update").body;
          string registry = "https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/" + Newer + "/hMailServer-" + Newer + "-x64.exe";
@@ -432,7 +432,7 @@ namespace RegressionTests.API
          StringAssert.Contains("\"checkEnabled\":false", body);
          StringAssert.Contains("\"availableVersion\":\"" + Newer + "\"", body);
          StringAssert.Contains("\"publishedAt\":\"" + Published + "\"", body);
-         StringAssert.Contains("\"releaseUrl\":\"https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + Newer + "\"", body);
+         StringAssert.Contains("\"releaseUrl\":\"https://gitlab.com/hmailserver/hmailserver/-/releases/v" + Newer + "\"", body);
          // The release title carries an escaped quote and a non-ASCII character: the
          // parser must unescape them and the route must re-escape the quote.
          StringAssert.Contains("\"releaseName\":\"hMailServer " + Newer + " \\\"live update\\\" \u00e9dition\"", body);
@@ -554,7 +554,7 @@ namespace RegressionTests.API
          return "{" +
             "\"url\":\"https://gitlab.com/api/v4/projects/86730559/releases/" + tag + "\"," +
             "\"assets_url\":\"https://gitlab.com/api/v4/projects/86730559/releases/" + tag + "/assets/links\"," +
-            "\"html_url\":\"https://gitlab.com/Progressiverobot/hmailserver/-/releases/" + tag + "\"," +
+            "\"html_url\":\"https://gitlab.com/hmailserver/hmailserver/-/releases/" + tag + "\"," +
             "\"id\":1001," +
             "\"author\":{\"login\":\"Progressiverobot\",\"id\":5,\"name\":\"not the release\",\"html_url\":\"https://gitlab.com/Progressiverobot\",\"url\":\"https://gitlab.com/api/v4/users/42596019\",\"type\":\"User\"}," +
             "\"node_id\":\"RE_x\"," +
@@ -568,7 +568,7 @@ namespace RegressionTests.API
             "\"updated_at\":\"2026-09-12T09:30:00Z\"," +
             "\"published_at\":\"" + publishedAt + "\"," +
             "\"assets\":[" + assets + "]," +
-            "\"tarball_url\":\"https://gitlab.com/Progressiverobot/hmailserver/-/archive/" + tag + "/hmailserver-" + tag + ".tar.gz\"," +
+            "\"tarball_url\":\"https://gitlab.com/hmailserver/hmailserver/-/archive/" + tag + "/hmailserver-" + tag + ".tar.gz\"," +
             "\"body\":\"Notes with a quote \\\" a backslash \\\\ a tab \\t and a surrogate pair \\ud83d\\ude80.\\n\"" +
             "}";
       }
@@ -583,7 +583,7 @@ namespace RegressionTests.API
          return "{\n" +
             " \"tag_name\": \"" + tag + "\",\n" +
             " \"name\": \"" + (prerelease ? "Pre-release: " : "") + "hMailServer " + version + "\",\n" +
-            " \"html_url\": \"https://gitlab.com/Progressiverobot/hmailserver/-/releases/" + tag + "\",\n" +
+            " \"html_url\": \"https://gitlab.com/hmailserver/hmailserver/-/releases/" + tag + "\",\n" +
             " \"published_at\": \"2026-09-15T01:02:52Z\",\n" +
             " \"draft\": false,\n" +
             " \"prerelease\": " + (prerelease ? "true" : "false") + ",\n" +

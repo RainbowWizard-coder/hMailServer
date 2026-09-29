@@ -144,7 +144,7 @@ try {
       $detail = $_.ErrorDetails.Message
       try { $parsed = $detail | ConvertFrom-Json; $detail = "$($parsed.error): $($parsed.error_description)" } catch { }
       Stop-Signing 3 (("Entra ID refused this pipeline's token: {0}`nThe federated credential of the app registration must match the token: issuer https://gitlab.com, " +
-         "audience api://AzureADTokenExchange, and the subject project_path:Progressiverobot/hmailserver:ref_type:tag:ref:{1} (RELEASE.md, 'Authenticode').") -f $detail, $env:CI_COMMIT_TAG)
+         "audience api://AzureADTokenExchange, and the subject project_path:hmailserver/hmailserver:ref_type:tag:ref:{1} (RELEASE.md, 'Authenticode').") -f $detail, $env:CI_COMMIT_TAG)
    }
 
    # 3. Sign, with the workload identity credential alone.

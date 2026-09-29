@@ -93,9 +93,10 @@ import urllib.parse
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT = "86730559"
 HOST = "gitlab.com"
-# The project's paths, the present one and the group it is to move to; a remote whose
-# URL names one of them is the project.
-PROJECT_PATHS = ("Progressiverobot/hmailserver", "hmailserver/hmailserver")
+# The project's paths: the group's, where it has been since 29 September 2026, and the
+# personal one it began at, which GitLab redirects to the group's (a clone made before
+# the move still names it); a remote whose URL names one of them is the project.
+PROJECT_PATHS = ("hmailserver/hmailserver", "Progressiverobot/hmailserver")
 TARGET = "master"
 BRANCH = re.compile(r"^batch[A-Za-z0-9._-]*$")
 # Accounts that are one person (GOVERNANCE.md, "Maintainers"): an approval from one of

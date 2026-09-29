@@ -394,7 +394,7 @@ def main(argv):
         return 1
     base = os.environ.get("CI_API_V4_URL", API_BASE)
     project = os.environ.get("CI_PROJECT_ID", PROJECT_ID)
-    slug = os.environ.get("CI_PROJECT_PATH_SLUG", "progressiverobot-hmailserver")
+    slug = os.environ.get("CI_PROJECT_PATH_SLUG", "hmailserver-hmailserver")
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     made = []
     say("The export of what a push mirror does not carry:")
@@ -510,7 +510,7 @@ def self_test():
                 return self.reply(200, {"id": 1})
             base = "/api/v4/projects/86730559"
             if path == base:
-                return self.reply(200, {"id": 86730559, "path_with_namespace": "Progressiverobot/hmailserver",
+                return self.reply(200, {"id": 86730559, "path_with_namespace": "hmailserver/hmailserver",
                                         "http_url_to_repo": repository,
                                         "permissions": {"project_access": {"access_level": state["levels"][given]},
                                                         "group_access": None}})
@@ -562,7 +562,7 @@ def self_test():
         for key in ("HM_EXPORT_TOKEN", "HM_EXPORT_FULL_TOKEN"):
             os.environ.pop(key, None)
         os.environ.update({"CI_API_V4_URL": base, "CI_PROJECT_ID": "86730559",
-                           "CI_PROJECT_PATH_SLUG": "progressiverobot-hmailserver"})
+                           "CI_PROJECT_PATH_SLUG": "hmailserver-hmailserver"})
         os.environ.update(env)
         captured = io.StringIO()
         real = sys.stdout
@@ -605,7 +605,7 @@ def self_test():
         expect("SKIP  GitLab's project export" in log, "no full token: the project export is skipped, and said")
         expect(token not in log, "the token is never printed")
         archives = sorted(os.listdir(out)) if os.path.isdir(out) else []
-        expect(len(archives) == 1 and archives[0].startswith("progressiverobot-hmailserver-export-"), "one archive: %s" % archives)
+        expect(len(archives) == 1 and archives[0].startswith("hmailserver-hmailserver-export-"), "one archive: %s" % archives)
         if archives:
             with tarfile.open(os.path.join(out, archives[0])) as tar:
                 names = set(os.path.basename(member.name) for member in tar.getmembers() if member.isfile())
@@ -664,7 +664,7 @@ def self_test():
         state["levels"][full_token] = 30
         code, log = run({"HM_EXPORT_TOKEN": token, "HM_EXPORT_FULL_TOKEN": full_token}, ["--out", out])
         expect(code == 1 and "Maintainer" in log, "a Developer's full token is refused")
-        expect("OK    progressiverobot-hmailserver-export-" in log, "and the week's archive is written all the same")
+        expect("OK    hmailserver-hmailserver-export-" in log, "and the week's archive is written all the same")
         state["levels"][full_token] = 40
 
         # GitLab's project export fails: the job fails, the week's archive is kept, and

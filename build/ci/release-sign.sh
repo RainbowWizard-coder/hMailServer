@@ -29,9 +29,11 @@
 # cosign reads from the environment itself: it is never on a command line and never
 # printed. Fulcio names the certificate after the token's ci_config_ref_uri,
 #   https://gitlab.com/<project path>//.gitlab-ci.yml@refs/tags/<tag>
-# which is a GitLab signer SigstoreVerifier.cpp trusts when the path is the project's
-# now, Progressiverobot/hmailserver, or the group's it is to move to,
-# hmailserver/hmailserver (there only with the project's id, which a transfer keeps).
+# which is the GitLab signer SigstoreVerifier.cpp trusts at the group's path,
+# hmailserver/hmailserver, where the project has been since 29 September 2026, and
+# only with the project's id, which the transfer kept. The first path,
+# Progressiverobot/hmailserver, signed 6.3.5, and servers still take what it signed;
+# nothing new is signed there, since a pipeline at that path now is not this project's.
 # Only a top-level pipeline of a tag has it - so this runs in the tag's own pipeline
 # and never in a child one. A rehearsal's certificate names refs/heads/<branch>, which
 # no server trusts: what it signs installs nowhere, and it is published nowhere.
@@ -98,10 +100,9 @@ fi
 installer="hMailServer-${version}-x64.exe"
 statement="hmailserver-${version}.intoto.json"
 provenance="hmailserver-${version}.intoto.sigstore.json"
-# The two paths a server trusts a signature from, and nothing else: a pipeline of this
-# project at any other path would sign what no server installs.
+# The project's path, and nothing else: a pipeline at any other path, the first one
+# included, is not this project's, and would sign what no server should install.
 case "${CI_PROJECT_PATH:-}" in
-  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;
   hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;
   *) fail "the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from" ;;
 esac

@@ -1297,7 +1297,7 @@ exceptions:
   - scan: semgrep-sast
     finding: b476e441283f26afff17
     what: 'ShellExecute of the hyperlink''s NavigateUri in AboutView.Link''s RequestNavigate handler'
-    reason: 'AboutView.Link is private static with one call, passing the constant https://gitlab.com/Progressiverobot/hmailserver, and nothing else sets NavigateUri, so ShellExecute opens only that URL.'
+    reason: 'AboutView.Link is private static with one call, passing the constant https://gitlab.com/hmailserver/hmailserver, and nothing else sets NavigateUri, so ShellExecute opens only that URL.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-09-25
@@ -3679,9 +3679,9 @@ exceptions:
 
   # hmailserver/source/Tools/Shared/Dialogs/formEnterPassword.cs
   - scan: semgrep-sast
-    finding: 6632fb30cb0a0a2e7b21
+    finding: 8d8a851f31e41c266195
     what: 'ShellExecute of the fixed wiki URL from the password dialog''s help link'
-    reason: 'In linkWhatIsThis_LinkClicked, the ProcessStartInfo file name is the compile-time constant https URL ''https://gitlab.com/Progressiverobot/hmailserver/-/wikis/Installing-hMailServer#the-wizard-page-by-page'', with no arguments. With UseShellExecute, the only effect is to open the default browser at that address, and no dialog text or other input reaches it.'
+    reason: 'In linkWhatIsThis_LinkClicked, the ProcessStartInfo file name is the compile-time constant https URL ''https://gitlab.com/hmailserver/hmailserver/-/wikis/Installing-hMailServer#the-wizard-page-by-page'', with no arguments. With UseShellExecute, the only effect is to open the default browser at that address, and no dialog text or other input reaches it.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26

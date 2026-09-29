@@ -78,38 +78,42 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # The same findings as a DIRECTORY scan names them. A pipeline started by a push or
 # through the API scans the checkout as files, not the history (the analyzer's
 # FetchNone strategy), and gitleaks then prints <path as scanned>:<rule id>:<line>
-# with no commit - the path under CI_PROJECT_DIR, /builds/Progressiverobot/hmailserver,
-# and the rule's id (AWS), not its title - so none of the lines above matched and the
-# same 24 fixtures failed master's pipeline 2886389460 on 27 September 2026. Each line
-# below is one of those, read again in the tree at 6bc09509d: the tester PEM and
-# armour fragments, the SigV4 example access key, and the regression suite's own
-# keys. A line moves when its file is edited above it; the job then names the
-# finding again, and the line is written anew once it has been read again. If the
-# project moves to another namespace, the prefix changes with it.
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/AntiSpam/DKIM/DkimRotationPlan.cpp:PKCS8 private key:729
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1634
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1647
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1863
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PKCS8 private key:1638
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PKCS8 private key:1727
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:RSA private key:1646
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1643
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1646
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH private key:1647
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/ObjectStoreSignature.cpp:AWS:529
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:1500
-/builds/Progressiverobot/hmailserver/hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:899
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/API/RestApiOpenPgpKeys.cs:PGP private key:121
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/API/SamlSignIn.cs:PKCS8 private key:723
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/SMTP/GatewayEncryption.cs:PKCS8 private key:82
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Security/TlsAcmeDeployment.cs:PKCS8 private key:52
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Security/TlsCertificateValidity.cs:RSA private key:68
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:103
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:252
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:272
-/builds/Progressiverobot/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:358
-/builds/Progressiverobot/hmailserver/hmailserver/test/SSL examples/example.key.org:RSA private key:1
-/builds/Progressiverobot/hmailserver/hmailserver/test/SSL examples/example.key:PKCS8 private key:1
+# with no commit - the path under CI_PROJECT_DIR and the rule's id (AWS), not its
+# title - so none of the lines above matched and the same 24 fixtures failed master's
+# pipeline 2886389460 on 27 September 2026. Each line below is one of those, read
+# again in the tree at 6bc09509d: the tester PEM and armour fragments, the SigV4
+# example access key, and the regression suite's own keys. A line moves when its file
+# is edited above it; the job then names the finding again, and the line is written
+# anew once it has been read again. The prefix is CI_PROJECT_DIR, /builds/<the
+# project's path>: /builds/hmailserver/hmailserver since the project moved into the
+# group hmailserver on 29 September 2026 (/builds/Progressiverobot/hmailserver
+# before), and a move to another path changes it again. The landing's own scan
+# (build/scan-secrets.py) reads commits, never a directory, and is matched by the
+# lines above; these are the pipeline's alone.
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/DKIM/DkimRotationPlan.cpp:PKCS8 private key:729
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1634
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1647
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PGP private key:1863
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PKCS8 private key:1638
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:PKCS8 private key:1727
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:RSA private key:1646
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1643
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH (EC) private key:1646
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/GatewayEncryption.cpp:SSH private key:1647
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/ObjectStoreSignature.cpp:AWS:529
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:1500
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/Util/OpenPgpKey.cpp:PGP private key:899
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/API/RestApiOpenPgpKeys.cs:PGP private key:121
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/API/SamlSignIn.cs:PKCS8 private key:723
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/SMTP/GatewayEncryption.cs:PKCS8 private key:82
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Security/TlsAcmeDeployment.cs:PKCS8 private key:52
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Security/TlsCertificateValidity.cs:RSA private key:68
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:103
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:252
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:272
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/Shared/OpenPgpTestSupport.cs:PGP private key:358
+/builds/hmailserver/hmailserver/hmailserver/test/SSL examples/example.key.org:RSA private key:1
+/builds/hmailserver/hmailserver/hmailserver/test/SSL examples/example.key:PKCS8 private key:1
 
 # batch41, 27 September 2026: the Control Panel test RestSettingsTests.
 # TrustsCertificate_ThatIsTheOneTheListenerServes_OnlyThat put a PEM private-key

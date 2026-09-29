@@ -132,6 +132,6 @@ Elsewhere in the repository
 | [RELEASE.md](../../RELEASE.md) | The release process, including the pre-flight and regression gates |
 
 If something you needed was not here, that is worth an
-[issue](https://gitlab.com/Progressiverobot/hmailserver/-/issues) on its own — a
+[issue](https://gitlab.com/hmailserver/hmailserver/-/issues) on its own — a
 missing runbook is a real defect, and several of the documents above exist because
 a specific problem took far longer to diagnose than it should have.

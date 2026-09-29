@@ -26,8 +26,9 @@ the account arrives - with no new release made for it:
   verified      each file with cosign verify-blob against its bundle, as signed by
                 this project's pipeline for that tag - at either of the two paths a
                 server trusts, Progressiverobot/hmailserver and hmailserver/hmailserver,
-                since a release signed before the project's move may be published
-                after it - and with the project's id (86730559) in the certificate
+                since a release signed before the project's move into the group on
+                29 September 2026 (6.3.5) may be published after it - and with the
+                project's id (86730559) in the certificate
                 required at the group's path and refused if another, as the server
                 requires (SigstoreVerifier.cpp); the id read from the certificate's
                 extensions by build/ci/sigstore-certificate.py, as container-image-deb.sh
@@ -89,7 +90,8 @@ API = "https://gitlab.com/api/v4/projects/" + PROJECT_ID
 PACKAGE = "hmailserver"
 ISSUER = "https://gitlab.com"
 # The two paths a server trusts a release's signature from (SigstoreVerifier.cpp): the
-# personal namespace the project began in, and the group it moves to, where the
+# personal namespace the project began in, which signed 6.3.5, and the group it moved
+# to on 29 September 2026, which signs every release from 6.3.6 and where the
 # project's id must be in the certificate too.
 REPOSITORIES = ("https://gitlab.com/Progressiverobot/hmailserver", "https://gitlab.com/hmailserver/hmailserver")
 GROUP_REPOSITORY = REPOSITORIES[1]

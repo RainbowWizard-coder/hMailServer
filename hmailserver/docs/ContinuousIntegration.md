@@ -662,7 +662,7 @@ path. The bench keeps its registration. The job has `GIT_STRATEGY: none`, so the
 runner clones nothing, and the job does the following itself:
 
 1. It fetches the commit into the bench's checkout from
-   `https://gitlab.com/Progressiverobot/hmailserver.git` (`HM_GATE_REPOSITORY`).
+   `https://gitlab.com/hmailserver/hmailserver.git` (`HM_GATE_REPOSITORY`).
    The project is public, so no credential is needed. Git's credential helper
    and every prompt are switched off, because under LocalSystem nobody can
    answer one. A fetch writes under `.git` only, so it is safe before the lock
@@ -1720,14 +1720,14 @@ after `release-publish`: a maintainer starts the first, `container-image-deb`,
 by hand, and the rest follow it. They push only while the project's CI/CD
 variable `HM_PUBLISH_IMAGE` is `1`, which the scripts read as the jobs run -
 not a rule, which is decided when the pipeline is made - so a release
-published before the project's move into the group (item 3 below) has its
-image pushed from its own pipeline after it ([ContainerImage.md](ContainerImage.md),
-"Publishing"):
+published before the project's move into the group on 29 September 2026 (item 3
+below), 6.3.5, has its image pushed from its own pipeline after it
+([ContainerImage.md](ContainerImage.md), "Publishing"):
 
 | Job | Where | What it does |
 |---|---|---|
 | `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); started by hand, and the tag's pipeline shows as blocked until it is | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Takes `hmailserver_<version>_amd64.deb` and its SBOM from the published release - not from `release-sign`'s artifact, which may have expired by then - and verifies each against its Sigstore bundle as this project's pipeline for the tag, at either of the project's two paths, with the project's id required at the group's (`build/ci/container-image-deb.sh`) |
-| `container-image` | linix, in kaniko's image (`linux-image`'s, by reference) | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Builds `platform/packaging/docker/Dockerfile` from that `.deb` and pushes it to `$CI_REGISTRY_IMAGE`, which must be the group's path, `registry.gitlab.com/hmailserver/hmailserver` (at the project's first path it refuses, exit 3, and pushes nothing), with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. The tags are `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.5` pushes `6.3.5`, `6.3` and `latest`, and `v6.3.5-rc1` pushes `6.3.5-rc1` alone. It runs the same checks on what it pushed as `linux-image` does on what it built, and leaves a dotenv report naming the image by digest (`build/ci/linux-image.sh`, `HM_IMAGE_PUSH=1`) |
+| `container-image` | linix, in kaniko's image (`linux-image`'s, by reference) | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Builds `platform/packaging/docker/Dockerfile` from that `.deb` and pushes it to `$CI_REGISTRY_IMAGE`, which must be the group's path, `registry.gitlab.com/hmailserver/hmailserver` (at any other it fails and pushes nothing), with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. The tags are `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.5` pushes `6.3.5`, `6.3` and `latest`, and `v6.3.5-rc1` pushes `6.3.5-rc1` alone. It runs the same checks on what it pushed as `linux-image` does on what it built, and leaves a dotenv report naming the image by digest (`build/ci/linux-image.sh`, `HM_IMAGE_PUSH=1`) |
 | `container-image-sbom` | linix, in the Linux CI image | Syft reads the pushed image from the registry by its digest, with the job's own registry credentials, and `build/asset-sbom.py image` adds what the release's `.deb` SBOM names inside the binary and makes the image, by its digest, the document's subject; it refuses a `.deb` SBOM that does not describe the `.deb`, and an image in which Syft finds no `hmailserver` package (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the image by its digest with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies the signature with that identity. The tags all name the one digest, so one signature covers them. The signature is stored beside the image in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests the image's SBOM to it (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies the attestation with the same identity (`build/ci/container-image-sign.sh`) |
 | `container_scanning` | GitLab's shared runners | GitLab's Container Scanning template, which the Free tier runs, over the pushed image by digest, with the analyzer pinned by digest. It is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
@@ -1760,9 +1760,11 @@ cosign verify \
 ```
 
 The identity and the image are the group's because the image is pushed only
-after the project's move (item 3 below); a release signed from the present
-path, `https://gitlab.com/Progressiverobot/hmailserver//...`, 6.3.5 among them,
-has no image. `container-image-sign` keeps
+since the project's move (item 3 below). 6.3.5, the release signed at the path
+the project began at, `https://gitlab.com/Progressiverobot/hmailserver//...`,
+has no image until `container-image-deb` is started in its pipeline, which now
+runs at the group's path: its image is then signed as the group's, and its
+files keep their own signatures. `container-image-sign` keeps
 `container-image-signed/verification.txt`, with the command for that release.
 
 **What the owner sets on the registry.** Nothing in the pipeline can. As the
@@ -1783,16 +1785,17 @@ project's API answered on 28 September 2026:
    so that nobody but a maintainer can push the release's tags and nobody but
    the owner delete them. A pre-release's tag (`6.3.5-rc1`) and the signatures
    are outside it. Immutable tags are GitLab Ultimate.
-3. **The switch, `HM_PUBLISH_IMAGE`, stays unset until the project has
+3. **The switch, `HM_PUBLISH_IMAGE`, stayed unset until the project had
    moved.** The maintainers decided on 27 September 2026 to move the project
    into the group `hmailserver` before the first image is pushed, so that the
    first image's address, `registry.gitlab.com/hmailserver/hmailserver`, is
-   the one it keeps. A container repository's path always matches its
-   project's (GitLab's documentation, *Container registry*, "Move or rename
-   container registry repositories"), so an image pushed from the present path
-   would be `registry.gitlab.com/progressiverobot/hmailserver` and would change
+   the one it keeps. The project moved on 29 September 2026. A container
+   repository's path always matches its project's (GitLab's documentation,
+   *Container registry*, "Move or rename container registry repositories"), so
+   an image pushed from the first path would have been
+   `registry.gitlab.com/progressiverobot/hmailserver` and would have changed
    its address with the move, under everyone who pulled or pinned it. The
-   signatures are no reason to wait: 6.3.4's `SigstoreVerifier` already trusts
+   signatures were no reason to wait: 6.3.4's `SigstoreVerifier` already trusts
    the group's path, with the project's id `86730559`
    ([UpdateFeed.md](UpdateFeed.md)).
 
@@ -1805,19 +1808,20 @@ project's API answered on 28 September 2026:
    a project must hold no container image on GitLab Self-Managed. The
    *Container registry* page limits renaming a project with populated
    container repositories to projects with up to 1,000 of them.
-   This project's registry is enabled and holds no repository (the project's
+   This project's registry was enabled and held no repository (the project's
    API, 28 September 2026). The move from the personal namespace
-   `Progressiverobot` to the group `hmailserver` changes the top-level
-   namespace, so by the first of those rules the registry may have to be
+   `Progressiverobot` to the group `hmailserver` changed the top-level
+   namespace, so by the first of those rules the registry might have had to be
    switched off for the transfer (Settings, General, "Visibility, project
-   features, permissions") and on again after it; nobody has tried the
-   transfer yet.
+   features, permissions") and on again after it. The transfer was made on 29
+   September 2026; after it the registry was enabled and held no repository,
+   and `HM_PUBLISH_IMAGE` was not set (the project's API, that day).
 
-   The project moves only after a release signed by
-   this pipeline from the present path has shown the project's id
-   ([UpdateFeed.md](UpdateFeed.md)), so that release is made with the switch
-   unset: its image jobs refuse and the registry stays empty. After the move
-   the maintainers add `HM_PUBLISH_IMAGE` with the value `1` as a project
+   The project moved only after a release signed by
+   this pipeline from its first path, 6.3.5, had shown the project's id
+   ([UpdateFeed.md](UpdateFeed.md)), so that release was made with the switch
+   unset: its image jobs refused and the registry stayed empty. Since the move
+   the maintainers can add `HM_PUBLISH_IMAGE` with the value `1` as a project
    CI/CD variable (Settings, CI/CD, Variables; a `v*` tag's pipeline is for a
    protected ref, so it may be marked Protected), and start
    `container-image-deb` in the pipeline of the release whose image is to be
@@ -1829,8 +1833,8 @@ project's API answered on 28 September 2026:
    of an image job reads it, and when `container-image-deb.sh` or
    `linux-image.sh` does not refuse with a non-zero exit while it is not `1`.
    The Compose file and the chart name the group's path;
-   `container-image` pushes only at the group's path, and refuses the first
-   path and any other, so a switch set before the move pushes nothing.
+   `container-image` pushes only at the group's path, and fails at any other,
+   the first path included, which is another project's since the move.
 
 A stable release of an older line - a 6.2 release after 6.3.0 - would take
 `:latest` from the newer one. The project releases one line at a time, and the
@@ -1888,16 +1892,18 @@ the pipeline can check, and the one every server's trust in a release rests on.
 5. **The protected tag rule, checked.** Settings, Repository, Protected tags:
    `v*`, *Allowed to create* Maintainers, and nobody else. The whole Sigstore
    trust rests on it: a server built after 6.3.3 accepts a bundle whose
-   certificate names `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`
-   (`SigstoreVerifier.cpp`), or `https://gitlab.com/hmailserver/hmailserver//...`
-   with the project's id, the group the project is to move to, and Fulcio
+   certificate names `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`
+   with the project's id, the group's path the project has been at since 29 September 2026, or
+   `https://gitlab.com/Progressiverobot/hmailserver//...`, the path it began at
+   (`SigstoreVerifier.cpp`), and Fulcio
    issues that certificate to any pipeline of such a tag, running whatever
    `.gitlab-ci.yml` the tag's commit has. Anyone who can push a `v` tag could
    therefore sign a release the servers accept with a CI file of their own,
    without the release jobs. The pipeline cannot enforce this: without the rule
    the release jobs simply do not run, and a hostile file does not need them.
-   Check it again whenever the project's members or settings change, and after
-   the move to the group, whose members and Owners can reach the project too.
+   Check it again whenever the project's members or settings change, and the
+   group's too: since the move on 29 September 2026 the group's members and
+   Owners can reach the project.
 
 The feed needs nothing here. `pages` and `package-repos` run in the tag's own
 pipeline once `release-publish` has passed, with no variable and no token but
@@ -2012,7 +2018,8 @@ workflows, which are no longer in the tree, the project's own image
 (`registry.gitlab.com/hmailserver/hmailserver`, which nothing in the tree pulls
 but the Compose file and the chart, by `:latest`, and each release pushes from
 its own pipeline; and `registry.gitlab.com/progressiverobot/hmailserver`, the
-project's path before its move, where no image is pushed), and
+project's path before its move on 29 September 2026, where no image was ever
+pushed), and
 `hmailserver-ci/linux`, which is built on linix and never pushed. The .NET runtime the installer bundles has no pin
 yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
 rule in `renovate.json` says what to add when the supply-chain row pins it.
@@ -2311,7 +2318,8 @@ that: `Ci::CreateDownstreamPipelineService` drops a bridge whose `trigger:
 project` is the project it runs in and which is not a child pipeline, with
 `invalid_bridge_trigger` ("downstream pipeline trigger definition is invalid"),
 before it looks at the pipeline it would make, and a path in `trigger: project`
-would have broken again when the project moves into the group.
+would have broken again when the project moved into the group on 29 September
+2026.
 `build/check-release-chain.py` now fails on a `trigger: project` in any CI
 file, and on a `pages` that does not wait for `release-publish`.
 
@@ -2956,9 +2964,10 @@ when `nix-store --query --hash` names another: the two together pin the build as
 a digest pins an image. Its `version` says v5.5.0, commit
 `c395761df6afe1a69e476bc60a013a94bcbc153f`. On 28 September 2026, in that image
 on the maintainer's laptop with GitHub's hosts at 0.0.0.0, the closure realised in 4 seconds,
-and an anonymous run over two public checks of `gitlab.com/Progressiverobot/hmailserver`
-answered (10 of 10 for License and Security-Policy). A new version is a new
-store path and NAR hash, the path read from `hydra.nixos.org`'s job
+and an anonymous run over two public checks of `gitlab.com/Progressiverobot/hmailserver`,
+the project's path before its move, answered (10 of 10 for License and
+Security-Policy). A new version is a new store path and NAR hash, the path read
+from `hydra.nixos.org`'s job
 `nixpkgs/unstable/scorecard.x86_64-linux` and the hash from its
 `https://cache.nixos.org/<hash>.narinfo`,
 never a `nixpkgs#` flake reference, whose registry names GitHub. The job keeps
@@ -2972,7 +2981,8 @@ Pinned-Dependencies, Packaging, Security-Policy, Signed-Releases and
 Vulnerabilities are "validating"; Dangerous-Workflow, Dependency-Update-Tool,
 SAST and Token-Permissions are not answered. CII-Best-Practices looks the badge
 up by the repository's address, so entry 14949's `repo_url` must follow the
-project's move into the group.
+project's move into the group on 29 September 2026: the owner changes it to
+`https://gitlab.com/hmailserver/hmailserver`.
 
 **The token, and the one step that is the owner's.** Scorecard reads a GitLab
 project through the API with `GITLAB_AUTH_TOKEN`, which must carry `read_api`,
@@ -3011,7 +3021,8 @@ The organization `hmailserver` is bound to the GitLab group `hmailserver`, in
 SonarQube Cloud's EU region, on its OSS plan - free for public projects under
 an OSI licence, with branch and merge request analysis and custom quality
 gates; the plan can be chosen only when an organization is made. The project is
-imported once it has moved into the group, and from the import on SonarQube
+imported now that it has moved into the group (29 September 2026) - the owner's
+step - and from the import on SonarQube
 Cloud's **automatic analysis** runs, from the webhook the import makes: on every
 push to the default branch and on every merge request, on SonarQube Cloud's own
 machines. It leaves a summary comment on the merge request; GitLab gets no
@@ -3093,7 +3104,8 @@ a qualifying namespace: every project in it under an OSI-approved licence,
 public, and an organisation that does not "seek to make a profit by selling
 services, by charging for enhancements or add-ons, or by other means". Whether
 Progressive Robot Ltd meets that last clause is the owner's to say; if it does,
-the application is for the group `hmailserver`, after the move. With Ultimate,
+the application is for the group `hmailserver`, where the project has been
+since 29 September 2026. With Ultimate,
 and no change to a job, the rows above marked Ultimate come on: the Security
 tab and the vulnerability report for the reports already uploaded, required
 approvals, external status checks for SonarQube Cloud's quality gate, and push

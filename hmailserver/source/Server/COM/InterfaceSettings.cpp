@@ -3626,7 +3626,7 @@ STDMETHODIMP InterfaceSettings::put_HelpWikiBaseUrl(BSTR newVal)
          lowered.MakeLower();
 
          if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
-            return COMError::GenerateError("The wiki base URL is absolute and begins with http:// or https://, such as https://gitlab.com/Progressiverobot/hmailserver/-/wikis/; empty hides the link.");
+            return COMError::GenerateError("The wiki base URL is absolute and begins with http:// or https://, such as https://gitlab.com/hmailserver/hmailserver/-/wikis/; empty hides the link.");
       }
 
       config_->SetHelpWikiBaseUrl(url);

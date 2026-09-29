@@ -241,8 +241,11 @@ namespace HM
       settings.EnsureString(PROPERTY_REPUTATION_WATCH_ADDRESSES, _T(""));
 
       // The help panes' "Open on the wiki" link: the project's wiki, since that
-      // is where the same documents are published. Empty hides the link.
-      settings.EnsureString(PROPERTY_HELP_WIKI_BASE_URL, _T("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/"));
+      // is where the same documents are published. Empty hides the link. Shipped
+      // at the group's path from 6.3.6; a database set up before keeps the first
+      // path's address, which GitLab redirects there since the project moved on
+      // 29 September 2026 (docs/Help.md, "The wiki link").
+      settings.EnsureString(PROPERTY_HELP_WIKI_BASE_URL, _T("https://gitlab.com/hmailserver/hmailserver/-/wikis/"));
       settings.EnsureLong(PROPERTY_BREACH_CHECK_UNREACHABLE_ACTION, PasswordBreachCheck::UnreachableAllow);
 
       // Bounces read, and the suppression list. Off, and with it off nothing below

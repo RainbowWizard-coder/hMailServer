@@ -607,7 +607,7 @@ windows-gate:
   variables:
     GIT_STRATEGY: none
     HM_BENCH_DIR: 'C:\bench\hmailserver'
-    HM_GATE_REPOSITORY: https://gitlab.com/Progressiverobot/hmailserver.git
+    HM_GATE_REPOSITORY: https://gitlab.com/hmailserver/hmailserver.git
     HM_GATE_WHERE: ""
     HM_GATE_LOCK: 'C:\bench\gate.lock'
     HM_GATE_LOCK_WAIT_MINUTES: "90"
@@ -1411,7 +1411,7 @@ windows-installer:
   variables:
     GIT_STRATEGY: none
     HM_BENCH_DIR: 'C:\bench\hmailserver'
-    HM_GATE_REPOSITORY: https://gitlab.com/Progressiverobot/hmailserver.git
+    HM_GATE_REPOSITORY: https://gitlab.com/hmailserver/hmailserver.git
     HM_GATE_LOCK: 'C:\bench\gate.lock'
     HM_GATE_LOCK_WAIT_MINUTES: "90"
     GIT_TERMINAL_PROMPT: "0"
@@ -1643,8 +1643,9 @@ release-sbom:
 
 # Sigstore, keyless, on GitLab's shared runners, in cosign's own image pinned by digest
 # (HM_COSIGN_IMAGE, above): nothing from GitHub. The certificate names
-# https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, or
-# https://gitlab.com/hmailserver/hmailserver//... once the project has moved to that group.
+# https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, the group's
+# path the project has been at since 29 September 2026; 6.3.5's named the first one,
+# https://gitlab.com/Progressiverobot/hmailserver//...
 release-sign:
   stage: release
   image:

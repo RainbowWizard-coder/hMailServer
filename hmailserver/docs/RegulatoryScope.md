@@ -21,7 +21,7 @@ facts staying true:
 
 * AGPLv3, source public, no paid edition, no paid support, no hosted service.
 * Released as an installer and source on GitLab
-  (<https://gitlab.com/Progressiverobot/hmailserver>), and on GitHub until GitHub
+  (<https://gitlab.com/hmailserver/hmailserver>), and on GitHub until GitHub
   suspended the project's account on 18 September 2026; every release up to 6.3.3
   is re-published on GitLab, byte for byte, with its original signatures. No
   charge, no licence key, no mandatory registration, no telemetry. Where the
@@ -192,8 +192,8 @@ changed:
   configured window after a backup. A server up to 6.3.3 trusts one signer, the
   repository's GitHub release workflow; a server built after 6.3.3 trusts that
   workflow for the releases up to 6.3.3 and this project's GitLab CI pipeline
-  for the later ones, at the project's present path and at the group's it is to
-  move to (`SigstoreVerifier.cpp`,
+  for the later ones, at the path the project began at and at the group's it
+  moved to on 29 September 2026 (`SigstoreVerifier.cpp`,
   [UpdateFeed.md](UpdateFeed.md#what-a-server-built-after-633-checks)). The Roadmap's Product Liability Directive row
   was closed on 7 September 2026 against this document's determination.
 

@@ -84,10 +84,11 @@ namespace HM
    public:
       // The public Sigstore instance (Fulcio's root and intermediate, Rekor's key)
       // and this project's release signers: the GitHub workflow that signed every
-      // release up to 6.3.3, and the GitLab CI pipeline for a v* tag - at the
-      // project's path now, Progressiverobot/hmailserver, and at the group's it is
-      // to move to, hmailserver/hmailserver, where the certificate must record the
-      // project's id.
+      // release up to 6.3.3, and the GitLab CI pipeline for a v* tag - at the path
+      // the project began at, Progressiverobot/hmailserver, which signed 6.3.5, and
+      // at the group's it moved to on 29 September 2026, hmailserver/hmailserver,
+      // which signs every release from 6.3.6 and where the certificate must record
+      // the project's id.
       static SigstoreTrust DefaultTrust();
 
       // The trust as configured: DefaultTrust, with any UpdateTrustRootsFile,

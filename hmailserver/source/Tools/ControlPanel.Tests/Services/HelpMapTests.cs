@@ -120,7 +120,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// setter itself is WPF and the test project has no window.
       /// </summary>
       [Theory]
-      [InlineData("https://gitlab.com/Progressiverobot/hmailserver/-/wikis/", "https://gitlab.com/Progressiverobot/hmailserver/-/wikis/")]
+      [InlineData("https://gitlab.com/hmailserver/hmailserver/-/wikis/", "https://gitlab.com/hmailserver/hmailserver/-/wikis/")]
       [InlineData("  HTTP://wiki.example.test/  ", "HTTP://wiki.example.test/")]
       [InlineData("", "")]
       [InlineData(null, "")]

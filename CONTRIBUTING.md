@@ -10,8 +10,8 @@ This file is for anyone who wants to change it: how to report something, how to 
 change is held to, and how a change reaches `master`. By taking part you agree to abide by the
 [Code of Conduct](CODE_OF_CONDUCT.md).
 
-**The project's home is GitLab since 22 September 2026:
-<https://gitlab.com/hmailserver/hmailserver>.** GitHub has been unavailable to the project since
+**The project's home is GitLab since 22 September 2026, in the group `hmailserver` since 29 September
+2026: <https://gitlab.com/hmailserver/hmailserver>.** GitHub has been unavailable to the project since
 18 September 2026, so every link to github.com/Progressiverobot - in older notes, commit messages and
 documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitlab-ci.yml`) on every push and
 every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,

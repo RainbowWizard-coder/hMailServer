@@ -17,9 +17,9 @@ Build-Depends:
  ninja-build,
  zlib1g-dev,
 Standards-Version: 4.7.2
-Homepage: https://gitlab.com/Progressiverobot/hmailserver
-Vcs-Browser: https://gitlab.com/Progressiverobot/hmailserver/-/tree/master/hmailserver/source/Server/platform/packaging/debian-src
-Vcs-Git: https://gitlab.com/Progressiverobot/hmailserver.git
+Homepage: https://gitlab.com/hmailserver/hmailserver
+Vcs-Browser: https://gitlab.com/hmailserver/hmailserver/-/tree/master/hmailserver/source/Server/platform/packaging/debian-src
+Vcs-Git: https://gitlab.com/hmailserver/hmailserver.git
 
 Package: hmailserver
 Architecture: any

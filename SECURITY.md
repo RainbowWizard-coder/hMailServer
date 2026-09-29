@@ -158,8 +158,8 @@ valid](#what-must-stay-valid-for-a-security-release), below), so GitLab would le
    without that approval, giving the reason (`--land-without-approval`, [GOVERNANCE.md](GOVERNANCE.md), Review).
    The change is then reviewed afterwards.
 2. **The Azure federated credential for that one tag**, made before the tag is pushed. Its subject names the
-   project's path at that moment, `hmailserver/hmailserver` once the project has moved into the group
-   ([RELEASE.md](RELEASE.md), "On GitLab, from 6.3.5"). Without it, `release-authenticode` cannot sign the
+   project's path at that moment, `hmailserver/hmailserver` since the project moved into the group on 29 September
+   2026 ([RELEASE.md](RELEASE.md), "On GitLab, from 6.3.5"). Without it, `release-authenticode` cannot sign the
    installer, and no later job runs.
 3. **The release tag, signed with the one key in `.gitlab/allowed_signers`.** That is the owner's key, on his own
    machine. `release` refuses a tag signed by any other key.
@@ -279,13 +279,13 @@ verified the original.
 
   Only GitHub Actions can issue that identity, so no later release can carry it. 6.3.4, built and signed by hand,
   carries no bundle. From 6.3.5 the release jobs of `.gitlab-ci.yml` sign each asset in the tag's own pipeline,
-  with the identity `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>` and the
-  issuer `https://gitlab.com`: 6.3.5, on 29 September 2026, was the first, and its certificate records the
-  project's id, `86730559`, as its release notes say. The project is to move to the group
-  [`hmailserver`](https://gitlab.com/hmailserver), and the releases signed after the move will carry the identity
-  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the same issuer and the
-  project's id, `86730559`, in the certificate. A server from 6.3.4 on trusts both paths, the group's only with that id,
-  whatever its update settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+  with the issuer `https://gitlab.com`. From 6.3.6 the identity is
+  `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`, with the project's id,
+  `86730559`, in the certificate: the project moved into the group [`hmailserver`](https://gitlab.com/hmailserver)
+  on 29 September 2026. 6.3.5, signed that day before the move, carries the identity
+  `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, the path the project began at,
+  and the same id. A server from 6.3.4 on trusts both paths, the group's only with that id, whatever its update
+  settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
 
   From 6.3.6 each file but a compiled file's SBOM also carries its bundle a second time, byte for byte, as
   `<file>.sigstore.json`, the name Sigstore's own clients and OpenSSF Scorecard look for; either name verifies the
@@ -304,13 +304,13 @@ verified the original.
   cosign verify-blob-attestation --new-bundle-format \
     --bundle hmailserver-x.y.z.intoto.sigstore.json \
     --type slsaprovenance1 \
-    --certificate-identity https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/vx.y.z \
+    --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vx.y.z \
     --certificate-oidc-issuer https://gitlab.com \
     hmailserver_x.y.z_amd64.deb
   ```
 
   It says `Verified OK` only when the file's SHA-256 is one the statement names and the statement was signed by that
-  identity; after the move to the group, the identity is `https://gitlab.com/hmailserver/hmailserver//...`. To read
+  identity, at the group's path, where every release that carries a provenance (from 6.3.6) is signed. To read
   the statement itself: `jq -r .dsseEnvelope.payload hmailserver-x.y.z.intoto.sigstore.json | base64 -d | jq .`.
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.

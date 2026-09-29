@@ -12,8 +12,9 @@
 image:
   # The project's container registry on GitLab, in the group hmailserver: the
   # image's lasting address, where each release GitLab CI makes pushes its image,
-  # signed with Sigstore, once the project is at that path (a release built by
-  # hand has none; hmailserver/docs/ContainerImage.md says which have one). For
+  # signed with Sigstore, from that path, the project's since 29 September
+  # 2026 (a release built by hand has none; hmailserver/docs/ContainerImage.md
+  # says which have one). For
   # a release without one, build the image from docker/Dockerfile, push it to a
   # registry of your own and name that here.
   # (The images published before GitHub suspended the project's account on

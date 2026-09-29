@@ -13,7 +13,7 @@ in [Residual risk](#8-residual-risk).
 **Status since 18 September 2026.** GitHub has been unavailable to the project
 since 18 September 2026, and its home has been
 [GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September
-2026. Claim C7 rests on the release chain that ran on GitHub Actions
+2026 (in the group `hmailserver` since 29 September 2026). Claim C7 rests on the release chain that ran on GitHub Actions
 (`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`, in the git
 history at `v6.3.3`). It holds for the releases that chain signed, 6.2.19 to
 6.3.3, whose Sigstore bundles verify without GitHub. 6.3.4 was built and signed
@@ -299,11 +299,11 @@ project's two release signers, whole: the `sign-release.yml` workflow issued by
 GitHub's token service, which signed every release up to 6.3.3 and is trusted
 only for certificates issued before the account's suspension on 18 September
 2026, or this project's GitLab CI pipeline issued by GitLab's, for the `v*` tag
-of the release being installed, which is to sign the releases after and has
-signed none yet - at the project's path now, and at the path of the group
-`hmailserver` it is to move to, where the certificate must also record the
-project's id, so that the servers built before the move take what is signed
-after it. A GitHub-signed file is installed only as a release up to
+of the release being installed, which signs the releases after, from 6.3.5 -
+at the path the project began at, which signed 6.3.5, and at the path of the
+group `hmailserver` it moved to on 29 September 2026, which signs every release
+from 6.3.6 and where the certificate must also record the project's id, so that
+the servers built before the move take what is signed after it. A GitHub-signed file is installed only as a release up to
 6.3.3, and on Windows the installer's own version resource must name the release
 it is installed as - so a substituted installer, or a genuine older one offered
 as a newer release, is refused before it is run. On Windows the `Updates` folder

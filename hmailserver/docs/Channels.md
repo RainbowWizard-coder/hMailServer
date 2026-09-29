@@ -56,7 +56,7 @@ loads):
    by this project's pipeline for that tag:
    `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
    or the same at `Progressiverobot/hmailserver` for a release signed before the
-   project moved, with the issuer `https://gitlab.com`. At the group's path the
+   project moved on 29 September 2026 (6.3.5), with the issuer `https://gitlab.com`. At the group's path the
    certificate must also carry the project's id, 86730559 (Fulcio's source repository
    identifier), and any id but that one is refused at either path: the rule every
    server applies to a live update (`SigstoreVerifier.cpp`). A file that does not

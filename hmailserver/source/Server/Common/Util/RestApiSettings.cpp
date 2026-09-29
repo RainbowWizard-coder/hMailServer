@@ -903,7 +903,7 @@ namespace
       // the document's name as the page. GET /api/v1/help answers it to the
       // two browser pages; the Control Panel reads Settings.HelpWikiBaseUrl.
       { "help_wiki_base_url", KindString, ReadWrite, EffectNow, nullptr,
-        "The wiki the help panes' Open on the wiki link points at, with the document's name as the page - https://gitlab.com/Progressiverobot/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link.",
+        "The wiki the help panes' Open on the wiki link points at, with the document's name as the page - https://gitlab.com/hmailserver/hmailserver/-/wikis/ as shipped. Absolute, beginning with http:// or https://; empty hides the link.",
         ROW_TEXT(Config()->GetHelpWikiBaseUrl()),
         [] (const Value &v) { String url = v.text; url.Trim(); Config()->SetHelpWikiBaseUrl(url); return Applied(); },
         [] (const Value &v) -> String
@@ -915,7 +915,7 @@ namespace
            String lowered = url;
            lowered.MakeLower();
            if (lowered.Find(_T("http://")) != 0 && lowered.Find(_T("https://")) != 0)
-              return _T("The wiki base URL is absolute and begins with http:// or https://, such as https://gitlab.com/Progressiverobot/hmailserver/-/wikis/; empty hides the link.");
+              return _T("The wiki base URL is absolute and begins with http:// or https://, such as https://gitlab.com/hmailserver/hmailserver/-/wikis/; empty hides the link.");
            return "";
         } },
       { "tls_version_10_enabled", KindBoolean, ReadWrite, EffectRestart, nullptr,

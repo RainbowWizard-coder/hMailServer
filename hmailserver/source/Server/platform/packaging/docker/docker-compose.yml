@@ -50,8 +50,9 @@ services:
     # the packaging check refuses one for that reason. The name below is the
     # project's GitLab container registry in the group hmailserver, the image's
     # lasting address, where each release GitLab CI makes pushes its image,
-    # signed with Sigstore, once the project is at that path (the releases built
-    # by hand have none; hmailserver/docs/ContainerImage.md says which have one).
+    # signed with Sigstore, from that path, the project's since 29 September
+    # 2026 (the releases built by hand have none; hmailserver/docs/
+    # ContainerImage.md says which have one).
     # Until one does, build it from the Dockerfile beside this file and name
     # your own tag here.
     image: registry.gitlab.com/hmailserver/hmailserver:latest

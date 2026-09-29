@@ -15,7 +15,7 @@
 
 [Unit]
 Description=hMailServer, a mail server for SMTP, IMAP and POP3
-Documentation=https://gitlab.com/Progressiverobot/hmailserver
+Documentation=https://gitlab.com/hmailserver/hmailserver
 Documentation=file:/etc/hmailserver/hMailServer.ini
 
 # network-online rather than network: a listener binds an explicit address

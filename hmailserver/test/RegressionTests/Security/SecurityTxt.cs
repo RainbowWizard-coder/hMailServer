@@ -40,7 +40,7 @@ namespace RegressionTests.Security
       private const int WebServicesPort = 9097;
 
       private const string PolicyUrl =
-         "https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/SECURITY.md";
+         "https://gitlab.com/hmailserver/hmailserver/-/blob/master/SECURITY.md";
 
       private static void WriteSetting(string key, string value)
       {

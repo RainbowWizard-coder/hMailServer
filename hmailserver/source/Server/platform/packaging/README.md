@@ -130,7 +130,7 @@ makepkg -si
 ```
 
 It fetches the tag `v${pkgver}` from the public repository,
-<https://gitlab.com/Progressiverobot/hmailserver>, rather than using the tree
+<https://gitlab.com/hmailserver/hmailserver>, rather than using the tree
 it was copied out of, which is what makes the resulting package reproducible by
 somebody who does not have your working copy.
 
@@ -830,7 +830,8 @@ every change to either.
 Both name the image `registry.gitlab.com/hmailserver/hmailserver`, the
 project's GitLab container registry in the group `hmailserver`, the image's
 lasting address (the maintainers decided on 27 September 2026 to push the
-first image only once the project is there). A `v*` tag's pipeline has the
+first image only once the project was there, as it has been since 29 September
+2026). A `v*` tag's pipeline has the
 image jobs, which a maintainer starts once the release is published and the
 project's CI/CD variable `HM_PUBLISH_IMAGE` is 1: `container-image-deb` takes
 the release's `.deb` from the published release and checks its Sigstore

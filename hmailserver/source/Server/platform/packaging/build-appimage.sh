@@ -747,7 +747,7 @@ else
       echo "# version above, as its archive holds it - is the release file ${BUNDLED_SOURCES},"
       echo "# published with the AppImages of release v${VERSION}:"
       echo "#   https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/${VERSION}/${BUNDLED_SOURCES}"
-      echo "# and on the release's page, ${CI_PROJECT_URL:-https://gitlab.com/Progressiverobot/hmailserver}/-/releases/v${VERSION},"
+      echo "# and on the release's page, ${CI_PROJECT_URL:-https://gitlab.com/hmailserver/hmailserver}/-/releases/v${VERSION},"
       echo "# as downloads/hmailserver-appimage-bundled-sources.tar.gz. Its README.txt says what each licence asks, and how"
       echo "# to run this AppImage with a changed copy of a library (section 6 of the LGPL-2.1, 4(d) of the LGPL-3.0)."
       echo "# hMailServer itself is under the AGPL-3.0-or-later: AGPL-3.0.txt, beside this file."

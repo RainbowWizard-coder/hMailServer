@@ -13,8 +13,8 @@
   is why there is no tools/VERIFICATION.txt: nothing binary is shipped inside it.
 
   @CHOCOLATEY_ID@ is hmailserver or hmailserver-progressiverobot (the script's
-  -ChocolateyId). The addresses are the project's at the group's path it moves to;
-  its first path, Progressiverobot/hmailserver, redirects there.
+  -ChocolateyId). The addresses are the project's at the group's path it moved to on
+  29 September 2026; its first path, Progressiverobot/hmailserver, redirects there.
 -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>

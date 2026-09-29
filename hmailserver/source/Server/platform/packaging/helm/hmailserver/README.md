@@ -96,7 +96,8 @@ helm install mail ./hmailserver-chart-<version>.tgz --set database.host=...
 ```
 
 The identity is the project's path when the release was signed: a release tagged
-before the project moved into the group `hmailserver` was signed as
+before the project moved into the group `hmailserver` on 29 September 2026 (one
+release, the last before the move, was signed by its pipeline there) was signed as
 `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
 and the release page's verification section says which.
 

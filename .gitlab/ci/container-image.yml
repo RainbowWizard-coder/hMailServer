@@ -46,12 +46,12 @@
 # not when the pipeline is made: container-image-deb and linux-image.sh refuse, saying
 # so and exiting non-zero, while it is anything but "1". So the jobs are there in every
 # v* tag's pipeline, and a release published before the project's move into the group
-# hmailserver has its image pushed from its own pipeline after the move, by starting
-# container-image-deb again once the variable is set - the maintainers decided on 27
-# September 2026 to push the first image only at the lasting path,
-# registry.gitlab.com/hmailserver/hmailserver, since a container repository's path is
-# always its project's. It is a project variable, Protected (a v* tag's pipeline is
-# for a protected ref), because the project refuses pipeline variables (a schedule's
+# hmailserver on 29 September 2026 (6.3.5) has its image pushed from its own pipeline
+# after the move, by starting container-image-deb again once the variable is set - the
+# maintainers decided on 27 September 2026 to push the first image only at the lasting
+# path, registry.gitlab.com/hmailserver/hmailserver, since a container repository's
+# path is always its project's. It is a project variable, Protected (a v* tag's
+# pipeline is for a protected ref), because the project refuses pipeline variables (a schedule's
 # included), so nobody can turn the jobs on for one run. Nothing in
 # this file or .gitlab-ci.yml may set it, and no rule may read it: a rule is decided
 # when the pipeline is made, and would leave a release published before the move

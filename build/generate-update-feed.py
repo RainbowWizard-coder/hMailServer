@@ -43,10 +43,10 @@ made by hand, and --check --site compares with what the API says now - and
 because a release's notes are what its page shows. The feed's updated time is
 the newest entry's, so a render changes the file only when a release does.
 Every id is a tag URI made from the release's tag alone (ATOM_ID_PREFIX), so it
-stays the same across renders, edits of a release, and the project's move into
-the group hmailserver, which changes every release page's address: a reader
-remembers entries by id, and an id made from the page would show every release
-again after the move. build/check-atom-feed.py holds the feed to RFC 4287 and
+stays the same across renders, edits of a release, and a move of the project,
+such as its move into the group hmailserver on 29 September 2026, which changed
+every release page's address: a reader remembers entries by id, and an id made
+from the page would have shown every release again after the move. build/check-atom-feed.py holds the feed to RFC 4287 and
 to releases.json; --self-test and --serve-check run it.
 
 The stable download links. /download/<name> answers a 302 to the file of the
@@ -132,7 +132,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHECKER_SOURCE = os.path.join(ROOT, "hmailserver", "source", "Server", "Common", "Util", "UpdateChecker.cpp")
 
 PROJECT_ID = "86730559"
-PROJECT_URL = "https://gitlab.com/Progressiverobot/hmailserver"
+PROJECT_URL = "https://gitlab.com/hmailserver/hmailserver"
 API = "https://gitlab.com/api/v4/projects/" + PROJECT_ID
 SITE = "https://updates.progressiverobot.com"
 DOCUMENT_URL = PROJECT_URL + "/-/blob/master/hmailserver/docs/UpdateFeed.md"
@@ -1415,11 +1415,11 @@ def self_test():
     expect(rerendered[ATOM_PATH] == tree[ATOM_PATH], "the same releases render the same releases.atom, whenever")
     moved = json.loads(json.dumps(loaded))
     for r in moved:
-        r["_links"]["self"] = r["_links"]["self"].replace("/Progressiverobot/", "/hmailserver/")
+        r["_links"]["self"] = r["_links"]["self"].replace("/hmailserver/hmailserver/", "/elsewhere/hmailserver/")
         r["name"] = r["name"] + " (edited)"
         r["description"] = "Edited notes."
     moved_atom = render(moved, files)[0][ATOM_PATH]
-    expect(checker.entry_ids(moved_atom) == checker.entry_ids(tree[ATOM_PATH]) and b"/hmailserver/hmailserver/-/releases/v6.3.4" in moved_atom,
+    expect(checker.entry_ids(moved_atom) == checker.entry_ids(tree[ATOM_PATH]) and b"/elsewhere/hmailserver/-/releases/v6.3.4" in moved_atom,
            "a move of the project and an edited name and notes change the links and no id")
     for description, summary in (
             (None, "fallback"), ("", "fallback"), ("# Heading\n\n---\n", "fallback"),

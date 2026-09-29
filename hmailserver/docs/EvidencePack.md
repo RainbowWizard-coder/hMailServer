@@ -370,8 +370,8 @@ replace GitHub's signing and packaging workflows are in `.gitlab-ci.yml` for
 container image appears in the project's container registry, as
 `registry.gitlab.com/hmailserver/hmailserver`, pushed from a release's own
 pipeline by jobs a maintainer starts, which refuse until the project variable
-`HM_PUBLISH_IMAGE` is 1 (it waits for the project's move to the group
-`hmailserver`; nothing is pushed from the present path), signed with Sigstore
+`HM_PUBLISH_IMAGE` is 1 (unset until the project's move to the group
+`hmailserver` on 29 September 2026; nothing is pushed from any other path), signed with Sigstore
 as the same pipeline ([ContainerImage.md](ContainerImage.md)); 6.3.4 has none. The rest of the row is in this tree: an installed server's update check reads the project's own feed,
 https://updates.progressiverobot.com, published from GitLab Pages
 ([UpdateFeed.md](UpdateFeed.md)), and its live update trusts a list of two

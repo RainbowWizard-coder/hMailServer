@@ -29,7 +29,7 @@ namespace hMailServer.ControlPanel.Views
    public class StalledMailView : UserControl, IPageLifecycle
    {
       private const string GuideUrl =
-         "https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/hmailserver/docs/DiagnosingStalledMail.md";
+         "https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/DiagnosingStalledMail.md";
 
       // The two buttons of the debug-logging card: the one that would change
       // nothing is disabled, so the state reads off the buttons as well as the line.

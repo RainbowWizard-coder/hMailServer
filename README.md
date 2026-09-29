@@ -3,17 +3,17 @@ hMailServer
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14949/badge)](https://www.bestpractices.dev/projects/14949) [![Latest release](https://gitlab.com/hmailserver/hmailserver/-/badges/release.svg)](https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest)
 
-**The project's home is [GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and every release up to 6.3.3 is re-published there under its original date, with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved.
+**The project's home is [GitLab](https://gitlab.com/hmailserver/hmailserver) since 22 September 2026, in the group `hmailserver` since 29 September 2026.** GitHub has been unavailable to the project since 18 September 2026, so links to github.com/Progressiverobot answer 404; the issues, merge requests and wiki are on GitLab, and every release up to 6.3.3 is re-published there under its original date, with its files byte for byte, but for 6.2.0 and 6.0.0-B4, whose files were not preserved.
 
 hMailServer is a free, open source email server for Microsoft Windows, implementing SMTP, IMAP and POP3. Since 8 September 2026 the server itself also builds, runs and packages on Linux, for x86-64 and AArch64 - see [Linux and AArch64](#linux-and-aarch64) below for exactly how far that goes.
 
 This repository is a maintained fork of the original project, which is no longer developed upstream. It has been brought up to date with a current toolchain, current cryptography, and the transport-security and authentication standards expected of a mail server in 2026 — while remaining a drop-in upgrade for existing hMailServer installations. It is maintained by Christopher Holloway / [Progressive Robot Ltd](https://www.progressiverobot.com).
 
-**[Download the latest release](https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest)** — a single `hMailServer-x.y.z-x64.exe` installer for Windows, and a `.deb` and an `.rpm` for x86-64 Linux. The AArch64 packages and the AppImages were last published with [6.3.3](https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.3): 6.3.4 is the first release built off GitHub. The release pipeline is to carry the AArch64 `.deb` and `.rpm` again from 6.3.6, cross-compiled on the project's x86-64 runner and tested under emulation, since the project has no ARM machine ([PackagesDeb.md](hmailserver/docs/PackagesDeb.md), [PackagesRpm.md](hmailserver/docs/PackagesRpm.md)); no release carries an AppImage yet ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)). Upgrading in place preserves your configuration and mail; the database upgrade chain is continuous from every earlier hMailServer version.
+**[Download the latest release](https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest)** — a single `hMailServer-x.y.z-x64.exe` installer for Windows, and a `.deb` and an `.rpm` for x86-64 Linux. The AArch64 packages and the AppImages were last published with [6.3.3](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.3): 6.3.4 is the first release built off GitHub. The release pipeline is to carry the AArch64 `.deb` and `.rpm` again from 6.3.6, cross-compiled on the project's x86-64 runner and tested under emulation, since the project has no ARM machine ([PackagesDeb.md](hmailserver/docs/PackagesDeb.md), [PackagesRpm.md](hmailserver/docs/PackagesRpm.md)); no release carries an AppImage yet ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)). Upgrading in place preserves your configuration and mail; the database upgrade chain is continuous from every earlier hMailServer version.
 
 Every release is validated by the full regression suite before it ships — the complete suite, run against the exact binary being released, with live SpamAssassin and ClamAV (real EICAR detection), SPF, DKIM and DMARC evaluated through the resolver code path against the suite's own DNS zone (one fake resolver the server is pointed at for the whole run, so no result depends on the Internet), and TLS 1.2/1.3 handshakes end to end. Nothing is skipped, and nothing but DNS is mocked. Before that run, the same suite runs once more on a build that keeps every internal assertion and reports a violated one to the ERROR log (`build\build.ps1 -Configuration Release -Asserts`), so the invariants the shipped binary compiles out are still exercised by every test.
 
-**What changed in each version** is on the [Releases page](https://gitlab.com/Progressiverobot/hmailserver/-/releases). What is planned next, and what is deliberately not, is in [Roadmap.md](Roadmap.md). [Roadmap3.md](Roadmap3.md) maps what it takes to bring back on GitLab everything a user could download from GitHub - the AArch64 packages, the AppImages, the container image - and to add the ARM64 installer, the apt and dnf repositories, winget, Chocolatey and every other channel people install mail servers from. The release process itself is documented in [RELEASE.md](RELEASE.md), and the codebase map is in [ARCHITECTURE.md](ARCHITECTURE.md).
+**What changed in each version** is on the [Releases page](https://gitlab.com/hmailserver/hmailserver/-/releases). What is planned next, and what is deliberately not, is in [Roadmap.md](Roadmap.md). [Roadmap3.md](Roadmap3.md) maps what it takes to bring back on GitLab everything a user could download from GitHub - the AArch64 packages, the AppImages, the container image - and to add the ARM64 installer, the apt and dnf repositories, winget, Chocolatey and every other channel people install mail servers from. The release process itself is documented in [RELEASE.md](RELEASE.md), and the codebase map is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Where things are
 ----------------
@@ -325,10 +325,11 @@ ten-minute certificate is valid); the certificate is one of this project's two
 release signers, whole - the GitHub Actions workflow `sign-release.yml` on a
 GitHub token, issued before GitHub suspended the account, for the releases up to
 6.3.3, or this project's GitLab CI pipeline on a GitLab token, for the `v*` tag
-of the release being installed, for the ones after (compiled in, at the
-project's path now and at the path of the group `hmailserver` it is to move to,
-where the certificate must record the project's id; no release has been signed
-there yet); the signature verifies under
+of the release being installed, for the ones after (compiled in, at the path
+the project began at, which signed 6.3.5, and at the path of the group
+`hmailserver` it moved to on 29 September 2026, which signs every release from
+6.3.6 and where the certificate must record the project's id); the signature
+verifies under
 the certificate's key; and the log vouches for the entry under its own key. A
 GitHub-signed file is installed only as a release up to 6.3.3, and on Windows
 the installer's own version resource must name the release it is installed as. A

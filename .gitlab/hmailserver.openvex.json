@@ -1,6 +1,6 @@
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://gitlab.com/Progressiverobot/hmailserver/-/blob/master/.gitlab/hmailserver.openvex.json",
+  "@id": "https://gitlab.com/hmailserver/hmailserver/-/blob/master/.gitlab/hmailserver.openvex.json",
   "author": "The hMailServer maintainers, Progressive Robot Ltd",
   "role": "Project maintainers",
   "timestamp": "2026-09-12T03:00:00Z",

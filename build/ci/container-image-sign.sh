@@ -55,10 +55,10 @@ case "$tag" in
   v[0-9]*) ;;
   *) fail "this is not a v* tag's pipeline (CI_COMMIT_TAG is '$tag')" ;;
 esac
-# The two paths a server trusts a signature from, as release-sign.sh has them; the
-# image carries the same identity as the release's files.
+# The project's path, as release-sign.sh has it: the group's, where the project has
+# been since 29 September 2026. The image carries the same identity as the release's
+# files, and is pushed only at the group's path (build/ci/linux-image.sh).
 case "${CI_PROJECT_PATH:-}" in
-  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;
   hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;
   *) fail "the project's path is '${CI_PROJECT_PATH:-}', not one a release is signed from" ;;
 esac

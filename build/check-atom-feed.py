@@ -475,12 +475,12 @@ def self_test():
     # an edited name and notes, and a new release change no id.
     again = canned_tree(feed)[0]["releases.atom"]
     expect(again == good, "the same releases render the same bytes")
-    moved = canned_tree(feed, project_url="https://gitlab.com/hmailserver/hmailserver",
+    moved = canned_tree(feed, project_url="https://gitlab.com/elsewhere/hmailserver",
                         extra=[("v6.3.7", "hMailServer 6.3.7", "2026-11-01T00:00:00.000Z", "Next.")])
     moved_listing = json.loads(moved[0]["releases.json"].decode("utf-8"))
     problems = check_atom(moved[0]["releases.atom"], moved_listing, moved[1], previous=good)
     expect(problems == [], "after the move and a new release every earlier id is still there: %s" % problems)
-    expect(b"https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6" in moved[0]["releases.atom"],
+    expect(b"https://gitlab.com/elsewhere/hmailserver/-/releases/v6.3.6" in moved[0]["releases.atom"],
            "and the links follow the move")
 
     def refused(content, why, words, feed_listing=listing, feed_latest=latest, previous=None):
@@ -526,7 +526,7 @@ def self_test():
     # Ids.
     refused(edited(b"<id>%sv6.3.5</id>" % ENTRY_ID_PREFIX.encode(), b"<id>%sv6.3.6</id>" % ENTRY_ID_PREFIX.encode()),
             "two entries with one id", "two entries have the id")
-    refused(edited(b"<id>%sv6.3.5</id>" % ENTRY_ID_PREFIX.encode(), b"<id>https://gitlab.com/Progressiverobot/hmailserver/-/releases/v6.3.5</id>"),
+    refused(edited(b"<id>%sv6.3.5</id>" % ENTRY_ID_PREFIX.encode(), b"<id>https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.5</id>"),
             "an entry id made from the release's page", "made from the release's tag alone")
     refused(edited(b"<id>%sv6.3.5</id>" % ENTRY_ID_PREFIX.encode(), b"<id>v6.3.5 release</id>"), "an id that is no IRI",
             "not an absolute IRI")

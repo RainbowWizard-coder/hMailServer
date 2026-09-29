@@ -40,7 +40,7 @@ namespace RegressionTests.API
       // suite's own where RestListener finds one already on.
       private static int RestPort = 9104;
       private const string AdminPassword = "testar";
-      private const string LatestPath = "/repos/Progressiverobot/hmailserver/releases/latest";
+      private const string LatestPath = "/repos/hmailserver/hmailserver/releases/latest";
 
       private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _later, _marker;
 
@@ -709,10 +709,10 @@ namespace RegressionTests.API
             _feed.SetResponse("/download/" + rollbackName, 200, rollback);
             _feed.SetResponse("/download/" + rollbackName + ".cosign.bundle", 200,
                Encoding.UTF8.GetBytes(_sigstore.Bundle(rollback, rollbackSigning ?? FakeSigstore.ReleaseSigning(Running))), "application/json");
-            _feed.SetResponse("/repos/Progressiverobot/hmailserver/releases/tags/v" + Running, 200, Encoding.UTF8.GetBytes(Release(Running, rollbackName, rollback)), "application/json");
+            _feed.SetResponse("/repos/hmailserver/hmailserver/releases/tags/v" + Running, 200, Encoding.UTF8.GetBytes(Release(Running, rollbackName, rollback)), "application/json");
          }
          else
-            _feed.SetResponse("/repos/Progressiverobot/hmailserver/releases/tags/v" + Running, 404, Encoding.UTF8.GetBytes("{\"message\":\"Not Found\"}"), "application/json");
+            _feed.SetResponse("/repos/hmailserver/hmailserver/releases/tags/v" + Running, 404, Encoding.UTF8.GetBytes("{\"message\":\"Not Found\"}"), "application/json");
       }
 
       private string Release(string version, string name, byte[] installer)
@@ -721,7 +721,7 @@ namespace RegressionTests.API
          string digest;
          using (var sha = SHA256.Create())
             digest = "sha256:" + FakeSigstore.Hex(sha.ComputeHash(installer));
-         return "{\"html_url\":\"https://gitlab.com/Progressiverobot/hmailserver/-/releases/v" + version + "\"," +
+         return "{\"html_url\":\"https://gitlab.com/hmailserver/hmailserver/-/releases/v" + version + "\"," +
                 "\"tag_name\":\"v" + version + "\",\"name\":\"hMailServer " + version + "\",\"draft\":false,\"prerelease\":false," +
                 "\"published_at\":\"2026-09-12T10:00:00Z\",\"assets\":[" +
                 "{\"name\":\"" + name + "\",\"size\":" + installer.Length + ",\"digest\":\"" + digest + "\",\"browser_download_url\":\"" + download + name + "\"}," +

@@ -24,12 +24,14 @@ refuses it. This checker holds them to each other. It fails when:
     reads (--new-bundle-format, Rekor v1 at rekor.sigstore.dev, the signing
     configuration off, hashedrekord 0.0.1), or counts another number of files than
     a release carries (build/ci/release-chain.py);
-  * the identity the scripts expect is not the one SigstoreVerifier.cpp trusts,
-    or that one is not this project's path, file and repository id; or the
-    verifier stops trusting the group the project is to move to (MOVE_TO) once,
-    with the project's id required, or stops requiring that id of every
-    certificate naming the group's path or repository whatever the settings; or
-    the scripts sign from a path it does not trust, or name the identity twice;
+  * the identity the scripts expect is not the one SigstoreVerifier.cpp trusts
+    at the group's path the project has been at since 29 September 2026
+    (GROUP_PATH), or that one is not this project's path, file and repository
+    id; or the verifier stops trusting it once, with the project's id required,
+    or stops requiring that id of every certificate naming the group's path or
+    repository whatever the settings, or stops trusting the path the project
+    began at (FIRST_PATH), which signed 6.3.5; or the scripts sign from any
+    path but the group's, or name the identity twice;
   * a compiled file the release carries (build/ci/release-chain.py's
     expected_assets: an installer or a package) goes out without its own SBOM,
     <file>.cdx.json, beside it (OpenSSF Baseline OSPS-QA-02.02); release-sbom
@@ -283,9 +285,10 @@ IMAGE_JOBS = {
 # so runs only after it.
 IMAGE_FIRST = "container-image-deb"
 # The switch: the project's own CI/CD variable HM_PUBLISH_IMAGE, read as the jobs RUN.
-# The maintainers set it after the project's move into the group hmailserver, which
-# they decided on 27 September 2026 to make before the first image, so that the first
-# image's address, registry.gitlab.com/hmailserver/hmailserver, is the lasting one (a
+# The maintainers set it after the project's move into the group hmailserver (made on
+# 29 September 2026), which they decided on 27 September 2026 to make before the first
+# image, so that the first image's address, registry.gitlab.com/hmailserver/hmailserver,
+# is the lasting one (a
 # container repository's path is always its project's). The jobs are in every v* tag's
 # pipeline, so that a release published before the move has its image pushed from its
 # own pipeline afterwards; a rule reading the variable would be decided when the
@@ -392,11 +395,15 @@ COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE
 PINNED_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
 PLACEHOLDER_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:PIN-THE-DIGEST$")
 RESERVED = {"stages", "workflow", "default", "variables", "include"}
-# Where the project is to move, from the personal namespace to the group the owner
-# reserved for it (26 September 2026). SigstoreVerifier.cpp trusts the pipeline there
-# too, with the project's id required, so that the servers built before the move take
-# what is signed after it; the release scripts sign from either path and no other.
-MOVE_TO = "https://gitlab.com/hmailserver/hmailserver"
+# The project's paths on GitLab. It began in the owner's personal namespace
+# (FIRST_PATH), where 6.3.5 was signed, and moved on 29 September 2026 into the group
+# the owner reserved for it (GROUP_PATH), where every release from 6.3.6 is signed.
+# SigstoreVerifier.cpp trusts the pipeline at both - at the first for what was signed
+# there, at the group's with the project's id required, which every server from 6.3.4
+# on knew before the move - and the release scripts sign from the group's path alone:
+# a pipeline at the first path now is not this project's.
+FIRST_PATH = "https://gitlab.com/Progressiverobot/hmailserver"
+GROUP_PATH = "https://gitlab.com/hmailserver/hmailserver"
 IDENTITY_TAIL = "//.gitlab-ci.yml@refs/tags/"
 # The identity release-sign.sh and release-verify.sh expect: the repository's, for
 # the ref - refs/tags/<tag> for a release, refs/heads/<branch> in a rehearsal alone.
@@ -1049,27 +1056,31 @@ def check(texts, chain, feed):
     prefix = re.search(r'const char \*GITLAB_IDENTITY_PREFIX = "([^"]+)";', texts["verifier"])
     repository = re.search(r'const char \*GITLAB_REPOSITORY = "([^"]+)";', texts["verifier"])
     repository_id = re.search(r'const char \*GITLAB_REPOSITORY_ID = "([^"]+)";', texts["verifier"])
-    path = feed.PROJECT_URL[len("https://"):]
-    expected_prefix = "https://%s//.gitlab-ci.yml@refs/tags/v" % path
+    if feed.PROJECT_URL != GROUP_PATH:
+        problems.append("build/generate-update-feed.py's PROJECT_URL is %s, not the project's path %s" % (feed.PROJECT_URL, GROUP_PATH))
+    # The path the project began at: the pipeline there signed 6.3.5, and a server must
+    # go on taking that release (to install it, or to roll back to it).
+    expected_prefix = FIRST_PATH + IDENTITY_TAIL + "v"
     if not prefix or prefix.group(1) != expected_prefix:
-        problems.append("SigstoreVerifier.cpp's GITLAB_IDENTITY_PREFIX is %s, not %s - this project's path and this CI file" % (
-            prefix.group(1) if prefix else "missing", expected_prefix))
-    if chain.SIGNER_IDENTITY_PREFIX + "v" != expected_prefix:
-        problems.append("build/ci/release-chain.py expects the identity %s..., not the verifier's %s" % (chain.SIGNER_IDENTITY_PREFIX, expected_prefix))
-    # The group the project is to move to: the same pipeline under its new path, the
+        problems.append("SigstoreVerifier.cpp's GITLAB_IDENTITY_PREFIX is %s, not %s - the path the project began at, which signed "
+                        "6.3.5, and this CI file" % (prefix.group(1) if prefix else "missing", expected_prefix))
+    # The group's path, the project's since 29 September 2026: the same pipeline, the
     # same project's id, and that id required - were it optional, a certificate for the
-    # path would be accepted from whoever held the path.
+    # path would be accepted from whoever held the path, were the group ever lost.
     group_prefix = re.search(r'const char \*GITLAB_GROUP_IDENTITY_PREFIX = "([^"]+)";', texts["verifier"])
     group_repository = re.search(r'const char \*GITLAB_GROUP_REPOSITORY = "([^"]+)";', texts["verifier"])
-    expected_group_prefix = MOVE_TO + IDENTITY_TAIL + "v"
+    expected_group_prefix = GROUP_PATH + IDENTITY_TAIL + "v"
     if not group_prefix or group_prefix.group(1) != expected_group_prefix:
-        problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_IDENTITY_PREFIX is %s, not %s - the path the project is to move to and this CI file" % (
+        problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_IDENTITY_PREFIX is %s, not %s - this project's path and this CI file" % (
             group_prefix.group(1) if group_prefix else "missing", expected_group_prefix))
-    if not group_repository or group_repository.group(1) != MOVE_TO:
-        problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_REPOSITORY is not %s" % MOVE_TO)
+    if chain.SIGNER_IDENTITY_PREFIX + "v" != expected_group_prefix:
+        problems.append("build/ci/release-chain.py expects the identity %s..., not the verifier's %s" % (chain.SIGNER_IDENTITY_PREFIX, expected_group_prefix))
+    if not group_repository or group_repository.group(1) != GROUP_PATH:
+        problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_REPOSITORY is not %s" % GROUP_PATH)
     if not re.search(r'trust\.signers\.push_back\(MakeSigner_\(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, (true|false), 0, ""\)\);',
                      texts["verifier"]):
-        problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the GitLab signer at the project's present path with its id")
+        problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the GitLab signer at the path the project began at, "
+                        "which signed 6.3.5, with its id")
     group_signer = 'trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
     if group_signer not in texts["verifier"] or texts["verifier"].count("MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX") != 1:
         problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the group's signer once, with the project's id required: %s" % group_signer)
@@ -1083,11 +1094,12 @@ def check(texts, chain, feed):
         if needle not in texts["verifier"]:
             problems.append("SigstoreVerifier.cpp no longer requires the project's id of every certificate naming the group's path "
                             "or repository, whatever the settings (%s)" % needle.strip())
-    # The scripts name the identity after the project's path, which must be one of the
-    # two the verifier trusts, each with its own repository, and nothing else: the case
-    # on CI_PROJECT_PATH exactly as below, the one assignment of the repository and the
-    # identity in each script, and the identity right after the case.
-    paths = [(feed.PROJECT_URL.split("/", 3)[3], feed.PROJECT_URL), (MOVE_TO.split("/", 3)[3], MOVE_TO)]
+    # The scripts name the identity after the project's path, which must be the group's,
+    # with its own repository, and nothing else - not the first path, where a pipeline
+    # now is another project's: the case on CI_PROJECT_PATH exactly as below, the one
+    # assignment of the repository and the identity in each script, and the identity
+    # right after the case.
+    paths = [(GROUP_PATH.split("/", 3)[3], GROUP_PATH)]
     case_block = ('case "${CI_PROJECT_PATH:-}" in\n' +
                   "".join("  %s) repository=%s ;;\n" % path for path in paths) +
                   "  *) fail \"the project's path is '${CI_PROJECT_PATH:-}', not one a server trusts a signature from\" ;;\n"
@@ -1120,8 +1132,8 @@ def check(texts, chain, feed):
     if chain.SIGNING_REPOSITORIES != dict(paths):
         problems.append("build/ci/release-chain.py signs its provenance for %s, not the paths the scripts sign from, %s" % (
             chain.SIGNING_REPOSITORIES, dict(paths)))
-    if not repository or repository.group(1) != feed.PROJECT_URL:
-        problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY is not %s" % feed.PROJECT_URL)
+    if not repository or repository.group(1) != FIRST_PATH:
+        problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY is not %s" % FIRST_PATH)
     if not repository_id or repository_id.group(1) != feed.PROJECT_ID or chain.PROJECT_ID != feed.PROJECT_ID:
         problems.append("SigstoreVerifier.cpp's GITLAB_REPOSITORY_ID is not the project id %s" % feed.PROJECT_ID)
     if not os.path.isfile(os.path.join(ROOT, ".gitlab-ci.yml")):
@@ -1295,6 +1307,9 @@ def check(texts, chain, feed):
     image_script = texts["image-sign"]
     if TAG_SCRIPT_IDENTITY not in image_script:
         problems.append("build/ci/container-image-sign.sh expects another identity than %s" % TAG_SCRIPT_IDENTITY)
+    group_case = "  %s) repository=%s ;;\n" % (GROUP_PATH.split("/", 3)[3], GROUP_PATH)
+    if image_script.count(group_case) != 1 or len(re.findall(r"(?<![\w-])repository=", image_script)) != 1:
+        problems.append("build/ci/container-image-sign.sh signs from another path than the group's, %s, alone" % GROUP_PATH)
     image_flags = re.search(r'^sign_flags="([^"]*)"$', image_script, re.MULTILINE)
     if not image_flags or "--rekor-url https://rekor.sigstore.dev" not in image_flags.group(1):
         problems.append("build/ci/container-image-sign.sh signs without --rekor-url https://rekor.sigstore.dev (Rekor v1)")
@@ -1948,7 +1963,7 @@ def self_test(chain, feed):
     for what, planted in (("a versioned name", "hmailserver-9.9.9.tar.gz"), ("the old doubled path", "downloads/hMailServer-x64.exe"),
                           ("a name no release carries", "hMailServer.exe")):
         copy = dict(texts, permalinks=dict(texts["permalinks"], **{"hmailserver/docs/Planted.md":
-                    "Download `https://gitlab.com/Progressiverobot/hmailserver/-/releases/permalink/latest/downloads/%s`.\n" % planted}))
+                    "Download `https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest/downloads/%s`.\n" % planted}))
         found, _ = check(copy, chain, feed)
         if not any("Planted.md gives the address" in p for p in found):
             failures.append("a document with %s at permalink/latest is caught: %s" % (what, found))
@@ -2115,6 +2130,18 @@ def self_test(chain, feed):
     broken("a script signing from a third path", "verify", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
            "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n  someone/hmailserver) repository=https://gitlab.com/someone/hmailserver ;;\n",
            "release-verify.sh accepts the paths")
+    broken("a script signing from the project's first path again", "sign",
+           "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
+           "  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;\n"
+           "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n", "release-sign.sh accepts the paths")
+    broken("the image signed from the project's first path again", "image-sign",
+           "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
+           "  Progressiverobot/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;\n"
+           "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
+           "container-image-sign.sh signs from another path than")
+    broken("the verifier no longer trusting the path that signed 6.3.5", "verifier",
+           'GITLAB_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//',
+           'GITLAB_IDENTITY_PREFIX = "https://gitlab.com/hmailserver/hmailserver//', "the path the project began at")
     broken("a script mapping a path to another repository", "sign", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;",
            "  hmailserver/hmailserver) repository=https://gitlab.com/Progressiverobot/hmailserver ;;", "release-sign.sh accepts the paths")
     broken("a script expecting a branch's identity", "sign", 'identity="${repository}//.gitlab-ci.yml@${ref}"',
@@ -2131,10 +2158,11 @@ def self_test(chain, feed):
     broken("a rehearsal in a tag's pipeline", "verify", '[ -z "$tag" ] || fail', 'true || fail', "release-verify.sh signs as a branch")
     held_paths = chain.SIGNING_REPOSITORIES
     try:
-        chain.SIGNING_REPOSITORIES = dict(held_paths, **{"someone/hmailserver": "https://gitlab.com/someone/hmailserver"})
-        found, _ = check(texts, chain, feed)
-        if not any("signs its provenance for" in p for p in found):
-            failures.append("a provenance identity for a third path is caught: %s" % found)
+        for what, path in (("a third path", "someone/hmailserver"), ("the project's first path", "Progressiverobot/hmailserver")):
+            chain.SIGNING_REPOSITORIES = dict(held_paths, **{path: "https://gitlab.com/" + path})
+            found, _ = check(texts, chain, feed)
+            if not any("signs its provenance for" in p for p in found):
+                failures.append("a provenance identity for %s is caught: %s" % (what, found))
     finally:
         chain.SIGNING_REPOSITORIES = held_paths
     broken("a third path, indented otherwise", "verify", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",

@@ -45,7 +45,7 @@ Summary:        Mail server for SMTP, IMAP and POP3
 # and the Public Suffix List's rules (MPL-2.0); tlds.txt, SURBL's 2006 list of
 # two-level country-code domains, states no licence.
 License:        AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0 AND LicenseRef-Fedora-UltraPermissive
-URL:            https://gitlab.com/Progressiverobot/hmailserver
+URL:            https://gitlab.com/hmailserver/hmailserver
 Source0:        https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/%{version}/hmailserver-%{version}.tar.gz
 Source1:        hmailserver.sysusers
 %if 0%{?suse_version}

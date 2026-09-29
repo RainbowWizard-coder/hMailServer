@@ -20,15 +20,16 @@
 #
 # Why from the release and not from release-sign's artifact: the image jobs may run
 # weeks after the tag - the project's CI/CD variable HM_PUBLISH_IMAGE, which this
-# checks first, is set only once the project is at its lasting path
-# (hmailserver/docs/ContainerImage.md, "Publishing") - and by then the jobs'
-# artifacts may have expired. What the release publishes does not expire, and it
+# checks first, is set only with the project at its lasting path, the group's since
+# 29 September 2026 (hmailserver/docs/ContainerImage.md, "Publishing") - and by then
+# the jobs' artifacts may have expired. What the release publishes does not expire, and it
 # is what users download, so the image is built from exactly those bytes.
 #
 # How the files are trusted: each is verified with cosign verify-blob against its
 # bundle, as signed by this project's pipeline for this tag - at either of the two
-# paths a server trusts, since the release may have been signed before the project's
-# move and this job run after it - with the project's id in the certificate required
+# paths a server trusts, since a release signed before the project's move into the
+# group on 29 September 2026, 6.3.5, has this job run after it - with the project's
+# id in the certificate required
 # for the group's path, as the server requires it (SigstoreVerifier.cpp,
 # build/ci/release-verify.sh), read from the certificate's extensions
 # (build/ci/sigstore-certificate.sh). The transport is not what is trusted: busybox's wget,
@@ -40,7 +41,7 @@ set -eu
 
 out=container-image-deb
 issuer=https://gitlab.com
-# The project whose releases a server takes, by its id, which the move keeps.
+# The project whose releases a server takes, by its id, which the move kept.
 project_id=86730559
 
 fail() {
@@ -52,7 +53,7 @@ fail() {
 # pushes): the jobs exist in every v* tag's pipeline, and do nothing until it is 1.
 if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then
   echo "REFUSED: the project's CI/CD variable HM_PUBLISH_IMAGE is not 1, so no image is built or pushed."
-  echo "It is set once the project is at registry.gitlab.com/hmailserver/hmailserver"
+  echo "It is set by the maintainers for the image at registry.gitlab.com/hmailserver/hmailserver"
   echo "(hmailserver/docs/ContainerImage.md, 'Publishing'); then run this job again."
   exit 3
 fi
