@@ -128,7 +128,7 @@ channels-check:
 
 channels-verify:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   timeout: 20 minutes
   interruptible: false
@@ -146,7 +146,7 @@ channels-verify:
 
 registry-mirror:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   timeout: 30 minutes
   interruptible: false
@@ -233,7 +233,7 @@ ppa-upload:
 
 copr-build:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   timeout: 30 minutes
   interruptible: false
@@ -254,7 +254,7 @@ copr-build:
 
 obs-publish:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   timeout: 20 minutes
   interruptible: false
@@ -275,7 +275,7 @@ obs-publish:
 
 chocolatey-release:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   timeout: 20 minutes
   interruptible: false

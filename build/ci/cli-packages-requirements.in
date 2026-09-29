@@ -22,7 +22,7 @@
 # PyPI, --universal so that one file holds for the Linux jobs and a Windows desk:
 #
 #   python -m venv /tmp/uv && /tmp/uv/bin/pip install uv
-#   /tmp/uv/bin/uv pip compile --universal --generate-hashes --python-version 3.13 \
+#   /tmp/uv/bin/uv pip compile --universal --generate-hashes --python-version 3.14 \
 #       --output-file build/ci/cli-packages-requirements.txt build/ci/cli-packages-requirements.in
 #
 # then put this file's three header lines back at the top of the output, and keep

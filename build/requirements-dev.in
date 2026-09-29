@@ -22,7 +22,7 @@
 # To move a version, change it here and regenerate the pinned file (uv, from
 # PyPI; --universal so that one file holds for Windows and Linux alike):
 #
-#   uv pip compile --universal --generate-hashes --python-version 3.13 \
+#   uv pip compile --universal --generate-hashes --python-version 3.14 \
 #       --output-file build/requirements-dev.txt build/requirements-dev.in
 #
 # then put this file's three header lines back at the top of the output.

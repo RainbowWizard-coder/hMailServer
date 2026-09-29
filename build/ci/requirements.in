@@ -6,10 +6,10 @@
 # build/ci/requirements.txt is made from this file, with every package it pulls in
 # pinned and hashed, and that is the file the jobs install from (pip
 # --require-hashes). To move to a newer Semgrep, change the version here and
-# regenerate it, in the python:3.13-slim-trixie image the job runs in:
+# regenerate it, in the python:3.14-slim-trixie image the job runs in:
 #
 #   python3 -m venv /tmp/uv && /tmp/uv/bin/pip install uv
-#   /tmp/uv/bin/uv pip compile --generate-hashes --python-version 3.13 \
+#   /tmp/uv/bin/uv pip compile --generate-hashes --python-version 3.14 \
 #       --output-file build/ci/requirements.txt build/ci/requirements.in
 #
 # then run build/ci/semgrep.sh and regenerate its baseline if the new version finds

@@ -189,7 +189,7 @@ container-image-sign:
 # CS_IMAGE comes from container-image's dotenv report, which the template's
 # `dependencies: []` would keep from it, so dependencies names that job.
 container_scanning:
-  image: registry.gitlab.com/security-products/container-scanning:8@sha256:f258339ca472221b6d5b155a4876c8b66766ac7a5e7e7eac0c44dee651877f63
+  image: registry.gitlab.com/security-products/container-scanning:8@sha256:b90ca287f2ec7d26cd4747f258c6fc00436928b126cfb8f2c7841de435b84854
   stage: release
   needs:
     - job: container-image

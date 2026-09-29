@@ -864,7 +864,7 @@ pinned by digest where the CI file names it.
 | `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
 | `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
-| `semgrep-sast-gate`, `mr-dependency-check` | `python:3.13-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`); the checkers are the standard library's Python |
+| `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:16`, `mariadb:11` (Docker Hub) | the database servers |
 | `linux-package-deb` | `ubuntu:26.04` | the package's dependencies, PostgreSQL's client, curl and iproute2 from Ubuntu's archive |
@@ -1942,7 +1942,8 @@ notes (`fetchChangeLogs` off), because release notes come from GitHub.
 | The .NET SDK | `global.json` | `nuget` | `dotnet-version`: Microsoft's release metadata | in the NuGet merge request; never a new major version |
 | NuGet, the `packages.config` projects | RegressionTests, StressTest, VMTestRunner.Console | a regex manager | `nuget`: api.nuget.org | waits on the dashboard |
 | Container images | `build/ci/linux.Dockerfile`, `.gitlab-ci.yml`, the packaging Dockerfile and compose file, `test/Docker/Dockerfile` | `dockerfile`, `gitlabci`, `docker-compose` | `docker`: Docker Hub and mcr.microsoft.com | "container images", weekly, every image pinned by digest; a new major version in a merge request of its own |
-| npm and Python | nothing in the tree today | `npm`, `pip_requirements`, `pep621` | `npm`: registry.npmjs.org; `pypi`: pypi.org | one merge request each, weekly, once a manifest exists |
+| Python | the `.in` files of `build/` and `build/ci/` (Semgrep's packages, the build scripts', the command-line package's build tools) and the command-line package's `pyproject.toml`; never the locked `.txt` files uv makes from the `.in` files, which are in `ignorePaths` | `pip_requirements` (the `.in` files only), `pep621` | `pypi`: pypi.org | "Python packages", weekly; the locked files are remade on the branch (below) |
+| npm | nothing in the tree today | `npm` | `npm`: registry.npmjs.org | one merge request, weekly, once a `package.json` exists |
 | OpenSSL | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.openssl`: openssl-library.org/source/, the page only (its archive links point at GitHub and are never followed) | "native libraries", weekly, same major version |
 | Boost | the server's and the minidump tool's `.vcxproj`, `fuzz/build-fuzz.ps1` | a regex manager | `custom.boost`: archives.boost.io/release/ | "native libraries" |
 | The PostgreSQL client, libpq | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.postgresql`: ftp.postgresql.org/pub/source/ | "native libraries" |
@@ -2011,10 +2012,21 @@ Each merge request carries its own note of these steps.
   leaves out. On 25 September 2026 a Linux restore of an untouched `master`, with
   the SDK `global.json` names, rewrote the ControlPanel and DBSetup lock files that
   way. On Windows, on the branch, run
-  `dotnet restore hmailserver/source/Tools/ControlPanel.sln` and
-  `dotnet restore "hmailserver/source/Tools/hMailServer Tools.sln"`, and commit
-  what they write. Otherwise the Windows gate's build rewrites them on bench150 and
+  `dotnet restore hmailserver/source/Tools/ControlPanel.sln --force-evaluate` and
+  `dotnet restore "hmailserver/source/Tools/hMailServer Tools.sln" --force-evaluate`,
+  and commit what they write; without `--force-evaluate` a restore that finds its
+  `project.assets.json` current writes nothing (tried on 29 September 2026 with
+  Renovate's Control Panel lock file: up to date, left as Renovate wrote it). Otherwise the Windows gate's build rewrites them on bench150 and
   leaves the bench's checkout modified.
+- **Python: remake the locked files.** Renovate changes a version in an `.in`
+  file only. Run the `uv pip compile` command the matching `.txt` file's header
+  gives, in the image its job runs in (the `.in` file says which), which resolves
+  every dependency against the new version and hashes every file PyPI has for it.
+  A version the others refuse fails there. For Semgrep, run `build/ci/semgrep.sh`
+  and remake its baseline if the new version finds more. Renovate once read the
+  `.txt` files too: on 28 September 2026 it moved twelve versions there without
+  resolving or hashing them, and uv, resolving them against Semgrep 1.178.0, kept
+  none of them.
 - **A new SDK in `global.json`**: install it on every Windows build machine and
   on both benches first. Land the container-images merge request that moves the
   SDK image, and rebuild the Linux image, before it too.
@@ -2315,7 +2327,7 @@ What each job leaves behind
 - **The security scans** write only into the checkout (`security/`,
   `ci-image-packages/`) and their containers' `/tmp`, which go with the next
   checkout and the container. linix keeps the two images they add,
-  `python:3.13-slim-trixie` and `aquasec/trivy:0.74.0`, at their digests. Their
+  `python:3.14-slim-trixie` and `aquasec/trivy:0.74.0`, at their digests. Their
   artifacts expire after 30 days (`ci-image-packages` after one).
 - **`renovate`** leaves its image on linix (about 2 GB unpacked) and nothing else
   there: the .NET SDK it installs and the advisory database it builds live in the
@@ -2549,10 +2561,10 @@ twelve lines, naming the commits as they are after the rebase.
 | Job | Image | Tools, and where they come from | Reports | Measured on linix |
 |---|---|---|---|---|
 | `static-analysis` | the CI image | cppcheck 2.19.0 and clang-tidy 21.1.8, from Ubuntu 26.04's archive, installed as the job starts. clang-tidy is the image's own clang 21 | `gl-sast-report.json` (both tools; each tool's own beside it), `junit.xml` | 51 min 28 s on 4 CPUs |
-| `semgrep` | `python:3.13-slim-trixie`, pinned by digest (Docker Hub) | Semgrep 1.178.0 and 65 packages it needs, from PyPI, with every file's SHA-256 pinned (`build/ci/requirements.txt`, `pip --require-hashes`). The rules come from Semgrep's registry at semgrep.dev (`p/csharp`, `p/python`, `p/javascript`, `r/bash`), fetched with no account and no token | `gl-sast-semgrep.json`, `junit.xml` | under 3 min on 1 CPU |
+| `semgrep` | `python:3.14-slim-trixie`, pinned by digest (Docker Hub) | Semgrep 1.178.0 and 65 packages it needs, from PyPI, with every file's SHA-256 pinned (`build/ci/requirements.txt`, `pip --require-hashes`). The rules come from Semgrep's registry at semgrep.dev (`p/csharp`, `p/python`, `p/javascript`, `r/bash`), fetched with no account and no token | `gl-sast-semgrep.json`, `junit.xml` | under 3 min on 1 CPU |
 | `ci-image-packages` | the CI image | none | the image's `etc/os-release`, `etc/lsb-release`, dpkg status and the .NET SDK's `deps.json` files, 1.4 MB | seconds |
 | `dependency-scan` | `aquasec/trivy:0.74.0`, pinned by digest (Docker Hub) | Trivy 0.74.0; its vulnerability database from `mirror.gcr.io`, with `public.ecr.aws` as the fallback; OSV's API at `api.osv.dev`; Python from Alpine's repository | `gl-dependency-scanning.json` (both scanners; each scanner's own beside it), `junit.xml` | 15 to 17 s, the database download included |
-| `repo-hygiene` | `python:3.13-slim-trixie`, pinned by digest | git and ssh-keygen, from Debian; GitLab's API, read anonymously | `junit.xml`, `repo-hygiene.json` | 14 to 37 s, the apt install included |
+| `repo-hygiene` | `python:3.14-slim-trixie`, pinned by digest | git and ssh-keygen, from Debian; GitLab's API, read anonymously | `junit.xml`, `repo-hygiene.json` | 14 to 37 s, the apt install included |
 
 Trivy downloads its database from `ghcr.io` unless it is told otherwise. Its
 default list is `mirror.gcr.io/aquasec/trivy-db:2` and then
@@ -2634,7 +2646,7 @@ To regenerate a baseline, run the job's script by hand on linix with
 `--write-baseline`, from a checkout of the commit:
 
     docker run --rm -v "$PWD":/src -w /src hmailserver-ci/linux:<tag> bash build/ci/static-analysis.sh --write-baseline
-    docker run --rm -v "$PWD":/src -w /src python:3.13-slim-trixie bash build/ci/semgrep.sh --write-baseline
+    docker run --rm -v "$PWD":/src -w /src python:3.14-slim-trixie bash build/ci/semgrep.sh --write-baseline
 
 Or take a job's artifacts, which hold the tools' raw output, and run
 `build/ci/security-findings.py --write-baseline` over them. Its help gives the
@@ -2950,7 +2962,7 @@ zlib, the generated tables (`HelpPagesData.cpp`, `PortalPageData.cpp`,
 `SettingsSearchIndex.g.cs`) and the WinForms designer's files; the regression
 suites, the tools' test projects, the fuzz harness and the two page harnesses as
 tests; C++14 as the standard its C++ rules report against, which is what MSVC
-compiles the shared sources as; Python 3.13. `sonar.sources` and `sonar.tests`
+compiles the shared sources as; Python 3.14. `sonar.sources` and `sonar.tests`
 take plain paths, no wildcards; the exclusions take patterns. Automatic analysis
 reads the file from the default branch only, and a value in the file replaces
 the same one set in the project's settings. So until 6.3.6 is on `master`, the

@@ -204,7 +204,7 @@ checkers:
   # The shared runners' Python and Node images, by the digest Docker Hub served for
   # the tag on 26 September 2026 (docker pull on linix); Renovate moves tag and
   # digest together (renovate.json, pinDigests).
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   timeout: 20 minutes
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
@@ -338,7 +338,7 @@ harnesses:
 
 sign-off:
   stage: check
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   timeout: 10 minutes
   variables:
     GIT_DEPTH: "0"
@@ -393,7 +393,7 @@ sign-off:
 # must not publish the feed. On the shared runners, like the checks.
 pages:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   timeout: 15 minutes
   rules:
@@ -457,7 +457,7 @@ pages:
   extends: .own-runners
   tags: [linix]
   image:
-    name: hmailserver-ci/linux:26.04-dad0ab749505
+    name: hmailserver-ci/linux:26.04-52e9976e73bf
     pull_policy: if-not-present
 
 # Started at once rather than after the checks: the runner is otherwise idle, and
@@ -490,7 +490,7 @@ linux-suite:
   interruptible: false
   services:
     # The same PostgreSQL the Linux suite has always run against, by digest.
-    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: postgres
       pull_policy: if-not-present
       variables:
@@ -754,7 +754,7 @@ chart-and-compose:
 # systemd is Ubuntu's package; dash is the image's /bin/sh.
 update-helper:
   stage: check
-  image: ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
+  image: ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
   timeout: 10 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
@@ -800,7 +800,7 @@ update-helper:
 # jsonschema are Ubuntu's packages.
 package-templates:
   stage: check
-  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29
   timeout: 10 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
@@ -823,7 +823,7 @@ package-templates:
 # when either changes. pwsh is the one in Microsoft's .NET SDK image.
 roadmap:
   stage: check
-  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:2fa828c68761b1b8c23d7662dc134421b9d3b59fe1425fdbc80804e390cdb24d
+  image: mcr.microsoft.com/dotnet/sdk:10.0@sha256:35d40304542c8689331f8cab17c65926cdf48fe711e289321d71924b230a7d29
   timeout: 5 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
@@ -880,7 +880,7 @@ linux-sanitize:
 linux-db-upgrade-pgsql:
   extends: .linux-db-upgrade
   services:
-    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: postgres
       pull_policy: if-not-present
       variables:
@@ -896,7 +896,7 @@ linux-db-upgrade-mysql:
     # root with no password: the service is reachable from this job's container
     # alone, and no password is written here (repo-hygiene, Token-Permissions).
     # build/ci/linux-db-upgrade.sh logs in as root with none.
-    - name: mariadb:11@sha256:2d2f4095530294735a857cfe22bb101e19b0849b416911c796ec4aa81b164a62
+    - name: mariadb:11@sha256:79d59758afc91b89b120b0a8904d637f5a3b3e1c4900f29b740d6d46c72fef68
       alias: mariadb
       pull_policy: if-not-present
       variables:
@@ -916,12 +916,12 @@ linux-package-deb:
   stage: test
   tags: [linix]
   image:
-    name: ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
+    name: ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
     pull_policy: if-not-present
   needs: [linux-build]
   timeout: 20 minutes
   services:
-    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: postgres
       pull_policy: if-not-present
       variables:
@@ -1193,7 +1193,7 @@ semgrep:
   extends: .own-runners
   tags: [linix]
   image:
-    name: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+    name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
     pull_policy: if-not-present
   stage: test
   needs: []
@@ -1264,7 +1264,7 @@ repo-hygiene:
   extends: .own-runners
   tags: [linix]
   image:
-    name: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+    name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
     pull_policy: if-not-present
   stage: test
   needs: []
@@ -1306,7 +1306,7 @@ renovate:
   stage: check
   tags: [linix]
   image:
-    name: renovate/renovate:44.115.2@sha256:62af1deb6f45883afb105b22cb4b4d2503071e12794b6e297628e40c798349b4
+    name: renovate/renovate:44.115.13@sha256:0c04185c9e7ea5284da22ea0b2a2c88dcd3687badd8feb6c71691659b380df9b
     pull_policy: if-not-present
   needs: []
   timeout: 1 hour
@@ -1466,7 +1466,7 @@ windows-installer:
 # waits for, may fail or waits for a press in a tag's pipeline.
 release:
   stage: release
-  image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs:
     - job: checkers
       artifacts: false
@@ -1603,7 +1603,7 @@ release-authenticode:
 # "Software bills of materials", says how a user checks one.
 release-sbom:
   stage: release
-  image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs:
     - job: release
       artifacts: true
@@ -1682,7 +1682,7 @@ release-verify:
 # CI_JOB_TOKEN does both. A release that exists already is refused.
 release-publish:
   stage: release
-  image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs:
     - job: release-sign
       artifacts: true
@@ -1727,7 +1727,7 @@ update-feed:
 # release-sign's artifact, before release-publish is started.
 installer-smoke:
   stage: release
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && ($CI_COMMIT_TAG =~ /^v/ || $CI_COMMIT_BRANCH =~ /^batch/)

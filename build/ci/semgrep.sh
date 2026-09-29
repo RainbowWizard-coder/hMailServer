@@ -7,9 +7,9 @@
 # JavaScript and shell sources - the half of the old CodeQL job that analysed the
 # Control Panel and the tools, and more (CodeQL never read the Python, the shell
 # or the web pages' scripts). The C++ is the static-analysis job's. Run in
-# python:3.13-slim-trixie from the root of a checkout; by hand it is the same:
+# python:3.14-slim-trixie from the root of a checkout; by hand it is the same:
 #
-#   docker run --rm -v "$PWD":/src -w /src python:3.13-slim-trixie bash build/ci/semgrep.sh
+#   docker run --rm -v "$PWD":/src -w /src python:3.14-slim-trixie bash build/ci/semgrep.sh
 #
 # Where everything comes from, none of it GitHub:
 #   Semgrep     PyPI, at the version and hashes build/ci/requirements.txt pins

@@ -32,7 +32,7 @@
 # them. So these are what a merge request from a fork, from Renovate or from any
 # unprotected branch of the project answers to.
 #
-# Where they run: GitLab's shared runners, in Docker Hub's python:3.13-slim-trixie
+# Where they run: GitLab's shared runners, in Docker Hub's python:3.14-slim-trixie
 # pinned by digest, the image the checkers job runs in. They carry no tag, so neither
 # of the project's own runners takes them, and they hold no secret: they read the
 # checkout, semgrep-sast's report and, for the dependency check, OSV's export on
@@ -44,7 +44,7 @@
 # sign-off job clones the same way for the same reason.
 
 .mr-check:
-  image: python:3.13-slim-trixie@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   timeout: 20 minutes
   variables:
     GIT_DEPTH: "0"

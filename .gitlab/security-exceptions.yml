@@ -3556,7 +3556,7 @@ exceptions:
   - scan: semgrep
     finding: 0cccd5575933ed9ec295
     what: xml.etree.ElementTree.parse of security/dependency-scan/junit.xml in dependency_scan()
-    reason: 'dependency_scan() parses only DEPENDENCY_JUNIT (line 82), which the manual, protected-tag-only release job takes from the same pipeline''s dependency-scan job (needs: artifacts: true); that job''s junit() (build/ci/dependency-scan.py 432-448) writes it with escape/quoteattr and no DOCTYPE, so scanner text cannot add markup. ElementTree never fetches an external entity (a reference to one is an ET.ParseError), the expat in python:3.13-slim-trixie is 2.6 or later and caps entity amplification, and every ParseError or OSError is caught at line 382 and appended to problems, so a malformed or hostile file can only hold the release.'
+    reason: 'dependency_scan() parses only DEPENDENCY_JUNIT (line 82), which the manual, protected-tag-only release job takes from the same pipeline''s dependency-scan job (needs: artifacts: true); that job''s junit() (build/ci/dependency-scan.py 432-448) writes it with escape/quoteattr and no DOCTYPE, so scanner text cannot add markup. ElementTree never fetches an external entity (a reference to one is an ET.ParseError), the expat in python:3.14-slim-trixie is 2.6 or later (2.8.2 on 29 September 2026) and caps entity amplification, and every ParseError or OSError is caught at line 382 and appended to problems, so a malformed or hostile file can only hold the release.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26

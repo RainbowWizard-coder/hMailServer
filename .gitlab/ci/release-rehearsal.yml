@@ -48,7 +48,7 @@
 release-rehearsal:
   stage: release
   # The release job's image, by the same digest: Python and nothing else is needed.
-  image: python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
+  image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   needs:
     - job: linux-build
       artifacts: true
