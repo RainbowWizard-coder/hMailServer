@@ -50,7 +50,7 @@ and updated by its package manager, so these differ where that matters:
 | The unit | enabled, not started | Debian: enabled, not started (`dh_installsystemd --no-start`); RPM: the distribution's preset decides (`%systemd_post`, `%service_add_post`), which leaves it disabled unless a preset names it |
 | An upgrade | the schema upgraded, a running server restarted | the same: `postinst` or `%post` runs `hmailserver --upgrade-database` when a database is configured, then `try-restart` (`%systemd_postun_with_restart` on RPM) |
 | A purge (Debian) | keeps the logs and the mail store | removes `/var/log/hmailserver`, as Debian Policy 10.8 asks; keeps the mail store, the database and the account |
-| The tester programs | run by `linux-build` | run by the build itself: `dh_auto_test` and `%check` run `spf-tests`, `script-binding-tests`, `snmp-tests` and `object-store-signature-tests`, and both first run `hmailserver --version`, so a server that cannot start fails the build |
+| The tester programs | run by `linux-build` | run by the build itself: `dh_auto_test` and `%check` run `spf-tests`, `script-binding-tests`, `snmp-tests`, `object-store-signature-tests` and `xml-tree-tests`, and both first run `hmailserver --version`, so a server that cannot start fails the build |
 
 `-DHM_BOOST_STATIC` is new with these packages: `CMakeLists.txt` set
 `Boost_USE_STATIC_LIBS` itself, which hid any value given on the command line, and
@@ -106,10 +106,9 @@ declares every third-party notice in the repacked tarball: QuickJS (MIT, as
 server (MPL-2.0), `tlds.txt` (SURBL's 2006 list; no licence stated), the ATL script host, which only the Windows server
 compiles (its own notice), the DKIM corpus (Perl's terms), the licence texts
 under `hmailserver/docs/Licenses`, which are notices of components not in the
-source, and two files under `Common/Util` compiled into the server whose
-authors' names survive in them and which no other record of the project lists:
-XMLite (Cho Kyung Min, from The Code Project, under its own notice) and
-`VariantDateTime` (Mark A. Richman, from CodeGuru). The last states no licence
+source, and one file under `Common/Util` compiled into the server whose
+author's name survives in it and which no other record of the project lists:
+`VariantDateTime` (Mark A. Richman, from CodeGuru), which states no licence
 and is declared as `none-stated`, which a Debian archive does not accept
 ([the questions below](#questions-for-a-debian-or-fedora-maintainer)). The AGPL's
 text is written out in full: Debian's `/usr/share/common-licenses` does not carry
@@ -488,21 +487,23 @@ Questions for a Debian or Fedora maintainer
 - **The unlicensed test data.** Leaving five files out is this package's answer;
   asking their authors for a licence, or replacing them with messages the project
   writes, would let the repack go.
-- **Two files compiled into the server whose licences are not settled**, both inherited from the original hMailServer under `hmailserver/source/Server/Common/Util`
-  and declared in `debian/copyright`. `XMLite.cpp` and `XMLite.h` (Cho Kyung Min,
-  2002-2004, from The Code Project) carry their author's own notice, which grants
-  use, modification and redistribution and asks for a thank-you email; a
-  distribution's legal review names it. `VariantDateTime.cpp` and `.h` (Mark A. Richman, 1999, from CodeGuru) state no
+- **One file compiled into the server whose licence is not settled**, inherited
+  from the original hMailServer under `hmailserver/source/Server/Common/Util`
+  and declared in `debian/copyright`. `VariantDateTime.cpp` and `.h` (Mark A.
+  Richman, 1999, from CodeGuru) state no
   licence at all, and `VariantDateTime`'s helpers keep MFC's names
   (`AFX_OLE_DATETIME_ERROR`, `OleDateFromTm` and `TmFromOleDate` after MFC's
   `_AfxOleDateFromTm` and `_AfxTmFromOleDate`), so it appears to be adapted from
   MFC's `COleDateTime`, whose source is Microsoft's. Neither Debian nor Fedora
-  distributes a file with no licence, and the server needs both, so a `Files-Excluded` line is no answer: the authors'
-  licences, or replacements the project writes itself, are - as the Blowfish code
-  (Bruce Schneier's of 1994, made a C++ class by Jim Conger in 1996, which stated no
-  licence) was replaced in 6.3.6 by the project's own `LegacyBlowfish.cpp`, written
-  from the cipher's published description. The spec's `License:` tag leaves them out and says
-  so beside it.
+  distributes a file with no licence, and the server needs it, so a
+  `Files-Excluded` line is no answer: the author's licence, or a replacement the
+  project writes itself, is. The spec's `License:` tag leaves it out and says so
+  beside it. There were three until 6.3.6: the Blowfish code (Bruce Schneier's of
+  1994, made a C++ class by Jim Conger in 1996, which stated no licence) was
+  replaced by the project's own `LegacyBlowfish.cpp`, written from the cipher's
+  published description, and XMLite (Cho Kyung Min, 2002-2004, from The Code
+  Project), the backup index's XML reader and writer, which carried only its
+  author's own notice, by the project's own `Common/Util/XmlTree.cpp`.
 - **The Public Suffix List.** The server compiles the list's rules in
   (`PublicSuffixListData.h`); `tlds.txt` beside its binary is not the list but
   SURBL's 2006 table of two-level country-code domains, with no licence stated,

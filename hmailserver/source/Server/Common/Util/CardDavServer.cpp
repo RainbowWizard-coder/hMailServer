@@ -4,10 +4,10 @@
 
 // See CardDavServer.h for the shape of the tree. This file is the request
 // side of it: a small namespace-aware XML reader for the PROPFIND and REPORT
-// bodies (XMLite is neither namespace-aware nor meant for input off the wire),
-// the DAV: and CARDDAV: property set of each resource kind, the three reports,
-// and PUT/GET/DELETE of one contact as a vCard, on top of ContactStore and
-// VCard.
+// bodies (XmlTree, the backup index's reader, is neither namespace-aware nor
+// meant for input off the wire), the DAV: and CARDDAV: property set of each
+// resource kind, the three reports, and PUT/GET/DELETE of one contact as a
+// vCard, on top of ContactStore and VCard.
 //
 // The bits of RFC 4918, 6352 and 6578 that shape the answers:
 //

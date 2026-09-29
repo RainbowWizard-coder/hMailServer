@@ -4,14 +4,12 @@
 
 #pragma once
 
-// XNode is a global-scope TYPEDEF of struct _tagXMLNode, not a class - and not in
-// namespace HM. Declaring `class XNode;` inside the namespace makes a distinct
-// HM::XNode and changes the signature of every XMLStore/XMLLoad that takes the real
-// one; declaring it at global scope makes it a class where it is a typedef. So the
-// underlying struct is what gets forward-declared, and the typedef comes with the
-// real header where it is needed.
-struct _tagXMLNode;
-typedef _tagXMLNode XNode;
+// XNode is a class at global scope (XmlTree.h), not in namespace HM. Declaring
+// `class XNode;` inside the namespace makes a distinct HM::XNode and changes the
+// signature of every XMLStore/XMLLoad that takes the real one, so it is declared
+// here, outside it, and the definition comes with the real header where it is
+// needed.
+class XNode;
 
 namespace HM
 {

@@ -955,8 +955,8 @@ EXIT 0
     <ClCompile Include="..\Common\Util\Unicode.cpp" />
     <ClCompile Include="..\Common\Util\Utilities.cpp" />
     <ClCompile Include="..\Common\Util\VariantDateTime.cpp" />
-    <ClCompile Include="..\Common\Util\XMLite.cpp" />
-    <ClCompile Include="..\Common\Util\XMLiteTester.cpp" />
+    <ClCompile Include="..\Common\Util\XmlTree.cpp" />
+    <ClCompile Include="..\Common\Util\XmlTreeTester.cpp" />
     <ClCompile Include="..\COM\COMAuthentication.cpp" />
     <ClCompile Include="..\COM\COMError.cpp" />
     <ClCompile Include="..\COM\InterfaceAccount.cpp" />
@@ -1876,8 +1876,8 @@ EXIT 0
     <ClInclude Include="..\Common\Util\Unicode.h" />
     <ClInclude Include="..\Common\Util\Utilities.h" />
     <ClInclude Include="..\Common\Util\VariantDateTime.h" />
-    <ClInclude Include="..\Common\Util\XMLite.h" />
-    <ClInclude Include="..\Common\Util\XMLiteTester.h" />
+    <ClInclude Include="..\Common\Util\XmlTree.h" />
+    <ClInclude Include="..\Common\Util\XmlTreeTester.h" />
     <ClInclude Include="..\COM\COMAuthentication.h" />
     <ClInclude Include="..\COM\COMAuthenticator.h" />
     <ClInclude Include="..\Com\COMCollection.h" />

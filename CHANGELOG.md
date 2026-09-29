@@ -270,16 +270,16 @@ for a stray `#` number or `@` name.
   project's own packages keep it static). The account comes from `sysusers.d`, the unit is installed and not started,
   `hmctl` is a package of its own that depends on `python3`, and the server's `--version` and the tester programs run
   in the build, and neither links with LTO. The Debian package has a DEP-5 copyright over every third-party notice,
-  two of which a distribution's review still has to settle: XMLite and VariantDateTime, inherited from the original
-  hMailServer and compiled into the server, whose files carry only their author's own notice (XMLite) or none; a
-  watch file on GitLab's releases API; and an autopkgtest that starts the server against a throwaway PostgreSQL and
-  asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2025.04.26`. New CI jobs
-  (`.gitlab/ci/source-packages.yml`, `batch*` and `master` only) build both for Debian 13, Ubuntu 24.04 and 26.04,
-  Fedora 44, EL 10, Leap 16 and Tumbleweed with the network refused, fail on a lintian or rpmlint error, and install
-  and start the result in a clean container. On the laptop the spec built on Fedora 44 and EL 10 and each server
-  installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its autopkgtest;
-  a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had corrupted, not a GCC
-  16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
+  one of which a distribution's review still has to settle: VariantDateTime, inherited from the original hMailServer
+  and compiled into the server, whose files carry no licence; a watch file on GitLab's releases API; and an
+  autopkgtest that starts the server against a throwaway PostgreSQL and asks SMTP and IMAP for their greetings. The
+  spec declares `Provides: bundled(quickjs) = 2025.04.26`. New CI jobs (`.gitlab/ci/source-packages.yml`, `batch*`
+  and `master` only) build both for Debian 13, Ubuntu 24.04 and 26.04, Fedora 44, EL 10, Leap 16 and Tumbleweed with
+  the network refused, fail on a lintian or rpmlint error, and install and start the result in a clean container. On
+  the laptop the spec built on Fedora 44 and EL 10 and each server installed and started against PostgreSQL, and the
+  Debian package built on Ubuntu 26.04 and passed its autopkgtest; a Fedora 44 server that died before `main` there
+  was a file the laptop's WSL file system had corrupted, not a GCC 16 or code defect. See
+  [SourcePackages.md](hmailserver/docs/SourcePackages.md).
 - **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file** (not yet run in a pipeline). Until
   now the release's `.deb` and `.rpm`, and every per-release package built with them, carried QuickJS's licence and
   nothing of the project's own: no AGPL-3.0 text, which the AGPL's sections 4 and 6 ask to go with every copy, and no
@@ -296,6 +296,20 @@ for a stray `#` number or `@` name.
   and owner: `linux-build`, `deb-build.sh` and `rpm-build.sh` refuse a package without them, and every install test
   checks them as installed ([PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
   [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The licences").
+- **The backup index's XML is the project's own code; XMLite is gone.** The code that writes and reads
+  `hMailServerBackup.xml`, writes a person's `account.xml` and reads the class tests' `test_config.xml` was XMLite
+  (Cho Kyung Min, The Code Project, 2002-2004), which carried only its author's notice - one a distribution's legal
+  review would have had to settle, and which the project could not relicense. `Common/Util/XmlTree.cpp` replaces it,
+  written anew to a description of what XMLite wrote and read and keeping the callers' names; the description was
+  taken from XMLite's code by the same hand that wrote the replacement, so it is not a clean-room reimplementation,
+  and none of XMLite's code is in it. It writes an index byte for byte as XMLite did, and reads and refuses exactly
+  what 6.3.5's XMLite did, so every archive 6.3.5 restores still restores; four indexes written by 6.2.13 and 6.3.3,
+  read and written back through the server's own file code, come back byte for byte. A differential harness compared
+  old and new over about 17 million cases each with GCC 15, clang 21, and clang with AddressSanitizer and
+  UndefinedBehaviorSanitizer, and 7 million with MSVC, and found no difference. `XmlTreeTester` runs in ClassTester
+  and, on Linux, as the new `xml-tree-tests` program, which the Debian and RPM source-package builds also run. HM4229
+  reports the same codes in new words. `debian/copyright`, the RPM spec and the source-package documents no longer
+  declare XMLite, and `check-source-tarball.py` now refuses a `debian/copyright` paragraph whose files are gone.
 
 ### Administration
 

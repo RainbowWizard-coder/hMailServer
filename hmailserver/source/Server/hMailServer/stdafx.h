@@ -148,7 +148,7 @@ namespace HM
 // Start: Common files
    #include "../Common/Util/StdString.h"
 
-   #include "../Common/Util/XMLite.h"
+   #include "../Common/Util/XmlTree.h"
    #include "../Common/Util/Singleton.h"
    #include "../Common/Application/Constants.h"
    #include "../Common/Application/PropertySet.h"

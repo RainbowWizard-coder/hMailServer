@@ -528,6 +528,19 @@ add_executable(snmp-tests ${SERVER_DIR}/platform/snmp_tests_main.cpp)
 target_link_libraries(snmp-tests PRIVATE hmailserver_core)
 set_target_properties(snmp-tests PROPERTIES OUTPUT_NAME snmp-tests)
 
+# ---------------------------------------------------------------- the backup index's XML
+#
+# XmlTreeTester (Common/Util/XmlTreeTester.h) as a program of its own, for the
+# reason spf-tests is one: on Windows it runs inside hMailServer.exe through
+# ClassTester, which is reached only through COM, so here this program is what
+# runs it - and here wchar_t is 32 bits, so it is also the only run that writes
+# and reads back every code point rather than every UTF-16 unit. The tree's own
+# unit (Common/Util/XmlTree.cpp) is in the core by the glob above. No database,
+# no configuration, no file, no network. Not installed; a bench tool.
+add_executable(xml-tree-tests ${SERVER_DIR}/platform/xml_tree_tests_main.cpp)
+target_link_libraries(xml-tree-tests PRIVATE hmailserver_core)
+set_target_properties(xml-tree-tests PROPERTIES OUTPUT_NAME xml-tree-tests)
+
 # ---------------------------------------------------------------- the OpenPGP writer
 #
 # The one OpenPGP message this server writes - a delivery to a zero-access

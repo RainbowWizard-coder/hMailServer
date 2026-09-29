@@ -53,7 +53,7 @@ $lines = Select-String -Path $log -Pattern 'warning (C6\d{3,4}|C26\d{3}|C28\d{3}
 $unique = $lines | ForEach-Object { ($_ -replace '^\s*\d*>', '') -replace '\s+\[.*$', '' } | Sort-Object -Unique
 $unique | Set-Content -Path $list -Encoding UTF8
 
-$thirdParty = 'libraries\\|boost|win32_api|sqlce|XMLite|\.hpp\(|\.ipp\(|Program Files|Windows Kits'
+$thirdParty = 'libraries\\|boost|win32_api|sqlce|\.hpp\(|\.ipp\(|Program Files|Windows Kits'
 $own = $unique | Where-Object { $_ -notmatch $thirdParty }
 $defects = $own | Where-Object { $_ -match 'warning (C6\d{3,4}|C28182|C33\d{3})' }
 

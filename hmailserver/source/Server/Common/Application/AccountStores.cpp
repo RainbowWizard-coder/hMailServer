@@ -1108,9 +1108,9 @@ namespace HM
             const AccountStoreRow &row = rows[rowIndex];
 
             // Appended first and removed again if a reference in it does not
-            // resolve, rather than built detached: AppendChild is the only thing
-            // that stamps a node with its document, and RemoveChild is what deletes
-            // one - so a row that is dropped leaves nothing half-written behind and
+            // resolve, rather than built detached: AppendChild is the only way a
+            // node joins the tree, and RemoveChild is what deletes one - so a row
+            // that is dropped leaves nothing half-written behind and
             // a row that is kept is indistinguishable from any other.
             XNode *rowNode = storeNode->AppendChild(RowElement);
             bool complete = true;
@@ -1707,7 +1707,7 @@ namespace HM
          counts[name] += rows;
       }
 
-      for (size_t index = 0; index < node->childs.size(); index++)
-         CountRows(node->childs[index], counts);
+      for (int index = 0; index < node->GetChildCount(); index++)
+         CountRows(node->GetChild((unsigned int) index), counts);
    }
 }

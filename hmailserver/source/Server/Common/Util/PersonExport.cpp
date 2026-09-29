@@ -9,7 +9,7 @@
 #include "FileUtilities.h"
 #include "Time.h"
 #include "Unicode.h"
-#include "XMLite.h"
+#include "XmlTree.h"
 #include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
 #include "../BO/Account.h"

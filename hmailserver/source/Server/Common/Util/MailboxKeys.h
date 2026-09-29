@@ -82,10 +82,9 @@
 #include <memory>
 #include <string>
 
-// XNode is a global typedef of struct _tagXMLNode, as IniSettingStore.h says:
+// XNode is a class at global scope (XmlTree.h), as IniSettingStore.h says:
 // declared the way it is declared there, never as a class in namespace HM.
-struct _tagXMLNode;
-typedef _tagXMLNode XNode;
+class XNode;
 
 namespace HM
 {

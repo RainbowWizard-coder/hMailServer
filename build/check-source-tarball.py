@@ -43,7 +43,12 @@ tarball a third:
       with the list as --files-excluded prints it, and each pattern after it -
       the Debian package's own - matches files under hmailserver/test/ alone,
       at least one, none of them read by the Debian build (CMakeLists.txt and
-      debian/rules).
+      debian/rules);
+    - every pattern of that file's Files paragraphs (but "*" and the package's
+      own debian/) matches a file the repacked source holds - one the tree
+      tracks and neither the list nor Files-Excluded leaves out - so a file
+      removed or renamed takes its licence paragraph with it (XMLite's outlived
+      its files by a commit on 29 September 2026).
 
   a tarball (python3 build/check-source-tarball.py TARBALL [--commit SHA]):
     - gzip without a file name or a time in its header (gzip -n);
@@ -284,12 +289,57 @@ def copyright_files_excluded(text):
     return patterns
 
 
+def copyright_files_patterns(text):
+    """The patterns of every Files field of a copyright file, in order. White space
+    separates them, and a field goes on over the lines that begin with it. The
+    header's Files-Excluded is another field, not one of these."""
+    patterns, inside = [], False
+    for line in text.replace("\r\n", "\n").split("\n"):
+        if line.startswith("Files:"):
+            inside = True
+            patterns += line[len("Files:"):].split()
+        elif inside and line[:1] in (" ", "\t"):
+            patterns += line.split()
+        else:
+            inside = False
+    return patterns
+
+
+def debian_files_regex(pattern):
+    """A Files pattern as copyright format 1.0 reads it: * and ? match any
+    characters and one, "/" included, and the pattern names the whole path."""
+    out = ""
+    for ch in pattern:
+        out += ".*" if ch == "*" else "." if ch == "?" else re.escape(ch)
+    return re.compile("^" + out + "$")
+
+
+def check_debian_copyright_files(tracked, text, entries, excluded_patterns):
+    """Every Files pattern names a file the repacked source holds."""
+    excluded = [debian_regex(p) for p in excluded_patterns]
+    present = [p for p in tracked if not excluded_by(p, entries) and not any(r.match(p) for r in excluded)]
+    problems = []
+    for pattern in copyright_files_patterns(text):
+        # "*" is every file; debian/ is the packaging directory the source package
+        # adds, which the tree keeps elsewhere.
+        if pattern == "*" or pattern.startswith("debian/"):
+            continue
+        regex = debian_files_regex(pattern)
+        if not any(regex.match(p) for p in present):
+            problems.append("%s declares the licence of %r, which matches no file of the repacked source: a file "
+                            "removed or renamed, whose Files line - and its paragraph, and its License paragraph when "
+                            "nothing else names that licence - goes with it" % (DEBIAN_COPYRIGHT, pattern))
+    return problems
+
+
 def check_debian_copyright(tracked, read, entries, cmake_text):
-    """debian-src/debian/copyright's Files-Excluded: the list, then test data alone."""
+    """debian-src/debian/copyright's Files-Excluded: the list, then test data alone;
+    and its Files patterns, each a file the repacked source holds."""
     if DEBIAN_COPYRIGHT not in tracked:
         return []
     problems = []
     patterns = copyright_files_excluded(read(DEBIAN_COPYRIGHT))
+    problems += check_debian_copyright_files(tracked, read(DEBIAN_COPYRIGHT), entries, patterns)
     wanted = [debian_pattern(entry) for entry in entries]
     if patterns[:len(wanted)] != wanted:
         problems.append("%s's Files-Excluded does not begin with %s as it stands: put in what "
@@ -770,8 +820,8 @@ def self_test():
            else ["no"], None)
 
     # The Debian source package's copyright file: the list, then test data alone.
-    def with_copyright(field_lines, rules=""):
-        text = "Format: x\n" + "\n".join(field_lines) + "\nComment: y\n\nFiles: *\nLicense: z\n"
+    def with_copyright(field_lines, rules="", paragraphs=""):
+        text = "Format: x\n" + "\n".join(field_lines) + "\nComment: y\n\nFiles: *\nLicense: z\n" + paragraphs
         return dict(fixed, **{DEBIAN_COPYRIGHT: text, DEBIAN_RULES: rules,
                               "hmailserver/test/TestData/DKIM/Good/Test 1.eml": ""})
     field = files_excluded(parse_list(good)[0]).split("\n")
@@ -787,6 +837,28 @@ def self_test():
            run(with_copyright(field + [" hmailserver/test/TestData/DKIM/good_1.txt"],
                               rules="\tcp hmailserver/test/TestData/DKIM/good_1.txt x\n"), good),
            "the Debian build reads it")
+
+    # Its Files paragraphs: each pattern a file the repacked source holds.
+    declared = ("\nFiles: " + SERVER + "/quickjs/*\n       hmailserver/test/TestData/DKIM/good_1.txt\n"
+                "       hmailserver/test/TestData/DKIM/Good/Test?1.e?l\nLicense: q\n\nFiles: debian/*\nLicense: z\n")
+    expect("a copyright file whose Files patterns each match a file", run(with_copyright(field, paragraphs=declared), good), None)
+    expect("a copyright file declaring a file that is gone (XMLite's, on 29 September 2026)",
+           run(with_copyright(field, paragraphs=declared + "\nFiles: " + SERVER + "/Common/Util/XMLite.cpp\n"
+                              "       " + SERVER + "/Common/Util/XMLite.h\nLicense: XMLite\n"), good),
+           "'" + SERVER + "/Common/Util/XMLite.cpp', which matches no file")
+    expect("a copyright file declaring a file on a continuation line that is gone",
+           run(with_copyright(field, paragraphs="\nFiles: " + SERVER + "/quickjs/LICENSE\n\t" + SERVER + "/Common/Gone.h\nLicense: q\n"), good),
+           "'" + SERVER + "/Common/Gone.h', which matches no file")
+    expect("a copyright file declaring only a file the list leaves out",
+           run(with_copyright(field, paragraphs="\nFiles: " + SERVER + "/zlib/*\nLicense: Zlib\n"), good),
+           "'" + SERVER + "/zlib/*', which matches no file")
+    expect("a copyright file declaring only a file its own Files-Excluded leaves out",
+           run(with_copyright(field + [" hmailserver/test/TestData/DKIM/Good/Test?1.eml"],
+                              paragraphs="\nFiles: hmailserver/test/TestData/DKIM/Good/*\nLicense: none\n"), good),
+           "'hmailserver/test/TestData/DKIM/Good/*', which matches no file")
+    expect("a Files pattern names the whole path, not a directory",
+           run(with_copyright(field, paragraphs="\nFiles: " + SERVER + "/quickjs\nLicense: q\n"), good),
+           "'" + SERVER + "/quickjs', which matches no file")
 
     print("a tarball against the list:")
 

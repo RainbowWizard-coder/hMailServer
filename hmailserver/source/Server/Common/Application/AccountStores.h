@@ -80,8 +80,9 @@ namespace HM
    //     </AccountStores>
    //   </Account>
    //
-   // Spaced as XMLite writes it, which is not quite how it is drawn above: the
-   // writer puts a space after every attribute, so what is really in the file is
+   // Spaced as the index is written (XmlTree.h), which is not quite how it is
+   // drawn above: the writer puts a space after every attribute, as XMLite did
+   // before it, so what is really in the file is
    // <Store Name="hm_contacts" > and <Row contactname="Ada" ... />. A matcher
    // written from this comment - the backup fixtures edit the index the way a
    // person with 7-Zip and a text editor would - has to allow that space before

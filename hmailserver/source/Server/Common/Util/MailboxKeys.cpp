@@ -13,7 +13,7 @@
 #include "SignInStore.h"
 #include "StorePath.h"
 #include "Unicode.h"
-#include "XMLite.h"
+#include "XmlTree.h"
 #include "Parsing/StringParser.h"
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"

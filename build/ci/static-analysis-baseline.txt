@@ -6,7 +6,7 @@
 # delete the line of a finding that has been fixed. docs/ContinuousIntegration.md,
 # "Security scanning", says when and how to regenerate it.
 #
-# 1165 findings, 264 of them with a reason.
+# 1140 findings, 264 of them with a reason.
 de067b660072084e4de7	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/AntiSpam/AntiSpamDiagnostics.h:56	performing an implicit widening conversion to type 'const ULONGLONG' (aka 'const unsigned long') of a multiplication performed in type 'int'
 87db64bb813f906df641	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/AntiSpam/AuthenticationResults.h:100	constructor does not initialize these fields: result
 691624b920e4eb995d68	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/AntiSpam/DKIM/Arc.cpp:279	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
@@ -906,31 +906,6 @@ ecc65008931beb012a53	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/C
 b8faa10f993bbe158c2e	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/Common/Util/WebServicesServer.cpp:429	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether
 1bf31db00401cb43ed02	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/Util/WebhookManager.cpp:58	performing an implicit widening conversion to type 'const size_t' (aka 'const unsigned long') of a multiplication performed in type 'int'
 c54df2e813a72c870711	clang-tidy	cert-err33-c	hmailserver/source/Server/Common/Util/WebhookManager.cpp:138	the value returned by this function should not be disregarded; neglecting it may lead to errors
-e289cca670abc9c11bc3	clang-tidy	readability-misleading-indentation	hmailserver/source/Server/Common/Util/XMLite.cpp:135	misleading indentation: statement is indented too deeply
-44cd9f799c9daff3466b	cppcheck	pointerArithBool	hmailserver/source/Server/Common/Util/XMLite.cpp:334	Converting pointer arithmetic result to bool. The bool is always true unless there is undefined behaviour.
-177852366e4a8e66fc76	clang-tidy	readability-suspicious-call-argument	hmailserver/source/Server/Common/Util/XMLite.cpp:343	1st argument 'pss' (passed to 'psz') looks like it might be swapped with the 3rd, 'psz' (passed to 'srt')
-7de146d7d1e9f06a9174	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:403	an assignment within an 'if' condition is bug-prone
-0f81dbf1bb9882b085ed	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:436	an assignment within an 'if' condition is bug-prone
-b5e16f42051d5dba816a	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:441	an assignment within an 'if' condition is bug-prone
-c9852b32870bcfb9c11d	clang-tidy	bugprone-signed-char-misuse	hmailserver/source/Server/Common/Util/XMLite.cpp:445	'signed char' to 'int' conversion; consider casting to 'unsigned char' first. (also cert-str34-c)
-a09943f33e6e87ae7190	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:498	an assignment within an 'if' condition is bug-prone
-b6ee2de3e0faec920a13	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:531	an assignment within an 'if' condition is bug-prone
-c0fb680b34750e1b73c2	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:536	an assignment within an 'if' condition is bug-prone
-1f9dcf8f0ff7337b6860	clang-tidy	bugprone-signed-char-misuse	hmailserver/source/Server/Common/Util/XMLite.cpp:540	'signed char' to 'int' conversion; consider casting to 'unsigned char' first. (also cert-str34-c)
-b9ea15ed2a35a21db19d	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:950	an assignment within an 'if' condition is bug-prone
-d2bb576fa70ae945d1cf	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:1034	an assignment within an 'if' condition is bug-prone
-a3dd703007f83fc018b8	cppcheck	duplInheritedMember	hmailserver/source/Server/Common/Util/XMLite.cpp:1134	The struct '_tagXMLDocument' defines member function with name 'Load' also defined in its parent struct '_tagXMLNode'.
-fea5554640072d5d1cfd	clang-tidy	bugprone-assignment-in-if-condition	hmailserver/source/Server/Common/Util/XMLite.cpp:1145	an assignment within an 'if' condition is bug-prone
-0778b8325bd596669f50	clang-tidy	clang-analyzer-core.NullDereference	hmailserver/source/Server/Common/Util/XMLite.cpp:1201	Access to field 'value_quotation_mark' results in a dereference of a null pointer (loaded from variable 'opt')
-cde197bba5245ff19cb1	clang-tidy	readability-misleading-indentation	hmailserver/source/Server/Common/Util/XMLite.cpp:1277	misleading indentation: statement is indented too deeply
-24d0c84edb97a1225b18	clang-tidy	clang-analyzer-core.NullDereference	hmailserver/source/Server/Common/Util/XMLite.cpp:1307	Access to field 'newline' results in a dereference of a null pointer (loaded from variable 'opt')
-1fe98da5a436e2f1e663	clang-tidy	bugprone-branch-clone	hmailserver/source/Server/Common/Util/XMLite.cpp:1373	repeated branch body in conditional chain
-e6ada0a75c87dfc4565f	clang-tidy	readability-misleading-indentation	hmailserver/source/Server/Common/Util/XMLite.cpp:1404	misleading indentation: statement is indented too deeply
-e116cbd59649c4ad9af4	cppcheck	returnDanglingLifetime	hmailserver/source/Server/Common/Util/XMLite.cpp:1404	Returning object that will be invalid when returning.
-931a487a7b06f94f57a1	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/Util/XMLite.cpp:2051	performing an implicit widening conversion to type 'size_t' (aka 'unsigned long') of a multiplication performed in type 'int'
-a061e051cbf7b75a6782	clang-tidy	cppcoreguidelines-pro-type-member-init	hmailserver/source/Server/Common/Util/XMLite.h:153	constructor does not initialize these fields: parent
-d26ed40ab80c9e34d645	clang-tidy	cert-oop54-cpp	hmailserver/source/Server/Common/Util/XMLite.h:243	operator=() does not handle self-assignment properly
-5868295703dbcf317c2b	cppcheck	duplInheritedMember	hmailserver/source/Server/Common/Util/XMLite.h:258	The struct '_tagXMLDocument' defines member function with name 'Load' also defined in its parent struct '_tagXMLNode'.
 9a0696dd20f2b7fb4edb	clang-tidy	bugprone-misplaced-widening-cast	hmailserver/source/Server/Common/Util/XmlDocument.cpp:444	either cast from 'int' to 'unsigned long' is ineffective, or there is loss of precision before the conversion
 e4b14500f7c7fa60843e	clang-tidy	bugprone-misplaced-widening-cast	hmailserver/source/Server/Common/Util/XmlDocument.cpp:446	either cast from 'int' to 'unsigned long' is ineffective, or there is loss of precision before the conversion
 aa7971d3a2be765dce06	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/Util/XmlDocument.cpp:1700	performing an implicit widening conversion to type 'const size_t' (aka 'const unsigned long') of a multiplication performed in type 'int'

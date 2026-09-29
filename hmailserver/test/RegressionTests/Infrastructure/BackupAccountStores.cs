@@ -1484,8 +1484,8 @@ namespace RegressionTests.Infrastructure
       {
          EditTheArchivedIndex(xml =>
          {
-            // \\s* before the closing bracket: XMLite writes a trailing space
-            // after every attribute (_tagXMLAttr::GetXML), so an element with attributes
+            // \\s* before the closing bracket: the index's writer puts a trailing space
+            // after every attribute (XmlTree.h, as XMLite did), so an element with attributes
             // and children is emitted as <Store Name="..." > and one with no children as
             // <Store Name="..." />. Anchored on <Store Name="...">, this matched nothing.
             var store = new Regex("(<Store Name=[\"']hm_roleassignments[\"']\\s*>)(\\s*<Row\\b.*?</Row>)(\\s*</Store>)", RegexOptions.Singleline);

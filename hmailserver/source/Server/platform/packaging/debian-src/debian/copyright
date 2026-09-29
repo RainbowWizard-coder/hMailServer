@@ -133,16 +133,6 @@ Files: hmailserver/source/Server/Common/Util/StdString.h
 Copyright: 2002 Joseph M. O'Leary
 License: StdString
 
-Files: hmailserver/source/Server/Common/Util/XMLite.cpp
-       hmailserver/source/Server/Common/Util/XMLite.h
-Copyright: 2002-2004 Cho Kyung Min <bro@shinbiro.com>
-License: XMLite
-Comment:
- XMLite, an XML parser published on The Code Project, compiled into
- /usr/bin/hmailserver. Its notice, kept in both files, grants use, modification
- and redistribution, and asks - without making it a condition - for a thank-you
- email and for fixes to be sent back.
-
 Files: hmailserver/source/Server/Common/Util/VariantDateTime.cpp
        hmailserver/source/Server/Common/Util/VariantDateTime.h
 Copyright: 1999 Mark A. Richman
@@ -957,12 +947,6 @@ License: StdString
  it, good for you.  I kinda like capitalism. Please don't blame me if it causes
  your $30 billion dollar satellite explode in orbit.  If you redistribute it in
  any form, I'd appreciate it if you would leave this notice here.
-
-License: XMLite
- Sometimes I get email about license of XMLite. You can use/modify/redistribute
- XMLite for commercial/noncomercial. But please give me thanks email with your
- project information.Then I will be happy and add it to references of XMLite.
- If you fix or update XMLite then give it to me for all to have. Thanks.
 
 License: none-stated
  These files state no licence, and the project has no record of one. They are

@@ -9,9 +9,11 @@
 //
 // WHY NOT THE READERS THE TREE HAS
 //
-// XMLite knows nothing of namespaces. Dav::XmlReader (DavSupport.h) is bounded
-// and namespace-aware, but it keeps what a WebDAV body needs and throws away
-// what a canonicaliser needs: the prefixes, the namespace declarations and
+// XmlTree (the backup index's reader) knows nothing of namespaces, and reads
+// what an old index needs rather than what XML allows. Dav::XmlReader
+// (DavSupport.h) is bounded and namespace-aware, but it keeps what a WebDAV
+// body needs and throws away what a canonicaliser needs: the prefixes, the
+// namespace declarations and
 // where they were written, attributes by their namespace, and an element's
 // text node by node. It also lets an unknown &name; through as text and does
 // not refuse an attribute written twice. A canonicaliser fed by either would

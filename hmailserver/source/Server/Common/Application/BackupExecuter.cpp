@@ -437,8 +437,8 @@ namespace HM
             filenames.push_back(filename->value);
       }
 
-      for (size_t i = 0; i < node->childs.size(); i++)
-         CollectMessageFilenames_(node->childs[i], filenames);
+      for (int i = 0; i < node->GetChildCount(); i++)
+         CollectMessageFilenames_(node->GetChild((unsigned int) i), filenames);
    }
 
    static bool

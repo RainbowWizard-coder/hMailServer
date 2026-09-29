@@ -10,7 +10,7 @@
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 #include "../SQL/DALRecordset.h"
-#include "../Util/XMLite.h"
+#include "../Util/XmlTree.h"
 #include "../Util/AuditTrail.h"
 #include "../Util/StoredSecrets.h"
 #include "EnvironmentSettings.h"
@@ -1368,10 +1368,11 @@ namespace HM
 
       for (auto iter = rows.begin(); iter != rows.end(); iter++)
       {
-         // The name goes in an ATTRIBUTE, not in the element name. XMLite escapes
-         // attribute values and writes element names raw, and these names come from
-         // a file an administrator edits - so a name that is not a valid XML element
-         // name would produce an archive that cannot be parsed back.
+         // The name goes in an ATTRIBUTE, not in the element name. The index's
+         // writer (XmlTree.h) escapes attribute values and writes element names
+         // raw, and these names come from a file an administrator edits - so a
+         // name that is not a valid XML element name would produce an archive that
+         // cannot be parsed back.
          if (IsFileOnlyName((*iter).first))
             continue;
 

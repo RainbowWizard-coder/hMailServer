@@ -1147,22 +1147,6 @@ exceptions:
     reviewed: 2026-09-26
     expires: 2027-09-25
 
-  # hmailserver/source/Server/Common/Util/XMLite.cpp
-  - scan: semgrep-sast
-    finding: b93f83c69667684db987
-    what: _tcslen of the search string in the unused helper _tcseistr
-    reason: '_tcseistr is never called: no header declares it, no other file declares it extern, and a grep finds only its definition, so this code never runs.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-  - scan: semgrep-sast
-    finding: 3482bb3837c7dec17ae1
-    what: '_tcslen of the text being entity-encoded in tagXMLEntitys_::Entity2Ref(LPCTSTR), used to size the output'
-    reason: 'Entity2Ref measures an HM::String''s c_str() (NULL is excluded), and its output, the length plus 10 for each entity found, covers the references of any entity table, which are at most 9 characters. The int size could wrap only for a single value of about 390 million characters, far beyond the database columns the backup and person-export XML are built from.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-09-25
-
   # hmailserver/source/Server/Common/Util/XmlDocument.cpp
   - scan: semgrep-sast
     finding: 225e008048a4170cdbb2
@@ -3632,45 +3616,6 @@ exceptions:
     finding: 45f52109c541548ee939
     what: 'memcpy of gethostbyname''s first address into addr.sin_addr in Utilities::IsLocalHost (Windows arm)'
     reason: 'In Utilities::IsLocalHost, the copy length is the constant sizeof(addr.sin_addr), 4 bytes, the size of the SOCKADDR_IN field it writes. Line 291 returns false before the copy unless host is non-null, h_addrtype == AF_INET, h_length == 4 and h_addr_list[0] is non-null, so source and destination are both 4 bytes whatever a DNS answer or the hostname passed over COM contains. Winsock allocates the hostent per thread, so the entry checked at 291 is the one copied at 294.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-
-  # hmailserver/source/Server/Common/Util/XMLite.cpp
-  - scan: semgrep-sast
-    finding: 894ae3c316480e471ca4
-    what: 'memcpy of the span psz..end into the HM::String buffer in _SetString (XMLite, backup index parser)'
-    reason: 'Destination: in _SetString, line 328 returns on a NULL psz or end or when end <= psz, and lines 336-338 keep len in (0, INT_MAX]. GetBufferSetLength(len) resizes the wstring to exactly len characters (SetBuf, StdString.h:2386-2393), and the memcpy copies exactly len characters. Source: [psz, end) always lies inside the NUL-terminated text. Every end comes from a search starting at psz that stops at a terminator: _tcspbrk results are NULL-checked at 412, 507, 616, 936 and 1038; _tcsenistr''s terminator answer is refused at 592, 658 and 711; _tcsechr/_tcsepbrk stop on the NUL. Every psz advance steps only over characters already read as non-NUL: the openers are matched at their real lengths at 771, 798 and 821 before the += at 614, 677 and 730 (the only callers of those loaders), 1029 checks *(xml+1) before xml += 2, and 467/562 step over a quote only when *xml is non-NUL. escape_value defaults to 0, and XMLiteTester::TestMalformed_ exercises each truncated form.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-  - scan: semgrep-sast
-    finding: 3551f22e9ccfbf1f4bb0
-    what: '_tcslen of the entity-encoded text in tagXMLEntitys_::Ref2Entity(LPCTSTR)'
-    reason: 'In tagXMLEntitys_::Ref2Entity(LPCTSTR), estr is NULL-checked at 2031. Every caller (lines 463, 558, 1004, 1108) passes an HM::String through its c_str() conversion, which is always terminated and stays alive until the returned temporary is assigned, and XRef2Entity has no caller. The decode that len sizes is bounded both ways. Output: Ref2Entity writes at most len characters (ps_end at 1983) plus the NUL into GetBufferSetLength(len + 1). Input: GetEntity(LPTSTR) matches with _tcsncmp over the entry''s ref_len (line 1964), so pes advances by ref_len only after all those characters matched, and never past the terminator. The only table is entityDefault (x_EntityTable at XMLite.cpp:56-62, which PARSEINFO''s constructor sets as entitys), and its ref_len values equal its refs'' lengths.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-
-  # hmailserver/source/Server/Common/Util/XMLiteTester.cpp
-  - scan: semgrep-sast
-    finding: a8558d96315b210decba
-    what: _tcslen of the test text initialising length_ in the XMLiteTester Text constructor
-    reason: 'In Text::Text, ''text'' is always a _T("...") string literal, whose terminator the compiler supplies. The callers are ExpectRefused''s literal arguments at lines 119-145 (passed on at 85) and the direct constructions at 151, 167, 174, 181, 188, 197, 211 and 249, all in this file''s anonymous namespace. This is test-only code that ClassTester runs.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-  - scan: semgrep-sast
-    finding: da4b8871aee3d49428e9
-    what: _tcslen of the test text sizing the characters_ allocation in the XMLiteTester Text constructor
-    reason: 'This is the same literal as line 36: in Text::Text, every construction passes a _T("...") literal (lines 85/119-145, 151, 167, 174, 181, 188, 197, 211, 249). The allocation new TCHAR[_tcslen(text) + 1] therefore holds the characters and the terminator that line 39 copies. This is test-only code.'
-    reviewed-by: Progressiverobot
-    reviewed: 2026-09-26
-    expires: 2027-03-26
-  - scan: semgrep-sast
-    finding: fb482928484b933f9e60
-    what: memcpy of a test literal into its own allocation in the XMLiteTester Text constructor
-    reason: 'In Text::Text, the destination is new TCHAR[_tcslen(text) + 1] and the copy is (length_ + 1) * sizeof(TCHAR). length_ = _tcslen(text) is initialised first because it is declared first (lines 54-55), so both sizes are the same count, terminator included. Every Text is built from a _T("...") literal (line 85 via ExpectRefused''s literal arguments at 119-145, and 151, 167, 174, 181, 188, 197, 211, 249). This is test-only code that runs from ClassTester.'
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26
