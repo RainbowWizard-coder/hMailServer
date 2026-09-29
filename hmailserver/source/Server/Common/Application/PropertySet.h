@@ -75,7 +75,9 @@ namespace HM
       // feature whose settings have no rows fills the error log of an installation
       // that has never used it. Called from Configuration::Load, on the one thread
       // that is running at that point, before any other thread can read the set -
-      // which is why this may write to items_ and the getters may not.
+      // which is why this may write to items_ and the getters may not. That holds
+      // at a start; at a reinitialise Configuration::Load publishes the new set
+      // before it runs this, and items_mutex_ is what makes the insert safe then.
       void EnsureLong(const String &sPropertyName, long lValue);
 
       // Whether the set holds a row of this name - without the HM5015 a read
@@ -129,6 +131,22 @@ namespace HM
 
       static thread_local ReadRecorder *recorder_;
 
+      // Every property the set holds, by name.
       std::map<String, std::shared_ptr<Property> > items_;
+
+      // Guards items_ - the map itself; each Property guards its own value.
+      // Configuration::Load publishes a new set before it has filled it (Refresh)
+      // and ensured its defaults (EnsureLong, EnsureString), and a profile's
+      // records are written into it on a request thread (WriteBookkeeping), while
+      // every other thread looks settings up in it; a lookup in a std::map that
+      // another thread is inserting into can follow a pointer the insert has just
+      // moved. Held only to find, copy or insert an entry: nothing is called under
+      // it - not the database, not a change event, not the error report of a
+      // missing name - so no other lock is ever taken under it: a leaf.
+      mutable boost::mutex items_mutex_;
+
+      // The entries, in the map's order, copied under items_mutex_ for a walk that
+      // must not hold it.
+      std::vector<std::pair<String, std::shared_ptr<Property> > > Snapshot_() const;
    };
 }

@@ -478,6 +478,20 @@ for a stray `#` number or `@` name.
   (`x64compatible`), by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its
   reasons. The installer smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh
   --database`).
+- **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script and runs
+  it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST, an environment
+  or a profile - loads it, compiled and searched, before the switch takes effect, and reports then a script that does
+  not compile, whatever reload runs beside the switch. A rule's Run function action against a script loaded while
+  scripting was off, which never compiled, is refused (HM5018) instead of being handed to the engine. An empty script
+  runs no engine.
+- **Crash records that place the fault.** The crash oracle's record adds, after the fields it always had, what an
+  access violation read, wrote or executed and where, the faulting address's image base and offset, and up to twelve
+  frames of the faulting thread; the REST API writes to the application log which method and path it answered 500
+  after an exception.
+- **Fixed: settings read while they were being reloaded.** hMailServer.ini's database and directory values, the
+  administrator's second factor, and each value of the settings store and its map are read and written under locks,
+  each value whole; a reinitialise or a COM Settings.Directories call could hand another thread an empty or freed
+  value. Several values read one after another are still not read as one set.
 
 ### Build and tests
 
@@ -661,6 +675,15 @@ Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/
   `build/check-channels.py`, in `checkers`, holds the jobs to protected master, by hand, allowed to fail, no ID
   tokens and `.no-github` first, and the PKGBUILD, the AUR's pinned host keys, OBS's `_service` and the Copr Makefile
   to shape.
+- **The Windows gate is not failed by an earlier run's crash record, and keeps what places a fault.**
+  build/ci/windows-gate.ps1 moves aside and prints the crash-oracle.log the binary before it left, and on a failure
+  saves the service's module list with every recorded address placed in it (server-modules.txt) and the Application
+  log's crash events (crash-events.txt). On 28 September a gate failed its first test on the record a killed earlier
+  gate had left, with every other test passed.
+- **Boost for the package builds comes from the job's cache, archives.boost.io or SourceForge.**
+  build/ci/packages/fetch-boost.sh makes six attempts at each source and holds every copy to the pinned SHA-256; the
+  EL, openSUSE and Debian 12 build jobs cache the tarball under its SHA-256. On 28 September three package jobs of
+  6.3.5's pipeline failed because some of archives.boost.io's addresses did not answer the runner.
 
 ---
 

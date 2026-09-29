@@ -59,6 +59,10 @@
 #   HM_BUILD_DIR    where CMake configures and ninja builds (/tmp/hm-rpm-build)
 #   HM_BUILD_JOBS   ninja's and b2's -j (6)
 #   HM_OUT_ROOT     where the artifacts go (packages-rpm)
+#   HM_BOOST_TARBALL_CACHE
+#                   where the Boost tarball is kept between runs, for the targets
+#                   that build Boost (.cache/boost-tarball in the checkout, which
+#                   their jobs cache under the tarball's SHA-256): fetch-boost.sh
 set -uo pipefail
 
 target="${1:-}"
@@ -66,7 +70,10 @@ arch="${2:-}"
 build_dir="${HM_BUILD_DIR:-/tmp/hm-rpm-build}"
 jobs="${HM_BUILD_JOBS:-6}"
 out_root="${HM_OUT_ROOT:-packages-rpm}"
+boost_tarball_cache="${HM_BOOST_TARBALL_CACHE:-$PWD/.cache/boost-tarball}"
+fetch_boost="$(cd "$(dirname "$0")" && pwd)/fetch-boost.sh"
 
+# .gitlab/ci/packages-rpm.yml's tarball cache is keyed by this SHA-256.
 BOOST_VERSION=1.92.0
 BOOST_SHA256=c4a3b310ddd2472416e091067166b0713be97c63f38c212c484ada022fd296ce
 
@@ -387,11 +394,12 @@ if [ "$boost" = source ]; then
   step "Boost $BOOST_VERSION from boost.org's release tarball (thread, chrono, filesystem; static)"
   underscored=${BOOST_VERSION//./_}
   tarball=/tmp/boost_$underscored.tar.gz
-  if ! curl -fsSL --retry 3 -o "$tarball" "https://archives.boost.io/release/$BOOST_VERSION/source/boost_$underscored.tar.gz"; then
-    echo "FAILED: the Boost tarball did not download from archives.boost.io."
+  # From the job's cache, boost.org's archive or SourceForge's copy of it, and
+  # only with the SHA-256 libraries/build-boost.ps1 pins (fetch-boost.sh).
+  if ! bash "$fetch_boost" "$BOOST_VERSION" tar.gz "$BOOST_SHA256" "$tarball" "$boost_tarball_cache"; then
+    echo "FAILED: no source gave boost_$underscored.tar.gz with the SHA-256 libraries/build-boost.ps1 pins."
     exit 3
   fi
-  echo "$BOOST_SHA256  $tarball" | sha256sum -c - || { echo "FAILED: the Boost tarball is not the one libraries/build-boost.ps1 pins."; exit 3; }
   rm -rf "/tmp/boost_$underscored"
   tar -xzf "$tarball" -C /tmp
   rm -f "$tarball"

@@ -1355,6 +1355,25 @@ namespace HM
    void
    Configuration::SetUseScriptServer(bool newVal)
    {
+      // A load made while scripting was off runs no engine and registers no
+      // handler (ScriptServer::LoadScripts), so switching scripting on loads the
+      // script first, on this thread, as a reload with scripting on would: the
+      // handlers are registered before the first event can fire, as they were
+      // when every load ran the engine, and a script that does not compile is
+      // reported now rather than at the next reload. Every switch comes through
+      // here - COM's Scripting.Enabled, the REST scripting group, and an
+      // environment or a profile, which apply through that group's row. Should
+      // the store then refuse the switch (a setting the environment manages),
+      // scripting stays off, and nothing runs the script that was loaded. A
+      // reload or a reinitialise on another thread that read the switch as off
+      // cannot leave its uncompiled text in force once the switch is on
+      // (ScriptServer::SwitchOn).
+      if (newVal && !GetUseScriptServer())
+      {
+         ScriptServer::Instance()->SwitchOn([this]() { GetSettings()->SetBool(PROPERTY_USESCRIPTSERVER, true); });
+         return;
+      }
+
       GetSettings()->SetBool(PROPERTY_USESCRIPTSERVER, newVal);
    }
 

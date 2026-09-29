@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using RegressionTests.Shared;
 
@@ -119,6 +120,26 @@ namespace RegressionTests.Infrastructure
             Assert.IsTrue(record.Contains("address=0x"), record);
             Assert.IsTrue(record.Contains("thread="), record);
             Assert.IsTrue(record.Contains("pid="), record);
+
+            // And what the address alone cannot say. Mode 3 writes one byte at
+            // address 0 (CrashSimulation::Execute), so the access is a write and its
+            // target is 0 - the shape of a null dereference, told apart from a
+            // freed block's. The faulting address is in an image the loader knows,
+            // and the frames go past the faulting one into its callers: on
+            // 28 September 2026 a swallowed fault inside vbscript.dll was recorded
+            // as an address alone and could not be placed.
+            Assert.IsTrue(record.Contains(" access=write target=0x0000000000000000"), "No write at address 0: " + record);
+            Assert.IsTrue(Regex.IsMatch(record, @" image=0x[0-9A-F]{16}\+0x[0-9A-F]+"), "No image and offset: " + record);
+
+            var frames = Regex.Match(record, @" frames=(0x[0-9A-F]{16}(?:,0x[0-9A-F]{16})*)");
+            Assert.IsTrue(frames.Success, "The record has no frames: " + record);
+            Assert.IsTrue(frames.Groups[1].Value.Split(',').Length >= 3,
+               "The frames stop at the fault instead of reaching its callers: " + record);
+
+            // Everything new comes after event=, so a reader of the older shape -
+            // " FIRSTCHANCE " and the fields up to event= - reads this one unchanged.
+            Assert.IsTrue(Regex.IsMatch(record, @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} FIRSTCHANCE code=0x[0-9A-F]{8} address=0x[0-9A-F]{16} thread=\d+ pid=\d+ event=\d+ "),
+               "The record does not start as it always has: " + record);
          }
          finally
          {

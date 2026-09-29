@@ -18,17 +18,17 @@ namespace HM
       AnsiString GetName() const {return name_;}
       void SetName(const AnsiString &NewVal) {name_ = NewVal;}
 
-      int GetLongValue() const {return long_value_; }
+      int GetLongValue() const;
       void SetLongValue(long NewVal);
 
-      String GetStringValue() const {return string_value_; }
+      String GetStringValue() const;
       void SetStringValue(const String &NewVal);
 
       // The row written first, and the value taken only when the database took it:
       // false, with the value as it was, when the write failed.
       bool TrySetStringValue(const String &NewVal);
 
-      bool GetBoolValue() const {return long_value_ ? true : false; }
+      bool GetBoolValue() const { return GetLongValue() ? true : false; }
       void SetBoolValue(bool NewVal);
 
       void SetIsCrypted() {save_crypted_ = true; }
@@ -45,6 +45,14 @@ namespace HM
       AnsiString name_;
 
       bool save_crypted_;
+
+      // Guards long_value_ and string_value_. A setting is read on every thread
+      // that consults it and written on the COM or REST thread that changes it, and
+      // a String assigned while another thread copies it can be read empty or out
+      // of a freed buffer. Held only to copy a value in or out - never across the
+      // database write - so it is a leaf: nothing is locked, called or written
+      // while it is held. (PropertySet never calls a Property under its own lock.)
+      mutable boost::mutex value_mutex_;
 
    };
 }

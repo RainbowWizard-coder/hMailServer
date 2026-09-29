@@ -582,14 +582,18 @@ namespace HM
 
       bool GetDatabaseSettingsExists();
 
-      String GetDatabaseProvider() const { return database_provider_; }
-      String GetDatabaseServer() const { return database_server_; }
-      String GetDatabaseName() const { return database_name_; }
-      String GetUsername() const { return username_; }
-      String GetPassword() const { return password_; }
-      DatabaseSettings::SQLDBType GetDatabaseType() const { return sqldbtype_; }
-      long GetDatabasePort() const { return dbport_;}
-      bool GetIsInternalDatabase() const {return is_internal_database_; }
+      // The bootstrap values below - [Database], [Directories], [GUILanguages] -
+      // are read under bootstrap_mutex_, because LoadSettings writes them again on
+      // whichever thread asks (a reinitialise, and every COM Settings.Directories)
+      // while every other thread reads them; see bootstrap_mutex_.
+      String GetDatabaseProvider() const { return Guarded_(database_provider_); }
+      String GetDatabaseServer() const { return Guarded_(database_server_); }
+      String GetDatabaseName() const { return Guarded_(database_name_); }
+      String GetUsername() const { return Guarded_(username_); }
+      String GetPassword() const { return Guarded_(password_); }
+      DatabaseSettings::SQLDBType GetDatabaseType() const { return Guarded_(sqldbtype_); }
+      long GetDatabasePort() const { return Guarded_(dbport_); }
+      bool GetIsInternalDatabase() const { return Guarded_(is_internal_database_); }
 
       void SetDatabaseServer(const String &sNewValue);
       void SetDatabaseName(const String &sNewValue);
@@ -640,14 +644,15 @@ namespace HM
       String GetAdministratorTotpSecret();
       // Whether a second factor is enrolled at all, judged from the stored form
       // and not from whether it can be opened: an enrolled secret this machine
-      // cannot unprotect must refuse the logon, never wave it through.
-      bool IsAdministratorTotpEnrolled() const { return !administrator_totp_secret_protected_.IsEmpty(); }
+      // cannot unprotect must refuse the logon, never wave it through. Read under
+      // administrator_password_mutex_, as every administrator sign-in reads it.
+      bool IsAdministratorTotpEnrolled() const;
       bool SetAdministratorTotpSecret(const String &base32Secret);
       String GetLogDirectory();
 
       String GetBinDirectory();
-      String GetProgramDirectory() const { return app_directory_; }
-      String GetDataDirectory() const { return data_directory_; }
+      String GetProgramDirectory() const { return Guarded_(app_directory_); }
+      String GetDataDirectory() const { return Guarded_(data_directory_); }
 
       // [Directories] DataFolder as LoadSettings resolves it - against
       // ProgramFolder, without a trailing separator - read from the file alone:
@@ -657,12 +662,12 @@ namespace HM
       // before every start of the Linux unit).
       String ReadDataDirectory();
 
-      String GetTempDirectory() const { return temp_directory_; }
-      String GetEventDirectory() const { return event_directory_; }
-      String GetDBScriptDirectory() const { return dbscript_directory_; }
-      String GetDatabaseDirectory() const { return database_directory_; }
+      String GetTempDirectory() const { return Guarded_(temp_directory_); }
+      String GetEventDirectory() const { return Guarded_(event_directory_); }
+      String GetDBScriptDirectory() const { return Guarded_(dbscript_directory_); }
+      String GetDatabaseDirectory() const { return Guarded_(database_directory_); }
       String GetLanguageDirectory() const;
-      String GetDatabaseServerFailoverPartner() const { return database_server_FailoverPartner; }
+      String GetDatabaseServerFailoverPartner() const { return Guarded_(database_server_FailoverPartner); }
 
       void SetProgramDirectory(const String &sNewVal);
       void SetDataDirectory(const String &sNewVal);
@@ -672,7 +677,7 @@ namespace HM
       void SetLogDirectory(const String &sLogDirectory);
 
       
-      std::vector<String> GetValidLanguages() const {return valid_languages_; }
+      std::vector<String> GetValidLanguages() const { return Guarded_(valid_languages_); }
 
       String GetUserInterfaceLanguage();
       void SetUserInterfaceLanguage(String sLanguage);
@@ -687,21 +692,21 @@ namespace HM
       // TLS by default - and measured on 25 September 2026, neither the Windows
       // client nor Ubuntu's asks for TLS at all unless told to. TlsMode's default,
       // prefer, is what this key described. See DatabaseTls.
-      bool GetDatabaseAllowUnencryptedConnection() const { return database_allow_unencrypted_connection_; }
+      bool GetDatabaseAllowUnencryptedConnection() const { return Guarded_(database_allow_unencrypted_connection_); }
 
       // [Database] TlsMode and TlsCaFile: TLS to the database server, the same words
       // on every backend - disable, prefer (the default, empty), require or
       // verify-full - and the PEM file of CA certificates verify-full checks the
       // server's certificate against. File keys because they say how the settings
       // store is reached. Read and checked by DatabaseTls::FromConfiguration.
-      String GetDatabaseTlsMode() const { return database_tls_mode_; }
-      String GetDatabaseTlsCaFile() const { return database_tls_ca_file_; }
+      String GetDatabaseTlsMode() const { return Guarded_(database_tls_mode_); }
+      String GetDatabaseTlsCaFile() const { return Guarded_(database_tls_ca_file_); }
 
       // Forgets the log directory read so far, so the next GetLogDirectory reads the
       // configuration file again. For hMailServer.exe --check-database --config
       // <file> on Windows, whose crash oracle read the installed file's directory
       // before the command line named another.
-      void ForgetLogDirectory() { log_directory_.Empty(); }
+      void ForgetLogDirectory();
 
       // [Database] UpgradeOnStart: whether the service brings an older schema
       // forward itself at its own start (Application::OnDatabaseConnected,
@@ -709,7 +714,7 @@ namespace HM
       // file key, and the one this row adds, because it has to be read before
       // the database is at a version this build can open - which is before the
       // settings store in it exists. Off by default; the doc says when to set it.
-      bool GetDatabaseUpgradeOnStart() const { return database_upgrade_on_start_; }
+      bool GetDatabaseUpgradeOnStart() const { return Guarded_(database_upgrade_on_start_); }
 
       // [Database] PostgreSQLSslMode and PostgreSQLSslRootCert: libpq's sslmode and
       // sslrootcert connection parameters, from this file rather than from PGSSLMODE in
@@ -717,14 +722,14 @@ namespace HM
       // when the server offers it, verified never. verify-full with a root certificate is
       // what makes the connection one the administrator can trust rather than hope for.
       // See PGConnection::Connect, which refuses a mode it does not know.
-      String GetDatabasePostgreSQLSslMode() const { return database_postgresql_ssl_mode_; }
-      String GetDatabasePostgreSQLSslRootCert() const { return database_postgresql_ssl_root_cert_; }
+      String GetDatabasePostgreSQLSslMode() const { return Guarded_(database_postgresql_ssl_mode_); }
+      String GetDatabasePostgreSQLSslRootCert() const { return Guarded_(database_postgresql_ssl_root_cert_); }
 
       // [Database] ConnectionStringOptions: appended verbatim to the OLE DB connection
       // string of an MS SQL Server backend. Encryption and certificate verification are
       // the provider's own keywords there (Encrypt=yes;TrustServerCertificate=no for
       // MSOLEDBSQL), and any list of them written here would only ever lag the provider.
-      String GetDatabaseConnectionStringOptions() const { return database_connection_string_options_; }
+      String GetDatabaseConnectionStringOptions() const { return Guarded_(database_connection_string_options_); }
       
       bool GetAddXAuthUserHeader() {return Current()->add_xauth_user_header_; }
       String GetDaemonAddressDomain() const { return Current()->daemonaddress_domain_; }
@@ -1505,6 +1510,13 @@ namespace HM
       // share, so that the two can never name different directories.
       static String ResolveDataDirectory_(const String &programDirectory, const String &configured);
 
+      // A [Directories] value resolved against the program directory given, as
+      // ResolveAgainstProgramDirectory_ resolves it against the one in force: a
+      // full path as it is, a relative one under the program directory. For
+      // LoadSettings, which works the values out before it publishes the new
+      // program directory.
+      static String ResolveAgainst_(const String &programDirectory, const String &value);
+
       void WriteIniSetting_(const String &sSection, const String &sKey, int Value);
 
       // Holds a tarpit delay in [0, TARPIT_MAX_SECONDS]. A negative value is off;
@@ -1564,11 +1576,38 @@ namespace HM
       // administrator_password_ is read on every thread that signs the administrator
       // in and, since a sign-in can re-hash it (UpgradeAdministratorPasswordHash),
       // written on them too; stored_secrets_key_protected_ is read wherever a
-      // sealed secret is opened. The one lock guards both.
-      boost::mutex administrator_password_mutex_;
+      // sealed secret is opened; administrator_totp_secret_protected_ is read at
+      // every administrator sign-in and written by LoadSettings and by an
+      // enrolment. The one lock guards all three. Mutable, so that
+      // IsAdministratorTotpEnrolled, a read, can take it.
+      mutable boost::mutex administrator_password_mutex_;
       String stored_secrets_key_protected_;
       // As stored: protected, not the base32 secret. See GetAdministratorTotpSecret.
       String administrator_totp_secret_protected_;
+
+      // Guards the bootstrap values: every member from database_server_ above to
+      // database_provider_ below that LoadSettings reads out of [Database],
+      // [Directories] and [GUILanguages], and log_directory_ - not the three
+      // [Security] values, which the lock above guards. LoadSettings runs
+      // again at a reinitialise and at every COM Settings.Directories and
+      // Database.CreateInternalDatabase - the suite asks for Settings.Directories
+      // before and after every test - on that caller's thread, while delivery,
+      // protocol and REST threads read GetDataDirectory, GetEventDirectory and
+      // the rest. A String assigned while another thread copies it can be read
+      // empty or out of a freed buffer. Held only to copy a value in or out:
+      // LoadSettings reads the file first and assigns everything in one hold, and
+      // nothing is called while it is held, so no other lock is ever taken under
+      // it: a leaf, which may itself be taken under any (LoadSettings takes it
+      // under reload_mutex_).
+      mutable boost::mutex bootstrap_mutex_;
+
+      // A copy of one bootstrap value, taken under bootstrap_mutex_.
+      template <typename T>
+      T Guarded_(const T &member) const
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         return member;
+      }
 
       std::vector<String> valid_languages_;
 

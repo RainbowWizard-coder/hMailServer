@@ -51,9 +51,10 @@ if [ "$arch" = aarch64 ] && [ ! -e /proc/sys/fs/binfmt_misc/qemu-aarch64 ]; then
 fi
 
 # The containers run as root and write into the checkout; hand what they wrote
-# back to whoever ran this, whatever happens.
+# back to whoever ran this, whatever happens: the packages, and the Boost tarball
+# rpm-build.sh keeps in .cache/boost-tarball (fetch-boost.sh).
 give_back() {
-  docker run --rm --platform linux/amd64 -v "$PWD":/src "$build_image" chown -R "$(id -u):$(id -g)" /src/packages-rpm > /dev/null 2>&1 || true
+  docker run --rm --platform linux/amd64 -v "$PWD":/src "$build_image" chown -R "$(id -u):$(id -g)" /src/packages-rpm /src/.cache > /dev/null 2>&1 || true
 }
 trap give_back EXIT
 

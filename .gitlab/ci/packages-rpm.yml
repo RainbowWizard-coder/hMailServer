@@ -59,8 +59,9 @@
 # store and if-not-present can never hand an aarch64 job the x86_64 image it
 # already holds under the same name (or the reverse). Nothing here is fetched
 # from GitHub: the packages come from each distribution's repositories, and
-# Boost's release tarball from archives.boost.io, checked by its SHA-256
-# (rpm-build.sh).
+# Boost's release tarball from the job's cache, archives.boost.io or
+# SourceForge's copy of it, checked by its SHA-256 (rpm-build.sh,
+# fetch-boost.sh).
 
 # ------------------------------------------------------------------ images
 # Read from each registry on 26 September 2026: the tag's index, then the
@@ -177,6 +178,20 @@
     paths:
       - packages-rpm/
 
+# The Boost tarball of the targets that build Boost (el10, el9, leap16,
+# tumbleweed), kept in linix's runner cache under its SHA-256 - rpm-build.sh's
+# pin, which fetch-boost.sh holds the cached copy to as it holds a downloaded
+# one - so that a job whose cache holds it downloads nothing. On 28 and
+# 29 September 2026 some of archives.boost.io's addresses refused linix's
+# connections for 21 s, and three openSUSE builds of one pipeline failed on it.
+# One key for every such job: the tarball is the same for each target and
+# architecture. A new pin is a new key, so an old tarball is never offered.
+.rpm-boost-tarball:
+  cache:
+    key: boost-tarball-c4a3b310ddd2472416e091067166b0713be97c63f38c212c484ada022fd296ce
+    paths:
+      - .cache/boost-tarball/
+
 # Its needs are the build of the same release and architecture, with its artifacts.
 .rpm-install:
   stage: test
@@ -258,11 +273,11 @@ rpm-fedora43-aarch64-install:
 # ------------------------------------------------------------------ RHEL 10 (UBI 10)
 # Boost is built from boost.org's tarball in the job: UBI carries no boost-devel.
 rpm-el10-x86_64:
-  extends: [.rpm-build, .rpm-image-el10-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-el10-x86_64]
   variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: x86_64}
 
 rpm-el10-aarch64:
-  extends: [.rpm-build, .rpm-image-el10-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-el10-x86_64]
   variables: {HM_RPM_TARGET: el10, HM_RPM_ARCH: aarch64}
 
 rpm-el10-x86_64-install:
@@ -278,11 +293,11 @@ rpm-el10-aarch64-install:
 # ------------------------------------------------------------------ RHEL 9 (UBI 9)
 # RHEL 9's own Boost is 1.75, older than the 1.83 the build needs.
 rpm-el9-x86_64:
-  extends: [.rpm-build, .rpm-image-el9-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-el9-x86_64]
   variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: x86_64}
 
 rpm-el9-aarch64:
-  extends: [.rpm-build, .rpm-image-el9-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-el9-x86_64]
   variables: {HM_RPM_TARGET: el9, HM_RPM_ARCH: aarch64}
 
 rpm-el9-x86_64-install:
@@ -298,11 +313,11 @@ rpm-el9-aarch64-install:
 # ------------------------------------------------------------------ openSUSE Leap 16.0
 # openSUSE ships no static Boost archives, so Boost is built in the job.
 rpm-leap16-x86_64:
-  extends: [.rpm-build, .rpm-image-leap16-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-leap16-x86_64]
   variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: x86_64}
 
 rpm-leap16-aarch64:
-  extends: [.rpm-build, .rpm-image-leap16-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-leap16-x86_64]
   variables: {HM_RPM_TARGET: leap16, HM_RPM_ARCH: aarch64}
 
 rpm-leap16-x86_64-install:
@@ -317,11 +332,11 @@ rpm-leap16-aarch64-install:
 
 # ------------------------------------------------------------------ openSUSE Tumbleweed
 rpm-tumbleweed-x86_64:
-  extends: [.rpm-build, .rpm-image-tumbleweed-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-tumbleweed-x86_64]
   variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: x86_64}
 
 rpm-tumbleweed-aarch64:
-  extends: [.rpm-build, .rpm-image-tumbleweed-x86_64]
+  extends: [.rpm-build, .rpm-boost-tarball, .rpm-image-tumbleweed-x86_64]
   variables: {HM_RPM_TARGET: tumbleweed, HM_RPM_ARCH: aarch64}
 
 rpm-tumbleweed-x86_64-install:

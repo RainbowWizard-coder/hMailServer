@@ -181,106 +181,154 @@ namespace HM
       boost::lock_guard<boost::recursive_mutex> guard(reload_mutex_);
 
       {
+         // [Security]: the administrator's password, its second factor and the
+         // stored-secrets key, read from the file first and then taken as the
+         // values in force under the lock every sign-in reads them under.
          const String administratorPassword = ReadIniSettingString_("Security", "AdministratorPassword", "");
-         boost::lock_guard<boost::mutex> passwordGuard(administrator_password_mutex_);
-         administrator_password_ = administratorPassword;
-      }
-      administrator_totp_secret_protected_ = ReadIniSettingString_("Security", "AdministratorTotpSecret", "");
-      {
+         const String administratorTotpSecret = ReadIniSettingString_("Security", "AdministratorTotpSecret", "");
          // The stored-secrets key, as this machine's store protects it: read here and
          // nowhere else, so that /Register and the file-only bootstrap open the
          // [Settings] secrets they read (Util/StoredSecrets.h).
          const String storedSecretsKey = ReadIniSettingString_("Security", "StoredSecretsKey", "");
-         boost::lock_guard<boost::mutex> keyGuard(administrator_password_mutex_);
+
+         boost::lock_guard<boost::mutex> passwordGuard(administrator_password_mutex_);
+         administrator_password_ = administratorPassword;
+         administrator_totp_secret_protected_ = administratorTotpSecret;
          stored_secrets_key_protected_ = storedSecretsKey;
       }
 
-      database_server_ = ReadIniSettingString_("Database", "Server", "");
-      database_name_ = ReadIniSettingString_("Database", "Database", "");
-      username_ = ReadIniSettingString_("Database", "Username", "");
-      password_ = ReadIniSettingString_("Database", "Password", "");
-      is_internal_database_ = ReadIniSettingInteger_("Database", "Internal", 0) == 1;
-      database_server_FailoverPartner = ReadIniSettingString_("Database", "ServerFailoverPartner", "");
-      database_provider_ = ReadIniSettingString_("Database", "Provider", "");
+      // The bootstrap values, read and worked out into locals first and then
+      // published in one hold of bootstrap_mutex_, so that a reader on another
+      // thread sees each value as it was before this load or as it is after it,
+      // never a String half-way through its assignment. Each getter takes the
+      // lock on its own, so a reader of several values - a connection string's
+      // server, name and port - can take some from before a load and some from
+      // after it, which matters only when the file was changed in between.
+      const String databaseServer = ReadIniSettingString_("Database", "Server", "");
+      const String databaseName = ReadIniSettingString_("Database", "Database", "");
+      const String username = ReadIniSettingString_("Database", "Username", "");
+      String password = ReadIniSettingString_("Database", "Password", "");
+      const bool isInternalDatabase = ReadIniSettingInteger_("Database", "Internal", 0) == 1;
+      const String databaseServerFailoverPartner = ReadIniSettingString_("Database", "ServerFailoverPartner", "");
+      const String databaseProvider = ReadIniSettingString_("Database", "Provider", "");
 
       String sDatabaseType = ReadIniSettingString_("Database", "Type", "");
-      
+
       Crypt::EncryptionType iPWDEncryptionType = (Crypt::EncryptionType) ReadIniSettingInteger_("Database", "Passwordencryption", 0);
 
       // Decrypt password read from hmailserver.ini
-      password_ = Crypt::Instance()->DeCrypt(password_, iPWDEncryptionType);
+      password = Crypt::Instance()->DeCrypt(password, iPWDEncryptionType);
+
+      // A Type this build does not know leaves the type as it was, as it always has.
+      bool typeKnown = true;
+      DatabaseSettings::SQLDBType databaseType = HM::DatabaseSettings::TypeUnknown;
 
       if (sDatabaseType.CompareNoCase(_T("MSSQL")) == 0)
-         sqldbtype_ = HM::DatabaseSettings::TypeMSSQLServer;
+         databaseType = HM::DatabaseSettings::TypeMSSQLServer;
       else if (sDatabaseType.CompareNoCase(_T("MYSQL")) == 0)
-         sqldbtype_ = HM::DatabaseSettings::TypeMYSQLServer;
+         databaseType = HM::DatabaseSettings::TypeMYSQLServer;
       else if (sDatabaseType.CompareNoCase(_T("PostgreSQL")) == 0)
-         sqldbtype_ = HM::DatabaseSettings::TypePGServer;
+         databaseType = HM::DatabaseSettings::TypePGServer;
       else if (sDatabaseType.CompareNoCase(_T("MSSQLCE")) == 0)
-         sqldbtype_ = HM::DatabaseSettings::TypeMSSQLCompactEdition;
+         databaseType = HM::DatabaseSettings::TypeMSSQLCompactEdition;
+      else
+         typeKnown = false;
 
-      dbport_ = ReadIniSettingInteger_( "Database", "Port", 0);
+      const long databasePort = ReadIniSettingInteger_( "Database", "Port", 0);
 
-      app_directory_ = ReadIniSettingString_("Directories", "ProgramFolder", "");
+      String appDirectory = ReadIniSettingString_("Directories", "ProgramFolder", "");
       // The separator this platform uses. Everything derived from the program
       // directory is built by concatenation - Languages, DBScripts, Bin - so a
       // backslash here is not cosmetic: it becomes part of every one of those
       // names, and a POSIX filesystem creates the directory rather than
       // objecting.
-      if (app_directory_.Right(1) != FileUtilities::PathSeparator)
-         app_directory_ += FileUtilities::PathSeparator;
+      if (appDirectory.Right(1) != FileUtilities::PathSeparator)
+         appDirectory += FileUtilities::PathSeparator;
 
-      data_directory_ = ResolveDataDirectory_(app_directory_, ReadIniSettingString_("Directories", "DataFolder", ""));
+      const String dataDirectory = ResolveDataDirectory_(appDirectory, ReadIniSettingString_("Directories", "DataFolder", ""));
 
-      temp_directory_ = ResolveAgainstProgramDirectory_(ReadIniSettingString_("Directories", "TempFolder", ""));
+      String tempDirectory = ResolveAgainst_(appDirectory, ReadIniSettingString_("Directories", "TempFolder", ""));
 #ifdef HM_PLATFORM_POSIX
-      if (temp_directory_.Right(1) == _T("/") || temp_directory_.Right(1) == _T("\\"))
-         temp_directory_ = temp_directory_.Left(temp_directory_.GetLength() -1);
+      if (tempDirectory.Right(1) == _T("/") || tempDirectory.Right(1) == _T("\\"))
+         tempDirectory = tempDirectory.Left(tempDirectory.GetLength() -1);
 #else
-      if (temp_directory_.Right(1) == _T("\\"))
-         temp_directory_ = temp_directory_.Left(temp_directory_.GetLength() -1);
+      if (tempDirectory.Right(1) == _T("\\"))
+         tempDirectory = tempDirectory.Left(tempDirectory.GetLength() -1);
 #endif
 
-      event_directory_ = ResolveAgainstProgramDirectory_(ReadIniSettingString_("Directories", "EventFolder", ""));
+      const String eventDirectory = ResolveAgainst_(appDirectory, ReadIniSettingString_("Directories", "EventFolder", ""));
 
       // Derived from the program folder, which has already been given this
       // platform's separator above, so it is reused rather than re-derived.
-      dbscript_directory_ = app_directory_ + "DBScripts";
+      const String dbscriptDirectory = appDirectory + "DBScripts";
 
-      no_of_dbconnections_ = ReadIniSettingInteger_("Database", "NumberOfConnections", 5);            
-      no_of_dbconnection_attempts_ = ReadIniSettingInteger_("Database", "ConnectionAttempts", 6);  
-      no_of_dbconnection_attempts_Delay = ReadIniSettingInteger_("Database", "ConnectionAttemptsDelay", 5);  
-      database_allow_unencrypted_connection_ = ReadIniSettingInteger_("Database", "AllowUnencryptedConnection", 0) == 1;
+      int numberOfConnections = ReadIniSettingInteger_("Database", "NumberOfConnections", 5);
+      const int connectionAttempts = ReadIniSettingInteger_("Database", "ConnectionAttempts", 6);
+      const int connectionAttemptsDelay = ReadIniSettingInteger_("Database", "ConnectionAttemptsDelay", 5);
+      const bool allowUnencryptedConnection = ReadIniSettingInteger_("Database", "AllowUnencryptedConnection", 0) == 1;
       // A [Database] key by necessity: read before the database is open, so it
       // cannot live in the database. See GetDatabaseUpgradeOnStart.
-      database_upgrade_on_start_ = ReadIniSettingInteger_("Database", "UpgradeOnStart", 0) == 1;
-      database_postgresql_ssl_mode_ = ReadIniSettingString_("Database", "PostgreSQLSslMode", "");
-      database_postgresql_ssl_root_cert_ = ReadIniSettingString_("Database", "PostgreSQLSslRootCert", "");
-      database_connection_string_options_ = ReadIniSettingString_("Database", "ConnectionStringOptions", "");
+      const bool upgradeOnStart = ReadIniSettingInteger_("Database", "UpgradeOnStart", 0) == 1;
+      const String postgreSqlSslMode = ReadIniSettingString_("Database", "PostgreSQLSslMode", "");
+      const String postgreSqlSslRootCert = ReadIniSettingString_("Database", "PostgreSQLSslRootCert", "");
+      const String connectionStringOptions = ReadIniSettingString_("Database", "ConnectionStringOptions", "");
       // How the database is reached, so read before it is open: see DatabaseTls.
-      database_tls_mode_ = ReadIniSettingString_("Database", "TlsMode", "");
-      database_tls_ca_file_ = ReadIniSettingString_("Database", "TlsCaFile", "");
+      const String tlsMode = ReadIniSettingString_("Database", "TlsMode", "");
+      const String tlsCaFile = ReadIniSettingString_("Database", "TlsCaFile", "");
 
-      if (sqldbtype_ == HM::DatabaseSettings::TypeMSSQLCompactEdition)
-      {
-         // Always use one database connection when working with SQL CE. SQL CE is supposed
-         // to be ACID, robust and so on but isn't really.
-         // http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=4141097&SiteID=1
-         no_of_dbconnections_ = 1;
-      }
-
-
-      database_directory_ = ResolveAgainstProgramDirectory_(ReadIniSettingString_("Directories", "DatabaseFolder", ""));
+      String databaseDirectory = ResolveAgainst_(appDirectory, ReadIniSettingString_("Directories", "DatabaseFolder", ""));
 #ifdef HM_PLATFORM_POSIX
-      if (database_directory_.Right(1) == _T("/") || database_directory_.Right(1) == _T("\\"))
-         database_directory_ = database_directory_.Left(database_directory_.GetLength() -1);
+      if (databaseDirectory.Right(1) == _T("/") || databaseDirectory.Right(1) == _T("\\"))
+         databaseDirectory = databaseDirectory.Left(databaseDirectory.GetLength() -1);
 #else
-      if (database_directory_.Right(1) == _T("\\"))
-         database_directory_ = database_directory_.Left(database_directory_.GetLength() -1);
+      if (databaseDirectory.Right(1) == _T("\\"))
+         databaseDirectory = databaseDirectory.Left(databaseDirectory.GetLength() -1);
 #endif
 
       String sValidLanguages = ReadIniSettingString_("GUILanguages", "ValidLanguages", "");
-      valid_languages_ = StringParser::SplitString(sValidLanguages, ",");
+      const std::vector<String> validLanguages = StringParser::SplitString(sValidLanguages, ",");
+
+      {
+         boost::lock_guard<boost::mutex> bootstrapGuard(bootstrap_mutex_);
+
+         database_server_ = databaseServer;
+         database_name_ = databaseName;
+         username_ = username;
+         password_ = password;
+         is_internal_database_ = isInternalDatabase;
+         database_server_FailoverPartner = databaseServerFailoverPartner;
+         database_provider_ = databaseProvider;
+
+         if (typeKnown)
+            sqldbtype_ = databaseType;
+
+         if (sqldbtype_ == HM::DatabaseSettings::TypeMSSQLCompactEdition)
+         {
+            // Always use one database connection when working with SQL CE. SQL CE is supposed
+            // to be ACID, robust and so on but isn't really.
+            // http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=4141097&SiteID=1
+            numberOfConnections = 1;
+         }
+
+         dbport_ = databasePort;
+         app_directory_ = appDirectory;
+         data_directory_ = dataDirectory;
+         temp_directory_ = tempDirectory;
+         event_directory_ = eventDirectory;
+         dbscript_directory_ = dbscriptDirectory;
+         no_of_dbconnections_ = numberOfConnections;
+         no_of_dbconnection_attempts_ = connectionAttempts;
+         no_of_dbconnection_attempts_Delay = connectionAttemptsDelay;
+         database_allow_unencrypted_connection_ = allowUnencryptedConnection;
+         database_upgrade_on_start_ = upgradeOnStart;
+         database_postgresql_ssl_mode_ = postgreSqlSslMode;
+         database_postgresql_ssl_root_cert_ = postgreSqlSslRootCert;
+         database_connection_string_options_ = connectionStringOptions;
+         database_tls_mode_ = tlsMode;
+         database_tls_ca_file_ = tlsCaFile;
+         database_directory_ = databaseDirectory;
+         valid_languages_ = validLanguages;
+      }
 
       BuildAndPublish_(scope, false);
 
@@ -1366,7 +1414,7 @@ namespace HM
    bool
    IniFileSettings::GetDatabaseSettingsExists()
    {
-      if (sqldbtype_ == HM::DatabaseSettings::TypeUnknown)
+      if (GetDatabaseType() == HM::DatabaseSettings::TypeUnknown)
          return false;
 
       return true;
@@ -1794,33 +1842,56 @@ namespace HM
    }
    
    String
-   IniFileSettings::GetLogDirectory() 
-   { 
-      if (log_directory_.IsEmpty())
+   IniFileSettings::GetLogDirectory()
+   {
+      // Read from the file the first time it is asked for, on whichever thread
+      // asks, so the lazy read is made under bootstrap_mutex_ too - the file is
+      // read outside it, and the first value stored wins.
       {
-         TCHAR Value[255];
-         GetPrivateProfileString( _T("Directories"), _T("LogFolder"), _T(""), Value, 255, GetInitializationFile() );
-         log_directory_ = ResolveAgainstProgramDirectory_(Value);
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         if (!log_directory_.IsEmpty())
+            return log_directory_;
       }
 
-      return log_directory_; 
+      TCHAR Value[255];
+      GetPrivateProfileString( _T("Directories"), _T("LogFolder"), _T(""), Value, 255, GetInitializationFile() );
+      const String resolved = ResolveAgainstProgramDirectory_(Value);
+
+      boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+      if (log_directory_.IsEmpty())
+         log_directory_ = resolved;
+
+      return log_directory_;
    }
 
-   String 
+   void
+   IniFileSettings::ForgetLogDirectory()
+   {
+      boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+      log_directory_.Empty();
+   }
+
+   String
    IniFileSettings::GetLanguageDirectory() const
    {
-      return app_directory_ + "Languages";
+      return Guarded_(app_directory_) + "Languages";
    }
 
    String
    IniFileSettings::ResolveAgainstProgramDirectory_(const String &value) const
    {
+      return ResolveAgainst_(Guarded_(app_directory_), value);
+   }
+
+   String
+   IniFileSettings::ResolveAgainst_(const String &programDirectory, const String &value)
+   {
       if (value.IsEmpty() || FileUtilities::IsFullPath(value))
          return value;
 
-      // app_directory_ is read before any of the values this resolves and
+      // The program directory is read before any of the values this resolves and
       // already ends with the platform separator; Combine tolerates that.
-      return FileUtilities::Combine(app_directory_, value);
+      return FileUtilities::Combine(programDirectory, value);
    }
 
    String
@@ -1868,7 +1939,7 @@ namespace HM
       {
       case HM::DatabaseSettings::TypeMSSQLCompactEdition:
          {
-            if (database_name_.IsEmpty())
+            if (GetDatabaseName().IsEmpty())
             {
                sErrorMessage.Format(_T("The setting Database in the section Database could not be read from %s"), sIniFile.c_str());
                return false;
@@ -1877,7 +1948,7 @@ namespace HM
          }
       default:
          {
-            if (database_server_.IsEmpty())
+            if (GetDatabaseServer().IsEmpty())
             {
                sErrorMessage.Format(_T("The setting Server in the section Database could not be read from %s"), sIniFile.c_str());
                return false;
@@ -1916,22 +1987,22 @@ namespace HM
       WriteSettingsValue(_T("UseLanguage"), sLanguage);
    }
 
-   int 
+   int
    IniFileSettings::GetNumberOfDatabaseConnections() const
    {
-      return no_of_dbconnections_;
+      return Guarded_(no_of_dbconnections_);
    }
 
-   int 
+   int
    IniFileSettings::GetNumberOfDatabaseConnectionAttempts() const
    {
-      return no_of_dbconnection_attempts_;
+      return Guarded_(no_of_dbconnection_attempts_);
    }
 
-   int 
+   int
    IniFileSettings::GetDBConnectionAttemptsDelay() const
    {
-      return no_of_dbconnection_attempts_Delay;
+      return Guarded_(no_of_dbconnection_attempts_Delay);
    }
 
 
@@ -2170,16 +2241,32 @@ namespace HM
       return true;
    }
 
+   bool
+   IniFileSettings::IsAdministratorTotpEnrolled() const
+   {
+      boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
+      return !administrator_totp_secret_protected_.IsEmpty();
+   }
+
    String
    IniFileSettings::GetAdministratorTotpSecret()
    {
-      if (administrator_totp_secret_protected_.IsEmpty())
+      // Copied under the lock - LoadSettings and an enrolment write it on other
+      // threads while every administrator sign-in reads it - and opened outside
+      // it, since unprotecting is the slow part and takes locks of its own.
+      String protectedSecret;
+      {
+         boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
+         protectedSecret = administrator_totp_secret_protected_;
+      }
+
+      if (protectedSecret.IsEmpty())
          return String();
 
       // Unprotected on each use rather than held in the clear: the secret is
       // needed for a moment per administrator logon, and this process holds the
       // plain form for exactly that moment.
-      return HM::Crypt::Instance()->UnprotectSecret(administrator_totp_secret_protected_);
+      return HM::Crypt::Instance()->UnprotectSecret(protectedSecret);
    }
 
    bool
@@ -2193,6 +2280,7 @@ namespace HM
       if (!WritePrivateProfileString(_T("Security"), _T("AdministratorTotpSecret"), protectedSecret, GetInitializationFile()))
          return false;
 
+      boost::lock_guard<boost::mutex> guard(administrator_password_mutex_);
       administrator_totp_secret_protected_ = protectedSecret;
       return true;
    }
@@ -2206,13 +2294,17 @@ namespace HM
    // server reads the same paths a restarted one would (issue #158).
    //---------------------------------------------------------------------------()
    {
-      app_directory_ = sNewVal;
-      if (!app_directory_.IsEmpty() && app_directory_.Right(1) != FileUtilities::PathSeparator)
-         app_directory_ += FileUtilities::PathSeparator;
+      String appDirectory = sNewVal;
+      if (!appDirectory.IsEmpty() && appDirectory.Right(1) != FileUtilities::PathSeparator)
+         appDirectory += FileUtilities::PathSeparator;
 
-      dbscript_directory_ = app_directory_ + "DBScripts";
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         app_directory_ = appDirectory;
+         dbscript_directory_ = appDirectory + "DBScripts";
+      }
 
-      WriteIniSetting_("Directories", "ProgramFolder", app_directory_);
+      WriteIniSetting_("Directories", "ProgramFolder", appDirectory);
    }
 
    void 
@@ -2222,8 +2314,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      data_directory_ = sNewVal;
-      WriteIniSetting_("Directories", "DataFolder", data_directory_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         data_directory_ = sNewVal;
+      }
+
+      WriteIniSetting_("Directories", "DataFolder", sNewVal);
    }
 
    void 
@@ -2233,8 +2329,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      temp_directory_ = sNewVal;
-      WriteIniSetting_("Directories", "TempFolder", temp_directory_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         temp_directory_ = sNewVal;
+      }
+
+      WriteIniSetting_("Directories", "TempFolder", sNewVal);
    }
 
    void 
@@ -2244,8 +2344,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      event_directory_ = sNewVal;
-      WriteIniSetting_("Directories", "EventFolder", event_directory_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         event_directory_ = sNewVal;
+      }
+
+      WriteIniSetting_("Directories", "EventFolder", sNewVal);
    }
 
    void 
@@ -2255,8 +2359,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      database_directory_ = sNewVal;
-      WriteIniSetting_("Directories", "DatabaseFolder", database_directory_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         database_directory_ = sNewVal;
+      }
+
+      WriteIniSetting_("Directories", "DatabaseFolder", sNewVal);
    }
 
    void 
@@ -2266,8 +2374,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      log_directory_ = sNewVal;
-      WriteIniSetting_("Directories", "LogFolder", log_directory_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         log_directory_ = sNewVal;
+      }
+
+      WriteIniSetting_("Directories", "LogFolder", sNewVal);
    }
 
    void 
@@ -2277,8 +2389,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      database_server_ = sNewVal;
-      WriteIniSetting_("Database", "Server", database_server_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         database_server_ = sNewVal;
+      }
+
+      WriteIniSetting_("Database", "Server", sNewVal);
    }
 
    void 
@@ -2288,8 +2404,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      database_name_ = sNewVal;
-      WriteIniSetting_("Database", "Database", database_name_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         database_name_ = sNewVal;
+      }
+
+      WriteIniSetting_("Database", "Database", sNewVal);
    }
 
    void 
@@ -2299,8 +2419,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      username_ = sNewVal;
-      WriteIniSetting_("Database", "Username", username_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         username_ = sNewVal;
+      }
+
+      WriteIniSetting_("Database", "Username", sNewVal);
    }
 
    void 
@@ -2310,15 +2434,18 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      password_ = sNewVal;
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         password_ = sNewVal;
+      }
 
       // Prefer machine-scoped DPAPI so the database password in hMailServer.ini
       // cannot be decrypted off-box. Fall back to the legacy Blowfish scheme when
       // DPAPI is disabled or unavailable (so a non-empty password is never lost).
       if (GetProtectStoredSecretsWithDPAPI())
       {
-         String protectedValue = Crypt::Instance()->EnCrypt(password_, Crypt::ETDPAPI);
-         if (!protectedValue.IsEmpty() || password_.IsEmpty())
+         String protectedValue = Crypt::Instance()->EnCrypt(sNewVal, Crypt::ETDPAPI);
+         if (!protectedValue.IsEmpty() || sNewVal.IsEmpty())
          {
             WriteIniSetting_("Database", "Password", protectedValue);
             WriteIniSetting_("Database", "PasswordEncryption", Crypt::ETDPAPI);
@@ -2335,7 +2462,7 @@ namespace HM
 #endif
       }
 
-      WriteIniSetting_("Database", "Password", Crypt::Instance()->EnCrypt(password_, Crypt::ETBlowFish));
+      WriteIniSetting_("Database", "Password", Crypt::Instance()->EnCrypt(sNewVal, Crypt::ETBlowFish));
       WriteIniSetting_("Database", "PasswordEncryption", Crypt::ETBlowFish);
    }
 
@@ -2366,7 +2493,11 @@ namespace HM
       }
 
       LOG_DEBUG("Setting database type to " + sDatabaseType);
-      sqldbtype_ = type;
+
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         sqldbtype_ = type;
+      }
 
       WriteIniSetting_("Database", "Type", sDatabaseType);
    }
@@ -2378,8 +2509,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      dbport_ = lNewValue;
-      WriteIniSetting_("Database", "Port", dbport_);
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         dbport_ = lNewValue;
+      }
+
+      WriteIniSetting_("Database", "Port", lNewValue);
    }
 
    void 
@@ -2389,9 +2524,12 @@ namespace HM
    // Updates a directory in hMailServer.ini.
    //---------------------------------------------------------------------------()
    {
-      is_internal_database_ = newValue;
+      {
+         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+         is_internal_database_ = newValue;
+      }
 
-      WriteIniSetting_("Database", "Internal", is_internal_database_ ? 1 : 0);
+      WriteIniSetting_("Database", "Internal", newValue ? 1 : 0);
    }
 
    void
@@ -2408,7 +2546,7 @@ namespace HM
    String
    IniFileSettings::GetBinDirectory()
    {
-      return FileUtilities::Combine(app_directory_, "Bin");
+      return FileUtilities::Combine(Guarded_(app_directory_), "Bin");
    }
 
    std::set<int> 

@@ -187,3 +187,8 @@ credentials.json
 # the staged package, its sdist and wheel, and a publish job's release tree.
 /cli-packages/
 /cli-publish/
+
+# What the package builds keep between runs where they are run by hand (deb-local.sh,
+# rpm-local.sh): the Boost Debian 12 builds (.cache/boost) and the Boost tarball
+# (.cache/boost-tarball, build/ci/packages/fetch-boost.sh). In CI they are the jobs' cache.
+/.cache/

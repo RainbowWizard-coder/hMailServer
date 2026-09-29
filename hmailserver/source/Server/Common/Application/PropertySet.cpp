@@ -85,10 +85,15 @@ namespace HM
 
 
 
-      items_ = tmpMap;
+      {
+         boost::lock_guard<boost::mutex> guard(items_mutex_);
+         items_ = tmpMap;
+      }
 
-      auto iter = items_.begin();
-      auto iterEnd = items_.end();
+      // The change events are raised from the map just read, outside the lock: a
+      // handler reads settings of its own through this set.
+      auto iter = tmpMap.begin();
+      auto iterEnd = tmpMap.end();
       for (; iter != iterEnd; iter++)
       {
          // Trigger an change-event for all options.
@@ -99,7 +104,15 @@ namespace HM
    bool
    PropertySet::Exists(const String &sPropertyName) const
    {
+      boost::lock_guard<boost::mutex> guard(items_mutex_);
       return items_.find(sPropertyName) != items_.end();
+   }
+
+   std::vector<std::pair<String, std::shared_ptr<Property> > >
+   PropertySet::Snapshot_() const
+   {
+      boost::lock_guard<boost::mutex> guard(items_mutex_);
+      return std::vector<std::pair<String, std::shared_ptr<Property> > >(items_.begin(), items_.end());
    }
 
    std::shared_ptr<Property>
@@ -116,11 +129,16 @@ namespace HM
             recorder_->names_.push_back(sPropertyName);
       }
 
-      auto iterProperty = items_.find(sPropertyName);
-   
-      if (iterProperty != items_.end())
-         return (*iterProperty).second;
+      {
+         boost::lock_guard<boost::mutex> guard(items_mutex_);
 
+         auto iterProperty = items_.find(sPropertyName);
+
+         if (iterProperty != items_.end())
+            return (*iterProperty).second;
+      }
+
+      // Reported with items_mutex_ released: the report reads settings of its own.
       String sErrorMessage;
       sErrorMessage.Format(_T("The property %s could not be found."), sPropertyName.c_str());
       ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5015, "PropertySet::GetProperty_()", sErrorMessage);
@@ -256,6 +274,7 @@ namespace HM
          if (!oProperty->TrySetStringValue(sValue))
             return false;
 
+         boost::lock_guard<boost::mutex> guard(items_mutex_);
          items_[sPropertyName] = oProperty;
          return true;
       }
@@ -267,6 +286,7 @@ namespace HM
    bool
    PropertySet::Contains(const String &sPropertyName) const
    {
+      boost::lock_guard<boost::mutex> guard(items_mutex_);
       return items_.find(sPropertyName) != items_.end();
    }
 
@@ -275,11 +295,8 @@ namespace HM
    {
       values.clear();
 
-      for (auto iterProperty = items_.begin(); iterProperty != items_.end(); iterProperty++)
-      {
-         std::shared_ptr<Property> oProperty = (*iterProperty).second;
-         values[(*iterProperty).first] = std::make_pair(oProperty->GetLongValue(), oProperty->GetStringValue());
-      }
+      for (const auto &entry : Snapshot_())
+         values[entry.first] = std::make_pair((long) entry.second->GetLongValue(), entry.second->GetStringValue());
    }
 
    void
@@ -294,6 +311,7 @@ namespace HM
       // that is the whole reason this function was reached.
       oProperty->SetLongValue(lValue);
 
+      boost::lock_guard<boost::mutex> guard(items_mutex_);
       items_[sPropertyName] = oProperty;
 
       // No change event: the value that has just been stored is the default, so
@@ -314,6 +332,7 @@ namespace HM
 
       oProperty->SetStringValue(sValue);
 
+      boost::lock_guard<boost::mutex> guard(items_mutex_);
       items_[sPropertyName] = oProperty;
    }
 
@@ -413,9 +432,13 @@ namespace HM
    PropertySet::XMLStore(XNode *pBackupNode)
    {
       XNode *pPropertiesNode = pBackupNode->AppendChild(_T("Properties"));
-      auto iterProperty = items_.begin();
 
-      while (iterProperty != items_.end())
+      // Walked from a copy of the entries, so that items_mutex_ is not held while
+      // the archive is written.
+      const std::vector<std::pair<String, std::shared_ptr<Property> > > entries = Snapshot_();
+      auto iterProperty = entries.begin();
+
+      while (iterProperty != entries.end())
       {
          std::shared_ptr<Property> oProperty = (*iterProperty).second;
 

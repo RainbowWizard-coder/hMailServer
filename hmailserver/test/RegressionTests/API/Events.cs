@@ -1044,7 +1044,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A JavaScript file - here one that is valid JScript too - is refused at load on this build and never run as JScript, the ProgID Windows registers for it; loaded while scripting was off, it is not run when scripting is switched on either, and the rule function that reaches it is reported once, not in silence and not once per message")]
+      [Description("A JavaScript file - here one that is valid JScript too - is refused at load on this build and never run as JScript, the ProgID Windows registers for it; loaded while scripting was off, it is refused again when scripting is switched on, and the rule function that reaches it is reported once, not in silence and not once per message")]
       public void AJavaScriptScriptIsNeverRunAsJScriptAndARuleFunctionAgainstItIsReportedOnce()
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
@@ -1080,11 +1080,16 @@ namespace RegressionTests.API
             StringAssert.Contains("Subject: First", first);
             StringAssert.DoesNotContain("[accept ran]", first);
 
-            // Loaded while scripting is off: nothing is refused then, and nothing
-            // registered. Switched on without a reload, as put_Enabled does.
+            // Loaded while scripting is off: no engine runs, nothing is refused then,
+            // and nothing is registered. Switching scripting on loads the script
+            // (Configuration::SetUseScriptServer), which refuses it at once, saying
+            // why - and the JavaScript text stays in force, registering nothing.
             scripting.Enabled = false;
             scripting.Reload();
+            CustomAsserts.AssertNoReportedError();
+
             scripting.Enabled = true;
+            CustomAsserts.AssertReportedError("HM5710", "the engine the Linux builds", "loaded while scripting was off");
 
             var rule = _application.Rules.Add();
             rule.Name = "Runs a script function";
@@ -1116,6 +1121,84 @@ namespace RegressionTests.API
             var third = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
             StringAssert.DoesNotContain("[rule ran]", third);
             CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      // ------------------------------------------------------------------ scripting off runs no engine
+
+      [Test]
+      [Description("With scripting off, neither a reload nor a reinitialise runs the script: one that does not compile is not reported. Switching scripting on loads it at once - the refusal is reported then, and a rule function against the text that was never compiled is refused rather than handed to the engine. Against the build before this, every load compiled the script and searched it for fifteen handlers whatever the switch said, and reported this one at the reload and at the reinitialise.")]
+      public void WithScriptingOffNoLoadRunsTheScriptAndSwitchingOnLoadsIt()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Enabled = false;
+            File.WriteAllText(scripting.CurrentScriptFile, "Sub ThisWillNotCompile(\r\n");
+
+            // Neither load compiles it, so neither can report it.
+            scripting.Reload();
+            _application.Reinitialize();
+            CustomAsserts.AssertNoReportedError();
+
+            // The positive control: loaded with scripting on, it is refused, and the
+            // refusal says what is in force.
+            scripting.Enabled = true;
+            CustomAsserts.AssertReportedError("HM5710", "could not be compiled", "loaded while scripting was off");
+
+            // The text in force was never compiled, so a rule's function is refused
+            // with the reason, once, and the message goes on unchanged.
+            AddScriptFunctionRule(_application.Rules, "MarkTheSubject");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "First", "SampleBody");
+            StringAssert.Contains("Subject: First", Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test"));
+            CustomAsserts.AssertReportedError("HM5018", "MarkTheSubject", "has not been compiled since");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Second", "SampleBody");
+            StringAssert.Contains("Subject: Second", Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test"));
+            CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+         }
+      }
+
+      [Test]
+      [Description("A handler written while scripting was off runs as soon as scripting is switched on, with no reload: switching on loads the script. Negative control: while scripting is off the handler does not run.")]
+      public void SwitchingScriptingOnMakesTheHandlersRunWithoutAReload()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
+
+         var scripting = _settings.Scripting;
+
+         try
+         {
+            scripting.Enabled = false;
+            scripting.Reload();
+
+            // Written after the last load, so that only a load made by switching
+            // scripting on can have found it.
+            File.WriteAllText(scripting.CurrentScriptFile,
+               "Sub OnAcceptMessage(oClient, oMessage)\r\n" +
+               "   oMessage.HeaderValue(\"X-Switched-On\") = \"yes\"\r\n" +
+               "   oMessage.Save\r\n" +
+               "End Sub\r\n");
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "Off", "SampleBody");
+            StringAssert.DoesNotContain("X-Switched-On", Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test"));
+
+            scripting.Enabled = true;
+
+            SmtpClientSimulator.StaticSend(account.Address, account.Address, "On", "SampleBody");
+            StringAssert.Contains("X-Switched-On: yes", Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test"));
          }
          finally
          {

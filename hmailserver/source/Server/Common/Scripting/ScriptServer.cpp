@@ -276,7 +276,10 @@ namespace HM
       has_on_recipient_unknown_(false),
       has_on_too_many_invalid_comands_(false),
       scripts_loaded_(false),
-      refusal_reported_(false)
+      script_compiled_(false),
+      refusal_reported_(false),
+      loads_committed_(0),
+      switch_generation_(0)
    {
       
    }
@@ -551,11 +554,25 @@ namespace HM
    {
       // Reported before anything has been installed, so firing OnError from here
       // runs the previous script, which is still the one in force.
+      bool loaded = false;
+      bool compiled = false;
+
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+         loaded = scripts_loaded_;
+         compiled = script_compiled_;
+      }
+
       String report;
 
-      if (scripts_loaded_)
+      if (loaded)
       {
-         report = "The scripts in the event directory could not be compiled and have not been loaded. The previously loaded scripts remain in force, so the server is still running the event handlers it had before this reload. ";
+         // A script loaded while scripting was off is in force too, but it was
+         // never compiled and registers no handler: said so, rather than claim
+         // handlers that are not there.
+         report = compiled
+            ? "The scripts in the event directory could not be compiled and have not been loaded. The previously loaded scripts remain in force, so the server is still running the event handlers it had before this reload. "
+            : "The scripts in the event directory could not be compiled and have not been loaded. The script in force was loaded while scripting was off and registers no event handler, so none runs until a script that compiles is loaded. ";
          report += sMessage;
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5710, "ScriptServer::LoadScripts", report);
@@ -583,6 +600,44 @@ namespace HM
 
    void
    ScriptServer::LoadScripts()
+   {
+      // The generation before the switch: see switch_generation_.
+      unsigned long generation = 0;
+
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+         generation = switch_generation_;
+      }
+
+      LoadScripts_(Configuration::Instance()->GetUseScriptServer(), generation);
+   }
+
+   void
+   ScriptServer::SwitchOn(const std::function<void()> &store)
+   {
+      const unsigned long loaded = LoadScripts_(true, 0);
+
+      store();
+
+      // Another load installed a script after this one, and left it uncompiled:
+      // a load with scripting off that read the switch before store stored it.
+      // Loaded again, now that every load that starts reads the switch as on. A
+      // load that committed nothing (the script did not compile, and was
+      // reported) is not made again for nothing.
+      bool reload = false;
+
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+         ++switch_generation_;
+         reload = !script_compiled_ && loads_committed_ != loaded;
+      }
+
+      if (reload)
+         LoadScripts_(true, 0);
+   }
+
+   unsigned long
+   ScriptServer::LoadScripts_(bool scriptingOn, unsigned long generation)
    {
       // A load is all-or-nothing, and it never partly succeeds.
       //
@@ -612,11 +667,61 @@ namespace HM
          // be checked and a different one installed.
          String new_contents = FileUtilities::ReadCompleteTextFile(script_file);
 
-         String sMessage = CompileContents_(new_language, script_file, new_contents);
+         // Scripting off: no event will run this script, so no engine runs it now
+         // either. Compiling it and finding its handlers means running the whole
+         // file in a fresh engine sixteen times, and this runs at every start and
+         // every reinitialise (Configuration::Load) - on 28 September 2026 a REST
+         // worker reinitialising the server faulted inside vbscript.dll with
+         // scripting off, compiling a script no event would ever call. The text and
+         // its language are installed with no handler registered and marked as not
+         // compiled - what a load in a language this build does not run has always
+         // done while scripting is off - and switching scripting on loads the
+         // script again, compiled and searched, before it switches
+         // (Configuration::SetUseScriptServer, SwitchOn), so a handler is only
+         // ever registered by a load that ran it. Nothing is reported: a script
+         // nobody runs is not an error yet.
+         if (!scriptingOn)
+         {
+            boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+
+            // Scripting was switched on after this load read it as off: the
+            // switch's load installs the script compiled (or refuses it, and says
+            // so), and this uncompiled text is not put over it
+            // (switch_generation_).
+            if (switch_generation_ != generation)
+               return loads_committed_;
+
+            script_language_ = new_language;
+            script_extension_ = new_extension;
+            script_contents_ = new_contents;
+            refusal_reported_ = false;
+
+            has_on_client_connect_ = false;
+            has_on_accept_message_ = false;
+            has_on_deliver_message_ = false;
+            has_on_backup_completed_ = false;
+            has_on_backup_failed_ = false;
+            has_on_delivery_start_ = false;
+            has_on_error_ = false;
+            has_on_delivery_failed_ = false;
+            has_on_external_account_download_ = false;
+            has_on_smtpdata_ = false;
+            has_on_helo_ = false;
+            has_on_client_logon_ = false;
+            has_on_client_validate_password_ = false;
+            has_on_recipient_unknown_ = false;
+            has_on_too_many_invalid_comands_ = false;
+
+            scripts_loaded_ = true;
+            script_compiled_ = false;
+            return ++loads_committed_;
+         }
+
+         String sMessage = CompileContents_(new_language, script_file, new_contents, true);
          if (!sMessage.IsEmpty())
          {
             ReportRejectedLoad_(sMessage);
-            return;
+            return LoadsCommitted_();
          }
 
          // Determine which functions are available. Detected into locals: each of
@@ -656,7 +761,7 @@ namespace HM
             ReportRejectedLoad_("File: " + script_file + "\r\n" +
                "The script compiled, but a later run of it, made to find out which event handlers it declares, did not complete: " +
                detection_failure);
-            return;
+            return LoadsCommitted_();
          }
 
          // Commit. Nothing in this block runs a script, reports an error or takes
@@ -688,6 +793,8 @@ namespace HM
          has_on_too_many_invalid_comands_ = on_too_many_invalid_commands;
 
          scripts_loaded_ = true;
+         script_compiled_ = true;
+         return ++loads_committed_;
       }
       catch (...)
       {
@@ -696,6 +803,15 @@ namespace HM
          // before is untouched and still coherent.
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5017, "ScriptServer::LoadScripts", "An exception was thrown when loading scripts. The scripts have not been loaded; any scripts loaded before this attempt remain in force.");
       }
+
+      return LoadsCommitted_();
+   }
+
+   unsigned long
+   ScriptServer::LoadsCommitted_() const
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+      return loads_committed_;
    }
 
 
@@ -822,6 +938,13 @@ namespace HM
       if (!IsRunnableLanguage_(language))
          return false;
 
+      // An empty script - a missing file reads as one - declares nothing, and
+      // fifteen engines are not needed to say so: every load of one ran an engine
+      // per handler looked for. CompileContents_ runs none for it either. The
+      // POSIX arm above has always stopped here.
+      if (contents.IsEmpty())
+         return false;
+
       // Code outside a function runs here, once per handler looked for, on the
       // thread reloading the scripts - see ScriptActorBoundary.
       ScriptActorBoundary actors;
@@ -858,11 +981,12 @@ namespace HM
    String
    ScriptServer::Compile_(const String &sLanguage, const String &sFilename)
    {
-      return CompileContents_(sLanguage, sFilename, FileUtilities::ReadCompleteTextFile(sFilename));
+      return CompileContents_(sLanguage, sFilename, FileUtilities::ReadCompleteTextFile(sFilename),
+         Configuration::Instance()->GetUseScriptServer());
    }
 
    String
-   ScriptServer::CompileContents_(const String &sLanguage, const String &sFilename, const String &sContents)
+   ScriptServer::CompileContents_(const String &sLanguage, const String &sFilename, const String &sContents, bool scriptingOn)
    {
       // A language this build does not run is refused before the file is looked
       // at, so an empty file - or none at all, which reads as empty - is refused as
@@ -876,11 +1000,14 @@ namespace HM
          // With scripting switched off, a script file is left alone: no handler
          // would run whether it compiled or not, so nothing is lost by installing
          // nothing, and the report below - which the message tells the operator
-         // is stopped by switching scripting off - is not made. LoadScripts runs
-         // at every reload regardless of the switch, so without this a file left
-         // behind by a test, or by an install migrated from another platform, was
-         // reported as an error at every reinitialise for as long as it existed.
-         if (!Configuration::Instance()->GetUseScriptServer())
+         // is stopped by switching scripting off - is not made. Without this a
+         // file left behind by a test, or by an install migrated from another
+         // platform, was reported as an error at every reinitialise for as long as
+         // it existed. A load no longer compiles anything while scripting is off
+         // (LoadScripts_), so scriptingOn is false here for CheckSyntax alone,
+         // asked while scripting is off; a load compiles as scripting on judges,
+         // the load that switches scripting on included.
+         if (!scriptingOn)
             return "";
 
 #ifdef HM_PLATFORM_POSIX
@@ -1127,6 +1254,7 @@ namespace HM
 
       String script_language;
       String script_contents;
+      bool script_compiled = false;
 
       {
          // The handler flags and the script text are taken together, under the lock,
@@ -1144,6 +1272,7 @@ namespace HM
 
          script_language = script_language_;
          script_contents = script_contents_;
+         script_compiled = script_compiled_;
       }
 
       LOG_DEBUG("Executing event " + event_name);
@@ -1164,7 +1293,21 @@ namespace HM
       // JavaScript takes no call text: see below.
       (void) sCallerLanguage;
 
-      if (script_language == _T("JavaScript"))
+      if (script_language == _T("JavaScript") && !script_compiled)
+      {
+         // A text loaded while scripting was off, which the load when scripting was
+         // switched on refused: never compiled, so never run (script_compiled_).
+         // Only a rule's Run function action gets here - no handler flag is set.
+         if (ClaimRefusalReport_())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+               "The event " + handler_name + " was fired, but the event script in force was loaded while scripting was off and has "
+               "not been compiled since - the load when scripting was switched on was refused (see the error before this) - so the "
+               "handler did not run. Fix the script and reload it. Events refused for the same reason are not reported again until "
+               "the scripts are next loaded.");
+         }
+      }
+      else if (script_language == _T("JavaScript"))
       {
          // No source text is built for JavaScript: the handler is looked up by name
          // and called with JS_Call, with the event's objects and the values its
@@ -1201,10 +1344,10 @@ namespace HM
       // JavaScript - which is also a ProgID Windows registers for JScript - and any
       // other name are refused at load while scripting is on, which keeps the
       // previous script in force; a load made while scripting was off installs such
-      // a script all the same, with no handler registered, and scripting can then
-      // be switched on without a reload. A rule's Run function action is gated by
-      // no flag and reaches it, and without this its call would run as JScript.
-      // Reported, once per load.
+      // a script all the same, with no handler registered, and when scripting is
+      // switched on the load that follows refuses it and leaves it in force. A
+      // rule's Run function action is gated by no flag and reaches it, and without
+      // this its call would run as JScript. Reported, once per load.
       if (script_language != _T("VBScript") && script_language != _T("JScript"))
       {
          if (ClaimRefusalReport_())
@@ -1216,6 +1359,24 @@ namespace HM
                ", which this Windows build does not run, so the handler did not run. This build runs event scripts in "
                "VBScript and JScript through Windows Active Scripting: set the script language to one of them and reload "
                "the scripts. Events refused for the same reason are not reported again until the scripts are next loaded.");
+         }
+
+         return;
+      }
+
+      // A text loaded while scripting was off, which the load when scripting was
+      // switched on refused: never compiled, so never handed to an engine
+      // (script_compiled_). Only a rule's Run function action gets here - a load
+      // made with scripting off sets no handler flag.
+      if (!script_compiled)
+      {
+         if (ClaimRefusalReport_())
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5018, "ScriptServer::FireEvent",
+               "The event " + handler_name + " was fired, but the event script in force was loaded while scripting was off and has "
+               "not been compiled since - the load when scripting was switched on was refused (see the error before this) - so the "
+               "handler did not run. Fix the script and reload it. Events refused for the same reason are not reported again until "
+               "the scripts are next loaded.");
          }
 
          return;

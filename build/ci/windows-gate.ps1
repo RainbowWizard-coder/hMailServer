@@ -34,6 +34,16 @@
      build-*.log           the MSBuild logs of the server and the tests
      ERROR_*.log           the server's error logs written during the gate
      server-logs.zip       the server's logs written during the gate, when it failed
+     crash-oracle-before-this-gate.log
+                           the crash oracle's records the binary before this
+                           gate's left behind, moved aside before this gate's
+                           binary starts (Move-EarlierCrashRecords)
+     server-modules.txt    when it failed and the crash oracle recorded a fault:
+                           the running service's modules, and every address in
+                           the records placed in them (Save-CrashEvidence)
+     crash-events.txt      when it failed: the Application log's crash events of
+                           the gate - 1000, 1001, 1026 - of any process, the test
+                           agent's included
 
    Usage:
      pwsh -NoProfile -File build\ci\windows-gate.ps1 -Commit <sha> [-Where <expr>]
@@ -88,6 +98,111 @@ function Save-Results([bool] $failed) {
          "the server's logs of this gate: server-logs.zip ($($small.Count) file(s))"
       }
    }
+   if ($failed) {
+      Save-CrashEvidence -Written $written
+   }
+}
+
+# The crash oracle's records (C:\HMTest\Logs\crash-oracle.log) are the server's
+# own, and the suite fails the first test that finds one there
+# (CrashOracleAsserts.AssertNoMemorySafetyEvents, in every SetUp). A record the
+# binary before this gate's wrote - an earlier gate that was killed, the service
+# idling since, the database upgrade above, which runs through that binary - is
+# not this gate's to fail on: on 28 September 2026 pipeline 2890818010's gate
+# failed exactly one test, the first SetUp, on the record a killed gate had left
+# at 21:15:40, and the other 3,752 passed. So once that binary has been stopped
+# and before this gate's starts, the file is moved aside, printed, and kept with
+# the results. A record written after this is this gate's binary's, and fails.
+function Move-EarlierCrashRecords([string] $Folder, [string] $Results) {
+   $file = Join-Path $Folder 'crash-oracle.log'
+   if (-not (Test-Path -LiteralPath $file)) {
+      "  no crash-oracle.log left behind"
+      return
+   }
+   $item = Get-Item -LiteralPath $file
+   $records = @(Get-Content -LiteralPath $file -ErrorAction SilentlyContinue | Where-Object { $_.Trim() })
+   $archived = Join-Path $Folder ('crash-oracle.before-gate.{0:yyyyMMdd-HHmmss}.log' -f (Get-Date))
+   try {
+      Move-Item -LiteralPath $file -Destination $archived -Force -ErrorAction Stop
+   } catch {
+      "  crash-oracle.log was left behind and could not be moved aside ($($_.Exception.Message)): the first test will fail on it"
+      return
+   }
+   Copy-Item -LiteralPath $archived -Destination (Join-Path $Results 'crash-oracle-before-this-gate.log') -Force -ErrorAction SilentlyContinue
+   "  crash-oracle.log was left behind by the binary before this gate's (last written $($item.LastWriteTime.ToString('s'))): $($records.Count) record(s), moved to $archived and kept as crash-oracle-before-this-gate.log, so that they do not fail this gate's first test:"
+   $records | Select-Object -First 40 | ForEach-Object { '    ' + $_.Substring(0, [Math]::Min(600, $_.Length)) }
+   if ($records.Count -gt 40) { "    ... and $($records.Count - 40) more" }
+}
+
+# What names a fault after the fact, saved when the gate fails. The crash oracle
+# records the faulting address, the image base and offset, and the faulting
+# thread's frames, but no module names (it may not take the loader lock). A
+# module's base is the same in every process of a boot for a system library, and
+# for hMailServer.exe in the process that recorded it, so the modules of the
+# service still running place the addresses - read now, because a restart moves
+# the executable's base and a reboot moves them all. On 28 September 2026 a
+# swallowed access violation on a REST worker, and the test agent's own death a
+# second later, ended a gate with neither placed.
+#   server-modules.txt  the running service's modules, and each record with every
+#                       address in it placed as module+offset
+#   crash-events.txt    the Application log's crash events since the gate began:
+#                       Application Error 1000 and .NET Runtime 1026, which name
+#                       the faulting module and offset of any process, the test
+#                       agent's included, and Windows Error Reporting 1001
+function Save-CrashEvidence($Written, [string] $ProcessName = 'hMailServer', [datetime] $Since = $started, [string] $Results = $ResultsDirectory) {
+   $oracle = @($Written | Where-Object { $_.Name -like 'crash-oracle*.log' -and $_.Name -notlike 'crash-oracle.before-gate.*' })
+   if ($oracle.Count) {
+      $out = Join-Path $Results 'server-modules.txt'
+      $lines = @()
+      $service = Get-Process -Name $ProcessName -ErrorAction SilentlyContinue | Select-Object -First 1
+      $modules = @()
+      if (-not $service) {
+         $lines += "no $ProcessName process to read modules from: the addresses stay unplaced"
+      } else {
+         try {
+            $modules = @($service.Modules | ForEach-Object {
+               [pscustomobject]@{ Base = [UInt64]$_.BaseAddress.ToInt64(); Size = [UInt64]$_.ModuleMemorySize; Name = $_.ModuleName; Path = $_.FileName; Version = $_.FileVersion }
+            } | Sort-Object Base)
+         } catch {
+            $lines += "the modules of $ProcessName (pid $($service.Id)) could not be read: $($_.Exception.Message)"
+         }
+         $boot = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).LastBootUpTime
+         $lines += "$ProcessName pid $($service.Id), started $($service.StartTime.ToString('s')); the machine booted $(if ($boot) { $boot.ToString('s') } else { '(unknown)' })"
+         $lines += "An address in a system library is placed right for any process of this boot; one in hMailServer.exe only for a record whose pid is the one above."
+      }
+      $lines += ''
+      foreach ($file in $oracle) {
+         $lines += "== $($file.Name)"
+         foreach ($record in @(Get-Content -LiteralPath $file.FullName -ErrorAction SilentlyContinue | Where-Object { $_.Trim() })) {
+            $lines += $record
+            if (-not $modules.Count) { continue }
+            $seen = @{}
+            foreach ($match in [regex]::Matches($record, '0x([0-9A-F]{16})')) {
+               $hex = $match.Groups[1].Value
+               if ($seen.ContainsKey($hex)) { continue }
+               $seen[$hex] = $true
+               $address = [Convert]::ToUInt64($hex, 16)
+               $in = $modules | Where-Object { $address -ge $_.Base -and $address -lt ($_.Base + $_.Size) } | Select-Object -First 1
+               if ($in) { $lines += ('   0x{0} = {1}+0x{2:X} ({3})' -f $hex, $in.Name, ($address - $in.Base), $in.Version) }
+            }
+         }
+         $lines += ''
+      }
+      if ($modules.Count) {
+         $lines += 'modules:'
+         $lines += $modules | ForEach-Object { '0x{0:X16} {1,10} {2} {3}' -f $_.Base, $_.Size, $_.Path, $_.Version }
+      }
+      $lines | Set-Content -LiteralPath $out -Encoding utf8
+      "the crash oracle recorded a fault: its records, the service's modules and every address placed in them are in server-modules.txt"
+   }
+
+   $events = @(Get-WinEvent -FilterHashtable @{ LogName = 'Application'; Id = 1000, 1001, 1026; StartTime = $Since } -ErrorAction SilentlyContinue |
+      Sort-Object TimeCreated | Select-Object -First 200)
+   if ($events.Count) {
+      $events | ForEach-Object { "== $($_.TimeCreated.ToString('o')) $($_.ProviderName) $($_.Id)"; $_.Message; '' } |
+         Set-Content -LiteralPath (Join-Path $Results 'crash-events.txt') -Encoding utf8
+      "the Application log's crash events of this gate: crash-events.txt ($($events.Count))"
+   }
 }
 
 function Stop-Gate([int] $code, [string] $sentence, [switch] $StartService) {
@@ -118,6 +233,9 @@ if ((Get-Service hMailServer -ErrorAction SilentlyContinue).Status -ne 'Running'
 if ($LASTEXITCODE -ne 0) { Stop-Gate 8 "BENCH DATABASE UPGRADE FAILED - no gate" }
 Stop-Service hMailServer -ErrorAction SilentlyContinue
 Get-Process hMailServer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+"--- crash records the binary before this gate's left"
+Move-EarlierCrashRecords -Folder $LogFolder -Results $ResultsDirectory
 
 "--- build"
 $env:hMailServerLibs = $LibsDir

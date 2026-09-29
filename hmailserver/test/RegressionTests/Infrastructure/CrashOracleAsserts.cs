@@ -30,9 +30,15 @@ namespace RegressionTests.Infrastructure
    ///    &lt;LogDirectory&gt;\crash-oracle.log. One line per fault:
    ///
    ///    2026-08-12 14:03:11.123 FIRSTCHANCE code=0xC0000005 address=0x00007FF6... thread=4212 pid=9876 event=1
+   ///       access=write target=0x0000000000000000 image=0x00007FF6...+0x1A2B3 frames=0x00007FF6...,0x00007FF6...
    ///
-   ///    FIRSTCHANCE means "a memory-safety exception was raised", whoever went on
-   ///    to handle or hide it. UNHANDLED means the process was terminated for it.
+   ///    (one line; broken here). FIRSTCHANCE means "a memory-safety exception was
+   ///    raised", whoever went on to handle or hide it. UNHANDLED means the process
+   ///    was terminated for it. What follows event= - since 6.3.6 - is what the
+   ///    address alone cannot say: for an access violation whether it read, wrote or
+   ///    executed and at what address, the base of the image the fault is in and the
+   ///    offset into it, and up to twelve frames of the faulting thread, the fault
+   ///    first. Nothing here reads past event=, so the older shape reads the same.
    /// </summary>
    public static class CrashOracleAsserts
    {

@@ -59,6 +59,10 @@
 #   HM_OUT_DIR       where the artifacts go
 #   HM_BOOST_CACHE   debian12 only: where the Boost it builds is kept between
 #                    runs (.cache/boost in the checkout, which the job caches)
+#   HM_BOOST_TARBALL_CACHE
+#                    debian12 only: where the Boost tarball is kept between runs
+#                    (.cache/boost-tarball in the checkout, which the job caches
+#                    under the tarball's SHA-256): fetch-boost.sh
 set -uo pipefail
 
 distro="${HM_DEB_DISTRO:-}"
@@ -67,15 +71,19 @@ out="${HM_OUT_DIR:-packages-deb/$distro-$arch}"
 build_dir="${HM_BUILD_DIR:-/tmp/hm-deb-build}"
 jobs="${HM_BUILD_JOBS:-6}"
 boost_cache="${HM_BOOST_CACHE:-$PWD/.cache/boost}"
+boost_tarball_cache="${HM_BOOST_TARBALL_CACHE:-$PWD/.cache/boost-tarball}"
+fetch_boost="$(cd "$(dirname "$0")" && pwd)/fetch-boost.sh"
 
 # Boost for Debian 12, whose own is 1.74 and the server asks for 1.83 or later
 # (CMakeLists.txt). 1.83.0 is the oldest Boost the server is built against
 # anywhere else (Ubuntu 24.04, Debian 13), so it is the one taken: the release
-# tarball from boost.org's archive, held to the SHA-256 boost.org publishes
-# beside it (boost_1_83_0.tar.bz2.json), and only the three compiled libraries
-# the server links, statically, as it links every distribution's.
+# tarball, held to the SHA-256 boost.org publishes beside it
+# (boost_1_83_0.tar.bz2.json) - from boost.org's archive, or SourceForge's copy
+# of it when that archive does not answer (fetch-boost.sh) - and only the three
+# compiled libraries the server links, statically, as it links every
+# distribution's. .gitlab/ci/packages-deb.yml's tarball cache is keyed by this
+# SHA-256.
 BOOST_VERSION=1.83.0
-BOOST_URL=https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2
 BOOST_SHA256=6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e
 
 refuse() {
@@ -245,8 +253,8 @@ if [ "$distro" = debian12 ]; then
     boost_started=$(date +%s)
     rm -rf "$prefix" /tmp/boost-src
     mkdir -p /tmp/boost-src
-    curl -fsSL --retry 3 -o /tmp/boost-src/boost.tar.bz2 "$BOOST_URL" || { echo "BOOST DOWNLOAD FAILED: $BOOST_URL"; exit 3; }
-    echo "$BOOST_SHA256  /tmp/boost-src/boost.tar.bz2" | sha256sum -c - || { echo "BOOST TARBALL IS NOT THE ONE BOOST.ORG PUBLISHED"; exit 3; }
+    bash "$fetch_boost" "$BOOST_VERSION" tar.bz2 "$BOOST_SHA256" /tmp/boost-src/boost.tar.bz2 "$boost_tarball_cache" \
+      || { echo "BOOST DOWNLOAD FAILED: no source gave boost_1_83_0.tar.bz2 with the SHA-256 boost.org published"; exit 3; }
     tar -xjf /tmp/boost-src/boost.tar.bz2 -C /tmp/boost-src
     src=$(echo /tmp/boost-src/boost_*/)
     b2_toolset=()

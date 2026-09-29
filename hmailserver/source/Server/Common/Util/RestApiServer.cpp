@@ -3466,6 +3466,24 @@ namespace HM
       }
       catch (...)
       {
+         // Said, naming the route and nothing the client sent with it: under /EHa
+         // this is also where an access violation in a handler ends, and the crash
+         // oracle's record names a thread and an address but not the request. On
+         // 28 September 2026 a swallowed fault on a REST worker could not be tied to
+         // the request it happened in, because this answered 500 and wrote
+         // nothing. The method and the path only - the query string was taken off
+         // above, and the body and the headers, which carry the credential, are
+         // never written; the path is what the refusals above already log. Cut to
+         // 256 characters, since the path is the client's.
+         const AnsiString shown = path.GetLength() > 256 ? path.Mid(0, 256) + "..." : path;
+
+         String message = _T("RestApi: ");
+         message += String(method);
+         message += _T(" ");
+         message += String(shown);
+         message += _T(" raised an exception and was answered 500.");
+         LOG_APPLICATION(message);
+
          if (scimPath)
             return BuildScimError_(500, "", _T("internal error"));
 

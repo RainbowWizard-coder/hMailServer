@@ -148,7 +148,11 @@ release's Boost matters only when the package is built:
   Fedora 43.
 - **RHEL 10 and 9, and openSUSE**, build Boost 1.92.0 in the job, from
   boost.org's release tarball (`archives.boost.io`), checked against the SHA-256
-  that `libraries/build-boost.ps1` pins for Windows. The reasons:
+  that `libraries/build-boost.ps1` pins for Windows.
+  `build/ci/packages/fetch-boost.sh` takes it from the job's cache
+  (`.cache/boost-tarball`, keyed by that SHA-256) when it is there, and
+  otherwise from archives.boost.io or SourceForge's copy, with six attempts
+  each and only with that SHA-256. The reasons:
   - RHEL 9's own Boost is 1.75, older than the 1.83 the build needs;
   - neither UBI 10 nor UBI 9 carries `boost-devel` or `boost-static`;
   - openSUSE ships no static Boost archives.

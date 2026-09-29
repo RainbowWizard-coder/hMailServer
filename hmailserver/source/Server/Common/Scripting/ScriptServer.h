@@ -94,8 +94,22 @@ namespace HM
       // event directory and return the result.
       String CheckSyntax();
 
-      // Refreshes the scripts in the event directory
+      // Refreshes the scripts in the event directory. With scripting switched off
+      // no engine runs: the script's text and language are installed with no
+      // handler registered, and switching scripting on (Configuration::
+      // SetUseScriptServer) loads it again, compiled and searched.
       void LoadScripts();
+
+      // Switches scripting on, for Configuration::SetUseScriptServer: store
+      // stores the switch. The script is loaded first as a load with scripting on
+      // loads it - compiled, searched for its handlers, refused and reported if it
+      // does not compile - so that the handlers are registered from the moment an
+      // event can see the switch on; and once more after store, when a load that
+      // read the switch as off installed its uncompiled text over this one in
+      // between (switch_generation_). store may throw
+      // (EnvironmentSettings::Refusal, a setting the environment manages); the
+      // switch then stays off, and the exception is the caller's.
+      void SwitchOn(const std::function<void()> &store);
       
       String GetCurrentScriptFile() const;
 
@@ -169,11 +183,23 @@ namespace HM
       // Compiels the script in sFileName and returns the result. If
       // no compilation errors exists, the function returns an emtpy string.
 
-      String CompileContents_(const String &sLanguage, const String &sFilename, const String &sContents);
+      String CompileContents_(const String &sLanguage, const String &sFilename, const String &sContents, bool scriptingOn);
       // As Compile_, but compiles text which the caller has already read. sFilename
       // is used only to name the file in the error message. This is what lets a
       // load check exactly the text it is about to install, rather than reading the
-      // file a second time and checking whatever is on disk by then.
+      // file a second time and checking whatever is on disk by then. scriptingOn:
+      // whether to judge as scripting on does - a language this build does not run
+      // is then refused - or as scripting off does, which lets it pass.
+
+      unsigned long LoadScripts_(bool scriptingOn, unsigned long generation);
+      // LoadScripts and SwitchOn: a load with scripting off (no engine, nothing
+      // registered) or on (compiled and searched). generation, for a load with
+      // scripting off, is switch_generation_ as it was read before the switch
+      // was. Returns loads_committed_ as this load left it: read in the hold that
+      // commits, or after a load that committed nothing.
+
+      unsigned long LoadsCommitted_() const;
+      // loads_committed_, read under state_mutex_.
 
       bool has_on_client_connect_;
       bool has_on_accept_message_;
@@ -196,9 +222,33 @@ namespace HM
       // left the server with no event handlers at all.
       bool scripts_loaded_;
 
+      // Whether the script in force was compiled and searched for its handlers:
+      // true after a load made with scripting on, false after one made with it
+      // off, which runs no engine and registers no handler. A rule's Run function
+      // action, which no handler flag gates, runs only a compiled script, so a
+      // text that no load has compiled - the load when scripting was switched on
+      // refused it - is never handed to an engine. Guarded by state_mutex_.
+      bool script_compiled_;
+
       // Whether FireEvent has reported refusing an event since the last successful
       // load; see ClaimRefusalReport_. Guarded by state_mutex_.
       bool refusal_reported_;
+
+      // How many loads have installed a script, with scripting on or off. SwitchOn
+      // compares it with the count its own load left, to see whether another load
+      // installed a script after it. Guarded by state_mutex_.
+      unsigned long loads_committed_;
+
+      // Raised by SwitchOn once the switch is stored. A load with scripting off
+      // reads it before it reads the switch, and does not install its uncompiled
+      // text if it has moved by the time it would: scripting was switched on after
+      // that load read it as off, and the switch's own load installs the script
+      // compiled (or refuses it, and says so). Without it a reload or a
+      // reinitialise that read the switch as off
+      // just before SetUseScriptServer stored it on could install its text after
+      // the switch's load, leaving scripting on with no handler registered until
+      // the next load. Guarded by state_mutex_.
+      unsigned long switch_generation_;
 
       String script_contents_;
       String script_extension_;

@@ -450,6 +450,176 @@ namespace HM
          AppendAscii_(buffer, buffer_size, offset, ".");
          AppendUnsigned_(buffer, buffer_size, offset, local_time.wMilliseconds, 10U, 3);
       }
+
+      // The frames a record carries: the faulting instruction and the eleven
+      // callers above it, enough to go from a fault inside a system library to the
+      // hMailServer code that called into it.
+      const int max_record_frames = 12;
+
+      // What an access violation or an in-page error was doing. The record's first
+      // parameter says read (0), write (1) or execute (8, a DEP fault), the second
+      // the address it touched - which tells a null dereference (a target near 0)
+      // from a use after free (a target in the heap), and nothing else in the
+      // record can. An in-page error's third is the NTSTATUS of the failed read.
+      void
+      AppendAccess_(char *buffer, size_t buffer_size, size_t &offset, const EXCEPTION_RECORD *record)
+      {
+         if (record == 0 || record->NumberParameters < 2)
+            return;
+
+         if (record->ExceptionCode != static_cast<DWORD>(EXCEPTION_ACCESS_VIOLATION) &&
+             record->ExceptionCode != static_cast<DWORD>(EXCEPTION_IN_PAGE_ERROR))
+            return;
+
+         const ULONG_PTR access = record->ExceptionInformation[0];
+
+         AppendAscii_(buffer, buffer_size, offset,
+            access == 0 ? " access=read" : access == 1 ? " access=write" : access == 8 ? " access=execute" : " access=other");
+         AppendAscii_(buffer, buffer_size, offset, " target=0x");
+         AppendUnsigned_(buffer, buffer_size, offset, record->ExceptionInformation[1], 16U, 16);
+
+         if (record->ExceptionCode == static_cast<DWORD>(EXCEPTION_IN_PAGE_ERROR) && record->NumberParameters >= 3)
+         {
+            AppendAscii_(buffer, buffer_size, offset, " ntstatus=0x");
+            AppendUnsigned_(buffer, buffer_size, offset, record->ExceptionInformation[2], 16U, 8);
+         }
+      }
+
+      // The image an address lies in, as its base and the offset into it - the
+      // module and offset a debugger would print, less the module's name.
+      //
+      // RtlPcToFileHeader is the lookup the C++ runtime's _CxxThrowException makes
+      // on every throw, to find the image its ThrowInfo is relative to: it looks
+      // the address up in the loader's inverted function table, the table the
+      // exception dispatcher searches for every frame, rather than walking the
+      // module list under the loader lock as GetModuleHandleEx does (see
+      // AppendMarkerRecord_), and it allocates nothing. The name is left to the
+      // reader of the record: the base names the image in the module list of the
+      // process that wrote it (build\ci\windows-gate.ps1 saves that list beside a
+      // failed gate's records), and for a system library in any process of the
+      // same boot.
+      void
+      AppendImage_(char *buffer, size_t buffer_size, size_t &offset, const void *address)
+      {
+         PVOID base = 0;
+
+         if (address == 0 || ::RtlPcToFileHeader(const_cast<PVOID>(address), &base) == 0 || base == 0)
+         {
+            AppendAscii_(buffer, buffer_size, offset, " image=none");
+            return;
+         }
+
+         AppendAscii_(buffer, buffer_size, offset, " image=0x");
+         AppendUnsigned_(buffer, buffer_size, offset, reinterpret_cast<ULONG_PTR>(base), 16U, 16);
+         AppendAscii_(buffer, buffer_size, offset, "+0x");
+         AppendUnsigned_(buffer, buffer_size, offset, reinterpret_cast<ULONG_PTR>(address) - reinterpret_cast<ULONG_PTR>(base), 16U, 1);
+      }
+
+      // The faulting thread's frames, unwound from the CONTEXT the exception was
+      // raised with - what .ecxr then k shows in a debugger - because a fault that
+      // a catch (...) swallows leaves no dump, and by the time anybody looks the
+      // stack has been unwound and used again.
+      //
+      // The walk is the one the exception dispatcher makes for this same thread a
+      // moment later: RtlLookupFunctionEntry for each program counter, and
+      // RtlVirtualUnwind to the caller. Neither allocates, and neither takes the
+      // loader lock - the dispatcher could not work if they did. A
+      // function with no unwind data is taken for a leaf at the faulting frame
+      // only (its return address is on top of the stack on x64, in the link
+      // register on ARM64); anywhere else the walk ends there, rather than read
+      // a return address out of a frame it cannot describe. It also ends when the
+      // stack pointer stops moving up, which no real caller's frame does.
+      //
+      // Each frame is appended as it is found, as " frames=0x<pc>" and then
+      // ",0x<pc>", the faulting instruction first.
+      //
+      // Noinline, so that the copy of the CONTEXT (about 1.2 KB on x64) is in this
+      // function's frame and not in the caller's, which must stay small for a
+      // stack overflow - a record this function is never called for. A plain
+      // function with a structured handler and no object to destroy: a stack too
+      // damaged to walk faults inside the __try, the observer passes that nested
+      // fault on - in_first_chance_observer_ is set for the walk, by the observer
+      // already and here for the unhandled-exception filter, so the walker's own
+      // fault is neither recorded nor counted - and the __except here ends the
+      // walk with the frames already appended.
+      __declspec(noinline) void
+      AppendFrames_(char *buffer, size_t buffer_size, size_t &offset, const CONTEXT *faulting)
+      {
+#if defined(_M_X64) || defined(_M_ARM64)
+         CONTEXT context = *faulting;
+         int count = 0;
+
+         const bool observing = in_first_chance_observer_;
+         in_first_chance_observer_ = true;
+
+         __try
+         {
+            while (count < max_record_frames)
+            {
+#if defined(_M_X64)
+               const DWORD64 pc = context.Rip;
+               const DWORD64 sp = context.Rsp;
+#else
+               const DWORD64 pc = context.Pc;
+               const DWORD64 sp = context.Sp;
+#endif
+               if (pc == 0)
+                  break;
+
+               AppendAscii_(buffer, buffer_size, offset, count == 0 ? " frames=0x" : ",0x");
+               AppendUnsigned_(buffer, buffer_size, offset, pc, 16U, 16);
+               count++;
+
+               DWORD64 image_base = 0;
+               PRUNTIME_FUNCTION function = ::RtlLookupFunctionEntry(pc, &image_base, NULL);
+
+               if (function == NULL)
+               {
+                  if (count != 1)
+                     break;
+
+#if defined(_M_X64)
+                  context.Rip = *reinterpret_cast<const DWORD64 *>(context.Rsp);
+                  context.Rsp += 8;
+#else
+                  if (context.Lr == pc)
+                     break;
+
+                  context.Pc = context.Lr;
+#endif
+               }
+               else
+               {
+                  PVOID handler_data = NULL;
+                  DWORD64 establisher_frame = 0;
+                  ::RtlVirtualUnwind(UNW_FLAG_NHANDLER, image_base, pc, function, &context, &handler_data, &establisher_frame, NULL);
+               }
+
+#if defined(_M_X64)
+               const DWORD64 caller_sp = context.Rsp;
+#else
+               const DWORD64 caller_sp = context.Sp;
+#endif
+               // A leaf's caller on ARM64 shares its stack pointer; every other
+               // caller's frame is above the callee's.
+               if (caller_sp < sp || (caller_sp == sp && count != 1))
+                  break;
+            }
+         }
+         __except (EXCEPTION_EXECUTE_HANDLER)
+         {
+            // What was walked stands.
+         }
+
+         in_first_chance_observer_ = observing;
+#else
+         // Neither x64 nor ARM64: the record carries the faulting address alone.
+         (void) buffer;
+         (void) buffer_size;
+         (void) offset;
+         (void) faulting;
+#endif
+      }
    }
 
    CrashOracle::CrashOracle()
@@ -662,7 +832,8 @@ namespace HM
    }
 
    void
-   CrashOracle::AppendMarkerRecord_(const char *kind, DWORD exception_code, const void *exception_address, DWORD thread_id, long event_number)
+   CrashOracle::AppendMarkerRecord_(const char *kind, DWORD exception_code, const void *exception_address, DWORD thread_id, long event_number,
+                                    const EXCEPTION_POINTERS *exception_pointers)
    {
       if (marker_file_[0] == 0)
          return;
@@ -672,11 +843,22 @@ namespace HM
       // that has just overrun a buffer, and on a thread whose stack is nearly
       // exhausted (EXCEPTION_STACK_OVERFLOW).
       //
-      // The faulting address is recorded raw, with no module or symbol lookup.
-      // GetModuleHandleEx would take the loader lock, and a fault raised during DLL
-      // initialisation holds that lock already - deadlocking the observer would turn
-      // a diagnostic into an outage. Resolving the address is the minidump's job.
-      char line[256];
+      // No module NAME is looked up. GetModuleHandleEx would take the loader lock,
+      // and a fault raised during DLL initialisation holds that lock already -
+      // deadlocking the observer would turn a diagnostic into an outage. What is
+      // recorded instead, after the fields every reader of the record already
+      // parses: what an access violation touched (AppendAccess_), the image the
+      // faulting address is in and the offset into it (AppendImage_), and the
+      // faulting thread's frames (AppendFrames_), none of which takes the loader
+      // lock or allocates. On 28 September 2026 a swallowed access violation on a
+      // REST worker was recorded as an address alone, and the process whose module
+      // list could have named it was gone before anyone asked. The frames are not
+      // walked for a stack overflow, whose thread has no stack left to walk with.
+      //
+      // 512 bytes: the fields before event= take about 130, the access and the
+      // image about 80, and twelve frames 228. A record cut short by the buffer
+      // still ends its line (below).
+      char line[512];
       size_t offset = 0;
 
       AppendTimestamp_(line, sizeof(line), offset);
@@ -692,7 +874,25 @@ namespace HM
       AppendUnsigned_(line, sizeof(line), offset, ::GetCurrentProcessId(), 10U, 1);
       AppendAscii_(line, sizeof(line), offset, " event=");
       AppendUnsigned_(line, sizeof(line), offset, static_cast<unsigned __int64>(event_number), 10U, 1);
-      AppendAscii_(line, sizeof(line), offset, "\r\n");
+
+      // After event=, so that the record starts as it always has: CrashOracleAsserts
+      // and the Linux suite's shim read " KIND " and the fields before these.
+      if (exception_pointers != 0 && exception_pointers->ExceptionRecord != 0)
+         AppendAccess_(line, sizeof(line), offset, exception_pointers->ExceptionRecord);
+
+      AppendImage_(line, sizeof(line), offset, exception_address);
+
+      if (exception_pointers != 0 && exception_pointers->ContextRecord != 0 &&
+          exception_code != static_cast<DWORD>(EXCEPTION_STACK_OVERFLOW))
+         AppendFrames_(line, sizeof(line), offset, exception_pointers->ContextRecord);
+
+      // The line ends whatever came before it: AppendAscii_ stops one short of the
+      // buffer's end, so there are always two bytes to put the end in.
+      if (offset > sizeof(line) - 2)
+         offset = sizeof(line) - 2;
+      line[offset] = '\r';
+      line[offset + 1] = '\n';
+      offset += 2;
 
       // FILE_APPEND_DATA with a shared handle: a single write of well under 4 KB to
       // a handle opened for append is atomic, so concurrent faults on several
@@ -756,7 +956,8 @@ namespace HM
          exception_code,
          exception_pointers->ExceptionRecord->ExceptionAddress,
          ::GetCurrentThreadId(),
-         event_number);
+         event_number,
+         exception_pointers);
 
       in_first_chance_observer_ = false;
 
@@ -816,7 +1017,7 @@ namespace HM
 
       const LONG event_number = ::InterlockedIncrement(&fatal_events_);
 
-      AppendMarkerRecord_("UNHANDLED", exception_code, exception_address, thread_id, event_number);
+      AppendMarkerRecord_("UNHANDLED", exception_code, exception_address, thread_id, event_number, have_record ? exception_pointers : 0);
 
       // Reuse the existing minidump writer rather than adding a second one.
       // ExceptionLogger::Log fills shared memory with a copy of the exception and
@@ -843,7 +1044,7 @@ namespace HM
          {
             // A dump that could not be written must not cost us the one thing that
             // always works: the marker record and the error-log entry below.
-            AppendMarkerRecord_("DUMPFAILED", exception_code, exception_address, thread_id, event_number);
+            AppendMarkerRecord_("DUMPFAILED", exception_code, exception_address, thread_id, event_number, 0);
          }
       }
 
@@ -866,7 +1067,7 @@ namespace HM
       }
       catch (...)
       {
-         AppendMarkerRecord_("REPORTFAILED", exception_code, exception_address, thread_id, event_number);
+         AppendMarkerRecord_("REPORTFAILED", exception_code, exception_address, thread_id, event_number, 0);
       }
 
       ::InterlockedExchange(&fatal_report_finished_, 1);

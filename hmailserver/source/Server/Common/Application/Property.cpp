@@ -34,17 +34,39 @@ namespace HM
 
    }
 
+   int
+   Property::GetLongValue() const
+   {
+      boost::lock_guard<boost::mutex> guard(value_mutex_);
+      return long_value_;
+   }
+
+   String
+   Property::GetStringValue() const
+   {
+      boost::lock_guard<boost::mutex> guard(value_mutex_);
+      return string_value_;
+   }
+
    void
    Property::SetLongValue(long NewVal)
    {
-      long_value_ = NewVal;
+      {
+         boost::lock_guard<boost::mutex> guard(value_mutex_);
+         long_value_ = NewVal;
+      }
+
       WriteLongSetting_(NewVal);
    }
 
    void
    Property::SetStringValue(const String &NewVal)
    {
-      string_value_ = NewVal;
+      {
+         boost::lock_guard<boost::mutex> guard(value_mutex_);
+         string_value_ = NewVal;
+      }
+
       WriteStringSetting_(NewVal);
    }
 
@@ -54,6 +76,7 @@ namespace HM
       if (!WriteStringSetting_(NewVal))
          return false;
 
+      boost::lock_guard<boost::mutex> guard(value_mutex_);
       string_value_ = NewVal;
       return true;
    }
@@ -61,8 +84,14 @@ namespace HM
    void
    Property::SetBoolValue(bool NewVal)
    {
-      long_value_ = NewVal ? 1 : 0;
-      WriteLongSetting_(long_value_);
+      const long value = NewVal ? 1 : 0;
+
+      {
+         boost::lock_guard<boost::mutex> guard(value_mutex_);
+         long_value_ = value;
+      }
+
+      WriteLongSetting_(value);
    }
 
    bool

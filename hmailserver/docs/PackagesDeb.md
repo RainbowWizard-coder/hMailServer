@@ -394,7 +394,11 @@ Debian 12's own Boost is 1.74, and the server needs 1.83 or later. So
 - **Source:** boost.org's release tarball,
   `https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2`,
   checked against the SHA-256 that boost.org publishes beside it
-  (`6478edfe…3b8e`).
+  (`6478edfe…3b8e`). `build/ci/packages/fetch-boost.sh` fetches it: from the
+  job's cache first (`.cache/boost-tarball`, keyed by that SHA-256), then
+  from archives.boost.io, then from SourceForge's copy
+  (`downloads.sourceforge.net/project/boost`), each with six attempts, and
+  from any of them only with that SHA-256.
 - **Build:** b2 builds only the three compiled libraries the server links
   (thread, chrono and filesystem), statically, with `-fPIC`. The arm64 build
   uses a `gcc-arm64` toolset that points at `aarch64-linux-gnu-g++`.

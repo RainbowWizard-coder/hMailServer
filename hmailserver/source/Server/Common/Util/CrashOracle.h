@@ -94,7 +94,12 @@ namespace HM
 
       static void ResolveMarkerFile_();
 
-      static void AppendMarkerRecord_(const char *kind, DWORD exception_code, const void *exception_address, DWORD thread_id, long event_number);
+      // exception_pointers, when the caller has them, adds what the address alone
+      // cannot say: what an access violation touched, and the frames of the thread
+      // that faulted, unwound from the fault's own context. Null for the records
+      // written about the reporting itself (DUMPFAILED, REPORTFAILED).
+      static void AppendMarkerRecord_(const char *kind, DWORD exception_code, const void *exception_address, DWORD thread_id, long event_number,
+                                      const EXCEPTION_POINTERS *exception_pointers);
 #endif
    };
 }

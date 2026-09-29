@@ -50,8 +50,8 @@
 # that the amd64 and the arm64 image are two references in the runner's image
 # store and if-not-present can never hand an arm64 job the amd64 image it
 # already holds under the same name (or the reverse). Nothing here is fetched
-# from GitHub; Debian 12's Boost comes from boost.org's archive, by its hash
-# (deb-build.sh).
+# from GitHub; Debian 12's Boost comes from boost.org's archive, or SourceForge's
+# copy of it, by its hash (deb-build.sh, fetch-boost.sh).
 
 # ------------------------------------------------------------------ images
 .deb-image-debian12-amd64:
@@ -161,14 +161,21 @@
 
 # ------------------------------------------------------------------ Debian 12 (bookworm)
 # Boost 1.74 in the archive: 1.83.0 is built from boost.org's tarball in the job
-# and kept in the runner's cache, per architecture.
+# and kept in the runner's cache, per architecture. The tarball is kept too,
+# under its SHA-256 (deb-build.sh's pin, which fetch-boost.sh holds the cached
+# copy to), so that a build whose built Boost is not cached does not depend on
+# archives.boost.io answering: on 28 and 29 September 2026 some of its addresses
+# refused linix's connections for 21 s.
 .deb-debian12-build:
   extends: [.deb-build, .deb-image-debian12-amd64]
   timeout: 1 hour 30 minutes
   cache:
-    key: boost-1.83.0-debian12-$HM_DEB_ARCH
-    paths:
-      - .cache/boost/
+    - key: boost-1.83.0-debian12-$HM_DEB_ARCH
+      paths:
+        - .cache/boost/
+    - key: boost-tarball-6478edfe2f3305127cffe8caf73ea0176c53769f4bf1585be237eb30798c3b8e
+      paths:
+        - .cache/boost-tarball/
 
 deb-debian12-amd64:
   extends: .deb-debian12-build
