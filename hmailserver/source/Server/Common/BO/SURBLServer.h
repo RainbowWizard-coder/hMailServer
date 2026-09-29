@@ -28,9 +28,11 @@ namespace HM
       void SetDNSHost(const String &sNewVal) {dnshost_ = sNewVal;}
 
       // The answers that mean listed, in the DNSBL syntax - 127.0.1.0-255 or
-      // 127.0.0.2*, ranges and wildcards joined by |. Empty means any answer
-      // but the codes in 127.255.255.0/24, with which the Spamhaus zones refuse
-      // the query itself rather than answer it.
+      // 127.0.0.2*, ranges and wildcards joined by |. Empty means any answer.
+      // Either way the codes the lists publish as errors are never a listing:
+      // 127.255.255.0/24 (Spamhaus refusing the query), 127.0.0.1 (SURBL and
+      // URIBL blocking it), and 127.0.1.255 and 127.0.2.255 (the Spamhaus DBL
+      // and ZRD, asked about an address). See SURBL::ClassifyAnswer.
       String GetExpectedResult() const {return expected_result_; }
       void SetExpectedResult(const String &sNewVal) {expected_result_ = sNewVal;}
 

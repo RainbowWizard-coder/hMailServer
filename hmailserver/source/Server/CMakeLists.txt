@@ -548,8 +548,11 @@ set_target_properties(xml-tree-tests PROPERTIES OUTPUT_NAME xml-tree-tests)
 # server through ClassTester, which nothing reaches here. The name the SURBL
 # lookups ask about and the MX-record spam test falls back to, cut from a host by
 # the compiled-in list: wildcard and exception rules, PRIVATE names, suffixes,
-# addresses, and DMARC's organizational domain the same name. No network, no
-# configuration, no database. Not installed; a bench tool.
+# addresses, and DMARC's organizational domain the same name. With it
+# SURBLTester (Common/AntiSpam/SURBL.h), the links the cut is handed: the host
+# after a link's userinfo, ports, IPv6, percent-encoding, the forms of an IPv4
+# address, HTML's character references, and the lists' error codes. No network,
+# no configuration, no database. Not installed; a bench tool.
 add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_main.cpp)
 target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
 set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)

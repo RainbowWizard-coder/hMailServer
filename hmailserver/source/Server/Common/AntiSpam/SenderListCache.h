@@ -99,7 +99,7 @@ namespace HM
       static Decision Decide(const String &envelopeSender, const String &headerFrom, __int64 accountId, __int64 domainId);
 
       // The same decision for the links in a message: hosts are what
-      // SURBL::ExtractUrls found, and a URL entry (SenderPattern::IsUrl) at the
+      // SURBL::ExtractHosts found, and a URL entry (SenderPattern::IsUrl) at the
       // nearest scope with an opinion about any of them decides, the more
       // specific entry winning within a scope and a block winning a tie, as
       // for senders. `matched` names the host. Nothing is decided by an entry

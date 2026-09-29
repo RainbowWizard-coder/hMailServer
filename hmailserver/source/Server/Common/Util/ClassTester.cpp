@@ -106,6 +106,7 @@ namespace
 #include "Totp.h"
 #include "../AntiSpam/DMARC/DmarcTreeWalk.h"
 #include "../AntiSpam/DMARC/PublicSuffixList.h"
+#include "../AntiSpam/SURBL.h"
 #include "RateLimiter.h"
 #include "TransparentTransmissionBuffer.h"
 #include "../Cache/Cache.h"
@@ -264,6 +265,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing PublicSuffixList\n"));
       PublicSuffixListTester publicSuffixListTester;
       publicSuffixListTester.Test();
+
+      // The host each link in a message goes to, as a browser reads the link:
+      // after the last '@' of its userinfo, without its port, percent-decoded,
+      // an IPv4 address in any form a browser takes, HTML's character
+      // references and quoted values; the names the URI lists are asked about
+      // for it; and the answers the lists publish as errors, never a listing.
+      OutputDebugString(_T("hMailServer: Testing SURBL\n"));
+      SURBLTester surblTester;
+      surblTester.Test();
 
       // The command lines of the custom virus scanner and ClamWin: the file's
       // path one argument wherever %FILE% stands, quoted or not, and ClamWin's

@@ -366,6 +366,39 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("A URL entry judges the host a link goes to: the host after the link's user name, and an address in its own order, never reversed")]
+      public void AUrlEntryJudgesTheHostTheLinkGoesTo()
+      {
+         // Until 6.3.6 the links were read as the characters after "://" that can
+         // be in a name, so http://trusted.example@shop.example/ was read as
+         // trusted.example and a block of shop.example missed it; and an address
+         // was handed over reversed, as a DNS list is asked about it, as well as in
+         // its own order, so an entry for 61.2.0.192 blocked a link to 192.0.2.61.
+         Account blocking = AddAccount("linkuserinfo");
+         AddOwnEntry(blocking.Address, "https://shop.example/", true);
+
+         new SmtpClientSimulator().Send("friend@example.com", blocking.Address, "A link with a user name",
+            "A sale: http://trusted.example@shop.example/deals - and nothing else objectionable.");
+
+         string blockingCopy = Pop3ClientSimulator.AssertGetFirstMessageText(blocking.Address, Password);
+         StringAssert.Contains("X-hMailServer-Spam: YES", blockingCopy, "The link goes to shop.example, whatever user name comes before it.");
+
+         Account addressBlocking = AddAccount("linkaddress");
+         AddOwnEntry(addressBlocking.Address, "http://192.0.2.61/", true);
+         Account reversedBlocking = AddAccount("linkreversed");
+         AddOwnEntry(reversedBlocking.Address, "http://61.2.0.192/", true);
+
+         new SmtpClientSimulator().Send("friend@example.com", new List<string> { addressBlocking.Address, reversedBlocking.Address }, "A link to an address",
+            "An offer: http://192.0.2.61/offer - and nothing else objectionable.");
+
+         string addressCopy = Pop3ClientSimulator.AssertGetFirstMessageText(addressBlocking.Address, Password);
+         StringAssert.Contains("X-hMailServer-Spam: YES", addressCopy, "An entry for the address blocks a link to it.");
+
+         string reversedCopy = Pop3ClientSimulator.AssertGetFirstMessageText(reversedBlocking.Address, Password);
+         StringAssert.DoesNotContain("X-hMailServer-Spam", reversedCopy, "An entry for 61.2.0.192 is not about a link to 192.0.2.61.");
+      }
+
+      [Test]
       [Description("One account's entry is not found by another: neither changed nor removed")]
       public void AnotherAccountsEntryCannotBeChangedOrRemoved()
       {

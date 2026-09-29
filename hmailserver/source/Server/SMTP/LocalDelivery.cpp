@@ -1595,8 +1595,10 @@ namespace HM
 
       // Nobody listed the sender: the links, if somebody listed a URL for this
       // recipient's account, domain or server. The message is parsed for them
-      // only then - the extraction is the same one the SURBL test makes, and
-      // costs a read of the body per recipient that has such an entry.
+      // only then - the links are read as the SURBL test reads them, and the
+      // hosts they go to are what is matched: an address in its own order,
+      // not reversed as a DNS list is asked about it (SURBL::ExtractHosts).
+      // It costs a read of the body per recipient that has such an entry.
       if (decision.verdict == SenderListCache::NoOpinion &&
           SenderListCache::HasUrlEntries(account->GetID(), account->GetDomainID()))
       {
@@ -1606,7 +1608,7 @@ namespace HM
          {
             std::vector<String> hosts;
             SURBL extractor;
-            if (extractor.ExtractUrls(messageData, hosts))
+            if (extractor.ExtractHosts(messageData, hosts))
                decision = SenderListCache::DecideUrls(hosts, account->GetID(), account->GetDomainID());
          }
       }

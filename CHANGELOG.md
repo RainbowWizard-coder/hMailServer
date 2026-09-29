@@ -395,6 +395,47 @@ for a stray `#` number or `@` name.
   it. The cut's tests run in ClassTester and, on Linux, as the new `public-suffix-tests` program, in `linux-build`
   and in the Debian and RPM package builds.
 
+### Anti-spam, anti-virus and mail flow rules
+
+- **A link's host is the one after its user name.** The SURBL test asked the URI lists about the characters after
+  `://` that can be in a name, so `http://anything@evil.example/` was asked about as `anything`, and a spammer
+  escaped every list by writing a name and an `@` before the host; a URL entry of the sender lists read the same
+  `anything`. A link is now read as RFC 3986 and the browsers read it: the host follows the last `@` before the
+  path, without its port, and is percent-decoded (`%65vil.example`); `%40` in the user name is not its end; a
+  bracketed IPv6 address is not asked about, since no URI list publishes one; and an IPv4 address in any form a
+  browser takes (`0xC0.0.2.1`, `3221225985`) is that address. `http:`, `http:\\` and `http:///` before a host count
+  as `http://` does, a backslash ends the host as a slash does, and a link written into another's query
+  (`?u=http%3A%2F%2Fx%40evil.example`, `?u=http%3A%5C%5Cevil.example`) is read the same way. In a text part, where
+  the mail program that shows a link decides where it ends, a link it may end before the `@` - Thunderbird ends one
+  at `)`, `"`, `` ` ``, `{` or `}` - is also asked about as the name before that character:
+  `http://evil.example)@innocent.example/` is asked about as `innocent.example` and `evil.example`. In an HTML part
+  the character references are read as a browser reads them (`x&#64;evil.example`, `http&colon;//`), and a quoted
+  attribute's value runs to its closing quote, spaces and a `'` or a `>` in a user name included. Punctuation after
+  a link still ends its host; a host with another character in it (`a!b.evil.example`, a label in Unicode) is asked
+  about as the name before that character and the labels after its label. Not done: an internationalised name is not
+  turned into its `xn--` form, and a host written in fullwidth or other characters a browser maps to ASCII, or with
+  a soft hyphen or another character a browser drops, is not mapped. The reading's tests run in ClassTester and, on
+  Linux, in `public-suffix-tests`.
+- **A link to an address is asked about reversed, and only so.** It was asked about in its own order too, which is
+  the address the other way round: a link to `192.0.2.1` was tagged when a list had `1.2.0.192`, and a sender
+  list's URL entry for `1.2.0.192` blocked or allowed it.
+- **A host DNS cannot carry no longer ends the SURBL test.** A host went to the resolver as the message wrote it,
+  and the names were asked about in sorted order, so a link at the end of a sentence (`http://example.com.`),
+  `http://../` or a label of 64 characters made a name the resolver refuses, and the failed lookup abandoned the
+  list for the message with every link sorted after it unchecked. Such a host is not asked about, a name that with
+  the list's zone passes 253 characters is not asked, and the links are asked about in the order they come.
+- **The URI lists' error codes are never a listing, whatever the expected result.** The Spamhaus DBL answers every
+  address with `127.0.1.255`, "IP queries prohibited", and the Spamhaus ZRD with `127.0.2.255`, "IP queries not
+  supported", so a server that asked either with no expected result, or with `127.0.1.*` or `127.0.2.*`, tagged
+  every message holding a link to an address. SURBL and URIBL answer `127.0.0.1` to a query they block, which tagged
+  every message holding a link on a server they block. Those, and Spamhaus's `127.255.255.0/24`, which counted only
+  when an expected result took it in, are now errors under any expected result, logged at debug level once for their
+  lookup. A list that refuses the server's queries with `127.255.255.x` is not asked again for that message, and the
+  application log says so at most every 15 minutes, as for a lookup that fails. `127.0.0.1` does not end the list
+  for the message, since Hostkarma answers it for a name on its whitelist and a link to one would switch the list
+  off for the links after it; the application log says so, at most every 15 minutes as well, when a list answered it
+  to every name of a message.
+
 ### Administration
 
 - **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue: drag

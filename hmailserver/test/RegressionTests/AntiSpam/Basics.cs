@@ -50,7 +50,26 @@ namespace RegressionTests.AntiSpam
             .WithA("surbl-cut.co.uk.multi.surbl.org", "127.0.0.2")
             .WithA("surbl-cut.act.edu.au.multi.surbl.org", "127.0.0.2")
             .WithMx("mx-cut.act.edu.au", 10, "mx.mx-cut.test")
-            .WithA("mx.mx-cut.test", "192.0.2.41");
+            .WithA("mx.mx-cut.test", "192.0.2.41")
+            // SurblLooksUpTheHostAfterTheUserinfo: the host after a link's
+            // userinfo, listed. Nothing is served for the names before the '@'.
+            .WithA("surbl-userinfo.test.multi.surbl.org", "127.0.0.2")
+            // SurblListErrorCodesAreNotListings: what the Spamhaus DBL answers
+            // every address it is asked about, in either order - 127.0.1.255, IP
+            // queries prohibited - and what SURBL and URIBL answer a query they
+            // block, 127.0.0.1.
+            .WithA("44.2.0.192.multi.surbl.org", "127.0.1.255")
+            .WithA("192.0.2.44.multi.surbl.org", "127.0.1.255")
+            .WithA("surbl-blocked.test.multi.surbl.org", "127.0.0.1")
+            // SurblAsksAboutAnAddressReversedOnly: 192.0.2.45 is listed, which a
+            // list is asked about as 45.2.0.192; and 192.0.2.46.multi.surbl.org is
+            // served, which is the list saying 46.2.0.192 is listed.
+            .WithA("45.2.0.192.multi.surbl.org", "127.0.0.2")
+            .WithA("192.0.2.46.multi.surbl.org", "127.0.0.2")
+            // SurblBlockedAnswerDoesNotSwitchTheListOff: what the Spamhaus ZRD
+            // answers every address it is asked about - 127.0.2.255, IP queries
+            // not supported - for 192.0.2.47.
+            .WithA("47.2.0.192.multi.surbl.org", "127.0.2.255");
       }
 
       [OneTimeTearDown]
@@ -457,6 +476,214 @@ namespace RegressionTests.AntiSpam
          var insideText = Pop3ClientSimulator.AssertGetFirstMessageText(inside.Address, "test");
          Assert.IsTrue(insideText.Contains("X-hMailServer-Spam"), "An answer inside the expected result was not a listing.");
          surblServer.ExpectedResult = "";
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblLooksUpTheHostAfterTheUserinfo()
+      {
+         // A link's host follows the last '@' before its path, as RFC 3986 and
+         // every browser read it. Until 6.3.6 the host was taken as the characters
+         // after "://" that can be in a name, so the first link below was looked up
+         // as innocent.example, and a spammer escaped every URI list by writing a
+         // name and an '@' before the host. Only surbl-userinfo.test is listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-userinfo@example.test", "test");
+         var surblServer = ArmSurbl_("");
+         var smtp = new SmtpClientSimulator();
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var links = new[]
+         {
+            "http://innocent.example@surbl-userinfo.test/",
+            "https://user:secret@surbl-userinfo.test:8443/path",
+            "http://innocent.example%40mail@surbl-userinfo.test/",
+            "http://a@innocent.example@surbl-userinfo.test/",
+            "https://www.example.com/?u=http%3A%2F%2Finnocent.example%40surbl-userinfo.test%2F",
+         };
+
+         foreach (var link in links)
+         {
+            smtp.Send(account.Address, account.Address, "SURBL-Userinfo", "A link: " + link + " here");
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), link + " was not looked up as surbl-userinfo.test, which is listed.");
+         }
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-userinfo.test.multi.surbl.org"));
+         Assert.IsFalse(LogHandler.DefaultLogContains("SURBL: Lookup: innocent.example.multi.surbl.org"),
+            "A name in the userinfo, before the '@', was asked about.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblListErrorCodesAreNotListings()
+      {
+         // The Spamhaus DBL answers 127.0.1.255, "IP queries prohibited", to every
+         // address it is asked about, and SURBL and URIBL answer 127.0.0.1 to a
+         // query they block. Neither is a listing, with no expected result or with
+         // one that takes the code in: until 6.3.6 a server that asked the DBL with
+         // either tagged every message holding a link to an address.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-codes@example.test", "test");
+         var smtp = new SmtpClientSimulator();
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         foreach (var expected in new[] { "", "127.0.1.0-255", "127.0.0.*|127.0.1.*" })
+         {
+            var surblServer = ArmSurbl_(expected);
+
+            smtp.Send(account.Address, account.Address, "SURBL-Address", "A link to an address: http://192.0.2.44/page here");
+            var addressText = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsFalse(addressText.Contains("X-hMailServer-Spam"),
+               "127.0.1.255 was taken as a listing with the expected result '" + expected + "'.");
+
+            smtp.Send(account.Address, account.Address, "SURBL-Blocked", "A link: http://surbl-blocked.test/ here");
+            var blockedText = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsFalse(blockedText.Contains("X-hMailServer-Spam"),
+               "127.0.0.1 was taken as a listing with the expected result '" + expected + "'.");
+         }
+
+         // Each is logged for what it is, once for its lookup.
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: 127.0.1.255 is the Spamhaus DBL's code for an address"), LogHandler.ReadCurrentDefaultLog());
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: 127.0.0.1 is SURBL's and URIBL's code for a blocked query"), LogHandler.ReadCurrentDefaultLog());
+
+         // A listing under the same expected results is still one.
+         var listing = ArmSurbl_("127.0.1.0-255");
+         smtp.Send(account.Address, account.Address, "SURBL-Listed", "A link: http://dbl-listed.test/ here");
+         var listedText = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(listedText.Contains("X-hMailServer-Spam"), "A DBL listing, 127.0.1.2, was not a listing.");
+
+         ArmSurbl_("");
+         smtp.Send(account.Address, account.Address, "SURBL-Listed", "A link: http://surbl-org-permanent-test-point.com/ here");
+         listedText = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(listedText.Contains("X-hMailServer-Spam"), "The test point, 127.0.0.2, was not a listing.");
+
+         listing.ExpectedResult = "";
+         listing.Active = false;
+         listing.Save();
+      }
+
+      [Test]
+      public void SurblAsksAboutAnAddressReversedOnly()
+      {
+         // A DNS list is asked about an address with its octets reversed. Until
+         // 6.3.6 a link's address was asked about in its own order too, which is
+         // the address the other way round: a link to 192.0.2.46 was tagged
+         // because 46.2.0.192 is listed. An address a browser reads in another
+         // form - one number, a hexadecimal part - is the same address, and
+         // 192.0.2.45 is listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-address@example.test", "test");
+         var surblServer = ArmSurbl_("");
+         var smtp = new SmtpClientSimulator();
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         smtp.Send(account.Address, account.Address, "SURBL-Reversed", "A link: http://192.0.2.46/ here");
+         var reversedText = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsFalse(reversedText.Contains("X-hMailServer-Spam"), "192.0.2.46 was asked about in its own order, which is 46.2.0.192.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: 46.2.0.192.multi.surbl.org"));
+         Assert.IsFalse(LogHandler.DefaultLogContains("SURBL: Lookup: 192.0.2.46.multi.surbl.org"));
+
+         foreach (var link in new[] { "http://192.0.2.45/", "http://3221226029/", "http://0xC0.0.2.45/", "http://user@192.0.2.45:8080/" })
+         {
+            smtp.Send(account.Address, account.Address, "SURBL-Address", "A link: " + link + " here");
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), link + " was not looked up as 192.0.2.45, which is listed.");
+         }
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblNameDnsCannotCarryDoesNotEndTheCheck()
+      {
+         // A lookup that fails abandons the list for the message. Until 6.3.6 a
+         // link's host went to the resolver as the message wrote it, and the names
+         // were asked about in sorted order: a sentence ending in a link
+         // ("sentence-end.example." asked as "sentence-end.example..multi.surbl.org"),
+         // "http://../" or a label of 64 characters made a name the resolver
+         // refuses, and every link sorted after it went unchecked.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-names@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         new SmtpClientSimulator().Send(account.Address, account.Address, "SURBL-Names",
+            "See http://sentence-end.example. Or http://../ or http://" + new string('a', 64) + ".example/ - " +
+            "then http://surbl-org-permanent-test-point.com/ here");
+
+         var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(text.Contains("X-hMailServer-Spam"), "A link the resolver cannot be asked about hid the listed link after it.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblBlockedAnswerDoesNotSwitchTheListOff()
+      {
+         // 127.0.0.1 is what SURBL and URIBL answer a query they block, and what
+         // Hostkarma answers for a name on its whitelist. It is not a listing, and
+         // it does not end the list for the message: were it to, a link to a
+         // whitelisted name written first would switch the list off for every link
+         // after it. And the Spamhaus ZRD answers every address with 127.0.2.255,
+         // IP queries not supported, which is not a listing under the ZRD's own
+         // range either.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-blocked-first@example.test", "test");
+         var smtp = new SmtpClientSimulator();
+
+         var surblServer = ArmSurbl_("127.0.0.2");
+         smtp.Send(account.Address, account.Address, "SURBL-Blocked-First",
+            "First http://surbl-blocked.test/ then http://surbl-org-permanent-test-point.com/ here");
+         var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(text.Contains("X-hMailServer-Spam"), "127.0.0.1 for the first link switched the list off for the listed link after it.");
+
+         ArmSurbl_("127.0.2.0-255");
+         smtp.Send(account.Address, account.Address, "SURBL-ZRD-Address", "A link to an address: http://192.0.2.47/page here");
+         text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsFalse(text.Contains("X-hMailServer-Spam"), "127.0.2.255, the ZRD's answer to every address, was taken as a listing.");
+
+         surblServer.ExpectedResult = "";
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblAsksAboutTheNameAMailProgramEndsALinkAt()
+      {
+         // In a text part a link is made by the mail program that shows it, and
+         // Thunderbird ends one at a ')', a '"', a '`', a '{' or a '}' that a URL
+         // parser takes into the userinfo: a click on
+         // http://surbl-userinfo.test)@innocent.example/ there goes to
+         // surbl-userinfo.test, which is asked about as well as the host after the
+         // '@'. A link written into another's query with its slashes encoded as
+         // backslashes, and a link whose scheme the reading of a long link before
+         // it took in, are read too.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-mail-program@example.test", "test");
+         var surblServer = ArmSurbl_("");
+         var smtp = new SmtpClientSimulator();
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var bodies = new[]
+         {
+            "A link: http://surbl-userinfo.test)@innocent.example/ here",
+            "A link: https://www.example.com/?u=http%3A%5C%5Csurbl-userinfo.test%2F here",
+            "A link: http:" + new string('a', 300) + "!http://surbl-userinfo.test/ here",
+         };
+
+         foreach (var body in bodies)
+         {
+            smtp.Send(account.Address, account.Address, "SURBL-Mail-Program", body);
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), body + " was not looked up as surbl-userinfo.test, which is listed.");
+         }
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: innocent.example.multi.surbl.org"),
+            "The host after the '@', where a browser goes, was not asked about.");
+
          surblServer.Active = false;
          surblServer.Save();
       }

@@ -3314,8 +3314,8 @@ interface IInterfaceSURBLServer : IDispatch
    [id(6), helpstring("Saves changes of the object in the database.")] HRESULT Save();
    [propget, id(7), helpstring("Spam score")] HRESULT Score([out, retval] long *pVal);
    [propput, id(7), helpstring("Spam score")] HRESULT Score([in] long newVal);
-   [propget, id(9), helpstring("The answers that mean listed, in the DNSBL syntax (127.0.1.0-255|127.0.0.2*). Empty: any answer but the resolver-error codes 127.255.255.x.")] HRESULT ExpectedResult([out, retval] BSTR *pVal);
-   [propput, id(9), helpstring("The answers that mean listed, in the DNSBL syntax (127.0.1.0-255|127.0.0.2*). Empty: any answer but the resolver-error codes 127.255.255.x.")] HRESULT ExpectedResult([in] BSTR newVal);
+   [propget, id(9), helpstring("The answers that mean listed, in the DNSBL syntax (127.0.1.0-255|127.0.0.2*). Empty: any answer. The lists' error codes - 127.255.255.x, 127.0.0.1, 127.0.1.255 and 127.0.2.255 - are never a listing.")] HRESULT ExpectedResult([out, retval] BSTR *pVal);
+   [propput, id(9), helpstring("The answers that mean listed, in the DNSBL syntax (127.0.1.0-255|127.0.0.2*). Empty: any answer. The lists' error codes - 127.255.255.x, 127.0.0.1, 127.0.1.255 and 127.0.2.255 - are never a listing.")] HRESULT ExpectedResult([in] BSTR newVal);
    [id(8), helpstring("Deletes the object from the database.")] HRESULT Delete();
 };
 

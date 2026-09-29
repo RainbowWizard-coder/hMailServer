@@ -46,9 +46,12 @@ A message with the null sender — a bounce, a delivery status notification — 
 never decided by any list, whatever its `From` header says.
 
 A URL entry is about what the message points at, not who sent it, and is
-consulted only when neither address decided anything: the links are extracted
-from the body the way the SURBL check extracts them, and the nearest scope with
-a URL entry covering any of them decides, with the same precedence and the same
+consulted only when neither address decided anything: the links are read from
+the body the way the SURBL check reads them, each for the host it goes to - the
+host after the link's user name, if it has one, without its port, and an address
+in its own order; in a text part also the name before a `)`, `"` or `}` in the
+user name, where a mail program ends the link - and the nearest scope with a URL
+entry covering any of them decides, with the same precedence and the same
 tie-break as for senders. Block, and the message is held or marked for that
 recipient like a blocked sender's; allow, and a link the URL blacklists list —
 a shortener, a newsletter service — no longer marks the message for that
