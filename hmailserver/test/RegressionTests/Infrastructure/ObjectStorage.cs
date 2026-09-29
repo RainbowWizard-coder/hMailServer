@@ -448,7 +448,12 @@ namespace RegressionTests.Infrastructure
          Account account = AddAccount("copied");
          string first = Word("numbat");
          string second = Word("bilby");
+         // The first is in the inbox before the second is sent: the reads from the
+         // store below expect the first word in message 1 and the second in message
+         // 2, and two messages accepted one after the other can be delivered in
+         // either order by two delivery threads.
          SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address, Message(account.Address, "First " + first, "Body " + first));
+         ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 1);
          SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address, Message(account.Address, "Second " + second, "Body " + second));
          ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 2);
 

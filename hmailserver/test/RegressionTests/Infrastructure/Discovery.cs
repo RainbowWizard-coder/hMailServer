@@ -410,8 +410,13 @@ namespace RegressionTests.Infrastructure
             permission.Save();
          }
 
+         // "Within" is in Alice's inbox before "Out" is sent: the two MOVE 1s below
+         // take "Within" first and "Out" second, and two messages accepted one after
+         // the other can be delivered in either order by two delivery threads - in
+         // the other order the kept original would be "Within".
          string now = DateTime.UtcNow.ToString("r");
          Deliver(alice.Address, Raw(alice.Address, "Within " + word, Id("within"), now, "Moved inside the mailbox."));
+         ImapClientSimulator.AssertMessageCount(alice.Address, Password, "INBOX", 1);
          Deliver(alice.Address, Raw(alice.Address, "Out " + word, Id("out"), now, "Moved out of the mailbox."));
          Deliver(bob.Address, Raw(bob.Address, "Out " + word, Id("out-control"), now, "Moved out of a mailbox under no hold."));
          CustomAsserts.AssertRecipientsInDeliveryQueue(0);

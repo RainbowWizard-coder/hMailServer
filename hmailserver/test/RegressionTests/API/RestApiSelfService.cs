@@ -2306,9 +2306,15 @@ namespace RegressionTests.API
       public void TheSubscriptionsPageListsEachSenderOnce()
       {
          string to = "To: " + Address + "\r\n";
+         // Issue one is in the inbox before Issue two is sent. The route takes the
+         // newest message by the time it was received, to the second, and between
+         // two received in the same second the one delivered last - so if two
+         // delivery threads delivered Issue two first, Issue one would be "the
+         // newest" and the message_id asserted below would be the other one.
          SmtpClientSimulator.StaticSendRaw("news@example.com", Address,
             "From: \"Weekly News\" <news@example.com>\r\n" + to + "Subject: Issue one\r\nList-Id: Weekly <weekly.example.com>\r\n" +
             "List-Unsubscribe: <mailto:leave@example.com>, <https://news.example.com/leave?u=1>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n\r\nThe first.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);
          SmtpClientSimulator.StaticSendRaw("news@example.com", Address,
             "From: \"Weekly News\" <news@example.com>\r\n" + to + "Subject: Issue two\r\nList-Id: Weekly <weekly.example.com>\r\n" +
             "List-Unsubscribe: <mailto:leave@example.com>, <https://news.example.com/leave?u=2>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n\r\nThe second.\r\n");
@@ -2862,7 +2868,14 @@ namespace RegressionTests.API
       [Description("IMAP keywords are stored, shown by FETCH and the STORE reply, listed by SELECT, advertised with \\*, searched, carried by COPY, taken by APPEND, and seen and set over REST")]
       public void KeywordsAreStoredFetchedSearchedCopiedAndSeenOverRest()
       {
+         // "Tagged" is in the inbox before "Plain" is sent: the STORE, SEARCH and
+         // COPY below name "Tagged" as message 1, and two messages accepted one
+         // after the other can be delivered in either order by two delivery
+         // threads. In the other order every assertion still passed, and the
+         // check that the label came off "Tagged" in the INBOX checked a message
+         // that never had it.
          Deliver(Address, "Tagged", "One.");
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);
          Deliver(Address, "Plain", "Two.");
          Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 2);
 

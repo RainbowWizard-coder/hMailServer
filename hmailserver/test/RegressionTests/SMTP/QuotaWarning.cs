@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -50,6 +52,34 @@ namespace RegressionTests.SMTP
          return new Pop3ClientSimulator().GetMessageCount(address, "test");
       }
 
+      /// <summary>
+      ///    The one message in the mailbox that is none of the messages sent to it - the
+      ///    warning - read without popping anything, since the counts are part of the
+      ///    assertions. Found by what it is and not by where it is: the warning is
+      ///    queued while the message that crosses the threshold is being delivered,
+      ///    before that message is stored (LocalDelivery's quota check), and a delivery
+      ///    thread of its own delivers it, so the two can land in either order.
+      /// </summary>
+      private static string TheMessageNotSent(int messages, params string[] sentSubjects)
+      {
+         var pop3 = new Pop3ClientSimulator();
+         ClassicAssert.IsTrue(pop3.ConnectAndLogon(Mailbox, "test"));
+
+         var notSent = new List<string>();
+         for (int index = 1; index <= messages; index++)
+         {
+            string text = pop3.RETR(index);
+            if (!sentSubjects.Any(subject => text.Contains("\r\nSubject: " + subject + "\r\n")))
+               notSent.Add(text);
+         }
+
+         pop3.Disconnect();
+
+         ClassicAssert.AreEqual(1, notSent.Count,
+            "Exactly one message in the mailbox should be one the server wrote. Got: " + string.Join("\r\n----\r\n", notSent));
+         return notSent[0];
+      }
+
       [Test]
       [Description("The delivery that takes a mailbox past the threshold produces exactly one warning, and the next delivery produces none - the warning is an event, not a state")]
       public void CrossingTheThresholdWarnsOnceAndOnlyOnce()
@@ -76,12 +106,11 @@ namespace RegressionTests.SMTP
             SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "second", BodyOfAbout(300));
             Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 3);
 
-            // Read message 3 without popping the mailbox: the counts below are part of
-            // the assertion, so nothing here may consume a message.
-            var pop3 = new Pop3ClientSimulator();
-            ClassicAssert.IsTrue(pop3.ConnectAndLogon(Mailbox, "test"));
-            string warning = pop3.RETR(3);
-            pop3.Disconnect();
+            // Read without popping the mailbox: the counts below are part of the
+            // assertion, so nothing here may consume a message. Not as message 3: the
+            // warning is queued while "second" is being delivered, before "second" is
+            // stored, so either of them can be the last.
+            string warning = TheMessageNotSent(3, "first", "second");
 
             StringAssert.Contains("mailbox is almost full", warning.ToLower(),
                "The account holder should have been told their mailbox is filling up. Got: " + warning);
@@ -138,10 +167,9 @@ namespace RegressionTests.SMTP
             SmtpClientSimulator.StaticSend("sender@example.test", Mailbox, "first", BodyOfAbout(300));
             Pop3ClientSimulator.AssertMessageCount(Mailbox, "test", 2);
 
-            var pop3 = new Pop3ClientSimulator();
-            ClassicAssert.IsTrue(pop3.ConnectAndLogon(Mailbox, "test"));
-            string warning = pop3.RETR(2);
-            pop3.Disconnect();
+            // Not as message 2: the warning is queued while "first" is being
+            // delivered, before "first" is stored, so either can be the last.
+            string warning = TheMessageNotSent(2, "first");
 
             StringAssert.Contains("Subject: Postfach fast voll", warning, "The domain's subject. Got: " + warning);
             StringAssert.Contains("Hallo " + Mailbox + ", ", warning, "The domain's text with the mailbox filled in. Got: " + warning);

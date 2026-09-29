@@ -60,7 +60,12 @@ namespace RegressionTests.API
          Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recover@" + _domain.Name, Password);
          string me = Basic(account.Address, Password);
 
+         // Each message is in the inbox before the next is sent: MOVE 2 and the
+         // deletion of 1 below name them by sequence number, and two messages
+         // accepted one after the other can be delivered in either order by two
+         // delivery threads.
          SmtpClientSimulator.StaticSend("sender@dummy-example.com", account.Address, "Quarterly figures", "The numbers.");
+         Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 1);
          SmtpClientSimulator.StaticSend("sender@dummy-example.com", account.Address, "Moved not deleted", "Elsewhere.");
          Pop3ClientSimulator.AssertMessageCount(account.Address, Password, 2);
 

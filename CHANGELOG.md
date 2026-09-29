@@ -740,6 +740,12 @@ Full notes: [the 6.3.5 release](https://gitlab.com/Progressiverobot/hmailserver/
   `build/ci/semgrep.sh` (not parsed at all), `container-image-sign.sh` (97 of 138 lines unread, every command that
   signs and attests the image) and `scorecard.sh` (117 of 243) as scanned; the three are now written so Semgrep's
   bash parser reads every line.
+- **The regression tests that read a mailbox by the order its messages arrived in no longer depend on which delivery
+  thread wins.** Each message is in the mailbox before the next is sent (FullTextSearch, which failed 6.3.5's gate
+  once with "1 3" for "1 2"; RestApiRecoverDeleted, Discovery, ObjectStorage, and RestApiSelfService's subscriptions
+  and keywords tests), and the quota warning, which is queued before the message that crosses the threshold is
+  stored, is found by being the one message not sent rather than as the last one. About 290 other tests that deliver
+  several messages were read and left as they are: they count, compare sets, find by content, or already wait.
 
 ---
 
