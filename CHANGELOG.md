@@ -76,12 +76,12 @@ Nothing yet.
 Everything that landed on `master` after the `v6.3.5` tag, from 29 September 2026 ([compare `v6.3.5` with
 `v6.3.6`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.5...v6.3.6)). It is the last release for the
 time being: after it the project makes security releases only, and the 6.3 line receives security fixes until 30
-September 2027 (below). 6.3.6 fixes a security flaw (below) and what 6.3.5's release and the first live updates
-from 6.3.4 found, replaces with the project's own code the last code in the server whose licence a distribution would
-have had to settle, and carries every file the release pipeline makes, the ARM64 Windows installer among them. The
-schema stays at **6105**: this release has no schema step. The security note comes first, then what changes on
-upgrade without a switch. The operator documents named below are in `hmailserver/docs`, which has nine more of them
-than it had at 6.3.5.
+September 2027 (below). 6.3.6 fixes a security flaw and takes OpenSSL 4.0.3 into the Windows installers (both below),
+fixes what 6.3.5's release and the first live updates from 6.3.4 found, replaces with the project's own code the last
+code in the server whose licence a distribution would have had to settle, and carries every file the release pipeline
+makes, the ARM64 Windows installer among them. The schema stays at **6105**: this release has no schema step. The
+security notes come first, then what changes on upgrade without a switch. The operator documents named below are in
+`hmailserver/docs`, which has nine more of them than it had at 6.3.5.
 
 **Releases pause after this one.** 6.3.6 is the last release for the time being, by the owner's decision of 28
 September 2026, and no feature release follows it until the maintainers say otherwise in [SECURITY.md](SECURITY.md),
@@ -170,6 +170,24 @@ Numbering Authority for projects on GitLab.com, has assigned them CVE-2026-10301
 and CVE-2026-103010 (the decryption, fixed in 6.3.4);
 [work item #49](https://gitlab.com/hmailserver/hmailserver/-/work_items/49) gives the details from the day of the
 release. Upgrade every server running 6.3.5 or earlier.
+
+The Windows installers, x64 and ARM64, carry OpenSSL 4.0.3, published on 29 September 2026 with fourteen advisories
+against 4.0.x, where 6.3.5's x64 installer carried 4.0.2. Of the two rated above Low, CVE-2026-84782 (High) is in
+DTLS, which hMailServer does not use, and CVE-2026-84783 (Moderate, in 4.0.0 to 4.0.2 only) applies to the Windows
+server: a use-after-free when several threads first use the same certificate at once, which a remote peer can turn
+into a crash when connections build their first chains to the same trusted CA certificate together. In the Windows
+server those are the connections to a port that asks for client certificates, whose certificates are all checked
+against that port's CA file. Its outgoing connections share none: the one context its SMTP, POP3 and SpamAssassin
+clients share holds no trust anchor, since a remote server's certificate is checked by Windows' own chain
+verification or against DANE records, and each of its other TLS clients loads its own for each connection. Of the
+twelve Low ones, nine are in QUIC, DTLS 1.2, the CMP client and SM2, which the server does not use, and one in
+`SSL_set_SSL_CTX` during a handshake, which it never calls. The other two are fixed with the rest: CVE-2026-35189,
+the memory a certificate with many relative CRL distribution points makes OpenSSL allocate, which a server that
+hMailServer connects to can send, as can a client on a port that asks for client certificates; and CVE-2026-54872, a
+timing leak in ECDSA signing on curves other than NIST's. Every Windows installer from 6.0.0-B1 to 6.3.5 carried a
+4.0.x that CVE-2026-84783 affects: 4.0.1 up to 6.2.24, and 4.0.2 from 6.2.25. The Linux packages and the AppImages
+use the OpenSSL of the distribution they run on, and the container image its base distribution's, and take OpenSSL's
+fixes from there.
 
 ### What changes on upgrade without a switch
 
@@ -1019,6 +1037,15 @@ release. Upgrade every server running 6.3.5 or earlier.
   list to the tree the build used, which records its own (OpenSSL's `VERSION.dat`, Boost's `version.hpp`,
   PostgreSQL's `meson.build`); the ARM64 list was checked that way against the ARM64 libraries of 26 September.
   The lists themselves are unchanged.
+
+- **OpenSSL 4.0.3 in the Windows builds, x64 and ARM64** (Security, above). `hMailServer.vcxproj`'s include and
+  library paths, `post-build.bat`, `build.ps1`'s ARM64 copy and both installer scripts name `openssl-4.0.3`, and
+  `libraries/build-openssl.ps1` pins its archive's SHA-256, `325b5c80...16d9`: the value in Debian's signed
+  `openssl_4.0.3-1.dsc`, the archive's own OpenSSL signature checked against the key openssl-library.org names, since
+  OpenSSL publishes its `.sha256` files on GitHub only. libpq 18.3 is not rebuilt: it links `libcrypto-4-x64.dll` and
+  `libssl-4-x64.dll` (on ARM64 the `-arm64` ones) by name, and 4.0.3 keeps 4.0.2's names and ABI.
+  `Get-LibraryVersions.ps1`, `native-dependencies.ps1` and `dependency-scan` read the version from the project file,
+  so the SBOMs and the scan name 4.0.3 with no change of their own.
 
 - **A merge request answers for what it brings.** On GitLab's shared runners, with no secret:
   `build/check-binary-manifest.py`, run by `checkers` in every pipeline, fails on a committed binary that

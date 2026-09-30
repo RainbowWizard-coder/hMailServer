@@ -498,7 +498,7 @@ Create an environment variable named hMailServerLibs pointing at a folder where 
 The repository carries one script per library. Each downloads the source archive of the version hMailServer is pinned to, verifies it against the SHA-256 recorded in the script, and builds it into the layout the project file expects. Run them in this order from the repository root, with Perl on `%PATH%` (OpenSSL and PostgreSQL need it) and, for PostgreSQL, Python with Meson and Ninja (`py -m pip install meson ninja`) and [winflexbison](https://sourceforge.net/projects/winflexbison/files/) on `%PATH%`. `libraries\get-libpq-tools.ps1 -Into <folder>` fetches those four, each held to the SHA-256 it pins, into one folder and prints the folders to put on `%PATH%`; it installs nothing:
 
    <pre>
-   powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-boost.ps1 -Version 1.92.0
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3
    </pre>
@@ -508,7 +508,7 @@ The repository carries one script per library. Each downloads the source archive
 Building OpenSSL
 ----------------
 1. Download OpenSSL 4.0.x from http://www.openssl.org/source/ and put it into %hMailServerLibs%\<OpenSSL-Version>.
-   You should now have a folder named %hMailServerLibs%\<OpenSSL-version>, for example C:\Dev\hMailLibs\openssl-4.0.2
+   You should now have a folder named %hMailServerLibs%\<OpenSSL-version>, for example C:\Dev\hMailLibs\openssl-4.0.3
 2. Start a x64 Native Tools Command Prompt for VS2026.
 3. Change dir to %hMailServerLibs%\<OpenSSL-version>.
 3. Run the following commands:
@@ -536,7 +536,7 @@ Building PostgreSQL
    set hMailServerLibs=%cd%
    set CC=cl
    cd postgresql-18.3
-   meson setup builddir --buildtype=release -Dssl=openssl -Dauto_features=disabled -Dextra_include_dirs=%hMailServerLibs%\openssl-4.0.2\out64\include -Dextra_lib_dirs=%hMailServerLibs%\openssl-4.0.2\out64\lib
+   meson setup builddir --buildtype=release -Dssl=openssl -Dauto_features=disabled -Dextra_include_dirs=%hMailServerLibs%\openssl-4.0.3\out64\include -Dextra_lib_dirs=%hMailServerLibs%\openssl-4.0.3\out64\lib
    meson compile -C builddir src/interfaces/libpq/libpq:shared_library
    </pre>
 

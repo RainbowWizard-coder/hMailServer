@@ -227,17 +227,19 @@ redirects there), and this project's CI downloads nothing from GitHub.
 `libraries/build-openssl.ps1` takes the archive from Debian's archive instead,
 `https://deb.debian.org/debian/pool/main/o/openssl/`, or snapshot.debian.org once
 a version has left the pool: the same bytes, held to the SHA-256 the script pins
-(for 4.0.2, `736b4675...43a8`, measured against Debian's copy on 26 September
-2026). The job still reads every string in the script's code (not its comments)
-with PowerShell's parser, and stops with exit 7 if one names `github.com` or
-`githubusercontent.com` while the ARM64 OpenSSL is not in the cache; with the
-script as it is, none does, so the job builds the ARM64 OpenSSL itself. It can
-also be built once by hand on bench150 into the cache, from an elevated prompt
-with the ARM64 tools installed:
+(for 4.0.3, `325b5c80...16d9`, the value in Debian's signed
+`openssl_4.0.3-1.dsc`, with OpenSSL's own signature of the archive checked on 30
+September 2026; for 4.0.2, `736b4675...43a8`, measured against Debian's copy on
+26 September 2026). The job still reads every string in the script's code (not
+its comments) with PowerShell's parser, and stops with exit 7 if one names
+`github.com` or `githubusercontent.com` while the ARM64 OpenSSL is not in the
+cache; with the script as it is, none does, so the job builds the ARM64 OpenSSL
+itself. It can also be built once by hand on bench150 into the cache, from an
+elevated prompt with the ARM64 tools installed:
 
     mkdir C:\bench\hMailLibs-arm64
     set hMailServerLibs=C:\bench\hMailLibs-arm64
-    powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64
+    powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3 -Platform ARM64
 
 That downloads from Debian too, and holds the archive to the pinned SHA-256.
 

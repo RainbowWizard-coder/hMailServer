@@ -6,7 +6,7 @@
 ; has no ARM64 build, and an ARM64 process cannot load an x64 OLE DB provider.
 #define HM_ARM64
 #define HMAILSERVERLIBS = GetEnv("hMailServerLibs")
-#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + "\openssl-4.0.2-arm64\out64\bin"
+#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + "\openssl-4.0.3-arm64\out64\bin"
 #define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + "\postgresql-18.3-arm64\builddir\src\interfaces\libpq"
 
 ; As in hMailServer64.iss, which says why these are defined once: the ARM64 build

@@ -25,7 +25,7 @@
         automatically via vswhere).
 
 .PARAMETER Version
-    The OpenSSL version to build, e.g. 4.0.2. Must match 4.x.y.
+    The OpenSSL version to build, e.g. 4.0.3. Must match 4.x.y.
 
 .PARAMETER Platform
     x64 (the default, and the build every x64 server links against) or ARM64, for
@@ -45,21 +45,27 @@
     (openssl.org/source) redirects to its GitHub releases, and this project fetches
     nothing from GitHub since GitHub suspended its account on 18 September 2026.
     Checked on 26 September 2026: Debian's openssl_4.0.2.orig.tar.gz has exactly
-    the SHA-256 pinned below. Whatever its origin, the file must match the SHA-256
-    pinned below (or -Sha256), or it is refused.
+    the SHA-256 pinned below. Checked on 30 September 2026: 4.0.3's SHA-256 below
+    is the one Debian's signed openssl_4.0.3-1.dsc gives for
+    openssl_4.0.3.orig.tar.gz, and Debian's copy of OpenSSL's signature of the
+    archive (openssl_4.0.3.orig.tar.gz.asc) is good for OpenSSL's key
+    B146 647E 45A7 B339 47AB 226B 2A2C 87D1 6169 2D40, the one
+    openssl-library.org/source/ names for its current releases. Whatever its
+    origin, the file must match the SHA-256 pinned below (or -Sha256), or it is
+    refused.
 
 .PARAMETER Sha256
     The SHA-256 of openssl-<Version>.tar.gz, for a version the digest table below does
     not know yet. Take it from the .sha256 file published beside the release.
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Archive C:\Downloads\openssl-4.0.2.tar.gz
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3 -Archive C:\Downloads\openssl-4.0.3.tar.gz
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64 -Archive C:\Downloads\openssl-4.0.2.tar.gz
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3 -Platform ARM64 -Archive C:\Downloads\openssl-4.0.3.tar.gz
 #>
 [CmdletBinding()]
 param(
@@ -86,10 +92,13 @@ $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $false
 
 # The SHA-256 of each release archive, from the openssl-<version>.tar.gz.sha256 file
-# OpenSSL published beside it (https://openssl-library.org/source/). See Get-PinnedDigest.
+# OpenSSL published beside it (https://openssl-library.org/source/); 4.0.3's from
+# Debian's signed openssl_4.0.3-1.dsc, with OpenSSL's signature of the archive
+# checked (-Archive, above). See Get-PinnedDigest.
 $Digests = @{
     '4.0.1' = '2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09'
     '4.0.2' = '736b467530f916737b7031310ccb21d8218c6229e61e8e160cd1d3458cd543a8'
+    '4.0.3' = '325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9'
 }
 
 # --- Set up a build log ---------------------------------------------------------

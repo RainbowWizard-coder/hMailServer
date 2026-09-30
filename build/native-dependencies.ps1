@@ -80,7 +80,7 @@ param(
    # The libraries the Windows build linked (%hMailServerLibs%, which build/build.ps1
    # and the installer scripts read): each linked library's version, taken from the
    # include path as always, is then also read from the built tree that path names
-   # (openssl-4.0.2-arm64, boost_1_92_0-arm64, postgresql-18.3-arm64 for -Platform
+   # (openssl-4.0.3-arm64, boost_1_92_0-arm64, postgresql-18.3-arm64 for -Platform
    # ARM64), from the file the library's own build records its version in, and a tree
    # that is missing or says another version fails the list. The list itself is the
    # same with it as without it: this only proves that it names what the machine

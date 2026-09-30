@@ -232,7 +232,7 @@ GitLab the `linux-sbom` job (`build/ci/linux-sbom.sh`) makes them the same way:
 Syft over the release tag's tree, after a check
 that the tree is the tag's, and `build/merge-native-dependencies-into-sbom.ps1`
 adds the native libraries Syft cannot see, which `build/native-dependencies.ps1`
-reads from `hMailServer.vcxproj` and the tree: OpenSSL 4.0.2, Boost 1.92.0,
+reads from `hMailServer.vcxproj` and the tree: OpenSSL 4.0.3, Boost 1.92.0,
 PostgreSQL 18.3's libpq, QuickJS 2025-04-26 from its `VERSION` file, and zlib
 1.3.2, vendored as source; the files the Windows installer carries but git does
 not - the .NET Desktop Runtime 10.0.12 (pinned by version and SHA-512), 7-Zip,
@@ -514,7 +514,7 @@ Until then every check is run by hand, as CONTRIBUTING.md lists them.
 Cryptography in use
 -------------------
 
-The server's cryptography is OpenSSL's - 4.0.2 in the Windows build, the
+The server's cryptography is OpenSSL's - 4.0.3 in the Windows build, the
 distribution's (3.0 or later) on Linux - with four exceptions: DPAPI protects
 stored secrets on Windows, Windows' own certificate chain verification checks
 outbound TLS peers there (`CertificateVerifier.cpp`), the legacy Blowfish

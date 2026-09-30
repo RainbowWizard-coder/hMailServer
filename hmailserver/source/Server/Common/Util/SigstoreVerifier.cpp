@@ -339,7 +339,7 @@ namespace HM
          if (index < 0)
             return false;
          // Const on the way in, and cast away only at the call that will not take
-         // it. The two OpenSSLs disagree about this pair: 4.0.2, which the Windows
+         // it. The two OpenSSLs disagree about this pair: 4.0.3, which the Windows
          // build links, returns a const X509_EXTENSION * here and takes one in
          // X509_EXTENSION_get_data, while 3.5 returns and takes a mutable one.
          // Declaring the variable const is accepted by both - adding const to a

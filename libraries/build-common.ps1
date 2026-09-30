@@ -18,7 +18,7 @@
     Usage from a build script:
 
         . (Join-Path -Path $PSScriptRoot -ChildPath "build-common.ps1")
-        Start-BuildLog -LogPath (Join-Path $PSScriptRoot "build-openssl.log") -Title "OpenSSL 4.0.2 build log"
+        Start-BuildLog -LogPath (Join-Path $PSScriptRoot "build-openssl.log") -Title "OpenSSL 4.0.3 build log"
         $libsPath = Resolve-HMailServerLibs
         $vsInstall = Resolve-VcVars64
         Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
@@ -394,7 +394,7 @@ function Get-PinnedDigest
 # -TargetDir puts the tree somewhere other than where the archive extracts to: the
 # archive is extracted into a scratch folder under $LibsPath and its $SrcDir is moved
 # to -TargetDir, which is what is cleaned first instead. The ARM64 libraries use it
-# (openssl-4.0.2-arm64 beside openssl-4.0.2), so that an ARM64 build never deletes
+# (openssl-4.0.3-arm64 beside openssl-4.0.3), so that an ARM64 build never deletes
 # the x64 tree the x64 build links against. Without it nothing changes.
 function Get-SourceArchive
 {

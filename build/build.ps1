@@ -153,8 +153,8 @@ if ($Platform -eq 'ARM64') {
 	$armOut = Join-Path $scriptRoot "..\hmailserver\source\Server\hMailServer\ARM64\$Configuration"
 	$libs = $env:hMailServerLibs
 	foreach ($dll in @(
-		"$libs\openssl-4.0.2-arm64\out64\bin\libcrypto-4-arm64.dll",
-		"$libs\openssl-4.0.2-arm64\out64\bin\libssl-4-arm64.dll",
+		"$libs\openssl-4.0.3-arm64\out64\bin\libcrypto-4-arm64.dll",
+		"$libs\openssl-4.0.3-arm64\out64\bin\libssl-4-arm64.dll",
 		"$libs\postgresql-18.3-arm64\builddir\src\interfaces\libpq\libpq.dll")) {
 		if (Test-Path $dll) {
 			Copy-Item -Force -Path $dll -Destination $armOut

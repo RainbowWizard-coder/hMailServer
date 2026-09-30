@@ -14,10 +14,10 @@ if /I "%HMS_PLATFORM%"=="ARM64" goto arm64
 
 NET STOP hMailServer
 
-xcopy /F /Y "%HMS_LIBS%\openssl-4.0.2\out64\bin\libcrypto-4-x64.dll" "%OUT_DIR%"
+xcopy /F /Y "%HMS_LIBS%\openssl-4.0.3\out64\bin\libcrypto-4-x64.dll" "%OUT_DIR%"
 if errorlevel 1 exit /b 1
 
-xcopy /F /Y "%HMS_LIBS%\openssl-4.0.2\out64\bin\libssl-4-x64.dll" "%OUT_DIR%"
+xcopy /F /Y "%HMS_LIBS%\openssl-4.0.3\out64\bin\libssl-4-x64.dll" "%OUT_DIR%"
 if errorlevel 1 exit /b 1
 
 xcopy /F /Y "%HMS_LIBS%\postgresql-18.3\builddir\src\interfaces\libpq\*.dll" "%OUT_DIR%"
@@ -63,10 +63,10 @@ rem Windows on ARM (hmailserver\docs\WindowsOnArm.md): the ARM64 libraries, buil
 rem by libraries\build-*.ps1 -Platform ARM64 into their own -arm64 folders. No
 rem MySQL client is copied: there is no ARM64 build of the one the x64 build
 rem vendors, and an x64 DLL cannot load into an ARM64 process.
-xcopy /F /Y "%HMS_LIBS%\openssl-4.0.2-arm64\out64\bin\libcrypto-4-arm64.dll" "%OUT_DIR%"
+xcopy /F /Y "%HMS_LIBS%\openssl-4.0.3-arm64\out64\bin\libcrypto-4-arm64.dll" "%OUT_DIR%"
 if errorlevel 1 exit /b 1
 
-xcopy /F /Y "%HMS_LIBS%\openssl-4.0.2-arm64\out64\bin\libssl-4-arm64.dll" "%OUT_DIR%"
+xcopy /F /Y "%HMS_LIBS%\openssl-4.0.3-arm64\out64\bin\libssl-4-arm64.dll" "%OUT_DIR%"
 if errorlevel 1 exit /b 1
 
 xcopy /F /Y "%HMS_LIBS%\postgresql-18.3-arm64\builddir\src\interfaces\libpq\*.dll" "%OUT_DIR%"

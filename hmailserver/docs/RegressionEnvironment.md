@@ -189,7 +189,7 @@ the list of what any new bench needs beyond this document:
   the bootstrapper is `https://aka.ms/vs/18/stable/vs_BuildTools.exe` (the
   `/release/` names are dead).
 * The prebuilt libraries under `C:\Dev\hMailLibs` - Boost 1.92 (only `boost\`
-  and `stage\` are used), OpenSSL 4.0.2's `out64` and PostgreSQL 18.3 - and the
+  and `stage\` are used), OpenSSL 4.0.3's `out64` and PostgreSQL 18.3 - and the
   machine-wide `hMailServerLibs` variable pointing at them.
 * Four things the repository does not carry, copied from a working bench:
   `libraries\msado28`, `libraries\mariadb-connector-c-3.4.9`,

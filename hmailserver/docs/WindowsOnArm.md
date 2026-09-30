@@ -257,12 +257,12 @@ the Insiders instance before the change above.
 
 Each script takes `-Platform ARM64` and builds into a tree of its own beside the
 x64 one. It never deletes or touches the x64 tree. The trees are
-`%hMailServerLibs%\openssl-4.0.2-arm64`, `boost_1_92_0-arm64` and
+`%hMailServerLibs%\openssl-4.0.3-arm64`, `boost_1_92_0-arm64` and
 `postgresql-18.3-arm64`, with the same layout inside as the x64 trees:
 
-    powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.2 -Platform ARM64
+    powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3 -Platform ARM64
     powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-boost.ps1 -Version 1.92.0 -Platform ARM64
-    powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3 -OpenSSLVersion 4.0.2 -Platform ARM64
+    powershell -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3 -OpenSSLVersion 4.0.3 -Platform ARM64
 
 In order, because libpq links against the ARM64 OpenSSL:
 

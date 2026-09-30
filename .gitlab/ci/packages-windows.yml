@@ -54,7 +54,7 @@
 # packages from nuget.org, Boost from archives.boost.io and PostgreSQL from
 # ftp.postgresql.org, each held to its pin. OpenSSL publishes its release archive on
 # GitHub only; libraries\build-openssl.ps1 takes the same bytes from Debian's archive
-# (openssl_4.0.2.orig.tar.gz has the pinned SHA-256). libpq's build tools that are not
+# (openssl_4.0.3.orig.tar.gz has the pinned SHA-256). libpq's build tools that are not
 # on the runner's PATH come from nuget.org (Python), PyPI (Meson, Ninja) and
 # SourceForge (winflexbison), each held to the SHA-256 libraries\get-libpq-tools.ps1
 # pins. bench150's hosts file sends github.com and its download hosts to 0.0.0.0, so
