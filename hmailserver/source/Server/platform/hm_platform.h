@@ -49,9 +49,10 @@
 // once and the tree stays as it is.
 namespace HMPlatform
 {
-   // The wide format, rewritten for glibc: %s -> %ls, %S and %hs -> %s. %% and
-   // every other conversion pass through unchanged; flags, width and precision
-   // between the % and the conversion are kept.
+   // The wide format, rewritten for glibc: %s -> %ls, %S and %hs -> %s, %I64 ->
+   // %ll, %I -> %z. %% and every other conversion pass through unchanged; flags,
+   // width and precision between the % and the conversion are kept. The same
+   // rewrite is what musl needs (Alpine).
    inline std::wstring WideFormatForGlibc(const wchar_t *format)
    {
       std::wstring out;
@@ -93,6 +94,21 @@ namespace HMPlatform
                if (*p) out.push_back(*p);
                continue;
             }
+            // MSVC's %I alone - %Iu, the tree's size_t - is the width of a size_t
+            // or a ptrdiff_t: C's z. glibc printed it all the same, reading the I
+            // as a flag of its own (the locale's alternative digits) and the
+            // argument as an unsigned int, cut to 32 bits; musl refuses the whole
+            // format, and the call wrote nothing - every IMAP FETCH item with a
+            // literal, BODY[] {n}, lost its name and size on Alpine (29 September
+            // 2026, hmailserver/docs/Alpine.md, "What musl changed").
+            if (*p == L'I')
+            {
+               out.push_back(L'z');
+               ++p;
+               if (!*p) break;
+               out.push_back(*p);
+               continue;
+            }
             out.push_back(*p++);
             if (*p == L'l') out.push_back(*p++);
             if (*p) out.push_back(*p);
@@ -118,7 +134,8 @@ namespace HMPlatform
       return out;
    }
 
-   // The narrow format, rewritten for glibc: %S -> %ls, %hs -> %s, %I64 -> %ll.
+   // The narrow format, rewritten for glibc: %S -> %ls, %hs -> %s, %I64 -> %ll,
+   // %I -> %z.
    inline std::string NarrowFormatForGlibc(const char *format)
    {
       std::string out;
@@ -153,6 +170,15 @@ namespace HMPlatform
             out.append("ll");
             p += 3;
             if (*p) out.push_back(*p);
+            continue;
+         }
+         // %Iu -> %zu, as in the wide format above.
+         if (*p == 'I')
+         {
+            out.push_back('z');
+            ++p;
+            if (!*p) break;
+            out.push_back(*p);
             continue;
          }
          if (*p == 'S')

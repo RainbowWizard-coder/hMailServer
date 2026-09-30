@@ -1,0 +1,120 @@
+# Contributor: Christopher Holloway <christopher.j.holloway@outlook.com>
+# Maintainer: Christopher Holloway <christopher.j.holloway@outlook.com>
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The Alpine Linux package (hmailserver/docs/Alpine.md): the server built with musl
+# from the release's source tarball (hmailserver/docs/SourceTarball.md), as a
+# distribution builds it - the live update off, naming the command that updates
+# it, and Alpine's shared Boost - with the OpenRC service from
+# platform/packaging/openrc in the tarball, in a -openrc subpackage, and hmctl in
+# -cli. For aports' testing/ it is copied there with hmailserver.pre-install and
+# hmailserver.post-upgrade beside it; the Maintainer line above is then the name of
+# whoever maintains it in aports.
+#
+# The tarball's SHA-512 is not here: the tree is committed before its tarball is
+# made. abuild checksum writes it, from the release's file once that is verified
+# against the release's Sigstore bundle (Alpine.md, "The APKBUILD in aports"), and
+# the CI job from the source-tarball job's file (build/ci/alpine.sh). Until then
+# abuild refuses to build, saying the file is missing in checksums.
+#
+# The version is checked against Version.h by build/check-linux-version-stamp.sh,
+# as the PKGBUILD's is: stamping a release edits this pkgver too.
+pkgname=hmailserver
+pkgver=6.3.5
+pkgrel=0
+pkgdesc="Mail server for SMTP, IMAP and POP3"
+url="https://gitlab.com/hmailserver/hmailserver"
+# The two architectures the project builds and tests; the pipeline builds this on
+# x86_64 (Alpine.md).
+arch="x86_64 aarch64"
+# The server's own licence and those of what is compiled into it: QuickJS (MIT),
+# the MIME coder (BSD-1-Clause), the Public Suffix List's rules (MPL-2.0).
+# CStdString's permissive notice has no SPDX identifier; the copyright file in the
+# tarball (platform/packaging/debian-src/debian/copyright) has it in full.
+license="AGPL-3.0-or-later AND MIT AND BSD-1-Clause AND MPL-2.0"
+# The certificate authorities every HTTPS request the server makes is checked
+# against (the update check, a JWKS, an object store, a webhook), through
+# OpenSSL's default paths - as the .deb, the .rpm and the PKGBUILD depend on
+# ca-certificates. The shared libraries abuild finds itself.
+depends="ca-certificates-bundle"
+makedepends="
+	boost-dev
+	cmake
+	gnu-libiconv-dev
+	libpq-dev
+	openldap-dev
+	openssl-dev
+	samurai
+	zlib-dev
+	"
+pkgusers="hmailserver"
+pkggroups="hmailserver"
+install="$pkgname.pre-install $pkgname.post-upgrade"
+subpackages="$pkgname-openrc $pkgname-cli:cli:noarch"
+source="https://gitlab.com/api/v4/projects/86730559/packages/generic/hmailserver/$pkgver/hmailserver-$pkgver.tar.gz"
+
+# GNU libiconv, not musl's iconv, which has no UTF-7 - the character set of IMAP's
+# folder names - and which CMakeLists.txt therefore refuses (Alpine.md, "What musl
+# changed").
+build() {
+	cmake -B build -G Ninja -S hmailserver/source/Server \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DIconv_IS_BUILT_IN=OFF \
+		-DIconv_INCLUDE_DIR=/usr/include/gnu-libiconv \
+		-DIconv_LIBRARY=/usr/lib/libiconv.so \
+		-DHM_LIVE_UPDATE=OFF \
+		-DHM_UPDATE_COMMAND="apk upgrade hmailserver" \
+		-DHM_BOOST_STATIC=OFF \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+# The server itself first, which has to get as far as printing its version (every
+# static constructor runs before main), then every tester program the build makes
+# beside it: none opens a socket, reads a configuration or needs a database.
+check() {
+	cd build
+	./hmailserver --version
+	local tester
+	for tester in ./*-tests; do
+		msg "$tester"
+		"$tester"
+	done
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	# The systemd unit; OpenRC's script takes its place.
+	rm -r "$pkgdir"/usr/lib/systemd
+	# CMake's FILES_MATCHING install of DBScripts leaves the one subdirectory that
+	# holds no .sql behind, empty.
+	find "$pkgdir"/usr/share/hmailserver -type d -empty -delete
+
+	local openrc=hmailserver/source/Server/platform/packaging/openrc
+	install -Dm755 "$openrc"/hmailserver.initd "$pkgdir"/etc/init.d/$pkgname
+	install -Dm644 "$openrc"/hmailserver.confd "$pkgdir"/etc/conf.d/$pkgname
+
+	# The configuration holds the database password: root's, and read by the
+	# service's group alone, as the .deb and the .rpm install it.
+	chmod 0750 "$pkgdir"/etc/hmailserver
+	chmod 0640 "$pkgdir"/etc/hmailserver/hMailServer.ini
+	chgrp -R hmailserver "$pkgdir"/etc/hmailserver
+
+	install -dm0750 -o hmailserver -g hmailserver \
+		"$pkgdir"/var/lib/hmailserver \
+		"$pkgdir"/var/lib/hmailserver/temp \
+		"$pkgdir"/var/lib/hmailserver/events \
+		"$pkgdir"/var/lib/hmailserver/database \
+		"$pkgdir"/var/log/hmailserver
+}
+
+cli() {
+	pkgdesc="$pkgdesc (command-line client)"
+	depends="python3"
+
+	amove usr/bin/hmctl
+}

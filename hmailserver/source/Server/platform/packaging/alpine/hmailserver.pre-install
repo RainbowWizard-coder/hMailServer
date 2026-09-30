@@ -1,0 +1,14 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The service's account and group, before the files they own are unpacked: a
+# system account with no password, no login shell and the message store as its
+# home, as the .deb's sysusers.d file declares it. Kept when the package is
+# removed, as Alpine keeps a package's account, because the store it owns is kept.
+
+addgroup -S hmailserver 2>/dev/null
+adduser -S -D -H -h /var/lib/hmailserver -s /sbin/nologin -G hmailserver -g hmailserver hmailserver 2>/dev/null
+
+exit 0

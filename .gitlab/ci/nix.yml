@@ -1,0 +1,68 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The project's Nix flake, built and tested: included from .gitlab-ci.yml
+# (hmailserver/docs/Nix.md; Roadmap3, "A Nix flake of the project's own").
+#
+#   nix   linix: build/ci/nix.sh in Docker Hub's nixos/nix - flake.lock held to
+#         releases.nixos.org, every output evaluated for x86_64-linux and
+#         aarch64-linux, nix build .#hmailserver (the server with nixpkgs'
+#         libraries, its --version and every tester program in checkPhase), then
+#         the NixOS test (nix/test.nix: services.hmailserver against PostgreSQL,
+#         SMTP and IMAP asked for their greetings) where it can run.
+#
+# Where the NixOS test runs: a NixOS test boots a QEMU machine, which wants KVM,
+# and linix, itself a virtual machine, has no nested KVM (no /dev/kvm, no vmx or svm
+# flag, 29 September 2026), and its runner passes no device into a job. So the job
+# runs the test under QEMU's TCG, which needs no KVM (HM_NIXOS_TEST_TCG below). This
+# job's script, run by hand on linix in its image on 30 September 2026, built the
+# package in 22 minutes and ran the test in 5 (Nix.md, "What has run"). A runner
+# with /dev/kvm runs it with KVM, and nothing here changes.
+#
+# The image is the one the scorecard job pins, nixos/nix 2.35.2 by the digest of its
+# index (.gitlab/ci/scorecard.yml), which trusts cache.nixos.org-1 and substitutes
+# nixpkgs' builds from cache.nixos.org alone. .no-github keeps GitHub out of the job:
+# the image has no /etc/nsswitch.conf, so without it curl and nix would ask DNS
+# before the runner's entries (.gitlab/ci/no-github.yml); and the flake registry,
+# which names GitHub, is off (NIX_CONFIG below). nixpkgs itself is NixOS's release
+# tarball from releases.nixos.org, pinned in flake.lock, which build/ci/nix.sh holds
+# to that.
+#
+# When it runs: for a push to master or a batch* branch that changes more than
+# documentation (.own-runners' rules), and never for a v* tag - a check, not a gate
+# of the release, which release does not need - nor for a merge request or a
+# schedule. It joins linix-package-build, the resource group of the package builds,
+# so that it builds while no package build does.
+
+nix:
+  extends: .no-github
+  stage: build
+  tags: [linix]
+  image:
+    name: nixos/nix:2.35.2@sha256:7a007c766426c1877758ddc5cb87a965ac131fc78c582ce0083d922d51ae945c
+    pull_policy: if-not-present
+  needs: []
+  timeout: 3 hours
+  resource_group: linix-package-build
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BRANCH !~ /^batch/
+      when: never
+    - !reference [.own-runners, rules]
+  variables:
+    HM_OUT_DIR: nix-results
+    HM_NIXOS_TEST_TCG: "1"
+    NIX_CONFIG: |
+      experimental-features = nix-command flakes
+      flake-registry =
+      cores = 4
+      max-jobs = 2
+  script:
+    - bash build/ci/nix.sh
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - nix-results/

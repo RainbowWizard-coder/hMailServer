@@ -1,0 +1,20 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# After an upgrade, the database schema brought forward to the new server's, as the
+# .deb's postinst does, when the configuration names a database - a server with
+# none configured has no schema to upgrade. As the service's account. The service
+# is not restarted: apk leaves that to the administrator, and says so.
+
+if grep -q '^Type=[A-Za-z]' /etc/hmailserver/hMailServer.ini 2> /dev/null; then
+	if ! su -s /bin/sh -c 'exec /usr/bin/hmailserver --upgrade-database' hmailserver; then
+		echo "hmailserver: the database schema was not upgraded; run" >&2
+		echo "   su -s /bin/sh -c 'hmailserver --upgrade-database' hmailserver" >&2
+		echo "and read what it says before starting the service." >&2
+	fi
+	echo "hmailserver: restart the service to run the new server: rc-service hmailserver restart"
+fi
+
+exit 0

@@ -454,6 +454,27 @@ namespace
       return configuration == "/etc/hmailserver/hMailServer.ini";
    }
 
+   // Whether the OpenRC service will find it instead: Alpine's hmailserver-openrc
+   // (platform/packaging/openrc/hmailserver.initd, hmailserver/docs/Alpine.md) runs
+   // --apply-new-install-defaults --if-marked as the service's account before every
+   // start, as the unit's ExecStartPre does, with the packaged configuration unless
+   // /etc/conf.d/hmailserver names another. OpenRC is installed (openrc-run, which
+   // runs the script - not /run/openrc, which a container that has not started
+   // OpenRC yet lacks), the service is, and this command read that configuration.
+   // Nothing sandboxes where the service writes, so there is no ReadWritePaths to
+   // ask about.
+   bool OpenRcServiceFindsMarker()
+   {
+      if (::access("/sbin/openrc-run", X_OK) != 0 && ::access("/usr/sbin/openrc-run", X_OK) != 0)
+         return false;
+
+      if (::access("/etc/init.d/hmailserver", X_OK) != 0)
+         return false;
+
+      const std::string configuration = HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str();
+      return configuration == "/etc/hmailserver/hMailServer.ini";
+   }
+
    // Whether the unit may write where the marker is: its ReadWritePaths. Anywhere
    // else its first start can neither write the certificate there nor remove the
    // marker until a drop-in adds the directory - which the server needs for its
@@ -573,15 +594,18 @@ namespace
       }
       else
       {
-         // "Secures it" only where the unit will look; everywhere else the
-         // administrator is told the one command that does it.
+         // "Secures it" only where the unit or the OpenRC service will look;
+         // everywhere else the administrator is told the one command that does it.
          const HM::String marker = HM::NewInstallDefaults::FirstStartMarkerFile();
          const HM::AnsiString configuration(HM::IniFileSettings::GetInitializationFile());
+         const bool unitFinds = PackagedUnitFindsMarker();
          if (!HM::FileUtilities::WriteToFile(marker, HM::AnsiString("made by hmailserver --create-database; the unit's first start secures the new database and removes this file (docs/SecureDefaults.md)\n")))
             std::fprintf(stderr, "%s could not be written, so the first start will not secure the new database; run hmailserver --config %s --apply-new-install-defaults as the user the server runs as, with the server stopped (docs/SecureDefaults.md).\n",
                HM::AnsiString(marker).c_str(), configuration.c_str());
-         else if (!PackagedUnitFindsMarker())
-            std::printf("Only the packaged systemd unit's first start secures a new database by itself - on a machine systemd runs, with /etc/hmailserver/hMailServer.ini - and this is not that (a container, the AppImage or another configuration): secure it with hmailserver --config %s --apply-new-install-defaults, run as the user the server runs as with the server stopped (docs/SecureDefaults.md).\n",
+         else if (!unitFinds && OpenRcServiceFindsMarker())
+            std::printf("The OpenRC service's next start (rc-service hmailserver start), if it comes within a day of this, secures it: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and a password refused without TLS from any address but this machine's. A start later than that leaves it for hmailserver --apply-new-install-defaults, run by hand as the user the server runs as with the service stopped (docs/SecureDefaults.md).\n");
+         else if (!unitFinds)
+            std::printf("Only the packaged service's first start secures a new database by itself - the systemd unit on a machine systemd runs, or the OpenRC service where OpenRC is installed, with /etc/hmailserver/hMailServer.ini - and this is not that (a container, the AppImage or another configuration): secure it with hmailserver --config %s --apply-new-install-defaults, run as the user the server runs as with the server stopped (docs/SecureDefaults.md).\n",
                configuration.c_str());
          else if (!UnitMayWrite(marker))
             std::printf("Its first start under systemd, if it comes within a day of this, secures it only once the unit may write to %s, which is outside the unit's ReadWritePaths: add the data directory with a drop-in (systemctl edit hmailserver) before that start, as the server needs for its mail in any case (docs/SecureDefaults.md).\n",

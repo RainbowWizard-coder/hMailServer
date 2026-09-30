@@ -1,0 +1,23 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# /etc/conf.d/hmailserver: what /etc/init.d/hmailserver reads before it starts the
+# server (hmailserver/docs/Alpine.md). Each value here is the one the script takes
+# when it is not set.
+
+# The configuration the server reads.
+#cfgfile="/etc/hmailserver/hMailServer.ini"
+
+# The directories the script makes, owned by hmailserver and 0750, before each
+# start. When the configuration's DataFolder or LogFolder is moved, name the new
+# ones here too: the server itself makes neither.
+#datadir="/var/lib/hmailserver"
+#logdir="/var/log/hmailserver"
+
+# The capabilities the server runs with, in libcap's IAB form: ambient
+# CAP_NET_BIND_SERVICE, for the ports below 1024, and nothing else. The auto-ban
+# firewall hook (AutoBanFirewall=1) changes nftables or iptables only with
+# CAP_NET_ADMIN as well - a bigger thing to grant a mail server, so granted
+# deliberately (/usr/lib/hmailserver/autoban-hook says more):
+#capabilities="^cap_net_bind_service,^cap_net_admin"

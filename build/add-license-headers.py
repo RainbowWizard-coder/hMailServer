@@ -89,12 +89,15 @@ LINE_COMMENT = {
     '.cpp': '//', '.h': '//', '.hpp': '//', '.idl': '//', '.cs': '//', '.js': '//',
     '.ps1': '#', '.psm1': '#', '.py': '#', '.sh': '#', '.cmake': '#',
     '.conf': '#', '.service': '#', '.logrotate': '#',
+    # The Nix flake (flake.nix, nix/), and the OpenRC service and the Alpine package's
+    # install scripts under the Linux packaging.
+    '.nix': '#', '.initd': '#', '.confd': '#', '.pre-install': '#', '.post-upgrade': '#',
     '.ini': ';',
 }
 BLOCK_COMMENT = {'.xaml', '.resx', '.md'}
 BY_NAME = {'CMakeLists.txt': '.cmake',
            # The Linux packaging's files without an extension.
-           'PKGBUILD': '.sh', 'Dockerfile': '.sh', 'autoban-hook': '.sh'}
+           'PKGBUILD': '.sh', 'APKBUILD': '.sh', 'Dockerfile': '.sh', 'autoban-hook': '.sh'}
 # The maintainer scripts of the .deb and the .rpm, named by their hook, and a
 # Debian source package's debian/rules. Only these names: the rest of a debian/
 # directory without an extension - changelog, control, copyright, watch - is read
@@ -159,11 +162,14 @@ def with_line_comments(lines, marker, cr, add):
     m = marker.encode()
 
     # A shebang stays on line 1, a Python encoding line with it, and a
-    # PKGBUILD's Maintainer line, which opens the file by convention.
+    # PKGBUILD's Maintainer line, which opens the file by convention - in an
+    # APKBUILD after its Contributor lines, which aports puts first.
     start = 0
     if lines and lines[0].startswith(b'#!'):
         start = 1
     if start < len(lines) and CODING.match(lines[start]):
+        start += 1
+    while start < len(lines) and lines[start].startswith(b'# Contributor:'):
         start += 1
     if start < len(lines) and lines[start].startswith(b'# Maintainer:'):
         start += 1

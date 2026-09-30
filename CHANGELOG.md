@@ -294,6 +294,57 @@ for a stray `#` number or `@` name.
   installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its autopkgtest;
   a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had corrupted, not a GCC
   16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
+- **A Nix flake of the project's own: `nix run gitlab:hmailserver/hmailserver`** (not yet run in a pipeline).
+  `flake.nix` at the top of the repository builds the Linux server as a Nix package, `packages.<system>.hmailserver`
+  for x86_64-linux and aarch64-linux, with nixpkgs' Boost, OpenSSL, libpq, OpenLDAP and zlib, the live update off
+  naming `nix flake update hmailserver`, the MariaDB connector on the server's RUNPATH for the `dlopen` a MySQL
+  database needs, and the server's `--version` and every tester program in `checkPhase`; `hmctl` is its `cli` output.
+  nixpkgs is NixOS 26.05's release tarball from releases.nixos.org, pinned by its NAR hash in `flake.lock` and
+  imported as a plain tree, never `github:NixOS/nixpkgs`, and the flake registry is not read. `nixosModules.default`
+  is `services.hmailserver`: the server under systemd with the packaged unit's sandbox;
+  `/etc/hmailserver/hMailServer.ini` with its directories and database set from the options at each start and every
+  other line kept, the stored-secrets key among them, and the database password too when no password file gives
+  one; a local PostgreSQL reached over its socket by peer authentication, root mapped to the same role so that the
+  packaging guide's `sudo hmailserver` commands work, and the server started after `postgresql.target`, once
+  PostgreSQL's setup has made that role; the database made and upgraded before each start and the first start's
+  secure defaults; and options for another database, an administrator password file, settings and the firewall.
+  `checks.<system>.nixos` starts that machine and asks SMTP (with STARTTLS) and IMAP for their greetings, as the
+  Debian package's autopkgtest does, and the REST API for its status, has root make the stored-secrets key, holds the
+  service to no restart before that, and asks again after a restart, which must keep the key and a database password
+  typed into the file.
+  The new `nix` job (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; master and `batch*`) holds the lock to
+  releases.nixos.org, evaluates every output for both systems, builds the package and runs the NixOS test under
+  QEMU's TCG, since linix has no KVM. On 29 September 2026 the test passed with KVM and under TCG, and the job's own
+  script passed end to end on linix, without KVM, in 27 minutes. See [Nix.md](hmailserver/docs/Nix.md).
+- **Alpine Linux: the server on musl, an OpenRC service and an APKBUILD** (not yet run in a pipeline). The server had
+  never been built on musl; on Alpine 3.24 four things were musl's, each fixed where it was. `File.cpp` took
+  `strerror_r`'s answer as glibc's GNU one gives it, and musl's is the POSIX one. The server named US-ASCII to iconv
+  as `ANSI_X3.4-1968`, glibc's name, which musl's iconv does not know, so a `us-ascii` part did not convert and a
+  script's text added to an empty body was lost; it is now `US-ASCII`, which every iconv knows. And musl's iconv has
+  no UTF-7, in which IMAP folder names are written: `CMakeLists.txt` now asks the iconv it found for UTF-7 and
+  US-ASCII and refuses one without them, naming GNU libiconv, which the Alpine package builds with. And the tree
+  writes a `size_t` as MSVC's `%Iu`, which the POSIX build handed to the C library as it was: glibc read the `I` as a
+  flag of its own and printed the size, cut to 32 bits, and musl refused the format and wrote nothing, so every IMAP
+  FETCH item sent as a literal (`BODY[...] {n}`, `BINARY`, `PREVIEW`) lost its name and size; `%I` is now rewritten
+  as C's `%z`, which also mends a size above 4 GB on glibc. `platform/packaging/alpine/APKBUILD` (with
+  `hmailserver.pre-install`, which makes the account, and `hmailserver.post-upgrade`, which upgrades the schema)
+  builds `hmailserver`, `hmailserver-openrc` and `hmailserver-cli` from the release's source tarball with Alpine's
+  libraries, the live update off naming `apk upgrade hmailserver`, depends on `ca-certificates-bundle` as the other
+  packages depend on `ca-certificates`, and runs the server's `--version` and every tester in `check()`;
+  `apkbuild-lint` has nothing to say about it, and `build/check-linux-version-stamp.sh` holds its `pkgver` to
+  `Version.h`, so stamping a release now edits it too (RELEASE.md).
+  `platform/packaging/openrc/hmailserver.initd` runs the server as `hmailserver` with `CAP_NET_BIND_SERVICE` ambient,
+  no new privileges and umask 0027, applies the first start's secure defaults, reloads on SIGHUP and gives a stop
+  five minutes to drain; `hmailserver --create-database` says, where OpenRC and that service are installed, that the
+  service's next start secures the new database, where it said only the systemd unit's first start would. New CI
+  jobs (`.gitlab/ci/alpine.yml`, `build/ci/alpine.sh`; master and `batch*`):
+  `alpine-package` runs the APKBUILD with abuild on the source tarball, `alpine-install` installs the packages in a
+  clean container, starts the server with `rc-service` against PostgreSQL and asks SMTP (with STARTTLS) and IMAP, and
+  `alpine-suite` runs the whole Linux suite against the installed server in Alpine, with Alpine's .NET SDK. On linix
+  on 29 September 2026 the package built and passed `check()`, the install and start passed, and the whole Linux
+  suite passed against the installed server with the counts batch42's glibc suite had that day: 1897 passed, 331
+  skipped, none failed, of 2228. The aports merge request is a named maintainer's (Roadmap3, "Alpine Linux"). See
+  [Alpine.md](hmailserver/docs/Alpine.md).
 - **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file** (not yet run in a pipeline). Until
   now the release's `.deb` and `.rpm`, and every per-release package built with them, carried QuickJS's licence and
   nothing of the project's own: no AGPL-3.0 text, which the AGPL's sections 4 and 6 ask to go with every copy, and no

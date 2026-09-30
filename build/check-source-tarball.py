@@ -130,6 +130,11 @@ OTHER_LINUX_SCRIPTS = (
     "build/ci/packages/srcpkg-deb.sh",
     "build/ci/packages/srcpkg-rpm.sh",
     "build/ci/packages/srcpkg-install.sh",
+    # The Alpine package (hmailserver/docs/Alpine.md): the APKBUILD, which installs
+    # the OpenRC script from the tarball, and the jobs that build it from the tarball,
+    # install it and run the suite against it.
+    "hmailserver/source/Server/platform/packaging/alpine/APKBUILD",
+    "build/ci/alpine.sh",
 )
 # The Debian source package's copyright file, whose Files-Excluded is this list as
 # --files-excluded prints it, then the Debian package's own patterns: test data the

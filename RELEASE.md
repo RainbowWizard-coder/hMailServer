@@ -462,9 +462,9 @@ that administrators upgrade by hand.
    several steps past the last stable - and it was missing from this step until
    6.2.23.
 
-7. **Version stamp**, fourteen files. The Windows nine: `Version.h` (version,
+7. **Version stamp**, fifteen files. The Windows nine: `Version.h` (version,
    numeric, build), `section_setup_64.iss`, and all seven `.csproj`
-   `<Version>` values. Then five outside the Windows build:
+   `<Version>` values. Then six outside the Windows build:
    * `hmailserver/source/Tools/Cli/HmailServer.psd1` - `ModuleVersion`, the
      PowerShell module's version on the PowerShell Gallery. A data file cannot
      read `Version.h`, so it is written; `build/check-cli-packages.py` fails the
@@ -474,6 +474,10 @@ that administrators upgrade by hand.
    * `hmailserver/source/Server/platform/packaging/PKGBUILD` - `pkgver`, which
      is also the tag the PKGBUILD fetches. It cannot be derived: `makepkg`
      parses the PKGBUILD as a shell script and never runs CMake.
+   * `hmailserver/source/Server/platform/packaging/alpine/APKBUILD` - `pkgver`,
+     the release whose source tarball the Alpine package builds, for the same
+     reason: `abuild` parses it as a shell script
+     ([Alpine.md](hmailserver/docs/Alpine.md)).
    * `hmailserver/source/Server/platform/packaging/debian-src/debian/changelog` -
      its one entry, `hmailserver (<version>+ds-1) unstable`, and the date line
      under it ([SourcePackages.md](hmailserver/docs/SourcePackages.md)).

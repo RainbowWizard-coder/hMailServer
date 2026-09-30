@@ -332,6 +332,54 @@ find_package(PostgreSQL REQUIRED)
 # invisible here.
 find_package(Iconv REQUIRED)
 
+# And what that iconv converts. The server hands it the character sets of the
+# code page table (Common/Util/Unicode.cpp, IconvNameForCodePage), and not every
+# C library's iconv has them all: musl's - Alpine's - has no UTF-7, which IMAP
+# folder names are written in (modified UTF-7, RFC 3501), so a server built on it
+# gives every folder name outside ASCII as nothing, and says so nowhere (musl
+# 1.2.6 on Alpine 3.24, 29 September 2026; hmailserver/docs/Alpine.md, "What musl
+# changed"). So the build asks the iconv it found for UTF-7 and US-ASCII, both
+# ways, and refuses one without them, naming GNU libiconv, which has every
+# character set the table names; the Alpine package builds with it
+# (platform/packaging/alpine/APKBUILD). musl's has no ISO-2022-JP-2 either, and
+# writes no BIG5, and a glibc without its extra gconv modules (Fedora's, EL's and
+# openSUSE's glibc-gconv-extra, not installed by default) has neither: messages in
+# those two are not read or written in them there, which is not refused here.
+# Not asked when cross-compiling, where the program cannot run.
+if(NOT CMAKE_CROSSCOMPILING)
+   include(CheckCSourceRuns)
+   # Asked again at every configure, so that an iconv changed on the command line
+   # is the one answered for, not the answer cached for the one before.
+   unset(HM_ICONV_CONVERTS_UTF7 CACHE)
+   set(CMAKE_REQUIRED_LIBRARIES Iconv::Iconv)
+   check_c_source_runs([=[
+#include <iconv.h>
+int main(void)
+{
+   static const char *names[] = { "UTF-7", "US-ASCII" };
+   for (unsigned i = 0; i < sizeof names / sizeof names[0]; i++)
+   {
+      iconv_t to = iconv_open(names[i], "WCHAR_T");
+      iconv_t from = iconv_open("WCHAR_T", names[i]);
+      if (to == (iconv_t) -1 || from == (iconv_t) -1)
+         return 1;
+      iconv_close(to);
+      iconv_close(from);
+   }
+   return 0;
+}
+]=] HM_ICONV_CONVERTS_UTF7)
+   unset(CMAKE_REQUIRED_LIBRARIES)
+   if(NOT HM_ICONV_CONVERTS_UTF7)
+      message(FATAL_ERROR
+         "This C library's iconv does not convert UTF-7, in which IMAP folder names are written, "
+         "or US-ASCII: the server would lose every folder name outside ASCII. musl's is such an iconv. "
+         "Build against GNU libiconv instead (Alpine: apk add gnu-libiconv-dev, then configure with "
+         "-DIconv_IS_BUILT_IN=OFF -DIconv_INCLUDE_DIR=/usr/include/gnu-libiconv "
+         "-DIconv_LIBRARY=/usr/lib/libiconv.so).")
+   endif()
+endif()
+
 # OpenLDAP. LdapClient.cpp is written against wldap32 on Windows and against
 # libldap here - the same function names over a different library, which is why
 # that file has two arms - and directory authentication on this platform is that

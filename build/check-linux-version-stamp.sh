@@ -28,6 +28,8 @@
 #   3. pkgver in platform/packaging/PKGBUILD equals Version.h's version. This one
 #      genuinely cannot be derived: makepkg parses the PKGBUILD as a shell script
 #      and never runs CMake.
+#   3a. pkgver in platform/packaging/alpine/APKBUILD equals it too, for the same
+#      reason: abuild parses the APKBUILD as a shell script.
 #   3b. The source packages carry the version as their formats require, and
 #      neither can derive it: debian-src/debian/changelog's one entry is
 #      <version>+ds-<revision> (the repacked tarball's version), and
@@ -78,6 +80,7 @@ VERSION_H="${SERVER_DIR}/Common/Application/Version.h"
 CMAKELISTS="${SERVER_DIR}/CMakeLists.txt"
 PACKAGING="${SERVER_DIR}/platform/packaging"
 PKGBUILD="${PACKAGING}/PKGBUILD"
+APKBUILD="${PACKAGING}/alpine/APKBUILD"
 DEB_CHANGELOG="${PACKAGING}/debian-src/debian/changelog"
 RPM_SPEC="${PACKAGING}/rpm/hmailserver.spec"
 
@@ -92,7 +95,7 @@ fail()
    failures=$((failures + 1))
 }
 
-for file in "${VERSION_H}" "${CMAKELISTS}" "${PKGBUILD}" "${DEB_CHANGELOG}" "${RPM_SPEC}"; do
+for file in "${VERSION_H}" "${CMAKELISTS}" "${PKGBUILD}" "${APKBUILD}" "${DEB_CHANGELOG}" "${RPM_SPEC}"; do
    if [ ! -f "${file}" ]; then
       fail "${file#"${REPO_ROOT}/"} is not there. This check cannot say anything about the version stamps without it."
       exit 1
@@ -163,6 +166,18 @@ else
    echo "PKGBUILD pkgver                            ${PKGVER}"
 fi
 
+# ---------------------------------------------------------------- 3a. the APKBUILD
+
+APK_PKGVER="$(sed -n 's/^pkgver=\(.*\)$/\1/p' "${APKBUILD}" | head -n 1 | tr -d ' \t\r')"
+
+if [ -z "${APK_PKGVER}" ]; then
+   fail "platform/packaging/alpine/APKBUILD has no pkgver= line."
+elif [ "${APK_PKGVER}" != "${VERSION}" ]; then
+   fail "platform/packaging/alpine/APKBUILD says pkgver=${APK_PKGVER} and Version.h says ${VERSION}. Stamping a release means editing both. The Alpine package would build the source tarball of ${APK_PKGVER}, which is not the release being made."
+else
+   echo "APKBUILD pkgver                            ${APK_PKGVER}"
+fi
+
 # ------------------------------------------------------- 3b. the source packages
 
 # The Debian changelog: one entry, whose version is the repacked tarball's.
@@ -196,17 +211,19 @@ fi
 
 # Deliberately narrow: "6.x.y" and nothing else, so the OpenSSL 3.0, Boost 1.83
 # and CMake 3.22 that these files legitimately name are not swept up. The
-# PKGBUILD's own pkgver line is the one occurrence there is meant to be.
+# PKGBUILD's own pkgver line is the one occurrence there is meant to be, and the
+# APKBUILD's (3a) its twin.
 # The stamps 3b holds are the other occurrences meant to be: the Debian changelog's
 # first line, the spec's Version: and its one %changelog entry.
 stray="$(grep -rnE '6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null \
    | grep -v '^[^:]*/PKGBUILD:[0-9]*:pkgver=' \
+   | grep -v '^[^:]*/alpine/APKBUILD:[0-9]*:pkgver=' \
    | grep -v '^[^:]*/debian-src/debian/changelog:1:hmailserver (' \
    | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:Version:' \
    | grep -v '^[^:]*/rpm/hmailserver\.spec:[0-9]*:\* .* - [0-9][0-9.]*-[0-9][0-9]*$' || true)"
 
 if [ -n "${stray}" ]; then
-   fail "A version literal has appeared under platform/packaging/ outside the stamps 3 and 3b hold (the PKGBUILD's pkgver, the Debian changelog's entry, the spec's Version: and %changelog entry). Nothing there should spell a version out - the file names are '<version>' in the README for exactly this reason, because a literal in prose goes stale the release after it is written:"
+   fail "A version literal has appeared under platform/packaging/ outside the stamps 3, 3a and 3b hold (the PKGBUILD's and the APKBUILD's pkgver, the Debian changelog's entry, the spec's Version: and %changelog entry). Nothing there should spell a version out - the file names are '<version>' in the README for exactly this reason, because a literal in prose goes stale the release after it is written:"
    echo "${stray}" | sed "s|^${REPO_ROOT}/||" | sed 's/^/    /'
 fi
 
@@ -244,9 +261,10 @@ if [ "${failures}" -ne 0 ]; then
    echo "${failures} version-stamp problem(s). The Linux packages would be built, named and"
    echo "published at a version that does not match what the server reports for itself."
    echo
-   echo "Stamping a release on this platform is four edits and no more:"
+   echo "Stamping a release on this platform is five edits and no more:"
    echo "  hmailserver/source/Server/Common/Application/Version.h   HMAILSERVER_VERSION and HMAILSERVER_VERSION_NUMERIC"
    echo "  hmailserver/source/Server/platform/packaging/PKGBUILD    pkgver"
+   echo "  .../platform/packaging/alpine/APKBUILD                   pkgver"
    echo "  .../platform/packaging/debian-src/debian/changelog       its one entry: <version>+ds-1, the date"
    echo "  .../platform/packaging/rpm/hmailserver.spec              Version:, and its one %changelog entry"
    exit 1

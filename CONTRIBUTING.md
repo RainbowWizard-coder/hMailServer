@@ -473,7 +473,7 @@ something which already exists.
 | `build\test-get-dotnet-runtime.ps1` | `get-dotnet-runtime.ps1` places the pinned .NET Desktop Runtime and nothing else: a file whose SHA-512 is not the pinned one is refused, on disk or downloaded, and a pin that is not one (a moving link, no SHA-512, another channel) is refused | Either PowerShell, and no network: a loopback listener serves the downloads. After any change to the script or to the pin |
 | `node build/check-portal-smime.js` | The webmail's S/MIME module against OpenSSL, both ways | Node 20 or later and `openssl` on `PATH` |
 | `node build/check-portal-openpgp.js` | The webmail's OpenPGP module against GnuPG's fixtures, and back to `gpg` when it is present | Node 20 or later; `gpg` optional |
-| `bash build/check-linux-version-stamp.sh` | The Linux stamps (the PKGBUILD's `pkgver`) agree with `Version.h` | Git Bash, WSL or Linux |
+| `bash build/check-linux-version-stamp.sh` | The Linux stamps (the PKGBUILD's and the APKBUILD's `pkgver`, the source packages' versions) agree with `Version.h` | Git Bash, WSL or Linux |
 | `editorconfig-checker` | `.editorconfig` on every text file, with the exclusions in `.editorconfig-checker.json` | `ec -config .editorconfig-checker.json`. CI uses Alpine's package, 3.0.3, which reads the configuration only when named; the GitHub workflow used v3.11.3 |
 | `dotnet format --verify-no-changes` | C# formatting, on `"hmailserver/source/Tools/hMailServer Tools.sln"` and on `hmailserver/source/Tools/ControlPanel/ControlPanel.csproj` | Windows; the .NET 10 SDK. CI runs it in *windows-dotnet* |
 

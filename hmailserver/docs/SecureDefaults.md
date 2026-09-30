@@ -209,13 +209,21 @@ sudo systemctl edit hmailserver
 `--create-database` says which of these it found when it made the database: that
 the first start under systemd secures it, if it comes within a day of
 `--create-database`, and a run by hand after that; that it will once the unit may write to
-the data directory; or - with a configuration other than the packaged one, or on
-a machine systemd does not run, such as a container - that nothing will do it by
+the data directory; that the OpenRC service's next start does (below); or - with a
+configuration other than the packaged one, or on a machine neither systemd runs
+nor OpenRC is installed on, such as a container - that nothing will do it by
 itself, and the command that does.
 
 The Arch package installs the same unit, and `--create-database` is the same
 command there, so its first start does the same; it needs no maintainer script
 for it.
+
+**The Alpine package's OpenRC service** (`/etc/init.d/hmailserver`,
+[Alpine.md](Alpine.md)) runs the same `--apply-new-install-defaults --if-marked`
+as the service's account before every start, so its next start does the same
+within the same day. `--create-database` says so where `openrc-run` and that
+service are installed and the configuration is the packaged one; OpenRC has no
+`ReadWritePaths` to add a moved `DataFolder` to.
 
 **By hand**, for anything else - the AppImage, the container, a server started
 by hand rather than by the unit, or a database whose defaults were left for

@@ -147,6 +147,7 @@ namespace hMailServer.ControlPanel.Services
       {
          "AccountRecovery.md",
          "ActiveActive.md",
+         "Alpine.md",
          "BrandLogos.md",
          "Channels.md",
          "CommandLinePackages.md",
@@ -172,6 +173,7 @@ namespace hMailServer.ControlPanel.Services
          "MessageStore.md",
          "MigratingDatabaseBackend.md",
          "Mirroring.md",
+         "Nix.md",
          "ObjectStorage.md",
          "OutboundContentPolicy.md",
          "OutboundShaping.md",

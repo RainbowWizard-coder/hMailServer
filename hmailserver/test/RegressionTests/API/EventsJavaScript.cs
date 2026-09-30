@@ -924,7 +924,7 @@ namespace RegressionTests.API
       // ------------------------------------------------------------------ ported: API/Basics.cs
 
       [Test]
-      [Description("EventLog.Write writes the event log as UTF-16 with its byte order mark (Basics.TestEventLog)")]
+      [Description("EventLog.Write writes the event log as UTF-16 with its byte order mark on Windows, and as UTF-8 without one elsewhere (Basics.TestEventLog)")]
       public void EventLogIsWrittenAsUtf16()
       {
          InstallScript(Lines(
@@ -941,11 +941,33 @@ namespace RegressionTests.API
 
          StringAssert.Contains("HOWDY", WaitForEventLog("HOWDY"));
 
+         byte[] bytes;
          using (var stream = new FileStream(eventLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-         using (var reader = new BinaryReader(stream))
+         using (var copy = new MemoryStream())
          {
-            ClassicAssert.AreEqual(255, reader.ReadByte());
-            ClassicAssert.AreEqual(254, reader.ReadByte());
+            stream.CopyTo(copy);
+            bytes = copy.ToArray();
+         }
+
+         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+         {
+            // UTF-16LE after its byte order mark, as it always was on Windows.
+            ClassicAssert.AreEqual(255, bytes[0]);
+            ClassicAssert.AreEqual(254, bytes[1]);
+         }
+         else
+         {
+            // UTF-8 with no mark elsewhere, as the application log is, from 6.3.6
+            // (Logger.cpp, WritesUtf16_): no FF FE and no EF BB BF at the start, and
+            // not a NUL second byte under a first that is not, which is how the
+            // server itself tells a UTF-16 log without its mark (ConvertUtf16Log_).
+            // The file is the server's whole life's event log here (DeleteEventLog
+            // only takes a mark), so its first bytes are those of its first line.
+            ClassicAssert.IsTrue(bytes.Length >= 2, "the event log is shorter than two bytes");
+            ClassicAssert.IsFalse(bytes[0] == 0xFF && bytes[1] == 0xFE, "the event log starts with UTF-16's byte order mark");
+            ClassicAssert.IsFalse(bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF, "the event log starts with a UTF-8 byte order mark");
+            ClassicAssert.IsFalse(bytes[0] != 0 && bytes[1] == 0, "the event log starts as UTF-16 without its mark");
+            StringAssert.Contains("HOWDY", Encoding.UTF8.GetString(bytes));
          }
       }
 

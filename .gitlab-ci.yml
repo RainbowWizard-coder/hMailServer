@@ -137,6 +137,10 @@ include:
   - local: .gitlab/ci/gcc.yml
   # OpenSSF Scorecard, weekly, published on the feed's site; dormant without GITLAB_AUTH_TOKEN (docs/ContinuousIntegration.md, "OpenSSF Scorecard").
   - local: .gitlab/ci/scorecard.yml
+  # The project's Nix flake built and its NixOS test run, on master and batch* (docs/Nix.md).
+  - local: .gitlab/ci/nix.yml
+  # The server built with musl on Alpine by its APKBUILD, installed and started with OpenRC, and the Linux suite run there, on master and batch* (docs/Alpine.md).
+  - local: .gitlab/ci/alpine.yml
   # The release channels: a signed release published to Docker Hub, Quay, ECR Public, the AUR, a Launchpad PPA, Copr, OBS, Chocolatey and the Snap Store, by hand on master, each dormant until its account exists (docs/Channels.md).
   - local: .gitlab/ci/channels.yml
 

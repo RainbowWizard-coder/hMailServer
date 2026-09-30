@@ -1,0 +1,73 @@
+#!/sbin/openrc-run
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The OpenRC service, for Alpine Linux (platform/packaging/alpine/APKBUILD installs
+# it as /etc/init.d/hmailserver, with hmailserver.confd as /etc/conf.d/hmailserver)
+# and any other system OpenRC runs (hmailserver/docs/Alpine.md). What the systemd
+# unit, platform/packaging/hmailserver.service, declares, as far as OpenRC can say
+# it: the server runs as the hmailserver account with CAP_NET_BIND_SERVICE in its
+# ambient set, which is all it needs to bind 25 and the other ports below 1024, no
+# new privileges, umask 0027 and /var/lib/hmailserver as its directory; it does not
+# fork, so start-stop-daemon puts it in the background and keeps its pid; SIGHUP
+# re-reads the configuration (reload), and a stop is given five minutes to drain.
+#
+# Before each start, as the unit's ExecStartPre does: the first start's secure
+# defaults (docs/SecureDefaults.md). hmailserver --create-database leaves
+# .new-installation in the data directory and marks the database; this makes a
+# self-signed certificate, offers STARTTLS and refuses a password without TLS from
+# any address but this machine's, removes the file, and at every other start reads
+# where the data is and does nothing. As the service's account, and a failure does
+# not stop the start: the server's own start says what is wrong with a database it
+# cannot reach.
+
+name="hMailServer"
+description="hMailServer, a mail server for SMTP, IMAP and POP3"
+extra_commands="checkconfig"
+extra_started_commands="reload"
+description_checkconfig="Read the configuration and say what the server makes of it"
+description_reload="Re-read the configuration: the listeners stop and start again"
+
+: "${cfgfile:=/etc/hmailserver/hMailServer.ini}"
+: "${datadir:=/var/lib/hmailserver}"
+: "${logdir:=/var/log/hmailserver}"
+
+command="/usr/bin/hmailserver"
+command_args="--config $cfgfile --foreground"
+command_background="yes"
+command_user="hmailserver:hmailserver"
+pidfile="/run/$RC_SVCNAME.pid"
+directory="$datadir"
+: "${capabilities:=^cap_net_bind_service}"
+no_new_privs="yes"
+umask="0027"
+output_log="$logdir/console.log"
+error_log="$logdir/console.log"
+retry="TERM/300/KILL/5"
+
+depend() {
+	need net
+	use dns logger
+	after firewall postgresql mariadb
+}
+
+checkconfig() {
+	ebegin "Checking $cfgfile"
+	su -s /bin/sh -c "exec $command --config '$cfgfile' --check-config" hmailserver > /dev/null
+	eend $?
+}
+
+start_pre() {
+	checkpath --directory --owner hmailserver:hmailserver --mode 0750 \
+		"$datadir" "$datadir/temp" "$datadir/events" "$datadir/database" "$logdir"
+	su -s /bin/sh -c "umask 0027; exec $command --config '$cfgfile' --apply-new-install-defaults --if-marked" hmailserver \
+		|| ewarn "The first start's defaults were not applied; the server's own start says why"
+	return 0
+}
+
+reload() {
+	ebegin "Reloading $name"
+	start-stop-daemon --signal HUP --pidfile "$pidfile"
+	eend $?
+}

@@ -1,0 +1,136 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The server on Alpine Linux, built with musl as aports would build it, and tested
+# there: included from .gitlab-ci.yml (hmailserver/docs/Alpine.md; Roadmap3,
+# "Alpine Linux").
+#
+#   alpine-package   linix: build/ci/alpine.sh package - the APKBUILD
+#                    (platform/packaging/alpine) run by abuild on the source-tarball
+#                    job's tarball, with Alpine's Boost, OpenSSL, libpq and
+#                    OpenLDAP: the build, check() (the server's --version and every
+#                    tester program), the packages hmailserver, hmailserver-openrc
+#                    and hmailserver-cli, and apkbuild-lint, which must have nothing
+#                    to say
+#   alpine-install   linix: build/ci/alpine.sh install - in a clean container the
+#                    packages installed beside Alpine's PostgreSQL, the database
+#                    made as Alpine.md tells an administrator to make it, the server
+#                    started with rc-service (the OpenRC script,
+#                    platform/packaging/openrc), SMTP (with STARTTLS) and IMAP asked
+#                    for their greetings, then a reload and a stop
+#   alpine-suite     linix: build/ci/alpine.sh suite - the whole of
+#                    LinuxRegressionTests against the installed package's server,
+#                    through build/ci/linux-suite.sh, beside the same PostgreSQL 16
+#                    service linux-suite runs against; the suite and the .NET SDK
+#                    (Alpine's dotnet10-sdk, the 10.0.303 global.json names) run in
+#                    Alpine too, since a musl server does not run elsewhere
+#
+# The image is Docker Hub's alpine:3.24, pinned by the digest of its linux/amd64
+# manifest, as .gitlab/ci/packages-appimage.yml pins it. Nothing comes from GitHub:
+# the packages from Alpine's own mirror, the suite's NuGet packages from nuget.org,
+# the tarball from this pipeline; .no-github holds the job to that
+# (.gitlab/ci/no-github.yml).
+#
+# These jobs check; they make nothing a release carries (an Alpine package reaches
+# users through aports, Alpine.md). So they run in a batch* branch's pipeline and in
+# master's, wherever the source-tarball job runs, and never in a v* tag's, nor for a
+# merge request or a schedule; release needs none of them - as the source packages'
+# jobs (.gitlab/ci/source-packages.yml). The build joins linix-package-build, the
+# resource group of the package builds.
+
+.alpine-image:
+  image:
+    # alpine:3.24, linux/amd64
+    name: alpine:3.24@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
+    pull_policy: if-not-present
+
+# Never on a tag, and on no protected branch but master and batch*; then
+# .own-runners' rules - exactly where source-tarball is made.
+.alpine-rules:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: never
+    - !reference [.own-runners, rules]
+
+alpine-package:
+  extends: [.no-github, .alpine-image]
+  stage: build
+  tags: [linix]
+  needs:
+    - job: source-tarball
+      artifacts: true
+  timeout: 2 hours
+  resource_group: linix-package-build
+  rules:
+    - !reference [.alpine-rules, rules]
+  # Four compilers, as the source packages' builds: a job has 8 GB.
+  variables:
+    HM_SOURCE_TARBALL: source-tarball
+    HM_OUT_DIR: alpine
+    HM_BUILD_JOBS: "4"
+  script:
+    - apk add --no-cache bash > /dev/null
+    - bash build/ci/alpine.sh package
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - alpine/
+
+alpine-install:
+  extends: [.no-github, .alpine-image]
+  stage: test
+  tags: [linix]
+  needs: [alpine-package]
+  timeout: 30 minutes
+  rules:
+    - !reference [.alpine-rules, rules]
+  variables:
+    HM_OUT_DIR: alpine
+  script:
+    - apk add --no-cache bash > /dev/null
+    - bash build/ci/alpine.sh install
+
+alpine-suite:
+  extends: [.no-github, .alpine-image]
+  stage: test
+  tags: [linix]
+  needs: [alpine-package, source-tarball]
+  # As linux-suite's: the runners' maximum, and not cut off by a later push.
+  timeout: 4 hours
+  interruptible: false
+  rules:
+    - !reference [.alpine-rules, rules]
+  services:
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+      alias: postgres
+      pull_policy: if-not-present
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: hmtest
+  variables:
+    HM_OUT_DIR: alpine
+    HM_PG_HOST: postgres
+    HM_SOURCE_TARBALL: source-tarball
+    HM_RESULTS_DIR: alpine-suite
+    RUNNER_SCRIPT_TIMEOUT: 3h50m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 5m
+  script:
+    - apk add --no-cache bash > /dev/null
+    - bash build/ci/alpine.sh suite
+  after_script:
+    # Perhaps in a new container, which has neither bash nor the python3 that turns
+    # the results into the JUnit report.
+    - apk add --no-cache bash python3 > /dev/null
+    - bash build/ci/alpine.sh collect
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - alpine-suite/
+    reports:
+      junit: alpine-suite/junit.xml

@@ -8,6 +8,9 @@ The Windows installer's other package managers, winget and Chocolatey's history,
 the project's own apt and dnf repositories are in
 [PackageManagers.md](PackageManagers.md); the command-line clients' PyPI and
 PowerShell Gallery packages in [CommandLinePackages.md](CommandLinePackages.md).
+Two channels have no job here because nothing is published to them: the Nix flake
+in the repository itself ([Nix.md](Nix.md)), and Alpine Linux, whose package is a
+merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.md)).
 
 **None of these channels is live yet.** Each job is written and was run on a laptop
 against a fixture release (below, [What was tried](#what-was-tried)); each says "not

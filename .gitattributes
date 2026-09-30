@@ -56,6 +56,12 @@ build/source-exclusions.txt text eol=lf
 # make reads in Copr's Linux builder: a recipe line read with its carriage return
 # runs a command whose last argument ends in one.
 .copr/** text eol=lf
+# And the Nix flake (hmailserver/docs/Nix.md): its shell snippets are Nix strings
+# written into build scripts and into the NixOS machine's service, and a carriage
+# return carried into one ends a command's last word with it; nix/probe.sh is bash.
+flake.nix text eol=lf
+flake.lock text eol=lf
+nix/** text eol=lf
 
 ###############################################################################
 # The OpenPGP fixtures, byte for byte.

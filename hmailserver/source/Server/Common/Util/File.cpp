@@ -21,6 +21,31 @@
 #define new DEBUG_NEW
 #endif
 
+#ifdef HM_PLATFORM_POSIX
+namespace
+{
+   // strerror_r comes in two shapes, and which one a C library declares decides
+   // what the call returns. glibc's GNU one, which g++ and clang++ select by
+   // defining _GNU_SOURCE for C++, returns the message, which may be a static
+   // string with the buffer left untouched. The POSIX one - musl's (Alpine), the
+   // BSDs' and macOS's - returns 0 or an error number and writes the message into
+   // the buffer. An overload for each return type takes whichever the library
+   // declares, with no test of the library's name: musl deliberately defines no
+   // macro that says it is musl. Built against glibc and musl on 29 September 2026
+   // (hmailserver/docs/Alpine.md, "What musl changed"). Whichever overload the
+   // library does not call is unused, which [[maybe_unused]] says.
+   [[maybe_unused]] const char *StrerrorMessage_(const char *returned, const char *)
+   {
+      return returned;
+   }
+
+   [[maybe_unused]] const char *StrerrorMessage_(int returned, const char *buffer)
+   {
+      return returned == 0 ? buffer : "unknown error";
+   }
+}
+#endif
+
 namespace HM
 {
    
@@ -365,8 +390,9 @@ namespace HM
                // the buffer untouched, so what it RETURNS is the message and the
                // buffer is only where it may have put it. Copying the return value
                // back is what makes the line below print a reason rather than
-               // whatever was on the stack.
-               const char *reported = ::strerror_r(errno, error_msg, sizeof(error_msg));
+               // whatever was on the stack. musl's is the POSIX one, which returns
+               // a number: StrerrorMessage_, above, answers the message for both.
+               const char *reported = StrerrorMessage_(::strerror_r(errno, error_msg, sizeof(error_msg)), error_msg);
 
                if (reported != error_msg)
                {

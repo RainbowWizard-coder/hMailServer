@@ -28,6 +28,13 @@ namespace HM
       // reported as a failed conversion rather than guessed at: a mail server that
       // silently decodes a header in the wrong character set produces mojibake
       // that nobody can trace back to the guess.
+      //
+      // Each name is one every iconv this server is built on knows, where there is
+      // one: US-ASCII and not glibc's own canonical ANSI_X3.4-1968, which musl's
+      // iconv (Alpine) does not know, so that every us-ascii part - what a mail
+      // client labels an empty or plain English body - failed to convert there
+      // (a script's added text was lost; hmailserver/docs/Alpine.md, "What musl
+      // changed"). glibc and GNU libiconv take both.
       const char *IconvNameForCodePage(unsigned int codePage)
       {
          switch (codePage)
@@ -43,7 +50,7 @@ namespace HM
          case 1256:  return "CP1256";
          case 1257:  return "CP1257";
          case 1258:  return "CP1258";
-         case 20127: return "ANSI_X3.4-1968";
+         case 20127: return "US-ASCII";
          case 28592: return "ISO-8859-2";
          case 28593: return "ISO-8859-3";
          case 28594: return "ISO-8859-4";
