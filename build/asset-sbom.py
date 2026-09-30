@@ -522,7 +522,7 @@ def recorded_built_against(components, installed, kind, arch=None, boost_header=
                 # openSUSE). The header the job kept is that build's, so its version
                 # is the one in the binary, and that is what the document says.
                 component["properties"].append(prop("built-against", "Boost built from boost.org's release tarball "
-                                                    "in the package job (no Boost package where the build ran)"))
+                                                    "in the package job (no Boost development package where the build ran)"))
             elif wanted:
                 raise SbomError("%s records none of %s installed, which %s is built against: the package job records "
                                 "what its build container had" % (where, ", ".join(wanted), component["name"]))
@@ -531,12 +531,18 @@ def recorded_built_against(components, installed, kind, arch=None, boost_header=
 
 
 def boost_package(entry, kind):
-    """Whether one package of a record is a Boost package: then a record that names
-    none of BUILT_AGAINST's is a wrong record, not a Boost built from source."""
+    """Whether one package of a record is a Boost development package, one with
+    headers a build could have compiled against: then a record that names none of
+    BUILT_AGAINST's is a wrong record, not a Boost built from source. A package of
+    Boost's shared libraries or its licence holds no header, and no build is against
+    it: openSUSE's build containers carry libboost_thread1_86_0 and
+    boost-license1_86_0 (1_92_0 on Tumbleweed), which the tools the job installs
+    pull in, while the job builds Boost from boost.org's tarball (rpm-build.sh)."""
     name = entry[0]
     if kind == "rpm":
-        return name.startswith("boost") or any(p.startswith("boost-devel") for p in entry[3])
-    return name.startswith("libboost")
+        return (name.startswith(("boost", "libboost")) and name.endswith("-devel")) \
+            or any(p.startswith("boost-devel") for p in entry[3])
+    return name.startswith("libboost") and name.endswith("-dev")
 
 
 def read_bundled(path, arch):
@@ -1255,14 +1261,33 @@ def self_test():
         boost = [c for c in red["components"] if c["name"] == "linux-boost"][0]
         expect(boost.get("version") == "1.90.0" and any("built from boost.org's release tarball" in p["value"] for p in boost["properties"]),
                "Boost built in the job, with no Boost package where the build ran, is said to be, at its header's version: %s" % boost)
-        refused("a record with a Boost package but not the one the build uses", "boost-devel",
+        refused("a record with a Boost development package but not the one the build uses", "boost-devel",
                 lambda: make("rpm", el_rpm, with_zlib, root=work, boost_header=record_header,
-                             rpm_list=write("record/boost-other.rpm.txt", read_text(el_record) + "boost-system aarch64 1.83.0-1.el9 boost-system\n")))
+                             rpm_list=write("record/boost-other.rpm.txt", read_text(el_record) + "boost1.78-devel aarch64 1.78.0-1.el9 boost1.78-devel\n")))
+        # openSUSE's build containers: Boost's runtime and licence packages, pulled in by
+        # the tools, and Boost built from boost.org's tarball all the same.
+        suse_record = write("record/leap16.rpm.txt", read_text(el_record)
+                            + "libboost_thread1_86_0 x86_64 1.86.0-160000.2.2 libboost_thread.so.1.86.0()(64bit)\n"
+                            + "libboost_thread1_86_0 x86_64 1.86.0-160000.2.2 libboost_thread1_86_0\n"
+                            + "boost-license1_86_0 noarch 1.86.0-160000.2.2 boost-license1_86_0\n")
+        suse_rpm = write("out/hmailserver-6.3.6-1.suse.lp160.x86_64.rpm", b"\xed\xab\xee\xdb a Leap 16 package")
+        red = make("rpm", suse_rpm, with_zlib, root=work, rpm_list=suse_record, boost_header=record_header, read_package=True, run=container)
+        boost = [c for c in red["components"] if c["name"] == "linux-boost"][0]
+        expect(any("built from boost.org's release tarball" in p["value"] for p in boost["properties"]),
+               "Boost built in the job beside Boost's runtime and licence packages is said to be built in the job: %s" % boost)
+        refused("an openSUSE record with a Boost headers package but not the one the build uses", "boost-devel",
+                lambda: make("rpm", suse_rpm, with_zlib, root=work, boost_header=record_header,
+                             rpm_list=write("record/leap16-headers.rpm.txt", read_text(suse_record)
+                                            + "libboost_headers1_86_0-devel x86_64 1.86.0-160000.2.2 libboost_headers1_86_0-devel\n")))
         debian12 = write("record/debian12.txt", "ii  libc6-dev amd64 2.36-9\nii  libstdc++-12-dev amd64 12.2.0-14\n"
                          "ii  libssl-dev amd64 3.0.17-1\nii  libpq-dev amd64 15.14-0\nii  libldap-dev amd64 2.5.13+dfsg-5\n")
         deb12 = make("deb", deb, dependencies, root=work, dpkg_list=debian12, target_arch="amd64", boost_header=record_header)
         expect(any("built from boost.org" in p["value"] for c in deb12["components"] if c["name"] == "linux-boost" for p in c["properties"]),
                "Debian 12's Boost, built in the job, is said to be")
+        deb12_runtime = make("deb", deb, dependencies, root=work, target_arch="amd64", boost_header=record_header,
+                             dpkg_list=write("record/debian12-runtime.txt", read_text(debian12) + "ii  libboost-thread1.74.0 amd64 1.74.0+ds1-21\n"))
+        expect(any("built from boost.org" in p["value"] for c in deb12_runtime["components"] if c["name"] == "linux-boost" for p in c["properties"]),
+               "a Boost shared library package beside Boost built in the job is not taken for what the build is against")
 
         # An AppImage: the server's libraries as the build recorded them, and what it
         # carries in usr/lib by package.
