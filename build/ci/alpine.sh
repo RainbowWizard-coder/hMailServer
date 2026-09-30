@@ -194,8 +194,9 @@ probe() {
 install_test() {
   trust_packages
   echo "== apk add the packages, OpenRC and PostgreSQL"
-  # shellcheck disable=SC2046 # one word per package file
-  apk add --no-cache openrc postgresql18 postgresql18-client $(package_files) > /dev/null
+  local -a packages
+  mapfile -t packages < <(package_files)
+  apk add --no-cache openrc postgresql18 postgresql18-client "${packages[@]}" > /dev/null
   apk info -e hmailserver hmailserver-openrc hmailserver-cli
   hmailserver --version
   getent passwd hmailserver > /dev/null || fail "the package made no hmailserver account"
@@ -257,9 +258,10 @@ suite() {
   echo "== apk add the packages, the .NET SDK and what linux-suite.sh runs"
   # As the CI image has them (build/ci/linux.Dockerfile): 7-Zip, which the server
   # writes and reads a backup with, and the MariaDB connector it opens for MySQL.
-  # shellcheck disable=SC2046 # one word per package file
+  local -a packages
+  mapfile -t packages < <(package_files)
   apk add --no-cache dotnet10-sdk postgresql18-client curl iproute2 procps python3 tar 7zip mariadb-connector-c \
-    $(package_files) > /dev/null
+    "${packages[@]}" > /dev/null
   hmailserver --version
   dotnet --list-sdks
   # The whole suite, whatever the project defines: linux-suite.sh refuses a filter in

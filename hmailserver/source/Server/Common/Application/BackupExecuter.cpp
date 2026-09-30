@@ -296,7 +296,7 @@ namespace HM
    //---------------------------------------------------------------------------()
    {
 #ifdef HM_PLATFORM_POSIX
-      struct stat status;
+      struct stat status {};
       if (::stat(path.string().c_str(), &status) != 0)
          return false;
 
@@ -2298,9 +2298,13 @@ namespace HM
 #else
          _wfopen_s(&handle, file.wstring().c_str(), L"wb");
 #endif
-         CheckBackupTree_(handle != nullptr, _T("the scratch file ") + String(file.wstring()) + _T(" could not be written"));
-         fputs(content, handle);
-         fclose(handle);
+         CheckBackupTree_(handle != nullptr, _T("the scratch file ") + String(file.wstring()) + _T(" could not be opened"));
+         if (handle == nullptr)
+            return;
+
+         const bool written = fputs(content, handle) >= 0;
+         const bool closed = fclose(handle) == 0;
+         CheckBackupTree_(written && closed, _T("the scratch file ") + String(file.wstring()) + _T(" could not be written"));
       }
 
       bool BackupTreeHas_(const boost::filesystem::path &path)

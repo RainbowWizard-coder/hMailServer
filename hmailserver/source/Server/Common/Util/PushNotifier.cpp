@@ -96,7 +96,7 @@ namespace HM
          text.Replace(_T("\n"), _T(" "));
 
          if (text.GetLength() > maximum)
-            text = text.Mid(0, maximum - 1) + _T("…");
+            text = text.Mid(0, maximum - 1) + _T("\u2026");
 
          return text;
       }

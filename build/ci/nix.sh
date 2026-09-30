@@ -75,14 +75,14 @@ nix flake check --no-build --all-systems "$flake" 2>&1 | tee "$OUT/check.log"
 
 echo ""
 echo "== 3. nix build .#hmailserver"
-started=$(date +%s)
+started=$EPOCHSECONDS
 if ! nix build -L --out-link "$OUT/result" "$flake#hmailserver" > "$OUT/build.log" 2>&1; then
   grep -E 'error|FAILED|failed' "$OUT/build.log" | sort -u | head -n 60
   tail -n 60 "$OUT/build.log"
   echo "BUILD FAILED - the whole log is $OUT/build.log"
   exit 1
 fi
-echo "built in $(( $(date +%s) - started )) s: $(readlink "$OUT/result")"
+echo "built in $(( EPOCHSECONDS - started )) s: $(readlink "$OUT/result")"
 grep -E '^hmailserver> == ' "$OUT/build.log" || true
 "$OUT/result/bin/hmailserver" --version | tee "$OUT/version.txt"
 rm -f "$OUT/result"
@@ -109,12 +109,12 @@ else
   exit 0
 fi
 echo "running $how"
-started=$(date +%s)
+started=$EPOCHSECONDS
 if ! nix build -L --no-link "${extra[@]}" "$flake#checks.x86_64-linux.nixos" > "$OUT/test.log" 2>&1; then
   tail -n 80 "$OUT/test.log"
   echo "THE NIXOS TEST FAILED - the whole log is $OUT/test.log"
   exit 1
 fi
 grep -E 'PASSED|S: |wait_for|succeed' "$OUT/test.log" | tail -n 40 || true
-echo "the NixOS test passed $how in $(( $(date +%s) - started )) s"
+echo "the NixOS test passed $how in $(( EPOCHSECONDS - started )) s"
 echo "PASSED: the flake's inputs, its evaluation, the package's build and checks, and the NixOS test."

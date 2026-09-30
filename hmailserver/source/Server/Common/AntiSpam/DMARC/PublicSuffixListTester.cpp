@@ -104,9 +104,9 @@ namespace HM
          // Internationalised names, in the form DNS carries them and in the
          // form an EAI address can.
          { L"www.example.xn--p1ai", L"example.xn--p1ai", false, "an IDN TLD, ASCII" },
-         { L"www.example.рф", L"example.рф", false, "an IDN TLD, Unicode" },
+         { L"www.example.\u0440\u0444", L"example.\u0440\u0444", false, "an IDN TLD, Unicode" },
          { L"www.example.xn--55qx5d.cn", L"example.xn--55qx5d.cn", false, "an IDN suffix of two labels, ASCII" },
-         { L"www.example.公司.cn", L"example.公司.cn", false, "an IDN suffix of two labels, Unicode" },
+         { L"www.example.\u516C\u53F8.cn", L"example.\u516C\u53F8.cn", false, "an IDN suffix of two labels, Unicode" },
       };
 
       void Fail(const Cut &cut, const std::string &what)

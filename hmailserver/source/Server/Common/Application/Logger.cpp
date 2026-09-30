@@ -122,6 +122,7 @@ namespace HM
          {
             // Left as it is: the new lines are appended in UTF-8 after the old
             // ones, which is what a failure to convert costs.
+            return;
          }
       }
 #endif
