@@ -148,7 +148,12 @@ for dnf or zypper). Then it builds with the network refused - `dpkg-buildpackage
 fails the job, and every warning is printed in the log and kept in `lintian.txt` or
 `rpmlint.txt`. lintian runs with Debian's profile on the Ubuntu releases too: the
 changelog names `unstable`, which Ubuntu's profile refuses as a distribution, and a
-PPA upload names an Ubuntu series in its own changelog entry. Last it holds the binary package to what was asked for: a Boost
+PPA upload names an Ubuntu series in its own changelog entry. Ubuntu 24.04's lintian
+(2.117) takes a JavaScript or HTML file with a line of 512 characters or more for
+minified code whose source is missing (`source-is-missing`, an error) and so reported
+five files written by hand, which batch42's pipeline found on 30 September 2026:
+`debian/source/lintian-overrides` overrides those five, with the reason, and the
+lintian of Debian 13 (2.122) and of Ubuntu 26.04 (2.129) reports none of them. Last it holds the binary package to what was asked for: a Boost
 soname among its dependencies, no `hmailserver-update` in it, the `sysusers.d`
 file, and `hmctl` in `hmailserver-cli`. The debug information packages
 (`hmailserver-dbgsym`, `hmailserver-debuginfo` and `-debugsource`) are built and

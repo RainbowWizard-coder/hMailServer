@@ -1,0 +1,16 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# lintian 2.117 (Ubuntu 24.04) takes a JavaScript or HTML file with a line of
+# 512 characters or more for minified code whose source is missing. These five
+# are written by hand and are their own source; their long lines are a test's
+# expected text (the Control Deck's and the portal's script tests), a table of
+# page titles (the Control Deck), an inline SVG icon (the portal's page) and the
+# list of interface languages with their names (the portal's script). Debian
+# 13's lintian does not report them (hmailserver/docs/SourcePackages.md).
+source-is-missing [build/deck-script-test.js]
+source-is-missing [build/portal-script-test.js]
+source-is-missing [hmailserver/installation/WebAdmin/index.html]
+source-is-missing [hmailserver/source/Server/Common/Util/Portal.html]
+source-is-missing [hmailserver/source/Server/Common/Util/Portal.js]
