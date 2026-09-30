@@ -5,7 +5,7 @@
 #pragma once
 
 // The JavaScript event-script engine: QuickJS (hmailserver/source/Server/quickjs,
-// Fabrice Bellard's release 2025-04-26) and the binding of the server's own objects
+// Fabrice Bellard's release 2026-06-04) and the binding of the server's own objects
 // into it. See hmailserver/docs/EventScripts.md.
 //
 // POSIX ONLY. The release has no MSVC support, so the engine is built by the CMake

@@ -319,6 +319,22 @@ fixes from there.
       no longer leaves an object behind, and a date made from a NaN reads as no date.
     - `HM4229` reports the same codes in new words, and `HM7277` names `LegacyBlowfish::EncryptToString` as its
       source.
+14. **Event scripts on Linux run in QuickJS 2026-06-04**, Fabrice Bellard's release, in place of 2025-04-26. It fixes
+    memory-safety flaws in the engine that a script can reach: CVE-2025-62494 (a type confusion when a string is
+    added to a value whose conversion changes it, High), CVE-2025-62493 (a BigInt written as a string, Medium) and
+    CVE-2025-62492 (`indexOf` and `lastIndexOf` of a typed array with a tiny negative start, Medium). It fixes two
+    more, both High, that a script could not reach in the server, because each needs more memory than the 64 MiB
+    ceiling allows it: CVE-2025-62495 (an integer overflow compiling a regular expression of over 2 GB) and
+    CVE-2025-62496 (a BigInt made from a string of some 67 million digits or more). Each needs the script to do the
+    thing; message text a script only reads and compares does not. Two advisories a scanner may list against QuickJS
+    do not apply: CVE-2025-12745 (`ArrayBuffer.prototype.slice` and a buffer resized under it) is in the resizable
+    ArrayBuffers that 2026-06-04 adds, and fixed there, and 2025-04-26 had none; CVE-2026-88378 (rated Critical,
+    published on 24 September 2026 and fixed in no release yet) is in the reader of compiled bytecode, which the
+    server never calls, and the VEX document says so. The release adds newer language features -
+    iterator helpers, the Set methods, RegExp's `v` flag, modifiers and `RegExp.escape`, Float16Array, `Promise.try`
+    and `Error.isError` among them - and runs scripts faster (42% on bench-v8 over the release before it, by its
+    author's measure). The objects the server gives a script, the time limit and the memory ceiling are unchanged.
+    Windows' VBScript and JScript are not affected.
 
 ### Downloads and the release
 
@@ -1148,13 +1164,37 @@ fixes from there.
   EL, openSUSE and Debian 12 build jobs cache the tarball under its SHA-256. On 28 September three package jobs of
   6.3.5's pipeline failed because some of archives.boost.io's addresses did not answer the runner.
 
-- **The CI's Python is 3.14, and Renovate no longer proposes a locked requirements file it cannot lock.** Every job
-  image pinned by digest is at Renovate's digest of 28 September 2026, and every Python job runs in
-  python:3.14-slim-trixie; the locked requirement files are remade for 3.14 with the same versions and hashes.
-  Renovate's Python merge request of that day had moved twelve versions inside build/ci/requirements.txt without
-  resolving or hashing them - click kept its old hashes, and Semgrep 1.178.0 accepts none of the new versions - so
-  the semgrep job, and with it the release's security gate, would have failed. Its pip manager now reads the .in
-  files only, and its merge request says how to remake the locked files. Microsoft.NET.Test.Sdk is 18.10.1.
+- **The CI's Python is 3.14, and Renovate no longer proposes a locked requirements file it cannot lock.** Every
+  Python job runs in python:3.14-slim-trixie; the locked requirement files are remade for 3.14 (the next entry
+  says which versions moved). Renovate's Python merge request of 28 September 2026 had moved twelve versions inside
+  build/ci/requirements.txt without resolving or hashing them - click kept its old hashes, and Semgrep 1.178.0
+  accepts none of the new versions - so the semgrep job, and with it the release's security gate, would have
+  failed. Its pip manager now reads the .in files only, and its merge request says how to remake the locked files.
+  Microsoft.NET.Test.Sdk is 18.10.1.
+
+- **The rest of what Renovate proposed, taken where it holds, and `renovate.json` held to what is chosen.**
+  Taken: every job image that is not a build target at its tag's digest of 28 September 2026, those of the seven
+  jobs added after Renovate's merge request among them (`postgres:16`, Microsoft's .NET SDK image), and GitLab's
+  Container Scanning analyzer at its tag's digest of 30 September, since GitLab had stopped serving the one pinned;
+  uvicorn 0.54.0 and Playwright 1.63.0, the locked files remade with uv; the sixteen updates of the `packages.config`
+  test projects (Azure.Core 1.63.0, MSAL 4.90.1, OpenTelemetry 1.19.1, the Microsoft.Testing packages 2.4.1, NLog
+  6.2.1 and the rest); NUnit 5.0.0 in RegressionTests, StressTest and LinuxRegressionTests, which nunit3-console
+  3.22.0 and NUnit3TestAdapter 6.3.0 discover and run as they did NUnit 4.6.1; xUnit.net v3 (`xunit.v3.mtp-off`
+  4.0.1) in place of the deprecated `xunit` 2.9.3 in ControlPanel.Tests and ImportTool.Tests; Node.js 24 for the
+  `harnesses` job, whose four harnesses give the same results as on Node.js 22; and QuickJS 2026-06-04
+  (What changes on upgrade, item 14). Left, each for its reason: `global.json`'s SDK floor of 10.0.303, since
+  `rollForward: latestFeature` builds with the newest .NET 10 SDK installed anyway and 10.0.401 would refuse a
+  machine with 10.0.400 and Alpine's `dotnet10-sdk` 10.0.303; every Python version that Semgrep 1.178.0 (the newest
+  release), OpenTelemetry 1.37.0, pydantic 2.13.5 or Playwright holds where it is - click 8.5, jsonschema 4.26, mcp
+  1.30 and 2, OpenTelemetry 1.45, PyJWT 2.15, pydantic-core 2.49, boltons 26, importlib-metadata 9, peewee 4,
+  protobuf 7, wcmatch 11, wrapt 2 and pyee 14 - so PyJWT 2.13.0's advisories stay dismissed in the VEX document;
+  sse-starlette 3.5.0, googleapis-common-protos 1.75.5 and coverlet.collector 10.1.0, younger than the three days a
+  release waits; the lab's MariaDB 11.8, the CI's PostgreSQL 18 and MariaDB 13, the packaging compose file's
+  PostgreSQL 18 and GitLab's Semgrep analyzer 7, each a decision and a run of its own; and the package builds'
+  distribution releases. `renovate.json` now moves a distribution's image and the lab's images by digest only,
+  keeps the CI's databases, the compose file's PostgreSQL and GitLab's analyzers on their major version, no longer
+  proposes `global.json`'s SDK, brings an OpenSSL patch release on any day in a merge request of its own, and asks
+  Fedora's registry, which lost a lookup on each of three days, one request at a time.
 
 - **The semgrep job counts a file Semgrep could not parse, or parsed leaving more than ten of its lines unread, as a
   hole in the scan**, as it did a rule that timed out: Semgrep reports both only as a warning, and the job had taken

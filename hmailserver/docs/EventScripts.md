@@ -32,7 +32,7 @@ There are three languages, and each build runs the ones it has an engine for.
 |---|---|---|---|---|
 | `VBScript` | runs | refused at load | Windows Active Scripting (vbscript.dll) | `EventHandlers.vbs` |
 | `JScript` | runs | refused at load | Windows Active Scripting (jscript.dll), ECMAScript 3 | `EventHandlers.js` |
-| `JavaScript` | refused at load | runs | QuickJS 2025-04-26, embedded in the server, ES2023 | `EventHandlers.js` |
+| `JavaScript` | refused at load | runs | QuickJS 2026-06-04, embedded in the server, ES2025 | `EventHandlers.js` |
 
 The language is the database setting `scriptlanguage`: `Settings.Scripting.Language`
 over COM, `"language"` in `PUT /api/v1/settings/scripting` over REST, and the
@@ -300,11 +300,13 @@ and the Control Panel's.
   Windows. Both exist on JavaScript only to throw a `TypeError` that says so. The
   objects a handler can use are the server's own, above; `ScriptAllowedObjects`, the
   list of COM classes a Windows script may create, has nothing to apply to.
-- **The language is ES2023**, not ECMAScript 3: `let`, `const`, classes with
+- **The language is ES2025**, not ECMAScript 3: `let`, `const`, classes with
   private fields, arrow functions, template literals, optional chaining (`?.`),
   nullish coalescing (`??`), `Array.prototype.findLast` and `toReversed`,
-  `Object.hasOwn`, `async` and `await`. A handler may be declared with `function`,
-  or as a `var`, `let` or `const` holding a function.
+  `Object.hasOwn`, `async` and `await`, and since 6.3.6 the iterator helpers
+  (`[].values().map(...)`) and the Set methods (`union`, `isSubsetOf`). A handler
+  may be declared with `function`, or as a `var`, `let` or `const` holding a
+  function.
 - **An `async` handler is waited for**, inside the same timeout: the server reads
   `Result` once its promise has settled, and a rejected promise is a Script Error.
 - **Values arrive as values.** Nothing is quoted into source text; see the event table.
@@ -425,17 +427,18 @@ switches a working `OnClientValidatePassword` off.
 
 ## The engine
 
-QuickJS, Fabrice Bellard's JavaScript engine, release 2025-04-26, MIT-licensed. It is
+QuickJS, Fabrice Bellard's JavaScript engine, release 2026-06-04, MIT-licensed. It is
 vendored as source under `hmailserver/source/Server/quickjs` - the engine, its
 regular expression and Unicode libraries, `cutils` and `dtoa`, byte for byte as
 released, with its `LICENSE` and `VERSION` - and built by the CMake build into the
 Linux server, with the definitions its own Makefile gives it. It came from its
-author's site, bellard.org/quickjs/quickjs-2025-04-26.tar.xz (sha256
-`2f20074c25166ef6f781f381c50d57b502cb85d470d639abccebbef7954c83bf`), and was checked
-against the Ubuntu archive's pristine copy of the same release,
-quickjs_2025.04.26.orig.tar.xz (sha256
-`ec81da5b3249ed648dbc7df4a1654988910e66a118d9b71cb63534216efcfbbe`): the files are
-identical. The Linux packages install its licence as
+author's site, bellard.org/quickjs/quickjs-2026-06-04.tar.xz (sha256
+`b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a`), and was checked
+against Alpine Linux's package of the same release, whose APKBUILD (aports,
+`community/quickjs`, commit `a7a96a01`) records the archive's SHA-512,
+`e02722a82de0d2b7d6c95edc57daccecb5680b8d87f3580424a143a04df197c0df5bcd51d138c5e1e8b0d78b423acfa39169e8c0bfc1ace8387e13fc3bca22e2`:
+the same file. It replaced release 2025-04-26 in 6.3.6, for the memory-safety fixes
+in the engine since then ([CHANGELOG.md](../../CHANGELOG.md)). The Linux packages install its licence as
 `/usr/share/hmailserver/licenses/QuickJS.txt`, and the SBOM names it
 ([ThirdPartyBinaries.md](ThirdPartyBinaries.md)).
 

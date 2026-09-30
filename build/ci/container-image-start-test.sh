@@ -56,7 +56,7 @@ START_COMMAND='hmailserver --config /etc/hmailserver/hMailServer.ini --apply-new
 # (NewInstallDefaults.cpp), which the REST listener is pointed at.
 CERTIFICATE=/var/lib/hmailserver/Certificates/self-signed-certificate.pem
 PRIVATE_KEY=/var/lib/hmailserver/Certificates/self-signed-key.pem
-POSTGRES_IMAGE="${HM_START_POSTGRES_IMAGE:-postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94}"
+POSTGRES_IMAGE="${HM_START_POSTGRES_IMAGE:-postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54}"
 
 mode=ci
 image=""

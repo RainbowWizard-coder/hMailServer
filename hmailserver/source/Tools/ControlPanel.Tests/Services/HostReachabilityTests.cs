@@ -43,7 +43,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          var clock = Stopwatch.StartNew();
 
-         HostReachability.Result result = await HostReachability.CheckAsync(host, HostReachability.DefaultTimeout);
+         HostReachability.Result result = await HostReachability.CheckAsync(host, HostReachability.DefaultTimeout,
+            TestContext.Current.CancellationToken);
 
          clock.Stop();
 
@@ -61,7 +62,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       public async Task This_machine_by_name_is_local()
       {
          HostReachability.Result result =
-            await HostReachability.CheckAsync(Environment.MachineName, HostReachability.DefaultTimeout);
+            await HostReachability.CheckAsync(Environment.MachineName, HostReachability.DefaultTimeout,
+               TestContext.Current.CancellationToken);
 
          Assert.True(result.Reachable);
       }
@@ -75,7 +77,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          var clock = Stopwatch.StartNew();
 
          HostReachability.Result result = await HostReachability.CheckAsync(
-            "no-such-host.invalid", HostReachability.DefaultTimeout);
+            "no-such-host.invalid", HostReachability.DefaultTimeout, TestContext.Current.CancellationToken);
 
          clock.Stop();
 
@@ -99,7 +101,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          var timeout = TimeSpan.FromSeconds(2);
          var clock = Stopwatch.StartNew();
 
-         HostReachability.Result result = await HostReachability.CheckAsync("192.0.2.1", timeout);
+         HostReachability.Result result = await HostReachability.CheckAsync("192.0.2.1", timeout,
+            TestContext.Current.CancellationToken);
 
          clock.Stop();
 
@@ -117,7 +120,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public async Task The_unreachable_message_explains_the_firewall_case()
       {
          HostReachability.Result result =
-            await HostReachability.CheckAsync("192.0.2.1", TimeSpan.FromSeconds(2));
+            await HostReachability.CheckAsync("192.0.2.1", TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
          Assert.False(result.Reachable);
 

@@ -110,8 +110,11 @@
 #
 # The Container Scanning analyzer is pinned by digest, as the other scans' images are:
 # registry.gitlab.com's security-products/container-scanning:8 as it was on
-# 26 September 2026. kaniko's image is linux-image's, by reference, so that one digest
-# serves every build job.
+# 30 September 2026 (analyzer 8.6.35). GitLab rebuilds that image under its version
+# tags and stops serving a digest it has replaced within days: the digests of
+# 26 and 28 September both answered 404 on 30 September, so a pin older than that
+# fails the pull (the job is allowed to fail, and the scan is then lost). kaniko's
+# image is linux-image's, by reference, so that one digest serves every build job.
 
 include:
   - template: Jobs/Container-Scanning.gitlab-ci.yml
@@ -304,7 +307,7 @@ container-image-sign:
 # digest: CS_IMAGE comes from container-image's dotenv report, which the template's
 # `dependencies: []` would keep from it, so dependencies names that job.
 container_scanning:
-  image: registry.gitlab.com/security-products/container-scanning:8@sha256:b90ca287f2ec7d26cd4747f258c6fc00436928b126cfb8f2c7841de435b84854
+  image: registry.gitlab.com/security-products/container-scanning:8@sha256:c40ee60b7af8d60f9ae223b5cf9dd068a343a6b4cd245ff244c7d947833e2dbc
   stage: release
   needs:
     - job: container-image
@@ -379,7 +382,7 @@ container-image-start:
     HM_START_HOST: mail
   services:
     # The same PostgreSQL the Linux suite runs against, by digest.
-    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: db
       pull_policy: if-not-present
     - name: $HM_IMAGE
@@ -406,7 +409,7 @@ container-image-start-arm64:
   variables:
     HM_START_WAIT: "600"
   services:
-    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: db
       pull_policy: if-not-present
     - name: $HM_IMAGE_ARM64

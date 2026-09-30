@@ -98,7 +98,7 @@ Source, not a binary, so it is outside this inventory; since 25 September 2026
 `build/native-dependencies.ps1` lists it, reading the version from `zlib.h`'s
 `ZLIB_VERSION`, so the SBOM names it.
 
-QuickJS 2025-04-26, Fabrice Bellard's JavaScript engine (MIT), is vendored as source
+QuickJS 2026-06-04, Fabrice Bellard's JavaScript engine (MIT), is vendored as source
 under `hmailserver/source/Server/quickjs` - the engine and the four libraries it needs,
 byte for byte as released, with its LICENSE and VERSION; the licence text is also under
 `docs/Licenses/` and is installed by every Linux package as
@@ -108,12 +108,11 @@ in on the Linux builds ([EventScripts.md](EventScripts.md)), built by CMake alon
 release has no MSVC support, so it is in no Visual Studio project and not in
 `hMailServer.exe`. `quickjs-libc.c`, where QuickJS's `std` and `os` modules live, was
 left out of the tree. It came from its author's site,
-bellard.org/quickjs/quickjs-2025-04-26.tar.xz (sha256
-`2f20074c25166ef6f781f381c50d57b502cb85d470d639abccebbef7954c83bf`), and was checked
-against the Ubuntu archive's pristine copy of the same release,
-quickjs_2025.04.26.orig.tar.xz (sha256
-`ec81da5b3249ed648dbc7df4a1654988910e66a118d9b71cb63534216efcfbbe`): the files are
-identical, and only the top directory's name and the compression differ. Source, not a
+bellard.org/quickjs/quickjs-2026-06-04.tar.xz (sha256
+`b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a`), and was checked
+against Alpine Linux's package of the same release, whose APKBUILD (aports,
+`community/quickjs`, commit `a7a96a01`) records the archive's SHA-512,
+`e02722a82de0d2b7d6c95edc57daccecb5680b8d87f3580424a143a04df197c0df5bcd51d138c5e1e8b0d78b423acfa39169e8c0bfc1ace8387e13fc3bca22e2`: the same file. Source, not a
 binary, so it is outside this inventory too; `build/native-dependencies.ps1` does list
 it, reading the version from `quickjs/VERSION` (the one place the CMake build reads it
 from as well), so the SBOM names it.
@@ -295,7 +294,7 @@ CycloneDX document to the same rule.
 | Input | Fetched by, from | Pinned by | In the SBOM |
 |---|---|---|---|
 | OpenSSL 4.0.3, Boost 1.92.0 and PostgreSQL 18.6's libpq, as source | `libraries/build-openssl.ps1`, `build-boost.ps1` and `build-pgsql.ps1`, Boost's and PostgreSQL's from each project's own release server; OpenSSL's release archive from Debian's archive (`deb.debian.org`'s pool, or `snapshot.debian.org` once a version has left it), which ships it unchanged as `openssl_<version>.orig.tar.gz` - OpenSSL publishes its archives only on GitHub, which the project does not download from - or from a copy passed with `-Archive` | The archive's SHA-256, in the script; the version, by the include paths in `hMailServer.vcxproj` | Yes, at the include paths' version |
-| zlib 1.3.2 and QuickJS 2025-04-26 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
+| zlib 1.3.2 and QuickJS 2026-06-04 | Vendored as source in the tree | git | Yes; zlib since 25 September 2026 |
 | 7-Zip 26.03 | `build/get-installer-binaries.ps1`, from `https://www.7-zip.org/a/7z2603-extra.7z` | SHA-256 in `third-party-binaries.json`, of the package and of the member | Yes, with the package's SHA-256 |
 | MariaDB Connector/C 3.4.9, SQL Server Compact 4.0 SP1 | `build/get-installer-binaries.ps1`, from the `build-inputs-1` release's files in the project's package registry on GitLab (from GitHub until 26 September 2026; the copy is byte for byte) | SHA-256 in `third-party-binaries.json`, of each archive and each file | Yes, with the archive's SHA-256, since 25 September 2026 |
 | The MSVC v145 runtime, 14.51.36231.0 | The same script, from the build machine's Visual Studio | Its version (major.minor), against the toolset | Yes, by version, since 25 September 2026 |
@@ -343,7 +342,9 @@ Not pinned, and why:
 * **The toolchains.** Visual Studio (toolset v145, which the project names),
   the Windows SDK, Inno Setup 6 - whose setup loader is part of every
   installer - and Strawberry Perl are installed on the build machine, not
-  fetched by a script. The .NET SDK is pinned by `global.json`. Python, Meson,
+  fetched by a script. So is the .NET SDK: `global.json` names the lowest one a
+  build accepts, 10.0.303, and a build runs the newest .NET 10 SDK installed
+  (`rollForward: latestFeature`). Python, Meson,
   Ninja and winflexbison, which only libpq's build runs, are installed on a
   developer's machine, or fetched by `libraries/get-libpq-tools.ps1`, which
   `windows-packages-arm64` runs on bench150: Python 3.14.7 from nuget.org,

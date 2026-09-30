@@ -1,5 +1,5 @@
 {
-  "//": "Pins the .NET SDK so builds are reproducible and installing a newer SDK on a build machine cannot silently change the toolchain. rollForward latestFeature accepts 10.0.3xx and later within .NET 10, but never rolls to .NET 11 - that has to be a deliberate edit here, alongside the TargetFramework values and the runtime the installer bundles.",
+  "//": "The lowest .NET SDK a build accepts, not the one it uses: with rollForward latestFeature a build runs the newest .NET 10 SDK installed on its machine, 10.0.303 or later (on 30 September 2026 the laptop's 10.0.400 over its 10.0.303), and never rolls to .NET 11 - that has to be a deliberate edit here, alongside the TargetFramework values and the runtime the installer bundles. Raise it by hand when a build needs a newer SDK; renovate.json says why Renovate does not propose it.",
   "sdk": {
     "version": "10.0.303",
     "rollForward": "latestFeature",

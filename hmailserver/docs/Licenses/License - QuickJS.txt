@@ -1,12 +1,12 @@
-QuickJS, Fabrice Bellard's JavaScript engine, release 2025-04-26, vendored as source
+QuickJS, Fabrice Bellard's JavaScript engine, release 2026-06-04, vendored as source
 at hmailserver/source/Server/quickjs and compiled into the Linux builds of the
 server, where the event scripts run in it (hmailserver/docs/EventScripts.md). It is
 not in hMailServer.exe. It was taken from its author's site
-(bellard.org/quickjs/quickjs-2025-04-26.tar.xz, sha256
-2f20074c25166ef6f781f381c50d57b502cb85d470d639abccebbef7954c83bf) and checked
-against the Ubuntu archive's pristine copy of the same release
-(quickjs_2025.04.26.orig.tar.xz, sha256
-ec81da5b3249ed648dbc7df4a1654988910e66a118d9b71cb63534216efcfbbe). The text below
+(bellard.org/quickjs/quickjs-2026-06-04.tar.xz, sha256
+b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a) and checked
+against Alpine Linux's package of the same release, whose APKBUILD (aports,
+community/quickjs, commit a7a96a01) records the same archive's SHA-512
+(e02722a82de0d2b7...fc3bca22e2). The text below
 is a verbatim copy of the release's LICENSE, which is kept beside the source.
 
 ----------------------------------------------------------------------------

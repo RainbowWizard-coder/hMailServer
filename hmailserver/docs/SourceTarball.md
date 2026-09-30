@@ -121,7 +121,7 @@ Everything else in the tarball is the project's, under the AGPL-3.0-or-later in
 
 | What | Where | Licence | Its notice |
 |---|---|---|---|
-| QuickJS 2025-04-26, Fabrice Bellard's JavaScript engine, compiled into the Linux server | `hmailserver/source/Server/quickjs` | MIT | `quickjs/LICENSE`, and `hmailserver/docs/Licenses/License - QuickJS.txt`; the packages install it as `/usr/share/hmailserver/licenses/QuickJS.txt` |
+| QuickJS 2026-06-04, Fabrice Bellard's JavaScript engine, compiled into the Linux server | `hmailserver/source/Server/quickjs` | MIT | `quickjs/LICENSE`, and `hmailserver/docs/Licenses/License - QuickJS.txt`; the packages install it as `/usr/share/hmailserver/licenses/QuickJS.txt` |
 | The MIME encoder and decoder (Jeff Lee) | `hmailserver/source/Server/Common/Mime` | BSD-style | `hmailserver/docs/Licenses/License - MIME Message encoder analyzer.rtf` |
 | `CStdString` (Joseph M. O'Leary) | `hmailserver/source/Server/Common/Util/StdString.h` | its own permissive notice | `hmailserver/docs/Licenses/License - String library.rtf` |
 | The RFC 7208 test suite, which `spf-tests` runs | `hmailserver/source/Server/SMTP/SPF/Conformance/rfc7208-tests.yml` | BSD-style | `rfc7208-tests.LICENSE` beside it, and `hmailserver/docs/Licenses/License - RFC 7208 test suite.txt` |

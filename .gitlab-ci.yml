@@ -330,7 +330,7 @@ checkers:
 
 harnesses:
   stage: check
-  image: node:22-trixie-slim@sha256:b26b04c123d9ff8ab646ceb18b9d75a1173acf64b9a401094b906d27b29338d4
+  image: node:24-trixie-slim@sha256:8ec5d7557396cfe32d21c3f9c13072355ceab22b584578ca4bb28af31120cffe
   timeout: 20 minutes
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
@@ -1152,7 +1152,7 @@ linux-coverage:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" && $CI_COMMIT_REF_PROTECTED == "true"
   services:
-    - name: postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: postgres
       pull_policy: if-not-present
       variables:

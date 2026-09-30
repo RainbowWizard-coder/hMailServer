@@ -6,7 +6,10 @@
 // every caption, and LocTests installs catalogues into that one static seam.
 // Two test classes running at once would therefore read each other's
 // catalogue - a throwing one, a Swedish one - so the assembly runs its tests
-// one at a time. The whole suite takes a few seconds either way.
-using Xunit;
+// one at a time. The whole suite takes a few seconds either way. (xUnit.net v3 4.x
+// says so with Parallelization; CollectionBehavior's DisableTestParallelization is
+// obsolete there, as a compile error.)
+using Xunit.Sdk;
+using Xunit.v3;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+[assembly: Parallelization(Mode = ParallelMode.None)]

@@ -111,10 +111,10 @@ Since 6.3.6 no file is declared `none-stated`, a declaration a Debian archive do
 text is written out in full: Debian's `/usr/share/common-licenses` does not carry
 it.
 
-QuickJS 2025-04-26 is vendored unmodified under `hmailserver/source/Server/quickjs`
+QuickJS 2026-06-04 is vendored unmodified under `hmailserver/source/Server/quickjs`
 and linked into the server. No release these packages build for ships QuickJS as a
 library the server could link instead, which is the embedded copy's justification;
-the spec says so with `Provides: bundled(quickjs) = 2025.04.26`, as Fedora asks, and
+the spec says so with `Provides: bundled(quickjs) = 2026.06.04`, as Fedora asks, and
 `debian/copyright` in the paragraph's comment.
 
 The jobs

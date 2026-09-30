@@ -233,7 +233,7 @@ Syft over the release tag's tree, after a check
 that the tree is the tag's, and `build/merge-native-dependencies-into-sbom.ps1`
 adds the native libraries Syft cannot see, which `build/native-dependencies.ps1`
 reads from `hMailServer.vcxproj` and the tree: OpenSSL 4.0.3, Boost 1.92.0,
-PostgreSQL 18.6's libpq, QuickJS 2025-04-26 from its `VERSION` file, and zlib
+PostgreSQL 18.6's libpq, QuickJS 2026-06-04 from its `VERSION` file, and zlib
 1.3.2, vendored as source; the files the Windows installer carries but git does
 not - the .NET Desktop Runtime 10.0.12 (pinned by version and SHA-512), 7-Zip,
 MariaDB Connector/C 3.4.9, the MSVC runtime and SQL Server Compact 4.0 SP1, each

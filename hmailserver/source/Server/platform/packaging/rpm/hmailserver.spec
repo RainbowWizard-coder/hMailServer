@@ -26,7 +26,7 @@
 %global hm_builddir %{__cmake_builddir}
 %global hm_update_command dnf upgrade hmailserver
 %endif
-%global quickjs_version 2025.04.26
+%global quickjs_version 2026.06.04
 # No link-time optimisation, for memory: six programs link the whole static core,
 # and with LTO the linker alone held 3.0 GB on the laptop, besides the LTRANS
 # compilers it starts, where Fedora 44's link without it peaks at 1.5 GB; the CI

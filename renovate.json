@@ -58,6 +58,11 @@
     {
       "matchHost": "ghcr.io",
       "enabled": false
+    },
+    {
+      "description": "Fedora's registry, and its CDN (cdn.registry.fedoraproject.org, a subdomain, which the registry redirects every blob to), one request at a time. Three daily runs in a row lost one Fedora lookup each, each time a different request and each time to a network error rather than an answer: on 28 and 29 September 2026 the tag list for .gitlab-ci.yml's fedora:44 ('no-result'), on 30 September the config blob of packages-rpm.yml's fedora:43 x86_64 pin, twice ERR_STREAM_DESTROYED ('Could not determine new digest' on the dashboard). The pins are right: Renovate reads a per-architecture pin's architecture from that blob and moves the pin to the same architecture's manifest of the tag's new index, and a lookup dry run the same evening resolved all seven Fedora pins of the tree. In the failing run Renovate logged seven requests to Fedora's registry in the 1.5 seconds before the failed one; one at a time is a mitigation, not a proven cure.",
+      "matchHost": "registry.fedoraproject.org",
+      "concurrentRequestLimit": 1
     }
   ],
   "customDatasources": {
@@ -217,27 +222,25 @@
   ],
   "packageRules": [
     {
-      "description": "NuGet in the SDK-style projects - the Control Panel, the tools, their tests and LinuxRegressionTests - and global.json's .NET SDK: one merge request a week. Renovate rewrites each project's packages.lock.json with 'dotnet restore --force-evaluate' on Linux, which for the net10.0-windows projects is not what Windows writes (the note says why), so the merge request is finished on Windows.",
+      "description": "NuGet in the SDK-style projects - the Control Panel, the tools, their tests and LinuxRegressionTests: one merge request a week. Renovate rewrites each project's packages.lock.json with 'dotnet restore --force-evaluate' on Linux, which for the net10.0-windows projects is not what Windows writes (the note says why), so the merge request is finished on Windows.",
       "matchManagers": ["nuget"],
-      "groupName": "NuGet packages and the .NET SDK",
+      "groupName": "NuGet packages",
       "groupSlug": "nuget",
       "prBodyNotes": [
         "**Before merging, restore on Windows.** Renovate rewrote the lock files with a restore on Linux, and for the projects that target net10.0-windows a Linux restore lists packages the Windows Desktop runtime already carries (System.CodeDom under System.Management, System.Diagnostics.EventLog under System.ServiceProcess.ServiceController), which a restore on Windows leaves out: the dry run of 25 September 2026 showed it on master with the same SDK. On a Windows machine, on this branch, run `dotnet restore hmailserver/source/Tools/ControlPanel.sln --force-evaluate` and `dotnet restore \"hmailserver/source/Tools/hMailServer Tools.sln\" --force-evaluate`, and commit the lock files they rewrite (without --force-evaluate a restore that finds its project.assets.json current writes nothing). Otherwise the Windows gate's build rewrites them on the bench and leaves its checkout modified."
       ]
     },
     {
-      "description": "global.json names the SDK every build uses.",
+      "description": "global.json's SDK version is not proposed. With rollForward latestFeature it is the lowest .NET 10 SDK a build accepts, not the one it uses: every build already runs the newest 10.0 SDK installed on its machine. Raising it builds nothing differently and refuses every machine below it: on 30 September 2026 this laptop had 10.0.400, Alpine's dotnet10-sdk package, which the alpine-suite job runs the Linux suite with, is 10.0.303, and bench150 had 10.0.401, the version Renovate proposed on 28 September. It is raised by hand when a build needs a newer SDK; Microsoft's SDK image, which the Linux jobs take theirs from, keeps moving with its digest.",
       "matchDatasources": ["dotnet-version"],
       "matchPackageNames": ["dotnet-sdk"],
-      "prBodyNotes": [
-        "**global.json names a new .NET SDK.** Install {{{newVersion}}}, or a later 10.0 feature band, on every Windows build machine and on both benches before this merges. The Linux jobs take theirs from Microsoft's SDK image in build/ci/linux.Dockerfile: land the container-images merge request that moves its digest, and rebuild the image on linix, first."
-      ]
+      "enabled": false
     },
     {
       "description": "Placeholder for the .NET runtime the installer bundles. build/get-dotnet-runtime.ps1 takes the newest 10.0 from aka.ms by channel today, so there is no pin to update. When the supply-chain row pins it to an exact version, add a customManager for that line with datasourceTemplate dotnet-version and depNameTemplate dotnet-runtime; this rule then puts it in the NuGet merge request, and the rule below keeps it on .NET 10.",
       "matchDatasources": ["dotnet-version"],
       "matchPackageNames": ["dotnet-runtime"],
-      "groupName": "NuGet packages and the .NET SDK",
+      "groupName": "NuGet packages",
       "groupSlug": "nuget"
     },
     {
@@ -265,16 +268,38 @@
       "groupSlug": "docker"
     },
     {
-      "description": "Microsoft's .NET SDK image moves with global.json (above).",
+      "description": "Microsoft's .NET SDK image stays on .NET 10: the .NET major version moves by hand, with every TargetFramework (the dotnet-version rule above). Its digest moves weekly.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["mcr.microsoft.com/dotnet/**"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
-      "description": "The container image's Ubuntu is the release the .deb was built on (its Dockerfile says why): a new Ubuntu there follows the Linux packages' builder, by hand.",
-      "matchFileNames": ["hmailserver/source/Server/platform/packaging/docker/Dockerfile"],
-      "matchPackageNames": ["ubuntu"],
+      "description": "A distribution's own image names a release, and a new release is a change made by hand, so only each tag's digest moves. Most name a release a package is built for or installed on (Debian 12 and 13, Ubuntu 24.04 and 26.04, Fedora 43 and 44, UBI 9 and 10, openSUSE Leap 16.0 and Tumbleweed, AlmaLinux 10 and Alpine 3.24: .gitlab/ci/packages-*.yml, source-packages.yml, alpine.yml and .gitlab-ci.yml's linux-package-* jobs), where a new release is a new target with jobs of its own and moving the tag would drop the target it names. The Linux CI image's Ubuntu is the one linux-build makes the .deb and the .rpm in, and the container image's Ubuntu the release its .deb was built on (its Dockerfile says why). The rest run a tool from the release's own packages (editorconfig, chart-and-compose, update-helper, package-repos, ppa-upload, helm-chart-package, several pinning a package job's image on purpose), where a new release is a new version of the tool. On 30 September 2026 the dashboard offered Debian 12 to 13, Ubuntu 24.04 to 26.04, Fedora 43 and 44 to 46 (Rawhide in Fedora's registry that day) and openSUSE Leap 16.0 to 16.1 and to 42.3, the 2017 release, which Renovate's versioning ranks above 16.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "ubuntu",
+        "debian",
+        "alpine",
+        "almalinux",
+        "registry.fedoraproject.org/fedora",
+        "registry.access.redhat.com/**",
+        "registry.opensuse.org/**"
+      ],
+      "matchUpdateTypes": ["major", "minor", "patch"],
+      "enabled": false
+    },
+    {
+      "description": "The test lab (build/lab/docker-compose.yml): its matrix - MySQL 8.4, MariaDB 11.4 LTS, PostgreSQL 17, SQL Server 2022 and the peers it tests against - is chosen, and docs/TestLab.md's results are for those versions. A new version there is a new run of the matrix, made by hand; only the digests move.",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["build/lab/**"],
+      "matchUpdateTypes": ["major", "minor", "patch"],
+      "enabled": false
+    },
+    {
+      "description": "The databases the CI jobs test against - PostgreSQL 16 for the Linux suite, the upgrade gates and the package tests, MariaDB 11 for the MySQL upgrade gate - and the packaging compose file's PostgreSQL, which is what users deploy: PostgreSQL 18 does not open that file's PostgreSQL 16 data directory, the hm-db volume, without pg_upgrade. And GitLab's security analyzers: semgrep-sast is one of the four scans the release job reads (build/ci/security-gate.py), with its accepted findings in .gitlab/security-exceptions.yml, and an analyzer's major version changes its rules and so its findings. Each stays on its major version, and its digest moves; a new major version is a decision and a run, made by hand by changing this rule.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres", "mariadb", "mysql", "registry.gitlab.com/security-products/**"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
@@ -320,6 +345,15 @@
       "prBodyNotes": [
         "**A native library: this merge request changes the build's paths, and the build needs the library built first.** On every Windows build machine and the bench, build {{{depName}}} {{{newVersion}}} with its script (libraries/build-openssl.ps1, build-boost.ps1 with the version in dots, build-pgsql.ps1), passing -Sha256 the digest published beside the release (OpenSSL's script takes the archive from Debian's archive, openssl_<version>.orig.tar.gz, since OpenSSL publishes its releases only on GitHub, which the project does not download from; until Debian carries the new version, pass -Archive with a copy obtained by hand), and add that digest to the script's digest table on this branch. Then change the version where the documents name it (`git grep` the old one: README.md, hmailserver/docs) and run `python build/generate-help-pages.py`. The Linux build uses the distribution's packages and is not affected."
       ]
+    },
+    {
+      "description": "An OpenSSL patch release fixes security advisories as a rule, so it comes on any day, in a merge request of its own, instead of waiting for Monday's native-libraries group. Renovate's advisory alerts do not reach the custom datasources: OpenSSL 4.0.3, published on 29 September 2026 with thirteen advisories against 4.0.2, which the Windows installers ship, reached the dashboard as a routine update for the next Monday. The native libraries' note (above) still applies.",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["openssl"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "OpenSSL patch release",
+      "groupSlug": "openssl-patch",
+      "schedule": ["at any time"]
     },
     {
       "description": "The C++ libraries stay on their major version. A major upgrade is a decision, not a weekly bump: change this rule by hand to take one.",

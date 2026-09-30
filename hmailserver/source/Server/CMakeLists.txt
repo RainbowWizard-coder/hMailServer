@@ -404,7 +404,7 @@ endif()
 
 # ---------------------------------------------------------------- the JavaScript engine
 #
-# QuickJS, Fabrice Bellard's release 2025-04-26 (MIT), vendored as source under
+# QuickJS, Fabrice Bellard's release 2026-06-04 (MIT), vendored as source under
 # Server/quickjs: the engine, its regular expression and Unicode libraries,
 # cutils and dtoa, byte for byte as released, with its LICENSE and VERSION. The
 # event scripts run in it on this platform (Common/Scripting/ScriptBinding.cpp,

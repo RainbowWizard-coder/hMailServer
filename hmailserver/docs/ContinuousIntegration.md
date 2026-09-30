@@ -2105,15 +2105,28 @@ Every datasource is off GitHub. `renovate.json` also refuses `github.com`,
 `githubusercontent.com` and `ghcr.io` outright (`hostRules`), and reads no release
 notes (`fetchChangeLogs` off), because release notes come from GitHub.
 
+Fedora's registry is asked one request at a time (a `hostRules` entry for
+`registry.fedoraproject.org`, which covers the CDN it redirects every blob to).
+Three daily runs in a row each lost one Fedora lookup to a network error, a
+different request each time: the tag list for `.gitlab-ci.yml`'s `fedora:44` on
+28 and 29 September 2026 ("no-result"), and on 30 September the configuration
+blob of `packages-rpm.yml`'s `fedora:43` x86-64 pin, twice `ERR_STREAM_DESTROYED`,
+which the dashboard showed as "Could not determine new digest". The pins are
+right: for a pin of one architecture's manifest Renovate reads the architecture
+from that blob and proposes the same architecture's manifest of the tag's new
+index, and a lookup dry run that evening resolved all seven Fedora pins. The
+limit is a mitigation, not a proven cure; the job's debug log
+(`renovate-log.ndjson`) names the request that failed if it comes back.
+
 | What | Where it is named | Renovate's manager | Where new versions are read (datasource) | How it arrives |
 |---|---|---|---|---|
-| NuGet, the SDK-style projects | the Control Panel, the tools, their tests, `LinuxRegressionTests` | `nuget` | `nuget`: api.nuget.org | "NuGet packages and the .NET SDK", weekly, with the lock files |
-| The .NET SDK | `global.json` | `nuget` | `dotnet-version`: Microsoft's release metadata | in the NuGet merge request; never a new major version |
+| NuGet, the SDK-style projects | the Control Panel, the tools, their tests, `LinuxRegressionTests` | `nuget` | `nuget`: api.nuget.org | "NuGet packages", weekly, with the lock files |
+| The .NET SDK | `global.json` | `nuget` | `dotnet-version`: Microsoft's release metadata | never: a rule turns it off (below) |
 | NuGet, the `packages.config` projects | RegressionTests, StressTest, VMTestRunner.Console | a regex manager | `nuget`: api.nuget.org | waits on the dashboard |
-| Container images | `build/ci/linux.Dockerfile`, `.gitlab-ci.yml`, the packaging Dockerfile and compose file, `test/Docker/Dockerfile` | `dockerfile`, `gitlabci`, `docker-compose` | `docker`: Docker Hub and mcr.microsoft.com | "container images", weekly, every image pinned by digest; a new major version in a merge request of its own |
+| Container images | `build/ci/linux.Dockerfile`, `.gitlab-ci.yml` and the files it includes, the packaging Dockerfile and compose file, `test/Docker/Dockerfile`, the lab's compose file | `dockerfile`, `gitlabci`, `docker-compose` | `docker`: Docker Hub, mcr.microsoft.com and each distribution's and GitLab's own registry | "container images", weekly, every image pinned by digest; a new major version, where one is allowed, in a merge request of its own |
 | Python | the `.in` files of `build/` and `build/ci/` (Semgrep's packages, the build scripts', the command-line package's build tools) and the command-line package's `pyproject.toml`; never the locked `.txt` files uv makes from the `.in` files, which are in `ignorePaths` | `pip_requirements` (the `.in` files only), `pep621` | `pypi`: pypi.org | "Python packages", weekly; the locked files are remade on the branch (below) |
 | npm | nothing in the tree today | `npm` | `npm`: registry.npmjs.org | one merge request, weekly, once a `package.json` exists |
-| OpenSSL | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.openssl`: openssl-library.org/source/, the page only (its archive links point at GitHub and are never followed) | "native libraries", weekly, same major version |
+| OpenSSL | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.openssl`: openssl-library.org/source/, the page only (its archive links point at GitHub and are never followed) | a patch release on any day, in "OpenSSL patch release"; otherwise "native libraries", weekly; same major version |
 | Boost | the server's and the minidump tool's `.vcxproj`, `fuzz/build-fuzz.ps1` | a regex manager | `custom.boost`: archives.boost.io/release/ | "native libraries" |
 | The PostgreSQL client, libpq | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.postgresql`: ftp.postgresql.org/pub/source/ | "native libraries" |
 | zlib, vendored | `Server/zlib/zlib.h` | a regex manager | `custom.zlib`: zlib.net/fossils/ | waits on the dashboard |
@@ -2143,6 +2156,12 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   not cost a week. An open merge request is not refreshed on other days either
   (`updateNotScheduled` off). A new major version, where one is allowed, comes in
   a second merge request of its own, never beside routine bumps.
+- **An OpenSSL patch release on any day.** It comes in a merge request of its
+  own, "OpenSSL patch release", on the first daily run after it is published,
+  because OpenSSL's patch releases carry its security fixes and the advisory
+  alerts below do not reach the custom datasources: OpenSSL 4.0.3, published on
+  29 September 2026 with thirteen advisories against the 4.0.2 the Windows
+  installers ship, reached the dashboard as a routine update for the next Monday.
 - **Security fixes at once.** `osvVulnerabilityAlerts` is on. A dependency whose
   version has a published advisory gets a merge request of its own, labelled
   `security` and marked `[SECURITY]`, on the next daily run, whatever the day. It
@@ -2154,11 +2173,38 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   GitHub release.
 - **Nothing merges itself.** There is no automerge. A Renovate merge request is
   reviewed and folded into a batch like any other branch.
-- **What stays put.** OpenSSL, Boost, libpq, zlib and the MariaDB client stay on
-  their major version, and so do the .NET SDK and Microsoft's SDK image, which move
-  with `global.json`. The container image's Ubuntu follows the `.deb` builder by
-  hand. A rule in `renovate.json` holds each one, and changing that rule is the way
-  to take the upgrade.
+- **What stays put.** A rule in `renovate.json` holds each of these, and changing
+  that rule is the way to take the upgrade:
+  - OpenSSL, Boost, libpq, zlib and the MariaDB client stay on their major
+    version, and Microsoft's SDK image stays on .NET 10.
+  - `global.json`'s SDK is not proposed at all. With `rollForward: latestFeature`
+    it is the lowest .NET 10 SDK a build accepts, not the one it uses, which is
+    already the newest installed; raising it builds nothing differently and
+    refuses every machine below it (on 30 September 2026 the laptop had 10.0.400,
+    Alpine's `dotnet10-sdk` for `alpine-suite` is 10.0.303, and Renovate proposed
+    10.0.401). It is raised by hand when a build needs a newer SDK.
+  - A distribution's own image - Debian, Ubuntu, Alpine, AlmaLinux, Fedora,
+    UBI, openSUSE - moves by digest only, wherever it is named. Most tags name a
+    release a package is built for or installed on, where a new release is a new
+    target, added by hand with its jobs, and moving the tag would drop the target
+    it names; the CI image's Ubuntu is the one `linux-build` makes the `.deb` and
+    `.rpm` in, and the container image's Ubuntu the release its `.deb` was built
+    on. The rest run a tool from the release's own packages (`editorconfig`,
+    `chart-and-compose`, `update-helper`, `package-repos`, `ppa-upload`,
+    `helm-chart-package`), where a new release is a new version of the tool, also
+    taken by hand. On 30 September 2026
+    the dashboard offered Debian 12 to 13, Ubuntu 24.04 to 26.04, Fedora 43 and
+    44 to 46 (Rawhide in Fedora's registry that day) and openSUSE Leap 16.0 to
+    16.1 and to 42.3, the 2017 release, which Renovate's versioning ranks above 16.
+  - The test lab (`build/lab/docker-compose.yml`) moves by digest only: its
+    matrix is chosen, and [TestLab.md](TestLab.md)'s results are for those
+    versions.
+  - The databases the CI jobs test against (PostgreSQL 16, MariaDB 11) and the
+    packaging compose file's PostgreSQL, which users deploy and whose data
+    directory a new major version does not open without `pg_upgrade`, stay on
+    their major version; so do GitLab's security analyzers, whose major versions
+    change their rules and so their findings (`semgrep-sast` is one of the four
+    scans the release job reads).
 - **The dependency dashboard.** An issue, "Dependency updates (Renovate)", lists
   everything pending. Some updates wait there for a tick, because Renovate cannot
   make the upgrade: the `packages.config` packages, zlib, QuickJS, the MariaDB
@@ -2197,9 +2243,10 @@ Each merge request carries its own note of these steps.
   `.txt` files too: on 28 September 2026 it moved twelve versions there without
   resolving or hashing them, and uv, resolving them against Semgrep 1.178.0, kept
   none of them.
-- **A new SDK in `global.json`**: install it on every Windows build machine and
-  on both benches first. Land the container-images merge request that moves the
-  SDK image, and rebuild the Linux image, before it too.
+- **A new SDK in `global.json`**, which Renovate no longer proposes: raise it by
+  hand only after the SDK is on every Windows build machine, both benches and
+  Alpine's `dotnet10-sdk` package, and after the container-images merge request
+  that moves the SDK image has landed and the Linux image is rebuilt.
 - **`build/ci/linux.Dockerfile` changed**: the Linux jobs' image tag changes (see
   [The image](#the-image)).
 - **Native libraries**: build the new version on every Windows build machine with
@@ -2312,6 +2359,21 @@ What the runs proposed:
   found (GHSA-5crp-9r3c-p9vr, GHSA-hh2w-p6rv-4g7w, GHSA-8g4q-xg66-9fp4), each with
   its `[SECURITY]` branch to a fixed version. That is the check that the database
   built from OSV's export is read.
+
+On 30 September 2026 the rules for the distributions' images, the lab, the
+databases, the analyzers, `global.json`'s SDK and OpenSSL's patch releases were
+tried with a lookup dry run on the laptop: the pinned image, Renovate's local
+platform (`--platform=local --dry-run=lookup`) on a copy of `batch42`'s tree, every
+GitHub host resolving to 0.0.0.0 in the container, and the advisory database built
+by `osv-offline-db.py`. `renovate-config-validator --strict` passes. The lookups
+found 122 updates. With the earlier rules Renovate kept 116 of them; with the new
+ones, 79. The 43 held are every major, minor and patch move of a distribution's
+image and of the lab, `postgres` 16 to 18, `mariadb` 11 to 13, `semgrep` 6 to 7 and
+the SDK image's 11.0. The digest updates stay, among them new digests for the
+Fedora 43 and 44, UBI 9 and 10, Leap 16.0, Tumbleweed and Ubuntu 26.04 package
+images. The debug log lists the updates before the rules are applied; the updates
+kept were counted by applying `renovate.json`'s rules to that list, which gave
+Renovate's own count and order ("N flattened updates found") for both files.
 
 How long each job takes
 -----------------------

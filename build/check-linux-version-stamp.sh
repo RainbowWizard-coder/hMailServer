@@ -214,8 +214,10 @@ fi
 # PKGBUILD's own pkgver line is the one occurrence there is meant to be, and the
 # APKBUILD's (3a) its twin.
 # The stamps 3b holds are the other occurrences meant to be: the Debian changelog's
-# first line, the spec's Version: and its one %changelog entry.
-stray="$(grep -rnE '6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null \
+# first line, the spec's Version: and its one %changelog entry. The "6" must not
+# follow a digit or a dot: the spec's %global quickjs_version 2026.06.04, the
+# vendored QuickJS release's date, holds "6.06.04" and is no hMailServer version.
+stray="$(grep -rnE '(^|[^0-9.])6\.[0-9]+\.[0-9]+' "${PACKAGING}" 2>/dev/null \
    | grep -v '^[^:]*/PKGBUILD:[0-9]*:pkgver=' \
    | grep -v '^[^:]*/alpine/APKBUILD:[0-9]*:pkgver=' \
    | grep -v '^[^:]*/debian-src/debian/changelog:1:hmailserver (' \

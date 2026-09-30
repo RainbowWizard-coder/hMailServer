@@ -4,8 +4,8 @@
   "author": "The hMailServer maintainers, Progressive Robot Ltd",
   "role": "Project maintainers",
   "timestamp": "2026-09-12T03:00:00Z",
-  "last_updated": "2026-09-30T10:00:00Z",
-  "version": 5,
+  "last_updated": "2026-09-30T21:00:00Z",
+  "version": 7,
   "tooling": "Written by hand; one statement per advisory dismissed as not affecting the project, as SECURITY.md (Vulnerability management policy) requires. No statements means every advisory raised against a component of this project has been fixed rather than dismissed.",
   "statements": [
     {
@@ -289,6 +289,66 @@
       "status": "not_affected",
       "justification": "vulnerable_code_not_in_execute_path",
       "impact_statement": "PyJWT 2.13.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.178.0 - the newest semgrep, which pins it to pyjwt[crypto]~=2.13.0 - and of mcp. No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. The job runs `semgrep scan --metrics off --oss-only` with no login and no token, so no JSON Web Token is decoded, verified or signed and no JWKS is fetched: the code these advisories are in is never reached. PyJWT moves to 2.14.0 or later with the first semgrep release that allows it (build/ci/requirements.in)."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-101918",
+        "description": "An advisory against PyJWT 2.13.0 (medium), fixed in 2.15.0; found in build/ci/requirements.txt by build/ci/dependency-scan.py run on branch b42-deps in the pinned aquasec/trivy image, with Trivy's database of 30 September 2026, 20:00 UTC; not yet in that database for batch42's pipeline 2896082335."
+      },
+      "timestamp": "2026-09-30T20:15:00Z",
+      "products": [
+        {
+          "@id": "pkg:pypi/pyjwt@2.13.0",
+          "identifiers": {
+            "purl": "pkg:pypi/pyjwt@2.13.0"
+          }
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "PyJWT 2.13.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.178.0 - the newest semgrep, which pins it to pyjwt[crypto]~=2.13.0 - and of mcp. No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. The job runs `semgrep scan --metrics off --oss-only` with no login and no token, so no JSON Web Token is decoded, verified or signed, no key is read and no JWKS is fetched: the code these advisories are in is never reached. PyJWT moves to 2.15.0 or later with the first semgrep release that allows it (build/ci/requirements.in)."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102270",
+        "description": "An advisory against PyJWT 2.13.0 (medium), fixed in 2.14.0; found in build/ci/requirements.txt by build/ci/dependency-scan.py run on branch b42-deps in the pinned aquasec/trivy image, with Trivy's database of 30 September 2026, 20:00 UTC; not yet in that database for batch42's pipeline 2896082335."
+      },
+      "timestamp": "2026-09-30T20:15:00Z",
+      "products": [
+        {
+          "@id": "pkg:pypi/pyjwt@2.13.0",
+          "identifiers": {
+            "purl": "pkg:pypi/pyjwt@2.13.0"
+          }
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "PyJWT 2.13.0 is installed only into the semgrep CI job's own virtual environment, from build/ci/requirements.txt, as a dependency of semgrep 1.178.0 - the newest semgrep, which pins it to pyjwt[crypto]~=2.13.0 - and of mcp. No hMailServer release file contains it, and nothing the server, its tools or its packages run imports it. The job runs `semgrep scan --metrics off --oss-only` with no login and no token, so no JSON Web Token is decoded, verified or signed, no key is read and no JWKS is fetched: the code these advisories are in is never reached. PyJWT moves to 2.14.0 or later with the first semgrep release that allows it (build/ci/requirements.in)."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-88378",
+        "description": "QuickJS commit 04be24600 contains a heap out-of-bounds write in JS_ReadFunctionTag(), the reader of a compiled function in QuickJS's bytecode format (critical); published on 24 September 2026 and fixed in no QuickJS release. Not raised by the dependency-scan job, whose OSV query has no QuickJS data (UNKNOWN); listed against the quickjs source package by Debian's security tracker on 30 September 2026, and so read by hand against the release, as SECURITY.md says."
+      },
+      "timestamp": "2026-09-30T21:00:00Z",
+      "products": [
+        {
+          "@id": "pkg:generic/quickjs@2025-04-26",
+          "identifiers": {
+            "purl": "pkg:generic/quickjs@2025-04-26"
+          }
+        },
+        {
+          "@id": "pkg:generic/quickjs@2026-06-04",
+          "identifiers": {
+            "purl": "pkg:generic/quickjs@2026-06-04"
+          }
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "JS_ReadFunctionTag is reached only through JS_ReadObject, which reads a value or a compiled script back from QuickJS's binary serialization. hMailServer never calls it: the Linux server's event scripts (hmailserver/source/Server/Common/Scripting/ScriptBinding.cpp) are compiled from their source text with JS_Eval and run, and no bytecode is written, stored or read anywhere. In release 2026-06-04, as in 2025-04-26, the engine itself calls JS_ReadObject nowhere; its only callers are in quickjs-libc.c - the os.Worker message channel and js_std_eval_binary, with which a program compiled by qjsc loads its bytecode - and quickjs-libc.c, qjs and qjsc are not in the tree (hmailserver/source/Server/quickjs carries the engine, its regular expression and Unicode libraries, cutils and dtoa only). So no script, and nothing a message carries, can reach the reader. QuickJS moves to the first release that fixes it."
     }
   ]
 }
