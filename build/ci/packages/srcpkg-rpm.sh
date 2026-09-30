@@ -77,10 +77,15 @@ esac
 here=$(pwd)
 
 if [ -d "$source_from" ]; then
-  found=$(find "$source_from" -maxdepth 1 -name 'hmailserver-*.tar.gz' | sort)
-  [ "$(printf '%s' "$found" | grep -c .)" = 1 ] \
-    || refuse "not exactly one hmailserver-*.tar.gz in $source_from (found: ${found:-none}); the source-tarball job's artifact is that directory."
-  tarball=$found
+  # A glob, not find: this runs before the packaging tools are installed, and
+  # openSUSE Tumbleweed's image has no findutils (pipeline 2896082335's
+  # srcpkg-tumbleweed stopped here with "find: command not found").
+  shopt -s nullglob
+  found=("$source_from"/hmailserver-*.tar.gz)
+  shopt -u nullglob
+  [ "${#found[@]}" = 1 ] \
+    || refuse "not exactly one hmailserver-*.tar.gz in $source_from (found: ${found[*]:-none}); the source-tarball job's artifact is that directory."
+  tarball=${found[0]}
 else
   tarball=$source_from
 fi

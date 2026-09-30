@@ -55,10 +55,13 @@ BuildRequires:  cmake >= 3.22
 BuildRequires:  gcc-c++
 BuildRequires:  pkgconfig(ldap)
 BuildRequires:  pkgconfig(libpq)
-BuildRequires:  pkgconfig(openssl) >= 3.0
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  systemd-rpm-macros
 %if 0%{?suse_version}
+# OpenSSL by its package name: on openSUSE libressl-devel and aws-lc-devel also
+# provide pkgconfig(openssl), LibreSSL at a version above 3.0, and zypper, given
+# the pkgconfig name, installed LibreSSL on Tumbleweed, which CMake then refused.
+BuildRequires:  libopenssl-devel >= 3.0
 BuildRequires:  libboost_chrono-devel >= 1.83
 BuildRequires:  libboost_filesystem-devel >= 1.83
 BuildRequires:  libboost_headers-devel >= 1.83
@@ -67,6 +70,7 @@ BuildRequires:  ninja
 BuildRequires:  sysuser-tools
 %{?sysusers_requires}
 %else
+BuildRequires:  pkgconfig(openssl) >= 3.0
 BuildRequires:  boost-devel >= 1.83
 BuildRequires:  ninja-build
 %endif
