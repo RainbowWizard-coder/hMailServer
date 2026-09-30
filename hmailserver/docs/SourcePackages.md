@@ -408,6 +408,17 @@ runs, in WSL Ubuntu 26.04 and its Docker, two compilers at a time:
   knows. Leap 16.0's rpmlint died at its first check - its package neither
   requires nor recommends `python3-packaging`, which it imports - so
   `srcpkg-rpm.sh` installs that beside it on openSUSE; with it, rpmlint runs there.
+  The first pipeline to run the openSUSE jobs (batch42's, 30 September 2026) found
+  three things those runs had not: Leap 16.0's and Tumbleweed's images have no
+  `find`, which the script used before it installs anything, so it reads the
+  tarball's directory with a glob; on Tumbleweed four packages provide
+  `pkgconfig(openssl)` - `libopenssl-3-devel`, `libopenssl-devel`,
+  `libressl-devel` and `aws-lc-devel` - and zypper chose LibreSSL, which CMake
+  refused, so on openSUSE the spec asks for `libopenssl-devel >= 3.0`; and
+  Tumbleweed's rpmlint 2.10 reports two errors about the debug packages alone
+  (`statically-linked-binary` for the separate debug-information file, `no-binary`
+  for the debug sources), which the script filters, with its reason, and the spec's
+  `hmailserver.rpmlintrc` does not.
 
 A first laptop run of the Debian build at `-j4` beside another build was killed
 when WSL ran out of memory in the links (above); every result here comes from a

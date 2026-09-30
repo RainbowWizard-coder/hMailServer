@@ -214,6 +214,15 @@ filters="$work/rpmlint-filters.toml"
 {
   echo 'Filters = ['
   sed -n 's/^addFilter("\([^"]*\)")[[:space:]]*$/    "\1",/p' "$work/meta/hmailserver-$version/$RPM_DIR/hmailserver.rpmlintrc"
+  # And two errors about the debug packages, which this job builds and lints but
+  # does not keep, that Tumbleweed's rpmlint 2.10 reported in a run of this job on
+  # 30 September 2026: the separate debug-information file has no program
+  # interpreter, so it reads as statically linked (the server itself is linked
+  # dynamically, and rpmlint says nothing of it), and the debug sources package
+  # holds no program, which is what it is for. Neither is about a package a
+  # distribution ships, and neither belongs in the spec's own rpmlintrc.
+  echo '    "hmailserver-debuginfo[.][^:]*: E: statically-linked-binary /usr/lib/debug/",'
+  echo '    "hmailserver-debugsource[.][^:]*: E: no-binary",'
   echo ']'
 } > "$filters"
 [ "$(grep -c '^    "' "$filters")" -gt 0 ] || fail "no filter read from hmailserver.rpmlintrc"
