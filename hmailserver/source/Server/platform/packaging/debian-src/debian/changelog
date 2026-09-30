@@ -1,8 +1,8 @@
-hmailserver (6.3.5+ds-1) unstable; urgency=medium
+hmailserver (6.3.6+ds-1) unstable; urgency=medium
 
   * The project's own source package, built from the release's source tarball
     repacked without the test data that states no licence, with the live
     update off and the distribution's shared Boost
     (hmailserver/docs/SourcePackages.md).
 
- -- Christopher Holloway <christopher.j.holloway@outlook.com>  Mon, 28 Sep 2026 20:00:00 +0000
+ -- Christopher Holloway <christopher.j.holloway@outlook.com>  Thu, 01 Oct 2026 12:00:00 +0000

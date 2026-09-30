@@ -9,8 +9,8 @@ to 6.3.5 link the project's first path, `gitlab.com/Progressiverobot/hmailserver
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.5, published on 29 September 2026.** Anything that arrived after it is in the tree
-after 6.3.5 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-635-not-yet-released)
+**The latest release is 6.3.6, published on 1 October 2026.** Anything that arrived after it is in the tree
+after 6.3.6 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-636-not-yet-released)
 and will carry a version number when a release is cut.
 
 ## Where the releases are
@@ -65,17 +65,250 @@ for a stray `#` number or `@` name.
 
 ---
 
-## Unreleased - in the tree after 6.3.5, not yet released
+## Unreleased - in the tree after 6.3.6, not yet released
+
+Nothing yet.
+
+---
+
+## [6.3.6](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6) - 2026-10-01
+
+Everything that landed on `master` after the `v6.3.5` tag, from 29 September 2026 ([compare `v6.3.5` with
+`v6.3.6`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.5...v6.3.6)). It is the last release for the
+time being: after it the project makes security releases only, and the 6.3 line receives security fixes until 30
+September 2027 (below). 6.3.6 fixes a security flaw (below) and what 6.3.5's release and the first live updates
+from 6.3.4 found, replaces with the project's own code the last code in the server whose licence a distribution would
+have had to settle, and carries every file the release pipeline makes, the ARM64 Windows installer among them. The
+schema stays at **6105**: this release has no schema step. The security note comes first, then what changes on
+upgrade without a switch. The operator documents named below are in `hmailserver/docs`, which has nine more of them
+than it had at 6.3.5.
+
+**Releases pause after this one.** 6.3.6 is the last release for the time being, by the owner's decision of 28
+September 2026, and no feature release follows it until the maintainers say otherwise in [SECURITY.md](SECURITY.md),
+"While releases pause". A confirmed vulnerability still ships, in a release of its own that is 6.3.6 with fixes -
+6.3.7, 6.3.8 and so on - on the targets SECURITY.md gives: a critical or high one as soon as its fix has passed the
+gates, and none held past 90 days. Other defects are fixed on `master` and ship with the next security release, or
+when releases resume. The 6.3 line receives security fixes until 30 September 2027; before that date the
+maintainers write in SECURITY.md whether support continues, and if nothing is written, it ends then. There are
+still no maintenance branches: an installation of 6.3.5, 6.2 or anything older is upgraded in place to the newest
+release.
+
+**What the release carries**: 60 files and 154 links (ContinuousIntegration.md, "What a release carries"). Beside
+the x64 installer is `hMailServer-6.3.6-arm64.exe`, for Windows on ARM, Authenticode-signed like it. It is a
+preview: the ARM64 build is cross-compiled on the project's x64 Windows runner and has never run on ARM64 hardware,
+so read it as built to work ([WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)). If you install it on an ARM64
+machine, please say how it went, working or not, in [an issue](https://gitlab.com/hmailserver/hmailserver/-/issues):
+the project has no ARM64 machine of its own. SQL Server Compact has no ARM64 build, so a new ARM64 installation is
+set up against SQL Server or PostgreSQL, and a silent one is given its database on the command line. For Linux the
+release carries the generic `.deb` and `.rpm` for x86-64 and, for the first time since 6.3.3, for AArch64 -
+cross-compiled and tested under emulation, since no AArch64 machine has run them - and each Debian 12 and 13, Ubuntu
+24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
+architectures. It also carries both AppImages, with the source of the libraries they carry and of those their
+runtime links; the source tarball, `hmailserver-6.3.6.tar.gz`, reproducible and with nothing non-free in it, from
+which the Debian source package and the RPM spec in the tree build the server as a distribution does
+([SourceTarball.md](hmailserver/docs/SourceTarball.md), [SourcePackages.md](hmailserver/docs/SourcePackages.md));
+and the Helm chart. Every file has a Sigstore bundle beside it, every compiled file and the tarball an SBOM, and
+SLSA build provenance names every file by its SHA-256 ([SECURITY.md](SECURITY.md), "Verifying a release" and
+"Build provenance"). The apt and dnf repositories and the other channels publish from `master` once their keys and
+accounts exist; none is live as this release is made ([Channels.md](hmailserver/docs/Channels.md)).
+
+**The first container image**: `registry.gitlab.com/hmailserver/hmailserver:6.3.6`, also tagged `6.3` and `latest`,
+one index over linux/amd64 and linux/arm64, each platform's image built from this release's `.deb` of its
+architecture. It is pushed from this release's own pipeline once the release is published, by a job started by
+hand, signed with cosign as that pipeline, each platform's image with its SBOM attested to it; until then the
+registry holds no image. In the container the update check names the image to pull and installs nothing
+([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+
+**A Nix flake and Alpine Linux**: a Nix flake of the project's own at the repository's root, with a NixOS module
+(`services.hmailserver`), and an APKBUILD and an OpenRC service for Alpine Linux, on whose musl the server now
+builds and runs; both are built without the live update and name the command that updates them, and neither is in
+a distribution's archive yet ([Nix.md](hmailserver/docs/Nix.md), [Alpine.md](hmailserver/docs/Alpine.md)).
+
+**Signing, and who installs this release by the live update.** Every file is signed with Sigstore as this
+release's own pipeline at the group's path,
+`https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.6`, issuer `https://gitlab.com`, with the
+project's id, 86730559, in the certificate: the first release signed there since the project moved into the group
+`hmailserver` on 29 September 2026. Every server from 6.3.4 on has that signer compiled in and requires the id for
+it, so a server on 6.3.4 or 6.3.5 installed from the x64 installer or the release's x86-64 `.deb` or `.rpm` is built
+to install this release by its live update: from 6.3.5 with 6.3.5's own file as its rollback image, and from 6.3.4,
+which carries no Sigstore bundle, without one. No live update had installed a release signed at the group's path
+when these notes were written. The update is applied by the version already installed, so three things of 6.3.4
+and 6.3.5 still hold for it:
+
+- a Windows service running as `NT SERVICE\hMailServer` downloads and verifies the installer, then leaves the
+  install to an administrator (`HM7463`);
+- on Linux, a backup destination inside `/var/lib/hmailserver` fails the backup taken before an unattended apply
+  (`HM5014`), and the apply is refused until the destination is moved or the release installed by hand
+  ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "From 6.3.4 on, by the live update");
+- a server whose `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository` still name the path
+  the project began at - set so that a server from 6.2.28 to 6.3.3 could install 6.3.5 - trusts that path alone and
+  refuses this release. Clear the three first - in the Control Panel, with `DELETE /api/v1/settings/ini/<name>`, or
+  on Linux with `hmailserver --set-setting <name>=` - and not in the file, which 6.3.4 and 6.3.5 put back.
+
+A server from 6.2.28 to 6.3.3 trusts only the GitHub workflow that signed the releases up to 6.3.3, and is upgraded
+to this release by hand, once, after the backup [Upgrading.md](hmailserver/docs/Upgrading.md) describes; so is a
+server installed from an AArch64 package or an AppImage, whose last release was 6.3.3. One pointed at this
+project's feed with `UpdateFeedUrl` downloads the installer at every check and refuses it, so keep
+`UpdateAutoDownload` off there until then. The three settings that let such a server install 6.3.5 do not reach
+6.3.6, and must never name the group's path ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "A server from
+6.2.28 to 6.3.3"). No release before this one carried the ARM64 installer, so no ARM64 Windows server has a live
+update to take it; from 6.3.6 one finds its installer by name, and an x64 server is never offered it. A server
+installed from one of this release's per-distribution packages is offered the next release's generic package by its
+live update, which apt refuses on Debian 12 and dnf on EL 9, so there it is upgraded with its package manager and
+its own release's package of the next version, not by the live update
+([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "The download links").
+
+### Security
+
+The code of the legacy Blowfish scheme of stored secrets that the project inherited from the original hMailServer,
+which this release replaces with its own (under Operations), had two heap buffer overflows. The one in its
+encryption is in every version up to 6.3.5, and 6.3.6 fixes it. The one in its decryption is in every
+version up to 6.3.3, and was fixed in 6.3.4, whose notes did not say so. Both were found by the project's own
+review. The same release makes the helpers of COM `Utilities` that do work in the server answer only a caller that
+has signed in, or an event script running in the service (What changes on upgrade, item 1). Two CVE identifiers
+have been requested through GitLab, the CVE Numbering Authority for projects on GitLab.com;
+[work item #49](https://gitlab.com/hmailserver/hmailserver/-/work_items/49) gives the details from the day of the
+release, and the identifiers once they are assigned. Upgrade every server running 6.3.5 or earlier.
+
+### What changes on upgrade without a switch
+
+1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
+   `BlowfishDecrypt`, `ResolveMXRecords`, `GetMailServer`, `IsLocalHost`, `CheckSieveSyntax`, `EvaluateSieveScript`
+   and `CriteriaMatch` refuse a COM client that has not called `Authenticate`, with "You do not have access to this
+   property / method", whether it reached them through `Application.Utilities` or created `hMailServer.Utilities`
+   itself. They answer, as before, an account of any level or the administrator that has signed in, and an event
+   script running in the service, which needs no change. `MD5`, `SHA256`, `GenerateGUID`, `IsStrongPassword`,
+   `IsValidEmailAddress`, `IsValidIPAddress` and `IsValidDomainName` stay open to any caller, and a server with no
+   administrator password and no second factor answers every caller as it did. A program or script outside the
+   service - a scheduled VBScript, a PowerShell script, a tool of your own - that calls one of the eight creates
+   `hMailServer.Application`, calls `Authenticate` with an account or the administrator, and uses that object's
+   `Utilities`: a `Utilities` created on its own has no way to sign in. The Control Panel and the shipped
+   `DecryptBlowfish.vbs` already sign in. The type library changes help text only; no member or dispid is added,
+   removed or moved.
+2. **The live update's trust is read from `hMailServer.ini` alone.** `UpdateSigningIdentity`,
+   `UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` are read
+   from the file's `[Settings]` section on every platform, and never from the database, where 6.3.4 and 6.3.5 kept
+   them. At the first start a value those versions stored in the database is taken out; where it said something the
+   file does not, the error log names it once as `HM5809`, with both values, and from then on the file's value
+   applies. A line for one of the five in `[SettingsOverride]` is ignored and named as `HM5809` at every start. COM
+   and the REST API (409) refuse a change to them, and so the Control Panel, the Deck, a settings profile and the
+   audit trail's put-back; a write of the value the file already holds is taken. Most servers set none of the five
+   and see nothing. One that set a signer of its own over REST, the Deck or the Control Panel sets it in the file:
+   on Windows with an editor run as an administrator, on Linux with `sudo hmailserver --set-setting NAME=VALUE`,
+   then restarts the service. Where several servers share a database, the first 6.3.6 to start takes the rows out
+   for all of them, so put the value in every server's file before the first is upgraded. `hmctl config export` and
+   `Export-HmConfiguration` leave the five out, and `diff` and `apply` of an earlier export skip them with a line
+   naming them; a backup does not carry them either ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "Where the
+   trust is read from").
+3. **The MX-record test falls back by the Public Suffix List.** When a sender's domain has no MX, the test judges it
+   by its registrable domain's, which the server now finds with the Public Suffix List it already compiles in for
+   DMARC (the list of 25 July 2026, its PRIVATE section included), where it cut the name to two labels, or three
+   under a name in SURBL's list of 2006: `mail.example.act.edu.au` falls back to `example.act.edu.au`, not the
+   suffix `act.edu.au`. A sender at a public suffix itself that has no MX - `github.io`, `co.uk` - now fails the
+   test, since there is no registrant's domain above it to fall back to; under the old list `github.io` failed and
+   `co.uk` passed. A name of one label is not judged, as before. Nothing to set.
+4. **The SURBL test reads a link as a browser does, and a list's error answer is never a listing.** On a server
+   with URI block lists (SURBL servers):
+   - A link's host is the one after its user name - `http://anything@evil.example/` is asked about as
+     `evil.example`, where it was `anything` - percent-decoded and without its port, and an IPv4 address in any form
+     a browser takes is that address. The host is asked about whole and cut to its registrable domain by the Public
+     Suffix List, as above. Messages whose links escaped every list with a name and an `@` before the host can now
+     be tagged.
+   - A link to an address is asked about reversed, as a DNS list expects, and only so: it was also asked about in
+     its own order.
+   - The lists' error codes - `127.255.255.x`, `127.0.0.1`, `127.0.1.255` and `127.0.2.255` - never tag a message,
+     whatever the expected result. A server that asked the Spamhaus DBL or ZRD with no expected result, or with
+     `127.0.1.*` or `127.0.2.*`, no longer tags every message holding a link to an address. A URI list of your own
+     that answers `127.0.0.1` for a listing no longer tags anything: have it answer another address, such as
+     `127.0.0.2`. A list that refuses the server's queries, or answers `127.0.0.1` to every name of a message, is
+     named in the application log at most every 15 minutes.
+   - A host DNS cannot carry - a link that ends in a full stop, a label of 64 characters - is not asked about, where
+     its failed lookup ended the list's check for the message, and the links are asked about in the order they come
+     in the message, not sorted.
+   - The sender lists' URL entries are matched against the same host, an address in its own order: an entry for the
+     name before an `@` no longer matches, and nor does an address entry written reversed (`1.2.0.192` for a link to
+     `192.0.2.1`). Write such an entry as the address itself.
+5. **Backups leave out the live update's folder, and a destination inside the data directory works.** A backup no
+   longer carries `Updates` - the installer or package waiting to be applied, the rollback image, the apply token
+   and the last apply's outcome, most of the size of a backup taken before an apply - and a restore leaves this
+   machine's own folder as it is and puts back no older archive's copy. A destination, the temp directory or the
+   run's staging folder inside the data directory is left out of the copy, recognised by the directory itself and
+   not by its spelling, and a restore leaves them, and the folder of the archive it restores from, where they are;
+   the backup log names each. Up to 6.3.5 such a destination failed every backup (`HM5014`), and on Linux every
+   unattended update with it; the nested copy a failed run left in the staging folder is now removed rather than
+   archived. The same change removes two faults of the Linux packages, whose temp directory is inside the data
+   directory, found by reading the code: an encrypted backup with messages failed the same way, and a restore of
+   messages deleted the store it had just extracted. Nothing to set; a destination on another disk is still the
+   better place ([Backup.md](hmailserver/docs/Backup.md), "A destination inside the data directory").
+6. **`tlds.txt` is removed.** The Windows installer deletes `Bin\tlds.txt`, and the Linux packages no longer carry
+   `/usr/bin/tlds.txt`, so apt and dnf remove it. Nothing reads it: a copy edited by hand has no effect any more,
+   and the Public Suffix List compiled in decides. Error 4335, the list not read, is retired.
+7. **The project's address.** The project is at `gitlab.com/hmailserver/hmailserver` since 29 September 2026, with
+   its id, and the old addresses redirect. The Control Panel's links, the policy link of the server's
+   `/.well-known/security.txt`, the systemd units' `Documentation=` and the packages' home page name it. A new
+   database gets `HelpWikiBaseUrl` `https://gitlab.com/hmailserver/hmailserver/-/wikis/`; a database set up before
+   keeps the value it has, as it keeps any setting - `https://gitlab.com/Progressiverobot/hmailserver/-/wikis/`
+   unless an administrator changed it, which GitLab redirects, so the help panes' *Open on the wiki* still works. It
+   is changed on the Control Panel's Advanced page under General, on the Deck's Settings page, as
+   `help_wiki_base_url` over REST or as `Settings.HelpWikiBaseUrl` over COM ([Help.md](hmailserver/docs/Help.md),
+   "The wiki link"). This release and every one after it are signed at the group's path (above).
+8. **The live update keeps its outcome, tries a failed check again once, and keeps a verified installer.**
+   - After an update, `Status.UpdateApplyOutcome`, `apply` in `GET /api/v1/update` and the Control Panel keep the
+     outcome until the service stops or the next outcome replaces it; on 6.3.4 and 6.3.5 the check a second after
+     the start erased it. The update that installs 6.3.6 is the first whose outcome stays.
+   - A scheduled check that fails, when the one before it did not, is due again ten minutes later and read at the
+     quarter-hourly task's next run, then every `UpdateCheckHours` as before; `GET /api/v1/update` gains
+     `nextCheck`, when the scheduled check is next due.
+   - An answer that ends before its headers is reported with who ended the connection, after how many bytes and
+     seconds, the TLS handshake's share and how the read ended, where it said "The response carried no HTTP
+     headers.", for every request of the server's HTTP client but the installer's and the bundle's downloads. A
+     monitor that matches the old sentence needs the new one.
+   - With `UpdateAutoDownload=1`, an installer and bundle already in the `Updates` folder are verified again where
+     they are and not fetched again, and a copy that no longer passes is deleted and fetched; a service that cannot
+     install an update itself (`NT SERVICE\hMailServer`, `HM7463`) no longer downloads the whole installer, 88 MB
+     for 6.3.5, at every start ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+9. **On Linux the backup and event logs are UTF-8**, as the application and error logs are; they were UTF-16LE,
+   which `grep` and `tail` read as every character followed by a NUL. The server converts `hmailserver_backup.log`
+   and `hmailserver_events.log` in place the first time it opens each; the copies logrotate made before stay as they
+   were. Windows keeps UTF-16LE.
+10. **The Linux packages.** The `.deb` and the `.rpm` require `ca-certificates`, which apt and dnf install where it
+    is missing. Every Linux install puts hMailServer's AGPL-3.0 text at
+    `/usr/share/hmailserver/licenses/AGPL-3.0.txt` beside `QuickJS.txt`, and a copyright file at
+    `/usr/share/doc/hmailserver/copyright` from the `.deb` or `/usr/share/licenses/hmailserver/copyright` from the
+    `.rpm`. The `.rpm`'s `License` names every licence of what is compiled in, where it named the AGPL alone, and
+    its `%changelog` is this release's entry, where it was CPack's placeholder of 2010. The update helper now runs
+    `apt-get` quietly, so the journal no longer holds dpkg's progress as "[614B blob data]"; the helper already
+    installed is the one that runs an update, so this shows from the update after 6.3.6.
+11. **Text in the Control Panel can be selected and copied** (work item 48): on every page and dialogue by dragging,
+    double-clicking, Ctrl+C or a right-click Copy, and every plain list copies its selected rows, one row per line.
+    Live logs selects several lines, follows new lines only while its end is in view, and no longer splits a line
+    the server is still writing into two rows. Keyboard navigation and screen-reader output are unchanged.
+12. **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script at
+    every start, reinitialise and reload; switching scripting on compiles it first, and a script that does not
+    compile is reported then rather than at each start while scripting is off.
+13. **Smaller things a script, a monitor or a log reader may notice.**
+    - `GET /api/v1/update` also answers `installKind`, `liveUpdate`, `updateCommand` and `updateAdvice`, which the
+      Control Deck shows ([LiveUpdateKinds.md](hmailserver/docs/LiveUpdateKinds.md)).
+    - The REST API writes to the application log which method and path it answered 500 after an exception, and the
+      crash oracle's record adds, after the fields it always had, what an access violation read, wrote or executed,
+      the image and offset of the fault and up to twelve frames of the faulting thread.
+    - Putting a switch back from the audit trail (`POST /api/v1/audit/{id}/revert`, `Utilities.RevertAuditedChange`,
+      *Put back*) sets the switch; on 6.3.4 and 6.3.5 it wrote the setting's text column, which the server does not
+      read, and changed nothing.
+    - Over COM, `Recipients.Item` and `DiagnosticResults.Item` refuse a negative index, a look-up that finds nothing
+      no longer leaves an object behind, and a date made from a NaN reads as no date.
+    - `HM4229` reports the same codes in new words, and `HM7277` names `LegacyBlowfish::EncryptToString` as its
+      source.
 
 ### Downloads and the release
 
-- **The AArch64 `.deb` and `.rpm` are in the release again** (not yet run in a pipeline). The releases up to 6.3.3
+- **The AArch64 `.deb` and `.rpm` are in the release again**. The releases up to 6.3.3
   carried them; 6.3.4 and 6.3.5 did not, so an arm64 Debian, Ubuntu or RPM server has had no newer file than
   6.3.3. The release now collects `hmailserver_<v>_arm64.deb`, cross-compiled by `deb-ubuntu26.04-arm64` in
   Ubuntu 26.04's own container, and `hmailserver-<v>-1.aarch64.rpm`, `rpm-fedora44-aarch64`'s copy of its Fedora
   44 build - the names an installed arm64 server's update check asks for - each with its own CycloneDX SBOM
   (`<file>.cdx.json`), a line in `hmailserver-linux-<v>-SHA256SUMS.txt` and a Sigstore bundle, checked by
-  `release-verify` with the server's own verifier like every other file: (the release's other files follow below)
+  `release-verify` with the server's own verifier like every other file.
   `release` waits for each package's build, its SBOM job and its install job, which installs and runs it in an
   AArch64 container of its distribution under qemu-user; no AArch64 machine has run them. A package job's
   container has neither PowerShell nor Python, so every package build now records what it was built against
@@ -97,7 +330,8 @@ for a stray `#` number or `@` name.
   "What a release carries"; PackagesDeb.md; PackagesRpm.md).
 
 - **The container image is pushed from the release's own pipeline, by hand, and started before it is left there**
-  (not yet run in a pipeline). The image jobs are in every protected `v*` tag's pipeline. `container-image-deb`,
+  (6.3.6's own pipeline is the first to run these jobs, which no branch's pipeline has). The image jobs are in
+  every protected `v*` tag's pipeline. `container-image-deb`,
   started by hand after `release-publish` once the project variable `HM_PUBLISH_IMAGE` is 1, takes the `.deb` and its
   SBOM from the published release and verifies both with cosign as the tag's pipeline. The variable is read as the
   jobs run, not by a rule, so a release tagged before it is set has its image pushed from its own pipeline
@@ -121,13 +355,13 @@ for a stray `#` number or `@` name.
   emulation. By hand on linix, an arm64 image of 6.3.5, from batch41's arm64 `.deb` (the 6.3.5 release carries none),
   built in about three minutes and passed the start test ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
 
-- **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`** (not yet
-  run in a pipeline). The release carries it, signed, with its `.sigstore.json` copy. `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
+- **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`**.
+  The release carries it, signed, with its `.sigstore.json` copy. `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
   naming the release's image, and `build/ci/helm-repo.py` writes the repository's index and Artifact Hub's metadata
   from the update feed in `package-repos`.
 
 - **`hmctl` as a PyPI package, `hmailserver-cli`, and the PowerShell module with a Gallery manifest** (neither
-  published yet). `build/ci/cli-packages.py` builds `hmailserver-cli`'s sdist and wheel from
+  published yet: the two accounts do not exist). `build/ci/cli-packages.py` builds `hmailserver-cli`'s sdist and wheel from
   `hmailserver/source/Tools/Cli/python/` with the same `hmctl` file the `.deb` and the `.rpm` install, copied into it
   byte for byte, at `Version.h`'s version, with no dependency and no code that runs when it is installed; it runs
   on Python 3.8 and later. `HmailServer.psd1`, the module's new manifest, lists its 95 functions for Windows
@@ -139,8 +373,8 @@ for a stray `#` number or `@` name.
   a module with no Authenticode signature, which the release does not sign yet
   ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
 
-- **A source tarball with nothing non-free in it, which the Linux build and suite run from** (not yet run in a
-  pipeline; the release carries it from 6.3.6, below). `build/ci/source-tarball.sh` writes `hmailserver-<version>.tar.gz`
+- **A source tarball with nothing non-free in it, which the Linux build and suite run from** (the release
+  carries it from 6.3.6, below). `build/ci/source-tarball.sh` writes `hmailserver-<version>.tar.gz`
   from a commit with `git archive`: the commit's tree less every path of `build/source-exclusions.txt` - SQL Server
   Compact 3.5's headers and both copies of its licence, which are not free, and what only the Windows build and its
   installer use (the rest of `libraries/` with the Fat Cow icons, the COM API, the Windows service host and
@@ -161,13 +395,13 @@ for a stray `#` number or `@` name.
   `HM_SOURCE_TARBALL`; `build/native-dependencies.ps1 -LinuxOnly` gives the packages' SBOMs their components
   without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
 
-- **The release carries every file the pipeline makes for it** (not yet run in a pipeline). From 6.3.6 a release is
-  58 files and 149 links: the installer; the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12 and 13,
-  Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
+- **The release carries every file the pipeline makes for it**. From 6.3.6 a release is 60 files and 154 links: the
+  x64 and ARM64 installers (the ARM64 one below); the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12
+  and 13, Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
   architectures (`hmailserver_<v>-1~<release>_<arch>.deb`, `hmailserver-<v>-1.<release>.<arch>.rpm`); both AppImages,
   with the project's own runtime (work item 36), the source of the libraries linked into it and the source of the
   libraries they carry in `usr/lib` (below); the source tarball; the Helm chart; the sums of every Linux file, the
-  two AppImage sources files and the chart; an SBOM for each of the 25 compiled files and the tarball, and the tree's
+  two AppImage sources files and the chart; an SBOM for each of the 26 compiled files and the tarball, and the tree's
   two; a Sigstore bundle beside each, a byte-identical `<file>.sigstore.json` of each primary file's bundle, and
   `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build provenance naming every file by its SHA-256, signed as the
   pipeline with `cosign attest-blob` and checked with `cosign verify-blob-attestation` (SECURITY.md, "Build
@@ -184,7 +418,7 @@ for a stray `#` number or `@` name.
   verifier, which must refuse every bundle at its identity; nothing is published (ContinuousIntegration.md, "What a
   release carries", "The release rehearsal").
 
-- **The source of the AppImages' runtime's libraries goes out with them** (not yet run in a pipeline). Each
+- **The source of the AppImages' runtime's libraries goes out with them**. Each
   AppImage's runtime is linked statically on Alpine, and two of the libraries it takes in, libfuse3 (LGPL-2.1) and
   lzo (GPL-2.0-or-later), ask for their own source to go with the binary, not only the runtime's; with lzo's GPL, so
   does every other library linked in but the compiler's own. From 6.3.6 the release carries
@@ -201,8 +435,8 @@ for a stray `#` number or `@` name.
   libgcc stay out, under the GCC Runtime Library Exception
   ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md), "Licences"; work item 36).
 
-- **The AppImages carry the licences of the libraries in their `usr/lib`, and the release their source** (not yet run
-  in a pipeline). Each AppImage carries in `usr/lib` the shared libraries the server needs that are not left to the
+- **The AppImages carry the licences of the libraries in their `usr/lib`, and the release their source**.
+  Each AppImage carries in `usr/lib` the shared libraries the server needs that are not left to the
   host - libpq, libldap and what they need, nineteen files from fourteen Ubuntu 24.04 source packages - and seven of
   them are under the LGPL (GnuTLS, Nettle, GMP, libidn2, libunistring, libtasn1 and keyutils), which asks for the
   library's source to be offered with the binary. From 6.3.6 each image carries, in
@@ -222,7 +456,8 @@ for a stray `#` number or `@` name.
   `build/ci/packages/appimage-bundled-sources.sh` ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md),
   "Licences"; work item 36).
 
-- **The release channels, each published by hand from `master`, dormant until its account exists** (none live yet).
+- **The release channels, each published by hand from `master`, dormant until its account exists** (none live as
+  6.3.6 is released).
   `.gitlab/ci/channels.yml` adds `registry-mirror` (the image by digest, with its cosign signature and SBOM
   attestation, to Docker Hub, Quay.io and optionally Amazon ECR Public, with `regctl`), `aur-publish` (the AUR's
   `hmailserver`), `ppa-upload` (the Debian source package to `ppa:hmailserver/hmailserver` for Ubuntu 24.04 and
@@ -294,7 +529,7 @@ for a stray `#` number or `@` name.
   installed and started against PostgreSQL, and the Debian package built on Ubuntu 26.04 and passed its autopkgtest;
   a Fedora 44 server that died before `main` there was a file the laptop's WSL file system had corrupted, not a GCC
   16 or code defect. See [SourcePackages.md](hmailserver/docs/SourcePackages.md).
-- **A Nix flake of the project's own: `nix run gitlab:hmailserver/hmailserver`** (not yet run in a pipeline).
+- **A Nix flake of the project's own: `nix run gitlab:hmailserver/hmailserver`**.
   `flake.nix` at the top of the repository builds the Linux server as a Nix package, `packages.<system>.hmailserver`
   for x86_64-linux and aarch64-linux, with nixpkgs' Boost, OpenSSL, libpq, OpenLDAP and zlib, the live update off
   naming `nix flake update hmailserver`, the MariaDB connector on the server's RUNPATH for the `dlopen` a MySQL
@@ -316,7 +551,7 @@ for a stray `#` number or `@` name.
   releases.nixos.org, evaluates every output for both systems, builds the package and runs the NixOS test under
   QEMU's TCG, since linix has no KVM. On 29 September 2026 the test passed with KVM and under TCG, and the job's own
   script passed end to end on linix, without KVM, in 27 minutes. See [Nix.md](hmailserver/docs/Nix.md).
-- **Alpine Linux: the server on musl, an OpenRC service and an APKBUILD** (not yet run in a pipeline). The server had
+- **Alpine Linux: the server on musl, an OpenRC service and an APKBUILD**. The server had
   never been built on musl; on Alpine 3.24 four things were musl's, each fixed where it was. `File.cpp` took
   `strerror_r`'s answer as glibc's GNU one gives it, and musl's is the POSIX one. The server named US-ASCII to iconv
   as `ANSI_X3.4-1968`, glibc's name, which musl's iconv does not know, so a `us-ascii` part did not convert and a
@@ -345,7 +580,7 @@ for a stray `#` number or `@` name.
   suite passed against the installed server with the counts batch42's glibc suite had that day: 1897 passed, 331
   skipped, none failed, of 2228. The aports merge request is a named maintainer's (Roadmap3, "Alpine Linux"). See
   [Alpine.md](hmailserver/docs/Alpine.md).
-- **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file** (not yet run in a pipeline). Until
+- **The `.deb` and the `.rpm` carry hMailServer's licence and a copyright file**. Until
   now the release's `.deb` and `.rpm`, and every per-release package built with them, carried QuickJS's licence and
   nothing of the project's own: no AGPL-3.0 text, which the AGPL's sections 4 and 6 ask to go with every copy, and no
   copyright file, which Debian Policy 12.5 asks of every package; only the Arch package installed `LICENSE`. From
@@ -403,7 +638,11 @@ for a stray `#` number or `@` name.
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The links' names and paths").
 - **The `.deb` and the `.rpm` require `ca-certificates`**, which every HTTPS request the server makes needs, the
   update check's among them; in the first Linux live update PostgreSQL had pulled it in. So do the source packages
-  and the Arch package.
+  and the Arch package. Known issue, in every earlier `.rpm` too: neither the `.rpm`s nor the RPM spec require
+  glibc's extra character-set converters - `glibc-gconv-extra` on Fedora and EL, `glibc-gconv-modules-extra` on
+  openSUSE - which the distributions' container images lack, and without them the server converts no text in a
+  character set but Unicode's, US-ASCII, ISO-8859-1, ISO-8859-15 and Windows-1252 - BIG5, ISO-2022-JP, Cyrillic and
+  Central European mail among them - until they are installed.
 - **The `.rpm`'s `%changelog` is its own**: one entry, from the version's heading in `CHANGELOG.md` and dated by
   `SOURCE_DATE_EPOCH`, in place of CPack's placeholder of 2010.
 - **The Linux update helper runs `apt-get` quietly** (`-q`, `Dpkg::Use-Pty=0`), so the journal no longer holds
@@ -539,14 +778,14 @@ for a stray `#` number or `@` name.
   comments of the Compose file, the chart's values and the Dockerfile, the packaging README, EvidencePack.md,
   ContinuousIntegration.md's `cosign verify` example and SECURITY.md's `cosign verify-attestation` example, and
   `renovate.json`, which also said the registry was not switched on - now name the group's address; the Compose file
-  and the chart still pull the present path, and change with the move. Nothing the pipeline does changes.
+  and the chart pull from it since the move. Nothing the pipeline does changes.
 
 - **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package jobs
   for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
   [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md) and
   [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job had
   run: every `.deb` build job passed in pipelines 2886955494 and 2887115157, and every `.rpm` build job in
-  2887115157; no install job has started in any pipeline, no AppImage job has been started, and
+  2887115157; no install job had started in any pipeline, no AppImage job had been started, and
   `windows-packages-x64` built the unsigned x64 installer in 2887115157.
   [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no GitLab job has run, says
   the GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's
@@ -569,8 +808,8 @@ for a stray `#` number or `@` name.
   ini's `[Database]` section as the server does (spaces trimmed, names in any case), and `HM_INSTALL_KIND`, which
   the image sets for the update check, is not a reason for it to open the database.
 
-- **A build without the live update, and a live update that knows a snap and a container** (not yet run in a
-  pipeline). CMake's new `-DHM_LIVE_UPDATE=OFF` builds the server with no apply step and installs neither
+- **A build without the live update, and a live update that knows a snap and a container**.
+  CMake's new `-DHM_LIVE_UPDATE=OFF` builds the server with no apply step and installs neither
   `hmailserver-update` nor its two units; an AppImage made from an OFF tree carries no `hmailserver-update`
   either. Its update check still names a newer release and the distribution's own command
   (`-DHM_UPDATE_COMMAND="apt upgrade hmailserver"`). A server in a snap (`SNAP` naming the directory it runs from)
@@ -582,7 +821,8 @@ for a stray `#` number or `@` name.
   `linux-live-update`).
 
 - **A new Windows installation can be set up against SQL Server, PostgreSQL or MySQL with no window** (not yet
-  run against a server). Both installers take the database on the command line - `/dbtype=`, `/dbhost=`,
+  run against a server: that is the installer smoke test's `--database` run, made by hand, not by a pipeline).
+  Both installers take the database on the command line - `/dbtype=`, `/dbhost=`,
   `/dbport=`, `/dbname=`, `/dbuser=`, `/dbpasswordfile=`, `/createdatabase=`, `/dbservice=` - or in the
   container's own `HM_DB_*` variables, the password only in `HM_DB_PASSWORD` or a file, never on a command line.
   `DBSetup.exe /unattended` then creates the database, or uses one that exists and upgrades it with DBUpdater if
@@ -906,6 +1146,8 @@ for a stray `#` number or `@` name.
 - **`backup-tests` and `trust-anchor-tests`**, two more tester programs `linux-build.sh` runs, and the source
   packages' builds too (`dh_auto_test` and `%check`, [SourcePackages.md](hmailserver/docs/SourcePackages.md)); both
   run in the class tests on Windows as well.
+
+Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 
 ---
 
