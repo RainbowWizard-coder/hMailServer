@@ -17,10 +17,11 @@ since 18 September 2026, and its home has been
 (`sign-release.yml`, `sbom.yml`, `verify-binary-provenance.yml`, in the git
 history at `v6.3.3`). It holds for the releases that chain signed, 6.2.19 to
 6.3.3, whose Sigstore bundles verify without GitHub. 6.3.4 was built and signed
-by hand and carries no Sigstore bundle. The chain's replacement, the release
-jobs of `.gitlab-ci.yml` ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-release)),
-is written for 6.3.5 onwards and has not run, so the claim cannot be made for a
-later release until one has been made by it.
+by hand and carries no Sigstore bundle. The chain's replacement, the release jobs of `.gitlab-ci.yml`
+([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#the-release)),
+made 6.3.5 on 29 September 2026: every file of it carries a Sigstore bundle
+signed by the tag's pipeline, which verifies without GitHub, so the claim holds
+for 6.3.5 and for each later release the jobs make.
 Likewise the CodeQL, Dependabot and dependency-review checks cited below ran on
 GitHub and do not run on GitLab. Since 25 September 2026 GitLab CI has
 replacements, not yet blocking - cppcheck, clang-tidy and Semgrep for CodeQL,

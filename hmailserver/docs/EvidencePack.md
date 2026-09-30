@@ -10,6 +10,10 @@ Written 25 September 2026 against the source tree at schema 6100. The latest
 release is 6.3.3, published on 15 September 2026 at schema 6040. A feature
 marked *(unreleased)* is in the tree after 6.3.3 and not yet released: a server
 running 6.3.3 does not have it ([CHANGELOG.md](../../CHANGELOG.md), *Unreleased*).
+Since it was written, 6.3.4 (27 September 2026, built and signed by hand) and
+6.3.5 (29 September 2026) were published; 6.3.5 was the first release the GitLab
+release jobs made, every file with a Sigstore bundle, so where the text below
+says those jobs have not run, they have.
 "Off by default" means the value a new installation has, read from the defaults
 in the code: `SettingsDefaults.h` for the `hm_settings` rows and
 `IniSettingsBaseline.h` for the `[Settings]` keys, both in

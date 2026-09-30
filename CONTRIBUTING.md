@@ -696,8 +696,7 @@ And, for any new setting:
   `HelpMap.cs`. A heading a help map names must be a level-one or level-two heading (`check-help-map.py`).
 * The documents at the repository root, `hmailserver/docs/README.md` and the wiki are not compiled into
   anything. The wiki copies several of the root documents; a change to one of those is a wiki change too.
-* House style: British English, plain declarative prose, and every claim true of the tree it describes. Nothing
-  after 6.3.4 is written with a version number until it is released: it is "in the tree after 6.3.4, not yet
+* House style: British English, plain declarative prose, and every claim true of the tree it describes. Nothing after 6.3.5 is written with a version number until it is released: it is "in the tree after 6.3.5, not yet
   released".
 
 ### Roadmap2 and Roadmap3 rows

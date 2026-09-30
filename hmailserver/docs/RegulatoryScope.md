@@ -205,9 +205,10 @@ update only when its Sigstore bundle names that workflow's GitHub identity. None
 of the workflows has run since GitHub suspended the project's account on 18
 September 2026. The releases up to 6.3.3 are on GitLab with their original
 signatures; 6.3.4 was built and Authenticode-signed by hand and carries no
-Sigstore bundle or provenance; and the GitLab release jobs that replace the
-workflows, for 6.3.5 onwards, are written and have not run
-([ContinuousIntegration.md](ContinuousIntegration.md#the-release)). Moving the
+Sigstore bundle or provenance; and the GitLab release jobs that replace the workflows made 6.3.5 on 29
+September 2026, with its SBOMs, its Sigstore bundles and its Authenticode
+signature, the Azure identity reached through a federated credential for the tag
+and no secret ([ContinuousIntegration.md](ContinuousIntegration.md#the-release)). Moving the
 chain off a single forge is its own row in [Roadmap2.md](../../Roadmap2.md),
 *The release chain off a single forge*.
 
