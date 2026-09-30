@@ -165,10 +165,11 @@ which this release replaces with its own (under Operations), had two heap buffer
 encryption is in every version up to 6.3.5, and 6.3.6 fixes it. The one in its decryption is in every
 version up to 6.3.3, and was fixed in 6.3.4, whose notes did not say so. Both were found by the project's own
 review. The same release makes the helpers of COM `Utilities` that do work in the server answer only a caller that
-has signed in, or an event script running in the service (What changes on upgrade, item 1). Two CVE identifiers
-have been requested through GitLab, the CVE Numbering Authority for projects on GitLab.com;
+has signed in, or an event script running in the service (What changes on upgrade, item 1). GitLab, the CVE
+Numbering Authority for projects on GitLab.com, has assigned them CVE-2026-103011 (the encryption, fixed in 6.3.6)
+and CVE-2026-103010 (the decryption, fixed in 6.3.4);
 [work item #49](https://gitlab.com/hmailserver/hmailserver/-/work_items/49) gives the details from the day of the
-release, and the identifiers once they are assigned. Upgrade every server running 6.3.5 or earlier.
+release. Upgrade every server running 6.3.5 or earlier.
 
 ### What changes on upgrade without a switch
 
