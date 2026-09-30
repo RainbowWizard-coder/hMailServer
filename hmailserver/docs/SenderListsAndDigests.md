@@ -33,7 +33,7 @@ and optionally when it stops mattering.
 | `someone@example.com` | That one address, in any case. No wildcards. |
 | `example.com` | `example.com` and every subdomain of it — `mail.example.com`, not `notexample.com`, not `example.com.attacker.net`. |
 | `@example.com` | The same as `example.com`. Stored as `example.com`. |
-| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. A leading `www.` is dropped, as the link extractor drops it. |
+| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded, with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal. A host no link can have there — an IPv6 address, a name with a character a name cannot hold, a name of one label — is refused. |
 
 An entry covers a message when it matches **either** the envelope sender
 (`MAIL FROM`) **or** the address in the message's `From` header. The header is

@@ -139,8 +139,11 @@ build=$?
 echo "ninja exit $build after $(( $(date +%s) - started )) s; $(grep -c 'warning:' "$out/build.log" || true) warning line(s)"
 if [ "$build" -ne 0 ]; then
   # -k 0 built everything that could be built, so this is every failure, not the first.
-  grep -E '^FAILED:' "$out/build.log" | head -n 40
-  grep -E 'error:' "$out/build.log" | sort -u | head -n 80
+  # No `| head`: it stops reading, and grep or sort, still writing a long list, then
+  # dies of SIGPIPE, which pipefail makes the status (58710c9d6). grep -m stops
+  # reading the log itself, and sed reads its input to the end.
+  grep -m 40 -E '^FAILED:' "$out/build.log"
+  grep -E 'error:' "$out/build.log" | sort -u | sed -n '1,80p'
   echo "BUILD FAILED - the whole log is the job's artifact linux-build/build.log"
   exit 3
 fi

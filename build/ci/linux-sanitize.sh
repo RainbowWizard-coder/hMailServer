@@ -81,7 +81,9 @@ code=$?
 ended=$(date +%s)
 echo "ninja exit $code after $(( ended - started )) s"
 if [ "$code" -ne 0 ]; then
-  grep -E '^FAILED:|error:' "$out/build.log" | sort -u | head -n 60
+  # sed, not head, reads sort's list to its end: head's early exit left sort to die
+  # of SIGPIPE, as the probes above did.
+  grep -E '^FAILED:|error:' "$out/build.log" | sort -u | sed -n '1,60p'
   echo "BUILD FAILED - the whole log is the job's artifact $out/build.log"
   exit 3
 fi

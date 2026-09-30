@@ -205,7 +205,10 @@ until said="$(smtp_conversation 2> /dev/null)"; do
   sleep 3
 done
 printf '%s\n' "$said"
-printf '%s\n' "$said" | grep -Eq '^S: 250[ -]STARTTLS' \
+# A here-string, not printf into grep -q: grep stops at the match, and the shell's
+# printf, still writing the lines after it, can die of SIGPIPE, which pipefail makes
+# the status - a STARTTLS offered and reported missing.
+grep -Eq '^S: 250[ -]STARTTLS' <<< "$said" \
   || fail "port 25 offers no STARTTLS: the new installation's defaults were not applied"
 echo "SMTP answers, with STARTTLS, as a new installation secured by --apply-new-install-defaults does."
 
@@ -225,7 +228,9 @@ echo "without credentials: 401"
 # The password goes to curl on its standard input (a config line), never on its command line.
 body=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "$url") \
   || fail "GET /api/v1/status as Administrator failed"
-printf '%s\n' "$body" | head -c 400
+# Its first 400 characters, cut by the shell: head -c stops reading and leaves
+# printf to die of SIGPIPE.
+printf '%s\n' "${body:0:400}"
 echo ""
 case "$body" in
   *"\"version\":\"$expected"*) ;;

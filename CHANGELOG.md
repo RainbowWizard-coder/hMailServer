@@ -67,8 +67,6 @@ for a stray `#` number or `@` name.
 
 ## Unreleased - in the tree after 6.3.6, not yet released
 
-Nothing yet.
-
 ---
 
 ## [6.3.6](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6) - 2026-10-01
@@ -752,6 +750,21 @@ fixes from there.
   off for the links after it; the application log says so, at most every 15 minutes as well, when a list answered it
   to every name of a message.
 
+- **Fixed: a URL entry of the sender lists with an `@` or a `\` in it could name another host.** An entry typed as a
+  link was cut at its first `@`, after a leading `www.` had been looked for, so `http://a@b@bad.example/` was stored
+  as `b@bad.example/` and `http://user@www.bad.example/` as `www.bad.example/`, neither of which is any link's host,
+  and the backslash of `http://good.example\@evil.example/`, which a browser reads as a slash, was not seen, so the
+  entry named `evil.example` where the link goes to `good.example`. An entry's host is now read as the SURBL test
+  reads a link's (above): the part after the last `@`, up to a port, `/`, `?`, `#` or `\`, percent-decoded, each
+  leading `www.` dropped while two labels or more are left (`http://www.www.example.com/` is `example.com/`), and an
+  address in any form a browser takes (`0xC0.0.2.61`) written in dotted decimal. An entry whose host no link can have
+  - neither an IPv4 address nor a name of two labels or more, of letters, digits, `-` and `_`, within the lengths DNS
+  allows and not ending in a number - is refused: an IPv6 address and a name of one label were refused already, and
+  the rest (a name with a `!` in it, an empty label, a label of 64 characters) were stored and matched nothing.
+  Entries stored before are read the new way when the server loads them, which mends the first two forms; one stored
+  from the third names `evil.example` and has to be entered again, and one of a host now refused stays in its list,
+  matching nothing as it did. The cases run in `SURBLTester`, in ClassTester and, on Linux, in `public-suffix-tests`.
+
 ### Administration
 
 - **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue: drag
@@ -780,6 +793,25 @@ fixes from there.
   column, which does nothing; one put back twice by those versions left a row `true -> false` or `false -> true`
   describing that text column, and putting that row back now sets the switch. `Utilities.RevertAuditedChange`'s help
   text in the type library says so too.
+
+- **Fixed: `Utilities.IsStrongPassword` knew three of its special characters wrongly on Windows.** A password of
+  five or six characters counts as strong only with a digit or one of a set of special characters, and three of
+  them - the currency sign, the diaeresis and the acute accent (U+00A4, U+00A8, U+00B4), upstream's, from a Swedish
+  keyboard - had been written over with U+FFFD when the source was re-encoded in 2014. The Windows build, which
+  reads that source in the ANSI code page, took each U+FFFD for the three characters its UTF-8 bytes are in
+  Windows-1252 (U+00EF, U+00BF, U+00BD), so a five-character password ending in a currency sign was weak and one
+  ending in an i diaeresis strong; the Linux build took U+FFFD itself. The three are back, written as `\u` escapes,
+  which every compiler reads alike. Nothing in the server calls the method, which answers COM scripts only; a
+  password an administrator chooses is judged by the password policy. The passwords the server generates, twelve
+  hexadecimal digits, are longer than the rule looks at.
+- **The audit trail's put-back names every refusal.** `POST /api/v1/audit/{id}/revert`'s description in the OpenAPI
+  document, `Utilities.RevertAuditedChange`'s comment in the type library's source and the audit trail's help page
+  listed the refusals of 29 September. They now also name, where each was missing, a setting's row whose detail does
+  not hold the two values, a `[Settings]` value the store cannot hold, a write that fails, and the two refused with
+  the sentence every other way of changing them is refused with: one of the five `[Settings]` keys of the live
+  update's trust, which only `hMailServer.INI` itself changes since 6.3.6, and a setting the server's environment
+  sets - each unless the value put back is the one it has already. The help string in the type library is
+  unchanged: it says that the call raises why it cannot, within the 260 characters MIDL keeps.
 
 ### Operations
 
@@ -970,6 +1002,14 @@ fixes from there.
   `RestApiSettings` and `IniSettingsMirror`, and by `check-cli.py`.
 - **The backup and event logs are UTF-8 on Linux**, as the other logs are; they were UTF-16LE. A file an earlier
   version wrote is converted when the server first opens it. Windows keeps UTF-16LE.
+
+- **Fixed: sixteen more COM look-ups that found nothing left an object behind.** This release makes 67 look-ups look
+  before they made the object they answer with; sixteen written as an if and an else were not among them, and still
+  made it first and kept it, never released, when the answer was no: `Aliases.ItemByDBID` and `ItemByName`,
+  `DistributionListRecipients.Item` and `ItemByDBID`, `IMAPFolderPermissions.ItemByDBID` and `ItemByName`,
+  `IncomingRelays.Item`, `ItemByDBID` and `ItemByName`, `Messages.Item` and `ItemByDBID`, `RouteAddresses.ItemByDBID`,
+  `Routes.Item`, and `SecurityRanges.Item`, `ItemByDBID` and `ItemByName`. Each now looks first. A sweep of every COM
+  method that makes an object, for a return that neither hands it over nor releases it, finds none left.
 
 ### Build and tests
 
@@ -1180,6 +1220,19 @@ fixes from there.
   run in the class tests on Windows as well.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
+
+- **No CI script reads a long or still-running output through `head` or `grep -q` under pipefail.** A reader that
+  stops at what it wants closes the pipe, and a command still writing then dies of SIGPIPE, which `set -o pipefail`
+  makes the pipeline's status, 141 (linux-sanitize failed so in pipeline 2887524317). Measured in WSL, 20 runs each:
+  a command that writes a line at a time piped into `head -n 2`, as `syft version` is in container-image-sbom and
+  linux-sbom, failed 20 times; the build scripts' failure summaries, `grep ... | sort -u | head -n 80` over a long
+  list, failed 20 times, and under `set -e` ended the AppImage and Nix scripts before their own message. Those, and
+  `ldconfig -p | grep -q` in `build/lab/db-suite.sh`, `rpm -qp ... | grep -q` in `srcpkg-rpm.sh`, a shell `printf`
+  of a variable into `grep -q` or `awk` in `container-image-start-test.sh`, `appimage-build.sh`, the packaging's
+  `build-appimage.sh`, `test-install-kind.sh` and `test-hmailserver-update.sh`, and `helm template ... | grep -q` in
+  the chart-and-compose job, which could pass a chart that wrote the Secret it is there to catch, now read a file
+  themselves (`grep -m`), read their input to the end (`sed -n '1,Np'`) or search a file or a here-string. The
+  scripts run under `sh` without pipefail, and pipes whose command writes a line or two at once, are unchanged.
 
 ---
 

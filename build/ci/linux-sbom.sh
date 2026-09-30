@@ -34,7 +34,10 @@ mkdir -p "$out"
 echo "tree:   ${CI_COMMIT_SHA:-$(git rev-parse HEAD 2> /dev/null || echo unknown)}"
 echo "ref:    ${CI_COMMIT_REF_NAME:-(not a pipeline)}"
 echo "tag:    ${CI_COMMIT_TAG:-(none - this describes the branch, and claims nothing about a release)}"
-syft version | head -n 2
+# sed, not head, which stops reading: syft, a Go program, writes its standard
+# output unbuffered, so one still writing when head has gone dies of SIGPIPE, which
+# pipefail makes the pipeline's status (141).
+syft version | sed -n '1,2p'
 
 # No update check (it would ask Anchore's server on every run) and nothing sent
 # anywhere: the documents are written to files.

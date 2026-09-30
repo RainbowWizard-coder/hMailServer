@@ -68,8 +68,12 @@ namespace HM
       // The pattern as it is stored: trimmed, lower-cased, and with a leading
       // '@' removed, so that "@Example.COM " and "example.com" are one row and
       // not two; a URL - a scheme, or a '/' after the host - reduced to its host
-      // and a trailing '/', with a leading "www." dropped as the link extractor
-      // drops it. Called by the setter, so nothing downstream has to remember.
+      // and a trailing '/', the host read from the authority as the link
+      // extractor reads a link's (SURBL::HostOfAuthority): after the last '@',
+      // without the port, each leading "www." dropped and an address in dotted
+      // decimal. What it returns it returns again when given it, so an entry
+      // read back from the database is the entry that was stored. Called by the
+      // setter, so nothing downstream has to remember.
       static String Canonical(const String &pattern);
    };
 }

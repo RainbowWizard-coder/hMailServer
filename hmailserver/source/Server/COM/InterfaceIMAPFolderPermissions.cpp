@@ -155,24 +155,18 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::get_ItemByDBID(long DBID, IInterfac
       if (!acl_permission_)
          return GetAccessDenied();
 
-      CComObject<InterfaceIMAPFolderPermission>* pACLPermission = new CComObject<InterfaceIMAPFolderPermission>();
-      pACLPermission->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::ACLPermission> pPersACLPermission = acl_permission_->GetItemByDBID(DBID);
    
-      if (pPersACLPermission)
-      {
-         pACLPermission->AttachItem(pPersACLPermission);
-         pACLPermission->AttachParent(acl_permission_, true);
-         pACLPermission->AddRef();
-         *pVal = pACLPermission;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pPersACLPermission)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
+      CComObject<InterfaceIMAPFolderPermission>* pACLPermission = new CComObject<InterfaceIMAPFolderPermission>();
+      pACLPermission->SetAuthentication(authentication_);
+      pACLPermission->AttachItem(pPersACLPermission);
+      pACLPermission->AttachParent(acl_permission_, true);
+      pACLPermission->AddRef();
+      *pVal = pACLPermission;
+
       return S_OK;
    }
    catch (...)
@@ -212,24 +206,18 @@ STDMETHODIMP InterfaceIMAPFolderPermissions::get_ItemByName(BSTR Name, IInterfac
       if (!acl_permission_)
          return GetAccessDenied();
 
-      CComObject<InterfaceIMAPFolderPermission>* pACLPermission = new CComObject<InterfaceIMAPFolderPermission>();
-      pACLPermission->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::ACLPermission> pPersACLPermission = acl_permission_->GetItemByName(Name);
    
-      if (pPersACLPermission)
-      {
-         pACLPermission->AttachItem(pPersACLPermission);
-         pACLPermission->AttachParent(acl_permission_, true);
-         pACLPermission->AddRef();
-         *pVal = pACLPermission;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pPersACLPermission)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
+      CComObject<InterfaceIMAPFolderPermission>* pACLPermission = new CComObject<InterfaceIMAPFolderPermission>();
+      pACLPermission->SetAuthentication(authentication_);
+      pACLPermission->AttachItem(pPersACLPermission);
+      pACLPermission->AttachParent(acl_permission_, true);
+      pACLPermission->AddRef();
+      *pVal = pACLPermission;
+
       return S_OK;
    }
    catch (...)

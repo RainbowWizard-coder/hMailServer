@@ -131,23 +131,17 @@ STDMETHODIMP InterfaceAliases::get_ItemByDBID(long DBID, IInterfaceAlias **pVal)
       if (!aliases_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAlias>* pAlias = new CComObject<InterfaceAlias>();
-      pAlias->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Alias> pPersAlias = aliases_->GetItemByDBID(DBID);
    
-      if (pPersAlias)
-      {
-         pAlias->AttachItem(pPersAlias);
-         pAlias->AddRef();
-         *pVal = pAlias;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pPersAlias)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
+      CComObject<InterfaceAlias>* pAlias = new CComObject<InterfaceAlias>();
+      pAlias->SetAuthentication(authentication_);
+      pAlias->AttachItem(pPersAlias);
+      pAlias->AddRef();
+      *pVal = pAlias;
+
       return S_OK;
    }
    catch (...)
@@ -184,23 +178,17 @@ STDMETHODIMP InterfaceAliases::get_ItemByName(BSTR Name, IInterfaceAlias **pVal)
       if (!aliases_)
          return GetAccessDenied();
 
-      CComObject<InterfaceAlias>* pAlias = new CComObject<InterfaceAlias>();
-      pAlias->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Alias> pPersAlias = aliases_->GetItemByName(Name);
    
-      if (pPersAlias)
-      {
-         pAlias->AttachItem(pPersAlias);
-         pAlias->AddRef();
-         *pVal = pAlias;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pPersAlias)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
+      CComObject<InterfaceAlias>* pAlias = new CComObject<InterfaceAlias>();
+      pAlias->SetAuthentication(authentication_);
+      pAlias->AttachItem(pPersAlias);
+      pAlias->AddRef();
+      *pVal = pAlias;
+
       return S_OK;
    }
    catch (...)

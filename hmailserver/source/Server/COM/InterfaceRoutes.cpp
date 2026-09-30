@@ -48,24 +48,18 @@ STDMETHODIMP InterfaceRoutes::get_Item(long Index, IInterfaceRoute **pVal)
       if (!routes_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRoute>* pInterfaceRoute = new CComObject<InterfaceRoute>();
-      pInterfaceRoute->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::Route> pRoute = routes_->GetItem(Index);
    
-      if (pRoute)
-      {
-         pInterfaceRoute->AttachItem(pRoute);
-         pInterfaceRoute->AttachSharedParent(routes_, true);
-         pInterfaceRoute->AddRef();
-         *pVal = pInterfaceRoute;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pRoute)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
+      CComObject<InterfaceRoute>* pInterfaceRoute = new CComObject<InterfaceRoute>();
+      pInterfaceRoute->SetAuthentication(authentication_);
+      pInterfaceRoute->AttachItem(pRoute);
+      pInterfaceRoute->AttachSharedParent(routes_, true);
+      pInterfaceRoute->AddRef();
+      *pVal = pInterfaceRoute;
+
       return S_OK;
    }
    catch (...)

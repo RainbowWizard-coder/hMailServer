@@ -171,8 +171,12 @@ code=$?
 set -e
 echo "ninja exit $code after $(( $(date +%s) - started )) s"
 if [ "$code" -ne 0 ]; then
-  grep -E '^FAILED:' "$out/build-$arch.log" | head -n 40
-  grep -E 'error:' "$out/build-$arch.log" | sort -u | head -n 80
+  # No `| head`: it stops reading, and grep or sort, still writing a long list, then
+  # dies of SIGPIPE, which pipefail and set -e made the script's end before the
+  # message below (58710c9d6). grep -m stops reading the log itself, and sed reads
+  # its input to the end; a log without the lines is not a second failure.
+  grep -m 40 -E '^FAILED:' "$out/build-$arch.log" || true
+  grep -E 'error:' "$out/build-$arch.log" | sort -u | sed -n '1,80p' || true
   echo "BUILD FAILED - the whole log is the job's artifact $out/build-$arch.log"
   exit 3
 fi
@@ -231,7 +235,10 @@ for soname in $bundled_names; do
   [ "$(printf '%s\n' "$line" | grep -c .)" -eq 1 ] || { echo "The image's bundled.txt does not list usr/lib/$soname once."; exit 1; }
   read -r _ _ owner package_version source_package source_version extra <<< "$line"
   [ -n "$source_version" ] && [ -z "$extra" ] || { echo "The image's bundled.txt gives usr/lib/$soname as \"$line\"."; exit 1; }
-  path=$(printf '%s\n' "$resolved" | awk -v s="$soname" '$1 == s && $2 == "=>" { print $3; exit }')
+  # A here-string, not printf into awk: awk exits at the match, and the shell's
+  # printf of the rest of ldd's lines would then die of SIGPIPE, which pipefail
+  # and set -e make the script's end.
+  path=$(awk -v s="$soname" '$1 == s && $2 == "=>" { print $3; exit }' <<< "$resolved")
   [ -n "$path" ] && [ -f "$path" ] || { echo "ldd no longer resolves $soname, which the image carries."; exit 1; }
   printf '%s %s %s %s %s %s\n' "$soname" "$owner" "$package_version" "$(sha256sum "$(readlink -f "$path")" | cut -d' ' -f1)" \
     "$source_package" "$source_version" >> "$facts/bundled.txt"

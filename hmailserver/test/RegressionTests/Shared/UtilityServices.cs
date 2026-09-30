@@ -52,6 +52,16 @@ namespace RegressionTests.Shared
 
          // Contains more than 6 characters - OK
          Assert.IsTrue(utilities.IsStrongPassword("vaffe@example.test", "test_"));
+
+         // The three special characters outside ASCII, as upstream wrote them: the
+         // currency sign, the diaeresis and the acute accent. Until the tree after
+         // 6.3.6 the Windows build held the three characters U+FFFD's UTF-8 bytes
+         // are in Windows-1252 in their place, so each of these was refused and
+         // the i diaeresis was taken.
+         Assert.IsTrue(utilities.IsStrongPassword("vaffe@example.test", "test\u00A4"));
+         Assert.IsTrue(utilities.IsStrongPassword("vaffe@example.test", "test\u00A8"));
+         Assert.IsTrue(utilities.IsStrongPassword("vaffe@example.test", "test\u00B4"));
+         Assert.IsFalse(utilities.IsStrongPassword("vaffe@example.test", "test\u00EF"));
       }
    }
 }

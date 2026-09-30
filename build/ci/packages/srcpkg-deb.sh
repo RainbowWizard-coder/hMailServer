@@ -212,7 +212,8 @@ build_started=$EPOCHSECONDS
 code=$?
 echo "exit $code after $(( EPOCHSECONDS - build_started )) s"
 if [ "$code" -ne 0 ]; then
-  grep -E 'error:|^FAILED|dpkg-buildpackage: error|dh_[a-z_]*: error' "$out/build.log" | head -n 40
+  # grep -m, not `| head`, which left grep to die of SIGPIPE under pipefail.
+  grep -m 40 -E 'error:|^FAILED|dpkg-buildpackage: error|dh_[a-z_]*: error' "$out/build.log"
   tail -n 40 "$out/build.log"
   fail "dpkg-buildpackage; the whole log is build.log"
 fi

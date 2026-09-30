@@ -94,25 +94,18 @@ STDMETHODIMP InterfaceIncomingRelays::get_Item(long Index, IInterfaceIncomingRel
       if (!incoming_relays_)
          return GetAccessDenied();
 
-      CComObject<InterfaceIncomingRelay>* pRangeInt = new CComObject<InterfaceIncomingRelay>();
-      pRangeInt->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::IncomingRelay> pRange = incoming_relays_->GetItem(Index);
    
-      if (pRange)
-      {
-         pRangeInt->AttachItem(pRange);
-         pRangeInt->AttachSharedParent(incoming_relays_, true);
-         pRangeInt->AddRef();
-         *pVal = pRangeInt;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pRange)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
-   
+      CComObject<InterfaceIncomingRelay>* pRangeInt = new CComObject<InterfaceIncomingRelay>();
+      pRangeInt->SetAuthentication(authentication_);
+      pRangeInt->AttachItem(pRange);
+      pRangeInt->AttachSharedParent(incoming_relays_, true);
+      pRangeInt->AddRef();
+      *pVal = pRangeInt;
+
       return S_OK;
    }
    catch (...)
@@ -128,23 +121,18 @@ STDMETHODIMP InterfaceIncomingRelays::get_ItemByDBID(long DBID, IInterfaceIncomi
       if (!incoming_relays_)
          return GetAccessDenied();
 
-      CComObject<InterfaceIncomingRelay>* pRangeInt = new CComObject<InterfaceIncomingRelay>();
-      pRangeInt->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::IncomingRelay> pRange = incoming_relays_->GetItemByDBID(DBID);
    
-      if (pRange)
-      {
-         pRangeInt->AttachItem(pRange);
-         pRangeInt->AttachSharedParent(incoming_relays_, true);
-         pRangeInt->AddRef();
-         *pVal = pRangeInt;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pRange)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceIncomingRelay>* pRangeInt = new CComObject<InterfaceIncomingRelay>();
+      pRangeInt->SetAuthentication(authentication_);
+      pRangeInt->AttachItem(pRange);
+      pRangeInt->AttachSharedParent(incoming_relays_, true);
+      pRangeInt->AddRef();
+      *pVal = pRangeInt;
+
       return S_OK;
    }
    catch (...)
@@ -189,23 +177,18 @@ STDMETHODIMP InterfaceIncomingRelays::get_ItemByName(BSTR sName, IInterfaceIncom
       if (!incoming_relays_)
          return GetAccessDenied();
 
-      CComObject<InterfaceIncomingRelay>* pRangeInt = new CComObject<InterfaceIncomingRelay>();
-      pRangeInt->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::IncomingRelay> pRange = incoming_relays_->GetItemByName(sName);
    
-      if (pRange)
-      {
-         pRangeInt->AttachItem(pRange);
-         pRangeInt->AttachSharedParent(incoming_relays_, true);
-         pRangeInt->AddRef();
-         *pVal = pRangeInt;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pRange)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceIncomingRelay>* pRangeInt = new CComObject<InterfaceIncomingRelay>();
+      pRangeInt->SetAuthentication(authentication_);
+      pRangeInt->AttachItem(pRange);
+      pRangeInt->AttachSharedParent(incoming_relays_, true);
+      pRangeInt->AddRef();
+      *pVal = pRangeInt;
+
       return S_OK;
    }
    catch (...)

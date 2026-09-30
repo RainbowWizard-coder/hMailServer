@@ -114,24 +114,18 @@ STDMETHODIMP InterfaceDistributionListRecipients::get_Item(long Index, IInterfac
       if (!recipients_)
          return GetAccessDenied();
 
-      CComObject<InterfaceDistributionListRecipient>* pList = new CComObject<InterfaceDistributionListRecipient>();
-      pList->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DistributionListRecipient> pPersList = recipients_->GetItem(Index);
    
-      if (pPersList)
-      {
-         pList->AttachItem(pPersList);
-         pList->AttachParent(recipients_, true);
-         pList->AddRef();
-         *pVal = pList;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pPersList)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
-   
+      CComObject<InterfaceDistributionListRecipient>* pList = new CComObject<InterfaceDistributionListRecipient>();
+      pList->SetAuthentication(authentication_);
+      pList->AttachItem(pPersList);
+      pList->AttachParent(recipients_, true);
+      pList->AddRef();
+      *pVal = pList;
+
       return S_OK;
    }
    catch (...)
@@ -166,23 +160,18 @@ STDMETHODIMP InterfaceDistributionListRecipients::get_ItemByDBID(long DBID, IInt
 
    
    
-      CComObject<InterfaceDistributionListRecipient>* pInterfaceRecipient = new CComObject<InterfaceDistributionListRecipient>();
-      pInterfaceRecipient->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::DistributionListRecipient> pRecipient = recipients_->GetItemByDBID(DBID);
    
-      if (pRecipient)
-      {
-         pInterfaceRecipient->AttachItem(pRecipient);
-         pInterfaceRecipient->AttachParent(recipients_, true);
-         pInterfaceRecipient->AddRef();
-         *pVal = pInterfaceRecipient;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pRecipient)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceDistributionListRecipient>* pInterfaceRecipient = new CComObject<InterfaceDistributionListRecipient>();
+      pInterfaceRecipient->SetAuthentication(authentication_);
+      pInterfaceRecipient->AttachItem(pRecipient);
+      pInterfaceRecipient->AttachParent(recipients_, true);
+      pInterfaceRecipient->AddRef();
+      *pVal = pInterfaceRecipient;
+
       return S_OK;
    }
    catch (...)

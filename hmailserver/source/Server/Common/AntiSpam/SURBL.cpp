@@ -12,6 +12,7 @@
 #include "../../SMTP/BLCheck.h"
 
 #include "DMARC/PublicSuffixList.h"
+#include "SenderPattern.h"
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <stdexcept>
@@ -418,13 +419,20 @@ namespace HM
          return String(name);
       }
 
-      // The hosts one link's host part hands over (SURBL::FindLinkHosts).
-      void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
+      // A host part percent-decoded, and in lower case.
+      std::wstring LowerDecoded_(const std::wstring &hostPart)
       {
          std::wstring host = PercentDecoded_(hostPart);
          for (size_t i = 0; i < host.size(); i++)
             if (host[i] >= L'A' && host[i] <= L'Z')
                host[i] = static_cast<wchar_t>(host[i] + (L'a' - L'A'));
+         return host;
+      }
+
+      // The hosts one link's host part hands over (SURBL::FindLinkHosts).
+      void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
+      {
+         const std::wstring host = LowerDecoded_(hostPart);
 
          // A host whose last label is a number is an address, or nothing a
          // browser can reach.
@@ -483,8 +491,8 @@ namespace HM
             hosts.push_back(registered);
       }
 
-      // The hosts one link's authority hands over.
-      void HostsOfAuthority_(const std::wstring &authority, std::vector<String> &hosts)
+      // The host part of a link's authority. False when there is none to read.
+      bool HostPartOfAuthority_(const std::wstring &authority, std::wstring &hostPart)
       {
          // The userinfo runs to the last '@' (RFC 3986 section 3.2.1, and the
          // WHATWG authority state, which takes every '@' before the host into
@@ -495,10 +503,19 @@ namespace HM
          // An IPv6 address, or RFC 3986's IPvFuture. No URI list publishes
          // either, so neither is asked about.
          if (hostAndPort.empty() || hostAndPort[0] == L'[')
-            return;
+            return false;
 
          const size_t colon = hostAndPort.find(L':');
-         HostsOfHostPart_(colon == std::wstring::npos ? hostAndPort : hostAndPort.substr(0, colon), hosts);
+         hostPart = colon == std::wstring::npos ? hostAndPort : hostAndPort.substr(0, colon);
+         return true;
+      }
+
+      // The hosts one link's authority hands over.
+      void HostsOfAuthority_(const std::wstring &authority, std::vector<String> &hosts)
+      {
+         std::wstring hostPart;
+         if (HostPartOfAuthority_(authority, hostPart))
+            HostsOfHostPart_(hostPart, hosts);
       }
 
       // In running text a link is made by the mail program that shows it, not
@@ -785,6 +802,20 @@ namespace HM
          names.push_back(registrable);
 
       return names;
+   }
+
+   String
+   SURBL::HostOfAuthority(const String &authority)
+   {
+      std::wstring hostPart;
+      if (!HostPartOfAuthority_(authority, hostPart))
+         return String();
+
+      // The whole host part, as HostsOfHostPart_ hands over a host that is all
+      // a name's characters or an address; and nothing for one that is not,
+      // where a link hands over the name before the character and the labels
+      // after it: an entry names one host, and is not widened to another.
+      return Canonical_(LowerDecoded_(hostPart));
    }
 
    SURBL::AnswerKind
@@ -1286,6 +1317,59 @@ namespace HM
          { L"127.255.25.1", SURBL::AnswerVerdict },
       };
 
+      // The URL entries of the sender lists (SenderPattern), whose host is read
+      // with HostOfAuthority: the entry as it is stored, and whether it is taken.
+      struct UrlEntryCase
+      {
+         const wchar_t *entry;
+         const wchar_t *stored;
+         bool taken;
+         const char *why;
+      };
+
+      const UrlEntryCase urlEntryCases[] =
+      {
+         { L"https://www.Bad.Example/x?y=1", L"bad.example/", true, "an entry with a scheme, www., a path and a query" },
+         { L"bad.example/", L"bad.example/", true, "an entry as it is stored" },
+         { L"http://a@b@host.example/", L"host.example/", true, "an entry with two '@': the host after the last" },
+         { L"http://user@www.host.example/", L"host.example/", true, "an entry with a user name before www." },
+         { L"http://user@host.example:8080/", L"host.example/", true, "an entry with a user name and a port" },
+         { L"https://bad.example?x=1", L"bad.example/", true, "an entry with a query straight after the host" },
+         { L"https://bad.example#top", L"bad.example/", true, "an entry with a fragment straight after the host" },
+         { L"http://good.example\\@evil.example/", L"good.example/", true, "an entry whose backslash ends the authority first" },
+         { L"http://%62ad.example/", L"bad.example/", true, "an entry with a percent-encoded letter" },
+         { L"http://bad.example./", L"bad.example/", true, "an entry with a trailing dot" },
+         { L"http://192.0.2.61/", L"192.0.2.61/", true, "an entry of an address" },
+         { L"http://0xC0.0.2.61/", L"192.0.2.61/", true, "an entry of an address in another form a browser reads" },
+         { L"http://www.example/", L"www.example/", true, "an entry whose www. is kept when one label would be left" },
+         { L"http://www.www.example.com/", L"example.com/", true, "an entry with www. twice, read until reading changes nothing" },
+         { L"http://[2001:db8::1]/", L"[2001/", false, "an entry of an IPv6 address" },
+         { L"https://a!b.example/", L"a!b.example/", false, "an entry with a character a name cannot hold" },
+         { L"https://nodot/x", L"nodot/", false, "an entry of one label" },
+         { L"https://", L"/", false, "an entry with no host" },
+      };
+
+      // Whether a URL entry covers a link: the hosts FindLinkHosts hands over
+      // for a text part holding it, each asked of SenderPattern::MatchesUrlHost.
+      struct UrlMatchCase
+      {
+         const wchar_t *entry;
+         const wchar_t *link;
+         bool covered;
+         const char *why;
+      };
+
+      const UrlMatchCase urlMatchCases[] =
+      {
+         { L"http://user@www.shop.example/", L"http://www.shop.example/sale", true, "an entry with a user name before www. covers its host's link" },
+         { L"http://a@b@shop.example/", L"see http://x@shop.example/", true, "an entry with two '@' covers its host's link" },
+         { L"https://shop.example/", L"http://cdn.shop.example/", true, "an entry covers a subdomain's link" },
+         { L"https://shop.example/", L"http://notshop.example/", false, "an entry covers no other name that ends in it" },
+         { L"http://www.example/", L"http://www.example/x", true, "an entry and a link whose www. is kept alike" },
+         { L"http://www.www.shop.example/", L"http://www.www.shop.example/x", true, "an entry with www. twice covers its own link" },
+         { L"http://0xC0.0.2.61/", L"http://192.0.2.61/", true, "an entry and a link of one address in two forms" },
+      };
+
       void Fail_(const char *why, const String &input, const String &got, const String &expected)
       {
          throw std::logic_error("SURBLTester: " + std::string(why) + " (" + std::string(AnsiString(input)) + "): got \"" +
@@ -1364,6 +1448,41 @@ namespace HM
 
          if ((got == SURBL::AnswerVerdict) != meaning.IsEmpty())
             Fail_("an error answer has a meaning, and a verdict none", test.answer, meaning, _T(""));
+      }
+
+      for (const UrlEntryCase &test : urlEntryCases)
+      {
+         const String stored = SenderPattern::Canonical(test.entry);
+         if (stored != String(test.stored))
+            Fail_(test.why, test.entry, stored, test.stored);
+
+         // Read back from the database, the stored entry is itself again.
+         if (SenderPattern::Canonical(stored) != stored)
+            Fail_("an entry read back as it was stored", stored, SenderPattern::Canonical(stored), stored);
+
+         String error;
+         const bool taken = SenderPattern::Validate(test.entry, error);
+         if (taken != test.taken)
+            Fail_(test.why, test.entry, taken ? String(_T("taken")) : String(_T("refused: ")) + error,
+               test.taken ? String(_T("taken")) : String(_T("refused")));
+      }
+
+      for (const UrlMatchCase &test : urlMatchCases)
+      {
+         bool covered = false;
+         String hosts;
+         SURBL::FindLinkHosts(test.link, false, [&](const String &host)
+         {
+            if (!hosts.IsEmpty())
+               hosts += _T("|");
+            hosts += host;
+            covered = covered || SenderPattern::MatchesUrlHost(test.entry, host);
+            return true;
+         });
+
+         if (covered != test.covered)
+            Fail_(test.why, String(test.entry) + _T(" and ") + test.link, covered ? String(_T("covered ")) + hosts : String(_T("not covered ")) + hosts,
+               test.covered ? String(_T("covered")) : String(_T("not covered")));
       }
    }
 }

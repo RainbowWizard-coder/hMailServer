@@ -559,7 +559,10 @@ mkdir -p "${APPDIR}/usr/lib"
 # "soname => /path (0xaddress)", "soname (0xaddress)" for the vDSO, and
 # "/lib64/ld-linux-x86-64.so.2 (0x...)" for the loader; a "not found" is fatal.
 LDD_OUTPUT="$(ldd "${BINARY}")"
-if printf '%s\n' "${LDD_OUTPUT}" | grep -q 'not found'; then
+# A here-string, not printf into grep -q: grep stops at the match, and the shell's
+# printf, which writes the variable a line at a time, can die of SIGPIPE writing the
+# rest, which pipefail makes the status - a library not found, and the check passed.
+if grep -q 'not found' <<< "${LDD_OUTPUT}"; then
    printf '%s\n' "${LDD_OUTPUT}" >&2
    echo "The server needs a library this machine does not have." >&2
    exit 1
@@ -676,7 +679,9 @@ else
    bundled_list="${BUILD_DIR}/bundled.list"
    : > "${bundled_list}"
    for soname in ${BUNDLED}; do
-      path="$(printf '%s\n' "${LDD_OUTPUT}" | awk -v s="${soname}" '$1 == s && $2 == "=>" { print $3; exit }')"
+      # A here-string, not printf into awk: awk exits at the match, and printf of the
+      # lines after it could die of SIGPIPE, which pipefail and set -e make the script's end.
+      path="$(awk -v s="${soname}" '$1 == s && $2 == "=>" { print $3; exit }' <<< "${LDD_OUTPUT}")"
       if ! owner="$(owner_of "${path}")"; then
          echo "dpkg names no package that owns ${path} (${soname}), which the image carries: its licence cannot go with it." >&2
          exit 1

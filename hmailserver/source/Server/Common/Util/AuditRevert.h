@@ -21,8 +21,14 @@ namespace HM
       // its default. False with `error` when the row is not a setting's change,
       // when the trail does not carry the value (a secret, a value longer than
       // the trail keeps, values holding " -> " where the row does not say which
-      // arrow divides them), when a number's row holds no number, when the
-      // setting no longer exists, or when the write failed.
+      // arrow divides them), when a number's row holds no number or a
+      // [Settings] key's a value the store cannot hold, when the setting no
+      // longer exists, or when the write failed. A write to one of
+      // the live update's five trust keys (IniSettingStore::IsTrustAnchorName)
+      // or to a setting the server's environment sets is refused by the store
+      // it goes through, which throws EnvironmentSettings::Refusal unless the
+      // value is the one the setting has already; COM and REST answer that
+      // with its sentence, as they do for every other change of such a setting.
       static bool PutBack(const AuditTrail::Entry &entry, String &restored, String &error);
    };
 }

@@ -55,7 +55,8 @@ echo ""
 echo "== build the server (ninja -j $jobs hmailserver)"
 started=$(date +%s)
 if ! ninja -C "$build_dir" -j "$jobs" hmailserver > "$out/build.log" 2>&1; then
-  grep -E '^FAILED:|error:' "$out/build.log" | head -n 40
+  # grep -m, not `| head`, which left grep to die of SIGPIPE under pipefail.
+  grep -m 40 -E '^FAILED:|error:' "$out/build.log"
   echo "BUILD FAILED - the whole log is the job's artifact $out/build.log"
   exit 3
 fi

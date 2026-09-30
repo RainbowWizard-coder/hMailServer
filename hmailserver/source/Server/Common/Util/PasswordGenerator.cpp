@@ -64,10 +64,20 @@ namespace HM
       if (sPassword.GetLength() <= 4)
          return false;
      
-      // If the password is 6 characters or less, it should contain a number or special char
+      // If the password is 6 characters or less, it should contain a number or special char.
+      //
+      // The special characters are a Swedish keyboard's shifted digit row and the keys
+      // beside it, as upstream's first commit (c71a6de74, April 2014) has them in
+      // Windows-1252: U+00A4 CURRENCY SIGN after '#', and U+00A8 DIAERESIS and U+00B4
+      // ACUTE ACCENT before '+' (bytes A4, A8 and B4). The commit after it re-encoded
+      // the file as UTF-8 and wrote U+FFFD for each. MSVC reads a source with no byte
+      // order mark in the ANSI code page, so on Windows each became the three
+      // characters its UTF-8 bytes are in Windows-1252 (U+00EF, U+00BF, U+00BD): a short
+      // password with one of the three right characters was refused, and one with those
+      // was taken. Written as \u escapes, they are the same characters on every compiler.
       if (sPassword.GetLength() <= 6)
       {
-         if (sPassword.FindOneOf(_T("01234567890!\"#�%&/()=?^*_:;><,.-'��+")) < 0)
+         if (sPassword.FindOneOf(_T("01234567890!\"#\u00A4%&/()=?^*_:;><,.-'\u00A8\u00B4+")) < 0)
             return false;
       }
 

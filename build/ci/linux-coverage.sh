@@ -104,7 +104,8 @@ build() {
   # The server and the tester programs (spf-tests and the others): what they
   # reach counts, as the unit tests they are.
   if ! ninja -C "$build_dir" -j "$jobs" > "$cov/build.log" 2>&1; then
-    grep -E '^FAILED:|error:' "$cov/build.log" | head -n 60
+    # grep -m, not `| head`, which left grep to die of SIGPIPE under pipefail.
+    grep -m 60 -E '^FAILED:|error:' "$cov/build.log"
     echo "BUILD FAILED - $cov/build.log"
     exit 3
   fi

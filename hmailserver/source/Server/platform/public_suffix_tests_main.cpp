@@ -52,6 +52,6 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6, percent-encoding, the forms of an address, HTML's references and quotes, the names asked about, and the lists' error codes\n");
+   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6, percent-encoding, the forms of an address, HTML's references and quotes, the names asked about, the lists' error codes, and the sender lists' URL entries read the same way\n");
    return 0;
 }

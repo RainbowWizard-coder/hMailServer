@@ -43,21 +43,16 @@ STDMETHODIMP InterfaceMessages::get_Item(long Index, IInterfaceMessage **pVal)
       if (!messages_)
          return GetAccessDenied();
 
-      CComObject<InterfaceMessage>* pInterfaceMessage = new CComObject<InterfaceMessage>();
-      pInterfaceMessage->SetAuthentication(authentication_);
-
       std::shared_ptr<HM::Message> pMsg = messages_->GetItem(Index);
 
-      if (pMsg)
-      {
-         pInterfaceMessage->AttachItem(pMsg);
-         pInterfaceMessage->AddRef();
-         *pVal = pInterfaceMessage;
-      }
-      else
-      {
+      if (!pMsg)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
-      }
+
+      CComObject<InterfaceMessage>* pInterfaceMessage = new CComObject<InterfaceMessage>();
+      pInterfaceMessage->SetAuthentication(authentication_);
+      pInterfaceMessage->AttachItem(pMsg);
+      pInterfaceMessage->AddRef();
+      *pVal = pInterfaceMessage;
 
       return S_OK;
    }
@@ -76,21 +71,16 @@ STDMETHODIMP InterfaceMessages::get_ItemByDBID(hyper DBID, IInterfaceMessage **p
 
       //
 
-      CComObject<InterfaceMessage>* pInterfaceMessage = new CComObject<InterfaceMessage>();
-      pInterfaceMessage->SetAuthentication(authentication_);
-
       std::shared_ptr<HM::Message> pMsg = messages_->GetItemByDBID(DBID);
 
-      if (pMsg)
-      {
-         pInterfaceMessage->AttachItem(pMsg);
-         pInterfaceMessage->AddRef();
-         *pVal = pInterfaceMessage;
-      }
-      else
-      {
+      if (!pMsg)
          return COMError::WithoutMessage(DISP_E_BADINDEX);
-      }
+
+      CComObject<InterfaceMessage>* pInterfaceMessage = new CComObject<InterfaceMessage>();
+      pInterfaceMessage->SetAuthentication(authentication_);
+      pInterfaceMessage->AttachItem(pMsg);
+      pInterfaceMessage->AddRef();
+      *pVal = pInterfaceMessage;
 
       return S_OK;
    }

@@ -759,8 +759,12 @@ chart-and-compose:
       if helm template mail "$chart" --set database.password=x --set administrator.password=y > /dev/null 2>&1; then
         echo "the chart rendered without database.host"; exit 1
       fi
-      # An existing Secret leaves the chart's own out.
-      if helm template mail "$chart" --set database.host=db --set existingSecret=mine | grep -q 'kind: Secret'; then
+      # An existing Secret leaves the chart's own out. Rendered to a file and searched
+      # there: helm piped into grep -q dies of SIGPIPE, still writing, once grep has its
+      # match, and pipefail then makes the if false - the check passed exactly when the
+      # chart wrote the Secret. A render that fails now fails the job.
+      helm template mail "$chart" --set database.host=db --set existingSecret=mine > existing-secret.yaml
+      if grep -q 'kind: Secret' existing-secret.yaml; then
         echo "the chart wrote a Secret beside existingSecret"; exit 1
       fi
       echo "The chart lints, renders what a real install needs, and refuses what it must."

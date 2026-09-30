@@ -106,8 +106,12 @@ code=$?
 set -e
 echo "ninja exit $code after $(( $(date +%s) - started )) s"
 if [ "$code" -ne 0 ]; then
-  grep -E '^FAILED:' "$out/build-aarch64.log" | head -n 40
-  grep -E 'error:' "$out/build-aarch64.log" | sort -u | head -n 80
+  # No `| head`: it stops reading, and grep or sort, still writing a long list, then
+  # dies of SIGPIPE, which pipefail and set -e made the script's end before the
+  # message below (58710c9d6). grep -m stops reading the log itself, and sed reads
+  # its input to the end; a log without the lines is not a second failure.
+  grep -m 40 -E '^FAILED:' "$out/build-aarch64.log" || true
+  grep -E 'error:' "$out/build-aarch64.log" | sort -u | sed -n '1,80p' || true
   echo "BUILD FAILED - the whole log is the job's artifact $out/build-aarch64.log"
   exit 3
 fi

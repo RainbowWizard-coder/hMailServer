@@ -329,7 +329,8 @@ holding ` -> ` was cut at its first arrow.
 
 The trail is honest about what it does not hold, and so is the put-back: a row
 that is not a setting's change (an account created, a rule deleted) is refused
-with 409, because there is no old value to write; a secret's row is refused,
+with 409, because there is no old value to write, and so is a setting's row
+whose detail does not hold `old -> new`; a secret's row is refused,
 because the trail records `(changed)` and never the values; a value the trail
 cut at 120 characters is refused, because what the trail holds is not the
 value; a row whose values hold ` -> ` themselves is put back only while it is
@@ -337,8 +338,16 @@ the setting's latest change in the trail and exactly one of the places it can
 be divided leaves as the new side the value the setting has now, and is refused
 otherwise, because the row does not say where the old value ends (a
 `[Settings]` key's such row is always refused); a number's
-row that holds no number is refused; and a setting this version of the server
-no longer has is refused. Each refusal says which. A line break or a tab in a
+row that holds no number is refused; a `[Settings]` value the store cannot hold
+is refused; and a setting this version of the server no longer has is refused.
+Two kinds of setting are refused as every other way of changing them is, with
+the same sentence: the five `[Settings]` keys of the live update's trust
+(`UpdateSigningIdentity`, `UpdateSigningIssuer`, `UpdateSourceRepository`,
+`UpdateTrustRootsFile`, `UpdateLogPublicKeyFile`), which only `hMailServer.INI`
+itself changes ([UpdateFeed.md](UpdateFeed.md)), and a setting this server's
+environment sets ([EnvironmentConfiguration.md](EnvironmentConfiguration.md)),
+each unless the value put back is the one it has already. Each refusal says
+which, and so does a write that fails. A line break or a tab in a
 value is recorded as a space, and a value put back from the trail has the space. The Deck's page has *Put back* on every row that qualifies,
 and the Control Panel's page a *Put back* button for the selected row.
 

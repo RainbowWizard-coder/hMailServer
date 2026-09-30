@@ -59,6 +59,17 @@ namespace HM
       // an IPv4 address reversed, a name and its registrable domain.
       static std::vector<String> NamesToAsk(const String &host);
 
+      // The host a link whose authority is this goes to, in the form
+      // FindLinkHosts hands it over: the part after the last '@', without its
+      // port, percent-decoded and in lower case - a name without its trailing
+      // dots and its leading "www.", or an IPv4 address in dotted decimal.
+      // Empty when that is not one name or address a list could be asked
+      // about: an IPv6 address, a name with a character a name cannot hold, one
+      // label, nothing. The URL entries of the sender lists (SenderPattern) are
+      // read with it, so that an entry and the links it is matched against name
+      // a host alike.
+      static String HostOfAuthority(const String &authority);
+
       // What a list's answer is. The URI lists answer some queries with a code
       // that is not a verdict on the name, and that code is never a listing,
       // whatever the server's expected result says:
@@ -93,9 +104,10 @@ namespace HM
    // SURBL's reading of links held to what a browser does with them: the
    // userinfo, ports, IPv6, percent-encoding, the IPv4 forms, backslashes,
    // quoted-printable soft line breaks, HTML character references and quotes,
-   // and punctuation after a link; the names asked about for each host; and
-   // the lists' error codes. It runs inside the service with the other class
-   // tests (ClassTester), and on Linux in public-suffix-tests. No DNS, no
+   // and punctuation after a link; the names asked about for each host; the
+   // lists' error codes; and the sender lists' URL entries, whose host is read
+   // the same way (HostOfAuthority). It runs inside the service with the other
+   // class tests (ClassTester), and on Linux in public-suffix-tests. No DNS, no
    // database, no setting. It throws std::logic_error naming the first thing
    // that is wrong.
    class SURBLTester

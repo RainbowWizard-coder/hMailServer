@@ -155,7 +155,10 @@ ensure_clients() {
   command -v 7z > /dev/null || wanted="$wanted 7zip"
   case "$KIND" in
     mysql|mariadb)
-      ldconfig -p | grep -q 'libmariadb\.so\.3' || wanted="$wanted libmariadb3"
+      # The cache read whole, then searched: `ldconfig -p | grep -q` stops reading at
+      # the match, and ldconfig, still writing a list of tens of kilobytes, dies of
+      # SIGPIPE, which pipefail makes the status - the library taken for missing.
+      grep -q 'libmariadb\.so\.3' <<< "$(ldconfig -p)" || wanted="$wanted libmariadb3"
       command -v mariadb > /dev/null || wanted="$wanted mariadb-client"
       ;;
     postgresql)
@@ -387,7 +390,8 @@ dotnet test hmailserver/test/LinuxRegressionTests/LinuxRegressionTests.csproj -c
   --results-directory "$OUT" > "$OUT/console.log" 2>&1
 code=$?
 ended=$(date +%s)
-grep -E '^\s+Failed |^(Passed|Failed)!|error CS' "$OUT/console.log" | head -n 80
+# grep -m, not `| head`, which left grep to die of SIGPIPE under pipefail.
+grep -m 80 -E '^\s+Failed |^(Passed|Failed)!|error CS' "$OUT/console.log"
 echo "dotnet test exit $code after $(( (ended - started) / 60 )) min"
 
 stop_server

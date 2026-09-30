@@ -313,8 +313,11 @@ code=$?
 build_seconds=$(( $(date +%s) - build_started ))
 echo "ninja exit $code after $build_seconds s; $(grep -c 'warning:' "$out/build.log" || true) warning line(s)"
 if [ "$code" -ne 0 ]; then
-  grep -E '^FAILED:' "$out/build.log" | head -n 40
-  grep -E 'error:' "$out/build.log" | sort -u | head -n 80
+  # No `| head`: it stops reading, and grep or sort, still writing a long list, then
+  # dies of SIGPIPE, which pipefail makes the status (58710c9d6). grep -m stops
+  # reading the log itself, and sed reads its input to the end.
+  grep -m 40 -E '^FAILED:' "$out/build.log"
+  grep -E 'error:' "$out/build.log" | sort -u | sed -n '1,80p'
   echo "BUILD FAILED - the whole log is $out/build.log"
   exit 3
 fi

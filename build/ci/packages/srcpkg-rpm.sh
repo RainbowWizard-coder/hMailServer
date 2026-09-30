@@ -195,7 +195,8 @@ build_started=$EPOCHSECONDS
 code=$?
 echo "exit $code after $(( EPOCHSECONDS - build_started )) s"
 if [ "$code" -ne 0 ]; then
-  grep -E 'error:|^FAILED|RPM build errors|^    ' "$out/build.log" | head -n 40
+  # grep -m, not `| head`, which left grep to die of SIGPIPE under pipefail.
+  grep -m 40 -E 'error:|^FAILED|RPM build errors|^    ' "$out/build.log"
   tail -n 40 "$out/build.log"
   fail "rpmbuild; the whole log is build.log"
 fi
@@ -254,13 +255,18 @@ server_rpm=$(ls "$out"/hmailserver-[0-9]*.x86_64.rpm)
 server_requires=$(rpm -qp --requires "$server_rpm")
 grep -q '^libboost_' <<< "$server_requires" \
   || fail "the package requires no Boost soname: the server was not linked against the distribution's shared Boost"
-rpm -qp --provides "$server_rpm" | grep -q '^bundled(quickjs) = ' || fail "the package does not provide bundled(quickjs)"
+# Each list read whole before it is searched, as $server_requires is: rpm piped into
+# grep -q, which stops at its match, can die of SIGPIPE while still writing, and
+# pipefail then fails the check with the line present.
+server_provides=$(rpm -qp --provides "$server_rpm")
+grep -q '^bundled(quickjs) = ' <<< "$server_provides" || fail "the package does not provide bundled(quickjs)"
 listing=$(rpm -qlp "$server_rpm")
 if grep -q 'hmailserver-update' <<< "$listing"; then
   fail "the package carries the live update's helper, which a build with HM_LIVE_UPDATE OFF does not install"
 fi
 grep -q '^/usr/lib/sysusers.d/hmailserver.conf$' <<< "$listing" || fail "no sysusers.d file in the package"
-rpm -qlp "$out"/hmailserver-cli-*.noarch.rpm | grep -q '^/usr/bin/hmctl$' || fail "hmailserver-cli carries no hmctl"
+cli_listing=$(rpm -qlp "$out"/hmailserver-cli-*.noarch.rpm)
+grep -q '^/usr/bin/hmctl$' <<< "$cli_listing" || fail "hmailserver-cli carries no hmctl"
 echo "requires: $(grep -E '^lib(boost|ssl|pq|ldap|crypto)' <<< "$server_requires" | tr '\n' ' ')"
 ( cd "$out" && sha256sum -- *.rpm > SHA256SUMS.txt )
 {

@@ -161,7 +161,9 @@ check_install() {
    else
       local want
       for want in ./usr/lib/hmailserver/hmailserver-update ./usr/lib/systemd/system/hmailserver-update.path ./usr/lib/systemd/system/hmailserver-update.service; do
-         if printf '%s\n' "${found}" | grep -qxF "${want}"; then
+         # A here-string: printf into grep -q, which stops at the match, can die of
+         # SIGPIPE writing the rest, and pipefail then reads the file as missing.
+         if grep -qxF "${want}" <<< "${found}"; then
             pass "${label}: ${want#./} is installed"
          else
             fail "${label}: ${want#./} is not installed"
@@ -476,7 +478,7 @@ run_case() {
          rest POST /api/v1/update/download > /dev/null
          local fetched
          fetched="$(fetched_since "${before}")"
-         if printf '%s\n' "${fetched}" | grep -qxF "/download/hMailServer-${NEWER}-${MACHINE}.AppImage.cosign.bundle"; then
+         if grep -qxF "/download/hMailServer-${NEWER}-${MACHINE}.AppImage.cosign.bundle" <<< "${fetched}"; then
             pass "${label}: the download asked the feed for the AppImage's bundle, so a fetch is seen when there is one"
          else
             fail "${label}: the download fetched nothing from the feed ($(printf '%s' "${fetched}" | tr '\n' ' ')), so the checks that nothing is fetched prove nothing"

@@ -352,7 +352,9 @@ expect_no_call()
 
 expect_output()
 {
-   if printf '%s' "${OUT}" | grep -qF -- "$1"; then pass; else fail "output lacks '$1'; output was:"; printf '%s\n' "${OUT}" | sed 's/^/        /'; fi
+   # A here-string: printf into grep -q, which stops at the match, can die of SIGPIPE
+   # writing the rest, and pipefail then reads the output as lacking it.
+   if grep -qF -- "$1" <<< "${OUT}"; then pass; else fail "output lacks '$1'; output was:"; printf '%s\n' "${OUT}" | sed 's/^/        /'; fi
 }
 
 expect_one_line()

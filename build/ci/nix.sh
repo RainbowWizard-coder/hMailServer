@@ -77,7 +77,10 @@ echo ""
 echo "== 3. nix build .#hmailserver"
 started=$EPOCHSECONDS
 if ! nix build -L --out-link "$OUT/result" "$flake#hmailserver" > "$OUT/build.log" 2>&1; then
-  grep -E 'error|FAILED|failed' "$OUT/build.log" | sort -u | head -n 60
+  # sed, not head, reads sort's list to its end: head's early exit left sort to die
+  # of SIGPIPE, which pipefail and set -e made the script's end before the tail below;
+  # and a log with none of the words is not a second failure.
+  grep -E 'error|FAILED|failed' "$OUT/build.log" | sort -u | sed -n '1,60p' || true
   tail -n 60 "$OUT/build.log"
   echo "BUILD FAILED - the whole log is $OUT/build.log"
   exit 1

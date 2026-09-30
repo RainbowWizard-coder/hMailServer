@@ -57,7 +57,10 @@ registry_image="${CI_REGISTRY_IMAGE:-}"
 
 rm -rf "$out"
 mkdir -p "$out"
-syft version | head -n 2
+# sed, not head, which stops reading: syft, a Go program, writes its standard
+# output unbuffered, so one still writing when head has gone dies of SIGPIPE, which
+# pipefail makes the pipeline's status (141).
+syft version | sed -n '1,2p'
 
 # No update check, nothing sent anywhere but the registry read.
 export SYFT_CHECK_FOR_APP_UPDATE=false

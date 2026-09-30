@@ -170,23 +170,18 @@ InterfaceRouteAddresses::get_ItemByDBID(long lDBID, IInterfaceRouteAddress **pVa
       if (!route_addresses_)
          return GetAccessDenied();
 
-      CComObject<InterfaceRouteAddress>* pInterfaceRouteAddress = new CComObject<InterfaceRouteAddress>();
-      pInterfaceRouteAddress->SetAuthentication(authentication_);
-   
       std::shared_ptr<HM::RouteAddress> pRouteAddress = route_addresses_->GetItemByDBID(lDBID);
    
-      if (pRouteAddress)
-      {
-         pInterfaceRouteAddress->AttachItem(pRouteAddress);
-         pInterfaceRouteAddress->AttachSharedParent(route_addresses_, true);
-         pInterfaceRouteAddress->AddRef();
-         *pVal = pInterfaceRouteAddress;
-      }
-      else
-      {
-         return COMError::WithoutMessage(DISP_E_BADINDEX);  
-      }
+      if (!pRouteAddress)
+         return COMError::WithoutMessage(DISP_E_BADINDEX);
    
+      CComObject<InterfaceRouteAddress>* pInterfaceRouteAddress = new CComObject<InterfaceRouteAddress>();
+      pInterfaceRouteAddress->SetAuthentication(authentication_);
+      pInterfaceRouteAddress->AttachItem(pRouteAddress);
+      pInterfaceRouteAddress->AttachSharedParent(route_addresses_, true);
+      pInterfaceRouteAddress->AddRef();
+      *pVal = pInterfaceRouteAddress;
+
       return S_OK;
    
    }
