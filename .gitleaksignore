@@ -122,3 +122,16 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # pieces since the next commit, so the tree holds no match; this line is for the
 # commit that added it, which the history scan and the landing's range scan read.
 018bb567b8a06dd701fd00dc8c1b788ad34f584f:hmailserver/source/Tools/ControlPanel.Tests/Services/RestSettingsTests.cs:PKCS8 private key:273
+#
+# batch42, 30 September 2026: two of the links the SURBL fold's tests feed the link-host reader,
+# to show that the host looked up is the one after the user information: SURBL.cpp's tester
+# row "brackets in the user name", whose user name is an IPv6 documentation address in
+# brackets, and a link in the regression test Basics.cs with a made-up user name and password
+# before a test name. The rule reads each as a user and a password; neither is a credential
+# for anything. They are described, not quoted, here, since a quoted one is a finding again.
+# The landing's range scan found them in the fold's commit, and a directory scan of the tree at
+# 108d3850f (the image the job pins, on linix) at the same lines; one line of each form.
+37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
+37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
