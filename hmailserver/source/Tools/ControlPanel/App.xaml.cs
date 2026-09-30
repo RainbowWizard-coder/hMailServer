@@ -32,10 +32,12 @@ namespace hMailServer.ControlPanel
          Services.ThemeTokens.Initialize();
 
          // Every page's text and values can be selected and copied (issue #48),
-         // and every plain list's selected rows; class handlers, so registered
-         // before the first window has any text or list.
+         // every plain list's selected rows, and the captions of check boxes,
+         // buttons, drop-downs, tabs and tree items; class handlers, so registered
+         // before the first window has any text, list or control.
          SelectableText.Install();
          SelectableList.Install();
+         SelectableCaption.Install();
       }
 
       protected override void OnExit(ExitEventArgs e)

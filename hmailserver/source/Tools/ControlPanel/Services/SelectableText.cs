@@ -41,7 +41,10 @@ namespace hMailServer.ControlPanel.Services
    /// press on the control. A list is copied by its rows: a data grid already copies
    /// its selected rows with Ctrl+C, the live log copies its selected lines
    /// (LogsView), and every other list its selected rows (<see cref="SelectableList"/>).
-   /// A container can opt its text and lists out with <see cref="IsEnabledProperty"/>.
+   /// A control's own words - a check box's or a button's caption, a drop-down's value,
+   /// a tab's or a tree item's name, a label - are copied whole, from a right-click or
+   /// Ctrl+C on the control (<see cref="SelectableCaption"/>). A container can opt its
+   /// text, lists and captions out with <see cref="IsEnabledProperty"/>.
    ///
    /// The selecting is WPF's own text editor, the one behind every read-only TextBox,
    /// attached to the TextBlock read-only. It is internal to WPF and reached by
@@ -64,8 +67,9 @@ namespace hMailServer.ControlPanel.Services
    {
       /// <summary>
       /// False on an element turns selecting off for every piece of text inside it,
-      /// and copying rows off for every list inside it (SelectableList). Inherited,
-      /// so one setting covers a whole panel.
+      /// copying rows off for every list inside it (SelectableList), and copying
+      /// captions off for every control inside it (SelectableCaption). Inherited, so
+      /// one setting covers a whole panel.
       /// </summary>
       public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
          "IsEnabled", typeof(bool), typeof(SelectableText),

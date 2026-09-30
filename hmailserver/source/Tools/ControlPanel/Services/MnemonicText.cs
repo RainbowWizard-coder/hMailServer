@@ -62,6 +62,38 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The caption with its markers resolved - what a person reads or a screen reader speaks.</summary>
       public static string Strip(string caption) => Parse(caption).Text;
 
+      /// <summary>
+      /// A caption as WPF's own AccessText draws it - the words of a button, a check
+      /// box or a label whose template recognises access keys, and the name its
+      /// automation peer gives. The first underscore followed by anything but another
+      /// underscore marks the key and is not drawn, whatever follows it, and every
+      /// doubled underscore is drawn as one. It differs from <see cref="Strip"/> only
+      /// where an underscore comes before white space: WPF draws "odd_ one" as
+      /// "odd one", the space its key, where Parse keeps the underscore as text for
+      /// the captions the Control Panel draws itself.
+      /// </summary>
+      public static string AccessTextShown(string caption)
+      {
+         if (string.IsNullOrEmpty(caption))
+            return string.Empty;
+
+         for (int i = 0; i + 1 < caption.Length; i++)
+         {
+            if (caption[i] != '_')
+               continue;
+
+            if (caption[i + 1] != '_')
+            {
+               caption = caption.Remove(i, 1);
+               break;
+            }
+
+            i++;   // a doubled underscore is text, never the marker
+         }
+
+         return caption.Replace("__", "_");
+      }
+
       /// <summary>The access key as WPF names it (upper case), or null when the caption has none.</summary>
       public static string Key(string caption)
       {

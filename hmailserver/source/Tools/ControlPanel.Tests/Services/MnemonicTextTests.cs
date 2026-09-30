@@ -84,6 +84,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(MnemonicText.Key(escaped));
       }
 
+      /// <summary>
+      /// What WPF's AccessText draws for a caption, and its automation peer names: each case
+      /// measured on .NET 10's WPF (a button with the caption as its content, its peer's name
+      /// and AccessText's own RemoveAccessKeyMarker). The caption copied from a control
+      /// (SelectableCaption) is this, so it is what the control shows.
+      /// </summary>
+      [Theory]
+      [InlineData("_Save", "Save")]
+      [InlineData("a__b", "a_b")]
+      [InlineData("__init__", "_init_")]
+      [InlineData("odd_ one", "odd one")]
+      [InlineData("_ _a", " _a")]
+      [InlineData("trailing_", "trailing_")]
+      [InlineData("_Copy host_name", "Copy host_name")]
+      [InlineData("x_y_z", "xy_z")]
+      [InlineData("a___b", "a_b")]
+      [InlineData("x____y", "x__y")]
+      [InlineData("コピー(_C)", "コピー(C)")]
+      [InlineData("Spara _ändringar", "Spara ändringar")]
+      [InlineData("no marker", "no marker")]
+      public void AccessTextShown_IsWhatWpfDraws(string caption, string shown)
+      {
+         Assert.Equal(shown, MnemonicText.AccessTextShown(caption));
+      }
+
+      [Fact]
+      public void AccessTextShown_DiffersFromStrip_OnlyBeforeWhiteSpace()
+      {
+         foreach (string caption in new[] { "_Save changes", "in__tray", "_Copy host_name", "trailing_", "Save s_ettings" })
+            Assert.Equal(MnemonicText.Strip(caption), MnemonicText.AccessTextShown(caption));
+
+         Assert.Equal("odd_ one", MnemonicText.Strip("odd_ one"));
+         Assert.Equal("odd one", MnemonicText.AccessTextShown("odd_ one"));
+         Assert.Equal(string.Empty, MnemonicText.AccessTextShown(null));
+         Assert.Equal(string.Empty, MnemonicText.AccessTextShown(string.Empty));
+      }
+
       [Fact]
       public void EmptyAndNullAreHarmless()
       {

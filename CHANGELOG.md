@@ -298,8 +298,11 @@ fixes from there.
     installed is the one that runs an update, so this shows from the update after 6.3.6.
 11. **Text in the Control Panel can be selected and copied** (work item 48): on every page and dialogue by dragging,
     double-clicking, Ctrl+C or a right-click Copy, and every plain list copies its selected rows, one row per line.
-    Live logs selects several lines, follows new lines only while its end is in view, and no longer splits a line
-    the server is still writing into two rows. Keyboard navigation and screen-reader output are unchanged.
+    The words on the controls - a check box's or a button's caption, a drop-down's value, a tab's or a page's name,
+    a label - are copied whole from their own right-click Copy or Ctrl+C; a drop-down's right-click menu, which
+    offered Copy, Cut and Paste and could run none of them, now offers Copy. Live logs selects several lines,
+    follows new lines only while its end is in view, and no longer splits a line the server is still writing into
+    two rows. Keyboard navigation and screen-reader output are unchanged.
 12. **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script at
     every start, reinitialise and reload; switching scripting on compiles it first, and a script that does not
     compile is reported then rather than at each start while scripting is off.
@@ -770,19 +773,26 @@ fixes from there.
 - **Text and values in the Control Panel can be selected and copied (work item 48).** Every page and dialogue: drag
   over text, double-click a word, Ctrl+C, or right-click for Copy / Select all; with nothing selected, Copy takes the
   whole text, and a selection dragged out into another program carries plain text only. Text inside buttons, lists,
-  tabs, menus, grids and editors is left to its control, and keyboard navigation and screen-reader output are
-  unchanged. Every plain list - domains, accounts, aliases and distribution lists, public folders, incoming relays,
-  an account's IMAP folders, folder permissions, group members, recipients, a route's addresses and the Active
-  Directory picker - copies its selected rows with Ctrl+C or its right-click Copy, one row per line in the list's
-  order, and offers Select all where several rows can be chosen; the Ctrl+K search's results copy from their
-  right-click Copy (its search box keeps the keyboard); data grids copy their rows as before. Live logs selects
-  several lines (click, Shift+click, Ctrl+A) and copies them exactly, in the log's order; it follows new lines only
-  while the end is in view and no longer splits a line the server is still writing into two rows. On REST API keys, a
-  key's label, id, state and scope can be copied. Every Copy button now writes the clipboard the same way: a program
-  that reads the clipboard the moment it changes (Windows' clipboard history, a remote-desktop client) no longer
-  makes a copy fail after a second's freeze (a chart's Copy then showed no confirmation, and the new API key's and
-  app password's Copy an error), and text copied just before the Control Panel is closed still pastes after it has
-  gone.
+  tabs, menus, grids and editors is left to its control, so a press there stays a press, and keyboard navigation and
+  screen-reader output are unchanged. The words of the controls themselves are copied whole: a right-click on a check
+  box, a radio button, a button or a toggle, a drop-down, a tab, a page in the navigation tree or a label offers Copy,
+  which copies the caption as it is shown - a drop-down's value as it shows it, without an access key's underscore or
+  an icon - and Ctrl+C copies the same on the one that has the keyboard, unless a data grid or a list around it would
+  copy its chosen rows, which it still does. A left click and every key those controls take do what they did, an
+  icon-only button offers no menu, and a control with a menu of its own keeps it; a drop-down's right-click menu,
+  which offered Copy, Cut and Paste and could run none of them, now offers Copy. Most of Logging's and API &
+  monitoring's settings are check boxes, whose captions could not be copied before. Every plain list - domains,
+  accounts, aliases and distribution lists, public folders, incoming relays, an account's IMAP folders, folder
+  permissions, group members, recipients, a route's addresses and the Active Directory picker - copies its selected
+  rows with Ctrl+C or its right-click Copy, one row per line in the list's order, and offers Select all where several
+  rows can be chosen; the Ctrl+K search's results copy from their right-click Copy (its search box keeps the
+  keyboard); data grids copy their rows as before. Live logs selects several lines (click, Shift+click, Ctrl+A) and
+  copies them exactly, in the log's order; it follows new lines only while the end is in view and no longer splits a
+  line the server is still writing into two rows. On REST API keys, a key's label, id, state and scope can be copied.
+  Every Copy button now writes the clipboard the same way: a program that reads the clipboard the moment it changes
+  (Windows' clipboard history, a remote-desktop client) no longer makes a copy fail after a second's freeze (a chart's
+  Copy then showed no confirmation, and the new API key's and app password's Copy an error), and text copied just
+  before the Control Panel is closed still pastes after it has gone.
 - **Fixed: a switch put back from the audit trail stayed as it was.** Putting a setting back from its audit row
   (`POST /api/v1/audit/{id}/revert`, `Utilities.RevertAuditedChange`, *Put back* in the Deck and the Control Panel)
   wrote a switch's old value, `true` or `false`, into the text column of `hm_settings`, which the server does not
