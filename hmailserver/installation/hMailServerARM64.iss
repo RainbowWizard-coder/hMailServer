@@ -7,7 +7,7 @@
 #define HM_ARM64
 #define HMAILSERVERLIBS = GetEnv("hMailServerLibs")
 #define OPENSSL_LIBS_PATH HMAILSERVERLIBS + "\openssl-4.0.3-arm64\out64\bin"
-#define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + "\postgresql-18.3-arm64\builddir\src\interfaces\libpq"
+#define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + "\postgresql-18.6-arm64\builddir\src\interfaces\libpq"
 
 ; As in hMailServer64.iss, which says why these are defined once: the ARM64 build
 ; of the same .NET Desktop Runtime release (third-party-binaries.json pins both,

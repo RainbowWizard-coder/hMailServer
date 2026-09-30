@@ -164,7 +164,7 @@ GitLab link.
 | The .NET 10 SDK | `global.json` pins 10.0.303 and rolls forward within .NET 10 only |
 | The .NET Framework 4.8.1 developer pack | The Windows regression suite targets `net481` |
 | Git, and both PowerShells | PowerShell 7 (`pwsh`) and Windows PowerShell 5.1 (`powershell.exe`). A few scripts work under one and not the other; [the checkers](#the-checkers) say which |
-| The external libraries | OpenSSL 4.0.3, Boost 1.92.0 and PostgreSQL 18.3's libpq, as `hMailServer.vcxproj` pins them (`build\Get-LibraryVersions.ps1` prints the pins), built under a folder named by the `hMailServerLibs` environment variable. Building them needs Perl on `PATH` (OpenSSL and PostgreSQL), and for PostgreSQL also Python with Meson and Ninja (`py -m pip install meson ninja`) and winflexbison on `PATH`. No NASM |
+| The external libraries | OpenSSL 4.0.3, Boost 1.92.0 and PostgreSQL 18.6's libpq, as `hMailServer.vcxproj` pins them (`build\Get-LibraryVersions.ps1` prints the pins), built under a folder named by the `hMailServerLibs` environment variable. Building them needs Perl on `PATH` (OpenSSL and PostgreSQL), and for PostgreSQL also Python with Meson and Ninja (`py -m pip install meson ninja`) and winflexbison on `PATH`. No NASM |
 | Python 3 | Every checker |
 | Node 20 or later | The Deck's and the webmail's script harnesses and the S/MIME and OpenPGP checks. `openssl` on `PATH` for the S/MIME check; `gpg` is optional for the OpenPGP one |
 | Inno Setup 6 | Only for the installer |
@@ -222,7 +222,7 @@ component has one correct command:
 
 | Component | Command | Notes |
 |---|---|---|
-| External libraries (once, and after a version bump) | `libraries\build-openssl.ps1 -Version 4.0.3`, then `libraries\build-boost.ps1 -Version 1.92.0`, then `libraries\build-pgsql.ps1 -Version 18.3` | In that order. Each script checks the SHA-256 of the source archive it downloads. The README's library sections say what they do by hand |
+| External libraries (once, and after a version bump) | `libraries\build-openssl.ps1 -Version 4.0.3`, then `libraries\build-boost.ps1 -Version 1.92.0`, then `libraries\build-pgsql.ps1 -Version 18.6` | In that order. Each script checks the SHA-256 of the source archive it downloads. The README's library sections say what they do by hand |
 | The ADO type library (once per clone) | `build\get-installer-binaries.ps1 -SystemOnly` | Copies Windows' own `msado28.tlb` into `libraries\msado28\`, which the server's precompiled header `#import`s (`stdafx.h`) and git ignores. No download. **A clean clone's server does not compile without it** |
 | The server | `build\build.ps1 -Configuration Release` | Debug is the default. MSBuild with `/m` for x64 and the pre- and post-build events off; the log is `logs\build-<configuration>.log`. It also copies the Control Deck page, its catalogues and `hMailServer.tlb` beside the executable, and generates the COM wrapper. The service runs the Release output, so stop it before building Release, and never build while the regression suite runs |
 | The assertion build (never shipped) | `build\build.ps1 -Configuration Release -Asserts` | Keeps every `HM_ASSERT`; a violated one is reported in the ERROR log as HM6364. RELEASE.md step 8b runs the full suite on it |

@@ -1042,8 +1042,12 @@ fixes from there.
   library paths, `post-build.bat`, `build.ps1`'s ARM64 copy and both installer scripts name `openssl-4.0.3`, and
   `libraries/build-openssl.ps1` pins its archive's SHA-256, `325b5c80...16d9`: the value in Debian's signed
   `openssl_4.0.3-1.dsc`, the archive's own OpenSSL signature checked against the key openssl-library.org names, since
-  OpenSSL publishes its `.sha256` files on GitHub only. libpq 18.3 is not rebuilt: it links `libcrypto-4-x64.dll` and
-  `libssl-4-x64.dll` (on ARM64 the `-arm64` ones) by name, and 4.0.3 keeps 4.0.2's names and ABI.
+  OpenSSL publishes its `.sha256` files on GitHub only. libpq moves from PostgreSQL 18.3 to 18.6 with it, built
+  against 4.0.3 (`postgresql-18.6`, `-arm64` on ARM64, in the same paths and the same installer lines), its archive held
+  to `983ee554...ff3f`, the `.sha256` ftp.postgresql.org publishes beside it. Of the fixes PostgreSQL made from 18.4 to
+  18.6, the one in libpq itself, CVE-2026-6477 (18.4), is in the large-object functions, which the server never calls;
+  the others are in the server, its contrib modules and its command-line programs, none of which the installer
+  carries. The DLL keeps its name, `libpq.dll`.
   `Get-LibraryVersions.ps1`, `native-dependencies.ps1` and `dependency-scan` read the version from the project file,
   so the SBOMs and the scan name 4.0.3 with no change of their own.
 

@@ -80,7 +80,7 @@ version. The builds measured on 26 September 2026 used:
 | Windows SDK | 10.0.26100.0 |
 | Boost | 1.92.0, in `boost_1_92_0` under `$(hMailServerLibs)`: its headers, and its `stage\lib` libraries (`libboost_*-vc145-mt-x64-1_92.lib`, Boost.Thread among them) linked in statically |
 | OpenSSL | 4.0.2, `out64`, linked as DLLs (`libcrypto-4-x64.dll`, `libssl-4-x64.dll`). 6.3.6 links 4.0.3: a release links the version its tag's `hMailServer.vcxproj` names |
-| PostgreSQL | 18.3's `libpq`, linked as a DLL |
+| PostgreSQL | 18.3's `libpq`, linked as a DLL. 6.3.6 links 18.6, as its tag's `hMailServer.vcxproj` names |
 | The ADO type library | `libraries\msado28\msado28-x64.tlb`, which the precompiled header `#import`s: Windows' own `msado28.tlb`, copied there by `build\get-installer-binaries.ps1 -SystemOnly` (git ignores it). The one the measured builds used had SHA-256 `10f86c59f9b90449e145b8ec671a3e5dfadc489c2f4c33474071b8a4b18c187e` |
 
 The libraries are built by `libraries/build-boost.ps1`, `build-openssl.ps1` and

@@ -41,7 +41,7 @@
     PATH; the windows-packages-arm64 job runs it when they are not on PATH.
 
 .PARAMETER Version
-    The PostgreSQL version to build, e.g. 18.3. Must be 17.x or later.
+    The PostgreSQL version to build, e.g. 18.6. Must be 17.x or later.
 
 .PARAMETER OpenSSLVersion
     The OpenSSL version to link libpq against, e.g. 4.0.3. Must correspond to an existing
@@ -63,14 +63,14 @@
     does not know yet. Take it from the .sha256 file published beside the archive.
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3 -OpenSSLVersion 4.0.3
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.6 -OpenSSLVersion 4.0.3
 
 .EXAMPLE
     # Auto-detect the OpenSSL version from hMailServer.vcxproj:
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.6
 
 .EXAMPLE
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3 -OpenSSLVersion 4.0.3 -Platform ARM64
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.6 -OpenSSLVersion 4.0.3 -Platform ARM64
 #>
 [CmdletBinding()]
 param(
@@ -101,6 +101,7 @@ $PSNativeCommandUseErrorActionPreference = $false
 # published beside it on https://ftp.postgresql.org/pub/source/. See Get-PinnedDigest.
 $Digests = @{
     '18.3' = '9e054ffd6e013da2c2c9a1bfd6e062c98875d340df080516551c96b9b0926a59'
+    '18.6' = '983ee554ec53dbeb9b70797bef9fcf4e67e117e7e48ca1463cc80b3ff8e8ff3f'
 }
 
 # --- Set up a build log ---------------------------------------------------------

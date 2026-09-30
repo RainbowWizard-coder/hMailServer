@@ -22,7 +22,7 @@
 
         openssl=4.0.3               openssl_dir=openssl-4.0.3
         boost=1.92.0                boost_dir=boost_1_92_0
-        postgresql=18.3             postgresql_dir=postgresql-18.3
+        postgresql=18.6             postgresql_dir=postgresql-18.6
 
     The *_dir values are the folder names under %hMailServerLibs% that the build scripts
     create.
@@ -66,7 +66,7 @@ function Get-PinnedVersion
 }
 
 # The same version strings the library build scripts and the project file use:
-# openssl-4.0.3, boost_1_92_0 and postgresql-18.3 in the project's include and library
+# openssl-4.0.3, boost_1_92_0 and postgresql-18.6 in the project's include and library
 # paths.
 $openssl = Get-PinnedVersion -Text $vcxprojText -Pattern 'openssl-(\d+\.\d+\.\d+)' -Description 'OpenSSL' -Source $vcxproj
 $boostUnderscored = Get-PinnedVersion -Text $vcxprojText -Pattern 'boost_(\d+_\d+_\d+)' -Description 'Boost' -Source $vcxproj

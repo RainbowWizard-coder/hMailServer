@@ -500,7 +500,7 @@ The repository carries one script per library. Each downloads the source archive
    <pre>
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-openssl.ps1 -Version 4.0.3
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-boost.ps1 -Version 1.92.0
-   powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.3
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File libraries\build-pgsql.ps1 -Version 18.6
    </pre>
 
 `build\Get-LibraryVersions.ps1` prints the versions the project file currently pins. The same three scripts built the libraries for the continuous-integration server build on GitHub (`server-build.yml`, in the git history at `v6.3.3`), which cached the result per version; either way, a version bump is an edit to `hMailServer.vcxproj` and to the digest table of the matching script. The sections below record what the scripts do, for anyone who would rather do it by hand.
@@ -524,8 +524,8 @@ Building OpenSSL
 
 Building PostgreSQL
 -------------------
-1. Download PostgreSQL 18.3 source from https://www.postgresql.org/ftp/source/v18.3/ and put it into %hMailServerLibs%\postgresql-18.3.
-   You should now have a folder named %hMailServerLibs%\postgresql-18.3, for example C:\Dev\hMailLibs\postgresql-18.3
+1. Download PostgreSQL 18.6 source from https://www.postgresql.org/ftp/source/v18.6/ and put it into %hMailServerLibs%\postgresql-18.6.
+   You should now have a folder named %hMailServerLibs%\postgresql-18.6, for example C:\Dev\hMailLibs\postgresql-18.6
 2. Download winflexbison from https://sourceforge.net/projects/winflexbison/files/, extract it, and add the folder to `%PATH%`.
 3. Install Python dependencies: `py -m pip install meson ninja`
 4. Start a x64 Native Tools Command Prompt for VS2026.
@@ -535,7 +535,7 @@ Building PostgreSQL
    <pre>
    set hMailServerLibs=%cd%
    set CC=cl
-   cd postgresql-18.3
+   cd postgresql-18.6
    meson setup builddir --buildtype=release -Dssl=openssl -Dauto_features=disabled -Dextra_include_dirs=%hMailServerLibs%\openssl-4.0.3\out64\include -Dextra_lib_dirs=%hMailServerLibs%\openssl-4.0.3\out64\lib
    meson compile -C builddir src/interfaces/libpq/libpq:shared_library
    </pre>
