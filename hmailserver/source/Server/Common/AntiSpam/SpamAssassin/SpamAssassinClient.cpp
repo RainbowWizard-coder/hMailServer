@@ -278,7 +278,13 @@ namespace HM
       if (!result_)
          return;
 
-      result_->Close();
+      // The close writes what the last write left buffered (File::Close), and a
+      // result whose close failed is not applied, whatever its size reads: the size
+      // below is what the file system says now, and a network share can say so
+      // before it has refused the write-back.
+      const bool closed = result_->Close();
+      if (!closed)
+         LOG_DEBUG("SA: the SpamAssassin result could not be written to disk in full; keeping the original message.");
 
       // Copy message if test has been run
       bool bTestsRun = true;
@@ -288,7 +294,7 @@ namespace HM
       // new way: check the result from spamd. Require a positive length so an
       // empty response (Content-length: 0, or a lookup that returned 0) can never
       // overwrite the live message with a zero-byte file.
-      if (bTestsRun && spam_dsize_ > 0 && (FileUtilities::FileSize(sTempFile) == spam_dsize_))
+      if (closed && bTestsRun && spam_dsize_ > 0 && (FileUtilities::FileSize(sTempFile) == spam_dsize_))
       {
          // Both results are checked. The message has already been accepted, so the
          // sender has been given a 250 and there is nobody left to tell - a failure
@@ -313,8 +319,10 @@ namespace HM
          }
          else
          {
-            // Copy temp file to message file
-            if (FileUtilities::Copy(sTempFile, message_file_, false))
+            // Copied beside the message file and renamed over it, never copied onto
+            // it: a copy onto it empties it first, and one the disk refused part-way
+            // left the message short (FileUtilities::CopyOver).
+            if (FileUtilities::CopyOver(sTempFile, message_file_))
             {
                LOG_DEBUG("SA - Copy+Delete used");
             }

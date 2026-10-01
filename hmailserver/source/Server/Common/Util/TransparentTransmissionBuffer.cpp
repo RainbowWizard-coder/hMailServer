@@ -314,7 +314,7 @@ namespace HM
             if (IniFileSettings::Instance()->GetMessageStoreFsync() && !file_.FlushToDisk())
                ReportFlushFailure_();
 
-            file_.Close();
+            CloseSpoolFile_();
          }
 
          return dataProcessed;
@@ -436,10 +436,45 @@ namespace HM
          if (!is_sending_ && IniFileSettings::Instance()->GetMessageStoreFsync() && !file_.FlushToDisk())
             ReportFlushFailure_();
 
-         file_.Close();
+         CloseSpoolFile_();
       }
 
       return dataProcessed;
+   }
+
+   void
+   TransparentTransmissionBuffer::CloseSpoolFile_()
+   //---------------------------------------------------------------------------//
+   // The received message is all in: the spool file is closed, and the close is
+   // checked. It writes what the last write left in the C runtime's buffer - up to
+   // a buffer's worth of the message's tail, 4 KB on most systems (File::Close) -
+   // and it was not checked, so a disk that refused those bytes left the spool file
+   // short while the sender was told 250, and an external fetch then deleted the
+   // message from the remote server.
+   // Treated exactly like a failed write: HM5862, once per message, and the
+   // message refused with a transient code - SMTP answers 451, a fetch leaves the
+   // message where it is (GetWriteFailed).
+   //
+   // [Settings] SimulateSpoolWriteFailure=3 lets every write land and has the
+   // close say it failed, after it has closed the file, so that the regression
+   // suite can run this without filling a disk.
+   //---------------------------------------------------------------------------//
+   {
+      const bool closed = file_.Close();
+
+      if (is_sending_)
+         return;
+
+      if (closed && IniFileSettings::Instance()->GetSimulateSpoolWriteFailure() != 3)
+         return;
+
+      if (!write_failed_)
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5862, "TransparentTransmissionBuffer::CloseSpoolFile_",
+            "Failed to write the end of the received message data to the spool file as it was closed. The message is refused rather than accepted incomplete.");
+      }
+
+      write_failed_ = true;
    }
 
    void
@@ -491,7 +526,8 @@ namespace HM
          // mid-message actually has and the only shape that used to be accepted, since a
          // truncated file has content and a non-zero size and so passes everything
          // downstream. Short-circuits the write rather than writing first, because the
-         // point is content that never reached the disk.
+         // point is content that never reached the disk. Mode 3 fails no write and the
+         // close instead (CloseSpoolFile_).
          const int simulationMode = is_sending_ ? 0 : IniFileSettings::Instance()->GetSimulateSpoolWriteFailure();
          const bool simulateFailure = simulationMode == 1 || (simulationMode == 2 && writes_completed_ > 0);
 

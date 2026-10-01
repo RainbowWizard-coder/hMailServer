@@ -849,6 +849,20 @@ namespace HM
             write_failed_ = true;
             return false;
          }
+
+         // And the close, which writes what the write left buffered - up to
+         // 4 KB of the literal on most systems (File::Close). It was left to
+         // the destructor, so a disk that refused those bytes had APPEND
+         // answer OK for a short message. [Settings]
+         // SimulateSpoolWriteFailure=3 has the close say it failed, after it
+         // has closed the file, so that the regression suite can run this
+         // without filling a disk (SpoolWriteFailure.cs).
+         const bool closed = oFile.Close();
+         if (!closed || IniFileSettings::Instance()->GetSimulateSpoolWriteFailure() == 3)
+         {
+            write_failed_ = true;
+            return false;
+         }
       }
       catch (...)
       {

@@ -918,10 +918,20 @@ namespace HM
                   return false;
                }
 
-               const bool written = transport_->ReadExact(length, &file, nullptr, error);
-               file.Close();
-               if (!written)
+               const bool received = transport_->ReadExact(length, &file, nullptr, error);
+
+               // The close writes the message's last bytes (File::Close): a
+               // file that did not take them is short, and the run is tried
+               // again, as for a write that failed.
+               const bool closed = file.Close();
+               if (!received)
                   return false;
+
+               if (!closed)
+               {
+                  error = _T("The message file could not be written: ") + *bodyFile;
+                  return false;
+               }
 
                fetched->body = true;
                fetched->bytes = length;

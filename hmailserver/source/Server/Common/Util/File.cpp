@@ -61,15 +61,21 @@ namespace HM
       Close();
    }
    
-   void 
+   bool
    File::Close()
    {
-      if (file_ != nullptr)
-      {
-         fclose(file_);
-         file_ = nullptr;
-      }
+      // fwrite answers for the bytes it took into the C runtime's buffer, not for
+      // bytes in the file, and fclose writes what is still buffered before it
+      // closes: its result is the only report of whether that tail arrived. It
+      // was dropped here, so every writer that closed and went on took a short
+      // file for a whole one. The stream is gone after fclose whatever it
+      // answers (C11 7.21.5.1), so it is forgotten either way.
+      if (file_ == nullptr)
+         return true;
 
+      const bool closed = fclose(file_) == 0;
+      file_ = nullptr;
+      return closed;
    }
 
    bool

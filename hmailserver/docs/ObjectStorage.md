@@ -423,7 +423,7 @@ Errors
 | `HM7470` | The store could not be reached: three tries, none answered (a refused connection, a timeout, `408`, `429`, `5xx`). Once a minute at most |
 | `HM7471` | The store refused this server's credentials (`401`, `403`). Once a minute at most |
 | `HM7472` | The store's settings do not describe a store this server can use. Once for each change of them |
-| `HM7473` | Message files wait on the local disk for the store to take them: how many, and the last one it did not take and why. They are read from the disk meanwhile, and nothing is lost. Once an hour at most |
+| `HM7473` | Message files wait on the local disk for the store to take them: how many, and the last one it did not take and why. They are read from the disk meanwhile, and nothing is lost. Once an hour at most. The same code, once an hour at most too, says that a pass of the committer ended at an unexpected error: what it had not put in waits on the local disk, and the next pass takes it up |
 | `HM7474` | The store refused a request for a reason of its own (another `4xx`, an answer that could not be read), or the bucket or container is not there (a `404` to a put or to the bucket's `HEAD`). Once a minute at most |
 | `HM7475` | An object was copied under its new name and the old one could not be removed afterwards, or a move found the new name holding a different object and left both: named by no row |
 | `HM7476` | A message is neither on the local disk nor in the store; no placeholder is written for it while a store is named. Once a minute at most |

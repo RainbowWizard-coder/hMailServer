@@ -286,8 +286,8 @@ namespace HM
       Put32_(end, directoryOffset);
       Put16_(end, 0);
 
-      const bool written = Write_(directory) && Write_(end);
-      file_.Close();
+      bool written = Write_(directory) && Write_(end);
+      written = file_.Close() && written;
 
       return written && !failed_;
    }

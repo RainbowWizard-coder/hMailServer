@@ -195,9 +195,13 @@ namespace HM
                File file;
                try
                {
+                  // The close is part of the write: it puts the last of the
+                  // bytes in the file when no fsync has (File::Close), and a
+                  // temporary that did not take them never takes the name.
                   written = file.Open(temporary, File::OTCreate) &&
                             file.Write(bytes) &&
-                            (!IniFileSettings::Instance()->GetMessageStoreFsync() || file.FlushToDisk());
+                            (!IniFileSettings::Instance()->GetMessageStoreFsync() || file.FlushToDisk()) &&
+                            file.Close();
                }
                catch (...)
                {

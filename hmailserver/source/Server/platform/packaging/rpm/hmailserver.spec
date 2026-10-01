@@ -183,13 +183,14 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # trust (these two on scratch files under $TMPDIR, removed again), the business
 # objects' copies and first values, the TLS contexts' options, read back from the
 # distribution's own OpenSSL, the update feed's release page, and who may change a
-# stored event by a delivered calendar message (iMIP) - the list
+# stored event by a delivered calendar message (iMIP), and a written file whose
+# close fails - the list
 # debian/rules runs. No socket, none of the system's configuration, no database,
 # no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests; do
   echo "== $tester"
   ./$tester
 done

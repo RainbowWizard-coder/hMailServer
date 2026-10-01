@@ -1191,6 +1191,36 @@ numbers whatever the answer holds.
   `RestApiSettings` and `IniSettingsMirror`, and by `check-cli.py`.
 - **The backup and event logs are UTF-8 on Linux**, as the other logs are; they were UTF-16LE. A file an earlier
   version wrote is converted when the server first opens it. Windows keeps UTF-16LE.
+- **Fixed: a message whose last bytes the disk refused was kept short, and taken for whole.** A write to a file goes
+  into a buffer first, and closing the file writes the last of it - 4 KB on most systems - so the close is the only
+  report of whether a file's end arrived. The server did not check it, in every version up to 6.3.5, so when a disk
+  filled or a quota was reached just as a message's last bytes were written, the message was kept without them and
+  nothing said so: SMTP answered 250 to DATA and to BDAT, IMAP APPEND answered OK, and a message collected from an
+  external POP3 or IMAP account was delivered short and then deleted from the remote server, where the account
+  deletes what it collects. A header the server writes into a message after accepting it - the `Return-Path` and
+  `Delivered-To` of local delivery, a DKIM signature, an ARC seal, the `Return-Path` SpamAssassin is shown, the
+  sandbox's verdict - could put a short copy in place of the whole message, and so could the message store's own
+  writes (a compressed or encrypted message, a copy of one, an import), a journaling copy, a copy encrypted at the
+  gateway, an IMAP migration's copy and every file the server writes whole through `FileUtilities`.
+  `MessageStoreFsync`, off by default, had the spool files of SMTP and of the fetchers and the store's own writes
+  checked before their close; nothing else was. Every writer that takes a file for whole now takes the close's answer
+  too: SMTP answers `451 4.3.0` and the sender tries again, with `HM5862` in the error log once per message; APPEND
+  answers NO (`HM5211`); a collected message stays on the remote server for the next collection (`HM5862`, then
+  `HM5864` for POP3 or `HM5865` for IMAP); a header rewrite leaves the message as it was, and the delivery goes on as
+  it did when the rewrite could not be written; an IMAP migration tries the run again. Tested by
+  `file-utilities-tests`, against `/dev/full`, a quota and a full disk, and by `SpoolWriteFailure` for DATA, BDAT,
+  APPEND and both kinds of collection.
+- **Fixed: a SpamAssassin result the disk refused part-way cut the message short.** With `SAMoveVsCopy` at its
+  default, the server copied SpamAssassin's result onto the message file, and a copy onto a file empties it before it
+  writes it: when the disk filled during the copy, the message was left short or empty, in every version up to 6.3.5,
+  and the server went on with it as if it were whole. The result is now copied beside the message and renamed over it
+  once it is whole; a copy that fails leaves the message as it came, delivered without SpamAssassin's headers, as
+  when spamd cannot be reached (`HM5861`). A result whose file did not close cleanly is not applied either. Tested by
+  `file-utilities-tests` (`FileUtilities::CopyOver`, against a quota and a full disk).
+- **The object store's committer says what ends a pass.** Since 6.3.4, which brought the object store, a pass that
+  met an unexpected error ended without a word. Nothing was lost, and nothing is: what it had not put in waits on the
+  local disk, is read from there, and the next pass takes it up. It now says so in the error log as `HM7473`, once an
+  hour at most ([ObjectStorage.md](hmailserver/docs/ObjectStorage.md)).
 
 - **Fixed: sixteen more COM look-ups that found nothing left an object behind.** This release makes 67 look-ups look
   before they made the object they answer with; sixteen written as an if and an else were not among them, and still
@@ -1512,6 +1542,18 @@ numbers whatever the answer holds.
   POSIX `GetLocalTime`, `GetSystemTime` and `GetTickCount64`, and two more `struct tm` locals whose fill was not
   checked (`DomainSamples.cpp`, `ZipWriter.cpp`), start zeroed. 71 findings leave
   `build/ci/static-analysis-baseline.txt`, and the job, run over the tree, finds none that is new.
+
+- **`file-utilities-tests`, and a third mode of `SimulateSpoolWriteFailure`.** The tester program holds
+  `File::Close`, `FileUtilities::WriteToFile`, `TraceHeaderWriter`, the message store's `WriteAtomically` and the
+  spool a received message is written to (`TransparentTransmissionBuffer`, which must count the message as not
+  written, and report it once) to a file that cannot take its last bytes: `/dev/full`, a quota of the program's own
+  (`RLIMIT_FSIZE`) and, where it may mount one, a 64 KB tmpfs filled to its last byte, in a mount namespace of its
+  own; a container that may not mount says the last case did not run. `FileUtilitiesTester`, which the class tests
+  run on Windows, closes a named pipe whose reader has gone, which refuses a write as a full disk does. The
+  regression suite's switch `[Settings] SimulateSpoolWriteFailure=3` lets every write of a received message land and
+  has its close fail, for SMTP, the two fetchers and APPEND, off unless set, like modes 1 and 2. Static analysis: the
+  report's `cert-err33-c` at `File.cpp` and the committer's empty catch are fixed, and their lines leave the
+  baseline.
 
 - **No CI script reads a long or still-running output through `head` or `grep -q` under pipefail.** A reader that
   stops at what it wants closes the pipe, and a command still writing then dies of SIGPIPE, which `set -o pipefail`

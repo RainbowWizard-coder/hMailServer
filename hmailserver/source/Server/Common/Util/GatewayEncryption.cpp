@@ -1375,7 +1375,8 @@ namespace HM
             written = out.Write(body[i]);
             ReleaseText(body[i]);
          }
-         out.Close();
+         // The close writes the encrypted copy's last bytes (File::Close).
+         written = out.Close() && written;
 
          if (!written)
          {

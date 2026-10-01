@@ -16,6 +16,9 @@ namespace HM
    public:
       File();
       virtual ~File();
+      // The destructor closes the file: a copy would close it a second time.
+      File(const File &) = delete;
+      File &operator=(const File &) = delete;
 
       enum OpenType
       {
@@ -32,8 +35,16 @@ namespace HM
       bool IsOpen() const;
       bool Open(const String &sFilename, OpenType ot);
 
-      void Close();
-      
+      // False when the close reported an error. For a file that was written that
+      // is the only report of the bytes the C runtime still held in its buffer -
+      // up to a buffer's worth, 4 KB on Windows and on most Linux file systems,
+      // which the close writes - so a false here means the file may be short: a
+      // full disk, a quota, a network share's write-back. A writer that
+      // takes the file as complete takes this result too, unless a FlushToDisk it
+      // checked has already put everything there. True when the file was not open;
+      // the destructor's close ignores it.
+      bool Close();
+
       bool Write(const String &sWrite);
       bool Write(const AnsiString &sWrite);
       bool Write(const unsigned char *pBuf, size_t iBufLen);

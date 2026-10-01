@@ -640,7 +640,8 @@ namespace HM
       if (written && rule->GetMode() != JournalRule::ModeCopy)
          written = target.Write(AnsiString("\r\n--") + boundary + "--\r\n");
 
-      target.Close();
+      // The close writes the journal message's last bytes (File::Close).
+      written = target.Close() && written;
 
       if (!written)
       {

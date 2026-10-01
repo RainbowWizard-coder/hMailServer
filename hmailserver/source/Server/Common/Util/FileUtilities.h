@@ -45,6 +45,14 @@ namespace HM
       // construction. The temporary name is unique per call.
       static bool WriteToFileAtomically(const String &sFilename, const AnsiString &sData);
 
+      // Copy's counterpart of WriteToFileAtomically: sFrom is copied to a temporary
+      // name beside sTo and renamed over it, so sTo holds its old content or the
+      // whole of the new, never a part. Copy itself, onto a file that exists,
+      // empties it first and then writes it, and a disk that fills part-way leaves
+      // it short with nothing to give back. False, and sTo as it was, when the
+      // copy or the rename fails.
+      static bool CopyOver(const String &sFrom, const String &sTo);
+
       // The size of a file, or 0 when it cannot be read. long is 32 bits here, so a
       // size over LONG_MAX is SATURATED rather than truncated - see the definition
       // for why the previous truncation turned three "> maximum" guards into
@@ -98,6 +106,13 @@ namespace HM
       virtual ~FileUtilitiesTester() {} ;
 
       void Test();
+
+      // File::Close against a file whose last bytes cannot be written - /dev/full
+      // on Linux, a named pipe with no reader on Windows - and WriteToFile with
+      // it: the close is the only report of the tail a write left buffered. Public
+      // because file-utilities-tests (platform/file_utilities_tests_main.cpp) runs
+      // it on Linux, where ClassTester does not run; Test() runs it on Windows.
+      void TestFailedClose();
    private:
 
       void TestDeleteFile_();

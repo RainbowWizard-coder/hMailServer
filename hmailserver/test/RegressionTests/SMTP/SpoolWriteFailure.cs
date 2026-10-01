@@ -2,9 +2,14 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
 using System.Text;
+using hMailServer;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
+using RegressionTests.ExternalAccounts;
 using RegressionTests.Infrastructure;
+using RegressionTests.POP3.Fetching;
 using RegressionTests.Shared;
 
 namespace RegressionTests.SMTP
@@ -45,6 +50,18 @@ namespace RegressionTests.SMTP
    ///    451 rather than 554 is deliberate: a disk that is full now may not be in ten
    ///    minutes, and a permanent rejection makes the sending server bounce mail that a
    ///    retry would have delivered.
+   ///
+   ///    The third shape is the close. fwrite answers for the bytes it takes into the C
+   ///    runtime's buffer, and the close writes what is still there - up to 4 KB of the
+   ///    message's tail on most systems - so its answer is the only report of whether
+   ///    the tail arrived, and File::Close dropped it. Every write succeeded, the close
+   ///    did not, and the message was accepted short: a 250 over SMTP DATA and BDAT, an
+   ///    OK to IMAP APPEND, and an external fetch that delivered the short copy and then
+   ///    deleted the whole one from the remote server. Mode 3 lets every write land and
+   ///    has the close say it failed (TransparentTransmissionBuffer::CloseSpoolFile_,
+   ///    IMAPCommandAppend::WriteData_); each test below fails against a build that
+   ///    ignores the close's answer. The real refusal - a full tmpfs, a quota,
+   ///    /dev/full - is file-utilities-tests' (platform/file_utilities_tests_main.cpp).
    /// </summary>
    [TestFixture]
    public class SpoolWriteFailure : TestFixtureBase
@@ -132,6 +149,181 @@ namespace RegressionTests.SMTP
          // failed downstream. HM5862 is: the old code refused the message without
          // recording any reason anywhere, which is a support call with nothing to go on.
          CustomAsserts.AssertReportedError("HM5862");
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 0);
+      }
+
+      private const string ShortMessage = "From: sender@external.example\r\n" +
+                                          "To: someone@example.test\r\n" +
+                                          "Subject: Whole or refused\r\n" +
+                                          "\r\n" +
+                                          "A message short enough to wait whole in the buffer the close writes.\r\n";
+
+      [Test]
+      [Description("A DATA message whose spool file's close fails is refused with 451, not accepted short")]
+      public void DataMessageWhoseCloseFailsIsRefused()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "spoolclose@example.test", "test");
+
+         SimulateFailure(3);
+
+         var simulator = new SmtpClientSimulator();
+
+         // Against a build that ignores the close's answer this is a 250, and the message
+         // is delivered.
+         CustomAsserts.Throws<DeliveryFailedException>(() =>
+            simulator.Send("test@example.test", account.Address, "Must not be accepted", LargeBody()));
+
+         CustomAsserts.AssertReportedError("HM5862");
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 0);
+      }
+
+      [Test]
+      [Description("A BDAT message whose spool file's close fails is refused with 451, not accepted short")]
+      public void BdatMessageWhoseCloseFailsIsRefused()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "spoolclosebdat@example.test", "test");
+
+         SimulateFailure(3);
+
+         using (var socket = new TcpConnection())
+         {
+            ClassicAssert.IsTrue(socket.Connect(TestPorts.Smtp));
+            ClassicAssert.IsTrue(socket.Receive().StartsWith("220"));
+            socket.Send("EHLO example.test\r\n");
+            socket.ReadUntil("250 HELP");
+
+            ClassicAssert.IsTrue(socket.SendAndReceive("MAIL FROM:<sender@external.example>\r\n").StartsWith("250"));
+            ClassicAssert.IsTrue(socket.SendAndReceive("RCPT TO:<" + account.Address + ">\r\n").StartsWith("250"));
+
+            socket.Send("BDAT " + Encoding.ASCII.GetByteCount(ShortMessage) + " LAST\r\n");
+            socket.Send(ShortMessage);
+
+            // The shared accept path (SMTPConnection::OnPreAcceptTransfer_) answers a
+            // spool file that was not written with 451 4.3.0.
+            var reply = socket.Receive();
+            ClassicAssert.IsTrue(reply.StartsWith("451"), "BDAT LAST was not refused with 451. Got: " + reply);
+
+            socket.Send("QUIT\r\n");
+         }
+
+         CustomAsserts.AssertReportedError("HM5862");
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 0);
+      }
+
+      [Test]
+      [Description("An APPEND whose message file's close fails answers NO, and stores nothing")]
+      public void AppendWhoseCloseFailsAnswersNo()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "appendclose@example.test", "test");
+
+         SimulateFailure(3);
+
+         var simulator = new ImapClientSimulator();
+         simulator.Connect();
+         simulator.LogonWithLiteral(account.Address, "test");
+
+         var result = simulator.SendSingleCommandWithLiteral("A01 APPEND INBOX {" + Encoding.ASCII.GetByteCount(ShortMessage) + "}", ShortMessage);
+         ClassicAssert.IsTrue(result.Contains("A01 NO"), "APPEND was not refused. Got: " + result);
+
+         CustomAsserts.AssertReportedError("HM5211");
+
+         ClassicAssert.AreEqual(0, simulator.GetMessageCount("INBOX"));
+         simulator.Disconnect();
+      }
+
+      [Test]
+      [Description("A message fetched over POP3 whose spool file's close fails is neither delivered nor deleted from the remote server")]
+      public void Pop3FetchWhoseCloseFailsLeavesTheMessageOnTheRemoteServer()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "fetchclose@example.test", "test");
+         var port = TestSetup.GetNextFreePort();
+
+         var fetchAccount = account.FetchAccounts.Add();
+         fetchAccount.Enabled = true;
+         fetchAccount.MinutesBetweenFetch = 60;
+         fetchAccount.Name = "Close fails";
+         fetchAccount.Username = "test@example.com";
+         fetchAccount.Password = "test";
+         fetchAccount.UseSSL = false;
+         fetchAccount.ServerAddress = "localhost";
+         fetchAccount.Port = port;
+         fetchAccount.ProcessMIMERecipients = false;
+         // -1: the POP3 fetcher deletes a message from the remote server as soon as it
+         // is delivered (POP3ClientConnection::MessageCleanup_; 0 never deletes) -
+         // which is what lost the only whole copy when a short one was taken for
+         // delivered.
+         fetchAccount.DaysToKeepMessages = -1;
+         fetchAccount.UseAntiSpam = false;
+         fetchAccount.UseAntiVirus = false;
+         fetchAccount.Save();
+
+         SimulateFailure(3);
+
+         using (var pop3Server = new Pop3ServerSimulator(1, port, new List<string> { ShortMessage }))
+         {
+            pop3Server.StartListen();
+
+            fetchAccount.DownloadNow();
+            pop3Server.WaitForCompletion();
+            LockHelper.WaitForUnlock(fetchAccount);
+
+            // Collected - so the remote server's copy was the fetcher's to delete - and
+            // not deleted.
+            ClassicAssert.AreEqual(1, pop3Server.RetrievedMessages.Count, "The message was not collected at all.");
+            ClassicAssert.AreEqual(0, pop3Server.DeletedMessages.Count, "The message was deleted from the remote server.");
+         }
+
+         CustomAsserts.AssertReportedError("HM5862", "HM5864");
+
+         Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 0);
+      }
+
+      [Test]
+      [Description("A message collected over IMAP whose spool file's close fails is neither delivered nor deleted from the remote server")]
+      public void ImapFetchWhoseCloseFailsLeavesTheMessageOnTheRemoteServer()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "collectclose@example.test", "test");
+         var port = TestSetup.GetNextFreePort();
+
+         var fetchAccount = account.FetchAccounts.Add();
+         fetchAccount.Enabled = true;
+         fetchAccount.MinutesBetweenFetch = 60;
+         fetchAccount.Name = "Close fails";
+         fetchAccount.ServerType = 1;
+         fetchAccount.Username = "remote@dummy-example.com";
+         fetchAccount.Password = "far-side-secret-2026";
+         fetchAccount.UseSSL = false;
+         fetchAccount.ServerAddress = "localhost";
+         fetchAccount.Port = port;
+         fetchAccount.ProcessMIMERecipients = false;
+         // 0: the IMAP fetcher flags a collected message \Deleted and expunges it in
+         // the same session (IMAPClientConnection, as
+         // ImapFetch.CollectedMessagesAreDeletedFromTheFarSideWhenAsked holds it).
+         fetchAccount.DaysToKeepMessages = 0;
+         fetchAccount.UseAntiSpam = false;
+         fetchAccount.UseAntiVirus = false;
+         fetchAccount.Save();
+
+         SimulateFailure(3);
+
+         var mailbox = new ScriptedImapServer.RemoteMailbox();
+         mailbox.Add(new ScriptedImapServer.RemoteMessage(101, ShortMessage));
+
+         using (var server = new ScriptedImapServer(port, mailbox))
+         {
+            server.StartListen();
+            fetchAccount.DownloadNow();
+            LockHelper.WaitForUnlock(fetchAccount);
+            server.WaitForCompletion();
+
+            CollectionAssert.AreEqual(new[] { 101 }, server.FetchedUids, "The message was not collected at all.");
+            CollectionAssert.IsEmpty(server.StoredDeletedUids, "The message was marked deleted on the remote server.");
+         }
+
+         CustomAsserts.AssertReportedError("HM5862", "HM5865");
 
          Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 0);
       }

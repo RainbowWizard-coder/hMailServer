@@ -1115,9 +1115,12 @@ namespace HM
                File file;
                try
                {
+                  // The close is part of the write, as in the local backend's
+                  // WriteAtomically (File::Close).
                   written = file.Open(temporary, File::OTCreate) &&
                             file.Write(bytes) &&
-                            (!IniFileSettings::Instance()->GetMessageStoreFsync() || file.FlushToDisk());
+                            (!IniFileSettings::Instance()->GetMessageStoreFsync() || file.FlushToDisk()) &&
+                            file.Close();
                }
                catch (...)
                {
@@ -1706,6 +1709,7 @@ namespace HM
 
          void DrainCommits_()
          {
+            bool unexpected = false;
             try
             {
                Drain_();
@@ -1721,12 +1725,33 @@ namespace HM
             catch (...)
             {
                // Nothing is lost when a pass ends early: what it did not take
-               // is still on the list and on the disk.
+               // is still on the list and on the disk. Said below, once the pass
+               // is counted out.
+               unexpected = true;
             }
 
-            boost::mutex::scoped_lock lock(pending_lock_);
-            if (passes_ > 0)
-               passes_--;
+            bool report = false;
+            {
+               boost::mutex::scoped_lock lock(pending_lock_);
+               if (passes_ > 0)
+                  passes_--;
+
+               // Once an hour at most: a cause that ends one pass ends the next,
+               // a minute later.
+               const long long now = NowMs();
+               if (unexpected && (unexpected_reported_ == 0 || now - unexpected_reported_ >= PendingReportMilliseconds))
+               {
+                  unexpected_reported_ = now;
+                  report = true;
+               }
+            }
+
+            // With the list's lock let go, since a report runs the OnError event.
+            if (report)
+            {
+               ReportObjectError(7473, _T("MessageStoreObjects::Commit"),
+                  _T("A pass of the object store's committer ended at an unexpected error. Nothing is lost: what it had not put in waits on the local disk, is read from there, and the next pass takes it up. Said once an hour at most."));
+            }
          }
 
       private:
@@ -1862,8 +1887,10 @@ namespace HM
                File file;
                if (file.Open(path, File::OTAppend))
                {
-                  const bool written = file.Write(line);
-                  file.Close();
+                  // The line is written when the close has put it there
+                  // (File::Close).
+                  bool written = file.Write(line);
+                  written = file.Close() && written;
 
                   if (written)
                   {
@@ -1933,9 +1960,11 @@ namespace HM
             bool written = false;
             try
             {
+               // A short journal must not take the name of the whole one: the
+               // close is part of the write (File::Close).
                File file;
                written = file.Open(temporary, File::OTCreate) && file.Write(all);
-               file.Close();
+               written = file.Close() && written;
             }
             catch (...)
             {
@@ -2307,6 +2336,7 @@ namespace HM
          int passes_ = 0;
          long long pass_started_ = 0;
          long long reported_ = 0;
+         long long unexpected_reported_ = 0; // when a pass that ended at an unexpected error was last said
          String last_problem_;
       };
 

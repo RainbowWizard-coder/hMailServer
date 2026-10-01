@@ -411,9 +411,9 @@ namespace HM
             return false;
       }
 
-      oFile.Close();
-
-      return true;
+      // The close writes the last of the data (File::Close): a file that did not
+      // take it is short, and is not written.
+      return oFile.Close();
    }
 
    bool 
@@ -426,9 +426,7 @@ namespace HM
       if (!oFile.Write(sData))
          return false;
 
-      oFile.Close();
-
-      return true;
+      return oFile.Close();
    }
 
    bool
@@ -446,6 +444,26 @@ namespace HM
       // old content or the new, nothing in between, and any other name the old
       // file had keeps the old content.
       if (!Move(temporary, sFilename))
+      {
+         DeleteFile(temporary);
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
+   FileUtilities::CopyOver(const String &sFrom, const String &sTo)
+   {
+      // Copy onto a file that exists truncates it and then writes it (copy_file with
+      // overwrite_existing opens it O_TRUNC on POSIX, and CopyFileExW replaces it on
+      // Windows), so a copy that fails part-way - a disk that fills, a quota - leaves
+      // the destination short, and what it held is gone. Copied beside it instead,
+      // under a name of its own in the same directory, and renamed over it only when
+      // whole: Move replaces the name in one step, as in WriteToFileAtomically.
+      const String temporary = sTo + _T(".writing-") + GUIDCreator::GetGUID();
+
+      if (!Copy(sFrom, temporary, false) || !Move(temporary, sTo))
       {
          DeleteFile(temporary);
          return false;
@@ -895,6 +913,82 @@ namespace HM
       TestReadFileToBuf_();
       TestByteBuffer_();
       TestUtf16Files_();
+      TestFailedClose();
+   }
+
+   namespace
+   {
+      // Throws with what failed, where Assert would name only its own line.
+      void CheckClose_(bool condition, const char *what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("FileUtilitiesTester::TestFailedClose: ") + what);
+      }
+   }
+
+   void
+   FileUtilitiesTester::TestFailedClose()
+   {
+      // What every case below is measured against: a file written and closed whole
+      // closes true, and so does a close of a file that is not open - a second close
+      // of the same file, and one never opened.
+      const boost::filesystem::path scratch = boost::filesystem::temp_directory_path() /
+         boost::filesystem::unique_path("hm-close-%%%%-%%%%-%%%%");
+      const String path = String(scratch.wstring());
+      {
+         File file;
+         CheckClose_(file.Open(path, File::OTCreate), "a temporary file could not be created");
+         CheckClose_(file.Write(AnsiString("written whole")), "a write to a temporary file answered false");
+         CheckClose_(file.Close(), "a temporary file written whole did not close true");
+         CheckClose_(file.Close(), "a second close of the same file did not answer true");
+
+         File unopened;
+         CheckClose_(unopened.Close(), "the close of a file never opened did not answer true");
+      }
+
+      CheckClose_(FileUtilities::WriteToFile(path, AnsiString("whole")), "WriteToFile to a temporary file answered false");
+      CheckClose_(FileUtilities::ReadCompleteTextFile(path) == _T("whole"), "WriteToFile to a temporary file did not write what it was given");
+      FileUtilities::DeleteFile(path);
+
+#ifdef HM_PLATFORM_POSIX
+#ifdef __linux__
+      // /dev/full refuses every write the kernel is asked for, with ENOSPC - it is
+      // there to be a full disk. A small write stays in the C runtime's buffer, so
+      // the write answers true and only the close, which writes the buffer, can say
+      // that it did not arrive: the tail of a message on a disk that has just
+      // filled. Before the close was checked, WriteToFile answered true here.
+      {
+         File full;
+         CheckClose_(full.Open(_T("/dev/full"), File::OTCreate), "/dev/full could not be opened");
+         CheckClose_(full.Write(AnsiString("buffered, not yet written")), "a small write to /dev/full was not buffered, so the close is not what this checks");
+         CheckClose_(!full.Close(), "the close of /dev/full, which refuses every write, answered true");
+      }
+
+      CheckClose_(!FileUtilities::WriteToFile(_T("/dev/full"), AnsiString("x")), "WriteToFile(AnsiString) to /dev/full answered true");
+      CheckClose_(!FileUtilities::WriteToFile(_T("/dev/full"), String(_T("x")), false), "WriteToFile(String) to /dev/full answered true");
+      CheckClose_(!FileUtilities::WriteToFile(_T("/dev/full"), String(_T("x")), true), "WriteToFile(String, Unicode) to /dev/full answered true");
+#endif
+#else
+      // Windows has no /dev/full, and a volume that fills needs one made for the
+      // purpose and an administrator to mount it. A named pipe whose reading end has
+      // gone refuses a write as a full disk does - WriteFile fails, ERROR_NO_DATA -
+      // and the C runtime buffers a small write for it as for a file, so again the
+      // close is the only report. Measured with this runtime on 30 September 2026:
+      // fwrite 16, fclose -1, GetLastError 232, through _wfsopen "wb" and "ab" alike.
+      {
+         const String pipeName = _T("\\\\.\\pipe\\hMailServer-close-test-") + GUIDCreator::GetGUID();
+         HANDLE reader = CreateNamedPipeW(pipeName.c_str(), PIPE_ACCESS_INBOUND, PIPE_TYPE_BYTE | PIPE_WAIT, 1, 0, 0, 0, nullptr);
+         CheckClose_(reader != INVALID_HANDLE_VALUE, "a named pipe could not be created");
+
+         File writer;
+         const bool opened = writer.Open(pipeName, File::OTCreate);
+         CloseHandle(reader);
+
+         CheckClose_(opened, "the named pipe could not be opened for writing");
+         CheckClose_(writer.Write(AnsiString("buffered, not yet written")), "a small write to the pipe was not buffered, so the close is not what this checks");
+         CheckClose_(!writer.Close(), "the close of a pipe whose reader has gone, which refuses every write, answered true");
+      }
+#endif
    }
 
    void

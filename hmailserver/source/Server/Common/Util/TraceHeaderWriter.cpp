@@ -57,7 +57,10 @@ namespace HM
                    temporaryFile.Write(messageFile);
       }
 
-      temporaryFile.Close();
+      // The close writes the last of the copy (File::Close). Unchecked, a disk
+      // that refused it left the copy short, and the move below put the short
+      // copy in the message's place.
+      written = temporaryFile.Close() && written;
 
       // Every failure here leaves a rewritten copy of the message on disk that
       // nothing refers to. This runs for every DKIM signature, ARC seal, local

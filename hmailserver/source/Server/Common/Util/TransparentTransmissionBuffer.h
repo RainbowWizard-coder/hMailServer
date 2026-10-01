@@ -103,8 +103,9 @@ namespace HM
       bool GetCancelTransmission() {return cancel_transmission_;}
       String GetCancelMessage() {return cancel_message_;}
 
-      // True if any write of received data to the spool file failed, or if a
-      // configured fsync of it failed.
+      // True if any write of received data to the spool file failed, if its close
+      // did (the close writes the last of the data), or if a configured fsync of
+      // it failed.
       //
       // Deliberately separate from cancel_transmission_, which produces a permanent
       // 554: a full disk or an I/O error is transient, and a sender told 554 discards
@@ -123,6 +124,10 @@ namespace HM
       void ResetPerTransferState_();
 
       void ReportFlushFailure_();
+
+      // Closes the spool file at the end of a received message, and counts a close
+      // that failed as a write that failed.
+      void CloseSpoolFile_();
 
       std::shared_ptr<ByteBuffer> buffer_;
       // The buffer containing the data to send/receive.

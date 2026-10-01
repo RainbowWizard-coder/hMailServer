@@ -697,6 +697,20 @@ add_executable(backup-tests ${SERVER_DIR}/platform/backup_tests_main.cpp)
 target_link_libraries(backup-tests PRIVATE hmailserver_core)
 set_target_properties(backup-tests PROPERTIES OUTPUT_NAME backup-tests)
 
+# ---------------------------------------------------------------- a written file's close
+#
+# File::Close and the writers of stored mail that take its answer, against files
+# that cannot take their last bytes: /dev/full, a quota of the process's own
+# (RLIMIT_FSIZE), and - when the program may mount one - a full tmpfs in a mount
+# namespace of a child's own. The close writes what a write left buffered, and its
+# answer is the only report of whether that arrived; FileUtilitiesTester's part of
+# it runs on Windows through ClassTester, which nothing reaches here. Scratch files
+# under the system's temp directory, removed again; no database, configuration or
+# network. Not installed; a bench tool.
+add_executable(file-utilities-tests ${SERVER_DIR}/platform/file_utilities_tests_main.cpp)
+target_link_libraries(file-utilities-tests PRIVATE hmailserver_core)
+set_target_properties(file-utilities-tests PROPERTIES OUTPUT_NAME file-utilities-tests)
+
 # ---------------------------------------------------------------- the live update's trust
 #
 # IniFileSettingsTester::TestTrustAnchors (Common/Application/IniFileSettings.h) as
