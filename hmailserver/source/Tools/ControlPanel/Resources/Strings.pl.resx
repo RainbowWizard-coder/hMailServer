@@ -1644,6 +1644,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Zastosować profil {0}? Zmieni się ustawień: {1}; ich dotychczasowe wartości zostaną zachowane, aby można je było przywrócić.</value>
   </data>
+  <data name="Applying..." xml:space="preserve">
+    <value>Stosowanie...</value>
+  </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>A_rchiwum</value>
   </data>
@@ -2027,6 +2030,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Both ways" xml:space="preserve">
     <value>W obie strony</value>
+  </data>
+  <data name="Bottom" xml:space="preserve">
+    <value>Dół</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Liczniki zwrotów</value>
@@ -2616,6 +2622,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Cop_y" xml:space="preserve">
     <value>Kop_iuj</value>
   </data>
+  <data name="Copied." xml:space="preserve">
+    <value>Skopiowano.</value>
+  </data>
   <data name="Copies of mail" xml:space="preserve">
     <value>Kopie poczty</value>
   </data>
@@ -2963,6 +2972,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not write to hMailServer.ini: {0}" xml:space="preserve">
     <value>Nie udało się zapisać do hMailServer.ini: {0}</value>
   </data>
+  <data name="Could not write {0} to {1}" xml:space="preserve">
+    <value>Nie udało się zapisać {0} do {1}</value>
+  </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Nie udało się ustalić programu wykonywalnego na podstawie polecenia.</value>
   </data>
@@ -3064,6 +3076,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Custom scanner (external program)" xml:space="preserve">
     <value>Własny skaner (program zewnętrzny)</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Wytnij</value>
   </data>
   <data name="DANE &amp; DNSSEC" xml:space="preserve">
     <value>DANE i DNSSEC</value>
@@ -3438,6 +3453,9 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   </data>
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>Usunięto {0} wiadomości.</value>
+  </data>
+  <data name="Deleted." xml:space="preserve">
+    <value>Usunięto.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Usunięcie domeny usuwa znajdujące się w niej konta. Najpierw należy sprawdzić, czy nie wskazują na nią aliasy i listy.</value>
@@ -5261,6 +5279,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>N_ie umieszczaj tego konta w katalogu</value>
   </data>
+  <data name="Left Edge" xml:space="preserve">
+    <value>Lewa krawędź</value>
+  </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Pozostawione puste, każe serwerowi użyć filtra dostarczonego z programem, pokazanego na szaro - najpierw objectCategory, ponieważ jest indeksowany w Active Directory, a następnie sAMAccountName, ponieważ to właśnie przechowuje karta Katalog konta. %u to nazwa użytkownika konta w Active Directory, %d jego domena AD, %m jego pełny adres pocztowy; wszystkie trzy są zabezpieczane znakami ucieczki przed podstawieniem, więc wroga nazwa logowania nie może przepisać filtra. Filtr, który pasuje do więcej niż jednego wpisu, celowo nie uwierzytelnia nikogo.</value>
   </data>
@@ -5749,6 +5770,9 @@ Każda subskrypcja Web Push utworzona z obecną parą natychmiast przestaje dzia
   <data name="MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*" xml:space="preserve">
     <value>Bazy MaxMind (*.mmdb)|*.mmdb|Wszystkie pliki (*.*)|*.*</value>
   </data>
+  <data name="Maximise" xml:space="preserve">
+    <value>Maksymalizuj</value>
+  </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Maksymalny rozmiar _domeny (MB, 0 = bez ograniczeń)</value>
   </data>
@@ -5952,6 +5976,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Migrations" xml:space="preserve">
     <value>Migracje</value>
   </data>
+  <data name="Minimise" xml:space="preserve">
+    <value>Minimalizuj</value>
+  </data>
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>Minimalna długość (0 = brak minimum)</value>
   </data>
@@ -6141,8 +6168,14 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Next" xml:space="preserve">
     <value>Dalej</value>
   </data>
+  <data name="Next decade" xml:space="preserve">
+    <value>Następna dekada</value>
+  </data>
   <data name="Next key" xml:space="preserve">
     <value>Następny klucz</value>
+  </data>
+  <data name="Next month" xml:space="preserve">
+    <value>Następny miesiąc</value>
   </data>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Następna rotacja zaplanowana {0}</value>
@@ -6155,6 +6188,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Następna próba</value>
+  </data>
+  <data name="Next year" xml:space="preserve">
+    <value>Następny rok</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>Nie</value>
@@ -7023,8 +7059,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Otwórz dzienniki na żywo</value>
   </data>
-  <data name="Open the member list of '" xml:space="preserve">
-    <value>Otwórz listę członków '</value>
+  <data name="Open the member list of '{0}'." xml:space="preserve">
+    <value>Otwórz listę członków grupy '{0}'.</value>
   </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Otwórz listę kontrolną konfiguracji: każda pozycja, co jest zrobione i co zrobić dalej</value>
@@ -7233,6 +7269,18 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
+  <data name="Page Down" xml:space="preserve">
+    <value>Strona w dół</value>
+  </data>
+  <data name="Page Left" xml:space="preserve">
+    <value>Strona w lewo</value>
+  </data>
+  <data name="Page Right" xml:space="preserve">
+    <value>Strona w prawo</value>
+  </data>
+  <data name="Page Up" xml:space="preserve">
+    <value>Strona w górę</value>
+  </data>
   <data name="Page content" xml:space="preserve">
     <value>Zawartość strony</value>
   </data>
@@ -7295,6 +7343,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Hasła i to, co może je przenosić</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Wklej</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Wklej certyfikat albo dwa, gdy dostawca wymienia klucz. Nie jest już nigdy pokazywany: wiersz poniżej mówi, co jest przechowywane.</value>
@@ -7471,6 +7522,15 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Najpierw podgląd, potem zastosowanie</value>
+  </data>
+  <data name="Previous decade" xml:space="preserve">
+    <value>Poprzednia dekada</value>
+  </data>
+  <data name="Previous month" xml:space="preserve">
+    <value>Poprzedni miesiąc</value>
+  </data>
+  <data name="Previous year" xml:space="preserve">
+    <value>Poprzedni rok</value>
   </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Traktuj ChaCha20-Poly1305 priorytetowo, gdy klient go preferuje (wymaga TLS 1.2 lub 1.3)</value>
@@ -8336,6 +8396,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Przywróć dom_eny</value>
   </data>
+  <data name="Restore down" xml:space="preserve">
+    <value>Przywróć w dół</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Przywróć wiado_mości</value>
   </data>
@@ -8426,6 +8489,9 @@ Kontynuować?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Przepisuj nadawcę koperty przy przekazywaniu (proste rozwiązanie zastępcze, bez potrzeby sekretu)</value>
+  </data>
+  <data name="Right Edge" xml:space="preserve">
+    <value>Prawa krawędź</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Rola</value>
@@ -8880,6 +8946,21 @@ Kontynuować?</value>
   <data name="Scripting engine" xml:space="preserve">
     <value>Silnik skryptów</value>
   </data>
+  <data name="Scroll Down" xml:space="preserve">
+    <value>Przewiń w dół</value>
+  </data>
+  <data name="Scroll Here" xml:space="preserve">
+    <value>Przewiń tutaj</value>
+  </data>
+  <data name="Scroll Left" xml:space="preserve">
+    <value>Przewiń w lewo</value>
+  </data>
+  <data name="Scroll Right" xml:space="preserve">
+    <value>Przewiń w prawo</value>
+  </data>
+  <data name="Scroll Up" xml:space="preserve">
+    <value>Przewiń w górę</value>
+  </data>
   <data name="Scroll tabs left" xml:space="preserve">
     <value>Przewiń karty w lewo</value>
   </data>
@@ -8961,8 +9042,8 @@ Kontynuować?</value>
   <data name="Searches" xml:space="preserve">
     <value>Wyszukiwania</value>
   </data>
-  <data name="Searching " xml:space="preserve">
-    <value>Wyszukiwanie </value>
+  <data name="Searching {0}…" xml:space="preserve">
+    <value>Wyszukiwanie w {0}…</value>
   </data>
   <data name="Second factor on the administrator credential" xml:space="preserve">
     <value>Drugi składnik na poświadczeniu administratora</value>
@@ -10218,8 +10299,8 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Adres jest pokazywany zamaskowany tutaj i wszędzie indziej, a żaden interfejs nie zwraca go w całości: to skrzynka tej osoby, a nic, co robi administrator, nie wymaga jego odczytania.</value>
   </data>
-  <data name="The address must be a name followed by @" xml:space="preserve">
-    <value>Adres musi być nazwą, po której następuje @</value>
+  <data name="The address must be a name followed by @{0}." xml:space="preserve">
+    <value>Adres musi być nazwą, po której następuje @{0}.</value>
   </data>
   <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only." xml:space="preserve">
     <value>Adres, pod którym REST API jest osiągalne z zewnątrz; strony zapisu, potwierdzenia, wypisania i archiwum są pod nim. Tylko adres https daje wypisanie jednym kliknięciem (RFC 8058). Puste, domyślne, wysyła tylko adresy mailto.</value>
@@ -10508,7 +10589,7 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
     <value>Teksty powitań, powiadomień o niedoręczeniu i błędów, które serwer odsyła klientom.</value>
   </data>
   <data name="The group members could not be read: " xml:space="preserve">
-    <value>Nie udało się odczytać członków grupy:</value>
+    <value>Nie udało się odczytać członków grupy: </value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Grupy, z użyciem których ten serwer uzgodni klucz TLS, w postaci listy OpenSSL. W wersji dostarczonej oferuje najpierw dwie hybrydy postkwantowe, a dla strony, która nie obsługuje żadnej z nich, przechodzi na X25519 i krzywe NIST, więc dla starszego klienta nic się nie zmienia. Pusta lista, lista odrzucona przez OpenSSL lub taka, która nie pozostawiłaby żadnej włączonej grupy, nie jest stosowana: serwer zapisuje ją w dzienniku i używa klasycznej listy zapasowej, więc pomyłka tutaj nie może wyłączyć TLS - po cichu rezygnuje jednak z hybryd, i dlatego pokazywana jest lista dostarczona, a nie puste pole. Zmieniać ją należy w oparciu o wynik skanowania, a nie po omacku.</value>
@@ -10831,7 +10912,7 @@ Dodać mimo to?</value>
     <value>Przebieg nie został ukończony. Poniżej znajduje się to, co udało się odczytać, zanim się zatrzymał.</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
-    <value>Przebieg nie powiódł się:</value>
+    <value>Przebieg nie powiódł się: </value>
   </data>
   <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
     <value>Ten sam wygasający zakres IP, który tworzy seria nieudanych logowań, zdejmowany przez to samo czyszczenie i odwzorowywany w zaporze przez to samo uzgadnianie; nigdy dla adresu z AutoBanNeverBan ani dla przekaźnika przychodzącego. Domyślnie wyłączone, żeby jeden błędnie wysłany raport z dwoma odbiorcami nie zablokował prawdziwego serwera pocztowego. Nie robi nic, dopóki powyższe odrzucanie jest wyłączone.</value>
@@ -10858,7 +10939,7 @@ Dodać mimo to?</value>
     <value>Punktacja jest sumowana w obu fazach. Serwer przerywa sprawdzanie w danej fazie, gdy tylko suma bieżąca osiągnie {0} - wyższy z dwóch progów - więc kontrola stojąca daleko w kolejności może nigdy nie zostać wykonana.</value>
   </data>
   <data name="The search found exactly one entry: {0}. " xml:space="preserve">
-    <value>Wyszukiwanie znalazło dokładnie jeden wpis: {0}.</value>
+    <value>Wyszukiwanie znalazło dokładnie jeden wpis: {0}. </value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Wyszukiwanie dopasowało WIĘCEJ niż jeden wpis katalogu (filtr {0}, baza {1}). Serwer odmawia uwierzytelniania wobec niejednoznacznego dopasowania - UserSearchFilter lub SearchBase muszą wybierać dokładnie jeden wpis.</value>
@@ -11234,8 +11315,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="This server now" xml:space="preserve">
     <value>Ten serwer teraz</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
-    <value>Ten serwer wyłącznie SPRAWDZA SPF w poczcie przychodzącej; opublikowanie rekordu jest dla wszystkich innych - mówi serwerom odbierającym, które komputery mogą wysyłać pocztę podającą się za pochodzącą z</value>
+  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>Ten serwer wyłącznie SPRAWDZA SPF w poczcie przychodzącej; opublikowanie rekordu jest dla wszystkich innych - mówi serwerom odbierającym, które komputery mogą wysyłać pocztę podającą się za pochodzącą z {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Ten serwer wymaga kodu jednorazowego dla administratora.</value>
@@ -11338,6 +11419,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>Tokeny podpisane {0} są odrzucane: ten serwer obsługuje tylko RS256, ES256 i HS256. Usuń z listy to, czego serwer nie potrafi zweryfikować, aby klient, który to oferuje, był odrzucany z powodu, który dziennik wyraźnie podaje, zamiast wyglądać na dozwolonego.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Góra</value>
   </data>
   <data name="Tour" xml:space="preserve">
     <value>Przewodnik</value>
@@ -11733,7 +11817,7 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
     <value>Słabe hasło – dodaj {0}.</value>
   </data>
   <data name="Web  " xml:space="preserve">
-    <value>Web</value>
+    <value>Web  </value>
   </data>
   <data name="Web Push notifications" xml:space="preserve">
     <value>Powiadomienia Web Push</value>
@@ -11868,7 +11952,7 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
     <value>Czego ten serwer jeszcze potrzebuje, w kolejności, w jakiej napotyka to nowa instalacja. Każda pozycja mówi, czy jest zrobiona, następny krok jest oznaczony, a przycisk obok otwiera stronę, która go wykonuje. Tam, gdzie odpowiedzi nie da się stąd odczytać, pozycja mówi, co sprawdzić, zamiast zgadywać.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
-    <value>Co zrobić:</value>
+    <value>Co zrobić: </value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Co zostanie zapisane:</value>
@@ -12893,6 +12977,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="create an e-mail address" xml:space="preserve">
     <value>utwórz adres e-mail</value>
   </data>
+  <data name="dash-dotted line" xml:space="preserve">
+    <value>linia kreska-kropka</value>
+  </data>
+  <data name="dashed line" xml:space="preserve">
+    <value>linia przerywana</value>
+  </data>
   <data name="delete a mailing list" xml:space="preserve">
     <value>usuń listę dyskusyjną</value>
   </data>
@@ -12925,6 +13015,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="domains: {0}" xml:space="preserve">
     <value>domeny: {0}</value>
+  </data>
+  <data name="dotted line" xml:space="preserve">
+    <value>linia kropkowana</value>
   </data>
   <data name="equals" xml:space="preserve">
     <value>równa się</value>
@@ -13056,6 +13149,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="in use by a listener" xml:space="preserve">
     <value>używany przez nasłuch</value>
   </data>
+  <data name="in {0}" xml:space="preserve">
+    <value>w sekcji {0}</value>
+  </data>
   <data name="inactive" xml:space="preserve">
     <value>nieaktywne</value>
   </data>
@@ -13110,6 +13206,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="keys" xml:space="preserve">
     <value>klucze</value>
   </data>
+  <data name="last {0} hours" xml:space="preserve">
+    <value>ostatnie {0} godz.</value>
+  </data>
+  <data name="last {0} minutes" xml:space="preserve">
+    <value>ostatnie {0} min</value>
+  </data>
+  <data name="last {0} seconds" xml:space="preserve">
+    <value>ostatnie {0} s</value>
+  </data>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>prawidłowa poczta jest oznaczana jako spam</value>
   </data>
@@ -13151,6 +13256,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="logs are filling the disk" xml:space="preserve">
     <value>dzienniki zapełniają dysk</value>
+  </data>
+  <data name="long-dashed line" xml:space="preserve">
+    <value>linia z długimi kreskami</value>
   </data>
   <data name="mail from a new sender is delayed" xml:space="preserve">
     <value>poczta od nowego nadawcy jest opóźniana</value>
@@ -13364,6 +13472,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>podpisuj pocztę wychodzącą podpisem DKIM</value>
+  </data>
+  <data name="solid line" xml:space="preserve">
+    <value>linia ciągła</value>
   </data>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>ktoś próbuje odgadnąć hasła</value>
@@ -13799,6 +13910,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} pozycji nie da się sprawdzić z tego miejsca.</value>
+  </data>
+  <data name="{0} latest {1}" xml:space="preserve">
+    <value>{0}: ostatnio {1}</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} wiadomość odwołuje się do pliku, którego brakuje na dysku.</value>

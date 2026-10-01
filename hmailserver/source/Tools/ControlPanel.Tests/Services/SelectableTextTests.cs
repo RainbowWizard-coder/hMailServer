@@ -229,11 +229,10 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Whole lines only: a line the server is part-way through writing is read at
          // the next tick, or it is two rows and a copy of them has a line break the
-         // log does not.
+         // log does not. LiveLogTail reads them, and LiveLogTailTests holds it.
          string poll = WithheldRowTests.MemberText(code, "private void Poll()");
          Assert.True(poll != null, "LogsView.Poll is gone.");
-         Assert.Contains("Array.LastIndexOf(bytes, (byte)'\\n', count - 1)", poll);
-         Assert.Contains("position_ = from + end + 1;", poll);
+         Assert.Contains("tail_.Read(stream)", poll);
       }
 
       /// <summary>
@@ -495,6 +494,61 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(grid >= 0 && screen >= 0 && grid < screen,
             "A list view's row on screen is read from the screen again, not column by column.");
          Assert.Contains("grid.Columns.Select(column => column.DisplayMemberBinding != null", row);
+      }
+
+      /// <summary>
+      /// The Ctrl+K search's results copy from their right-click Copy, and its search box
+      /// keeps the keyboard throughout. WPF gives a list item the keyboard on any press
+      /// (and selects it only if it took it), so a right-click for Copy left the keyboard
+      /// on the row: measured in English, Swedish and Japanese, typing then reached
+      /// nothing. No result row takes the keyboard now, and a right press chooses the row
+      /// pressed, so Copy still copies the row right-clicked.
+      /// </summary>
+      [Fact]
+      public void ThePalettesResults_NeverTakeTheKeyboard_AndCopyTheRowRightClicked()
+      {
+         string source = ReadControlPanelFile(Path.Join("Views", "NavigationPalette.cs"));
+         Assert.Contains("Focusable = false", WithheldRowTests.MemberText(source, "public NavigationPalette(Window owner, PaletteUsage usage, string currentPage)") ?? "");
+
+         string row = WithheldRowTests.MemberText(source, "private ListBoxItem BuildRow(PaletteRow row)");
+         Assert.True(row != null, "NavigationPalette.BuildRow is gone.");
+         Match result = Regex.Match(row, @"var item = new ListBoxItem\s*\{(?<init>[^{}]*)\};");
+         Assert.True(result.Success, "BuildRow no longer makes a result's row in one initialiser.");
+         Assert.Matches(@"\bFocusable = false\b", result.Groups["init"].Value);
+         Assert.Contains("item.PreviewMouseRightButtonDown += (s, e) => resultsList_.SelectedItem = item;", row);
+         Assert.Contains("item.MouseLeftButtonUp += ", row);   // a left click still opens the result
+      }
+
+      /// <summary>
+      /// The help pane's text copies as every other text does: plain text, through
+      /// ClipboardWriter, from Ctrl+C and from the Control Panel's own Copy / Select all
+      /// menu. The document viewer's own Copy put RTF and XAML beside the text, in the
+      /// theme's colours (measured: Text, UnicodeText, Rich Text Format and Xaml), and its
+      /// own menu was WPF's, "_Copy" and "Select A_ll" in English (measured in German and
+      /// Swedish too).
+      /// </summary>
+      [Fact]
+      public void TheHelpText_CopiesPlainText_FromTheControlPanelsOwnCopy()
+      {
+         string source = ReadControlPanelFile(Path.Join("Views", "HelpPane.cs"));
+         Assert.Contains("viewer_.ContextMenu = SelectableText.CopyMenu(CopySelection_,", source);
+         Assert.Contains("viewer_.AddHandler(CommandManager.PreviewExecutedEvent, new ExecutedRoutedEventHandler(OnViewerPreviewExecuted_));", source);
+         Assert.Contains("DataObject.AddSettingDataHandler(viewer_, OnViewerSettingData_);", source);
+
+         string copy = WithheldRowTests.MemberText(source, "private void CopySelection_()");
+         Assert.True(copy != null && copy.Contains("SelectableText.SetClipboard(text);", StringComparison.Ordinal),
+            "The help pane's Copy no longer writes through ClipboardWriter.");
+
+         string keys = WithheldRowTests.MemberText(source, "private void OnViewerPreviewExecuted_(object sender, ExecutedRoutedEventArgs e)");
+         Assert.True(keys != null, "The help pane no longer takes Ctrl+C before the viewer's own Copy.");
+         Assert.Contains("e.Command != ApplicationCommands.Copy", keys);
+         Assert.Contains("CopySelection_();", keys);
+         Assert.Contains("e.Handled = true;", keys);
+
+         string drag = WithheldRowTests.MemberText(source, "private static void OnViewerSettingData_(object sender, DataObjectSettingDataEventArgs e)");
+         Assert.True(drag != null, "A selection dragged out of the help text carries rich text again.");
+         Assert.Contains("e.Format != DataFormats.UnicodeText && e.Format != DataFormats.Text", drag);
+         Assert.Contains("e.CancelCommand();", drag);
       }
 
       // ---- helpers -------------------------------------------------------------------------

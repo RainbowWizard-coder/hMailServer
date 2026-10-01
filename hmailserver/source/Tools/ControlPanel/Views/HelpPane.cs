@@ -133,8 +133,18 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(headingsScroll_, 2);
          root.Children.Add(headingsScroll_);
 
-         // The text.
+         // The text. Its copy is the Control Panel's (issue #48): Ctrl+C, the menu's Copy
+         // and a selection dragged out carry plain text, written through ClipboardWriter,
+         // and the right-click menu is the Copy / Select all every other text has, in the
+         // Control Panel's language. They were the document viewer's own: a copy with RTF
+         // and XAML beside the text, in the theme's colours (measured: Text, UnicodeText,
+         // Rich Text Format and Xaml on the clipboard), and a menu of WPF's, "_Copy" and
+         // "Select A_ll" in English (measured in German and Swedish too).
          AutomationProperties.SetAutomationId(viewer_, "help-body");
+         viewer_.ContextMenu = SelectableText.CopyMenu(CopySelection_, () => SelectedText_().Length > 0,
+            () => ApplicationCommands.SelectAll.Execute(null, viewer_));
+         viewer_.AddHandler(CommandManager.PreviewExecutedEvent, new ExecutedRoutedEventHandler(OnViewerPreviewExecuted_));
+         DataObject.AddSettingDataHandler(viewer_, OnViewerSettingData_);
          Grid.SetRow(viewer_, 3);
          root.Children.Add(viewer_);
 
@@ -344,6 +354,37 @@ namespace hMailServer.ControlPanel.Views
          {
             Services.Toast.Failure(L("The wiki could not be opened in a browser."), L("Help"));
          }
+      }
+
+      /// <summary>The words selected in the document, as plain text; empty when none are.</summary>
+      private string SelectedText_()
+         => viewer_.Selection == null || viewer_.Selection.IsEmpty ? "" : viewer_.Selection.Text ?? "";
+
+      private void CopySelection_()
+      {
+         string text = SelectedText_();
+         if (text.Length > 0)
+            SelectableText.SetClipboard(text);
+      }
+
+      /// <summary>
+      /// Ctrl+C (and Ctrl+Insert) with the keyboard in the document: the selection as
+      /// plain text, before the viewer's own Copy can put rich text with it.
+      /// </summary>
+      private void OnViewerPreviewExecuted_(object sender, ExecutedRoutedEventArgs e)
+      {
+         if (e.Handled || e.Command != ApplicationCommands.Copy)
+            return;
+
+         CopySelection_();
+         e.Handled = true;
+      }
+
+      /// <summary>A selection dragged out of the document carries its text and nothing else.</summary>
+      private static void OnViewerSettingData_(object sender, DataObjectSettingDataEventArgs e)
+      {
+         if (e.Format != DataFormats.UnicodeText && e.Format != DataFormats.Text)
+            e.CancelCommand();
       }
 
       private void Find_(bool next)

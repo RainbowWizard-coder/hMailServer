@@ -422,7 +422,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-idl-case.py` | `hMailServer.idl` spells every name one way whatever its case, but for the seven that shipped two ways, each with its reason: a type library keeps one spelling, so a new `Helo` renames `Client.HELO` for every early-bound client | `--self-test` |
 | `check-ini-coverage.py` | Every `[Settings]` key the server reads has a Control Panel editor or a recorded reason for having none, no new `[Settings]` key appears (see [a new setting](#a-new-setting-goes-in-the-database)), and no section beyond the three it records is read around `IniFileSettings` | **Rewrites** `build/ini-settings-baseline.txt` and `IniSettingsBaseline.h` with `--write-baseline`, for a key legitimately removed |
 | `check-installer-scripts.py` | The Windows installer runs each uninstall step once, waits for the server's process before it replaces or deletes a file, marks every file that process loads `uninsrestartdelete`, and starts the service for an upgrade's database step with the argument the server reads; `hMailServer.exe /Unregister` creates nothing and removes the event source | Proves its own negative controls on every run |
-| `check-localisation.py` | The Control Panel's catalogues agree with the translation marks, and the 17 complete languages are complete | **Rewrites** `Strings.resx` and every catalogue with `--write`; `--inventory` lists what is untranslated |
+| `check-localisation.py` | The Control Panel's catalogues agree with the translation marks, and the 17 complete languages are complete; a translation keeps the white space its English starts or ends with, where the source joins it to another text, and adds none; no sentence is split around a value with its end left a literal | **Rewrites** `Strings.resx` and every catalogue with `--write`; `--inventory` lists what is untranslated; `--self-test` |
 | `check-mnemonics.py` | Every static Control Panel caption has an Alt-key mnemonic, with no clash on one screen | `--list` |
 | `check-mysql-charset.py` | Every MySQL table is `utf8mb4` under `utf8mb4_general_ci`, InnoDB and DYNAMIC: every CREATE TABLE in the create script and in the upgrade scripts from 6102 on, the 6102 step's conversion of every table, the probe that opens each step from 6040 to 6102 making a utf8mb4 table (and those tables InnoDB and DYNAMIC), the index lengths at four bytes a character, and the table and database the server creates itself | `--self-test` |
 | `check-openapi-blocks.py` | Exactly one comma between the OpenAPI path blocks | |
@@ -659,8 +659,14 @@ And, for any new setting:
   `{loc:L '_Save changes'}` in XAML. Then `python build/check-localisation.py --write` regenerates
   `Resources/Strings.resx`, and the caption is translated into all 17 complete languages (cs, da, de, es, fi,
   fr, it, ja, nb, nl, pl, pt-BR, ru, sv, tr, uk, zh-Hans). An unmarked or untranslated caption fails
-  `check-localisation.py`; `check-catalogues.py` holds the literals, page names and numbers a translation must
-  keep. The English text is the key, so changing an English caption is a new key in all eighteen catalogues.
+  `check-localisation.py` - one word ending a sentence (`"Copied."`) and a piece of one joined to others
+  (`"in " + page`) are captions too: write the whole sentence, `F("in {0}", page)`, so that a translator can
+  order it. The check also reports a sentence split around a value with its end left a literal
+  (`L("... followed by @") + domain + "."`): `F("... followed by @{0}.", domain)` lets the translator place
+  the value. A translation keeps the space at an edge of its English, where the source joins it to another
+  text, and adds none where it has none; `check-catalogues.py` holds the literals, page names and numbers a
+  translation must keep. The English text is the key, so changing an English caption is a new key in all
+  eighteen catalogues.
 * Every `[Settings]` key the server reads has an editor or a recorded reason for none (`check-ini-coverage.py`), so does
   every database setting (`check-db-settings-coverage.py`), and folder-access decisions stay in `ACLManager`
   (`check-authz-choke-point.py`).

@@ -1644,6 +1644,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Otetaanko profiili {0} käyttöön? {1} asetusta muuttuu, ja niiden aiemmat arvot säilytetään, jotta ne voi palauttaa.</value>
   </data>
+  <data name="Applying..." xml:space="preserve">
+    <value>Otetaan käyttöön...</value>
+  </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>A_rkisto</value>
   </data>
@@ -1936,7 +1939,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>Ennen käyttöönottoa puuttuu myös osio: {0}.</value>
   </data>
   <data name="Before you copy — " xml:space="preserve">
-    <value>Ennen kopiointia —</value>
+    <value>Ennen kopiointia — </value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Palvelimen alla: palomuuri</value>
@@ -2027,6 +2030,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Both ways" xml:space="preserve">
     <value>Molempiin suuntiin</value>
+  </data>
+  <data name="Bottom" xml:space="preserve">
+    <value>Alalaita</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Palautusten määrät</value>
@@ -2200,7 +2206,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>Varmenteiden tuloskansio (tyhjä = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
-    <value>Varmenteen tarkistus oli POIS KÄYTÖSTÄ tässä testissä, asetuksen VerifyCertificate=0 mukaisesti.</value>
+    <value>Varmenteen tarkistus oli POIS KÄYTÖSTÄ tässä testissä, asetuksen VerifyCertificate=0 mukaisesti. </value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Varmenteet</value>
@@ -2554,7 +2560,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>Yhdistetty kohteeseen {0} tilillä {1}</value>
   </data>
   <data name="Connected to {0} over {1}. " xml:space="preserve">
-    <value>Yhdistetty kohteeseen {0} yhteydellä {1}.</value>
+    <value>Yhdistetty kohteeseen {0} yhteydellä {1}. </value>
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Yhdistävän koneen tarkistukset</value>
@@ -2615,6 +2621,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Cop_y" xml:space="preserve">
     <value>K_opioi</value>
+  </data>
+  <data name="Copied." xml:space="preserve">
+    <value>Kopioitu.</value>
   </data>
   <data name="Copies of mail" xml:space="preserve">
     <value>Postin kopiot</value>
@@ -2698,7 +2707,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>Vastaavuustilaa ei voitu muuttaa: {0}</value>
   </data>
   <data name="Could not copy: " xml:space="preserve">
-    <value>Ei voitu kopioida:</value>
+    <value>Ei voitu kopioida: </value>
   </data>
   <data name="Could not create the account: {0}" xml:space="preserve">
     <value>Tiliä ei voitu luoda: {0}</value>
@@ -2779,13 +2788,13 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>DKIM-avainta ei voitu luoda: {0}</value>
   </data>
   <data name="Could not list domains — " xml:space="preserve">
-    <value>Verkkotunnuksia ei voitu luetella —</value>
+    <value>Verkkotunnuksia ei voitu luetella — </value>
   </data>
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Viestejä ei voitu luetella: {0}</value>
   </data>
   <data name="Could not load folders: " xml:space="preserve">
-    <value>Kansioita ei voitu ladata:</value>
+    <value>Kansioita ei voitu ladata: </value>
   </data>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Käyttöoikeuksia ei voitu ladata: {0}</value>
@@ -2824,7 +2833,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>Tätä sivua ei voitu ladata: {0}</value>
   </data>
   <data name="Could not load — " xml:space="preserve">
-    <value>Ei voitu ladata —</value>
+    <value>Ei voitu ladata — </value>
   </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Toimintoa ei voitu siirtää: {0}</value>
@@ -2937,7 +2946,7 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
     <value>Reittiä ei voitu tallentaa: {0}</value>
   </data>
   <data name="Could not save: " xml:space="preserve">
-    <value>Ei voitu tallentaa:</value>
+    <value>Ei voitu tallentaa: </value>
   </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Ei voitu tallentaa: {0}</value>
@@ -2963,14 +2972,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not write to hMailServer.ini: {0}" xml:space="preserve">
     <value>hMailServer.ini-tiedostoon ei voitu kirjoittaa: {0}</value>
   </data>
+  <data name="Could not write {0} to {1}" xml:space="preserve">
+    <value>Kohdetta {0} ei voitu kirjoittaa tiedostoon {1}</value>
+  </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Suoritettavaa tiedostoa ei voitu päätellä komennosta.</value>
   </data>
   <data name="Couldn't load aliases: " xml:space="preserve">
-    <value>Aliaksia ei voitu ladata:</value>
+    <value>Aliaksia ei voitu ladata: </value>
   </data>
   <data name="Couldn't load distribution lists: " xml:space="preserve">
-    <value>Jakelulistoja ei voitu ladata:</value>
+    <value>Jakelulistoja ei voitu ladata: </value>
   </data>
   <data name="Count a full mailbox as a hard bounce" xml:space="preserve">
     <value>Laske täysi postilaatikko pysyväksi palautukseksi</value>
@@ -3064,6 +3076,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Custom scanner (external program)" xml:space="preserve">
     <value>Mukautettu tarkistin (ulkoinen ohjelma)</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Leikkaa</value>
   </data>
   <data name="DANE &amp; DNSSEC" xml:space="preserve">
     <value>DANE ja DNSSEC</value>
@@ -3439,6 +3454,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>{0} viestiä poistettu.</value>
   </data>
+  <data name="Deleted." xml:space="preserve">
+    <value>Poistettu.</value>
+  </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Verkkotunnuksen poistaminen poistaa sen sisältämät tilit. Tarkista ensin siihen osoittavat aliakset ja listat.</value>
   </data>
@@ -3512,7 +3530,7 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
     <value>Toimituksen läpimeno</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}. Signing is currently " xml:space="preserve">
-    <value>Johdettu verkkotunnuksen määritetystä avaimesta: valitsin "{0}", yksityisen avaimen tiedosto {1}. Allekirjoitus on tällä hetkellä</value>
+    <value>Johdettu verkkotunnuksen määritetystä avaimesta: valitsin "{0}", yksityisen avaimen tiedosto {1}. Allekirjoitus on tällä hetkellä </value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Kuvaus</value>
@@ -3601,7 +3619,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Erillisiä termejä viestissä, ennen kuin se aina sen sijaan skannataan (64-1000000)</value>
   </data>
   <data name="Distribution list - " xml:space="preserve">
-    <value>Jakelulista -</value>
+    <value>Jakelulista - </value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Jakelulistat</value>
@@ -3643,7 +3661,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Verkkotunnus (esim. partner.com)</value>
   </data>
   <data name="Domain - " xml:space="preserve">
-    <value>Verkkotunnus -</value>
+    <value>Verkkotunnus - </value>
   </data>
   <data name="Domain _enabled" xml:space="preserve">
     <value>Verkkotunnus _käytössä</value>
@@ -5232,7 +5250,7 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
     <value>Viimeisin tila</value>
   </data>
   <data name="Last update: {0}. " xml:space="preserve">
-    <value>Viimeisin päivitys: {0}.</value>
+    <value>Viimeisin päivitys: {0}. </value>
   </data>
   <data name="Last used" xml:space="preserve">
     <value>Viimeksi käytetty</value>
@@ -5260,6 +5278,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>_Jätä tämä tili pois hakemistosta</value>
+  </data>
+  <data name="Left Edge" xml:space="preserve">
+    <value>Vasen reuna</value>
   </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Tyhjänä palvelin käyttää harmaalla näytettyä mukana toimitettua suodatinta - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
@@ -5523,7 +5544,7 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
     <value>MTA-STS-käytännön tila (enforce / testing / none)</value>
   </data>
   <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
-    <value>MTA-STS — vaadi TLS palvelimilta, jotka toimittavat kohteeseen</value>
+    <value>MTA-STS — vaadi TLS palvelimilta, jotka toimittavat kohteeseen </value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -5749,6 +5770,9 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   <data name="MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*" xml:space="preserve">
     <value>MaxMind-tietokannat (*.mmdb)|*.mmdb|Kaikki tiedostot (*.*)|*.*</value>
   </data>
+  <data name="Maximise" xml:space="preserve">
+    <value>Suurenna</value>
+  </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>_Verkkotunnuksen enimmäiskoko (Mt, 0 = rajoittamaton)</value>
   </data>
@@ -5804,7 +5828,7 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
     <value>Jäsenet</value>
   </data>
   <data name="Members - " xml:space="preserve">
-    <value>Jäsenet -</value>
+    <value>Jäsenet - </value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>_Jäsenkysely (tyhjä = vain vastaanottajat)</value>
@@ -5951,6 +5975,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Migrations" xml:space="preserve">
     <value>Siirrot</value>
+  </data>
+  <data name="Minimise" xml:space="preserve">
+    <value>Pienennä</value>
   </data>
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>Vähimmäispituus (0 = ei vähimmäispituutta)</value>
@@ -6141,8 +6168,14 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Next" xml:space="preserve">
     <value>Seuraava</value>
   </data>
+  <data name="Next decade" xml:space="preserve">
+    <value>Seuraava vuosikymmen</value>
+  </data>
   <data name="Next key" xml:space="preserve">
     <value>Seuraava avain</value>
+  </data>
+  <data name="Next month" xml:space="preserve">
+    <value>Seuraava kuukausi</value>
   </data>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Seuraava kierrätys erääntyy {0}</value>
@@ -6155,6 +6188,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Seuraava yritys</value>
+  </data>
+  <data name="Next year" xml:space="preserve">
+    <value>Seuraava vuosi</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>Ei</value>
@@ -6208,10 +6244,10 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Yhtään TLS-versiota ei ole otettu käyttöön.</value>
   </data>
   <data name="No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear. " xml:space="preserve">
-    <value>Yhdellekään TLS-kykyiselle IMAP-, POP3- tai SMTP-portille ei ole määritetty varmennetta, joten tämä kuuntelija tarjoaa vain selväkielistä yhteyttä - ManageSieve todentaa postilaatikon salasanalla, joka kulkisi silloin verkon yli selväkielisenä.</value>
+    <value>Yhdellekään TLS-kykyiselle IMAP-, POP3- tai SMTP-portille ei ole määritetty varmennetta, joten tämä kuuntelija tarjoaa vain selväkielistä yhteyttä - ManageSieve todentaa postilaatikon salasanalla, joka kulkisi silloin verkon yli selväkielisenä. </value>
   </data>
   <data name="No TXT record was found at {0}. " xml:space="preserve">
-    <value>TXT-tietuetta ei löytynyt kohteesta {0}.</value>
+    <value>TXT-tietuetta ei löytynyt kohteesta {0}. </value>
   </data>
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Tiliä osoitteella '{0}' ei löytynyt.</value>
@@ -6544,7 +6580,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Ei voimassa ennen {0}</value>
   </data>
   <data name="Not yet - " xml:space="preserve">
-    <value>Ei vielä -</value>
+    <value>Ei vielä - </value>
   </data>
   <data name="Note" xml:space="preserve">
     <value>Huomautus</value>
@@ -6586,7 +6622,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Mikään ei täsmännyt hakuun "{0}". Kokeile sitä, mitä yrität saada aikaan ("pysäytä roskaposti", "anna laitteen lähettää postia"), sivun nimeä tai hMailServer.INI-avainta.</value>
   </data>
   <data name="Nothing needs action, but " xml:space="preserve">
-    <value>Mikään ei vaadi toimia, mutta</value>
+    <value>Mikään ei vaadi toimia, mutta </value>
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Mikään ei vaadi huomiota - kaikki {0} ulkoista määritystarkistusta on tehty tai niitä ei tarvita.</value>
@@ -6874,7 +6910,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
     <value>Yksi tämän koneen osoite: 127.0.0.1, kun hallintapiste toimii täällä, muuten hallintaverkon osoite.</value>
   </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
-    <value>Yhtä määritettyä porttia ei kuunnella:</value>
+    <value>Yhtä määritettyä porttia ei kuunnella: </value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Yksi tapahtumakomentosarjan kutsu. 0 = ei rajaa.</value>
@@ -7023,8 +7059,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Avaa reaaliaikaiset lokit</value>
   </data>
-  <data name="Open the member list of '" xml:space="preserve">
-    <value>Avaa jäsenluettelo listalle '</value>
+  <data name="Open the member list of '{0}'." xml:space="preserve">
+    <value>Avaa ryhmän '{0}' jäsenluettelo.</value>
   </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Avaa käyttöönoton tarkistuslista: jokainen kohta, mikä on tehty ja mitä tehdään seuraavaksi</value>
@@ -7233,6 +7269,18 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ortti</value>
   </data>
+  <data name="Page Down" xml:space="preserve">
+    <value>Sivu alas</value>
+  </data>
+  <data name="Page Left" xml:space="preserve">
+    <value>Sivu vasemmalle</value>
+  </data>
+  <data name="Page Right" xml:space="preserve">
+    <value>Sivu oikealle</value>
+  </data>
+  <data name="Page Up" xml:space="preserve">
+    <value>Sivu ylös</value>
+  </data>
   <data name="Page content" xml:space="preserve">
     <value>Sivun sisältö</value>
   </data>
@@ -7295,6 +7343,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Salasanat ja se, mikä saa kuljettaa niitä</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Liitä</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Liitä varmenne, tai kaksi, kun palveluntarjoaja vaihtaa avaintaan. Sitä ei näytetä enää koskaan: alla oleva rivi kertoo, mitä on tallennettu.</value>
@@ -7362,7 +7413,7 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
     <value>Käyttöoikeudet (valitse alue)</value>
   </data>
   <data name="Permissions - " xml:space="preserve">
-    <value>Käyttöoikeudet -</value>
+    <value>Käyttöoikeudet - </value>
   </data>
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Käyttöoikeudet - {0}</value>
@@ -7471,6 +7522,15 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Esikatsele, sitten käytä</value>
+  </data>
+  <data name="Previous decade" xml:space="preserve">
+    <value>Edellinen vuosikymmen</value>
+  </data>
+  <data name="Previous month" xml:space="preserve">
+    <value>Edellinen kuukausi</value>
+  </data>
+  <data name="Previous year" xml:space="preserve">
+    <value>Edellinen vuosi</value>
   </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Priorisoi ChaCha20-Poly1305, kun asiakas suosii sitä (vaatii TLS 1.2:n tai 1.3:n)</value>
@@ -7861,7 +7921,7 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
     <value>Vastaanottajat</value>
   </data>
   <data name="Recipients - " xml:space="preserve">
-    <value>Vastaanottajat -</value>
+    <value>Vastaanottajat - </value>
   </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Vastaanottajat, jotka viesti voi nimetä ennen viiveen alkamista (0 = pois)</value>
@@ -8336,6 +8396,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Palauta v_erkkotunnukset</value>
   </data>
+  <data name="Restore down" xml:space="preserve">
+    <value>Palauta</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Palauta v_iestit</value>
   </data>
@@ -8427,6 +8490,9 @@ Jatketaanko?</value>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Kirjoita kuoren lähettäjä uusiksi edelleenlähetettäessä (yksinkertainen varavaihtoehto, ei tarvitse salaisuutta)</value>
   </data>
+  <data name="Right Edge" xml:space="preserve">
+    <value>Oikea reuna</value>
+  </data>
   <data name="Role" xml:space="preserve">
     <value>Rooli</value>
   </data>
@@ -8443,7 +8509,7 @@ Jatketaanko?</value>
     <value>Kierrätä istuntolipun avain N sekunnin välein (0 = OpenSSL:n yksi kiertämätön avain)</value>
   </data>
   <data name="Route - " xml:space="preserve">
-    <value>Reitti -</value>
+    <value>Reitti - </value>
   </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Reititä kaikki lähtevä posti toisen SMTP-palvelimen kautta suoran toimituksen sijaan. Vikasietoisuutta varten erota useita koneita pystyviivalla: seuraavaa konetta yritetään, kun yhtä ei tavoiteta (kaikki koneet jakavat alla olevan portin, suojauksen ja tunnistetiedot).</value>
@@ -8632,7 +8698,7 @@ Jatketaanko?</value>
     <value>SPF-temperror-pisteet (0 = ei pisteytetä)</value>
   </data>
   <data name="SPF — which machines may send mail as " xml:space="preserve">
-    <value>SPF — mitkä koneet saavat lähettää postia nimissä</value>
+    <value>SPF — mitkä koneet saavat lähettää postia nimissä </value>
   </data>
   <data name="SRS is switched on but no secret is set, so no envelope sender is rewritten - and while SRS is on, the plain rewrite fallback at the top of this card is skipped as well. This is strictly worse than switching SRS off. Generate or enter a secret." xml:space="preserve">
     <value>SRS on kytketty päälle, mutta salaisuutta ei ole asetettu, joten yhtään kuoren lähettäjää ei kirjoiteta uusiksi - ja kun SRS on päällä, myös tämän kortin yläosan yksinkertainen uudelleenkirjoituksen varavaihtoehto ohitetaan. Tämä on ehdottomasti huonompi kuin SRS:n kytkeminen pois. Luo tai syötä salaisuus.</value>
@@ -8827,7 +8893,7 @@ Jatketaanko?</value>
     <value>Scope (tyhjä = Microsoftin oletus)</value>
   </data>
   <data name="Scope: " xml:space="preserve">
-    <value>Scope:</value>
+    <value>Scope: </value>
   </data>
   <data name="Scoped, expiring credentials for the REST API, so automation does not have to carry the administrator password." xml:space="preserve">
     <value>Rajatut, vanhenevat tunnistetiedot REST-rajapintaa varten, jottei automaation tarvitse kuljettaa mukanaan järjestelmänvalvojan salasanaa.</value>
@@ -8880,6 +8946,21 @@ Jatketaanko?</value>
   <data name="Scripting engine" xml:space="preserve">
     <value>Komentosarjamoottori</value>
   </data>
+  <data name="Scroll Down" xml:space="preserve">
+    <value>Vieritä alas</value>
+  </data>
+  <data name="Scroll Here" xml:space="preserve">
+    <value>Vieritä tähän</value>
+  </data>
+  <data name="Scroll Left" xml:space="preserve">
+    <value>Vieritä vasemmalle</value>
+  </data>
+  <data name="Scroll Right" xml:space="preserve">
+    <value>Vieritä oikealle</value>
+  </data>
+  <data name="Scroll Up" xml:space="preserve">
+    <value>Vieritä ylös</value>
+  </data>
   <data name="Scroll tabs left" xml:space="preserve">
     <value>Vieritä välilehtiä vasemmalle</value>
   </data>
@@ -8920,7 +9001,7 @@ Jatketaanko?</value>
     <value>Hae verkkotunnuksista</value>
   </data>
   <data name="Search failed — " xml:space="preserve">
-    <value>Haku epäonnistui —</value>
+    <value>Haku epäonnistui — </value>
   </data>
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Hae tilin nimen osalla. Jätä tyhjäksi luetellaksesi verkkotunnuksen kaikki käyttäjät.</value>
@@ -8961,8 +9042,8 @@ Jatketaanko?</value>
   <data name="Searches" xml:space="preserve">
     <value>Haut</value>
   </data>
-  <data name="Searching " xml:space="preserve">
-    <value>Haetaan</value>
+  <data name="Searching {0}…" xml:space="preserve">
+    <value>Haetaan kohteesta {0}…</value>
   </data>
   <data name="Second factor on the administrator credential" xml:space="preserve">
     <value>Toinen tunnistustekijä järjestelmänvalvojan tunnistetiedoille</value>
@@ -9319,7 +9400,7 @@ Jatketaanko?</value>
     <value>Pa_lvelutilin käyttäjänimi (ServiceUsername)</value>
   </data>
   <data name="Service credential accepted. " xml:space="preserve">
-    <value>Palvelun tunnistetiedot hyväksytty.</value>
+    <value>Palvelun tunnistetiedot hyväksytty. </value>
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Palvelu käynnistetty uudelleen - asetukset ovat voimassa.</value>
@@ -9767,7 +9848,7 @@ Käynnistetäänkö se uudelleen nyt?</value>
     <value>Tallenna uusi posti pakattuna, suuret osat kerran</value>
   </data>
   <data name="Store: " xml:space="preserve">
-    <value>Varasto:</value>
+    <value>Varasto: </value>
   </data>
   <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
     <value>Tallennetaan hMailServer.ini-tiedostoon nimillä ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount ja ScheduledBackupMaxAgeDays.</value>
@@ -9962,7 +10043,7 @@ Käynnistetäänkö se uudelleen nyt?</value>
     <value>TLS-RPT</value>
   </data>
   <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
-    <value>TLS-RPT — pyydä muita palvelimia raportoimaan TLS-virheistä toimittaessaan osoitteeseen</value>
+    <value>TLS-RPT — pyydä muita palvelimia raportoimaan TLS-virheistä toimittaessaan osoitteeseen </value>
   </data>
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>TXT-tietueen arvo nimelle {0}</value>
@@ -10218,8 +10299,8 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Osoite näytetään peitettynä täällä kuten kaikkialla muuallakin, eikä mikään rajapinta anna sitä kokonaisena: se on kyseisen henkilön postilaatikko, eikä mikään ylläpitäjän tekemä vaadi sen lukemista.</value>
   </data>
-  <data name="The address must be a name followed by @" xml:space="preserve">
-    <value>Osoitteen on oltava nimi, jota seuraa @</value>
+  <data name="The address must be a name followed by @{0}." xml:space="preserve">
+    <value>Osoitteen on oltava nimi, jota seuraa @{0}.</value>
   </data>
   <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only." xml:space="preserve">
     <value>Osoite, josta REST API tavoitetaan ulkopuolelta; tilaus-, vahvistus-, peruutus- ja arkistosivut ovat sen alla. Vain https-osoite antaa yhden napsautuksen peruutuksen (RFC 8058). Tyhjä, oletus, lähettää vain mailto-osoitteita.</value>
@@ -10508,7 +10589,7 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
     <value>Tervehdys-, palautus- ja virhetekstit, jotka palvelin lähettää asiakkaille.</value>
   </data>
   <data name="The group members could not be read: " xml:space="preserve">
-    <value>Ryhmän jäseniä ei voitu lukea:</value>
+    <value>Ryhmän jäseniä ei voitu lukea: </value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>Ryhmät, joilla tämä palvelin suostuu sopimaan TLS-avaimen, OpenSSL:n luettelomuodossa. Toimitettuna se tarjoaa ensin kaksi postkvanttihybridiä ja palaa X25519:ään ja NIST-käyriin sellaisen vastapuolen kanssa, jolla ei ole kumpaakaan, joten vanhemmalle asiakkaalle mikään ei muutu. Tyhjää luetteloa, tai sellaista, jonka OpenSSL hylkää tai joka ei jättäisi yhtään ryhmää käyttöön, ei oteta käyttöön: palvelin kirjaa sen lokiin ja käyttää klassista varavaihtoehtoa, joten virhe tässä ei voi kaataa TLS:ää - mutta se luopuu hybrideistä hiljaa, ja siksi näytetään toimitettu luettelo eikä tyhjää kenttää. Muuta sitä skannauksen perusteella äläkä sokkona.</value>
@@ -10831,7 +10912,7 @@ Lisätäänkö silti?</value>
     <value>Ajo ei valmistunut. Se, mitä ehdittiin lukea ennen pysähtymistä, on alla.</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
-    <value>Ajo epäonnistui:</value>
+    <value>Ajo epäonnistui: </value>
   </data>
   <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
     <value>Sama vanheneva IP-alue, jonka sarja epäonnistuneita kirjautumisia luo, saman siivouksen purkama ja saman täsmäytyksen palomuuriin peilaama; ei koskaan AutoBanNeverBan-listan osoitteelle eikä saapuvalle välittäjälle. Oletuksena pois, jotta yksi kahdelle vastaanottajalle väärin lähetetty raportti ei estä oikeaa postipalvelinta. Ei tee mitään, kun yllä oleva hylkäys on pois päältä.</value>
@@ -10858,7 +10939,7 @@ Lisätäänkö silti?</value>
     <value>Pistemäärä lasketaan yhteen molempien vaiheiden yli. Palvelin lopettaa testaamisen vaiheen sisällä heti, kun juokseva summa saavuttaa arvon {0} - korkeamman kahdesta kynnyksestä -, joten järjestyksessä myöhäinen tarkistus ei ehkä koskaan aja.</value>
   </data>
   <data name="The search found exactly one entry: {0}. " xml:space="preserve">
-    <value>Haku löysi täsmälleen yhden merkinnän: {0}.</value>
+    <value>Haku löysi täsmälleen yhden merkinnän: {0}. </value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Haku vastasi USEAMPAA kuin yhtä hakemistomerkintää (suodatin {0}, juuri {1}). Palvelin kieltäytyy todentamasta moniselitteistä osumaa vastaan - muuta UserSearchFilter tai SearchBase valitsemaan täsmälleen yksi merkintä.</value>
@@ -11234,8 +11315,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="This server now" xml:space="preserve">
     <value>Tämä palvelin nyt</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
-    <value>Tämä palvelin vain TARKISTAA SPF:n saapuvasta postista; tietueen julkaiseminen on kaikkia muita varten - se kertoo vastaanottaville palvelimille, mitkä koneet saavat lähettää postia, joka väittää tulevansa osoitteesta</value>
+  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>Tämä palvelin vain TARKISTAA SPF:n saapuvasta postista; tietueen julkaiseminen on kaikkia muita varten - se kertoo vastaanottaville palvelimille, mitkä koneet saavat lähettää postia, joka väittää tulevansa osoitteesta {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Tämä palvelin vaatii järjestelmänvalvojalta kertakäyttökoodin.</value>
@@ -11338,6 +11419,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>Algoritmilla {0} allekirjoitetut tokenit hylätään: tämä palvelin toteuttaa vain RS256:n, ES256:n ja HS256:n. Poista luettelosta se, mitä palvelin ei voi tarkistaa, jotta sitä tarjoava asiakas hylätään syystä, jonka loki tekee selväksi, sen sijaan että se näyttäisi sallitulta.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Ylälaita</value>
   </data>
   <data name="Tour" xml:space="preserve">
     <value>Esittelykierros</value>
@@ -11733,7 +11817,7 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
     <value>Heikko salasana – lisää {0}.</value>
   </data>
   <data name="Web  " xml:space="preserve">
-    <value>Web</value>
+    <value>Web  </value>
   </data>
   <data name="Web Push notifications" xml:space="preserve">
     <value>Web Push -ilmoitukset</value>
@@ -11868,7 +11952,7 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
     <value>Mitä tämä palvelin vielä tarvitsee, siinä järjestyksessä kuin uusi asennus kohtaa ne. Jokainen kohta kertoo, onko se tehty, seuraava vaihe on merkitty, ja sen vieressä oleva painike avaa sivun, joka tekee sen. Kun vastausta ei voi lukea täältä, kohta kertoo arvaamisen sijaan, mitä tarkistaa.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
-    <value>Mitä tehdä:</value>
+    <value>Mitä tehdä: </value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Mitä kirjoitetaan:</value>
@@ -12873,7 +12957,7 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
     <value>nouda postia toiselta palveluntarjoajalta</value>
   </data>
   <data name="collecting" xml:space="preserve">
-    <value>noudetaan</value>
+    <value>kerätään tietoja</value>
   </data>
   <data name="configure a phone or tablet" xml:space="preserve">
     <value>määritä puhelin tai tabletti</value>
@@ -12892,6 +12976,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="create an e-mail address" xml:space="preserve">
     <value>luo sähköpostiosoite</value>
+  </data>
+  <data name="dash-dotted line" xml:space="preserve">
+    <value>pistekatkoviiva</value>
+  </data>
+  <data name="dashed line" xml:space="preserve">
+    <value>katkoviiva</value>
   </data>
   <data name="delete a mailing list" xml:space="preserve">
     <value>poista postituslista</value>
@@ -12926,6 +13016,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="domains: {0}" xml:space="preserve">
     <value>verkkotunnukset: {0}</value>
   </data>
+  <data name="dotted line" xml:space="preserve">
+    <value>pisteviiva</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>on yhtä suuri kuin</value>
   </data>
@@ -12951,10 +13044,10 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
     <value>vanhenemista ei tarkistettu täältä</value>
   </data>
   <data name="external POP3 fetch account has" xml:space="preserve">
-    <value> ulkoisella POP3-noutotilillä on</value>
+    <value>ulkoisella POP3-noutotilillä on</value>
   </data>
   <data name="external POP3 fetch accounts have" xml:space="preserve">
-    <value> ulkoisella POP3-noutotilillä on</value>
+    <value>ulkoisella POP3-noutotilillä on</value>
   </data>
   <data name="external account" xml:space="preserve">
     <value>ulkoinen tili</value>
@@ -13056,6 +13149,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="in use by a listener" xml:space="preserve">
     <value>kuuntelijan käytössä</value>
   </data>
+  <data name="in {0}" xml:space="preserve">
+    <value>kohdassa {0}</value>
+  </data>
   <data name="inactive" xml:space="preserve">
     <value>ei aktiivinen</value>
   </data>
@@ -13110,6 +13206,15 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="keys" xml:space="preserve">
     <value>avainta</value>
   </data>
+  <data name="last {0} hours" xml:space="preserve">
+    <value>viimeiset {0} h</value>
+  </data>
+  <data name="last {0} minutes" xml:space="preserve">
+    <value>viimeiset {0} min</value>
+  </data>
+  <data name="last {0} seconds" xml:space="preserve">
+    <value>viimeiset {0} s</value>
+  </data>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>aitoa postia merkitään roskapostiksi</value>
   </data>
@@ -13151,6 +13256,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="logs are filling the disk" xml:space="preserve">
     <value>lokit täyttävät levyn</value>
+  </data>
+  <data name="long-dashed line" xml:space="preserve">
+    <value>pitkä katkoviiva</value>
   </data>
   <data name="mail from a new sender is delayed" xml:space="preserve">
     <value>uuden lähettäjän posti viivästyy</value>
@@ -13364,6 +13472,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>allekirjoita lähtevä posti dkim:llä</value>
+  </data>
+  <data name="solid line" xml:space="preserve">
+    <value>yhtenäinen viiva</value>
   </data>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>joku yrittää arvata salasanoja</value>
@@ -13702,7 +13813,7 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
     <value>{0} määritetty TLS:lle, mutta ei voi tarjota sitä, joten {1} lainkaan.</value>
   </data>
   <data name="{0} configured ports are not being listened on: " xml:space="preserve">
-    <value>{0} määritettyä porttia ei kuunnella:</value>
+    <value>{0} määritettyä porttia ei kuunnella: </value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} ei voitu noutaa tältä koneelta: {1} Todennäköiset syyt: ei A/CNAME-tietuetta kohteelle mta-sts.{2}, HTTPS-kuuntelija ei ole käynnissä (WebServicesHttpsPort=0 on mukana toimitettu oletus), tai varmenne, joka ei kata kohdetta mta-sts.{2}. Tarkistettu vain tältä koneelta.</value>
@@ -13799,6 +13910,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} kohdetta ei voi tarkistaa täältä.</value>
+  </data>
+  <data name="{0} latest {1}" xml:space="preserve">
+    <value>{0}: viimeisin {1}</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} viesti viittaa tiedostoon, joka puuttuu levyltä.</value>

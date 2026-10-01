@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
 {
@@ -138,7 +139,7 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public float[] DashIntervals => ChartPalette.DashIntervalsFor(Pattern);
 
-      /// <summary>"solid", "dashed", ... for use in an accessible name.</summary>
+      /// <summary>"solid line", "dashed line", ... in the Control Panel's language, for an accessible name.</summary>
       public string PatternText => ChartPalette.DescribePattern(Pattern);
 
       /// <summary>"circle", "square", ... for use in an accessible name.</summary>
@@ -430,21 +431,25 @@ namespace hMailServer.ControlPanel.Services
          }
       }
 
-      /// <summary>The dash pattern in words, for an accessible name.</summary>
+      /// <summary>
+      /// The dash pattern in words, as a kind of line ("dashed line"), for an accessible
+      /// name, in the Control Panel's language. The whole phrase is one caption: an
+      /// adjective alone would have to agree with a noun its translator never saw.
+      /// </summary>
       public static string DescribePattern(ChartLinePattern pattern)
       {
          switch (pattern)
          {
             case ChartLinePattern.Dash:
-               return "dashed";
+               return L("dashed line");
             case ChartLinePattern.Dot:
-               return "dotted";
+               return L("dotted line");
             case ChartLinePattern.DashDot:
-               return "dash-dotted";
+               return L("dash-dotted line");
             case ChartLinePattern.LongDash:
-               return "long-dashed";
+               return L("long-dashed line");
             default:
-               return "solid";
+               return L("solid line");
          }
       }
 

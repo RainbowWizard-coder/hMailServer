@@ -922,6 +922,38 @@ numbers whatever the answer holds.
   outline in the system's highlight; the brief fade-in stops when animations are turned off. Tested by
   `DesignTokensTests` (the contrast, High Contrast, the web pages' copies of the colours) and by `deck-script-test.js`
   and `portal-script-test.js` (each page's tokens and rules).
+- **Fixed: two copies of work item 48 that were not yet the Control Panel's own.** Text copied from the help pane
+  put RTF and XAML on the clipboard beside the text, in the theme's colours, and its right-click menu was the
+  document viewer's, in English (measured in German and Swedish); Ctrl+C, the menu's Copy and a selection dragged
+  out now carry plain text, written the same way as every other Copy, and the menu is Copy / Select all in the
+  Control Panel's language. A right-click on a result of the Ctrl+K search, for its Copy, left the keyboard on the
+  result rather than in the search box, so typing reached nothing until the box was clicked again; the search box
+  now keeps the keyboard, and Copy still copies the result that was right-clicked.
+- **Fixed: words of the Control Panel that stayed English, or lost a space, in its sixteen other languages.** The
+  app password's "Copied.", a list editor's "Deleted.", directory synchronisation's "Applying...", the "in" before
+  each page's place in the Ctrl+K search's results, a dashboard chart's time axis ("last 3 minutes") and what its
+  legend says of each line to a screen reader and in a tool tip, the LDAP page's "Could not write" and the anti-virus
+  overview's "and" between the two notices were English in every language: the localisation check took one word
+  ending a sentence for a host name and did not look at a piece of a sentence joined to others, and it now reports
+  both. 290 translations in sixteen languages had lost the space at their end that the program joins the next
+  words to, so a Danish copy that failed said "Kunne ikke kopiere:" with the reason run on, and a status line ran
+  two sentences together; the spaces are back, and the check holds every translation to the white space at the
+  edges of its English (Japanese and Chinese may drop it after a character of their own script). Two Finnish
+  counts had a space too many, and four sentences were split around a value with their end left in the source,
+  where no translator could move it: an account's renamed address told German "Die Adresse muss ein Name gefolgt
+  von @ seinexample.com.", and a group's name opened with « in French and Russian and closed with an English
+  quote. The four are whole sentences now, and the check reports a space a translation adds and a sentence
+  split that way. A dashboard chart's "collecting" said "fetching" in six languages. And the words WPF puts on
+  the screen itself - Copy, Cut and Paste on a text box's right-click menu, a scroll bar's right-click menu - were
+  English in Danish, Finnish, Norwegian, Dutch, Swedish and Ukrainian, which .NET has no translation for, and
+  WPF's German scroll bar menu named both Top and Page Up "Nach oben"; in the Control Panel's seventeen languages
+  they are now its own words, and in English and in a language it has no catalogue for they stay WPF's. The two
+  buttons that page a date picker's calendar were "Previous" and "Next" to a screen reader in every language and
+  every view, the theme's English; they now say what they page as the calendar shows months, years or decades
+  ("Previous month", "Next decade"), in the Control Panel's language.
+- **Fixed: the Control Panel window's own buttons had no name for a screen reader.** Minimise, Maximise (Restore
+  down while the window is maximised) and Close in the title bar were each read as just "button", in every
+  language; they now carry their names, in the Control Panel's language.
 - **Fixed: a switch put back from the audit trail stayed as it was.** Putting a setting back from its audit row
   (`POST /api/v1/audit/{id}/revert`, `Utilities.RevertAuditedChange`, *Put back* in the Deck and the Control Panel)
   wrote a switch's old value, `true` or `false`, into the text column of `hm_settings`, which the server does not
@@ -1590,6 +1622,15 @@ numbers whatever the answer holds.
   empty `CipherInfo`, so it was never thrown); the DNSSEC resolver's socket timeouts and the journal socket's address
   are passed with C++ casts; MailboxKeys' reseal record starts with its account id and flag set; and a device's
   sign-in count saturates rather than overflows. Their lines are gone from `build/ci/static-analysis-baseline.txt`.
+
+- **ControlPanel.Tests hold Live logs and the Server status page.** Live logs' reading of the server's log and its
+  following of the end moved out of the page into `Services/LiveLogTail.cs`, unchanged, so that tests hold them:
+  whole lines only, a tail begun in the middle of a line, a rotated log, following only while the end is in view,
+  and the line being read held in place as the oldest are dropped (13 tests; the real page, run in-process before
+  and after, follows, holds and trims the same). The Server status page's captions and values are held to be text
+  that can be selected and copied (4 tests). `build/check-localisation.py` has a `--self-test`, which the
+  `checkers` job runs: lines and translations made to pass and to fail its rules, among them each shape it missed
+  before 6.3.6. ControlPanel.Tests: 974 tests before, 1,017 after.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

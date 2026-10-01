@@ -1644,6 +1644,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Tillämpa profilen {0}? {1} inställningar ändras, och det de hade sparas så att det kan återställas.</value>
   </data>
+  <data name="Applying..." xml:space="preserve">
+    <value>Tillämpar...</value>
+  </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>A_rkiv</value>
   </data>
@@ -2027,6 +2030,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Both ways" xml:space="preserve">
     <value>Båda hållen</value>
+  </data>
+  <data name="Bottom" xml:space="preserve">
+    <value>Nederst</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Antal studsar</value>
@@ -2616,6 +2622,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Cop_y" xml:space="preserve">
     <value>Kop_iera</value>
   </data>
+  <data name="Copied." xml:space="preserve">
+    <value>Kopierat.</value>
+  </data>
   <data name="Copies of mail" xml:space="preserve">
     <value>Kopior av post</value>
   </data>
@@ -2963,6 +2972,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not write to hMailServer.ini: {0}" xml:space="preserve">
     <value>Kunde inte skriva till hMailServer.ini: {0}</value>
   </data>
+  <data name="Could not write {0} to {1}" xml:space="preserve">
+    <value>Kunde inte skriva {0} till {1}</value>
+  </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Kunde inte avgöra den körbara filen från kommandot.</value>
   </data>
@@ -3064,6 +3076,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Custom scanner (external program)" xml:space="preserve">
     <value>Egen skanner (externt program)</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Klipp ut</value>
   </data>
   <data name="DANE &amp; DNSSEC" xml:space="preserve">
     <value>DANE &amp; DNSSEC</value>
@@ -3438,6 +3453,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   </data>
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>{0} meddelanden borttagna.</value>
+  </data>
+  <data name="Deleted." xml:space="preserve">
+    <value>Borttaget.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Att ta bort en domän tar bort kontona i den. Kontrollera först om alias och listor pekar på den.</value>
@@ -5261,6 +5279,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>Ta _inte med det här kontot i katalogen</value>
   </data>
+  <data name="Left Edge" xml:space="preserve">
+    <value>Vänsterkant</value>
+  </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Lämnat tomt använder servern det levererade filtret som visas i grått - objectCategory först eftersom det är indexerat i Active Directory, och sAMAccountName eftersom det är vad kontots Katalog-flik lagrar. %u är kontots Active Directory-användarnamn, %d dess AD-domän, %m dess fullständiga e-postadress; alla tre escapas innan de sätts in, så ett fientligt inloggningsnamn kan inte skriva om filtret. Ett filter som matchar mer än en post autentiserar ingen, med avsikt.</value>
   </data>
@@ -5749,6 +5770,9 @@ Varje Web Push-prenumeration under det nuvarande paret slutar fungera direkt, oc
   <data name="MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*" xml:space="preserve">
     <value>MaxMind-databaser (*.mmdb)|*.mmdb|Alla filer (*.*)|*.*</value>
   </data>
+  <data name="Maximise" xml:space="preserve">
+    <value>Maximera</value>
+  </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Maximal _domänstorlek (MB, 0 = obegränsat)</value>
   </data>
@@ -5952,6 +5976,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Migrations" xml:space="preserve">
     <value>Migreringar</value>
   </data>
+  <data name="Minimise" xml:space="preserve">
+    <value>Minimera</value>
+  </data>
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>Minsta längd (0 = inget minimum)</value>
   </data>
@@ -6141,8 +6168,14 @@ Inget som redan finns där tas bort.</value>
   <data name="Next" xml:space="preserve">
     <value>Nästa</value>
   </data>
+  <data name="Next decade" xml:space="preserve">
+    <value>Nästa decennium</value>
+  </data>
   <data name="Next key" xml:space="preserve">
     <value>Nästa nyckel</value>
+  </data>
+  <data name="Next month" xml:space="preserve">
+    <value>Nästa månad</value>
   </data>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Nästa rotation planerad {0}</value>
@@ -6155,6 +6188,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Nästa försök</value>
+  </data>
+  <data name="Next year" xml:space="preserve">
+    <value>Nästa år</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>Nej</value>
@@ -7023,8 +7059,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Öppna direktloggarna</value>
   </data>
-  <data name="Open the member list of '" xml:space="preserve">
-    <value>Öppna medlemslistan för '</value>
+  <data name="Open the member list of '{0}'." xml:space="preserve">
+    <value>Öppna medlemslistan för '{0}'.</value>
   </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Öppna konfigurationschecklistan: varje punkt, vad som är klart och vad som ska göras härnäst</value>
@@ -7233,6 +7269,18 @@ Inget som redan finns där tas bort.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
+  <data name="Page Down" xml:space="preserve">
+    <value>Sida ned</value>
+  </data>
+  <data name="Page Left" xml:space="preserve">
+    <value>Sida åt vänster</value>
+  </data>
+  <data name="Page Right" xml:space="preserve">
+    <value>Sida åt höger</value>
+  </data>
+  <data name="Page Up" xml:space="preserve">
+    <value>Sida upp</value>
+  </data>
   <data name="Page content" xml:space="preserve">
     <value>Sidinnehåll</value>
   </data>
@@ -7295,6 +7343,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Lösenord, och vad som får bära dem</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Klistra in</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Klistra in certifikatet, eller två medan leverantören byter nyckel. Det visas aldrig igen: raden nedan säger vad som lagras.</value>
@@ -7471,6 +7522,15 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Förhandsgranska, tillämpa sedan</value>
+  </data>
+  <data name="Previous decade" xml:space="preserve">
+    <value>Föregående decennium</value>
+  </data>
+  <data name="Previous month" xml:space="preserve">
+    <value>Föregående månad</value>
+  </data>
+  <data name="Previous year" xml:space="preserve">
+    <value>Föregående år</value>
   </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Prioritera ChaCha20-Poly1305 när klienten föredrar det (kräver TLS 1.2 eller 1.3)</value>
@@ -8336,6 +8396,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Återställ d_omäner</value>
   </data>
+  <data name="Restore down" xml:space="preserve">
+    <value>Återställ nedåt</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Återställ m_eddelanden</value>
   </data>
@@ -8426,6 +8489,9 @@ Fortsätt?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Skriv om kuvertavsändaren vid vidarebefordran (den enkla reserven, ingen hemlighet behövs)</value>
+  </data>
+  <data name="Right Edge" xml:space="preserve">
+    <value>Högerkant</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Roll</value>
@@ -8880,6 +8946,21 @@ Fortsätt?</value>
   <data name="Scripting engine" xml:space="preserve">
     <value>Skriptmotor</value>
   </data>
+  <data name="Scroll Down" xml:space="preserve">
+    <value>Bläddra nedåt</value>
+  </data>
+  <data name="Scroll Here" xml:space="preserve">
+    <value>Bläddra hit</value>
+  </data>
+  <data name="Scroll Left" xml:space="preserve">
+    <value>Bläddra åt vänster</value>
+  </data>
+  <data name="Scroll Right" xml:space="preserve">
+    <value>Bläddra åt höger</value>
+  </data>
+  <data name="Scroll Up" xml:space="preserve">
+    <value>Bläddra uppåt</value>
+  </data>
   <data name="Scroll tabs left" xml:space="preserve">
     <value>Rulla flikar åt vänster</value>
   </data>
@@ -8961,8 +9042,8 @@ Fortsätt?</value>
   <data name="Searches" xml:space="preserve">
     <value>Sökningar</value>
   </data>
-  <data name="Searching " xml:space="preserve">
-    <value>Söker </value>
+  <data name="Searching {0}…" xml:space="preserve">
+    <value>Söker i {0}…</value>
   </data>
   <data name="Second factor on the administrator credential" xml:space="preserve">
     <value>Andra faktor för administratörsuppgifterna</value>
@@ -10218,8 +10299,8 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Adressen visas maskerad här som överallt annars, och inget gränssnitt lämnar ut den hel: den är en brevlåda som personen har, och ingenting en administratör gör behöver läsa den.</value>
   </data>
-  <data name="The address must be a name followed by @" xml:space="preserve">
-    <value>Adressen måste vara ett namn följt av @</value>
+  <data name="The address must be a name followed by @{0}." xml:space="preserve">
+    <value>Adressen måste vara ett namn följt av @{0}.</value>
   </data>
   <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only." xml:space="preserve">
     <value>Adressen som REST-API:t nås på utifrån; sidorna för prenumeration, bekräftelse, avregistrering och arkiv ligger under den. Bara en https-adress ger avregistrering med ett klick (RFC 8058). Tomt, standard, skickar bara mailto-adresser.</value>
@@ -11234,8 +11315,8 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="This server now" xml:space="preserve">
     <value>Den här servern nu</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
-    <value>Den här servern KONTROLLERAR bara SPF på inkommande post; att publicera posten är för alla andra - den talar om för mottagande servrar vilka maskiner som får skicka post som påstår sig komma från </value>
+  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>Den här servern KONTROLLERAR bara SPF på inkommande post; att publicera posten är för alla andra - den talar om för mottagande servrar vilka maskiner som får skicka post som påstår sig komma från {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Den här servern kräver en engångskod för administratören.</value>
@@ -11338,6 +11419,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>Token signerade med {0} avvisas: den här servern implementerar bara RS256, ES256 och HS256. Ta bort det servern inte kan verifiera från listan, så att en klient som erbjuder det avvisas av ett skäl loggen gör tydligt i stället för att verka tillåtet.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Överst</value>
   </data>
   <data name="Tour" xml:space="preserve">
     <value>Rundtur</value>
@@ -12893,6 +12977,12 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="create an e-mail address" xml:space="preserve">
     <value>skapa en e-postadress</value>
   </data>
+  <data name="dash-dotted line" xml:space="preserve">
+    <value>streckprickad linje</value>
+  </data>
+  <data name="dashed line" xml:space="preserve">
+    <value>streckad linje</value>
+  </data>
   <data name="delete a mailing list" xml:space="preserve">
     <value>ta bort en sändlista</value>
   </data>
@@ -12925,6 +13015,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="domains: {0}" xml:space="preserve">
     <value>domäner: {0}</value>
+  </data>
+  <data name="dotted line" xml:space="preserve">
+    <value>prickad linje</value>
   </data>
   <data name="equals" xml:space="preserve">
     <value>är lika med</value>
@@ -13056,6 +13149,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="in use by a listener" xml:space="preserve">
     <value>används av en lyssnare</value>
   </data>
+  <data name="in {0}" xml:space="preserve">
+    <value>i {0}</value>
+  </data>
   <data name="inactive" xml:space="preserve">
     <value>inaktiv</value>
   </data>
@@ -13110,6 +13206,15 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="keys" xml:space="preserve">
     <value>nycklar</value>
   </data>
+  <data name="last {0} hours" xml:space="preserve">
+    <value>senaste {0} timmarna</value>
+  </data>
+  <data name="last {0} minutes" xml:space="preserve">
+    <value>senaste {0} minuterna</value>
+  </data>
+  <data name="last {0} seconds" xml:space="preserve">
+    <value>senaste {0} sekunderna</value>
+  </data>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitim post markeras som skräppost</value>
   </data>
@@ -13151,6 +13256,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="logs are filling the disk" xml:space="preserve">
     <value>loggarna fyller disken</value>
+  </data>
+  <data name="long-dashed line" xml:space="preserve">
+    <value>långstreckad linje</value>
   </data>
   <data name="mail from a new sender is delayed" xml:space="preserve">
     <value>post från en ny avsändare fördröjs</value>
@@ -13364,6 +13472,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>signera utgående post med dkim</value>
+  </data>
+  <data name="solid line" xml:space="preserve">
+    <value>heldragen linje</value>
   </data>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>någon försöker gissa lösenord</value>
@@ -13799,6 +13910,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} punkter kan inte kontrolleras härifrån.</value>
+  </data>
+  <data name="{0} latest {1}" xml:space="preserve">
+    <value>{0}: senaste {1}</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelande hänvisar till en fil som saknas på disk.</value>

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,8 +20,6 @@ namespace hMailServer.ControlPanel.Views
 {
    public partial class LogsView : UserControl, IPageLifecycle
    {
-      private const int MaxLines = 2000;
-
       public class LogLine
       {
          public string Text { get; set; }
@@ -39,8 +36,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly ObservableCollection<LogLine> lines_ = new();
       private readonly DispatcherTimer timer_;
       private string logFile_;
-      private long position_;
-      private bool startsMidLine_;
+      private LiveLogTail tail_ = new();
       private bool paused_;
 
       // Theme-aware, shared brush instances. Because each line holds a reference
@@ -101,8 +97,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          logFile_ = newest.FullName;
-         position_ = Math.Max(0, newest.Length - 64 * 1024); // start with the last 64 KB
-         startsMidLine_ = position_ > 0;
+         tail_ = new LiveLogTail();
+         tail_.StartAt(newest.Length);   // the last 64 KB
          Header.Subtitle = F("Streaming {0}", newest.Name);
 
          Poll();
@@ -118,73 +114,30 @@ namespace hMailServer.ControlPanel.Views
 
          try
          {
+            // Whole lines only, and the end followed only while it is in view: what
+            // is read and where the view goes are LiveLogTail's, which says why.
             using var stream = new FileStream(logFile_, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            if (stream.Length < position_)
-            {
-               position_ = 0; // rotated
-               startsMidLine_ = false;
-            }
-
-            if (stream.Length == position_)
+            IReadOnlyList<string> read = tail_.Read(stream);
+            if (read.Count == 0)
                return;
 
-            // Whole lines only. The view read to the end of the file, so a line the
-            // server was part-way through writing became two rows - and a copy of
-            // them a line break the log does not have. The unfinished line is now
-            // left for the next tick, and a tail begun in the middle of a line (the
-            // last 64 KB) starts at the next one.
-            long from = startsMidLine_ ? position_ - 1 : position_;
-            stream.Seek(from, SeekOrigin.Begin);
-            byte[] bytes = new byte[stream.Length - from];
-            int count = ReadFully_(stream, bytes);
-            int end = count > 0 ? Array.LastIndexOf(bytes, (byte)'\n', count - 1) : -1;
-            if (end < 0)
-               return;
-
-            int start = 0;
-            if (startsMidLine_)
-               start = Array.IndexOf(bytes, (byte)'\n', 0, end + 1) + 1;   // the byte before a line's start is a '\n'
-            else if (from == 0 && count >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
-               start = 3;                                                      // a byte order mark, as StreamReader dropped
-            startsMidLine_ = false;
-            position_ = from + end + 1;
-            string chunk = Encoding.UTF8.GetString(bytes, start, end + 1 - start);
-
-            // The view follows the end of the log only while the end is in view. It
-            // used to jump to the newest line on every tick, so on a busy server a
-            // line could not be read, let alone selected and copied, without Pause:
-            // somebody who scrolls up now keeps their place, and scrolling back to
-            // the end follows again - as a terminal's tail does.
             ScrollViewer scroller = Scroller_();
-            bool following = scroller == null || scroller.VerticalOffset >= scroller.ScrollableHeight - 0.5;
+            bool atEnd = scroller == null || LiveLogTail.IsAtEnd(scroller.VerticalOffset, scroller.ScrollableHeight);
             double offset = scroller?.VerticalOffset ?? 0;
 
-            bool added = false;
-            foreach (string line in chunk.Split('\n')
-                                        .Select(raw => raw.TrimEnd('\r'))
-                                        .Where(l => l.Length != 0))
-            {
+            foreach (string line in read)
                lines_.Add(new LogLine { Text = line, Brush = Classify(line) });
-               added = true;
-            }
 
-            int dropped = 0;
-            while (lines_.Count > MaxLines)
-            {
-               lines_.RemoveAt(0);
-               dropped++;
-            }
+            int dropped = LiveLogTail.Trim(lines_, LiveLogTail.MaxLines);
 
-            if (following)
+            if (LiveLogTail.Follows(atEnd, read.Count))
             {
-               if (added && LogList.Items.Count > 0)
+               if (LogList.Items.Count > 0)
                   LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
             }
-            else if (dropped > 0 && scroller != null)
+            else if (scroller != null && LiveLogTail.OffsetAfterDrop(atEnd, offset, dropped) is double back)
             {
-               // The list scrolls by line, so the lines dropped from the top would
-               // otherwise slide the ones being read up by as many.
-               scroller.ScrollToVerticalOffset(Math.Max(0, offset - dropped));
+               scroller.ScrollToVerticalOffset(back);
             }
          }
          catch (IOException)
@@ -231,20 +184,6 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private void CopySelection_() => SelectableText.SetClipboard(TextOf(lines_, LogList.SelectedItems));
-
-      private static int ReadFully_(Stream stream, byte[] buffer)
-      {
-         int total = 0;
-         while (total < buffer.Length)
-         {
-            int read = stream.Read(buffer, total, buffer.Length - total);
-            if (read == 0)
-               break;
-            total += read;
-         }
-
-         return total;
-      }
 
       /// <summary>The list's own scroller, looked up each time: a template applied
       /// again (a theme change) makes a new one.</summary>

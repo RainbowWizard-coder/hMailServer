@@ -465,7 +465,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section(L("SPF — which machines may send mail as ") + domain.Name, out StackPanel content);
 
-         content.Children.Add(Paragraph(L("This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from ") + domain.Name + ".",
+         content.Children.Add(Paragraph(F("This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}.", domain.Name),
             Typography.Caption));
 
          string suggested = SuggestedSpf();

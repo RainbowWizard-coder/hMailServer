@@ -544,7 +544,7 @@ namespace hMailServer.ControlPanel.Views
             selectedGroupId_ = row.Id;
             selectedGroupName_ = row.Display("Name"); // no-loc
             membersButton_.IsEnabled = true;
-            membersHint_.Text = L("Open the member list of '") + selectedGroupName_ + "'.";
+            membersHint_.Text = F("Open the member list of '{0}'.", selectedGroupName_);
          }
          else
          {

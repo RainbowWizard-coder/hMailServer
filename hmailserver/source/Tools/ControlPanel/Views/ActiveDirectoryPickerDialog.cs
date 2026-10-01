@@ -209,7 +209,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          string filter = searchBox_.Text;
-         status_.Text = L("Searching ") + domain + "…";
+         status_.Text = F("Searching {0}…", domain);
          Mouse.OverrideCursor = Cursors.Wait;
          list_.ItemsSource = null;
          okButton_.IsEnabled = false;

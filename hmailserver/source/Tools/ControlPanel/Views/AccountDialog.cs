@@ -1183,7 +1183,7 @@ namespace hMailServer.ControlPanel.Views
             if (!newAddress.ToLowerInvariant().EndsWith("@" + domainName_.ToLowerInvariant()) ||
                 newAddress.IndexOf('@') <= 0)
             {
-               DialogFields.ShowError(addressRow_, L("The address must be a name followed by @") + domainName_ + ".");
+               DialogFields.ShowError(addressRow_, F("The address must be a name followed by @{0}.", domainName_));
                return;
             }
 

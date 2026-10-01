@@ -298,13 +298,11 @@ namespace hMailServer.ControlPanel.Services
          if (!config.NotifySender && !config.NotifyRecipient)
             return L("The message is deleted and nobody is told. The deletion is recorded in the application log.");
 
-         var told = new List<string>();
-         if (config.NotifyRecipient)
-            told.Add(L("every recipient"));
-         if (config.NotifySender)
-            told.Add(L("the envelope sender"));
+         string told = config.NotifyRecipient && config.NotifySender
+            ? F("{0} and {1}", L("every recipient"), L("the envelope sender"))
+            : config.NotifyRecipient ? L("every recipient") : L("the envelope sender");
 
-         return F("The message is deleted and a notice is sent to {0}.", string.Join(" and ", told));
+         return F("The message is deleted and a notice is sent to {0}.", told);
       }
 
       /// <summary>

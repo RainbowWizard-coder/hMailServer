@@ -22,7 +22,12 @@ What is checked
     the same {n} placeholders as its English (a lost placeholder is a sentence
     with no subject, an extra one is a FormatException at run time); a caption
     with an Alt-key mnemonic in English carries one in the translation too,
-    because the keyboard cannot lose a key by changing language.
+    because the keyboard cannot lose a key by changing language; and a value
+    keeps the white space its English starts or ends with, because the source
+    joins that text to another there ("Could not copy: " + the reason) - in
+    Japanese and Chinese, which put no space between words, it may go where
+    the translation ends (or starts) with a character of those scripts - and
+    adds none at an edge where its English has none.
   * A language listed in COMPLETE has a translation for every key. Others are
     reported, so a new language can be brought in a page at a time.
   * A source file listed in LOCALISED carries no untranslated caption: no
@@ -32,17 +37,23 @@ What is checked
     joins LOCALISED when its count reaches zero. A literal that is not for
     translation (a protocol name, a brand glyph, an example address) is either
     in EXEMPT below or on a line ending in "// no-loc".
+  * No C# source splits a sentence around a value with its closing
+    punctuation left as a literal - L("... followed by @") + domain + "." -
+    since its translator cannot place the value; F("... @{0}.", domain).
 
-Usage: python3 build/check-localisation.py [--write] [--inventory]
+Usage: python3 build/check-localisation.py [--write] [--inventory] [--self-test]
   --write      regenerate Strings.resx and bring every language catalogue up
                to date (orphans dropped, new keys added empty, values kept)
   --inventory  list every untranslated caption in every file, localised or not
+  --self-test  hold the caption, white-space and split-sentence rules to
+               source lines and translations made to pass and to fail them
 Exit status 0 when every check above passes.
 """
 import html
 import os
 import re
 import sys
+import unicodedata
 import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -195,6 +206,9 @@ LOCALISED = {
    "Services/SettingsPageStatus.cs",
    "Services/ThemeTokens.cs",
    "Services/SelectableText.cs",
+   "Services/FrameworkWords.cs",
+   "Services/ChartPalette.cs",
+   "Views/HelpPane.cs",
 }
 
 # Literal texts that are the same in every language and are not captions to
@@ -215,6 +229,43 @@ CS_SINK = re.compile(
    r"|\bLabel\(|\bMakeButton\(|\bCard\(|\bLabelled\w*\(|\bLabel\s*=|\bBlurb\s*=|\bNote\s*=|\bHint\s*="
    r"|new TextBlock\b|\bSetName\(|\bSetHelpText\(|\bFail_\(|\bSetBusy_\(|\bToast\.\w+\()")
 PLACEHOLDER = re.compile(r"\{(\d+)(?:[:,][^}]*)?\}")
+
+# Languages written without spaces between words: there a space at a joint may go
+# where the translation's own character at that edge is one of the script's.
+UNSPACED = {"ja", "zh-Hans"}
+
+
+def lost_edge_space(name, value, tag):
+   """The edges ("start", "end") where the English has white space and the translation lost it.
+
+   The source joins such a text to another at that edge - L("Could not copy: ") +
+   the reason, F(" (published {0})", date) after a sentence - so a translation
+   without the space ran the two together: 290 values in sixteen languages had
+   lost a trailing space by 1 October 2026 ("Kopieren nicht möglich:Zugriff
+   verweigert"). In Japanese and Chinese a space between two sentences, or after
+   a word of their own script, is not written, so a translation that ends (or
+   starts) with a wide character there keeps none (13 such values)."""
+   lost = []
+   for edge, english, translated, letter in (
+         ("start", name[:1], value[:1], value.lstrip()[:1]),
+         ("end", name[-1:], value[-1:], value.rstrip()[-1:])):
+      if not english.isspace() or translated.isspace() or not letter:
+         continue
+      if tag in UNSPACED and unicodedata.east_asian_width(letter) in ("W", "F"):
+         continue
+      lost.append(edge)
+   return lost
+
+
+def added_edge_space(name, value):
+   """The edges ("start", "end") where the translation has white space and the English none.
+
+   The source joins the next text to the English as it is, so a space the translation
+   adds there is a space the program never meant: Finnish counted "3  ulkoisella
+   POP3-noutotilillä on" with two, and French opened a group's name with "« " that
+   the source closed with "'."."""
+   return [edge for edge, english, translated in (("start", name[:1], value[:1]), ("end", name[-1:], value[-1:]))
+           if translated.isspace() and not english.isspace()]
 
 
 def unescape_cs(literal):
@@ -367,7 +418,24 @@ def language_files():
 
 # --- untranslated captions ------------------------------------------------------
 
+# One word that ends a sentence - "Copied.", "Deleted.", "Applying..." - is a caption,
+# though a dot and no space otherwise reads as a host or a file name. AppPasswordsPanel
+# said "Copied." in English in every language until 6.3.6, and two more were found
+# with it.
+SENTENCE_WORD = re.compile(r"[A-Z][a-z]+(?:\.\.\.|[.!?\u2026])")
+
+# A piece of a sentence joined to others: lowercase words with white space at an edge,
+# as in "in " + page or a " and " between two names. The palette said "in" before every
+# page's place in every language until 6.3.6.
+JOINED_PIECE = re.compile(r"[a-z]{2,}(?: [a-z]{2,})*")
+
+# A constant such as ApiKeyStore's "Key." is the start of a dotted name, not a sentence.
+CONST_DECLARATION = re.compile(r"\bconst\s+string\s+\w+\s*=\s*$")
+
+
 def is_caption(text):
+   if SENTENCE_WORD.fullmatch(text.strip()):
+      return text.strip() not in EXEMPT
    return re.search(r"[A-Za-z]{2,}", text) is not None and text.strip() not in EXEMPT \
       and not (("@" in text or "." in text) and " " not in text)
 
@@ -387,9 +455,11 @@ def cs_untranslated(src):
 
    A literal is a caption when it holds two consecutive letters and either
    contains a space or begins with a capital letter and looks nothing like an
-   identifier, a path or a key. Lines that call something that takes a key, a
-   pattern or a path rather than a caption are left out, as are comparisons,
-   case labels, indexers and the Tag/Key/Path properties that carry keys."""
+   identifier, a path or a key - or is one word ending a sentence ("Copied."),
+   or a piece of a sentence joined to others ("in ", " and "). Lines that call
+   something that takes a key, a pattern or a path rather than a caption are
+   left out, as are comparisons, case labels, indexers, the Tag/Key/Path
+   properties that carry keys, and a constant's one word ending in a dot."""
    out = []
    lines = src.split("\n")
    for m in re.finditer(r'\$?"((?:[^"\\\n]|\\.)*)"', src):
@@ -398,8 +468,11 @@ def cs_untranslated(src):
       text = unescape_cs(re.sub(r"\{[^}]*\}", "", raw) if interpolated else raw)
       if not re.search(r"[A-Za-z]{2,}", text) or text.strip() in EXEMPT:
          continue
-      if " " not in text.strip() and not (text[:1].isupper() and not re.search(r"[_./\\:={}<>\[\]@|*]", text)
-                                           and not re.search(r"[a-z][A-Z]|\d$", text)):
+      sentence_word = SENTENCE_WORD.fullmatch(text.strip()) is not None
+      joined_piece = text != text.strip() and JOINED_PIECE.fullmatch(text.strip()) is not None
+      if " " not in text.strip() and not sentence_word and not joined_piece \
+            and not (text[:1].isupper() and not re.search(r"[_./\\:={}<>\[\]@|*]", text)
+                     and not re.search(r"[a-z][A-Z]|\d$", text)):
          continue
       if not is_caption(text) or text.count("|") >= 2:   # a|b|c is a list of search terms
          continue
@@ -423,6 +496,8 @@ def cs_untranslated(src):
          continue
       before = src[max(0, m.start() - 40):m.start()]
       if NON_UI_CONTEXT.search(before):
+         continue
+      if sentence_word and CONST_DECLARATION.search(before):
          continue
       if re.search(r"\b[LNF]\(\s*$", before):
          continue
@@ -452,6 +527,23 @@ def untranslated_by_file():
       if hits:
          result[rel(path)] = hits
    return result
+
+
+# A sentence split around a value: a translated start, the value, and the sentence's
+# own closing punctuation as a literal - L("The address must be a name followed by @")
+# + domain + ".". Its translator sees the start alone and cannot move the value: the
+# German put its verb last and read "... gefolgt von @ seinexample.com.", and the
+# quote that closed a group's name stayed English where French and Russian opened it
+# with «. Written whole - F("The address must be a name followed by @{0}.", domain) -
+# it can be. A literal followed by more text (L("Next step") + ". " + step) joins two
+# texts and is not this.
+SPLIT_SENTENCE = re.compile(
+   r"(?<![\w.])[LF]\(\s*" + CS_LITERAL + r"[^;]*?\)\s*\+\s*[^;\"+]+?\s*\+\s*\"([^\"\\\n\w\s]+)\"(?=\s*[);,])")
+
+
+def cs_split_sentences(src):
+   """(line, code) for every translated text joined to a value and then to its closing punctuation."""
+   return [(src.count("\n", 0, m.start()) + 1, " ".join(m.group(0).split())) for m in SPLIT_SENTENCE.finditer(src)]
 
 
 # --- main -------------------------------------------------------------------------
@@ -549,9 +641,102 @@ def translated_values():
    return found
 
 
+def self_test():
+   """The caption rules and the white-space rule against lines and values made to
+   pass and to fail them: each failing case is a defect the Control Panel shipped."""
+   failures = 0
+   captions = {
+      # (source, caption expected): an unmarked caption is reported, a marked one,
+      # a key and a non-caption are not
+      'status_.Text = "Copied.";': True,
+      'status_.Text = L("Copied.");': False,
+      'Say_(StatusLevel.Good, "Deleted.");': True,
+      'Summary_(StatusLevel.Information, apply ? "Applying..." : L("Reading the directory..."));': True,
+      'public const string SectionPrefix = "Key.";': False,
+      'private const string Prefix = "Help.";': False,
+      'string host = "example.com";': False,
+      'location = location.Length > 0 ? "in " + location : "";': True,
+      'location = location.Length > 0 ? F("in {0}", location) : "";': False,
+      'return F("Sent to {0}.", string.Join(" and ", told));': True,
+      'AutomationProperties.SetName(name, style.Name + ", " + style.PatternText + " line");': True,
+      'int position = diagnostic.IndexOf("data ", StringComparison.Ordinal);': False,
+      'string id = "case " + Id + ":"; // no-loc': False,
+      'title_.Text = "Help";': True,
+   }
+   for line, expected in captions.items():
+      found = bool(cs_untranslated(line + "\n"))
+      if found != expected:
+         print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as an untranslated caption")
+         failures += 1
+
+   edges = {
+      # (English, translation, language): the edges reported as lost
+      ("Could not copy: ", "Kopieren nicht möglich:", "de"): ["end"],
+      ("Could not copy: ", "Kopieren nicht möglich: ", "de"): [],
+      ("Could not copy: ", "Impossible de copier :", "fr"): ["end"],
+      (" (published {0})", "(veröffentlicht {0})", "de"): ["start"],
+      (" (published {0})", " (veröffentlicht {0})", "de"): [],
+      ("Last update: {0}. ", "最終更新: {0}。", "ja"): [],
+      ("Searching ", "正在搜索", "zh-Hans"): [],
+      ("Store: ", "ストア:", "ja"): ["end"],
+      ("Members - ", "メンバー -", "ja"): ["end"],
+      ("Web  ", "Web", "zh-Hans"): ["end"],
+      ("Copy", "Kopiera", "sv"): [],
+   }
+   for (name, value, tag), expected in edges.items():
+      found = lost_edge_space(name, value, tag)
+      if found != expected:
+         print(f"FAIL: {tag} {name!r} -> {value!r}: lost {found}, expected {expected}")
+         failures += 1
+
+   added = {
+      # (English, translation): the edges where the translation adds white space
+      ("external POP3 fetch account has", " ulkoisella POP3-noutotilillä on"): ["start"],
+      ("Open the member list of '", "Ouvrir la liste des membres de « "): ["end"],
+      ("Open the member list of '", "Ouvrir la liste des membres de «\u00a0"): ["end"],
+      ("Name", " Nom "): ["start", "end"],
+      ("Could not copy: ", "Kopieren nicht möglich: "): [],
+      (" (published {0})", " (veröffentlicht {0})"): [],
+      ("Copy", "Kopiera"): [],
+   }
+   for (name, value), expected in added.items():
+      found = added_edge_space(name, value)
+      if found != expected:
+         print(f"FAIL: {name!r} -> {value!r}: added {found}, expected {expected}")
+         failures += 1
+
+   splits = {
+      # (source, reported): a sentence split around a value and closed by a literal is
+      # reported; a sentence written whole, and two texts joined, are not
+      'DialogFields.ShowError(row_, L("The address must be a name followed by @") + domainName_ + ".");': True,
+      'status_.Text = L("Searching ") + domain + "…";': True,
+      'membersHint_.Text = L("Open the member list of \'") + selectedGroupName_ + "\'.";': True,
+      'content.Children.Add(Paragraph(L("... claiming to be from ") + domain.Name + ".",\n   Typography.Caption));': True,
+      'text = F("{0} of {1} in ", a, b) + place + ")";': True,
+      'membersHint_.Text = F("Open the member list of \'{0}\'.", selectedGroupName_);': False,
+      'status_.Text = L("Could not copy: ") + error;': False,
+      'spoken = L("Next step") + ". " + step;': False,
+      'notes.Add(L("Set by the environment") + " (" + environment + ")");': False,
+      'line = L("Total") + ": " + count;': False,
+      'ratio = L("Delivered ") + done + "/" + total;': False,
+      'status_.Text = L("Last run: ") + when + " ";': False,
+      'path = folder + "\\\\" + name + ".";': False,
+   }
+   for line, expected in splits.items():
+      found = bool(cs_split_sentences(line + "\n"))
+      if found != expected:
+         print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a sentence split around a value")
+         failures += 1
+
+   print(f"self-test: {failures} failure(s)")
+   return 1 if failures else 0
+
+
 def main():
    if hasattr(sys.stdout, "reconfigure"):
       sys.stdout.reconfigure(encoding="utf-8")
+   if "--self-test" in sys.argv[1:]:
+      return self_test()
    write = "--write" in sys.argv
    inventory = "--inventory" in sys.argv
    problems = []
@@ -613,6 +798,12 @@ def main():
             problems.append(f"Strings.{tag}.resx: the placeholders of {name!r} differ in {value!r}")
          if mnemonic_key(name) is not None and mnemonic_key(value) is None:
             problems.append(f"Strings.{tag}.resx: {name!r} carries an Alt key and its translation {value!r} does not")
+         for edge in lost_edge_space(name, value, tag):
+            problems.append(f"Strings.{tag}.resx: {name!r} has white space at its {edge}, where the source joins it to "
+                            f"another text, and its translation {value!r} does not")
+         for edge in added_edge_space(name, value):
+            problems.append(f"Strings.{tag}.resx: {name!r} has no white space at its {edge} and its translation {value!r} "
+                            f"has: the source joins the next text to it as it is, so the space is one too many")
       coverage[tag] = (translated, len(wanted))
       if tag in COMPLETE and translated < len(wanted):
          untranslated = [n for n in wanted if not dict(entries).get(n, "").strip()]
@@ -625,6 +816,11 @@ def main():
       if path in LOCALISED:
          for line, text in remaining[path]:
             problems.append(f"{path}:{line}: untranslated caption {text!r} in a localised file")
+   for path in source_files():
+      if path.endswith(".cs"):
+         for line, code in cs_split_sentences(read(path)):
+            problems.append(f"{rel(path)}:{line}: a sentence split around a value, its end a literal: {code!r}; "
+                            f"write it whole, F(\"... {{0}}.\", value), so that a translator can place the value")
    for path in sorted(LOCALISED):
       if not os.path.exists(os.path.join(ROOT, path)):
          problems.append(f"LOCALISED names {path}, which does not exist")

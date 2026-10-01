@@ -11,11 +11,16 @@ using System.Windows.Threading;
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// Every Copy in the Control Panel puts its text on the clipboard here, as plain
-   /// text: the Copy buttons (DNS records, the message source, the setup keys of
-   /// two-factor sign-in, a new API key or app password, the MX query and the
-   /// diagnostics, a chart's samples), a generated password, and the text and
-   /// list rows that can be selected (SelectableText, SelectableList).
+   /// Every copy the Control Panel's own code makes puts its text on the clipboard
+   /// here, as plain text: the Copy buttons (DNS records, the message source, the
+   /// setup keys of two-factor sign-in, a new API key or app password, the MX query
+   /// and the diagnostics, a chart's samples), a generated password, the text, list
+   /// rows and control captions that can be copied (SelectableText, SelectableList,
+   /// SelectableCaption), the live log's lines and the help pane's text.
+   /// SelectableTextTests.EveryCopy_GoesThroughClipboardWriter holds that no other
+   /// clipboard write is in the source. Two copies are WPF's own and do not come
+   /// here: Ctrl+C or Cut in a text box (the box's own editor, and the theme's
+   /// Copy and Cut on its menu) and Ctrl+C in a data grid (its selected rows).
    ///
    /// In two steps, not Clipboard.SetText's one. SetText hands the text over and
    /// then flushes it - makes the clipboard hold its own copy, so the text

@@ -424,7 +424,7 @@ namespace hMailServer.ControlPanel.Views
       private void CopyIssued()
       {
          if (ClipboardWriter.TrySetText(issuedValue_.Text, out string error))
-            status_.Text = "Copied.";
+            status_.Text = L("Copied.");
          else
             status_.Text = L("Could not copy: ") + error;
       }

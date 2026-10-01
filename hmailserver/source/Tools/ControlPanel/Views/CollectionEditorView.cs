@@ -419,7 +419,7 @@ namespace hMailServer.ControlPanel.Views
             item = FindById(collection, row.Id);
             if (item != null)
                item.Delete();
-            Say_(StatusLevel.Good, "Deleted.");
+            Say_(StatusLevel.Good, L("Deleted."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

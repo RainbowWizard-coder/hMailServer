@@ -257,8 +257,16 @@ namespace hMailServer.ControlPanel.Views
          {
             Content = stack,
             Padding = new Thickness(DesignTokens.Space.Sm, DesignTokens.Space.Xs, DesignTokens.Space.Sm, DesignTokens.Space.Xs),
-            Tag = row
+            Tag = row,
+            // The search box keeps the keyboard (see the list above), so no press on a
+            // row may take it: WPF gives a list item the keyboard on any press of a
+            // button, and a right-click for the row's Copy left it on the row - typing
+            // then reached nothing, until the search box was clicked again. A left
+            // click is read below; a right-click chooses its row here, so the menu's
+            // Copy copies the row that was right-clicked.
+            Focusable = false
          };
+         item.PreviewMouseRightButtonDown += (s, e) => resultsList_.SelectedItem = item;
 
          // The accessible name is the whole result, because a screen-reader user
          // arrowing through the list gets one announcement per row and the
@@ -288,7 +296,7 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case PaletteRowKind.Page:
-               location = location.Length > 0 ? "in " + location : "";
+               location = location.Length > 0 ? F("in {0}", location) : "";
                break;
 
             case PaletteRowKind.Tour:

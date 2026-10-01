@@ -165,7 +165,7 @@ Dit zwakke wachtwoord toch opslaan?</value>
     <value> van {0} KB</value>
   </data>
   <data name=" or " xml:space="preserve">
-    <value> of</value>
+    <value> of </value>
   </data>
   <data name=" {0} DNS record(s) are being looked up in the background; the rows marked &quot;checking&quot; will update." xml:space="preserve">
     <value> {0} DNS-record(s) worden op de achtergrond opgezocht; de rijen gemarkeerd met "controleren" worden bijgewerkt.</value>
@@ -993,7 +993,7 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
     <value>Account (gebruiker)</value>
   </data>
   <data name="Account - " xml:space="preserve">
-    <value>Account -</value>
+    <value>Account - </value>
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Account _ingeschakeld</value>
@@ -1525,7 +1525,7 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
     <value>Alleen aankondigingen</value>
   </data>
   <data name="Anonymous directory read accepted. " xml:space="preserve">
-    <value>Anoniem lezen van de directory geaccepteerd.</value>
+    <value>Anoniem lezen van de directory geaccepteerd. </value>
   </data>
   <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
     <value>Een andere mailbox van de accounthouder waarnaar een herstelkoppeling kan worden gestuurd, en tien eenmalige codes die een code uit een authenticator-app vervangen. Beide stelt de accounthouder zelf in, in de webmail, met het eigen wachtwoord: een beheerder die het adres kon instellen, kon het wachtwoord herstellen door het op zichzelf te richten. Wat hier kan, is een adres wegnemen.</value>
@@ -1644,6 +1644,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Het profiel {0} toepassen? {1} instellingen veranderen, en wat ze hadden wordt bewaard zodat het teruggezet kan worden.</value>
   </data>
+  <data name="Applying..." xml:space="preserve">
+    <value>Wordt toegepast...</value>
+  </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>A_rchief</value>
   </data>
@@ -1702,7 +1705,7 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
     <value>Bij RCPT TO, voordat de inhoud wordt overgedragen — een weigering hier is een 550</value>
   </data>
   <data name="At least " xml:space="preserve">
-    <value>Minstens</value>
+    <value>Minstens </value>
   </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Minstens 12 afdrukbare ASCII-tekens. Laat beide vakken leeg om de wachtwoordzin te houden die al is ingesteld. De server geeft hem nooit terug - niet aan dit programma en niet aan iemand anders - bewaar hem dus ergens anders dan naast de back-ups: een herstel vraagt erom, en uit een archief waarvan de wachtwoordzin kwijt is haalt niemand nog iets.</value>
@@ -2027,6 +2030,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Both ways" xml:space="preserve">
     <value>Beide richtingen</value>
+  </data>
+  <data name="Bottom" xml:space="preserve">
+    <value>Onder</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Bouncetellingen</value>
@@ -2616,6 +2622,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Cop_y" xml:space="preserve">
     <value>Kop_iëren</value>
   </data>
+  <data name="Copied." xml:space="preserve">
+    <value>Gekopieerd.</value>
+  </data>
   <data name="Copies of mail" xml:space="preserve">
     <value>Kopieën van mail</value>
   </data>
@@ -2963,6 +2972,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not write to hMailServer.ini: {0}" xml:space="preserve">
     <value>Kon niet naar hMailServer.ini schrijven: {0}</value>
   </data>
+  <data name="Could not write {0} to {1}" xml:space="preserve">
+    <value>Kon {0} niet naar {1} schrijven</value>
+  </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Kon het uitvoerbare bestand niet uit de opdracht afleiden.</value>
   </data>
@@ -3064,6 +3076,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Custom scanner (external program)" xml:space="preserve">
     <value>Aangepaste scanner (extern programma)</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Knippen</value>
   </data>
   <data name="DANE &amp; DNSSEC" xml:space="preserve">
     <value>DANE en DNSSEC</value>
@@ -3438,6 +3453,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>{0} berichten verwijderd.</value>
+  </data>
+  <data name="Deleted." xml:space="preserve">
+    <value>Verwijderd.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Een domein verwijderen verwijdert de accounts erin. Controleer eerst op aliassen en lijsten die ernaar verwijzen.</value>
@@ -5261,6 +5279,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>D_it account niet in het adresboek opnemen</value>
   </data>
+  <data name="Left Edge" xml:space="preserve">
+    <value>Linkerrand</value>
+  </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Leeg gelaten gebruikt de server het meegeleverde filter dat in het grijs wordt getoond - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
   </data>
@@ -5749,6 +5770,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   <data name="MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*" xml:space="preserve">
     <value>MaxMind-databases (*.mmdb)|*.mmdb|Alle bestanden (*.*)|*.*</value>
   </data>
+  <data name="Maximise" xml:space="preserve">
+    <value>Maximaliseren</value>
+  </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Maximale _domeingrootte (MB, 0 = onbeperkt)</value>
   </data>
@@ -5952,6 +5976,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Migrations" xml:space="preserve">
     <value>Migraties</value>
   </data>
+  <data name="Minimise" xml:space="preserve">
+    <value>Minimaliseren</value>
+  </data>
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>Minimale lengte (0 = geen minimum)</value>
   </data>
@@ -6141,8 +6168,14 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Next" xml:space="preserve">
     <value>Volgende</value>
   </data>
+  <data name="Next decade" xml:space="preserve">
+    <value>Volgend decennium</value>
+  </data>
   <data name="Next key" xml:space="preserve">
     <value>Volgende sleutel</value>
+  </data>
+  <data name="Next month" xml:space="preserve">
+    <value>Volgende maand</value>
   </data>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Volgende rotatie gepland {0}</value>
@@ -6155,6 +6188,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Volgende poging</value>
+  </data>
+  <data name="Next year" xml:space="preserve">
+    <value>Volgend jaar</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>Nee</value>
@@ -7023,8 +7059,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>De live logboeken openen</value>
   </data>
-  <data name="Open the member list of '" xml:space="preserve">
-    <value>De ledenlijst openen van '</value>
+  <data name="Open the member list of '{0}'." xml:space="preserve">
+    <value>De ledenlijst van '{0}' openen.</value>
   </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>De configuratiechecklist openen: elk onderdeel, wat klaar is en wat de volgende stap is</value>
@@ -7233,6 +7269,18 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="P_ort" xml:space="preserve">
     <value>Poo_rt</value>
   </data>
+  <data name="Page Down" xml:space="preserve">
+    <value>Pagina omlaag</value>
+  </data>
+  <data name="Page Left" xml:space="preserve">
+    <value>Pagina naar links</value>
+  </data>
+  <data name="Page Right" xml:space="preserve">
+    <value>Pagina naar rechts</value>
+  </data>
+  <data name="Page Up" xml:space="preserve">
+    <value>Pagina omhoog</value>
+  </data>
   <data name="Page content" xml:space="preserve">
     <value>Pagina-inhoud</value>
   </data>
@@ -7295,6 +7343,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Wachtwoorden, en wat ze mag vervoeren</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Plakken</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Plak het certificaat, of twee terwijl de provider zijn sleutel vervangt. Het wordt nooit meer getoond: de regel hieronder zegt wat er is opgeslagen.</value>
@@ -7471,6 +7522,15 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Eerst een voorbeeld, dan toepassen</value>
+  </data>
+  <data name="Previous decade" xml:space="preserve">
+    <value>Vorig decennium</value>
+  </data>
+  <data name="Previous month" xml:space="preserve">
+    <value>Vorige maand</value>
+  </data>
+  <data name="Previous year" xml:space="preserve">
+    <value>Vorig jaar</value>
   </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>ChaCha20-Poly1305 voorrang geven wanneer de client die verkiest (vereist TLS 1.2 of 1.3)</value>
@@ -8336,6 +8396,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Do_meinen herstellen</value>
   </data>
+  <data name="Restore down" xml:space="preserve">
+    <value>Vorig formaat</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Berich_ten herstellen</value>
   </data>
@@ -8426,6 +8489,9 @@ Doorgaan?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>De envelopafzender herschrijven bij het doorsturen (de eenvoudige terugval, geen geheim nodig)</value>
+  </data>
+  <data name="Right Edge" xml:space="preserve">
+    <value>Rechterrand</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
@@ -8880,6 +8946,21 @@ Doorgaan?</value>
   <data name="Scripting engine" xml:space="preserve">
     <value>Scriptengine</value>
   </data>
+  <data name="Scroll Down" xml:space="preserve">
+    <value>Omlaag schuiven</value>
+  </data>
+  <data name="Scroll Here" xml:space="preserve">
+    <value>Hierheen schuiven</value>
+  </data>
+  <data name="Scroll Left" xml:space="preserve">
+    <value>Naar links schuiven</value>
+  </data>
+  <data name="Scroll Right" xml:space="preserve">
+    <value>Naar rechts schuiven</value>
+  </data>
+  <data name="Scroll Up" xml:space="preserve">
+    <value>Omhoog schuiven</value>
+  </data>
   <data name="Scroll tabs left" xml:space="preserve">
     <value>Tabbladen naar links schuiven</value>
   </data>
@@ -8961,8 +9042,8 @@ Doorgaan?</value>
   <data name="Searches" xml:space="preserve">
     <value>Zoekopdrachten</value>
   </data>
-  <data name="Searching " xml:space="preserve">
-    <value>Bezig met zoeken </value>
+  <data name="Searching {0}…" xml:space="preserve">
+    <value>Bezig met zoeken in {0}…</value>
   </data>
   <data name="Second factor on the administrator credential" xml:space="preserve">
     <value>Tweede factor op de beheerdersreferentie</value>
@@ -10218,8 +10299,8 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Het adres wordt hier en overal elders gemaskeerd getoond, en geen enkele interface geeft het heel terug: het is een mailbox van die persoon, en niets wat een beheerder doet hoeft het te lezen.</value>
   </data>
-  <data name="The address must be a name followed by @" xml:space="preserve">
-    <value>Het adres moet een naam zijn gevolgd door @</value>
+  <data name="The address must be a name followed by @{0}." xml:space="preserve">
+    <value>Het adres moet een naam zijn gevolgd door @{0}.</value>
   </data>
   <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only." xml:space="preserve">
     <value>Het adres waarop de REST-API van buitenaf bereikbaar is; de pagina's voor aanmelden, bevestigen, afmelden en het archief staan eronder. Alleen een https-adres geeft afmelden met één klik (RFC 8058). Leeg, de standaard, stuurt alleen mailto-adressen.</value>
@@ -10508,7 +10589,7 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
     <value>De begroetings-, bounce- en foutteksten die de server naar clients terugstuurt.</value>
   </data>
   <data name="The group members could not be read: " xml:space="preserve">
-    <value>De groepsleden konden niet worden gelezen:</value>
+    <value>De groepsleden konden niet worden gelezen: </value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
     <value>De groepen waarmee deze server een TLS-sleutel wil overeenkomen, in de lijstvorm van OpenSSL. Zoals geleverd biedt hij eerst de twee post-quantumhybriden aan en valt hij terug op X25519 en de NIST-krommen voor een tegenpartij die geen van beide heeft, zodat er voor een oudere client niets verandert. Een lege lijst, of een die OpenSSL afwijst of die geen enkele groep ingeschakeld zou laten, wordt niet toegepast: de server logt hem en gebruikt de klassieke terugval, dus een fout hier kan TLS niet platleggen - maar hij geeft de hybriden wel stilzwijgend op, en daarom wordt de geleverde lijst getoond in plaats van een leeg veld. Wijzig hem aan de hand van een scan en niet in het duister.</value>
@@ -10831,7 +10912,7 @@ Toch toevoegen?</value>
     <value>De run is niet voltooid. Wat er is gelezen voordat hij stopte, staat hieronder.</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
-    <value>De run is mislukt:</value>
+    <value>De run is mislukt: </value>
   </data>
   <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
     <value>Hetzelfde verlopende IP-bereik dat een reeks mislukte aanmeldingen aanmaakt, opgeheven door dezelfde opruiming en in de firewall gespiegeld door dezelfde afstemming; nooit voor een adres in AutoBanNeverBan of een inkomend relay. Standaard uit, zodat één verkeerd verzonden rapport met twee ontvangers geen echte mailserver verbant. Doet niets zolang de weigering hierboven uit staat.</value>
@@ -10858,7 +10939,7 @@ Toch toevoegen?</value>
     <value>De score wordt over beide fasen opgeteld. De server stopt binnen een fase met testen zodra het lopende totaal {0} bereikt - de hoogste van de twee drempels - dus een controle die laat in de volgorde staat, draait mogelijk nooit.</value>
   </data>
   <data name="The search found exactly one entry: {0}. " xml:space="preserve">
-    <value>Het zoeken vond precies één vermelding: {0}.</value>
+    <value>Het zoeken vond precies één vermelding: {0}. </value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Het zoeken kwam overeen met MEER dan één directoryvermelding (filter {0}, basis {1}). De server weigert te authenticeren tegen een dubbelzinnige overeenkomst - laat UserSearchFilter of SearchBase precies één vermelding selecteren.</value>
@@ -11234,8 +11315,8 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="This server now" xml:space="preserve">
     <value>Deze server nu</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
-    <value>Deze server CONTROLEERT SPF alleen op inkomende mail; het record publiceren is voor alle anderen - het vertelt ontvangende servers welke machines mail mogen versturen die beweert te komen van</value>
+  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>Deze server CONTROLEERT SPF alleen op inkomende mail; het record publiceren is voor alle anderen - het vertelt ontvangende servers welke machines mail mogen versturen die beweert te komen van {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Deze server vereist een eenmalige code voor de beheerder.</value>
@@ -11338,6 +11419,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>Tokens die met {0} zijn ondertekend, worden geweigerd: deze server implementeert alleen RS256, ES256 en HS256. Haal uit de lijst wat de server niet kan verifiëren, zodat een client die het aanbiedt wordt geweigerd om een reden die het logboek duidelijk maakt, in plaats van toegestaan te lijken.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Boven</value>
   </data>
   <data name="Tour" xml:space="preserve">
     <value>Rondleiding</value>
@@ -11733,7 +11817,7 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
     <value>Zwak wachtwoord – voeg {0} toe.</value>
   </data>
   <data name="Web  " xml:space="preserve">
-    <value>Web</value>
+    <value>Web  </value>
   </data>
   <data name="Web Push notifications" xml:space="preserve">
     <value>Web Push-meldingen</value>
@@ -11868,7 +11952,7 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
     <value>Wat deze server nog nodig heeft, in de volgorde waarin een nieuwe installatie het tegenkomt. Elk onderdeel zegt of het klaar is, de volgende stap is gemarkeerd en de knop ernaast opent de pagina die het regelt. Waar het antwoord hier niet te lezen is, zegt het onderdeel wat u moet controleren in plaats van te gokken.</value>
   </data>
   <data name="What to do: " xml:space="preserve">
-    <value>Wat te doen:</value>
+    <value>Wat te doen: </value>
   </data>
   <data name="What will be written:" xml:space="preserve">
     <value>Wat wordt geschreven:</value>
@@ -12873,7 +12957,7 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
     <value>mail bij een andere provider ophalen</value>
   </data>
   <data name="collecting" xml:space="preserve">
-    <value>bezig met ophalen</value>
+    <value>gegevens verzamelen</value>
   </data>
   <data name="configure a phone or tablet" xml:space="preserve">
     <value>een telefoon of tablet instellen</value>
@@ -12892,6 +12976,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="create an e-mail address" xml:space="preserve">
     <value>een e-mailadres aanmaken</value>
+  </data>
+  <data name="dash-dotted line" xml:space="preserve">
+    <value>streep-puntlijn</value>
+  </data>
+  <data name="dashed line" xml:space="preserve">
+    <value>streepjeslijn</value>
   </data>
   <data name="delete a mailing list" xml:space="preserve">
     <value>een mailinglijst verwijderen</value>
@@ -12925,6 +13015,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="domains: {0}" xml:space="preserve">
     <value>domeinen: {0}</value>
+  </data>
+  <data name="dotted line" xml:space="preserve">
+    <value>stippellijn</value>
   </data>
   <data name="equals" xml:space="preserve">
     <value>is gelijk aan</value>
@@ -13056,6 +13149,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="in use by a listener" xml:space="preserve">
     <value>in gebruik door een listener</value>
   </data>
+  <data name="in {0}" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
   <data name="inactive" xml:space="preserve">
     <value>inactief</value>
   </data>
@@ -13110,6 +13206,15 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="keys" xml:space="preserve">
     <value>sleutels</value>
   </data>
+  <data name="last {0} hours" xml:space="preserve">
+    <value>laatste {0} uur</value>
+  </data>
+  <data name="last {0} minutes" xml:space="preserve">
+    <value>laatste {0} minuten</value>
+  </data>
+  <data name="last {0} seconds" xml:space="preserve">
+    <value>laatste {0} seconden</value>
+  </data>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitieme mail wordt als spam gemarkeerd</value>
   </data>
@@ -13151,6 +13256,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="logs are filling the disk" xml:space="preserve">
     <value>logboeken vullen de schijf</value>
+  </data>
+  <data name="long-dashed line" xml:space="preserve">
+    <value>lange streepjeslijn</value>
   </data>
   <data name="mail from a new sender is delayed" xml:space="preserve">
     <value>mail van een nieuwe afzender wordt vertraagd</value>
@@ -13364,6 +13472,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>uitgaande mail met DKIM ondertekenen</value>
+  </data>
+  <data name="solid line" xml:space="preserve">
+    <value>doorgetrokken lijn</value>
   </data>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>iemand probeert wachtwoorden te raden</value>
@@ -13799,6 +13910,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} items kunnen vanaf hier niet worden gecontroleerd.</value>
+  </data>
+  <data name="{0} latest {1}" xml:space="preserve">
+    <value>{0}: laatste {1}</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} bericht verwijst naar een bestand dat ontbreekt op schijf.</value>

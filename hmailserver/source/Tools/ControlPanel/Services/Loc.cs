@@ -125,6 +125,35 @@ namespace hMailServer.ControlPanel.Services
             || culture.Equals(CultureInfo.InvariantCulture)
             || string.Equals(culture.TwoLetterISOLanguageName, "en", StringComparison.OrdinalIgnoreCase);
 
+      /// <summary>
+      /// True when <paramref name="culture"/> is one of <see cref="Languages"/> other than
+      /// English, itself or through a parent (sv-SE is sv, zh-CN is zh-Hans): a language
+      /// the catalogue translates into. False for English and for a language it has no
+      /// catalogue for (Korean, say), in which the Control Panel's own words are English.
+      /// </summary>
+      public static bool HasCatalogue(CultureInfo culture)
+      {
+         for (CultureInfo current = culture; current != null && !current.Equals(CultureInfo.InvariantCulture); current = current.Parent)
+         {
+            if (IsEnglish(current))
+               return false;
+
+            foreach (Language language in Languages)
+            {
+               if (language.Tag.Length > 0 && string.Equals(language.Tag, current.Name, StringComparison.OrdinalIgnoreCase))
+                  return true;
+            }
+         }
+
+         return false;
+      }
+
+      /// <summary>
+      /// True when the words <see cref="L"/> gives are translated: the culture in force
+      /// has a catalogue (<see cref="HasCatalogue"/>) and it could be read.
+      /// </summary>
+      public static bool Translated => !english_ && HasCatalogue(culture_);
+
       /// <summary>The translation of <paramref name="english"/>, or the English itself when there is none.</summary>
       public static string L(string english)
       {

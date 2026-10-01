@@ -38,6 +38,10 @@ namespace hMailServer.ControlPanel
          SelectableText.Install();
          SelectableList.Install();
          SelectableCaption.Install();
+
+         // The words WPF shows by itself - a text box's Copy, Cut and Paste, a scroll
+         // bar's menu - in the language chosen above, where the catalogue has it.
+         FrameworkWords.Install();
       }
 
       protected override void OnExit(ExitEventArgs e)

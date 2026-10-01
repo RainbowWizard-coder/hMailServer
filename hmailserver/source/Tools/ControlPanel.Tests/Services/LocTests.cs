@@ -101,6 +101,59 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(english, Loc.IsEnglish(culture));
       }
 
+      /// <summary>
+      /// Whether a culture is one the catalogue translates into: by itself or by a
+      /// parent, never English, never a language with no catalogue. FrameworkWords
+      /// asks it before putting the catalogue's words in place of WPF's: a Korean
+      /// Windows, which the Control Panel shows in English, keeps WPF's Korean.
+      /// </summary>
+      [Theory]
+      [InlineData("sv", true)]
+      [InlineData("sv-SE", true)]
+      [InlineData("sv-FI", true)]
+      [InlineData("nb-NO", true)]
+      [InlineData("da-DK", true)]
+      [InlineData("fi", true)]
+      [InlineData("nl-BE", true)]
+      [InlineData("uk-UA", true)]
+      [InlineData("zh-Hans", true)]
+      [InlineData("zh-CN", true)]
+      [InlineData("pt-BR", true)]
+      [InlineData("de-AT", true)]
+      [InlineData("ja-JP", true)]
+      [InlineData("pt-PT", false)]
+      [InlineData("zh-Hant", false)]
+      [InlineData("ko-KR", false)]
+      [InlineData("en", false)]
+      [InlineData("en-GB", false)]
+      [InlineData("", false)]
+      public void ACatalogueLanguageIsKnownByItselfOrItsParent(string tag, bool has)
+      {
+         CultureInfo culture = tag.Length == 0 ? CultureInfo.InvariantCulture : CultureInfo.GetCultureInfo(tag);
+         Assert.Equal(has, Loc.HasCatalogue(culture));
+      }
+
+      [Fact]
+      public void TranslatedIsTrueOnlyWithACatalogueLanguageThatCanBeRead()
+      {
+         Assert.False(Loc.Translated);   // nothing chosen: English
+
+         Loc.Use((text, culture) => "översatt", Swedish);
+         Assert.True(Loc.Translated);
+
+         Loc.Use((text, culture) => "번역", CultureInfo.GetCultureInfo("ko"));
+         Assert.False(Loc.Translated);
+
+         Loc.Use((text, culture) => "translated", CultureInfo.GetCultureInfo("en-GB"));
+         Assert.False(Loc.Translated);
+
+         // A catalogue that cannot be read gives English from then on, so the words
+         // are not translated either.
+         Loc.Use((text, culture) => throw new InvalidOperationException("no satellite"), Swedish);
+         Assert.Equal("Copy", Loc.L("Copy"));
+         Assert.False(Loc.Translated);
+      }
+
       [Fact]
       public void AStoredTagResolvesToItsCultureAndNonsenseToEnglish()
       {

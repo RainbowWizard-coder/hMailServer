@@ -187,12 +187,12 @@ namespace hMailServer.ControlPanel.Views
          TimeSpan span = times_[times_.Count - 1] - times_[0];
 
          if (span.TotalSeconds < 90)
-            return "last " + Math.Max(1, (int)Math.Round(span.TotalSeconds)) + " seconds";
+            return F("last {0} seconds", Math.Max(1, (int)Math.Round(span.TotalSeconds)));
 
          if (span.TotalMinutes < 90)
-            return "last " + Math.Max(1, (int)Math.Round(span.TotalMinutes)) + " minutes";
+            return F("last {0} minutes", Math.Max(1, (int)Math.Round(span.TotalMinutes)));
 
-         return "last " + Math.Max(1, (int)Math.Round(span.TotalHours)) + " hours";
+         return F("last {0} hours", Math.Max(1, (int)Math.Round(span.TotalHours)));
       }
 
       /// <summary>Switches between the chart and the table view.</summary>
@@ -732,7 +732,7 @@ namespace hMailServer.ControlPanel.Views
             // drawn. The marker shape is deliberately NOT announced: the plot draws no
             // markers (GeometrySize = 0), and describing one would send a screen-reader
             // user looking for something that does not exist.
-            AutomationProperties.SetName(name, style.Name + ", " + style.PatternText + " line");
+            AutomationProperties.SetName(name, style.Name + ", " + style.PatternText);
 
             var value = new TextBlock
             {
@@ -787,8 +787,7 @@ namespace hMailServer.ControlPanel.Views
             ChartSeriesSummary series = summary_.Series[i];
             legendValues_[i].Text = ChartDataTable.Format(series.Latest, definition_.ValueFormat);
 
-            string spoken = series.Name + " latest "
-               + ChartDataTable.Format(series.Latest, definition_.ValueFormat);
+            string spoken = F("{0} latest {1}", series.Name, ChartDataTable.Format(series.Latest, definition_.ValueFormat));
             if (series.Peak.HasValue)
                spoken += F(", peak {0}", ChartDataTable.Format(series.Peak, definition_.ValueFormat));
             if (definition_.Unit.Length > 0)

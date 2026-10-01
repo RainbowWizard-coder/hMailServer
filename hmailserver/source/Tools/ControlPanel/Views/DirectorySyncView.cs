@@ -633,7 +633,7 @@ namespace hMailServer.ControlPanel.Views
 
          previewButton_.IsEnabled = false;
          applyButton_.IsEnabled = false;
-         Summary_(StatusLevel.Information, apply ? "Applying..." : L("Reading the directory..."));
+         Summary_(StatusLevel.Information, apply ? L("Applying...") : L("Reading the directory..."));
          attentionText_.Text = "";
          rows_.Children.Clear();
 

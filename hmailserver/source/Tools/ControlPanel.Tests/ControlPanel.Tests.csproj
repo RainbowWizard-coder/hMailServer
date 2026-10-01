@@ -21,6 +21,13 @@
     <ProjectReference Include="..\ControlPanel.Core\ControlPanel.Core.csproj" />
   </ItemGroup>
 
+  <!-- Live logs' reading of the log and its following of the end, apart from the
+       window that draws them: whole lines, a tail begun mid-line, a rotated file, and
+       where the view goes as lines arrive and the oldest are dropped. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\LiveLogTail.cs" />
+  </ItemGroup>
+
   <!-- Chart accessibility: the palette, the catalogue, the table view and the
        status vocabulary. These are compiled straight into the test assembly rather
        than routed through ControlPanel.Core, because the app compiles them too (they

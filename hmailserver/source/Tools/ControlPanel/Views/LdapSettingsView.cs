@@ -589,7 +589,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (!ProfileApi.WriteString(IniSection, key, value, store_.IniPath))
             throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(),
-               "Could not write " + key + " to " + store_.IniPath);
+               F("Could not write {0} to {1}", key, store_.IniPath));
       }
 
       private void Load_()

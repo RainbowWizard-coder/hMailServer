@@ -1644,6 +1644,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.</value>
   </data>
+  <data name="Applying..." xml:space="preserve">
+    <value>Applying...</value>
+  </data>
   <data name="Ar_chive" xml:space="preserve">
     <value>Ar_chive</value>
   </data>
@@ -2027,6 +2030,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Both ways" xml:space="preserve">
     <value>Both ways</value>
+  </data>
+  <data name="Bottom" xml:space="preserve">
+    <value>Bottom</value>
   </data>
   <data name="Bounce counts" xml:space="preserve">
     <value>Bounce counts</value>
@@ -2616,6 +2622,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Cop_y" xml:space="preserve">
     <value>Cop_y</value>
   </data>
+  <data name="Copied." xml:space="preserve">
+    <value>Copied.</value>
+  </data>
   <data name="Copies of mail" xml:space="preserve">
     <value>Copies of mail</value>
   </data>
@@ -2963,6 +2972,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not write to hMailServer.ini: {0}" xml:space="preserve">
     <value>Could not write to hMailServer.ini: {0}</value>
   </data>
+  <data name="Could not write {0} to {1}" xml:space="preserve">
+    <value>Could not write {0} to {1}</value>
+  </data>
   <data name="Couldn't determine the executable from the command." xml:space="preserve">
     <value>Couldn't determine the executable from the command.</value>
   </data>
@@ -3064,6 +3076,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Custom scanner (external program)" xml:space="preserve">
     <value>Custom scanner (external program)</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Cut</value>
   </data>
   <data name="DANE &amp; DNSSEC" xml:space="preserve">
     <value>DANE &amp; DNSSEC</value>
@@ -3438,6 +3453,9 @@ The sender was told it was accepted, so nothing will retry and there is no other
   </data>
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>Deleted {0} messages.</value>
+  </data>
+  <data name="Deleted." xml:space="preserve">
+    <value>Deleted.</value>
   </data>
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first.</value>
@@ -5261,6 +5279,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Leave this account _out of the directory" xml:space="preserve">
     <value>Leave this account _out of the directory</value>
   </data>
+  <data name="Left Edge" xml:space="preserve">
+    <value>Left Edge</value>
+  </data>
   <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
     <value>Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design.</value>
   </data>
@@ -5749,6 +5770,9 @@ Every Web Push subscription made under the present pair stops working at once, a
   <data name="MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*" xml:space="preserve">
     <value>MaxMind databases (*.mmdb)|*.mmdb|All files (*.*)|*.*</value>
   </data>
+  <data name="Maximise" xml:space="preserve">
+    <value>Maximise</value>
+  </data>
   <data name="Maximum _domain size (MB, 0 = unlimited)" xml:space="preserve">
     <value>Maximum _domain size (MB, 0 = unlimited)</value>
   </data>
@@ -5952,6 +5976,9 @@ Nothing already there is removed.</value>
   <data name="Migrations" xml:space="preserve">
     <value>Migrations</value>
   </data>
+  <data name="Minimise" xml:space="preserve">
+    <value>Minimise</value>
+  </data>
   <data name="Minimum length (0 = no minimum)" xml:space="preserve">
     <value>Minimum length (0 = no minimum)</value>
   </data>
@@ -6141,8 +6168,14 @@ Nothing already there is removed.</value>
   <data name="Next" xml:space="preserve">
     <value>Next</value>
   </data>
+  <data name="Next decade" xml:space="preserve">
+    <value>Next decade</value>
+  </data>
   <data name="Next key" xml:space="preserve">
     <value>Next key</value>
+  </data>
+  <data name="Next month" xml:space="preserve">
+    <value>Next month</value>
   </data>
   <data name="Next rotation due {0}" xml:space="preserve">
     <value>Next rotation due {0}</value>
@@ -6155,6 +6188,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Next try" xml:space="preserve">
     <value>Next try</value>
+  </data>
+  <data name="Next year" xml:space="preserve">
+    <value>Next year</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>No</value>
@@ -7023,8 +7059,8 @@ Nothing already there is removed.</value>
   <data name="Open the live logs" xml:space="preserve">
     <value>Open the live logs</value>
   </data>
-  <data name="Open the member list of '" xml:space="preserve">
-    <value>Open the member list of '</value>
+  <data name="Open the member list of '{0}'." xml:space="preserve">
+    <value>Open the member list of '{0}'.</value>
   </data>
   <data name="Open the setup checklist: every item, what is done and what to do next" xml:space="preserve">
     <value>Open the setup checklist: every item, what is done and what to do next</value>
@@ -7233,6 +7269,18 @@ Nothing already there is removed.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_ort</value>
   </data>
+  <data name="Page Down" xml:space="preserve">
+    <value>Page Down</value>
+  </data>
+  <data name="Page Left" xml:space="preserve">
+    <value>Page Left</value>
+  </data>
+  <data name="Page Right" xml:space="preserve">
+    <value>Page Right</value>
+  </data>
+  <data name="Page Up" xml:space="preserve">
+    <value>Page Up</value>
+  </data>
   <data name="Page content" xml:space="preserve">
     <value>Page content</value>
   </data>
@@ -7295,6 +7343,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Passwords, and what is allowed to carry them" xml:space="preserve">
     <value>Passwords, and what is allowed to carry them</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
   </data>
   <data name="Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held." xml:space="preserve">
     <value>Paste the certificate, or two while the provider rolls its key over. It is never shown again: the line below says what is held.</value>
@@ -7471,6 +7522,15 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="Preview, then apply" xml:space="preserve">
     <value>Preview, then apply</value>
+  </data>
+  <data name="Previous decade" xml:space="preserve">
+    <value>Previous decade</value>
+  </data>
+  <data name="Previous month" xml:space="preserve">
+    <value>Previous month</value>
+  </data>
+  <data name="Previous year" xml:space="preserve">
+    <value>Previous year</value>
   </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)</value>
@@ -8336,6 +8396,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Restore dom_ains" xml:space="preserve">
     <value>Restore dom_ains</value>
   </data>
+  <data name="Restore down" xml:space="preserve">
+    <value>Restore down</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Restore messa_ges</value>
   </data>
@@ -8426,6 +8489,9 @@ Continue?</value>
   </data>
   <data name="Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)" xml:space="preserve">
     <value>Rewrite the envelope sender when forwarding (the simple fallback, no secret needed)</value>
+  </data>
+  <data name="Right Edge" xml:space="preserve">
+    <value>Right Edge</value>
   </data>
   <data name="Role" xml:space="preserve">
     <value>Role</value>
@@ -8880,6 +8946,21 @@ Continue?</value>
   <data name="Scripting engine" xml:space="preserve">
     <value>Scripting engine</value>
   </data>
+  <data name="Scroll Down" xml:space="preserve">
+    <value>Scroll Down</value>
+  </data>
+  <data name="Scroll Here" xml:space="preserve">
+    <value>Scroll Here</value>
+  </data>
+  <data name="Scroll Left" xml:space="preserve">
+    <value>Scroll Left</value>
+  </data>
+  <data name="Scroll Right" xml:space="preserve">
+    <value>Scroll Right</value>
+  </data>
+  <data name="Scroll Up" xml:space="preserve">
+    <value>Scroll Up</value>
+  </data>
   <data name="Scroll tabs left" xml:space="preserve">
     <value>Scroll tabs left</value>
   </data>
@@ -8961,8 +9042,8 @@ Continue?</value>
   <data name="Searches" xml:space="preserve">
     <value>Searches</value>
   </data>
-  <data name="Searching " xml:space="preserve">
-    <value>Searching </value>
+  <data name="Searching {0}…" xml:space="preserve">
+    <value>Searching {0}…</value>
   </data>
   <data name="Second factor on the administrator credential" xml:space="preserve">
     <value>Second factor on the administrator credential</value>
@@ -10218,8 +10299,8 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it.</value>
   </data>
-  <data name="The address must be a name followed by @" xml:space="preserve">
-    <value>The address must be a name followed by @</value>
+  <data name="The address must be a name followed by @{0}." xml:space="preserve">
+    <value>The address must be a name followed by @{0}.</value>
   </data>
   <data name="The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only." xml:space="preserve">
     <value>The address the REST API is reached at from outside; the subscribe, confirm, unsubscribe and archive pages are under it. Only an https address gives one-click unsubscribe (RFC 8058). Empty, the default, sends mailto addresses only.</value>
@@ -11234,8 +11315,8 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="This server now" xml:space="preserve">
     <value>This server now</value>
   </data>
-  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from " xml:space="preserve">
-    <value>This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from </value>
+  <data name="This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}." xml:space="preserve">
+    <value>This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>This server requires a one-time code for the administrator.</value>
@@ -11338,6 +11419,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Top</value>
   </data>
   <data name="Tour" xml:space="preserve">
     <value>Tour</value>
@@ -12893,6 +12977,12 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="create an e-mail address" xml:space="preserve">
     <value>create an e-mail address</value>
   </data>
+  <data name="dash-dotted line" xml:space="preserve">
+    <value>dash-dotted line</value>
+  </data>
+  <data name="dashed line" xml:space="preserve">
+    <value>dashed line</value>
+  </data>
   <data name="delete a mailing list" xml:space="preserve">
     <value>delete a mailing list</value>
   </data>
@@ -12925,6 +13015,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="domains: {0}" xml:space="preserve">
     <value>domains: {0}</value>
+  </data>
+  <data name="dotted line" xml:space="preserve">
+    <value>dotted line</value>
   </data>
   <data name="equals" xml:space="preserve">
     <value>equals</value>
@@ -13056,6 +13149,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="in use by a listener" xml:space="preserve">
     <value>in use by a listener</value>
   </data>
+  <data name="in {0}" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
   <data name="inactive" xml:space="preserve">
     <value>inactive</value>
   </data>
@@ -13110,6 +13206,15 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="keys" xml:space="preserve">
     <value>keys</value>
   </data>
+  <data name="last {0} hours" xml:space="preserve">
+    <value>last {0} hours</value>
+  </data>
+  <data name="last {0} minutes" xml:space="preserve">
+    <value>last {0} minutes</value>
+  </data>
+  <data name="last {0} seconds" xml:space="preserve">
+    <value>last {0} seconds</value>
+  </data>
   <data name="legitimate mail is being marked as spam" xml:space="preserve">
     <value>legitimate mail is being marked as spam</value>
   </data>
@@ -13151,6 +13256,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="logs are filling the disk" xml:space="preserve">
     <value>logs are filling the disk</value>
+  </data>
+  <data name="long-dashed line" xml:space="preserve">
+    <value>long-dashed line</value>
   </data>
   <data name="mail from a new sender is delayed" xml:space="preserve">
     <value>mail from a new sender is delayed</value>
@@ -13364,6 +13472,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>sign outgoing mail with dkim</value>
+  </data>
+  <data name="solid line" xml:space="preserve">
+    <value>solid line</value>
   </data>
   <data name="someone is trying to guess passwords" xml:space="preserve">
     <value>someone is trying to guess passwords</value>
@@ -13799,6 +13910,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} items cannot be checked from here.</value>
+  </data>
+  <data name="{0} latest {1}" xml:space="preserve">
+    <value>{0} latest {1}</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} message references a file that is missing on disk.</value>
