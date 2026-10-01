@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
@@ -207,6 +208,70 @@ namespace RegressionTests.AntiSpam
                ClassicAssert.Less(started.Elapsed.TotalSeconds, 20,
                   "A hook configured with a 2 second timeout must not let a 30 second engine hold " +
                   "the message. Took " + started.Elapsed.TotalSeconds + "s.");
+            }
+            finally
+            {
+               ClearHook();
+               RestartServerAndReacquireCom();
+            }
+         }
+      }
+
+      [Test]
+      [Description("A score that is no number this server takes - not a number, an infinity, or past a million either way - counts as the most spam there is, 1000000, never the least. The score is rounded to the int the spam framework counts in, and each of these used to round to INT_MIN on x64, so that an engine's 'as much spam as can be' let the message through as clean")]
+      public void AScoreThatIsNoNumberCountsAsTheMostSpam()
+      {
+         string address = SingletonProvider<TestSetup>.Instance
+            .AddAccount(_domain, "hookworst@example.test", "test").Address;
+
+         var antiSpam = _application.Settings.AntiSpam;
+         antiSpam.SpamMarkThreshold = 5;
+         antiSpam.SpamDeleteThreshold = 1000;
+         antiSpam.AddHeaderReason = true;
+
+         using (var engine = new FakeFilterEngine("{\"action\":\"no action\",\"score\":2}"))
+         {
+            try
+            {
+               ConfigureHook(engine.Url);
+               RestartServerAndReacquireCom();
+
+               // An ordinary score first, so that the engine is known to be asked
+               // and its answer applied: 2 is under the mark threshold.
+               SmtpClientSimulator.StaticSend("outsider@unaligned-envelope.test", address, "ordinary", "Body");
+               string ordinary = Pop3ClientSimulator.AssertGetFirstMessageText(address, "test");
+               StringAssert.DoesNotContain("(Score:", ordinary, "A score of 2 marks nothing. Got: " + ordinary);
+
+               // Python's json writes NaN, Infinity and -Infinity; 1e999 is an
+               // infinity once it is a double. Each is refused now - 1000000 is far
+               // past the delete threshold of 1000 - and each was let through.
+               var letThrough = new List<string>();
+               foreach (string score in new[] { "1e10", "Infinity", "NaN", "\"nan\"", "1e999", "-1e10", "-Infinity" })
+               {
+                  engine.Response = "{\"action\":\"add header\",\"score\":" + score + "}";
+                  try
+                  {
+                     SmtpClientSimulator.StaticSend("outsider@unaligned-envelope.test", address, "score " + score, "Body");
+                     letThrough.Add(score);
+                  }
+                  catch (DeliveryFailedException)
+                  {
+                     // Refused: the most spam there is.
+                  }
+               }
+
+               CollectionAssert.IsEmpty(letThrough,
+                  "Each of these scores should count as the most spam there is, and so be refused; these were let through: " +
+                  string.Join(", ", letThrough));
+
+               // What it counts as, exactly: with the delete threshold above it, the
+               // message is delivered and marked with a score of 1000000.
+               _application.Settings.AntiSpam.SpamDeleteThreshold = 2000000;
+               engine.Response = "{\"action\":\"add header\",\"score\":NaN}";
+               SmtpClientSimulator.StaticSend("outsider@unaligned-envelope.test", address, "counted", "Body");
+               string counted = Pop3ClientSimulator.AssertGetFirstMessageText(address, "test");
+               StringAssert.Contains("(Score: 1000000)", counted,
+                  "A score that is not a number counts as 1000000. Got: " + counted);
             }
             finally
             {

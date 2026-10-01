@@ -81,6 +81,10 @@ namespace HM
       AnsiString GetHash_(const AnsiString &sInputString, RequestedEncoding encoding);
       AnsiString GetHash_Raw(const unsigned char *input, int inputLength, RequestedEncoding encoding);
 
+   public:
+
+      // Public so that SCRAM (ScramSha256::ParseStoredPbkdf2_) holds a stored
+      // hash's iteration count to the bound ValidatePBKDF2 holds it to.
       enum Sizes
       {
          SALT_LENGTH = 6,
@@ -114,6 +118,8 @@ namespace HM
          SCRYPT_MAX_R = 32,
          SCRYPT_MAX_P = 16
       };
+
+   private:
 
       HashType hash_type_;
    };

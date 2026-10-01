@@ -523,13 +523,18 @@ namespace HM
       const JsonValue *sizeValue = document.Get("size");
       if (!sizeValue || !sizeValue->IsNumber() || sizeValue->AsNumber() < 1)
          return BuildResponse_(400, "{\"error\":\"size is the file's length in bytes\"}");
-      const __int64 size = (__int64) sizeValue->AsNumber();
-      if (size > (__int64) policy.maximum_mb * 1024 * 1024)
+      // Held to the most a file may be as the number it is, before it is made a
+      // whole number - the conversion is defined only for a number an __int64
+      // holds - so that every size taken counts against both ceilings, the
+      // file's and the account's. A fraction is cut off as it was.
+      const double declaredSize = sizeValue->AsNumber();
+      if (!(declaredSize < (double) policy.maximum_mb * 1024 * 1024 + 1))
       {
          AnsiString problem;
          problem.Format("{\"error\":\"a file sent as a link is at most %d MB here\"}", policy.maximum_mb);
          return BuildResponse_(413, problem);
       }
+      const __int64 size = (__int64) declaredSize;
 
       int days = policy.days;
       const JsonValue *daysValue = document.Get("days");

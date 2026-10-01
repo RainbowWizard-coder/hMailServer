@@ -90,7 +90,9 @@ namespace HM
    {
       try
       {
-         OnDisconnect();
+         // By its own name: a destructor reaches no override, so this is the
+         // call it made anyway.
+         POP3Connection::OnDisconnect();
 
          if (GetConnectionState() != StatePendingConnect)
             SessionManager::Instance()->OnSessionEnded(STPOP3);
@@ -1606,7 +1608,7 @@ namespace HM
          GetMailboxContents_(iMessageCount, iTotalBytes);
 
          // preallocate memory to speed up a bit.
-         sResponse.reserve(iMessageCount * 10);
+         sResponse.reserve(static_cast<size_t>(iMessageCount) * 10);
 
          sResponse.Format(_T("+OK %d messages (%I64d octets)"), iMessageCount, iTotalBytes);
          EnqueueWrite_(sResponse);

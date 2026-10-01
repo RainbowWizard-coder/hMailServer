@@ -9,6 +9,9 @@
 
 #include <boost/asio.hpp>
 
+#include <cmath>
+#include <cstdlib>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -18,6 +21,11 @@ namespace HM
 {
    namespace
    {
+      // The most a filtering engine's score is taken to say, either way - no
+      // engine means more than a million - and what a score that is no such
+      // number counts as: the most spam there is (ParseResponse).
+      const double MostSpamScore = 1000000.0;
+
       // Reads one JSON value by key. Deliberately a scan rather than a parser: the
       // four fields a decision is made from are scalars at a known depth, and a real
       // JSON parser is a dependency this server does not otherwise carry. Everything
@@ -143,7 +151,30 @@ namespace HM
       }
 
       if (FindValue(body, "score", value))
-         verdict.score = atof(value.c_str());
+      {
+         // A number is taken as it is up to a million either way. Anything else
+         // that reads as a number - not a number, an infinity, or past a million
+         // either way (1e10; 1e999, an infinity once it is a double) - is no score
+         // an engine means, and counts as the most spam there is, never the
+         // least: SpamTestFilterHook rounds the score to the int the spam
+         // framework counts in, and for each of those that rounding was undefined
+         // and on x64 gave INT_MIN, the kindest verdict there is. Text that is no
+         // number at all is no score, as it was.
+         const char *text = value.c_str();
+         char *end = nullptr;
+         const double parsed = strtod(text, &end);
+
+         if (end != text)
+         {
+            if (std::isfinite(parsed) && parsed >= -MostSpamScore && parsed <= MostSpamScore)
+               verdict.score = parsed;
+            else
+            {
+               verdict.score = MostSpamScore;
+               LOG_DEBUG("Filter hook: the engine's score '" + value + "' is not a number between -1000000 and 1000000; it counts as 1000000, the most spam.");
+            }
+         }
+      }
 
       // smtp_message is where rspamd puts the text meant for the sender; reason is
       // what a simpler engine would call it. Either will do.

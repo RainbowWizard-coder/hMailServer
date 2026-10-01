@@ -956,6 +956,135 @@ namespace RegressionTests.API
          StringAssert.Contains("\"invitation\":false", note.body, "A message with no calendar part is no invitation.");
       }
 
+      [Test]
+      [Description("SEQUENCE and PRIORITY held to their range: an edit of a task or an event at SEQUENCE 2147483647 keeps it rather than wrapping to -2147483648, which made the edit older than what it replaced; a SEQUENCE past an int reads as 2147483647 on both platforms; a PRIORITY another client wrote outside 0-9 lists as none; a priority or an alarm past an int's range is refused rather than converted")]
+      public void SequenceAndPriorityAreHeldToTheirRange()
+      {
+         // Tasks a phone put over CalDAV, each as it wrote it.
+         PutTask("seq-max", "Seq max", "SEQUENCE:2147483647");
+         PutTask("seq-huge", "Seq huge", "SEQUENCE:99999999999");
+         PutTask("seq-five", "Seq five", "SEQUENCE:5");
+         PutTask("prio-fifteen", "Prio fifteen", "PRIORITY:15");
+         PutTask("prio-three", "Prio three", "PRIORITY:3");
+
+         string tasks = Me("GET", "/api/v1/me/tasks", null, Address, UserPassword).body;
+         Assert.AreEqual("2147483647", TaskNumber(tasks, "seq-huge", "sequence"),
+            "A SEQUENCE past an int reads as the largest one on both platforms; Linux read its low 32 bits. Body: " + tasks);
+         Assert.AreEqual("0", TaskNumber(tasks, "prio-fifteen", "priority"),
+            "A PRIORITY outside 0-9 is listed as none, as the task routes would refuse it. Body: " + tasks);
+         Assert.AreEqual("3", TaskNumber(tasks, "prio-three", "priority"), tasks);
+
+         // An edit through the REST route writes one more, held at the largest.
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/tasks/" + TaskId(tasks, "seq-max"), "{\"summary\":\"Seq max, edited\"}", Address, UserPassword).status);
+         Assert.AreEqual(200, Me("PUT", "/api/v1/me/tasks/" + TaskId(tasks, "seq-five"), "{\"summary\":\"Seq five, edited\"}", Address, UserPassword).status);
+         tasks = Me("GET", "/api/v1/me/tasks", null, Address, UserPassword).body;
+         Assert.AreEqual("2147483647", TaskNumber(tasks, "seq-max", "sequence"),
+            "An edit at SEQUENCE 2147483647 keeps it; adding one wrapped to -2147483648. Body: " + tasks);
+         Assert.AreEqual("6", TaskNumber(tasks, "seq-five", "sequence"), "An ordinary edit adds one. Body: " + tasks);
+         string storedTask = Dav("GET", Home + "calendar/seq-max.ics", Auth(Address, UserPassword)).Body;
+         StringAssert.Contains("SEQUENCE:2147483647", storedTask, storedTask);
+
+         // An event with an attendee, whose edit adds one to its SEQUENCE too.
+         Response putEvent = Raw(WebServicesPort, "PUT", Home + "calendar/seq-max-event.ics", Auth(Address, UserPassword),
+            string.Join("\r\n", new[]
+            {
+               "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A phone//EN", "BEGIN:VEVENT", "UID:seq-max-event", "DTSTAMP:20260101T000000Z",
+               "DTSTART:20261102T090000Z", "DTEND:20261102T100000Z", "SUMMARY:Seq max meeting",
+               "ORGANIZER:mailto:" + Address, "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress,
+               "SEQUENCE:2147483647", "END:VEVENT", "END:VCALENDAR", ""
+            }),
+            "text/calendar; charset=utf-8", "X-Forwarded-Proto: https\r\nIf-None-Match: *\r\n");
+         Assert.AreEqual(201, putEvent.Status, putEvent.Body);
+         (int status, string body) events = Me("GET", "/api/v1/me/calendar/events?start=20261102T000000Z&end=20261103T000000Z", null, Address, UserPassword);
+         Assert.AreEqual(200, events.status, events.body);
+         (int status, string body) edited = Me("PUT", "/api/v1/me/calendar/events/" + TaskId(events.body, "seq-max-event"), "{\"summary\":\"Seq max meeting edited\"}", Address, UserPassword);
+         Assert.AreEqual(200, edited.status, edited.body);
+         string storedEvent = Dav("GET", Home + "calendar/seq-max-event.ics", Auth(Address, UserPassword)).Body;
+         StringAssert.Contains("SUMMARY:Seq max meeting edited", storedEvent, storedEvent);
+         StringAssert.Contains("SEQUENCE:2147483647", storedEvent,
+            "An edit of an event at SEQUENCE 2147483647 keeps it. Stored: " + storedEvent);
+
+         // Through the REST route a priority is 0-9 and an alarm at most a year,
+         // each held to that as the number it is: one past an int's range was
+         // converted first, which is undefined - on x64 an alarm of 1e20 minutes
+         // became INT_MIN and was taken as none.
+         (int status, string body) nine = Me("POST", "/api/v1/me/tasks", "{\"summary\":\"Nine\",\"priority\":9}", Address, UserPassword);
+         Assert.AreEqual(201, nine.status, nine.body);
+         StringAssert.Contains("\"priority\":9", nine.body);
+         (int status, string body) hugePriority = Me("POST", "/api/v1/me/tasks", "{\"summary\":\"Huge\",\"priority\":1e20}", Address, UserPassword);
+         Assert.AreEqual(400, hugePriority.status, hugePriority.body);
+         (int status, string body) hugeAlarm = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Alarm\",\"start\":\"2026-11-03T09:00\",\"end\":\"2026-11-03T10:00\",\"tz\":\"Europe/London\",\"alarm_minutes\":1e20}",
+            Address, UserPassword);
+         Assert.AreEqual(400, hugeAlarm.status, "An alarm of 1e20 minutes is more than a year. Body: " + hugeAlarm.body);
+         StringAssert.Contains("at most a year", hugeAlarm.body);
+      }
+
+      [Test]
+      [Description("An alarm's TRIGGER is any calendar client's text, and an invitation's is its sender's: a duration past an int's range - its digits, a week's product of them, or the sum of its parts - lists as 2147483647 minutes, held to its end as SEQUENCE is, where each overflowed an int; an ordinary one is what it says")]
+      public void AnAlarmPastAnIntIsHeldToItsEnd()
+      {
+         PutEventWithAlarm("alarm-digits", "-PT99999999999M");
+         PutEventWithAlarm("alarm-weeks", "-P999999W");
+         PutEventWithAlarm("alarm-sum", "-P200000W200000W");
+         PutEventWithAlarm("alarm-ordinary", "-P1DT2H");
+
+         (int status, string body) events = Me("GET", "/api/v1/me/calendar/events?start=20261104T000000Z&end=20261105T000000Z", null, Address, UserPassword);
+         Assert.AreEqual(200, events.status, events.body);
+         Assert.AreEqual("2147483647", TaskNumber(events.body, "alarm-digits", "alarm_minutes"),
+            "A run of digits past an int is held to the largest. Body: " + events.body);
+         Assert.AreEqual("2147483647", TaskNumber(events.body, "alarm-weeks", "alarm_minutes"),
+            "Weeks whose minutes are past an int are held to the largest. Body: " + events.body);
+         Assert.AreEqual("2147483647", TaskNumber(events.body, "alarm-sum", "alarm_minutes"),
+            "Parts that fit an int each and not together are held to the largest. Body: " + events.body);
+         Assert.AreEqual("1560", TaskNumber(events.body, "alarm-ordinary", "alarm_minutes"),
+            "A day and two hours is 1560 minutes. Body: " + events.body);
+      }
+
+      // A VEVENT with one display alarm, as a phone puts it over CalDAV.
+      private void PutEventWithAlarm(string uid, string trigger)
+      {
+         Response put = Raw(WebServicesPort, "PUT", Home + "calendar/" + uid + ".ics", Auth(Address, UserPassword),
+            string.Join("\r\n", new[]
+            {
+               "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A phone//EN", "BEGIN:VEVENT", "UID:" + uid, "DTSTAMP:20260101T000000Z",
+               "DTSTART:20261104T090000Z", "DTEND:20261104T100000Z", "SUMMARY:" + uid,
+               "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Reminder", "TRIGGER:" + trigger, "END:VALARM",
+               "END:VEVENT", "END:VCALENDAR", ""
+            }),
+            "text/calendar; charset=utf-8", "X-Forwarded-Proto: https\r\nIf-None-Match: *\r\n");
+         Assert.AreEqual(201, put.Status, put.Body);
+      }
+
+      // A VTODO as a phone puts it over CalDAV, with one more property line.
+      private void PutTask(string uid, string summary, string extra)
+      {
+         Response put = Raw(WebServicesPort, "PUT", Home + "calendar/" + uid + ".ics", Auth(Address, UserPassword),
+            string.Join("\r\n", new[]
+            {
+               "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A phone//EN", "BEGIN:VTODO", "UID:" + uid, "DTSTAMP:20260101T000000Z",
+               "DUE:20261101T090000Z", "SUMMARY:" + summary, extra, "STATUS:NEEDS-ACTION", "END:VTODO", "END:VCALENDAR", ""
+            }),
+            "text/calendar; charset=utf-8", "X-Forwarded-Proto: https\r\nIf-None-Match: *\r\n");
+         Assert.AreEqual(201, put.Status, put.Body);
+      }
+
+      // The id of the task or event with this UID in a listing.
+      private static string TaskId(string listing, string uid)
+      {
+         Match match = Regex.Match(listing, "\\{\"id\":(\\d+),\"calendar\":\\d+,\"uid\":\"" + Regex.Escape(uid) + "\"");
+         Assert.IsTrue(match.Success, "No " + uid + " in: " + listing);
+         return match.Groups[1].Value;
+      }
+
+      // A number field of the task with this UID in the task listing.
+      private static string TaskNumber(string listing, string uid, string field)
+      {
+         Match match = Regex.Match(listing, "\\{\"id\":\\d+,\"calendar\":\\d+,\"uid\":\"" + Regex.Escape(uid) + "\"[^}]*?\"" + field + "\":(-?\\d+)");
+         Assert.IsTrue(match.Success, "No " + field + " for " + uid + " in: " + listing);
+         return match.Groups[1].Value;
+      }
+
       // ------------------------------------------------------------- helpers
 
       private static long IdOf(string json)

@@ -6,6 +6,8 @@
 
 #include "SieveLexer.h"
 
+#include <climits>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -264,19 +266,21 @@ namespace HM
 #endif
 
       wchar_t quantifier = Current_();
+      __int64 unit = 1;
       if (quantifier == L'K' || quantifier == L'k')
-      {
-         value *= 1024;
-         Advance_();
-      }
+         unit = 1024LL;
       else if (quantifier == L'M' || quantifier == L'm')
-      {
-         value *= 1024 * 1024;
-         Advance_();
-      }
+         unit = 1024LL * 1024;
       else if (quantifier == L'G' || quantifier == L'g')
+         unit = 1024LL * 1024 * 1024;
+
+      if (unit != 1)
       {
-         value *= 1024 * 1024 * 1024;
+         // The digits are never negative, and a run past LLONG_MAX is already
+         // held at LLONG_MAX; the quantifier's product is held there too. It
+         // overflowed and wrapped, so that "size :over 9999999999G" was true of
+         // every message and its :under of none.
+         value = value > LLONG_MAX / unit ? LLONG_MAX : value * unit;
          Advance_();
       }
 

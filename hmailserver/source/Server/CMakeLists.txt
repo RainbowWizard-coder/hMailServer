@@ -712,6 +712,32 @@ add_executable(datetime-tests ${SERVER_DIR}/platform/datetime_tests_main.cpp)
 target_link_libraries(datetime-tests PRIVATE hmailserver_core)
 set_target_properties(datetime-tests PROPERTIES OUTPUT_NAME datetime-tests)
 
+# ---------------------------------------------------------------- the configuration file's owner
+#
+# hMailServer.INI rewritten by the profile API of the POSIX build
+# (Common/Util/IniFile.cpp), which nothing on Windows runs: a program of its own,
+# as backup-tests is one. The replacement keeps the owner and mode of the file it
+# replaces, and when that file is gone between the read and the write - removed,
+# or made again by another user - it is the writer's own 0600 or the new file's,
+# never an owner nobody chose; with a race against another user's process doing
+# exactly that. Run as root, as linux-build.sh runs it in the CI image; the cases
+# that need root say they are skipped otherwise. A scratch directory it removes
+# again; no database, configuration or network. Not installed; a bench tool.
+add_executable(ini-file-tests ${SERVER_DIR}/platform/ini_file_tests_main.cpp)
+target_link_libraries(ini-file-tests PRIVATE hmailserver_core)
+set_target_properties(ini-file-tests PROPERTIES OUTPUT_NAME ini-file-tests)
+
+# ---------------------------------------------------------------- SCRAM's iteration count
+#
+# The rounds SCRAM-SHA-256 asks a client for, held to the bound a password logon
+# holds a stored hash's count to (Common/Util/Hashing/ScramSha256.cpp): a program
+# of its own, as backup-tests is one, since the regression suite's case writes the
+# stored hash through COM's Database, which the Linux suite cannot reach. No
+# database, configuration file or network. Not installed; a bench tool.
+add_executable(scram-tests ${SERVER_DIR}/platform/scram_tests_main.cpp)
+target_link_libraries(scram-tests PRIVATE hmailserver_core)
+set_target_properties(scram-tests PROPERTIES OUTPUT_NAME scram-tests)
+
 # ---------------------------------------------------------------- the backup's exclusions
 #
 # BackupExecuterTester (Common/Application/BackupExecuter.h) as a program of its

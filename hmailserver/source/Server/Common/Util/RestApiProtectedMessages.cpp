@@ -226,13 +226,18 @@ namespace HM
       const JsonValue *sizeValue = document.Get("size");
       if (!sizeValue || !sizeValue->IsNumber() || sizeValue->AsNumber() < 1)
          return BuildResponse_(400, "{\"error\":\"size is the ciphertext's length in bytes\"}");
-      const __int64 size = (__int64) sizeValue->AsNumber();
-      if (size > ProtectedMessages::MessageMaximum)
+      // Held to the most a message may be as the number it is, before it is made
+      // a whole number - the conversion is defined only for a number an __int64
+      // holds - so that every size taken counts against the message's ceiling
+      // and the account's. A fraction is cut off as it was.
+      const double declared = sizeValue->AsNumber();
+      if (!(declared < (double) ProtectedMessages::MessageMaximum + 1))
       {
          AnsiString problem;
          problem.Format("{\"error\":\"a password-protected message is at most %I64d MB of ciphertext here, text and attachments together\"}", ProtectedMessages::MessageMaximum / (1024 * 1024));
          return BuildResponse_(413, problem);
       }
+      const __int64 size = (__int64) declared;
 
       const __int64 longest = (__int64) ProtectedMessages::DefaultDays() * 24 * 60 * 60;
       __int64 expiresIn = longest;

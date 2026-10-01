@@ -30,7 +30,7 @@ namespace RegressionTests.Shared
    public sealed class FakeFilterEngine : IDisposable
    {
       private readonly TcpListener listener_;
-      private readonly string response_;
+      private volatile string response_;
       private readonly int delayMilliseconds_;
       private volatile bool stopping_;
 
@@ -70,6 +70,17 @@ namespace RegressionTests.Shared
       }
 
       public string Url => "http://127.0.0.1:" + Port + "/checkv2";
+
+      /// <summary>
+      ///    What the next request is answered with, as the constructor's
+      ///    <c>responseJson</c>: so that one engine, and one restart of the server,
+      ///    can answer a test's messages one way each.
+      /// </summary>
+      public string Response
+      {
+         get => response_;
+         set => response_ = value;
+      }
 
       private void Serve_()
       {
@@ -133,13 +144,15 @@ namespace RegressionTests.Shared
                   if (delayMilliseconds_ > 0)
                      Thread.Sleep(delayMilliseconds_);
 
-                  byte[] reply = response_ == null
+                  // Read once: a test may set the next answer while this one is sent.
+                  string response = response_;
+                  byte[] reply = response == null
                      ? Encoding.ASCII.GetBytes("HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
                      : Encoding.UTF8.GetBytes(
                           "HTTP/1.1 200 OK\r\n" +
                           "Content-Type: application/json\r\n" +
-                          "Content-Length: " + Encoding.UTF8.GetByteCount(response_) + "\r\n" +
-                          "Connection: close\r\n\r\n" + response_);
+                          "Content-Length: " + Encoding.UTF8.GetByteCount(response) + "\r\n" +
+                          "Connection: close\r\n\r\n" + response);
 
                   stream.Write(reply, 0, reply.Length);
                   stream.Flush();

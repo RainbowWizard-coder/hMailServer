@@ -2794,6 +2794,32 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A declared size is held to the most a file may be as the number it is, before it is made a whole number, so that every size taken counts against the file's ceiling and the account's: a size past the ceiling is refused whatever its magnitude and nothing is recorded for it, and a fraction under the ceiling is still taken, cut off as it was")]
+      public void ADeclaredSizeIsHeldToTheCeilingAsTheNumberItIs()
+      {
+         (int status, string body) before = Http("GET", "/api/v1/me/files", UserHeader(UserPassword));
+         Assert.AreEqual(200, before.status, "Body: " + before.body);
+         StringAssert.Contains("\"used_bytes\":0,\"count\":0", before.body);
+         long maximum = long.Parse(Between(before.body, "\"max_mb\":", ",")) * 1024 * 1024;
+
+         foreach (string size in new[] { (maximum + 1).ToString(), "9.3e18", "1e20", "1e308" })
+         {
+            (int status, string body) refused = Http("POST", "/api/v1/me/files", UserHeader(UserPassword),
+               "{\"name\":\"large.bin\",\"type\":\"application/octet-stream\",\"size\":" + size + "}");
+            Assert.AreEqual(413, refused.status, "A size of " + size + " is past the ceiling of " + maximum + ". Body: " + refused.body);
+            StringAssert.Contains("at most", refused.body);
+         }
+
+         (int status, string body) after = Http("GET", "/api/v1/me/files", UserHeader(UserPassword));
+         StringAssert.Contains("\"used_bytes\":0,\"count\":0", after.body, "A refused size is recorded nowhere. Body: " + after.body);
+
+         (int status, string body) fraction = Http("POST", "/api/v1/me/files", UserHeader(UserPassword),
+            "{\"name\":\"exact.bin\",\"type\":\"application/octet-stream\",\"size\":" + maximum + ".5}");
+         Assert.AreEqual(201, fraction.status, "Half a byte past the ceiling is the ceiling, as it was. Body: " + fraction.body);
+         StringAssert.Contains("\"size\":" + maximum + ",", fraction.body);
+      }
+
+      [Test]
       [Description("A link lives the days it was given and is swept when they are up, an open file needs no password and can be given one later, and the policy is the domain's own over the server's")]
       public void ALinkExpiresIsSweptAndThePolicyIsTheDomains()
       {

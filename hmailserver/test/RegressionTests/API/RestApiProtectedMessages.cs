@@ -293,6 +293,17 @@ namespace RegressionTests.API
          Assert.AreEqual(413, tooBig.status, tooBig.body);
          StringAssert.Contains("25 MB", tooBig.body);
 
+         // Held to the 25 MB as the number it is, before it is made a whole
+         // number, so that a size past it is refused whatever its magnitude and
+         // counts against nothing: the twelve below still fit.
+         foreach (string size in new[] { "9.3e18", "1e20", "1e308" })
+         {
+            (int status, string body) large = Send("POST", "/api/v1/me/protected", _me,
+               "{\"recipient\":\"" + _reader.Address + "\",\"size\":" + size + "}");
+            Assert.AreEqual(413, large.status, "A size of " + size + ": " + large.body);
+            StringAssert.Contains("25 MB", large.body);
+         }
+
          // Twelve declared at 20 MB fit under 250; the thirteenth does not.
          for (int i = 0; i < 12; i++)
          {

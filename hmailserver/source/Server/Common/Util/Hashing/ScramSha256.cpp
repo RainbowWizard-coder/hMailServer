@@ -4,6 +4,9 @@
 
 #include "stdafx.h"
 #include "ScramSha256.h"
+#include "HashCreator.h"
+
+#include <cstdlib>
 
 #include "../Parsing/StringParser.h"
 #include "../Unicode.h"
@@ -240,9 +243,15 @@ namespace HM
       if (parts.size() != 5)
          return false;
 
-      iterations = atoi(parts[2].c_str());
-      if (iterations <= 0)
+      // Held to the bound HashCreator::ValidatePBKDF2 holds the same field to, so
+      // that SCRAM never asks a client for more rounds than a password logon
+      // takes: atoi made a count past an int INT_MAX on Windows and its low 32
+      // bits on Linux. A hash refused here takes the unknown account's
+      // parameters, and the exchange fails at the proof.
+      const long parsed = strtol(parts[2].c_str(), nullptr, 10);
+      if (parsed <= 0 || parsed > HashCreator::PBKDF2_MAX_ITERATIONS)
          return false;
+      iterations = static_cast<int>(parsed);
 
       AnsiString saltHex = parts[3];
       AnsiString keyHex = parts[4];

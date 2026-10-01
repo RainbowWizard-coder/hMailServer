@@ -99,6 +99,17 @@ namespace RegressionTests.Sieve
          Assert.AreEqual("discard", Evaluate("if size :over 10 {\r\n  discard;\r\n}", Message));
          Assert.AreEqual("keep", Evaluate("if size :over 100000 {\r\n  discard;\r\n}", Message));
          Assert.AreEqual("discard", Evaluate("if size :under 100000 {\r\n  discard;\r\n}", Message));
+
+         // A quantifier's product past what a 64-bit number holds is held at
+         // its largest rather than wrapped: each of these wrapped to a negative
+         // size, and each answer was the other way round.
+         Assert.AreEqual("discard", Evaluate("if size :under 9999999999G {\r\n  discard;\r\n}", Message));
+         Assert.AreEqual("keep", Evaluate("if size :over 9999999999G {\r\n  discard;\r\n}", Message));
+         Assert.AreEqual("discard", Evaluate("if size :under 99999999999999M {\r\n  discard;\r\n}", Message));
+         Assert.AreEqual("keep", Evaluate("if size :over 9999999999999999K {\r\n  discard;\r\n}", Message));
+         // And a product that fits is what it was.
+         Assert.AreEqual("discard", Evaluate("if size :under 1K {\r\n  discard;\r\n}", Message));
+         Assert.AreEqual("keep", Evaluate("if size :over 1M {\r\n  discard;\r\n}", Message));
       }
 
       [Test]

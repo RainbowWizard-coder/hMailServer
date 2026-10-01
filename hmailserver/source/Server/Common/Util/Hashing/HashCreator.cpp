@@ -15,6 +15,8 @@
 #include <openssl/params.h>
 #include <openssl/hmac.h>
 
+#include <cstdlib>
+
 #include "HashCreator.h"
 #include "../../Application/IniFileSettings.h"
 
@@ -228,9 +230,13 @@ namespace HM
       if (parts.size() != 5)
          return false;
 
-      int iterations = atoi(parts[2].c_str());
-      if (iterations <= 0 || iterations > PBKDF2_MAX_ITERATIONS)
+      // Read as SCRAM reads the same field (ScramSha256::ParseStoredPbkdf2_), so
+      // that the two refuse the same hashes: atoi made a count past an int its
+      // low 32 bits on Linux, which this bound then took.
+      const long parsed = strtol(parts[2].c_str(), nullptr, 10);
+      if (parsed <= 0 || parsed > PBKDF2_MAX_ITERATIONS)
          return false;
+      const int iterations = static_cast<int>(parsed);
 
       unsigned char salt[PBKDF2_SALT_BYTES];
       if (!HexToBytes(parts[3], salt, sizeof(salt)))

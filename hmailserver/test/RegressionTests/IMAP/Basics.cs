@@ -1036,6 +1036,81 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
+      [Description("RFC 5802/7677 (SCRAM-SHA-256): a stored hash's iteration count is held to the bound a password " +
+                   "logon holds it to, 1 to 10,000,000. A hash that says more is refused, and the exchange goes on " +
+                   "with the parameters of an unknown account (i=210000, its salt) and fails at the proof; atoi made " +
+                   "99999999999 INT_MAX on Windows and its low 32 bits on Linux, and asked the client for that many rounds.")]
+      public void TestScramSha256StoredIterationCountIsBounded()
+      {
+         var application = SingletonProvider<TestSetup>.Instance.GetApp();
+         application.Settings.IMAPSASLPlainEnabled = true;
+         bool autoBan = application.Settings.AutoBanOnLogonFailure;
+         application.Settings.AutoBanOnLogonFailure = false;
+         try
+         {
+            const string address = "scramrounds@example.test";
+            const string password = "SeC-r3t Pass!";
+            Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, password);
+
+            // A salt and a key of the right lengths; the key is no password's.
+            const string saltHex = "00112233445566778899aabbccddeeff";
+            string keyHex = new string('a', 64);
+            string saltBase64 = Convert.ToBase64String(Enumerable.Range(0, saltHex.Length / 2)
+               .Select(i => Convert.ToByte(saltHex.Substring(i * 2, 2), 16)).ToArray());
+
+            ForceStoredPbkdf2(application, account, "$h1$99999999999$" + saltHex + "$" + keyHex);
+            string serverFirst = ProbeServerFirst(address);
+            Assert.AreEqual("210000", ScramTestClient.ServerFirstAttribute(serverFirst, "i"),
+               "A stored count past 10,000,000 is refused, and the unknown account's 210000 offered. Server-first: " + serverFirst);
+            Assert.AreNotEqual(saltBase64, ScramTestClient.ServerFirstAttribute(serverFirst, "s"),
+               "A refused hash's own salt is not offered. Server-first: " + serverFirst);
+
+            using (var con = new TcpConnection())
+            {
+               Assert.IsTrue(con.Connect(143), "Could not connect to IMAP.");
+               con.Receive(); // banner
+               string final = ScramTestClient.Authenticate(con, "A01", address, password);
+               Assert.IsTrue(final.Contains("A01 NO") || final.Contains("A01 BAD"),
+                  "An account whose stored hash is refused cannot sign in by SCRAM. Got: " + final);
+            }
+
+            // The bound itself is a count the server takes.
+            ForceStoredPbkdf2(application, account, "$h1$10000000$" + saltHex + "$" + keyHex);
+            serverFirst = ProbeServerFirst(address);
+            Assert.AreEqual("10000000", ScramTestClient.ServerFirstAttribute(serverFirst, "i"),
+               "10,000,000 is within the bound. Server-first: " + serverFirst);
+            Assert.AreEqual(saltBase64, ScramTestClient.ServerFirstAttribute(serverFirst, "s"),
+               "The stored hash's own salt is offered. Server-first: " + serverFirst);
+         }
+         finally
+         {
+            application.Settings.AutoBanOnLogonFailure = autoBan;
+            application.Settings.IMAPSASLPlainEnabled = false;
+         }
+      }
+
+      // The account's stored password, as a PBKDF2 hash written straight to the
+      // database (the API offers no way to store one it did not make), and the
+      // cached account dropped so that the next sign-in reads it.
+      private static void ForceStoredPbkdf2(hMailServer.Application application, Account account, string storedHash)
+      {
+         application.Database.ExecuteSQL(string.Format(
+            "update hm_accounts set accountpassword = '{0}', accountpwencryption = 4 where accountid = {1}",
+            TestSetup.Escape(storedHash), account.ID));
+         application.Settings.Cache.Clear();
+      }
+
+      private static string ProbeServerFirst(string username)
+      {
+         using (var con = new TcpConnection())
+         {
+            Assert.IsTrue(con.Connect(143), "Could not connect to IMAP.");
+            con.Receive(); // banner
+            return ScramTestClient.ProbeServerFirst(con, "A01", username);
+         }
+      }
+
+      [Test]
       public void TestAppendDeletedMessage()
 
       {
@@ -2674,6 +2749,15 @@ namespace RegressionTests.IMAP
       /// </summary>
       public static string ProbeServerSalt(TcpConnection con, string tag, string username)
       {
+         return Attribute(ProbeServerFirst(con, tag, username), "s");
+      }
+
+      /// <summary>
+      ///    Sends only the SCRAM client-first message and returns the server-first
+      ///    message it is answered with, decoded, then abandons the exchange.
+      /// </summary>
+      public static string ProbeServerFirst(TcpConnection con, string tag, string username)
+      {
          var nonceBytes = new byte[18];
          using (var rng = RandomNumberGenerator.Create())
             rng.GetBytes(nonceBytes);
@@ -2686,8 +2770,7 @@ namespace RegressionTests.IMAP
          con.ReadUntil("+");
 
          con.Send(Base64(clientFirst) + "\r\n");
-         string serverFirst = DecodeContinuation(con.ReadUntil("\r\n"));
-         return Attribute(serverFirst, "s");
+         return DecodeContinuation(con.ReadUntil("\r\n"));
       }
 
       /// <summary>
@@ -2776,6 +2859,12 @@ namespace RegressionTests.IMAP
          if (t.StartsWith("+"))
             t = t.Substring(1).Trim();
          return Encoding.UTF8.GetString(Convert.FromBase64String(t));
+      }
+
+      /// <summary>One attribute (i, s, r) of a SCRAM message such as server-first.</summary>
+      public static string ServerFirstAttribute(string message, string key)
+      {
+         return Attribute(message, key);
       }
 
       private static string Attribute(string message, string key)

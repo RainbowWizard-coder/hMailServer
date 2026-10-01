@@ -457,9 +457,15 @@ namespace
       // would give it, and the right default for a file whose first line is a
       // secret.
       mode_t mode = S_IRUSR | S_IWUSR;
-      struct stat existing;
+      struct stat existing = {};
 
-      if (existed && ::stat(path.c_str(), &existing) == 0)
+      // Whether existing describes the file that is there now. The file was
+      // read before this call and may be gone by now - removed or renamed in
+      // between - and then the replacement is made as a new file is, its
+      // writer's alone, never given the owner of a file that is not there.
+      const bool haveExisting = existed && ::stat(path.c_str(), &existing) == 0;
+
+      if (haveExisting)
          mode = existing.st_mode & 07777;
 
       std::string pattern = path + ".hmXXXXXX";
@@ -513,7 +519,7 @@ namespace
       // to restore it fails the write: a configuration this process can no
       // longer read is not a configuration, and losing the rewrite is far better
       // than completing one that quietly locks the service out of its own file.
-      if (written && existed)
+      if (written && haveExisting)
       {
          struct stat replacement;
 

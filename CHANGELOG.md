@@ -239,6 +239,10 @@ served any other as declared. A contact's photo is served under its card's type 
 list's pictures, and as `application/octet-stream` otherwise, where 6.3.4 and 6.3.5 served it under the type the
 card declared. Found by the project's own review.
 
+The size an account declares for a file sent as a link (since 6.3.2) or for a password-protected message (since
+6.3.4) is now checked against the most either may be before it is made a whole number, so that every declared size
+counts against that ceiling and against the account's own; found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -966,6 +970,19 @@ card declared. Found by the project's own review.
   Entries stored before are read the new way when the server loads them, which mends the first two forms; one stored
   from the third names `evil.example` and has to be entered again, and one of a host now refused stays in its list,
   matching nothing as it did. The cases run in `SURBLTester`, in ClassTester and, on Linux, in `public-suffix-tests`.
+- **Fixed: a filtering engine's score that is no number could count as the kindest verdict.** The filter hook
+  (`FilterHookUrl`) rounds the score an engine answers with to the whole number the spam framework counts in, and for
+  a score that is not a number, an infinity or past the range of that number - `NaN`, `Infinity` and `-Infinity` as
+  Python's JSON writer spells them, `1e999`, `1e10` - the rounding was undefined: on x64 it gave the lowest score
+  there is, so a message the engine had scored as far past every threshold as a score goes was delivered as clean.
+  Since 6.2.23 Alpha 1, which brought the filter hook. A score from -1,000,000 to 1,000,000 is taken as it is; any
+  other that reads as a number now counts as 1,000,000, the most spam there is, and text that is no number at all is
+  still no score. `AntiSpam/FilterHook.cs` holds it to that, on Windows and in the Linux suite.
+- **Fixed: a Sieve `size` test whose number and quantifier came to more than 8 EiB answered the wrong way round.** The
+  number was multiplied by its `K`, `M` or `G` in 64 bits and wrapped below zero, so `size :over 9999999999G` was
+  true of every message and `size :under 9999999999G` of none. The product is now held at the largest 64-bit number,
+  as a number written without a quantifier already was. Since 6.2.3, which brought the Sieve interpreter.
+  `Sieve/SieveEvaluation.cs` holds it to that.
 
 ### Administration
 
@@ -1237,6 +1254,34 @@ card declared. Found by the project's own review.
   one, and what the first was given was lost; a thread could also be handed one before it was whole. Each is now made
   exactly once, and, as before, never taken down at exit; `singleton-tests`, which `linux-build` runs, holds it to
   that.
+- **Fixed, on Linux: a rewrite of `hMailServer.ini` as root could give the file an owner nobody chose.** A rewrite
+  goes to a temporary file that is given the owner, group and mode of the file it replaces, and the owner was taken
+  from a look at that file whether or not the look had found it. When the file had gone between being read and being
+  rewritten - removed or renamed by something else at that moment - the new one written as root, as
+  `sudo hmailserver --set-admin-password` writes it, was given an owner and group no one had set, and the service
+  could lose its own configuration. Since 6.3.0, the first Linux release. Such a file is now made as a file that was
+  not there is, the writer's own and readable by it alone (0600); a file that is there keeps its owner, group and mode
+  as before. `ini-file-tests`, which `linux-build` runs as root, holds it to that, with a race against another user's
+  process that removes the file and makes it again while root rewrites it.
+- **Fixed: a calendar edit at the largest SEQUENCE made the event older than it was.** The REST routes of the
+  calendar and the tasks (the webmail's) write SEQUENCE one higher when an event with attendees or a task is changed,
+  and at 2147483647, the largest an int holds, adding one wrapped to -2147483648, so a calendar that held the event
+  took the change for an older version than its own. It now stays at 2147483647, and a SEQUENCE past that reads as
+  2147483647 on Linux as on Windows: Linux read its low 32 bits, 4294967297 as 1. A task's PRIORITY that another
+  client wrote outside 0 to 9 is listed as 0, none, since 0 to 9 is all the routes take; and a `priority` or an
+  `alarm_minutes` past an int's range sent to them is refused with 400 rather than converted first, which was
+  undefined - an alarm of `1e20` minutes was taken as no alarm. An alarm whose TRIGGER, in an event a calendar
+  client stored or in an invitation the webmail shows, comes to more minutes than an int holds is listed as
+  2147483647, held to its end as SEQUENCE is, where its digits and their sum overflowed. Since 6.3.4, which brought
+  the routes. `API/RestApiCalendar.cs` holds it to that.
+- **SCRAM holds a stored password hash's iteration count to the bound a password logon holds it to.** SCRAM-SHA-256
+  read a stored PBKDF2 hash's count with no upper bound - one past an int as 2147483647 on Windows and as its low 32
+  bits on Linux - and asked the client for that many rounds; the server never writes such a hash. One that says more
+  than 10,000,000 is now refused, as a password logon refuses it, and the exchange fails at the proof, as for an
+  unknown account. Since 6.2.0, which brought SCRAM. A password logon on Linux read the same count as its low 32
+  bits too, and so took 4294967297 as one round; it now reads it as SCRAM does, and the two refuse the same hashes
+  (since 6.3.0, the first Linux release). `IMAP/Basics.cs` holds SCRAM to that on Windows, and the tester program
+  `scram-tests` both on Linux.
 - **Fixed: a COM look-up that found nothing left an object behind.** Asking a COM collection for an index, id or name
   it does not hold - `Languages.Item`, `Domains.ItemByName`, `Accounts.ItemByAddress` and 62 other look-ups,
   `IMAPFolders.Add` when the name was taken or the folder could not be saved, and `Application.BackupManager` when no
@@ -1427,6 +1472,21 @@ card declared. Found by the project's own review.
   link it. The `.deb` and `.rpm` help pages, which said no Roadmap2 row carried choosing a package by
   distribution, now name the Roadmap3.md row that does.
 
+- **Ten static-analysis findings of numbers held to their range, fixed; `ini-file-tests` and `scram-tests`.** The
+  fixes are the filter hook's score and the Sieve quantifier (Anti-spam, above) and the configuration file's owner,
+  the calendar's SEQUENCE and PRIORITY and the iteration count SCRAM and a password logon read (Operations, above);
+  with them, a POP3 `LIST` sizes its buffer in `size_t`, and the POP3 session's destructor calls its own
+  `OnDisconnect` by name, which is the call it made. Their ten lines are gone from
+  `build/ci/static-analysis-baseline.txt`. `ini-file-tests`
+  (`platform/ini_file_tests_main.cpp`) is a tester program `linux-build.sh` runs with the others: a file another user
+  owns keeps its owner, group and mode when root rewrites it; a file read and gone before it is written - the server
+  reads a FIFO whose writer removes it before closing it, so the moment is not left to chance - is made as the
+  writer's own, 0600; one made again by another user in that moment gives the replacement that user's owner and mode;
+  and two thousand rewrites while another user's process removes and remakes the file each leave it root's own, the
+  other user's or absent. The cases that need root say they are skipped without it. `scram-tests`
+  (`platform/scram_tests_main.cpp`) holds the rounds SCRAM asks a client for to a stored hash's count from 1 to
+  10,000,000 and the unknown account's 210000 past it, as the regression suite's case does on Windows through COM's
+  `Database`, which the Linux suite cannot reach, and a password logon to refusing the same hashes.
 - **A clock flake in the two-factor tests, not a server fault.** The Windows gate of pipeline 2887524317 failed
   `TwoFactorAuthentication.ACodeComputedElsewhereIsAccepted` with "The previous step must be accepted": the test
   began at 23:37:29.5 UTC, half a second before a thirty-second step ended, computed the previous step's code in

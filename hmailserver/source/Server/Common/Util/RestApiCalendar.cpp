@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 
 #include <ctime>
+#include <climits>
+#include <cstdlib>
 #include <algorithm>
 
 #include "RestApiServer.h"
@@ -461,14 +463,37 @@ namespace HM
          SetProperty(component, property);
       }
 
+      // SEQUENCE as an int, a number past an int's range held to its end on both
+      // platforms: atoi gave INT_MAX on Windows and the low 32 bits on Linux,
+      // where 4294967297 read as 1.
       int SequenceOf(const ICalComponent &component)
       {
          AnsiString text = Trimmed(component.Value("SEQUENCE"));
-         return text.IsEmpty() ? 0 : atoi(text.c_str());
+         const long long value = text.IsEmpty() ? 0 : strtoll(text.c_str(), nullptr, 10);
+         return value > INT_MAX ? INT_MAX : (value < INT_MIN ? INT_MIN : static_cast<int>(value));
+      }
+
+      // The SEQUENCE an edit writes: one more, held at INT_MAX, where adding one
+      // would wrap to INT_MIN and make the edit older than what it replaces.
+      int NextSequence(const ICalComponent &component)
+      {
+         const int sequence = SequenceOf(component);
+         return sequence < INT_MAX ? sequence + 1 : INT_MAX;
+      }
+
+      // PRIORITY as the task routes write it and RFC 5545 3.8.1.9 holds it: 0
+      // (none) to 9. What another client wrote outside that reads as none.
+      int PriorityOf(const AnsiString &text)
+      {
+         const long value = text.IsEmpty() ? 0 : strtol(text.c_str(), nullptr, 10);
+         return value >= 0 && value <= 9 ? static_cast<int>(value) : 0;
       }
 
       // -PT15M, -PT1H, -P1D, PT0S -> minutes before the start; -1 when the
-      // component has no display alarm.
+      // component has no display alarm. The TRIGGER is any calendar client's
+      // text, and an invitation's is its sender's: a duration past an int's
+      // range is held to its end, 2147483647 minutes, as SEQUENCE is. The digits
+      // and the sum were ints with no bound, and overflowed.
       int AlarmMinutes(const ICalComponent &component)
       {
          for (size_t i = 0; i < component.children.size(); i++)
@@ -484,14 +509,19 @@ namespace HM
             AnsiString rest = negative ? trigger.Mid(1) : (trigger.StartsWith("+") ? trigger.Mid(1) : trigger);
             if (!rest.StartsWith("P"))
                continue;
-            int minutes = 0;
-            int number = 0;
+            long long minutes = 0;
+            long long number = 0;
             bool inTime = false;
             for (int k = 1; k < rest.GetLength(); k++)
             {
                char c = rest.c_str()[k];
                if (c >= '0' && c <= '9')
-                  number = number * 10 + (c - '0');
+               {
+                  // A digit run stops growing once it is past an int, so that
+                  // neither it nor a week's product of it can overflow here.
+                  if (number <= INT_MAX)
+                     number = number * 10 + (c - '0');
+               }
                else if (c == 'T')
                   inTime = true;
                else
@@ -501,10 +531,12 @@ namespace HM
                   else if (c == 'H') minutes += number * 60;
                   else if (c == 'M' && inTime) minutes += number;
                   else if (c == 'S') minutes += number / 60;
+                  if (minutes > INT_MAX)
+                     minutes = INT_MAX;
                   number = 0;
                }
             }
-            return negative ? minutes : 0;
+            return negative ? static_cast<int>(minutes) : 0;
          }
          return -1;
       }
@@ -670,22 +702,30 @@ namespace HM
          if (const JsonValue *v = document.Get("alarm_minutes"))
          {
             fields.hasAlarm = true;
-            fields.alarmMinutes = v->IsNumber() ? static_cast<int>(v->AsNumber()) : -1;
-            if (fields.alarmMinutes > 60 * 24 * 366)
+            // Held to its range as the number it is, before it is an int: a number
+            // past an int's range made the conversion undefined (INT_MIN on x64),
+            // which passed the check. Made an int, it is truncated as it was; -1
+            // and below is no alarm.
+            const double minutes = v->IsNumber() ? v->AsNumber() : -1;
+            if (!(minutes < 60 * 24 * 366 + 1))
             {
                problem = "alarm_minutes is at most a year";
                return false;
             }
+            fields.alarmMinutes = minutes > -1 ? static_cast<int>(minutes) : -1;
          }
          if (const JsonValue *v = document.Get("priority"))
          {
             fields.hasPriority = true;
-            fields.priority = v->IsNumber() ? static_cast<int>(v->AsNumber()) : 0;
-            if (fields.priority < 0 || fields.priority > 9)
+            // The same: checked as the number it is, then truncated as it was,
+            // so 2.5 is 2 and 1e20 is refused rather than undefined.
+            const double priority = v->IsNumber() ? v->AsNumber() : 0;
+            if (!(priority > -1 && priority < 10))
             {
                problem = "priority is 0 (none) to 9, 1 the highest";
                return false;
             }
+            fields.priority = static_cast<int>(priority);
          }
          if (const JsonValue *v = document.Get("completed")) { fields.hasCompleted = true; fields.completed = v->AsBool(); }
          if (const JsonValue *v = document.Get("attendees"))
@@ -1098,7 +1138,7 @@ namespace HM
             ",\"tz\":\"" + Esc(tz) +
             "\",\"completed\":" + AnsiString(completed ? "true" : "false") +
             ",\"completed_at\":\"" + Esc(component->Value("COMPLETED")) +
-            "\",\"priority\":" + (priority.IsEmpty() ? AnsiString("0") : IntText(atoi(priority.c_str()))) +
+            "\",\"priority\":" + IntText(PriorityOf(priority)) +
             ",\"status\":\"" + Esc(status) +
             "\",\"writable\":" + AnsiString(visible.writable ? "true" : "false") +
             ",\"mine\":" + AnsiString(visible.mine ? "true" : "false") +
@@ -1886,7 +1926,7 @@ namespace HM
 
       bool hasAttendees = master->Property("ATTENDEE") != nullptr;
       if (hasAttendees && !organiserIsOther)
-         SetPlain(*master, "SEQUENCE", IntText(SequenceOf(*master) + 1));
+         SetPlain(*master, "SEQUENCE", IntText(NextSequence(*master)));
 
       if (target.calendar.id != visible.calendar.id)
       {
@@ -1969,7 +2009,7 @@ namespace HM
 
       if (notify && master->Property("ATTENDEE"))
       {
-         SetPlain(*master, "SEQUENCE", IntText(SequenceOf(*master) + 1));
+         SetPlain(*master, "SEQUENCE", IntText(NextSequence(*master)));
          SetPlain(*master, "STATUS", "CANCELLED");
          AnsiString mailProblem;
          int status = SendEventMail_(account, tree, "CANCEL", mailProblem);
@@ -2160,7 +2200,7 @@ namespace HM
       }
       if (!ApplyFields(*master, fields, tz, allDay, "", "", problem))
          return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(problem) + "\"}");
-      SetPlain(*master, "SEQUENCE", IntText(SequenceOf(*master) + 1));
+      SetPlain(*master, "SEQUENCE", IntText(NextSequence(*master)));
 
       Visible target = visible;
       const JsonValue *calendarValue = document.Get("calendar");
