@@ -328,7 +328,7 @@ namespace HM
 
          struct Affected
          {
-            __int64 id;
+            __int64 id = 0;
             String name;
             String mailbox;
          };

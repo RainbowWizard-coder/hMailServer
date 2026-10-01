@@ -138,7 +138,7 @@ namespace HM
       void
       AppendTimestamp_(char *buffer, size_t buffer_size, size_t &offset)
       {
-         struct timespec now;
+         struct timespec now = {};
          ::clock_gettime(CLOCK_REALTIME, &now);
 
          long long seconds = now.tv_sec;

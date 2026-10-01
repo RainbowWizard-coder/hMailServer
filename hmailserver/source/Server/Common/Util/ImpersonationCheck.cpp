@@ -56,7 +56,7 @@ namespace HM
    // partner names prepared once.
    struct ImpersonationCheck::Facts
    {
-      time_t made;
+      time_t made = 0;
       std::vector<Person> people;
       std::vector<Name> names;
    };

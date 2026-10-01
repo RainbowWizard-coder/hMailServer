@@ -669,7 +669,7 @@ namespace HM
       struct Substitution
       {
          String text;
-         bool used;
+         bool used = false;
       };
 
       // The text each parameter token expands to. Escape() and the integer

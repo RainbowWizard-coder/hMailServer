@@ -453,7 +453,7 @@ namespace HM
       {
          std::string body;
          std::string origin;
-         __int64 size;
+         __int64 size = 0;
          Bytes root;
          std::vector<std::pair<std::string, Bytes> > signatures;   // name, hint||signature
       };
@@ -1223,7 +1223,8 @@ namespace HM
       if (notBefore == -2 || notBefore > 0)
          return Fail_(verdict, _T("The log recorded the signature before the certificate became valid."));
       int notAfter = ASN1_TIME_cmp_time_t(X509_get0_notAfter(leaf.get()), when);
-      if (notAfter == -2 || notAfter < 0)
+      // -1: expired by then; -2: the time could not be compared. Both refuse.
+      if (notAfter < 0)
          return Fail_(verdict, _T("The log recorded the signature after the certificate had expired."));
 
       {

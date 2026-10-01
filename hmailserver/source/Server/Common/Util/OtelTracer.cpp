@@ -153,7 +153,7 @@ namespace HM
       // there is no 1601 epoch to subtract and no tick size to multiply by.
       // CLOCK_REALTIME rather than CLOCK_MONOTONIC, because a span timestamp is
       // a wall-clock instant that a collector lines up against other machines.
-      struct timespec now;
+      struct timespec now = {};
       ::clock_gettime(CLOCK_REALTIME, &now);
       return static_cast<unsigned __int64>(now.tv_sec) * 1000000000ULL +
              static_cast<unsigned __int64>(now.tv_nsec);

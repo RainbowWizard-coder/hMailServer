@@ -2023,7 +2023,7 @@ namespace HM
 
          struct Override
          {
-            __int64 recurrenceId;
+            __int64 recurrenceId = 0;
             ComponentTimes times;
          };
          std::vector<Override> overrides;

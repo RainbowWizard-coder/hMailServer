@@ -38,21 +38,21 @@ namespace HM
          // "%%", "%_" and "%-" carry no letter. The character which follows the
          // percent sign is kept as written; what it stands for is section 7.1's
          // business rather than the grammar's.
-         bool is_literal;
-         char literal;
+         bool is_literal = false;
+         char literal = 0;
 
          // The macro letter, as written. ABNF makes the letter itself case
          // insensitive; section 7.1 gives the upper case spelling the added
          // meaning that the expansion is URL escaped, so the case is kept.
-         char letter;
+         char letter = 0;
 
          // How many of the right-hand parts to keep. Zero means all of them: either no
          // digits were written, or a zero was, which RFC 7208 neither allows nor says what
          // to do with - see README.md.
-         int digits;
+         int digits = 0;
 
          // The "r" of the transformers, in either case.
-         bool reverse;
+         bool reverse = false;
 
          // The characters to split the value on, as written. Empty where none
          // were, and section 7.1's default is then ".".
@@ -60,7 +60,7 @@ namespace HM
 
          // Just past the closing "}", or past the two characters of a "%%",
          // "%_" or "%-".
-         int end;
+         int end = 0;
       };
 
       // Reads the macro expansion which begins at position. Returns false if

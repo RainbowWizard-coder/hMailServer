@@ -1352,7 +1352,7 @@ namespace HM
       // account enrols again.
       struct SealedFactor
       {
-         __int64 id;
+         __int64 id = 0;
          String address;
          String stored;
       };

@@ -26,7 +26,7 @@ namespace HM
 
       struct EnvelopeToken
       {
-         EnvelopeTokenKind kind;
+         EnvelopeTokenKind kind = EnvelopeTokenAtom;
          std::string text;
       };
 

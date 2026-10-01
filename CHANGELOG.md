@@ -1955,6 +1955,22 @@ counts against that ceiling and against the account's own; found by the project'
   `checkers` job runs: lines and translations made to pass and to fail its rules, among them each shape it missed
   before 6.3.6. ControlPanel.Tests: 974 tests before, 1,017 after.
 
+- **Forty-one static-analysis findings - members left unset, dead code and tests already implied - fixed (the
+  SAST triage of 6.3.6).** None of it changes what the server does. Twenty-seven structures that are filled field
+  by field - the archive index's and the ZIP writer's entries, the SPF macro reader's result, the S/MIME key rows
+  and twenty-three more - and the logger's copies of `LogLevel` and `MaxLogLineLen` and the SMTP session's message
+  start time, which their constructors left unset and which are written before they are read, start at zero,
+  `false`, a null pointer or an enumeration's first value, so a field that a later change forgets to fill holds a
+  known value rather than whatever the memory held; on Linux, the `timespec` that the crash record and an
+  OpenTelemetry span read with an unchecked `clock_gettime` starts zeroed. A MIME body's part iterator starts at the
+  end of its empty part list, where `Clear()` puts it, rather than unset, and `MimeHeader` and `MimeBody` call their
+  own `Clear()` by name in their destructors, the call a destructor makes anyway. Dead code goes: `CachedObject`'s
+  default constructor, which nothing called and which left its id, creation time and size unset; the three
+  `*_MEDIATYPE` macros, which nothing used and the first of which could not have compiled; and two tests already
+  implied where they stand - a public-folder test inside the public-folder branch of IMAP `CREATE`, and `== -2`
+  beside `< 0` in the update verifier's certificate-expiry check. Their 41 lines are gone from
+  `build/ci/static-analysis-baseline.txt`.
+
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 
 ---

@@ -182,7 +182,7 @@ namespace HM
          }
 
          // Check if the user is trying to create a new root public folder, such as Public folders/Test
-         if (bIsPublicFolder && !pParentFolder)
+         if (!pParentFolder)
             return IMAPResult(IMAPResult::ResultNo, "ACL: Root public folders can only be created using administration tools.");
       }
 

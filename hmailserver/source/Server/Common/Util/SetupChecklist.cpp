@@ -206,7 +206,7 @@ namespace HM
 
       struct Finding
       {
-         State state;
+         State state = StateNotNeeded;
          AnsiString code;
          std::vector<AnsiString> args;
          // The one step that puts it right, as a JSON object {method, path, body}

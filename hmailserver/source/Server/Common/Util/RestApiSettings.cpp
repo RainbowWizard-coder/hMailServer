@@ -2803,7 +2803,7 @@ namespace
 
    struct Change
    {
-      const Row *row;
+      const Row *row = nullptr;
       Value value;
    };
 

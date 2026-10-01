@@ -2164,7 +2164,7 @@ namespace HM
       // inside it, and its records are charted on the day it begins.
       struct ReportRow
       {
-         __int64 begin;
+         __int64 begin = 0;
          AnsiString org;
       };
 

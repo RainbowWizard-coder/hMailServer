@@ -176,7 +176,7 @@ namespace HM
    {
    public:
       MimeHeader() {}
-      virtual ~MimeHeader() { Clear(); }
+      virtual ~MimeHeader() { MimeHeader::Clear(); }
 
    public:
       enum MediaType
@@ -457,8 +457,8 @@ namespace HM
    {
    public:
       MimeBody() :            // instantiate a MimeBody object explicitly is not allowed. call CreatePart()
-         part_index_(0) {}
-      virtual ~MimeBody() { Clear(); }
+         part_index_(0), find_(bodies_.end()) {}
+      virtual ~MimeBody() { MimeBody::Clear(); }
 
    public:
       int GetContentLength() const;

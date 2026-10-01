@@ -32,18 +32,18 @@ namespace HM
 
       struct Entry
       {
-         __int64 id;
+         __int64 id = 0;
          String time;
          String domain;
          String mailbox;
-         int direction;
+         int direction = 0;
          String sender;
          String recipients;
          String subject;
          String messageId;
          String path;
-         __int64 size;
-         bool hold;
+         __int64 size = 0;
+         bool hold = false;
       };
 
       struct Criteria

@@ -95,8 +95,8 @@ namespace HM
 
       // An entry's size as the object reports it NOW, rather than the snapshot
       // taken when it was cached - the two differ by the whole object for anything
-      // that is cached before it is filled. Null-checked because a
-      // default-constructed CachedObject carries no object at all.
+      // that is cached before it is filled. Null-checked as a guard; every
+      // CachedObject is made from an object.
       static size_t LiveSizeOf_(const CachedObject<T> &item)
       {
          return item.object_ ? item.object_->GetEstimatedCachingSize() : 0;

@@ -408,7 +408,7 @@ namespace HM
       std::shared_ptr<ScramSha256> scram_session_;
       std::shared_ptr<GssapiAcceptor> gssapi_session_;
       
-      DWORD message_start_tc_;
+      DWORD message_start_tc_ = 0;
 
       // When the final dot / last BDAT chunk was received and the accept/save work
       // was handed to the async queue. The client (a relaying MTA) starts its

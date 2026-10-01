@@ -127,17 +127,17 @@ namespace HM
 
       struct KeyRow
       {
-         __int64 id;
-         int kind;
+         __int64 id = 0;
+         int kind = 0;
          String address;
          String name;
          AnsiString fingerprint;
          AnsiString certificate;
          AnsiString chain;
          AnsiString key;
-         __int64 notAfter;
-         __int64 created;
-         bool authority;
+         __int64 notAfter = 0;
+         __int64 created = 0;
+         bool authority = false;
       };
 
       __int64 Now()

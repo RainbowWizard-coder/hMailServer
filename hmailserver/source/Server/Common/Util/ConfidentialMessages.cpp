@@ -1100,9 +1100,9 @@ namespace HM
 
       struct Lapsed
       {
-         __int64 id;
+         __int64 id = 0;
          String file;
-         bool remove_row;
+         bool remove_row = false;
       };
       std::vector<Lapsed> lapsed;
 

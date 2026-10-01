@@ -250,8 +250,8 @@ namespace HM
       // alone.
       std::atomic<bool> enable_live_log_;
       bool sep_svc_logs_;
-      int  log_level_;      
-      int  max_log_line_len_;      
+      int  log_level_ = 0;
+      int  max_log_line_len_ = 0;
 
       String live_log_;
 

@@ -114,15 +114,6 @@ namespace HM
    #define DEREGISTER_FIELDCODER(field_name) \
       MimeEnvironment::RegisterFieldCoder(field_name, 0)
 
-   #define DECLARE_MEDIATYPE(class_name) \
-      public: static std::shared_ptr<MimeBody> CreateObject() { return new class_name; }
-
-   #define REGISTER_MEDIATYPE(media_type, class_name) \
-      MimeEnvironment::RegisterMediaType(media_type, class_name::CreateObject)
-
-   #define DEREGISTER_MEDIATYPE(media_type) \
-      MimeEnvironment::RegisterMediaType(media_type, 0)
-
    //////////////////////////////////////////////////////////////////////
    // MimeCodeBase - base class for MIME encoding/decoding
    // default implementation for binary/unknown encoding mechanism

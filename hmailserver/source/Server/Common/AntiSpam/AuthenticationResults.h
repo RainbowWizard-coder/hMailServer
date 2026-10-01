@@ -99,7 +99,7 @@ namespace HM
 
       struct DkimEntry
       {
-         MethodResult result;
+         MethodResult result = ResultNotEvaluated;
          AnsiString domain;
       };
 

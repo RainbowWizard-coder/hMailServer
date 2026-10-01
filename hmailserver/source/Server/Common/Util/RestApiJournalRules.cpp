@@ -151,7 +151,7 @@ namespace
       String direction;
       String mode;
       String note;
-      bool enabled;
+      bool enabled = false;
    };
 
    Wanted FromRule(std::shared_ptr<JournalRule> rule)

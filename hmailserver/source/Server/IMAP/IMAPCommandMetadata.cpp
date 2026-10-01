@@ -325,7 +325,7 @@ namespace HM
       {
          String entryName;
          String value;
-         bool remove;
+         bool remove = false;
       };
 
       std::vector<Operation> operations;

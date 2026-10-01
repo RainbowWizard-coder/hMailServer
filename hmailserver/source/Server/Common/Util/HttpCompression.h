@@ -131,7 +131,7 @@ namespace HM
       {
          AnsiString gzip;
          AnsiString deflate;
-         unsigned long long used;
+         unsigned long long used = 0;
       };
 
       std::mutex mutex_;

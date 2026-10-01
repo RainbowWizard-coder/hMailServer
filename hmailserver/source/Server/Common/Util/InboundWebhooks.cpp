@@ -2691,7 +2691,7 @@ namespace HM
 
          struct Rewrite
          {
-            __int64 id;
+            __int64 id = 0;
             String file;
             String recipients;
             String quiet;

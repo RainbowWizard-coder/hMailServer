@@ -43,13 +43,13 @@ namespace HM
       struct Entry
       {
          AnsiString name;
-         unsigned int crc;
-         unsigned int compressedSize;
-         unsigned int size;
-         unsigned int offset;
-         unsigned short method;
-         unsigned short time;
-         unsigned short date;
+         unsigned int crc = 0;
+         unsigned int compressedSize = 0;
+         unsigned int size = 0;
+         unsigned int offset = 0;
+         unsigned short method = 0;
+         unsigned short time = 0;
+         unsigned short date = 0;
       };
 
       static void Put16_(AnsiString &out, unsigned int value);

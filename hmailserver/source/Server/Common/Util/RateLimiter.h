@@ -333,8 +333,8 @@ namespace HM
       struct Counted
       {
          String key;
-         int messages;
-         int recipients;
+         int messages = 0;
+         int recipients = 0;
       };
 
       bool kept_;

@@ -677,7 +677,7 @@ namespace HM
 
       struct Row
       {
-         __int64 id;
+         __int64 id = 0;
          String text;
       };
       std::vector<Row> rows;

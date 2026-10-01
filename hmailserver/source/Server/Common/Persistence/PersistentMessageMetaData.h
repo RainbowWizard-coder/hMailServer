@@ -17,9 +17,9 @@ namespace HM
       class MessageInfo
       {
       public:
-         __int64 MessageID;
-         int AccountID;
-         int FolderID;
+         __int64 MessageID = 0;
+         int AccountID = 0;
+         int FolderID = 0;
          String FileName;
       };
 

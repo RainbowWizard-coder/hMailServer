@@ -287,10 +287,10 @@ namespace HM
       // message they were read from.
       struct Row
       {
-         __int64 id;
-         __int64 folder_id;
-         unsigned int uid;
-         int size;
+         __int64 id = 0;
+         __int64 folder_id = 0;
+         unsigned int uid = 0;
+         int size = 0;
          String received;
          AnsiString flags;
       };

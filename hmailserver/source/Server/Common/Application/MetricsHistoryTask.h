@@ -39,7 +39,7 @@ namespace HM
       struct Sample
       {
          String time;
-         double value;
+         double value = 0;
       };
 
       // Records the current value of every metric. Returns the rows written, or

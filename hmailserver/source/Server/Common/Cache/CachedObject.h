@@ -10,8 +10,6 @@ namespace HM
    template <typename T>
    struct CachedObject
    {
-      CachedObject() {}
-
       CachedObject(std::shared_ptr<T> object) :
          object_(object),
          id_(object->GetID()),
@@ -28,8 +26,8 @@ namespace HM
 
          int iAge = iCurrentTime - creation_time_;
 
-         // Only reachable for a default-constructed object, whose creation time
-         // is indeterminate. Treat it as far too old to use.
+         // Not reachable while every CachedObject is made from an object; kept as
+         // a guard. Treat it as far too old to use.
          if (iAge < 0)
             iAge = 60 * 60 * 24;
 

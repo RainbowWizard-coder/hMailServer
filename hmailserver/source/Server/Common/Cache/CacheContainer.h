@@ -90,7 +90,7 @@ namespace HM
       struct SettingOverrideEntry
       {
          std::shared_ptr<const std::map<String, String> > values;
-         time_t loaded_at;
+         time_t loaded_at = 0;
       };
 
       // Guards the two below. Never held across a database read: a miss reads
@@ -104,7 +104,7 @@ namespace HM
       struct SettingOverrideNamedEntry
       {
          std::shared_ptr<const std::map<std::pair<int, __int64>, String> > rows;
-         time_t loaded_at;
+         time_t loaded_at = 0;
       };
 
       std::map<String, SettingOverrideNamedEntry> setting_overrides_named_;
